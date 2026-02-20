@@ -80,10 +80,13 @@
     rgba(20, 200, 220, 0.35)
   );
   background-size: 300% 100%;
-  animation: auroraShift 4s ease-in-out infinite;
+  /* v4.15.3: Animation only runs when .aurora-active is set (energy regenerating) */
   transition: width 1s linear;
   pointer-events: none;
   z-index: 0;
+}
+.hud-energy-regen-fill.aurora-active {
+  animation: auroraShift 4s ease-in-out infinite;
 }
 @keyframes auroraShift {
   0% {

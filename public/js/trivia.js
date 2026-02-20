@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Trivia Module  (v4.15.0)
+ *  Game Hub — Trivia Module  (v4.15.3)
  *  Solo mode, Duel mode, timer, results
  *  ─ Forfeit, cancel, lobby ready-up, voice invite
  *  ─ GameStore integration (trivia slice)
@@ -115,7 +115,13 @@ const TriviaGame = (() => {
     }
   }
 
+  // v4.15.3: Cache for duel history — skip DOM rebuild on unchanged data
+  let _lastHistoryJSON = "";
+
   function renderDuelHistory(data) {
+    const json = JSON.stringify(data);
+    if (json === _lastHistoryJSON) return; // No change — skip
+    _lastHistoryJSON = json;
     const list = $("duel-history-list");
     const pager = $("duel-history-pager");
     const panel = $("trivia-duel-history");
@@ -524,7 +530,15 @@ const TriviaGame = (() => {
 
   /* ═══ TIMER ═══ */
   let timerStart, timerDuration, timerRaf;
+  // v4.15.3: Cached DOM refs for timer (eliminates getElementById × 2 per rAF frame)
+  let _timerFillEl = null;
+  let _timerTextEl = null;
+  let _lastDanger = false;
+
   function startTimer(seconds) {
+    _timerFillEl = $("trivia-timer-fill");
+    _timerTextEl = $("trivia-timer-text");
+    _lastDanger = false;
     timerStart = Date.now();
     timerDuration = seconds * 1000;
     updateTimer();
@@ -535,10 +549,16 @@ const TriviaGame = (() => {
     const pct = (remaining / timerDuration) * 100;
     const sec = Math.ceil(remaining / 1000);
 
-    $("trivia-timer-fill").style.width = pct + "%";
-    const tt = $("trivia-timer-text");
-    tt.textContent = sec + "s";
-    tt.classList.toggle("danger", sec <= 3);
+    if (_timerFillEl) _timerFillEl.style.width = pct + "%";
+    if (_timerTextEl) {
+      _timerTextEl.textContent = sec + "s";
+      // v4.15.3: Only toggle class when danger state actually changes
+      const isDanger = sec <= 3;
+      if (isDanger !== _lastDanger) {
+        _timerTextEl.classList.toggle("danger", isDanger);
+        _lastDanger = isDanger;
+      }
+    }
 
     if (remaining <= 0 && !session.answered) {
       submitAnswer(null); // Time's up

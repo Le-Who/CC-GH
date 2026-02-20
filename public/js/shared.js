@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Shared Module (v4.15.2)
+ *  Game Hub — Shared Module (v4.15.3)
  *  Discord SDK auth, API helper, screen navigation
  *  CSP-compliant: no inline handlers, no external fonts
  * ═══════════════════════════════════════════════════ */

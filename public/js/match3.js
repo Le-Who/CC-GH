@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v4.15.2)
+ *  Game Hub — Match-3 Module (v4.15.3)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode

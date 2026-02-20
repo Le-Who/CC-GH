@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — HUD Module (v4.15.2)
+ *  Game Hub — HUD Module (v4.15.3)
  *  TopHUD for Energy & Gold display
  *  Registers 'resources' slice in GameStore
  * ═══════════════════════════════════════════════════ */
@@ -103,7 +103,11 @@ const HUD = (function () {
             if (_lastRegenWidth !== "0%") {
               if (!$regenFill)
                 $regenFill = document.getElementById("hud-energy-regen-fill");
-              if ($regenFill) $regenFill.style.width = "0%";
+              if ($regenFill) {
+                $regenFill.style.width = "0%";
+                // v4.15.3: Stop aurora animation when energy full
+                $regenFill.classList.remove("aurora-active");
+              }
               _lastRegenWidth = "0%";
             }
             return;
@@ -126,7 +130,13 @@ const HUD = (function () {
           if (newWidth !== _lastRegenWidth) {
             if (!$regenFill)
               $regenFill = document.getElementById("hud-energy-regen-fill");
-            if ($regenFill) $regenFill.style.width = newWidth;
+            if ($regenFill) {
+              $regenFill.style.width = newWidth;
+              // v4.15.3: Start aurora animation when regenerating
+              if (!$regenFill.classList.contains("aurora-active")) {
+                $regenFill.classList.add("aurora-active");
+              }
+            }
             _lastRegenWidth = newWidth;
           }
           updateDisplay({ ...res, energy: e });

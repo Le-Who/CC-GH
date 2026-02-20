@@ -1,5 +1,16 @@
 # Changelog
 
+## v4.15.3 — 2026-02-20
+
+### Performance Optimizations (Second Audit)
+
+- **Trivia timer DOM cache** (`trivia.js`): Cached `timerFillEl` and `timerTextEl` refs at `startTimer()`. Added `lastDanger` diff guard — eliminates `getElementById` × 2 and redundant `classList.toggle` per rAF frame (~60fps).
+- **Farm glow compositor-only** (`farm.css`): Replaced paint-heavy `box-shadow` animation on `.farm-plot.ready` with `::after` pseudo + `opacity` animation. Only the compositor runs now — zero repaint across 6–9 simultaneous plots.
+- **HUD aurora animation gate** (`hud.css` + `hud.js`): Gated `auroraShift` animation behind `.aurora-active` class. Animation only runs while energy is regenerating; stops when full — eliminates continuous `background-position` repaint.
+- **Toast `will-change` lifecycle** (`base.css`): Moved `will-change: transform, opacity` from `.toast` to `.toast.show`. GPU composite layers now only exist during visible toast animation.
+- **Cache-busting params** (`index.html`): Updated all 15 CSS/JS `?v=` params from stale `4.9`/`4.11` to `4.15.3` — ensures browsers serve latest code after deploy.
+- **Duel history render cache** (`trivia.js`): Added `_lastHistoryJSON` cache to skip DOM rebuild on unchanged data in `renderDuelHistory()`.
+
 ## v4.15.2 — 2026-02-20
 
 ### Performance Optimizations
