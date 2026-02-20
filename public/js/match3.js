@@ -67,9 +67,11 @@ const Match3Game = (() => {
 
   /** v4.12.1: Restore drop-mode state from a savedModes entry (DRY helper) */
   function restoreDropState(saved) {
-    dropStars = saved.dropStars
+    // Hydrate dropStars in case it came from Firestore (object instead of array)
+    const raw = saved.dropStars
       ? JSON.parse(JSON.stringify(saved.dropStars))
       : [];
+    dropStars = hydrateArray(raw);
     starsDropped = saved.starsDropped || 0;
   }
 
@@ -134,6 +136,23 @@ const Match3Game = (() => {
         const row = b[k];
         return Array.isArray(row) ? row : Object.values(row);
       });
+  }
+
+  /** Firestore converts flat arrays to objects — convert back */
+  function hydrateArray(a) {
+    if (Array.isArray(a)) return a;
+    if (a && typeof a === "object") return Object.values(a);
+    return [];
+  }
+
+  /** Hydrate all boards and arrays inside a savedModes object from Firestore */
+  function hydrateSavedModes(modes) {
+    for (const mode of Object.keys(modes)) {
+      const s = modes[mode];
+      if (s && s.board) s.board = hydrateBoard(s.board);
+      if (s && s.dropStars) s.dropStars = hydrateArray(s.dropStars);
+    }
+    return modes;
   }
 
   /** Sync match3 state to GameStore */
@@ -357,6 +376,20 @@ const Match3Game = (() => {
         await startGame("classic");
       }
     }
+
+    // v4.15: Flush savedModes on tab close (beats 2s debounce race)
+    window.addEventListener("beforeunload", () => {
+      if (Object.keys(savedModes).length === 0) return;
+      const headers = { "Content-Type": "application/json" };
+      if (HUB.accessToken)
+        headers["Authorization"] = `Bearer ${HUB.accessToken}`;
+      fetch("/api/game/sync-modes", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ userId: HUB.userId, savedModes }),
+        keepalive: true,
+      }).catch(() => {});
+    });
   }
 
   /* ═══ Energy Gate ═══ */
@@ -534,11 +567,11 @@ const Match3Game = (() => {
       if (!data) return;
 
       // v4.11.1: Restore ALL saved modes from server (cross-device sync)
-      const serverSavedModes = data.savedModes || {};
+      const serverSavedModes = hydrateSavedModes(data.savedModes || {});
 
       if (data.game) {
         const restoredMode = data.game.mode || gameMode;
-        board = data.game.board;
+        board = hydrateBoard(data.game.board);
         score = data.game.score || 0;
         movesLeft = data.game.movesLeft || 0;
         combo = data.game.combo || 0;

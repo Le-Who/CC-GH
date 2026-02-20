@@ -29,6 +29,14 @@
 
 - **Modal scrollbar flash**: `<dialog>` overlays briefly showed horizontal then vertical scrollbars during `modalPop` scale animation. Root cause: user-agent `overflow: auto` on `<dialog>` combined with `scale(0.9→1)` caused intermediate-size overflow recalculation. Fix: added `overflow: hidden`, `max-width/height` constraints, scrollbar suppression (`scrollbar-width: none` + `::-webkit-scrollbar`) on `.modal`; `contain: layout` and `width: min()` on `.modal-card`.
 
+### Cross-Device State Sync Fixes
+
+- **M3 board hydration**: `restoreGame()` now calls `hydrateBoard()` on all server `savedModes` boards. Firestore converts 2D arrays to objects — without hydration, `board[y][x]` returned `undefined` on cross-device restore.
+- **M3 dropStars hydration**: Added `hydrateArray()` utility and applied in `restoreDropState()`. Firestore converted `[{x,y}]` to `{0:{x,y}}`, breaking `for..of` iteration.
+- **Blox auto-apply server state**: `init()` now loads and applies server state to in-memory variables immediately, making Resume work correctly with cross-device data.
+- **Blox graceful pieceId fallback**: `loadState()` now falls back to the "dot" piece for unknown piece IDs instead of discarding the entire save.
+- **Tab-close state flush**: Both games now use `fetch({keepalive: true})` on `beforeunload` to guarantee state delivery when the browser closes during the 2s server-side debounce window. Uses `fetch` instead of `sendBeacon` to preserve Discord auth headers.
+
 ## v4.14.3 — 2026-02-20
 
 ### Deployment & Data Recovery

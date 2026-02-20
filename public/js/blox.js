@@ -371,13 +371,12 @@ const BloxGame = (() => {
       const hydratedTray = Array.isArray(state.tray)
         ? state.tray
         : Object.values(state.tray);
-      // Reconstruct tray pieces from IDs
+      // Reconstruct tray pieces from IDs (graceful fallback for unknown IDs)
+      const fallbackPiece = PIECES[0]; // "dot" — safest fallback
       const restoredTray = hydratedTray.map((t) => {
-        const piece = PIECES.find((p) => p.id === t.pieceId);
-        if (!piece) return null;
+        const piece = PIECES.find((p) => p.id === t.pieceId) || fallbackPiece;
         return { piece, placed: t.placed };
       });
-      if (restoredTray.some((t) => t === null)) return null;
       return {
         board: hydratedBoard,
         tray: restoredTray,
@@ -1149,6 +1148,16 @@ const BloxGame = (() => {
           STORAGE_KEY,
           JSON.stringify(serverData.savedState),
         );
+        // v4.15: Also apply server state to in-memory variables
+        // so Resume works correctly with cross-device data
+        const loaded = loadState();
+        if (loaded && loaded.gameActive) {
+          board = loaded.board;
+          tray = loaded.tray;
+          score = loaded.score;
+          linesCleared = loaded.linesCleared;
+          highScore = Math.max(highScore, loaded.highScore);
+        }
       }
     } catch (_) {
       /* offline — use local only */
@@ -1164,6 +1173,28 @@ const BloxGame = (() => {
 
     // v4.9: Initial leaderboard fetch
     fetchBloxLeaderboard();
+
+    // v4.15: Flush state on tab close (beats 2s debounce race)
+    window.addEventListener("beforeunload", () => {
+      if (!gameActive) return;
+      const state = {
+        board,
+        tray: tray.map((t) => ({ pieceId: t.piece.id, placed: t.placed })),
+        score,
+        linesCleared,
+        highScore,
+        gameActive,
+      };
+      const headers = { "Content-Type": "application/json" };
+      if (HUB.accessToken)
+        headers["Authorization"] = `Bearer ${HUB.accessToken}`;
+      fetch("/api/blox/sync", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ userId: HUB.userId, savedState: state }),
+        keepalive: true,
+      }).catch(() => {});
+    });
   }
 
   function onEnter() {
