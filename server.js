@@ -216,9 +216,10 @@ function getIndexHtml() {
   let html = indexHtmlTemplate;
 
   // v4.6: Inject global version constant so client JS can read it
+  // Also inject asset content hashes for SmartLoader cache busting
   html = html.replace(
     "<!--APP_VERSION_INJECT-->",
-    `<script>window.__APP_VERSION__="${APP_VERSION}"</script>`,
+    `<script>window.__APP_VERSION__="${APP_VERSION}";window.__ASSET_HASHES__=${JSON.stringify(assetHashes)}</script>`,
   );
 
   // v4.6: Replace version badge placeholder

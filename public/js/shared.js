@@ -364,7 +364,12 @@ const SmartLoader = {
     if (this.loading[name]) return this.loading[name];
     this.loading[name] = new Promise((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = `js/${name}.js?v=${window.__APP_VERSION__ || Date.now()}`;
+      const assetKey = `js/${name}.js`;
+      const hash =
+        window.__ASSET_HASHES__?.[assetKey] ||
+        window.__APP_VERSION__ ||
+        Date.now();
+      script.src = `${assetKey}?v=${hash}`;
       script.onload = () => {
         this.loaded[name] = true;
         resolve();
