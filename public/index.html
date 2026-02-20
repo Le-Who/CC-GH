@@ -608,8 +608,8 @@
         </dialog>
 
         <!-- Game Over Overlay -->
-        <div class="overlay" id="m3-overlay">
-          <div class="overlay-card overlay-gameover">
+        <dialog class="modal" id="m3-overlay">
+          <div class="modal-card overlay-gameover">
             <h2>🏆 Game Over</h2>
             <div class="overlay-score" id="m3-final-score">0</div>
             <div class="overlay-detail" style="margin-bottom: 20px">
@@ -628,9 +628,11 @@
             >
               🎉 New Record!
             </div>
-            <button class="btn btn-primary" id="btn-m3-dismiss">✅ OK</button>
+            <form method="dialog">
+              <button class="btn btn-primary" id="btn-m3-dismiss">✅ OK</button>
+            </form>
           </div>
-        </div>
+        </dialog>
       </section>
       <!-- /screen-track removed for View Transitions API -->
     </div>

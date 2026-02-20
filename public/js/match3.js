@@ -644,7 +644,7 @@ const Match3Game = (() => {
       timedSecondsLeft = s.timedSecondsLeft || TIMED_DURATION;
       gameActive = true;
 
-      $("m3-overlay").classList.remove("show");
+      hideGameOver();
       hideM3PauseOverlay();
       hideModeSelector();
       selected = null;
@@ -700,7 +700,7 @@ const Match3Game = (() => {
     localStorage.setItem(LAST_MODE_KEY, mode);
     gameMode = mode;
 
-    $("m3-overlay").classList.remove("show");
+    hideGameOver();
     hideM3PauseOverlay();
     hideModeSelector();
     selected = null;
