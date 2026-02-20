@@ -1,5 +1,23 @@
 # Changelog
 
+## v4.15.1 — 2026-02-20
+
+### Bug Fixes
+
+- **Match-3 session loss between visits**: Sessions vanished on re-entry because `init()` skipped localStorage and relied solely on the server, which used a 2s debounced Firestore write. If the tab closed during the debounce window or Cloud Run cold-started, `savedModes` was lost. Fix: `init()` now pre-loads localStorage, `restoreGame()` merges server + localStorage (server wins per-mode, localStorage fills gaps), and `beforeunload` snapshots the active game into `savedModes` + writes localStorage before the server flush.
+- **Blox tab-close data race**: Added `localStorage.setItem()` in Blox `beforeunload` handler as safety net against server debounce race (same pattern as Match-3 fix).
+
+### UX Improvements
+
+#### Building Blox
+
+- **Floating score points**: Object-pooled `+pts` text floats above the board on every line clear. Uses ring-buffer pool of 5 pre-created DOM nodes (ported from Match-3 pattern) with scattered CSS trajectories via `--float-dx`/`--float-rot` custom properties.
+- **Radial petrification game-over**: When no pieces fit, filled blocks "freeze" from center outward — each cell's `transition-delay` is calculated as Euclidean distance from board center × 60ms. Cells turn gray (`#475569`), lose pseudo-3D shadows, and gain `grayscale(0.8)` filter before the game-over overlay appears.
+
+#### Match-3 (Gem Crush)
+
+- **Deadlock reshuffle animation**: When no valid moves remain after a cascade, the board reshuffles with a 3D card-flip wave (`rotateY` 0→90→90→0) instead of silently regenerating. Each cell flips at a diagonal-wave delay (`(col + row) × 0.04s`); gem types change mid-flip while invisible. Drop tokens are preserved during reshuffle.
+
 ## v4.15.0 — 2026-02-20
 
 ### Juicy UI — Visual Overhaul (Match-3 + Building Blox)

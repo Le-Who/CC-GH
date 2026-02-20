@@ -1,6 +1,6 @@
 {
   "name": "game-hub",
-  "version": "4.15.0",
+  "version": "4.15.1",
   "type": "module",
   "private": true,
   "description": "Unified Game Hub — Farm + Trivia + Match-3 in one Discord Activity",
