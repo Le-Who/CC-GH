@@ -1450,7 +1450,7 @@ const Match3Game = (() => {
     $b.classList.remove("disabled");
   }
 
-  /* ═══ Cascade Animation (smooth CSS transitions) ═══ */
+  /* ═══ Cascade Animation (smooth CSS transitions, dynamic gravity) ═══ */
   async function animateCascade(steps) {
     for (const step of steps) {
       // Phase 1: Pop matched gems (with brightness flash)
@@ -1459,9 +1459,21 @@ const Match3Game = (() => {
       }
       await sleep(300); // Longer pop phase for satisfying clear feel
 
-      // Phase 2: Update cells with new types + staggered falling animation
+      // Phase 2: Update cells with new types + distance-scaled falling animation
       const $b = $("m3-board");
       $b.innerHTML = "";
+
+      // Pre-compute fall distances for changed cells
+      const fallDistMap = new Map();
+      for (const f of step.fallen) {
+        const dist = f.toY - f.fromY; // positive = downward
+        fallDistMap.set(`${f.x},${f.toY}`, dist);
+      }
+      for (const f of step.filled) {
+        // New gems enter from above the board — distance = row + 1
+        fallDistMap.set(`${f.x},${f.y}`, f.y + 1);
+      }
+
       const changedSet = new Set();
       for (const { x, y } of step.cleared) changedSet.add(`${x},${y}`);
       for (const f of step.fallen) changedSet.add(`${f.x},${f.toY}`);
@@ -1484,6 +1496,12 @@ const Match3Game = (() => {
           cell.innerHTML = `<span class="gem-icon">${icon}</span>`;
           if (changedSet.has(`${x},${y}`)) {
             cell.classList.add("falling");
+            // Dynamic gravity: scale distance and duration per gem
+            const dist = fallDistMap.get(`${x},${y}`) || 1;
+            cell.style.setProperty("--drop-dist", dist);
+            // Duration: 0.25s base + 0.04s per extra row, capped at 0.55s
+            const dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55);
+            cell.style.setProperty("--fall-dur", `${dur.toFixed(2)}s`);
             // Column-based stagger: each column starts slightly later for cascade effect
             cell.style.animationDelay = `${x * 25 + y * 15}ms`;
           }
@@ -1571,16 +1589,42 @@ const Match3Game = (() => {
     }, 25);
   }
 
-  function showFloatingPoints(x, y, pts) {
+  // ── Float-points Object Pool (avoids GC pressure during cascades) ──
+  const FLOAT_POOL_SIZE = 8;
+  let floatPool = [];
+  let floatPoolIdx = 0;
+
+  function ensureFloatPool() {
+    if (floatPool.length > 0) return;
     const container = $("m3-board-container");
+    if (!container) return;
+    for (let i = 0; i < FLOAT_POOL_SIZE; i++) {
+      const el = document.createElement("div");
+      el.className = "m3-float-points";
+      el.style.opacity = "0";
+      el.style.pointerEvents = "none";
+      container.appendChild(el);
+      floatPool.push(el);
+    }
+  }
+
+  function showFloatingPoints(x, y, pts) {
+    ensureFloatPool();
+    if (floatPool.length === 0) return;
     const cs =
       parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue(
           "--m3-cell",
         ),
       ) || 48;
-    const el = document.createElement("div");
-    el.className = "m3-float-points";
+    // Recycle from pool via ring buffer
+    const el = floatPool[floatPoolIdx % FLOAT_POOL_SIZE];
+    floatPoolIdx++;
+    // Reset animation by removing and re-adding class
+    el.classList.remove("m3-float-points");
+    // Force reflow to restart animation (single read, minimal cost)
+    void el.offsetWidth;
+    el.classList.add("m3-float-points");
     el.textContent = `+${pts}`;
     // Scattered trajectory: random horizontal offset and rotation
     const dx = Math.round((Math.random() - 0.5) * 30); // -15..+15px
@@ -1589,8 +1633,7 @@ const Match3Game = (() => {
     el.style.setProperty("--float-rot", `${rot}deg`);
     el.style.left = `${10 + x * (cs + 3) + cs / 2}px`;
     el.style.top = `${10 + y * (cs + 3)}px`;
-    container.appendChild(el);
-    setTimeout(() => el.remove(), 900);
+    el.style.opacity = "";
   }
 
   function showComboBanner(c) {

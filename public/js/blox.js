@@ -636,16 +636,16 @@ const BloxGame = (() => {
     const onEnd = (ev) => {
       document.removeEventListener("touchmove", onMove);
       document.removeEventListener("touchend", onEnd);
-      removeDragPreview();
       clearGhost();
 
       // Re-enable tray pointer-events
       if (trayEl) trayEl.style.pointerEvents = "";
 
-      // v4.4: Now safe to renderTray to restore visual state
-      renderTray();
-
-      if (dragPieceIdx < 0) return;
+      if (dragPieceIdx < 0) {
+        removeDragPreview();
+        renderTray();
+        return;
+      }
       const touch = ev.changedTouches[0];
       // Use same liftY offset for placement target
       const target = getBoardTarget(
@@ -653,8 +653,24 @@ const BloxGame = (() => {
         touch.clientY - liftY,
         tray[dragPieceIdx].piece,
       );
-      if (target) onCellClick(target.targetR, target.targetC);
+      let placed = false;
+      if (target) {
+        placed = canPlace(
+          tray[dragPieceIdx].piece,
+          target.targetR,
+          target.targetC,
+        );
+        if (placed) {
+          removeDragPreview();
+          onCellClick(target.targetR, target.targetC);
+        }
+      }
+      // Spring return if not placed
+      if (!placed) springReturnPreview(dragPieceIdx);
+      const idx = dragPieceIdx;
       dragPieceIdx = -1;
+      // v4.4: Now safe to renderTray to restore visual state
+      renderTray();
       // Restore swipe after short delay (let touchend propagate)
       setTimeout(() => {
         if (!gameActive) HUB.swipeBlocked = false;
@@ -715,16 +731,24 @@ const BloxGame = (() => {
       document.body.style.cursor = "";
 
       if (mouseDragging) {
-        removeDragPreview();
         clearGhost();
+        let placed = false;
         if (dragPieceIdx >= 0) {
           const target = getBoardTarget(
             ev.clientX,
             ev.clientY,
             tray[dragPieceIdx].piece,
           );
-          if (target) onCellClick(target.targetR, target.targetC);
+          if (
+            target &&
+            canPlace(tray[dragPieceIdx].piece, target.targetR, target.targetC)
+          ) {
+            placed = true;
+            removeDragPreview();
+            onCellClick(target.targetR, target.targetC);
+          }
         }
+        if (!placed) springReturnPreview(dragPieceIdx);
         dragPieceIdx = -1;
         mouseDragging = false;
       } else {
@@ -810,6 +834,43 @@ const BloxGame = (() => {
       dragPreviewEl.remove();
       dragPreviewEl = null;
     }
+  }
+
+  // Spring return: animate preview back to its tray slot before removing
+  function springReturnPreview(pieceIdx) {
+    if (!dragPreviewEl) return;
+    const trayEl = $("blox-tray");
+    const wrappers = trayEl?.querySelectorAll(".blox-piece-wrapper");
+    const target = wrappers?.[pieceIdx];
+    if (!target) {
+      removeDragPreview();
+      return;
+    }
+
+    const previewRect = dragPreviewEl.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    // Compute offset from current position to tray slot center
+    const dx =
+      targetRect.left +
+      targetRect.width / 2 -
+      (previewRect.left + previewRect.width / 2);
+    const dy =
+      targetRect.top +
+      targetRect.height / 2 -
+      (previewRect.top + previewRect.height / 2);
+
+    // Set return vector as CSS variables (animation goes FROM current offset TO 0,0)
+    dragPreviewEl.style.setProperty("--ret-x", `${-dx}px`);
+    dragPreviewEl.style.setProperty("--ret-y", `${-dy}px`);
+    // Move element to target position, animation will spring FROM old position
+    const curTransform = dragPreviewEl.style.transform;
+    dragPreviewEl.style.transform = `translate3d(${targetRect.left + targetRect.width / 2 - previewRect.width / 2}px, ${targetRect.top + targetRect.height / 2 - previewRect.height / 2}px, 0)`;
+    dragPreviewEl.classList.add("returning");
+    const el = dragPreviewEl;
+    dragPreviewEl = null; // release reference so new drags can start
+    setTimeout(() => {
+      el.remove();
+    }, 400);
   }
 
   // ── Interaction ──

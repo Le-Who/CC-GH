@@ -34,6 +34,7 @@
   border-radius: 18px;
   backdrop-filter: blur(12px);
   touch-action: none; /* prevent browser gestures during swipe */
+  contain: layout style paint; /* isolate repaints from rest of page */
 }
 
 /* ─── Cell (Juicy UI: organic back-ease interactions) ─── */
@@ -128,10 +129,12 @@
     filter: brightness(3);
   }
 }
-/* Spring-physics fall: overshoot + settle bounce */
+/* Spring-physics fall: overshoot + settle bounce (dynamic distance via --drop-dist) */
 @keyframes m3Fall {
   0% {
-    transform: translateY(-65px);
+    transform: translateY(
+      calc(var(--drop-dist, 1) * -1 * (var(--m3-cell, 48px) + 3px))
+    );
     opacity: 0;
   }
   45% {
@@ -289,7 +292,7 @@
   will-change: transform, opacity, filter;
 }
 .m3-cell.falling {
-  animation: m3Fall 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: m3Fall var(--fall-dur, 0.48s) cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform, opacity;
 }
 .m3-cell.entering {

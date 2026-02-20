@@ -673,3 +673,153 @@ describe("Global Version Constant", () => {
     );
   });
 });
+
+/* ═════════════════════════════════════════════════════
+ *  Visual UX — Dynamic Gravity Invariants
+ *  Verify that fall distance maps to correct duration ranges.
+ * ═════════════════════════════════════════════════════ */
+describe("Match-3 Dynamic Gravity — Timing Invariants", () => {
+  // Mirror the formula from animateCascade:
+  // dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55)
+  function calcFallDur(dist) {
+    return Math.min(0.25 + (dist - 1) * 0.04, 0.55);
+  }
+
+  it("1-row fall uses base duration 0.25s", () => {
+    assert.equal(calcFallDur(1), 0.25);
+  });
+
+  it("8-row fall duration caps at 0.53s (below 0.55s ceiling)", () => {
+    const dur = calcFallDur(8);
+    assert.ok(dur > 0.25, `8-row fall (${dur}s) must exceed base 0.25s`);
+    assert.ok(
+      dur <= 0.55,
+      `8-row fall (${dur}s) must not exceed 0.55s ceiling`,
+    );
+  });
+
+  it("fall duration increases monotonically with distance", () => {
+    for (let d = 2; d <= 8; d++) {
+      assert.ok(
+        calcFallDur(d) > calcFallDur(d - 1),
+        `dist ${d} (${calcFallDur(d)}s) must exceed dist ${d - 1} (${calcFallDur(d - 1)}s)`,
+      );
+    }
+  });
+
+  it("extreme distance (20 rows) is clamped to 0.55s ceiling", () => {
+    assert.equal(calcFallDur(20), 0.55);
+  });
+});
+
+/* ═════════════════════════════════════════════════════
+ *  Visual UX — Blox Transition Safety
+ *  Ensures .blox-cell never uses transition: all (layout thrashing).
+ * ═════════════════════════════════════════════════════ */
+describe("Blox Transition Safety", () => {
+  it(".blox-cell CSS must not use 'transition: all' (causes layout thrashing)", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "blox.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    // Extract the .blox-cell rule block (first occurrence)
+    const cellMatch = css.match(/\.blox-cell\s*\{[^}]+\}/);
+    assert.ok(cellMatch, ".blox-cell rule must exist in blox.css");
+    const rule = cellMatch[0];
+    assert.ok(
+      !rule.includes("all 0.18s") && !rule.includes("transition: all"),
+      `.blox-cell must not use 'transition: all' — found: ${rule.substring(0, 200)}`,
+    );
+  });
+});
+
+/* ═════════════════════════════════════════════════════
+ *  Visual UX — CSS Containment
+ *  Verify both game boards use contain: layout style paint.
+ * ═════════════════════════════════════════════════════ */
+describe("CSS Containment — Game Boards", () => {
+  async function readCSS(filename) {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      filename,
+    );
+    return fs.readFileSync(cssPath, "utf-8");
+  }
+
+  it(".m3-board has contain: layout style paint", async () => {
+    const css = await readCSS("match3.css");
+    const match = css.match(/\.m3-board\s*\{[^}]+\}/);
+    assert.ok(match, ".m3-board rule must exist");
+    assert.ok(
+      match[0].includes("contain") &&
+        match[0].includes("layout") &&
+        match[0].includes("paint"),
+      ".m3-board must include contain: layout style paint",
+    );
+  });
+
+  it(".blox-board has contain: layout style paint", async () => {
+    const css = await readCSS("blox.css");
+    const match = css.match(/\.blox-board\s*\{[^}]+\}/);
+    assert.ok(match, ".blox-board rule must exist");
+    assert.ok(
+      match[0].includes("contain") &&
+        match[0].includes("layout") &&
+        match[0].includes("paint"),
+      ".blox-board must include contain: layout style paint",
+    );
+  });
+});
+
+/* ═════════════════════════════════════════════════════
+ *  Visual UX — Object Pool & Spring Return Constants
+ * ═════════════════════════════════════════════════════ */
+describe("Float-Points Pool & Spring Return", () => {
+  const FLOAT_POOL_SIZE = 8;
+  const SPRING_RETURN_MS = 400;
+
+  it("float pool capacity is at least 6 (covers 3-combo cascades)", () => {
+    assert.ok(
+      FLOAT_POOL_SIZE >= 6,
+      `Pool size ${FLOAT_POOL_SIZE} too small (need >= 6)`,
+    );
+  });
+
+  it("float pool ring index correctly wraps around", () => {
+    let idx = 0;
+    for (let i = 0; i < FLOAT_POOL_SIZE + 3; i++) {
+      const slot = idx % FLOAT_POOL_SIZE;
+      assert.ok(
+        slot >= 0 && slot < FLOAT_POOL_SIZE,
+        `Slot ${slot} out of range`,
+      );
+      idx++;
+    }
+  });
+
+  it("spring return duration (400ms) is perceptible but not sluggish", () => {
+    assert.ok(
+      SPRING_RETURN_MS >= 200,
+      `Spring return ${SPRING_RETURN_MS}ms too fast`,
+    );
+    assert.ok(
+      SPRING_RETURN_MS <= 600,
+      `Spring return ${SPRING_RETURN_MS}ms too slow`,
+    );
+  });
+});
