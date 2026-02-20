@@ -616,16 +616,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // 7.7: Economy guide overlay toggle
   const econBtn = document.getElementById("econ-guide-btn");
-  const econOverlay = document.getElementById("econ-guide-overlay");
-  const econClose = document.getElementById("econ-guide-close");
+  const econOverlay = document.getElementById("econ-guide-modal");
   if (econBtn && econOverlay) {
-    econBtn.addEventListener("click", () => econOverlay.classList.add("show"));
-    if (econClose)
-      econClose.addEventListener("click", () =>
-        econOverlay.classList.remove("show"),
-      );
-    econOverlay.addEventListener("click", (e) => {
-      if (e.target === econOverlay) econOverlay.classList.remove("show");
+    econBtn.addEventListener("click", () => {
+      if (!econOverlay.open) econOverlay.showModal();
     });
   }
 

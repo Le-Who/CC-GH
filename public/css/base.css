@@ -410,6 +410,7 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   border: none;
   background: transparent;
   outline: none;
+  color: inherit; /* Override browser default black text */
 }
 .modal::backdrop {
   background: rgba(13, 15, 26, 0.85);
@@ -539,17 +540,14 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 .toast-container {
   position: fixed;
   bottom: 84px; /* Sits just above the 60px nav bar + gap */
-  left: 50%;
-  transform: translateX(-50%);
+  right: 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
   z-index: 400;
   pointer-events: none;
-  width: 100%;
-  max-width: 420px;
-  padding: 0 16px;
+  max-width: 320px;
 }
 
 .toast {

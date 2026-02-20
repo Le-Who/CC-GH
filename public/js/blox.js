@@ -350,15 +350,27 @@ const BloxGame = (() => {
       if (!raw) return null;
       const state = JSON.parse(raw);
       if (!state || !state.board || !state.tray) return null;
+      // Firestore converts arrays to objects — convert back
+      const hydratedBoard = Array.isArray(state.board)
+        ? state.board
+        : Object.keys(state.board)
+            .sort((a, c) => Number(a) - Number(c))
+            .map((k) => {
+              const row = state.board[k];
+              return Array.isArray(row) ? row : Object.values(row);
+            });
+      const hydratedTray = Array.isArray(state.tray)
+        ? state.tray
+        : Object.values(state.tray);
       // Reconstruct tray pieces from IDs
-      const restoredTray = state.tray.map((t) => {
+      const restoredTray = hydratedTray.map((t) => {
         const piece = PIECES.find((p) => p.id === t.pieceId);
         if (!piece) return null;
         return { piece, placed: t.placed };
       });
       if (restoredTray.some((t) => t === null)) return null;
       return {
-        board: state.board,
+        board: hydratedBoard,
         tray: restoredTray,
         score: state.score || 0,
         linesCleared: state.linesCleared || 0,

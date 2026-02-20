@@ -124,6 +124,18 @@ const Match3Game = (() => {
 
   const $ = (id) => document.getElementById(id);
 
+  /** Firestore converts 2D arrays to objects — convert back */
+  function hydrateBoard(b) {
+    if (Array.isArray(b)) return b;
+    // Object with numeric keys → array of arrays
+    return Object.keys(b)
+      .sort((a, c) => Number(a) - Number(c))
+      .map((k) => {
+        const row = b[k];
+        return Array.isArray(row) ? row : Object.values(row);
+      });
+  }
+
   /** Sync match3 state to GameStore */
   function syncToStore() {
     if (typeof GameStore !== "undefined") {
@@ -502,13 +514,13 @@ const Match3Game = (() => {
       if (btnResume) btnResume.style.display = "none";
       if (btnEnd) btnEnd.style.display = "none";
     }
-    overlay.classList.add("show");
+    if (!overlay.open) overlay.showModal();
   }
 
   function hideM3PauseOverlay() {
     gamePaused = false;
     const overlay = $("m3-pause-overlay");
-    if (overlay) overlay.classList.remove("show");
+    if (overlay && overlay.open) overlay.close();
     // Block swipe when playing
     if (gameActive) HUB.swipeBlocked = true;
   }
@@ -636,7 +648,7 @@ const Match3Game = (() => {
       gameMode = mode;
 
       const s = savedModes[mode];
-      board = JSON.parse(JSON.stringify(s.board));
+      board = hydrateBoard(JSON.parse(JSON.stringify(s.board)));
       score = s.score;
       movesLeft = s.movesLeft;
       combo = s.combo;
