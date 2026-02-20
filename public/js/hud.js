@@ -286,14 +286,19 @@ const HUD = (function () {
       hideEnergyModal();
       if (typeof goToScreen === "function") goToScreen(1);
     };
-    document.getElementById("energy-modal-close").onclick = hideEnergyModal;
+    const closeBtn = document.getElementById("energy-modal-close");
+    if (closeBtn) closeBtn.onclick = hideEnergyModal;
 
-    modal.classList.add("show");
+    if (!modal.open) {
+      modal.showModal();
+    }
   }
 
   function hideEnergyModal() {
     const modal = document.getElementById("energy-modal");
-    if (modal) modal.classList.remove("show");
+    if (modal && modal.open) {
+      modal.close();
+    }
     _energyModalPlayCb = null;
   }
 

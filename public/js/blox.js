@@ -911,11 +911,9 @@ const BloxGame = (() => {
     const btnNew = $("blox-btn-new");
     const btnResume = $("blox-btn-resume");
     const btnEnd = $("blox-btn-end");
-    const title = $("blox-pause-title");
 
     if (gameActive) {
       // Game in progress — show resume + end
-      if (title) title.textContent = "⏸ Paused";
       if (btnNew) btnNew.style.display = "none";
       if (btnResume) btnResume.style.display = "";
       if (btnEnd) btnEnd.style.display = "";
@@ -923,12 +921,10 @@ const BloxGame = (() => {
       // Check if there's a saved game
       const saved = loadState();
       if (saved && saved.gameActive) {
-        if (title) title.textContent = "🧱 Building Blox";
         if (btnNew) btnNew.style.display = "";
         if (btnResume) btnResume.style.display = "";
         if (btnEnd) btnEnd.style.display = "none";
       } else {
-        if (title) title.textContent = "🧱 Building Blox";
         if (btnNew) btnNew.style.display = "";
         if (btnResume) btnResume.style.display = "none";
         if (btnEnd) btnEnd.style.display = "none";

@@ -1,5 +1,11 @@
 # Changelog
 
+## v4.14.2 — 2026-02-20
+
+### Hotfixes
+
+- **Building Blox Initialization Crash**: Fixed an `Uncaught TypeError: overlay.showModal is not a function` error when launching the Building Blox game. The `blox-pause-overlay` was properly converted from a legacy `div` into a standard HTML5 `<dialog>` element to support the Phase 2 UI/UX modal API.
+
 ## v4.14.1 — 2026-02-20
 
 ### Hotfixes

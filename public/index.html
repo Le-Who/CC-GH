@@ -394,30 +394,38 @@
             <div class="blox-board" id="blox-board"></div>
             <div class="blox-tray" id="blox-tray"></div>
             <!-- Pause / Welcome overlay -->
-            <div class="blox-pause-overlay show" id="blox-pause-overlay">
-              <div class="blox-pause-card">
-                <div class="blox-pause-title" id="blox-pause-title">
-                  🧱 Building Blox
-                </div>
-                <button class="btn btn-primary" id="blox-btn-new">
-                  🧱 New Game
-                </button>
-                <button
-                  class="btn btn-secondary"
-                  id="blox-btn-resume"
-                  style="display: none"
+            <dialog class="modal" id="blox-pause-overlay">
+              <div class="modal-card">
+                <h2 style="margin-top: 0">🧱 Building Blox</h2>
+                <form
+                  method="dialog"
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    margin-top: 1.5rem;
+                  "
                 >
-                  ▶ Continue
-                </button>
-                <button
-                  class="btn btn-danger"
-                  id="blox-btn-end"
-                  style="display: none"
-                >
-                  🏁 End Game
-                </button>
+                  <button class="btn btn-primary" id="blox-btn-new">
+                    🧱 New Game
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    id="blox-btn-resume"
+                    style="display: none"
+                  >
+                    ▶ Continue
+                  </button>
+                  <button
+                    class="btn btn-danger"
+                    id="blox-btn-end"
+                    style="display: none"
+                  >
+                    🏁 End Game
+                  </button>
+                </form>
               </div>
-            </div>
+            </dialog>
           </div>
         </div>
 
