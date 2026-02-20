@@ -1,0 +1,596 @@
+/* ═══════════════════════════════════════════════════
+ *  Game Hub — Match-3 Screen Styles (v4.12.3)
+ * ═══════════════════════════════════════════════════ */
+
+/* Scope overlays to this screen only */
+#screen-match3 {
+  position: relative;
+}
+#screen-match3 .overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+#screen-match3 .screen-header h1 {
+  background: linear-gradient(135deg, #f472b6, #a78bfa, #fbbf24);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* ─── Gem Grid ─── */
+.m3-board-container {
+  position: relative;
+}
+.m3-board {
+  display: grid;
+  grid-template-columns: repeat(8, var(--m3-cell, 48px));
+  grid-template-rows: repeat(8, var(--m3-cell, 48px));
+  gap: 3px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+  touch-action: none; /* prevent browser gestures during swipe */
+}
+
+/* ─── Cell ─── */
+.m3-cell {
+  width: var(--m3-cell, 48px);
+  height: var(--m3-cell, 48px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.m3-cell:hover {
+  transform: scale(1.08);
+}
+.m3-cell:active {
+  transform: scale(0.93);
+}
+.m3-cell .gem-icon {
+  font-size: calc(var(--m3-cell, 48px) * 0.48);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Gem types */
+.m3-cell[data-type="fire"] {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+}
+.m3-cell[data-type="water"] {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+}
+.m3-cell[data-type="earth"] {
+  background: linear-gradient(135deg, #22c55e, #84cc16);
+}
+.m3-cell[data-type="air"] {
+  background: linear-gradient(135deg, #67e8f9, #e0f2fe);
+}
+.m3-cell[data-type="light"] {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+}
+.m3-cell[data-type="dark"] {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+/* Selection */
+.m3-cell.selected {
+  transform: scale(1.12);
+  box-shadow:
+    0 0 0 3px var(--accent),
+    0 0 20px var(--accent-glow);
+  z-index: 10;
+}
+
+/* ─── Animations ─── */
+@keyframes m3Pop {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  30% {
+    transform: scale(1.35);
+    opacity: 0.9;
+    filter: brightness(1.4);
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+    filter: brightness(2);
+  }
+}
+@keyframes m3Fall {
+  0% {
+    transform: translateY(-60px);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(4px);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes m3Enter {
+  0% {
+    transform: scale(0) rotate(-15deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+@keyframes m3Shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+@keyframes m3ScoreUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-35px) scale(1.2);
+  }
+}
+@keyframes m3ComboFlash {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.35);
+    color: #f472b6;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.m3-cell.popping {
+  animation: m3Pop 0.38s ease-out forwards;
+}
+.m3-cell.falling {
+  animation: m3Fall 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.m3-cell.entering {
+  animation: m3Enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.m3-board.shake {
+  animation: m3Shake 0.35s ease;
+}
+.m3-board.disabled .m3-cell {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.m3-combo-flash {
+  animation: m3ComboFlash 0.4s ease;
+}
+
+/* Float points */
+.m3-float-points {
+  position: absolute;
+  font-weight: 900;
+  font-size: 1rem;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  pointer-events: none;
+  z-index: 100;
+  animation: m3ScoreUp 0.8s ease-out forwards;
+}
+
+/* Combo banner */
+.m3-combo-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #f472b6;
+  text-shadow: 0 0 25px rgba(244, 114, 182, 0.5);
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.m3-combo-banner.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* ─── Match-3 Layout (board left, leaderboard right) ─── */
+.m3-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.m3-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ─── Leaderboard Panel (v4.12.2: always-visible, docked right — mirrors Blox left) ─── */
+.m3-lb-panel {
+  position: absolute;
+  left: calc(50% + 220px); /* board half-width ≈ 200px + 20px gap */
+  top: 0;
+  width: 200px;
+  min-width: 180px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+.m3-lb-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.m3-lb-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.m3-lb-tab {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: "Inter", sans-serif;
+}
+.m3-lb-tab.active {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.m3-lb-tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+}
+.m3-lb-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.m3-lb-table td {
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.m3-lb-table tr:last-child td {
+  border-bottom: none;
+}
+.m3-lb-rank {
+  width: 24px;
+  font-weight: 800;
+  text-align: center;
+}
+.m3-lb-rank.gold {
+  color: #fbbf24;
+}
+.m3-lb-rank.silver {
+  color: #94a3b8;
+}
+.m3-lb-rank.bronze {
+  color: #d97706;
+}
+.m3-lb-score {
+  text-align: right !important;
+  font-weight: 700;
+  color: var(--gold);
+}
+.m3-lb-empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-style: italic;
+  padding: 16px 0 !important;
+}
+/* LB toggle button — hidden on desktop */
+.m3-lb-toggle {
+  display: inline-flex;
+}
+
+/* ─── Wide screens: mode selector left, leaderboard right ─── */
+@media (min-width: 680px) {
+  .m3-lb-toggle {
+    display: none; /* always visible, no toggle needed */
+  }
+}
+
+/* ─── Narrow screens: leaderboard hidden by default ─── */
+@media (max-width: 679px) {
+  .m3-lb-panel {
+    position: static;
+    width: 100%;
+    max-width: calc(var(--m3-cell, 48px) * 8 + 3px * 7 + 20px);
+    display: none;
+    margin-top: 12px;
+  }
+  .m3-lb-panel.show-mobile {
+    display: block;
+  }
+}
+
+/* ─── Responsive — Small Viewports ─── */
+@media (max-height: 600px) {
+  .m3-board {
+    padding: 6px;
+    gap: 2px;
+    border-radius: 14px;
+  }
+  .m3-combo-banner {
+    font-size: 1.3rem;
+  }
+}
+@media (max-width: 400px) {
+  .m3-board {
+    --m3-cell: clamp(44px, 12vw, 64px);
+    padding: 5px;
+    gap: 2px;
+    border-radius: 12px;
+  }
+  .m3-cell {
+    border-radius: 8px;
+  }
+  .m3-cell .gem-icon {
+    font-size: calc(var(--m3-cell, 44px) * 0.52);
+  }
+}
+
+/* ─── Mode Selector — Inline horizontal cards above board ─── */
+.m3-mode-selector {
+  display: none;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.m3-mode-selector.show {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.m3-mode-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.m3-mode-cards {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+}
+.m3-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Inter", sans-serif;
+  color: rgba(255, 255, 255, 0.8);
+  flex: 1;
+  min-width: 0;
+}
+.m3-mode-card:hover {
+  border-color: rgba(147, 51, 234, 0.5);
+  background: rgba(147, 51, 234, 0.15);
+  transform: scale(1.04);
+  box-shadow: 0 4px 16px rgba(147, 51, 234, 0.2);
+}
+.m3-mode-card.active {
+  border-color: var(--accent);
+  background: rgba(167, 139, 250, 0.18);
+  box-shadow: 0 4px 16px var(--accent-glow);
+  transform: translateY(-2px);
+}
+.m3-mode-selector.playing .m3-mode-card:not(.active) {
+  opacity: 0.55;
+  pointer-events: auto;
+  transform: scale(0.95);
+  cursor: pointer;
+}
+.m3-mode-selector.playing .m3-mode-card:not(.active):hover {
+  opacity: 0.8;
+  transform: scale(1);
+}
+.m3-mode-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+.m3-mode-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.m3-mode-desc {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.2;
+}
+/* v4.12.1: Saved-session badge on mode cards */
+.m3-mode-card.has-save .m3-mode-desc {
+  color: #a78bfa;
+  font-weight: 600;
+}
+@media (max-width: 400px) {
+  .m3-mode-card {
+    padding: 8px 8px;
+    border-radius: 10px;
+  }
+  .m3-mode-icon {
+    font-size: 1rem;
+  }
+  .m3-mode-name {
+    font-size: 0.68rem;
+  }
+  .m3-mode-desc {
+    font-size: 0.58rem;
+  }
+}
+
+/* ─── Desktop Sidebar Layout ─── */
+@media (min-width: 680px) {
+  .m3-mode-selector.show {
+    flex-direction: column;
+    position: absolute;
+    left: calc(-180px - 16px);
+    top: 0;
+    width: 180px;
+    margin-bottom: 0;
+    z-index: 10;
+  }
+  .m3-mode-cards {
+    flex-direction: column;
+  }
+  .m3-mode-card {
+    min-width: 0;
+    width: 100%;
+  }
+  /* Position board container as relative anchor for sidebar */
+  .m3-main {
+    position: relative;
+  }
+}
+
+/* ─── Drop Gems (Star Drop mode — 3 unique reward types) ─── */
+/* v4.6: Unique-hue radial gradients + thick white border + pulsing glow.
+ * Colors are intentionally different from all 6 regular gem types:
+ *   fire=#ef4444 water=#3b82f6 earth=#22c55e air=#67e8f9 light=#fbbf24 dark=#8b5cf6
+ * Drop gems use rose-gold, deep emerald, and electric violet. */
+
+.m3-cell.drop-gem {
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  animation:
+    dropGlow 1.5s ease-in-out infinite,
+    dropBorderPulse 2s ease-in-out infinite;
+  z-index: 5;
+}
+
+/* ── Gold Bag: rose-gold metallic ── */
+.m3-cell.drop-gold {
+  --drop-color: rgba(230, 166, 84, 0.65);
+  background: radial-gradient(
+    circle at 35% 35%,
+    #ffe4c4,
+    #e6a654,
+    #c4803d
+  ) !important;
+  box-shadow:
+    0 0 10px var(--drop-color),
+    0 0 0 2px var(--drop-color);
+}
+
+/* ── Seed Pack: deep emerald ── */
+.m3-cell.drop-seeds {
+  --drop-color: rgba(16, 185, 129, 0.65);
+  background: radial-gradient(
+    circle at 35% 35%,
+    #b4ffd0,
+    #10b981,
+    #047857
+  ) !important;
+  box-shadow:
+    0 0 10px var(--drop-color),
+    0 0 0 2px var(--drop-color);
+}
+
+/* ── Energy: electric violet ── */
+.m3-cell.drop-energy {
+  --drop-color: rgba(168, 85, 247, 0.65);
+  background: radial-gradient(
+    circle at 35% 35%,
+    #e0c3fc,
+    #a855f7,
+    #7c3aed
+  ) !important;
+  box-shadow:
+    0 0 10px var(--drop-color),
+    0 0 0 2px var(--drop-color);
+}
+
+/* Pulse animation (brightness + subtle scale) */
+@keyframes dropGlow {
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.25);
+    transform: scale(1.06);
+  }
+}
+
+/* Animated border glow — expands outward in sync with pulse */
+@keyframes dropBorderPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 8px var(--drop-color),
+      0 0 0 2px var(--drop-color);
+  }
+  50% {
+    box-shadow:
+      0 0 20px var(--drop-color),
+      0 0 0 5px var(--drop-color);
+  }
+}

@@ -1,0 +1,9 @@
+node_modules/
+.env
+data/hub-db.json
+*.log
+.git/
+tests/
+*.test.js
+.env.example
+README.md

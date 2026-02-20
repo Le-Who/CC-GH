@@ -1,0 +1,406 @@
+/* ═══════════════════════════════════════════════════
+ *  Game Hub — Trivia Screen Styles
+ * ═══════════════════════════════════════════════════ */
+
+#screen-trivia .screen-header h1 {
+  background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* ─── Mode Select ─── */
+.trivia-modes {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.trivia-mode-btn {
+  flex: 1;
+  padding: 18px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+}
+.trivia-mode-btn:hover {
+  border-color: var(--accent);
+  background: rgba(167, 139, 250, 0.08);
+}
+.trivia-mode-btn .mode-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 6px;
+}
+.trivia-mode-btn .mode-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.trivia-mode-btn .mode-desc {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ─── Question Card ─── */
+.trivia-question-card {
+  width: min(480px, calc(100vw - 80px));
+}
+.trivia-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(167, 139, 250, 0.12);
+  border-radius: 8px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.trivia-q-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+.trivia-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.trivia-answer-btn {
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+}
+.trivia-answer-btn:hover {
+  border-color: var(--accent);
+  background: rgba(167, 139, 250, 0.08);
+}
+.trivia-answer-btn.correct {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+.trivia-answer-btn.wrong {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+.trivia-answer-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* ─── Timer Ring ─── */
+.trivia-timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.trivia-timer-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.trivia-timer-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+.trivia-timer-text {
+  font-size: 1.1rem;
+  font-weight: 900;
+  min-width: 36px;
+  text-align: center;
+}
+.trivia-timer-text.danger {
+  color: var(--danger);
+}
+
+/* ─── Progress ─── */
+.trivia-progress {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.trivia-score-live {
+  font-size: 0.8rem;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+/* ─── Duel UI ─── */
+.trivia-duel-panel {
+  width: min(400px, calc(100vw - 80px));
+}
+.trivia-invite-code {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin: 12px 0;
+  text-align: center;
+}
+.trivia-duel-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  outline: none;
+}
+.trivia-duel-input:focus {
+  border-color: var(--accent);
+}
+.trivia-duel-input::placeholder {
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+.trivia-duel-status {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+.trivia-duel-status .spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  margin-right: 6px;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Results ─── */
+.trivia-results-score {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--gold);
+  margin: 8px 0;
+}
+.trivia-results-breakdown {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 8px 0 16px;
+  font-size: 0.8rem;
+}
+.trivia-duel-results {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0 16px;
+  justify-content: center;
+}
+.trivia-duel-player {
+  flex: 1;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-align: center;
+}
+.trivia-duel-player.winner {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
+}
+.trivia-duel-player .dp-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+.trivia-duel-player .dp-score {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+/* ─── Forfeit Button ─── */
+.btn-forfeit {
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  color: rgba(239, 68, 68, 0.6);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Inter", sans-serif;
+}
+.btn-forfeit:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+/* ─── Duel Countdown ─── */
+.trivia-countdown {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin-top: 6px;
+  opacity: 0.7;
+}
+
+/* ─── Duel Lobby (Issue 8) ─── */
+.duel-lobby-players {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  justify-content: center;
+}
+.duel-lobby-player {
+  flex: 1;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.duel-lobby-player .lp-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+.duel-lobby-player .lp-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.duel-lobby-player.is-ready {
+  border-color: var(--success);
+  background: rgba(34, 197, 94, 0.08);
+}
+.duel-lobby-player.is-ready .lp-status {
+  color: var(--success);
+}
+.duel-lobby-player.is-waiting .lp-status {
+  color: var(--text-dim);
+}
+.duel-lobby-timeout {
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  margin-top: 8px;
+  opacity: 0.7;
+}
+
+/* ─── Duel History Panel ─── */
+.duel-history-panel {
+  margin-top: 18px;
+  max-width: 420px;
+  width: 100%;
+}
+.duel-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  border-left: 3px solid var(--accent);
+}
+.duel-history-item.win {
+  border-left-color: var(--success);
+}
+.duel-history-item.loss {
+  border-left-color: #ef4444;
+}
+.duel-history-item.tie {
+  border-left-color: var(--gold);
+}
+.duel-history-item .dh-players {
+  flex: 1;
+  min-width: 0;
+}
+.duel-history-item .dh-players span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.duel-history-item .dh-result {
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-left: 10px;
+  flex-shrink: 0;
+}
+.duel-history-empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  padding: 12px;
+}
+.duel-history-pager {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.duel-history-pager button {
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+.duel-history-pager button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ─── Duel History Bar (collapsed) ─── */
+.duel-history-bar {
+  position: fixed;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px 12px 0 0;
+  padding: 6px 18px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  z-index: 100;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+}
+.duel-history-bar:hover {
+  opacity: 1;
+}

@@ -1,0 +1,1110 @@
+/* ═══════════════════════════════════════════════════
+ *  Game Hub — Base Design System  (v4.11)
+ *  Shared tokens, layout, navigation, common components
+ * ═══════════════════════════════════════════════════ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Hide scrollbar globally (Discord iframe) */
+html,
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+:root {
+  --bg: #0d0f1a;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e2e8f0;
+  --text-dim: #a3b1c6;
+  --accent: #a78bfa;
+  --accent-glow: rgba(167, 139, 250, 0.35);
+  --danger: #ef4444;
+  --success: #22c55e;
+  --gold: #f5cf50;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+/* ─── Viewport & Track ─── */
+.viewport {
+  width: 100vw;
+  height: 100dvh;
+  height: 100vh; /* fallback */
+  overflow: hidden;
+  position: relative;
+}
+.screen-track {
+  display: flex;
+  width: 400vw;
+  height: 100dvh;
+  height: 100vh; /* fallback */
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-200vw); /* Start on Farm (index 2 of 4) */
+}
+.screen {
+  width: 100vw;
+  height: 100dvh;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Top padding accounts for TopHUD (44px) + gap */
+  padding: 52px 16px 24px;
+}
+.screen::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Nav Arrows (Desktop: full-height glassmorphic edge strips) ─── */
+.nav-arrow {
+  position: fixed;
+  top: 0;
+  z-index: 100;
+  width: 48px;
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+}
+.nav-arrow:hover {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+}
+.nav-left {
+  left: 0;
+  border-right: 1px solid var(--border);
+}
+.nav-right {
+  right: 0;
+  border-left: 1px solid var(--border);
+}
+.nav-arrow.hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Desktop: show arrows on viewport hover */
+@media (hover: hover) and (pointer: fine) {
+  .viewport:hover ~ .nav-arrow:not(.hidden),
+  body.pointer-device .viewport:hover ~ .nav-arrow:not(.hidden) {
+    opacity: 1;
+    pointer-events: all;
+  }
+  /* Also handle arrows that are siblings of viewport */
+  body.pointer-device .nav-arrow:not(.hidden):hover {
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+/* Touch devices: always hide arrows */
+@media (hover: none) and (pointer: coarse) {
+  .nav-arrow {
+    display: none !important;
+  }
+}
+body.touch-device .nav-arrow {
+  display: none !important;
+}
+body.pointer-device .nav-arrow {
+  opacity: 0;
+  pointer-events: none;
+}
+body.pointer-device:hover .nav-arrow:not(.hidden) {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ─── Nav Dots — REMOVED in v4.9 (superseded by universal nav-bar) ─── */
+.nav-dots {
+  display: none !important;
+}
+
+/* ─── Bottom Nav Bar (v4.9: universal — all devices) ─── */
+.nav-bar {
+  display: flex; /* visible on ALL devices */
+  align-items: stretch;
+  justify-content: space-around;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 200;
+  background: rgba(13, 15, 26, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+/* Auto-hide during active gameplay (1.1 / 1.5) */
+.nav-bar.nav-hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.nav-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  font-family: "Inter", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  padding: 6px 0;
+}
+.nav-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 25%;
+  right: 25%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+.nav-tab.active {
+  color: var(--accent);
+}
+.nav-tab.active::before {
+  background: var(--accent);
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+.nav-tab-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+.nav-tab.active .nav-tab-icon {
+  transform: scale(1.15);
+}
+.nav-tab-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* Farm tab gold pulse when crops ready (1.7) */
+@keyframes navTabFarmPulse {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: inset 0 0 16px rgba(251, 191, 36, 0.15);
+  }
+}
+.nav-tab.farm-ready {
+  animation: navTabFarmPulse 2s ease-in-out infinite;
+}
+.nav-tab.farm-ready .nav-tab-icon {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+/* Bottom padding for ALL devices so content doesn't hide behind nav-bar */
+.viewport {
+  padding-bottom: 60px;
+}
+.screen {
+  padding-bottom: 8px;
+}
+/* Move version badge above nav-bar */
+#version-badge {
+  bottom: 66px !important;
+}
+
+/* ─── Swipe Hint Animation (first visit) ─── */
+@keyframes swipeHint {
+  0% {
+    transform: translateX(-200vw);
+  }
+  15% {
+    transform: translateX(calc(-200vw + 24px));
+  }
+  30% {
+    transform: translateX(-200vw);
+  }
+  45% {
+    transform: translateX(calc(-200vw + 12px));
+  }
+  60% {
+    transform: translateX(-200vw);
+  }
+  100% {
+    transform: translateX(-200vw);
+  }
+}
+.screen-track.hint-bounce {
+  animation: swipeHint 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* ─── Screen Header (v4.9: hidden — nav bar provides labels) ─── */
+.screen-header {
+  display: none;
+}
+
+/* ─── Stats Bar (v4.9: standardized width 6.1, label bump 2.1) ─── */
+.stats-bar {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  width: min(480px, calc(100vw - 60px));
+  justify-content: space-around;
+}
+.stat {
+  text-align: center;
+  flex: 1;
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* ─── Buttons ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 28px;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: -0.01em;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.35);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(139, 92, 246, 0.5);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  background: var(--surface-hover);
+}
+.btn-muted {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  padding: 8px 16px;
+}
+.btn-muted:hover {
+  opacity: 1;
+  color: var(--text);
+}
+.btn-sm {
+  padding: 8px 18px;
+  font-size: 0.8rem;
+  border-radius: 10px;
+}
+/* v4.10: Button convention (6.5) — danger=red, success=green */
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+}
+.btn-danger:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(239, 68, 68, 0.45);
+}
+.btn-success {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+}
+.btn-success:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.45);
+}
+
+/* ─── Overlay (v4.9: z-index 250 for 6.2, accent borders for 2.3) ─── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 15, 26, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 250;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.overlay.show {
+  opacity: 1;
+  pointer-events: all;
+}
+.overlay-card {
+  background: rgba(30, 32, 50, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 44px;
+  text-align: center;
+  max-width: 420px;
+  width: calc(100vw - 40px);
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.overlay.show .overlay-card {
+  transform: scale(1) translateY(0);
+}
+/* Warm pastel accent borders — visual overlay typing (2.3) */
+.overlay-card.overlay-gameover {
+  border-top: 3px solid #f5cf50; /* warm gold */
+}
+.overlay-card.overlay-energy {
+  border-top: 3px solid #a8d8a8; /* soft peach-green */
+}
+.overlay-card.overlay-pause {
+  border-top: 3px solid #c4b5e0; /* warm lavender */
+}
+/* Overlay score / detail utility classes (2.6) */
+.overlay-score {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--gold);
+  margin: 10px 0;
+}
+.overlay-detail {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.overlay-card h2 {
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  align-items: stretch;
+}
+
+/* ─── Card (v4.9: standardized width 6.1) ─── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  padding: 16px;
+  width: min(480px, calc(100vw - 60px));
+}
+
+/* ─── Utility ─── */
+.gap-sm {
+  gap: 8px;
+}
+.gap-md {
+  gap: 12px;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.mt-12 {
+  margin-top: 12px;
+}
+.mt-16 {
+  margin-top: 16px;
+}
+.mb-12 {
+  margin-bottom: 12px;
+}
+.text-gold {
+  color: var(--gold);
+}
+.text-accent {
+  color: var(--accent);
+}
+.text-dim {
+  color: var(--text-dim);
+}
+.text-success {
+  color: var(--success);
+}
+.text-danger {
+  color: var(--danger);
+}
+.fw-900 {
+  font-weight: 900;
+}
+
+/* ─── Toast (top-right positioning) ─── */
+@keyframes toastSlide {
+  0% {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+  12% {
+    transform: translateX(-4px);
+    opacity: 1;
+  }
+  20% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  82% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(12px);
+    opacity: 0;
+  }
+}
+.toast {
+  position: fixed;
+  top: 64px;
+  right: 24px;
+  padding: 14px 28px;
+  background: rgba(30, 32, 50, 0.92);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  z-index: 300;
+  animation: toastSlide 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  pointer-events: none;
+  max-width: calc(100vw - 48px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+/* v4.9: tinted backgrounds + leading icon space (2.4) */
+.toast.toast-success {
+  border-left-color: var(--success);
+  background: rgba(34, 197, 94, 0.08);
+}
+.toast.toast-error {
+  border-left-color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+.toast.toast-info {
+  border-left-color: var(--accent);
+  background: rgba(167, 139, 250, 0.08);
+}
+
+/* ─── Responsive — Small Viewports ─── */
+@supports (height: 100dvh) {
+  body,
+  .viewport,
+  .screen-track,
+  .screen {
+    height: 100dvh;
+  }
+}
+@media (max-height: 650px) {
+  .screen-header {
+    margin-bottom: 6px;
+  }
+  .screen-header h1 {
+    font-size: 1.1rem;
+  }
+  .screen-header .subtitle {
+    font-size: 0.6rem;
+    margin-top: 2px;
+  }
+  .stats-bar {
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+  .stat-value {
+    font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+  }
+  .screen {
+    padding: 48px 12px 16px;
+  }
+}
+@media (max-height: 500px) {
+  .screen {
+    padding: 44px 10px 10px;
+  }
+  .screen-header {
+    margin-bottom: 4px;
+  }
+  .stats-bar {
+    padding: 4px 8px;
+    margin-bottom: 6px;
+  }
+}
+@media (max-width: 400px) {
+  .stats-bar {
+    width: calc(100vw - 40px);
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .card {
+    width: calc(100vw - 40px);
+    padding: 12px;
+  }
+}
+
+/* ─── Arrow Hint Flash (1.2: periodic subtle flash) ─── */
+@keyframes arrowHintFlash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.5;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.nav-arrow.arrow-hint-flash {
+  animation: arrowHintFlash 2s ease-in-out forwards;
+  pointer-events: none;
+}
+
+/* ─── Plant Bounce (4.4) ─── */
+@keyframes plantBounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.plant-bounce {
+  animation: plantBounce 0.3s ease-out;
+}
+
+/* ─── Screen Shake (4.5: Blox game-over drama) ─── */
+@keyframes screenShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-4px);
+  }
+  20% {
+    transform: translateX(4px);
+  }
+  30% {
+    transform: translateX(-3px);
+  }
+  40% {
+    transform: translateX(3px);
+  }
+  50% {
+    transform: translateX(-2px);
+  }
+  60% {
+    transform: translateX(2px);
+  }
+}
+.screen-shake {
+  animation: screenShake 0.5s ease-out;
+}
+
+/* ─── Farm Notification Badge (Issue 7) ─── */
+@keyframes badgePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.7;
+  }
+}
+.nav-dot.has-notification::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+  border: 1px solid var(--bg);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+.nav-dot {
+  position: relative;
+}
+
+.farm-ready-badge {
+  display: none;
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 101;
+  padding: 6px 14px;
+  background: rgba(30, 32, 50, 0.92);
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.15);
+  transition: all 0.3s ease;
+  animation: badgePulse 3s ease-in-out infinite;
+}
+.farm-ready-badge.show {
+  display: block;
+}
+.farm-ready-badge.point-right {
+  right: 8px;
+  left: auto;
+}
+.farm-ready-badge.point-right::after {
+  content: " ▶";
+}
+.farm-ready-badge.point-left {
+  left: 8px;
+  right: auto;
+}
+.farm-ready-badge.point-left::before {
+  content: "◀ ";
+}
+.farm-ready-badge:hover {
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.3);
+}
+
+/* ─── Water Splash Animation (Issue 3) ─── */
+@keyframes waterSplash {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3);
+    filter: brightness(1.5);
+  }
+  60% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+.water-splash {
+  animation: waterSplash 0.5s ease-out;
+}
+
+/* ─── Quick-Feed Energy Modal ─── */
+.energy-feed-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  background: var(--surface);
+}
+.energy-feed-item .feed-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.energy-feed-item .feed-info {
+  flex: 1;
+  font-size: 0.82rem;
+  text-align: left;
+}
+.energy-feed-item .feed-info .feed-name {
+  font-weight: 700;
+}
+.energy-feed-item .feed-info .feed-qty {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+.energy-feed-item .feed-btn {
+  padding: 6px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-size: 0.8rem;
+  transition:
+    transform 0.15s ease,
+    opacity 0.2s ease;
+}
+.energy-feed-item .feed-btn:hover {
+  transform: scale(1.05);
+}
+.energy-feed-item .feed-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+.energy-play-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+/* ─── Boot Loading Overlay ─── */
+.boot-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  transition: opacity 0.5s ease;
+}
+.boot-loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.boot-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(167, 139, 250, 0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: bootSpin 0.8s linear infinite;
+}
+@keyframes bootSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.boot-text {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════
+ *  Phase 3 — v4.11: Cognitive Load Reduction
+ * ═══════════════════════════════════════════════════ */
+
+/* ─── 7.1: Farm Shop FAB ─── */
+.farm-shop-fab {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+  z-index: 100;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  display: none; /* shown only on farm screen */
+}
+.farm-shop-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(139, 92, 246, 0.55);
+}
+.farm-shop-fab.visible {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── 7.2: Match-3 Recommended Badge ─── */
+.m3-recommended {
+  display: inline-block;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1e1b2e;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+/* ─── 7.3: Trivia Settings Panel ─── */
+.trivia-settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+.trivia-settings-toggle:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+.trivia-settings-panel {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.trivia-settings-panel.open {
+  display: flex;
+}
+.trivia-settings-panel label {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.trivia-settings-panel select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 0.82rem;
+}
+
+/* ─── 7.4: Growth Time Estimate ─── */
+.growth-time-label {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+/* ─── 7.6: Energy Tutorial Tooltip ─── */
+.energy-tutorial {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.75rem;
+  color: var(--text);
+  white-space: nowrap;
+  z-index: 300;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: tutorialFadeIn 0.4s ease;
+  pointer-events: auto;
+}
+.energy-tutorial::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 10px;
+  height: 10px;
+  background: var(--surface);
+  border-left: 1px solid var(--accent);
+  border-top: 1px solid var(--accent);
+}
+.energy-tutorial .tutorial-dismiss {
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+}
+@keyframes tutorialFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ─── 7.7: Economy Guide Overlay ─── */
+.econ-guide-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+}
+.econ-guide-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.econ-guide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.econ-guide-overlay.show {
+  display: flex;
+}
+.econ-guide-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+}
+.econ-guide-card h3 {
+  color: var(--text);
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+.econ-guide-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.econ-guide-flow .econ-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  color: var(--text);
+  width: fit-content;
+}
+.econ-guide-flow .econ-arrow {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}

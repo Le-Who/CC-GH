@@ -1,0 +1,5 @@
+node_modules/
+data/hub-db.json
+*.log
+.env
+dist/

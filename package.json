@@ -1,0 +1,26 @@
+{
+  "name": "game-hub",
+  "version": "4.12.3",
+  "type": "module",
+  "private": true,
+  "description": "Unified Game Hub — Farm + Trivia + Match-3 in one Discord Activity",
+  "scripts": {
+    "build": "npx esbuild src/discord-entry.js --bundle --outfile=public/js/discord-sdk-bundle.js --format=iife --global-name=DiscordSDKModule --target=es2020",
+    "prestart": "npm run build",
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/gcp.test.js tests/perf.test.js",
+    "test:perf": "node --test tests/perf.test.js"
+  },
+  "dependencies": {
+    "@discord/embedded-app-sdk": "^2.4.0",
+    "@google-cloud/storage": "^7.7.0",
+    "compression": "^1.8.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3"
+  }
+}

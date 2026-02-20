@@ -1,0 +1,601 @@
+/* ═══════════════════════════════════════════════════
+ *  Game Hub — Farm Screen Styles (v4.9)
+ * ═══════════════════════════════════════════════════ */
+
+#screen-farm .screen-header h1 {
+  background: linear-gradient(135deg, #22c55e, #86efac, #fbbf24);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* ─── Plot Grid ─── */
+.farm-plots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: min(420px, calc(100vw - 80px));
+  position: relative;
+}
+
+.farm-plot {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.farm-plot:hover {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.06);
+}
+.farm-plot.empty {
+  border-style: dashed;
+  opacity: 0.6;
+}
+.farm-plot.empty:hover {
+  opacity: 1;
+}
+.farm-plot.buy-plot-card {
+  border-style: dashed;
+  border-color: rgba(34, 197, 94, 0.25);
+  opacity: 0.7;
+  gap: 4px;
+}
+.farm-plot.buy-plot-card:hover {
+  opacity: 1;
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.06);
+}
+.farm-plot.buy-plot-card.disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+.farm-plot.ready {
+  border-color: rgba(251, 191, 36, 0.5);
+  animation: plotGlow 1.5s ease-in-out infinite;
+}
+/* v4.9: Almost-ready pulse — client thinks done, server disagrees */
+.farm-plot.almost-ready {
+  border-color: rgba(251, 146, 36, 0.4);
+  animation: plotAlmostGlow 0.9s ease-in-out infinite;
+}
+@keyframes plotAlmostGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(251, 146, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(251, 146, 36, 0.2);
+  }
+}
+
+.farm-plot .crop-emoji {
+  font-size: 2.3rem;
+  line-height: 1;
+}
+.farm-plot .crop-name {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+.farm-plot .plot-empty-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+@keyframes plotGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
+  }
+}
+
+/* ─── Growth Bar ─── */
+.growth-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.growth-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #86efac);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.growth-bar-fill.done {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+.growth-bar-fill.plant-burst {
+  background: linear-gradient(90deg, #22c55e, #86efac, #fbbf24);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+  transition: none; /* instant fill to 100% */
+}
+
+/* ─── Water Button ─── */
+.farm-water-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.farm-water-btn:hover {
+  background: rgba(59, 130, 246, 0.4);
+  transform: scale(1.15);
+}
+.farm-water-btn.watered {
+  opacity: 0.3;
+  cursor: default;
+}
+
+/* ─── Farm Layout (plots + side panel) ─── */
+.farm-layout {
+  position: relative;
+}
+
+/* ─── Glassmorphism Side Panel (overlay, no layout shift) ─── */
+.farm-panel {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 16px);
+  width: 320px; /* v4.9: widened from 240px for extra seed column */
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+}
+
+/* ─── Panel Tabs ─── */
+.farm-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.farm-tab {
+  flex: 1;
+  padding: 10px 8px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  font-family: "Inter", sans-serif;
+}
+.farm-tab:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.03);
+}
+.farm-tab.active {
+  color: #86efac;
+  border-bottom-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  font-size: 0.78rem;
+}
+
+/* ─── Tab Content ─── */
+.farm-tab-content {
+  display: none;
+  padding: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.farm-tab-content.active {
+  display: block;
+}
+
+/* ─── Custom Scrollbar ─── */
+.farm-tab-content::-webkit-scrollbar {
+  width: 4px;
+}
+.farm-tab-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.farm-tab-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+}
+
+/* ─── Inventory Grid ─── */
+.farm-inventory-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.farm-inv-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: all 0.15s;
+}
+.farm-inv-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.farm-inv-emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+.farm-inv-info {
+  flex: 1;
+  min-width: 0;
+}
+.farm-inv-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+.farm-inv-qty {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #86efac;
+  margin-left: 4px;
+}
+.farm-inv-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.farm-inv-btn {
+  padding: 6px 14px; /* v4.9: larger touch targets */
+  border: none;
+  border-radius: 8px;
+  font-size: 0.78rem; /* v4.9: bigger text */
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  line-height: 1.2;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.farm-inv-btn.sell {
+  background: rgba(240, 208, 96, 0.2);
+  color: #f0d060;
+}
+.farm-inv-btn.sell:hover {
+  background: rgba(240, 208, 96, 0.35);
+  transform: scale(1.05);
+}
+.farm-inv-btn.feed {
+  background: rgba(134, 239, 172, 0.2);
+  color: #86efac;
+  font-size: 0.75rem;
+}
+.farm-inv-btn.feed:hover {
+  background: rgba(134, 239, 172, 0.35);
+  transform: scale(1.05);
+}
+.farm-inv-empty {
+  text-align: center;
+  padding: 20px 8px;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── Seed Shop (inside panel) ─── */
+.farm-shop-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* ─── Horizontal Buy Bar ─── */
+.farm-buy-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.06);
+  flex-wrap: wrap;
+}
+.buy-bar-seed {
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.buy-bar-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.buy-bar-stepper button {
+  width: 38px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: "Inter", sans-serif;
+}
+.buy-bar-stepper button:hover {
+  background: rgba(34, 197, 94, 0.15);
+}
+.buy-bar-stepper button.step-lg {
+  width: 42px;
+  font-size: 0.72rem;
+  background: rgba(255, 255, 255, 0.06);
+  letter-spacing: -0.5px;
+}
+.buy-bar-stepper button.step-lg:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+.buy-bar-stepper .qty-display {
+  width: 32px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  line-height: 38px;
+}
+.buy-bar-total {
+  font-size: 0.7rem;
+  color: var(--gold);
+  font-weight: 600;
+}
+.buy-bar-btn {
+  margin-left: auto;
+  padding: 5px 14px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: "Inter", sans-serif;
+}
+.buy-bar-btn:hover {
+  filter: brightness(1.12);
+  transform: scale(1.03);
+}
+.buy-bar-btn:active {
+  transform: scale(0.97);
+}
+.buy-bar-btn.disabled {
+  opacity: 0.4;
+  cursor: default;
+  filter: none;
+}
+
+/* ─── Seed Card Grid ─── */
+.farm-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+.farm-seed-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 88px;
+}
+.farm-seed-card:hover {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.06);
+}
+.farm-seed-card.selected {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.12);
+}
+.farm-seed-card .seed-emoji {
+  font-size: 1.4rem;
+}
+.farm-seed-card .seed-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin: 4px 0 2px;
+}
+.farm-seed-card .seed-price {
+  font-size: 0.65rem;
+  color: var(--gold);
+}
+.farm-seed-card .seed-count {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+/* v4.9: Inline quick-buy button on seed cards */
+.farm-seed-card .seed-quick-buy {
+  margin-top: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  color: #86efac;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: "Inter", sans-serif;
+}
+.farm-seed-card .seed-quick-buy:hover {
+  background: rgba(34, 197, 94, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
+  transform: scale(1.05);
+}
+
+/* ─── Reward Toast ─── */
+.farm-reward {
+  color: var(--gold);
+}
+
+/* ─── Skeleton Loading ─── */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.farm-plot.skeleton,
+.farm-seed-card.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  pointer-events: none;
+  border-style: solid;
+  opacity: 0.7;
+}
+.farm-plot.skeleton .skeleton-line {
+  width: 60%;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.farm-plot.skeleton .skeleton-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Dimmed Seeds (count = 0) ─── */
+.farm-seed-card.no-seeds {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+.farm-seed-card.no-seeds:hover {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+}
+
+/* ─── Fade-in for loaded content (first render only) ─── */
+@keyframes farmFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.farm-plot.first-load {
+  animation: farmFadeIn 0.3s ease-out;
+}
+
+/* ─── Responsive — Small Viewports ─── */
+@media (max-height: 650px) {
+  .farm-plot {
+    min-height: 72px;
+    padding: 8px;
+    gap: 4px;
+  }
+  .farm-plot .crop-emoji {
+    font-size: 1.4rem;
+  }
+  .farm-seed-card {
+    padding: 6px;
+  }
+  .farm-seed-card .seed-emoji {
+    font-size: 1.1rem;
+  }
+  .farm-buy-bar {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+  }
+  .farm-tab-content {
+    max-height: 240px;
+  }
+}
+/* Panel stacks below plots on narrow screens */
+@media (max-width: 640px) {
+  .farm-panel {
+    position: static;
+    width: min(420px, calc(100vw - 40px));
+    margin-top: 12px;
+  }
+  /* Mobile: larger touch targets for inventory sell/feed buttons */
+  .farm-inv-btn {
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .farm-inv-btn.feed {
+    font-size: 0.9rem;
+  }
+  .farm-inv-actions {
+    gap: 6px;
+  }
+  .farm-inv-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+}
+@media (max-width: 420px) {
+  .farm-plots {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .farm-shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 6px;
+  }
+  .farm-buy-bar {
+    font-size: 0.72rem;
+    padding: 6px 8px;
+    gap: 6px;
+  }
+}

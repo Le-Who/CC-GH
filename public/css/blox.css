@@ -1,0 +1,399 @@
+/* ═══════════════════════════════════════════════════
+ *  Game Hub — Building Blox Screen Styles (v4.12.3)
+ * ═══════════════════════════════════════════════════ */
+
+/* Scope overlays to this screen only */
+#screen-blox {
+  position: relative;
+  touch-action: none;
+}
+#screen-blox .overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+#screen-blox .screen-header h1 {
+  background: linear-gradient(135deg, #06b6d4, #a78bfa, #f97316);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* ─── 10×10 Grid ─── */
+.blox-board {
+  display: grid;
+  grid-template-columns: repeat(10, var(--blox-cell, 36px));
+  grid-template-rows: repeat(10, var(--blox-cell, 36px));
+  gap: 2px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  touch-action: none; /* prevent browser gestures on board */
+}
+
+/* ─── Cell ─── */
+.blox-cell {
+  width: var(--blox-cell, 36px);
+  height: var(--blox-cell, 36px);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  position: relative;
+}
+.blox-cell.filled {
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.blox-cell:hover:not(.filled) {
+  border-color: rgba(167, 139, 250, 0.3);
+  background: rgba(167, 139, 250, 0.08);
+}
+
+/* Ghost preview (v4.9: improved visibility 5.5) */
+.blox-cell.ghost {
+  background: var(--ghost-color, rgba(167, 139, 250, 0.25)) !important;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  opacity: 0.45;
+}
+.blox-cell.ghost-invalid {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Clear animation */
+@keyframes bloxClear {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.15);
+    filter: brightness(1.6);
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+.blox-cell.clearing {
+  animation: bloxClear 0.3s ease-out forwards;
+}
+
+/* Board shake */
+@keyframes bloxShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-3px);
+  }
+  40% {
+    transform: translateX(3px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.blox-board.shake {
+  animation: bloxShake 0.35s ease;
+}
+
+/* ─── Piece Tray ─── */
+.blox-tray {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  backdrop-filter: blur(12px);
+  justify-content: center;
+  margin-top: 12px;
+  min-height: 72px;
+  width: 100%;
+  max-width: calc(var(--blox-cell, 36px) * 10 + 2px * 9 + 16px);
+}
+
+.blox-piece-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  min-width: 60px;
+  min-height: 56px;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none; /* prevent browser gestures on tray pieces */
+}
+.blox-piece-wrapper:hover:not(.placed) {
+  border-color: rgba(167, 139, 250, 0.3);
+  background: rgba(167, 139, 250, 0.08);
+}
+.blox-piece-wrapper.selected {
+  border-color: var(--accent);
+  background: rgba(167, 139, 250, 0.15);
+  box-shadow: 0 0 12px var(--accent-glow);
+  transform: scale(1.08);
+}
+.blox-piece-wrapper.placed {
+  opacity: 0.15;
+  pointer-events: none;
+  transform: scale(0.85);
+}
+.blox-piece-wrapper.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+  border-color: var(--accent);
+}
+
+/* Mini piece preview grid */
+.blox-piece-preview {
+  display: grid;
+  gap: 2px;
+}
+.blox-mini-cell {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: transparent;
+}
+.blox-mini-cell.active {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Layout ─── */
+.blox-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  position: relative; /* for pause overlay positioning */
+}
+
+/* ─── Pause / Welcome Overlay ─── */
+.blox-pause-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: rgba(13, 15, 26, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 16px;
+  align-items: center;
+  justify-content: center;
+}
+.blox-pause-overlay.show {
+  display: flex;
+}
+.blox-pause-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 32px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 200px;
+}
+.blox-pause-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
+.blox-pause-card .btn {
+  width: 100%;
+  min-width: 160px;
+  padding: 10px 20px;
+  font-size: 0.88rem;
+}
+/* btn-danger: moved to base.css (v4.10 button convention 6.5) */
+
+/* ─── Drag Preview (touch + mouse) ─── */
+.blox-drag-preview {
+  position: fixed;
+  z-index: 500;
+  display: grid;
+  pointer-events: none;
+  opacity: 0.85;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  will-change: transform, left, top;
+}
+
+/* ─── Main Layout (board centered, leaderboard docked left) ─── */
+.blox-main {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  position: relative; /* anchor for absolutely-positioned leaderboard */
+}
+
+/* ─── Leaderboard Panel (v4.9.1: docked left, out of flow) ─── */
+.blox-lb-panel {
+  position: absolute;
+  right: calc(50% + 220px); /* board half-width ≈ 200px + 20px gap */
+  top: 0;
+  width: 200px;
+  min-width: 180px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+.blox-lb-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.blox-lb-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.blox-lb-tab {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: "Inter", sans-serif;
+}
+.blox-lb-tab.active {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.blox-lb-tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+}
+.blox-lb-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.blox-lb-table td {
+  padding: 4px 6px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.blox-lb-table tr:last-child td {
+  border-bottom: none;
+}
+.blox-lb-rank {
+  width: 24px;
+  font-weight: 800;
+  text-align: center;
+}
+.blox-lb-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+.blox-lb-score {
+  text-align: right;
+  font-weight: 700;
+  color: var(--gold);
+}
+.blox-lb-empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-style: italic;
+  padding: 16px 0 !important;
+}
+.blox-lb-me {
+  background: rgba(167, 139, 250, 0.08);
+}
+
+/* ─── Click-to-Attach cursor mode (v4.9) ─── */
+.blox-piece-wrapper.attached {
+  border-color: var(--accent);
+  background: rgba(167, 139, 250, 0.2);
+  box-shadow: 0 0 16px var(--accent-glow);
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+/* ─── Responsive ─── */
+@media (max-height: 600px) {
+  .blox-board {
+    padding: 4px;
+    gap: 1px;
+    border-radius: 12px;
+  }
+  .blox-tray {
+    padding: 8px 10px;
+    gap: 8px;
+    min-height: 56px;
+  }
+  .blox-mini-cell {
+    width: 11px;
+    height: 11px;
+  }
+}
+@media (max-width: 640px) {
+  .blox-main {
+    flex-direction: column;
+    align-items: center;
+  }
+  .blox-lb-panel {
+    position: static; /* back in flow on narrow screens */
+    width: 100%;
+    max-width: calc(var(--blox-cell, 36px) * 10 + 2px * 9 + 16px);
+    display: none; /* hidden on mobile by default */
+  }
+  .blox-lb-panel.show-mobile {
+    display: block;
+  }
+}
+@media (max-width: 400px) {
+  .blox-board {
+    --blox-cell: clamp(28px, 9vw, 40px);
+    padding: 4px;
+    gap: 1px;
+    border-radius: 10px;
+  }
+  .blox-cell {
+    border-radius: 4px;
+  }
+  .blox-piece-wrapper {
+    padding: 4px;
+    min-width: 48px;
+    min-height: 44px;
+  }
+  .blox-mini-cell {
+    width: 11px;
+    height: 11px;
+  }
+}

@@ -1,0 +1,437 @@
+/* ═══════════════════════════════════════════════════
+ *  Pet Companion Overlay
+ *  CSS-powered animations for the Living Pet Entity
+ * ═══════════════════════════════════════════════════ */
+
+.pet-overlay {
+  position: fixed;
+  bottom: 60px; /* above nav */
+  left: 0;
+  right: 0;
+  height: 80px;
+  z-index: 45;
+  pointer-events: none;
+  overflow: visible;
+  /* No layout transitions — .pet-transitioning handles pet movement */
+}
+
+/* ─── Dock: Ground (Farm — bottom, full width) ─── */
+.pet-overlay.dock-ground {
+  bottom: 60px;
+  top: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 80px;
+}
+
+/* ─── Dock: Match-3 (top area, zone-restricted roaming) ─── */
+.pet-overlay.dock-match3 {
+  bottom: auto;
+  top: 36px;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 60px;
+  z-index: 60;
+  overflow: visible;
+}
+.dock-match3 .pet-container {
+  transform: translate3d(50vw, 0, 0) translateX(-50%) scale(0.8);
+}
+
+/* ─── Dock: Trivia (top area, zone-restricted roaming) ─── */
+.pet-overlay.dock-trivia {
+  bottom: auto;
+  top: 36px;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 60px;
+  z-index: 60;
+  overflow: visible;
+}
+.dock-trivia .pet-container {
+  transform: translate3d(50vw, 0, 0) translateX(-50%) scale(0.8);
+}
+
+/* ─── Walk transition (applied only during active roam via JS) ─── */
+.pet-container.pet-roaming {
+  transition: transform 2.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: transform; /* GPU layer only when actively moving */
+}
+
+/* ─── FLIP Transition (smooth dock-to-dock movement) ─── */
+.pet-container.pet-transitioning {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  will-change: transform;
+}
+
+/* ─── Dock Jump Animation ─── */
+@keyframes petDock {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.15) translateY(-12px);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pet-container.docking {
+  animation: petDock 0.5s ease forwards;
+}
+
+.pet-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  transform: translate3d(50vw, 0, 0) translateX(-50%);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: none; /* Opt-in only via .pet-roaming / .pet-transitioning */
+  filter: drop-shadow(
+    0 2px 6px rgba(0, 0, 0, 0.4)
+  ); /* Shadow on container, not sprite */
+}
+
+.pet-sprite {
+  font-size: 2.7rem; /* +35% on PC (was 2rem) */
+  line-height: 1;
+  contain: content; /* Self-contained rendering — prevents re-rasterization */
+  transform: translateZ(
+    0
+  ); /* Stable GPU composite layer for emoji glyph caching */
+}
+
+/* ─── State Animations (class-based — synchronous swap, no rAF needed) ─── */
+.pet-container.state-idle .pet-sprite {
+  animation: petBob 2s ease-in-out infinite both;
+}
+
+.pet-container.state-roam .pet-sprite {
+  animation: petWalk 0.5s steps(2) infinite both;
+}
+
+.pet-container.state-sleep .pet-sprite {
+  animation: petSleep 3s ease-in-out infinite both;
+  opacity: 0.7;
+}
+
+.pet-container.state-happy .pet-sprite {
+  animation: petHappy 0.4s ease 3 both;
+}
+
+.pet-container.state-dizzy .pet-sprite {
+  animation: petDizzy 0.3s ease-in-out infinite both;
+}
+
+@keyframes petBob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(var(--pet-dir, 1));
+  }
+  50% {
+    transform: translate3d(0, -4px, 0) scaleX(var(--pet-dir, 1));
+  }
+}
+
+@keyframes petWalk {
+  0% {
+    transform: translate3d(0, 0, 0) scaleX(var(--pet-dir, 1));
+  }
+  50% {
+    transform: translate3d(0, -3px, 0) scaleX(var(--pet-dir, 1));
+  }
+}
+
+@keyframes petSleep {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scaleX(var(--pet-dir, 1));
+  }
+  25% {
+    transform: translate3d(0, -2px, 0) rotate(-5deg) scaleX(var(--pet-dir, 1));
+  }
+  75% {
+    transform: translate3d(0, -2px, 0) rotate(5deg) scaleX(var(--pet-dir, 1));
+  }
+}
+
+@keyframes petHappy {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1) scaleX(var(--pet-dir, 1));
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) scale(1.2) scaleX(var(--pet-dir, 1));
+  }
+}
+
+@keyframes petDizzy {
+  0%,
+  100% {
+    transform: rotate(0deg) scaleX(var(--pet-dir, 1));
+  }
+  25% {
+    transform: rotate(-15deg) scaleX(var(--pet-dir, 1));
+  }
+  75% {
+    transform: rotate(15deg) scaleX(var(--pet-dir, 1));
+  }
+}
+
+/* ─── Floating Hearts ─── */
+.pet-hearts {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.pet-heart {
+  position: absolute;
+  font-size: 1rem;
+  animation: heartFloat 1.2s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes heartFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.5);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--hx, 0px)), -30px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--hx, 0px)), -50px) scale(0.8);
+  }
+}
+
+/* ─── Sleep ZZZ ─── */
+.pet-zzz {
+  position: absolute;
+  top: -0.8em;
+  right: -0.4em;
+  font-size: 0.4em;
+  color: rgba(150, 180, 255, 0.8);
+  animation: zzzFloat 2s ease-in-out infinite;
+}
+
+@keyframes zzzFloat {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+}
+
+/* ─── Pet Info Panel ─── */
+.pet-info-panel {
+  position: fixed;
+  bottom: 150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  z-index: 46;
+  background: rgba(15, 15, 25, 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1rem;
+  color: #e0e0e0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 0.85rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: panelSlideIn 0.3s ease;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.pet-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.pet-info-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pet-info-level {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8b7dff;
+  background: rgba(139, 125, 255, 0.15);
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+}
+
+.pet-info-xp-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.8rem;
+}
+
+.pet-info-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b7dff, #b8a9ff);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.pet-info-xp-text {
+  font-size: 0.7rem;
+  color: #999;
+  text-align: center;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pet-info-abilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pet-ability {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #aaa;
+}
+
+.pet-ability.unlocked {
+  color: #4cff4c;
+  border-color: rgba(76, 255, 76, 0.3);
+  background: rgba(76, 255, 76, 0.08);
+}
+
+.pet-feed-section {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pet-feed-btn {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 200, 50, 0.3);
+  border-radius: 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 200, 50, 0.15),
+    rgba(255, 150, 0, 0.08)
+  );
+  color: #ffd75e;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pet-feed-btn:hover:not(:disabled) {
+  border-color: rgba(255, 200, 50, 0.5);
+  box-shadow: 0 0 12px rgba(255, 200, 50, 0.15);
+}
+
+.pet-feed-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pet-info-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #999;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.pet-info-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* ─── Pet Action Bubble ─── */
+.pet-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 15, 25, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px 12px 12px 2px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  color: #e0e0e0;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: bubblePop 2.5s ease forwards;
+  z-index: 47;
+}
+
+@keyframes bubblePop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+}
+
+/* ─── Mobile: Larger Pet (via font-size only — no transform conflict) ─── */
+@media (max-width: 480px) {
+  .pet-sprite {
+    font-size: 2.5rem;
+  }
+}
