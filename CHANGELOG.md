@@ -1,5 +1,13 @@
 # Changelog
 
+## v4.14.1 — 2026-02-20
+
+### Hotfixes
+
+- **Express 5.x Routing Crash**: Fixed a server crash during deployment by swapping the deprecated wildcard string route `app.get("*")` to a RegExp `app.get(/.*/)` in `server.js`.
+- **Missing Exports**: Removed stray import `saveDb` in `server.js` from `playerManager.js` that caused an `ERR_MODULE_NOT_FOUND` crash on start.
+- **Frontend Initialization Error**: Fixed an `Uncaught ReferenceError: applyScreenPosition is not defined` error when loading the game hub. Replaced the stale layout script in `shared.js` with its View Transitions alternative.
+
 ## v4.14.0 — 2026-02-20
 
 ### UI/UX Refactoring (v5 Phase 2)
