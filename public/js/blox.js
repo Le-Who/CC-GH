@@ -934,13 +934,13 @@ const BloxGame = (() => {
         if (btnEnd) btnEnd.style.display = "none";
       }
     }
-    if (overlay) overlay.classList.add("show");
+    if (overlay && !overlay.open) overlay.showModal();
   }
 
   function hidePauseOverlay() {
     gamePaused = false;
     const overlay = $("blox-pause-overlay");
-    if (overlay) overlay.classList.remove("show");
+    if (overlay && overlay.open) overlay.close();
     // Block swipe when playing
     if (gameActive) HUB.swipeBlocked = true;
   }
@@ -983,8 +983,9 @@ const BloxGame = (() => {
       return;
     }
 
-    // Close overlays
-    $("blox-overlay")?.classList.remove("show");
+    // Close overlays natively
+    const gov = $("blox-overlay");
+    if (gov && gov.open) gov.close();
 
     board = createEmptyBoard();
     score = 0;
@@ -1061,7 +1062,10 @@ const BloxGame = (() => {
     $("blox-final-score").textContent = finalScore;
     $("blox-final-best").textContent = highScore;
     $("blox-final-lines").textContent = linesCleared;
-    $("blox-overlay")?.classList.add("show");
+
+    // Natively show dialog
+    const gov = $("blox-overlay");
+    if (gov && !gov.open) gov.showModal();
   }
 
   // ── Store sync ──

@@ -13,7 +13,7 @@ import {
   getGrowthPct,
   farmPlotsWithGrowth,
 } from "../game-logic.js";
-import { getPlayer, debouncedSaveDb } from "../playerManager.js";
+import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function farmRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -37,7 +37,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
     // Run offline simulation (harvest → plant → water)
     const offlineReport = processOfflineActions(p);
-    if (offlineReport) debouncedSaveDb();
+    if (offlineReport) debouncedSavePlayer(userId);
 
     res.json({
       ...p.farm,
@@ -64,7 +64,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     plot.crop = cropId;
     plot.plantedAt = Date.now();
     plot.watered = false;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
 
     res.json({
       success: true,
@@ -83,7 +83,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     if (!plot || !plot.crop || plot.watered)
       return res.status(400).json({ error: "cannot water" });
     plot.watered = true;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       plots: farmPlotsWithGrowth(p.farm),
@@ -111,7 +111,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     plot.crop = null;
     plot.plantedAt = null;
     plot.watered = false;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
@@ -136,7 +136,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       return res.status(400).json({ error: "not enough gold" });
     p.resources.gold -= cost;
     p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + amount;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       resources: p.resources,
@@ -176,7 +176,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         ? BUY_PLOT_BASE_COST * Math.pow(2, currentPlots + 1 - 6)
         : null;
 
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       plots: farmPlotsWithGrowth(p.farm),

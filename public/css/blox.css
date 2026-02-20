@@ -183,6 +183,8 @@
   align-items: center;
   gap: 0;
   width: 100%;
+  flex: 1;
+  min-height: 0;
   position: relative; /* for pause overlay positioning */
 }
 
@@ -246,6 +248,8 @@
   display: flex;
   justify-content: center;
   width: 100%;
+  flex: 1;
+  min-height: 0;
   position: relative; /* anchor for absolutely-positioned leaderboard */
 }
 

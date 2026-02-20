@@ -844,11 +844,11 @@ const Match3Game = (() => {
           : "Classic";
     let overlay = $("m3-confirm-overlay");
     if (!overlay) {
-      overlay = document.createElement("div");
+      overlay = document.createElement("dialog");
       overlay.id = "m3-confirm-overlay";
-      overlay.className = "overlay";
+      overlay.className = "modal";
       overlay.innerHTML = `
-        <div class="overlay-card" style="max-width:320px;text-align:center">
+        <div class="modal-card" style="max-width:320px;text-align:center">
           <h3 id="m3-confirm-title" style="margin:0 0 12px"></h3>
           <p id="m3-confirm-desc" style="font-size:0.9rem;color:var(--text-dim);margin-bottom:20px"></p>
           <div style="display:flex;gap:10px;justify-content:center">
@@ -864,14 +864,14 @@ const Match3Game = (() => {
     }
     $("m3-confirm-title").textContent = `⚡ ${modeLabel}`;
     $("m3-confirm-desc").textContent = `Spend 5 energy to play ${modeLabel}?`;
-    overlay.classList.add("show");
+    if (!overlay.open) overlay.showModal();
 
     $("m3-confirm-yes").onclick = () => {
-      overlay.classList.remove("show");
+      overlay.close();
       startGame(mode);
     };
     $("m3-confirm-no").onclick = () => {
-      overlay.classList.remove("show");
+      overlay.close();
     };
   }
 
@@ -1356,10 +1356,6 @@ const Match3Game = (() => {
       gameActive = false;
       stopTimedCountdown();
 
-      // v4.7: Do NOT send /api/game/move here — it races with /api/game/end
-      // and causes 400 "no active game" errors. The server computes rewards
-      // from the final score, so the last move doesn't need server validation.
-
       // Calculate end score/rewards based on mode
       let endScore = score;
       if (gameMode === "drop") {
@@ -1394,14 +1390,8 @@ const Match3Game = (() => {
       syncToStore();
       updateStartButton();
     } else {
-      // Send move to server in background (fire-and-forget for validation)
-      api("/api/game/move", {
-        userId: HUB.userId,
-        fromX,
-        fromY,
-        toX,
-        toY,
-      }).catch(() => {});
+      // v5: Offline-First mode no longer informs the server of every single move.
+      // Game state is preserved robustly in localStorage (via persistSavedModes above)
     }
 
     isAnimating = false;
@@ -1568,12 +1558,13 @@ const Match3Game = (() => {
     const isNewRecord = finalScore >= highScore && finalScore > 0;
     const recordEl = $("m3-new-record");
     if (recordEl) recordEl.style.display = isNewRecord ? "block" : "none";
-    $("m3-overlay").classList.add("show");
+    const ov = $("m3-overlay");
+    if (ov && !ov.open) ov.showModal();
   }
 
   function hideGameOver() {
     const ov = $("m3-overlay");
-    if (ov) ov.classList.remove("show");
+    if (ov && ov.open) ov.close();
   }
 
   /* ═══ Leaderboard (v4.12.2: always-visible on desktop, toggle on mobile) ═══ */

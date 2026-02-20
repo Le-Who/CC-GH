@@ -54,37 +54,47 @@ body {
   -webkit-touch-callout: none;
 }
 
-/* ─── Viewport & Track ─── */
+/* ─── Viewport & Native View Transitions API ─── */
 .viewport {
   width: 100vw;
   height: 100dvh;
   height: 100vh; /* fallback */
-  overflow: hidden;
   position: relative;
+  /* We use CSS Grid strictly to stack the screens exactly on top of each other */
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
 }
-.screen-track {
-  display: flex;
-  width: 400vw;
-  height: 100dvh;
-  height: 100vh; /* fallback */
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateX(-200vw); /* Start on Farm (index 2 of 4) */
-}
+
 .screen {
+  grid-area: 1 / 1 / 2 / 2; /* All screens occupy the exact same grid cell */
   width: 100vw;
   height: 100dvh;
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
-  display: flex;
+  display: none; /* Hide inactive screens natively */
   flex-direction: column;
   align-items: center;
   /* Top padding accounts for TopHUD (44px) + gap */
-  padding: 52px 16px 24px;
+  /* Bottom padding accounts for the Persistent Nav Bar (60px) + gap */
+  padding: 52px 16px 84px;
 }
+
+.screen.active {
+  display: flex;
+}
+
 .screen::-webkit-scrollbar {
   display: none;
+}
+
+/* Base View Transition cross-fade */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ─── Nav Arrows (Desktop: full-height glassmorphic edge strips) ─── */
@@ -181,12 +191,7 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
     transform 0.3s ease,
     opacity 0.3s ease;
 }
-/* Auto-hide during active gameplay (1.1 / 1.5) */
-.nav-bar.nav-hidden {
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
-}
+/* Auto-hide during active gameplay removed in v5. The Nav Bar is now persistent */
 .nav-tab {
   flex: 1;
   display: flex;
@@ -398,25 +403,28 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   box-shadow: 0 6px 24px rgba(34, 197, 94, 0.45);
 }
 
-/* ─── Overlay (v4.9: z-index 250 for 6.2, accent borders for 2.3) ─── */
-.overlay {
-  position: fixed;
-  inset: 0;
+/* ─── Native Dialog Modals (v5) ─── */
+.modal {
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+}
+.modal::backdrop {
   background: rgba(13, 15, 26, 0.85);
   backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 250;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
+  -webkit-backdrop-filter: blur(12px);
+  /* Fallback opacity for browsers that don't support view transition fade on backdrop */
+  animation: fadeIn 0.3s ease;
 }
-.overlay.show {
-  opacity: 1;
-  pointer-events: all;
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-.overlay-card {
+
+.modal-card {
   background: rgba(30, 32, 50, 0.95);
   border: 1px solid var(--border);
   border-radius: 24px;
@@ -424,20 +432,29 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   text-align: center;
   max-width: 420px;
   width: calc(100vw - 40px);
-  transform: scale(0.9) translateY(20px);
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+  /* Intro animation handled natively by dialog[open] state */
+  animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
-.overlay.show .overlay-card {
-  transform: scale(1) translateY(0);
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 /* Warm pastel accent borders — visual overlay typing (2.3) */
-.overlay-card.overlay-gameover {
+.modal-card.overlay-gameover {
   border-top: 3px solid #f5cf50; /* warm gold */
 }
-.overlay-card.overlay-energy {
+.modal-card.overlay-energy {
   border-top: 3px solid #a8d8a8; /* soft peach-green */
 }
-.overlay-card.overlay-pause {
+.modal-card.overlay-pause {
   border-top: 3px solid #c4b5e0; /* warm lavender */
 }
 /* Overlay score / detail utility classes (2.6) */
@@ -518,33 +535,24 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   font-weight: 900;
 }
 
-/* ─── Toast (top-right positioning) ─── */
-@keyframes toastSlide {
-  0% {
-    transform: translateX(30px);
-    opacity: 0;
-  }
-  12% {
-    transform: translateX(-4px);
-    opacity: 1;
-  }
-  20% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  82% {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(12px);
-    opacity: 0;
-  }
-}
-.toast {
+/* ─── Centralized Toast Queue (v5) ─── */
+.toast-container {
   position: fixed;
-  top: 64px;
-  right: 24px;
+  bottom: 84px; /* Sits just above the 60px nav bar + gap */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 400;
+  pointer-events: none;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 16px;
+}
+
+.toast {
   padding: 14px 28px;
   background: rgba(30, 32, 50, 0.92);
   border: 1px solid var(--border);
@@ -552,13 +560,23 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   border-radius: 12px;
   font-size: 0.92rem;
   font-weight: 600;
-  z-index: 300;
-  animation: toastSlide 2.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  pointer-events: none;
-  max-width: calc(100vw - 48px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  width: 100%;
+  
+  /* Initial state for intro animation */
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
 }
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 /* v4.9: tinted backgrounds + leading icon space (2.4) */
 .toast.toast-success {
   border-left-color: var(--success);

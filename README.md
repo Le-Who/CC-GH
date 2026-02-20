@@ -2,7 +2,7 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v4.12.3**
+**Current version: v4.14.0**
 
 ---
 
@@ -15,11 +15,11 @@
 | 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, and leaderboard · 3 game modes        |
 | 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag          |
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities |
-| ⚡ **Energy System**      | Quick-feed modal · 3-min regen · Gates match-3 and trivia plays          |
+| ⚡ **Energy System**      | Native dialog overlays · 3-min regen · Gates match-3 and trivia plays    |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report    |
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games         |
 | 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                 |
-| 📱 **Mobile Nav**         | Bottom tab bar with emoji icons on touch devices                         |
+| 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions             |
 
 ---
 
@@ -172,6 +172,24 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 - **Match-3**: Client-side `localStorage` + server `sync-modes` for cross-device persistence. Server for leaderboard.
 - **Blox**: Client-side `localStorage` + server `sync` for cross-device resume. Server for leaderboard.
 - **Trivia**: Ephemeral — no persistence between sessions (each game is fresh).
+
+---
+
+## 🔬 v5 Roadmap (Architecture & UX Masterplan)
+
+Following a complete codebase analysis, the following synthesized solutions will drive the next major version, maintaining our zero-build philosophy while elevating code quality and UX/UI best practices:
+
+### Architectural Evolution
+
+1. **Web Components & Native ESM**: Replacing manual `innerHTML` rebuilds with encapsulated Custom Elements, and switching to native ES Modules (`type="module"`) to eliminate global namespace pollution.
+2. **WebSocket State Sync**: Upgrading from the custom `api()` fetch wrapper and optimistic fallbacks to real-time bidirectional synchronization (e.g., Socket.io).
+3. **Scaled Persistence**: Replacing the monolithic in-memory `players` Map with a robust distributed data layer (like SQLite or Redis) for true horizontal scalability.
+
+### UX/UI Fluidity
+
+1. **Native View Transitions**: Replacing the rigid `transform: translateX(...)` sliding track with the modern HTML5 View Transitions API for seamless, bug-free navigation.
+2. **Persistent Navigation**: Game boards will dynamically scale to accommodate the bottom `<nav-bar>`, removing the jarring auto-hide behavior during gameplay.
+3. **Standardized Overlays**: Moving all custom overlays to the native `<dialog>` element with native backdrops for flawless focus trapping and z-index management, paired with a centralized Toast Queue to prevent notification overlap.
 
 ---
 

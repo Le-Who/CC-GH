@@ -1,5 +1,33 @@
 # Changelog
 
+## v4.14.0 — 2026-02-20
+
+### UI/UX Refactoring (v5 Phase 2)
+
+- **Native View Transitions**: Replaced brittle CSS `-vw` screen track translations with the `document.startViewTransition()` API for smooth, native-feeling screen routing.
+- **Persistent Navigation**: Eliminated the jarring `nav-hidden` auto-hide mechanic. The Bottom Nav Bar is now persistently visible.
+- **Dynamic CSS Constraints**: Refactored Building Blox and Match-3 layouts to use CSS `flex: 1` scaling, fitting the game boards within the safe area between the TopHUD and Nav Bar without overlap or scrolling.
+- **Standardized `<dialog>` Overlays**: Upgraded all custom inline `.overlay` modals (Game Over, Pause, Economy Guide, Energy Prompt) to use native HTML5 `<dialog>` elements with built-in `::backdrop` dimming, guaranteeing perfect z-index focus trapping.
+- **Centralized Toast Queue**: Replaced disjointed `showToast` functions scattered across game modules with a unified global `ToastManager` queue. Toasts now stack neatly above the Nav Bar dynamically, holding a maximum of 3 notifications to prevent screen clutter.
+
+## v4.13.0 — 2026-02-20
+
+### Project & UX Analysis Complete
+
+Conducted a deep architectural and visual analysis across the entire `CC-GH` codebase. Identified core software limitations (e.g., imperative `.innerHTML` manipulation, fragile manual state management, in-memory DB constraints) and UX issues (brittle `translateX` navigation, blocking overlays, jumpy progress bars).
+
+### Synthesized Architectural Roadmap
+
+- **Componentization**: Transitioning to native ES Modules (`type="module"`) with Web Components for encapsulated DOM rendering—preserving the zero-build philosophy while eliminating global scope pollution.
+- **State & Network Sync**: Moving from manual REST polling/retries to a robust WebSocket-based protocol for deterministic state updates.
+- **Backend Robustness**: Upgrading the in-memory player Map to disk-backed SQLite or Redis for concurrent scalability and crash safety.
+
+### Synthesized UX/UI Roadmap
+
+- **View Transitions API**: Replacing the brittle `-200vw` layout track with native HTML5 View Transitions for seamless, responsive navigation.
+- **Native Dialogs & Smart Queues**: Standardizing all overlays to use the native `<dialog>` element for perfect z-index trapping, and implementing a centralized Toast Queue Manager.
+- **Persistent UX**: Adapting game boards to fit dynamically between the TopHUD and a persistently visible Nav Bar, avoiding the jarring auto-hide mechanic.
+
 ## v4.12.3 — 2026-02-19
 
 ### Blox Cross-Device Sync

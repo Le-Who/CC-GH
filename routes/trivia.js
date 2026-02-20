@@ -14,7 +14,7 @@ import {
   pickQuestions,
   makeClientQuestion,
 } from "../game-logic.js";
-import { getPlayer, debouncedSaveDb } from "../playerManager.js";
+import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -63,7 +63,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       streak: 0,
       startedAt: Date.now(),
     };
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
 
     res.json({
       success: true,
@@ -90,7 +90,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     p.trivia.bestStreak = Math.max(p.trivia.bestStreak, s.streak);
     const finalScore = s.score;
     p.trivia.session = null;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
 
     res.json({
       success: true,
@@ -139,7 +139,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         : ECONOMY.REWARD_TRIVIA_LOSE;
       p.resources.gold += goldReward;
       p.trivia.session = null;
-      debouncedSaveDb();
+      debouncedSavePlayer(userId);
     }
 
     let nextQuestion = null;
@@ -237,7 +237,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       createdAt: Date.now(),
       status: "waiting", // waiting -> active -> finished
     });
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
 
     res.json({
       success: true,

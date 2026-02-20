@@ -156,23 +156,30 @@ async function api(path, body) {
 function navigate(dir) {
   const next = HUB.currentScreen + dir;
   if (next < 0 || next > 3) return;
-  HUB.currentScreen = next;
-  applyScreenPosition();
-  updateNavUI();
-  updatePetDock();
-  triggerScreenCallbacks();
+  goToScreen(next);
 }
 
 function goToScreen(index) {
   if (index < 0 || index > 3 || index === HUB.currentScreen) return;
-  HUB.currentScreen = index;
-  applyScreenPosition();
-  updateNavUI();
-  updatePetDock();
-  triggerScreenCallbacks();
-  // Update farm notification badge when switching screens
-  if (typeof FarmGame !== "undefined" && FarmGame.updateFarmBadge) {
-    FarmGame.updateFarmBadge();
+
+  const updateDOM = () => {
+    HUB.currentScreen = index;
+    applyScreenClasses();
+    updateNavUI();
+    updatePetDock();
+    triggerScreenCallbacks();
+    // Update farm notification badge when switching screens
+    if (typeof FarmGame !== "undefined" && FarmGame.updateFarmBadge) {
+      FarmGame.updateFarmBadge();
+    }
+  };
+
+  // 1. Native View Transitions API support (Fall 2023+ browsers)
+  if (document.startViewTransition) {
+    document.startViewTransition(() => updateDOM());
+  } else {
+    // 2. Fallback for older browsers (instant switch)
+    updateDOM();
   }
 }
 
@@ -218,9 +225,15 @@ function updatePetDock() {
   }
 }
 
-function applyScreenPosition() {
-  const track = document.getElementById("track");
-  track.style.transform = `translateX(-${HUB.currentScreen * 100}vw)`;
+function applyScreenClasses() {
+  const screens = document.querySelectorAll(".screen");
+  screens.forEach((screen, index) => {
+    if (index === HUB.currentScreen) {
+      screen.classList.add("active");
+    } else {
+      screen.classList.remove("active");
+    }
+  });
 }
 
 function updateNavUI() {
@@ -279,24 +292,61 @@ async function triggerScreenCallbacks() {
   if (fab) fab.classList.toggle("visible", name === "farm");
 }
 
-/* ─── Toast (v4.9: dedup + type variants + leading icons 2.4) ─── */
-let _lastToastMsg = "";
-let _lastToastTime = 0;
-const _toastIcons = { success: "✅ ", error: "❌ ", info: "ℹ️ " };
-function showToast(msg, type) {
-  // Dedup: skip if same message within 1.5s
-  const now = Date.now();
-  if (msg === _lastToastMsg && now - _lastToastTime < 1500) return;
-  _lastToastMsg = msg;
-  _lastToastTime = now;
+/* ─── Centralized Toast Queue (v5) ─── */
+const ToastManager = (() => {
+  const MAX_TOASTS = 3;
+  const _toastIcons = { success: "✅ ", error: "❌ ", info: "ℹ️ " };
+  let _lastToastMsg = "";
+  let _lastToastTime = 0;
 
-  const el = document.createElement("div");
-  el.className = "toast" + (type ? ` toast-${type}` : "");
-  // Prepend leading icon if type-specific icon defined and not already present (2.4)
-  const icon = type && _toastIcons[type] ? _toastIcons[type] : "";
-  el.textContent = icon + msg;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2500);
+  function initContainer() {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "toast-container";
+      container.className = "toast-container";
+      document.body.appendChild(container);
+    }
+    return container;
+  }
+
+  function show(msg, type) {
+    // Dedup: skip if same exact message within 1s
+    const now = Date.now();
+    if (msg === _lastToastMsg && now - _lastToastTime < 1000) return;
+    _lastToastMsg = msg;
+    _lastToastTime = now;
+
+    const container = initContainer();
+
+    // Enforce max stack size by popping the oldest
+    while (container.children.length >= MAX_TOASTS) {
+      container.firstChild.remove();
+    }
+
+    const el = document.createElement("div");
+    el.className = "toast" + (type ? ` toast-${type}` : "");
+    const icon = type && _toastIcons[type] ? _toastIcons[type] : "";
+    el.innerHTML = `<span>${icon}${msg}</span>`;
+
+    container.appendChild(el);
+
+    // Trigger reflow for intro animation
+    void el.offsetWidth;
+    el.classList.add("show");
+
+    setTimeout(() => {
+      el.classList.remove("show");
+      el.addEventListener("transitionend", () => el.remove(), { once: true });
+    }, 2500);
+  }
+
+  return { show };
+})();
+
+// Global alias pointing to the new Manager
+function showToast(msg, type) {
+  ToastManager.show(msg, type);
 }
 
 /* ─── Sleep ─── */
@@ -530,10 +580,9 @@ function triggerSwipeHint() {
   }, 800);
 }
 
-/* ─── Nav Bar Auto-Hide (1.1 / 1.5: hide during active gameplay) ─── */
+/* ─── Nav Bar Auto-Hide (1.1 / 1.5: Deprecated in v5) ─── */
 function navBarAutoHide(hide) {
-  const bar = document.getElementById("nav-bar");
-  if (bar) bar.classList.toggle("nav-hidden", !!hide);
+  // Deprecated: Bottom navigation is now fully persistent.
 }
 
 /* ─── Arrow Hint Flash (1.2: subtle periodic flash every ~90s for 2s) ─── */

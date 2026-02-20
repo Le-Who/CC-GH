@@ -6,7 +6,7 @@
  */
 import { Router } from "express";
 import { ECONOMY, calcRegen, calcBloxReward } from "../game-logic.js";
-import { getPlayer, debouncedSaveDb } from "../playerManager.js";
+import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function bloxRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -26,7 +26,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     }
     p.resources.energy.current -= ECONOMY.COST_BLOX;
     p.blox.totalGames++;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       resources: p.resources,
@@ -43,7 +43,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (typeof score === "number" && score > 0) {
       p.blox.highScore = Math.max(p.blox.highScore, score);
     }
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       resources: p.resources,
@@ -70,7 +70,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
     const p = getPlayer(userId);
     p.blox.savedState = savedState ?? null;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({ success: true });
   });
 
