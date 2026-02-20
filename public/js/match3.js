@@ -1354,6 +1354,13 @@ const Match3Game = (() => {
     };
     persistSavedModes();
 
+    // 5.1: Juicy UI — intensity-scaled shake for big combos
+    if (combo >= 3) {
+      const $b2 = $("m3-board");
+      $b2.classList.add("shake-heavy");
+      setTimeout(() => $b2.classList.remove("shake-heavy"), 550);
+    }
+
     if (combo > 1) showComboBanner(combo);
     if (result.totalPoints > 0)
       showFloatingPoints(toX, toY, result.totalPoints);
@@ -1542,10 +1549,15 @@ const Match3Game = (() => {
     const el = document.createElement("div");
     el.className = "m3-float-points";
     el.textContent = `+${pts}`;
+    // Scattered trajectory: random horizontal offset and rotation
+    const dx = Math.round((Math.random() - 0.5) * 30); // -15..+15px
+    const rot = Math.round((Math.random() - 0.5) * 20); // -10..+10deg
+    el.style.setProperty("--float-dx", `${dx}px`);
+    el.style.setProperty("--float-rot", `${rot}deg`);
     el.style.left = `${10 + x * (cs + 3) + cs / 2}px`;
     el.style.top = `${10 + y * (cs + 3)}px`;
     container.appendChild(el);
-    setTimeout(() => el.remove(), 800);
+    setTimeout(() => el.remove(), 900);
   }
 
   function showComboBanner(c) {

@@ -36,7 +36,7 @@
   touch-action: none; /* prevent browser gestures during swipe */
 }
 
-/* ─── Cell ─── */
+/* ─── Cell (Juicy UI: organic back-ease interactions) ─── */
 .m3-cell {
   width: var(--m3-cell, 48px);
   height: var(--m3-cell, 48px);
@@ -47,22 +47,33 @@
   cursor: pointer;
   position: relative;
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.22s ease,
+    filter 0.18s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  will-change: transform;
 }
 .m3-cell:hover {
-  transform: scale(1.08);
+  transform: scale(1.1);
+  filter: brightness(1.12);
 }
 .m3-cell:active {
-  transform: scale(0.93);
+  transform: scale(0.9);
+  filter: brightness(0.92);
 }
 .m3-cell .gem-icon {
   font-size: calc(var(--m3-cell, 48px) * 0.48);
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   pointer-events: none;
   z-index: 1;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.m3-cell:hover .gem-icon {
+  transform: scale(1.08) rotate(5deg);
+}
+.m3-cell:active .gem-icon {
+  transform: scale(0.9) rotate(-3deg);
 }
 
 /* Gem types */
@@ -94,49 +105,65 @@
   z-index: 10;
 }
 
-/* ─── Animations ─── */
+/* ─── Animations (Juicy UI: spring physics, flash pop, wave entrance) ─── */
 @keyframes m3Pop {
   0% {
     transform: scale(1);
     opacity: 1;
     filter: brightness(1);
   }
-  30% {
-    transform: scale(1.35);
-    opacity: 0.9;
-    filter: brightness(1.4);
+  20% {
+    transform: scale(1.4);
+    opacity: 1;
+    filter: brightness(2.2);
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.6;
+    filter: brightness(2.8);
   }
   100% {
     transform: scale(0);
     opacity: 0;
-    filter: brightness(2);
+    filter: brightness(3);
   }
 }
+/* Spring-physics fall: overshoot + settle bounce */
 @keyframes m3Fall {
   0% {
-    transform: translateY(-60px);
+    transform: translateY(-65px);
     opacity: 0;
   }
-  50% {
-    transform: translateY(4px);
+  45% {
+    transform: translateY(6px);
     opacity: 1;
   }
-  70% {
-    transform: translateY(-2px);
+  65% {
+    transform: translateY(-4px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  90% {
+    transform: translateY(-1px);
   }
   100% {
     transform: translateY(0);
     opacity: 1;
   }
 }
+/* Wave entrance: scale+rotate with spring overshoot */
 @keyframes m3Enter {
   0% {
-    transform: scale(0) rotate(-15deg);
+    transform: scale(0) rotate(-20deg);
     opacity: 0;
   }
-  70% {
-    transform: scale(1.08) rotate(2deg);
+  50% {
+    transform: scale(1.12) rotate(4deg);
     opacity: 1;
+  }
+  75% {
+    transform: scale(0.96) rotate(-1deg);
   }
   100% {
     transform: scale(1) rotate(0);
@@ -146,77 +173,158 @@
 @keyframes m3Shake {
   0%,
   100% {
-    transform: translateX(0);
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-4px, -1px);
   }
   20% {
-    transform: translateX(-4px);
+    transform: translate(4px, 1px);
+  }
+  30% {
+    transform: translate(-3px, 0);
   }
   40% {
-    transform: translateX(4px);
+    transform: translate(3px, -1px);
+  }
+  50% {
+    transform: translate(-2px, 1px);
   }
   60% {
-    transform: translateX(-2px);
+    transform: translate(2px, 0);
   }
-  80% {
-    transform: translateX(2px);
+  70% {
+    transform: translate(-1px, 0);
   }
 }
+/* Intensity-scaled heavy shake for big combos */
+@keyframes m3ShakeHeavy {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  10% {
+    transform: translate(-6px, -2px) rotate(-0.5deg);
+  }
+  20% {
+    transform: translate(6px, 2px) rotate(0.5deg);
+  }
+  30% {
+    transform: translate(-5px, -1px) rotate(-0.3deg);
+  }
+  40% {
+    transform: translate(5px, 1px) rotate(0.3deg);
+  }
+  50% {
+    transform: translate(-3px, 0) rotate(-0.2deg);
+  }
+  60% {
+    transform: translate(3px, 0) rotate(0.2deg);
+  }
+  70% {
+    transform: translate(-2px, 0);
+  }
+}
+/* Scattered float-points: arc trajectory via CSS custom property */
 @keyframes m3ScoreUp {
   0% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0) translateX(0) scale(1) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-20px) translateX(var(--float-dx, 8px)) scale(1.25)
+      rotate(var(--float-rot, 5deg));
   }
   100% {
     opacity: 0;
-    transform: translateY(-35px) scale(1.2);
+    transform: translateY(-45px) translateX(var(--float-dx, 8px)) scale(0.9)
+      rotate(var(--float-rot, 5deg));
   }
 }
 @keyframes m3ComboFlash {
   0% {
     transform: scale(1);
   }
-  50% {
-    transform: scale(1.35);
+  25% {
+    transform: scale(1.4);
     color: #f472b6;
+  }
+  50% {
+    transform: scale(1.2);
+    color: #a78bfa;
+  }
+  75% {
+    transform: scale(1.35);
+    color: #fbbf24;
   }
   100% {
     transform: scale(1);
   }
 }
+/* Combo banner entrance with vibration */
+@keyframes m3ComboPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-10deg);
+    opacity: 0;
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1.15) rotate(2deg);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(-1deg);
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.05) rotate(0.5deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0);
+    opacity: 1;
+  }
+}
 
 .m3-cell.popping {
-  animation: m3Pop 0.38s ease-out forwards;
+  animation: m3Pop 0.36s ease-out forwards;
+  will-change: transform, opacity, filter;
 }
 .m3-cell.falling {
-  animation: m3Fall 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: m3Fall 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
 }
 .m3-cell.entering {
-  animation: m3Enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: m3Enter 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity;
 }
 .m3-board.shake {
-  animation: m3Shake 0.35s ease;
+  animation: m3Shake 0.4s ease;
+}
+.m3-board.shake-heavy {
+  animation: m3ShakeHeavy 0.5s ease;
 }
 .m3-board.disabled .m3-cell {
   cursor: not-allowed;
   opacity: 0.7;
 }
 .m3-combo-flash {
-  animation: m3ComboFlash 0.4s ease;
+  animation: m3ComboFlash 0.45s ease;
 }
 
-/* Float points */
+/* Float points (scattered trajectory via CSS custom props) */
 .m3-float-points {
   position: absolute;
   font-weight: 900;
   font-size: 1rem;
   color: var(--gold);
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  text-shadow:
+    0 0 10px rgba(251, 191, 36, 0.6),
+    0 0 20px rgba(251, 191, 36, 0.2);
   pointer-events: none;
   z-index: 100;
-  animation: m3ScoreUp 0.8s ease-out forwards;
+  animation: m3ScoreUp 0.9s ease-out forwards;
 }
 
-/* Combo banner */
+/* Combo banner (spring pop with vibration) */
 .m3-combo-banner {
   position: absolute;
   top: 50%;
@@ -225,15 +333,15 @@
   font-size: 1.8rem;
   font-weight: 900;
   color: #f472b6;
-  text-shadow: 0 0 25px rgba(244, 114, 182, 0.5);
+  text-shadow:
+    0 0 25px rgba(244, 114, 182, 0.5),
+    0 2px 0 rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 50;
   opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .m3-combo-banner.show {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  animation: m3ComboPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* ─── Match-3 Layout (board left, leaderboard right) ─── */
@@ -516,17 +624,31 @@
 }
 
 /* ─── Drop Gems (Star Drop mode — 3 unique reward types) ─── */
-/* v4.6: Unique-hue radial gradients + thick white border + pulsing glow.
- * Colors are intentionally different from all 6 regular gem types:
- *   fire=#ef4444 water=#3b82f6 earth=#22c55e air=#67e8f9 light=#fbbf24 dark=#8b5cf6
- * Drop gems use rose-gold, deep emerald, and electric violet. */
+/* Juicy UI: GPU-optimized glow via ::after pseudo-element instead of box-shadow.
+ * Colors are intentionally different from all 6 regular gem types. */
 
 .m3-cell.drop-gem {
   border: 3px solid rgba(255, 255, 255, 0.85);
-  animation:
-    dropGlow 1.5s ease-in-out infinite,
-    dropBorderPulse 2s ease-in-out infinite;
+  animation: dropGlow 1.5s ease-in-out infinite;
   z-index: 5;
+  overflow: visible;
+}
+/* GPU-optimized outer glow via pseudo-element (no box-shadow repaints) */
+.m3-cell.drop-gem::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 16px;
+  background: radial-gradient(
+    circle,
+    var(--drop-color, rgba(167, 139, 250, 0.4)) 0%,
+    transparent 70%
+  );
+  opacity: 0.6;
+  z-index: -1;
+  animation: dropGlowPulse 2s ease-in-out infinite;
+  pointer-events: none;
+  will-change: opacity, transform;
 }
 
 /* ── Gold Bag: rose-gold metallic ── */
@@ -538,9 +660,6 @@
     #e6a654,
     #c4803d
   ) !important;
-  box-shadow:
-    0 0 10px var(--drop-color),
-    0 0 0 2px var(--drop-color);
 }
 
 /* ── Seed Pack: deep emerald ── */
@@ -552,9 +671,6 @@
     #10b981,
     #047857
   ) !important;
-  box-shadow:
-    0 0 10px var(--drop-color),
-    0 0 0 2px var(--drop-color);
 }
 
 /* ── Energy: electric violet ── */
@@ -566,12 +682,9 @@
     #a855f7,
     #7c3aed
   ) !important;
-  box-shadow:
-    0 0 10px var(--drop-color),
-    0 0 0 2px var(--drop-color);
 }
 
-/* Pulse animation (brightness + subtle scale) */
+/* Pulse animation: brightness + subtle scale (GPU-friendly, no box-shadow) */
 @keyframes dropGlow {
   0%,
   100% {
@@ -584,17 +697,15 @@
   }
 }
 
-/* Animated border glow — expands outward in sync with pulse */
-@keyframes dropBorderPulse {
+/* Pseudo-element glow pulse: opacity + scale only (compositor-only) */
+@keyframes dropGlowPulse {
   0%,
   100% {
-    box-shadow:
-      0 0 8px var(--drop-color),
-      0 0 0 2px var(--drop-color);
+    opacity: 0.4;
+    transform: scale(1);
   }
   50% {
-    box-shadow:
-      0 0 20px var(--drop-color),
-      0 0 0 5px var(--drop-color);
+    opacity: 0.8;
+    transform: scale(1.15);
   }
 }

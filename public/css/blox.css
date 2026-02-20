@@ -34,78 +34,88 @@
   touch-action: none; /* prevent browser gestures on board */
 }
 
-/* ─── Cell ─── */
+/* ─── Cell (Juicy UI: pseudo-3D bevel + organic interactions) ─── */
 .blox-cell {
   width: var(--blox-cell, 36px);
   height: var(--blox-cell, 36px);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.15s ease;
+  transition:
+    all 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    background 0.12s ease;
   cursor: pointer;
   position: relative;
 }
+/* Pseudo-3D filled blocks: inner highlight + bevel shadow */
 .blox-cell.filled {
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 2px 2px 3px rgba(255, 255, 255, 0.25),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .blox-cell:hover:not(.filled) {
   border-color: rgba(167, 139, 250, 0.3);
   background: rgba(167, 139, 250, 0.08);
 }
 
-/* Ghost preview (v4.9: improved visibility 5.5) */
+/* Ghost preview (Juicy UI: breathing pulse animation) */
 .blox-cell.ghost {
   background: var(--ghost-color, rgba(167, 139, 250, 0.25)) !important;
-  border: 1px dashed rgba(255, 255, 255, 0.35);
-  opacity: 0.45;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  animation: ghostBreathe 1.2s ease-in-out infinite;
 }
 .blox-cell.ghost-invalid {
   background: rgba(239, 68, 68, 0.2) !important;
   border-color: rgba(239, 68, 68, 0.4);
+  animation: none;
+}
+/* Breathing ghost: subtle opacity pulse to invite placement */
+@keyframes ghostBreathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
 }
 
-/* Clear animation */
-@keyframes bloxClear {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-    filter: brightness(1);
-  }
-  40% {
-    transform: scale(1.15);
-    filter: brightness(1.6);
-  }
-  100% {
-    transform: scale(0);
-    opacity: 0;
-  }
+/* Clear animation (Juicy UI: flash white then shatter) */
+@keyframes bloxFlash {
+  0% { filter: brightness(1); transform: scale(1); }
+  100% { filter: brightness(2.5); transform: scale(1.08); }
+}
+@keyframes bloxShatter {
+  0% { transform: scale(1.08); opacity: 1; filter: brightness(2); }
+  40% { transform: scale(1.12) translateY(2px); opacity: 0.7; filter: brightness(1.5); }
+  100% { transform: scale(0) translateY(8px); opacity: 0; filter: brightness(1); }
 }
 .blox-cell.clearing {
-  animation: bloxClear 0.3s ease-out forwards;
+  animation: bloxFlash 0.1s ease-out forwards, bloxShatter 0.28s 0.1s ease-out forwards;
+  will-change: transform, opacity, filter;
 }
 
-/* Board shake */
+/* Board shake (2D for organic feel) */
 @keyframes bloxShake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  20% {
-    transform: translateX(-3px);
-  }
-  40% {
-    transform: translateX(3px);
-  }
-  60% {
-    transform: translateX(-2px);
-  }
-  80% {
-    transform: translateX(2px);
-  }
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-3px, -1px); }
+  30% { transform: translate(3px, 1px); }
+  45% { transform: translate(-2px, 0); }
+  60% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 1px); }
+}
+/* Heavy shake for multi-line clears */
+@keyframes bloxShakeHeavy {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  10% { transform: translate(-5px, -2px) rotate(-0.4deg); }
+  20% { transform: translate(5px, 2px) rotate(0.4deg); }
+  30% { transform: translate(-4px, -1px) rotate(-0.2deg); }
+  40% { transform: translate(4px, 1px) rotate(0.2deg); }
+  50% { transform: translate(-2px, 0); }
+  60% { transform: translate(2px, 0); }
 }
 .blox-board.shake {
   animation: bloxShake 0.35s ease;
+}
+.blox-board.shake-heavy {
+  animation: bloxShakeHeavy 0.5s ease;
 }
 
 /* ─── Piece Tray ─── */
@@ -132,7 +142,9 @@
   border: 2px solid transparent;
   border-radius: 12px;
   cursor: grab;
-  transition: all 0.2s ease;
+  transition:
+    all 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease;
   min-width: 60px;
   min-height: 56px;
   -webkit-user-select: none;
@@ -142,6 +154,7 @@
 .blox-piece-wrapper:hover:not(.placed) {
   border-color: rgba(167, 139, 250, 0.3);
   background: rgba(167, 139, 250, 0.08);
+  transform: scale(1.06) translateY(-2px);
 }
 .blox-piece-wrapper.selected {
   border-color: var(--accent);
@@ -149,6 +162,7 @@
   box-shadow: 0 0 12px var(--accent-glow);
   transform: scale(1.08);
 }
+/* Elevated lift: deep shadow + scale on pickup */
 .blox-piece-wrapper.placed {
   opacity: 0.15;
   pointer-events: none;
@@ -156,8 +170,9 @@
 }
 .blox-piece-wrapper.dragging {
   opacity: 0.4;
-  transform: scale(0.95);
+  transform: scale(1.05) translateY(-4px);
   border-color: var(--accent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
 }
 
 /* Mini piece preview grid */
@@ -232,15 +247,16 @@
 }
 /* btn-danger: moved to base.css (v4.10 button convention 6.5) */
 
-/* ─── Drag Preview (touch + mouse) ─── */
+/* ─── Drag Preview (touch + mouse) — GPU-accelerated ─── */
 .blox-drag-preview {
   position: fixed;
   z-index: 500;
   display: grid;
   pointer-events: none;
   opacity: 0.85;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-  will-change: transform, left, top;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.5));
+  will-change: transform;
+  transition: opacity 0.15s ease;
 }
 
 /* ─── Main Layout (board centered, leaderboard docked left) ─── */

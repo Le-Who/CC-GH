@@ -287,12 +287,21 @@ const BloxGame = (() => {
       }
 
       // 3. Re-render board AFTER animation completes (visual only)
-      setTimeout(() => renderBoard(), 300);
+      setTimeout(() => renderBoard(), 380); // Juicy UI: extended for flash+shatter animation
 
       const bonus = cleared > 1 ? cleared * 5 : 0;
       const pts = cleared * 10 + bonus;
       score += pts;
       linesCleared += cleared;
+
+      // Juicy UI: hit-stop freeze for multi-line clears (cinematic micro-feedback)
+      if (cleared >= 2) {
+        const gridEl2 = $("blox-board");
+        if (gridEl2) {
+          gridEl2.classList.add("shake-heavy");
+          setTimeout(() => gridEl2.classList.remove("shake-heavy"), 500);
+        }
+      }
 
       if (typeof showToast === "function") {
         const msg =
@@ -771,6 +780,10 @@ const BloxGame = (() => {
 
     el.style.left = `${pointer ? pointer.clientX - (offset.dc + 0.5) * cellPx : -999}px`;
     el.style.top = `${pointer ? pointer.clientY - (offset.dr + 0.5) * cellPx - liftY : -999}px`;
+    // Juicy UI: prepare for translate3d positioning
+    el._anchorDc = offset.dc;
+    el._anchorDr = offset.dr;
+    el._cellPx = cellPx;
     document.body.appendChild(el);
     dragPreviewEl = el;
   }
@@ -785,8 +798,12 @@ const BloxGame = (() => {
     const cellPx = dragPreviewCellSize;
     const liftY = isTouch ? cellPx * TOUCH_LIFT_FACTOR : 10;
 
-    dragPreviewEl.style.left = `${pointer.clientX - (offset.dc + 0.5) * cellPx}px`;
-    dragPreviewEl.style.top = `${pointer.clientY - (offset.dr + 0.5) * cellPx - liftY}px`;
+    // Juicy UI: GPU-accelerated positioning via translate3d
+    const x = pointer.clientX - (offset.dc + 0.5) * cellPx;
+    const y = pointer.clientY - (offset.dr + 0.5) * cellPx - liftY;
+    dragPreviewEl.style.left = "0px";
+    dragPreviewEl.style.top = "0px";
+    dragPreviewEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   }
 
   function removeDragPreview() {
@@ -879,15 +896,18 @@ const BloxGame = (() => {
     initBoardMouseTracking(); // Re-bind after re-render
 
     setTimeout(() => {
-      const linesWereCleared = clearLines() > 0;
+      const linesWereCleared = clearLines();
       updateStats();
       saveState();
       syncToStore();
 
+      // Juicy UI: hit-stop — defer subsequent logic for multi-line clears
+      const hitStopDelay = linesWereCleared >= 2 ? 120 : 0;
+
       // v4.7: Defer game-over check until AFTER the clear animation
       // so the player sees lines vanish before any overlay appears.
       // Board state is already correct (clearLines clears synchronously).
-      const checkDelay = linesWereCleared ? 350 : 0;
+      const checkDelay = (linesWereCleared > 0 ? 430 : 0) + hitStopDelay;
 
       if (tray.every((x) => x.placed)) {
         setTimeout(
