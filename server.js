@@ -14,7 +14,7 @@ import crypto from "crypto";
 import { fileURLToPath } from "url";
 import compression from "compression";
 import { initStorage, getBucket } from "./storage.js";
-import { players, loadDb, saveDb, debouncedSaveDb } from "./playerManager.js";
+import { players, loadDb } from "./playerManager.js";
 
 /* ─── Route Modules ─── */
 import farmRoutes from "./routes/farm.js";
@@ -251,7 +251,7 @@ app.use(
     index: false, // Don't serve index.html statically — we inject hashes
   }),
 );
-app.get("*", (_req, res) => {
+app.get(/.*/, (_req, res) => {
   res.set("Cache-Control", "no-cache, no-store, must-revalidate");
   res.set("Surrogate-Control", "no-store");
   res.set("Pragma", "no-cache");
