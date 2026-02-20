@@ -898,30 +898,27 @@ const BloxGame = (() => {
       return;
     }
 
-    const previewRect = dragPreviewEl.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
-    // Compute offset from current position to tray slot center
-    const dx =
-      targetRect.left +
-      targetRect.width / 2 -
-      (previewRect.left + previewRect.width / 2);
-    const dy =
-      targetRect.top +
-      targetRect.height / 2 -
-      (previewRect.top + previewRect.height / 2);
+    const previewRect = dragPreviewEl.getBoundingClientRect();
 
-    // Set return vector as CSS variables (animation goes FROM current offset TO 0,0)
-    dragPreviewEl.style.setProperty("--ret-x", `${-dx}px`);
-    dragPreviewEl.style.setProperty("--ret-y", `${-dy}px`);
-    // Move element to target position, animation will spring FROM old position
-    const curTransform = dragPreviewEl.style.transform;
-    dragPreviewEl.style.transform = `translate3d(${targetRect.left + targetRect.width / 2 - previewRect.width / 2}px, ${targetRect.top + targetRect.height / 2 - previewRect.height / 2}px, 0)`;
+    // Compute target center offset (preview positioned at left:0;top:0 via translate3d)
+    const tx = targetRect.left + targetRect.width / 2 - previewRect.width / 2;
+    const ty = targetRect.top + targetRect.height / 2 - previewRect.height / 2;
+
+    // Enable CSS transition (added by .returning class), then set target transform
+    // on next frame so the browser transitions from the current transform to the new one.
     dragPreviewEl.classList.add("returning");
     const el = dragPreviewEl;
     dragPreviewEl = null; // release reference so new drags can start
+
+    requestAnimationFrame(() => {
+      el.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(0.6)`;
+      el.style.opacity = "0.5";
+    });
+
     setTimeout(() => {
       el.remove();
-    }, 400);
+    }, 420);
   }
 
   // ── Interaction ──
