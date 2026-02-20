@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Module (v4.12.3)
+ *  Game Hub — Building Blox Module (v4.15.0)
  *  10×10 Block Puzzle: place pieces, clear lines
  *  ─ localStorage persistence, pause overlay, touch drag,
  *    grab-point anchor ghost, mouse drag-and-drop,
@@ -328,7 +328,7 @@ const BloxGame = (() => {
     return false;
   }
 
-  // ── Persistence (v4.12.3: + server sync for cross-device) ──
+  // ── Persistence (v4.15.0: + server sync for cross-device) ──
   function saveState() {
     try {
       const state = {
@@ -343,7 +343,7 @@ const BloxGame = (() => {
         gameActive,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      // v4.12.3: fire-and-forget server sync
+      // v4.15.0: fire-and-forget server sync
       api("/api/blox/sync", {
         userId: HUB.userId,
         savedState: state,
@@ -392,7 +392,7 @@ const BloxGame = (() => {
 
   function clearSavedState() {
     localStorage.removeItem(STORAGE_KEY);
-    // v4.12.3: clear server state too
+    // v4.15.0: clear server state too
     api("/api/blox/sync", {
       userId: HUB.userId,
       savedState: null,
@@ -1195,7 +1195,7 @@ const BloxGame = (() => {
       setBloxLbTab("room"),
     );
 
-    // v4.12.3: Fetch server state for cross-device sync
+    // v4.15.0: Fetch server state for cross-device sync
     try {
       const serverData = await api("/api/blox/state", {
         userId: HUB.userId,

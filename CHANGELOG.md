@@ -25,6 +25,24 @@
 - **Hit-stop freeze**: Multi-line clears (≥2) add 120ms cinematic pause before game-over check, letting the player absorb the impact.
 - **Heavy shake**: Multi-line clears trigger `bloxShakeHeavy` with 2D translation + rotation.
 
+### Visual UX Performance & Physics
+
+#### Match-3
+
+- **Dynamic gravity**: Fall animation now uses CSS variable `--drop-dist` (set per gem by JS) to scale `translateY` distance proportionally to actual rows traveled. Duration scales via `--fall-dur`: `0.25s` base + `0.04s` per extra row, capped at `0.55s`. Short falls are snappy; long cascades are dramatic.
+- **Object-pooled float points**: Replaced `createElement`/`remove` pattern with a ring-buffer pool of 8 pre-created `.m3-float-points` DOM nodes. Eliminates GC pauses during intense combo cascades.
+- **CSS containment**: Added `contain: layout style paint` to `.m3-board`, isolating repaints from surrounding page elements.
+
+#### Building Blox
+
+- **Compositor-safe transitions**: Replaced `transition: all 0.18s` on `.blox-cell` with explicit `transform`, `opacity`, `border-color`, `background` — prevents layout thrashing when hovering over the 100-cell grid.
+- **Spring return animation**: Pieces dropped outside the board or in invalid positions now visually spring back to their tray slot via `bloxSpringReturn` keyframes (400ms with overshoot bounce) instead of vanishing instantly.
+- **CSS containment**: Added `contain: layout style paint` to `.blox-board`.
+
+### Tests
+
+- 10 new UX invariant tests (194 total): dynamic gravity timing, transition safety, CSS containment, pool capacity, spring return duration.
+
 ### Bug Fixes
 
 - **Modal scrollbar flash**: `<dialog>` overlays briefly showed horizontal then vertical scrollbars during `modalPop` scale animation. Root cause: user-agent `overflow: auto` on `<dialog>` combined with `scale(0.9→1)` caused intermediate-size overflow recalculation. Fix: added `overflow: hidden`, `max-width/height` constraints, scrollbar suppression (`scrollbar-width: none` + `::-webkit-scrollbar`) on `.modal`; `contain: layout` and `width: min()` on `.modal-card`.

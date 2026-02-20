@@ -90,7 +90,7 @@ npm run dev
 │   ├── api.test.js        # 24 API integration tests
 │   ├── blox.test.js       # 30 Building Blox tests
 │   ├── match3.test.js     # 12 tile clearing tests
-│   ├── ux.test.js         # 42 UX diagnostic tests
+│   ├── ux.test.js         # 52 UX diagnostic tests
 │   ├── gcp.test.js        # 12 GCP resilience tests
 │   └── perf.test.js       # 15 performance benchmarks
 ├── Dockerfile             # Cloud Run deployment (node:20-alpine)
@@ -104,7 +104,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 184 tests (unit + API + blox + match3 + UX + GCP + perf)
+npm test          # All 194 tests (unit + API + blox + match3 + UX + GCP + perf)
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -114,7 +114,7 @@ npm run test:perf # Performance benchmarks only
 | **API**  | `tests/api.test.js`    |    24 |
 | **Blox** | `tests/blox.test.js`   |    30 |
 | **M3**   | `tests/match3.test.js` |    12 |
-| **UX**   | `tests/ux.test.js`     |    42 |
+| **UX**   | `tests/ux.test.js`     |    52 |
 | **GCP**  | `tests/gcp.test.js`    |    12 |
 | **Perf** | `tests/perf.test.js`   |    15 |
 
@@ -191,7 +191,7 @@ Following a complete codebase analysis, the following synthesized solutions will
 2. ~~**Persistent Navigation**~~: Implemented in v4.14.0.
 3. ~~**Standardized `<dialog>` Overlays**~~: All overlays migrated in v4.14.0–v4.14.3. Scrollbar flash fixed in v4.15.0.
 4. ~~**Centralized Toast Queue**~~: Implemented in v4.14.0, repositioned to bottom-right in v4.14.3.
-5. ~~**Juicy UI Foundation**~~: Implemented in v4.15.0. Spring physics, GPU-optimized animations, pseudo-3D blocks, hit-stop micro-feedback.
+5. ~~**Juicy UI Foundation**~~: Implemented in v4.15.0. Spring physics, GPU-optimized animations, pseudo-3D blocks, hit-stop micro-feedback, dynamic gravity, compositor-safe transitions, spring return, object-pooled float points, CSS containment.
 
 ---
 
