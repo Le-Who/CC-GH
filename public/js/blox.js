@@ -131,6 +131,11 @@ const BloxGame = (() => {
   let gamePaused = false;
   let selectedPiece = -1;
 
+  // v4.15.1: Object-pooled floating score points
+  const BLOX_FLOAT_POOL_SIZE = 5;
+  let bloxFloatPool = [];
+  let bloxFloatPoolIdx = 0;
+
   // Drag state (touch)
   let dragPieceIdx = -1;
   let dragPreviewEl = null;
@@ -310,9 +315,55 @@ const BloxGame = (() => {
             : `📏 Line clear! +${pts} pts`;
         showToast(msg);
       }
+      // v4.15.1: Floating score points over the board
+      showBloxFloat(pts);
     }
 
     return cleared;
+  }
+
+  // v4.15.1: Float pool — ported from Match-3
+  function initBloxFloatPool() {
+    if (bloxFloatPool.length > 0) return;
+    const container = $("blox-board");
+    if (!container) return;
+    for (let i = 0; i < BLOX_FLOAT_POOL_SIZE; i++) {
+      const el = document.createElement("div");
+      el.className = "blox-float-points";
+      el.style.display = "none";
+      el.style.position = "absolute";
+      container.parentElement.appendChild(el);
+      bloxFloatPool.push(el);
+    }
+  }
+
+  function showBloxFloat(pts) {
+    if (bloxFloatPool.length === 0) return;
+    const container = $("blox-board");
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const parentRect = container.parentElement.getBoundingClientRect();
+    // Center of board relative to parent
+    const cx = rect.left - parentRect.left + rect.width / 2;
+    const cy = rect.top - parentRect.top + rect.height / 2;
+
+    const el = bloxFloatPool[bloxFloatPoolIdx % BLOX_FLOAT_POOL_SIZE];
+    bloxFloatPoolIdx++;
+
+    el.classList.remove("blox-float-points");
+    void el.offsetWidth; // force reflow to re-trigger animation
+    el.textContent = `+${pts}`;
+    el.style.display = "";
+    el.style.left = `${cx - 20}px`;
+    el.style.top = `${cy - 10}px`;
+    const dx = Math.round(Math.random() * 30 - 15);
+    const rot = Math.round(Math.random() * 12 - 6);
+    el.style.setProperty("--float-dx", `${dx}px`);
+    el.style.setProperty("--float-rot", `${rot}deg`);
+    el.classList.add("blox-float-points");
+    setTimeout(() => {
+      el.style.display = "none";
+    }, 1000);
   }
 
   // ── Game-over check ──
@@ -1143,7 +1194,22 @@ const BloxGame = (() => {
     if (typeof showToast === "function") {
       showToast("🧱 No more moves! Game Over");
     }
-    endGame();
+    // v4.15.1: Radial petrification — freeze blocks from center outward
+    const gridEl = $("blox-board");
+    if (gridEl) {
+      const centerR = GRID / 2,
+        centerC = GRID / 2;
+      const cells = gridEl.querySelectorAll(".blox-cell.filled");
+      cells.forEach((cell) => {
+        const r = parseInt(cell.dataset.r);
+        const c = parseInt(cell.dataset.c);
+        const dist = Math.sqrt((r - centerR) ** 2 + (c - centerC) ** 2);
+        cell.style.transitionDelay = `${dist * 60}ms`;
+        cell.classList.add("petrified");
+      });
+    }
+    // Delay endGame to let petrification play out (~500ms for outermost cells)
+    setTimeout(() => endGame(), 600);
   }
 
   function showGameOver(finalScore) {
@@ -1227,6 +1293,7 @@ const BloxGame = (() => {
     board = createEmptyBoard();
     renderBoard();
     initBoardMouseTracking();
+    initBloxFloatPool();
     updateStats();
 
     // Show initial overlay
@@ -1235,7 +1302,7 @@ const BloxGame = (() => {
     // v4.9: Initial leaderboard fetch
     fetchBloxLeaderboard();
 
-    // v4.15: Flush state on tab close (beats 2s debounce race)
+    // v4.15.1: Flush state on tab close (beats 2s debounce race)
     window.addEventListener("beforeunload", () => {
       if (!gameActive) return;
       const state = {
@@ -1246,6 +1313,10 @@ const BloxGame = (() => {
         highScore,
         gameActive,
       };
+      // v4.15.1: Write to localStorage as safety net
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (_) {}
       const headers = { "Content-Type": "application/json" };
       if (HUB.accessToken)
         headers["Authorization"] = `Bearer ${HUB.accessToken}`;

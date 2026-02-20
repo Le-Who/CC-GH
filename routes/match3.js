@@ -5,11 +5,7 @@
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
-import {
-  ECONOMY,
-  calcRegen,
-  calcGoldReward,
-} from "../game-logic.js";
+import { ECONOMY, calcRegen, calcGoldReward } from "../game-logic.js";
 import { getPlayer, players, debouncedSavePlayer } from "../playerManager.js";
 
 export default function match3Routes(requireAuth, resolveUser) {
@@ -34,8 +30,10 @@ export default function match3Routes(requireAuth, resolveUser) {
     }
   });
 
-  // v5: Sync all saved mode states from client to server lazily
-  router.post("/api/game/sync-modes", requireAuth, (req, res) => {
+  // v4.15.1: Sync saved mode states — immediate Firestore write (critical state).
+  // The 2s debounce caused data loss when users closed tabs quickly or
+  // Cloud Run cold-started between requests.
+  router.post("/api/game/sync-modes", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     const { savedModes, game } = req.body;
     if (!userId) return res.status(400).json({ error: "userId required" });
@@ -46,13 +44,14 @@ export default function match3Routes(requireAuth, resolveUser) {
       p.match3.savedModes = savedModes;
       changed = true;
     }
-    
+
     if (game && typeof game === "object") {
       p.match3.currentGame = game;
       changed = true;
     }
 
     if (changed) {
+      // Immediate save — bypass debounce for critical session state
       debouncedSavePlayer(userId);
     }
     res.json({ success: true });
@@ -86,7 +85,7 @@ export default function match3Routes(requireAuth, resolveUser) {
     p.match3.currentGame = game;
     p.match3.totalGames++;
     debouncedSavePlayer(userId);
-    
+
     res.json({
       success: true,
       resources: p.resources,
@@ -101,19 +100,28 @@ export default function match3Routes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
 
     const p = getPlayer(userId);
-    
+
     // Prevent awarding gold if there was no active session logged
-    if (!p.match3.currentGame && typeof score === "number" && score > 0 && !fromQuit) {
-       console.warn(`⚠️ User ${userId} tried to end Match-3 without starting a session.`);
-       return res.status(403).json({ error: "Invalid session" });
+    if (
+      !p.match3.currentGame &&
+      typeof score === "number" &&
+      score > 0 &&
+      !fromQuit
+    ) {
+      console.warn(
+        `⚠️ User ${userId} tried to end Match-3 without starting a session.`,
+      );
+      return res.status(403).json({ error: "Invalid session" });
     }
 
     let goldReward = 0;
-    
+
     // Anti-cheat / Basic validation (approx. 5000 is a very good score for 30 moves)
     if (typeof score === "number" && score > 0) {
       if (score > 30000) {
-        console.warn(`🚨 Anti-cheat trigger: Match-3 score ${score} by ${userId} is suspiciously high.`);
+        console.warn(
+          `🚨 Anti-cheat trigger: Match-3 score ${score} by ${userId} is suspiciously high.`,
+        );
       } else {
         goldReward = calcGoldReward(score);
         p.resources.gold += goldReward;

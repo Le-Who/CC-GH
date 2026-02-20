@@ -333,6 +333,63 @@ const Match3Game = (() => {
     return { steps, totalPoints, combo: cascadeCombo };
   }
 
+  /** v4.15.1: Animated reshuffle when no valid moves remain.
+   *  Diagonal wave of 3D card-flips — gem types change mid-flip. */
+  function triggerReshuffle() {
+    if (typeof showToast === "function")
+      showToast("🔄 No moves! Reshuffling...");
+    const $b = $("m3-board");
+    if (!$b) return;
+    const cells = $b.querySelectorAll(".m3-cell");
+
+    // Phase 1: Assign flip with diagonal wave delay
+    cells.forEach((cell) => {
+      const y = parseInt(cell.dataset.y);
+      const x = parseInt(cell.dataset.x);
+      const delay = (x + y) * 0.04; // diagonal wave
+      cell.style.animationDelay = `${delay}s`;
+      cell.classList.add("reshuffling");
+    });
+
+    // Phase 2: Mid-flip (at ~250ms per cell) swap gem types
+    setTimeout(() => {
+      // Preserve drop tokens
+      const dropPositions = [];
+      for (let y = 0; y < BOARD_SIZE; y++) {
+        for (let x = 0; x < BOARD_SIZE; x++) {
+          if (DROP_TYPES.includes(board[y][x])) {
+            dropPositions.push({ y, x, type: board[y][x] });
+          }
+        }
+      }
+
+      // Generate new board
+      let attempts = 0;
+      do {
+        board = generateBoard();
+        // Restore drop tokens
+        for (const d of dropPositions) {
+          board[d.y][d.x] = d.type;
+        }
+        attempts++;
+      } while (!hasValidMoves(board) && attempts < 10);
+
+      // Update DOM in-place (still mid-flip, invisible)
+      renderBoard(false);
+    }, 250);
+
+    // Phase 3: Cleanup after full flip completes
+    setTimeout(() => {
+      const cells2 = $b.querySelectorAll(".m3-cell");
+      cells2.forEach((cell) => {
+        cell.classList.remove("reshuffling");
+        cell.style.animationDelay = "";
+      });
+      isAnimating = false;
+      $b.classList.remove("disabled");
+    }, 600);
+  }
+
   /* ═══ Init & Restore ═══ */
   async function init() {
     // Register match3 slice
@@ -353,8 +410,10 @@ const Match3Game = (() => {
     fetchLeaderboard();
     updateStartButton();
 
-    // v4.9.1: Don't pre-load localStorage savedModes — restoreGame() will
-    // set savedModes authoritatively from server state to prevent cross-device desync
+    // v4.15.1: Pre-load localStorage savedModes as a safety net.
+    // restoreGame() will merge server state on top, but if the server
+    // returns empty (debounce race / cold start), localStorage survives.
+    loadSavedModes();
 
     // v4.5.3: Eagerly create mode selector so it always exists for hideModeSelector()
     showModeSelector();
@@ -377,8 +436,24 @@ const Match3Game = (() => {
       }
     }
 
-    // v4.15: Flush savedModes on tab close (beats 2s debounce race)
+    // v4.15.1: Flush savedModes on tab close (beats 2s debounce race)
     window.addEventListener("beforeunload", () => {
+      // Snapshot active game into savedModes before flushing
+      if (gameActive) {
+        savedModes[gameMode] = {
+          board: JSON.parse(JSON.stringify(board)),
+          score,
+          movesLeft,
+          combo,
+          dropStars: JSON.parse(JSON.stringify(dropStars)),
+          starsDropped,
+          timedSecondsLeft,
+        };
+      }
+      // Persist to localStorage as safety net
+      try {
+        localStorage.setItem(SAVED_MODES_KEY, JSON.stringify(savedModes));
+      } catch (_) {}
       if (Object.keys(savedModes).length === 0) return;
       const headers = { "Content-Type": "application/json" };
       if (HUB.accessToken)
@@ -559,6 +634,10 @@ const Match3Game = (() => {
   }
 
   async function restoreGame() {
+    // v4.15.1: Keep a snapshot of localStorage modes loaded during init().
+    // If the server returns empty/stale savedModes, localStorage fills the gaps.
+    const localSnapshot = { ...savedModes };
+
     try {
       const data = await api("/api/game/state", {
         userId: HUB.userId,
@@ -568,6 +647,13 @@ const Match3Game = (() => {
 
       // v4.11.1: Restore ALL saved modes from server (cross-device sync)
       const serverSavedModes = hydrateSavedModes(data.savedModes || {});
+
+      // v4.15.1: Merge — server wins per-mode, but localStorage fills gaps
+      // (handles debounce race / Cloud Run cold start data loss)
+      const mergedModes = { ...localSnapshot };
+      for (const mode of Object.keys(serverSavedModes)) {
+        mergedModes[mode] = serverSavedModes[mode];
+      }
 
       if (data.game) {
         const restoredMode = data.game.mode || gameMode;
@@ -580,8 +666,7 @@ const Match3Game = (() => {
         gameMode = restoredMode;
 
         if (gameActive) {
-          // Merge server savedModes + override the active mode from currentGame
-          savedModes = { ...serverSavedModes };
+          savedModes = { ...mergedModes };
           savedModes[restoredMode] = {
             board: JSON.parse(JSON.stringify(board)),
             score,
@@ -591,7 +676,6 @@ const Match3Game = (() => {
             starsDropped,
             timedSecondsLeft,
           };
-          // Only persist to localStorage (not back to server — avoid loop)
           try {
             localStorage.setItem(SAVED_MODES_KEY, JSON.stringify(savedModes));
           } catch (_) {}
@@ -599,15 +683,13 @@ const Match3Game = (() => {
           renderBoard(true);
           showToast("💎 Game restored!");
         } else {
-          // No active game — use server savedModes if present
-          savedModes = { ...serverSavedModes };
+          savedModes = { ...mergedModes };
           try {
             localStorage.setItem(SAVED_MODES_KEY, JSON.stringify(savedModes));
           } catch (_) {}
           highScore = data.highScore || 0;
           $("m3-best").textContent = highScore;
 
-          // v4.12.1: Hydrate last-mode board from savedModes (fix Star Drop state loss)
           const lastMode = localStorage.getItem(LAST_MODE_KEY) || "classic";
           const lastSaved = savedModes[lastMode];
           if (lastSaved && lastSaved.board) {
@@ -624,15 +706,13 @@ const Match3Game = (() => {
           renderBoard(true);
         }
       } else {
-        // No game on server — use server savedModes if any
-        savedModes = { ...serverSavedModes };
+        savedModes = { ...mergedModes };
         try {
           localStorage.setItem(SAVED_MODES_KEY, JSON.stringify(savedModes));
         } catch (_) {}
         highScore = data.highScore || 0;
         $("m3-best").textContent = highScore;
 
-        // v4.12.1: Hydrate last-mode board from savedModes (fix Star Drop state loss)
         const lastMode = localStorage.getItem(LAST_MODE_KEY) || "classic";
         const lastSaved = savedModes[lastMode];
         if (lastSaved && lastSaved.board) {
@@ -650,6 +730,8 @@ const Match3Game = (() => {
       }
     } catch (e) {
       console.warn("Match-3 restore failed:", e);
+      // v4.15.1: On network failure, localStorage snapshot is already in savedModes
+      // from init() loadSavedModes() call — no data lost.
     }
   }
 
@@ -1442,8 +1524,11 @@ const Match3Game = (() => {
       syncToStore();
       updateStartButton();
     } else {
-      // v5: Offline-First mode no longer informs the server of every single move.
-      // Game state is preserved robustly in localStorage (via persistSavedModes above)
+      // v4.15.1: Check for deadlock after cascade — reshuffle if stuck
+      if (!hasValidMoves(board)) {
+        triggerReshuffle();
+        return; // triggerReshuffle handles isAnimating and disabled cleanup
+      }
     }
 
     isAnimating = false;
