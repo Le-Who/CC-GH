@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Shared Module (v4.15.0)
+ *  Game Hub — Shared Module (v4.15.2)
  *  Discord SDK auth, API helper, screen navigation
  *  CSP-compliant: no inline handlers, no external fonts
  * ═══════════════════════════════════════════════════ */
@@ -703,8 +703,15 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   updateM3CellSize();
   updateBloxCellSize();
+  // v4.15.2: rAF-throttled resize to prevent layout thrashing
+  let _resizePending = false;
   window.addEventListener("resize", () => {
-    updateM3CellSize();
-    updateBloxCellSize();
+    if (_resizePending) return;
+    _resizePending = true;
+    requestAnimationFrame(() => {
+      updateM3CellSize();
+      updateBloxCellSize();
+      _resizePending = false;
+    });
   });
 });

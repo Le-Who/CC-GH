@@ -1,5 +1,15 @@
 # Changelog
 
+## v4.15.2 — 2026-02-20
+
+### Performance Optimizations
+
+- **Resize throttling** (`shared.js`): Replaced raw `resize` listener with `requestAnimationFrame` guard. Prevents layout thrashing (alternating DOM reads/writes at 60fps) during window resize.
+- **Farm growth tick visibility gate** (`farm.js`): `startLocalGrowthTick()` now skips `render()` entirely when the farm screen is not active (`HUB.currentScreen !== 2`). Badge updates throttled to fire only when the harvestable-plot count actually changes.
+- **Pet heart particle pool** (`pet.js`): Replaced `createElement`/`remove` churn with ring-buffer object pool of 5 pre-created `<span>` elements (same pattern as Match-3/Blox float points). Eliminates GC pressure on rapid pet clicks.
+- **HUD regen timer optimization** (`hud.js`): Cached all DOM refs (`$energyText`, `$goldText`, `$regenFill`, `$energyEl`) at init. Added early return when energy is full (skips all DOM ops). Regen fill width only written when the value actually changes. Page Visibility API gate pauses the 1s timer when tab is hidden.
+- **Farm water button delegation** (`farm.js`): Removed per-element `addEventListener` from `rebuildPlot()`. Water button clicks now routed through the grid's single event delegation handler, eliminating closure creation on every DOM rebuild.
+
 ## v4.15.1 — 2026-02-20
 
 ### Bug Fixes

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Pet Module (v4.15.0)
+ *  Game Hub — Pet Module (v4.15.2)
  *  Living Pet Entity with state machine & interactions
  *  v1.8: Weighted behavior, zone roaming, FLIP dock
  * ═══════════════════════════════════════════════════ */
@@ -30,6 +30,11 @@ const PetCompanion = (function () {
   let previousState = STATES.IDLE; // For anti-repeat logic
   let panelOpen = false;
   let dockMode = "ground"; // "ground" | "match3" | "trivia"
+
+  // v4.15.2: Heart particle object pool (eliminates DOM churn)
+  const HEART_POOL_SIZE = 5;
+  let heartPool = [];
+  let heartPoolIdx = 0;
 
   /* ─── GameStore Slice ─── */
   function registerSlice() {
@@ -113,6 +118,18 @@ const PetCompanion = (function () {
         panel.style.display = "none";
       }
     });
+
+    // v4.15.2: Pre-create heart particle pool
+    const heartsEl = document.getElementById("pet-hearts");
+    if (heartsEl && heartPool.length === 0) {
+      for (let i = 0; i < HEART_POOL_SIZE; i++) {
+        const el = document.createElement("span");
+        el.className = "pet-heart";
+        el.style.display = "none";
+        heartsEl.appendChild(el);
+        heartPool.push(el);
+      }
+    }
   }
 
   /* ─── State Machine (class-based — synchronous, zero-flicker) ─── */
@@ -367,16 +384,22 @@ const PetCompanion = (function () {
   }
 
   function spawnHeart() {
-    const heartsEl = document.getElementById("pet-hearts");
-    if (!heartsEl) return;
+    if (heartPool.length === 0) return;
+    const el = heartPool[heartPoolIdx % HEART_POOL_SIZE];
+    heartPoolIdx++;
 
-    const heart = document.createElement("span");
-    heart.className = "pet-heart";
     const emojis = ["❤️", "💕", "✨", "⭐"];
-    heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-    heart.style.setProperty("--hx", Math.random() * 30 - 15 + "px");
-    heartsEl.appendChild(heart);
-    setTimeout(() => heart.remove(), 1200);
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.setProperty("--hx", Math.random() * 30 - 15 + "px");
+
+    // Re-trigger animation by removing/re-adding class
+    el.classList.remove("pet-heart");
+    el.style.display = "";
+    void el.offsetWidth;
+    el.classList.add("pet-heart");
+    setTimeout(() => {
+      el.style.display = "none";
+    }, 1200);
   }
 
   /* ─── Info Panel ─── */

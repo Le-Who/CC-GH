@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — HUD Module (v4.15.0)
+ *  Game Hub — HUD Module (v4.15.2)
  *  TopHUD for Energy & Gold display
  *  Registers 'resources' slice in GameStore
  * ═══════════════════════════════════════════════════ */
@@ -7,6 +7,13 @@ const HUD = (function () {
   "use strict";
 
   let regenTimerId = null;
+
+  // v4.15.2: Cached DOM refs (eliminates per-second getElementById calls)
+  let $energyText = null;
+  let $goldText = null;
+  let $energyEl = null;
+  let $regenFill = null;
+  let _lastRegenWidth = "";
 
   /* ─── GameStore Slice Registration ─── */
   function registerSlice() {
@@ -38,20 +45,21 @@ const HUD = (function () {
   /* ─── Update Display ─── */
   function updateDisplay(res) {
     if (!res) return;
-    const energyText = document.getElementById("hud-energy-text");
-    const goldText = document.getElementById("hud-gold-text");
-    const energyEl = document.querySelector(".hud-energy");
+    // v4.15.2: Use cached DOM refs
+    if (!$energyText) $energyText = document.getElementById("hud-energy-text");
+    if (!$goldText) $goldText = document.getElementById("hud-gold-text");
+    if (!$energyEl) $energyEl = document.querySelector(".hud-energy");
 
-    if (energyText) {
-      energyText.textContent = `${res.energy.current}/${res.energy.max}`;
+    if ($energyText) {
+      $energyText.textContent = `${res.energy.current}/${res.energy.max}`;
     }
-    if (goldText) {
-      goldText.textContent = formatGold(res.gold);
+    if ($goldText) {
+      $goldText.textContent = formatGold(res.gold);
     }
 
     // Low energy warning
-    if (energyEl) {
-      energyEl.classList.toggle("hud-energy-low", res.energy.current <= 3);
+    if ($energyEl) {
+      $energyEl.classList.toggle("hud-energy-low", res.energy.current <= 3);
     }
 
     // Update tooltip
@@ -87,31 +95,39 @@ const HUD = (function () {
       if (typeof GameStore !== "undefined") {
         const res = GameStore.getState("resources");
         if (res) {
-          // Local regen tick
           const e = { ...res.energy };
           const now = Date.now();
           const interval = 150 * 1000; // 2.5 min — matches game-logic.js
-          if (e.current < e.max) {
-            const delta = now - e.lastRegenTimestamp;
-            const ticks = Math.floor(delta / interval);
-            if (ticks > 0) {
-              e.current = Math.min(e.max, e.current + ticks);
-              if (e.current < e.max) {
-                e.lastRegenTimestamp = now - (delta % interval);
-              } else {
-                e.lastRegenTimestamp = now;
-              }
-              GameStore.setState("resources", { ...res, energy: e });
+          // v4.15.2: Early return when energy is full (skip all DOM ops)
+          if (e.current >= e.max) {
+            if (_lastRegenWidth !== "0%") {
+              if (!$regenFill)
+                $regenFill = document.getElementById("hud-energy-regen-fill");
+              if ($regenFill) $regenFill.style.width = "0%";
+              _lastRegenWidth = "0%";
             }
-            // Update regen micro-progress bar (0-100% within current 5min tick)
-            const elapsed = now - e.lastRegenTimestamp;
-            const pct = Math.min(100, (elapsed / interval) * 100);
-            const regenFill = document.getElementById("hud-energy-regen-fill");
-            if (regenFill) regenFill.style.width = `${pct}%`;
-          } else {
-            // Energy full — hide regen progress
-            const regenFill = document.getElementById("hud-energy-regen-fill");
-            if (regenFill) regenFill.style.width = "0%";
+            return;
+          }
+          const delta = now - e.lastRegenTimestamp;
+          const ticks = Math.floor(delta / interval);
+          if (ticks > 0) {
+            e.current = Math.min(e.max, e.current + ticks);
+            if (e.current < e.max) {
+              e.lastRegenTimestamp = now - (delta % interval);
+            } else {
+              e.lastRegenTimestamp = now;
+            }
+            GameStore.setState("resources", { ...res, energy: e });
+          }
+          // Update regen micro-progress bar
+          const elapsed = now - e.lastRegenTimestamp;
+          const pct = Math.min(100, (elapsed / interval) * 100);
+          const newWidth = `${pct}%`;
+          if (newWidth !== _lastRegenWidth) {
+            if (!$regenFill)
+              $regenFill = document.getElementById("hud-energy-regen-fill");
+            if ($regenFill) $regenFill.style.width = newWidth;
+            _lastRegenWidth = newWidth;
           }
           updateDisplay({ ...res, energy: e });
         }
@@ -196,6 +212,15 @@ const HUD = (function () {
         updateDisplay(newState);
       });
     }
+
+    // v4.15.2: Pause regen timer when tab hidden (save CPU)
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        stopRegenTimer();
+      } else {
+        startRegenTimer(); // Resume + catch up on missed ticks
+      }
+    });
   }
 
   /* ─── Quick-Feed Energy Modal ─── */

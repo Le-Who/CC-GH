@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Farm Module (v4.15.0)
+ *  Game Hub — Farm Module (v4.15.2)
  *  Plots, planting, watering, harvesting, seed shop
  *  ─ Local growth timer, diff-update fix, farm badge
  *  ─ Diff-update plots (no blink), horizontal buy bar, plot dispatcher
@@ -167,8 +167,15 @@ const FarmGame = (() => {
     // Event delegation: single click handler on grid (never lost during DOM rebuild)
     const grid = $("farm-plots");
     grid.addEventListener("click", (e) => {
-      // Skip water button clicks (handled by their own listener)
-      if (e.target.closest(".farm-water-btn")) return;
+      // v4.15.2: Water button handled via delegation (no per-element listeners)
+      const waterBtn = e.target.closest(".farm-water-btn:not([disabled])");
+      if (waterBtn) {
+        e.stopPropagation();
+        const plot = waterBtn.closest(".farm-plot");
+        const idx = plot ? parseInt(plot.dataset.index, 10) : NaN;
+        if (!isNaN(idx)) water(idx);
+        return;
+      }
       const plot = e.target.closest(".farm-plot");
       if (!plot || plot.classList.contains("skeleton")) return;
       const idx = parseInt(plot.dataset.index, 10);
@@ -415,13 +422,7 @@ const FarmGame = (() => {
           });
         }
       }
-      const waterBtn = div.querySelector(".farm-water-btn:not([disabled])");
-      if (waterBtn && !plot.watered && !isReady) {
-        waterBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          FarmGame.water(i);
-        });
-      }
+      // v4.15.2: Water button handled by grid event delegation — no per-element listener
       div.title = isReady ? "Click to harvest!" : "Growing...";
     } else {
       div.innerHTML = `<div class="plot-empty-label">Empty Plot</div><div style="font-size:1.4rem;opacity:0.3">🌱</div>`;
@@ -908,21 +909,30 @@ const FarmGame = (() => {
   /* ─── Local Growth Tick (replaces 2s polling) ─── */
   let growthTickId = null;
   let syncInterval = null;
+  let _lastReadyCount = -1; // v4.15.2: Badge throttle
 
   function startLocalGrowthTick() {
     stopLocalGrowthTick();
     let prevHadGrowing = true; // assume growing on start
     growthTickId = setInterval(() => {
       if (!state?.plots) return;
+      // v4.15.2: Skip render when farm screen is not active
+      if (HUB.currentScreen !== 2) return;
       const hasGrowing = state.plots.some(
         (p) => p.crop && getLocalGrowth(p) < 1,
       );
       if (!hasGrowing && !prevHadGrowing) return; // nothing changed, skip
       // v4.11.1: Always render when transitioning from growing→done
-      // so CSS classes, growth labels, and badge update on the final tick
       prevHadGrowing = hasGrowing;
       render();
-      updateFarmBadge();
+      // v4.15.2: Throttle badge — only update when ready count changes
+      const readyCount = state.plots.filter(
+        (p) => p.crop && getLocalGrowth(p) >= 1,
+      ).length;
+      if (readyCount !== _lastReadyCount) {
+        _lastReadyCount = readyCount;
+        updateFarmBadge();
+      }
     }, 500);
     // Lazy server sync every 30s for drift correction
     syncInterval = setInterval(async () => {
