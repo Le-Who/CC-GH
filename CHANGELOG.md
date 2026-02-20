@@ -1,5 +1,34 @@
 # Changelog
 
+## v4.15.0 — 2026-02-20
+
+### Juicy UI — Visual Overhaul (Match-3 + Building Blox)
+
+#### Match-3 (Gem Crush)
+
+- **Spring-physics fall**: 5-keyframe bounce animation with overshoot → settle, replacing the simple 2-step drop.
+- **Organic hover/active**: Back-ease `cubic-bezier(0.175, 0.885, 0.32, 1.275)` on cells with brightness shift and gem-icon micro-rotation.
+- **Flash-pop clear**: Matched gems flash to `brightness(2.8)` before shattering, creating a more satisfying destruction effect.
+- **Wave entrance**: Board fill uses diagonal wave delay (`col * 0.05s + row * 0.05s`) with spring overshoot and rotation.
+- **GPU-optimized drop-gem glow**: Replaced expensive `box-shadow` animation with `::after` pseudo-element using `opacity`/`transform` only (compositor-only properties).
+- **Scattered float-points**: Score popups now arc along random trajectories via `--float-dx` and `--float-rot` CSS custom properties.
+- **Combo banner vibration**: New `m3ComboPop` keyframe with spring-pop entrance and micro-rotation wobble.
+- **Intensity-scaled shake**: `combo >= 3` triggers heavy 2D screen shake with rotation (`shake-heavy` class).
+
+#### Building Blox
+
+- **Pseudo-3D blocks**: Filled cells get inner bevel highlight + shadow (`inset ±2px`) for a tactile, neumorphic look.
+- **Breathing ghost**: Placement preview pulses `opacity 0.35→0.7` via `ghostBreathe` animation, inviting the player to release.
+- **Flash-then-shatter clear**: Two-phase line clear — 100ms white brightness flash, then 280ms shatter-down with opacity fade.
+- **Elevated lift**: Piece pickup immediately scales to `1.05` with `translateY(-4px)` and deep `box-shadow: 0 12px 28px` shadow.
+- **GPU-accelerated drag**: `moveDragPreview()` now uses `transform: translate3d()` instead of `left/top` for smooth 60-120fps compositing.
+- **Hit-stop freeze**: Multi-line clears (≥2) add 120ms cinematic pause before game-over check, letting the player absorb the impact.
+- **Heavy shake**: Multi-line clears trigger `bloxShakeHeavy` with 2D translation + rotation.
+
+### Bug Fixes
+
+- **Modal scrollbar flash**: `<dialog>` overlays briefly showed horizontal then vertical scrollbars during `modalPop` scale animation. Root cause: user-agent `overflow: auto` on `<dialog>` combined with `scale(0.9→1)` caused intermediate-size overflow recalculation. Fix: added `overflow: hidden`, `max-width/height` constraints, scrollbar suppression (`scrollbar-width: none` + `::-webkit-scrollbar`) on `.modal`; `contain: layout` and `width: min()` on `.modal-card`.
+
 ## v4.14.3 — 2026-02-20
 
 ### Deployment & Data Recovery

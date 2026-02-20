@@ -2,24 +2,24 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v4.14.3**
+**Current version: v4.15.0**
 
 ---
 
 ## 📸 Overview
 
-| Feature                   | Description                                                              |
-| ------------------------- | ------------------------------------------------------------------------ |
-| 🌱 **Cozy Farm**          | Plant, water, harvest crops · Buy plots · Seed shop with 8 crop types    |
-| 🧠 **Brain Blitz**        | Solo trivia + async duels via invite codes · 3 difficulty tiers          |
-| 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, and leaderboard · 3 game modes        |
-| 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag          |
-| 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities |
-| ⚡ **Energy System**      | Native dialog overlays · 3-min regen · Gates match-3 and trivia plays    |
-| 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report    |
-| 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games         |
-| 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                 |
-| 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions             |
+| Feature                   | Description                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| 🌱 **Cozy Farm**          | Plant, water, harvest crops · Buy plots · Seed shop with 8 crop types        |
+| 🧠 **Brain Blitz**        | Solo trivia + async duels via invite codes · 3 difficulty tiers              |
+| 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, and leaderboard · 3 game modes · Juicy UI |
+| 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag · Juicy UI   |
+| 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
+| ⚡ **Energy System**      | Native dialog overlays · 3-min regen · Gates match-3 and trivia plays        |
+| 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
+| 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
+| 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
+| 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions                 |
 
 ---
 
@@ -189,8 +189,9 @@ Following a complete codebase analysis, the following synthesized solutions will
 
 1. ~~**Native View Transitions**~~: Implemented in v4.14.0.
 2. ~~**Persistent Navigation**~~: Implemented in v4.14.0.
-3. ~~**Standardized `<dialog>` Overlays**~~: All overlays migrated in v4.14.0–v4.14.3.
+3. ~~**Standardized `<dialog>` Overlays**~~: All overlays migrated in v4.14.0–v4.14.3. Scrollbar flash fixed in v4.15.0.
 4. ~~**Centralized Toast Queue**~~: Implemented in v4.14.0, repositioned to bottom-right in v4.14.3.
+5. ~~**Juicy UI Foundation**~~: Implemented in v4.15.0. Spring physics, GPU-optimized animations, pseudo-3D blocks, hit-stop micro-feedback.
 
 ---
 
