@@ -2,7 +2,7 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v4.14.2**
+**Current version: v4.14.3**
 
 ---
 
@@ -29,8 +29,9 @@
 | ------------ | ---------------------------------------- |
 | **Runtime**  | Node.js 20                               |
 | **Frontend** | Vanilla JS + CSS (zero build step)       |
-| **Backend**  | Express.js 4.18                          |
-| **Storage**  | Google Cloud Storage (local fallback)    |
+| **Backend**  | Express.js 5.x                           |
+| **Database** | Google Cloud Firestore                   |
+| **Storage**  | Google Cloud Storage (legacy backup)     |
 | **Auth**     | Discord Embedded App SDK 1.0             |
 | **State**    | GameStore (Zustand-inspired vanilla JS)  |
 | **Testing**  | Node.js built-in `node:test` (zero deps) |
@@ -168,9 +169,9 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 > Each game uses the persistence approach best suited to its gameplay pattern:
 
-- **Farm & Pet**: Server-authoritative — all state on server, client polls and pushes via REST API.
-- **Match-3**: Client-side `localStorage` + server `sync-modes` for cross-device persistence. Server for leaderboard.
-- **Blox**: Client-side `localStorage` + server `sync` for cross-device resume. Server for leaderboard.
+- **Farm & Pet**: Server-authoritative — all state in Firestore, client polls and pushes via REST API.
+- **Match-3**: Client-side `localStorage` + server `sync-modes` for cross-device persistence. Server for leaderboard. Firestore board data includes automatic object→array hydration.
+- **Blox**: Client-side `localStorage` + server `sync` for cross-device resume. Server for leaderboard. Firestore board/tray data includes automatic hydration.
 - **Trivia**: Ephemeral — no persistence between sessions (each game is fresh).
 
 ---
@@ -183,13 +184,13 @@ Following a complete codebase analysis, the following synthesized solutions will
 
 1. **Web Components & Native ESM**: Replacing manual `innerHTML` rebuilds with encapsulated Custom Elements, and switching to native ES Modules (`type="module"`) to eliminate global namespace pollution.
 2. **WebSocket State Sync**: Upgrading from the custom `api()` fetch wrapper and optimistic fallbacks to real-time bidirectional synchronization (e.g., Socket.io).
-3. **Scaled Persistence**: Replacing the monolithic in-memory `players` Map with a robust distributed data layer (like SQLite or Redis) for true horizontal scalability.
 
-### UX/UI Fluidity
+### UX/UI Fluidity — ✅ Completed in v4.14
 
-1. **Native View Transitions**: Replacing the rigid `transform: translateX(...)` sliding track with the modern HTML5 View Transitions API for seamless, bug-free navigation.
-2. **Persistent Navigation**: Game boards will dynamically scale to accommodate the bottom `<nav-bar>`, removing the jarring auto-hide behavior during gameplay.
-3. **Standardized Overlays**: Moving all custom overlays to the native `<dialog>` element with native backdrops for flawless focus trapping and z-index management, paired with a centralized Toast Queue to prevent notification overlap.
+1. ~~**Native View Transitions**~~: Implemented in v4.14.0.
+2. ~~**Persistent Navigation**~~: Implemented in v4.14.0.
+3. ~~**Standardized `<dialog>` Overlays**~~: All overlays migrated in v4.14.0–v4.14.3.
+4. ~~**Centralized Toast Queue**~~: Implemented in v4.14.0, repositioned to bottom-right in v4.14.3.
 
 ---
 

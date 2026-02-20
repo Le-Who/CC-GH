@@ -1,18 +1,42 @@
 # Changelog
 
-## v4.14.2 — 2026-02-20
+## v4.14.3 — 2026-02-20
 
-### Hotfixes
+### Deployment & Data Recovery
 
-- **Building Blox Initialization Crash**: Fixed an `Uncaught TypeError: overlay.showModal is not a function` error when launching the Building Blox game. The `blox-pause-overlay` was properly converted from a legacy `div` into a standard HTML5 `<dialog>` element to support the Phase 2 UI/UX modal API.
+- **Express 5.x Routing Crash**: Swapped deprecated wildcard string route `app.get("*")` to RegExp `app.get(/.*/)` in `server.js`.
+- **Missing `saveDb` Export**: Removed stale import from `playerManager.js` that crashed the server on start.
+- **Discord Auth Missing in Production**: Cloud Run was deployed without `DISCORD_CLIENT_ID`/`DISCORD_CLIENT_SECRET` env vars, causing all users to fall into demo mode with random IDs. Fixed deploy command to include all Discord credentials.
+- **Player Data Restoration**: Migrated 11 players from legacy `hub-db.json` (GCS bucket) into Firestore. Wrote a one-off migration script with recursive sanitization for Firestore constraints (no `undefined`, no nested arrays).
 
-## v4.14.1 — 2026-02-20
+### Frontend Hotfixes (Phase 2 Residuals)
 
-### Hotfixes
+- **`applyScreenPosition` undefined**: Replaced deprecated DOM call in `shared.js` with its View Transitions replacement `applyScreenClasses()`.
+- **Building Blox crash on launch**: Converted `blox-pause-overlay` from legacy `<div>` to native `<dialog>` element.
+- **Match-3 Game Over overlay stuck**: Converted `m3-overlay` from `<div>` to `<dialog>`, replaced stale `classList.remove("show")` calls with `.close()`.
+- **Match-3 Pause overlay invisible**: `m3-pause-overlay` was a `<dialog>` in HTML but JS used `classList.add("show")` — replaced with `.showModal()`/`.close()`.
+- **Energy Modal crash**: Fixed `hud.js` assigning `.onclick` to nonexistent `energy-modal-close` element; switched to native `<dialog>` `.showModal()`/`.close()`.
+- **Economy Guide `?` button dead**: JS referenced `econ-guide-overlay` but HTML ID is `econ-guide-modal`. Fixed ID and switched to dialog API.
+- **Black text in dialogs**: Added `color: inherit` to `.modal` CSS to override browser default black text on `<dialog>` elements.
 
-- **Express 5.x Routing Crash**: Fixed a server crash during deployment by swapping the deprecated wildcard string route `app.get("*")` to a RegExp `app.get(/.*/)` in `server.js`.
-- **Missing Exports**: Removed stray import `saveDb` in `server.js` from `playerManager.js` that caused an `ERR_MODULE_NOT_FOUND` crash on start.
-- **Frontend Initialization Error**: Fixed an `Uncaught ReferenceError: applyScreenPosition is not defined` error when loading the game hub. Replaced the stale layout script in `shared.js` with its View Transitions alternative.
+### Architecture
+
+- **SmartLoader removed**: Replaced dynamic `document.createElement("script")` lazy loading with static `<script>` tags for all 4 game modules. Eliminates caching bugs from Discord's CDN proxy serving stale scripts.
+- **Content-hash cache busting**: Server's `getIndexHtml()` replaces `?v=` on all script/CSS tags with per-file MD5 hashes at startup. No more version-string cache misses.
+
+### Firestore Compatibility
+
+- **Match-3 `board.map` crash**: Firestore converts 2D arrays to objects with numeric keys. Added `hydrateBoard()` helper in `match3.js` to convert back.
+- **Blox board/tray hydration**: Same Firestore object→array fix applied to `blox.js` for both `board` and `tray` data.
+
+### UX
+
+- **Toasts repositioned**: Moved toast container from centered to bottom-right to avoid blocking the game board during play.
+
+### Tech Stack
+
+- **Express 5.x**: Upgraded from Express 4.18 to Express 5.2.1.
+- **Firestore**: Replaced GCS JSON file persistence with Google Cloud Firestore for player data.
 
 ## v4.14.0 — 2026-02-20
 
