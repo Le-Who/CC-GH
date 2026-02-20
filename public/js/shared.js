@@ -629,7 +629,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (typeof HUD !== "undefined") await HUD.init();
   if (typeof PetCompanion !== "undefined") PetCompanion.init();
 
-  applyScreenPosition();
+  applyScreenClasses();
   updateNavUI();
 
   // Load ONLY the active screen (Farm), then init
