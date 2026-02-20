@@ -1,0 +1,20 @@
+.gcloudignore
+.git
+.github
+
+# node dependencies
+node_modules/
+
+# environments and secrets
+.env
+.env.example
+data/hub-db.json
+
+# logs
+*.log
+
+# testing and docs
+tests/
+*.test.js
+README.md
+CHANGELOG.md

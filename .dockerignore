@@ -7,3 +7,5 @@ tests/
 *.test.js
 .env.example
 README.md
+CHANGELOG.md
+public/js/discord-sdk-bundle.js
