@@ -255,10 +255,6 @@ function updateNavUI() {
 
 async function triggerScreenCallbacks() {
   const name = HUB.screenNames[HUB.currentScreen];
-  // Ensure the game script is loaded
-  await SmartLoader.loadScreen(HUB.currentScreen);
-  // Prefetch neighbors in background
-  SmartLoader.prefetchNeighbors(HUB.currentScreen);
 
   // Screen leave callbacks (hide elements that might leak into other screens)
   if (
@@ -353,45 +349,6 @@ function showToast(msg, type) {
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
-
-/* ─── SmartLoader (Predictive Proximity Loading) ─── */
-const SmartLoader = {
-  loaded: { farm: false, trivia: false, match3: false, blox: false },
-  loading: { farm: null, trivia: null, match3: null, blox: null },
-
-  loadScript(name) {
-    if (this.loaded[name]) return Promise.resolve();
-    if (this.loading[name]) return this.loading[name];
-    this.loading[name] = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      const assetKey = `js/${name}.js`;
-      const hash =
-        window.__ASSET_HASHES__?.[assetKey] ||
-        window.__APP_VERSION__ ||
-        Date.now();
-      script.src = `${assetKey}?v=${hash}`;
-      script.onload = () => {
-        this.loaded[name] = true;
-        resolve();
-      };
-      script.onerror = () => reject(new Error(`Failed to load ${name}.js`));
-      document.body.appendChild(script);
-    });
-    return this.loading[name];
-  },
-
-  async loadScreen(index) {
-    const name = HUB.screenNames[index];
-    if (name) await this.loadScript(name);
-  },
-
-  prefetchNeighbors(index) {
-    setTimeout(() => {
-      if (index > 0) this.loadScript(HUB.screenNames[index - 1]);
-      if (index < 3) this.loadScript(HUB.screenNames[index + 1]);
-    }, 2000);
-  },
-};
 
 /* ─── Bind Navigation Buttons (CSP-safe, no inline handlers) ─── */
 function bindNavigation() {
@@ -637,14 +594,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   applyScreenClasses();
   updateNavUI();
 
-  // Load ONLY the active screen (Farm), then init
-  await SmartLoader.loadScreen(HUB.currentScreen);
+  // Init the active screen (Farm)
   HUB.initialized.farm = true;
   if (typeof FarmGame !== "undefined") FarmGame.init();
   if (typeof FarmGame !== "undefined") FarmGame.onEnter();
-
-  // Prefetch neighbor screens after 2s idle
-  SmartLoader.prefetchNeighbors(HUB.currentScreen);
 
   // Bounce hint for first-time / returning visitors (1.4)
   triggerSwipeHint();
