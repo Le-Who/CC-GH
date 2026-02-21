@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Screen Styles (v5.0.2)
+ *  Game Hub — Match-3 Screen Styles (v5.1.0)
  * ═══════════════════════════════════════════════════ */
 
 /* Scope overlays to this screen only */
@@ -22,6 +22,12 @@
 /* ─── Gem Grid ─── */
 .m3-board-container {
   position: relative;
+  perspective: 800px;
+  perspective-origin: 50% 50%;
+}
+/* v5.1.0: Board tilt — JS sets rotateX/Y via mousemove (±2.5°, compositor-only) */
+.m3-board-container > .m3-board {
+  transition: transform 0.15s ease-out;
 }
 .m3-board {
   display: grid;
@@ -85,24 +91,30 @@
   transform: scale(0.9) rotate(-3deg);
 }
 
-/* Gem types */
+/* Gem types — v5.1.0: each type defines --gem-color for contextual glow */
 .m3-cell[data-type="fire"] {
   background: linear-gradient(135deg, #ef4444, #f97316);
+  --gem-color: rgba(239, 68, 68, 0.7);
 }
 .m3-cell[data-type="water"] {
   background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  --gem-color: rgba(59, 130, 246, 0.7);
 }
 .m3-cell[data-type="earth"] {
   background: linear-gradient(135deg, #22c55e, #84cc16);
+  --gem-color: rgba(34, 197, 94, 0.7);
 }
 .m3-cell[data-type="air"] {
   background: linear-gradient(135deg, #67e8f9, #e0f2fe);
+  --gem-color: rgba(103, 232, 249, 0.7);
 }
 .m3-cell[data-type="light"] {
   background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  --gem-color: rgba(251, 191, 36, 0.7);
 }
 .m3-cell[data-type="dark"] {
   background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  --gem-color: rgba(139, 92, 246, 0.7);
 }
 
 /* Selection */
@@ -304,7 +316,7 @@
   }
 }
 
-/* v5.0.2: Pre-pop highlight — bright glow so player sees WHAT matched */
+/* v5.1.0: Contextual pre-pop highlight — glow matches gem color via --gem-color */
 .m3-cell.matched-highlight {
   animation: m3MatchGlow 0.2s ease;
   z-index: 8;
@@ -313,19 +325,19 @@
 @keyframes m3MatchGlow {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
   50% {
     transform: scale(1.15);
     box-shadow:
-      0 0 0 4px rgba(251, 191, 36, 0.7),
-      0 0 16px rgba(251, 191, 36, 0.4);
+      0 0 0 4px var(--gem-color, rgba(251, 191, 36, 0.7)),
+      0 0 16px var(--gem-color, rgba(251, 191, 36, 0.4));
   }
   100% {
     transform: scale(1.12);
     box-shadow:
-      0 0 0 3px rgba(251, 191, 36, 0.5),
-      0 0 12px rgba(251, 191, 36, 0.3);
+      0 0 0 3px var(--gem-color, rgba(251, 191, 36, 0.5)),
+      0 0 12px var(--gem-color, rgba(251, 191, 36, 0.3));
   }
 }
 
@@ -333,7 +345,7 @@
   animation: m3Pop 0.22s ease-out forwards;
   will-change: transform, opacity;
 }
-/* v4.16: GPU-composited white flash (replaces filter:brightness) */
+/* v5.1.0: GPU-composited flash with additive blending for richer pop */
 .m3-cell.popping::after {
   content: "";
   position: absolute;
@@ -343,6 +355,7 @@
   opacity: 0;
   animation: m3PopFlash 0.25s ease-out forwards;
   pointer-events: none;
+  mix-blend-mode: screen;
 }
 .m3-cell.falling {
   animation: m3Fall var(--fall-dur, 0.48s) cubic-bezier(0.22, 1, 0.36, 1);
@@ -593,7 +606,8 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: calc(var(--i, 0) * 0.06s);
   font-family: "Inter", sans-serif;
   color: rgba(255, 255, 255, 0.8);
   flex: 1;

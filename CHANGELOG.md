@@ -1,5 +1,49 @@
 # Changelog
 
+## v5.1.0 — 2026-02-21
+
+### Fluid Hub — Visual Enhancements
+
+Four performance-safe visual improvements across Match-3 and Blox, all using compositor-only CSS properties (`transform`, `opacity`) and lightweight JS patterns.
+
+#### 1. Contextual Neon Glow (`match3.css`)
+
+- Each gem type now defines `--gem-color` CSS custom property
+- `m3MatchGlow` keyframes use `var(--gem-color)` so match highlights glow in the gem's own color (fire=red, water=blue, etc.)
+- Pop flash uses `mix-blend-mode: screen` for additive blending
+
+#### 2. Springy LERP UI (`match3.css`, `match3.js`, `blox.css`, `blox.js`)
+
+- Mode cards in Match-3 use staggered entrance with spring easing (`cubic-bezier(0.34, 1.56, 0.64, 1)`) and `transition-delay: calc(var(--i) * 0.06s)`
+- Blox pause buttons cascade in with `animation-delay: calc(var(--i) * 0.07s)`
+- Blox ghost cells have smooth `transition: opacity 0.08s ease-out` for LERP-style grid snapping
+
+#### 3. Pseudo-3D Parallax (`match3.css`, `match3.js`, `blox.css`, `blox.js`)
+
+- Both game boards respond to mouse cursor with micro-tilt (`rotateX`/`rotateY`, ±2.5°)
+- `perspective: 800px` on parent containers creates depth
+- rAF-gated mousemove listener — zero layout thrashing
+- Smoothed via `transition: transform 0.15s ease-out` on the board element
+
+#### 4. Hit-Stop & Kinematic Gravity (`match3.js`)
+
+- Big matches (≥5 gems) trigger a 40ms hit-stop freeze before the pop phase
+- Fall duration formula changed from linear (`0.25 + (dist-1) * 0.04`) to sqrt-based (`0.18 + √dist * 0.12`) — short falls are snappier, long falls feel heavier
+
+#### Tests (`ux.test.js`)
+
+- Updated gravity timing invariants for new sqrt formula (5 tests)
+- Added contextual gem glow CSS validation (2 tests)
+- Added board tilt rotation bounds verification (4 tests)
+- Fixed `.m3-board` containment test regex to avoid matching `.m3-board-container > .m3-board`
+- **280 tests pass** (was 273)
+
+#### Version Bumps
+
+- `package.json`: 5.0.1 → 5.1.0
+- `match3.css`, `match3.js`: v5.0.2 → v5.1.0
+- `blox.css`, `blox.js`: v5.0.0 → v5.1.0
+
 ## v5.0.2 — 2026-02-21
 
 ### Match-3 — Cascade Animation Redesign

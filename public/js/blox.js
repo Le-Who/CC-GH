@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Module (v5.0.0)
+ *  Game Hub — Building Blox Module (v5.1.0)
  *  10×10 Block Puzzle: place pieces, clear lines
  *  ─ localStorage persistence, pause overlay, touch drag,
  *    grab-point anchor ghost, mouse drag-and-drop,
@@ -1097,6 +1097,14 @@ const BloxGameImpl = (() => {
       }
     }
     if (overlay && !overlay.open) overlay.showModal();
+
+    // v5.1.0: Assign staggered entrance index to visible pause buttons
+    let visIdx = 0;
+    for (const btn of [btnNew, btnResume, btnEnd]) {
+      if (btn && btn.style.display !== "none") {
+        btn.style.setProperty("--i", visIdx++);
+      }
+    }
   }
 
   function hidePauseOverlay() {
@@ -1330,6 +1338,28 @@ const BloxGameImpl = (() => {
       } catch (_) {}
       _flushSync();
     });
+
+    // v5.1.0: Board tilt — micro-parallax via mousemove (rAF-gated, ±2.5°)
+    const bloxBoardEl = $("blox-board");
+    if (bloxBoardEl) {
+      let _tiltRaf = 0;
+      bloxBoardEl.addEventListener("mousemove", (e) => {
+        if (_tiltRaf) return;
+        _tiltRaf = requestAnimationFrame(() => {
+          _tiltRaf = 0;
+          const rect = bloxBoardEl.getBoundingClientRect();
+          const cx = (e.clientX - rect.left) / rect.width - 0.5;
+          const cy = (e.clientY - rect.top) / rect.height - 0.5;
+          const maxDeg = 2.5;
+          const rotY = (cx * maxDeg * 2).toFixed(2);
+          const rotX = (-cy * maxDeg * 2).toFixed(2);
+          bloxBoardEl.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        });
+      });
+      bloxBoardEl.addEventListener("mouseleave", () => {
+        bloxBoardEl.style.transform = "";
+      });
+    }
   }
 
   function onEnter() {

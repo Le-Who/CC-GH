@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Screen Styles (v5.0.0)
+ *  Game Hub — Building Blox Screen Styles (v5.1.0)
  * ═══════════════════════════════════════════════════ */
 
 /* Scope overlays to this screen only */
@@ -33,6 +33,7 @@
   backdrop-filter: blur(4px);
   touch-action: none; /* prevent browser gestures on board */
   contain: layout style paint; /* isolate repaints from rest of page */
+  transition: transform 0.15s ease-out; /* v5.1.0: tilt smoothing */
 }
 
 /* ─── Cell (Juicy UI: pseudo-3D bevel + organic interactions) ─── */
@@ -71,11 +72,12 @@
   transition: none !important;
 }
 
-/* Ghost preview (Juicy UI: breathing pulse animation) */
+/* v5.1.0: Ghost LERP — smooth snap transition between grid cells */
 .blox-cell.ghost {
   background: var(--ghost-color, rgba(167, 139, 250, 0.25)) !important;
   border: 1px dashed rgba(255, 255, 255, 0.4);
   animation: ghostBreathe 1.2s ease-in-out infinite;
+  transition: opacity 0.08s ease-out;
 }
 .blox-cell.ghost-invalid {
   background: rgba(239, 68, 68, 0.2) !important;
@@ -272,6 +274,8 @@
   flex: 1;
   min-height: 0;
   position: relative; /* for pause overlay positioning */
+  perspective: 800px; /* v5.1.0: tilt depth */
+  perspective-origin: 50% 50%;
 }
 
 /* ─── Pause / Welcome Overlay ─── */
@@ -310,11 +314,22 @@
   color: rgba(255, 255, 255, 0.9);
   text-align: center;
 }
+/* v5.1.0: Staggered button entrance with spring easing */
 .blox-pause-card .btn {
   width: 100%;
   min-width: 160px;
   padding: 10px 20px;
   font-size: 0.88rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: bloxBtnEntrance 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: calc(var(--i, 0) * 0.07s);
+}
+@keyframes bloxBtnEntrance {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 /* btn-danger: moved to base.css (v4.10 button convention 6.5) */
 

@@ -674,23 +674,24 @@ describe("Global Version Constant", () => {
 });
 
 /* ═════════════════════════════════════════════════════
- *  Visual UX — Dynamic Gravity Invariants
- *  Verify that fall distance maps to correct duration ranges.
+ *  Visual UX — Kinematic Gravity Invariants (v5.1.0)
+ *  Verify sqrt-based fall duration formula.
  * ═════════════════════════════════════════════════════ */
-describe("Match-3 Dynamic Gravity — Timing Invariants", () => {
-  // Mirror the formula from animateCascade:
-  // dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55)
+describe("Match-3 Kinematic Gravity — Timing Invariants", () => {
+  // v5.1.0: sqrt-based formula from animateCascade:
+  // dur = Math.min(0.18 + Math.sqrt(dist) * 0.12, 0.55)
   function calcFallDur(dist) {
-    return Math.min(0.25 + (dist - 1) * 0.04, 0.55);
+    return Math.min(0.18 + Math.sqrt(dist) * 0.12, 0.55);
   }
 
-  it("1-row fall uses base duration 0.25s", () => {
-    assert.equal(calcFallDur(1), 0.25);
+  it("1-row fall uses base duration ~0.30s (0.18 + sqrt(1)*0.12)", () => {
+    const dur = calcFallDur(1);
+    assert.ok(Math.abs(dur - 0.3) < 0.01, `Expected ~0.30s, got ${dur}s`);
   });
 
-  it("8-row fall duration caps at 0.53s (below 0.55s ceiling)", () => {
+  it("8-row fall duration caps below 0.55s ceiling", () => {
     const dur = calcFallDur(8);
-    assert.ok(dur > 0.25, `8-row fall (${dur}s) must exceed base 0.25s`);
+    assert.ok(dur > 0.3, `8-row fall (${dur}s) must exceed 1-row`);
     assert.ok(
       dur <= 0.55,
       `8-row fall (${dur}s) must not exceed 0.55s ceiling`,
@@ -708,6 +709,15 @@ describe("Match-3 Dynamic Gravity — Timing Invariants", () => {
 
   it("extreme distance (20 rows) is clamped to 0.55s ceiling", () => {
     assert.equal(calcFallDur(20), 0.55);
+  });
+
+  it("short falls (1–2) produce natural deceleration curve", () => {
+    const dur4 = calcFallDur(4);
+    const dur8 = calcFallDur(8);
+    assert.ok(
+      dur8 / dur4 < 1.4,
+      `Long/short ratio ${(dur8 / dur4).toFixed(2)} should be < 1.4 (natural deceleration)`,
+    );
   });
 });
 
@@ -762,7 +772,7 @@ describe("CSS Containment — Game Boards", () => {
 
   it(".m3-board has contain: layout style paint", async () => {
     const css = await readCSS("match3.css");
-    const match = css.match(/\.m3-board\s*\{[^}]+\}/);
+    const match = css.match(/\n\.m3-board\s*\{[^}]+\}/);
     assert.ok(match, ".m3-board rule must exist");
     assert.ok(
       match[0].includes("contain") &&
@@ -820,5 +830,89 @@ describe("Float-Points Pool & Spring Return", () => {
       SPRING_RETURN_MS <= 600,
       `Spring return ${SPRING_RETURN_MS}ms too slow`,
     );
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Contextual Gem Glow CSS (v5.1.0)
+ *  Verify each gem type defines --gem-color for contextual glow.
+ * ═══════════════════════════════════════════════════ */
+describe("Contextual Gem Glow — CSS Custom Properties", () => {
+  const GEM_TYPES = ["fire", "water", "earth", "air", "light", "dark"];
+
+  it("each gem type defines --gem-color in match3.css", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "match3.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    for (const type of GEM_TYPES) {
+      const re = new RegExp(`\\[data-type="${type}"\\][^}]*--gem-color`);
+      assert.ok(
+        re.test(css),
+        `[data-type="${type}"] must define --gem-color in match3.css`,
+      );
+    }
+  });
+
+  it("m3MatchGlow keyframes use var(--gem-color) for contextual glow", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "match3.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    assert.ok(
+      css.includes("var(--gem-color"),
+      "m3MatchGlow must reference var(--gem-color) for contextual glow",
+    );
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Board Tilt Bounds (v5.1.0)
+ *  Verify tilt clamping formula limits rotation to safe range.
+ * ═══════════════════════════════════════════════════ */
+describe("Board Tilt — Rotation Bounds", () => {
+  // Mirror JS formula: cx/cy in [-0.5, 0.5], maxDeg = 2.5
+  function calcTilt(cursorFrac) {
+    // cursorFrac = (e.clientX - rect.left) / rect.width - 0.5
+    const maxDeg = 2.5;
+    return cursorFrac * maxDeg * 2;
+  }
+
+  it("center cursor produces zero tilt", () => {
+    assert.equal(calcTilt(0), 0);
+  });
+
+  it("extreme left (-0.5) produces -2.5° tilt", () => {
+    assert.equal(calcTilt(-0.5), -2.5);
+  });
+
+  it("extreme right (+0.5) produces +2.5° tilt", () => {
+    assert.equal(calcTilt(0.5), 2.5);
+  });
+
+  it("tilt never exceeds ±3° for any valid cursor position", () => {
+    for (let f = -0.5; f <= 0.5; f += 0.01) {
+      const deg = Math.abs(calcTilt(f));
+      assert.ok(
+        deg <= 3.0,
+        `Tilt ${deg.toFixed(2)}° exceeds ±3° at cursor fraction ${f.toFixed(2)}`,
+      );
+    }
   });
 });

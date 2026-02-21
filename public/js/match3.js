@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v5.0.2)
+ *  Game Hub — Match-3 Module (v5.1.0)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode
@@ -262,6 +262,31 @@ const Match3GameImpl = (() => {
       } catch (_) {}
       _flushM3Sync();
     });
+
+    // v5.1.0: Board tilt — micro-parallax via mousemove (rAF-gated, ±2.5°)
+    const boardContainer = $("m3-board-container");
+    if (boardContainer) {
+      let _tiltRaf = 0;
+      boardContainer.addEventListener("mousemove", (e) => {
+        if (_tiltRaf) return;
+        _tiltRaf = requestAnimationFrame(() => {
+          _tiltRaf = 0;
+          const rect = boardContainer.getBoundingClientRect();
+          const cx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5..+0.5
+          const cy = (e.clientY - rect.top) / rect.height - 0.5;
+          const maxDeg = 2.5;
+          const rotY = (cx * maxDeg * 2).toFixed(2);
+          const rotX = (-cy * maxDeg * 2).toFixed(2);
+          const board = boardContainer.querySelector(".m3-board");
+          if (board)
+            board.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        });
+      });
+      boardContainer.addEventListener("mouseleave", () => {
+        const board = boardContainer.querySelector(".m3-board");
+        if (board) board.style.transform = "";
+      });
+    }
   }
 
   /* ═══ Energy Gate ═══ */
@@ -849,6 +874,10 @@ const Match3GameImpl = (() => {
           </button>
         </div>
       `;
+      // v5.1.0: Assign staggered entrance index to mode cards
+      sel.querySelectorAll(".m3-mode-card").forEach((card, i) => {
+        card.style.setProperty("--i", i);
+      });
       sel.addEventListener("click", (e) => {
         const card = e.target.closest(".m3-mode-card");
         if (!card) return;
@@ -1447,6 +1476,10 @@ const Match3GameImpl = (() => {
       for (const { x, y } of step.cleared) {
         _m3Cells[y]?.[x]?.classList.add("matched-highlight");
       }
+      // v5.1.0: Hit-stop — micro-pause on big matches (≥5) for cinematic impact
+      if (step.cleared.length >= 5) {
+        await sleep(40);
+      }
       await sleep(Math.round(BASE_HIGHLIGHT_DUR * speedMul));
 
       // ── Phase 1: Pop matched gems (scale → 0, white flash) ──
@@ -1523,7 +1556,8 @@ const Match3GameImpl = (() => {
 
         const dist = fallDistMap.get(key) || 1;
         cell.style.setProperty("--drop-dist", dist);
-        const dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55);
+        // v5.1.0: Kinematic gravity — sqrt gives natural deceleration
+        const dur = Math.min(0.18 + Math.sqrt(dist) * 0.12, 0.55);
         cell.style.setProperty("--fall-dur", `${dur.toFixed(2)}s`);
         // Column-stagger: offset by column for wave effect
         cell.style.animationDelay = `${x * 30}ms`;
