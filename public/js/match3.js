@@ -1461,19 +1461,22 @@ const Match3GameImpl = (() => {
       }
       _prevCascadeChanged = [];
 
-      // ── Phase 2.5: Full board sync (heal ALL 64 cells to match board[][]) ──
-      // This eliminates visual/logical desync that sparse diff can leave behind.
+      // ── Phase 2.5: Full board sync from STEP SNAPSHOT ──
+      // v5.0.2: Read from step.boardSnapshot (frozen at this cascade step)
+      // instead of global board[][] (which is already in its final state).
+      // This prevents false highlights on subsequent cascade steps.
+      const snap = step.boardSnapshot;
       for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
           const cell = _m3Cells[y][x];
-          const type = board[y][x];
+          const type = snap[y][x];
           const isDrop = DROP_TYPES.includes(type);
           let cls = "m3-cell";
           if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
           cell.className = cls;
           cell.dataset.type = type;
           const icon = isDrop
-            ? DROP_ICONS[type] || "🌟"
+            ? DROP_ICONS[type] || "\u{1F31F}"
             : GEM_ICONS[type] || "?";
           cell.firstElementChild.textContent = icon;
           cell.style.transform = "";

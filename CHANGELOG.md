@@ -21,8 +21,9 @@ Cascade animation was unreadable — impossible to track which gems matched and 
 - **CSS durations synced**: `.popping` 0.36→0.22s, `.matched-highlight` 0.35→0.2s — CSS animations now fit within their JS phase windows.
 - **Swap jerk eliminated**: Added `.m3-board.batch-update` CSS rule + forced layout flush during swap transform cleanup. The base `.m3-cell` transition no longer re-animates the secondary piece back to its grid position.
 
-#### State Desync Fix (`match3.js`)
+#### State Desync Fix (`match3.js`, `engine.js`)
 
+- **Board Snapshots**: `resolveBoard()` now attaches a frozen `boardSnapshot` (via `cloneBoard()`) to each cascade step. The cascade animation syncs DOM against these intermediate snapshots instead of the globally-mutated `board[][]`, preventing false highlights on gems that haven't moved yet.
 - **Dataset-type self-healing guard**: `onCellClick()` now checks `cell.dataset.type !== board[y][x]` before processing. On mismatch, triggers `renderBoard(false)` to heal the desync automatically.
 - **Full board sync in cascade**: After each cascade step's pop phase, all 64 cells are synchronized — eliminates the class of bugs where sparse diff left cells visually stale.
 

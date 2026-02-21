@@ -246,7 +246,13 @@ export function resolveBoard(b, onCascadeStep) {
       }
     }
 
-    steps.push({ cleared, fallen, filled, combo: cascadeCombo });
+    steps.push({
+      cleared,
+      fallen,
+      filled,
+      combo: cascadeCombo,
+      boardSnapshot: cloneBoard(b),
+    });
 
     // Callback for star-drop mode checks
     if (onCascadeStep) onCascadeStep();
