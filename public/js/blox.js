@@ -531,6 +531,10 @@ const BloxGameImpl = (() => {
   }
 
   // ── Ghost preview + click (board-level, center-of-mass offset) ──
+  // v5.0.1: _lastGhostKey prevents clearGhost/showGhostAt on every pixel move
+  //         (was restarting ghostBreathe CSS animation, causing janky visuals)
+  let _lastGhostKey = "";
+
   function initBoardMouseTracking() {
     const gridEl = $("blox-board");
     if (!gridEl) return;
@@ -568,12 +572,26 @@ const BloxGameImpl = (() => {
     }
 
     gridEl.addEventListener("mousemove", (e) => {
-      clearGhost();
       const target = getTargetFromEvent(e);
-      if (target) showGhostAt(target.piece, target.targetR, target.targetC);
+      if (!target) {
+        if (_lastGhostKey) {
+          clearGhost();
+          _lastGhostKey = "";
+        }
+        return;
+      }
+      // Skip if ghost is already at this grid position (no animation restart)
+      const key = `${selectedPiece},${target.targetR},${target.targetC}`;
+      if (key === _lastGhostKey) return;
+      clearGhost();
+      showGhostAt(target.piece, target.targetR, target.targetC);
+      _lastGhostKey = key;
     });
 
-    gridEl.addEventListener("mouseleave", clearGhost);
+    gridEl.addEventListener("mouseleave", () => {
+      clearGhost();
+      _lastGhostKey = "";
+    });
 
     // Board-level click: same offset math as ghost
     gridEl.addEventListener("click", (e) => {

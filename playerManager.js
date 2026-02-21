@@ -31,6 +31,30 @@ try {
 }
 
 /* ─── Persistence ─── */
+
+/**
+ * v5.0.1: Recursively sanitize data for Firestore.
+ * Firestore rejects `undefined` values with "invalid nested entity".
+ * This converts undefined → null and ensures arrays are dense.
+ */
+function sanitizeForFirestore(obj) {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== "object") return obj;
+  if (obj instanceof Date) return obj;
+  if (Array.isArray(obj)) {
+    const result = [];
+    for (let i = 0; i < obj.length; i++) {
+      result[i] = sanitizeForFirestore(obj[i] !== undefined ? obj[i] : null);
+    }
+    return result;
+  }
+  const result = {};
+  for (const [key, val] of Object.entries(obj)) {
+    result[key] = sanitizeForFirestore(val !== undefined ? val : null);
+  }
+  return result;
+}
+
 export async function loadDb() {
   if (playersCol) {
     try {
@@ -71,7 +95,7 @@ export function debouncedSavePlayer(userId) {
     if (!playerData) return;
 
     try {
-      await playersCol.doc(userId).set(playerData);
+      await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
     } catch (e) {
       console.error(`❌ Failed to save player ${userId} to Firestore:`, e);
     }
@@ -93,7 +117,9 @@ export const gracefulShutdown = async () => {
     clearTimeout(timeoutId);
     const playerData = players.get(userId);
     if (playerData) {
-      flushPromises.push(playersCol.doc(userId).set(playerData));
+      flushPromises.push(
+        playersCol.doc(userId).set(sanitizeForFirestore(playerData)),
+      );
     }
   }
 
