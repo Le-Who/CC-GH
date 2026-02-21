@@ -1,12 +1,16 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Module (v4.16.0)
+ *  Game Hub — Building Blox Module (v5.0.0)
  *  10×10 Block Puzzle: place pieces, clear lines
  *  ─ localStorage persistence, pause overlay, touch drag,
  *    grab-point anchor ghost, mouse drag-and-drop,
  *    swipe blocking
+ *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
+import { GameStore } from "./store.js";
+import { HUB, api, showToast, sleep } from "./shared.js";
+import { HUD } from "./hud.js";
 
-const BloxGame = (() => {
+const BloxGameImpl = (() => {
   "use strict";
 
   const GRID = 10;
@@ -1205,7 +1209,7 @@ const BloxGame = (() => {
   // ── Game lifecycle ──
   async function startGame() {
     // Energy gatekeep
-    if (typeof HUD !== "undefined" && !HUD.hasEnergy(4)) {
+    if (!HUD.hasEnergy(4)) {
       if (HUD.showEnergyModal) {
         HUD.showEnergyModal(4, () => startGame());
       } else {
@@ -1246,7 +1250,7 @@ const BloxGame = (() => {
       return;
     }
     if (data?.highScore !== undefined) highScore = data.highScore;
-    if (data?.resources && typeof HUD !== "undefined") {
+    if (data?.resources) {
       HUD.syncFromServer(data.resources);
     }
     updateStats();
@@ -1270,7 +1274,7 @@ const BloxGame = (() => {
     }).catch(() => null);
 
     if (data?.highScore) highScore = data.highScore;
-    if (data?.resources && typeof HUD !== "undefined") {
+    if (data?.resources) {
       HUD.syncFromServer(data.resources);
       if (data.goldReward) HUD.animateGoldChange(data.goldReward);
     }
@@ -1316,26 +1320,22 @@ const BloxGame = (() => {
 
   // ── Store sync ──
   function syncToStore() {
-    if (typeof GameStore !== "undefined") {
-      GameStore.setState("blox", {
-        score,
-        linesCleared,
-        highScore,
-        gameActive,
-      });
-    }
+    GameStore.setState("blox", {
+      score,
+      linesCleared,
+      highScore,
+      gameActive,
+    });
   }
 
   // ── Init ──
   async function init() {
-    if (typeof GameStore !== "undefined") {
-      GameStore.registerSlice("blox", {
-        score,
-        linesCleared,
-        highScore,
-        gameActive,
-      });
-    }
+    GameStore.registerSlice("blox", {
+      score,
+      linesCleared,
+      highScore,
+      gameActive,
+    });
 
     // Bind pause overlay buttons
     $("blox-btn-new")?.addEventListener("click", () => startGame());
@@ -1419,3 +1419,5 @@ const BloxGame = (() => {
 
   return { init, onEnter, startGame, fetchBloxLeaderboard, setBloxLbTab };
 })();
+
+export const BloxGame = BloxGameImpl;

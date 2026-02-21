@@ -1,9 +1,13 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Trivia Module  (v4.16.0)
+ *  Game Hub — Trivia Module  (v5.0.0)
  *  Solo mode, Duel mode, timer, results
  *  ─ Forfeit, cancel, lobby ready-up, voice invite
  *  ─ GameStore integration (trivia slice)
+ *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
+import { GameStore } from "./store.js";
+import { HUB, api, showToast, sleep } from "./shared.js";
+import { HUD } from "./hud.js";
 
 const TriviaGame = (() => {
   let session = null; // { question, startTime, timerId }
@@ -16,21 +20,17 @@ const TriviaGame = (() => {
 
   /** Sync trivia state to GameStore */
   function syncToStore() {
-    if (typeof GameStore !== "undefined") {
-      GameStore.setState("trivia", { session, duel, view, duelHistoryPage });
-    }
+    GameStore.setState("trivia", { session, duel, view, duelHistoryPage });
   }
 
   function init() {
     // Register trivia slice
-    if (typeof GameStore !== "undefined") {
-      GameStore.registerSlice("trivia", {
-        session,
-        duel,
-        view,
-        duelHistoryPage,
-      });
-    }
+    GameStore.registerSlice("trivia", {
+      session,
+      duel,
+      view,
+      duelHistoryPage,
+    });
     showMenu();
     // Collapsed bar click -> return to menu
     const bar = $("trivia-duel-history-bar");
@@ -188,12 +188,8 @@ const TriviaGame = (() => {
   /* ═══ SOLO MODE ═══ */
   async function startSolo() {
     // Energy gatekeep — show quick-feed modal instead of toast
-    if (typeof HUD !== "undefined" && !HUD.hasEnergy(3)) {
-      if (HUD.showEnergyModal) {
-        HUD.showEnergyModal(3, () => startSolo());
-      } else {
-        showToast("⚡ Need 3 energy to play Trivia!");
-      }
+    if (!HUD.hasEnergy(3)) {
+      HUD.showEnergyModal(3, () => startSolo());
       return;
     }
 
@@ -213,7 +209,7 @@ const TriviaGame = (() => {
     if (!data.success) return;
 
     // Sync resources (energy deducted)
-    if (data.resources && typeof HUD !== "undefined") {
+    if (data.resources) {
       HUD.syncFromServer(data.resources);
     }
 
@@ -250,7 +246,7 @@ const TriviaGame = (() => {
 
   async function createDuel() {
     // Energy gatekeep
-    if (typeof HUD !== "undefined" && !HUD.hasEnergy(3)) {
+    if (!HUD.hasEnergy(3)) {
       showToast("⚡ Need 3 energy to create a duel!");
       return;
     }
@@ -267,7 +263,7 @@ const TriviaGame = (() => {
     if (!data.success) return;
 
     // Sync resources (energy deducted)
-    if (data.resources && typeof HUD !== "undefined") {
+    if (data.resources) {
       HUD.syncFromServer(data.resources);
     }
 
@@ -453,7 +449,7 @@ const TriviaGame = (() => {
 
   /* ─── Voice Chat Invite (Issue 6) ─── */
   async function inviteFromVoice() {
-    if (typeof HUB.sdk !== "undefined" && HUB.sdk) {
+    if (HUB.sdk) {
       try {
         // Pre-check: verify we're in a guild channel (not a DM)
         const channel = await HUB.sdk.commands.getChannel({
@@ -613,7 +609,7 @@ const TriviaGame = (() => {
 
     if (data.isComplete) {
       // Sync gold reward from server
-      if (data.resources && typeof HUD !== "undefined") {
+      if (data.resources) {
         HUD.syncFromServer(data.resources);
         if (data.goldReward) HUD.animateGoldChange(data.goldReward);
       }
@@ -749,3 +745,5 @@ const TriviaGame = (() => {
     fetchDuelHistory,
   };
 })();
+
+export const TriviaModule = TriviaGame;

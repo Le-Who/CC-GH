@@ -1,9 +1,19 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Pet Module (v4.16.0)
+ *  Game Hub — Pet Module (v5.0.0)
  *  Living Pet Entity with state machine & interactions
  *  v1.8: Weighted behavior, zone roaming, FLIP dock
+ *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
-const PetCompanion = (function () {
+import { GameStore } from "./store.js";
+import { api } from "./shared.js";
+
+// ─── FarmGame.water() injected from main.js to avoid circular import ───
+let _waterFn = null;
+export function setWaterFn(fn) {
+  _waterFn = fn;
+}
+
+const PetCompanionImpl = (function () {
   "use strict";
 
   const STATES = {
@@ -38,17 +48,15 @@ const PetCompanion = (function () {
 
   /* ─── GameStore Slice ─── */
   function registerSlice() {
-    if (typeof GameStore !== "undefined") {
-      GameStore.registerSlice("pet", {
-        name: "Buddy",
-        level: 1,
-        xp: 0,
-        xpToNextLevel: 100,
-        skinId: "basic_dog",
-        stats: { happiness: 100 },
-        abilities: { autoHarvest: false, autoWater: false },
-      });
-    }
+    GameStore.registerSlice("pet", {
+      name: "Buddy",
+      level: 1,
+      xp: 0,
+      xpToNextLevel: 100,
+      skinId: "basic_dog",
+      stats: { happiness: 100 },
+      abilities: { autoHarvest: false, autoWater: false },
+    });
   }
 
   /* ─── Init ─── */
@@ -63,9 +71,7 @@ const PetCompanion = (function () {
       const data = await api("/api/resources/state");
       if (data && data.pet) {
         petData = data.pet;
-        if (typeof GameStore !== "undefined") {
-          GameStore.setState("pet", data.pet);
-        }
+        GameStore.setState("pet", data.pet);
         sprite.textContent = SKINS[data.pet.skinId] || SKINS.basic_dog;
       }
     } catch (e) {
@@ -89,12 +95,10 @@ const PetCompanion = (function () {
     resetInactivityTimer();
 
     // Subscribe to store
-    if (typeof GameStore !== "undefined") {
-      GameStore.subscribe("pet", (newState) => {
-        petData = newState;
-        if (panelOpen) renderInfoPanel();
-      });
-    }
+    GameStore.subscribe("pet", (newState) => {
+      petData = newState;
+      if (panelOpen) renderInfoPanel();
+    });
 
     // Start auto-water butler ability
     startAutoWater();
@@ -307,7 +311,6 @@ const PetCompanion = (function () {
       if (!petData || petData.level < 3) return;
       if (currentState === STATES.SLEEP) return;
       // Check for crops needing water via GameStore
-      if (typeof GameStore === "undefined") return;
       const farmState = GameStore.getState("farm");
       if (!farmState || !farmState.plots) return;
 
@@ -315,11 +318,9 @@ const PetCompanion = (function () {
       let watered = 0;
       for (let i = 0; i < farmState.plots.length && watered < 2; i++) {
         const p = farmState.plots[i];
-        if (p.crop && !p.watered) {
-          if (typeof FarmGame !== "undefined" && FarmGame.water) {
-            FarmGame.water(i);
-            watered++;
-          }
+        if (p.crop && !p.watered && _waterFn) {
+          _waterFn(i);
+          watered++;
         }
       }
       if (watered > 0) {
@@ -455,9 +456,7 @@ const PetCompanion = (function () {
   function syncFromServer(pet) {
     if (!pet) return;
     petData = pet;
-    if (typeof GameStore !== "undefined") {
-      GameStore.setState("pet", pet);
-    }
+    GameStore.setState("pet", pet);
     const sprite = document.getElementById("pet-sprite");
     if (sprite) {
       sprite.textContent = SKINS[pet.skinId] || SKINS.basic_dog;
@@ -492,3 +491,5 @@ const PetCompanion = (function () {
     getDockMode,
   };
 })();
+
+export const PetCompanion = PetCompanionImpl;

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v4.16.0)
+ *  Game Hub — Match-3 Module (v5.0.0)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode
@@ -11,9 +11,13 @@
  *  own copies for instant UI preview without server round-trips.
  *  The client findMatches uses Set<string> and excludes DROP_TYPES;
  *  the server version uses Array<{type, gems}> for different consumers.
+ *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
+import { GameStore } from "./store.js";
+import { HUB, api, showToast, sleep } from "./shared.js";
+import { HUD } from "./hud.js";
 
-const Match3Game = (() => {
+const Match3GameImpl = (() => {
   const GEM_TYPES = ["fire", "water", "earth", "air", "light", "dark"];
   const GEM_ICONS = {
     fire: "🔥",
@@ -192,17 +196,14 @@ const Match3Game = (() => {
 
   /** Sync match3 state to GameStore */
   function syncToStore() {
-    if (typeof GameStore !== "undefined") {
-      GameStore.setState("match3", {
-        board,
-        score,
-        movesLeft,
-        combo,
-        highScore,
-        gameActive,
-        gameMode,
-      });
-    }
+    GameStore.setState("match3", {
+      mode: gameMode,
+      score,
+      movesLeft,
+      combo,
+      highScore,
+      gameActive,
+    });
   }
 
   /* ═══ Client-Side Match-3 Engine ═══ */
@@ -428,16 +429,7 @@ const Match3Game = (() => {
   /* ═══ Init & Restore ═══ */
   async function init() {
     // Register match3 slice
-    if (typeof GameStore !== "undefined") {
-      GameStore.registerSlice("match3", {
-        board,
-        score,
-        movesLeft,
-        combo,
-        highScore,
-        gameActive,
-      });
-    }
+    GameStore.registerSlice("match3", { mode: null });
     // v4.5.3: "New Game" button always goes through mode selector
     $("m3-btn-start").onclick = () => showModeSelector();
     $("m3-btn-lb").onclick = toggleLeaderboard;
@@ -497,7 +489,7 @@ const Match3Game = (() => {
   function updateStartButton() {
     const btn = $("m3-btn-start");
     if (!btn) return;
-    const hasEnergy = typeof HUD !== "undefined" ? HUD.hasEnergy(5) : true;
+    const hasEnergy = HUD.hasEnergy(5);
     btn.disabled = !hasEnergy && !gameActive;
     if (!hasEnergy && !gameActive) {
       btn.title = "Need 5⚡ to play";
@@ -573,7 +565,7 @@ const Match3Game = (() => {
               mode: gameMode,
             }).catch(() => null);
             if (endData?.highScore) highScore = endData.highScore;
-            if (endData?.resources && typeof HUD !== "undefined") {
+            if (endData?.resources) {
               HUD.syncFromServer(endData.resources);
               if (endData.goldReward) HUD.animateGoldChange(endData.goldReward);
             }
@@ -821,7 +813,7 @@ const Match3Game = (() => {
     }
 
     // Energy gatekeep — checked BEFORE any mode state mutation (v4.4 fix)
-    if (typeof HUD !== "undefined" && !HUD.hasEnergy(5)) {
+    if (!HUD.hasEnergy(5)) {
       if (HUD.showEnergyModal) {
         HUD.showEnergyModal(5, () => startGame(mode));
       } else {
@@ -909,7 +901,7 @@ const Match3Game = (() => {
     localStorage.setItem("hub_m3_total_games", String(prevGames + 1));
 
     // Sync resources from server response
-    if (data && data.resources && typeof HUD !== "undefined") {
+    if (data && data.resources) {
       HUD.syncFromServer(data.resources);
     }
 
@@ -979,7 +971,7 @@ const Match3Game = (() => {
     }
 
     // Energy gatekeep — show not-enough modal if insufficient
-    if (typeof HUD !== "undefined" && !HUD.hasEnergy(5)) {
+    if (!HUD.hasEnergy(5)) {
       if (HUD.showEnergyModal) {
         HUD.showEnergyModal(5, () => startGame(mode));
       } else {
@@ -1190,7 +1182,7 @@ const Match3Game = (() => {
       mode: "timed",
     }).catch(() => null);
     if (endData?.highScore) highScore = endData.highScore;
-    if (endData?.resources && typeof HUD !== "undefined") {
+    if (endData?.resources) {
       HUD.syncFromServer(endData.resources);
       if (endData.goldReward) HUD.animateGoldChange(endData.goldReward);
     }
@@ -1572,7 +1564,7 @@ const Match3Game = (() => {
         mode: gameMode,
       }).catch(() => null);
       if (endData?.highScore) highScore = endData.highScore;
-      if (endData?.resources && typeof HUD !== "undefined") {
+      if (endData?.resources) {
         HUD.syncFromServer(endData.resources);
         if (endData.goldReward) HUD.animateGoldChange(endData.goldReward);
       }
@@ -1877,3 +1869,5 @@ const Match3Game = (() => {
     setLbTab,
   };
 })();
+
+export { Match3GameImpl as Match3Game };

@@ -224,7 +224,30 @@ function getIndexHtml() {
   // v4.6: Replace version badge placeholder
   html = html.replace("{{APP_VERSION}}", `v${APP_VERSION}`);
 
-  // Replace all ?v=X.Y.Z with ?v=<content-hash>
+  // v5: Inject import map for ES Module cache busting
+  const jsModules = [
+    "store.js",
+    "shared.js",
+    "hud.js",
+    "pet.js",
+    "farm.js",
+    "trivia.js",
+    "match3.js",
+    "blox.js",
+    "main.js",
+  ];
+  const importMapEntries = {};
+  for (const mod of jsModules) {
+    const key = `js/${mod}`;
+    const hash = assetHashes[key];
+    if (hash) {
+      importMapEntries[`./${key}`] = `./${key}?v=${hash}`;
+    }
+  }
+  const importMapTag = `<script type="importmap">{"imports":${JSON.stringify(importMapEntries)}}</script>`;
+  html = html.replace("<!--IMPORT_MAP_INJECT-->", importMapTag);
+
+  // Replace all ?v=X.Y.Z with ?v=<content-hash> (CSS files)
   for (const [asset, hash] of Object.entries(assetHashes)) {
     // Match href="css/file.css?v=..." or src="js/file.js?v=..."
     const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

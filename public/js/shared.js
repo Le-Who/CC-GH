@@ -1,10 +1,12 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Shared Module (v4.16.0)
+ *  Game Hub — Shared Module (v5.0.0)
  *  Discord SDK auth, API helper, screen navigation
  *  CSP-compliant: no inline handlers, no external fonts
+ *  v5: Native ES Module (was global IIFE)
  * ═══════════════════════════════════════════════════ */
+import { GameStore } from "./store.js";
 
-const HUB = {
+export const HUB = {
   userId: null,
   username: "Player",
   accessToken: null,
@@ -16,9 +18,23 @@ const HUB = {
   swipeBlocked: false, // true when Blox game is active to prevent accidental navigation
 };
 
+// ─── Module registry (set by main.js via setModules()) ───
+let _modules = {
+  FarmGame: null,
+  TriviaGame: null,
+  Match3Game: null,
+  BloxGame: null,
+  PetCompanion: null,
+  HUD: null,
+};
+
+/** Called by main.js after all modules are imported */
+export function setModules(mods) {
+  Object.assign(_modules, mods);
+}
+
 /* ─── Discord SDK Init ─── */
-/* ─── Discord SDK Init ─── */
-async function initDiscord() {
+export async function initDiscord() {
   // Prefetch crops data in parallel with auth (they're static, so start early)
   window.__cropsPromise = fetch("/api/content/crops")
     .then((r) => (r.ok ? r.json() : null))
@@ -120,7 +136,7 @@ async function initDiscord() {
 }
 
 /* ─── API Helper (auto-attaches auth, with retry) ─── */
-async function api(path, body) {
+export async function api(path, body) {
   const MAX_RETRIES = 1;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const headers = { "Content-Type": "application/json" };
@@ -153,13 +169,13 @@ async function api(path, body) {
 }
 
 /* ─── Navigation ─── */
-function navigate(dir) {
+export function navigate(dir) {
   const next = HUB.currentScreen + dir;
   if (next < 0 || next > 3) return;
   goToScreen(next);
 }
 
-function goToScreen(index) {
+export function goToScreen(index) {
   if (index < 0 || index > 3 || index === HUB.currentScreen) return;
 
   const updateDOM = () => {
@@ -169,8 +185,8 @@ function goToScreen(index) {
     updatePetDock();
     triggerScreenCallbacks();
     // Update farm notification badge when switching screens
-    if (typeof FarmGame !== "undefined" && FarmGame.updateFarmBadge) {
-      FarmGame.updateFarmBadge();
+    if (_modules.FarmGame?.updateFarmBadge) {
+      _modules.FarmGame.updateFarmBadge();
     }
   };
 
@@ -184,7 +200,7 @@ function goToScreen(index) {
 }
 
 /** Smart Docking: smooth transition between dock positions */
-function updatePetDock() {
+export function updatePetDock() {
   const overlay = document.getElementById("pet-overlay");
   const container = document.getElementById("pet-container");
   if (!overlay || !container) return;
@@ -220,12 +236,12 @@ function updatePetDock() {
   }, 550);
 
   // Notify pet module of new dock mode
-  if (typeof PetCompanion !== "undefined" && PetCompanion.setDockMode) {
-    PetCompanion.setDockMode(newPetMode);
+  if (_modules.PetCompanion?.setDockMode) {
+    _modules.PetCompanion.setDockMode(newPetMode);
   }
 }
 
-// v4.16: Cached DOM collections (populated once at DOMContentLoaded)
+// v4.16: Cached DOM collections (populated once at init)
 let _cachedScreens = [];
 let _cachedNavDots = [];
 let _cachedNavTabs = [];
@@ -253,105 +269,88 @@ function updateNavUI() {
   }
 }
 
-async function triggerScreenCallbacks() {
+function triggerScreenCallbacks() {
   const name = HUB.screenNames[HUB.currentScreen];
 
   // Screen leave callbacks (hide elements that might leak into other screens)
-  if (
-    name !== "trivia" &&
-    typeof TriviaGame !== "undefined" &&
-    TriviaGame.onLeave
-  ) {
-    TriviaGame.onLeave();
+  if (name !== "trivia" && _modules.TriviaGame?.onLeave) {
+    _modules.TriviaGame.onLeave();
   }
 
   // Lazy init
   if (!HUB.initialized[name]) {
     HUB.initialized[name] = true;
-    if (name === "farm" && typeof FarmGame !== "undefined") FarmGame.init();
-    if (name === "trivia" && typeof TriviaGame !== "undefined")
-      TriviaGame.init();
-    if (name === "match3" && typeof Match3Game !== "undefined")
-      Match3Game.init();
-    if (name === "blox" && typeof BloxGame !== "undefined") BloxGame.init();
+    if (name === "farm") _modules.FarmGame?.init();
+    if (name === "trivia") _modules.TriviaGame?.init();
+    if (name === "match3") _modules.Match3Game?.init();
+    if (name === "blox") _modules.BloxGame?.init();
   }
   // Screen enter callbacks
-  if (name === "farm" && typeof FarmGame !== "undefined") FarmGame.onEnter();
-  if (name === "trivia" && typeof TriviaGame !== "undefined")
-    TriviaGame.onEnter();
-  if (name === "match3" && typeof Match3Game !== "undefined")
-    Match3Game.onEnter();
-  if (name === "blox" && typeof BloxGame !== "undefined") BloxGame.onEnter();
+  if (name === "farm") _modules.FarmGame?.onEnter();
+  if (name === "trivia") _modules.TriviaGame?.onEnter();
+  if (name === "match3") _modules.Match3Game?.onEnter();
+  if (name === "blox") _modules.BloxGame?.onEnter();
 
   // 7.1: Farm Shop FAB — visible only on farm screen
   const fab = document.getElementById("farm-shop-fab");
   if (fab) fab.classList.toggle("visible", name === "farm");
 }
 
-/* ─── Centralized Toast Queue (v5) ─── */
-const ToastManager = (() => {
-  const MAX_TOASTS = 3;
-  const _toastIcons = { success: "✅ ", error: "❌ ", info: "ℹ️ " };
-  let _lastToastMsg = "";
-  let _lastToastTime = 0;
+/* ─── Centralized Toast Queue ─── */
+const MAX_TOASTS = 3;
+const _toastIcons = { success: "✅ ", error: "❌ ", info: "ℹ️ " };
+let _lastToastMsg = "";
+let _lastToastTime = 0;
 
-  function initContainer() {
-    let container = document.getElementById("toast-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "toast-container";
-      container.className = "toast-container";
-      document.body.appendChild(container);
-    }
-    return container;
+function initToastContainer() {
+  let container = document.getElementById("toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+export function showToast(msg, type) {
+  // Dedup: skip if same exact message within 1s
+  const now = Date.now();
+  if (msg === _lastToastMsg && now - _lastToastTime < 1000) return;
+  _lastToastMsg = msg;
+  _lastToastTime = now;
+
+  const container = initToastContainer();
+
+  // Enforce max stack size by popping the oldest
+  while (container.children.length >= MAX_TOASTS) {
+    container.firstChild.remove();
   }
 
-  function show(msg, type) {
-    // Dedup: skip if same exact message within 1s
-    const now = Date.now();
-    if (msg === _lastToastMsg && now - _lastToastTime < 1000) return;
-    _lastToastMsg = msg;
-    _lastToastTime = now;
+  const el = document.createElement("div");
+  el.className = "toast" + (type ? ` toast-${type}` : "");
+  const icon = type && _toastIcons[type] ? _toastIcons[type] : "";
+  el.innerHTML = `<span>${icon}${msg}</span>`;
 
-    const container = initContainer();
+  container.appendChild(el);
 
-    // Enforce max stack size by popping the oldest
-    while (container.children.length >= MAX_TOASTS) {
-      container.firstChild.remove();
-    }
+  // Trigger reflow for intro animation
+  void el.offsetWidth;
+  el.classList.add("show");
 
-    const el = document.createElement("div");
-    el.className = "toast" + (type ? ` toast-${type}` : "");
-    const icon = type && _toastIcons[type] ? _toastIcons[type] : "";
-    el.innerHTML = `<span>${icon}${msg}</span>`;
-
-    container.appendChild(el);
-
-    // Trigger reflow for intro animation
-    void el.offsetWidth;
-    el.classList.add("show");
-
-    setTimeout(() => {
-      el.classList.remove("show");
-      el.addEventListener("transitionend", () => el.remove(), { once: true });
-    }, 2500);
-  }
-
-  return { show };
-})();
-
-// Global alias pointing to the new Manager
-function showToast(msg, type) {
-  ToastManager.show(msg, type);
+  setTimeout(() => {
+    el.classList.remove("show");
+    el.addEventListener("transitionend", () => el.remove(), { once: true });
+  }, 2500);
 }
 
 /* ─── Sleep ─── */
-function sleep(ms) {
+export function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
 /* ─── Bind Navigation Buttons (CSP-safe, no inline handlers) ─── */
-function bindNavigation() {
+export function bindNavigation() {
   // Nav arrows
   document
     .getElementById("nav-left")
@@ -385,67 +384,67 @@ function bindNavigation() {
   // Trivia buttons
   document
     .getElementById("btn-trivia-solo")
-    ?.addEventListener("click", () => TriviaGame.startSolo());
+    ?.addEventListener("click", () => _modules.TriviaGame?.startSolo());
   document
     .getElementById("btn-trivia-create-duel")
-    ?.addEventListener("click", () => TriviaGame.createDuel());
+    ?.addEventListener("click", () => _modules.TriviaGame?.createDuel());
   document
     .getElementById("btn-trivia-join-duel")
-    ?.addEventListener("click", () => TriviaGame.showJoinDuel());
+    ?.addEventListener("click", () => _modules.TriviaGame?.showJoinDuel());
   document
     .getElementById("btn-duel-copy-code")
-    ?.addEventListener("click", () => TriviaGame.copyInviteCode());
+    ?.addEventListener("click", () => _modules.TriviaGame?.copyInviteCode());
   document
     .getElementById("btn-duel-create-cancel")
-    ?.addEventListener("click", () => TriviaGame.cancelDuel());
+    ?.addEventListener("click", () => _modules.TriviaGame?.cancelDuel());
   document
     .getElementById("btn-duel-join-submit")
-    ?.addEventListener("click", () => TriviaGame.joinDuel());
+    ?.addEventListener("click", () => _modules.TriviaGame?.joinDuel());
   document
     .getElementById("btn-duel-join-back")
-    ?.addEventListener("click", () => TriviaGame.showMenu());
+    ?.addEventListener("click", () => _modules.TriviaGame?.showMenu());
   document
     .getElementById("btn-duel-wait-cancel")
-    ?.addEventListener("click", () => TriviaGame.cancelDuel());
+    ?.addEventListener("click", () => _modules.TriviaGame?.cancelDuel());
   document
     .getElementById("btn-trivia-forfeit")
-    ?.addEventListener("click", () => TriviaGame.forfeitSolo());
+    ?.addEventListener("click", () => _modules.TriviaGame?.forfeitSolo());
   document
     .getElementById("btn-trivia-play-again")
-    ?.addEventListener("click", () => TriviaGame.showMenu());
+    ?.addEventListener("click", () => _modules.TriviaGame?.showMenu());
   // New v1.4 buttons
   document
     .getElementById("btn-duel-voice-invite")
-    ?.addEventListener("click", () => TriviaGame.inviteFromVoice());
+    ?.addEventListener("click", () => _modules.TriviaGame?.inviteFromVoice());
   document
     .getElementById("btn-duel-ready")
-    ?.addEventListener("click", () => TriviaGame.duelReady());
+    ?.addEventListener("click", () => _modules.TriviaGame?.duelReady());
   document
     .getElementById("btn-duel-lobby-cancel")
-    ?.addEventListener("click", () => TriviaGame.cancelDuel());
+    ?.addEventListener("click", () => _modules.TriviaGame?.cancelDuel());
 
   // Match-3 buttons
   document.getElementById("btn-m3-dismiss")?.addEventListener("click", () => {
     // v4.8: Dismiss game-over overlay, show mode selector with last mode pre-highlighted
     const ov = document.getElementById("m3-overlay");
     if (ov) ov.classList.remove("show");
-    Match3Game.showModeSelector();
+    _modules.Match3Game?.showModeSelector();
   });
   document
     .getElementById("btn-lb-tab-all")
-    ?.addEventListener("click", () => Match3Game.setLbTab("all"));
+    ?.addEventListener("click", () => _modules.Match3Game?.setLbTab("all"));
   document
     .getElementById("btn-lb-tab-room")
-    ?.addEventListener("click", () => Match3Game.setLbTab("room"));
+    ?.addEventListener("click", () => _modules.Match3Game?.setLbTab("room"));
 
   // Building Blox buttons
   document
     .getElementById("btn-blox-play-again")
-    ?.addEventListener("click", () => BloxGame.startGame());
+    ?.addEventListener("click", () => _modules.BloxGame?.startGame());
 }
 
 /* ─── Device Detection ─── */
-function detectDevice() {
+export function detectDevice() {
   HUB.isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
   document.body.classList.add(
     HUB.isTouchDevice ? "touch-device" : "pointer-device",
@@ -453,7 +452,7 @@ function detectDevice() {
 }
 
 /* ─── Keyboard Navigation ─── */
-function bindKeyboardNav() {
+export function bindKeyboardNav() {
   document.addEventListener("keydown", (e) => {
     // Don't hijack keyboard when user is typing in an input/textarea
     if (
@@ -473,7 +472,7 @@ function bindKeyboardNav() {
 }
 
 /* ─── Touch Swipe Gestures ─── */
-function bindTouchSwipe() {
+export function bindTouchSwipe() {
   const viewport = document.querySelector(".viewport");
   if (!viewport) return;
 
@@ -518,7 +517,7 @@ function bindTouchSwipe() {
 }
 
 /* ─── Bounce Hint (v4.9: re-show after 3 days, item 1.4) ─── */
-function triggerSwipeHint() {
+export function triggerSwipeHint() {
   const HINT_KEY = "hub_swipe_hint_ts";
   const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
   const last = parseInt(localStorage.getItem(HINT_KEY) || "0", 10);
@@ -543,7 +542,7 @@ function triggerSwipeHint() {
 }
 
 /* ─── Nav Bar Auto-Hide (1.1 / 1.5: Deprecated in v5) ─── */
-function navBarAutoHide(hide) {
+export function navBarAutoHide(hide) {
   // Deprecated: Bottom navigation is now fully persistent.
 }
 
@@ -565,7 +564,7 @@ function flashNavArrows() {
     );
   });
 }
-function startArrowFlash() {
+export function startArrowFlash() {
   if (_arrowFlashInterval) return;
   // v4.16: Visibility gate — skip CSS class manipulation when tab is hidden (saves battery)
   _arrowFlashInterval = setInterval(() => {
@@ -574,153 +573,18 @@ function startArrowFlash() {
   }, 90000); // every 90s
 }
 
-/* ─── Init on load ─── */
-window.addEventListener("DOMContentLoaded", async () => {
-  // Device detection (must be first for CSS classes)
-  detectDevice();
-
-  // Bind all navigation buttons (CSP-safe)
-  bindNavigation();
-
-  // Keyboard arrow keys
-  bindKeyboardNav();
-
-  // Touch swipe on mobile
-  bindTouchSwipe();
-
-  // Initialize Discord auth (or fallback to demo)
-  await initDiscord();
-
-  // Initialize TopHUD (Energy & Gold) + Pet Companion
-  if (typeof HUD !== "undefined") await HUD.init();
-  if (typeof PetCompanion !== "undefined") PetCompanion.init();
-
-  // v4.16: Populate cached DOM collections for zero-querySelectorAll navigation
+/**
+ * Populate cached DOM collections for zero-querySelectorAll navigation.
+ * Must be called once after DOM is ready.
+ */
+export function cacheNavDOM() {
   _cachedScreens = Array.from(document.querySelectorAll(".screen"));
   _cachedNavDots = Array.from(document.querySelectorAll(".nav-dot"));
   _cachedNavTabs = Array.from(document.querySelectorAll(".nav-tab"));
+}
 
+/** Apply initial screen state */
+export function applyInitialScreen() {
   applyScreenClasses();
   updateNavUI();
-
-  // Init the active screen (Farm)
-  HUB.initialized.farm = true;
-  if (typeof FarmGame !== "undefined") FarmGame.init();
-  if (typeof FarmGame !== "undefined") FarmGame.onEnter();
-
-  // Bounce hint for first-time / returning visitors (1.4)
-  triggerSwipeHint();
-
-  // Start periodic arrow flash on desktop (1.2)
-  if (!HUB.isTouchDevice) startArrowFlash();
-
-  // Dismiss boot-loader overlay
-  const bootLoader = document.getElementById("boot-loader");
-  if (bootLoader) {
-    bootLoader.classList.add("hidden");
-    setTimeout(() => bootLoader.remove(), 600); // Remove from DOM after fade
-  }
-
-  // ═══ Phase 3 (v4.11): Cognitive Load Reduction ═══
-
-  // 7.7: Economy guide overlay toggle
-  const econBtn = document.getElementById("econ-guide-btn");
-  const econOverlay = document.getElementById("econ-guide-modal");
-  if (econBtn && econOverlay) {
-    econBtn.addEventListener("click", () => {
-      if (!econOverlay.open) econOverlay.showModal();
-    });
-  }
-
-  // 7.1: Farm shop FAB → switch to shop tab
-  const fab = document.getElementById("farm-shop-fab");
-  if (fab) {
-    fab.addEventListener("click", () => {
-      if (typeof FarmGame !== "undefined" && FarmGame.switchFarmTab) {
-        FarmGame.switchFarmTab("shop");
-      }
-    });
-    // Show FAB on initial load if on farm screen
-    if (HUB.currentScreen === 2) fab.classList.add("visible");
-  }
-
-  // 7.6: One-time energy tutorial tooltip
-  const ENERGY_TUT_KEY = "hub_energy_tutorial_shown";
-  if (!localStorage.getItem(ENERGY_TUT_KEY)) {
-    const energyPill = document.getElementById("hud-energy");
-    if (energyPill) {
-      setTimeout(() => {
-        const tip = document.createElement("div");
-        tip.className = "energy-tutorial";
-        tip.innerHTML =
-          "⚡ Energy recharges over time. Feed your pet crops to restore it!" +
-          ' <span class="tutorial-dismiss">✕</span>';
-        energyPill.style.position = "relative";
-        energyPill.appendChild(tip);
-        const dismiss = tip.querySelector(".tutorial-dismiss");
-        if (dismiss) {
-          dismiss.addEventListener("click", () => {
-            tip.remove();
-            localStorage.setItem(ENERGY_TUT_KEY, "1");
-          });
-        }
-        // Auto-dismiss after 10 seconds
-        setTimeout(() => {
-          if (tip.parentElement) {
-            tip.remove();
-            localStorage.setItem(ENERGY_TUT_KEY, "1");
-          }
-        }, 10000);
-      }, 3000); // Show after 3s delay
-    }
-  }
-
-  // 7.3: Trivia settings panel toggle
-  const triviaSettingsToggle = document.getElementById(
-    "trivia-settings-toggle",
-  );
-  const triviaSettingsPanel = document.getElementById("trivia-settings-panel");
-  if (triviaSettingsToggle && triviaSettingsPanel) {
-    triviaSettingsToggle.addEventListener("click", () => {
-      triviaSettingsPanel.classList.toggle("open");
-    });
-  }
-
-  // Cell size for match-3 based on viewport (responsive, mobile-aware)
-  function updateM3CellSize() {
-    const maxByWidth = Math.floor((window.innerWidth - 80) / 8);
-    const maxByHeight = Math.floor((window.innerHeight - 280) / 8);
-    const isMobile = window.innerWidth <= 480 || HUB.isTouchDevice;
-    const cs = Math.max(
-      isMobile ? 36 : 28,
-      Math.min(isMobile ? 56 : 48, maxByWidth, maxByHeight),
-    );
-    document.documentElement.style.setProperty("--m3-cell", cs + "px");
-  }
-
-  // Cell size for Building Blox (10x10 grid, slightly smaller cells)
-  function updateBloxCellSize() {
-    const maxByWidth = Math.floor((window.innerWidth - 60) / 10);
-    const maxByHeight = Math.floor((window.innerHeight - 320) / 10);
-    const isMobile = window.innerWidth <= 480 || HUB.isTouchDevice;
-    const cs = Math.max(
-      isMobile ? 28 : 24,
-      Math.min(isMobile ? 44 : 38, maxByWidth, maxByHeight),
-    );
-    document.documentElement.style.setProperty("--blox-cell", cs + "px");
-  }
-
-  updateM3CellSize();
-  updateBloxCellSize();
-  // v4.15.2: rAF-throttled resize to prevent layout thrashing
-  let _resizePending = false;
-  window.addEventListener("resize", () => {
-    if (_resizePending) return;
-    _resizePending = true;
-    requestAnimationFrame(() => {
-      updateM3CellSize();
-      updateBloxCellSize();
-      _resizePending = false;
-    });
-  });
-});
+}
