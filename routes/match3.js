@@ -77,6 +77,22 @@ export default function match3Routes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const p = getPlayer(userId, username);
+
+    const { mode = "classic", isResume } = req.body;
+
+    // v5.0.2: Resume path — register session without charging energy.
+    // The client already has a saved game; it just needs the server to
+    // acknowledge an active session so /api/game/end won't 403.
+    if (isResume) {
+      p.match3.currentGame = { score: 0, movesLeft: 30, combo: 0, mode };
+      debouncedSavePlayer(userId);
+      return res.json({
+        success: true,
+        resources: p.resources,
+        highScore: p.match3.highScore,
+      });
+    }
+
     calcRegen(p);
 
     // Energy check
@@ -89,7 +105,6 @@ export default function match3Routes(requireAuth, resolveUser) {
     }
     p.resources.energy.current -= ECONOMY.COST_MATCH3;
 
-    const { mode = "classic" } = req.body;
     // v5: We don't generate the board on the server anymore. The client does it.
     // We just register an active session to prevent double-spending energy.
     const game = {

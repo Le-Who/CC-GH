@@ -576,11 +576,22 @@ const Match3GameImpl = (() => {
 
       // Resume timer if needed
       if (gameMode === "timed") {
+        $("m3-moves-label").textContent = "Time";
         $("m3-moves").style.color = timedSecondsLeft <= 10 ? "#ef4444" : "";
         startTimedCountdown();
       } else {
         $("m3-moves-label").textContent = "Moves";
       }
+
+      // v5.0.2: Register session on server (fire-and-forget, no energy charge).
+      // Without this, /api/game/end returns 403 "Invalid session" because
+      // the resume path previously skipped /api/game/start entirely.
+      api("/api/game/start", {
+        userId: HUB.userId,
+        username: HUB.username,
+        mode: gameMode,
+        isResume: true,
+      }).catch(() => {});
 
       persistSavedModes();
       updateStatsUI();
@@ -639,11 +650,14 @@ const Match3GameImpl = (() => {
     starsDropped = 0;
     dropStars = [];
 
+    // v5.0.2: Force-set score DOM to prevent animateNumber visual carryover
+    $("m3-score").textContent = "0";
+
     // Mode-specific init (drop stars placed AFTER server board)
     if (gameMode === "timed") {
       movesLeft = 9999; // Unlimited moves in timed mode
       timedSecondsLeft = TIMED_DURATION;
-      $("m3-moves-label").textContent = "";
+      $("m3-moves-label").textContent = "Time";
       $("m3-moves").textContent = `${TIMED_DURATION}s`;
       $("m3-moves").style.color = "";
       startTimedCountdown();
@@ -1538,6 +1552,8 @@ const Match3GameImpl = (() => {
 
   function updateStatsUI() {
     animateNumber($("m3-score"), score);
+    // v5.0.2: Dynamic label — "Time" for timed mode, "Moves" otherwise
+    $("m3-moves-label").textContent = gameMode === "timed" ? "Time" : "Moves";
     // Mode-specific moves/timer display
     if (gameMode === "timed") {
       $("m3-moves").textContent = `${timedSecondsLeft}s`;

@@ -32,6 +32,12 @@ Cascade animation was unreadable — impossible to track which gems matched and 
 - **New `.matched-highlight`**: Golden pulse glow (`m3MatchGlow` keyframes) — `box-shadow` ring + `scale(1.15)` — highlights matched gems before pop.
 - **New `.m3-board.batch-update`**: Transition suppression during programmatic DOM updates.
 
+### Time Attack Bug Fixes (`match3.js`, `routes/match3.js`)
+
+- **Score carryover fix**: Force-set `$("m3-score").textContent = "0"` on fresh start to prevent `animateNumber` from visually interpolating from the old session's score.
+- **403 "Invalid session" fix**: Resume path now fires `/api/game/start` with `isResume: true` (fire-and-forget). Server registers a session stub without charging energy, so `/api/game/end` no longer 403s.
+- **Timer label fix**: `m3-moves-label` now dynamically shows "Time" for timed mode instead of blank or "Moves".
+
 ### Blox — Clearing Animation Cutoff Fix
 
 - **Dynamic timeout**: `renderBoard()` timeout now calculated from `(staggerIdx - 1) * staggerDelay + SHATTER_DUR + 20ms` instead of hardcoded 300ms. Fixes animation being cut short on multi-line clears.
