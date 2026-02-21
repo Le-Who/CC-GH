@@ -54,21 +54,17 @@ const FarmGameImpl = (() => {
    */
   let _lastStorePlotsSig = "";
   function syncFromStore() {
-    {
-      const storeState = GameStore.getState("farm");
-      if (storeState) {
-        // v4.16: Dirty flag — skip expensive clone if plots haven't changed
-        const sig = JSON.stringify(storeState.plots);
-        if (sig === _lastStorePlotsSig) return;
-        _lastStorePlotsSig = sig;
-        state = {
-          ...storeState,
-          plots: storeState.plots
-            ? storeState.plots.map((p) => ({ ...p }))
-            : [],
-          harvested: storeState.harvested ? { ...storeState.harvested } : {},
-        };
-      }
+    const storeState = GameStore.getState("farm");
+    if (storeState) {
+      // v4.16: Dirty flag — skip expensive clone if plots haven't changed
+      const sig = JSON.stringify(storeState.plots);
+      if (sig === _lastStorePlotsSig) return;
+      _lastStorePlotsSig = sig;
+      state = {
+        ...storeState,
+        plots: storeState.plots ? storeState.plots.map((p) => ({ ...p })) : [],
+        harvested: storeState.harvested ? { ...storeState.harvested } : {},
+      };
     }
   }
 
@@ -497,9 +493,7 @@ const FarmGameImpl = (() => {
     if (!grid) return;
 
     let harvested = {};
-    {
-      harvested = GameStore.getState("resources")?.__harvested || {};
-    }
+    harvested = GameStore.getState("resources")?.__harvested || {};
 
     const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
     if (entries.length === 0) {
@@ -611,10 +605,8 @@ const FarmGameImpl = (() => {
     }
     // Bug 1 fix: immediately deduct gold from GameStore for instant UI
     const prevGold = goldAvail;
-    {
-      const res = GameStore.getState("resources") || {};
-      GameStore.setState("resources", { ...res, gold: res.gold - totalCost });
-    }
+    const res = GameStore.getState("resources") || {};
+    GameStore.setState("resources", { ...res, gold: res.gold - totalCost });
     // Optimistic update (instant UI)
     const prevInventory = { ...state.inventory };
     const savedQty = buyQty;
@@ -646,10 +638,8 @@ const FarmGameImpl = (() => {
           syncToStore();
         } else {
           // Rollback gold + inventory
-          {
-            const res = GameStore.getState("resources") || {};
-            GameStore.setState("resources", { ...res, gold: prevGold });
-          }
+          const res = GameStore.getState("resources") || {};
+          GameStore.setState("resources", { ...res, gold: prevGold });
           state.inventory = prevInventory;
           syncToStore();
           render();
@@ -772,12 +762,10 @@ const FarmGameImpl = (() => {
     state.xp += estimatedXP;
 
     // Bug 2 fix: write harvested crop to resources.__harvested in GameStore
-    {
-      const res = GameStore.getState("resources") || {};
-      const harvested = { ...(res.__harvested || {}) };
-      harvested[plotSnapshot.crop] = (harvested[plotSnapshot.crop] || 0) + 1;
-      GameStore.setState("resources", { ...res, __harvested: harvested });
-    }
+    const res = GameStore.getState("resources") || {};
+    const harvested = { ...(res.__harvested || {}) };
+    harvested[plotSnapshot.crop] = (harvested[plotSnapshot.crop] || 0) + 1;
+    GameStore.setState("resources", { ...res, __harvested: harvested });
 
     syncToStore();
     render();
@@ -835,10 +823,8 @@ const FarmGameImpl = (() => {
     renderInventory();
     render();
     showToast(`💰 Sold! +${sellPrice}🪙`);
-    {
-      HUD.animateGoldChange(sellPrice);
-      HUD.updateDisplay(GameStore.getState("resources"));
-    }
+    HUD.animateGoldChange(sellPrice);
+    HUD.updateDisplay(GameStore.getState("resources"));
 
     api("/api/farm/sell-crop", { userId: HUB.userId, cropId })
       .then((data) => {
@@ -877,9 +863,7 @@ const FarmGameImpl = (() => {
     });
     renderInventory();
     showToast(`🍖 Fed pet! +2⚡`);
-    {
-      HUD.updateDisplay(GameStore.getState("resources"));
-    }
+    HUD.updateDisplay(GameStore.getState("resources"));
 
     api("/api/pet/feed", { userId: HUB.userId, cropId })
       .then((data) => {

@@ -372,8 +372,7 @@ const Match3GameImpl = (() => {
   /** v4.15.1: Animated reshuffle when no valid moves remain.
    *  Diagonal wave of 3D card-flips — gem types change mid-flip. */
   function triggerReshuffle() {
-    if (typeof showToast === "function")
-      showToast("🔄 No moves! Reshuffling...");
+    showToast("🔄 No moves! Reshuffling...");
     const $b = $("m3-board");
     if (!$b) return;
     const cells = $b.querySelectorAll(".m3-cell");
@@ -1073,8 +1072,7 @@ const Match3GameImpl = (() => {
         if (gameActive && newMode !== gameMode && score > 0) {
           const label =
             card.querySelector(".m3-mode-name")?.textContent || newMode;
-          if (typeof showToast === "function")
-            showToast(`🔄 Switching to ${label}…`);
+          showToast(`🔄 Switching to ${label}…`);
           confirmAndStart(newMode);
           return;
         }

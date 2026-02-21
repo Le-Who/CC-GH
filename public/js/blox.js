@@ -339,13 +339,11 @@ const BloxGameImpl = (() => {
         }
       }
 
-      if (typeof showToast === "function") {
-        const msg =
-          cleared > 1
-            ? `✨ ${cleared} lines! +${pts} pts`
-            : `📏 Line clear! +${pts} pts`;
-        showToast(msg);
-      }
+      const msg =
+        cleared > 1
+          ? `✨ ${cleared} lines! +${pts} pts`
+          : `📏 Line clear! +${pts} pts`;
+      showToast(msg);
       // v4.15.1: Floating score points over the board
       showBloxFloat(pts);
     }
@@ -1287,9 +1285,7 @@ const BloxGameImpl = (() => {
   }
 
   function gameOver() {
-    if (typeof showToast === "function") {
-      showToast("🧱 No more moves! Game Over");
-    }
+    showToast("🧱 No more moves! Game Over");
     // v4.15.1: Radial petrification — freeze blocks from center outward
     const gridEl = $("blox-board");
     if (gridEl) {
