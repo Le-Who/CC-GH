@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — GameStore (v4.15.3)
+ *  Game Hub — GameStore (v4.16.0)
  *  Zustand-inspired slice pattern for vanilla JS.
  *  Each game registers its own slice; listeners are
  *  scoped per-slice so Match-3 updates never trigger

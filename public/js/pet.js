@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Pet Module (v4.15.3)
+ *  Game Hub — Pet Module (v4.16.0)
  *  Living Pet Entity with state machine & interactions
  *  v1.8: Weighted behavior, zone roaming, FLIP dock
  * ═══════════════════════════════════════════════════ */
