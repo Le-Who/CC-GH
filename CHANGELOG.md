@@ -1,5 +1,46 @@
 # Changelog
 
+## v5.0.1 — 2026-02-21
+
+### Performance — Visual Smoothness (Match-3 + Blox)
+
+5 performance bottlenecks identified with 9 solutions each; best aspects synthesized into unified fixes across 4 files.
+
+#### Match-3
+
+- **`will-change` cleanup**: Removed permanent `will-change: transform` from all 64 `.m3-cell` elements (64 GPU layers → auto-promote only during animation). Kept `will-change` on `.popping`, `.falling`, `.entering`, `.reshuffling` classes.
+- **Filter-free hover**: Replaced `filter: brightness(1.12)` / `brightness(0.92)` on `:hover` / `:active` with `border-color: rgba(255,255,255,0.25)`. Removed `filter 0.18s ease` from base transition. Eliminates full-cell repaints during rapid mouse movement across the 8×8 grid.
+- **`text-shadow` on `.gem-icon`**: Replaced `filter: drop-shadow(0 2px 4px)` with `text-shadow: 0 2px 4px` — cheaper for emoji/text rendering (no filter repaint per cell).
+- **Sparse cascade diff**: `animateCascade()` now iterates only affected cells from `step.cleared`, `step.fallen`, `step.filled` (typically 3–10 per step) instead of all 64 cells. Tracks `_prevCascadeChanged` for stale CSS property cleanup between steps.
+- **Reduced backdrop blur**: `.m3-board` `backdrop-filter` reduced from `blur(12px)` to `blur(4px)`, background opacity increased to `rgba(30, 32, 50, 0.92)`. ~70% blur computation savings.
+
+#### Blox
+
+- **Clearing `will-change` removed**: `.blox-cell.clearing` no longer sets `will-change: transform, opacity` — browser auto-promotes during `bloxShatter` animation.
+- **Staggered clearing**: Each clearing cell gets `animationDelay = idx × 20ms`, so only 2–3 cells are GPU-promoted simultaneously (previously all 10–20 at once).
+- **Faster clearing**: Animation shortened from `0.28s + 0.1s delay` to `0.24s` (no delay). `renderBoard()` timeout reduced 380ms → 300ms. `checkDelay` reduced 430ms → 350ms.
+- **Reduced backdrop blur**: `.blox-board` receives same treatment: `blur(12px)` → `blur(4px)`, `rgba(30, 32, 50, 0.92)`.
+
+### Star Drop — Color Redesign
+
+All 3 drop gem colors radically changed to occupy unique hue gaps with zero overlap against any of the 6 regular gem types:
+
+| Drop Gem     | Old Color                                | New Color                          | Hue Gap                              |
+| ------------ | ---------------------------------------- | ---------------------------------- | ------------------------------------ |
+| 💰 Gold Bag  | Rose-gold H:35° (near `light` amber)     | **Hot pink / magenta** H:330°      | Between `dark` 280° and `fire` 0°    |
+| 🌾 Seed Pack | Emerald H:160° (near `earth` green)      | **Chartreuse / lime-yellow** H:80° | Between `light` 50° and `earth` 120° |
+| ⚡ Energy    | Violet H:280° (overlapped `dark` purple) | **Indigo / deep blue** H:240°      | Between `water` 220° and `dark` 265° |
+
+### Tests
+
+- Updated "Star Drop — Color Uniqueness" tests: all 3 drop gems now pass strict non-overlap checks against all regular gems (old `drop_energy`/`dark` exception removed).
+- 273 tests passing (178 in targeted suites).
+
+### Version Headers
+
+- All CSS file headers aligned to `v5.0.0` (6 files updated from stale `v4.9`–`v4.16.0`).
+- `ux.test.js` section header updated from `v4.5.3` → `v5.0.0`.
+
 ## v5.0.0 — 2026-02-21
 
 ### ES Module Migration

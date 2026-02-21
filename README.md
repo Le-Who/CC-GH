@@ -2,7 +2,7 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v5.0.0**
+**Current version: v5.0.1**
 
 ---
 
@@ -186,6 +186,11 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 ---
 
 ## 🔬 Architecture Evolution (v5 Roadmap)
+
+### ✅ Completed in v5.0.1
+
+1. ~~**Visual Smoothness Performance Audit**~~: Removed permanent `will-change` on 64 cells, eliminated `filter: brightness()` hover repaints, sparse cascade diff (3–10 cells vs 64), staggered Blox clearing, reduced `backdrop-filter: blur(12px)` → `blur(4px)` on both boards.
+2. ~~**Star Drop Color Redesign**~~: All 3 drop gems given unique hues: 💰 hot pink H:330°, 🌾 chartreuse H:80°, ⚡ indigo H:240° — zero overlap with any regular gem.
 
 ### ✅ Completed in v5.0.0
 

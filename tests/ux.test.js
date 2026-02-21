@@ -570,11 +570,11 @@ describe("Star Drop — Color Uniqueness", () => {
     dark: [265, 280], // violet
   };
 
-  // Primary hue ranges for drop gems (v4.6 unique hues)
+  // Primary hue ranges for drop gems (v5.0.1: fully distinct palette)
   const DROP_GEM_HUES = {
-    drop_gold: [31, 39], // rose-gold (between fire's orange and light's amber)
-    drop_seeds: [155, 168], // emerald-teal (between earth and air)
-    drop_energy: [270, 290], // electric violet
+    drop_gold: [325, 340], // hot pink / magenta
+    drop_seeds: [75, 95], // chartreuse / lime-yellow
+    drop_energy: [235, 250], // indigo / deep blue
   };
 
   it("drop_gold hue range is distinct from all regular gems", () => {
@@ -615,16 +615,15 @@ describe("Star Drop — Color Uniqueness", () => {
     }
   });
 
-  it("drop_energy uses radial gradient for distinction from dark gem", () => {
-    // drop_energy and dark gem share the violet hue range (270-290 vs 265-280)
-    // but are visually distinguished by: radial gradient, thick white border,
-    // and animated glow border — verified by CSS review, not hue overlap.
-    const [dMin] = DROP_GEM_HUES.drop_energy;
-    const [, darkMax] = REGULAR_GEM_HUES.dark;
-    assert.ok(
-      dMin < darkMax,
-      "drop_energy overlaps dark intentionally (distinguished by gradient + border)",
-    );
+  it("drop_energy hue range is distinct from all regular gems", () => {
+    const [dMin, dMax] = DROP_GEM_HUES.drop_energy;
+    for (const [gem, [gMin, gMax]] of Object.entries(REGULAR_GEM_HUES)) {
+      const overlaps = dMin < gMax && dMax > gMin;
+      assert.ok(
+        !overlaps,
+        `drop_energy [${dMin}-${dMax}] overlaps ${gem} [${gMin}-${gMax}]`,
+      );
+    }
   });
 });
 

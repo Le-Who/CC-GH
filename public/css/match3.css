@@ -677,36 +677,36 @@
   will-change: opacity, transform;
 }
 
-/* ── Gold Bag: rose-gold metallic ── */
+/* ── Gold Bag: hot pink / magenta (H:330° — distinct from all 6 regular gem hues) ── */
 .m3-cell.drop-gold {
-  --drop-color: rgba(230, 166, 84, 0.65);
+  --drop-color: rgba(236, 72, 153, 0.65);
   background: radial-gradient(
     circle at 35% 35%,
-    #ffe4c4,
-    #e6a654,
-    #c4803d
+    #fda4af,
+    #ec4899,
+    #be185d
   ) !important;
 }
 
-/* ── Seed Pack: deep emerald ── */
+/* ── Seed Pack: chartreuse / lime-yellow (H:80° — between light's 50° and earth's 120°) ── */
 .m3-cell.drop-seeds {
-  --drop-color: rgba(16, 185, 129, 0.65);
+  --drop-color: rgba(163, 230, 53, 0.65);
   background: radial-gradient(
     circle at 35% 35%,
-    #b4ffd0,
-    #10b981,
-    #047857
+    #ecfccb,
+    #a3e635,
+    #65a30d
   ) !important;
 }
 
-/* ── Energy: electric violet ── */
+/* ── Energy: indigo / deep blue (H:240° — between water's 220° and dark's 265°) ── */
 .m3-cell.drop-energy {
-  --drop-color: rgba(168, 85, 247, 0.65);
+  --drop-color: rgba(99, 102, 241, 0.65);
   background: radial-gradient(
     circle at 35% 35%,
-    #e0c3fc,
-    #a855f7,
-    #7c3aed
+    #c7d2fe,
+    #6366f1,
+    #4338ca
   ) !important;
 }
 
