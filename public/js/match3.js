@@ -19,6 +19,7 @@ import {
   DROP_TYPES,
   DROP_ICONS,
   DROP_LABELS,
+  REWARD_BASE,
   calcGoldReward,
   cloneBoard,
   cloneDropStars,
@@ -453,7 +454,7 @@ const Match3GameImpl = (() => {
 
       if (data.game) {
         const restoredMode = data.game.mode || gameMode;
-        board = hydrateBoard(data.game.board);
+        board = hydrateBoard(data.game.board) || generateBoard();
         score = data.game.score || 0;
         movesLeft = data.game.movesLeft || 0;
         combo = data.game.combo || 0;

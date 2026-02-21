@@ -30,7 +30,7 @@ export const DROP_LABELS = {
 };
 
 // ─── Progressive gold reward (mirrors game-logic.js calcGoldReward) ───
-const REWARD_BASE = 40;
+export const REWARD_BASE = 40;
 const REWARD_LOSE = 5;
 
 export function calcGoldReward(s) {
@@ -76,6 +76,7 @@ export function cloneDropStars(ds) {
 
 /** Firestore converts 2D arrays to objects — convert back */
 export function hydrateBoard(b) {
+  if (b == null) return null;
   if (Array.isArray(b)) return b;
   return Object.keys(b)
     .sort((a, c) => Number(a) - Number(c))
