@@ -23,7 +23,7 @@ let firestore = null;
 let playersCol = null;
 
 try {
-  firestore = new Firestore(); // Uses Application Default Credentials
+  firestore = new Firestore({ databaseId: "game-hub-db" }); // Uses Application Default Credentials
   playersCol = firestore.collection("players");
   console.log("🔥 Firestore initialized successfully.");
 } catch (e) {
