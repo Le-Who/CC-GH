@@ -361,7 +361,8 @@ export function bindNavigation() {
       const idx = parseInt(tab.dataset.screen, 10);
       if (!isNaN(idx)) goToScreen(idx);
     });
-  });\n}
+  });
+}
 
 /* ─── Device Detection ─── */
 export function detectDevice() {

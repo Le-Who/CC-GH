@@ -111,19 +111,21 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 196 tests (unit + API + blox + match3 + UX + GCP + perf)
+npm test          # All 273 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
 npm run test:perf # Performance benchmarks only
 ```
 
-| Type     | File                   | Tests |
-| -------- | ---------------------- | ----: |
-| **Unit** | `tests/unit.test.js`   |    49 |
-| **API**  | `tests/api.test.js`    |    26 |
-| **Blox** | `tests/blox.test.js`   |    30 |
-| **M3**   | `tests/match3.test.js` |    12 |
-| **UX**   | `tests/ux.test.js`     |    52 |
-| **GCP**  | `tests/gcp.test.js`    |    12 |
-| **Perf** | `tests/perf.test.js`   |    15 |
+| Type       | File                              | Tests |
+| ---------- | --------------------------------- | ----: |
+| **Unit**   | `tests/unit.test.js`              |    49 |
+| **API**    | `tests/api.test.js`               |    26 |
+| **Blox**   | `tests/blox.test.js`              |    30 |
+| **M3**     | `tests/match3.test.js`            |    12 |
+| **UX**     | `tests/ux.test.js`                |    52 |
+| **GCP**    | `tests/gcp.test.js`               |    12 |
+| **Perf**   | `tests/perf.test.js`              |    15 |
+| **Stress** | `tests/game-logic-stress.test.js` |    64 |
+| **Syntax** | `tests/syntax.test.js`            |    13 |
 
 ---
 
