@@ -1323,6 +1323,11 @@ const Match3Game = (() => {
         cell.dataset.type = type;
         const icon = isDrop ? DROP_ICONS[type] || "🌟" : GEM_ICONS[type] || "?";
         cell.firstElementChild.textContent = icon;
+        // v4.16: Clear ALL residual inline styles from swap/cascade animations
+        // (with innerHTML rebuild these died automatically; cached cells retain them)
+        cell.style.transform = "";
+        cell.style.transition = "";
+        cell.style.zIndex = "";
         if (animate) {
           cell.style.animationDelay = `${(x + y) * 25}ms`;
         } else {
@@ -1636,6 +1641,10 @@ const Match3Game = (() => {
             ? DROP_ICONS[type] || "🌟"
             : GEM_ICONS[type] || "?";
           cell.firstElementChild.textContent = icon;
+          // v4.16: Always clear residual swap styles before applying cascade styles
+          cell.style.transform = "";
+          cell.style.transition = "";
+          cell.style.zIndex = "";
 
           if (changedSet.has(`${x},${y}`)) {
             // Dynamic gravity: scale distance and duration per gem
