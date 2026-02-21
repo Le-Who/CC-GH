@@ -14,8 +14,6 @@ export function setWaterFn(fn) {
 }
 
 const PetCompanionImpl = (function () {
-  "use strict";
-
   const STATES = {
     IDLE: "idle",
     ROAM: "roam",

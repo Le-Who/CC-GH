@@ -6,7 +6,7 @@
  */
 import { Router } from "express";
 import { ECONOMY, CROPS, calcRegen } from "../game-logic.js";
-import { getPlayer, debouncedSaveDb } from "../playerManager.js";
+import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function resourcesRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -33,13 +33,11 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     }
     const cfg = CROPS[cropId];
     if (!cfg) return res.status(400).json({ error: "unknown crop" });
-    // Sell price = ceil((seedPrice * 0.5) * (growthTimeSec * 0.25))
-    const growSec = (cfg.growthTime || 15000) / 1000;
-    const sellPrice = Math.ceil(cfg.seedPrice * 0.5 * (growSec * 0.25));
+    const sellPrice = cfg.sellPrice;
     p.farm.harvested[cropId]--;
     if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
     p.resources.gold += sellPrice;
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       resources: p.resources,
@@ -85,7 +83,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     // Happiness boost
     p.pet.stats.happiness = Math.min(100, p.pet.stats.happiness + 5);
 
-    debouncedSaveDb();
+    debouncedSavePlayer(userId);
     res.json({
       success: true,
       resources: p.resources,

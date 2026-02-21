@@ -1,6 +1,6 @@
 /**
  * ═══════════════════════════════════════════════════════
- *  Game Hub — GCP Hosting Resilience Tests (v3.2)
+ *  Game Hub — GCP Hosting Resilience Tests (v5.0.0)
  *  Validates game systems under GCP-typical conditions:
  *  latency, concurrency, payload size, save stress,
  *  stale reconnect, and idempotency.

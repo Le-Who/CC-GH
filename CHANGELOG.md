@@ -1,5 +1,51 @@
 # Changelog
 
+## v5.0.0 — 2026-02-21
+
+### ES Module Migration
+
+All 8 frontend JS modules converted from IIFE pattern to native ES Modules. Single `<script type="module">` entry point replaces 9 script tags.
+
+#### Architecture
+
+- **`main.js`** — new entry point; DOMContentLoaded orchestrator importing all modules
+- **Module registry** (`setModules()` in `shared.js`) — avoids circular imports between core utils and game modules
+- **`setWaterFn()`** setter in `pet.js` — resolves pet→farm circular dependency
+- **Import map** — server generates `<script type="importmap">` from content hashes; automatic cache busting, zero manual `?v=` bumps
+
+#### Modules Converted
+
+- `store.js`, `shared.js`, `hud.js`, `pet.js`, `farm.js`, `trivia.js`, `match3.js`, `blox.js`
+- All `typeof` runtime guards removed (ESM guarantees import resolution)
+
+#### Module Decomposition (Phase 4)
+
+- **`match3/engine.js`** — pure game logic extracted (generateBoard, findMatches, resolveBoard, hasValidMoves, calcGoldReward, hydration helpers)
+- **`blox/pieces.js`** — static piece definitions (GRID, PIECE_COUNT, 12 shapes)
+
+#### Infrastructure
+
+- `index.html` — 9 `<script>` tags → `<script type="module" src="js/main.js">`
+- `server.js` — `getIndexHtml()` injects `<script type="importmap">` with MD5 content hashes for all JS modules + sub-modules
+- `discord-sdk.js` remains IIFE (classic `<script>` — must load before ES modules)
+
+#### Post-Migration Audit Cleanup
+
+- **`crops.js`** — new module centralizing crop data fetch/cache; eliminates `window.__cropsPromise` and `window.__cropsCache` globals
+- Removed deprecated `navBarAutoHide()` (empty body, v5 persistent nav)
+- Fixed `applyScreenPosition()` → `applyScreenClasses()` (renamed function reference)
+- Removed redundant `"use strict"` from ESM IIFE closures (`blox.js`, `pet.js`)
+- Updated stale match3.js header to `@see ./match3/engine.js`
+- **Button binding SRP** — moved 16 game-specific button bindings from `shared.js` `bindNavigation()` into `trivia.js` (12), `match3.js` (3), `blox.js` (1); `bindNavigation()` now handles only navigation (arrows, dots, tabs)
+
+#### Full-Stack Audit Fixes
+
+- **🔴 Data loss fix** — `routes/resources.js` called deprecated no-op `debouncedSaveDb()`; replaced with `debouncedSavePlayer(userId)` for sell-crop and pet-feed persistence
+- **Sell-price fix** — sell-crop was using a hardcoded formula (strawberry=10🪙) instead of `CROPS.sellPrice` (strawberry=15🪙); now uses canonical data
+- **DRY constants** — `BLOX_PIECES` (110 lines) and `GEM_TYPES`/`BOARD_SIZE` removed from `game-logic.js`, re-exported from client sub-modules (`blox/pieces.js`, `match3/engine.js`)
+- **Cache performance** — `Cache-Control: no-store` on all JS/CSS replaced with caching-friendly policy; import-map hashes handle invalidation
+- **Scalability guard** — `loadDb()` Firestore read now uses `.limit(1000)` to prevent unbounded memory growth
+
 ## v4.16.0 — 2026-02-21
 
 ### DOM-Cached Rendering (Third Performance Audit)

@@ -16,7 +16,6 @@ import {
   navigate,
   goToScreen,
   updatePetDock,
-  navBarAutoHide,
   bindNavigation,
   detectDevice,
   bindKeyboardNav,

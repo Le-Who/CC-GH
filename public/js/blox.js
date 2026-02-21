@@ -10,120 +10,10 @@ import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep } from "./shared.js";
 import { HUD } from "./hud.js";
 
+import { GRID, PIECE_COUNT, PIECES } from "./blox/pieces.js";
+
 const BloxGameImpl = (() => {
-  "use strict";
-
-  const GRID = 10;
-  const PIECE_COUNT = 3;
   const STORAGE_KEY = "blox_state";
-
-  /* ── Piece library (duplicated from game-logic.js for client preview) ── */
-  const PIECES = [
-    { id: "dot", cells: [[0, 0]], color: "#94a3b8" },
-    {
-      id: "h2",
-      cells: [
-        [0, 0],
-        [0, 1],
-      ],
-      color: "#60a5fa",
-    },
-    {
-      id: "v2",
-      cells: [
-        [0, 0],
-        [1, 0],
-      ],
-      color: "#60a5fa",
-    },
-    {
-      id: "l3",
-      cells: [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-      ],
-      color: "#f97316",
-    },
-    {
-      id: "l3r",
-      cells: [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-      ],
-      color: "#f97316",
-    },
-    {
-      id: "h3",
-      cells: [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-      ],
-      color: "#22c55e",
-    },
-    {
-      id: "v3",
-      cells: [
-        [0, 0],
-        [1, 0],
-        [2, 0],
-      ],
-      color: "#22c55e",
-    },
-    {
-      id: "sq",
-      cells: [
-        [0, 0],
-        [0, 1],
-        [1, 0],
-        [1, 1],
-      ],
-      color: "#fbbf24",
-    },
-    {
-      id: "t4",
-      cells: [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [1, 1],
-      ],
-      color: "#a78bfa",
-    },
-    {
-      id: "s4",
-      cells: [
-        [0, 1],
-        [0, 2],
-        [1, 0],
-        [1, 1],
-      ],
-      color: "#ef4444",
-    },
-    {
-      id: "i4",
-      cells: [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [0, 3],
-      ],
-      color: "#06b6d4",
-    },
-    {
-      id: "i5",
-      cells: [
-        [0, 0],
-        [0, 1],
-        [0, 2],
-        [0, 3],
-        [0, 4],
-      ],
-      color: "#e879f9",
-    },
-  ];
 
   // ── State ──
   let board = [];
@@ -1340,6 +1230,8 @@ const BloxGameImpl = (() => {
       hidePauseOverlay();
       endGame();
     });
+    // Game-over play-again (moved from shared.js for SRP)
+    $("btn-blox-play-again")?.addEventListener("click", () => startGame());
 
     // v4.9: Leaderboard tab clicks
     $("blox-lb-tab-all")?.addEventListener("click", () =>

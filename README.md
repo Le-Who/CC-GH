@@ -2,7 +2,7 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v4.16.0**
+**Current version: v5.0.0**
 
 ---
 
@@ -15,7 +15,7 @@
 | 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, and leaderboard · 3 game modes · Juicy UI |
 | 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag · Juicy UI   |
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
-| ⚡ **Energy System**      | Native dialog overlays · 3-min regen · Gates match-3 and trivia plays        |
+| ⚡ **Energy System**      | Native dialog overlays · 2.5-min regen · Gates match-3 and trivia plays      |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
 | 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
@@ -25,16 +25,16 @@
 
 ## ⚙️ Tech Stack
 
-| Layer        | Technology                               |
-| ------------ | ---------------------------------------- |
-| **Runtime**  | Node.js 20                               |
-| **Frontend** | Vanilla JS + CSS (zero build step)       |
-| **Backend**  | Express.js 5.x                           |
-| **Database** | Google Cloud Firestore                   |
-| **Storage**  | Google Cloud Storage (legacy backup)     |
-| **Auth**     | Discord Embedded App SDK 1.0             |
-| **State**    | GameStore (Zustand-inspired vanilla JS)  |
-| **Testing**  | Node.js built-in `node:test` (zero deps) |
+| Layer        | Technology                                 |
+| ------------ | ------------------------------------------ |
+| **Runtime**  | Node.js 20                                 |
+| **Frontend** | Vanilla JS + CSS · ES Modules (import map) |
+| **Backend**  | Express.js 5.x                             |
+| **Database** | Google Cloud Firestore                     |
+| **Storage**  | Google Cloud Storage (legacy backup)       |
+| **Auth**     | Discord Embedded App SDK 1.0               |
+| **State**    | GameStore (Zustand-inspired vanilla JS)    |
+| **Testing**  | Node.js built-in `node:test` (zero deps)   |
 
 ---
 
@@ -61,7 +61,7 @@ npm run dev
 ## 🏗 Project Structure
 
 ```
-├── server.js              # Express composition root (~220 lines)
+├── server.js              # Express composition root (~320 lines)
 ├── playerManager.js       # Player state, persistence, schema migration
 ├── game-logic.js          # Pure functions (crops, energy, offline simulation)
 ├── storage.js             # GCS + local file persistence adapter
@@ -77,13 +77,20 @@ npm run dev
 ├── public/
 │   ├── index.html         # Single-page shell (4-screen sliding track)
 │   ├── js/
-│   │   ├── shared.js      # Discord SDK, auth, navigation, HUD, pet docking
+│   │   ├── main.js        # ES Module entry point (boot orchestrator)
+│   │   ├── shared.js      # HUB state, auth, navigation, toast, device detection
+│   │   ├── store.js       # GameStore (Zustand-like slice manager)
+│   │   ├── crops.js       # Crop metadata fetch/cache (replaces window globals)
+│   │   ├── hud.js         # Energy + Gold HUD, regen timer
+│   │   ├── pet.js         # Pet companion (roam, sleep, auto-water, abilities)
 │   │   ├── farm.js        # Farm module (plots, shop, buy-plot, optimistic updates)
 │   │   ├── trivia.js      # Trivia (solo + duels, lobby, history)
-│   │   ├── match3.js      # Match-3 engine (swap animation, cascades, leaderboard)
-│   │   ├── blox.js        # Building Blox (persistence, pause, touch drag, ghost)
-│   │   ├── pet.js         # Pet companion (roam, sleep, auto-water, abilities)
-│   │   └── store.js       # GameStore (Zustand-like slice manager)
+│   │   ├── match3.js      # Match-3 barrel (swap animation, cascades, leaderboard)
+│   │   ├── match3/
+│   │   │   └── engine.js   # Pure game logic (generateBoard, findMatches, resolveBoard)
+│   │   ├── blox.js        # Building Blox barrel (pause, touch drag, ghost)
+│   │   └── blox/
+│   │       └── pieces.js   # Static piece definitions (12 shapes)
 │   └── css/               # Modular CSS (base, farm, trivia, match3, blox, hud, pet)
 ├── tests/
 │   ├── unit.test.js       # 49 unit tests (pure functions)
@@ -104,14 +111,14 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 194 tests (unit + API + blox + match3 + UX + GCP + perf)
+npm test          # All 196 tests (unit + API + blox + match3 + UX + GCP + perf)
 npm run test:perf # Performance benchmarks only
 ```
 
 | Type     | File                   | Tests |
 | -------- | ---------------------- | ----: |
 | **Unit** | `tests/unit.test.js`   |    49 |
-| **API**  | `tests/api.test.js`    |    24 |
+| **API**  | `tests/api.test.js`    |    26 |
 | **Blox** | `tests/blox.test.js`   |    30 |
 | **M3**   | `tests/match3.test.js` |    12 |
 | **UX**   | `tests/ux.test.js`     |    52 |
@@ -152,14 +159,14 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 | Crop           | Growth |  Sell | Seed Cost |
 | -------------- | ------ | ----: | --------: |
-| 🍅 Tomato      | 15s    |  15🪙 |       5🪙 |
-| 🌽 Corn        | 30s    |  30🪙 |      12🪙 |
-| 🌻 Sunflower   | 60s    |  80🪙 |      30🪙 |
+| 🍓 Strawberry  | 15s    |  15🪙 |       5🪙 |
+| 🍅 Tomato      | 30s    |  30🪙 |      10🪙 |
+| 🌽 Corn        | 45s    |  50🪙 |      20🪙 |
+| 🌻 Sunflower   | 60s    |  80🪙 |      35🪙 |
 | 🌹 Golden Rose | 90s    | 150🪙 |      60🪙 |
 | 🫐 Blueberry   | 20s    |  20🪙 |       8🪙 |
 | 🍉 Watermelon  | 75s    | 120🪙 |      45🪙 |
 | 🎃 Pumpkin     | 120s   | 250🪙 |     100🪙 |
-| 🌾 Wheat       | 45s    |  50🪙 |      18🪙 |
 
 **Purchasable plots** (6 free → max 12): doubling cost 200 → 400 → 800 → 1600 → 3200 → 6400🪙
 
@@ -176,23 +183,24 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 ---
 
-## 🔬 v5 Roadmap (Architecture & UX Masterplan)
+## 🔬 Architecture Evolution (v5 Roadmap)
 
-Following a complete codebase analysis, the following synthesized solutions will drive the next major version, maintaining our zero-build philosophy while elevating code quality and UX/UI best practices:
+### ✅ Completed in v5.0.0
 
-### Architectural Evolution
+1. ~~**Native ES Modules**~~: All 8 frontend modules migrated from IIFE to native `import`/`export`. Single module entry point (`main.js`). Server-injected import map for automatic cache busting.
+2. ~~**Module Decomposition**~~: `match3/engine.js` (pure logic) and `blox/pieces.js` (static data) extracted as sub-modules.
 
-1. **Web Components & Native ESM**: Replacing manual `innerHTML` rebuilds with encapsulated Custom Elements, and switching to native ES Modules (`type="module"`) to eliminate global namespace pollution.
-2. **WebSocket State Sync**: Upgrading from the custom `api()` fetch wrapper and optimistic fallbacks to real-time bidirectional synchronization (e.g., Socket.io).
+### ✅ Completed in v4.14–v4.16
 
-### UX/UI Fluidity — ✅ Completed in v4.14
+3. ~~**Native View Transitions + Persistent Navigation**~~: Implemented in v4.14.0.
+4. ~~**Standardized `<dialog>` Overlays + Toast Queue**~~: All overlays migrated in v4.14.0–v4.14.3.
+5. ~~**Juicy UI Foundation**~~: Spring physics, GPU-optimized animations, dynamic gravity, CSS containment, object-pooled float points. Implemented in v4.15.0–v4.15.3.
+6. ~~**DOM-Cached Rendering**~~: Zero-innerHTML diff-update for Blox/Match-3. Event delegation, ghost tracking, cached nav. Implemented in v4.16.0.
 
-1. ~~**Native View Transitions**~~: Implemented in v4.14.0.
-2. ~~**Persistent Navigation**~~: Implemented in v4.14.0.
-3. ~~**Standardized `<dialog>` Overlays**~~: All overlays migrated in v4.14.0–v4.14.3. Scrollbar flash fixed in v4.15.0.
-4. ~~**Centralized Toast Queue**~~: Implemented in v4.14.0, repositioned to bottom-right in v4.14.3.
-5. ~~**Juicy UI Foundation**~~: Implemented in v4.15.0–v4.15.3. Spring physics, GPU-optimized animations, pseudo-3D blocks, hit-stop micro-feedback, dynamic gravity, compositor-safe transitions, spring return, object-pooled float points, CSS containment, deadlock reshuffle wave, radial petrification game-over, rAF resize throttle, visibility-gated render, particle pools, DOM ref caching, compositor-only glow, aurora animation gate.
-6. ~~**DOM-Cached Rendering**~~: Implemented in v4.16.0. Zero-innerHTML diff-update for Blox (100 cells) and Match-3 (64 cells + cascade animation). Event delegation, ghost tracking arrays, cached nav collections.
+### Planned
+
+7. **Extended Decomposition**: Extract `match3/modes.js`, `match3/persistence.js`, `blox/drag.js` — requires shared state-object refactor.
+8. **WebSocket State Sync**: Real-time bidirectional sync replacing `api()` fetch + optimistic fallbacks.
 
 ---
 

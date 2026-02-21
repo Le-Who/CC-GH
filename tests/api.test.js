@@ -220,6 +220,38 @@ describe("POST /api/farm/buy-seeds", () => {
 });
 
 /* ─────────────────────────────────────────────────────
+ *  Sell Crop
+ * ───────────────────────────────────────────────────── */
+describe("POST /api/farm/sell-crop", () => {
+  it("returns soldFor matching CROPS.sellPrice (not a formula)", async () => {
+    await post("/api/farm/state", { userId: "seller1", username: "S1" });
+    const player = players.get("seller1");
+    player.farm.harvested.strawberry = 2;
+
+    const { status, data } = await post("/api/farm/sell-crop", {
+      userId: "seller1",
+      cropId: "strawberry",
+    });
+    assert.equal(status, 200);
+    assert.ok(data.success);
+    assert.equal(
+      data.soldFor,
+      CROPS.strawberry.sellPrice,
+      `Expected ${CROPS.strawberry.sellPrice}🪙 but got ${data.soldFor}🪙`,
+    );
+  });
+
+  it("rejects selling crop not in inventory", async () => {
+    await post("/api/farm/state", { userId: "seller2", username: "S2" });
+    const { status } = await post("/api/farm/sell-crop", {
+      userId: "seller2",
+      cropId: "golden",
+    });
+    assert.equal(status, 400);
+  });
+});
+
+/* ─────────────────────────────────────────────────────
  *  Pet Feed
  * ───────────────────────────────────────────────────── */
 describe("POST /api/pet/feed", () => {

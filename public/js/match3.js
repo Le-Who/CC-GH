@@ -6,36 +6,36 @@
  *  ─ Star Drop fixes: no deadlocks, mode persistence
  *  ─ v4.5.1: session persistence, auto-classic, zero-move save
  *
- *  NOTE: calcGoldReward, findMatches, generateBoard, randomGem are
- *  intentionally duplicated from game-logic.js. The client needs its
- *  own copies for instant UI preview without server round-trips.
- *  The client findMatches uses Set<string> and excludes DROP_TYPES;
- *  the server version uses Array<{type, gems}> for different consumers.
+ *  Engine logic (findMatches, resolveBoard, etc.) in ./match3/engine.js
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep } from "./shared.js";
 import { HUD } from "./hud.js";
+import {
+  GEM_TYPES,
+  GEM_ICONS,
+  BOARD_SIZE,
+  DROP_TYPES,
+  DROP_ICONS,
+  DROP_LABELS,
+  calcGoldReward,
+  cloneBoard,
+  cloneDropStars,
+  hydrateBoard,
+  hydrateArray,
+  hydrateSavedModes,
+  randomGem,
+  generateBoard,
+  findMatches,
+  hasValidMoves,
+  resolveBoard,
+} from "./match3/engine.js";
 
 const Match3GameImpl = (() => {
-  const GEM_TYPES = ["fire", "water", "earth", "air", "light", "dark"];
-  const GEM_ICONS = {
-    fire: "🔥",
-    water: "💧",
-    earth: "🌿",
-    air: "💨",
-    light: "⭐",
-    dark: "🔮",
-  };
-  const BOARD_SIZE = 8;
-
-  // v4.16: Lightweight deep-clone helpers (eliminate JSON.parse(JSON.stringify) GC pressure)
-  function cloneBoard(b) {
-    return b.map((row) => [...row]);
-  }
-  function cloneDropStars(ds) {
-    return ds.map((s) => ({ ...s }));
-  }
+  // ─── Engine imports (extracted to match3/engine.js) ───
+  // We re-import inside the IIFE via module-scoped references set below.
+  // This avoids breaking the IIFE encapsulation while using the shared engine.
 
   let board = [];
   let score = 0;
@@ -121,78 +121,11 @@ const Match3GameImpl = (() => {
   const TIMED_DURATION = 90; // seconds
   const DROP_MOVE_LIMIT = 30;
   const DROP_STAR_COUNT = 3;
-  // v3.1: 3 unique reward drop types instead of single star
-  const DROP_TYPES = ["drop_gold", "drop_seeds", "drop_energy"];
-  const DROP_ICONS = { drop_gold: "💰", drop_seeds: "🌾", drop_energy: "⚡" };
-  const DROP_LABELS = {
-    drop_gold: "Gold Bag",
-    drop_seeds: "Seed Pack",
-    drop_energy: "Energy",
-  };
 
-  /* ─── Progressive gold reward (mirrors game-logic.js calcGoldReward) ─── */
-  const REWARD_BASE = 40;
-  const REWARD_LOSE = 5;
-  function calcGoldReward(s) {
-    if (typeof s !== "number" || s <= 0) return REWARD_LOSE;
-    if (s < 1000)
-      return Math.max(REWARD_LOSE, Math.floor(REWARD_BASE * (s / 1000)));
-    let gold = REWARD_BASE;
-    const tiers = [
-      { min: 1000, max: 1999, r: 0.05 },
-      { min: 2000, max: 2999, r: 0.1 },
-      { min: 3000, max: 3999, r: 0.2 },
-    ];
-    for (const t of tiers) {
-      if (s < t.min) break;
-      gold += Math.floor(
-        Math.floor((Math.min(s, t.max + 1) - t.min) / 100) * t.r * REWARD_BASE,
-      );
-    }
-    if (s >= 4000) {
-      let ts = 4000,
-        rate = 0.4;
-      while (ts <= s) {
-        gold += Math.floor(
-          Math.floor((Math.min(s, ts + 1000) - ts) / 100) * rate * REWARD_BASE,
-        );
-        ts += 1000;
-        rate = Math.min(rate * 2, 2.0);
-      }
-    }
-    return gold;
-  }
+  // activeMode tracks UI-selected mode, survives pause/restart
+  let activeMode = "classic";
 
   const $ = (id) => document.getElementById(id);
-
-  /** Firestore converts 2D arrays to objects — convert back */
-  function hydrateBoard(b) {
-    if (Array.isArray(b)) return b;
-    // Object with numeric keys → array of arrays
-    return Object.keys(b)
-      .sort((a, c) => Number(a) - Number(c))
-      .map((k) => {
-        const row = b[k];
-        return Array.isArray(row) ? row : Object.values(row);
-      });
-  }
-
-  /** Firestore converts flat arrays to objects — convert back */
-  function hydrateArray(a) {
-    if (Array.isArray(a)) return a;
-    if (a && typeof a === "object") return Object.values(a);
-    return [];
-  }
-
-  /** Hydrate all boards and arrays inside a savedModes object from Firestore */
-  function hydrateSavedModes(modes) {
-    for (const mode of Object.keys(modes)) {
-      const s = modes[mode];
-      if (s && s.board) s.board = hydrateBoard(s.board);
-      if (s && s.dropStars) s.dropStars = hydrateArray(s.dropStars);
-    }
-    return modes;
-  }
 
   /** Sync match3 state to GameStore */
   function syncToStore() {
@@ -204,169 +137,6 @@ const Match3GameImpl = (() => {
       highScore,
       gameActive,
     });
-  }
-
-  /* ═══ Client-Side Match-3 Engine ═══ */
-  function randomGem() {
-    return GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
-  }
-
-  function generateBoard() {
-    const b = [];
-    for (let y = 0; y < BOARD_SIZE; y++) {
-      b[y] = [];
-      for (let x = 0; x < BOARD_SIZE; x++) {
-        let gem;
-        do {
-          gem = randomGem();
-        } while (
-          (x >= 2 && b[y][x - 1] === gem && b[y][x - 2] === gem) ||
-          (y >= 2 && b[y - 1]?.[x] === gem && b[y - 2]?.[x] === gem)
-        );
-        b[y][x] = gem;
-      }
-    }
-    return b;
-  }
-
-  function findMatches(b) {
-    // Optimized: Use Uint8Array visited map instead of Set<string> for performance
-    const matched = new Uint8Array(BOARD_SIZE * BOARD_SIZE);
-    let count = 0;
-
-    // Horizontal
-    for (let y = 0; y < BOARD_SIZE; y++) {
-      for (let x = 0; x < BOARD_SIZE - 2; x++) {
-        const type = b[y][x];
-        // Skip star-type gems (they don't match)
-        if (!type || DROP_TYPES.includes(type)) continue;
-
-        if (type === b[y][x + 1] && type === b[y][x + 2]) {
-          let end = x + 3;
-          while (end < BOARD_SIZE && b[y][end] === type) end++;
-          for (let k = x; k < end; k++) {
-            const idx = y * BOARD_SIZE + k;
-            if (matched[idx] === 0) {
-              matched[idx] = 1;
-              count++;
-            }
-          }
-          x = end - 1;
-        }
-      }
-    }
-    // Vertical
-    for (let x = 0; x < BOARD_SIZE; x++) {
-      for (let y = 0; y < BOARD_SIZE - 2; y++) {
-        const type = b[y][x];
-        if (!type || DROP_TYPES.includes(type)) continue;
-
-        if (type === b[y + 1][x] && type === b[y + 2][x]) {
-          let end = y + 3;
-          while (end < BOARD_SIZE && b[end][x] === type) end++;
-          for (let k = y; k < end; k++) {
-            const idx = k * BOARD_SIZE + x;
-            if (matched[idx] === 0) {
-              matched[idx] = 1;
-              count++;
-            }
-          }
-          y = end - 1;
-        }
-      }
-    }
-
-    const result = [];
-    if (count > 0) {
-      const len = BOARD_SIZE * BOARD_SIZE;
-      for (let i = 0; i < len; i++) {
-        if (matched[i]) result.push(i);
-      }
-    }
-    return result;
-  }
-
-  /** Check if board has any valid moves (prevents deadlocks) */
-  function hasValidMoves(b) {
-    // Clone board validation is expensive but necessary for Star Drop
-    // Try every horizontal swap
-    for (let y = 0; y < BOARD_SIZE; y++) {
-      for (let x = 0; x < BOARD_SIZE - 1; x++) {
-        // Swap (x,y) with (x+1,y)
-        [b[y][x], b[y][x + 1]] = [b[y][x + 1], b[y][x]];
-        const hasMatch = findMatches(b).length > 0;
-        // Swap back
-        [b[y][x], b[y][x + 1]] = [b[y][x + 1], b[y][x]];
-        if (hasMatch) return true;
-      }
-    }
-    // Try every vertical swap
-    for (let x = 0; x < BOARD_SIZE; x++) {
-      for (let y = 0; y < BOARD_SIZE - 1; y++) {
-        // Swap (x,y) with (x,y+1)
-        [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
-        const hasMatch = findMatches(b).length > 0;
-        // Swap back
-        [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
-        if (hasMatch) return true;
-      }
-    }
-    return false;
-  }
-
-  /** Run a full cascade: match → clear → gravity → fill → repeat.
-   *  Returns { steps, totalPoints, combo } for animation.
-   *  Drop tokens (star drop mode) survive gravity and never get replaced. */
-  function resolveBoard(b) {
-    const steps = [];
-    let totalPoints = 0;
-    let cascadeCombo = 0;
-    let matches = findMatches(b);
-
-    while (matches.length > 0) {
-      cascadeCombo++;
-      const cleared = matches.map((idx) => {
-        const x = idx % BOARD_SIZE;
-        const y = Math.floor(idx / BOARD_SIZE);
-        return { x, y, type: b[y][x] };
-      });
-      totalPoints += cleared.length * 10 * Math.min(cascadeCombo, 5);
-
-      // Clear matched cells (but NEVER clear drop tokens)
-      for (const { x, y } of cleared) {
-        if (!DROP_TYPES.includes(b[y][x])) b[y][x] = null;
-      }
-
-      // Gravity + fill (drop tokens fall with gravity but are never replaced)
-      const fallen = [];
-      const filled = [];
-      for (let x = 0; x < BOARD_SIZE; x++) {
-        let wy = BOARD_SIZE - 1;
-        for (let y = BOARD_SIZE - 1; y >= 0; y--) {
-          if (b[y][x]) {
-            if (wy !== y) {
-              b[wy][x] = b[y][x];
-              b[y][x] = null;
-              fallen.push({ x, fromY: y, toY: wy });
-            }
-            wy--;
-          }
-        }
-        for (let y = wy; y >= 0; y--) {
-          b[y][x] = randomGem();
-          filled.push({ x, y, type: b[y][x] });
-        }
-      }
-
-      steps.push({ cleared, fallen, filled, combo: cascadeCombo });
-
-      // Check star drops after each cascade step
-      if (gameMode === "drop") checkStarDrops();
-
-      matches = findMatches(b);
-    }
-
-    return { steps, totalPoints, combo: cascadeCombo };
   }
 
   /** v4.15.1: Animated reshuffle when no valid moves remain.
@@ -432,6 +202,15 @@ const Match3GameImpl = (() => {
     // v4.5.3: "New Game" button always goes through mode selector
     $("m3-btn-start").onclick = () => showModeSelector();
     $("m3-btn-lb").onclick = toggleLeaderboard;
+
+    // Game-over + leaderboard tab bindings (moved from shared.js for SRP)
+    $("btn-m3-dismiss")?.addEventListener("click", () => {
+      const ov = $("m3-overlay");
+      if (ov) ov.classList.remove("show");
+      showModeSelector();
+    });
+    $("btn-lb-tab-all")?.addEventListener("click", () => setLbTab("all"));
+    $("btn-lb-tab-room")?.addEventListener("click", () => setLbTab("room"));
 
     fetchLeaderboard();
     updateStartButton();
@@ -1493,7 +1272,10 @@ const Match3GameImpl = (() => {
     ];
 
     // 3. Resolve cascades client-side
-    const result = resolveBoard(board);
+    const result = resolveBoard(
+      board,
+      gameMode === "drop" ? () => checkStarDrops() : null,
+    );
     score += result.totalPoints;
     // Don't decrement moves in timed mode (unlimited)
     if (gameMode !== "timed") movesLeft--;

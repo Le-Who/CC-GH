@@ -5,6 +5,7 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
+import { getCropsCache, loadCropsFromStorage } from "./crops.js";
 import { HUB, api, goToScreen } from "./shared.js";
 
 let regenTimerId = null;
@@ -241,25 +242,7 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
 
   descEl.textContent = `Need ${needed} more ⚡ — Feed your pet to restore energy!`;
 
-  // Render food items — ensure crop metadata is available via cache fallback
-  const cropsCache =
-    window.__cropsCache ||
-    (() => {
-      try {
-        const raw = localStorage.getItem("hub_crops_cache");
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        // TTL-wrapped format { data, cachedAt }
-        if (parsed && parsed.cachedAt) {
-          const TTL = 24 * 60 * 60 * 1000;
-          if (Date.now() - parsed.cachedAt > TTL) return null;
-          return parsed.data;
-        }
-        return parsed; // Legacy format
-      } catch (_) {
-        return null;
-      }
-    })();
+  const cropsCache = getCropsCache() || loadCropsFromStorage();
   const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
   if (entries.length === 0) {
     itemsEl.innerHTML =

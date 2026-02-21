@@ -35,6 +35,23 @@ const TriviaGame = (() => {
     // Collapsed bar click -> return to menu
     const bar = $("trivia-duel-history-bar");
     if (bar) bar.addEventListener("click", () => showMenu());
+
+    // Trivia button bindings (moved from shared.js for SRP)
+    $("btn-trivia-solo")?.addEventListener("click", () => startSolo());
+    $("btn-trivia-create-duel")?.addEventListener("click", () => createDuel());
+    $("btn-trivia-join-duel")?.addEventListener("click", () => showJoinDuel());
+    $("btn-duel-copy-code")?.addEventListener("click", () => copyInviteCode());
+    $("btn-duel-create-cancel")?.addEventListener("click", () => cancelDuel());
+    $("btn-duel-join-submit")?.addEventListener("click", () => joinDuel());
+    $("btn-duel-join-back")?.addEventListener("click", () => showMenu());
+    $("btn-duel-wait-cancel")?.addEventListener("click", () => cancelDuel());
+    $("btn-trivia-forfeit")?.addEventListener("click", () => forfeitSolo());
+    $("btn-trivia-play-again")?.addEventListener("click", () => showMenu());
+    $("btn-duel-voice-invite")?.addEventListener("click", () =>
+      inviteFromVoice(),
+    );
+    $("btn-duel-ready")?.addEventListener("click", () => duelReady());
+    $("btn-duel-lobby-cancel")?.addEventListener("click", () => cancelDuel());
   }
   function onEnter() {
     fetchDuelHistory();

@@ -235,6 +235,10 @@ function getIndexHtml() {
     "match3.js",
     "blox.js",
     "main.js",
+    // Sub-modules (Phase 4)
+    "match3/engine.js",
+    "blox/pieces.js",
+    "crops.js",
   ];
   const importMapEntries = {};
   for (const mod of jsModules) {
@@ -259,12 +263,11 @@ function getIndexHtml() {
   return html;
 }
 
-// Prevent Discord proxy from caching static assets
+// Cache policy: HTML always validates, JS/CSS use import-map hash for invalidation
 app.use((req, res, next) => {
-  if (req.path.match(/\.(js|css|html)$/)) {
-    res.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  if (req.path.endsWith(".html")) {
+    res.set("Cache-Control", "no-cache");
     res.set("Surrogate-Control", "no-store");
-    res.set("Pragma", "no-cache");
   }
   next();
 });

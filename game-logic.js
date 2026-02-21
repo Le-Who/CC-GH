@@ -154,10 +154,11 @@ export const CROPS = {
 };
 
 /* ═══════════════════════════════════════════════════
- *  MATCH-3 CONSTANTS
+ *  MATCH-3 CONSTANTS (re-exported from client sub-module)
  * ═══════════════════════════════════════════════════ */
-export const GEM_TYPES = ["fire", "water", "earth", "air", "light", "dark"];
-export const BOARD_SIZE = 8;
+export { GEM_TYPES, BOARD_SIZE } from "./public/js/match3/engine.js";
+import { GEM_TYPES } from "./public/js/match3/engine.js";
+import { BOARD_SIZE } from "./public/js/match3/engine.js";
 
 /* ═══════════════════════════════════════════════════
  *  PLAYER FACTORY
@@ -365,120 +366,8 @@ export function calcBloxReward(score) {
   return Math.min(gold, 400);
 }
 
-/* Building Blox — Piece Definitions
- * Each piece is an array of [row, col] offsets from top-left corner.
- */
-export const BLOX_PIECES = [
-  // 1-cell
-  { id: "dot", cells: [[0, 0]], color: "#94a3b8" },
-  // 2-cell
-  {
-    id: "h2",
-    cells: [
-      [0, 0],
-      [0, 1],
-    ],
-    color: "#60a5fa",
-  },
-  {
-    id: "v2",
-    cells: [
-      [0, 0],
-      [1, 0],
-    ],
-    color: "#60a5fa",
-  },
-  // 3-cell L
-  {
-    id: "l3",
-    cells: [
-      [0, 0],
-      [1, 0],
-      [1, 1],
-    ],
-    color: "#f97316",
-  },
-  {
-    id: "l3r",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [1, 0],
-    ],
-    color: "#f97316",
-  },
-  {
-    id: "h3",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [0, 2],
-    ],
-    color: "#22c55e",
-  },
-  {
-    id: "v3",
-    cells: [
-      [0, 0],
-      [1, 0],
-      [2, 0],
-    ],
-    color: "#22c55e",
-  },
-  // Tetrominos (4-cell)
-  {
-    id: "sq",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [1, 0],
-      [1, 1],
-    ],
-    color: "#fbbf24",
-  },
-  {
-    id: "t4",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [0, 2],
-      [1, 1],
-    ],
-    color: "#a78bfa",
-  },
-  {
-    id: "s4",
-    cells: [
-      [0, 1],
-      [0, 2],
-      [1, 0],
-      [1, 1],
-    ],
-    color: "#ef4444",
-  },
-  {
-    id: "i4",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [0, 2],
-      [0, 3],
-    ],
-    color: "#06b6d4",
-  },
-  // Pentomino (5-cell)
-  {
-    id: "i5",
-    cells: [
-      [0, 0],
-      [0, 1],
-      [0, 2],
-      [0, 3],
-      [0, 4],
-    ],
-    color: "#e879f9",
-  },
-];
+/* Building Blox — Piece Definitions (re-exported from client sub-module) */
+export { PIECES as BLOX_PIECES } from "./public/js/blox/pieces.js";
 
 export function farmPlotsWithGrowth(farm, now = Date.now()) {
   return farm.plots.map((pl) => {

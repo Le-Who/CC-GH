@@ -1,5 +1,5 @@
 /**
- * Match-3 Tile Clearing Tests — v4.8.0
+ * Match-3 Tile Clearing Tests — v5.0.0
  * Run: node --test tests/match3.test.js
  *
  * Tests extracted match-3 logic (findMatches, resolveBoard, gravity)

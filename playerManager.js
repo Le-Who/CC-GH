@@ -34,7 +34,7 @@ try {
 export async function loadDb() {
   if (playersCol) {
     try {
-      const snapshot = await playersCol.get();
+      const snapshot = await playersCol.limit(1000).get();
       if (!snapshot.empty) {
         snapshot.forEach((doc) => {
           players.set(doc.id, doc.data());
@@ -78,13 +78,6 @@ export function debouncedSavePlayer(userId) {
   }, SAVE_DELAY_MS);
 
   pendingSaves.set(userId, timeoutId);
-}
-
-// Ensure old references to this function don't crash the server during migration
-export function debouncedSaveDb() {
-  console.warn(
-    "debouncedSaveDb() is deprecated. Replaced by debouncedSavePlayer(userId)",
-  );
 }
 
 /* ─── Graceful Shutdown ─── */

@@ -5,6 +5,7 @@
  *  v5: Native ES Module (was global IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
+import { prefetchCrops } from "./crops.js";
 
 export const HUB = {
   userId: null,
@@ -36,26 +37,7 @@ export function setModules(mods) {
 /* ─── Discord SDK Init ─── */
 export async function initDiscord() {
   // Prefetch crops data in parallel with auth (they're static, so start early)
-  window.__cropsPromise = fetch("/api/content/crops")
-    .then((r) => (r.ok ? r.json() : null))
-    .catch(() => {
-      // Try localStorage cache as fallback (with TTL check)
-      try {
-        const raw = localStorage.getItem("hub_crops_cache");
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        // Support TTL-wrapped format { data, cachedAt }
-        if (parsed && parsed.cachedAt) {
-          const TTL = 24 * 60 * 60 * 1000; // 24h
-          if (Date.now() - parsed.cachedAt > TTL) return null; // Expired
-          return parsed.data;
-        }
-        // Legacy format (plain object) — use but it won't have TTL protection
-        return parsed;
-      } catch (_) {
-        return null;
-      }
-    });
+  prefetchCrops();
 
   // 1. Fetch Client ID Config
   let clientId = "";
@@ -379,69 +361,7 @@ export function bindNavigation() {
       const idx = parseInt(tab.dataset.screen, 10);
       if (!isNaN(idx)) goToScreen(idx);
     });
-  });
-
-  // Trivia buttons
-  document
-    .getElementById("btn-trivia-solo")
-    ?.addEventListener("click", () => _modules.TriviaGame?.startSolo());
-  document
-    .getElementById("btn-trivia-create-duel")
-    ?.addEventListener("click", () => _modules.TriviaGame?.createDuel());
-  document
-    .getElementById("btn-trivia-join-duel")
-    ?.addEventListener("click", () => _modules.TriviaGame?.showJoinDuel());
-  document
-    .getElementById("btn-duel-copy-code")
-    ?.addEventListener("click", () => _modules.TriviaGame?.copyInviteCode());
-  document
-    .getElementById("btn-duel-create-cancel")
-    ?.addEventListener("click", () => _modules.TriviaGame?.cancelDuel());
-  document
-    .getElementById("btn-duel-join-submit")
-    ?.addEventListener("click", () => _modules.TriviaGame?.joinDuel());
-  document
-    .getElementById("btn-duel-join-back")
-    ?.addEventListener("click", () => _modules.TriviaGame?.showMenu());
-  document
-    .getElementById("btn-duel-wait-cancel")
-    ?.addEventListener("click", () => _modules.TriviaGame?.cancelDuel());
-  document
-    .getElementById("btn-trivia-forfeit")
-    ?.addEventListener("click", () => _modules.TriviaGame?.forfeitSolo());
-  document
-    .getElementById("btn-trivia-play-again")
-    ?.addEventListener("click", () => _modules.TriviaGame?.showMenu());
-  // New v1.4 buttons
-  document
-    .getElementById("btn-duel-voice-invite")
-    ?.addEventListener("click", () => _modules.TriviaGame?.inviteFromVoice());
-  document
-    .getElementById("btn-duel-ready")
-    ?.addEventListener("click", () => _modules.TriviaGame?.duelReady());
-  document
-    .getElementById("btn-duel-lobby-cancel")
-    ?.addEventListener("click", () => _modules.TriviaGame?.cancelDuel());
-
-  // Match-3 buttons
-  document.getElementById("btn-m3-dismiss")?.addEventListener("click", () => {
-    // v4.8: Dismiss game-over overlay, show mode selector with last mode pre-highlighted
-    const ov = document.getElementById("m3-overlay");
-    if (ov) ov.classList.remove("show");
-    _modules.Match3Game?.showModeSelector();
-  });
-  document
-    .getElementById("btn-lb-tab-all")
-    ?.addEventListener("click", () => _modules.Match3Game?.setLbTab("all"));
-  document
-    .getElementById("btn-lb-tab-room")
-    ?.addEventListener("click", () => _modules.Match3Game?.setLbTab("room"));
-
-  // Building Blox buttons
-  document
-    .getElementById("btn-blox-play-again")
-    ?.addEventListener("click", () => _modules.BloxGame?.startGame());
-}
+  });\n}
 
 /* ─── Device Detection ─── */
 export function detectDevice() {
@@ -534,16 +454,11 @@ export function triggerSwipeHint() {
       "animationend",
       () => {
         track.classList.remove("hint-bounce");
-        applyScreenPosition(); // Restore correct position
+        applyScreenClasses(); // Restore correct position
       },
       { once: true },
     );
   }, 800);
-}
-
-/* ─── Nav Bar Auto-Hide (1.1 / 1.5: Deprecated in v5) ─── */
-export function navBarAutoHide(hide) {
-  // Deprecated: Bottom navigation is now fully persistent.
 }
 
 /* ─── Arrow Hint Flash (1.2: subtle periodic flash every ~90s for 2s) ─── */

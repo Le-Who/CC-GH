@@ -10,6 +10,7 @@ import { GameStore } from "./store.js";
 import { HUB, api, showToast } from "./shared.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
+import { getCropsData, setCropsCache } from "./crops.js";
 
 const FarmGameImpl = (() => {
   // state is synced with GameStore 'farm' slice
@@ -116,14 +117,14 @@ const FarmGameImpl = (() => {
       const cached = JSON.parse(localStorage.getItem("hub_crops_cache"));
       if (cached?.data && Object.keys(cached.data).length > 0) {
         crops = cached.data;
-        window.__cropsCache = cached.data;
+        setCropsCache(cached.data);
       }
     } catch (_) {}
 
     // Register farm slice in the store
     GameStore.registerSlice("farm", null);
 
-    const cropsPromise = window.__cropsPromise || api("/api/content/crops");
+    const cropsPromise = getCropsData();
     const statePromise = api("/api/farm/state", {
       userId: HUB.userId,
       username: HUB.username,
@@ -136,7 +137,7 @@ const FarmGameImpl = (() => {
 
     if (cropsData && !cropsData.error) {
       crops = cropsData;
-      window.__cropsCache = cropsData; // Expose for energy modal
+      setCropsCache(cropsData); // Expose for energy modal
       try {
         localStorage.setItem(
           "hub_crops_cache",
@@ -211,7 +212,7 @@ const FarmGameImpl = (() => {
         const cropsData = await api("/api/content/crops");
         if (cropsData && !cropsData.error) {
           crops = cropsData;
-          window.__cropsCache = cropsData;
+          setCropsCache(cropsData);
         }
       }
     }
