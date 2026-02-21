@@ -185,16 +185,23 @@ function computeAssetHashes() {
   for (const dir of scanDirs) {
     const dirPath = path.join(pubDir, dir);
     if (!fs.existsSync(dirPath)) continue;
-    for (const file of fs.readdirSync(dirPath)) {
-      if (file === "discord-sdk-bundle.js") continue; // served dynamically
-      const filePath = path.join(dirPath, file);
+    // Recursive scan to handle sub-modules (match3/, blox/)
+    const entries = fs.readdirSync(dirPath, {
+      withFileTypes: true,
+      recursive: true,
+    });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (entry.name === "discord-sdk-bundle.js") continue; // served dynamically
+      const filePath = path.join(entry.parentPath || entry.path, entry.name);
+      const relPath = path.relative(pubDir, filePath).replace(/\\/g, "/");
       const content = fs.readFileSync(filePath);
       const hash = crypto
         .createHash("md5")
         .update(content)
         .digest("hex")
         .slice(0, 8);
-      assetHashes[`${dir}/${file}`] = hash;
+      assetHashes[relPath] = hash;
     }
   }
   console.log(
