@@ -57,8 +57,17 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const p = getPlayer(userId, username);
+    // v5.0.1: savedState stored as JSON string to avoid Firestore nested-array rejection
+    let parsed = null;
+    if (typeof p.blox.savedState === "string") {
+      try {
+        parsed = JSON.parse(p.blox.savedState);
+      } catch (_) {}
+    } else if (p.blox.savedState && typeof p.blox.savedState === "object") {
+      parsed = p.blox.savedState; // Legacy: already an object (pre-stringify migration)
+    }
     res.json({
-      savedState: p.blox.savedState || null,
+      savedState: parsed,
       highScore: p.blox.highScore,
     });
   });
@@ -69,7 +78,8 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     const { savedState } = req.body;
     if (!userId) return res.status(400).json({ error: "userId required" });
     const p = getPlayer(userId);
-    p.blox.savedState = savedState ?? null;
+    // v5.0.1: Store as JSON string — Firestore rejects nested arrays (board is 2D array)
+    p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
     debouncedSavePlayer(userId);
     res.json({ success: true });
   });

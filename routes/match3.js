@@ -11,6 +11,21 @@ import { getPlayer, players, debouncedSavePlayer } from "../playerManager.js";
 export default function match3Routes(requireAuth, resolveUser) {
   const router = Router();
 
+  // v5.0.1: savedModes stored as JSON string to avoid Firestore nested-array rejection.
+  // Parse back to object for API responses, with legacy object fallback.
+  function _parseSavedModes(raw) {
+    if (!raw) return {};
+    if (typeof raw === "string") {
+      try {
+        return JSON.parse(raw);
+      } catch (_) {
+        return {};
+      }
+    }
+    if (typeof raw === "object") return raw; // Legacy: already an object
+    return {};
+  }
+
   router.post("/api/game/state", requireAuth, (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
@@ -19,13 +34,13 @@ export default function match3Routes(requireAuth, resolveUser) {
       res.json({
         game: p.match3.currentGame,
         highScore: p.match3.highScore,
-        savedModes: p.match3.savedModes || {},
+        savedModes: _parseSavedModes(p.match3.savedModes),
       });
     } else {
       res.json({
         game: null,
         highScore: p.match3.highScore,
-        savedModes: p.match3.savedModes || {},
+        savedModes: _parseSavedModes(p.match3.savedModes),
       });
     }
   });
@@ -41,7 +56,8 @@ export default function match3Routes(requireAuth, resolveUser) {
     let changed = false;
 
     if (savedModes && typeof savedModes === "object") {
-      p.match3.savedModes = savedModes;
+      // v5.0.1: Store as JSON string — Firestore rejects nested arrays (board is 2D)
+      p.match3.savedModes = JSON.stringify(savedModes);
       changed = true;
     }
 

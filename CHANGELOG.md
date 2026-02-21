@@ -31,6 +31,24 @@ All 3 drop gem colors radically changed to occupy unique hue gaps with zero over
 | 🌾 Seed Pack | Emerald H:160° (near `earth` green)      | **Chartreuse / lime-yellow** H:80° | Between `light` 50° and `earth` 120° |
 | ⚡ Energy    | Violet H:280° (overlapped `dark` purple) | **Indigo / deep blue** H:240°      | Between `water` 220° and `dark` 265° |
 
+### Bug Fixes
+
+#### Firestore — Nested Array Rejection (Critical)
+
+- **Root cause**: Firestore does not support nested arrays (arrays inside arrays). Both `blox.savedState.board` (10×10 2D) and `match3.savedModes[mode].board` (8×8 2D) violated this constraint, causing `INVALID_ARGUMENT: Property blox/match3 contains an invalid nested entity` on every save.
+- **Fix — JSON-stringify on write**: `routes/blox.js` `/api/blox/sync` now `JSON.stringify(savedState)` before storing; `/api/blox/state` parses back. `routes/match3.js` `/api/game/sync-modes` does the same for `savedModes`. Both have legacy fallback for pre-stringify data.
+- **Fix — Recursive sanitizer**: Added `sanitizeForFirestore()` in `playerManager.js` — recursively strips `undefined` → `null` and ensures dense arrays before every Firestore `.set()` call (both `debouncedSavePlayer` and `gracefulShutdown`).
+
+#### Blox — Ghost Breathing Animation Restart
+
+- **Root cause**: `mousemove` handler called `clearGhost()` + `showGhostAt()` on every pixel of movement. Removing and re-adding the `ghost` CSS class restarted the 1.2s `ghostBreathe` animation from frame 0, causing janky flickering and unnecessary GPU work.
+- **Fix**: Added `_lastGhostKey` position cache (`selectedPiece,row,col`). Ghost is only cleared and re-shown when the cursor enters a **different grid cell**. Within the same cell, the breathing animation runs uninterrupted.
+
+#### Match-3 — Gem Visual Displacement After Swap
+
+- **Root cause**: `attemptSwap()` sets `transform: translate()` on both cells for the swap slide animation. After `await sleep(200)`, the sparse cascade diff only clears transforms on cells in `step.cleared/fallen/filled`. If the non-matching swapped cell wasn't in those sets, its residual `translate()` persisted, visually displacing the gem to another cell's position.
+- **Fix**: Added explicit `transform/transition/zIndex` cleanup on both swapped cells immediately after the 200ms slide animation completes, before cascade begins.
+
 ### Tests
 
 - Updated "Star Drop — Color Uniqueness" tests: all 3 drop gems now pass strict non-overlap checks against all regular gems (old `drop_energy`/`dark` exception removed).

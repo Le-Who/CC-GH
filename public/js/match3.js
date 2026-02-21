@@ -1264,6 +1264,14 @@ const Match3GameImpl = (() => {
       cellB.style.transform = `translate(${-dx}px, ${-dy}px)`;
       cellA.style.zIndex = "2";
       await sleep(200);
+      // v5.0.1: Clear swap slide residuals BEFORE cascade.
+      // Sparse cascade diff only touches changed cells — if one swapped cell
+      // isn't in any match, its translate() persists, displacing the gem visually.
+      cellA.style.transform = "";
+      cellA.style.transition = "";
+      cellA.style.zIndex = "";
+      cellB.style.transform = "";
+      cellB.style.transition = "";
     }
 
     // 2. Apply swap to real board

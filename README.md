@@ -191,6 +191,9 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 1. ~~**Visual Smoothness Performance Audit**~~: Removed permanent `will-change` on 64 cells, eliminated `filter: brightness()` hover repaints, sparse cascade diff (3–10 cells vs 64), staggered Blox clearing, reduced `backdrop-filter: blur(12px)` → `blur(4px)` on both boards.
 2. ~~**Star Drop Color Redesign**~~: All 3 drop gems given unique hues: 💰 hot pink H:330°, 🌾 chartreuse H:80°, ⚡ indigo H:240° — zero overlap with any regular gem.
+3. ~~**Firestore Nested-Array Fix**~~: `savedState`/`savedModes` JSON-stringified before Firestore write + recursive `sanitizeForFirestore()` strips `undefined` values.
+4. ~~**Blox Ghost Animation Fix**~~: Position-diffed ghost rendering prevents `ghostBreathe` CSS animation restart on every mouse pixel.
+5. ~~**Match-3 Swap Displacement Fix**~~: Inline `transform` cleanup after swap slide prevents gem displacement from sparse cascade diff.
 
 ### ✅ Completed in v5.0.0
 
