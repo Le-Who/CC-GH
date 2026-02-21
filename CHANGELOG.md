@@ -19,6 +19,7 @@ Cascade animation was unreadable — impossible to track which gems matched and 
 - **~40% faster cascade**: Total per-step time reduced from ~1010ms (350+360+300) to ~620ms (200+220+200). Each successive step accelerates ×0.85.
 - **Post-cascade full sync**: `renderBoard(false)` called after `animateCascade()` completes — guarantees zero desync survivors.
 - **CSS durations synced**: `.popping` 0.36→0.22s, `.matched-highlight` 0.35→0.2s — CSS animations now fit within their JS phase windows.
+- **Swap jerk eliminated**: Added `.m3-board.batch-update` CSS rule + forced layout flush during swap transform cleanup. The base `.m3-cell` transition no longer re-animates the secondary piece back to its grid position.
 
 #### State Desync Fix (`match3.js`)
 
@@ -28,6 +29,12 @@ Cascade animation was unreadable — impossible to track which gems matched and 
 ### CSS
 
 - **New `.matched-highlight`**: Golden pulse glow (`m3MatchGlow` keyframes) — `box-shadow` ring + `scale(1.15)` — highlights matched gems before pop.
+- **New `.m3-board.batch-update`**: Transition suppression during programmatic DOM updates.
+
+### Blox — Clearing Animation Cutoff Fix
+
+- **Dynamic timeout**: `renderBoard()` timeout now calculated from `(staggerIdx - 1) * staggerDelay + SHATTER_DUR + 20ms` instead of hardcoded 300ms. Fixes animation being cut short on multi-line clears.
+- **Adaptive stagger**: Step reduced from 20ms→10ms for multi-line clears (>1 line), keeping total animation snappy while preserving the wave dissolve effect.
 
 ## v5.0.1 — 2026-02-21
 

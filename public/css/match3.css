@@ -62,8 +62,13 @@
   border-color: rgba(255, 255, 255, 0.25);
 }
 .m3-cell:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
+  transition-duration: 0.08s;
   border-color: rgba(255, 255, 255, 0.1);
+}
+/* v5.0.2: Suppress transitions during programmatic batch updates (swap cleanup) */
+.m3-board.batch-update .m3-cell {
+  transition: none !important;
 }
 /* v5.0.1: text-shadow instead of filter: drop-shadow (cheaper — no filter repaint per cell) */
 .m3-cell .gem-icon {

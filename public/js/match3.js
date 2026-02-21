@@ -1296,12 +1296,17 @@ const Match3GameImpl = (() => {
       updateSwappedCell(cellA, fromX, fromY);
       updateSwappedCell(cellB, toX, toY);
 
-      // Now clear transforms (cells show correct gems at grid positions)
+      // v5.0.2: Suppress base CSS transition during transform cleanup.
+      // Without this, the .m3-cell base `transition: transform 0.18s` causes
+      // the secondary piece to visibly re-animate back to its grid position.
+      $b.classList.add("batch-update");
       cellA.style.transform = "";
       cellA.style.transition = "";
       cellA.style.zIndex = "";
       cellB.style.transform = "";
       cellB.style.transition = "";
+      void $b.offsetHeight; // force synchronous layout flush
+      $b.classList.remove("batch-update");
     } else {
       // Fallback: no visual cells, just do the board swap
       [board[fromY][fromX], board[toY][toX]] = [

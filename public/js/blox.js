@@ -196,7 +196,9 @@ const BloxGameImpl = (() => {
 
     if (cleared > 0) {
       // 1. Start CSS animation + clear board state via cached DOM refs
-      // v5.0.1: Stagger animation delay so only 2–3 cells are GPU-promoted at once
+      // v5.0.2: Adaptive stagger — faster for multi-line clears to keep game snappy
+      const SHATTER_DUR = 240; // must match bloxShatter duration in CSS
+      const staggerDelay = cleared > 1 ? 10 : 20;
       let staggerIdx = 0;
       for (let i = 0; i < GRID * GRID; i++) {
         if (_clearMap[i] === 0) continue;
@@ -204,7 +206,7 @@ const BloxGameImpl = (() => {
         const c = i % GRID;
         if (_boardCells[r]?.[c]) {
           const cell = _boardCells[r][c];
-          cell.style.animationDelay = `${staggerIdx * 20}ms`;
+          cell.style.animationDelay = `${staggerIdx * staggerDelay}ms`;
           cell.classList.add("clearing");
           cell.classList.remove("filled");
           cell.style.background = "";
@@ -215,7 +217,10 @@ const BloxGameImpl = (() => {
       }
 
       // 3. Re-render board AFTER animation completes (visual only)
-      setTimeout(() => renderBoard(), 300);
+      // v5.0.2: Dynamic timeout — accounts for stagger + animation duration
+      const maxAnimTime =
+        (staggerIdx > 0 ? (staggerIdx - 1) * staggerDelay : 0) + SHATTER_DUR;
+      setTimeout(() => renderBoard(), Math.max(maxAnimTime + 20, 300));
 
       const bonus = cleared > 1 ? cleared * 5 : 0;
       const pts = cleared * 10 + bonus;
