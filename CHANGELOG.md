@@ -1,5 +1,32 @@
 # Changelog
 
+## v5.0.2 — 2026-02-21
+
+### Match-3 — Cascade Animation Redesign
+
+Cascade animation was unreadable — impossible to track which gems matched and how pieces moved. Additionally, a visual/logical desync meant selected gems couldn't be swapped despite appearing valid.
+
+**Root cause**: Sparse diff optimization (v5.0.1) updated only 3–10 cells per cascade step, leaving stale CSS classes (`popping`, inline transforms) on untouched cells. The `board[][]` data reflected the correct final state, but DOM cells showed outdated types and positions.
+
+#### Animation Fix (`match3.js`, `match3.css`)
+
+- **Phased cascade**: Rewrote `animateCascade()` from 2-phase (pop → fall) to 4-phase pipeline:
+  1. **Matched highlight** (350ms) — `.matched-highlight` golden glow on all matched gems so player sees _what_ matched
+  2. **Pop** (360ms) — `.popping` scale→0 with white flash
+  3. **Explicit cleanup + full sync** — removes `.popping`, then syncs all 64 cells to `board[][]` (type, icon, className)
+  4. **Fall with column-stagger** — `.falling` with `x * 30ms` delay per column → organic wave effect
+- **Adaptive speed curve**: Each successive cascade step is 15% faster (`× 0.85`). First matches are legible; long chains accelerate.
+- **Post-cascade full sync**: `renderBoard(false)` called after `animateCascade()` completes — guarantees zero desync survivors.
+
+#### State Desync Fix (`match3.js`)
+
+- **Dataset-type self-healing guard**: `onCellClick()` now checks `cell.dataset.type !== board[y][x]` before processing. On mismatch, triggers `renderBoard(false)` to heal the desync automatically.
+- **Full board sync in cascade**: After each cascade step's pop phase, all 64 cells are synchronized — eliminates the class of bugs where sparse diff left cells visually stale.
+
+### CSS
+
+- **New `.matched-highlight`**: Golden pulse glow (`m3MatchGlow` keyframes) — `box-shadow` ring + `scale(1.15)` — highlights matched gems before pop.
+
 ## v5.0.1 — 2026-02-21
 
 ### Performance — Visual Smoothness (Match-3 + Blox)

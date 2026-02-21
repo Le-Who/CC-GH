@@ -2,7 +2,7 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v5.0.1**
+**Current version: v5.0.2**
 
 ---
 
@@ -186,6 +186,11 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 ---
 
 ## 🔬 Architecture Evolution (v5 Roadmap)
+
+### ✅ Completed in v5.0.2
+
+1. ~~**Cascade Animation Redesign**~~: Rewrote `animateCascade()` from 2-phase to 4-phase pipeline (matched-highlight → pop → full-sync → column-staggered fall). Adaptive speed curve (×0.85 per step). Post-cascade `renderBoard()` sync.
+2. ~~**State Desync Self-Healing**~~: Dataset-type guard in `onCellClick()` + full 64-cell sync between cascade phases eliminates visual/logical desync.
 
 ### ✅ Completed in v5.0.1
 

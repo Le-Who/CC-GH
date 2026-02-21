@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v5.0.0)
+ *  Game Hub — Match-3 Module (v5.0.2)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode
@@ -1204,6 +1204,13 @@ const Match3GameImpl = (() => {
       return;
     }
     if (isAnimating || !gameActive || gamePaused) return;
+
+    // v5.0.2: Dataset-type guard — self-heal visual/logical desync
+    const clickedCell = getCell(x, y);
+    if (clickedCell && clickedCell.dataset.type !== board[y][x]) {
+      renderBoard(false);
+    }
+
     if (!selected) {
       selected = { x, y };
       getCell(x, y)?.classList.add("selected");
@@ -1296,6 +1303,9 @@ const Match3GameImpl = (() => {
     // 4. Animate the cascade steps
     await animateCascade(result.steps);
 
+    // v5.0.2: Post-cascade full sync — guarantees all 64 cells match board[][]
+    renderBoard(false);
+
     // 5. Update UI + persist state (v4.5.1)
     updateStatsUI();
     syncToStore();
@@ -1377,20 +1387,44 @@ const Match3GameImpl = (() => {
     $b.classList.remove("disabled");
   }
 
-  /* ═══ Cascade Animation (v5.0.1: sparse diff — only touch changed cells) ═══ */
+  /* ═══ Cascade Animation (v5.0.2: phased — highlight → pop → sync → fall) ═══ */
   let _prevCascadeChanged = []; // cells that had --drop-dist set in previous step
 
   async function animateCascade(steps) {
     _prevCascadeChanged = [];
+    const BASE_POP_DUR = 360;
+    const BASE_FALL_WAIT = 300;
+    const SPEED_DECAY = 0.85; // each successive step is 15% faster
+    let speedMul = 1;
 
-    for (const step of steps) {
-      // Phase 1: Pop matched gems (only touch cleared cells)
+    for (let si = 0; si < steps.length; si++) {
+      const step = steps[si];
+
+      // ── Phase 0: Highlight matched gems (flash border/glow so player sees WHAT matched) ──
       for (const { x, y } of step.cleared) {
-        _m3Cells[y]?.[x]?.classList.add("popping");
+        _m3Cells[y]?.[x]?.classList.add("matched-highlight");
       }
-      await sleep(300);
+      await sleep(Math.round(350 * speedMul));
 
-      // Phase 2: Clean up previous step's cascade properties (sparse)
+      // ── Phase 1: Pop matched gems (scale → 0, white flash) ──
+      for (const { x, y } of step.cleared) {
+        const cell = _m3Cells[y]?.[x];
+        if (!cell) continue;
+        cell.classList.remove("matched-highlight");
+        cell.classList.add("popping");
+      }
+      await sleep(Math.round(BASE_POP_DUR * speedMul));
+
+      // ── Phase 1.5: Explicit popping cleanup (prevent stale scale(0)/opacity(0)) ──
+      for (const { x, y } of step.cleared) {
+        const cell = _m3Cells[y]?.[x];
+        if (!cell) continue;
+        cell.classList.remove("popping");
+        cell.style.transform = "";
+        cell.style.opacity = "";
+      }
+
+      // ── Phase 2: Clean up previous step's fall properties ──
       for (const cell of _prevCascadeChanged) {
         cell.style.removeProperty("--drop-dist");
         cell.style.removeProperty("--fall-dur");
@@ -1398,6 +1432,29 @@ const Match3GameImpl = (() => {
       }
       _prevCascadeChanged = [];
 
+      // ── Phase 2.5: Full board sync (heal ALL 64 cells to match board[][]) ──
+      // This eliminates visual/logical desync that sparse diff can leave behind.
+      for (let y = 0; y < BOARD_SIZE; y++) {
+        for (let x = 0; x < BOARD_SIZE; x++) {
+          const cell = _m3Cells[y][x];
+          const type = board[y][x];
+          const isDrop = DROP_TYPES.includes(type);
+          let cls = "m3-cell";
+          if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
+          cell.className = cls;
+          cell.dataset.type = type;
+          const icon = isDrop
+            ? DROP_ICONS[type] || "🌟"
+            : GEM_ICONS[type] || "?";
+          cell.firstElementChild.textContent = icon;
+          cell.style.transform = "";
+          cell.style.transition = "";
+          cell.style.zIndex = "";
+          cell.style.animationDelay = "";
+        }
+      }
+
+      // ── Phase 3: Fall animation with column-stagger ──
       // Pre-compute fall distances for changed cells
       const fallDistMap = new Map();
       for (const f of step.fallen) {
@@ -1407,41 +1464,29 @@ const Match3GameImpl = (() => {
         fallDistMap.set(`${f.x},${f.y}`, f.y + 1);
       }
 
-      // Build unique set of affected cells
-      const affectedCells = new Map(); // key -> {x, y}
-      for (const { x, y } of step.cleared)
-        affectedCells.set(`${x},${y}`, { x, y });
+      // Build unique set of cells that need fall animation
+      const fallingCells = new Map();
       for (const f of step.fallen)
-        affectedCells.set(`${f.x},${f.toY}`, { x: f.x, y: f.toY });
+        fallingCells.set(`${f.x},${f.toY}`, { x: f.x, y: f.toY });
       for (const f of step.filled)
-        affectedCells.set(`${f.x},${f.y}`, { x: f.x, y: f.y });
+        fallingCells.set(`${f.x},${f.y}`, { x: f.x, y: f.y });
 
-      // Sparse diff: only update affected cells (typically 3–10 per step, not 64)
-      for (const [key, { x, y }] of affectedCells) {
+      for (const [key, { x, y }] of fallingCells) {
         const cell = _m3Cells[y][x];
-        const type = board[y][x];
-        const isDrop = DROP_TYPES.includes(type);
-
-        let cls = "m3-cell";
-        if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
-        cls += " falling";
-        cell.className = cls;
-
-        cell.dataset.type = type;
-        const icon = isDrop ? DROP_ICONS[type] || "🌟" : GEM_ICONS[type] || "?";
-        cell.firstElementChild.textContent = icon;
-        cell.style.transform = "";
-        cell.style.transition = "";
-        cell.style.zIndex = "";
+        cell.classList.add("falling");
 
         const dist = fallDistMap.get(key) || 1;
         cell.style.setProperty("--drop-dist", dist);
         const dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55);
         cell.style.setProperty("--fall-dur", `${dur.toFixed(2)}s`);
-        cell.style.animationDelay = `${x * 25 + y * 15}ms`;
+        // Column-stagger: offset by column for wave effect
+        cell.style.animationDelay = `${x * 30}ms`;
         _prevCascadeChanged.push(cell);
       }
-      await sleep(260);
+      await sleep(Math.round(BASE_FALL_WAIT * speedMul));
+
+      // Adaptive speed: each successive step is faster
+      speedMul *= SPEED_DECAY;
     }
 
     // Final cleanup after all steps complete
@@ -1449,6 +1494,7 @@ const Match3GameImpl = (() => {
       cell.style.removeProperty("--drop-dist");
       cell.style.removeProperty("--fall-dur");
       cell.style.animationDelay = "";
+      cell.classList.remove("falling");
     }
     _prevCascadeChanged = [];
   }
