@@ -6,7 +6,7 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install -g npm@11.10.1 && npm ci
 
 COPY src/ ./src/
 COPY public/ ./public/
@@ -19,7 +19,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install -g npm@11.10.1 && npm ci --omit=dev
 
 # Copy built assets from build stage
 COPY --from=build /app/public/ ./public/
