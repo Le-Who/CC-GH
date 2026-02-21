@@ -301,7 +301,7 @@
 
 /* v5.0.2: Pre-pop highlight — bright glow so player sees WHAT matched */
 .m3-cell.matched-highlight {
-  animation: m3MatchGlow 0.35s ease;
+  animation: m3MatchGlow 0.2s ease;
   z-index: 8;
   will-change: transform, box-shadow;
 }
@@ -325,7 +325,7 @@
 }
 
 .m3-cell.popping {
-  animation: m3Pop 0.36s ease-out forwards;
+  animation: m3Pop 0.22s ease-out forwards;
   will-change: transform, opacity;
 }
 /* v4.16: GPU-composited white flash (replaces filter:brightness) */

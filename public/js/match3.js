@@ -1271,21 +1271,44 @@ const Match3GameImpl = (() => {
       cellB.style.transform = `translate(${-dx}px, ${-dy}px)`;
       cellA.style.zIndex = "2";
       await sleep(200);
-      // v5.0.1: Clear swap slide residuals BEFORE cascade.
-      // Sparse cascade diff only touches changed cells — if one swapped cell
-      // isn't in any match, its translate() persists, displacing the gem visually.
+
+      // v5.0.2: Apply board swap BEFORE clearing transforms.
+      // This way, when the CSS translate is removed and cells snap to grid
+      // positions, they already show the swapped gem identity — no visible
+      // "snapback" of the moved gem.
+      [board[fromY][fromX], board[toY][toX]] = [
+        board[toY][toX],
+        board[fromY][fromX],
+      ];
+
+      // Update cell content to match swapped board state
+      const updateSwappedCell = (cell, x, y) => {
+        const type = board[y][x];
+        const isDrop = DROP_TYPES.includes(type);
+        cell.dataset.type = type;
+        cell.firstElementChild.textContent = isDrop
+          ? DROP_ICONS[type] || "\u{1F31F}"
+          : GEM_ICONS[type] || "?";
+        let cls = "m3-cell";
+        if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
+        cell.className = cls;
+      };
+      updateSwappedCell(cellA, fromX, fromY);
+      updateSwappedCell(cellB, toX, toY);
+
+      // Now clear transforms (cells show correct gems at grid positions)
       cellA.style.transform = "";
       cellA.style.transition = "";
       cellA.style.zIndex = "";
       cellB.style.transform = "";
       cellB.style.transition = "";
+    } else {
+      // Fallback: no visual cells, just do the board swap
+      [board[fromY][fromX], board[toY][toX]] = [
+        board[toY][toX],
+        board[fromY][fromX],
+      ];
     }
-
-    // 2. Apply swap to real board
-    [board[fromY][fromX], board[toY][toX]] = [
-      board[toY][toX],
-      board[fromY][fromX],
-    ];
 
     // 3. Resolve cascades client-side
     const result = resolveBoard(
@@ -1392,8 +1415,9 @@ const Match3GameImpl = (() => {
 
   async function animateCascade(steps) {
     _prevCascadeChanged = [];
-    const BASE_POP_DUR = 360;
-    const BASE_FALL_WAIT = 300;
+    const BASE_HIGHLIGHT_DUR = 200;
+    const BASE_POP_DUR = 220;
+    const BASE_FALL_WAIT = 200;
     const SPEED_DECAY = 0.85; // each successive step is 15% faster
     let speedMul = 1;
 
@@ -1404,7 +1428,7 @@ const Match3GameImpl = (() => {
       for (const { x, y } of step.cleared) {
         _m3Cells[y]?.[x]?.classList.add("matched-highlight");
       }
-      await sleep(Math.round(350 * speedMul));
+      await sleep(Math.round(BASE_HIGHLIGHT_DUR * speedMul));
 
       // ── Phase 1: Pop matched gems (scale → 0, white flash) ──
       for (const { x, y } of step.cleared) {

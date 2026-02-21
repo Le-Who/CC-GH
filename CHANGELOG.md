@@ -10,13 +10,15 @@ Cascade animation was unreadable — impossible to track which gems matched and 
 
 #### Animation Fix (`match3.js`, `match3.css`)
 
+- **Swap snapback eliminated**: Board data + cell content are now updated _before_ clearing CSS `translate()` transforms. Previously, transforms were cleared first → gems snapped back to original positions showing the old type, then cascade updated them — causing a misleading visual snapback.
 - **Phased cascade**: Rewrote `animateCascade()` from 2-phase (pop → fall) to 4-phase pipeline:
-  1. **Matched highlight** (350ms) — `.matched-highlight` golden glow on all matched gems so player sees _what_ matched
-  2. **Pop** (360ms) — `.popping` scale→0 with white flash
+  1. **Matched highlight** (200ms) — `.matched-highlight` golden glow on all matched gems so player sees _what_ matched
+  2. **Pop** (220ms) — `.popping` scale→0 with white flash
   3. **Explicit cleanup + full sync** — removes `.popping`, then syncs all 64 cells to `board[][]` (type, icon, className)
   4. **Fall with column-stagger** — `.falling` with `x * 30ms` delay per column → organic wave effect
-- **Adaptive speed curve**: Each successive cascade step is 15% faster (`× 0.85`). First matches are legible; long chains accelerate.
+- **~40% faster cascade**: Total per-step time reduced from ~1010ms (350+360+300) to ~620ms (200+220+200). Each successive step accelerates ×0.85.
 - **Post-cascade full sync**: `renderBoard(false)` called after `animateCascade()` completes — guarantees zero desync survivors.
+- **CSS durations synced**: `.popping` 0.36→0.22s, `.matched-highlight` 0.35→0.2s — CSS animations now fit within their JS phase windows.
 
 #### State Desync Fix (`match3.js`)
 
