@@ -29,10 +29,10 @@
   grid-template-rows: repeat(8, var(--m3-cell, 48px));
   gap: 3px;
   padding: 10px;
-  background: var(--surface);
+  background: rgba(30, 32, 50, 0.92);
   border: 1px solid var(--border);
   border-radius: 18px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(4px);
   touch-action: none; /* prevent browser gestures during swipe */
   contain: layout style paint; /* isolate repaints from rest of page */
 }
@@ -47,25 +47,28 @@
   justify-content: center;
   cursor: pointer;
   position: relative;
+  /* v5.0.1: Removed filter from transition (full-cell repaint on every hover).
+     Removed static will-change (64 permanent GPU layers → auto-promote only during animation). */
   transition:
     transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275),
     box-shadow 0.22s ease,
-    filter 0.18s ease;
+    border-color 0.18s ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  will-change: transform;
+  border: 2px solid transparent;
 }
 .m3-cell:hover {
   transform: scale(1.1);
-  filter: brightness(1.12);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 .m3-cell:active {
   transform: scale(0.9);
-  filter: brightness(0.92);
+  border-color: rgba(255, 255, 255, 0.1);
 }
+/* v5.0.1: text-shadow instead of filter: drop-shadow (cheaper — no filter repaint per cell) */
 .m3-cell .gem-icon {
   font-size: calc(var(--m3-cell, 48px) * 0.48);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 1;
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);

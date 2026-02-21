@@ -196,24 +196,26 @@ const BloxGameImpl = (() => {
 
     if (cleared > 0) {
       // 1. Start CSS animation + clear board state via cached DOM refs
+      // v5.0.1: Stagger animation delay so only 2–3 cells are GPU-promoted at once
+      let staggerIdx = 0;
       for (let i = 0; i < GRID * GRID; i++) {
         if (_clearMap[i] === 0) continue;
         const r = (i / GRID) | 0;
         const c = i % GRID;
         if (_boardCells[r]?.[c]) {
           const cell = _boardCells[r][c];
+          cell.style.animationDelay = `${staggerIdx * 20}ms`;
           cell.classList.add("clearing");
-          // v4.16: Clear inline background immediately so the cell doesn't
-          // flash its old color after the CSS animation ends (animation-fill-mode gap)
           cell.classList.remove("filled");
           cell.style.background = "";
+          staggerIdx++;
         }
         // 2. Clear board state IMMEDIATELY (sync) so game-over check is correct
         board[r][c] = null;
       }
 
       // 3. Re-render board AFTER animation completes (visual only)
-      setTimeout(() => renderBoard(), 380); // Juicy UI: extended for flash+shatter animation
+      setTimeout(() => renderBoard(), 300);
 
       const bonus = cleared > 1 ? cleared * 5 : 0;
       const pts = cleared * 10 + bonus;
@@ -1016,7 +1018,7 @@ const BloxGameImpl = (() => {
       // v4.7: Defer game-over check until AFTER the clear animation
       // so the player sees lines vanish before any overlay appears.
       // Board state is already correct (clearLines clears synchronously).
-      const checkDelay = (linesWereCleared > 0 ? 430 : 0) + hitStopDelay;
+      const checkDelay = (linesWereCleared > 0 ? 350 : 0) + hitStopDelay;
 
       if (tray.every((x) => x.placed)) {
         setTimeout(

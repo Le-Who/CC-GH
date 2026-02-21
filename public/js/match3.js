@@ -1369,74 +1369,80 @@ const Match3GameImpl = (() => {
     $b.classList.remove("disabled");
   }
 
-  /* ═══ Cascade Animation (v4.16: diff-update on cached cells, dynamic gravity) ═══ */
+  /* ═══ Cascade Animation (v5.0.1: sparse diff — only touch changed cells) ═══ */
+  let _prevCascadeChanged = []; // cells that had --drop-dist set in previous step
+
   async function animateCascade(steps) {
+    _prevCascadeChanged = [];
+
     for (const step of steps) {
-      // Phase 1: Pop matched gems (with brightness flash)
+      // Phase 1: Pop matched gems (only touch cleared cells)
       for (const { x, y } of step.cleared) {
         _m3Cells[y]?.[x]?.classList.add("popping");
       }
-      await sleep(300); // Longer pop phase for satisfying clear feel
+      await sleep(300);
 
-      // Phase 2: Update cells with new types + distance-scaled falling animation
+      // Phase 2: Clean up previous step's cascade properties (sparse)
+      for (const cell of _prevCascadeChanged) {
+        cell.style.removeProperty("--drop-dist");
+        cell.style.removeProperty("--fall-dur");
+        cell.style.animationDelay = "";
+      }
+      _prevCascadeChanged = [];
+
       // Pre-compute fall distances for changed cells
       const fallDistMap = new Map();
       for (const f of step.fallen) {
-        const dist = f.toY - f.fromY; // positive = downward
-        fallDistMap.set(`${f.x},${f.toY}`, dist);
+        fallDistMap.set(`${f.x},${f.toY}`, f.toY - f.fromY);
       }
       for (const f of step.filled) {
-        // New gems enter from above the board — distance = row + 1
         fallDistMap.set(`${f.x},${f.y}`, f.y + 1);
       }
 
-      const changedSet = new Set();
-      for (const { x, y } of step.cleared) changedSet.add(`${x},${y}`);
-      for (const f of step.fallen) changedSet.add(`${f.x},${f.toY}`);
-      for (const f of step.filled) changedSet.add(`${f.x},${f.y}`);
+      // Build unique set of affected cells
+      const affectedCells = new Map(); // key -> {x, y}
+      for (const { x, y } of step.cleared)
+        affectedCells.set(`${x},${y}`, { x, y });
+      for (const f of step.fallen)
+        affectedCells.set(`${f.x},${f.toY}`, { x: f.x, y: f.toY });
+      for (const f of step.filled)
+        affectedCells.set(`${f.x},${f.y}`, { x: f.x, y: f.y });
 
-      // Diff-update on cached DOM nodes (zero innerHTML, zero createElement)
-      for (let y = 0; y < BOARD_SIZE; y++) {
-        for (let x = 0; x < BOARD_SIZE; x++) {
-          const cell = _m3Cells[y][x];
-          const type = board[y][x];
-          const isDrop = DROP_TYPES.includes(type);
+      // Sparse diff: only update affected cells (typically 3–10 per step, not 64)
+      for (const [key, { x, y }] of affectedCells) {
+        const cell = _m3Cells[y][x];
+        const type = board[y][x];
+        const isDrop = DROP_TYPES.includes(type);
 
-          let cls = "m3-cell";
-          if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
-          if (changedSet.has(`${x},${y}`)) {
-            cls += " falling";
-          }
-          cell.className = cls;
+        let cls = "m3-cell";
+        if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
+        cls += " falling";
+        cell.className = cls;
 
-          cell.dataset.type = type;
-          const icon = isDrop
-            ? DROP_ICONS[type] || "🌟"
-            : GEM_ICONS[type] || "?";
-          cell.firstElementChild.textContent = icon;
-          // v4.16: Always clear residual swap styles before applying cascade styles
-          cell.style.transform = "";
-          cell.style.transition = "";
-          cell.style.zIndex = "";
+        cell.dataset.type = type;
+        const icon = isDrop ? DROP_ICONS[type] || "🌟" : GEM_ICONS[type] || "?";
+        cell.firstElementChild.textContent = icon;
+        cell.style.transform = "";
+        cell.style.transition = "";
+        cell.style.zIndex = "";
 
-          if (changedSet.has(`${x},${y}`)) {
-            // Dynamic gravity: scale distance and duration per gem
-            const dist = fallDistMap.get(`${x},${y}`) || 1;
-            cell.style.setProperty("--drop-dist", dist);
-            // Duration: 0.25s base + 0.04s per extra row, capped at 0.55s
-            const dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55);
-            cell.style.setProperty("--fall-dur", `${dur.toFixed(2)}s`);
-            // Column-based stagger: each column starts slightly later for cascade effect
-            cell.style.animationDelay = `${x * 25 + y * 15}ms`;
-          } else {
-            cell.style.removeProperty("--drop-dist");
-            cell.style.removeProperty("--fall-dur");
-            cell.style.animationDelay = "";
-          }
-        }
+        const dist = fallDistMap.get(key) || 1;
+        cell.style.setProperty("--drop-dist", dist);
+        const dur = Math.min(0.25 + (dist - 1) * 0.04, 0.55);
+        cell.style.setProperty("--fall-dur", `${dur.toFixed(2)}s`);
+        cell.style.animationDelay = `${x * 25 + y * 15}ms`;
+        _prevCascadeChanged.push(cell);
       }
-      await sleep(260); // Longer settle phase for bounce to complete
+      await sleep(260);
     }
+
+    // Final cleanup after all steps complete
+    for (const cell of _prevCascadeChanged) {
+      cell.style.removeProperty("--drop-dist");
+      cell.style.removeProperty("--fall-dur");
+      cell.style.animationDelay = "";
+    }
+    _prevCascadeChanged = [];
   }
 
   /* ═══ UI Helpers ═══ */

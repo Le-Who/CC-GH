@@ -27,10 +27,10 @@
   grid-template-rows: repeat(10, var(--blox-cell, 36px));
   gap: 2px;
   padding: 8px;
-  background: var(--surface);
+  background: rgba(30, 32, 50, 0.92);
   border: 1px solid var(--border);
   border-radius: 16px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(4px);
   touch-action: none; /* prevent browser gestures on board */
   contain: layout style paint; /* isolate repaints from rest of page */
 }
@@ -118,9 +118,10 @@
     opacity: 0;
   }
 }
+/* v5.0.1: Removed will-change — browser auto-promotes during animation.
+   Staggered delay now set per-cell in JS for cascading dissolve effect. */
 .blox-cell.clearing {
-  animation: bloxShatter 0.28s 0.1s ease-out forwards;
-  will-change: transform, opacity;
+  animation: bloxShatter 0.24s ease-out forwards;
 }
 /* v4.16: GPU-composited white flash via pseudo-element (no filter repaints) */
 .blox-cell.clearing::after {
