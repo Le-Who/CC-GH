@@ -1,8 +1,8 @@
 # 🎮 Game Hub — Discord Embedded Activity
 
-> A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
+> A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v5.2.0**
+**Current version: v6.0.0**
 
 ---
 
@@ -14,6 +14,8 @@
 | 🧠 **Brain Blitz**        | Solo trivia + async duels via invite codes · 3 difficulty tiers              |
 | 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, and leaderboard · 3 game modes · Juicy UI |
 | 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag · Juicy UI   |
+| 🔮 **Gacha Merge**        | 7×9 merge board · 2 chains × 8 levels · generators + gacha + daily free pull |
+| 📋 **Pet Orders**         | Quest system: farm crops + merge items → tiered rewards + affection levels   |
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
 | ⚡ **Energy System**      | Native dialog overlays · 2.5-min regen · Gates match-3 and trivia plays      |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
@@ -71,6 +73,8 @@ npm run dev
 │   ├── trivia.js          # Solo trivia + duel rooms + history
 │   ├── match3.js          # /api/game/* (state, start, move, end, sync)
 │   ├── blox.js            # /api/blox/* (start, end, state, sync)
+│   ├── mergeRoutes.js     # /api/merge/* (state, tap, merge, gacha, free-pull, trash)
+│   ├── questRoutes.js     # /api/quests/* (active, generate, submit)
 │   └── leaderboard.js     # Match-3 + Blox leaderboards
 ├── data/
 │   └── questions.json     # Trivia question bank
@@ -89,9 +93,10 @@ npm run dev
 │   │   ├── match3/
 │   │   │   └── engine.js   # Pure game logic (generateBoard, findMatches, resolveBoard)
 │   │   ├── blox.js        # Building Blox barrel (pause, touch drag, ghost)
-│   │   └── blox/
-│   │       └── pieces.js   # Static piece definitions (12 shapes)
-│   └── css/               # Modular CSS (base, farm, trivia, match3, blox, hud, pet)
+│   │   ├── blox/
+│   │   │   └── pieces.js   # Static piece definitions (12 shapes)
+│   │   └── merge.js       # Gacha Merge engine (server-validated D&D, generators)
+│   └── css/               # Modular CSS (base, farm, trivia, match3, blox, merge, hud, pet)
 ├── tests/
 │   ├── unit.test.js       # 49 unit tests (pure functions)
 │   ├── api.test.js        # 24 API integration tests
@@ -117,12 +122,12 @@ npm run test:perf # Performance benchmarks only
 
 | Type       | File                              | Tests |
 | ---------- | --------------------------------- | ----: |
-| **Unit**   | `tests/unit.test.js`              |    49 |
+| **Unit**   | `tests/unit.test.js`              |    59 |
 | **API**    | `tests/api.test.js`               |    26 |
 | **Blox**   | `tests/blox.test.js`              |    30 |
 | **M3**     | `tests/match3.test.js`            |    12 |
 | **UX**     | `tests/ux.test.js`                |    52 |
-| **GCP**    | `tests/gcp.test.js`               |    12 |
+| **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
 | **Stress** | `tests/game-logic-stress.test.js` |    64 |
 | **Syntax** | `tests/syntax.test.js`            |    13 |
@@ -181,6 +186,8 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 - **Farm & Pet**: Server-authoritative — all state in Firestore, client polls and pushes via REST API.
 - **Match-3**: Client-side `localStorage` + server `sync-modes` for cross-device persistence. Server for leaderboard. Firestore board data includes automatic object→array hydration.
 - **Blox**: Client-side `localStorage` + server `sync` for cross-device resume. Server for leaderboard. Firestore board/tray data includes automatic hydration.
+- **Merge**: Fully server-authoritative — all actions validated on server (`/api/merge/*`). Client uses optimistic updates with automatic rollback on rejection.
+- **Quests**: Server-authoritative — order generation, requirement validation, item deduction, and reward granting all server-side (`/api/quests/*`).
 - **Trivia**: Ephemeral — no persistence between sessions (each game is fresh).
 
 ---
@@ -211,6 +218,12 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 4. ~~**Standardized `<dialog>` Overlays + Toast Queue**~~: All overlays migrated in v4.14.0–v4.14.3.
 5. ~~**Juicy UI Foundation**~~: Spring physics, GPU-optimized animations, dynamic gravity, CSS containment, object-pooled float points. Implemented in v4.15.0–v4.15.3.
 6. ~~**DOM-Cached Rendering**~~: Zero-innerHTML diff-update for Blox/Match-3. Event delegation, ghost tracking, cached nav. Implemented in v4.16.0.
+
+### ✅ Completed in v6.0.0
+
+1. ~~**Gacha Merge Mini-Game**~~: 7×9 merge board, 2 chains × 8 levels (Textile + Wood), server-authoritative tap/merge/gacha/trash actions, Ghost-Pattern D&D, crop-fueled generators with tier-based yield, cooldowns, daily free pull.
+2. ~~**Pet Order (Quest) System**~~: Server-validated quest generation (easy/medium/hard tiers), mixed crop+merge item requirements, tiered rewards (gold, affection XP, gacha tokens, energy max boost), pet affection leveling.
+3. ~~**Unified Token Economy**~~: Gacha tokens earned from Match-3/Blox (score-based) and Farm (2% harvest drop), spent on gacha pulls (10 tokens). Token injection across all game routes.
 
 ### Planned
 

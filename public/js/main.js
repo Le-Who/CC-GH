@@ -31,6 +31,7 @@ import { FarmGame } from "./farm.js";
 import { TriviaModule } from "./trivia.js";
 import { Match3Game } from "./match3.js";
 import { BloxGame } from "./blox.js";
+import { MergeGame } from "./merge.js";
 
 // ─── Wire module references into shared.js ───
 // This avoids circular imports: shared.js calls game modules
@@ -40,6 +41,7 @@ setModules({
   TriviaGame: TriviaModule,
   Match3Game,
   BloxGame,
+  MergeGame,
   PetCompanion,
   HUD,
 });

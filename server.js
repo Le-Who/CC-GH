@@ -23,6 +23,8 @@ import triviaRoutes from "./routes/trivia.js";
 import match3Routes from "./routes/match3.js";
 import bloxRoutes from "./routes/blox.js";
 import leaderboardRoutes from "./routes/leaderboard.js";
+import mergeRoutes from "./routes/mergeRoutes.js";
+import questRoutes from "./routes/questRoutes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -153,6 +155,8 @@ app.use(triviaRouter);
 app.use(match3Routes(requireAuth, resolveUser));
 app.use(bloxRoutes(requireAuth, resolveUser));
 app.use(leaderboardRoutes());
+app.use(mergeRoutes(requireAuth, resolveUser));
+app.use(questRoutes(requireAuth, resolveUser));
 
 /* ═══════════════════════════════════════════════════
  *  STATIC FILES & INDEX INJECTION
@@ -241,6 +245,7 @@ function getIndexHtml() {
     "trivia.js",
     "match3.js",
     "blox.js",
+    "merge.js",
     "main.js",
     // Sub-modules (Phase 4)
     "match3/engine.js",

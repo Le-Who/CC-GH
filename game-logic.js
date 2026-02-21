@@ -11,7 +11,7 @@
 export const ECONOMY = {
   ENERGY_MAX: 20,
   ENERGY_START: 20,
-  ENERGY_REGEN_INTERVAL_MS: 150 * 1000, // 2.5 minutes (was 5 min)
+  ENERGY_REGEN_INTERVAL_MS: 150 * 1000, // 2.5 minutes
   GOLD_START: 100,
   COST_MATCH3: 5,
   COST_TRIVIA: 3,
@@ -19,11 +19,21 @@ export const ECONOMY = {
   REWARD_MATCH3_LOSE: 5,
   REWARD_TRIVIA_WIN: 25,
   REWARD_TRIVIA_LOSE: 5,
-  FEED_ENERGY: 2,
   FEED_PET_XP: 10,
   COST_BLOX: 4,
   REWARD_BLOX_WIN: 35,
   REWARD_BLOX_LOSE: 5,
+  REWARD_GACHA_TOKENS: 1,
+  GACHA_PULL_COST: 10,
+  GENERATOR_TAP_LIMIT: 40,
+  GENERATOR_COOLDOWN_MS: 4 * 3600 * 1000, // 4 hours
+  DAILY_FREE_PULL: 1,
+  TOKEN_FARM_DROP_CHANCE: 0.02,
+  // Performance-based bonus tokens: score thresholds → extra tokens
+  TOKEN_BONUS_THRESHOLDS: [1000, 2000, 3500],
+  SATIETY_MAX: 100,
+  SATIETY_DECAY_PER_HOUR: 10,
+  SATIETY_OFFLINE_CAP_MS: 24 * 60 * 60 * 1000, // 24h max offline calc
 };
 
 /**
@@ -76,80 +86,218 @@ export function calcGoldReward(score) {
 }
 
 /* ═══════════════════════════════════════════════════
- *  CROP DEFINITIONS
+ *  DEV-MODE TIME SCALER
+ *  Divides all timers by 1000x when window.__DEV_MODE__ is set.
+ *  Usage (browser console): window.__DEV_MODE__ = true;
+ * ═══════════════════════════════════════════════════ */
+export function getScaledTime(ms) {
+  const scale =
+    typeof globalThis !== "undefined" && globalThis.__DEV_MODE__ ? 1000 : 1;
+  return Math.max(1, Math.floor(ms / scale));
+}
+
+/** Dev cheat: instantly mature all planted crops */
+export function forceGrowAll(plots, now = Date.now()) {
+  if (!plots) return;
+  for (const plot of plots) {
+    if (plot.crop && plot.plantedAt) {
+      plot.plantedAt = now - 999_999_999; // Guarantee 100% growth
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+ *  CROP DEFINITIONS (Economy Rebalance v6.0)
+ *  growthTime = idle-progression timers (minutes → hours)
+ *  energyYield = energy restored when fed to pet
+ *  fullnessYield = satiety added to pet when fed
  * ═══════════════════════════════════════════════════ */
 export const CROPS = {
   strawberry: {
     id: "strawberry",
     name: "Strawberry",
     emoji: "🍓",
-    growthTime: 15000,
+    growthTime: 300_000, // 5 min
     sellPrice: 15,
     seedPrice: 5,
     xp: 5,
-  },
-  tomato: {
-    id: "tomato",
-    name: "Tomato",
-    emoji: "🍅",
-    growthTime: 30000,
-    sellPrice: 30,
-    seedPrice: 10,
-    xp: 10,
-  },
-  corn: {
-    id: "corn",
-    name: "Corn",
-    emoji: "🌽",
-    growthTime: 45000,
-    sellPrice: 50,
-    seedPrice: 20,
-    xp: 15,
-  },
-  sunflower: {
-    id: "sunflower",
-    name: "Sunflower",
-    emoji: "🌻",
-    growthTime: 60000,
-    sellPrice: 80,
-    seedPrice: 35,
-    xp: 25,
-  },
-  golden: {
-    id: "golden",
-    name: "Golden Rose",
-    emoji: "🌹",
-    growthTime: 90000,
-    sellPrice: 150,
-    seedPrice: 60,
-    xp: 50,
+    energyYield: 1,
+    fullnessYield: 5,
   },
   blueberry: {
     id: "blueberry",
     name: "Blueberry",
     emoji: "🫐",
-    growthTime: 20000,
+    growthTime: 420_000, // 7 min
     sellPrice: 20,
     seedPrice: 8,
     xp: 8,
+    energyYield: 2,
+    fullnessYield: 8,
+  },
+  tomato: {
+    id: "tomato",
+    name: "Tomato",
+    emoji: "🍅",
+    growthTime: 900_000, // 15 min
+    sellPrice: 30,
+    seedPrice: 10,
+    xp: 10,
+    energyYield: 3,
+    fullnessYield: 12,
+  },
+  golden: {
+    id: "golden",
+    name: "Golden Rose",
+    emoji: "🌹",
+    growthTime: 1_800_000, // 30 min
+    sellPrice: 150,
+    seedPrice: 60,
+    xp: 50,
+    energyYield: 4,
+    fullnessYield: 15,
+  },
+  corn: {
+    id: "corn",
+    name: "Corn",
+    emoji: "🌽",
+    growthTime: 3_600_000, // 1 hr
+    sellPrice: 50,
+    seedPrice: 20,
+    xp: 15,
+    energyYield: 6,
+    fullnessYield: 20,
+  },
+  sunflower: {
+    id: "sunflower",
+    name: "Sunflower",
+    emoji: "🌻",
+    growthTime: 7_200_000, // 2 hr
+    sellPrice: 80,
+    seedPrice: 35,
+    xp: 25,
+    energyYield: 10,
+    fullnessYield: 30,
   },
   watermelon: {
     id: "watermelon",
     name: "Watermelon",
     emoji: "🍉",
-    growthTime: 75000,
+    growthTime: 14_400_000, // 4 hr
     sellPrice: 120,
     seedPrice: 45,
     xp: 35,
+    energyYield: 12,
+    fullnessYield: 35,
   },
   pumpkin: {
     id: "pumpkin",
     name: "Pumpkin",
     emoji: "🎃",
-    growthTime: 120000,
+    growthTime: 28_800_000, // 8 hr
     sellPrice: 250,
     seedPrice: 100,
     xp: 80,
+    energyYield: 15,
+    fullnessYield: 40,
+  },
+};
+
+/* ═══════════════════════════════════════════════════
+ *  MERGE CHAINS (Gacha Merge v7.0)
+ *  2 chains × 8 levels. Level 8 = Legendary.
+ *  Generator tap yields items from level 0-1.
+ * ═══════════════════════════════════════════════════ */
+export const MERGE_CHAINS = {
+  textile: {
+    id: "textile",
+    name: "Textile",
+    items: [
+      "thread",
+      "yarn",
+      "fabric",
+      "shirt",
+      "jacket",
+      "sweater",
+      "coat",
+      "tapestry",
+    ],
+    names: [
+      "Thread",
+      "Yarn",
+      "Fabric",
+      "Shirt",
+      "Jacket",
+      "Sweater",
+      "Coat",
+      "Legendary Tapestry",
+    ],
+    emoji: ["🧵", "🧶", "🪡", "👕", "🧥", "🧤", "🥼", "👑"],
+  },
+  wood: {
+    id: "wood",
+    name: "Wood",
+    items: [
+      "twig",
+      "branch",
+      "log",
+      "plank",
+      "chair",
+      "table",
+      "wardrobe",
+      "throne",
+    ],
+    names: [
+      "Twig",
+      "Branch",
+      "Log",
+      "Plank",
+      "Chair",
+      "Table",
+      "Wardrobe",
+      "Legendary Throne",
+    ],
+    emoji: ["🌿", "🪵", "🪓", "🪑", "💺", "🛋️", "🚪", "👑"],
+  },
+};
+
+/** Crop tier for generator bundle size: cheap=2-3, mid=3-4, expensive=4-5 */
+export const CROP_TIERS = {
+  strawberry: "cheap",
+  blueberry: "cheap",
+  tomato: "mid",
+  golden: "mid",
+  corn: "mid",
+  sunflower: "expensive",
+  watermelon: "expensive",
+  pumpkin: "expensive",
+};
+
+export const TIER_YIELD = {
+  cheap: { min: 2, max: 3 },
+  mid: { min: 3, max: 4 },
+  expensive: { min: 4, max: 5 },
+};
+
+/** Quest difficulty tiers for order reward scaling */
+export const QUEST_TIERS = {
+  easy: {
+    gold: [50, 100],
+    affectionXp: [10, 20],
+    gachaTokens: 0,
+    energyMaxBoost: 0,
+  },
+  medium: {
+    gold: [100, 250],
+    affectionXp: [20, 40],
+    gachaTokens: [1, 2],
+    energyMaxBoost: 0,
+  },
+  hard: {
+    gold: [250, 600],
+    affectionXp: [40, 80],
+    gachaTokens: [2, 4],
+    energyMaxBoost: [1, 2],
   },
 };
 
@@ -164,10 +312,12 @@ import { BOARD_SIZE } from "./public/js/match3/engine.js";
  *  PLAYER FACTORY
  * ═══════════════════════════════════════════════════ */
 export function createDefaultPlayer(userId, username, now = Date.now()) {
+  const BOARD_ROWS = 7,
+    BOARD_COLS = 9;
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 2,
+    schemaVersion: 4,
     _lastSeen: now,
     resources: {
       gold: ECONOMY.GOLD_START,
@@ -176,6 +326,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
         max: ECONOMY.ENERGY_MAX,
         lastRegenTimestamp: now,
       },
+      gachaTokens: 0,
     },
     pet: {
       name: "Buddy",
@@ -183,7 +334,11 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       xp: 0,
       xpToNextLevel: 100,
       skinId: "basic_dog",
-      stats: { happiness: 100 },
+      stats: { happiness: 100, fullness: 0 },
+      lastDigestionTimestamp: now,
+      activeOrders: [],
+      affectionXp: 0,
+      affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false, autoPlant: false },
     },
     farm: {
@@ -198,6 +353,18 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       })),
       inventory: { strawberry: 5, planter: 2 },
       harvested: {},
+    },
+    merge: {
+      board: Array.from({ length: BOARD_ROWS }, () =>
+        Array(BOARD_COLS).fill(null),
+      ),
+      generators: ["textile"], // Unlocked generator chain IDs
+      inventory: [], // Unplaced items from gacha
+      lastFreePull: 0, // Timestamp of last daily free pull
+      generatorState: {
+        // Per-chain cooldown tracking
+        textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+      },
     },
     trivia: {
       totalScore: 0,
@@ -328,13 +495,30 @@ export function processOfflineActions(player, now = Date.now()) {
 }
 
 /* ═══════════════════════════════════════════════════
+ *  PET SATIETY — Digestion Calculation (time-travel-proof)
+ * ═══════════════════════════════════════════════════ */
+export function calculateSatietyDelta(petState, currentTime) {
+  const fullness = petState?.stats?.fullness ?? 0;
+  const lastTs = petState?.lastDigestionTimestamp ?? currentTime;
+  const rawDelta = Math.max(0, currentTime - lastTs);
+  // Cap offline progress at 24 hours to prevent time-travel exploits
+  const cappedDelta = Math.min(rawDelta, ECONOMY.SATIETY_OFFLINE_CAP_MS);
+  const digested =
+    Math.floor(cappedDelta / 3_600_000) * ECONOMY.SATIETY_DECAY_PER_HOUR;
+  return {
+    fullness: Math.max(0, fullness - digested),
+    lastDigestionTimestamp: currentTime,
+  };
+}
+
+/* ═══════════════════════════════════════════════════
  *  FARM — Growth Calculations
  * ═══════════════════════════════════════════════════ */
 export function getWateringMultiplier(crop) {
   const cfg = CROPS[crop];
   if (!cfg) return 0.7;
-  if (cfg.growthTime >= 60000) return 0.55;
-  if (cfg.growthTime >= 30000) return 0.6;
+  if (cfg.growthTime >= 3_600_000) return 0.55; // 1h+
+  if (cfg.growthTime >= 900_000) return 0.6; // 15min+
   return 0.7;
 }
 
@@ -344,7 +528,7 @@ export function getGrowthPct(plot, now = Date.now()) {
   if (!cfg) return 0;
   const elapsed = now - plot.plantedAt;
   const mult = plot.watered ? getWateringMultiplier(plot.crop) : 1;
-  const time = cfg.growthTime * mult;
+  const time = getScaledTime(cfg.growthTime) * mult;
   return Math.min(1, elapsed / time);
 }
 

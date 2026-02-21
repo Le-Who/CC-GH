@@ -8,6 +8,7 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { HUB, api, showToast } from "./shared.js";
+import { CROPS as CROPS_CONFIG } from "../../game-logic.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
 import { getCropsData, setCropsCache } from "./crops.js";
@@ -520,7 +521,7 @@ const FarmGameImpl = (() => {
         </div>
         <div class="farm-inv-actions">
           <button class="farm-inv-btn sell" data-crop="${cropId}" title="Sell for ${sellPrice}🪙">💰 Sell</button>
-          <button class="farm-inv-btn feed" data-crop="${cropId}" title="Feed pet (+2⚡)">🍖 Feed</button>
+          <button class="farm-inv-btn feed" data-crop="${cropId}" title="Feed pet (+${CROPS_CONFIG[cropId]?.energyYield || 1}⚡)">🍖 Feed</button>
         </div>
       `;
       // Sell handler
@@ -843,9 +844,19 @@ const FarmGameImpl = (() => {
     // GameStore always available in ESM
     const res = GameStore.getState("resources") || {};
     const e = res.energy || {};
+    const cfg = CROPS_CONFIG[cropId];
+    const energyYield = cfg ? cfg.energyYield : 1;
+    const fullnessYield = cfg ? cfg.fullnessYield : 5;
+
     // Bug 2.3: block feeding at max energy
     if (e.current >= e.max) {
       showToast("⚡ Energy full! Can't feed yet.");
+      return;
+    }
+    // Satiety guard: block feeding if pet is full
+    const pet = GameStore.getState("pet");
+    if (pet && (pet.stats?.fullness ?? 0) >= 100) {
+      showToast("🤢 Pet is too full! Wait for digestion.");
       return;
     }
     const harvested = { ...(res.__harvested || {}) };
@@ -853,17 +864,31 @@ const FarmGameImpl = (() => {
       showToast("❌ No crops to feed!");
       return;
     }
-    // Optimistic: deduct crop, add 2 energy (matches server FEED_ENERGY)
+    // Optimistic: deduct crop, add dynamic energy
     harvested[cropId]--;
     if (harvested[cropId] <= 0) delete harvested[cropId];
-    const newEnergy = { ...e, current: Math.min(e.max, e.current + 2) };
+    const newEnergy = {
+      ...e,
+      current: Math.min(e.max, e.current + energyYield),
+    };
     GameStore.setState("resources", {
       ...res,
       energy: newEnergy,
       __harvested: harvested,
     });
+    // Optimistic: update pet fullness
+    if (pet) {
+      GameStore.setState("pet", {
+        ...pet,
+        stats: {
+          ...pet.stats,
+          fullness: Math.min(100, (pet.stats?.fullness ?? 0) + fullnessYield),
+        },
+        lastDigestionTimestamp: Date.now(),
+      });
+    }
     renderInventory();
-    showToast(`🍖 Fed pet! +2⚡`);
+    showToast(`🍖 Fed pet! +${energyYield}⚡`);
     HUD.updateDisplay(GameStore.getState("resources"));
 
     api("/api/pet/feed", { userId: HUB.userId, cropId })

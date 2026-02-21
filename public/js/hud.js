@@ -6,7 +6,8 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
-import { HUB, api, goToScreen } from "./shared.js";
+import { HUB, api, goToScreen, showToast } from "./shared.js";
+import { CROPS } from "../../game-logic.js";
 
 let regenTimerId = null;
 
@@ -22,6 +23,7 @@ function registerSlice() {
   GameStore.registerSlice("resources", {
     gold: 0,
     energy: { current: 0, max: 20, lastRegenTimestamp: Date.now() },
+    gachaTokens: 0,
   });
 }
 
@@ -251,14 +253,16 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
     itemsEl.innerHTML = entries
       .map(([cropId, qty]) => {
         const crop = cropsCache ? cropsCache[cropId] : null;
-        const emoji = crop ? crop.emoji : "🌿";
-        const name = crop ? crop.name : cropId;
+        const cfg = CROPS[cropId];
+        const emoji = crop ? crop.emoji : cfg ? cfg.emoji : "🌿";
+        const name = crop ? crop.name : cfg ? cfg.name : cropId;
+        const ey = cfg ? cfg.energyYield : 1;
         return `
         <div class="energy-feed-item" data-crop="${cropId}">
           <span class="feed-icon">${emoji}</span>
           <div class="feed-info">
             <div class="feed-name">${name}</div>
-            <div class="feed-qty">×${qty} • +2⚡</div>
+            <div class="feed-qty">×${qty} • +${ey}⚡</div>
           </div>
           <button class="feed-btn" data-crop="${cropId}">Eat</button>
         </div>`;
@@ -305,17 +309,43 @@ async function _feedFromModal(cropId, btn) {
   btn.disabled = true;
   btn.textContent = "…";
 
-  // Optimistic: add 2 energy locally
+  // Satiety guard: block feeding if pet is full
+  const pet = GameStore.getState("pet");
+  if (pet && (pet.stats?.fullness ?? 0) >= 100) {
+    showToast("🤢 Pet is too full! Wait for digestion.", "error");
+    btn.disabled = false;
+    btn.textContent = "Eat";
+    return;
+  }
+
+  // Dynamic yield from crop config
+  const cfg = CROPS[cropId];
+  const energyYield = cfg ? cfg.energyYield : 1;
+  const fullnessYield = cfg ? cfg.fullnessYield : 5;
+
+  // Optimistic: add dynamic energy locally
   const res = GameStore.getState("resources");
   if (res) {
     const updated = {
       ...res,
       energy: {
         ...res.energy,
-        current: Math.min(res.energy.max, res.energy.current + 2),
+        current: Math.min(res.energy.max, res.energy.current + energyYield),
       },
     };
     syncFromServer(updated);
+  }
+
+  // Optimistic: update pet fullness
+  if (pet) {
+    GameStore.setState("pet", {
+      ...pet,
+      stats: {
+        ...pet.stats,
+        fullness: Math.min(100, (pet.stats?.fullness ?? 0) + fullnessYield),
+      },
+      lastDigestionTimestamp: Date.now(),
+    });
   }
 
   // Optimistic: decrement harvested count (unified resources slice)
@@ -352,6 +382,8 @@ function _refreshModalItems() {
   itemsEl.querySelectorAll(".energy-feed-item").forEach((item) => {
     const cropId = item.dataset.crop;
     const qty = harvested[cropId] || 0;
+    const cfg = CROPS[cropId];
+    const ey = cfg ? cfg.energyYield : 1;
     const qtyEl = item.querySelector(".feed-qty");
     const btn = item.querySelector(".feed-btn");
     if (qty <= 0) {
@@ -362,7 +394,7 @@ function _refreshModalItems() {
       }
     } else {
       item.style.opacity = "1";
-      if (qtyEl) qtyEl.textContent = `×${qty} • +2⚡`;
+      if (qtyEl) qtyEl.textContent = `×${qty} • +${ey}⚡`;
       if (btn) {
         btn.disabled = false;
         btn.textContent = "Eat";

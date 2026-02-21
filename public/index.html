@@ -8,13 +8,14 @@
       name="description"
       content="Unified Game Hub: Farm, Trivia (Solo &amp; Duel), Match-3 with Leaderboard — Discord Activities Framework Demo"
     />
-    <link rel="stylesheet" href="css/base.css?v=5.2.0" />
-    <link rel="stylesheet" href="css/farm.css?v=5.2.0" />
-    <link rel="stylesheet" href="css/trivia.css?v=5.2.0" />
-    <link rel="stylesheet" href="css/match3.css?v=5.2.0" />
-    <link rel="stylesheet" href="css/blox.css?v=5.2.0" />
-    <link rel="stylesheet" href="css/hud.css?v=5.2.0" />
-    <link rel="stylesheet" href="css/pet.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/base.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/farm.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/trivia.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/match3.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/blox.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/hud.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/pet.css?v=6.0.0" />
+    <link rel="stylesheet" href="css/merge.css?v=6.0.0" />
   </head>
   <body>
     <!-- ═══ Boot Loading Overlay ═══ -->
@@ -29,6 +30,7 @@
       <button class="nav-dot" id="nav-dot-blox" title="Building Blox"></button>
       <button class="nav-dot active" id="nav-dot-farm" title="Farm"></button>
       <button class="nav-dot" id="nav-dot-match3" title="Match-3"></button>
+      <button class="nav-dot" id="nav-dot-merge" title="Merge"></button>
     </div>
     <!-- ═══ Mobile Bottom Nav Bar ═══ -->
     <nav class="nav-bar" id="nav-bar">
@@ -47,6 +49,10 @@
       <button class="nav-tab" id="nav-tab-match3" data-screen="3">
         <span class="nav-tab-icon">💎</span>
         <span class="nav-tab-label">Match-3</span>
+      </button>
+      <button class="nav-tab" id="nav-tab-merge" data-screen="4">
+        <span class="nav-tab-icon">🧩</span>
+        <span class="nav-tab-label">Merge</span>
       </button>
     </nav>
     <!-- Farm ready badge (Issue 7) -->
@@ -633,6 +639,17 @@
             </form>
           </div>
         </dialog>
+      </section>
+
+      <!-- ────── MERGE SCREEN ────── -->
+      <section class="screen" id="screen-merge">
+        <div class="screen-header">
+          <h1>🧩 Gacha Merge</h1>
+          <div class="subtitle">Tap • Merge • Craft</div>
+        </div>
+
+        <div class="merge-generators" id="merge-generators"></div>
+        <div class="merge-board" id="merge-board"></div>
       </section>
       <!-- /screen-track removed for View Transitions API -->
     </div>

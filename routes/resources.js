@@ -56,14 +56,30 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
       return res.status(400).json({ error: "no harvested crop to feed" });
     }
+    const cfg = CROPS[cropId];
+    if (!cfg) return res.status(400).json({ error: "unknown crop" });
+
+    // Satiety guard: block feeding if pet is full
+    const currentFullness = p.pet.stats?.fullness ?? 0;
+    if (currentFullness >= 100) {
+      return res.status(400).json({ error: "pet is too full" });
+    }
 
     // Deduct crop
     p.farm.harvested[cropId]--;
     if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
 
-    // Restore energy
+    // Restore energy — dynamic yield from crop
     const e = p.resources.energy;
-    e.current = Math.min(e.max, e.current + ECONOMY.FEED_ENERGY);
+    e.current = Math.min(e.max, e.current + (cfg.energyYield || 1));
+
+    // Update satiety
+    if (!p.pet.stats) p.pet.stats = { happiness: 100, fullness: 0 };
+    p.pet.stats.fullness = Math.min(
+      100,
+      currentFullness + (cfg.fullnessYield || 5),
+    );
+    p.pet.lastDigestionTimestamp = Date.now();
 
     // Pet XP & leveling
     p.pet.xp += ECONOMY.FEED_PET_XP;

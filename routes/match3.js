@@ -146,6 +146,7 @@ export default function match3Routes(requireAuth, resolveUser) {
     }
 
     let goldReward = 0;
+    let tokenReward = 0;
 
     // Anti-cheat / Basic validation (approx. 5000 is a very good score for 30 moves)
     if (typeof score === "number" && score > 0) {
@@ -157,6 +158,13 @@ export default function match3Routes(requireAuth, resolveUser) {
         goldReward = calcGoldReward(score);
         p.resources.gold += goldReward;
         p.match3.highScore = Math.max(p.match3.highScore, score);
+
+        // Gacha token reward: 1 base + bonus for high performance
+        tokenReward = ECONOMY.REWARD_GACHA_TOKENS;
+        for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
+          if (score >= threshold) tokenReward++;
+        }
+        p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
       }
     }
 
@@ -173,6 +181,7 @@ export default function match3Routes(requireAuth, resolveUser) {
       success: true,
       resources: p.resources,
       goldReward,
+      tokenReward,
       highScore: p.match3.highScore,
       rank: rank || allScores.length + 1,
     });

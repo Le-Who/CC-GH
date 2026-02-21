@@ -268,7 +268,10 @@ describe("POST /api/pet/feed", () => {
     });
     assert.equal(status, 200);
     assert.ok(data.success);
-    assert.equal(data.resources.energy.current, 5 + ECONOMY.FEED_ENERGY);
+    assert.equal(
+      data.resources.energy.current,
+      5 + CROPS.strawberry.energyYield,
+    );
     assert.equal(data.harvested.strawberry, 2);
   });
 

@@ -1,11 +1,12 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Pet Module (v5.0.0)
+ *  Game Hub — Pet Module (v6.0.0)
  *  Living Pet Entity with state machine & interactions
  *  v1.8: Weighted behavior, zone roaming, FLIP dock
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { api } from "./shared.js";
+import { api, showToast } from "./shared.js";
+import { calculateSatietyDelta } from "../../game-logic.js";
 
 // ─── FarmGame.water() injected from main.js to avoid circular import ───
 let _waterFn = null;
@@ -52,7 +53,11 @@ const PetCompanionImpl = (function () {
       xp: 0,
       xpToNextLevel: 100,
       skinId: "basic_dog",
-      stats: { happiness: 100 },
+      stats: { happiness: 100, fullness: 0 },
+      lastDigestionTimestamp: Date.now(),
+      activeOrders: [],
+      affectionXp: 0,
+      affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false },
     });
   }
@@ -100,6 +105,14 @@ const PetCompanionImpl = (function () {
 
     // Start auto-water butler ability
     startAutoWater();
+
+    // Start satiety digestion ticker (minutely online decay)
+    _startDigestionTicker();
+
+    // Recalculate satiety on tab focus (visibility change)
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) _recalcSatiety();
+    });
 
     // GPU cleanup: clear will-change after roam transition ends
     container.addEventListener("transitionend", () => {
@@ -416,6 +429,8 @@ const PetCompanionImpl = (function () {
     if (!panel || !petData) return;
 
     const xpPct = ((petData.xp / petData.xpToNextLevel) * 100).toFixed(1);
+    const fullness = petData.stats?.fullness ?? 0;
+    const orders = petData.activeOrders || [];
 
     panel.innerHTML = `
       <button class="pet-info-close" id="pet-info-close">✕</button>
@@ -423,31 +438,200 @@ const PetCompanionImpl = (function () {
         <span class="pet-info-name">${SKINS[petData.skinId] || "🐕"} ${petData.name}</span>
         <span class="pet-info-level">Lv ${petData.level}</span>
       </div>
-      <div class="pet-info-xp-bar">
-        <div class="pet-info-xp-fill" style="width: ${xpPct}%"></div>
+      <div class="pet-info-tabs">
+        <button class="pet-tab active" data-tab="stats">📊 Stats</button>
+        <button class="pet-tab" data-tab="quests">📜 Quests</button>
       </div>
-      <div class="pet-info-xp-text">${petData.xp} / ${petData.xpToNextLevel} XP</div>
-      <div class="pet-info-abilities">
-        <span class="pet-ability ${petData.abilities.autoHarvest ? "unlocked" : ""}"
-              title="Automatically harvests fully grown crops while you're offline (costs 1⚡ each)">
-          ${petData.abilities.autoHarvest ? "✅" : "🔒"} Auto-Harvest (Lv 3)
-        </span>
-        <span class="pet-ability ${petData.abilities.autoWater ? "unlocked" : ""}"
-              title="Automatically waters unwatered crops while you're offline (free)">
-          ${petData.abilities.autoWater ? "✅" : "🔒"} Auto-Water (Lv 5)
-        </span>
-        <span class="pet-ability ${petData.abilities.autoPlant ? "unlocked" : ""}"
-              title="Automatically plants seeds on empty plots while you're offline (costs 2⚡ each)">
-          ${petData.abilities.autoPlant ? "✅" : "🔒"} Auto-Plant (Lv 7)
-        </span>
+      <div class="pet-tab-content" id="pet-tab-stats">
+        <div class="pet-info-xp-bar">
+          <div class="pet-info-xp-fill" style="width: ${xpPct}%"></div>
+        </div>
+        <div class="pet-info-xp-text">${petData.xp} / ${petData.xpToNextLevel} XP</div>
+        <div class="pet-satiety-bar">
+          <div class="pet-satiety-fill" style="width: ${fullness}%"></div>
+        </div>
+        <div class="pet-satiety-text">${fullness >= 100 ? "🤢 Full!" : `🍖 Fullness: ${fullness}/100`}</div>
+        <div class="pet-info-abilities">
+          <span class="pet-ability ${petData.abilities.autoHarvest ? "unlocked" : ""}"
+                title="Automatically harvests fully grown crops while you're offline (costs 1⚡ each)">
+            ${petData.abilities.autoHarvest ? "✅" : "🔒"} Auto-Harvest (Lv 3)
+          </span>
+          <span class="pet-ability ${petData.abilities.autoWater ? "unlocked" : ""}"
+                title="Automatically waters unwatered crops while you're offline (free)">
+            ${petData.abilities.autoWater ? "✅" : "🔒"} Auto-Water (Lv 5)
+          </span>
+          <span class="pet-ability ${petData.abilities.autoPlant ? "unlocked" : ""}"
+                title="Automatically plants seeds on empty plots while you're offline (costs 2⚡ each)">
+            ${petData.abilities.autoPlant ? "✅" : "🔒"} Auto-Plant (Lv 7)
+          </span>
+        </div>
+      </div>
+      <div class="pet-tab-content" id="pet-tab-quests" style="display:none">
+        ${
+          orders.length === 0
+            ? '<p class="text-dim" style="font-size:0.82rem;margin:8px 0">No active quests yet.</p>'
+            : orders
+                .map(
+                  (o) => `
+            <div class="pet-quest-item" data-order-id="${o.id}">
+              <div class="pet-quest-reqs">${o.requirements
+                .map(
+                  (r) =>
+                    `<span>${r.type === "crop" ? "🌿" : "🧩"} ${r.id} ×${r.qty}</span>`,
+                )
+                .join(" ")}</div>
+              <div class="pet-quest-reward">🏆 +${o.reward.maxEnergy || 0} Max ⚡</div>
+              <button class="pet-quest-submit" data-order-id="${o.id}">Submit</button>
+            </div>
+          `,
+                )
+                .join("")
+        }
       </div>
     `;
 
-    // Setup close button
+    // Tab switching
+    panel.querySelectorAll(".pet-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        panel
+          .querySelectorAll(".pet-tab")
+          .forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        const target = tab.dataset.tab;
+        const statsDiv = document.getElementById("pet-tab-stats");
+        const questsDiv = document.getElementById("pet-tab-quests");
+        if (statsDiv)
+          statsDiv.style.display = target === "stats" ? "block" : "none";
+        if (questsDiv)
+          questsDiv.style.display = target === "quests" ? "block" : "none";
+      });
+    });
+
+    // Quest submit buttons
+    panel.querySelectorAll(".pet-quest-submit").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const orderId = btn.dataset.orderId;
+        submitOrder(orderId);
+      });
+    });
+
+    // Close button
     const closeBtn = document.getElementById("pet-info-close");
     if (closeBtn) {
       closeBtn.onclick = () => toggleInfoPanel();
     }
+  }
+
+  /* ─── Satiety Digestion Helpers ─── */
+  let _digestionTimer = null;
+
+  function _recalcSatiety() {
+    const pet = GameStore.getState("pet");
+    if (!pet) return;
+    const result = calculateSatietyDelta(pet, Date.now());
+    GameStore.setState("pet", {
+      ...pet,
+      stats: { ...pet.stats, fullness: result.fullness },
+      lastDigestionTimestamp: result.lastDigestionTimestamp,
+    });
+  }
+
+  function _startDigestionTicker() {
+    if (_digestionTimer) clearInterval(_digestionTimer);
+    _digestionTimer = setInterval(() => {
+      if (document.hidden) return; // Skip when tab hidden
+      _recalcSatiety();
+    }, 60_000); // Every minute
+  }
+
+  /* ─── Transactional Order Fulfillment (server-validated) ─── */
+  async function submitOrder(orderId) {
+    const pet = GameStore.getState("pet");
+    const res = GameStore.getState("resources");
+    if (!pet || !res) return;
+
+    const order = (pet.activeOrders || []).find((o) => o.id === orderId);
+    if (!order) {
+      showToast("Order not found", "error");
+      return;
+    }
+
+    // Pre-validate locally
+    const harvested = { ...(res.__harvested || {}) };
+    const mergeState = GameStore.getState("merge");
+
+    for (const req of order.requirements) {
+      if (req.type === "crop") {
+        if (!harvested[req.id] || harvested[req.id] < req.qty) {
+          showToast(`Not enough ${req.id} (need ${req.qty})`, "error");
+          return;
+        }
+      } else if (req.type === "merge") {
+        const board = mergeState?.board;
+        if (!board) {
+          showToast("Merge board not available", "error");
+          return;
+        }
+        let found = 0;
+        for (const row of board) {
+          for (const cell of row) {
+            if (cell && cell.id === req.id) found++;
+          }
+        }
+        if (found < req.qty) {
+          showToast(`Not enough ${req.id} on board (need ${req.qty})`, "error");
+          return;
+        }
+      }
+    }
+
+    // Optimistic: remove order + play happy animation
+    const oldOrders = [...(pet.activeOrders || [])];
+    GameStore.setState("pet", {
+      ...pet,
+      activeOrders: pet.activeOrders.filter((o) => o.id !== orderId),
+    });
+    setState(STATES.HAPPY);
+    if (panelOpen) renderInfoPanel();
+
+    try {
+      const data = await api("/api/quests/submit", {
+        userId: res.userId || undefined,
+        orderId,
+      });
+      if (!data?.success) {
+        GameStore.setState("pet", { ...pet, activeOrders: oldOrders });
+        showToast(data?.error || "Quest failed", "error");
+        if (panelOpen) renderInfoPanel();
+        return;
+      }
+      // Sync authoritative state
+      if (data.pet) GameStore.setState("pet", data.pet);
+      if (data.resources) {
+        GameStore.setState("resources", {
+          ...data.resources,
+          __harvested: data.harvested || {},
+        });
+      }
+      if (data.merge) GameStore.setState("merge", data.merge);
+      const rw = data.reward || {};
+      const parts = [];
+      if (rw.gold) parts.push(`+${rw.gold}🪙`);
+      if (rw.affectionXp) parts.push(`+${rw.affectionXp}💕`);
+      if (rw.gachaTokens) parts.push(`+${rw.gachaTokens}🎰`);
+      if (rw.energyMaxBoost) parts.push(`+${rw.energyMaxBoost}⚡max`);
+      showToast(`✅ Quest complete! ${parts.join(" ")}`, "success");
+      if (data.affectionLeveledUp) {
+        showToast(
+          `💕 Affection Level Up! Lv${data.pet?.affectionLevel}`,
+          "success",
+        );
+      }
+    } catch {
+      GameStore.setState("pet", { ...pet, activeOrders: oldOrders });
+      showToast("Network error", "error");
+    }
+    if (panelOpen) renderInfoPanel();
   }
 
   /* ─── Sync from server data ─── */
@@ -487,6 +671,7 @@ const PetCompanionImpl = (function () {
     toggleInfoPanel,
     setDockMode,
     getDockMode,
+    submitOrder,
   };
 })();
 

@@ -23,6 +23,9 @@ import {
   findMatches,
   pickQuestions,
   makeClientQuestion,
+  calculateSatietyDelta,
+  getScaledTime,
+  forceGrowAll,
 } from "../game-logic.js";
 
 /* ─────────────────────────────────────────────────────
@@ -33,7 +36,7 @@ describe("createDefaultPlayer", () => {
     const p = createDefaultPlayer("u1", "Alice");
     assert.equal(p.id, "u1");
     assert.equal(p.username, "Alice");
-    assert.equal(p.schemaVersion, 2);
+    assert.equal(p.schemaVersion, 4);
     assert.equal(p.resources.gold, ECONOMY.GOLD_START);
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_START);
     assert.equal(p.resources.energy.max, ECONOMY.ENERGY_MAX);
@@ -41,6 +44,17 @@ describe("createDefaultPlayer", () => {
     assert.ok(p.farm);
     assert.ok(p.trivia);
     assert.ok(p.match3);
+    // v6.0: Economy fields
+    assert.equal(p.pet.stats.fullness, 0);
+    assert.ok(Array.isArray(p.pet.activeOrders));
+    assert.equal(p.resources.gachaTokens, 0);
+    // v7.0: Merge + Affection fields
+    assert.ok(p.merge);
+    assert.equal(p.merge.board.length, 7);
+    assert.equal(p.merge.board[0].length, 9);
+    assert.ok(Array.isArray(p.merge.generators));
+    assert.equal(p.pet.affectionXp, 0);
+    assert.equal(p.pet.affectionLevel, 1);
   });
 
   it("[FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp", () => {
@@ -247,18 +261,21 @@ describe("processOfflineActions", () => {
  *  getWateringMultiplier
  * ───────────────────────────────────────────────────── */
 describe("getWateringMultiplier", () => {
-  it("returns 0.7 for fast crops (strawberry)", () => {
+  it("returns 0.7 for fast crops (strawberry, blueberry)", () => {
     assert.equal(getWateringMultiplier("strawberry"), 0.7);
+    assert.equal(getWateringMultiplier("blueberry"), 0.7);
   });
 
-  it("returns 0.6 for medium crops (tomato, corn)", () => {
+  it("returns 0.6 for medium crops (tomato, golden)", () => {
     assert.equal(getWateringMultiplier("tomato"), 0.6);
-    assert.equal(getWateringMultiplier("corn"), 0.6);
+    assert.equal(getWateringMultiplier("golden"), 0.6);
   });
 
-  it("returns 0.55 for slow crops (sunflower, golden)", () => {
+  it("returns 0.55 for slow crops (corn, sunflower, watermelon, pumpkin)", () => {
+    assert.equal(getWateringMultiplier("corn"), 0.55);
     assert.equal(getWateringMultiplier("sunflower"), 0.55);
-    assert.equal(getWateringMultiplier("golden"), 0.55);
+    assert.equal(getWateringMultiplier("watermelon"), 0.55);
+    assert.equal(getWateringMultiplier("pumpkin"), 0.55);
   });
 
   it("returns 0.7 for unknown crops", () => {
@@ -579,5 +596,99 @@ describe("Constants", () => {
 
   it("GEM_TYPES has 6 gem types", () => {
     assert.equal(GEM_TYPES.length, 6);
+  });
+
+  it("CROPS have energyYield and fullnessYield", () => {
+    for (const [id, cfg] of Object.entries(CROPS)) {
+      assert.ok(cfg.energyYield > 0, `${id} missing energyYield`);
+      assert.ok(cfg.fullnessYield > 0, `${id} missing fullnessYield`);
+    }
+  });
+});
+
+/* ─────────────────────────────────────────────────────
+ *  calculateSatietyDelta (v6.0)
+ * ───────────────────────────────────────────────────── */
+describe("calculateSatietyDelta", () => {
+  it("returns unchanged fullness if no time has passed", () => {
+    const now = Date.now();
+    const result = calculateSatietyDelta(
+      { stats: { fullness: 50 }, lastDigestionTimestamp: now },
+      now,
+    );
+    assert.equal(result.fullness, 50);
+  });
+
+  it("reduces fullness by 10 per hour", () => {
+    const now = Date.now();
+    const twoHoursAgo = now - 2 * 3_600_000;
+    const result = calculateSatietyDelta(
+      { stats: { fullness: 80 }, lastDigestionTimestamp: twoHoursAgo },
+      now,
+    );
+    assert.equal(result.fullness, 60); // 80 - (2 * 10)
+  });
+
+  it("clamps fullness to 0 (never negative)", () => {
+    const now = Date.now();
+    const result = calculateSatietyDelta(
+      { stats: { fullness: 5 }, lastDigestionTimestamp: now - 24 * 3_600_000 },
+      now,
+    );
+    assert.equal(result.fullness, 0);
+  });
+
+  it("caps offline progress at 24 hours", () => {
+    const now = Date.now();
+    // 48 hours ago — but cap at 24h = 240 digested, from fullness 100 → 0 (not -140)
+    const result = calculateSatietyDelta(
+      {
+        stats: { fullness: 100 },
+        lastDigestionTimestamp: now - 48 * 3_600_000,
+      },
+      now,
+    );
+    assert.equal(result.fullness, 0);
+  });
+
+  it("handles missing stats gracefully", () => {
+    const now = Date.now();
+    const result = calculateSatietyDelta({}, now);
+    assert.equal(result.fullness, 0);
+  });
+});
+
+/* ─────────────────────────────────────────────────────
+ *  getScaledTime (v6.0)
+ * ───────────────────────────────────────────────────── */
+describe("getScaledTime", () => {
+  it("returns the same time when DEV_MODE is off", () => {
+    assert.equal(getScaledTime(300_000), 300_000);
+  });
+
+  it("returns minimum 1ms", () => {
+    assert.equal(getScaledTime(0), 1);
+  });
+});
+
+/* ─────────────────────────────────────────────────────
+ *  forceGrowAll (v6.0)
+ * ───────────────────────────────────────────────────── */
+describe("forceGrowAll", () => {
+  it("sets planted crops to fully grown", () => {
+    const now = Date.now();
+    const plots = [
+      { crop: "strawberry", plantedAt: now },
+      { crop: null, plantedAt: null },
+    ];
+    forceGrowAll(plots, now);
+    // First plot should be fully grown
+    assert.ok(plots[0].plantedAt < now - 999_000_000);
+    // Empty plot unchanged
+    assert.equal(plots[1].plantedAt, null);
+  });
+
+  it("handles null input gracefully", () => {
+    assert.doesNotThrow(() => forceGrowAll(null));
   });
 });

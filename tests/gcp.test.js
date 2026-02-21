@@ -502,7 +502,7 @@ describe("GCP: Idempotency", () => {
     assert.equal(feed2.status, 400, "Second feed with 0 stock must fail");
     assert.equal(
       player.resources.energy.current,
-      5 + ECONOMY.FEED_ENERGY,
+      5 + CROPS.strawberry.energyYield,
       "Energy should increase by exactly one feed",
     );
   });

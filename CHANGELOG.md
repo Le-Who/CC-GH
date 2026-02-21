@@ -1,5 +1,75 @@
 # Changelog
 
+## v6.0.0 — 2026-02-22
+
+### Gacha Merge Mini-Game + Pet Order System
+
+Major feature release: a 5th game screen with a server-authoritative merge board and a quest system linking Farm + Merge into a unified economy loop.
+
+#### New Files
+
+- **`routes/mergeRoutes.js`** [NEW] — 6 server endpoints: `/api/merge/state`, `/tap`, `/merge`, `/gacha`, `/free-pull`, `/trash`. All economic transactions validated server-side.
+- **`routes/questRoutes.js`** [NEW] — 3 server endpoints: `/api/quests/active`, `/generate`, `/submit`. Tiered order generation (easy/medium/hard) with weighted difficulty based on pet affection level.
+
+#### Core Logic (`game-logic.js`)
+
+- **`MERGE_CHAINS`** — 2 chains × 8 levels: Textile (Thread → Legendary Tapestry 🧵→👑) and Wood (Twig → Legendary Throne 🌿→👑).
+- **`CROP_TIERS` + `TIER_YIELD`** — Generator fuel system: cheap crops yield 2-3 items, mid crops 3-4, expensive crops 4-5.
+- **`QUEST_TIERS`** — Tiered multi-currency rewards: Easy (gold+affectionXp), Medium (+gachaTokens), Hard (+energy max boost).
+- **7 new ECONOMY constants**: `GACHA_PULL_COST` (10), `GENERATOR_TAP_LIMIT` (40), `GENERATOR_COOLDOWN_MS` (4hr), `DAILY_FREE_PULL`, `TOKEN_FARM_DROP_CHANCE` (2%), `TOKEN_BONUS_THRESHOLDS` (score-based).
+- **Schema v4**: `createDefaultPlayer()` includes `merge` state (7×9 board, generators, inventory, generatorState, lastFreePull) and pet `affectionXp`/`affectionLevel`.
+
+#### Merge Engine (`public/js/merge.js`) [REWRITE]
+
+- Server-validated actions with optimistic UI + automatic rollback on failure.
+- Ghost-Pattern drag-and-drop: separate `<div>` clone appended to `<body>`, `pointermove` via rAF, spring-return cubic-bezier animation for failed merges.
+- Generator panel: tap buttons with cooldown display, gacha roll (10 tokens), daily free pull (UTC), trash mode toggle, crop picker modal with tier-colored borders.
+- 8-level progressive glow borders via `data-level` CSS attribute, legendary pulse animation.
+
+#### Merge Styles (`public/css/merge.css`) [REWRITE]
+
+- Glassmorphism board grid (7×9, `contain: layout style paint`).
+- 8-level progressive glow (L0 gray → L7 gold pulse).
+- Crop picker modal overlay with tier-colored left borders.
+- Generator panel with cooldown/gacha/free/trash state styles.
+- Responsive breakpoints for mobile.
+
+#### Pet Orders (`public/js/pet.js`)
+
+- `affectionXp` / `affectionLevel` added to pet slice.
+- `submitOrder()` refactored from client-only deduction to async `POST /api/quests/submit` with optimistic UI + full rollback on server rejection.
+- Reward summary toast: gold🪙, affectionXp💕, gachaTokens🎰, energyMaxBoost⚡max.
+- Affection level-up notification.
+
+#### Token Economy Integration
+
+- **Match-3** (`routes/match3.js`): 1 base + up to 3 bonus tokens on game-end (score thresholds: 1000/2000/3500).
+- **Blox** (`routes/blox.js`): Same formula.
+- **Farm** (`routes/farm.js`): 2% RNG token drop on harvest.
+- **Schema migration** (`playerManager.js`): v3→v4 migration adds merge state + pet affection fields for existing players.
+
+#### Server (`server.js`)
+
+- Mount `mergeRoutes` and `questRoutes`.
+- Added `merge.js` to import-map `jsModules` array for cache busting.
+
+#### Bug Fix
+
+- **`tokenReward` scoping bug** (`routes/match3.js`): Variable was declared with `let` inside an `if` block but referenced in the response JSON outside that scope — always returned 0. Fixed by hoisting declaration to handler level.
+
+#### Tests
+
+- Updated `unit.test.js`: `schemaVersion` assertion 3→4, added merge board (7×9) + generators + affection field assertions. **59/59 pass.**
+- **105/105 total tests pass** (unit 59, API 26, GCP 20).
+
+#### Version Bumps
+
+- `package.json`: 5.2.0 → 6.0.0
+- `merge.js` header: v7.0
+- `merge.css` header: v7.0
+
+---
+
 ## v5.2.0 — 2026-02-21
 
 ### Visual Polish — Immersive Enhancements

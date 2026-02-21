@@ -12,9 +12,15 @@ export const HUB = {
   username: "Player",
   accessToken: null,
   sdk: null,
-  currentScreen: 2, // 0=Trivia, 1=Blox, 2=Farm, 3=Match3
-  screenNames: ["trivia", "blox", "farm", "match3"],
-  initialized: { trivia: false, blox: false, farm: false, match3: false },
+  currentScreen: 2, // 0=Trivia, 1=Blox, 2=Farm, 3=Match3, 4=Merge
+  screenNames: ["trivia", "blox", "farm", "match3", "merge"],
+  initialized: {
+    trivia: false,
+    blox: false,
+    farm: false,
+    match3: false,
+    merge: false,
+  },
   isTouchDevice: false,
   swipeBlocked: false, // true when Blox game is active to prevent accidental navigation
 };
@@ -25,6 +31,7 @@ let _modules = {
   TriviaGame: null,
   Match3Game: null,
   BloxGame: null,
+  MergeGame: null,
   PetCompanion: null,
   HUD: null,
 };
@@ -152,13 +159,15 @@ export async function api(path, body) {
 
 /* ─── Navigation ─── */
 export function navigate(dir) {
+  const maxScreen = HUB.screenNames.length - 1;
   const next = HUB.currentScreen + dir;
-  if (next < 0 || next > 3) return;
+  if (next < 0 || next > maxScreen) return;
   goToScreen(next);
 }
 
 export function goToScreen(index) {
-  if (index < 0 || index > 3 || index === HUB.currentScreen) return;
+  const maxScreen = HUB.screenNames.length - 1;
+  if (index < 0 || index > maxScreen || index === HUB.currentScreen) return;
 
   const updateDOM = () => {
     HUB.currentScreen = index;
@@ -191,6 +200,7 @@ export function updatePetDock() {
   const isTrivia = HUB.currentScreen === 0;
   const isMatch3 = HUB.currentScreen === 3;
   const isBlox = HUB.currentScreen === 1;
+  const isMerge = HUB.currentScreen === 4;
 
   // Determine new dock mode
   const newDockClass = isFarm
@@ -237,8 +247,9 @@ function applyScreenClasses() {
 function updateNavUI() {
   const $left = document.getElementById("nav-left");
   const $right = document.getElementById("nav-right");
+  const maxScreen = HUB.screenNames.length - 1;
   $left.classList.toggle("hidden", HUB.currentScreen === 0);
-  $right.classList.toggle("hidden", HUB.currentScreen === 3);
+  $right.classList.toggle("hidden", HUB.currentScreen === maxScreen);
 
   // Desktop dots (cached)
   for (let i = 0; i < _cachedNavDots.length; i++) {
@@ -266,12 +277,14 @@ function triggerScreenCallbacks() {
     if (name === "trivia") _modules.TriviaGame?.init();
     if (name === "match3") _modules.Match3Game?.init();
     if (name === "blox") _modules.BloxGame?.init();
+    if (name === "merge") _modules.MergeGame?.init();
   }
   // Screen enter callbacks
   if (name === "farm") _modules.FarmGame?.onEnter();
   if (name === "trivia") _modules.TriviaGame?.onEnter();
   if (name === "match3") _modules.Match3Game?.onEnter();
   if (name === "blox") _modules.BloxGame?.onEnter();
+  if (name === "merge") _modules.MergeGame?.onEnter();
 
   // 7.1: Farm Shop FAB — visible only on farm screen
   const fab = document.getElementById("farm-shop-fab");
@@ -354,6 +367,8 @@ export function bindNavigation() {
   document
     .getElementById("nav-dot-match3")
     .addEventListener("click", () => goToScreen(3));
+  const mergeNavDot = document.getElementById("nav-dot-merge");
+  if (mergeNavDot) mergeNavDot.addEventListener("click", () => goToScreen(4));
 
   // Mobile bottom nav-bar tabs
   document.querySelectorAll(".nav-tab").forEach((tab) => {

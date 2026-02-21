@@ -7,6 +7,7 @@
 import { Router } from "express";
 import crypto from "crypto";
 import {
+  ECONOMY,
   CROPS,
   calcRegen,
   processOfflineActions,
@@ -104,6 +105,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const cropId = plot.crop;
     // Produce crop item for pet feeding (no gold from harvest)
     p.farm.harvested[cropId] = (p.farm.harvested[cropId] || 0) + 1;
+
+    // 2% chance to drop a gacha token on harvest
+    let tokenDrop = false;
+    if (Math.random() < ECONOMY.TOKEN_FARM_DROP_CHANCE) {
+      p.resources.gachaTokens = (p.resources.gachaTokens || 0) + 1;
+      tokenDrop = true;
+    }
     p.farm.xp += cfg.xp;
     const newLevel = Math.floor(p.farm.xp / 100) + 1;
     const leveledUp = newLevel > p.farm.level;
@@ -118,6 +126,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       plots: farmPlotsWithGrowth(p.farm),
       resources: p.resources,
       harvested: p.farm.harvested,
+      tokenDrop,
       xp: p.farm.xp,
       level: p.farm.level,
       leveledUp,

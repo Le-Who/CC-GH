@@ -183,6 +183,47 @@ export function getPlayer(userId, username) {
     NeedsSaveSync = true;
   }
 
+  // ─── Schema v3 Migration (Economy Rebalance + Satiety + Gacha Merge) ───
+  if (p.schemaVersion < 3) {
+    // Pet satiety fields
+    if (!p.pet.stats) p.pet.stats = { happiness: 100 };
+    if (!("fullness" in p.pet.stats)) p.pet.stats.fullness = 0;
+    if (!p.pet.lastDigestionTimestamp)
+      p.pet.lastDigestionTimestamp = Date.now();
+    if (!p.pet.activeOrders) p.pet.activeOrders = [];
+    if (!p.pet.abilities) p.pet.abilities = {};
+    if (!("autoPlant" in p.pet.abilities)) p.pet.abilities.autoPlant = false;
+    // Gacha tokens
+    if (!("gachaTokens" in p.resources)) p.resources.gachaTokens = 0;
+    p.schemaVersion = 3;
+    NeedsSaveSync = true;
+  }
+
+  // ─── Schema v4 Migration (Gacha Merge + Affection) ───
+  if (p.schemaVersion < 4) {
+    // Merge board state
+    if (!p.merge) {
+      const BOARD_ROWS = 7,
+        BOARD_COLS = 9;
+      p.merge = {
+        board: Array.from({ length: BOARD_ROWS }, () =>
+          Array(BOARD_COLS).fill(null),
+        ),
+        generators: ["textile"],
+        inventory: [],
+        lastFreePull: 0,
+        generatorState: {
+          textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+        },
+      };
+    }
+    // Pet affection
+    if (!("affectionXp" in p.pet)) p.pet.affectionXp = 0;
+    if (!("affectionLevel" in p.pet)) p.pet.affectionLevel = 1;
+    p.schemaVersion = 4;
+    NeedsSaveSync = true;
+  }
+
   if (username && p.username !== username) {
     p.username = username;
     NeedsSaveSync = true;

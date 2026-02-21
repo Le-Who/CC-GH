@@ -40,6 +40,14 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     const p = getPlayer(userId);
     const goldReward = calcBloxReward(score);
     p.resources.gold += goldReward;
+
+    // Gacha token reward: 1 base + bonus for high performance
+    let tokenReward = ECONOMY.REWARD_GACHA_TOKENS;
+    for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
+      if (score >= threshold) tokenReward++;
+    }
+    p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
+
     if (typeof score === "number" && score > 0) {
       p.blox.highScore = Math.max(p.blox.highScore, score);
     }
@@ -48,6 +56,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
       success: true,
       resources: p.resources,
       goldReward,
+      tokenReward,
       highScore: p.blox.highScore,
     });
   });
