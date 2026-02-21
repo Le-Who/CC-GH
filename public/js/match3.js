@@ -26,8 +26,12 @@ const Match3Game = (() => {
   const BOARD_SIZE = 8;
 
   // v4.16: Lightweight deep-clone helpers (eliminate JSON.parse(JSON.stringify) GC pressure)
-  function cloneBoard(b) { return b.map(row => [...row]); }
-  function cloneDropStars(ds) { return ds.map(s => ({ ...s })); }
+  function cloneBoard(b) {
+    return b.map((row) => [...row]);
+  }
+  function cloneDropStars(ds) {
+    return ds.map((s) => ({ ...s }));
+  }
 
   let board = [];
   let score = 0;
@@ -79,15 +83,14 @@ const Match3Game = (() => {
   function _flushM3Sync() {
     if (!_m3SyncDirty || !HUB.userId) return;
     _m3SyncDirty = false;
-    const headers = { 'Content-Type': 'application/json' };
-    if (HUB.accessToken) headers['Authorization'] = `Bearer ${HUB.accessToken}`;
-    fetch('/api/game/sync-modes', {
-      method: 'POST',
+    const headers = { "Content-Type": "application/json" };
+    if (HUB.accessToken) headers["Authorization"] = `Bearer ${HUB.accessToken}`;
+    fetch("/api/game/sync-modes", {
+      method: "POST",
       headers,
       body: JSON.stringify({ userId: HUB.userId, savedModes }),
       keepalive: true,
     }).catch(() => {});
-  }
   }
   /** Hydrate savedModes from localStorage */
   function loadSavedModes() {
@@ -102,9 +105,7 @@ const Match3Game = (() => {
   /** v4.12.1: Restore drop-mode state from a savedModes entry (DRY helper) */
   function restoreDropState(saved) {
     // Hydrate dropStars in case it came from Firestore (object instead of array)
-    const raw = saved.dropStars
-      ? cloneDropStars(saved.dropStars)
-      : [];
+    const raw = saved.dropStars ? cloneDropStars(saved.dropStars) : [];
     dropStars = hydrateArray(raw);
     starsDropped = saved.starsDropped || 0;
   }
@@ -1320,7 +1321,7 @@ const Match3Game = (() => {
         cell.className = cls;
 
         cell.dataset.type = type;
-        const icon = isDrop ? (DROP_ICONS[type] || "🌟") : (GEM_ICONS[type] || "?");
+        const icon = isDrop ? DROP_ICONS[type] || "🌟" : GEM_ICONS[type] || "?";
         cell.firstElementChild.textContent = icon;
         if (animate) {
           cell.style.animationDelay = `${(x + y) * 25}ms`;

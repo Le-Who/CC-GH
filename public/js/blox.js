@@ -307,7 +307,12 @@ const BloxGame = (() => {
         const r = (i / GRID) | 0;
         const c = i % GRID;
         if (_boardCells[r]?.[c]) {
-          _boardCells[r][c].classList.add("clearing");
+          const cell = _boardCells[r][c];
+          cell.classList.add("clearing");
+          // v4.16: Clear inline background immediately so the cell doesn't
+          // flash its old color after the CSS animation ends (animation-fill-mode gap)
+          cell.classList.remove("filled");
+          cell.style.background = "";
         }
         // 2. Clear board state IMMEDIATELY (sync) so game-over check is correct
         board[r][c] = null;
