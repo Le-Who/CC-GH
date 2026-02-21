@@ -408,6 +408,11 @@ const BloxGameImpl = (() => {
     const gridEl = $("blox-board");
     if (!gridEl) return;
 
+    // v5.0.1: Flush stale ghost references BEFORE resetting classNames.
+    // Without this, _ghostCells holds orphaned refs after className wipe,
+    // causing partial/broken ghost preview on subsequent showGhostAt().
+    clearGhost();
+
     // First render: create cells once and cache them
     if (_boardCells.length === 0) {
       gridEl.innerHTML = "";
@@ -424,6 +429,11 @@ const BloxGameImpl = (() => {
       }
     }
 
+    // v5.0.1: Suppress CSS transitions during batch update.
+    // Cached DOM nodes inherit the .blox-cell transition (background 0.12s),
+    // causing a visible cell-by-cell fill effect on programmatic updates.
+    gridEl.classList.add("batch-update");
+
     // Diff-update: only change classes + background on existing cached nodes
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
@@ -436,10 +446,14 @@ const BloxGameImpl = (() => {
           cell.className = "blox-cell";
           cell.style.background = "";
         }
-        // Strip animation classes (clearing, ghost) left from previous frame
-        // className assignment above already handles this cleanly
+        // v5.0.1: Clear residual ghost CSS property from previous showGhostAt()
+        cell.style.removeProperty("--ghost-color");
       }
     }
+
+    // Flush layout so transition suppression takes effect, then re-enable
+    void gridEl.offsetHeight;
+    gridEl.classList.remove("batch-update");
   }
 
   function renderTray() {

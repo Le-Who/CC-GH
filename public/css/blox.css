@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Screen Styles (v4.16.0)
+ *  Game Hub — Building Blox Screen Styles (v5.0.0)
  * ═══════════════════════════════════════════════════ */
 
 /* Scope overlays to this screen only */
@@ -45,8 +45,7 @@
   transition:
     transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275),
     opacity 0.18s ease,
-    border-color 0.18s ease,
-    background 0.12s ease;
+    border-color 0.18s ease;
   cursor: pointer;
   position: relative;
 }
@@ -61,6 +60,15 @@
 .blox-cell:hover:not(.filled) {
   border-color: rgba(167, 139, 250, 0.3);
   background: rgba(167, 139, 250, 0.08);
+  transition:
+    transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.18s ease,
+    border-color 0.18s ease,
+    background 0.12s ease;
+}
+/* Suppress transitions during programmatic batch updates (renderBoard) */
+.blox-board.batch-update .blox-cell {
+  transition: none !important;
 }
 
 /* Ghost preview (Juicy UI: breathing pulse animation) */

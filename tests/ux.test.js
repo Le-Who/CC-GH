@@ -463,7 +463,7 @@ describe("Watering Growth Speed", () => {
 });
 
 /* ═════════════════════════════════════════════════════
- *  Match-3 Mode Selector — State Machine Invariants (v4.5.3)
+ *  Match-3 Mode Selector — State Machine Invariants (v5.0.0)
  *  Tests that the mode selector is always accessible and
  *  the button hierarchy follows UX requirements.
  * ═════════════════════════════════════════════════════ */
