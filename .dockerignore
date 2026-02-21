@@ -1,11 +1,12 @@
 node_modules/
 .env
+.env.example
 data/hub-db.json
 *.log
 .git/
+.github/
 tests/
 *.test.js
-.env.example
 README.md
 CHANGELOG.md
 public/js/discord-sdk-bundle.js
