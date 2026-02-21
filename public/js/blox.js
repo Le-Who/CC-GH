@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Module (v4.15.3)
+ *  Game Hub — Building Blox Module (v4.16.0)
  *  10×10 Block Puzzle: place pieces, clear lines
  *  ─ localStorage persistence, pause overlay, touch drag,
  *    grab-point anchor ghost, mouse drag-and-drop,
@@ -301,15 +301,13 @@ const BloxGame = (() => {
     cleared = rowsToClear.length + colsToClear.length;
 
     if (cleared > 0) {
-      // 1. Start CSS animation + clear board state via Uint8Array map
-      const gridEl = $("blox-board");
+      // 1. Start CSS animation + clear board state via cached DOM refs
       for (let i = 0; i < GRID * GRID; i++) {
         if (_clearMap[i] === 0) continue;
         const r = (i / GRID) | 0;
         const c = i % GRID;
-        if (gridEl) {
-          const cell = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
-          if (cell) cell.classList.add("clearing");
+        if (_boardCells[r]?.[c]) {
+          _boardCells[r][c].classList.add("clearing");
         }
         // 2. Clear board state IMMEDIATELY (sync) so game-over check is correct
         board[r][c] = null;
@@ -506,23 +504,43 @@ const BloxGame = (() => {
     }).catch(() => {});
   }
 
-  // ── Rendering ──
+  // ── Rendering (v4.16: DOM-cached diff-update — zero innerHTML rebuild) ──
+  let _boardCells = []; // 2D cache: _boardCells[r][c] = DOM element
+
   function renderBoard() {
     const gridEl = $("blox-board");
     if (!gridEl) return;
-    gridEl.innerHTML = "";
+
+    // First render: create cells once and cache them
+    if (_boardCells.length === 0) {
+      gridEl.innerHTML = "";
+      for (let r = 0; r < GRID; r++) {
+        _boardCells[r] = [];
+        for (let c = 0; c < GRID; c++) {
+          const cell = document.createElement("div");
+          cell.className = "blox-cell";
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          gridEl.appendChild(cell);
+          _boardCells[r][c] = cell;
+        }
+      }
+    }
+
+    // Diff-update: only change classes + background on existing cached nodes
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
-        const cell = document.createElement("div");
-        cell.className = "blox-cell";
-        cell.dataset.r = r;
-        cell.dataset.c = c;
-        if (board[r][c]) {
-          cell.classList.add("filled");
-          cell.style.background = board[r][c];
+        const cell = _boardCells[r][c];
+        const val = board[r][c];
+        if (val) {
+          cell.className = "blox-cell filled";
+          cell.style.background = val;
+        } else {
+          cell.className = "blox-cell";
+          cell.style.background = "";
         }
-        // No per-cell click — handled by board-level click in initBoardMouseTracking
-        gridEl.appendChild(cell);
+        // Strip animation classes (clearing, ghost) left from previous frame
+        // className assignment above already handles this cleanly
       }
     }
   }
@@ -652,29 +670,31 @@ const BloxGame = (() => {
   }
 
   function showGhostAt(piece, r, c) {
-    const gridEl = $("blox-board");
-    if (!gridEl) return;
+    if (_boardCells.length === 0) return;
     const valid = canPlace(piece, r, c);
     for (const [dr, dc] of piece.cells) {
       const gr = r + dr,
         gc = c + dc;
       if (gr < 0 || gr >= GRID || gc < 0 || gc >= GRID) continue;
-      const cell = gridEl.querySelector(`[data-r="${gr}"][data-c="${gc}"]`);
+      const cell = _boardCells[gr]?.[gc];
       if (cell) {
         cell.classList.add("ghost");
         if (!valid) cell.classList.add("ghost-invalid");
         else cell.style.setProperty("--ghost-color", piece.color);
+        _ghostCells.push(cell);
       }
     }
   }
 
+  // v4.16: Track ghost cells directly instead of querySelectorAll('.ghost')
+  let _ghostCells = [];
+
   function clearGhost() {
-    const gridEl = $("blox-board");
-    if (!gridEl) return;
-    gridEl.querySelectorAll(".ghost").forEach((c) => {
-      c.classList.remove("ghost", "ghost-invalid");
-      c.style.removeProperty("--ghost-color");
-    });
+    for (const cell of _ghostCells) {
+      cell.classList.remove("ghost", "ghost-invalid");
+      cell.style.removeProperty("--ghost-color");
+    }
+    _ghostCells.length = 0;
   }
 
   // ── Shared: compute board target from a pointer position ──

@@ -1,5 +1,25 @@
 # Changelog
 
+## v4.16.0 — 2026-02-21
+
+### DOM-Cached Rendering (Third Performance Audit)
+
+#### Building Blox (`blox.js`)
+
+- **Cached board cells** (`_boardCells[][]`): `renderBoard()` creates 100 `div` elements once and caches them in a 2D array. All subsequent renders diff-update only `className` and `style.background` — zero `innerHTML`, zero `createElement`, zero GC pressure.
+- **O(1) cell access**: `clearLines()` and `showGhostAt()` use `_boardCells[r][c]` direct array lookup instead of `querySelector('[data-r=...][data-c=...]')`.
+- **Ghost tracking array** (`_ghostCells[]`): `showGhostAt()` pushes cells to tracking array; `clearGhost()` iterates only ghosted cells instead of `querySelectorAll('.ghost')` over all 100 nodes.
+
+#### Gem Crush (`match3.js`)
+
+- **Cached board cells** (`_m3Cells[][]`): `renderBoard()` creates 64 cells once. Subsequent renders and `animateCascade()` steps diff-update existing DOM nodes — eliminating 64× `createElement` + 64× `addEventListener` per cascade step.
+- **Event delegation**: Single `click` listener on `.m3-board` replaces 64 per-cell closures. Cell coordinates read from `dataset.x`/`dataset.y` on the clicked target.
+- **O(1) `getCell()`**: `_m3Cells[y][x]` direct access replaces `querySelector('.m3-cell[data-x=...][data-y=...]')`.
+
+#### Navigation (`shared.js`)
+
+- **Cached nav collections**: `_cachedScreens[]`, `_cachedNavDots[]`, `_cachedNavTabs[]` populated once at `DOMContentLoaded`. `applyScreenClasses()` and `updateNavUI()` iterate cached arrays — zero `querySelectorAll` per screen transition.
+
 ## v4.15.3 — 2026-02-20
 
 ### Performance Optimizations (Second Audit)

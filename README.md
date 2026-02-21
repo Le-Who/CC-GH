@@ -2,7 +2,7 @@
 
 > A 4-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, and Building Blox puzzle — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v4.15.3**
+**Current version: v4.16.0**
 
 ---
 
@@ -192,6 +192,7 @@ Following a complete codebase analysis, the following synthesized solutions will
 3. ~~**Standardized `<dialog>` Overlays**~~: All overlays migrated in v4.14.0–v4.14.3. Scrollbar flash fixed in v4.15.0.
 4. ~~**Centralized Toast Queue**~~: Implemented in v4.14.0, repositioned to bottom-right in v4.14.3.
 5. ~~**Juicy UI Foundation**~~: Implemented in v4.15.0–v4.15.3. Spring physics, GPU-optimized animations, pseudo-3D blocks, hit-stop micro-feedback, dynamic gravity, compositor-safe transitions, spring return, object-pooled float points, CSS containment, deadlock reshuffle wave, radial petrification game-over, rAF resize throttle, visibility-gated render, particle pools, DOM ref caching, compositor-only glow, aurora animation gate.
+6. ~~**DOM-Cached Rendering**~~: Implemented in v4.16.0. Zero-innerHTML diff-update for Blox (100 cells) and Match-3 (64 cells + cascade animation). Event delegation, ghost tracking arrays, cached nav collections.
 
 ---
 

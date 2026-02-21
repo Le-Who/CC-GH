@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Shared Module (v4.15.3)
+ *  Game Hub — Shared Module (v4.16.0)
  *  Discord SDK auth, API helper, screen navigation
  *  CSP-compliant: no inline handlers, no external fonts
  * ═══════════════════════════════════════════════════ */
@@ -225,15 +225,15 @@ function updatePetDock() {
   }
 }
 
+// v4.16: Cached DOM collections (populated once at DOMContentLoaded)
+let _cachedScreens = [];
+let _cachedNavDots = [];
+let _cachedNavTabs = [];
+
 function applyScreenClasses() {
-  const screens = document.querySelectorAll(".screen");
-  screens.forEach((screen, index) => {
-    if (index === HUB.currentScreen) {
-      screen.classList.add("active");
-    } else {
-      screen.classList.remove("active");
-    }
-  });
+  for (let i = 0; i < _cachedScreens.length; i++) {
+    _cachedScreens[i].classList.toggle("active", i === HUB.currentScreen);
+  }
 }
 
 function updateNavUI() {
@@ -242,15 +242,15 @@ function updateNavUI() {
   $left.classList.toggle("hidden", HUB.currentScreen === 0);
   $right.classList.toggle("hidden", HUB.currentScreen === 3);
 
-  // Desktop dots
-  document.querySelectorAll(".nav-dot").forEach((dot, i) => {
-    dot.classList.toggle("active", i === HUB.currentScreen);
-  });
-  // Mobile bottom nav-bar
-  document.querySelectorAll(".nav-tab").forEach((tab) => {
+  // Desktop dots (cached)
+  for (let i = 0; i < _cachedNavDots.length; i++) {
+    _cachedNavDots[i].classList.toggle("active", i === HUB.currentScreen);
+  }
+  // Mobile bottom nav-bar (cached)
+  for (const tab of _cachedNavTabs) {
     const idx = parseInt(tab.dataset.screen, 10);
     tab.classList.toggle("active", idx === HUB.currentScreen);
-  });
+  }
 }
 
 async function triggerScreenCallbacks() {
@@ -594,6 +594,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   // Initialize TopHUD (Energy & Gold) + Pet Companion
   if (typeof HUD !== "undefined") await HUD.init();
   if (typeof PetCompanion !== "undefined") PetCompanion.init();
+
+  // v4.16: Populate cached DOM collections for zero-querySelectorAll navigation
+  _cachedScreens = Array.from(document.querySelectorAll(".screen"));
+  _cachedNavDots = Array.from(document.querySelectorAll(".nav-dot"));
+  _cachedNavTabs = Array.from(document.querySelectorAll(".nav-tab"));
 
   applyScreenClasses();
   updateNavUI();

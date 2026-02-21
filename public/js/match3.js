@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v4.15.3)
+ *  Game Hub — Match-3 Module (v4.16.0)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode
@@ -1274,29 +1274,59 @@ const Match3Game = (() => {
     return { cropId, quantity: 3 };
   }
 
-  /* ═══ Render Board (persistent DOM elements) ═══ */
+  /* ═══ Render Board (v4.16: DOM-cached diff-update — zero innerHTML rebuild) ═══ */
+  let _m3Cells = []; // 2D cache: _m3Cells[y][x] = DOM element
+
   function renderBoard(animate) {
     const $b = $("m3-board");
-    $b.innerHTML = "";
     $b.classList.remove("disabled");
 
+    // First render: create cells once and cache them + set up event delegation
+    if (_m3Cells.length === 0) {
+      $b.innerHTML = "";
+      for (let y = 0; y < BOARD_SIZE; y++) {
+        _m3Cells[y] = [];
+        for (let x = 0; x < BOARD_SIZE; x++) {
+          const cell = document.createElement("div");
+          cell.className = "m3-cell";
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          cell.innerHTML = `<span class="gem-icon"></span>`;
+          $b.appendChild(cell);
+          _m3Cells[y][x] = cell;
+        }
+      }
+      // Event delegation: single click handler on board (replaces 64 per-cell listeners)
+      $b.addEventListener("click", (e) => {
+        const cell = e.target.closest(".m3-cell");
+        if (!cell) return;
+        const cx = parseInt(cell.dataset.x, 10);
+        const cy = parseInt(cell.dataset.y, 10);
+        if (!isNaN(cx) && !isNaN(cy)) onCellClick(cx, cy);
+      });
+    }
+
+    // Diff-update: only change attributes/styles on existing cached nodes
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
+        const cell = _m3Cells[y][x];
         const type = board[y][x];
-        const cell = document.createElement("div");
-        cell.className = "m3-cell";
         const isDrop = DROP_TYPES.includes(type);
-        if (isDrop)
-          cell.classList.add("drop-gem", `drop-${type.replace("drop_", "")}`);
-        if (animate) cell.classList.add("entering");
+
+        // Build class list efficiently
+        let cls = "m3-cell";
+        if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
+        if (animate) cls += " entering";
+        cell.className = cls;
+
         cell.dataset.type = type;
-        cell.dataset.x = x;
-        cell.dataset.y = y;
-        const icon = isDrop ? DROP_ICONS[type] || "🌟" : GEM_ICONS[type] || "?";
-        cell.innerHTML = `<span class="gem-icon">${icon}</span>`;
-        if (animate) cell.style.animationDelay = `${(x + y) * 25}ms`;
-        cell.addEventListener("click", () => onCellClick(x, y));
-        $b.appendChild(cell);
+        const icon = isDrop ? (DROP_ICONS[type] || "🌟") : (GEM_ICONS[type] || "?");
+        cell.firstElementChild.textContent = icon;
+        if (animate) {
+          cell.style.animationDelay = `${(x + y) * 25}ms`;
+        } else {
+          cell.style.animationDelay = "";
+        }
       }
     }
 
@@ -1560,19 +1590,16 @@ const Match3Game = (() => {
     $b.classList.remove("disabled");
   }
 
-  /* ═══ Cascade Animation (smooth CSS transitions, dynamic gravity) ═══ */
+  /* ═══ Cascade Animation (v4.16: diff-update on cached cells, dynamic gravity) ═══ */
   async function animateCascade(steps) {
     for (const step of steps) {
       // Phase 1: Pop matched gems (with brightness flash)
       for (const { x, y } of step.cleared) {
-        getCell(x, y)?.classList.add("popping");
+        _m3Cells[y]?.[x]?.classList.add("popping");
       }
       await sleep(300); // Longer pop phase for satisfying clear feel
 
       // Phase 2: Update cells with new types + distance-scaled falling animation
-      const $b = $("m3-board");
-      $b.innerHTML = "";
-
       // Pre-compute fall distances for changed cells
       const fallDistMap = new Map();
       for (const f of step.fallen) {
@@ -1589,23 +1616,27 @@ const Match3Game = (() => {
       for (const f of step.fallen) changedSet.add(`${f.x},${f.toY}`);
       for (const f of step.filled) changedSet.add(`${f.x},${f.y}`);
 
+      // Diff-update on cached DOM nodes (zero innerHTML, zero createElement)
       for (let y = 0; y < BOARD_SIZE; y++) {
         for (let x = 0; x < BOARD_SIZE; x++) {
+          const cell = _m3Cells[y][x];
           const type = board[y][x];
-          const cell = document.createElement("div");
-          cell.className = "m3-cell";
           const isDrop = DROP_TYPES.includes(type);
-          if (isDrop)
-            cell.classList.add("drop-gem", `drop-${type.replace("drop_", "")}`);
+
+          let cls = "m3-cell";
+          if (isDrop) cls += ` drop-gem drop-${type.replace("drop_", "")}`;
+          if (changedSet.has(`${x},${y}`)) {
+            cls += " falling";
+          }
+          cell.className = cls;
+
           cell.dataset.type = type;
-          cell.dataset.x = x;
-          cell.dataset.y = y;
           const icon = isDrop
             ? DROP_ICONS[type] || "🌟"
             : GEM_ICONS[type] || "?";
-          cell.innerHTML = `<span class="gem-icon">${icon}</span>`;
+          cell.firstElementChild.textContent = icon;
+
           if (changedSet.has(`${x},${y}`)) {
-            cell.classList.add("falling");
             // Dynamic gravity: scale distance and duration per gem
             const dist = fallDistMap.get(`${x},${y}`) || 1;
             cell.style.setProperty("--drop-dist", dist);
@@ -1614,9 +1645,11 @@ const Match3Game = (() => {
             cell.style.setProperty("--fall-dur", `${dur.toFixed(2)}s`);
             // Column-based stagger: each column starts slightly later for cascade effect
             cell.style.animationDelay = `${x * 25 + y * 15}ms`;
+          } else {
+            cell.style.removeProperty("--drop-dist");
+            cell.style.removeProperty("--fall-dur");
+            cell.style.animationDelay = "";
           }
-          cell.addEventListener("click", () => onCellClick(x, y));
-          $b.appendChild(cell);
         }
       }
       await sleep(260); // Longer settle phase for bounce to complete
@@ -1625,9 +1658,7 @@ const Match3Game = (() => {
 
   /* ═══ UI Helpers ═══ */
   function getCell(x, y) {
-    return $("m3-board").querySelector(
-      `.m3-cell[data-x="${x}"][data-y="${y}"]`,
-    );
+    return _m3Cells[y]?.[x] || null;
   }
 
   function updateStatsUI() {
