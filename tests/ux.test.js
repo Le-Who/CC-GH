@@ -916,3 +916,160 @@ describe("Board Tilt — Rotation Bounds", () => {
     }
   });
 });
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Squash & Stretch Invariants (v5.2.0)
+ *  Verify m3Fall keyframes include scaleX/scaleY deformation.
+ * ═══════════════════════════════════════════════════ */
+describe("Squash & Stretch — Fall Keyframes", () => {
+  it("m3Fall keyframes include scaleX and scaleY in match3.css", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "match3.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    const fallBlock = css.match(/@keyframes m3Fall\s*\{[\s\S]*?\n\}/);
+    assert.ok(fallBlock, "m3Fall keyframes must exist in match3.css");
+    assert.ok(
+      fallBlock[0].includes("scaleX") && fallBlock[0].includes("scaleY"),
+      "m3Fall must include scaleX/scaleY for squash & stretch",
+    );
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Color Splash CSS (v5.2.0)
+ *  Verify .color-splash rule exists in match3.css.
+ * ═══════════════════════════════════════════════════ */
+describe("Color Splash — CSS Rule", () => {
+  it(".m3-board-container.color-splash rule exists in match3.css", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "match3.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    assert.ok(
+      css.includes(".m3-board-container.color-splash"),
+      "match3.css must define .m3-board-container.color-splash",
+    );
+    assert.ok(
+      css.includes("--splash-color"),
+      "color-splash rule must reference --splash-color custom property",
+    );
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Danger Vignette CSS (v5.2.0)
+ *  Verify .danger-vignette and dangerPulse keyframes exist.
+ * ═══════════════════════════════════════════════════ */
+describe("Danger Vignette — CSS Rule", () => {
+  it(".danger-vignette and dangerPulse exist in match3.css", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "match3.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    assert.ok(
+      css.includes(".danger-vignette"),
+      "match3.css must define .danger-vignette",
+    );
+    assert.ok(
+      css.includes("@keyframes dangerPulse"),
+      "match3.css must define @keyframes dangerPulse",
+    );
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Ambient Dust Particles (v5.2.0)
+ *  Verify ambientDrift keyframes exist in match3.css.
+ * ═══════════════════════════════════════════════════ */
+describe("Ambient Dust Particles — CSS Keyframes", () => {
+  it("ambientDrift keyframes exist in match3.css", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "match3.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    assert.ok(
+      css.includes("@keyframes ambientDrift"),
+      "match3.css must define @keyframes ambientDrift",
+    );
+  });
+
+  it("bloxAmbientDrift keyframes exist in blox.css", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const cssPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "css",
+      "blox.css",
+    );
+    const css = fs.readFileSync(cssPath, "utf-8");
+    assert.ok(
+      css.includes("@keyframes bloxAmbientDrift"),
+      "blox.css must define @keyframes bloxAmbientDrift",
+    );
+  });
+});
+
+/* ═══════════════════════════════════════════════════
+ *  Visual UX — Drag-Tilt in Blox (v5.2.0)
+ *  Verify moveDragPreview uses rotateZ for kinetic tilt.
+ * ═══════════════════════════════════════════════════ */
+describe("Blox Drag-Tilt — rotateZ", () => {
+  it("moveDragPreview in blox.js includes rotateZ", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "blox.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    // Find the moveDragPreview function body
+    const match = js.match(/function moveDragPreview[\s\S]*?^\s*\}/m);
+    assert.ok(match, "moveDragPreview function must exist in blox.js");
+    assert.ok(
+      match[0].includes("rotateZ"),
+      "moveDragPreview must include rotateZ for drag-tilt effect",
+    );
+  });
+});

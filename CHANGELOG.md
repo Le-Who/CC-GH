@@ -1,5 +1,32 @@
 # Changelog
 
+## v5.2.0 — 2026-02-21
+
+### Visual Polish — Immersive Enhancements
+
+Six performance-safe visual features across Match-3 and Blox. All compositor-only (`transform`, `opacity`, `box-shadow`) — zero layout thrashing.
+
+#### Match-3
+
+- **Squash & Stretch** — Gems deform during falls (stretch on drop `scaleY(1.14)`, squash on landing `scaleX(1.14)`), settling via spring bounce to natural scale.
+- **Perlin Noise Screen Shake** — Replaced repeating CSS keyframe shakes with JS-driven simplex noise for organic, non-repeating vibration with linear decay. Used on invalid swaps (3px, 400ms) and big combos (6px, 500ms).
+- **Color Splash** — Board container background briefly flares with the dominant gem color (`--gem-color`) on matches ≥3, using CSS `box-shadow: inset` with 600ms fade-out.
+- **Ambient Dust Particles** — Subtle floating particles via CSS `::before` pseudo-element on `.m3-board-container`, using layered `radial-gradient` sprites animated with `ambientDrift` (18s loop).
+- **Danger Vignette** — Red pulsing vignette on screen edges when Time Attack timer reaches ≤15s. Uses `::after` pseudo-element with `radial-gradient` and `dangerPulse` opacity animation (1.2s).
+
+#### Building Blox
+
+- **Perlin Noise Screen Shake** — Same organic shake for invalid placements (3px, 350ms) and multi-line clears (5px, 450ms).
+- **Drag-Tilt** — Dragged pieces tilt toward the movement direction via `rotateZ`, using velocity delta with LERP smoothing (factor 0.15, clamped ±8°).
+- **Ambient Dust Particles** — Same particle layer on `.blox-layout` with cyan/purple/orange palette (20s loop).
+
+#### Infrastructure
+
+- Version bump: `5.1.0` → `5.2.0` in `package.json`, `match3.css`, `blox.css`, `match3.js`, `blox.js`, `base.css`
+- New UX tests: squash & stretch, color splash, danger vignette, ambient dust, drag-tilt
+
+---
+
 ## v5.1.0 — 2026-02-21
 
 ### Fluid Hub — Visual Enhancements

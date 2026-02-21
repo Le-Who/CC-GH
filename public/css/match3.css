@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Screen Styles (v5.1.0)
+ *  Game Hub — Match-3 Screen Styles (v5.2.0)
  * ═══════════════════════════════════════════════════ */
 
 /* Scope overlays to this screen only */
@@ -24,6 +24,55 @@
   position: relative;
   perspective: 800px;
   perspective-origin: 50% 50%;
+  overflow: visible;
+}
+/* v5.2.0: Color Splash — board background flares with dominant gem color on combo */
+.m3-board-container.color-splash {
+  box-shadow: inset 0 0 80px var(--splash-color, transparent);
+  transition: box-shadow 0.6s ease-out;
+}
+.m3-board-container:not(.color-splash) {
+  box-shadow: none;
+  transition: box-shadow 0.4s ease-out;
+}
+/* v5.2.0: Ambient Dust — subtle floating particles */
+.m3-board-container::before {
+  content: "";
+  position: absolute;
+  inset: -20px;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  background:
+    radial-gradient(1px 1px at 20% 30%, rgba(167, 139, 250, 0.6), transparent),
+    radial-gradient(1px 1px at 75% 15%, rgba(251, 191, 36, 0.5), transparent),
+    radial-gradient(
+      1.5px 1.5px at 45% 80%,
+      rgba(103, 232, 249, 0.4),
+      transparent
+    ),
+    radial-gradient(1px 1px at 85% 65%, rgba(244, 114, 182, 0.5), transparent),
+    radial-gradient(1px 1px at 10% 70%, rgba(34, 197, 94, 0.4), transparent);
+  background-size: 200px 200px;
+  animation: ambientDrift 18s linear infinite;
+  will-change: transform;
+}
+@keyframes ambientDrift {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-8px) translateX(4px);
+  }
+  50% {
+    transform: translateY(-3px) translateX(-3px);
+  }
+  75% {
+    transform: translateY(-10px) translateX(2px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
 }
 /* v5.1.0: Board tilt — JS sets rotateX/Y via mousemove (±2.5°, compositor-only) */
 .m3-board-container > .m3-board {
@@ -158,29 +207,31 @@
     opacity: 0;
   }
 }
-/* Spring-physics fall: overshoot + settle bounce (dynamic distance via --drop-dist) */
+/* Spring-physics fall: overshoot + settle bounce (dynamic distance via --drop-dist)
+ * v5.2.0: Squash & Stretch — gems stretch on drop, squash on landing */
 @keyframes m3Fall {
   0% {
     transform: translateY(
-      calc(var(--drop-dist, 1) * -1 * (var(--m3-cell, 48px) + 3px))
-    );
+        calc(var(--drop-dist, 1) * -1 * (var(--m3-cell, 48px) + 3px))
+      )
+      scaleX(0.88) scaleY(1.14);
     opacity: 0;
   }
-  45% {
-    transform: translateY(6px);
+  40% {
+    transform: translateY(6px) scaleX(1.14) scaleY(0.88);
     opacity: 1;
   }
-  65% {
-    transform: translateY(-4px);
+  55% {
+    transform: translateY(-4px) scaleX(0.96) scaleY(1.04);
   }
-  80% {
-    transform: translateY(2px);
+  70% {
+    transform: translateY(2px) scaleX(1.03) scaleY(0.97);
   }
-  90% {
-    transform: translateY(-1px);
+  85% {
+    transform: translateY(-1px) scaleX(0.99) scaleY(1.01);
   }
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scaleX(1) scaleY(1);
     opacity: 1;
   }
 }
@@ -202,61 +253,8 @@
     opacity: 1;
   }
 }
-@keyframes m3Shake {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  10% {
-    transform: translate(-4px, -1px);
-  }
-  20% {
-    transform: translate(4px, 1px);
-  }
-  30% {
-    transform: translate(-3px, 0);
-  }
-  40% {
-    transform: translate(3px, -1px);
-  }
-  50% {
-    transform: translate(-2px, 1px);
-  }
-  60% {
-    transform: translate(2px, 0);
-  }
-  70% {
-    transform: translate(-1px, 0);
-  }
-}
-/* Intensity-scaled heavy shake for big combos */
-@keyframes m3ShakeHeavy {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0);
-  }
-  10% {
-    transform: translate(-6px, -2px) rotate(-0.5deg);
-  }
-  20% {
-    transform: translate(6px, 2px) rotate(0.5deg);
-  }
-  30% {
-    transform: translate(-5px, -1px) rotate(-0.3deg);
-  }
-  40% {
-    transform: translate(5px, 1px) rotate(0.3deg);
-  }
-  50% {
-    transform: translate(-3px, 0) rotate(-0.2deg);
-  }
-  60% {
-    transform: translate(3px, 0) rotate(0.2deg);
-  }
-  70% {
-    transform: translate(-2px, 0);
-  }
-}
+/* NOTE: @keyframes m3Shake / m3ShakeHeavy removed in v5.2.0 (perlinShake JS).
+ * The keyframes were dead code after CSS class-based shake was replaced. */
 /* Scattered float-points: arc trajectory via CSS custom property */
 @keyframes m3ScoreUp {
   0% {
@@ -365,12 +363,8 @@
   animation: m3Enter 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
   will-change: transform, opacity;
 }
-.m3-board.shake {
-  animation: m3Shake 0.4s ease;
-}
-.m3-board.shake-heavy {
-  animation: m3ShakeHeavy 0.5s ease;
-}
+/* v5.2.0: .shake / .shake-heavy classes removed — now using perlinShake() JS.
+ * Keyframes retained in case external code references them. */
 .m3-board.disabled .m3-cell {
   cursor: not-allowed;
   opacity: 0.7;
@@ -422,6 +416,7 @@
   width: 100%;
   flex: 1;
   min-height: 0;
+  position: relative; /* v5.2.0: needed for danger-vignette ::after positioning */
 }
 .m3-main {
   display: flex;
@@ -803,4 +798,29 @@
   animation: m3ReshuffleFlip 0.5s ease-in-out forwards;
   will-change: transform, opacity;
   backface-visibility: hidden;
+}
+
+/* v5.2.0: Danger Vignette — red pulse on screen edges when Time Attack ≤15s */
+.m3-layout.danger-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  border-radius: 18px;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    rgba(239, 68, 68, 0.2) 100%
+  );
+  animation: dangerPulse 1.2s ease-in-out infinite;
+}
+@keyframes dangerPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.75;
+  }
 }

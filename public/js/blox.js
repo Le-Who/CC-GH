@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Module (v5.1.0)
+ *  Game Hub — Building Blox Module (v5.2.0)
  *  10×10 Block Puzzle: place pieces, clear lines
  *  ─ localStorage persistence, pause overlay, touch drag,
  *    grab-point anchor ghost, mouse drag-and-drop,
@@ -24,6 +24,42 @@ const BloxGameImpl = (() => {
   let gameActive = false;
   let gamePaused = false;
   let selectedPiece = -1;
+
+  /* ─── v5.2.0: Perlin Noise Screen Shake (organic, non-repeating) ─── */
+  function _hashNoise(x) {
+    let n = Math.sin(x * 127.1 + x * 311.7) * 43758.5453;
+    return (n - Math.floor(n)) * 2 - 1;
+  }
+  function _smoothNoise(t) {
+    const i = Math.floor(t);
+    const f = t - i;
+    const u = f * f * (3 - 2 * f);
+    return _hashNoise(i) * (1 - u) + _hashNoise(i + 1) * u;
+  }
+  function perlinShake(el, intensity, durationMs) {
+    if (!el) return;
+    const start = performance.now();
+    const seed = Math.random() * 1000;
+    function frame(now) {
+      const elapsed = now - start;
+      if (elapsed >= durationMs) {
+        el.style.transform = "";
+        return;
+      }
+      const decay = 1 - elapsed / durationMs;
+      const t = elapsed * 0.015;
+      const x = _smoothNoise(seed + t) * intensity * decay;
+      const y = _smoothNoise(seed + t + 100) * intensity * decay;
+      const r = _smoothNoise(seed + t + 200) * intensity * 0.15 * decay;
+      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${r.toFixed(2)}deg)`;
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* v5.2.0: Drag-Tilt state — tracks previous pointer for velocity-based tilt */
+  let _prevDragX = 0;
+  let _dragTiltAngle = 0;
 
   // v4.15.1: Object-pooled floating score points
   const BLOX_FLOAT_POOL_SIZE = 5;
@@ -230,9 +266,11 @@ const BloxGameImpl = (() => {
       // Juicy UI: hit-stop freeze for multi-line clears (cinematic micro-feedback)
       if (cleared >= 2) {
         const gridEl2 = $("blox-board");
-        if (gridEl2) {
-          gridEl2.classList.add("shake-heavy");
-          setTimeout(() => gridEl2.classList.remove("shake-heavy"), 500);
+        // Juicy UI: v5.2.0 Perlin noise shake for multi-line clears
+        // Target layout, not board (board has tilt transform)
+        const layoutEl = gridEl2?.closest(".blox-layout");
+        if (layoutEl) {
+          perlinShake(layoutEl, 5, 450);
         }
       }
 
@@ -901,9 +939,16 @@ const BloxGameImpl = (() => {
     // Juicy UI: GPU-accelerated positioning via translate3d
     const x = pointer.clientX - (offset.dc + 0.5) * cellPx;
     const y = pointer.clientY - (offset.dr + 0.5) * cellPx - liftY;
+
+    // v5.2.0: Drag-Tilt — piece tilts toward movement direction
+    const velocityX = pointer.clientX - _prevDragX;
+    _prevDragX = pointer.clientX;
+    const targetAngle = Math.max(-8, Math.min(8, velocityX * 0.4)); // clamp ±8°
+    _dragTiltAngle += (targetAngle - _dragTiltAngle) * 0.15; // LERP
+
     dragPreviewEl.style.left = "0px";
     dragPreviewEl.style.top = "0px";
-    dragPreviewEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    dragPreviewEl.style.transform = `translate3d(${x}px, ${y}px, 0) rotateZ(${_dragTiltAngle.toFixed(1)}deg)`;
   }
 
   function removeDragPreview() {
@@ -1010,8 +1055,10 @@ const BloxGameImpl = (() => {
     if (!canPlace(t.piece, r, c)) {
       const gridEl = $("blox-board");
       if (gridEl) {
-        gridEl.classList.add("shake");
-        setTimeout(() => gridEl.classList.remove("shake"), 350);
+        // v5.2.0: Perlin noise shake for invalid placement
+        // Target layout, not board (board has tilt transform)
+        const layoutEl = gridEl?.closest(".blox-layout");
+        if (layoutEl) perlinShake(layoutEl, 3, 350);
       }
       return;
     }

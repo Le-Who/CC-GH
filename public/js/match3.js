@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v5.1.0)
+ *  Game Hub — Match-3 Module (v5.2.0)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode
@@ -60,6 +60,46 @@ const Match3GameImpl = (() => {
   let _m3SyncDirty = false;
   let _m3SyncTimerId = null;
   const M3_SYNC_INTERVAL = 3000;
+
+  /* ─── v5.2.0: Perlin Noise Screen Shake (organic, non-repeating) ─── */
+  // Simplex-inspired hash for 1D noise
+  function _hashNoise(x) {
+    let n = Math.sin(x * 127.1 + x * 311.7) * 43758.5453;
+    return (n - Math.floor(n)) * 2 - 1; // -1..+1
+  }
+  function _smoothNoise(t) {
+    const i = Math.floor(t);
+    const f = t - i;
+    const u = f * f * (3 - 2 * f);
+    return _hashNoise(i) * (1 - u) + _hashNoise(i + 1) * u;
+  }
+  /**
+   * Perlin-noise-driven screen shake.
+   * @param {HTMLElement} el  — element to shake
+   * @param {number} intensity — max px displacement
+   * @param {number} durationMs — total shake time
+   */
+  function perlinShake(el, intensity, durationMs) {
+    if (!el) return;
+    const start = performance.now();
+    const seed = Math.random() * 1000;
+    function frame(now) {
+      const elapsed = now - start;
+      if (elapsed >= durationMs) {
+        el.style.transform = "";
+        return;
+      }
+      const progress = elapsed / durationMs;
+      const decay = 1 - progress; // linear decay
+      const t = elapsed * 0.015; // noise frequency
+      const x = _smoothNoise(seed + t) * intensity * decay;
+      const y = _smoothNoise(seed + t + 100) * intensity * decay;
+      const r = _smoothNoise(seed + t + 200) * intensity * 0.15 * decay;
+      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${r.toFixed(2)}deg)`;
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
 
   function persistSavedModes() {
     try {
@@ -980,6 +1020,14 @@ const Match3GameImpl = (() => {
       if (timedSecondsLeft <= 10) {
         $("m3-moves").style.color = "#ef4444";
       }
+      // v5.2.0: Danger vignette — red pulse on screen edges when ≤15s
+      const layout = document.querySelector(".m3-layout");
+      if (layout) {
+        layout.classList.toggle(
+          "danger-vignette",
+          timedSecondsLeft <= 15 && timedSecondsLeft > 0,
+        );
+      }
       if (timedSecondsLeft <= 0) {
         stopTimedCountdown();
         endTimedGame();
@@ -989,6 +1037,9 @@ const Match3GameImpl = (() => {
   function stopTimedCountdown() {
     if (timedTimer) clearInterval(timedTimer);
     timedTimer = null;
+    // v5.2.0: Remove danger vignette when timer stops
+    const layout = document.querySelector(".m3-layout");
+    if (layout) layout.classList.remove("danger-vignette");
   }
   async function endTimedGame() {
     if (!gameActive) return;
@@ -1292,9 +1343,9 @@ const Match3GameImpl = (() => {
 
     const matches = findMatches(testBoard);
     if (matches.length === 0) {
-      // Invalid swap — shake
-      $b.classList.add("shake");
-      setTimeout(() => $b.classList.remove("shake"), 400);
+      // Invalid swap — v5.2.0: Perlin noise shake (organic)
+      // Target container, not board (board has tilt transform)
+      perlinShake($("m3-board-container"), 3, 400);
       isAnimating = false;
       $b.classList.remove("disabled");
       return;
@@ -1392,11 +1443,10 @@ const Match3GameImpl = (() => {
     };
     persistSavedModes();
 
-    // 5.1: Juicy UI — intensity-scaled shake for big combos
+    // v5.2.0: Perlin noise shake for big combos (organic, non-repeating)
+    // Target container, not board (board has tilt transform)
     if (combo >= 3) {
-      const $b2 = $("m3-board");
-      $b2.classList.add("shake-heavy");
-      setTimeout(() => $b2.classList.remove("shake-heavy"), 550);
+      perlinShake($("m3-board-container"), 6, 500);
     }
 
     if (combo > 1) showComboBanner(combo);
@@ -1490,6 +1540,25 @@ const Match3GameImpl = (() => {
         cell.classList.add("popping");
       }
       await sleep(Math.round(BASE_POP_DUR * speedMul));
+
+      // v5.2.0: Color Splash — flash board background with dominant gem color
+      if (step.cleared.length >= 3) {
+        const firstCleared = step.cleared[0];
+        const splashCell = _m3Cells[firstCleared.y]?.[firstCleared.x];
+        if (splashCell) {
+          const gemColor = getComputedStyle(splashCell)
+            .getPropertyValue("--gem-color")
+            .trim();
+          if (gemColor) {
+            const container = $("m3-board-container");
+            if (container) {
+              container.style.setProperty("--splash-color", gemColor);
+              container.classList.add("color-splash");
+              setTimeout(() => container.classList.remove("color-splash"), 600);
+            }
+          }
+        }
+      }
 
       // ── Phase 1.5: Explicit popping cleanup (prevent stale scale(0)/opacity(0)) ──
       for (const { x, y } of step.cleared) {
