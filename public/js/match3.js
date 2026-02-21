@@ -25,6 +25,10 @@ const Match3Game = (() => {
   };
   const BOARD_SIZE = 8;
 
+  // v4.16: Lightweight deep-clone helpers (eliminate JSON.parse(JSON.stringify) GC pressure)
+  function cloneBoard(b) { return b.map(row => [...row]); }
+  function cloneDropStars(ds) { return ds.map(s => ({ ...s })); }
+
   let board = [];
   let score = 0;
   let movesLeft = 30;
@@ -40,20 +44,50 @@ const Match3Game = (() => {
   let savedModes = {}; // { mode: { board, score, movesLeft, ... } }
   const SAVED_MODES_KEY = "m3_saved_modes";
 
-  /** Persist savedModes to localStorage AND server (cross-device sync) */
+  /** Persist savedModes to localStorage AND server (cross-device sync)
+   *  v4.16: Server sync is debounced to 3s to reduce network traffic.
+   *  localStorage is written immediately (synchronous, instant).
+   */
+  let _m3SyncDirty = false;
+  let _m3SyncTimerId = null;
+  const M3_SYNC_INTERVAL = 3000;
+
   function persistSavedModes() {
     try {
       localStorage.setItem(SAVED_MODES_KEY, JSON.stringify(savedModes));
     } catch (_) {
       /* quota exceeded — ignore */
     }
-    // v4.11.1: sync to server for cross-device persistence
-    if (HUB.userId) {
+    // v4.16: Mark dirty — server sync fires on 3s timer, not per-action
+    _m3SyncDirty = true;
+    _ensureM3SyncTimer();
+  }
+
+  function _ensureM3SyncTimer() {
+    if (_m3SyncTimerId || !HUB.userId) return;
+    _m3SyncTimerId = setInterval(() => {
+      if (!_m3SyncDirty) return;
+      _m3SyncDirty = false;
       api("/api/game/sync-modes", {
         userId: HUB.userId,
         savedModes,
       }).catch(() => {});
-    }
+    }, M3_SYNC_INTERVAL);
+  }
+
+  /** v4.16: Flush pending sync immediately (keepalive for tab close) */
+  function _flushM3Sync() {
+    if (!_m3SyncDirty || !HUB.userId) return;
+    _m3SyncDirty = false;
+    const headers = { 'Content-Type': 'application/json' };
+    if (HUB.accessToken) headers['Authorization'] = `Bearer ${HUB.accessToken}`;
+    fetch('/api/game/sync-modes', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ userId: HUB.userId, savedModes }),
+      keepalive: true,
+    }).catch(() => {});
+  }
   }
   /** Hydrate savedModes from localStorage */
   function loadSavedModes() {
@@ -69,7 +103,7 @@ const Match3Game = (() => {
   function restoreDropState(saved) {
     // Hydrate dropStars in case it came from Firestore (object instead of array)
     const raw = saved.dropStars
-      ? JSON.parse(JSON.stringify(saved.dropStars))
+      ? cloneDropStars(saved.dropStars)
       : [];
     dropStars = hydrateArray(raw);
     starsDropped = saved.starsDropped || 0;
@@ -441,11 +475,11 @@ const Match3Game = (() => {
       // Snapshot active game into savedModes before flushing
       if (gameActive) {
         savedModes[gameMode] = {
-          board: JSON.parse(JSON.stringify(board)),
+          board: cloneBoard(board),
           score,
           movesLeft,
           combo,
-          dropStars: JSON.parse(JSON.stringify(dropStars)),
+          dropStars: cloneDropStars(dropStars),
           starsDropped,
           timedSecondsLeft,
         };
@@ -454,16 +488,7 @@ const Match3Game = (() => {
       try {
         localStorage.setItem(SAVED_MODES_KEY, JSON.stringify(savedModes));
       } catch (_) {}
-      if (Object.keys(savedModes).length === 0) return;
-      const headers = { "Content-Type": "application/json" };
-      if (HUB.accessToken)
-        headers["Authorization"] = `Bearer ${HUB.accessToken}`;
-      fetch("/api/game/sync-modes", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ userId: HUB.userId, savedModes }),
-        keepalive: true,
-      }).catch(() => {});
+      _flushM3Sync();
     });
   }
 
@@ -694,7 +719,7 @@ const Match3Game = (() => {
           const lastSaved = savedModes[lastMode];
           if (lastSaved && lastSaved.board) {
             gameMode = lastMode;
-            board = JSON.parse(JSON.stringify(lastSaved.board));
+            board = cloneBoard(lastSaved.board);
             score = lastSaved.score || 0;
             movesLeft = lastSaved.movesLeft || 0;
             combo = lastSaved.combo || 0;
@@ -717,7 +742,7 @@ const Match3Game = (() => {
         const lastSaved = savedModes[lastMode];
         if (lastSaved && lastSaved.board) {
           gameMode = lastMode;
-          board = JSON.parse(JSON.stringify(lastSaved.board));
+          board = cloneBoard(lastSaved.board);
           score = lastSaved.score || 0;
           movesLeft = lastSaved.movesLeft || 0;
           combo = lastSaved.combo || 0;
@@ -763,7 +788,7 @@ const Match3Game = (() => {
       gameMode = mode;
 
       const s = savedModes[mode];
-      board = hydrateBoard(JSON.parse(JSON.stringify(s.board)));
+      board = hydrateBoard(cloneBoard(s.board));
       score = s.score;
       movesLeft = s.movesLeft;
       combo = s.combo;
@@ -809,11 +834,11 @@ const Match3Game = (() => {
     // Energy OK → save current mode state before switching
     if (gameActive && gameMode !== mode) {
       savedModes[gameMode] = {
-        board: JSON.parse(JSON.stringify(board)),
+        board: cloneBoard(board),
         score,
         movesLeft,
         combo,
-        dropStars: JSON.parse(JSON.stringify(dropStars)),
+        dropStars: cloneDropStars(dropStars),
         starsDropped,
         timedSecondsLeft,
       };
@@ -917,11 +942,11 @@ const Match3Game = (() => {
 
     // v4.5.1: stash new game into savedModes immediately so it survives reload
     savedModes[mode] = {
-      board: JSON.parse(JSON.stringify(board)),
+      board: cloneBoard(board),
       score,
       movesLeft,
       combo,
-      dropStars: JSON.parse(JSON.stringify(dropStars)),
+      dropStars: cloneDropStars(dropStars),
       starsDropped,
       timedSecondsLeft,
     };
@@ -1459,11 +1484,11 @@ const Match3Game = (() => {
     syncToStore();
     // Persist current game state after every swap so progress survives reload
     savedModes[gameMode] = {
-      board: JSON.parse(JSON.stringify(board)),
+      board: cloneBoard(board),
       score,
       movesLeft,
       combo,
-      dropStars: JSON.parse(JSON.stringify(dropStars)),
+      dropStars: cloneDropStars(dropStars),
       starsDropped,
       timedSecondsLeft,
     };

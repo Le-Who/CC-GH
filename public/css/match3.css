@@ -107,26 +107,35 @@
 }
 
 /* ─── Animations (Juicy UI: spring physics, flash pop, wave entrance) ─── */
+/* v4.16: Compositor-only pop — no filter:brightness repaints */
 @keyframes m3Pop {
   0% {
     transform: scale(1);
     opacity: 1;
-    filter: brightness(1);
   }
   20% {
     transform: scale(1.4);
     opacity: 1;
-    filter: brightness(2.2);
   }
   50% {
     transform: scale(1.5);
     opacity: 0.6;
-    filter: brightness(2.8);
   }
   100% {
     transform: scale(0);
     opacity: 0;
-    filter: brightness(3);
+  }
+}
+/* v4.16: GPU-composited flash via ::after (replaces filter:brightness) */
+@keyframes m3PopFlash {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
   }
 }
 /* Spring-physics fall: overshoot + settle bounce (dynamic distance via --drop-dist) */
@@ -289,7 +298,18 @@
 
 .m3-cell.popping {
   animation: m3Pop 0.36s ease-out forwards;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
+}
+/* v4.16: GPU-composited white flash (replaces filter:brightness) */
+.m3-cell.popping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: white;
+  opacity: 0;
+  animation: m3PopFlash 0.25s ease-out forwards;
+  pointer-events: none;
 }
 .m3-cell.falling {
   animation: m3Fall var(--fall-dur, 0.48s) cubic-bezier(0.22, 1, 0.36, 1);

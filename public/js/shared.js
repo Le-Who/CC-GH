@@ -567,7 +567,11 @@ function flashNavArrows() {
 }
 function startArrowFlash() {
   if (_arrowFlashInterval) return;
-  _arrowFlashInterval = setInterval(flashNavArrows, 90000); // every 90s
+  // v4.16: Visibility gate — skip CSS class manipulation when tab is hidden (saves battery)
+  _arrowFlashInterval = setInterval(() => {
+    if (document.hidden) return;
+    flashNavArrows();
+  }, 90000); // every 90s
 }
 
 /* ─── Init on load ─── */

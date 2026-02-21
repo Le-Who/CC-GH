@@ -85,14 +85,14 @@
   }
 }
 
-/* Clear animation (Juicy UI: flash white then shatter) */
-@keyframes bloxFlash {
+/* Clear animation (v4.16: Compositor-only — ::after white flash instead of filter) */
+@keyframes bloxFlashOverlay {
   0% {
-    filter: brightness(1);
+    opacity: 0;
     transform: scale(1);
   }
   100% {
-    filter: brightness(2.5);
+    opacity: 0.85;
     transform: scale(1.08);
   }
 }
@@ -100,24 +100,30 @@
   0% {
     transform: scale(1.08);
     opacity: 1;
-    filter: brightness(2);
   }
   40% {
     transform: scale(1.12) translateY(2px);
     opacity: 0.7;
-    filter: brightness(1.5);
   }
   100% {
     transform: scale(0) translateY(8px);
     opacity: 0;
-    filter: brightness(1);
   }
 }
 .blox-cell.clearing {
-  animation:
-    bloxFlash 0.1s ease-out forwards,
-    bloxShatter 0.28s 0.1s ease-out forwards;
-  will-change: transform, opacity, filter;
+  animation: bloxShatter 0.28s 0.1s ease-out forwards;
+  will-change: transform, opacity;
+}
+/* v4.16: GPU-composited white flash via pseudo-element (no filter repaints) */
+.blox-cell.clearing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: white;
+  opacity: 0;
+  animation: bloxFlashOverlay 0.1s ease-out forwards;
+  pointer-events: none;
 }
 
 /* Board shake (2D for organic feel) */

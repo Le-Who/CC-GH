@@ -141,6 +141,17 @@ const BloxGame = (() => {
   let dragPreviewEl = null;
   let dragPreviewCellSize = 28; // default, updated dynamically
 
+  // v4.16: Cached board geometry during drag (eliminates per-frame getBoundingClientRect)
+  let _cachedBoardRect = null;
+
+  // v4.16: Debounced server sync (3s throttle instead of per-placement HTTP)
+  let _syncDirty = false;
+  let _syncTimerId = null;
+  const SYNC_INTERVAL_MS = 3000;
+
+  // v4.16: Reusable Uint8Array for clearLines (zero-allocation)
+  const _clearMap = new Uint8Array(GRID * GRID);
+
   const $ = (id) => document.getElementById(id);
 
   // ── Leaderboard (v4.9) ──
@@ -245,6 +256,7 @@ const BloxGame = (() => {
   // v4.7: Board cells are cleared SYNCHRONOUSLY so canAnyPieceFit()
   // checks the correct state. Only the visual re-render is delayed
   // for the .clearing CSS animation.
+  // v4.16: Uint8Array visited map instead of Set<string> (zero GC pressure)
   function clearLines() {
     let cleared = 0;
     const rowsToClear = [];
@@ -264,30 +276,42 @@ const BloxGame = (() => {
       if (full) colsToClear.push(c);
     }
 
-    const cellsToClear = new Set();
+    // v4.16: Use reusable Uint8Array instead of Set<string> — no allocations
+    _clearMap.fill(0);
+    let cellCount = 0;
     for (const r of rowsToClear) {
-      for (let c = 0; c < GRID; c++) cellsToClear.add(`${r},${c}`);
+      for (let c = 0; c < GRID; c++) {
+        const idx = r * GRID + c;
+        if (_clearMap[idx] === 0) {
+          _clearMap[idx] = 1;
+          cellCount++;
+        }
+      }
     }
     for (const c of colsToClear) {
-      for (let r = 0; r < GRID; r++) cellsToClear.add(`${r},${c}`);
+      for (let r = 0; r < GRID; r++) {
+        const idx = r * GRID + c;
+        if (_clearMap[idx] === 0) {
+          _clearMap[idx] = 1;
+          cellCount++;
+        }
+      }
     }
 
     cleared = rowsToClear.length + colsToClear.length;
 
     if (cleared > 0) {
-      // 1. Start CSS animation on the DOM cells
+      // 1. Start CSS animation + clear board state via Uint8Array map
       const gridEl = $("blox-board");
-      if (gridEl) {
-        for (const key of cellsToClear) {
-          const [r, c] = key.split(",").map(Number);
+      for (let i = 0; i < GRID * GRID; i++) {
+        if (_clearMap[i] === 0) continue;
+        const r = (i / GRID) | 0;
+        const c = i % GRID;
+        if (gridEl) {
           const cell = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
           if (cell) cell.classList.add("clearing");
         }
-      }
-
-      // 2. Clear board state IMMEDIATELY (sync) so game-over check is correct
-      for (const key of cellsToClear) {
-        const [r, c] = key.split(",").map(Number);
+        // 2. Clear board state IMMEDIATELY (sync) so game-over check is correct
         board[r][c] = null;
       }
 
@@ -379,29 +403,61 @@ const BloxGame = (() => {
     return false;
   }
 
-  // ── Persistence (v4.15.0: + server sync for cross-device) ──
+  // ── Persistence (v4.16: debounced server sync — 3s throttle) ──
+  function _buildSavePayload() {
+    return {
+      board,
+      tray: tray.map((t) => ({
+        pieceId: t.piece.id,
+        placed: t.placed,
+      })),
+      score,
+      linesCleared,
+      highScore,
+      gameActive,
+    };
+  }
+
   function saveState() {
     try {
-      const state = {
-        board,
-        tray: tray.map((t) => ({
-          pieceId: t.piece.id,
-          placed: t.placed,
-        })),
-        score,
-        linesCleared,
-        highScore,
-        gameActive,
-      };
+      const state = _buildSavePayload();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      // v4.15.0: fire-and-forget server sync
-      api("/api/blox/sync", {
-        userId: HUB.userId,
-        savedState: state,
-      }).catch(() => {});
+      // v4.16: Mark dirty — server sync happens on 3s timer, not per-placement
+      _syncDirty = true;
+      _ensureSyncTimer();
     } catch (_) {
       /* quota exceeded - silent */
     }
+  }
+
+  /** v4.16: Start 3s debounce timer for server sync (if not already running) */
+  function _ensureSyncTimer() {
+    if (_syncTimerId) return;
+    _syncTimerId = setInterval(() => {
+      if (!_syncDirty) return;
+      _syncDirty = false;
+      const payload = _buildSavePayload();
+      api("/api/blox/sync", {
+        userId: HUB.userId,
+        savedState: payload,
+      }).catch(() => {});
+    }, SYNC_INTERVAL_MS);
+  }
+
+  /** v4.16: Flush pending sync immediately (used on beforeunload/game-over) */
+  function _flushSync() {
+    if (!_syncDirty) return;
+    _syncDirty = false;
+    const payload = _buildSavePayload();
+    const headers = { "Content-Type": "application/json" };
+    if (HUB.accessToken) headers["Authorization"] = `Bearer ${HUB.accessToken}`;
+    // keepalive guarantees delivery even after tab close
+    fetch("/api/blox/sync", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ userId: HUB.userId, savedState: payload }),
+      keepalive: true,
+    }).catch(() => {});
   }
 
   function loadState() {
@@ -622,10 +678,10 @@ const BloxGame = (() => {
   }
 
   // ── Shared: compute board target from a pointer position ──
+  // v4.16: Uses _cachedBoardRect during active drag for zero-reflow reads
   function getBoardTarget(clientX, clientY, piece) {
-    const gridEl = $("blox-board");
-    if (!gridEl) return null;
-    const rect = gridEl.getBoundingClientRect();
+    const rect = _cachedBoardRect || $("blox-board")?.getBoundingClientRect();
+    if (!rect) return null;
     const cellSize = rect.width / GRID;
     const hoveredR = Math.floor((clientY - rect.top) / cellSize);
     const hoveredC = Math.floor((clientX - rect.left) / cellSize);
@@ -638,12 +694,22 @@ const BloxGame = (() => {
     };
   }
 
+  /** v4.16: Cache board rect at drag start, clear at drag end */
+  function _cacheBoardRect() {
+    const gridEl = $("blox-board");
+    _cachedBoardRect = gridEl ? gridEl.getBoundingClientRect() : null;
+  }
+  function _clearBoardRectCache() {
+    _cachedBoardRect = null;
+  }
+
   // ── Touch drag-and-drop ──
   const TOUCH_LIFT_FACTOR = 2.125; // cells above finger (was 2.5, reduced 15%)
   function onTrayTouchStart(e, idx) {
     if (!gameActive || gamePaused) return;
     if (tray[idx]?.placed) return;
     e.preventDefault(); // Block swipe nav
+    _cacheBoardRect(); // v4.16: cache geometry once per drag
     dragPieceIdx = idx;
     selectedPiece = idx;
 
@@ -720,6 +786,7 @@ const BloxGame = (() => {
       if (!placed) springReturnPreview(dragPieceIdx);
       const idx = dragPieceIdx;
       dragPieceIdx = -1;
+      _clearBoardRectCache(); // v4.16: release cached rect
       // v4.4: Now safe to renderTray to restore visual state
       renderTray();
       // Restore swipe after short delay (let touchend propagate)
@@ -743,6 +810,7 @@ const BloxGame = (() => {
     dragPieceIdx = idx;
     selectedPiece = idx;
     mouseDragging = false; // Will become true on first mousemove
+    _cacheBoardRect(); // v4.16: cache geometry once per drag
     renderTray();
 
     const startX = e.clientX;
@@ -802,9 +870,11 @@ const BloxGame = (() => {
         if (!placed) springReturnPreview(dragPieceIdx);
         dragPieceIdx = -1;
         mouseDragging = false;
+        _clearBoardRectCache(); // v4.16: release cached rect
       } else {
         // Short click — use existing click-to-select (already handled by click event)
         dragPieceIdx = -1;
+        _clearBoardRectCache(); // v4.16: release cached rect
       }
     };
 
@@ -1299,30 +1369,14 @@ const BloxGame = (() => {
     // v4.9: Initial leaderboard fetch
     fetchBloxLeaderboard();
 
-    // v4.15.1: Flush state on tab close (beats 2s debounce race)
+    // v4.16: Flush pending debounced sync on tab close (keepalive guarantees delivery)
     window.addEventListener("beforeunload", () => {
       if (!gameActive) return;
-      const state = {
-        board,
-        tray: tray.map((t) => ({ pieceId: t.piece.id, placed: t.placed })),
-        score,
-        linesCleared,
-        highScore,
-        gameActive,
-      };
-      // v4.15.1: Write to localStorage as safety net
+      // Safety net: write to localStorage synchronously
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(_buildSavePayload()));
       } catch (_) {}
-      const headers = { "Content-Type": "application/json" };
-      if (HUB.accessToken)
-        headers["Authorization"] = `Bearer ${HUB.accessToken}`;
-      fetch("/api/blox/sync", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ userId: HUB.userId, savedState: state }),
-        keepalive: true,
-      }).catch(() => {});
+      _flushSync();
     });
   }
 

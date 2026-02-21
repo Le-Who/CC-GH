@@ -44,11 +44,18 @@ const FarmGame = (() => {
     const res = GameStore.getState("resources") || {};
     GameStore.setState("resources", { ...res, __harvested: { ...harvested } });
   }
-  /** Pull state from GameStore → local (deep clone to prevent shared refs) */
+  /** Pull state from GameStore → local (deep clone to prevent shared refs)
+   *  v4.16: Dirty check — skip clone + re-render when store state matches local.
+   */
+  let _lastStorePlotsSig = "";
   function syncFromStore() {
     if (typeof GameStore !== "undefined") {
       const storeState = GameStore.getState("farm");
       if (storeState) {
+        // v4.16: Dirty flag — skip expensive clone if plots haven't changed
+        const sig = JSON.stringify(storeState.plots);
+        if (sig === _lastStorePlotsSig) return;
+        _lastStorePlotsSig = sig;
         state = {
           ...storeState,
           plots: storeState.plots
