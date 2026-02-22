@@ -282,7 +282,9 @@ let _dragState = null;
 let _trashMode = false;
 let _selectedFuel = {}; // chainId → cropId (fuel slot memory)
 let _idleHintTimer = null;
+let _dragSafetyTimer = null; // v6.1.0: force-cleanup stuck drags
 const IDLE_HINT_DELAY = 7000; // 7 seconds
+const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
 /* ─── Board Rendering ─── */
 function createBoardDOM() {
@@ -362,7 +364,32 @@ function _renderCell(r, c, item) {
 }
 
 /* ─── Ghost-Pattern Drag & Drop ─── */
+
+/** v6.1.0: Force-cleanup any stuck drag state + orphan ghosts */
+function _forceCleanupDrag() {
+  if (_dragSafetyTimer) {
+    clearTimeout(_dragSafetyTimer);
+    _dragSafetyTimer = null;
+  }
+  // Remove ALL orphan ghost divs from body
+  document.querySelectorAll(".merge-drag-ghost").forEach((g) => g.remove());
+  // Restore any dimmed cells
+  if (_dragState?.originCell) {
+    _dragState.originCell.classList.remove("merge-cell--dragging");
+  }
+  // Clear match highlights
+  if (_boardEl) {
+    _boardEl
+      .querySelectorAll(".merge-cell--match-highlight")
+      .forEach((c) => c.classList.remove("merge-cell--match-highlight"));
+  }
+  _dragState = null;
+}
+
 function _onPointerDown(e) {
+  // v6.1.0: Clean slate — force-cleanup any stuck previous drag
+  _forceCleanupDrag();
+
   if (_trashMode) {
     // Trash mode: click to remove
     const cell = e.target.closest(".merge-cell");
@@ -413,6 +440,14 @@ function _onPointerDown(e) {
     originCell: cell,
   };
 
+  // v6.1.0: Safety timeout — force-cleanup if drag lives too long
+  _dragSafetyTimer = setTimeout(() => {
+    if (_dragState) {
+      console.warn("[merge] Drag safety timeout — force cleanup");
+      _forceCleanupDrag();
+    }
+  }, DRAG_SAFETY_TIMEOUT);
+
   // Highlight matching items on board
   const mergeState = GameStore.getState("merge");
   const src = mergeState?.board[r]?.[c];
@@ -428,7 +463,7 @@ function _onPointerDown(e) {
     }
   }
 
-  cell.setPointerCapture(e.pointerId);
+  // v6.1.0: Removed setPointerCapture — document-level listeners handle everything
   e.preventDefault();
 }
 
@@ -444,6 +479,10 @@ function _onPointerUp(e) {
   if (!_dragState || e.pointerId !== _dragState.pointerId) return;
   const ds = _dragState;
   _dragState = null;
+  if (_dragSafetyTimer) {
+    clearTimeout(_dragSafetyTimer);
+    _dragSafetyTimer = null;
+  }
 
   // Restore source cell
   ds.originCell.classList.remove("merge-cell--dragging");
@@ -452,9 +491,6 @@ function _onPointerUp(e) {
     _boardEl
       .querySelectorAll(".merge-cell--match-highlight")
       .forEach((c) => c.classList.remove("merge-cell--match-highlight"));
-  try {
-    ds.originCell.releasePointerCapture(e.pointerId);
-  } catch (_) {}
 
   // Find drop target (hide ghost to avoid it being the target)
   ds.ghost.style.display = "none";
@@ -650,6 +686,10 @@ function _showCropPicker(chainId) {
   dialog.appendChild(cancelBtn);
 
   dialog.addEventListener("close", () => dialog.remove());
+  // v6.1.0: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
   document.body.appendChild(dialog);
   dialog.showModal();
 }

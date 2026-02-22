@@ -330,6 +330,14 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
 
   if (!modal.open) {
     modal.showModal();
+    // v6.1.0: Backdrop click-to-close
+    modal.addEventListener(
+      "click",
+      (e) => {
+        if (e.target === modal) modal.close();
+      },
+      { once: true },
+    );
   }
 }
 
@@ -495,7 +503,17 @@ function _openQuestLog() {
   const container = document.getElementById("quest-log-items");
   if (!modal || !container) return;
   _renderQuestLog(container);
-  if (!modal.open) modal.showModal();
+  if (!modal.open) {
+    modal.showModal();
+    // v6.1.0: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
+    modal.addEventListener(
+      "click",
+      (e) => {
+        if (e.target === modal) modal.close();
+      },
+      { once: true },
+    );
+  }
 }
 
 function _renderQuestLog(container) {

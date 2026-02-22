@@ -124,20 +124,26 @@ export async function initDiscord() {
   console.log(`Fallback Demo mode: ${HUB.userId}`);
 }
 
-/* ─── API Helper (auto-attaches auth, with retry) ─── */
+/* ─── API Helper (auto-attaches auth, with retry + timeout) ─── */
 export async function api(path, body) {
   const MAX_RETRIES = 1;
+  const TIMEOUT_MS = 8000; // v6.1.0: hard timeout to prevent perceived freeze
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const headers = { "Content-Type": "application/json" };
     if (HUB.accessToken) {
       headers["Authorization"] = `Bearer ${HUB.accessToken}`;
     }
+    // v6.1.0: AbortController timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
       const res = await fetch(path, {
         method: body ? "POST" : "GET",
         headers,
         body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         console.error(`API ${path} → ${res.status}: ${text}`);
@@ -145,6 +151,12 @@ export async function api(path, body) {
       }
       return res.json();
     } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === "AbortError") {
+        console.error(`API ${path} timed out after ${TIMEOUT_MS}ms`);
+        showToast("⏳ Server too slow — try again", "error");
+        return { error: "TIMEOUT" };
+      }
       if (attempt < MAX_RETRIES) {
         showToast("⚠️ Connection lost — retrying…");
         await sleep(2000);
@@ -168,6 +180,10 @@ export function navigate(dir) {
 export function goToScreen(index) {
   const maxScreen = HUB.screenNames.length - 1;
   if (index < 0 || index > maxScreen || index === HUB.currentScreen) return;
+
+  // v6.1.0: Close ALL open dialogs before screen transition
+  // Prevents invisible backdrops from trapping pointer events
+  document.querySelectorAll("dialog[open]").forEach((d) => d.close());
 
   const updateDOM = () => {
     HUB.currentScreen = index;
