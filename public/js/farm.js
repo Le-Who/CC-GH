@@ -324,14 +324,25 @@ const FarmGameImpl = (() => {
       );
     }
 
-    // Energy + XP
-    if (report.energyConsumed > 0 || report.xpGained > 0) {
-      const parts = [];
-      if (report.energyConsumed > 0)
-        parts.push(`⚡${report.energyConsumed} energy used`);
-      if (report.xpGained > 0) parts.push(`✨${report.xpGained} XP gained`);
+    // Pet fullness + food eaten + XP (v6.2.2: energy is never consumed offline)
+    const summaryParts = [];
+    if (report.fullnessConsumed > 0)
+      summaryParts.push(`🍖 ${report.fullnessConsumed} fullness used`);
+    const foodEntries = Object.entries(report.foodEaten || {});
+    if (foodEntries.length > 0) {
+      const foodItems = foodEntries
+        .map(([id, qty]) => {
+          const c = crops[id];
+          return c ? `${c.emoji}×${qty}` : `${id}×${qty}`;
+        })
+        .join(", ");
+      summaryParts.push(`🐾 Pet ate: ${foodItems}`);
+    }
+    if (report.xpGained > 0)
+      summaryParts.push(`✨${report.xpGained} XP gained`);
+    if (summaryParts.length > 0) {
       lines.push(
-        `<div style="margin:6px 0;opacity:0.7;font-size:0.8rem">${parts.join(" • ")}</div>`,
+        `<div style="margin:6px 0;opacity:0.7;font-size:0.8rem">${summaryParts.join(" • ")}</div>`,
       );
     }
 

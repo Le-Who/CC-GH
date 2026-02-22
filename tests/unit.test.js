@@ -148,7 +148,7 @@ describe("calcRegen", () => {
 });
 
 /* ─────────────────────────────────────────────────────
- *  processOfflineActions
+ *  processOfflineActions (v6.2.2 — fullness-based)
  * ───────────────────────────────────────────────────── */
 describe("processOfflineActions", () => {
   it("[FIX 1 REGRESSION] returns null for elapsed < 2 minutes", () => {
@@ -190,11 +190,12 @@ describe("processOfflineActions", () => {
     assert.equal(p.farm.plots[0].watered, true);
   });
 
-  it("auto-harvests fully grown crops (deducts 1 energy each)", () => {
+  it("auto-harvests fully grown crops (costs fullness, not energy)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoHarvest = true;
-    p.resources.energy.current = 5;
+    p.pet.stats.fullness = 50;
+    const energyBefore = p.resources.energy.current;
 
     // Plant a strawberry that is fully grown (planted long ago)
     p.farm.plots[0].crop = "strawberry";
@@ -204,37 +205,43 @@ describe("processOfflineActions", () => {
     const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
     assert.equal(result.harvested.strawberry, 1);
-    assert.equal(result.energyConsumed, 1);
+    assert.ok(result.fullnessConsumed > 0, "Should consume fullness");
     assert.equal(result.xpGained, CROPS.strawberry.xp);
     // Plot should be cleared
     assert.equal(p.farm.plots[0].crop, null);
     // Player should have the harvest
     assert.equal(p.farm.harvested.strawberry, 1);
+    // Energy must NOT be touched
+    assert.equal(p.resources.energy.current, energyBefore);
   });
 
-  it("auto-plants seeds on empty plots (deducts 2 energy each)", () => {
+  it("auto-plants seeds on empty plots (costs fullness, not energy)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoPlant = true;
-    p.resources.energy.current = 10;
+    p.pet.stats.fullness = 50;
+    const energyBefore = p.resources.energy.current;
     p.farm.inventory.strawberry = 3;
 
     const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
-    // Should have planted up to 3 strawberries (6 energy needed, have 10)
+    // Should have planted at least 1
     const totalPlanted = Object.values(result.planted).reduce(
       (a, b) => a + b,
       0,
     );
     assert.ok(totalPlanted > 0);
-    assert.equal(result.energyConsumed, totalPlanted * 2);
+    assert.ok(result.fullnessConsumed > 0, "Should consume fullness");
+    // Energy must NOT be touched
+    assert.equal(p.resources.energy.current, energyBefore);
   });
 
-  it("stops auto-harvest when energy runs out", () => {
+  it("stops auto-harvest when fullness runs out (no cheap food)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoHarvest = true;
-    p.resources.energy.current = 2;
+    p.pet.stats.fullness = 3; // Only enough for 1 harvest (cost=2)
+    p.farm.inventory = {}; // No food to eat
 
     // Plant 4 fully grown strawberries
     for (let i = 0; i < 4; i++) {
@@ -244,8 +251,46 @@ describe("processOfflineActions", () => {
 
     const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
-    assert.equal(result.energyConsumed, 2); // Only 2 harvested
-    assert.equal(result.harvested.strawberry, 2);
+    assert.equal(result.harvested.strawberry, 1); // Only 1 affordable
+    assert.equal(result.fullnessConsumed, 2);
+  });
+
+  it("auto-eats cheap crops to refuel when fullness is 0", () => {
+    const now = Date.now();
+    const p = createDefaultPlayer("u1", "Test", now);
+    p.pet.abilities.autoHarvest = true;
+    p.pet.stats.fullness = 0; // Empty!
+    p.farm.inventory.strawberry = 5; // Cheap crop available
+
+    // Plant 1 fully grown strawberry
+    p.farm.plots[0].crop = "strawberry";
+    p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 1000;
+
+    const result = processOfflineActions(p, now + 300000);
+    assert.ok(result);
+    assert.equal(result.harvested.strawberry, 1);
+    assert.ok(
+      result.foodEaten.strawberry > 0,
+      "Should have eaten strawberries",
+    );
+  });
+
+  it("does NOT eat mid/expensive crops for refuel", () => {
+    const now = Date.now();
+    const p = createDefaultPlayer("u1", "Test", now);
+    p.pet.abilities.autoHarvest = true;
+    p.pet.stats.fullness = 0;
+    p.farm.inventory = { tomato: 10, pumpkin: 5 }; // Only mid+expensive
+
+    p.farm.plots[0].crop = "strawberry";
+    p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 1000;
+
+    const result = processOfflineActions(p, now + 300000);
+    // Should fail to harvest — no cheap food, no fullness
+    assert.equal(result, null);
+    // Inventory untouched
+    assert.equal(p.farm.inventory.tomato, 10);
+    assert.equal(p.farm.inventory.pumpkin, 5);
   });
 
   it("updates _lastSeen to current time", () => {

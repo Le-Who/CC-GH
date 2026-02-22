@@ -849,20 +849,19 @@ describe("Farm: Economy invariants", () => {
 });
 
 /* ═══════════════════════════════════════════════════
- *  FARM — Offline Simulation Stress
+ *  FARM — Offline Simulation Stress (v6.2.2 — fullness-based)
  * ═══════════════════════════════════════════════════ */
 describe("Farm Stress: processOfflineActions", () => {
-  it("100× random states: energy never goes below 0", () => {
+  it("100× random states: energy is NEVER modified", () => {
     for (let i = 0; i < 100; i++) {
       const now = Date.now();
       const p = createDefaultPlayer(`stress_${i}`, "Stress", now - 600000);
       p.pet.abilities.autoHarvest = Math.random() > 0.5;
       p.pet.abilities.autoPlant = Math.random() > 0.5;
       p.pet.abilities.autoWater = Math.random() > 0.5;
-      p.resources.energy.current = Math.floor(
-        Math.random() * ECONOMY.ENERGY_MAX,
-      );
-      // Random seeds
+      p.pet.stats.fullness = Math.floor(Math.random() * ECONOMY.SATIETY_MAX);
+      const energyBefore = p.resources.energy.current;
+      // Random seeds (including cheap crops for auto-eat)
       p.farm.inventory.strawberry = Math.floor(Math.random() * 20);
       p.farm.inventory.tomato = Math.floor(Math.random() * 10);
       // Random plots
@@ -875,18 +874,20 @@ describe("Farm Stress: processOfflineActions", () => {
         }
       }
       processOfflineActions(p, now);
-      assert.ok(
-        p.resources.energy.current >= 0,
-        `Game ${i}: energy went to ${p.resources.energy.current}`,
+      assert.equal(
+        p.resources.energy.current,
+        energyBefore,
+        `Game ${i}: energy was modified from ${energyBefore} to ${p.resources.energy.current}`,
       );
     }
   });
 
-  it("harvest costs exactly 1 energy per crop", () => {
+  it("harvest costs fullness (not energy)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("h_test", "Test", now - 300000);
     p.pet.abilities.autoHarvest = true;
-    p.resources.energy.current = 10;
+    p.pet.stats.fullness = 50;
+    const energyBefore = p.resources.energy.current;
     // Plant 3 fully-grown strawberries
     for (let i = 0; i < 3; i++) {
       p.farm.plots[i].crop = "strawberry";
@@ -895,14 +896,16 @@ describe("Farm Stress: processOfflineActions", () => {
     const report = processOfflineActions(p, now);
     assert.ok(report);
     assert.equal(report.harvested.strawberry, 3);
-    assert.equal(report.energyConsumed, 3); // 1 per harvest
+    assert.ok(report.fullnessConsumed > 0, "Should consume fullness");
+    assert.equal(p.resources.energy.current, energyBefore, "Energy untouched");
   });
 
-  it("plant costs exactly 2 energy per seed", () => {
+  it("plant costs fullness (not energy)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("p_test", "Test", now - 300000);
     p.pet.abilities.autoPlant = true;
-    p.resources.energy.current = 10;
+    p.pet.stats.fullness = 50;
+    const energyBefore = p.resources.energy.current;
     p.farm.inventory.strawberry = 10;
     // All plots empty
     const report = processOfflineActions(p, now);
@@ -911,14 +914,18 @@ describe("Farm Stress: processOfflineActions", () => {
       (a, b) => a + b,
       0,
     );
-    assert.equal(report.energyConsumed, totalPlanted * 2);
+    assert.ok(totalPlanted > 0);
+    assert.ok(report.fullnessConsumed > 0, "Should consume fullness");
+    assert.equal(p.resources.energy.current, energyBefore, "Energy untouched");
   });
 
-  it("auto-water is free (no energy cost)", () => {
+  it("auto-water is free (no fullness or energy cost)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("w_test", "Test", now - 300000);
     p.pet.abilities.autoWater = true;
+    p.pet.stats.fullness = 0; // No fullness
     p.resources.energy.current = 0; // No energy
+    p.farm.inventory = {}; // No food
     // Plant crops but don't water
     for (let i = 0; i < 4; i++) {
       p.farm.plots[i].crop = "strawberry";
@@ -928,7 +935,7 @@ describe("Farm Stress: processOfflineActions", () => {
     const report = processOfflineActions(p, now);
     assert.ok(report);
     assert.equal(report.autoWatered, 4);
-    assert.equal(report.energyConsumed, 0, "Water should be free");
+    assert.equal(report.fullnessConsumed, 0, "Water should be free");
     assert.equal(p.resources.energy.current, 0, "Energy should stay at 0");
   });
 
@@ -937,7 +944,7 @@ describe("Farm Stress: processOfflineActions", () => {
       const now = Date.now();
       const p = createDefaultPlayer(`seed_${i}`, "Test", now - 300000);
       p.pet.abilities.autoPlant = true;
-      p.resources.energy.current = 20;
+      p.pet.stats.fullness = 100;
       p.farm.inventory.strawberry = 2; // Only 2 seeds
       processOfflineActions(p, now);
       assert.ok(
@@ -953,19 +960,19 @@ describe("Farm Stress: processOfflineActions", () => {
     p.pet.abilities.autoHarvest = true;
     p.pet.abilities.autoPlant = true;
     p.pet.abilities.autoWater = true;
-    p.resources.energy.current = 3; // Only 3 energy
-    p.farm.inventory.strawberry = 5;
-    // Plot 0: fully grown (can harvest for 1 energy)
+    p.pet.stats.fullness = 6; // 2 for harvest + 4 for plant = exactly 6
+    // Use tomato (mid-tier) so auto-eat can't refuel from inventory
+    p.farm.inventory = { tomato: 5 };
+    // Plot 0: fully grown (can harvest for 2 fullness)
     p.farm.plots[0].crop = "strawberry";
     p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 5000;
-    // Plots 1-5: empty (can plant for 2 energy each)
+    // Plots 1-5: empty (can plant for 4 fullness each)
 
     const report = processOfflineActions(p, now);
     assert.ok(report);
-    // Should harvest first (1 energy), then plant (2 energy), total = 3
+    // Should harvest first (2 fullness), then plant 1 (4 fullness), total = 6
     assert.equal(report.harvested.strawberry, 1, "Should harvest 1");
-    assert.equal(report.energyConsumed, 3, "Should use all 3 energy");
-    // 1 harvest + 1 plant = 3 energy
+    assert.equal(report.fullnessConsumed, 6, "Should use all 6 fullness");
     const totalPlanted = Object.values(report.planted).reduce(
       (a, b) => a + b,
       0,
@@ -973,7 +980,7 @@ describe("Farm Stress: processOfflineActions", () => {
     assert.equal(
       totalPlanted,
       1,
-      "Should plant exactly 1 with remaining 2 energy",
+      "Should plant exactly 1 with remaining 4 fullness",
     );
   });
 
@@ -981,7 +988,7 @@ describe("Farm Stress: processOfflineActions", () => {
     const now = Date.now();
     const p = createDefaultPlayer("level_test", "Test", now - 300000);
     p.pet.abilities.autoHarvest = true;
-    p.resources.energy.current = 20;
+    p.pet.stats.fullness = 50;
     p.farm.xp = 250;
     // Plant 2 fully-grown strawberries (5 xp each)
     p.farm.plots[0].crop = "strawberry";

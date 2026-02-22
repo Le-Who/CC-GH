@@ -1,5 +1,36 @@
 # Changelog
 
+## v6.2.2 — 2026-02-22
+
+### Offline Economy Rebalance — Autonomous Pet
+
+Critical UX fix: players no longer return to 0 Energy after being away. The pet's offline automation now runs on its own **Fullness** gauge instead of draining the player's Energy.
+
+#### Core Mechanic Change (`game-logic.js`)
+
+- **`processOfflineActions()`** completely rewritten:
+  - **Auto-Harvest**: costs **2 Fullness** per crop (was 1 Energy).
+  - **Auto-Plant**: costs **4 Fullness** per seed (was 2 Energy).
+  - **Auto-Water**: still free (ability-gated only).
+  - **Player Energy**: **never modified** during offline simulation.
+- **Self-Sustain (Auto-Eat)**: When the pet's fullness runs out mid-session, it automatically eats **cheap-tier crops only** (`strawberry`, `blueberry` — `CROP_TIERS[id] === "cheap"`) from the player's inventory to refuel. Mid and expensive crops (tomato, golden, corn, sunflower, watermelon, pumpkin) are never consumed.
+- **Report fields**: `energyConsumed` removed, replaced with `fullnessConsumed` and `foodEaten: { [cropId]: count }`.
+
+#### Welcome-Back Dialog (`farm.js`)
+
+- Updated to display `🍖 fullness used` and `🐾 Pet ate: 🍓×N` instead of `⚡ energy used`.
+
+#### Tests
+
+- **320/320 pass**, 0 failures (+2 new tests for auto-eat and mid/expensive food protection).
+- 100× stress test now asserts energy is **never modified** (was: "never below 0").
+
+#### Version Bumps
+
+- `package.json`: 6.2.1 → 6.2.2
+
+---
+
 ## v6.2.1 — 2026-02-22
 
 ### Performance & UX — 7-Fix Optimization Pass

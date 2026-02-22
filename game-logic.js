@@ -408,10 +408,16 @@ export function calcRegen(player, now = Date.now()) {
 }
 
 /* ═══════════════════════════════════════════════════
- *  OFFLINE PROGRESS — Energy-based simulation loop
+ *  OFFLINE PROGRESS — Fullness-based simulation loop
+ *  v6.2.2: Pet works using its own Fullness (not player Energy).
+ *  Self-sustain: pet auto-eats cheap-tier crops when hungry.
  *  Priority: Harvest → Plant → Water
  * ═══════════════════════════════════════════════════ */
 export const OFFLINE_THRESHOLD_MS = 120000; // 2 minutes
+
+/** Cost in fullness points per offline action */
+const OFFLINE_HARVEST_COST = 2; // per crop harvested
+const OFFLINE_PLANT_COST = 4; // per seed planted
 
 export function processOfflineActions(player, now = Date.now()) {
   const lastSeen = player._lastSeen || now;
@@ -421,25 +427,71 @@ export function processOfflineActions(player, now = Date.now()) {
   // Only simulate if away for more than 2 minutes
   if (elapsed < OFFLINE_THRESHOLD_MS) return null;
 
-  const e = player.resources.energy;
+  const pet = player.pet;
   const report = {
     offlineMinutes: Math.round(elapsed / 60000),
     harvested: {},
     planted: {},
     autoWatered: 0,
-    energyConsumed: 0,
+    fullnessConsumed: 0,
+    foodEaten: {},
     xpGained: 0,
   };
 
-  // Step 1: Auto-Harvest (1 energy per crop)
-  if (player.pet.abilities.autoHarvest && e.current > 0) {
+  // Helper: try to refuel pet by eating cheap crops from inventory
+  function tryRefuel(needed) {
+    const cheapIds = Object.keys(player.farm.inventory).filter(
+      (id) =>
+        CROP_TIERS[id] === "cheap" &&
+        CROPS[id] &&
+        player.farm.inventory[id] > 0,
+    );
+    // Sort by lowest fullnessYield first (eat the least valuable first)
+    cheapIds.sort(
+      (a, b) => (CROPS[a].fullnessYield || 0) - (CROPS[b].fullnessYield || 0),
+    );
+    let gained = 0;
+    for (const id of cheapIds) {
+      while (gained < needed && player.farm.inventory[id] > 0) {
+        player.farm.inventory[id]--;
+        const yield_ = CROPS[id].fullnessYield || 5;
+        gained += yield_;
+        pet.stats.fullness = Math.min(
+          ECONOMY.SATIETY_MAX,
+          pet.stats.fullness + yield_,
+        );
+        report.foodEaten[id] = (report.foodEaten[id] || 0) + 1;
+      }
+      if (gained >= needed) break;
+    }
+    return gained;
+  }
+
+  // Helper: spend fullness (auto-eat if needed), returns true if affordable
+  function spendFullness(cost) {
+    if (pet.stats.fullness >= cost) {
+      pet.stats.fullness -= cost;
+      report.fullnessConsumed += cost;
+      return true;
+    }
+    // Try to refuel
+    const deficit = cost - pet.stats.fullness;
+    const gained = tryRefuel(deficit);
+    if (pet.stats.fullness >= cost) {
+      pet.stats.fullness -= cost;
+      report.fullnessConsumed += cost;
+      return true;
+    }
+    return false; // Can't afford even after eating
+  }
+
+  // Step 1: Auto-Harvest (costs fullness per crop)
+  if (pet.abilities.autoHarvest) {
     for (const plot of player.farm.plots) {
-      if (e.current < 1) break;
       if (plot.crop && plot.plantedAt && getGrowthPct(plot, now) >= 1) {
+        if (!spendFullness(OFFLINE_HARVEST_COST)) break;
         const cfg = CROPS[plot.crop];
         if (!cfg) continue;
-        e.current -= 1;
-        report.energyConsumed += 1;
         report.harvested[plot.crop] = (report.harvested[plot.crop] || 0) + 1;
         player.farm.harvested[plot.crop] =
           (player.farm.harvested[plot.crop] || 0) + 1;
@@ -452,22 +504,21 @@ export function processOfflineActions(player, now = Date.now()) {
     }
   }
 
-  // Step 2: Auto-Plant (2 energy per plant, random seed)
-  if (player.pet.abilities.autoPlant && e.current >= 2) {
+  // Step 2: Auto-Plant (costs fullness per seed)
+  if (pet.abilities.autoPlant) {
     const seedIds = Object.keys(player.farm.inventory).filter(
       (id) => CROPS[id] && player.farm.inventory[id] > 0,
     );
     for (const plot of player.farm.plots) {
-      if (e.current < 2 || seedIds.length === 0) break;
+      if (seedIds.length === 0) break;
       if (!plot.crop) {
+        if (!spendFullness(OFFLINE_PLANT_COST)) break;
         const idx = Math.floor(Math.random() * seedIds.length);
         const seedId = seedIds[idx];
         player.farm.inventory[seedId]--;
         if (player.farm.inventory[seedId] <= 0) {
           seedIds.splice(idx, 1);
         }
-        e.current -= 2;
-        report.energyConsumed += 2;
         report.planted[seedId] = (report.planted[seedId] || 0) + 1;
         plot.crop = seedId;
         plot.plantedAt = lastSeen + Math.floor(Math.random() * elapsed);
@@ -477,7 +528,7 @@ export function processOfflineActions(player, now = Date.now()) {
   }
 
   // Step 3: Auto-Water (free, ability-gated)
-  if (player.pet.abilities.autoWater) {
+  if (pet.abilities.autoWater) {
     for (const plot of player.farm.plots) {
       if (plot.crop && !plot.watered) {
         plot.watered = true;
@@ -490,7 +541,10 @@ export function processOfflineActions(player, now = Date.now()) {
   const newLevel = Math.floor(player.farm.xp / 100) + 1;
   player.farm.level = newLevel;
 
-  const hadActivity = report.energyConsumed > 0 || report.autoWatered > 0;
+  const hadActivity =
+    report.fullnessConsumed > 0 ||
+    report.autoWatered > 0 ||
+    Object.keys(report.foodEaten).length > 0;
   return hadActivity ? report : null;
 }
 
