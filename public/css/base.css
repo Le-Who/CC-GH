@@ -362,9 +362,7 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 }
 
 /* ─── Audit 6: Nav Bar Slide-Pill & Pop-out ─── */
-.nav-bar {
-  position: relative;
-}
+/* Note: .nav-bar has position: fixed from earlier rules, which acts as a containing block for the pill */
 .nav-pill {
   position: absolute;
   top: 6px;
