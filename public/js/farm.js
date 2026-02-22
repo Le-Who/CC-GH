@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Farm Module (v6.1.0)
+ *  Game Hub — Farm Module (v6.1.1)
  *  Plots, planting, watering, harvesting, seed shop
  *  ─ Local growth timer, diff-update fix, farm badge
  *  ─ Diff-update plots (no blink), horizontal buy bar, plot dispatcher

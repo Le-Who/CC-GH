@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Crops Data Module (v6.1.0)
+ *  Game Hub — Crops Data Module (v6.1.1)
  *  Centralizes crop metadata fetching and caching.
  *  Replaces window.__cropsPromise / window.__cropsCache globals.
  * ═══════════════════════════════════════════════════ */

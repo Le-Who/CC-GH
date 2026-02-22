@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Gacha Merge Mini-Game (v6.1.0)
+ *  Game Hub — Gacha Merge Mini-Game (v6.1.1)
  *  Server-authoritative engine + Ghost-Pattern D&D
  *  Board: 7 rows × 9 cols. Items merge by chain + level.
  *  CSP-compliant: no innerHTML on active board.
@@ -282,7 +282,7 @@ let _dragState = null;
 let _trashMode = false;
 let _selectedFuel = {}; // chainId → cropId (fuel slot memory)
 let _idleHintTimer = null;
-let _dragSafetyTimer = null; // v6.1.0: force-cleanup stuck drags
+let _dragSafetyTimer = null; // v6.1.1: force-cleanup stuck drags
 const IDLE_HINT_DELAY = 7000; // 7 seconds
 const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
@@ -365,7 +365,7 @@ function _renderCell(r, c, item) {
 
 /* ─── Ghost-Pattern Drag & Drop ─── */
 
-/** v6.1.0: Force-cleanup any stuck drag state + orphan ghosts */
+/** v6.1.1: Force-cleanup any stuck drag state + orphan ghosts */
 function _forceCleanupDrag() {
   if (_dragSafetyTimer) {
     clearTimeout(_dragSafetyTimer);
@@ -387,7 +387,7 @@ function _forceCleanupDrag() {
 }
 
 function _onPointerDown(e) {
-  // v6.1.0: Clean slate — force-cleanup any stuck previous drag
+  // v6.1.1: Clean slate — force-cleanup any stuck previous drag
   _forceCleanupDrag();
 
   if (_trashMode) {
@@ -440,7 +440,7 @@ function _onPointerDown(e) {
     originCell: cell,
   };
 
-  // v6.1.0: Safety timeout — force-cleanup if drag lives too long
+  // v6.1.1: Safety timeout — force-cleanup if drag lives too long
   _dragSafetyTimer = setTimeout(() => {
     if (_dragState) {
       console.warn("[merge] Drag safety timeout — force cleanup");
@@ -463,7 +463,7 @@ function _onPointerDown(e) {
     }
   }
 
-  // v6.1.0: Removed setPointerCapture — document-level listeners handle everything
+  // v6.1.1: Removed setPointerCapture — document-level listeners handle everything
   e.preventDefault();
 }
 
@@ -686,7 +686,7 @@ function _showCropPicker(chainId) {
   dialog.appendChild(cancelBtn);
 
   dialog.addEventListener("close", () => dialog.remove());
-  // v6.1.0: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
+  // v6.1.1: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) dialog.close();
   });

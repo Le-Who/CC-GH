@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Shared Module (v6.1.0)
+ *  Game Hub — Shared Module (v6.1.1)
  *  Discord SDK auth, API helper, screen navigation
  *  CSP-compliant: no inline handlers, no external fonts
  *  v5: Native ES Module (was global IIFE)
@@ -127,13 +127,13 @@ export async function initDiscord() {
 /* ─── API Helper (auto-attaches auth, with retry + timeout) ─── */
 export async function api(path, body) {
   const MAX_RETRIES = 1;
-  const TIMEOUT_MS = 8000; // v6.1.0: hard timeout to prevent perceived freeze
+  const TIMEOUT_MS = 8000; // v6.1.1: hard timeout to prevent perceived freeze
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const headers = { "Content-Type": "application/json" };
     if (HUB.accessToken) {
       headers["Authorization"] = `Bearer ${HUB.accessToken}`;
     }
-    // v6.1.0: AbortController timeout
+    // v6.1.1: AbortController timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
@@ -181,7 +181,7 @@ export function goToScreen(index) {
   const maxScreen = HUB.screenNames.length - 1;
   if (index < 0 || index > maxScreen || index === HUB.currentScreen) return;
 
-  // v6.1.0: Close ALL open dialogs before screen transition
+  // v6.1.1: Close ALL open dialogs before screen transition
   // Prevents invisible backdrops from trapping pointer events
   document.querySelectorAll("dialog[open]").forEach((d) => d.close());
 
@@ -197,7 +197,7 @@ export function goToScreen(index) {
     }
   };
 
-  // v6.1.0: View Transition safety wrapper — prevents permanent blocking
+  // v6.1.1: View Transition safety wrapper — prevents permanent blocking
   // pseudo-layer in Discord Electron if transition fails or hangs.
   if (document.startViewTransition) {
     try {
@@ -222,7 +222,7 @@ export function goToScreen(index) {
 }
 
 /**
- * v6.1.0: Safe modal opener — prevents dialog stacking traps.
+ * v6.1.1: Safe modal opener — prevents dialog stacking traps.
  * Closes all open dialogs before showing a new one.
  * Adds backdrop click-to-close on every modal.
  */

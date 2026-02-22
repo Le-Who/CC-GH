@@ -21,7 +21,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     BOARD_COLS = 9;
 
   /**
-   * v6.1.0: Hydrate merge board from Firestore.
+   * v6.1.1: Hydrate merge board from Firestore.
    * sanitizeForFirestore() JSON-stringifies nested arrays (board is 7×9).
    * Firestore also converts arrays to objects with numeric keys.
    * This restores the board to a proper 2D array.

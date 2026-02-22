@@ -1,5 +1,35 @@
 # Changelog
 
+## v6.1.1 — 2026-02-22
+
+### Bug Fixes — Firestore + UI Input Freeze
+
+#### Firestore: Merge Board Nested Entity (`playerManager.js`, `mergeRoutes.js`)
+
+- **`sanitizeForFirestore()`**: Now auto-detects `Array<Array>` and JSON-stringifies — Firestore fundamentally rejects nested arrays. Fixes `INVALID_ARGUMENT: Property merge contains an invalid nested entity` crash.
+- **`hydrateMergeBoard()`**: New helper in `mergeRoutes.js` — parses JSON-stringified board back to 2D array on read. Handles Firestore object→array conversion. Called in all 6 merge endpoints.
+
+#### UI Input Freeze v1 — Pointer Event Traps (`merge.js`, `shared.js`, `hud.js`)
+
+- **Removed `setPointerCapture`** on merge drag — document-level listeners already handle `pointermove`/`pointerup` globally. Pointer capture leak was the primary freeze cause.
+- **`_forceCleanupDrag()`**: Cleans orphan ghost divs + stale `_dragState` at start of every new drag. 5-second safety timeout force-cleans stuck drags.
+- **`api()` AbortController**: 8-second hard timeout on fetch — prevents perceived freeze on slow server responses.
+- **`goToScreen()` dialog cleanup**: Closes all `dialog[open]` elements before screen transition.
+- **Backdrop click-to-close**: Added to crop picker, quest log, and energy modal dialogs.
+
+#### UI Input Freeze v2 — View Transitions + Dialog Stacking (`shared.js`, `hud.js`, `main.js`)
+
+- **View Transition safety wrapper**: `try/catch` + 500ms `skipTransition()` timeout. Prevents `::view-transition` pseudo-layer from permanently blocking pointer events in Discord Electron.
+- **`safeShowModal(el)`**: New centralized modal opener — closes all open dialogs before showing a new one, adds backdrop click-to-close. Used by energy modal, quest log, econ-guide.
+- **`_feedFromModal` try/finally**: Guaranteed button re-enable after network error — buttons no longer stay permanently disabled.
+
+#### Version Bumps
+
+- `package.json`: 6.1.0 → 6.1.1
+- All JS/CSS file headers: `v6.1.0` → `v6.1.1`
+
+---
+
 ## v6.1.0 — 2026-02-22
 
 ### UX/UI Audit — 5 Feature Implementation

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — HUD Module (v6.1.0)
+ *  Game Hub — HUD Module (v6.1.1)
  *  TopHUD for Energy & Gold display
  *  Registers 'resources' slice in GameStore
  *  v5: Native ES Module (was IIFE)
@@ -402,7 +402,7 @@ async function _feedFromModal(cropId, btn) {
       if (data.resources) syncFromServer(data.resources);
     }
   } finally {
-    // v6.1.0: Guaranteed refresh — re-enables buttons even on network error
+    // v6.1.1: Guaranteed refresh — re-enables buttons even on network error
     _refreshModalItems();
     _checkEnergyPlayReady();
   }

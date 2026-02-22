@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Pet Module (v6.1.0)
+ *  Game Hub — Pet Module (v6.1.1)
  *  Living Pet Entity with state machine & interactions
  *  v1.8: Weighted behavior, zone roaming, FLIP dock
  *  v5: Native ES Module (was IIFE)
