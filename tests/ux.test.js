@@ -1071,3 +1071,179 @@ describe("Blox Drag-Tilt — rotateZ", () => {
     );
   });
 });
+
+/* ═══════════════════════════════════════════════════
+ *  v6.1.1 Fix Verification — Static Analysis
+ *  Ensures critical bug fixes remain in place.
+ * ═══════════════════════════════════════════════════ */
+
+describe("v6.1.1: safeShowModal export", () => {
+  it("shared.js exports safeShowModal", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "shared.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("export function safeShowModal"),
+      "shared.js must export safeShowModal",
+    );
+  });
+
+  it("hud.js imports safeShowModal from shared.js", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "hud.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("safeShowModal") && js.includes('from "./shared.js"'),
+      "hud.js must import safeShowModal from shared.js",
+    );
+  });
+
+  it("main.js imports safeShowModal from shared.js", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "main.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("safeShowModal") && js.includes('from "./shared.js"'),
+      "main.js must import safeShowModal from shared.js",
+    );
+  });
+});
+
+describe("v6.1.1: setPointerCapture removal", () => {
+  it("merge.js does NOT use setPointerCapture", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "merge.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      !js.includes(".setPointerCapture("),
+      "merge.js must NOT call .setPointerCapture() (causes pointer event leaks)",
+    );
+  });
+});
+
+describe("v6.1.1: AbortController in api()", () => {
+  it("shared.js api() uses AbortController for fetch timeout", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "shared.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("AbortController") && js.includes("controller.abort"),
+      "api() must use AbortController with abort timeout",
+    );
+  });
+});
+
+describe("v6.1.1: _forceCleanupDrag in merge.js", () => {
+  it("merge.js defines _forceCleanupDrag", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "merge.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("function _forceCleanupDrag"),
+      "merge.js must define _forceCleanupDrag for orphan ghost cleanup",
+    );
+  });
+});
+
+describe("v6.1.1: View Transition safety in goToScreen", () => {
+  it("shared.js goToScreen uses skipTransition safety timeout", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "shared.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("skipTransition"),
+      "goToScreen must use skipTransition() as safety timeout for View Transitions",
+    );
+    assert.ok(
+      js.includes("vt.finished"),
+      "goToScreen must handle vt.finished promise for cleanup",
+    );
+  });
+});
+
+describe("v6.1.1: _feedFromModal try/finally", () => {
+  it("hud.js _feedFromModal uses try/finally for guaranteed refresh", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const jsPath = path.join(
+      path.dirname(
+        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+      ),
+      "..",
+      "public",
+      "js",
+      "hud.js",
+    );
+    const js = fs.readFileSync(jsPath, "utf-8");
+    // Find _feedFromModal function body
+    const fnMatch = js.match(/async function _feedFromModal[\s\S]*?^\}/m);
+    assert.ok(fnMatch, "_feedFromModal must exist in hud.js");
+    assert.ok(
+      fnMatch[0].includes("finally"),
+      "_feedFromModal must use try/finally for guaranteed button re-enable",
+    );
+  });
+});
