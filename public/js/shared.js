@@ -240,14 +240,29 @@ export function safeShowModal(dialogEl) {
   });
   if (!dialogEl.open) {
     dialogEl.showModal();
-    // Backdrop click-to-close
-    dialogEl.addEventListener(
-      "click",
-      (e) => {
-        if (e.target === dialogEl) dialogEl.close();
-      },
-      { once: true },
-    );
+
+    // Backdrop click-to-close (Fixed: no { once: true } trap)
+    const onBackdropClick = (e) => {
+      // We only want to close if clicking exactly ON the backdrop element,
+      // not on the inner dialog card itself.
+      // Because <dialog> pads the content, the actual click targets are:
+      if (e.target === dialogEl) {
+        // Double check bounds to be absolutely certain (some browsers differ on what e.target is for backdrop)
+        const rect = dialogEl.getBoundingClientRect();
+        const isInDialog =
+          rect.top <= e.clientY &&
+          e.clientY <= rect.top + rect.height &&
+          rect.left <= e.clientX &&
+          e.clientX <= rect.left + rect.width;
+
+        if (!isInDialog) {
+          dialogEl.close();
+          dialogEl.removeEventListener("click", onBackdropClick);
+        }
+      }
+    };
+
+    dialogEl.addEventListener("click", onBackdropClick);
   }
 }
 
@@ -403,23 +418,28 @@ export function showToast(msg, type) {
   void el.offsetWidth;
   el.classList.add("show");
 
-  // Audit 9: Swipe to dismiss
+  // Audit 9: Swipe to dismiss (Fixed memory leak)
   let startX = 0,
     currentX = 0;
-  const onPointerDown = (e) => {
-    startX = e.clientX || (e.touches && e.touches[0].clientX);
-    el.style.transition = "none";
-  };
+
   const onPointerMove = (e) => {
     if (!startX) return;
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     currentX = Math.max(0, clientX - startX); // Only swipe right
     el.style.setProperty("--swipe-x", `${currentX}px`);
   };
+
   const onPointerUp = () => {
     if (!startX) return;
     startX = 0;
     el.style.transition = ""; // Restore css transition
+
+    // Clean up window listeners immediately to prevent memory leaks
+    window.removeEventListener("mousemove", onPointerMove);
+    window.removeEventListener("mouseup", onPointerUp);
+    window.removeEventListener("touchmove", onPointerMove);
+    window.removeEventListener("touchend", onPointerUp);
+
     if (currentX > 75) {
       el.classList.add("swiped-out");
       el.addEventListener("transitionend", () => el.remove(), { once: true });
@@ -429,12 +449,19 @@ export function showToast(msg, type) {
     currentX = 0;
   };
 
-  el.addEventListener("touchstart", onPointerDown, { passive: true });
-  el.addEventListener("touchmove", onPointerMove, { passive: true });
-  el.addEventListener("touchend", onPointerUp);
+  const onPointerDown = (e) => {
+    startX = e.clientX || (e.touches && e.touches[0].clientX);
+    el.style.transition = "none";
+
+    // Attach move/up listeners dynamically only when actively dragging
+    window.addEventListener("mousemove", onPointerMove, { passive: true });
+    window.addEventListener("mouseup", onPointerUp);
+    window.addEventListener("touchmove", onPointerMove, { passive: true });
+    window.addEventListener("touchend", onPointerUp);
+  };
+
   el.addEventListener("mousedown", onPointerDown);
-  window.addEventListener("mousemove", onPointerMove);
-  window.addEventListener("mouseup", onPointerUp);
+  el.addEventListener("touchstart", onPointerDown, { passive: true });
 
   // Auto remove after 2.5s (matching CSS progress bar)
   setTimeout(() => {

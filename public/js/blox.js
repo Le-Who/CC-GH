@@ -7,7 +7,7 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast, sleep } from "./shared.js";
+import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, SoundEngine, debounce } from "./effects.js";
 
@@ -1139,7 +1139,7 @@ const BloxGameImpl = (() => {
         if (btnEnd) btnEnd.style.display = "none";
       }
     }
-    if (overlay && !overlay.open) overlay.showModal();
+    if (overlay && !overlay.open) safeShowModal(overlay);
 
     // v5.1.0: Assign staggered entrance index to visible pause buttons
     let visIdx = 0;
@@ -1291,7 +1291,7 @@ const BloxGameImpl = (() => {
 
     // Natively show dialog
     const gov = $("blox-overlay");
-    if (gov && !gov.open) gov.showModal();
+    if (gov && !gov.open) safeShowModal(gov);
   }
 
   // ── Store sync ──

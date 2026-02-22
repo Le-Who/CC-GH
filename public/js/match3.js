@@ -10,7 +10,7 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast, sleep } from "./shared.js";
+import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, colorSplash, SoundEngine, debounce } from "./effects.js";
 import {
@@ -444,7 +444,7 @@ const Match3GameImpl = (() => {
       if (btnResume) btnResume.style.display = "none";
       if (btnEnd) btnEnd.style.display = "none";
     }
-    if (!overlay.open) overlay.showModal();
+    if (!overlay.open) safeShowModal(overlay);
   }
 
   function hideM3PauseOverlay() {
@@ -827,7 +827,7 @@ const Match3GameImpl = (() => {
     }
     $("m3-confirm-title").textContent = `⚡ ${modeLabel}`;
     $("m3-confirm-desc").textContent = `Spend 5 energy to play ${modeLabel}?`;
-    if (!overlay.open) overlay.showModal();
+    if (!overlay.open) safeShowModal(overlay);
 
     $("m3-confirm-yes").onclick = () => {
       overlay.close();
@@ -1789,7 +1789,7 @@ const Match3GameImpl = (() => {
     const recordEl = $("m3-new-record");
     if (recordEl) recordEl.style.display = isNewRecord ? "block" : "none";
     const ov = $("m3-overlay");
-    if (ov && !ov.open) ov.showModal();
+    if (ov && !ov.open) safeShowModal(ov);
   }
 
   function hideGameOver() {

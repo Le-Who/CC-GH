@@ -5,7 +5,7 @@
  *  CSP-compliant: no innerHTML on active board.
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { api, showToast, HUB } from "./shared.js";
+import { api, showToast, HUB, safeShowModal } from "./shared.js";
 import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "/game-logic.js";
 import { HUD } from "./hud.js";
 import { SoundEngine } from "./effects.js";
@@ -726,7 +726,7 @@ function _showCropPicker(chainId) {
     if (e.target === dialog) dialog.close();
   });
   document.body.appendChild(dialog);
-  dialog.showModal();
+  safeShowModal(dialog);
 }
 
 /* ─── Fuel Slot: 1-click tap with remembered crop ─── */
