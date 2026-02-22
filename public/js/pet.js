@@ -125,16 +125,21 @@ const PetCompanionImpl = (function () {
 
     // Drag & Drop Physics
     let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    let currentDragY = 0;
+    let dragStartPointerX = 0;
+    let dragStartPointerY = 0;
+    let dragAbsX = 0; // Absolute X tracked internally (avoids re-reading computed transform)
+    let dragAbsY = 0;
 
     container.addEventListener("pointerdown", (e) => {
       isDragging = true;
       hasDragged = false;
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-      currentDragY = 0;
+      dragStartPointerX = e.clientX;
+      dragStartPointerY = e.clientY;
+
+      // Capture the pet's current absolute X position ONCE from the computed style
+      const matrix = new DOMMatrix(getComputedStyle(container).transform);
+      dragAbsX = matrix.m41;
+      dragAbsY = 0;
 
       if (roamTimeoutId) {
         clearTimeout(roamTimeoutId);
@@ -154,26 +159,25 @@ const PetCompanionImpl = (function () {
     container.addEventListener("pointermove", (e) => {
       if (!isDragging) return;
 
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
+      const dx = e.clientX - dragStartPointerX;
+      const dy = e.clientY - dragStartPointerY;
 
       if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged = true;
 
       if (!hasDragged) return;
 
-      const computedStyle = getComputedStyle(container);
-      const matrix = new DOMMatrix(computedStyle.transform);
-      // Ensure we keep the current X position and only delta it
-      const currentX = matrix.m41;
+      // Accumulate delta onto the captured absolute position
+      dragAbsX += e.clientX - dragStartPointerX;
+      dragAbsY += e.clientY - dragStartPointerY;
+      // Clamp Y so pet doesn't go below ground
+      if (dragAbsY > 0) dragAbsY = 0;
 
-      currentDragY += dy;
-      // Clamp drag Y so pet doesn't go below ground
-      if (currentDragY > 0) currentDragY = 0;
+      // Update pointer origin for next frame's delta
+      dragStartPointerX = e.clientX;
+      dragStartPointerY = e.clientY;
 
-      container.style.transform = `translate3d(${currentX + dx}px, ${currentDragY}px, 0) translateX(-50%)`;
-
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
+      // Position using the absolute X; no translateX(-50%) to avoid offset drift
+      container.style.transform = `translate3d(${dragAbsX}px, ${dragAbsY}px, 0)`;
     });
 
     container.addEventListener("pointerup", (e) => {
@@ -185,13 +189,10 @@ const PetCompanionImpl = (function () {
         container.classList.remove("state-drag");
         container.classList.add("state-drop");
 
-        const computedStyle = getComputedStyle(container);
-        const matrix = new DOMMatrix(computedStyle.transform);
-        const currentX = matrix.m41;
-
+        // Drop to ground (Y=0) at the current X
         container.style.transition =
           "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
-        container.style.transform = `translate3d(${currentX}px, 0, 0) translateX(-50%)`;
+        container.style.transform = `translate3d(${dragAbsX}px, 0, 0)`;
 
         setTimeout(() => {
           container.classList.remove("state-drop");

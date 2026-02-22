@@ -433,6 +433,16 @@ const FarmGameImpl = (() => {
             fill.style.width = Math.round(pct * 100) + "%";
             fill.classList.toggle("done", isReady);
           }
+          // Update growth time label (was static before this fix)
+          const timeLabel = div.querySelector(".growth-time-label");
+          if (isReady) {
+            if (timeLabel) timeLabel.remove();
+            // Also remove uproot button when ready
+            const uprootBtn = div.querySelector(".farm-uproot-btn");
+            if (uprootBtn) uprootBtn.remove();
+          } else if (timeLabel) {
+            timeLabel.textContent = formatTimeLeft(plot, pct);
+          }
           const waterBtn = div.querySelector(".farm-water-btn");
           if (waterBtn && isReady) waterBtn.remove();
         }
@@ -542,17 +552,23 @@ const FarmGameImpl = (() => {
     const grid = $("farm-shop-grid");
     grid.innerHTML = "";
     // Task 6.2: Sort seeds by price ascending
-    const sortedEntries = Object.entries(crops).sort(
-      ([, a], [, b]) => (a.seedPrice || 0) - (b.seedPrice || 0),
-    );
+    // Filter out non-crop entries (e.g. __hash from API response)
+    const sortedEntries = Object.entries(crops)
+      .filter(
+        ([id, cfg]) =>
+          typeof cfg === "object" && cfg !== null && !id.startsWith("__"),
+      )
+      .sort(([, a], [, b]) => (a.seedPrice || 0) - (b.seedPrice || 0));
     for (const [id, cfg] of sortedEntries) {
       const count = state?.inventory?.[id] || 0;
       const card = document.createElement("div");
       const isSelected = selectedSeed === id;
       const isEmpty = count <= 0;
       card.className = `farm-seed-card${isSelected ? " selected" : ""}${isEmpty ? " no-seeds" : ""}`;
-      // Task 6.1: Add growth time
-      const growthLabel = _formatGrowthTime(cfg.growthTime || 15000);
+      // Use canonical CROPS_CONFIG for growth time (immune to stale cache)
+      const canonicalGrowth =
+        CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
+      const growthLabel = _formatGrowthTime(canonicalGrowth);
       card.innerHTML = `
         <div class="seed-emoji">${cfg.emoji}</div>
         <div class="seed-name">${cfg.name}</div>
