@@ -81,11 +81,19 @@ const BloxGameImpl = (() => {
     }
     const medals = ["🥇", "🥈", "🥉"];
     body.innerHTML = entries
-      .map((e) => {
+      .map((e, i) => {
         const isMe = e.username === HUB.username;
-        const rank = e.rank <= 3 ? medals[e.rank - 1] : e.rank;
-        return `<tr class="${isMe ? "blox-lb-me" : ""}">
-        <td class="blox-lb-rank">${rank}</td>
+        const rankStr = e.rank <= 3 ? medals[e.rank - 1] : e.rank;
+        const glowCls =
+          e.rank === 1
+            ? "lb-glow-gold"
+            : e.rank === 2
+              ? "lb-glow-silver"
+              : e.rank === 3
+                ? "lb-glow-bronze"
+                : "";
+        return `<tr class="lb-stagger ${glowCls} ${isMe ? "blox-lb-me" : ""}" style="animation-delay: ${i * 40}ms">
+        <td class="blox-lb-rank">${rankStr}</td>
         <td class="blox-lb-name">${e.username || "???"}</td>
         <td class="blox-lb-score">${e.highScore.toLocaleString()}</td>
       </tr>`;
@@ -208,31 +216,54 @@ const BloxGameImpl = (() => {
 
     if (cleared > 0) {
       // 1. Start CSS animation + clear board state via cached DOM refs
-      // v5.0.2: Adaptive stagger — faster for multi-line clears to keep game snappy
+      // Phase 2 Item 3: Domino Clear (left-to-right sweep) + Laser Burn
       const SHATTER_DUR = 240; // must match bloxShatter duration in CSS
-      const staggerDelay = cleared > 1 ? 10 : 20;
-      let staggerIdx = 0;
+      const staggerDelay = 25; // 25ms per column left-to-right
+      let maxAnimTime = 0;
       for (let i = 0; i < GRID * GRID; i++) {
         if (_clearMap[i] === 0) continue;
         const r = (i / GRID) | 0;
         const c = i % GRID;
         if (_boardCells[r]?.[c]) {
           const cell = _boardCells[r][c];
-          cell.style.animationDelay = `${staggerIdx * staggerDelay}ms`;
+          // Delay based on column for left-to-right domino feel
+          const delay = c * staggerDelay + r * 2;
+          cell.style.animationDelay = `${delay}ms`;
           cell.classList.add("clearing");
           cell.classList.remove("filled");
           cell.style.background = "";
-          staggerIdx++;
+          if (delay > maxAnimTime) maxAnimTime = delay;
         }
         // 2. Clear board state IMMEDIATELY (sync) so game-over check is correct
         board[r][c] = null;
       }
 
+      // Add Laser Burn visual overlay to grid (aligned automatically via display:grid properties)
+      const boardEl = $("blox-board");
+      if (boardEl) {
+        for (const r of rowsToClear) {
+          const laser = document.createElement("div");
+          laser.className = "blox-laser-burn horizontal";
+          laser.style.gridRow = `${r + 1} / ${r + 2}`;
+          laser.style.gridColumn = "1 / -1";
+          boardEl.appendChild(laser);
+          setTimeout(() => laser.remove(), 400);
+        }
+        for (const c of colsToClear) {
+          const laser = document.createElement("div");
+          laser.className = "blox-laser-burn vertical";
+          laser.style.gridColumn = `${c + 1} / ${c + 2}`;
+          laser.style.gridRow = "1 / -1";
+          boardEl.appendChild(laser);
+          setTimeout(() => laser.remove(), 400);
+        }
+      }
+
       // 3. Re-render board AFTER animation completes (visual only)
-      // v5.0.2: Dynamic timeout — accounts for stagger + animation duration
-      const maxAnimTime =
-        (staggerIdx > 0 ? (staggerIdx - 1) * staggerDelay : 0) + SHATTER_DUR;
-      setTimeout(() => renderBoard(), Math.max(maxAnimTime + 20, 300));
+      setTimeout(
+        () => renderBoard(),
+        Math.max(maxAnimTime + SHATTER_DUR + 20, 300),
+      );
 
       const bonus = cleared > 1 ? cleared * 5 : 0;
       const pts = cleared * 10 + bonus;

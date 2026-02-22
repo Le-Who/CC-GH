@@ -113,15 +113,98 @@ const PetCompanionImpl = (function () {
     }
 
     // Click handler
-    container.addEventListener("click", onPetClick);
-    container.addEventListener(
-      "touchstart",
-      (e) => {
+    let hasDragged = false;
+    container.addEventListener("click", (e) => {
+      if (hasDragged) {
+        e.stopPropagation();
         e.preventDefault();
-        onPetClick();
-      },
-      { passive: false },
-    );
+        return;
+      }
+      onPetClick();
+    });
+
+    // Drag & Drop Physics
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let currentDragY = 0;
+
+    container.addEventListener("pointerdown", (e) => {
+      isDragging = true;
+      hasDragged = false;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      currentDragY = 0;
+
+      if (roamTimeoutId) {
+        clearTimeout(roamTimeoutId);
+        roamTimeoutId = null;
+      }
+      container.classList.remove("pet-roaming");
+      container.classList.remove("pet-transitioning");
+
+      STATE_CLASSES.forEach((cls) => container.classList.remove(cls));
+      container.classList.add("state-drag");
+      currentState = "drag";
+
+      container.style.willChange = "transform";
+      container.setPointerCapture(e.pointerId);
+    });
+
+    container.addEventListener("pointermove", (e) => {
+      if (!isDragging) return;
+
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasDragged = true;
+
+      if (!hasDragged) return;
+
+      const computedStyle = getComputedStyle(container);
+      const matrix = new DOMMatrix(computedStyle.transform);
+      // Ensure we keep the current X position and only delta it
+      const currentX = matrix.m41;
+
+      currentDragY += dy;
+      // Clamp drag Y so pet doesn't go below ground
+      if (currentDragY > 0) currentDragY = 0;
+
+      container.style.transform = `translate3d(${currentX + dx}px, ${currentDragY}px, 0) translateX(-50%)`;
+
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+    });
+
+    container.addEventListener("pointerup", (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      container.releasePointerCapture(e.pointerId);
+
+      if (hasDragged) {
+        container.classList.remove("state-drag");
+        container.classList.add("state-drop");
+
+        const computedStyle = getComputedStyle(container);
+        const matrix = new DOMMatrix(computedStyle.transform);
+        const currentX = matrix.m41;
+
+        container.style.transition =
+          "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+        container.style.transform = `translate3d(${currentX}px, 0, 0) translateX(-50%)`;
+
+        setTimeout(() => {
+          container.classList.remove("state-drop");
+          container.style.transition = "";
+          setState(STATES.IDLE);
+          scheduleNextState();
+        }, 400);
+      } else {
+        container.classList.remove("state-drag");
+        setState(STATES.IDLE);
+        scheduleNextState();
+      }
+    });
 
     // Start state machine
     setState(STATES.IDLE);
@@ -185,6 +268,8 @@ const PetCompanionImpl = (function () {
     "state-sleep",
     "state-happy",
     "state-dizzy",
+    "state-drag",
+    "state-drop",
   ];
 
   function setState(newState) {

@@ -546,12 +546,16 @@ const TriviaGame = (() => {
   // v4.15.3: Cached DOM refs for timer (eliminates getElementById × 2 per rAF frame)
   let _timerFillEl = null;
   let _timerTextEl = null;
+  let _timerWrapperEl = null;
   let _lastDanger = false;
 
   function startTimer(seconds) {
     _timerFillEl = $("trivia-timer-fill");
     _timerTextEl = $("trivia-timer-text");
+    _timerWrapperEl = document.querySelector(".trivia-timer");
     _lastDanger = false;
+    if (_timerWrapperEl) _timerWrapperEl.classList.remove("danger");
+    if (_timerTextEl) _timerTextEl.classList.remove("danger");
     timerStart = Date.now();
     timerDuration = seconds * 1000;
     updateTimer();
@@ -566,9 +570,11 @@ const TriviaGame = (() => {
     if (_timerTextEl) {
       _timerTextEl.textContent = sec + "s";
       // v4.15.3: Only toggle class when danger state actually changes
-      const isDanger = sec <= 3;
+      const isDanger = sec <= 3 && remaining > 0;
       if (isDanger !== _lastDanger) {
         _timerTextEl.classList.toggle("danger", isDanger);
+        if (_timerWrapperEl)
+          _timerWrapperEl.classList.toggle("danger", isDanger);
         _lastDanger = isDanger;
       }
     }

@@ -1507,6 +1507,32 @@ const Match3GameImpl = (() => {
         if (!cell) continue;
         cell.classList.remove("matched-highlight");
         cell.classList.add("popping");
+
+        // Phase 2 Item 2: Glow Trail Particle
+        const rect = cell.getBoundingClientRect();
+        const trail = document.createElement("div");
+        trail.className = "m3-glow-trail";
+        const gemColor =
+          getComputedStyle(cell).getPropertyValue("--gem-color").trim() ||
+          "rgba(255,255,255,0.8)";
+        trail.style.background = gemColor;
+        trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
+        const container = $("m3-board-container");
+        if (container) {
+          const containerRect = container.getBoundingClientRect();
+          trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+          trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
+          trail.style.setProperty(
+            "--trail-dx",
+            `${(Math.random() - 0.5) * 100}px`,
+          );
+          trail.style.setProperty(
+            "--trail-dy",
+            `${(Math.random() - 0.5) * 100 - 150}px`,
+          );
+          container.appendChild(trail);
+          setTimeout(() => trail.remove(), 600);
+        }
       }
       await sleep(Math.round(BASE_POP_DUR * speedMul));
 
@@ -1799,7 +1825,15 @@ const Match3GameImpl = (() => {
       .map((e, i) => {
         const cls =
           i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
-        return `<tr>
+        const glowCls =
+          i === 0
+            ? "lb-glow-gold"
+            : i === 1
+              ? "lb-glow-silver"
+              : i === 2
+                ? "lb-glow-bronze"
+                : "";
+        return `<tr class="lb-stagger ${glowCls}" style="animation-delay: ${i * 40}ms">
         <td class="m3-lb-rank ${cls}">#${e.rank}</td>
         <td>${e.username}</td>
         <td class="m3-lb-score">${e.highScore}</td>

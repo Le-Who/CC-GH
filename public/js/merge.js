@@ -417,18 +417,18 @@ function _onPointerDown(e) {
   ghost.style.cssText = `
     position: fixed;
     left: 0; top: 0;
-    transform: translate3d(${e.clientX - 24}px, ${e.clientY - 24}px, 0);
+    transform: translate3d(${e.clientX - 24}px, ${e.clientY - 24}px, 0) scale(1.15);
     pointer-events: none;
     z-index: 9999;
     will-change: transform;
     font-size: 2rem;
     width: 48px; height: 48px;
     display: flex; align-items: center; justify-content: center;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
     backdrop-filter: blur(8px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    transition: none;
+    box-shadow: 0 16px 32px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
+    transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1);
   `;
   document.body.appendChild(ghost);
 
@@ -441,6 +441,7 @@ function _onPointerDown(e) {
     fromC: c,
     ghost,
     originCell: cell,
+    lastX: e.clientX,
   };
 
   // v6.2.0: Safety timeout — force-cleanup if drag lives too long
@@ -474,7 +475,36 @@ function _onPointerMove(e) {
   if (!_dragState || e.pointerId !== _dragState.pointerId) return;
   requestAnimationFrame(() => {
     if (!_dragState) return;
-    _dragState.ghost.style.transform = `translate3d(${e.clientX - 24}px, ${e.clientY - 24}px, 0)`;
+
+    // Phase 2 Item 4: Magnetic Snap + Elevation Drag (velocity tilt)
+    let snapX = e.clientX - 24;
+    let snapY = e.clientY - 24;
+    const SNAP_RADIUS = 40;
+
+    if (_boardEl) {
+      const matchTargets = _boardEl.querySelectorAll(
+        ".merge-cell--match-highlight",
+      );
+      for (const t of matchTargets) {
+        const rect = t.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+        if (dist < SNAP_RADIUS) {
+          snapX = cx - 24;
+          snapY = cy - 24;
+          t.classList.add("merge-cell--magnetic-lock");
+        } else {
+          t.classList.remove("merge-cell--magnetic-lock");
+        }
+      }
+    }
+
+    const dx = e.clientX - (_dragState.lastX || e.clientX);
+    _dragState.lastX = e.clientX;
+    const tilt = Math.max(-12, Math.min(12, dx * 0.7));
+
+    _dragState.ghost.style.transform = `translate3d(${snapX}px, ${snapY}px, 0) scale(1.15) rotate(${tilt}deg)`;
   });
 }
 
@@ -489,11 +519,13 @@ function _onPointerUp(e) {
 
   // Restore source cell
   ds.originCell.classList.remove("merge-cell--dragging");
-  // Remove all match highlights
-  if (_boardEl)
-    _boardEl
-      .querySelectorAll(".merge-cell--match-highlight")
-      .forEach((c) => c.classList.remove("merge-cell--match-highlight"));
+  // Remove all match highlights and magnetic locks
+  if (_boardEl) {
+    _boardEl.querySelectorAll(".merge-cell--match-highlight").forEach((c) => {
+      c.classList.remove("merge-cell--match-highlight");
+      c.classList.remove("merge-cell--magnetic-lock");
+    });
+  }
 
   // Find drop target (hide ghost to avoid it being the target)
   ds.ghost.style.display = "none";

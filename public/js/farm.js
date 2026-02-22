@@ -787,6 +787,16 @@ const FarmGameImpl = (() => {
     renderShop();
     updateBuyBar();
 
+    // Phase 2 Item 5: Dirt Splash particle on plant
+    const plotDiv = document.querySelector(
+      `.farm-plot[data-index="${plotId}"]`,
+    );
+    if (plotDiv) {
+      const cropEmoji = plotDiv.querySelector(".crop-emoji");
+      if (cropEmoji) cropEmoji.classList.add("planted-bounce");
+      spawnDirtSplash(plotDiv);
+    }
+
     // Fire-and-forget with PER-PLOT version guard (Bug 4 fix)
     const ver = (plotPlantVersions.get(plotId) || 0) + 1;
     plotPlantVersions.set(plotId, ver);
@@ -875,6 +885,13 @@ const FarmGameImpl = (() => {
     GameStore.setState("resources", { ...res, harvested: harvested });
 
     syncToStore();
+
+    // Phase 2 Item 5: Sparkle particle on harvest
+    const plotDiv = document.querySelector(
+      `.farm-plot[data-index="${plotId}"]`,
+    );
+    if (plotDiv) spawnFarmSparkle(plotDiv);
+
     render();
     renderShop();
     updateBuyBar();
@@ -1216,6 +1233,42 @@ const FarmGameImpl = (() => {
         }
       })
       .catch(() => loadState());
+  }
+
+  /* ─── Phase 2 Item 5: Visual Effects (Bounce, Splash, Sparkle) ─── */
+  function spawnDirtSplash(targetEl) {
+    const rect = targetEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height - 20;
+
+    for (let i = 0; i < 6; i++) {
+      const particle = document.createElement("div");
+      particle.className = "farm-dirt-particle";
+      particle.style.left = `${cx}px`;
+      particle.style.top = `${cy}px`;
+      particle.style.setProperty("--vx", `${(Math.random() - 0.5) * 80}px`);
+      particle.style.setProperty("--vy", `${-(Math.random() * 40 + 20)}px`);
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 600);
+    }
+  }
+
+  function spawnFarmSparkle(targetEl) {
+    const rect = targetEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    for (let i = 0; i < 8; i++) {
+      const particle = document.createElement("div");
+      particle.className = "farm-sparkle-particle";
+      particle.textContent = "✨";
+      particle.style.left = `${cx}px`;
+      particle.style.top = `${cy}px`;
+      particle.style.setProperty("--vx", `${(Math.random() - 0.5) * 100}px`);
+      particle.style.setProperty("--vy", `${(Math.random() - 0.5) * 100}px`);
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 800);
+    }
   }
 
   /* ─── Screen Enter/Exit ─── */
