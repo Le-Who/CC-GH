@@ -24,6 +24,7 @@ import {
   startArrowFlash,
   cacheNavDOM,
   applyInitialScreen,
+  safeShowModal,
 } from "./shared.js";
 import { HUD } from "./hud.js";
 import { PetCompanion, setWaterFn } from "./pet.js";
@@ -99,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const econOverlay = document.getElementById("econ-guide-modal");
   if (econBtn && econOverlay) {
     econBtn.addEventListener("click", () => {
-      if (!econOverlay.open) econOverlay.showModal();
+      safeShowModal(econOverlay);
     });
   }
 

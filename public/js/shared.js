@@ -197,12 +197,51 @@ export function goToScreen(index) {
     }
   };
 
-  // 1. Native View Transitions API support (Fall 2023+ browsers)
+  // v6.1.0: View Transition safety wrapper — prevents permanent blocking
+  // pseudo-layer in Discord Electron if transition fails or hangs.
   if (document.startViewTransition) {
-    document.startViewTransition(() => updateDOM());
+    try {
+      const vt = document.startViewTransition(() => updateDOM());
+      // Safety: force-skip if transition hangs >500ms
+      const safetyTimer = setTimeout(() => {
+        try {
+          vt.skipTransition();
+        } catch (_) {}
+      }, 500);
+      vt.finished
+        .then(() => clearTimeout(safetyTimer))
+        .catch(() => clearTimeout(safetyTimer));
+    } catch (_) {
+      // Fallback: View Transitions API threw — just update immediately
+      updateDOM();
+    }
   } else {
-    // 2. Fallback for older browsers (instant switch)
+    // Fallback for older browsers (instant switch)
     updateDOM();
+  }
+}
+
+/**
+ * v6.1.0: Safe modal opener — prevents dialog stacking traps.
+ * Closes all open dialogs before showing a new one.
+ * Adds backdrop click-to-close on every modal.
+ */
+export function safeShowModal(dialogEl) {
+  if (!dialogEl) return;
+  // Close any other open dialogs first (prevent stacking)
+  document.querySelectorAll("dialog[open]").forEach((d) => {
+    if (d !== dialogEl) d.close();
+  });
+  if (!dialogEl.open) {
+    dialogEl.showModal();
+    // Backdrop click-to-close
+    dialogEl.addEventListener(
+      "click",
+      (e) => {
+        if (e.target === dialogEl) dialogEl.close();
+      },
+      { once: true },
+    );
   }
 }
 

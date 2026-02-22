@@ -6,7 +6,7 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
-import { HUB, api, goToScreen, showToast } from "./shared.js";
+import { HUB, api, goToScreen, showToast, safeShowModal } from "./shared.js";
 import { CROPS, MERGE_CHAINS } from "/game-logic.js";
 
 /* ─── Merge item display lookup (for quest requirement names) ─── */
@@ -328,17 +328,7 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
   const closeBtn = document.getElementById("energy-modal-close");
   if (closeBtn) closeBtn.onclick = hideEnergyModal;
 
-  if (!modal.open) {
-    modal.showModal();
-    // v6.1.0: Backdrop click-to-close
-    modal.addEventListener(
-      "click",
-      (e) => {
-        if (e.target === modal) modal.close();
-      },
-      { once: true },
-    );
-  }
+  safeShowModal(modal);
 }
 
 function hideEnergyModal() {
@@ -401,19 +391,21 @@ async function _feedFromModal(cropId, btn) {
     GameStore.setState("resources", updated);
   }
 
-  // Server call
-  const data = await api("/api/pet/feed", {
-    cropId,
-    userId: HUB.userId,
-  });
+  try {
+    // Server call
+    const data = await api("/api/pet/feed", {
+      cropId,
+      userId: HUB.userId,
+    });
 
-  if (data && data.success) {
-    if (data.resources) syncFromServer(data.resources);
+    if (data && data.success) {
+      if (data.resources) syncFromServer(data.resources);
+    }
+  } finally {
+    // v6.1.0: Guaranteed refresh — re-enables buttons even on network error
+    _refreshModalItems();
+    _checkEnergyPlayReady();
   }
-
-  // Refresh modal items
-  _refreshModalItems();
-  _checkEnergyPlayReady();
 }
 
 function _refreshModalItems() {
@@ -504,15 +496,7 @@ function _openQuestLog() {
   if (!modal || !container) return;
   _renderQuestLog(container);
   if (!modal.open) {
-    modal.showModal();
-    // v6.1.0: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
-    modal.addEventListener(
-      "click",
-      (e) => {
-        if (e.target === modal) modal.close();
-      },
-      { once: true },
-    );
+    safeShowModal(modal);
   }
 }
 
