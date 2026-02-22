@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v6.2.2**
+**Current version: v6.2.3**
 
 ---
 
@@ -120,7 +120,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 317 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
+npm test          # All 320 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -245,6 +245,15 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 4. ~~**Cascade Speed Tuning**~~: +15% base timing, flatter decay curve (0.85→0.92), speed floor at 0.65.
 5. ~~**Farm Shop UX**~~: Empty plot → shop redirect, growth time labels, sort by price.
 6. ~~**Nav Shimmer + Dots**~~: Active tab shimmer animation, green notification dot on Farm when crops ready.
+
+### ✅ Completed in v6.2.3
+
+1. ~~**Pet Drag Fix**~~: Eliminated leftward flyoff caused by re-reading computed `translateX(-50%)` offset each frame.
+2. ~~**Farm Timer Fix**~~: Diff-update path now refreshes `.growth-time-label` text on every 500ms tick.
+3. ~~**Shop Display Fix**~~: Filtered `__hash` from crop iteration; use canonical `CROPS_CONFIG` for growth times.
+4. ~~**Toast Memory Leak**~~: Swipe-to-dismiss `mousemove`/`mouseup` listeners now attach only during active drag.
+5. ~~**Modal Backdrop Trap**~~: `safeShowModal` no longer uses `{ once: true }` — backdrop click handler persists correctly.
+6. ~~**Centralized Modals**~~: All 6 direct `.showModal()` calls in Blox/Match-3/Merge replaced with `safeShowModal()`.
 
 ### Planned
 

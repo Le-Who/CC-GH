@@ -1,5 +1,52 @@
 # Changelog
 
+## v6.2.3 — 2026-02-22
+
+### Bug Fixes — Pet Drag, Farm Timers, Shop Display, UI Freeze
+
+Six bug fixes targeting gameplay regressions and a critical UI unresponsiveness issue.
+
+#### 1. Pet Drag Flyoff (`pet.js`)
+
+- **Root cause**: Each `pointermove` frame re-read `getComputedStyle().transform.m41`, which already included the resolved `translateX(-50%)` pixel offset (~24px). Adding `dx` to this value each frame caused compounding leftward drift.
+- **Fix**: Absolute X position captured **once** on `pointerdown` and tracked via accumulated deltas — no computed style reads during drag. Removed `translateX(-50%)` from drag/drop transforms entirely.
+
+#### 2. Farm Timer Label Static (`farm.js`)
+
+- **Root cause**: The `render()` diff-update path updated `.growth-bar-fill` width but **never** refreshed `.growth-time-label` text content. The 500ms growth tick moved the bar, but the timer text stayed frozen at its initial value.
+- **Fix**: Diff-update now calls `formatTimeLeft(plot, pct)` on every tick to update the label. Also removes uproot 💣 button when crop reaches harvest-ready.
+
+#### 3. Shop "undefined" Card + Wrong Growth Times (`farm.js`)
+
+- **"undefined" card**: API `/api/content/crops` returns `{ ...CROPS, __hash: "..." }`. The `__hash` key is a string, not a crop object — iterating it produced an empty card with "undefined" name/price/emoji.
+- **Wrong growth times**: The `crops` variable (populated from API/localStorage cache) could contain stale `growthTime` values from older game versions.
+- **Fix**: Added `.filter()` to exclude non-object entries and `__hash`-prefixed keys. Shop now uses `CROPS_CONFIG[id]?.growthTime` (canonical import from `game-logic.js`) instead of relying on the cached API data.
+
+#### 4. Toast Event Listener Memory Leak (`shared.js`)
+
+- **Root cause**: `showToast()` attached `window.addEventListener("mousemove", ...)` and `window.addEventListener("mouseup", ...)` for swipe-to-dismiss on **every** toast, but **never removed** them. After dozens of toasts, thousands of orphaned listeners ran on every mouse pixel, causing `[Violation] Forced reflow` and main-thread lockups.
+- **Fix**: Move/up listeners now attach on `mousedown`/`touchstart` only, and are removed immediately in the `mouseup`/`touchend` handler.
+
+#### 5. safeShowModal Backdrop Click Trap (`shared.js`)
+
+- **Root cause**: The backdrop click-to-close listener used `{ once: true }`. If a user clicked **inside** the dialog first (e.g., missed a button), the event bubbled to `<dialog>`, consumed the one-shot listener without closing, and destroyed the only close mechanism. The invisible `::backdrop` then permanently trapped all pointer events until `ESC` was pressed.
+- **Fix**: Replaced with a persistent `click` listener that checks `e.target === dialogEl` and validates via `getBoundingClientRect()` bounds. Self-removes only when actually closing the dialog.
+
+#### 6. Centralized Modal Opening (`blox.js`, `match3.js`, `merge.js`)
+
+- **6 direct `.showModal()` calls** across Blox (2), Match-3 (3), and Merge (1) bypassed the anti-stacking logic in `safeShowModal()`.
+- **Fix**: All replaced with `safeShowModal()` — ensures any previously open dialog is closed before showing a new one, and all modals get the fortified backdrop click handler.
+
+#### Version Bumps
+
+- `package.json`: 6.2.2 → 6.2.3
+
+#### Tests
+
+- **320/320 pass**, 0 failures.
+
+---
+
 ## v6.2.2 — 2026-02-22
 
 ### Offline Economy Rebalance — Autonomous Pet
