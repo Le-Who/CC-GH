@@ -20,6 +20,49 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   const BOARD_ROWS = 7,
     BOARD_COLS = 9;
 
+  /**
+   * v6.1.0: Hydrate merge board from Firestore.
+   * sanitizeForFirestore() JSON-stringifies nested arrays (board is 7×9).
+   * Firestore also converts arrays to objects with numeric keys.
+   * This restores the board to a proper 2D array.
+   */
+  function hydrateMergeBoard(p) {
+    if (!p.merge) return;
+    let board = p.merge.board;
+    // Case 1: JSON-stringified by sanitizeForFirestore
+    if (typeof board === "string") {
+      try {
+        board = JSON.parse(board);
+      } catch {
+        /* leave as-is */
+      }
+    }
+    // Case 2: Firestore converted array → object with numeric keys
+    if (board && !Array.isArray(board)) {
+      board = Object.keys(board)
+        .sort((a, b) => a - b)
+        .map((k) => {
+          const row = board[k];
+          if (row && !Array.isArray(row)) {
+            return Object.keys(row)
+              .sort((a, b) => a - b)
+              .map((j) => row[j] ?? null);
+          }
+          return row;
+        });
+    }
+    // Ensure 7×9 dimensions
+    if (Array.isArray(board)) {
+      while (board.length < BOARD_ROWS)
+        board.push(Array(BOARD_COLS).fill(null));
+      for (let r = 0; r < board.length; r++) {
+        if (!Array.isArray(board[r])) board[r] = Array(BOARD_COLS).fill(null);
+        while (board[r].length < BOARD_COLS) board[r].push(null);
+      }
+    }
+    p.merge.board = board;
+  }
+
   /** Helper: random int in [min, max] inclusive */
   function randInt(min, max) {
     return min + Math.floor(Math.random() * (max - min + 1));
@@ -41,6 +84,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const p = getPlayer(userId, username);
+    hydrateMergeBoard(p);
     res.json({
       merge: p.merge,
       resources: p.resources,
@@ -52,6 +96,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { chainId, cropId } = req.body;
     const p = getPlayer(userId);
+    hydrateMergeBoard(p);
     calcRegen(p);
 
     // Validate chain
@@ -148,6 +193,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { fromR, fromC, toR, toC } = req.body;
     const p = getPlayer(userId);
+    hydrateMergeBoard(p);
     const board = p.merge.board;
 
     const src = board[fromR]?.[fromC];
@@ -185,14 +231,13 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   router.post("/api/merge/gacha", requireAuth, (req, res) => {
     const { userId } = resolveUser(req);
     const p = getPlayer(userId);
+    hydrateMergeBoard(p);
 
     if ((p.resources.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) {
-      return res
-        .status(400)
-        .json({
-          error: "not enough tokens",
-          required: ECONOMY.GACHA_PULL_COST,
-        });
+      return res.status(400).json({
+        error: "not enough tokens",
+        required: ECONOMY.GACHA_PULL_COST,
+      });
     }
 
     const empty = getEmptyCells(p.merge.board);
@@ -234,6 +279,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   router.post("/api/merge/free-pull", requireAuth, (req, res) => {
     const { userId } = resolveUser(req);
     const p = getPlayer(userId);
+    hydrateMergeBoard(p);
     const now = Date.now();
 
     // Check if already used today (same UTC day)
@@ -282,6 +328,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { r, c } = req.body;
     const p = getPlayer(userId);
+    hydrateMergeBoard(p);
 
     if (!p.merge.board[r]?.[c]) {
       return res.status(400).json({ error: "empty cell" });

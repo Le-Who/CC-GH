@@ -36,12 +36,22 @@ try {
  * v5.0.1: Recursively sanitize data for Firestore.
  * Firestore rejects `undefined` values with "invalid nested entity".
  * This converts undefined → null and ensures arrays are dense.
+ *
+ * v6.1.0: Also detects nested arrays (array containing arrays) and
+ * JSON-stringifies them — Firestore fundamentally rejects Array<Array>.
+ * This fixes merge.board (7×9 2D array) and any future nested-array fields.
  */
 function sanitizeForFirestore(obj) {
   if (obj === undefined) return null;
   if (obj === null || typeof obj !== "object") return obj;
   if (obj instanceof Date) return obj;
   if (Array.isArray(obj)) {
+    // v6.1.0: If any element is itself an array, stringify the whole thing.
+    // Firestore cannot store nested arrays (e.g. board[7][9]).
+    const hasNestedArray = obj.some((el) => Array.isArray(el));
+    if (hasNestedArray) {
+      return JSON.stringify(obj);
+    }
     const result = [];
     for (let i = 0; i < obj.length; i++) {
       result[i] = sanitizeForFirestore(obj[i] !== undefined ? obj[i] : null);
