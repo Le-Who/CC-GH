@@ -314,6 +314,22 @@ app.get("/game-logic.js", (_req, res) => {
     .sendFile(path.join(__dirname, "game-logic.js"));
 });
 
+// Explicit routes for sub-module scripts — prevents MIME type errors when
+// express.static fails to resolve subdirectory paths (observed in Discord
+// Embedded Activity proxy + Cloud Run deployments).
+app.get("/js/match3/engine.js", (_req, res) => {
+  res
+    .type("application/javascript")
+    .set("Cache-Control", "public, max-age=31536000, immutable")
+    .sendFile(path.join(__dirname, "public", "js", "match3", "engine.js"));
+});
+app.get("/js/blox/pieces.js", (_req, res) => {
+  res
+    .type("application/javascript")
+    .set("Cache-Control", "public, max-age=31536000, immutable")
+    .sendFile(path.join(__dirname, "public", "js", "blox", "pieces.js"));
+});
+
 // Strict 404 for static assets — prevents SPA catch-all from masking missing files
 app.use(/\.(js|mjs|css|json|map|png|jpg|svg|woff2?)$/i, (_req, res) => {
   res.status(404).type("text/plain").send("Asset not found");

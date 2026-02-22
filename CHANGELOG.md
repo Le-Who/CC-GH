@@ -40,6 +40,21 @@ Old crop timers (15s-120s) allowed 20-240× faster gold/XP farming than the v6.0
 - **Compensation** → +5 gacha tokens 🎰
 - **Preserved:** pet level/abilities, pet affection, purchased farm plots, merge board, M3/Blox high scores, trivia stats.
 
+#### Gacha Merge + Pet Orders — Audit Fixes (10)
+
+> Deep audit of merge board, quest system, and cross-module patterns.
+
+- **🔴 Quest reward display** — fixed `o.reward.maxEnergy` → `o.reward.energyMaxBoost`; now shows all 4 currencies (gold, affection, tokens, energy) via `_formatReward()` helper.
+- **🔴 Quest requirement names** — raw IDs (`strawberry`, `textile_0`) replaced with emoji + display names via `CROPS` + `MERGE_CHAINS` imports and `_formatReq()` helper.
+- **🟡 Generate orders button** — quest tab was non-functional (no way to call `/api/quests/generate`). Added auto-generate on first view + "🔄 Get Orders" button when < 3 active.
+- **🟡 Gacha currency label** — button showed `🪙` (gold) but costs gacha tokens. Changed to `(10 Tokens)`.
+- **🟡 Crop picker `<dialog>`** — migrated from manual `div` overlay to native `<dialog>` + `.showModal()`/`.close()`. Free focus trapping + Escape key.
+- **🟡 Empty-board onboarding** — new players see "🌱 Tap a generator…" hint on empty 7×9 board. Auto-removed on first item spawn.
+- **🟢 Version headers** — `merge.js` and `merge.css` bumped from `v7.0` → `v6.0.0`.
+- **🟢 `__harvested` rename** — 17 refs across `merge.js`, `pet.js`, `hud.js`, `farm.js` renamed to `harvested` (drop leaky double-underscore convention).
+- **🟢 Trash rollback fix** — `trashMergeItem()` now uses proper `oldBoard` snapshot (was mutating the already-set `newBoard`).
+- **🟢 Double render** — removed redundant `_renderBoard()` + `_renderGeneratorPanel()` from inside `onEnter()` try block.
+
 #### Tests
 
 - **285/285 pass**, 0 failures.

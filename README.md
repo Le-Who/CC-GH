@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v6.0.0**
+**Current version: v6.0.1**
 
 ---
 
@@ -98,8 +98,8 @@ npm run dev
 │   │   └── merge.js       # Gacha Merge engine (server-validated D&D, generators)
 │   └── css/               # Modular CSS (base, farm, trivia, match3, blox, merge, hud, pet)
 ├── tests/
-│   ├── unit.test.js       # 49 unit tests (pure functions)
-│   ├── api.test.js        # 24 API integration tests
+│   ├── unit.test.js       # 59 unit tests (pure functions)
+│   ├── api.test.js        # 26 API integration tests
 │   ├── blox.test.js       # 30 Building Blox tests
 │   ├── match3.test.js     # 12 tile clearing tests
 │   ├── ux.test.js         # 52 UX diagnostic tests
