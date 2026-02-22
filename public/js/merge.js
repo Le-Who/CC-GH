@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Gacha Merge Mini-Game (v6.1.1)
+ *  Game Hub — Gacha Merge Mini-Game (v6.2.0)
  *  Server-authoritative engine + Ghost-Pattern D&D
  *  Board: 7 rows × 9 cols. Items merge by chain + level.
  *  CSP-compliant: no innerHTML on active board.
@@ -8,6 +8,7 @@ import { GameStore } from "./store.js";
 import { api, showToast, HUB } from "./shared.js";
 import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "/game-logic.js";
 import { HUD } from "./hud.js";
+import { SoundEngine } from "./effects.js";
 
 /* ─── Constants ─── */
 const BOARD_ROWS = 7;
@@ -175,6 +176,7 @@ async function mergeItems(fromR, fromC, toR, toC) {
     }
     // Sync authoritative board
     GameStore.setState("merge", data.merge);
+    SoundEngine.merge(); // v6.2.1: audio + haptic feedback on merge success
     _renderBoard();
     return { success: true };
   } catch {
@@ -282,7 +284,8 @@ let _dragState = null;
 let _trashMode = false;
 let _selectedFuel = {}; // chainId → cropId (fuel slot memory)
 let _idleHintTimer = null;
-let _dragSafetyTimer = null; // v6.1.1: force-cleanup stuck drags
+let _dragSafetyTimer = null; // v6.2.0: force-cleanup stuck drags
+let _cooldownTimer = null; // v6.2.1: stored for cleanup in onLeave()
 const IDLE_HINT_DELAY = 7000; // 7 seconds
 const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
@@ -365,7 +368,7 @@ function _renderCell(r, c, item) {
 
 /* ─── Ghost-Pattern Drag & Drop ─── */
 
-/** v6.1.1: Force-cleanup any stuck drag state + orphan ghosts */
+/** v6.2.0: Force-cleanup any stuck drag state + orphan ghosts */
 function _forceCleanupDrag() {
   if (_dragSafetyTimer) {
     clearTimeout(_dragSafetyTimer);
@@ -387,7 +390,7 @@ function _forceCleanupDrag() {
 }
 
 function _onPointerDown(e) {
-  // v6.1.1: Clean slate — force-cleanup any stuck previous drag
+  // v6.2.0: Clean slate — force-cleanup any stuck previous drag
   _forceCleanupDrag();
 
   if (_trashMode) {
@@ -440,7 +443,7 @@ function _onPointerDown(e) {
     originCell: cell,
   };
 
-  // v6.1.1: Safety timeout — force-cleanup if drag lives too long
+  // v6.2.0: Safety timeout — force-cleanup if drag lives too long
   _dragSafetyTimer = setTimeout(() => {
     if (_dragState) {
       console.warn("[merge] Drag safety timeout — force cleanup");
@@ -463,7 +466,7 @@ function _onPointerDown(e) {
     }
   }
 
-  // v6.1.1: Removed setPointerCapture — document-level listeners handle everything
+  // v6.2.0: Removed setPointerCapture — document-level listeners handle everything
   e.preventDefault();
 }
 
@@ -686,7 +689,7 @@ function _showCropPicker(chainId) {
   dialog.appendChild(cancelBtn);
 
   dialog.addEventListener("close", () => dialog.remove());
-  // v6.1.1: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
+  // v6.2.0: Backdrop click-to-close (prevents invisible backdrop trapping all clicks)
   dialog.addEventListener("click", (e) => {
     if (e.target === dialog) dialog.close();
   });
@@ -756,13 +759,25 @@ function init() {
   _renderGeneratorPanel();
 
   // Subscribe to merge state changes
-  GameStore.subscribe("merge", () => {
+  // v6.2.1: split board vs panel subscription — panel only re-renders when
+  // generatorState/generators/lastFreePull changes (not on every drag/merge)
+  let _prevGenState = null;
+  GameStore.subscribe("merge", (prev, next) => {
     _renderBoard();
-    _renderGeneratorPanel();
+    const nextGenKey = JSON.stringify({
+      g: next?.generators,
+      gs: next?.generatorState,
+      lp: next?.lastFreePull,
+    });
+    if (nextGenKey !== _prevGenState) {
+      _prevGenState = nextGenKey;
+      _renderGeneratorPanel();
+    }
   });
 
-  // Periodically refresh cooldown timers
-  setInterval(() => {
+  // Periodically refresh cooldown timers (stored for cleanup in onLeave)
+  _cooldownTimer = setInterval(() => {
+    if (document.hidden) return; // skip when tab is backgrounded
     const mergeState = GameStore.getState("merge");
     if (!mergeState) return;
     for (const chainId of mergeState.generators) {
@@ -794,12 +809,23 @@ async function onEnter() {
   _renderGeneratorPanel();
 }
 
+/** v6.2.1: Clean up timers when leaving the merge screen */
+function onLeave() {
+  if (_idleHintTimer) {
+    clearTimeout(_idleHintTimer);
+    _idleHintTimer = null;
+  }
+  // Clear any lingering match-highlight from an interrupted drag
+  _forceCleanupDrag();
+}
+
 /* ═══════════════════════════════════════════════════
  *  Public API
  * ═══════════════════════════════════════════════════ */
 export const MergeGame = {
   init,
   onEnter,
+  onLeave,
   tapGenerator,
   mergeItems,
   rollGacha,

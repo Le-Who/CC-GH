@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Pet Module (v6.1.1)
+ *  Game Hub — Pet Module (v6.2.0)
  *  Living Pet Entity with state machine & interactions
  *  v1.8: Weighted behavior, zone roaming, FLIP dock
  *  v5: Native ES Module (was IIFE)
@@ -469,10 +469,6 @@ const PetCompanionImpl = (function () {
         <span class="pet-info-name">${SKINS[petData.skinId] || "🐕"} ${petData.name}</span>
         <span class="pet-info-level">Lv ${petData.level}</span>
       </div>
-      <div class="pet-info-tabs">
-        <button class="pet-tab active" data-tab="stats">📊 Stats</button>
-        <button class="pet-tab" data-tab="quests">📜 Quests</button>
-      </div>
       <div class="pet-tab-content" id="pet-tab-stats">
         <div class="pet-info-xp-bar">
           <div class="pet-info-xp-fill" style="width: ${xpPct}%"></div>
@@ -497,64 +493,7 @@ const PetCompanionImpl = (function () {
           </span>
         </div>
       </div>
-      <div class="pet-tab-content" id="pet-tab-quests" style="display:none">
-        ${
-          orders.length === 0
-            ? '<p class="text-dim" style="font-size:0.82rem;margin:8px 0">No active quests yet.</p>'
-            : orders
-                .map(
-                  (o) => `
-            <div class="pet-quest-item" data-order-id="${o.id}">
-              <div class="pet-quest-reqs">${o.requirements
-                .map((r) => `<span>${_formatReq(r)}</span>`)
-                .join(" ")}</div>
-              <div class="pet-quest-reward">🏆 ${_formatReward(o.reward)}</div>
-              <button class="pet-quest-submit" data-order-id="${o.id}">Submit</button>
-            </div>
-          `,
-                )
-                .join("")
-        }
-        ${orders.length < 3 ? `<button class="pet-quest-gen-btn" id="pet-gen-orders">🔄 ${orders.length === 0 ? "Get Orders" : "Get More Orders"}</button>` : ""}
-      </div>
     `;
-
-    // Tab switching
-    panel.querySelectorAll(".pet-tab").forEach((tab) => {
-      tab.addEventListener("click", () => {
-        panel
-          .querySelectorAll(".pet-tab")
-          .forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
-        const target = tab.dataset.tab;
-        const statsDiv = document.getElementById("pet-tab-stats");
-        const questsDiv = document.getElementById("pet-tab-quests");
-        if (statsDiv)
-          statsDiv.style.display = target === "stats" ? "block" : "none";
-        if (questsDiv)
-          questsDiv.style.display = target === "quests" ? "block" : "none";
-      });
-    });
-
-    // Quest submit buttons
-    panel.querySelectorAll(".pet-quest-submit").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const orderId = btn.dataset.orderId;
-        submitOrder(orderId);
-      });
-    });
-
-    // Generate orders button
-    const genBtn = document.getElementById("pet-gen-orders");
-    if (genBtn) {
-      genBtn.addEventListener("click", () => _generateOrders());
-    }
-
-    // Auto-generate on first view if empty
-    if (orders.length === 0 && petData._autoGenDone !== true) {
-      petData._autoGenDone = true;
-      _generateOrders();
-    }
 
     // Close button
     const closeBtn = document.getElementById("pet-info-close");

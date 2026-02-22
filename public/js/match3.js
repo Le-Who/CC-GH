@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Module (v6.1.1)
+ *  Game Hub — Match-3 Module (v6.2.1)
  *  Client-side engine, CSS transitions, state restore
  *  ─ GameStore integration (match3 slice)
  *  ─ Pause/Continue overlay, touch swipe, default mode
@@ -12,6 +12,7 @@
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep } from "./shared.js";
 import { HUD } from "./hud.js";
+import { perlinShake, colorSplash, SoundEngine, debounce } from "./effects.js";
 import {
   GEM_TYPES,
   GEM_ICONS,
@@ -58,48 +59,14 @@ const Match3GameImpl = (() => {
    *  localStorage is written immediately (synchronous, instant).
    */
   let _m3SyncDirty = false;
-  let _m3SyncTimerId = null;
-  const M3_SYNC_INTERVAL = 3000;
-
-  /* ─── v5.2.0: Perlin Noise Screen Shake (organic, non-repeating) ─── */
-  // Simplex-inspired hash for 1D noise
-  function _hashNoise(x) {
-    let n = Math.sin(x * 127.1 + x * 311.7) * 43758.5453;
-    return (n - Math.floor(n)) * 2 - 1; // -1..+1
-  }
-  function _smoothNoise(t) {
-    const i = Math.floor(t);
-    const f = t - i;
-    const u = f * f * (3 - 2 * f);
-    return _hashNoise(i) * (1 - u) + _hashNoise(i + 1) * u;
-  }
-  /**
-   * Perlin-noise-driven screen shake.
-   * @param {HTMLElement} el  — element to shake
-   * @param {number} intensity — max px displacement
-   * @param {number} durationMs — total shake time
-   */
-  function perlinShake(el, intensity, durationMs) {
-    if (!el) return;
-    const start = performance.now();
-    const seed = Math.random() * 1000;
-    function frame(now) {
-      const elapsed = now - start;
-      if (elapsed >= durationMs) {
-        el.style.transform = "";
-        return;
-      }
-      const progress = elapsed / durationMs;
-      const decay = 1 - progress; // linear decay
-      const t = elapsed * 0.015; // noise frequency
-      const x = _smoothNoise(seed + t) * intensity * decay;
-      const y = _smoothNoise(seed + t + 100) * intensity * decay;
-      const r = _smoothNoise(seed + t + 200) * intensity * 0.15 * decay;
-      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${r.toFixed(2)}deg)`;
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-  }
+  // v6.2.1: debounced sync — fires 3s after last dirty, cancellable on onLeave()
+  const _debouncedM3Sync = debounce(() => {
+    if (!_m3SyncDirty || !HUB.userId) return;
+    _m3SyncDirty = false;
+    api("/api/game/sync-modes", { userId: HUB.userId, savedModes }).catch(
+      () => {},
+    );
+  }, 3000);
 
   function persistSavedModes() {
     try {
@@ -107,25 +74,14 @@ const Match3GameImpl = (() => {
     } catch (_) {
       /* quota exceeded — ignore */
     }
-    // v4.16: Mark dirty — server sync fires on 3s timer, not per-action
+    // v6.2.1: debounce instead of setInterval — no eternal timers, cleaner onLeave
     _m3SyncDirty = true;
-    _ensureM3SyncTimer();
-  }
-
-  function _ensureM3SyncTimer() {
-    if (_m3SyncTimerId || !HUB.userId) return;
-    _m3SyncTimerId = setInterval(() => {
-      if (!_m3SyncDirty) return;
-      _m3SyncDirty = false;
-      api("/api/game/sync-modes", {
-        userId: HUB.userId,
-        savedModes,
-      }).catch(() => {});
-    }, M3_SYNC_INTERVAL);
+    if (!document.hidden) _debouncedM3Sync(); // skip when tab backgrounded
   }
 
   /** v4.16: Flush pending sync immediately (keepalive for tab close) */
   function _flushM3Sync() {
+    _debouncedM3Sync.cancel(); // stop any pending debounce
     if (!_m3SyncDirty || !HUB.userId) return;
     _m3SyncDirty = false;
     const headers = { "Content-Type": "application/json" };
@@ -249,6 +205,10 @@ const Match3GameImpl = (() => {
       const ov = $("m3-overlay");
       if (ov) ov.classList.remove("show");
       showModeSelector();
+    });
+    // Task 4: "Just Looking" dismiss — close pause overlay without game state change
+    $("m3-pause-dismiss")?.addEventListener("click", () => {
+      hideM3PauseOverlay();
     });
     $("btn-lb-tab-all")?.addEventListener("click", () => setLbTab("all"));
     $("btn-lb-tab-room")?.addEventListener("click", () => setLbTab("room"));
@@ -1346,6 +1306,7 @@ const Match3GameImpl = (() => {
       // Invalid swap — v5.2.0: Perlin noise shake (organic)
       // Target container, not board (board has tilt transform)
       perlinShake($("m3-board-container"), 3, 400);
+      SoundEngine.error(); // v6.2.1: audio + haptic feedback
       isAnimating = false;
       $b.classList.remove("disabled");
       return;
@@ -1449,6 +1410,10 @@ const Match3GameImpl = (() => {
       perlinShake($("m3-board-container"), 6, 500);
     }
 
+    // v6.2.1: audio + haptic feedback on match resolution
+    if (combo > 1) SoundEngine.combo(combo);
+    else SoundEngine.match();
+
     if (combo > 1) showComboBanner(combo);
     if (result.totalPoints > 0)
       showFloatingPoints(toX, toY, result.totalPoints);
@@ -1492,7 +1457,10 @@ const Match3GameImpl = (() => {
       delete savedModes[gameMode];
       persistSavedModes();
 
-      setTimeout(() => showGameOver(score), 500);
+      setTimeout(() => {
+        SoundEngine.gameOver(); // v6.2.1: low tone + long vibration
+        showGameOver(score);
+      }, 500);
       fetchLeaderboard();
       syncToStore();
       updateStartButton();
@@ -1513,10 +1481,11 @@ const Match3GameImpl = (() => {
 
   async function animateCascade(steps) {
     _prevCascadeChanged = [];
-    const BASE_HIGHLIGHT_DUR = 200;
-    const BASE_POP_DUR = 220;
-    const BASE_FALL_WAIT = 200;
-    const SPEED_DECAY = 0.85; // each successive step is 15% faster
+    const BASE_HIGHLIGHT_DUR = 230; // v6.2: +15% (was 200)
+    const BASE_POP_DUR = 250; // v6.2: +15% (was 220)
+    const BASE_FALL_WAIT = 230; // v6.2: +15% (was 200)
+    const SPEED_DECAY = 0.92; // v6.2: flatter curve (was 0.85) — combos stay readable
+    const SPEED_FLOOR = 0.65; // v6.2: minimum multiplier floor — never faster than 65%
     let speedMul = 1;
 
     for (let si = 0; si < steps.length; si++) {
@@ -1634,8 +1603,8 @@ const Match3GameImpl = (() => {
       }
       await sleep(Math.round(BASE_FALL_WAIT * speedMul));
 
-      // Adaptive speed: each successive step is faster
-      speedMul *= SPEED_DECAY;
+      // Adaptive speed: each successive step is faster, but clamped at floor
+      speedMul = Math.max(SPEED_FLOOR, speedMul * SPEED_DECAY);
     }
 
     // Final cleanup after all steps complete

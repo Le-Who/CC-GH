@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — HUD Module (v6.1.1)
+ *  Game Hub — HUD Module (v6.2.0)
  *  TopHUD for Energy & Gold display
  *  Registers 'resources' slice in GameStore
  *  v5: Native ES Module (was IIFE)
@@ -402,7 +402,7 @@ async function _feedFromModal(cropId, btn) {
       if (data.resources) syncFromServer(data.resources);
     }
   } finally {
-    // v6.1.1: Guaranteed refresh — re-enables buttons even on network error
+    // v6.2.0: Guaranteed refresh — re-enables buttons even on network error
     _refreshModalItems();
     _checkEnergyPlayReady();
   }
@@ -490,14 +490,62 @@ function _canFulfillOrder(order) {
   return true;
 }
 
-function _openQuestLog() {
-  const modal = document.getElementById("quest-log-modal");
-  const container = document.getElementById("quest-log-items");
-  if (!modal || !container) return;
-  _renderQuestLog(container);
-  if (!modal.open) {
-    safeShowModal(modal);
+/** Get the player's current quantity for a quest requirement */
+function _getPlayerQty(req) {
+  if (req.type === "crop") {
+    const res = GameStore.getState("resources");
+    return (res?.harvested || {})[req.id] || 0;
+  } else if (req.type === "merge") {
+    const mergeState = GameStore.getState("merge");
+    const board = mergeState?.board;
+    if (!board) return 0;
+    let found = 0;
+    for (const row of board) {
+      for (const cell of row) {
+        if (cell && cell.id === req.id) found++;
+      }
+    }
+    return found;
   }
+  return 0;
+}
+function _openQuestLog() {
+  const dropdown = document.getElementById("quest-dropdown");
+  const container = document.getElementById("quest-log-items");
+  if (!dropdown || !container) return;
+
+  const isOpen = dropdown.style.display !== "none";
+  if (isOpen) {
+    dropdown.style.display = "none";
+    return;
+  }
+
+  _renderQuestLog(container);
+  dropdown.style.display = "";
+
+  // Close button
+  const closeBtn = document.getElementById("quest-dropdown-close");
+  if (closeBtn)
+    closeBtn.onclick = () => {
+      dropdown.style.display = "none";
+    };
+
+  // Click-outside-to-close
+  const _outsideHandler = (e) => {
+    if (
+      !dropdown.contains(e.target) &&
+      e.target.id !== "quest-log-btn" &&
+      !e.target.closest("#quest-log-btn")
+    ) {
+      dropdown.style.display = "none";
+      document.removeEventListener("pointerdown", _outsideHandler);
+    }
+  };
+  // Delay binding so the current click doesn't immediately close
+  setTimeout(
+    () => document.addEventListener("pointerdown", _outsideHandler),
+    0,
+  );
 }
 
 function _renderQuestLog(container) {
@@ -509,15 +557,29 @@ function _renderQuestLog(container) {
       '<p class="text-dim" style="font-size:0.82rem;margin:8px 0;text-align:center">No active quests. Generate some!</p>';
   } else {
     container.innerHTML = orders
-      .map(
-        (o) => `
+      .map((o) => {
+        // Build progress-bar requirements
+        const reqsHtml = o.requirements
+          .map((r) => {
+            const have = _getPlayerQty(r);
+            const need = r.qty;
+            const pct = Math.min(100, Math.round((have / need) * 100));
+            const done = have >= need;
+            return `<div class="quest-req-row">
+              <span class="quest-req-label">${_formatReq(r)}</span>
+              <div class="quest-req-bar"><div class="quest-req-bar-fill${done ? " full" : ""}" style="width:${pct}%"></div></div>
+              <span class="quest-req-frac${done ? " done" : ""}">${have}/${need}</span>
+            </div>`;
+          })
+          .join("");
+        return `
       <div class="quest-log-item" data-order-id="${o.id}">
-        <div class="quest-log-reqs">${o.requirements.map((r) => `<span>${_formatReq(r)}</span>`).join(" ")}</div>
+        <div class="quest-log-reqs">${reqsHtml}</div>
         <div class="quest-log-reward">🏆 ${_formatReward(o.reward)}</div>
         <button class="quest-log-submit" data-order-id="${o.id}">Submit</button>
       </div>
-    `,
-      )
+    `;
+      })
       .join("");
   }
 

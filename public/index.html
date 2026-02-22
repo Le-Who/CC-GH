@@ -114,18 +114,18 @@
       </div>
     </dialog>
 
-    <!-- ═══ Quest Log Modal ═══ -->
-    <dialog class="modal" id="quest-log-modal">
-      <div class="modal-card quest-log-card">
-        <h3>📋 Quest Log</h3>
-        <div id="quest-log-items"></div>
-        <form method="dialog" style="margin-top: 12px">
-          <button class="btn btn-secondary btn-sm" id="quest-log-close">
-            Close
+    <!-- ═══ Quest Log Dropdown ═══ -->
+    <div class="quest-dropdown" id="quest-dropdown" style="display: none">
+      <div class="quest-dropdown-card">
+        <div class="quest-dropdown-header">
+          <h3>📋 Quests</h3>
+          <button class="quest-dropdown-close" id="quest-dropdown-close">
+            ✕
           </button>
-        </form>
+        </div>
+        <div id="quest-log-items"></div>
       </div>
-    </dialog>
+    </div>
 
     <!-- ═══ Viewport ═══ -->
     <div class="viewport" id="viewport">
@@ -448,6 +448,13 @@
                   >
                     🏁 End Game
                   </button>
+                  <button
+                    class="btn btn-dismiss"
+                    id="blox-btn-dismiss"
+                    type="button"
+                  >
+                    👁️ Just Looking
+                  </button>
                 </form>
               </div>
             </dialog>
@@ -627,6 +634,13 @@
                 style="display: none"
               >
                 🛑 End Game
+              </button>
+              <button
+                class="btn btn-dismiss"
+                id="m3-pause-dismiss"
+                type="button"
+              >
+                👁️ Just Looking
               </button>
             </div>
           </div>

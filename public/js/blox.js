@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Building Blox Module (v6.1.1)
+ *  Game Hub — Building Blox Module (v6.2.1)
  *  10×10 Block Puzzle: place pieces, clear lines
  *  ─ localStorage persistence, pause overlay, touch drag,
  *    grab-point anchor ghost, mouse drag-and-drop,
@@ -9,6 +9,7 @@
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep } from "./shared.js";
 import { HUD } from "./hud.js";
+import { perlinShake, SoundEngine, debounce } from "./effects.js";
 
 import { GRID, PIECE_COUNT, PIECES } from "./blox/pieces.js";
 
@@ -24,38 +25,6 @@ const BloxGameImpl = (() => {
   let gameActive = false;
   let gamePaused = false;
   let selectedPiece = -1;
-
-  /* ─── v5.2.0: Perlin Noise Screen Shake (organic, non-repeating) ─── */
-  function _hashNoise(x) {
-    let n = Math.sin(x * 127.1 + x * 311.7) * 43758.5453;
-    return (n - Math.floor(n)) * 2 - 1;
-  }
-  function _smoothNoise(t) {
-    const i = Math.floor(t);
-    const f = t - i;
-    const u = f * f * (3 - 2 * f);
-    return _hashNoise(i) * (1 - u) + _hashNoise(i + 1) * u;
-  }
-  function perlinShake(el, intensity, durationMs) {
-    if (!el) return;
-    const start = performance.now();
-    const seed = Math.random() * 1000;
-    function frame(now) {
-      const elapsed = now - start;
-      if (elapsed >= durationMs) {
-        el.style.transform = "";
-        return;
-      }
-      const decay = 1 - elapsed / durationMs;
-      const t = elapsed * 0.015;
-      const x = _smoothNoise(seed + t) * intensity * decay;
-      const y = _smoothNoise(seed + t + 100) * intensity * decay;
-      const r = _smoothNoise(seed + t + 200) * intensity * 0.15 * decay;
-      el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${r.toFixed(2)}deg)`;
-      requestAnimationFrame(frame);
-    }
-    requestAnimationFrame(frame);
-  }
 
   /* v5.2.0: Drag-Tilt state — tracks previous pointer for velocity-based tilt */
   let _prevDragX = 0;
@@ -76,8 +45,15 @@ const BloxGameImpl = (() => {
 
   // v4.16: Debounced server sync (3s throttle instead of per-placement HTTP)
   let _syncDirty = false;
-  let _syncTimerId = null;
-  const SYNC_INTERVAL_MS = 3000;
+  // v6.2.1: debounce instead of setInterval — eliminates timer leak on screen leave
+  const _debouncedSync = debounce(() => {
+    if (!_syncDirty || !HUB.userId) return;
+    _syncDirty = false;
+    const payload = _buildSavePayload();
+    api("/api/blox/sync", { userId: HUB.userId, savedState: payload }).catch(
+      () => {},
+    );
+  }, 3000);
 
   // v4.16: Reusable Uint8Array for clearLines (zero-allocation)
   const _clearMap = new Uint8Array(GRID * GRID);
@@ -362,36 +338,22 @@ const BloxGameImpl = (() => {
     try {
       const state = _buildSavePayload();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      // v4.16: Mark dirty — server sync happens on 3s timer, not per-placement
+      // v6.2.1: debounce — no eternal timers, paused when tab hidden
       _syncDirty = true;
-      _ensureSyncTimer();
+      if (!document.hidden) _debouncedSync();
     } catch (_) {
       /* quota exceeded - silent */
     }
   }
 
-  /** v4.16: Start 3s debounce timer for server sync (if not already running) */
-  function _ensureSyncTimer() {
-    if (_syncTimerId) return;
-    _syncTimerId = setInterval(() => {
-      if (!_syncDirty) return;
-      _syncDirty = false;
-      const payload = _buildSavePayload();
-      api("/api/blox/sync", {
-        userId: HUB.userId,
-        savedState: payload,
-      }).catch(() => {});
-    }, SYNC_INTERVAL_MS);
-  }
-
-  /** v4.16: Flush pending sync immediately (used on beforeunload/game-over) */
+  /** v6.2.1: Flush pending sync immediately (used on beforeunload/onLeave/game-over) */
   function _flushSync() {
-    if (!_syncDirty) return;
+    _debouncedSync.cancel(); // cancel pending debounce
+    if (!_syncDirty || !HUB.userId) return;
     _syncDirty = false;
     const payload = _buildSavePayload();
     const headers = { "Content-Type": "application/json" };
     if (HUB.accessToken) headers["Authorization"] = `Bearer ${HUB.accessToken}`;
-    // keepalive guarantees delivery even after tab close
     fetch("/api/blox/sync", {
       method: "POST",
       headers,
@@ -1323,6 +1285,10 @@ const BloxGameImpl = (() => {
     $("blox-btn-end")?.addEventListener("click", () => {
       hidePauseOverlay();
       endGame();
+    });
+    // Task 4: "Just Looking" dismiss — close overlay without game state change
+    $("blox-btn-dismiss")?.addEventListener("click", () => {
+      hidePauseOverlay();
     });
     // Game-over play-again (moved from shared.js for SRP)
     $("btn-blox-play-again")?.addEventListener("click", () => startGame());

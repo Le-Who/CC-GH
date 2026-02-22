@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Farm Module (v6.1.1)
+ *  Game Hub — Farm Module (v6.2.1)
  *  Plots, planting, watering, harvesting, seed shop
  *  ─ Local growth timer, diff-update fix, farm badge
  *  ─ Diff-update plots (no blink), horizontal buy bar, plot dispatcher
@@ -12,6 +12,7 @@ import { CROPS as CROPS_CONFIG } from "/game-logic.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
 import { getCropsData, setCropsCache } from "./crops.js";
+import { SoundEngine } from "./effects.js";
 
 const FarmGameImpl = (() => {
   // state is synced with GameStore 'farm' slice
@@ -52,22 +53,21 @@ const FarmGameImpl = (() => {
     GameStore.setState("resources", { ...res, harvested: { ...harvested } });
   }
   /** Pull state from GameStore → local (deep clone to prevent shared refs)
-   *  v4.16: Dirty check — skip clone + re-render when store state matches local.
+   *  v6.2.1: Fast O(1) reference equality replaces JSON.stringify(plots)
+   *  which was serializing all plots ~3600×/hour during the growth timer tick.
    */
-  let _lastStorePlotsSig = "";
+  let _lastStoreRef = null;
   function syncFromStore() {
     const storeState = GameStore.getState("farm");
-    if (storeState) {
-      // v4.16: Dirty flag — skip expensive clone if plots haven't changed
-      const sig = JSON.stringify(storeState.plots);
-      if (sig === _lastStorePlotsSig) return;
-      _lastStorePlotsSig = sig;
-      state = {
-        ...storeState,
-        plots: storeState.plots ? storeState.plots.map((p) => ({ ...p })) : [],
-        harvested: storeState.harvested ? { ...storeState.harvested } : {},
-      };
-    }
+    if (!storeState) return;
+    // O(1) check — skip clone if the store state object reference hasn't changed
+    if (storeState === _lastStoreRef) return;
+    _lastStoreRef = storeState;
+    state = {
+      ...storeState,
+      plots: storeState.plots ? storeState.plots.map((p) => ({ ...p })) : [],
+      harvested: storeState.harvested ? { ...storeState.harvested } : {},
+    };
   }
 
   const $ = (id) => document.getElementById(id);
@@ -281,7 +281,7 @@ const FarmGameImpl = (() => {
     }
   }
 
-  /* ─── Welcome Back Modal ─── */
+  /* ─── Welcome Back Modal (v6.2.1: native <dialog> for proper focus-trap + goToScreen compat) ─── */
   function showWelcomeBack(report) {
     // Build body lines
     const lines = [];
@@ -335,19 +335,28 @@ const FarmGameImpl = (() => {
       );
     }
 
-    // Create overlay
-    const overlay = document.createElement("div");
-    overlay.className = "overlay show";
-    overlay.id = "welcome-back-overlay";
-    overlay.innerHTML = `
-      <div class="overlay-card" style="text-align:center;max-width:320px">
+    // v6.2.1: native <dialog> — consistent with project convention (v4.14+)
+    // goToScreen() will now correctly close this via querySelectorAll("dialog[open]")
+    const dialog = document.createElement("dialog");
+    dialog.className = "modal welcome-back-dialog";
+    dialog.innerHTML = `
+      <div class="modal-card" style="text-align:center;max-width:320px">
         <h2 style="margin:0 0 10px">🐾 Welcome Back!</h2>
         ${lines.join("")}
-        <button class="btn btn-primary" style="margin-top:14px;width:100%" id="wb-dismiss">Let's Go!</button>
+        <button class="btn btn-primary" style="margin-top:14px;width:100%" id="wb-dismiss">Let's Go! 🌱</button>
       </div>
     `;
-    document.body.appendChild(overlay);
-    document.getElementById("wb-dismiss").onclick = () => overlay.remove();
+    dialog.addEventListener("close", () => dialog.remove());
+    // Backdrop click-to-close (v6.2.0 convention)
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    document.body.appendChild(dialog);
+    // Use centralised safeShowModal helper (closes any other open dialogs first)
+    import("./shared.js").then(({ safeShowModal }) => safeShowModal(dialog));
+    document
+      .getElementById("wb-dismiss")
+      ?.addEventListener("click", () => dialog.close());
   }
 
   /* ─── Plot Click Dispatcher ─── */
@@ -434,6 +443,27 @@ const FarmGameImpl = (() => {
       appendBuyPlotCard(grid);
       firstRenderDone = true;
     }
+
+    // Task 7.1: Update farm nav notification dot
+    _updateFarmNavDot();
+  }
+
+  /** Task 7.1: Show green dot on Farm tab if any crop is ready to harvest */
+  function _updateFarmNavDot() {
+    const tab = document.getElementById("nav-tab-farm");
+    if (!tab || !state?.plots) return;
+    const hasReady = state.plots.some((p) => {
+      if (!p.crop) return false;
+      return getLocalGrowth(p) >= 1;
+    });
+    let dot = tab.querySelector(".nav-notify-dot");
+    if (hasReady && !dot) {
+      dot = document.createElement("span");
+      dot.className = "nav-notify-dot dot-green";
+      tab.appendChild(dot);
+    } else if (!hasReady && dot) {
+      dot.remove();
+    }
   }
 
   function rebuildPlot(div, plot, i, pct, isReady, animate) {
@@ -479,33 +509,55 @@ const FarmGameImpl = (() => {
     }
   }
 
+  /* ─── Growth Time Formatter ─── */
+  function _formatGrowthTime(ms) {
+    const totalSec = Math.round(ms / 1000);
+    if (totalSec < 60) return `${totalSec}s`;
+    const hours = Math.floor(totalSec / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    if (hours > 0) {
+      let s = `${hours}h`;
+      if (mins > 0) s += ` ${mins}m`;
+      if (secs > 0) s += ` ${secs}s`;
+      return s;
+    }
+    if (secs > 0) return `${mins}m ${secs}s`;
+    return `${mins}m`;
+  }
+
   /* ─── Seed Shop Grid ─── */
   function renderShop() {
     const grid = $("farm-shop-grid");
     grid.innerHTML = "";
-    for (const [id, cfg] of Object.entries(crops)) {
+    // Task 6.2: Sort seeds by price ascending
+    const sortedEntries = Object.entries(crops).sort(
+      ([, a], [, b]) => (a.seedPrice || 0) - (b.seedPrice || 0),
+    );
+    for (const [id, cfg] of sortedEntries) {
       const count = state?.inventory?.[id] || 0;
       const card = document.createElement("div");
       const isSelected = selectedSeed === id;
       const isEmpty = count <= 0;
       card.className = `farm-seed-card${isSelected ? " selected" : ""}${isEmpty ? " no-seeds" : ""}`;
+      // Task 6.1: Add growth time
+      const growthLabel = _formatGrowthTime(cfg.growthTime || 15000);
       card.innerHTML = `
         <div class="seed-emoji">${cfg.emoji}</div>
         <div class="seed-name">${cfg.name}</div>
         <div class="seed-price">🪙 ${cfg.seedPrice}</div>
+        <div class="seed-grow-time">⏰ ${growthLabel}</div>
         <div class="seed-count">×${count}</div>
         <button class="seed-quick-buy" data-crop="${id}" title="Buy 1 ${cfg.name}">🛒 Buy</button>
       `;
       card.onclick = (e) => {
-        if (e.target.closest(".seed-quick-buy")) return; // let quick-buy handle itself
+        if (e.target.closest(".seed-quick-buy")) return;
         selectSeed(id);
       };
-      // v4.9: Quick-buy button handler (buy 1 seed instantly)
       const quickBuyBtn = card.querySelector(".seed-quick-buy");
       if (quickBuyBtn) {
         quickBuyBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          // Select this seed + buy 1
           selectedSeed = id;
           buyQty = 1;
           buySeeds();
@@ -695,7 +747,10 @@ const FarmGameImpl = (() => {
 
   function plant(plotId) {
     if (!selectedSeed) {
-      showToast("Select a seed first!");
+      // Task 6: No seed selected — scroll to shop section
+      const shopEl = document.querySelector(".farm-shop");
+      if (shopEl) shopEl.scrollIntoView({ behavior: "smooth" });
+      showToast("🛒 Pick a seed to plant!");
       return;
     }
     const seedCount = state?.inventory?.[selectedSeed] || 0;
@@ -816,6 +871,7 @@ const FarmGameImpl = (() => {
 
     // Bug 3 fix: toast shows only XP, no gold (harvest doesn't award gold)
     showToast(`${cfg?.emoji || "🌱"} Harvested! +${estimatedXP}XP`);
+    SoundEngine.harvest(); // v6.2.1: audio + haptic feedback
 
     // Fire-and-forget with version guard
     const myVersion = ++harvestVersion;

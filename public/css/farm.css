@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Farm Screen Styles (v6.1.1)
+ *  Game Hub — Farm Screen Styles (v6.2.0)
  * ═══════════════════════════════════════════════════ */
 
 #screen-farm .screen-header h1 {
@@ -455,6 +455,11 @@
 .farm-seed-card .seed-count {
   font-size: 0.6rem;
   color: var(--text-dim);
+}
+.farm-seed-card .seed-grow-time {
+  font-size: 0.58rem;
+  color: rgba(255, 200, 50, 0.7);
+  letter-spacing: 0.02em;
 }
 /* v4.9: Inline quick-buy button on seed cards */
 .farm-seed-card .seed-quick-buy {

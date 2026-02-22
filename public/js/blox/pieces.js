@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Blox — Piece Library (v6.1.1)
+ *  Blox — Piece Library (v6.2.0)
  *  Static piece definitions for the 10×10 block puzzle.
  *  Extracted from blox.js for clarity.
  * ═══════════════════════════════════════════════════ */

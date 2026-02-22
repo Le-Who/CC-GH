@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v6.1.1**
+**Current version: v6.2.1**
 
 ---
 
@@ -16,6 +16,7 @@
 | 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag · Juicy UI   |
 | 🔮 **Gacha Merge**        | 7×9 merge board · 2 chains × 8 levels · generators + gacha + daily free pull |
 | 📋 **Pet Orders**         | Quest system: farm crops + merge items → tiered rewards + affection levels   |
+| 📋 **Quest Dropdown**     | Non-blocking dropdown with progress bars, click-outside-to-close             |
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
 | ⚡ **Energy System**      | Native dialog overlays · 2.5-min regen · Gates match-3 and trivia plays      |
 | 💣 **Farm Uproot**        | Hold-to-confirm 2.5s removal of unwanted crops (no refund)                   |
@@ -23,6 +24,7 @@
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
 | 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
 | 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions                 |
+| ✨ **Nav Shimmer + Dots** | Active tab shimmer effect · Green notification dot on Farm when crops ready  |
 | 🔤 **Emoji Consistency**  | Robust font stack: Noto Color Emoji + Apple/Segoe fallbacks                  |
 
 ---
@@ -118,7 +120,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 285 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
+npm test          # All 317 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -234,6 +236,15 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 3. ~~**Merge Fuel Slot**~~: 1-click generator tap with remembered crop. Fuel badge shows stock. Picker only on exhaustion.
 4. ~~**Farm Uproot**~~: 💣 hold-to-confirm (2.5s) button on un-matured crops. Server endpoint `/api/farm/uproot` (no refund).
 5. ~~**Emoji Font Stack**~~: Noto Color Emoji + Apple/Segoe/Symbol fallbacks for cross-platform consistency.
+
+### ✅ Completed in v6.2.0
+
+1. ~~**Pet Panel Cleanup**~~: Removed Quests tab (now HUD-only) and Stats tab button for cleaner pet info.
+2. ~~**Quest Log Dropdown**~~: Modal → non-blocking dropdown with progress bars and click-outside-to-close.
+3. ~~**Overlay Dismiss**~~: "Just Looking" buttons on Blox/Match-3 pause overlays.
+4. ~~**Cascade Speed Tuning**~~: +15% base timing, flatter decay curve (0.85→0.92), speed floor at 0.65.
+5. ~~**Farm Shop UX**~~: Empty plot → shop redirect, growth time labels, sort by price.
+6. ~~**Nav Shimmer + Dots**~~: Active tab shimmer animation, green notification dot on Farm when crops ready.
 
 ### Planned
 

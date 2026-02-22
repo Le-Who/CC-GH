@@ -257,6 +257,7 @@ function getIndexHtml() {
     "match3.js",
     "blox.js",
     "merge.js",
+    "effects.js",
     "main.js",
     // Sub-modules (Phase 4)
     "match3/engine.js",

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Trivia Module  (v6.1.1)
+ *  Game Hub — Trivia Module  (v6.2.0)
  *  Solo mode, Duel mode, timer, results
  *  ─ Forfeit, cancel, lobby ready-up, voice invite
  *  ─ GameStore integration (trivia slice)

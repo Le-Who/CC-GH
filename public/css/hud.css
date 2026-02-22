@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — TopHUD — Energy & Gold Display (v6.1.1)
+ *  Game Hub — TopHUD — Energy & Gold Display (v6.2.0)
  *  Always visible, fixed top bar
  * ═══════════════════════════════════════════════════ */
 
@@ -277,19 +277,66 @@
   }
 }
 
-/* ─── Quest Log Modal ─── */
-.quest-log-card {
-  max-width: 380px;
-  text-align: left;
+/* ─── Quest Dropdown ─── */
+.quest-dropdown {
+  position: fixed;
+  top: 52px; /* below top-hud */
+  right: 12px;
+  z-index: 55;
+  width: min(340px, calc(100vw - 24px));
+  max-height: 60vh;
+  overflow-y: auto;
+  animation: questDropIn 0.22s ease-out;
 }
-.quest-log-card h3 {
-  margin: 0 0 12px;
-  text-align: center;
+@keyframes questDropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+.quest-dropdown-card {
+  background: rgba(15, 15, 25, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(130, 200, 255, 0.15);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+.quest-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.quest-dropdown-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.quest-dropdown-close {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.quest-dropdown-close:hover {
+  background: rgba(255, 80, 80, 0.2);
+}
+
+/* ─── Quest Items ─── */
 .quest-log-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   padding: 10px;
   margin-bottom: 8px;
   background: rgba(255, 255, 255, 0.04);
@@ -301,10 +348,45 @@
   border-color: rgba(130, 200, 255, 0.25);
 }
 .quest-log-reqs {
-  font-size: 0.85rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 5px;
+}
+.quest-req-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+.quest-req-label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.quest-req-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.quest-req-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #818cf8);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.quest-req-bar-fill.full {
+  background: linear-gradient(90deg, #34d399, #22c55e);
+}
+.quest-req-frac {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  min-width: 2.5em;
+  text-align: right;
+}
+.quest-req-frac.done {
+  color: #34d399;
+  font-weight: 600;
 }
 .quest-log-reward {
   font-size: 0.78rem;

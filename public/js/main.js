@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Main Entry Point (v6.1.1)
+ *  Game Hub — Main Entry Point (v6.2.0)
  *  Single <script type="module"> boot orchestrator.
  *  Imports all modules and runs the init sequence.
  *  v5: Replaces the DOMContentLoaded block from shared.js
