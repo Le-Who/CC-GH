@@ -181,6 +181,12 @@ export function goToScreen(index) {
   const maxScreen = HUB.screenNames.length - 1;
   if (index < 0 || index > maxScreen || index === HUB.currentScreen) return;
 
+  // v6.2.0: Set spatial slide direction
+  const isBack = index < HUB.currentScreen;
+  document.documentElement.dataset.transition = isBack
+    ? "slide-right"
+    : "slide-left";
+
   // v6.2.0: Close ALL open dialogs before screen transition
   // Prevents invisible backdrops from trapping pointer events
   document.querySelectorAll("dialog[open]").forEach((d) => d.close());
@@ -381,7 +387,7 @@ export function showToast(msg, type) {
 
   const container = initToastContainer();
 
-  // Enforce max stack size by popping the oldest
+  // Enforce max stack size by popping the oldest (first child)
   while (container.children.length >= MAX_TOASTS) {
     container.firstChild.remove();
   }
@@ -397,9 +403,45 @@ export function showToast(msg, type) {
   void el.offsetWidth;
   el.classList.add("show");
 
+  // Audit 9: Swipe to dismiss
+  let startX = 0,
+    currentX = 0;
+  const onPointerDown = (e) => {
+    startX = e.clientX || (e.touches && e.touches[0].clientX);
+    el.style.transition = "none";
+  };
+  const onPointerMove = (e) => {
+    if (!startX) return;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    currentX = Math.max(0, clientX - startX); // Only swipe right
+    el.style.setProperty("--swipe-x", `${currentX}px`);
+  };
+  const onPointerUp = () => {
+    if (!startX) return;
+    startX = 0;
+    el.style.transition = ""; // Restore css transition
+    if (currentX > 75) {
+      el.classList.add("swiped-out");
+      el.addEventListener("transitionend", () => el.remove(), { once: true });
+    } else {
+      el.style.setProperty("--swipe-x", "0px"); // snap back
+    }
+    currentX = 0;
+  };
+
+  el.addEventListener("touchstart", onPointerDown, { passive: true });
+  el.addEventListener("touchmove", onPointerMove, { passive: true });
+  el.addEventListener("touchend", onPointerUp);
+  el.addEventListener("mousedown", onPointerDown);
+  window.addEventListener("mousemove", onPointerMove);
+  window.addEventListener("mouseup", onPointerUp);
+
+  // Auto remove after 2.5s (matching CSS progress bar)
   setTimeout(() => {
-    el.classList.remove("show");
-    el.addEventListener("transitionend", () => el.remove(), { once: true });
+    if (!el.classList.contains("swiped-out") && document.body.contains(el)) {
+      el.classList.remove("show");
+      el.addEventListener("transitionend", () => el.remove(), { once: true });
+    }
   }, 2500);
 }
 

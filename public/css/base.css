@@ -95,11 +95,57 @@ body {
   display: none;
 }
 
-/* Base View Transition cross-fade */
+/* ─── Spring Parallax View Transitions (Audit Item 1) ─── */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.3s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-duration: 0.45s;
+  animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+::view-transition-old(root) {
+  animation: vtOldScaleDown 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Slide Left (Next screen) */
+html[data-transition="slide-left"] ::view-transition-new(root) {
+  animation: vtNewSlideLeft 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Slide Right (Prev screen) */
+html[data-transition="slide-right"] ::view-transition-new(root) {
+  animation: vtNewSlideRight 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes vtOldScaleDown {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: brightness(0.6);
+  }
+}
+@keyframes vtNewSlideLeft {
+  from {
+    transform: translateX(100vw);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes vtNewSlideRight {
+  from {
+    transform: translateX(-100vw);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* ─── Nav Arrows (Desktop: full-height glassmorphic edge strips) ─── */
@@ -225,43 +271,6 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   background: transparent;
   transition: background 0.2s ease;
 }
-.nav-tab.active {
-  color: var(--accent);
-}
-.nav-tab.active::before {
-  background: var(--accent);
-  box-shadow: 0 2px 8px var(--accent-glow);
-}
-.nav-tab-icon {
-  font-size: 1.3rem;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-.nav-tab.active .nav-tab-icon {
-  transform: scale(1.15);
-}
-.nav-tab-label {
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-/* Farm tab gold pulse when crops ready (1.7) */
-@keyframes navTabFarmPulse {
-  0%,
-  100% {
-    box-shadow: none;
-  }
-  50% {
-    box-shadow: inset 0 0 16px rgba(251, 191, 36, 0.15);
-  }
-}
-.nav-tab.farm-ready {
-  animation: navTabFarmPulse 2s ease-in-out infinite;
-}
-.nav-tab.farm-ready .nav-tab-icon {
-  animation: badgePulse 2s ease-in-out infinite;
-}
 /* Bottom padding for ALL devices so content doesn't hide behind nav-bar */
 .viewport {
   padding-bottom: 60px;
@@ -272,6 +281,41 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 /* Move version badge above nav-bar */
 #version-badge {
   bottom: 66px !important;
+}
+
+/* ─── Audit 6: Nav Bar Slide-Pill & Pop-out ─── */
+.nav-bar {
+  position: relative;
+}
+.nav-pill {
+  position: absolute;
+  top: 6px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6px);
+  background: rgba(167, 139, 250, 0.15);
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 0 12px var(--accent-glow);
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+}
+.nav-tab {
+  z-index: 1; /* keep above pill */
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-tab::before {
+  display: none !important; /* disabled legacy top border indicator */
+}
+.nav-tab.active {
+  color: var(--accent);
+  transform: translateY(-8px); /* Pop-out effect */
+}
+.nav-tab.active .nav-tab-icon {
+  transform: scale(1.25);
+  filter: drop-shadow(0 4px 8px rgba(167, 139, 250, 0.6));
+}
+.nav-tab.active::before {
+  display: none;
 }
 
 /* ─── Swipe Hint Animation (first visit) ─── */
@@ -304,7 +348,7 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   display: none;
 }
 
-/* ─── Stats Bar (v4.9: standardized width 6.1, label bump 2.1) ─── */
+/* ─── Stats Bar (Frost-Glass 2.0 & Tabular Nums) ─── */
 .stats-bar {
   display: flex;
   gap: 12px;
@@ -312,10 +356,24 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   margin-bottom: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   width: min(480px, calc(100vw - 60px));
   justify-content: space-around;
+  position: relative;
+}
+.stats-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 .stat {
   text-align: center;
@@ -325,6 +383,12 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   font-size: 1.5rem;
   font-weight: 900;
   line-height: 1;
+  font-variant-numeric: tabular-nums; /* Audit Item 4 Typography */
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.stat-value.pulse-grow {
+  transform: scale(1.25);
+  text-shadow: 0 0 12px currentColor;
 }
 .stat-label {
   font-size: 0.72rem;
@@ -334,10 +398,11 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   margin-top: 4px;
 }
 
-/* ─── Buttons ─── */
+/* ─── Buttons (Audit Item 2: Tacility) ─── */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 13px 28px;
   border: none;
@@ -346,9 +411,41 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Cursor Glow Overlay */
+.btn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150%;
+  height: 150%;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.15) 0%,
+    transparent 60%
+  );
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.btn:hover::before {
+  opacity: 1;
+}
+
+.btn:active {
+  transform: scale(0.95) !important;
+  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  filter: brightness(0.9);
+}
+
 .btn-primary {
   background: linear-gradient(135deg, #a78bfa, #8b5cf6);
   color: white;
@@ -357,9 +454,6 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 30px rgba(139, 92, 246, 0.5);
-}
-.btn-primary:active {
-  transform: translateY(0);
 }
 .btn-secondary {
   background: var(--surface);
@@ -426,12 +520,14 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 .modal::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
 }
+.modal::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
 .modal::backdrop {
   background: rgba(13, 15, 26, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  /* Fallback opacity for browsers that don't support view transition fade on backdrop */
-  animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(8px) brightness(0.8) contrast(1.1);
+  -webkit-backdrop-filter: blur(8px) brightness(0.8) contrast(1.1);
+  animation: fadeIn 0.4s ease forwards;
 }
 
 @keyframes fadeIn {
@@ -446,23 +542,106 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 .modal-card {
   background: rgba(30, 32, 50, 0.95);
   border: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.12); /* Frost-glass highlight */
   border-radius: 24px;
   padding: 36px 44px;
   text-align: center;
   max-width: 420px;
   width: min(calc(100vw - 40px), 100%);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   contain: layout; /* Isolate layout recalculations during animation */
+  position: relative;
   /* Intro animation handled natively by dialog[open] state */
-  animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: modalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.modal-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.7),
+      transparent,
+      rgba(255, 255, 255, 0.5)
+    )
+    border-box;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  animation: edgeLighting 1.5s ease-out forwards;
+}
+.modal-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+.modal-card > * {
+  position: relative;
+  z-index: 1; /* keep content above noise */
+  opacity: 0;
+  transform: translateY(10px);
+  animation: staggerFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.modal-card > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.modal-card > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.modal-card > *:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.modal-card > *:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.modal-card > *:nth-child(5) {
+  animation-delay: 0.25s;
+}
+
+@keyframes edgeLighting {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes staggerFadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes modalPop {
-  from {
+  0% {
     opacity: 0;
     transform: scale(0.9) translateY(20px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
@@ -502,14 +681,28 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   align-items: stretch;
 }
 
-/* ─── Card (v4.9: standardized width 6.1) ─── */
+/* ─── Card (Frost-Glass 2.0) ─── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 20px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 16px;
   width: min(480px, calc(100vw - 60px));
+  position: relative;
+}
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 /* ─── Utility ─── */
@@ -555,58 +748,121 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   font-weight: 900;
 }
 
-/* ─── Centralized Toast Queue (v5) ─── */
+/* ─── Audit 9: Centralized Toast Queue (Stacking System) ─── */
 .toast-container {
   position: fixed;
   bottom: 84px; /* Sits just above the 60px nav bar + gap */
   right: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  display: grid;
+  align-items: end;
   z-index: 400;
   pointer-events: none;
   max-width: 320px;
+  width: calc(100vw - 32px);
 }
 
 .toast {
+  grid-area: 1 / 1;
   padding: 14px 28px;
-  background: rgba(30, 32, 50, 0.92);
+  background: rgba(30, 32, 50, 0.98);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: 12px;
   font-size: 0.92rem;
   font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  width: 100%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  pointer-events: auto;
+  overflow: hidden;
 
-  /* Initial state for intro animation */
+  /* CSS Variables for composition */
+  --swipe-x: 0px;
+  --stack-y: 20px;
+  --stack-scale: 0.95;
+
   opacity: 0;
-  transform: translateY(20px) scale(0.95);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translate(var(--swipe-x), var(--stack-y)) scale(var(--stack-scale));
+  transition:
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.4s ease;
 }
 
-.toast.show {
+/* Stacking Dynamics */
+.toast.show:nth-last-child(1) {
+  --stack-y: 0px;
+  --stack-scale: 1;
+  z-index: 3;
   opacity: 1;
-  transform: translateY(0) scale(1);
-  /* v4.15.3: GPU layer only while visible — auto-demoted on removal */
-  will-change: transform, opacity;
+}
+.toast.show:nth-last-child(2) {
+  --stack-y: -14px;
+  --stack-scale: 0.95;
+  z-index: 2;
+  opacity: 0.8;
+  filter: brightness(0.8);
+}
+.toast.show:nth-last-child(3) {
+  --stack-y: -28px;
+  --stack-scale: 0.9;
+  z-index: 1;
+  opacity: 0.4;
+  filter: brightness(0.5);
+}
+.toast.show:nth-last-child(n + 4) {
+  opacity: 0;
+  pointer-events: none;
+  --stack-y: -42px;
 }
 
-/* v4.9: tinted backgrounds + leading icon space (2.4) */
+/* Swipe-out animation state */
+.toast.swiped-out {
+  opacity: 0 !important;
+  --swipe-x: 100% !important;
+  transition:
+    transform 0.3s ease-in,
+    opacity 0.3s ease;
+}
+
+/* Progress Bar indicator */
+.toast::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: toastProgress 2.5s linear forwards;
+}
+@keyframes toastProgress {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* Tinted backgrounds + leading icon space (2.4) */
 .toast.toast-success {
   border-left-color: var(--success);
   background: rgba(34, 197, 94, 0.08);
+}
+.toast.toast-success::after {
+  background: var(--success);
 }
 .toast.toast-error {
   border-left-color: var(--danger);
   background: rgba(239, 68, 68, 0.08);
 }
+.toast.toast-error::after {
+  background: var(--danger);
+}
 .toast.toast-info {
   border-left-color: var(--accent);
   background: rgba(167, 139, 250, 0.08);
+}
+.toast.toast-info::after {
+  background: var(--accent);
 }
 
 /* ─── Responsive — Small Viewports ─── */

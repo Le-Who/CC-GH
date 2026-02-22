@@ -67,38 +67,64 @@
   text-align: center;
 }
 
-/* Bug 7: Regen progress — fills energy pill 0→100% over 2.5min · aurora effect */
+/* Audit 5: Liquid Energy Fill */
 .hud-energy-regen-fill {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    rgba(20, 200, 220, 0.35),
-    rgba(130, 80, 255, 0.3),
-    rgba(60, 220, 170, 0.35),
-    rgba(20, 200, 220, 0.35)
+    rgba(80, 180, 255, 0.2) 0%,
+    rgba(100, 220, 255, 0.5) 100%
   );
-  background-size: 300% 100%;
-  /* v4.15.3: Animation only runs when .aurora-active is set (energy regenerating) */
-  transition: width 1s linear;
+  transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
 }
-.hud-energy-regen-fill.aurora-active {
-  animation: auroraShift 4s ease-in-out infinite;
+.hud-energy-regen-fill.aurora-active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  background: radial-gradient(
+    ellipse at right,
+    rgba(255, 255, 255, 0.5) 0%,
+    transparent 80%
+  );
+  animation: liquidEdgePulse 2s ease-in-out infinite;
 }
-@keyframes auroraShift {
-  0% {
-    background-position: 0% 50%;
+@keyframes liquidEdgePulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scaleX(1);
   }
   50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
+    opacity: 1;
+    transform: scaleX(1.5);
   }
 }
+
+@keyframes resourcePop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+.hud-energy.pop {
+  animation: resourcePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* Keep icon + text above regen fill */
 .hud-energy .hud-icon,
 #hud-energy-text {
@@ -166,6 +192,49 @@
   color: #f0d060;
   letter-spacing: 0.3px;
   min-width: 2rem;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hud-gold {
+  position: relative;
+  overflow: hidden;
+}
+.hud-gold.pop {
+  animation: resourcePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Shimmer flare effect */
+.hud-gold::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+}
+.hud-gold.shimmer-effect::before {
+  animation: shimmerFlare 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes shimmerFlare {
+  0% {
+    left: -100%;
+    opacity: 1;
+  }
+  100% {
+    left: 200%;
+    opacity: 1;
+  }
 }
 
 /* ─── Low Energy Warning ─── */
