@@ -317,7 +317,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 4,
+    schemaVersion: 5,
     _lastSeen: now,
     resources: {
       gold: ECONOMY.GOLD_START,

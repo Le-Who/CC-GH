@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import {
   ECONOMY,
   CROPS,
+  CROP_TIERS,
   GEM_TYPES,
   BOARD_SIZE,
   BLOX_PIECES,
@@ -781,15 +782,15 @@ describe("Farm Stress: Growth calculations", () => {
   });
 
   it("watering multipliers are correct per growth tier", () => {
-    // < 30s → 0.7, 30s-59s → 0.6, 60s+ → 0.55
-    assert.equal(getWateringMultiplier("strawberry"), 0.7); // 15s
-    assert.equal(getWateringMultiplier("blueberry"), 0.7); // 20s
-    assert.equal(getWateringMultiplier("tomato"), 0.6); // 30s
-    assert.equal(getWateringMultiplier("corn"), 0.6); // 45s
-    assert.equal(getWateringMultiplier("sunflower"), 0.55); // 60s
-    assert.equal(getWateringMultiplier("watermelon"), 0.55); // 75s
-    assert.equal(getWateringMultiplier("golden"), 0.55); // 90s
-    assert.equal(getWateringMultiplier("pumpkin"), 0.55); // 120s
+    // <15min → 0.7, 15min-<1h → 0.6, 1h+ → 0.55
+    assert.equal(getWateringMultiplier("strawberry"), 0.7); // 5 min
+    assert.equal(getWateringMultiplier("blueberry"), 0.7); // 7 min
+    assert.equal(getWateringMultiplier("tomato"), 0.6); // 15 min
+    assert.equal(getWateringMultiplier("golden"), 0.6); // 30 min
+    assert.equal(getWateringMultiplier("corn"), 0.55); // 1 hr
+    assert.equal(getWateringMultiplier("sunflower"), 0.55); // 2 hr
+    assert.equal(getWateringMultiplier("watermelon"), 0.55); // 4 hr
+    assert.equal(getWateringMultiplier("pumpkin"), 0.55); // 8 hr
   });
 });
 
@@ -806,17 +807,26 @@ describe("Farm: Economy invariants", () => {
     }
   });
 
-  it("longer growthTime → higher sellPrice (value scales with time)", () => {
-    const sorted = Object.values(CROPS).sort(
-      (a, b) => a.growthTime - b.growthTime,
-    );
-    for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i].growthTime > sorted[i - 1].growthTime) {
-        assert.ok(
-          sorted[i].sellPrice >= sorted[i - 1].sellPrice,
-          `${sorted[i].id} (${sorted[i].growthTime}ms) sells for ${sorted[i].sellPrice} but ` +
-            `${sorted[i - 1].id} (${sorted[i - 1].growthTime}ms) sells for ${sorted[i - 1].sellPrice}`,
-        );
+  it("longer growthTime → higher sellPrice within same tier", () => {
+    // Compare only within same CROP_TIERS tier.
+    // Golden Rose is an intentional prestige outlier (short growth, premium price).
+    const PRESTIGE_CROPS = new Set(["golden"]);
+    const tiers = {};
+    for (const [id, tier] of Object.entries(CROP_TIERS)) {
+      if (PRESTIGE_CROPS.has(id)) continue;
+      if (!tiers[tier]) tiers[tier] = [];
+      tiers[tier].push(CROPS[id]);
+    }
+    for (const [tier, crops] of Object.entries(tiers)) {
+      const sorted = crops.sort((a, b) => a.growthTime - b.growthTime);
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i].growthTime > sorted[i - 1].growthTime) {
+          assert.ok(
+            sorted[i].sellPrice >= sorted[i - 1].sellPrice,
+            `[${tier}] ${sorted[i].id} (${sorted[i].growthTime}ms) sells for ${sorted[i].sellPrice} but ` +
+              `${sorted[i - 1].id} (${sorted[i - 1].growthTime}ms) sells for ${sorted[i - 1].sellPrice}`,
+          );
+        }
       }
     }
   });

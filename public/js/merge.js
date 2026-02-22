@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Gacha Merge Mini-Game (v7.0)
+ *  Game Hub — Gacha Merge Mini-Game (v6.0.0)
  *  Server-authoritative engine + Ghost-Pattern D&D
  *  Board: 7 rows × 9 cols. Items merge by chain + level.
  *  CSP-compliant: no innerHTML on active board.
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { api, showToast, HUB } from "./shared.js";
-import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "../../game-logic.js";
+import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "/game-logic.js";
 import { HUD } from "./hud.js";
 
 /* ─── Constants ─── */
@@ -63,7 +63,7 @@ async function tapGenerator(chainId, cropId) {
     showToast("⚡ Not enough energy!", "error");
     return { success: false, reason: "NO_ENERGY" };
   }
-  const harvested = res.__harvested || {};
+  const harvested = res.harvested || {};
   if (!cropId || !harvested[cropId] || harvested[cropId] <= 0) {
     showToast("🌱 No crops to fuel generator!", "error");
     return { success: false, reason: "NO_CROP" };
@@ -83,7 +83,7 @@ async function tapGenerator(chainId, cropId) {
   GameStore.setState("resources", {
     ...res,
     energy: { ...res.energy, current: res.energy.current - 1 },
-    __harvested: newHarvested,
+    harvested: newHarvested,
   });
   HUD.updateDisplay(GameStore.getState("resources"));
 
@@ -105,7 +105,7 @@ async function tapGenerator(chainId, cropId) {
     if (data.resources) {
       GameStore.setState("resources", {
         ...data.resources,
-        __harvested: data.harvested || {},
+        harvested: data.harvested || {},
       });
       HUD.updateDisplay(data.resources);
     }
@@ -252,8 +252,8 @@ async function trashMergeItem(r, c) {
   const mergeState = GameStore.getState("merge");
   if (!mergeState || !mergeState.board[r]?.[c]) return { success: false };
 
-  // Optimistic
-  const oldItem = mergeState.board[r][c];
+  // Snapshot for rollback
+  const oldBoard = mergeState.board.map((row) => [...row]);
   const newBoard = mergeState.board.map((row) => [...row]);
   newBoard[r][c] = null;
   GameStore.setState("merge", { ...mergeState, board: newBoard });
@@ -262,14 +262,12 @@ async function trashMergeItem(r, c) {
   try {
     const data = await api("/api/merge/trash", { userId: HUB.userId, r, c });
     if (!data?.success) {
-      newBoard[r][c] = oldItem;
-      GameStore.setState("merge", { ...mergeState, board: newBoard });
+      GameStore.setState("merge", { ...mergeState, board: oldBoard });
       _renderBoard();
     }
     return { success: true };
   } catch {
-    newBoard[r][c] = oldItem;
-    GameStore.setState("merge", { ...mergeState, board: newBoard });
+    GameStore.setState("merge", { ...mergeState, board: oldBoard });
     _renderBoard();
     return { success: false };
   }
@@ -315,11 +313,25 @@ function createBoardDOM() {
 
 function _renderBoard() {
   const mergeState = GameStore.getState("merge");
-  if (!mergeState) return;
+  if (!mergeState || !_boardEl) return;
   for (let r = 0; r < BOARD_ROWS; r++) {
     for (let c = 0; c < BOARD_COLS; c++) {
       _renderCell(r, c, mergeState.board[r][c]);
     }
+  }
+  // Empty-board onboarding hint
+  const isEmpty = mergeState.board.every((row) =>
+    row.every((cell) => cell === null),
+  );
+  let hint = _boardEl.querySelector(".merge-empty-hint");
+  if (isEmpty && !hint) {
+    hint = document.createElement("div");
+    hint.className = "merge-empty-hint";
+    hint.textContent =
+      "🌱 Tap a generator below to start! Feed crops → get items → merge to level up";
+    _boardEl.appendChild(hint);
+  } else if (!isEmpty && hint) {
+    hint.remove();
   }
 }
 
@@ -505,7 +517,7 @@ function _renderGeneratorPanel() {
   // Gacha button
   const gachaBtn = document.createElement("button");
   gachaBtn.className = "merge-gen-btn merge-gacha-btn";
-  gachaBtn.textContent = `🎰 Gacha (${ECONOMY.GACHA_PULL_COST}🪙)`;
+  gachaBtn.textContent = `🎰 Gacha (${ECONOMY.GACHA_PULL_COST} Tokens)`;
   gachaBtn.title = `Spend ${ECONOMY.GACHA_PULL_COST} Gacha Tokens`;
   gachaBtn.addEventListener("click", rollGacha);
   _genPanel.appendChild(gachaBtn);
@@ -546,7 +558,7 @@ function _renderGeneratorPanel() {
 /* ─── Crop Picker Modal for Generator Tap ─── */
 function _showCropPicker(chainId) {
   const res = GameStore.getState("resources");
-  const harvested = res?.__harvested || {};
+  const harvested = res?.harvested || {};
   const cropIds = Object.keys(harvested).filter((id) => harvested[id] > 0);
 
   if (cropIds.length === 0) {
@@ -554,21 +566,18 @@ function _showCropPicker(chainId) {
     return;
   }
 
-  // Build a simple picker overlay
-  const overlay = document.createElement("div");
-  overlay.className = "merge-crop-picker-overlay";
-
-  const modal = document.createElement("div");
-  modal.className = "merge-crop-picker";
+  // Native <dialog> — consistent with project convention (v4.14+)
+  const dialog = document.createElement("dialog");
+  dialog.className = "modal merge-crop-picker";
 
   const title = document.createElement("h3");
   title.textContent = "Choose crop to fuel generator";
-  modal.appendChild(title);
+  dialog.appendChild(title);
 
   const subtitle = document.createElement("p");
   subtitle.className = "merge-crop-picker__hint";
   subtitle.textContent = "Better crops → more items spawned";
-  modal.appendChild(subtitle);
+  dialog.appendChild(subtitle);
 
   const list = document.createElement("div");
   list.className = "merge-crop-picker__list";
@@ -581,25 +590,23 @@ function _showCropPicker(chainId) {
     btn.className = `merge-crop-btn merge-crop-btn--${tier}`;
     btn.textContent = `${cfg.emoji} ${cfg.name} (×${harvested[cropId]}) [${tier}]`;
     btn.addEventListener("click", () => {
-      overlay.remove();
+      dialog.close();
       tapGenerator(chainId, cropId);
     });
     list.appendChild(btn);
   }
 
-  modal.appendChild(list);
+  dialog.appendChild(list);
 
   const cancelBtn = document.createElement("button");
   cancelBtn.className = "merge-crop-btn merge-crop-btn--cancel";
   cancelBtn.textContent = "✕ Cancel";
-  cancelBtn.addEventListener("click", () => overlay.remove());
-  modal.appendChild(cancelBtn);
+  cancelBtn.addEventListener("click", () => dialog.close());
+  dialog.appendChild(cancelBtn);
 
-  overlay.appendChild(modal);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
-  document.body.appendChild(overlay);
+  dialog.addEventListener("close", () => dialog.remove());
+  document.body.appendChild(dialog);
+  dialog.showModal();
 }
 
 /* ═══════════════════════════════════════════════════
@@ -637,11 +644,7 @@ async function onEnter() {
   // Fetch latest merge + resource state from server
   try {
     const data = await api("/api/merge/state", { userId: HUB.userId });
-    if (data?.merge) {
-      GameStore.setState("merge", data.merge);
-      _renderBoard();
-      _renderGeneratorPanel();
-    }
+    if (data?.merge) GameStore.setState("merge", data.merge);
     if (data?.resources) {
       GameStore.setState("resources", data.resources);
       HUD.updateDisplay(data.resources);

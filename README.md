@@ -63,7 +63,7 @@ npm run dev
 ## 🏗 Project Structure
 
 ```
-├── server.js              # Express composition root (~320 lines)
+├── server.js              # Express composition root (~350 lines)
 ├── playerManager.js       # Player state, persistence, schema migration
 ├── game-logic.js          # Pure functions (crops, energy, offline simulation)
 ├── storage.js             # GCS + local file persistence adapter
@@ -116,7 +116,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 273 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
+npm test          # All 285 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -129,7 +129,7 @@ npm run test:perf # Performance benchmarks only
 | **UX**     | `tests/ux.test.js`                |    52 |
 | **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
-| **Stress** | `tests/game-logic-stress.test.js` |    64 |
+| **Stress** | `tests/game-logic-stress.test.js` |    58 |
 | **Syntax** | `tests/syntax.test.js`            |    13 |
 
 ---
@@ -162,18 +162,18 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 ## 🌱 Farm System
 
-**8 crops** with progressive pricing:
+**8 crops** with progressive pricing (v6.0 economy rebalance):
 
 | Crop           | Growth |  Sell | Seed Cost |
 | -------------- | ------ | ----: | --------: |
-| 🍓 Strawberry  | 15s    |  15🪙 |       5🪙 |
-| 🍅 Tomato      | 30s    |  30🪙 |      10🪙 |
-| 🌽 Corn        | 45s    |  50🪙 |      20🪙 |
-| 🌻 Sunflower   | 60s    |  80🪙 |      35🪙 |
-| 🌹 Golden Rose | 90s    | 150🪙 |      60🪙 |
-| 🫐 Blueberry   | 20s    |  20🪙 |       8🪙 |
-| 🍉 Watermelon  | 75s    | 120🪙 |      45🪙 |
-| 🎃 Pumpkin     | 120s   | 250🪙 |     100🪙 |
+| 🍓 Strawberry  | 5 min  |  15🪙 |       5🪙 |
+| 🫐 Blueberry   | 7 min  |  20🪙 |       8🪙 |
+| 🍅 Tomato      | 15 min |  30🪙 |      10🪙 |
+| 🌹 Golden Rose | 30 min | 150🪙 |      60🪙 |
+| 🌽 Corn        | 1 hr   |  50🪙 |      20🪙 |
+| 🌻 Sunflower   | 2 hr   |  80🪙 |      35🪙 |
+| 🍉 Watermelon  | 4 hr   | 120🪙 |      45🪙 |
+| 🎃 Pumpkin     | 8 hr   | 250🪙 |     100🪙 |
 
 **Purchasable plots** (6 free → max 12): doubling cost 200 → 400 → 800 → 1600 → 3200 → 6400🪙
 

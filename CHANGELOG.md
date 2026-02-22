@@ -1,5 +1,51 @@
 # Changelog
 
+## v6.0.1 — 2026-02-22
+
+### MIME Type Fix — `game-logic.js` Module Loading
+
+Fixed `Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html"` error. Root cause: `game-logic.js` lives in the project root (not `public/`), and client-side imports used `../../game-logic.js` to escape the static dir. Express's SPA catch-all returned `index.html` instead of the JS file.
+
+#### Server (`server.js`)
+
+- **Explicit `/game-logic.js` route** — serves the root-level file with `Content-Type: application/javascript`.
+- **Import Map integration** — added `game-logic.js` to content-hash cache-busting system.
+- **Strict 404 middleware** — requests for `.js`, `.css`, `.json`, `.png` etc. that don't match any static file or explicit route now return `404 Asset not found` instead of falling through to the SPA catch-all. Prevents future HTML masking of missing assets.
+
+#### Client imports
+
+- Fixed `pet.js`, `hud.js`, `farm.js`, `merge.js` — changed `../../game-logic.js` → `/game-logic.js` (absolute path resolved by Import Map).
+
+#### Test fixes (3 pre-existing failures)
+
+- **Watering multiplier expectations** (`game-logic-stress.test.js`): Updated stale comments and expected values to match v6.0 crop timers (corn is 1hr→0.55, golden is 30min→0.6).
+- **Sell-price monotonicity** (`game-logic-stress.test.js`): Rewritten to compare within same `CROP_TIERS` tier only. Golden Rose is an intentional prestige outlier (exempt via `PRESTIGE_CROPS` set).
+- **Fully-grown render skip** (`ux.test.js`): Fixed elapsed times from hardcoded 30s/60s to `CROPS.*.growthTime` (strawberry 5min, tomato 15min).
+
+#### Version alignment
+
+- All CSS headers bumped to `v6.0.0` (was `v5.0.0`/`v5.2.0`): `base.css`, `farm.css`, `trivia.css`, `pet.css`, `hud.css`.
+- All JS headers bumped to `v6.0.0` (was `v5.0.0`): `shared.js`, `store.js`, `hud.js`, `farm.js`, `crops.js`, `main.js`, `match3/engine.js`, `blox/pieces.js`, `trivia.js`.
+- README: Crop growth times updated (15s-120s → 5min-8hr), test count 273→285.
+
+#### Economy Reset Migration (Schema v4→v5)
+
+Old crop timers (15s-120s) allowed 20-240× faster gold/XP farming than the v6.0 rebalance (5min-8hr). Existing players receive a one-time reset on first login:
+
+- **Gold** → 100🪙 (`GOLD_START`)
+- **Farm XP/Level** → 0/1
+- **Active crop plots** → cleared (old timers invalid)
+- **Match-3 sessions** → cleared (prevent gold-accounting bugs)
+- **`_lastSeen`** → now (prevent stale offline simulation)
+- **Compensation** → +5 gacha tokens 🎰
+- **Preserved:** pet level/abilities, pet affection, purchased farm plots, merge board, M3/Blox high scores, trivia stats.
+
+#### Tests
+
+- **285/285 pass**, 0 failures.
+
+---
+
 ## v6.0.0 — 2026-02-22
 
 ### Gacha Merge Mini-Game + Pet Order System

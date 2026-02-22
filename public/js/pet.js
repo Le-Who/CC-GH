@@ -6,7 +6,38 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { api, showToast } from "./shared.js";
-import { calculateSatietyDelta } from "../../game-logic.js";
+import { calculateSatietyDelta, CROPS, MERGE_CHAINS } from "/game-logic.js";
+
+/* ─── Merge item display lookup (for quest requirement names) ─── */
+const _MERGE_DISPLAY = {};
+for (const chain of Object.values(MERGE_CHAINS)) {
+  for (let i = 0; i < chain.items.length; i++) {
+    _MERGE_DISPLAY[chain.items[i]] = {
+      emoji: chain.emoji[i],
+      name: chain.names[i],
+    };
+  }
+}
+
+/** Format a quest requirement for display */
+function _formatReq(r) {
+  if (r.type === "crop") {
+    const c = CROPS[r.id];
+    return `${c?.emoji || "🌿"} ${c?.name || r.id} ×${r.qty}`;
+  }
+  const m = _MERGE_DISPLAY[r.id];
+  return `${m?.emoji || "🧩"} ${m?.name || r.id} ×${r.qty}`;
+}
+
+/** Format reward object for display (used in both preview and toast) */
+function _formatReward(rw) {
+  const parts = [];
+  if (rw.gold) parts.push(`+${rw.gold}🪙`);
+  if (rw.affectionXp) parts.push(`+${rw.affectionXp}💕`);
+  if (rw.gachaTokens) parts.push(`+${rw.gachaTokens}🎰`);
+  if (rw.energyMaxBoost) parts.push(`+${rw.energyMaxBoost}⚡max`);
+  return parts.join(" ") || "—";
+}
 
 // ─── FarmGame.water() injected from main.js to avoid circular import ───
 let _waterFn = null;
@@ -475,18 +506,16 @@ const PetCompanionImpl = (function () {
                   (o) => `
             <div class="pet-quest-item" data-order-id="${o.id}">
               <div class="pet-quest-reqs">${o.requirements
-                .map(
-                  (r) =>
-                    `<span>${r.type === "crop" ? "🌿" : "🧩"} ${r.id} ×${r.qty}</span>`,
-                )
+                .map((r) => `<span>${_formatReq(r)}</span>`)
                 .join(" ")}</div>
-              <div class="pet-quest-reward">🏆 +${o.reward.maxEnergy || 0} Max ⚡</div>
+              <div class="pet-quest-reward">🏆 ${_formatReward(o.reward)}</div>
               <button class="pet-quest-submit" data-order-id="${o.id}">Submit</button>
             </div>
           `,
                 )
                 .join("")
         }
+        ${orders.length < 3 ? `<button class="pet-quest-gen-btn" id="pet-gen-orders">🔄 ${orders.length === 0 ? "Get Orders" : "Get More Orders"}</button>` : ""}
       </div>
     `;
 
@@ -514,6 +543,18 @@ const PetCompanionImpl = (function () {
         submitOrder(orderId);
       });
     });
+
+    // Generate orders button
+    const genBtn = document.getElementById("pet-gen-orders");
+    if (genBtn) {
+      genBtn.addEventListener("click", () => _generateOrders());
+    }
+
+    // Auto-generate on first view if empty
+    if (orders.length === 0 && petData._autoGenDone !== true) {
+      petData._autoGenDone = true;
+      _generateOrders();
+    }
 
     // Close button
     const closeBtn = document.getElementById("pet-info-close");
@@ -544,6 +585,29 @@ const PetCompanionImpl = (function () {
     }, 60_000); // Every minute
   }
 
+  /* ─── Generate new quest orders from server ─── */
+  async function _generateOrders() {
+    const res = GameStore.getState("resources");
+    try {
+      const data = await api("/api/quests/generate", {
+        userId: res?.userId || undefined,
+      });
+      if (!data?.success) {
+        showToast(data?.error || "Could not generate orders", "error");
+        return;
+      }
+      // Sync pet state with new orders
+      const pet = GameStore.getState("pet");
+      if (pet && data.orders) {
+        GameStore.setState("pet", { ...pet, activeOrders: data.orders });
+      }
+      if (panelOpen) renderInfoPanel();
+      showToast(`📜 ${data.newOrders?.length || 0} new orders!`, "success");
+    } catch {
+      showToast("Network error", "error");
+    }
+  }
+
   /* ─── Transactional Order Fulfillment (server-validated) ─── */
   async function submitOrder(orderId) {
     const pet = GameStore.getState("pet");
@@ -557,7 +621,7 @@ const PetCompanionImpl = (function () {
     }
 
     // Pre-validate locally
-    const harvested = { ...(res.__harvested || {}) };
+    const harvested = { ...(res.harvested || {}) };
     const mergeState = GameStore.getState("merge");
 
     for (const req of order.requirements) {
@@ -610,17 +674,12 @@ const PetCompanionImpl = (function () {
       if (data.resources) {
         GameStore.setState("resources", {
           ...data.resources,
-          __harvested: data.harvested || {},
+          harvested: data.harvested || {},
         });
       }
       if (data.merge) GameStore.setState("merge", data.merge);
       const rw = data.reward || {};
-      const parts = [];
-      if (rw.gold) parts.push(`+${rw.gold}🪙`);
-      if (rw.affectionXp) parts.push(`+${rw.affectionXp}💕`);
-      if (rw.gachaTokens) parts.push(`+${rw.gachaTokens}🎰`);
-      if (rw.energyMaxBoost) parts.push(`+${rw.energyMaxBoost}⚡max`);
-      showToast(`✅ Quest complete! ${parts.join(" ")}`, "success");
+      showToast(`✅ Quest complete! ${_formatReward(rw)}`, "success");
       if (data.affectionLeveledUp) {
         showToast(
           `💕 Affection Level Up! Lv${data.pet?.affectionLevel}`,

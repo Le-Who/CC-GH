@@ -224,6 +224,45 @@ export function getPlayer(userId, username) {
     NeedsSaveSync = true;
   }
 
+  // ─── Schema v5 Migration (Economy Rebalance Reset — v6.0 crop timer 20-240× slowdown) ───
+  if (p.schemaVersion < 5) {
+    // Gold → starter amount (100🪙) — old rates were 20-240× inflated
+    p.resources.gold = ECONOMY.GOLD_START;
+
+    // Farm XP/level → fresh start
+    p.farm.xp = 0;
+    p.farm.level = 1;
+
+    // Ensure starter seeds exist
+    if (!p.farm.inventory) p.farm.inventory = {};
+    p.farm.inventory.strawberry = Math.max(p.farm.inventory.strawberry || 0, 5);
+    if (!p.farm.inventory.planter) p.farm.inventory.planter = 2;
+
+    // Clear active plots (crops planted under old timers are invalid)
+    if (p.farm.plots) {
+      for (const plot of p.farm.plots) {
+        plot.crop = null;
+        plot.plantedAt = null;
+        plot.watered = false;
+      }
+    }
+
+    // Clear M3/Blox sessions (prevent gold-accounting bugs)
+    if (p.match3) {
+      p.match3.currentGame = null;
+      p.match3.savedModes = {};
+    }
+
+    // Prevent stale offline simulation on first post-migration login
+    p._lastSeen = Date.now();
+
+    // Legacy compensation: 5 gacha tokens
+    p.resources.gachaTokens = (p.resources.gachaTokens || 0) + 5;
+
+    p.schemaVersion = 5;
+    NeedsSaveSync = true;
+  }
+
   if (username && p.username !== username) {
     p.username = username;
     NeedsSaveSync = true;

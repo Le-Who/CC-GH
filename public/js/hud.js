@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — HUD Module (v5.0.0)
+ *  Game Hub — HUD Module (v6.0.0)
  *  TopHUD for Energy & Gold display
  *  Registers 'resources' slice in GameStore
  *  v5: Native ES Module (was IIFE)
@@ -7,7 +7,7 @@
 import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
 import { HUB, api, goToScreen, showToast } from "./shared.js";
-import { CROPS } from "../../game-logic.js";
+import { CROPS } from "/game-logic.js";
 
 let regenTimerId = null;
 
@@ -189,9 +189,9 @@ function syncFromServer(resources) {
       merged.energy = { ...resources.energy, lastRegenTimestamp: localTs };
     }
   }
-  // Preserve local __harvested (farm inventory state)
-  if (local?.__harvested && !merged.__harvested) {
-    merged.__harvested = local.__harvested;
+  // Preserve local harvested (farm inventory state)
+  if (local?.harvested && !merged.harvested) {
+    merged.harvested = local.harvested;
   }
   GameStore.setState("resources", merged);
   updateDisplay(resources);
@@ -236,7 +236,7 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
   if (!modal || !itemsEl) return;
 
   // Get harvested crops from resources slice (unified source)
-  const harvested = GameStore.getState("resources")?.__harvested || {};
+  const harvested = GameStore.getState("resources")?.harvested || {};
 
   const res = GameStore.getState("resources");
   const currentEnergy = res ? res.energy.current : 0;
@@ -350,10 +350,10 @@ async function _feedFromModal(cropId, btn) {
 
   // Optimistic: decrement harvested count (unified resources slice)
   const resAfter = GameStore.getState("resources");
-  if (resAfter && resAfter.__harvested && resAfter.__harvested[cropId]) {
-    const updated = { ...resAfter, __harvested: { ...resAfter.__harvested } };
-    updated.__harvested[cropId]--;
-    if (updated.__harvested[cropId] <= 0) delete updated.__harvested[cropId];
+  if (resAfter && resAfter.harvested && resAfter.harvested[cropId]) {
+    const updated = { ...resAfter, harvested: { ...resAfter.harvested } };
+    updated.harvested[cropId]--;
+    if (updated.harvested[cropId] <= 0) delete updated.harvested[cropId];
     GameStore.setState("resources", updated);
   }
 
@@ -376,7 +376,7 @@ function _refreshModalItems() {
   const itemsEl = document.getElementById("energy-modal-items");
   if (!itemsEl) return;
 
-  const harvested = GameStore.getState("resources")?.__harvested || {};
+  const harvested = GameStore.getState("resources")?.harvested || {};
 
   // Update quantities and disable empty ones
   itemsEl.querySelectorAll(".energy-feed-item").forEach((item) => {

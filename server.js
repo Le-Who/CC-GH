@@ -208,6 +208,17 @@ function computeAssetHashes() {
       assetHashes[relPath] = hash;
     }
   }
+  // Hash root-level game-logic.js (served via explicit route, not public/)
+  const glPath = path.join(__dirname, "game-logic.js");
+  if (fs.existsSync(glPath)) {
+    const content = fs.readFileSync(glPath);
+    const hash = crypto
+      .createHash("md5")
+      .update(content)
+      .digest("hex")
+      .slice(0, 8);
+    assetHashes["game-logic.js"] = hash;
+  }
   console.log(
     "  📦 Asset hashes computed:",
     Object.keys(assetHashes).length,
@@ -260,6 +271,11 @@ function getIndexHtml() {
       importMapEntries[`./${key}`] = `./${key}?v=${hash}`;
     }
   }
+  // Root-level game-logic.js (served via explicit route)
+  const glHash = assetHashes["game-logic.js"];
+  if (glHash) {
+    importMapEntries["/game-logic.js"] = `/game-logic.js?v=${glHash}`;
+  }
   const importMapTag = `<script type="importmap">{"imports":${JSON.stringify(importMapEntries)}}</script>`;
   html = html.replace("<!--IMPORT_MAP_INJECT-->", importMapTag);
 
@@ -289,6 +305,20 @@ app.use(
     index: false, // Don't serve index.html statically — we inject hashes
   }),
 );
+
+// Serve root-level game-logic.js with correct MIME type (not in public/)
+app.get("/game-logic.js", (_req, res) => {
+  res
+    .type("application/javascript")
+    .set("Cache-Control", "no-cache")
+    .sendFile(path.join(__dirname, "game-logic.js"));
+});
+
+// Strict 404 for static assets — prevents SPA catch-all from masking missing files
+app.use(/\.(js|mjs|css|json|map|png|jpg|svg|woff2?)$/i, (_req, res) => {
+  res.status(404).type("text/plain").send("Asset not found");
+});
+
 app.get(/.*/, (_req, res) => {
   res.set("Cache-Control", "no-cache, no-store, must-revalidate");
   res.set("Surrogate-Control", "no-store");

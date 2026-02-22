@@ -232,15 +232,13 @@ describe("Growth Tick Efficiency", () => {
     const plots = [
       {
         crop: "strawberry",
-        plantedAt: now - 30000,
+        plantedAt: now - CROPS.strawberry.growthTime,
         watered: false,
-        growthTime: CROPS.strawberry.growthTime,
       },
       {
         crop: "tomato",
-        plantedAt: now - 60000,
+        plantedAt: now - CROPS.tomato.growthTime,
         watered: false,
-        growthTime: CROPS.tomato.growthTime,
       },
     ];
     const hasGrowing = plots.some((p) => p.crop && getGrowthPct(p, now) < 1);

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Gacha Merge — Styles (v7.0)
+ *  Gacha Merge — Styles (v6.0.0)
  *  7×9 board grid, items, drag ghost, generator panel,
  *  crop picker modal, animations
  * ═══════════════════════════════════════════════════ */
@@ -25,6 +25,7 @@
   touch-action: none;
   user-select: none;
   contain: layout style paint;
+  position: relative;
 }
 
 /* ─── Single Cell ─── */
@@ -249,26 +250,10 @@
   font-weight: 600;
 }
 
-/* ─── Crop Picker Overlay ─── */
-.merge-crop-picker-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
+/* ─── Crop Picker Dialog ─── */
+dialog.merge-crop-picker::backdrop {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: merge-fade-in 0.2s ease;
-}
-
-@keyframes merge-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 .merge-crop-picker {
@@ -337,6 +322,60 @@
 }
 .merge-crop-btn--cancel:hover {
   color: rgba(255, 100, 100, 0.8);
+}
+
+/* ─── Empty Board Onboarding Hint ─── */
+.merge-empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.85rem;
+  padding: 20px;
+  pointer-events: none;
+  animation: merge-fade-in 0.5s ease;
+}
+
+@keyframes merge-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── Quest Generate Orders Button ─── */
+.pet-quest-gen-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(100, 200, 255, 0.25);
+  background: linear-gradient(
+    135deg,
+    rgba(30, 60, 100, 0.7),
+    rgba(20, 40, 70, 0.9)
+  );
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.15s;
+}
+
+.pet-quest-gen-btn:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(50, 80, 130, 0.8),
+    rgba(30, 50, 90, 0.95)
+  );
+  transform: translateY(-1px);
 }
 
 /* ─── Responsive ─── */

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Farm Module (v5.0.0)
+ *  Game Hub — Farm Module (v6.0.0)
  *  Plots, planting, watering, harvesting, seed shop
  *  ─ Local growth timer, diff-update fix, farm badge
  *  ─ Diff-update plots (no blink), horizontal buy bar, plot dispatcher
@@ -8,7 +8,7 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { HUB, api, showToast } from "./shared.js";
-import { CROPS as CROPS_CONFIG } from "../../game-logic.js";
+import { CROPS as CROPS_CONFIG } from "/game-logic.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
 import { getCropsData, setCropsCache } from "./crops.js";
@@ -45,11 +45,11 @@ const FarmGameImpl = (() => {
     }
   }
 
-  /** Sync server-side farm.harvested → resources.__harvested in GameStore */
+  /** Sync server-side farm.harvested → resources.harvested in GameStore */
   function syncHarvestedToStore(harvested) {
     if (!harvested) return;
     const res = GameStore.getState("resources") || {};
-    GameStore.setState("resources", { ...res, __harvested: { ...harvested } });
+    GameStore.setState("resources", { ...res, harvested: { ...harvested } });
   }
   /** Pull state from GameStore → local (deep clone to prevent shared refs)
    *  v4.16: Dirty check — skip clone + re-render when store state matches local.
@@ -161,7 +161,7 @@ const FarmGameImpl = (() => {
       if (stateData.pet) {
         PetCompanion.syncFromServer(stateData.pet);
       }
-      // Bug 2 fix: sync server harvested → resources.__harvested
+      // Bug 2 fix: sync server harvested → resources.harvested
       syncHarvestedToStore(stateData.harvested);
       if (stateData.offlineReport) {
         showWelcomeBack(stateData.offlineReport);
@@ -232,7 +232,7 @@ const FarmGameImpl = (() => {
       if (data.pet) {
         PetCompanion.syncFromServer(data.pet);
       }
-      // Bug 2 fix: sync server harvested → resources.__harvested
+      // Bug 2 fix: sync server harvested → resources.harvested
       syncHarvestedToStore(data.harvested);
       if (data.offlineReport) {
         showWelcomeBack(data.offlineReport);
@@ -489,13 +489,13 @@ const FarmGameImpl = (() => {
     if (tab === "inv") renderInventory();
   }
 
-  /* ─── Inventory Rendering (reads __harvested from resources slice) ─── */
+  /* ─── Inventory Rendering (reads harvested from resources slice) ─── */
   function renderInventory() {
     const grid = $("farm-inventory-grid");
     if (!grid) return;
 
     let harvested = {};
-    harvested = GameStore.getState("resources")?.__harvested || {};
+    harvested = GameStore.getState("resources")?.harvested || {};
 
     const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
     if (entries.length === 0) {
@@ -763,11 +763,11 @@ const FarmGameImpl = (() => {
     state.plots[plotId] = { crop: null, plantedAt: null, watered: false };
     state.xp += estimatedXP;
 
-    // Bug 2 fix: write harvested crop to resources.__harvested in GameStore
+    // Bug 2 fix: write harvested crop to resources.harvested in GameStore
     const res = GameStore.getState("resources") || {};
-    const harvested = { ...(res.__harvested || {}) };
+    const harvested = { ...(res.harvested || {}) };
     harvested[plotSnapshot.crop] = (harvested[plotSnapshot.crop] || 0) + 1;
-    GameStore.setState("resources", { ...res, __harvested: harvested });
+    GameStore.setState("resources", { ...res, harvested: harvested });
 
     syncToStore();
     render();
@@ -790,7 +790,7 @@ const FarmGameImpl = (() => {
           if (data.resources) {
             HUD.syncFromServer(data.resources);
           }
-          // Sync server harvested → resources.__harvested
+          // Sync server harvested → resources.harvested
           if (data.harvested) syncHarvestedToStore(data.harvested);
           syncToStore();
           renderInventory();
@@ -808,7 +808,7 @@ const FarmGameImpl = (() => {
   function sellCrop(cropId, sellPrice) {
     // GameStore always available in ESM
     const res = GameStore.getState("resources") || {};
-    const harvested = { ...(res.__harvested || {}) };
+    const harvested = { ...(res.harvested || {}) };
     if (!harvested[cropId] || harvested[cropId] <= 0) {
       showToast("❌ No crops to sell!");
       return;
@@ -820,7 +820,7 @@ const FarmGameImpl = (() => {
     GameStore.setState("resources", {
       ...res,
       gold: newGold,
-      __harvested: harvested,
+      harvested: harvested,
     });
     renderInventory();
     render();
@@ -859,7 +859,7 @@ const FarmGameImpl = (() => {
       showToast("🤢 Pet is too full! Wait for digestion.");
       return;
     }
-    const harvested = { ...(res.__harvested || {}) };
+    const harvested = { ...(res.harvested || {}) };
     if (!harvested[cropId] || harvested[cropId] <= 0) {
       showToast("❌ No crops to feed!");
       return;
@@ -874,7 +874,7 @@ const FarmGameImpl = (() => {
     GameStore.setState("resources", {
       ...res,
       energy: newEnergy,
-      __harvested: harvested,
+      harvested: harvested,
     });
     // Optimistic: update pet fullness
     if (pet) {
