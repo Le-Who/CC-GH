@@ -306,6 +306,16 @@ app.use(
   }),
 );
 
+// Discord Embedded Activity proxy sometimes resolves asset URLs with a
+// /public/ prefix (e.g. /public/js/main.js instead of /js/main.js).
+// Mount the same static directory at /public/ to handle both path shapes.
+app.use(
+  "/public",
+  express.static(path.join(__dirname, "public"), {
+    index: false,
+  }),
+);
+
 // Serve root-level game-logic.js with correct MIME type (not in public/)
 app.get("/game-logic.js", (_req, res) => {
   res
@@ -314,21 +324,26 @@ app.get("/game-logic.js", (_req, res) => {
     .sendFile(path.join(__dirname, "game-logic.js"));
 });
 
-// Explicit routes for sub-module scripts — prevents MIME type errors when
-// express.static fails to resolve subdirectory paths (observed in Discord
-// Embedded Activity proxy + Cloud Run deployments).
-app.get("/js/match3/engine.js", (_req, res) => {
-  res
-    .type("application/javascript")
-    .set("Cache-Control", "public, max-age=31536000, immutable")
-    .sendFile(path.join(__dirname, "public", "js", "match3", "engine.js"));
-});
-app.get("/js/blox/pieces.js", (_req, res) => {
-  res
-    .type("application/javascript")
-    .set("Cache-Control", "public, max-age=31536000, immutable")
-    .sendFile(path.join(__dirname, "public", "js", "blox", "pieces.js"));
-});
+// Explicit routes for sub-module scripts — belt-and-suspenders defense
+// against MIME errors when static middleware fails to resolve subdirectory
+// paths. Handles both /js/... and /public/js/... path shapes.
+const subModules = [
+  {
+    route: "js/match3/engine.js",
+    file: ["public", "js", "match3", "engine.js"],
+  },
+  { route: "js/blox/pieces.js", file: ["public", "js", "blox", "pieces.js"] },
+];
+for (const { route, file } of subModules) {
+  const handler = (_req, res) => {
+    res
+      .type("application/javascript")
+      .set("Cache-Control", "public, max-age=31536000, immutable")
+      .sendFile(path.join(__dirname, ...file));
+  };
+  app.get(`/${route}`, handler);
+  app.get(`/public/${route}`, handler);
+}
 
 // Strict 404 for static assets — prevents SPA catch-all from masking missing files
 app.use(/\.(js|mjs|css|json|map|png|jpg|svg|woff2?)$/i, (_req, res) => {
