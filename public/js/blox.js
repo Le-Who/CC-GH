@@ -461,6 +461,9 @@ const BloxGameImpl = (() => {
           cell.className = "blox-cell";
           cell.dataset.r = r;
           cell.dataset.c = c;
+          // Fix for bug where appending laser overlays shifted the auto-placement grid
+          cell.style.gridRow = `${r + 1}`;
+          cell.style.gridColumn = `${c + 1}`;
           gridEl.appendChild(cell);
           _boardCells[r][c] = cell;
         }
