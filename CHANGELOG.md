@@ -1,5 +1,57 @@
 # Changelog
 
+## v6.1.0 — 2026-02-22
+
+### UX/UI Audit — 5 Feature Implementation
+
+Five user-requested UX improvements across Farm, Merge, Pet, and global emoji rendering.
+
+#### 1. Quest Log HUD (`hud.js`, `hud.css`, `index.html`)
+
+- **📋 HUD button**: New circular `quest-log-btn` in `top-hud` between Gold display and `?` guide button.
+- **Smart badge**: Green bouncing badge appears when any quest can be fulfilled (checks `resources.harvested` + `merge.board` against order requirements).
+- **Quest Log dialog**: Native `<dialog>` modal renders all active pet orders with emoji-rich requirement display (`_formatReq`) and reward summary (`_formatReward`).
+- **Submit/Generate**: Submit button validates requirements client-side, calls `POST /api/quests/submit` with optimistic UI + rollback. Generate button calls `POST /api/quests/generate` when < 3 active orders.
+- **Auto-generate**: On first open with 0 orders, automatically generates quests via sessionStorage gate.
+- **Import**: `MERGE_CHAINS` added to `hud.js` imports for merge item display names in quest requirements.
+
+#### 2. Merge Magnetic Flow (`merge.js`, `merge.css`)
+
+- **Drag match highlight**: On `pointerdown`, all board cells containing items matching the dragged item's ID receive `.merge-cell--match-highlight` (golden glow `box-shadow`). Cleared on `pointerup`.
+- **Idle hints (7s)**: After 7 seconds of inactivity, `_showIdleHint()` finds the first mergeable pair (same ID, not max level) and adds `.merge-cell--hint` wiggle animation. Timer resets on any board render.
+- **CSS**: `merge-cell--match-highlight` (golden glow), `merge-cell--hint` (wiggle `rotate ±3deg`).
+
+#### 3. Merge Fuel Slot (`merge.js`, `merge.css`)
+
+- **`_selectedFuel{}`**: Per-chain crop memory. Saved on crop picker selection.
+- **1-click generator tap**: `_tapWithFuel(chainId)` checks if remembered fuel has stock > 0 → instant `tapGenerator()`. Falls back to crop picker only when fuel exhausted or never selected.
+- **Fuel badge**: When a generator has remembered fuel with stock > 0, a `.merge-fuel-badge` button shows `🥕 ×12` next to the generator button. Click changes fuel.
+
+#### 4. Farm Uproot 💣 (`farm.js`, `farm.css`, `routes/farm.js`)
+
+- **💣 button**: Rendered on every un-matured plot, positioned `top:6px; left:6px` — mirrors 💧 water button on `right:6px`.
+- **Hold-to-confirm (2.5s)**: `pointerdown` starts timeout; adds `.farm-uproot-holding` (expanding red pulse animation). Release/cancel clears timer. Fires `uproot(plotId)` on completion.
+- **`uproot()` function**: Optimistic clear (no refund), calls `POST /api/farm/uproot`.
+- **Server endpoint**: `POST /api/farm/uproot` — validates plot exists, crop not ready (harvest instead), clears plot. Hard write-off: seed is lost.
+- **Guard**: Mature crops show "🌾 Already ready — harvest it!" toast instead of uprooting.
+
+#### 5. Emoji Font Stack (`base.css`)
+
+- **Robust `font-family`**: `"Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`.
+- **Cross-platform**: Noto Color Emoji (Chrome/Edge COLRv1), Apple Color Emoji (Safari/iOS), Segoe UI Emoji (Windows).
+- **Emoji inventory**: ~80 unique codepoints identified across the project for future Noto subset optimization.
+
+#### Version Bumps
+
+- `package.json`: 6.0.1 → 6.1.0
+- All 19 CSS/JS file headers: `v6.0.0` → `v6.1.0`
+
+#### Tests
+
+- **164/164 pass** (14 syntax + 59 unit + 91 API/UX), 0 failures.
+
+---
+
 ## v6.0.1 — 2026-02-22
 
 ### MIME Type Fix — `game-logic.js` Module Loading

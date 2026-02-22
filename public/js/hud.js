@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — HUD Module (v6.0.0)
+ *  Game Hub — HUD Module (v6.1.0)
  *  TopHUD for Energy & Gold display
  *  Registers 'resources' slice in GameStore
  *  v5: Native ES Module (was IIFE)
@@ -7,7 +7,34 @@
 import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
 import { HUB, api, goToScreen, showToast } from "./shared.js";
-import { CROPS } from "/game-logic.js";
+import { CROPS, MERGE_CHAINS } from "/game-logic.js";
+
+/* ─── Merge item display lookup (for quest requirement names) ─── */
+const _MERGE_DISPLAY = {};
+for (const chain of Object.values(MERGE_CHAINS)) {
+  for (let i = 0; i < chain.items.length; i++) {
+    _MERGE_DISPLAY[chain.items[i]] = {
+      emoji: chain.emoji[i],
+      name: chain.names[i],
+    };
+  }
+}
+function _formatReq(r) {
+  if (r.type === "crop") {
+    const c = CROPS[r.id];
+    return `${c?.emoji || "🌿"} ${c?.name || r.id} ×${r.qty}`;
+  }
+  const m = _MERGE_DISPLAY[r.id];
+  return `${m?.emoji || "🧩"} ${m?.name || r.id} ×${r.qty}`;
+}
+function _formatReward(rw) {
+  const parts = [];
+  if (rw.gold) parts.push(`+${rw.gold}🪙`);
+  if (rw.affectionXp) parts.push(`+${rw.affectionXp}💕`);
+  if (rw.gachaTokens) parts.push(`+${rw.gachaTokens}🎰`);
+  if (rw.energyMaxBoost) parts.push(`+${rw.energyMaxBoost}⚡max`);
+  return parts.join(" ") || "—";
+}
 
 let regenTimerId = null;
 
@@ -210,6 +237,15 @@ async function init() {
   GameStore.subscribe("resources", (newState) => {
     updateDisplay(newState);
   });
+
+  // Quest Log button
+  const questLogBtn = document.getElementById("quest-log-btn");
+  if (questLogBtn) questLogBtn.addEventListener("click", _openQuestLog);
+
+  // Badge update: check periodically and on store changes
+  GameStore.subscribe("pet", _updateQuestBadge);
+  GameStore.subscribe("resources", _updateQuestBadge);
+  setInterval(_updateQuestBadge, 5000);
 
   // v4.15.2: Pause regen timer when tab hidden (save CPU)
   document.addEventListener("visibilitychange", () => {
@@ -418,6 +454,169 @@ function _checkEnergyPlayReady() {
       hideEnergyModal();
       if (cb) cb();
     };
+  }
+}
+
+/* ─── Quest Log ─── */
+function _updateQuestBadge() {
+  const badge = document.getElementById("quest-badge");
+  if (!badge) return;
+  const pet = GameStore.getState("pet");
+  const orders = pet?.activeOrders || [];
+  // Show badge if any order can be fulfilled
+  const canSubmitAny = orders.some((o) => _canFulfillOrder(o));
+  badge.style.display = canSubmitAny ? "flex" : "none";
+}
+
+function _canFulfillOrder(order) {
+  const res = GameStore.getState("resources");
+  const harvested = res?.harvested || {};
+  const mergeState = GameStore.getState("merge");
+  for (const req of order.requirements) {
+    if (req.type === "crop") {
+      if (!harvested[req.id] || harvested[req.id] < req.qty) return false;
+    } else if (req.type === "merge") {
+      const board = mergeState?.board;
+      if (!board) return false;
+      let found = 0;
+      for (const row of board) {
+        for (const cell of row) {
+          if (cell && cell.id === req.id) found++;
+        }
+      }
+      if (found < req.qty) return false;
+    }
+  }
+  return true;
+}
+
+function _openQuestLog() {
+  const modal = document.getElementById("quest-log-modal");
+  const container = document.getElementById("quest-log-items");
+  if (!modal || !container) return;
+  _renderQuestLog(container);
+  if (!modal.open) modal.showModal();
+}
+
+function _renderQuestLog(container) {
+  const pet = GameStore.getState("pet");
+  const orders = pet?.activeOrders || [];
+
+  if (orders.length === 0) {
+    container.innerHTML =
+      '<p class="text-dim" style="font-size:0.82rem;margin:8px 0;text-align:center">No active quests. Generate some!</p>';
+  } else {
+    container.innerHTML = orders
+      .map(
+        (o) => `
+      <div class="quest-log-item" data-order-id="${o.id}">
+        <div class="quest-log-reqs">${o.requirements.map((r) => `<span>${_formatReq(r)}</span>`).join(" ")}</div>
+        <div class="quest-log-reward">🏆 ${_formatReward(o.reward)}</div>
+        <button class="quest-log-submit" data-order-id="${o.id}">Submit</button>
+      </div>
+    `,
+      )
+      .join("");
+  }
+
+  // Generate button if under 3 orders
+  if (orders.length < 3) {
+    const genBtn = document.createElement("button");
+    genBtn.className = "quest-log-gen-btn";
+    genBtn.textContent = `🔄 ${orders.length === 0 ? "Get Orders" : "Get More Orders"}`;
+    genBtn.addEventListener("click", async () => {
+      await _generateQuestOrders();
+      _renderQuestLog(container);
+    });
+    container.appendChild(genBtn);
+  }
+
+  // Submit handlers
+  container.querySelectorAll(".quest-log-submit").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      await _submitQuestOrder(btn.dataset.orderId);
+      _renderQuestLog(container);
+      _updateQuestBadge();
+    });
+  });
+
+  // Auto-generate if empty and never done
+  const _autoKey = "_questLogAutoGenDone";
+  if (orders.length === 0 && !sessionStorage.getItem(_autoKey)) {
+    sessionStorage.setItem(_autoKey, "1");
+    _generateQuestOrders().then(() => _renderQuestLog(container));
+  }
+}
+
+async function _generateQuestOrders() {
+  const res = GameStore.getState("resources");
+  try {
+    const data = await api("/api/quests/generate", {
+      userId: res?.userId || undefined,
+    });
+    if (!data?.success) {
+      showToast(data?.error || "Could not generate orders", "error");
+      return;
+    }
+    const pet = GameStore.getState("pet");
+    if (pet && data.orders)
+      GameStore.setState("pet", { ...pet, activeOrders: data.orders });
+    showToast(`📜 ${data.newOrders?.length || 0} new orders!`, "success");
+  } catch {
+    showToast("Network error", "error");
+  }
+}
+
+async function _submitQuestOrder(orderId) {
+  const pet = GameStore.getState("pet");
+  const res = GameStore.getState("resources");
+  if (!pet || !res) return;
+  const order = (pet.activeOrders || []).find((o) => o.id === orderId);
+  if (!order) {
+    showToast("Order not found", "error");
+    return;
+  }
+  if (!_canFulfillOrder(order)) {
+    showToast("Requirements not met", "error");
+    return;
+  }
+
+  // Optimistic remove
+  const oldOrders = [...(pet.activeOrders || [])];
+  GameStore.setState("pet", {
+    ...pet,
+    activeOrders: pet.activeOrders.filter((o) => o.id !== orderId),
+  });
+
+  try {
+    const data = await api("/api/quests/submit", {
+      userId: res.userId || undefined,
+      orderId,
+    });
+    if (!data?.success) {
+      GameStore.setState("pet", { ...pet, activeOrders: oldOrders });
+      showToast(data?.error || "Quest failed", "error");
+      return;
+    }
+    if (data.pet) GameStore.setState("pet", data.pet);
+    if (data.resources)
+      GameStore.setState("resources", {
+        ...data.resources,
+        harvested: data.harvested || {},
+      });
+    if (data.merge) GameStore.setState("merge", data.merge);
+    showToast(
+      `✅ Quest complete! ${_formatReward(data.reward || {})}`,
+      "success",
+    );
+    if (data.affectionLeveledUp)
+      showToast(
+        `💕 Affection Level Up! Lv${data.pet?.affectionLevel}`,
+        "success",
+      );
+  } catch {
+    GameStore.setState("pet", { ...pet, activeOrders: oldOrders });
+    showToast("Network error", "error");
   }
 }
 

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Shared Module (v6.0.0)
+ *  Game Hub — Shared Module (v6.1.0)
  *  Discord SDK auth, API helper, screen navigation
  *  CSP-compliant: no inline handlers, no external fonts
  *  v5: Native ES Module (was global IIFE)

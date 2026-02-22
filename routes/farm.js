@@ -134,6 +134,30 @@ export default function farmRoutes(requireAuth, resolveUser) {
     });
   });
 
+  /* ─── Uproot (💣 — no refund) ─── */
+  router.post("/api/farm/uproot", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { plotId } = req.body;
+    const p = getPlayer(userId);
+    const plot = p.farm.plots[plotId];
+    if (!plot || !plot.crop)
+      return res.status(400).json({ error: "nothing to uproot" });
+    if (getGrowthPct(plot) >= 1)
+      return res.status(400).json({ error: "already ready — harvest instead" });
+
+    // Hard write-off: seed is lost, plot cleared
+    plot.crop = null;
+    plot.plantedAt = null;
+    plot.watered = false;
+    debouncedSavePlayer(userId);
+    res.json({
+      success: true,
+      plots: farmPlotsWithGrowth(p.farm),
+      resources: p.resources,
+      serverTime: Date.now(),
+    });
+  });
+
   router.post("/api/farm/buy-seeds", requireAuth, (req, res) => {
     const { userId } = resolveUser(req);
     const { cropId, amount = 1 } = req.body;

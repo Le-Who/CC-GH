@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v6.0.1**
+**Current version: v6.1.0**
 
 ---
 
@@ -18,10 +18,12 @@
 | 📋 **Pet Orders**         | Quest system: farm crops + merge items → tiered rewards + affection levels   |
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
 | ⚡ **Energy System**      | Native dialog overlays · 2.5-min regen · Gates match-3 and trivia plays      |
+| 💣 **Farm Uproot**        | Hold-to-confirm 2.5s removal of unwanted crops (no refund)                   |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
 | 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
 | 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions                 |
+| 🔤 **Emoji Consistency**  | Robust font stack: Noto Color Emoji + Apple/Segoe fallbacks                  |
 
 ---
 
@@ -85,7 +87,7 @@ npm run dev
 │   │   ├── shared.js      # HUB state, auth, navigation, toast, device detection
 │   │   ├── store.js       # GameStore (Zustand-like slice manager)
 │   │   ├── crops.js       # Crop metadata fetch/cache (replaces window globals)
-│   │   ├── hud.js         # Energy + Gold HUD, regen timer
+│   │   ├── hud.js         # Energy + Gold HUD, regen timer, Quest Log
 │   │   ├── pet.js         # Pet companion (roam, sleep, auto-water, abilities)
 │   │   ├── farm.js        # Farm module (plots, shop, buy-plot, optimistic updates)
 │   │   ├── trivia.js      # Trivia (solo + duels, lobby, history)
@@ -130,7 +132,7 @@ npm run test:perf # Performance benchmarks only
 | **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
 | **Stress** | `tests/game-logic-stress.test.js` |    58 |
-| **Syntax** | `tests/syntax.test.js`            |    13 |
+| **Syntax** | `tests/syntax.test.js`            |    14 |
 
 ---
 
@@ -224,6 +226,14 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 1. ~~**Gacha Merge Mini-Game**~~: 7×9 merge board, 2 chains × 8 levels (Textile + Wood), server-authoritative tap/merge/gacha/trash actions, Ghost-Pattern D&D, crop-fueled generators with tier-based yield, cooldowns, daily free pull.
 2. ~~**Pet Order (Quest) System**~~: Server-validated quest generation (easy/medium/hard tiers), mixed crop+merge item requirements, tiered rewards (gold, affection XP, gacha tokens, energy max boost), pet affection leveling.
 3. ~~**Unified Token Economy**~~: Gacha tokens earned from Match-3/Blox (score-based) and Farm (2% harvest drop), spent on gacha pulls (10 tokens). Token injection across all game routes.
+
+### ✅ Completed in v6.1.0
+
+1. ~~**Quest Log HUD**~~: 📋 button in TopHUD with smart badge + dialog for managing pet orders from any screen.
+2. ~~**Merge Magnetic Flow**~~: Drag highlights matching items (golden glow), 7s idle hints (wiggle animation).
+3. ~~**Merge Fuel Slot**~~: 1-click generator tap with remembered crop. Fuel badge shows stock. Picker only on exhaustion.
+4. ~~**Farm Uproot**~~: 💣 hold-to-confirm (2.5s) button on un-matured crops. Server endpoint `/api/farm/uproot` (no refund).
+5. ~~**Emoji Font Stack**~~: Noto Color Emoji + Apple/Segoe/Symbol fallbacks for cross-platform consistency.
 
 ### Planned
 

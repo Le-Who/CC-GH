@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Base Design System  (v6.0.0)
+ *  Game Hub — Base Design System  (v6.1.0)
  *  Shared tokens, layout, navigation, common components
  * ═══════════════════════════════════════════════════ */
 
@@ -38,10 +38,15 @@ body::-webkit-scrollbar {
 
 body {
   font-family:
+    "Inter",
     system-ui,
     -apple-system,
     "Segoe UI",
     Roboto,
+    "Noto Color Emoji",
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
     sans-serif;
   background: var(--bg);
   color: var(--text);

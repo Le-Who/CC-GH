@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Farm Module (v6.0.0)
+ *  Game Hub — Farm Module (v6.1.0)
  *  Plots, planting, watering, harvesting, seed shop
  *  ─ Local growth timer, diff-update fix, farm badge
  *  ─ Diff-update plots (no blink), horizontal buy bar, plot dispatcher
@@ -184,12 +184,50 @@ const FarmGameImpl = (() => {
         if (!isNaN(idx)) water(idx);
         return;
       }
+      // Uproot button: start hold timer
+      const uprootBtn = e.target.closest(".farm-uproot-btn");
+      if (uprootBtn) {
+        e.stopPropagation();
+        return; // handled by pointerdown below
+      }
       const plot = e.target.closest(".farm-plot");
       if (!plot || plot.classList.contains("skeleton")) return;
       const idx = parseInt(plot.dataset.index, 10);
       if (!isNaN(idx)) onPlotClick(idx);
       else if (plot.classList.contains("buy-plot-card")) buyPlot();
     });
+
+    // Uproot hold-to-confirm (2.5s)
+    let _uprootTimer = null;
+    let _uprootTarget = null;
+    grid.addEventListener("pointerdown", (e) => {
+      const btn = e.target.closest(".farm-uproot-btn");
+      if (!btn) return;
+      e.preventDefault();
+      const plot = btn.closest(".farm-plot");
+      const idx = plot ? parseInt(plot.dataset.index, 10) : NaN;
+      if (isNaN(idx)) return;
+      _uprootTarget = btn;
+      btn.classList.add("farm-uproot-holding");
+      _uprootTimer = setTimeout(() => {
+        btn.classList.remove("farm-uproot-holding");
+        uproot(idx);
+        _uprootTarget = null;
+      }, 2500);
+    });
+    const cancelUproot = () => {
+      if (_uprootTimer) {
+        clearTimeout(_uprootTimer);
+        _uprootTimer = null;
+      }
+      if (_uprootTarget) {
+        _uprootTarget.classList.remove("farm-uproot-holding");
+        _uprootTarget = null;
+      }
+    };
+    grid.addEventListener("pointerup", cancelUproot);
+    grid.addEventListener("pointercancel", cancelUproot);
+    grid.addEventListener("pointerleave", cancelUproot);
 
     // Farm panel tab switching
     const tabInv = $("farm-tab-inv");
@@ -414,6 +452,7 @@ const FarmGameImpl = (() => {
         <div class="crop-name">${cfg.name || plot.crop}</div>
         <div class="growth-bar"><div class="growth-bar-fill${isReady ? " done" : ""}${isJustPlanted ? " plant-burst" : ""}" style="width:${displayPct}%"></div></div>
         ${!isReady ? `<div class="growth-time-label">${formatTimeLeft(plot, pct)}</div>` : ""}
+        ${!isReady ? '<button class="farm-uproot-btn" title="Hold 2.5s to uproot">💣</button>' : ""}
         ${!plot.watered && !isReady ? '<button class="farm-water-btn" title="Water">💧</button>' : ""}
         ${plot.watered ? '<button class="farm-water-btn watered" disabled>💧</button>' : ""}
       `;
@@ -802,6 +841,48 @@ const FarmGameImpl = (() => {
       .catch(() => {
         if (harvestVersion === myVersion) loadState();
       });
+  }
+
+  /* ─── Uproot (💣) ─── */
+  async function uproot(plotId) {
+    const plot = state?.plots?.[plotId];
+    if (!plot || !plot.crop) return;
+    const pct = getLocalGrowth(plot);
+    if (pct >= 1) {
+      showToast("🌾 Already ready — harvest it!");
+      return;
+    }
+
+    // Optimistic: clear the plot (NO seed refund)
+    const oldPlot = { ...plot };
+    state.plots[plotId] = { crop: null, plantedAt: null, watered: false };
+    syncToStore();
+    render();
+    showToast("💣 Uprooted! No refund.");
+
+    try {
+      const data = await api("/api/farm/uproot", {
+        userId: HUB.userId,
+        plotId,
+      });
+      if (data?.success) {
+        state.plots = data.plots;
+        if (data.resources) HUD.syncFromServer(data.resources);
+        syncToStore();
+        render();
+      } else {
+        // Rollback
+        state.plots[plotId] = oldPlot;
+        syncToStore();
+        render();
+        showToast(data?.error || "Uproot failed", "error");
+      }
+    } catch {
+      state.plots[plotId] = oldPlot;
+      syncToStore();
+      render();
+      showToast("Network error", "error");
+    }
   }
 
   /* ─── Sell Crop ─── */

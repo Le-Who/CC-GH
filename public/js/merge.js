@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Game Hub — Gacha Merge Mini-Game (v6.0.0)
+ *  Game Hub — Gacha Merge Mini-Game (v6.1.0)
  *  Server-authoritative engine + Ghost-Pattern D&D
  *  Board: 7 rows × 9 cols. Items merge by chain + level.
  *  CSP-compliant: no innerHTML on active board.
@@ -280,6 +280,9 @@ let _cells = []; // 2D DOM cache: _cells[row][col]
 let _boardEl = null;
 let _dragState = null;
 let _trashMode = false;
+let _selectedFuel = {}; // chainId → cropId (fuel slot memory)
+let _idleHintTimer = null;
+const IDLE_HINT_DELAY = 7000; // 7 seconds
 
 /* ─── Board Rendering ─── */
 function createBoardDOM() {
@@ -333,6 +336,8 @@ function _renderBoard() {
   } else if (!isEmpty && hint) {
     hint.remove();
   }
+  // Restart idle hint timer on any board render
+  _resetIdleHintTimer();
 }
 
 function _renderCell(r, c, item) {
@@ -408,6 +413,21 @@ function _onPointerDown(e) {
     originCell: cell,
   };
 
+  // Highlight matching items on board
+  const mergeState = GameStore.getState("merge");
+  const src = mergeState?.board[r]?.[c];
+  if (src) {
+    for (let ri = 0; ri < BOARD_ROWS; ri++) {
+      for (let ci = 0; ci < BOARD_COLS; ci++) {
+        if (ri === r && ci === c) continue;
+        const dst = mergeState.board[ri]?.[ci];
+        if (dst && dst.id === src.id) {
+          _cells[ri][ci].classList.add("merge-cell--match-highlight");
+        }
+      }
+    }
+  }
+
   cell.setPointerCapture(e.pointerId);
   e.preventDefault();
 }
@@ -427,6 +447,11 @@ function _onPointerUp(e) {
 
   // Restore source cell
   ds.originCell.classList.remove("merge-cell--dragging");
+  // Remove all match highlights
+  if (_boardEl)
+    _boardEl
+      .querySelectorAll(".merge-cell--match-highlight")
+      .forEach((c) => c.classList.remove("merge-cell--match-highlight"));
   try {
     ds.originCell.releasePointerCapture(e.pointerId);
   } catch (_) {}
@@ -510,8 +535,27 @@ function _renderGeneratorPanel() {
       btn.title = `Costs 1⚡ + 1 crop → ${chain.name} items`;
     }
 
-    btn.addEventListener("click", () => _showCropPicker(chainId));
+    btn.addEventListener("click", () => _tapWithFuel(chainId));
     _genPanel.appendChild(btn);
+
+    // Fuel slot badge (shows currently selected crop)
+    const fuelCrop = _selectedFuel[chainId];
+    if (fuelCrop && !onCooldown) {
+      const cfg = CROPS[fuelCrop];
+      const harvested = res?.harvested || {};
+      const qty = harvested[fuelCrop] || 0;
+      if (cfg && qty > 0) {
+        const fuelBadge = document.createElement("button");
+        fuelBadge.className = "merge-fuel-badge";
+        fuelBadge.textContent = `${cfg.emoji} ×${qty}`;
+        fuelBadge.title = `Fuel: ${cfg.name} (click to change)`;
+        fuelBadge.addEventListener("click", (e) => {
+          e.stopPropagation();
+          _showCropPicker(chainId);
+        });
+        _genPanel.appendChild(fuelBadge);
+      }
+    }
   }
 
   // Gacha button
@@ -591,6 +635,7 @@ function _showCropPicker(chainId) {
     btn.textContent = `${cfg.emoji} ${cfg.name} (×${harvested[cropId]}) [${tier}]`;
     btn.addEventListener("click", () => {
       dialog.close();
+      _selectedFuel[chainId] = cropId; // Remember fuel choice
       tapGenerator(chainId, cropId);
     });
     list.appendChild(btn);
@@ -607,6 +652,59 @@ function _showCropPicker(chainId) {
   dialog.addEventListener("close", () => dialog.remove());
   document.body.appendChild(dialog);
   dialog.showModal();
+}
+
+/* ─── Fuel Slot: 1-click tap with remembered crop ─── */
+function _tapWithFuel(chainId) {
+  const fuelCrop = _selectedFuel[chainId];
+  const res = GameStore.getState("resources");
+  const harvested = res?.harvested || {};
+
+  // If we have a remembered fuel and stock > 0, tap immediately
+  if (fuelCrop && harvested[fuelCrop] && harvested[fuelCrop] > 0) {
+    tapGenerator(chainId, fuelCrop);
+    return;
+  }
+  // Otherwise show picker (first time or fuel exhausted)
+  _showCropPicker(chainId);
+}
+
+/* ─── Idle Hint Timer (7s) ─── */
+function _resetIdleHintTimer() {
+  if (_idleHintTimer) clearTimeout(_idleHintTimer);
+  // Remove previous hints
+  if (_boardEl)
+    _boardEl
+      .querySelectorAll(".merge-cell--hint")
+      .forEach((c) => c.classList.remove("merge-cell--hint"));
+  _idleHintTimer = setTimeout(_showIdleHint, IDLE_HINT_DELAY);
+}
+
+function _showIdleHint() {
+  const mergeState = GameStore.getState("merge");
+  if (!mergeState || !_boardEl) return;
+  // Find first mergeable pair
+  for (let r = 0; r < BOARD_ROWS; r++) {
+    for (let c = 0; c < BOARD_COLS; c++) {
+      const item = mergeState.board[r]?.[c];
+      if (!item) continue;
+      const info = ITEM_LOOKUP[item.id];
+      if (!info || !info.nextId) continue; // skip max level
+      // Search for match
+      for (let r2 = 0; r2 < BOARD_ROWS; r2++) {
+        for (let c2 = 0; c2 < BOARD_COLS; c2++) {
+          if (r2 === r && c2 === c) continue;
+          const other = mergeState.board[r2]?.[c2];
+          if (other && other.id === item.id) {
+            // Found a pair — wiggle both cells
+            _cells[r][c].classList.add("merge-cell--hint");
+            _cells[r2][c2].classList.add("merge-cell--hint");
+            return; // Only hint one pair at a time
+          }
+        }
+      }
+    }
+  }
 }
 
 /* ═══════════════════════════════════════════════════

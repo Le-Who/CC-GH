@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
- *  Match-3 Engine — Pure Game Logic (v6.0.0)
+ *  Match-3 Engine — Pure Game Logic (v6.1.0)
  *  No DOM, no state — all functions are pure.
  *  Extracted from match3.js for clarity and testability.
  * ═══════════════════════════════════════════════════ */

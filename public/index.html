@@ -75,6 +75,12 @@
         <span class="hud-icon">🪙</span>
         <span id="hud-gold-text">--</span>
       </div>
+      <button class="quest-log-btn" id="quest-log-btn" title="Quest Log">
+        📋
+        <span class="quest-badge" id="quest-badge" style="display: none"
+          >!</span
+        >
+      </button>
       <button class="econ-guide-btn" id="econ-guide-btn" title="Economy Guide">
         ?
       </button>
@@ -103,6 +109,19 @@
         <form method="dialog">
           <button class="btn btn-secondary btn-sm" id="econ-guide-close">
             Got it!
+          </button>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- ═══ Quest Log Modal ═══ -->
+    <dialog class="modal" id="quest-log-modal">
+      <div class="modal-card quest-log-card">
+        <h3>📋 Quest Log</h3>
+        <div id="quest-log-items"></div>
+        <form method="dialog" style="margin-top: 12px">
+          <button class="btn btn-secondary btn-sm" id="quest-log-close">
+            Close
           </button>
         </form>
       </div>
