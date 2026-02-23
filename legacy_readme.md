@@ -196,23 +196,74 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 ---
 
-## 🔬 Architecture Evolution & Updates
-
-Older architecture evolution changes can be found in `legacy_readme.md`.
+## 🔬 Architecture Evolution (v5 Roadmap)
 
 ### ✅ Completed in v6.3.0
 
-1. **Psychological Marketing Integration**:
-   - **GameStore** with Decoy bundle & Scarcity timers.
-   - **Quest Log** dynamically applying the Goal-Gradient effect.
-   - **Welcome Back modal** demonstrating the Zeigarnik effect.
-2. **Micro-Interactions & Polish**:
-   - Match-3 Game Over particle splash (Peak-End Rule).
-   - Pet Renaming modal upon level-up/start (IKEA Effect).
-   - Nudge Theory fluid animations using spring bezier curves.
-3. **Modal Bugfixes**:
-   - Resolved the critical invisible Modal blocking UI bug caused by view transitions, implemented safely deferred dialog toggling in `shared.js`.
-   - Patched QuestUI `.quest-dropdown` wrapper overlap bug.
+1. ~~**Psychological Marketing Integration**~~: GameStore with Decoy bundle & Scarcity timers. Quest Log dynamically applying the Goal-Gradient effect. Welcome Back modal demonstrating the Zeigarnik effect.
+2. ~~**Micro-Interactions & Polish**~~: Match-3 Game Over particle splash (Peak-End Rule). IKEA Effect Pet Renaming modal. Nudge Theory fluid animations using spring bezier curves.
+
+### ✅ Completed in v5.0.2
+
+1. ~~**Cascade Animation Redesign**~~: Rewrote `animateCascade()` from 2-phase to 4-phase pipeline (matched-highlight → pop → full-sync → column-staggered fall). Adaptive speed curve (×0.85 per step). Post-cascade `renderBoard()` sync.
+2. ~~**State Desync Self-Healing**~~: Dataset-type guard in `onCellClick()` + full 64-cell sync between cascade phases eliminates visual/logical desync.
+
+### ✅ Completed in v5.0.1
+
+1. ~~**Visual Smoothness Performance Audit**~~: Removed permanent `will-change` on 64 cells, eliminated `filter: brightness()` hover repaints, sparse cascade diff (3–10 cells vs 64), staggered Blox clearing, reduced `backdrop-filter: blur(12px)` → `blur(4px)` on both boards.
+2. ~~**Star Drop Color Redesign**~~: All 3 drop gems given unique hues: 💰 hot pink H:330°, 🌾 chartreuse H:80°, ⚡ indigo H:240° — zero overlap with any regular gem.
+3. ~~**Firestore Nested-Array Fix**~~: `savedState`/`savedModes` JSON-stringified before Firestore write + recursive `sanitizeForFirestore()` strips `undefined` values.
+4. ~~**Blox Ghost Animation Fix**~~: Position-diffed ghost rendering prevents `ghostBreathe` CSS animation restart on every mouse pixel.
+5. ~~**Match-3 Swap Displacement Fix**~~: Inline `transform` cleanup after swap slide prevents gem displacement from sparse cascade diff.
+
+### ✅ Completed in v5.0.0
+
+1. ~~**Native ES Modules**~~: All 8 frontend modules migrated from IIFE to native `import`/`export`. Single module entry point (`main.js`). Server-injected import map for automatic cache busting.
+2. ~~**Module Decomposition**~~: `match3/engine.js` (pure logic) and `blox/pieces.js` (static data) extracted as sub-modules.
+
+### ✅ Completed in v4.14–v4.16
+
+3. ~~**Native View Transitions + Persistent Navigation**~~: Implemented in v4.14.0.
+4. ~~**Standardized `<dialog>` Overlays + Toast Queue**~~: All overlays migrated in v4.14.0–v4.14.3.
+5. ~~**Juicy UI Foundation**~~: Spring physics, GPU-optimized animations, dynamic gravity, CSS containment, object-pooled float points. Implemented in v4.15.0–v4.15.3.
+6. ~~**DOM-Cached Rendering**~~: Zero-innerHTML diff-update for Blox/Match-3. Event delegation, ghost tracking, cached nav. Implemented in v4.16.0.
+
+### ✅ Completed in v6.0.0
+
+1. ~~**Gacha Merge Mini-Game**~~: 7×9 merge board, 2 chains × 8 levels (Textile + Wood), server-authoritative tap/merge/gacha/trash actions, Ghost-Pattern D&D, crop-fueled generators with tier-based yield, cooldowns, daily free pull.
+2. ~~**Pet Order (Quest) System**~~: Server-validated quest generation (easy/medium/hard tiers), mixed crop+merge item requirements, tiered rewards (gold, affection XP, gacha tokens, energy max boost), pet affection leveling.
+3. ~~**Unified Token Economy**~~: Gacha tokens earned from Match-3/Blox (score-based) and Farm (2% harvest drop), spent on gacha pulls (10 tokens). Token injection across all game routes.
+
+### ✅ Completed in v6.1.0
+
+1. ~~**Quest Log HUD**~~: 📋 button in TopHUD with smart badge + dialog for managing pet orders from any screen.
+2. ~~**Merge Magnetic Flow**~~: Drag highlights matching items (golden glow), 7s idle hints (wiggle animation).
+3. ~~**Merge Fuel Slot**~~: 1-click generator tap with remembered crop. Fuel badge shows stock. Picker only on exhaustion.
+4. ~~**Farm Uproot**~~: 💣 hold-to-confirm (2.5s) button on un-matured crops. Server endpoint `/api/farm/uproot` (no refund).
+5. ~~**Emoji Font Stack**~~: Noto Color Emoji + Apple/Segoe/Symbol fallbacks for cross-platform consistency.
+
+### ✅ Completed in v6.2.0
+
+1. ~~**Pet Panel Cleanup**~~: Removed Quests tab (now HUD-only) and Stats tab button for cleaner pet info.
+2. ~~**Quest Log Dropdown**~~: Modal → non-blocking dropdown with progress bars and click-outside-to-close.
+3. ~~**Overlay Dismiss**~~: "Just Looking" buttons on Blox/Match-3 pause overlays.
+4. ~~**Cascade Speed Tuning**~~: +15% base timing, flatter decay curve (0.85→0.92), speed floor at 0.65.
+5. ~~**Farm Shop UX**~~: Empty plot → shop redirect, growth time labels, sort by price.
+6. ~~**Nav Shimmer + Dots**~~: Active tab shimmer animation, green notification dot on Farm when crops ready.
+
+### ✅ Completed in v6.2.3
+
+1. ~~**Pet Drag Fix**~~: Eliminated leftward flyoff caused by re-reading computed `translateX(-50%)` offset each frame.
+2. ~~**Farm Timer Fix**~~: Diff-update path now refreshes `.growth-time-label` text on every 500ms tick.
+3. ~~**Shop Display Fix**~~: Filtered `__hash` from crop iteration; use canonical `CROPS_CONFIG` for growth times.
+4. ~~**Toast Memory Leak**~~: Swipe-to-dismiss `mousemove`/`mouseup` listeners now attach only during active drag.
+5. ~~**Modal Backdrop Trap**~~: `safeShowModal` no longer uses `{ once: true }` — backdrop click handler persists correctly.
+6. ~~**Centralized Modals**~~: All 6 direct `.showModal()` calls in Blox/Match-3/Merge replaced with `safeShowModal()`.
+
+### Planned
+
+7. **Extended Decomposition**: Extract `match3/modes.js`, `match3/persistence.js`, `blox/drag.js` — requires shared state-object refactor.
+8. **WebSocket State Sync**: Real-time bidirectional sync replacing `api()` fetch + optimistic fallbacks.
 
 ---
 
