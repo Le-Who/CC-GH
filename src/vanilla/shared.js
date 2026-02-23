@@ -359,8 +359,9 @@ function updateNavUI() {
   const $left = document.getElementById("nav-left");
   const $right = document.getElementById("nav-right");
   const maxScreen = HUB.screenNames.length - 1;
-  $left.classList.toggle("hidden", HUB.currentScreen === 0);
-  $right.classList.toggle("hidden", HUB.currentScreen === maxScreen);
+  if ($left) $left.classList.toggle("hidden", HUB.currentScreen === 0);
+  if ($right)
+    $right.classList.toggle("hidden", HUB.currentScreen === maxScreen);
 
   // Desktop dots (cached)
   for (let i = 0; i < _cachedNavDots.length; i++) {
