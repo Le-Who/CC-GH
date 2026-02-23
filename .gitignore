@@ -4,3 +4,4 @@ data/hub-db.json
 .env
 public/js/discord-sdk-bundle.js
 .agents/
+dist/

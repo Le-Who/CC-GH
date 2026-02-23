@@ -230,8 +230,10 @@ function computeAssetHashes() {
 let indexHtmlTemplate = null;
 function getIndexHtml() {
   if (!indexHtmlTemplate) {
+    const distIndex = path.join(__dirname, "dist", "index.html");
+    const rootIndex = path.join(__dirname, "index.html");
     indexHtmlTemplate = fs.readFileSync(
-      path.join(__dirname, "index.html"),
+      fs.existsSync(distIndex) ? distIndex : rootIndex,
       "utf-8",
     );
   }
@@ -300,6 +302,11 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Serve dist/ if it exists (Vite build output)
+if (fs.existsSync(path.join(__dirname, "dist"))) {
+  app.use(express.static(path.join(__dirname, "dist"), { index: false }));
+}
 
 app.use(
   express.static(path.join(__dirname, "public"), {

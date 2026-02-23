@@ -1,4 +1,4 @@
-# Build stage: install ALL deps (including devDeps for esbuild), bundle, then
+# Build stage: install ALL deps (including devDeps for esbuild/vite), bundle, then
 # production stage: copy only what's needed with prod deps.
 
 # ── Stage 1: Build ──
@@ -8,8 +8,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install -g npm@11.10.1 && npm ci
 
-COPY src/ ./src/
-COPY public/ ./public/
+COPY . .
+
+# Run Vite build to generate the production dist/ folder
+RUN npm run build
 
 # Bundle Discord SDK into public/js/
 RUN npx esbuild src/discord-entry.js --bundle --outfile=public/js/discord-sdk-bundle.js --format=iife --global-name=DiscordSDKModule --target=es2020
@@ -21,10 +23,13 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install -g npm@11.10.1 && npm ci --omit=dev
 
-# Copy built assets from build stage
+# Copy Vite build output
+COPY --from=build /app/dist/ ./dist/
+
+# Copy public directory (needed for Discord SDK)
 COPY --from=build /app/public/ ./public/
 
-# Copy server source
+# Copy backend source
 COPY server.js .
 COPY game-logic.js .
 COPY storage.js .
