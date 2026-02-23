@@ -423,7 +423,7 @@ describe("Watering Growth Speed", () => {
 
   it("watered plot grows faster than unwatered", () => {
     const now = Date.now();
-    const plantedAt = now - 10000;
+    const plantedAt = now - 2000; // changed from 10000 because strawberry growthTime is now 5000ms
     const crop = CROPS.strawberry;
     const unwateredGrowth = getGrowthPct(
       {

@@ -182,6 +182,11 @@ function animateGoldChange(amount) {
   const goldEl = document.querySelector(".hud-gold");
   if (!goldEl) return;
 
+  // Glassmorphism Spring Bump (Peak-End / Dopamine hit)
+  goldEl.classList.remove("bump");
+  void goldEl.offsetWidth; // Trigger reflow
+  goldEl.classList.add("bump");
+
   const float = document.createElement("span");
   float.className = "hud-gold-change" + (amount < 0 ? " negative" : "");
   float.textContent = (amount > 0 ? "+" : "") + amount;
@@ -241,6 +246,15 @@ async function init() {
   // Quest Log button
   const questLogBtn = document.getElementById("quest-log-btn");
   if (questLogBtn) questLogBtn.addEventListener("click", _openQuestLog);
+
+  // Bind to the new Quest UI component
+  document.addEventListener("quest-submit", async (e) => {
+    await _submitQuestOrder(e.detail);
+    _updateQuestBadge();
+  });
+  document.addEventListener("quest-generate", async () => {
+    await _generateQuestOrders();
+  });
 
   // Badge update: check periodically and on store changes
   GameStore.subscribe("pet", _updateQuestBadge);
@@ -323,7 +337,7 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
 
   document.getElementById("energy-modal-farm").onclick = () => {
     hideEnergyModal();
-    goToScreen(1);
+    goToScreen(2); // Fix Bug 5: 2 is Farm, 1 was Blox
   };
   const closeBtn = document.getElementById("energy-modal-close");
   if (closeBtn) closeBtn.onclick = hideEnergyModal;
@@ -510,105 +524,15 @@ function _getPlayerQty(req) {
   return 0;
 }
 function _openQuestLog() {
-  const dropdown = document.getElementById("quest-dropdown");
-  const container = document.getElementById("quest-log-items");
-  if (!dropdown || !container) return;
-
-  const isOpen = dropdown.style.display !== "none";
-  if (isOpen) {
-    dropdown.style.display = "none";
-    return;
-  }
-
-  _renderQuestLog(container);
-  dropdown.style.display = "";
-
-  // Close button
-  const closeBtn = document.getElementById("quest-dropdown-close");
-  if (closeBtn)
-    closeBtn.onclick = () => {
-      dropdown.style.display = "none";
-    };
-
-  // Click-outside-to-close
-  const _outsideHandler = (e) => {
-    if (
-      !dropdown.contains(e.target) &&
-      e.target.id !== "quest-log-btn" &&
-      !e.target.closest("#quest-log-btn")
-    ) {
-      dropdown.style.display = "none";
-      document.removeEventListener("pointerdown", _outsideHandler);
-    }
-  };
-  // Delay binding so the current click doesn't immediately close
-  setTimeout(
-    () => document.addEventListener("pointerdown", _outsideHandler),
-    0,
-  );
-}
-
-function _renderQuestLog(container) {
-  const pet = GameStore.getState("pet");
-  const orders = pet?.activeOrders || [];
-
-  if (orders.length === 0) {
-    container.innerHTML =
-      '<p class="text-dim" style="font-size:0.82rem;margin:8px 0;text-align:center">No active quests. Generate some!</p>';
-  } else {
-    container.innerHTML = orders
-      .map((o) => {
-        // Build progress-bar requirements
-        const reqsHtml = o.requirements
-          .map((r) => {
-            const have = _getPlayerQty(r);
-            const need = r.qty;
-            const pct = Math.min(100, Math.round((have / need) * 100));
-            const done = have >= need;
-            return `<div class="quest-req-row">
-              <span class="quest-req-label">${_formatReq(r)}</span>
-              <div class="quest-req-bar"><div class="quest-req-bar-fill${done ? " full" : ""}" style="width:${pct}%"></div></div>
-              <span class="quest-req-frac${done ? " done" : ""}">${have}/${need}</span>
-            </div>`;
-          })
-          .join("");
-        return `
-      <div class="quest-log-item" data-order-id="${o.id}">
-        <div class="quest-log-reqs">${reqsHtml}</div>
-        <div class="quest-log-reward">🏆 ${_formatReward(o.reward)}</div>
-        <button class="quest-log-submit" data-order-id="${o.id}">Submit</button>
-      </div>
-    `;
-      })
-      .join("");
-  }
-
-  // Generate button if under 3 orders
-  if (orders.length < 3) {
-    const genBtn = document.createElement("button");
-    genBtn.className = "quest-log-gen-btn";
-    genBtn.textContent = `🔄 ${orders.length === 0 ? "Get Orders" : "Get More Orders"}`;
-    genBtn.addEventListener("click", async () => {
-      await _generateQuestOrders();
-      _renderQuestLog(container);
-    });
-    container.appendChild(genBtn);
-  }
-
-  // Submit handlers
-  container.querySelectorAll(".quest-log-submit").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      await _submitQuestOrder(btn.dataset.orderId);
-      _renderQuestLog(container);
-      _updateQuestBadge();
-    });
-  });
+  document.dispatchEvent(new CustomEvent("toggle-quests"));
 
   // Auto-generate if empty and never done
   const _autoKey = "_questLogAutoGenDone";
+  const pet = GameStore.getState("pet");
+  const orders = pet?.activeOrders || [];
   if (orders.length === 0 && !sessionStorage.getItem(_autoKey)) {
     sessionStorage.setItem(_autoKey, "1");
-    _generateQuestOrders().then(() => _renderQuestLog(container));
+    _generateQuestOrders();
   }
 }
 

@@ -23,6 +23,7 @@ export const HUB = {
   },
   isTouchDevice: false,
   swipeBlocked: false, // true when Blox game is active to prevent accidental navigation
+  viewTransitionActive: false, // Prevents showModal trapping bug
 };
 
 // ─── Module registry (set by main.js via setModules()) ───
@@ -207,6 +208,7 @@ export function goToScreen(index) {
   // pseudo-layer in Discord Electron if transition fails or hangs.
   if (document.startViewTransition) {
     try {
+      HUB.viewTransitionActive = true;
       const vt = document.startViewTransition(() => updateDOM());
       // Safety: force-skip if transition hangs >500ms
       const safetyTimer = setTimeout(() => {
@@ -215,9 +217,16 @@ export function goToScreen(index) {
         } catch (_) {}
       }, 500);
       vt.finished
-        .then(() => clearTimeout(safetyTimer))
-        .catch(() => clearTimeout(safetyTimer));
+        .then(() => {
+          clearTimeout(safetyTimer);
+          HUB.viewTransitionActive = false;
+        })
+        .catch(() => {
+          clearTimeout(safetyTimer);
+          HUB.viewTransitionActive = false;
+        });
     } catch (_) {
+      HUB.viewTransitionActive = false;
       // Fallback: View Transitions API threw — just update immediately
       updateDOM();
     }
@@ -234,35 +243,61 @@ export function goToScreen(index) {
  */
 export function safeShowModal(dialogEl) {
   if (!dialogEl) return;
-  // Close any other open dialogs first (prevent stacking)
-  document.querySelectorAll("dialog[open]").forEach((d) => {
-    if (d !== dialogEl) d.close();
-  });
-  if (!dialogEl.open) {
-    dialogEl.showModal();
 
-    // Backdrop click-to-close (Fixed: no { once: true } trap)
-    const onBackdropClick = (e) => {
-      // We only want to close if clicking exactly ON the backdrop element,
-      // not on the inner dialog card itself.
-      // Because <dialog> pads the content, the actual click targets are:
-      if (e.target === dialogEl) {
-        // Double check bounds to be absolutely certain (some browsers differ on what e.target is for backdrop)
-        const rect = dialogEl.getBoundingClientRect();
-        const isInDialog =
-          rect.top <= e.clientY &&
-          e.clientY <= rect.top + rect.height &&
-          rect.left <= e.clientX &&
-          e.clientX <= rect.left + rect.width;
+  // Prevent invisible dialogs: If the dialog belongs to an inactive screen, drop it.
+  const screenNode = dialogEl.closest(".screen");
+  if (screenNode && !screenNode.classList.contains("active")) {
+    console.warn(
+      "safeShowModal aborted: screen is not active for",
+      dialogEl.id,
+    );
+    return;
+  }
 
-        if (!isInDialog) {
-          dialogEl.close();
-          dialogEl.removeEventListener("click", onBackdropClick);
+  const show = () => {
+    // Close any other open dialogs first (prevent stacking)
+    document.querySelectorAll("dialog[open]").forEach((d) => {
+      if (d !== dialogEl) d.close();
+    });
+    if (!dialogEl.open) {
+      dialogEl.showModal();
+
+      // Backdrop click-to-close (Fixed: no { once: true } trap)
+      const onBackdropClick = (e) => {
+        // We only want to close if clicking exactly ON the backdrop element,
+        // not on the inner dialog card itself.
+        // Because <dialog> pads the content, the actual click targets are:
+        if (e.target === dialogEl) {
+          // Double check bounds to be absolutely certain
+          const rect = dialogEl.getBoundingClientRect();
+          const isInDialog =
+            rect.top <= e.clientY &&
+            e.clientY <= rect.top + rect.height &&
+            rect.left <= e.clientX &&
+            e.clientX <= rect.left + rect.width;
+
+          if (!isInDialog) {
+            dialogEl.close();
+            dialogEl.removeEventListener("click", onBackdropClick);
+          }
         }
-      }
-    };
+      };
 
-    dialogEl.addEventListener("click", onBackdropClick);
+      dialogEl.addEventListener("click", onBackdropClick);
+    }
+  };
+
+  // If a view transition is currently capturing the DOM, the top layer intercepts all pointer events.
+  // Delay modal opening until transition safely resolves.
+  if (HUB.viewTransitionActive) {
+    const checkInterval = setInterval(() => {
+      if (!HUB.viewTransitionActive) {
+        clearInterval(checkInterval);
+        show();
+      }
+    }, 50);
+  } else {
+    show();
   }
 }
 

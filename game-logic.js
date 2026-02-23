@@ -117,7 +117,7 @@ export const CROPS = {
     id: "strawberry",
     name: "Strawberry",
     emoji: "🍓",
-    growthTime: 300_000, // 5 min
+    growthTime: 5_000, // 5 sec (Micro-strawberry Onboarding)
     sellPrice: 15,
     seedPrice: 5,
     xp: 5,
@@ -436,6 +436,7 @@ export function processOfflineActions(player, now = Date.now()) {
     fullnessConsumed: 0,
     foodEaten: {},
     xpGained: 0,
+    openLoops: [], // Zeigarnik Effect triggers
   };
 
   // Helper: try to refuel pet by eating cheap crops from inventory
@@ -541,10 +542,25 @@ export function processOfflineActions(player, now = Date.now()) {
   const newLevel = Math.floor(player.farm.xp / 100) + 1;
   player.farm.level = newLevel;
 
+  // Zeigarnik Effect: Identify open loops (unfinished tasks)
+  for (const plot of player.farm.plots) {
+    if (plot.crop && plot.plantedAt) {
+      const pct = getGrowthPct(plot, now);
+      if (pct > 0 && pct < 1) {
+        report.openLoops.push({
+          type: "crop",
+          name: CROPS[plot.crop]?.emoji || plot.crop,
+          progress: Math.floor(pct * 100),
+        });
+      }
+    }
+  }
+
   const hadActivity =
     report.fullnessConsumed > 0 ||
     report.autoWatered > 0 ||
-    Object.keys(report.foodEaten).length > 0;
+    Object.keys(report.foodEaten).length > 0 ||
+    report.openLoops.length > 0;
   return hadActivity ? report : null;
 }
 

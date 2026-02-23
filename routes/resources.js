@@ -96,6 +96,11 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     if (p.pet.level >= 5) p.pet.abilities.autoWater = true;
     if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
 
+    // Unlock abilities
+    if (p.pet.level >= 3) p.pet.abilities.autoHarvest = true;
+    if (p.pet.level >= 5) p.pet.abilities.autoWater = true;
+    if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
+
     // Happiness boost
     p.pet.stats.happiness = Math.min(100, p.pet.stats.happiness + 5);
 
@@ -106,6 +111,30 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       pet: p.pet,
       harvested: p.farm.harvested,
       leveledUp,
+    });
+  });
+
+  /* ─── Rename Pet (IKEA Effect UX) ─── */
+  router.post("/api/pet/rename", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { newName } = req.body;
+    const p = getPlayer(userId);
+
+    if (
+      !newName ||
+      typeof newName !== "string" ||
+      newName.trim().length === 0
+    ) {
+      return res.status(400).json({ error: "Invalid name" });
+    }
+
+    const cleanName = newName.trim().substring(0, 16);
+    p.pet.name = cleanName;
+    debouncedSavePlayer(userId);
+
+    res.json({
+      success: true,
+      pet: p.pet,
     });
   });
 

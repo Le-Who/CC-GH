@@ -801,7 +801,7 @@
 }
 
 /* v5.2.0: Danger Vignette — red pulse on screen edges when Time Attack ≤15s */
-.m3-layout.danger-vignette::after {
+.m3-board-container.danger-vignette::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -822,5 +822,34 @@
   }
   50% {
     opacity: 0.75;
+  }
+}
+
+/* v6.3.0: Peak-End Rule — Game Over Particle Splash */
+.m3-splash-particle {
+  position: absolute;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  background: var(--color, #fff);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: particleSplash 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}
+@keyframes particleSplash {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      scale(1.5);
+    opacity: 0;
   }
 }

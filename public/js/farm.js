@@ -7,7 +7,7 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast } from "./shared.js";
+import { HUB, api, showToast, goToScreen } from "./shared.js";
 import { CROPS as CROPS_CONFIG } from "/game-logic.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
@@ -344,6 +344,24 @@ const FarmGameImpl = (() => {
       lines.push(
         `<div style="margin:6px 0;opacity:0.7;font-size:0.8rem">${summaryParts.join(" • ")}</div>`,
       );
+    }
+
+    // Zeigarnik Effect (Open Loops section)
+    if (report.openLoops && report.openLoops.length > 0) {
+      lines.push(
+        `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left;">`,
+        `<h3 style="font-size: 0.9rem; color: var(--brand-accent); margin: 0 0 8px;">⏳ Almost Ready:</h3>`,
+      );
+      report.openLoops.forEach((ol) => {
+        lines.push(
+          `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; margin-top: 6px;">`,
+          `<span>${ol.name} is growing</span>`,
+          `<span style="color: var(--ui-gold); font-weight: bold;">${ol.progress}%</span>`,
+          `</div>`,
+          `<div style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); width: 100%; overflow: hidden;"><div style="height: 100%; border-radius: 3px; width: ${ol.progress}%; background: var(--ui-gold);"></div></div>`,
+        );
+      });
+      lines.push(`</div>`);
     }
 
     // v6.2.1: native <dialog> — consistent with project convention (v4.14+)
@@ -1174,7 +1192,7 @@ const FarmGameImpl = (() => {
         badge.classList.toggle("point-right", HUB.currentScreen < FARM_SCREEN);
         badge.classList.toggle("point-left", HUB.currentScreen > FARM_SCREEN);
         badge.onclick = () => {
-          if (typeof goToScreen === "function") goToScreen(FARM_SCREEN);
+          goToScreen(FARM_SCREEN);
         };
       } else {
         badge.classList.remove("show", "point-left", "point-right");

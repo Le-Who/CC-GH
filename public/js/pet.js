@@ -107,6 +107,11 @@ const PetCompanionImpl = (function () {
         petData = data.pet;
         GameStore.setState("pet", data.pet);
         sprite.textContent = SKINS[data.pet.skinId] || SKINS.basic_dog;
+
+        // Peak-End / IKEA Effect: Name pet at start if it's the default name
+        if (data.pet.name === "Buddy" && data.pet.level === 1) {
+          setTimeout(() => promptForPetName(data.pet.name), 2000);
+        }
       }
     } catch (e) {
       console.warn("Pet: failed to fetch state", e);
@@ -552,7 +557,7 @@ const PetCompanionImpl = (function () {
     panel.innerHTML = `
       <button class="pet-info-close" id="pet-info-close">✕</button>
       <div class="pet-info-header">
-        <span class="pet-info-name">${SKINS[petData.skinId] || "🐕"} ${petData.name}</span>
+        <span class="pet-info-name">${SKINS[petData.skinId] || "🐕"} ${petData.name} <button class="btn btn-sm" id="btn-rename-pet" style="padding: 2px 6px; font-size: 0.7rem; margin-left: 6px; background: rgba(255,255,255,0.1);">✏️</button></span>
         <span class="pet-info-level">Lv ${petData.level}</span>
       </div>
       <div class="pet-tab-content" id="pet-tab-stats">
@@ -586,6 +591,78 @@ const PetCompanionImpl = (function () {
     if (closeBtn) {
       closeBtn.onclick = () => toggleInfoPanel();
     }
+
+    // Rename button
+    const renameBtn = document.getElementById("btn-rename-pet");
+    if (renameBtn) {
+      renameBtn.onclick = () => {
+        toggleInfoPanel(); // hide panel so modal is clear
+        promptForPetName(petData.name);
+      };
+    }
+  }
+
+  /* ─── IKEA Effect Naming Modal ─── */
+  function promptForPetName(currentName) {
+    const dialog = document.createElement("dialog");
+    dialog.className = "modal pet-rename-dialog";
+    dialog.innerHTML = `
+      <div class="modal-card" style="text-align:center; max-width:320px">
+        <h2 style="margin: 0 0 8px; color: var(--brand-accent);">Name Your Pet</h2>
+        <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 16px;">
+          What would you like to call your companion?
+        </p>
+        <div style="font-size: 3rem; margin-bottom: 12px; animation: bounce 2s infinite;">
+          ${SKINS[petData?.skinId] || "🐕"}
+        </div>
+        <input type="text" id="pet-name-input" class="modern-input" placeholder="e.g. Sparky" value="${currentName === "Buddy" ? "" : currentName}" style="width:100%; margin-bottom: 16px; text-align: center; font-size: 1.1rem; padding: 12px; border-radius: 12px; background: rgba(0,0,0,0.3); color: white; border: 1px solid rgba(255,255,255,0.2);" maxlength="16" />
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-muted" id="btn-cancel-rename" style="flex: 1;">Cancel</button>
+          <button class="btn btn-primary" id="btn-save-rename" style="flex: 1;">Save Name</button>
+        </div>
+      </div>
+    `;
+
+    dialog.addEventListener("close", () => dialog.remove());
+    document.body.appendChild(dialog);
+
+    import("./shared.js").then(({ safeShowModal }) => {
+      safeShowModal(dialog);
+    });
+
+    document.getElementById("btn-cancel-rename").onclick = () => dialog.close();
+    document.getElementById("btn-save-rename").onclick = async () => {
+      const input = document.getElementById("pet-name-input");
+      const val = input.value.trim();
+      if (!val) {
+        input.style.borderColor = "red";
+        return;
+      }
+
+      const btnSave = document.getElementById("btn-save-rename");
+      btnSave.disabled = true;
+      btnSave.textContent = "Saving...";
+
+      try {
+        const res = await api("/api/pet/rename", { newName: val });
+        if (res?.success) {
+          // Sync new name
+          syncFromServer(res.pet);
+          showToast(`✨ Your pet is now named ${val}!`, "success");
+          setState(STATES.HAPPY);
+          spawnHeart();
+          dialog.close();
+        } else {
+          showToast(res?.error || "Failed to rename", "error");
+          btnSave.disabled = false;
+          btnSave.textContent = "Save Name";
+        }
+      } catch {
+        showToast("Network error", "error");
+        btnSave.disabled = false;
+        btnSave.textContent = "Save Name";
+      }
+    };
   }
 
   /* ─── Satiety Digestion Helpers ─── */

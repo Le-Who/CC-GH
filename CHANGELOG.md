@@ -1,5 +1,42 @@
 # Changelog
 
+## v6.3.0 — 2026-02-23
+
+### Psychological Marketing UX/UI Integration
+
+Major feature release focusing on behavioral psychology and dark-pattern-free engagement loops (Sprints 1-3).
+Integrated Nudge Theory, the Zeigarnik Effect, the Peak-End Rule, and the IKEA Effect into core gameplay interactions.
+
+#### 1. GameStore (Decoy Effect & Scarcity)
+
+- Added `store.js` and `store-ui.js` with a new reactive `MonetizationStore` container.
+- **Decoy Effect**: Added an inferior "decoy" bundle to make the target bundle look vastly superior.
+- **Scarcity & Urgency**: Implemented a rotating daily special with a countdown timer.
+- **Foot-in-the-Door**: Added a completely free daily retention bundle to train users on the checkout flow.
+
+#### 2. Quest System Upgrade (Goal-Gradient Effect)
+
+- Converted hardcoded quests to a dynamic reactive menu in `quest.js`.
+- Progress bars now start at 25% (visual head start) to simulate the **Goal-Gradient Effect**, driving completion rates.
+- Quests auto-subscribe to the `GameStore` state singleton for instant reactivity.
+
+#### 3. Welcome Back Modal (Zeigarnik Effect)
+
+- Modified `game-logic.js` to identify "open loops" (e.g. unharvested crops, partially fed pets).
+- `farm.js` now natively renders these unfinished tasks as blinking alerts upon return.
+
+#### 4. Micro-Interactions & Polish (Peak-End Rule)
+
+- **Peak-End Rule**: Game Over modal in Match-3 now features an explosive, physics-driven CSS-only particle scatter `m3-splash-particle`.
+- **IKEA Effect**: New naming prompt `promptForPetName` allows the player to rename their companion pet upon level-up or at start, boosting emotional attachment.
+- **Nudge Theory Fluidity**: `scroll-behavior: smooth` and `cubic-bezier` spring transition variables applied to quest dropdowns and global panels for fluid, satisfying UX.
+
+#### Engineering & Tests
+
+- 100% test coverage maintained (322/322 tests pass).
+
+---
+
 ## v6.2.3 — 2026-02-22
 
 ### Bug Fixes — Pet Drag, Farm Timers, Shop Display, UI Freeze

@@ -981,7 +981,7 @@ const Match3GameImpl = (() => {
         $("m3-moves").style.color = "#ef4444";
       }
       // v5.2.0: Danger vignette — red pulse on screen edges when ≤15s
-      const layout = document.querySelector(".m3-layout");
+      const layout = document.getElementById("m3-board-container");
       if (layout) {
         layout.classList.toggle(
           "danger-vignette",
@@ -998,7 +998,7 @@ const Match3GameImpl = (() => {
     if (timedTimer) clearInterval(timedTimer);
     timedTimer = null;
     // v5.2.0: Remove danger vignette when timer stops
-    const layout = document.querySelector(".m3-layout");
+    const layout = document.getElementById("m3-board-container");
     if (layout) layout.classList.remove("danger-vignette");
   }
   async function endTimedGame() {
@@ -1789,7 +1789,35 @@ const Match3GameImpl = (() => {
     const recordEl = $("m3-new-record");
     if (recordEl) recordEl.style.display = isNewRecord ? "block" : "none";
     const ov = $("m3-overlay");
-    if (ov && !ov.open) safeShowModal(ov);
+    if (ov && !ov.open) {
+      safeShowModal(ov);
+
+      // v6.3.0: Peak-End Rule — Particle Splash
+      // Wait for modal to render its layout
+      setTimeout(() => {
+        const dialogCard = ov.querySelector(".modal-card");
+        if (!dialogCard) return;
+
+        const colors = ["#fbbf24", "#f472b6", "#60a5fa", "#34d399", "#a78bfa"];
+        for (let i = 0; i < 30; i++) {
+          const p = document.createElement("div");
+          p.className = "m3-splash-particle";
+          const angle = Math.random() * Math.PI * 2;
+          const dist = 60 + Math.random() * 80;
+          p.style.setProperty("--tx", `${Math.cos(angle) * dist}px`);
+          p.style.setProperty("--ty", `${Math.sin(angle) * dist}px`);
+          p.style.setProperty(
+            "--color",
+            colors[Math.floor(Math.random() * colors.length)],
+          );
+          p.style.setProperty("--size", `${4 + Math.random() * 6}px`);
+          p.style.animationDelay = `${Math.random() * 100}ms`;
+
+          dialogCard.appendChild(p);
+          setTimeout(() => p.remove(), 1000);
+        }
+      }, 50);
+    }
   }
 
   function hideGameOver() {
@@ -1816,7 +1844,7 @@ const Match3GameImpl = (() => {
 
   function renderLeaderboard(entries) {
     const tbody = $("m3-lb-body");
-    if (!entries || entries.length === 0) {
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
       tbody.innerHTML =
         '<tr><td colspan="3" class="m3-lb-empty">No scores yet — play to be first! 🏆</td></tr>';
       return;

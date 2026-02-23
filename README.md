@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v6.2.3**
+**Current version: v6.3.0**
 
 ---
 
@@ -197,6 +197,11 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 ---
 
 ## 🔬 Architecture Evolution (v5 Roadmap)
+
+### ✅ Completed in v6.3.0
+
+1. ~~**Psychological Marketing Integration**~~: GameStore with Decoy bundle & Scarcity timers. Quest Log dynamically applying the Goal-Gradient effect. Welcome Back modal demonstrating the Zeigarnik effect.
+2. ~~**Micro-Interactions & Polish**~~: Match-3 Game Over particle splash (Peak-End Rule). IKEA Effect Pet Renaming modal. Nudge Theory fluid animations using spring bezier curves.
 
 ### ✅ Completed in v5.0.2
 

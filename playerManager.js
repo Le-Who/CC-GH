@@ -23,9 +23,19 @@ let firestore = null;
 let playersCol = null;
 
 try {
-  firestore = new Firestore({ databaseId: "game-hub-db" }); // Uses Application Default Credentials
+  const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT;
+  const DB_ID = process.env.FIRESTORE_DB_ID || "game-hub-db";
+
+  const firestoreConfig = { databaseId: DB_ID };
+  if (PROJECT_ID) {
+    firestoreConfig.projectId = PROJECT_ID;
+  }
+
+  firestore = new Firestore(firestoreConfig); // Uses Application Default Credentials
   playersCol = firestore.collection("players");
-  console.log("🔥 Firestore initialized successfully.");
+  console.log(
+    `🔥 Firestore initialized successfully. (Project: ${PROJECT_ID || "default"}, DB: ${DB_ID})`,
+  );
 } catch (e) {
   console.warn("⚠️ Firestore init failed, falling back to memory:", e.message);
 }
@@ -171,6 +181,21 @@ export function getPlayer(userId, username) {
         lastRegenTimestamp: Date.now(),
       },
     };
+    if (!p.farm) {
+      p.farm = {
+        coins: 0,
+        xp: 0,
+        level: 1,
+        plots: Array.from({ length: 6 }, (_, i) => ({
+          id: i,
+          crop: null,
+          plantedAt: null,
+          watered: false,
+        })),
+        inventory: {},
+        harvested: {},
+      };
+    }
     p.farm.coins = 0;
     // Add missing fields
     if (!p.pet) {

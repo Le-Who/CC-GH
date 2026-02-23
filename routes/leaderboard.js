@@ -23,14 +23,14 @@ export default function leaderboardRoutes() {
     }
 
     const leaders = entries
-      .filter((p) => p.match3.highScore > 0)
-      .sort((a, b) => b.match3.highScore - a.match3.highScore)
+      .filter((p) => p.match3?.highScore > 0)
+      .sort((a, b) => (b.match3?.highScore || 0) - (a.match3?.highScore || 0))
       .slice(0, 15)
       .map((p, i) => ({
         rank: i + 1,
         username: p.username,
         highScore: p.match3.highScore,
-        totalGames: p.match3.totalGames,
+        totalGames: p.match3.totalGames || 0,
       }));
 
     res.json(leaders);

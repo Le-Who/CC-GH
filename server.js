@@ -322,7 +322,7 @@ app.get("/game-logic.js", (_req, res) => {
   res
     .type("application/javascript")
     .set("Cache-Control", "no-cache")
-    .sendFile(path.join(__dirname, "game-logic.js"));
+    .sendFile("game-logic.js", { root: __dirname });
 });
 
 // Explicit routes for sub-module scripts — belt-and-suspenders defense
@@ -340,7 +340,7 @@ for (const { route, file } of subModules) {
     res
       .type("application/javascript")
       .set("Cache-Control", "public, max-age=31536000, immutable")
-      .sendFile(path.join(__dirname, ...file));
+      .sendFile(path.join(...file), { root: __dirname });
   };
   app.get(`/${route}`, handler);
   app.get(`/public/${route}`, handler);

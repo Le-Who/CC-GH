@@ -6,6 +6,8 @@
  * ═══════════════════════════════════════════════════ */
 
 import { GameStore } from "./store.js";
+import { GameStore as MonetizationStore } from "./store-ui.js";
+import { QuestDropdown } from "./quest.js";
 import {
   HUB,
   setModules,
@@ -145,6 +147,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 10000);
       }, 3000); // Show after 3s delay
     }
+  }
+
+  // 7.8: Initialize newly integrated UX Deliverables (Quest + Store)
+  const questOverlay = new QuestDropdown("quest-dropdown");
+  questOverlay.render();
+
+  const storeUi = new MonetizationStore("store-view-id");
+  storeUi.render();
+
+  // Wire up the new Store UI to the Top HUD gold button
+  const hudGoldBtn = document.getElementById("hud-gold");
+  const storeModal = document.getElementById("store-modal");
+  if (hudGoldBtn && storeModal) {
+    hudGoldBtn.addEventListener("click", () => {
+      safeShowModal(storeModal);
+    });
   }
 
   // 7.3: Trivia settings panel toggle
