@@ -152,14 +152,36 @@ function GachaTab({ tokens }) {
       <div className="flex gap-4 w-full mt-auto">
         <button
           className="flex-1 py-4 bg-surfaceHover rounded-xl font-bold flex flex-col items-center justify-center border border-border hover:bg-surfaceHover/80 transition-colors"
-          onClick={() =>
-            window.HUB?.showToast
-              ? window.HUB.showToast(
-                  "Not enough tokens. Fallback to purchase.",
+          disabled={isPulling}
+          onClick={async () => {
+            if (tokens < 10) {
+              window.HUB?.showToast
+                ? window.HUB.showToast("Need 10 🎟️ Gacha Tokens!", "error")
+                : console.warn("Not enough tokens.");
+              return;
+            }
+            setIsPulling(true);
+            try {
+              const data = await window.HUB?.api("/api/merge/gacha", {
+                userId: window.HUB?.userId,
+              });
+              if (data?.success) {
+                window.HUB?.showToast(
+                  `🎰 You got: ${data.item?.emoji || "🎁"} ${data.item?.name || "an item"}!`,
+                  "success",
+                );
+              } else {
+                window.HUB?.showToast(
+                  data?.error || "Gacha pull failed",
                   "error",
-                )
-              : console.warn("Not enough tokens.")
-          }
+                );
+              }
+            } catch {
+              window.HUB?.showToast("Network error", "error");
+            } finally {
+              setIsPulling(false);
+            }
+          }}
         >
           <span className="text-lg text-white">Pull ×1</span>
           <span className="text-primary text-sm">10 🎟️</span>

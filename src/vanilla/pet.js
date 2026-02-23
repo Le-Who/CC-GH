@@ -397,9 +397,7 @@ const PetCompanionImpl = (function () {
     currentState = STATES.ROAM;
     container.classList.add("pet-roaming");
 
-    requestAnimationFrame(() => {
-      container.style.transform = `translate3d(${newX}px, 0, 0) translateX(-50%)`;
-    });
+    container.style.transform = `translate3d(${newX}px, 0, 0) translateX(-50%)`;
 
     // Return to idle after reaching destination
     roamTimeoutId = setTimeout(() => {
