@@ -10,6 +10,8 @@ const SKINS = {
 
 export default function PetInfoUI() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newNameInput, setNewNameInput] = useState("");
   const slices = useGameStore((state) => state.slices);
   const petData = slices.pet;
 
@@ -25,9 +27,6 @@ export default function PetInfoUI() {
 
   const xpPct = Math.min(100, (petData.xp / petData.xpToNextLevel) * 100);
   const fullness = petData.stats?.fullness ?? 0;
-
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [newNameInput, setNewNameInput] = useState("");
 
   const handleRenameStart = () => {
     setNewNameInput(petData.name === "Buddy" ? "" : petData.name);
