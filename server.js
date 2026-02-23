@@ -170,7 +170,7 @@ let sdkBundleCache = null;
 app.get("/js/discord-sdk.js", (_req, res) => {
   if (!sdkBundleCache) {
     sdkBundleCache = fs.readFileSync(
-      path.join(__dirname, "public", "js", "discord-sdk-bundle.js"),
+      path.join(__dirname, "src", "vanilla", "discord-sdk-bundle.js"),
       "utf-8",
     );
   }
@@ -219,22 +219,6 @@ app.use((req, res, next) => {
 if (fs.existsSync(path.join(__dirname, "dist"))) {
   app.use(express.static(path.join(__dirname, "dist"), { index: false }));
 }
-
-app.use(
-  express.static(path.join(__dirname, "public"), {
-    index: false, // Don't serve index.html statically — we inject hashes
-  }),
-);
-
-// Discord Embedded Activity proxy sometimes resolves asset URLs with a
-// /public/ prefix (e.g. /public/js/main.js instead of /js/main.js).
-// Mount the same static directory at /public/ to handle both path shapes.
-app.use(
-  "/public",
-  express.static(path.join(__dirname, "public"), {
-    index: false,
-  }),
-);
 
 // Serve root-level game-logic.js with correct MIME type (not in public/)
 app.get("/game-logic.js", (_req, res) => {

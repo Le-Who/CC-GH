@@ -731,8 +731,7 @@ describe("Blox Transition Safety", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "blox.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -760,7 +759,8 @@ describe("CSS Containment — Game Boards", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
+      "src",
+      "vanilla",
       "css",
       filename,
     );
@@ -845,8 +845,7 @@ describe("Contextual Gem Glow — CSS Custom Properties", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "match3.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -867,8 +866,7 @@ describe("Contextual Gem Glow — CSS Custom Properties", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "match3.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -927,8 +925,7 @@ describe("Squash & Stretch — Fall Keyframes", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "match3.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -954,8 +951,7 @@ describe("Color Splash — CSS Rule", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "match3.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -983,8 +979,7 @@ describe("Danger Vignette — CSS Rule", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "match3.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -1012,8 +1007,7 @@ describe("Ambient Dust Particles — CSS Keyframes", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "match3.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -1031,8 +1025,7 @@ describe("Ambient Dust Particles — CSS Keyframes", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "css",
+      "src", "vanilla", "css",
       "blox.css",
     );
     const css = fs.readFileSync(cssPath, "utf-8");
@@ -1246,3 +1239,4 @@ describe("v6.1.1: _feedFromModal try/finally", () => {
     );
   });
 });
+
