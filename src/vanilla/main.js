@@ -92,8 +92,11 @@ export async function bootApp() {
   // Start periodic arrow flash on desktop (1.2)
   if (!HUB.isTouchDevice) startArrowFlash();
 
-  // Expose HUB to window for React integration
+  // Expose HUB and navigation to window for React integration
   window.HUB = HUB;
+  window.HUB.goToScreen = goToScreen;
+  window.HUB.showToast = showToast;
+  window.HUB.api = api;
 
   // ═══ Phase 3 (v4.11): Cognitive Load Reduction ═══
 
