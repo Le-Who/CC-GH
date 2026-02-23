@@ -302,11 +302,9 @@ export const QUEST_TIERS = {
 };
 
 /* ═══════════════════════════════════════════════════
- *  MATCH-3 CONSTANTS (re-exported from client sub-module)
+ *  MATCH-3 CONSTANTS
+ *  (No longer re-exported here to decouple from frontend)
  * ═══════════════════════════════════════════════════ */
-export { GEM_TYPES, BOARD_SIZE } from "./src/vanilla/match3/engine.js";
-import { GEM_TYPES } from "./src/vanilla/match3/engine.js";
-import { BOARD_SIZE } from "./src/vanilla/match3/engine.js";
 
 /* ═══════════════════════════════════════════════════
  *  PLAYER FACTORY
@@ -620,9 +618,6 @@ export function calcBloxReward(score) {
   return Math.min(gold, 400);
 }
 
-/* Building Blox — Piece Definitions (re-exported from client sub-module) */
-export { PIECES as BLOX_PIECES } from "./src/vanilla/blox/pieces.js";
-
 export function farmPlotsWithGrowth(farm, now = Date.now()) {
   return farm.plots.map((pl) => {
     const cfg = pl.crop ? CROPS[pl.crop] : null;
@@ -633,70 +628,6 @@ export function farmPlotsWithGrowth(farm, now = Date.now()) {
       wateringMultiplier: pl.crop ? getWateringMultiplier(pl.crop) : 1,
     };
   });
-}
-
-/* ═══════════════════════════════════════════════════
- *  MATCH-3 — Board Generation & Match Detection
- * ═══════════════════════════════════════════════════ */
-export function randomGem() {
-  return GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
-}
-
-export function generateBoard() {
-  const board = [];
-  for (let y = 0; y < BOARD_SIZE; y++) {
-    board[y] = [];
-    for (let x = 0; x < BOARD_SIZE; x++) {
-      let gem;
-      do {
-        gem = randomGem();
-      } while (
-        (x >= 2 && board[y][x - 1] === gem && board[y][x - 2] === gem) ||
-        (y >= 2 && board[y - 1]?.[x] === gem && board[y - 2]?.[x] === gem)
-      );
-      board[y][x] = gem;
-    }
-  }
-  return board;
-}
-
-export function findMatches(board) {
-  const matches = [];
-  for (let y = 0; y < BOARD_SIZE; y++) {
-    for (let x = 0; x < BOARD_SIZE - 2; x++) {
-      if (
-        board[y][x] &&
-        board[y][x] === board[y][x + 1] &&
-        board[y][x] === board[y][x + 2]
-      ) {
-        let end = x;
-        while (end < BOARD_SIZE && board[y][end] === board[y][x]) end++;
-        matches.push({
-          type: board[y][x],
-          gems: Array.from({ length: end - x }, (_, i) => ({ x: x + i, y })),
-        });
-        x = end - 1;
-      }
-    }
-  }
-  for (let x = 0; x < BOARD_SIZE; x++) {
-    for (let y = 0; y < BOARD_SIZE - 2; y++) {
-      if (
-        board[y][x] &&
-        board[y][x] === board[y + 1][x] &&
-        board[y][x] === board[y + 2][x]
-      ) {
-        let end = y;
-        while (end < BOARD_SIZE && board[end][x] === board[y][x]) end++;
-        matches.push({
-          type: board[y][x],
-          gems: Array.from({ length: end - y }, (_, i) => ({ x, y: y + i })),
-        });
-        y = end - 1;
-      }
-    }
-  }
-  return matches;
 }
 
 /* ═══════════════════════════════════════════════════

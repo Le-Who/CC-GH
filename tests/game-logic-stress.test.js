@@ -15,9 +15,6 @@ import {
   ECONOMY,
   CROPS,
   CROP_TIERS,
-  GEM_TYPES,
-  BOARD_SIZE,
-  BLOX_PIECES,
   createDefaultPlayer,
   calcRegen,
   calcGoldReward,
@@ -25,9 +22,6 @@ import {
   processOfflineActions,
   getWateringMultiplier,
   getGrowthPct,
-  generateBoard,
-  findMatches,
-  randomGem,
 } from "../game-logic.js";
 
 // Client engine (different findMatches implementation)
@@ -38,8 +32,10 @@ import {
   hasValidMoves,
   cloneBoard,
   DROP_TYPES,
-  BOARD_SIZE as CLIENT_BOARD_SIZE,
+  BOARD_SIZE,
+  GEM_TYPES,
 } from "../src/vanilla/match3/engine.js";
+import { PIECES as BLOX_PIECES } from "../src/vanilla/blox/pieces.js";
 
 /* ═══════════════════════════════════════════════════
  *  MATCH-3 — Board Generation Stress
@@ -47,7 +43,7 @@ import {
 describe("Match-3 Stress: Board Generation", () => {
   it("1000 boards: every board is 8×8, all cells are valid gems", () => {
     for (let i = 0; i < 1000; i++) {
-      const board = generateBoard();
+      const board = clientGenerateBoard();
       assert.equal(board.length, BOARD_SIZE, `Board ${i} wrong height`);
       for (let y = 0; y < BOARD_SIZE; y++) {
         assert.equal(
@@ -62,18 +58,6 @@ describe("Match-3 Stress: Board Generation", () => {
           );
         }
       }
-    }
-  });
-
-  it("1000 boards: zero initial matches (server findMatches)", () => {
-    for (let i = 0; i < 1000; i++) {
-      const board = generateBoard();
-      const matches = findMatches(board);
-      assert.equal(
-        matches.length,
-        0,
-        `Board ${i} has ${matches.length} initial matches`,
-      );
     }
   });
 
@@ -99,11 +83,11 @@ describe("Match-3 Stress: Board Generation", () => {
     }
   });
 
-  it("500 boards: all 6 gem types appear with roughly even distribution", () => {
+  it("500 client boards: all 6 gem types appear with roughly even distribution", () => {
     const counts = {};
     for (const gem of GEM_TYPES) counts[gem] = 0;
     for (let i = 0; i < 500; i++) {
-      const board = generateBoard();
+      const board = clientGenerateBoard();
       for (const row of board) {
         for (const gem of row) counts[gem]++;
       }
@@ -135,111 +119,13 @@ describe("Match-3 Stress: Board Generation", () => {
 });
 
 /* ═══════════════════════════════════════════════════
- *  MATCH-3 — findMatches Correctness (Server)
- * ═══════════════════════════════════════════════════ */
-describe("Match-3: findMatches server correctness", () => {
-  function makeUniqueBoard() {
-    // Checkerboard — guarantees zero matches
-    return Array.from({ length: BOARD_SIZE }, (_, y) =>
-      Array.from(
-        { length: BOARD_SIZE },
-        (_, x) => GEM_TYPES[(x + y * 2) % GEM_TYPES.length],
-      ),
-    );
-  }
-
-  it("detects horizontal 3-in-a-row", () => {
-    const b = makeUniqueBoard();
-    b[0][0] = b[0][1] = b[0][2] = "dark";
-    const m = findMatches(b);
-    assert.ok(m.length > 0, "No matches found");
-    const hit = m.find((mm) => mm.type === "dark");
-    assert.ok(hit, "Match type 'dark' not found");
-    assert.equal(hit.gems.length, 3);
-  });
-
-  it("detects horizontal 5-in-a-row as a single match of at least 5", () => {
-    const b = makeUniqueBoard();
-    // Use a gem type that doesn't appear in row 3 of the pattern
-    const rowGems = new Set(b[3]);
-    const safeGem = GEM_TYPES.find((g) => !rowGems.has(g)) || "fire";
-    b[3][1] = b[3][2] = b[3][3] = b[3][4] = b[3][5] = safeGem;
-    const m = findMatches(b);
-    const hit = m.find((mm) => mm.type === safeGem && mm.gems.length >= 5);
-    assert.ok(hit, "5-in-a-row not detected");
-    assert.ok(hit.gems.length >= 5, `Expected ≥ 5, got ${hit.gems.length}`);
-  });
-
-  it("detects horizontal 8-in-a-row (full width)", () => {
-    const b = makeUniqueBoard();
-    for (let x = 0; x < BOARD_SIZE; x++) b[4][x] = "water";
-    const m = findMatches(b);
-    const hit = m.find((mm) => mm.type === "water" && mm.gems.length === 8);
-    assert.ok(hit, "Full-row 8-in-a-row not detected");
-  });
-
-  it("detects vertical 3-in-a-row", () => {
-    const b = makeUniqueBoard();
-    b[0][7] = b[1][7] = b[2][7] = "light";
-    const m = findMatches(b);
-    const hit = m.find((mm) => mm.type === "light");
-    assert.ok(hit, "Vertical match not found");
-    assert.equal(hit.gems.length, 3);
-  });
-
-  it("detects vertical 8-in-a-column (full height)", () => {
-    const b = makeUniqueBoard();
-    for (let y = 0; y < BOARD_SIZE; y++) b[y][0] = "earth";
-    const m = findMatches(b);
-    const hit = m.find((mm) => mm.type === "earth" && mm.gems.length === 8);
-    assert.ok(hit, "Full-column 8-in-a-row not detected");
-  });
-
-  it("L-shaped cross: shared cell counted in both matches", () => {
-    const b = makeUniqueBoard();
-    // Horizontal: row 3, cols 2-4 = "air"
-    b[3][2] = b[3][3] = b[3][4] = "air";
-    // Vertical: col 4, rows 3-5 = "air"
-    b[4][4] = b[5][4] = "air"; // b[3][4] already set
-    const m = findMatches(b);
-    // Should find at least 2 matches (1 horizontal, 1 vertical)
-    const airMatches = m.filter((mm) => mm.type === "air");
-    assert.ok(
-      airMatches.length >= 2,
-      `Expected 2+ air matches, got ${airMatches.length}`,
-    );
-  });
-
-  it("null cells never produce matches", () => {
-    const b = Array.from({ length: BOARD_SIZE }, () =>
-      Array(BOARD_SIZE).fill(null),
-    );
-    const m = findMatches(b);
-    assert.equal(m.length, 0, "Null board should have 0 matches");
-  });
-
-  it("full board of same gem returns all cells matched", () => {
-    const b = Array.from({ length: BOARD_SIZE }, () =>
-      Array(BOARD_SIZE).fill("fire"),
-    );
-    const m = findMatches(b);
-    // All 64 cells should be covered by matches
-    const allGems = new Set();
-    for (const match of m) {
-      for (const g of match.gems) allGems.add(`${g.x},${g.y}`);
-    }
-    assert.equal(allGems.size, 64, `Only ${allGems.size}/64 cells matched`);
-  });
-});
-
-/* ═══════════════════════════════════════════════════
  *  MATCH-3 — findMatches Correctness (Client engine.js)
  * ═══════════════════════════════════════════════════ */
 describe("Match-3: findMatches client correctness", () => {
   function makeUniqueBoard() {
-    return Array.from({ length: CLIENT_BOARD_SIZE }, (_, y) =>
+    return Array.from({ length: BOARD_SIZE }, (_, y) =>
       Array.from(
-        { length: CLIENT_BOARD_SIZE },
+        { length: BOARD_SIZE },
         (_, x) => GEM_TYPES[(x + y * 2) % GEM_TYPES.length],
       ),
     );

@@ -181,51 +181,6 @@ app.get("/js/discord-sdk.js", (_req, res) => {
     .send(prefix + sdkBundleCache);
 });
 
-// ─── Content-Hash Cache Busting ───
-const assetHashes = {};
-function computeAssetHashes() {
-  const pubDir = path.join(__dirname, "public");
-  const scanDirs = ["js", "css"];
-  for (const dir of scanDirs) {
-    const dirPath = path.join(pubDir, dir);
-    if (!fs.existsSync(dirPath)) continue;
-    // Recursive scan to handle sub-modules (match3/, blox/)
-    const entries = fs.readdirSync(dirPath, {
-      withFileTypes: true,
-      recursive: true,
-    });
-    for (const entry of entries) {
-      if (!entry.isFile()) continue;
-      if (entry.name === "discord-sdk-bundle.js") continue; // served dynamically
-      const filePath = path.join(entry.parentPath || entry.path, entry.name);
-      const relPath = path.relative(pubDir, filePath).replace(/\\/g, "/");
-      const content = fs.readFileSync(filePath);
-      const hash = crypto
-        .createHash("md5")
-        .update(content)
-        .digest("hex")
-        .slice(0, 8);
-      assetHashes[relPath] = hash;
-    }
-  }
-  // Hash root-level game-logic.js (served via explicit route, not public/)
-  const glPath = path.join(__dirname, "game-logic.js");
-  if (fs.existsSync(glPath)) {
-    const content = fs.readFileSync(glPath);
-    const hash = crypto
-      .createHash("md5")
-      .update(content)
-      .digest("hex")
-      .slice(0, 8);
-    assetHashes["game-logic.js"] = hash;
-  }
-  console.log(
-    "  📦 Asset hashes computed:",
-    Object.keys(assetHashes).length,
-    "files",
-  );
-}
-
 // Serve index.html with injected content hashes + version constant
 let indexHtmlTemplate = null;
 function getIndexHtml() {
@@ -248,49 +203,6 @@ function getIndexHtml() {
   // v4.6: Replace version badge placeholder
   html = html.replace("{{APP_VERSION}}", `v${APP_VERSION}`);
 
-  // v5: Inject import map for ES Module cache busting
-  const jsModules = [
-    "store.js",
-    "shared.js",
-    "hud.js",
-    "pet.js",
-    "farm.js",
-    "trivia.js",
-    "match3.js",
-    "blox.js",
-    "merge.js",
-    "effects.js",
-    "main.js",
-    // Sub-modules (Phase 4)
-    "match3/engine.js",
-    "blox/pieces.js",
-    "crops.js",
-  ];
-  const importMapEntries = {};
-  for (const mod of jsModules) {
-    const key = `js/${mod}`;
-    const hash = assetHashes[key];
-    if (hash) {
-      importMapEntries[`./${key}`] = `./${key}?v=${hash}`;
-    }
-  }
-  // Root-level game-logic.js (served via explicit route)
-  const glHash = assetHashes["game-logic.js"];
-  if (glHash) {
-    importMapEntries["/game-logic.js"] = `/game-logic.js?v=${glHash}`;
-  }
-  const importMapTag = `<script type="importmap">{"imports":${JSON.stringify(importMapEntries)}}</script>`;
-  html = html.replace("<!--IMPORT_MAP_INJECT-->", importMapTag);
-
-  // Replace all ?v=X.Y.Z with ?v=<content-hash> (CSS files)
-  for (const [asset, hash] of Object.entries(assetHashes)) {
-    // Match href="css/file.css?v=..." or src="js/file.js?v=..."
-    const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    html = html.replace(
-      new RegExp(`(${escaped})\\?v=[^"']+`, "g"),
-      `$1?v=${hash}`,
-    );
-  }
   return html;
 }
 
@@ -332,27 +244,6 @@ app.get("/game-logic.js", (_req, res) => {
     .sendFile("game-logic.js", { root: __dirname });
 });
 
-// Explicit routes for sub-module scripts — belt-and-suspenders defense
-// against MIME errors when static middleware fails to resolve subdirectory
-// paths. Handles both /js/... and /public/js/... path shapes.
-const subModules = [
-  {
-    route: "js/match3/engine.js",
-    file: ["public", "js", "match3", "engine.js"],
-  },
-  { route: "js/blox/pieces.js", file: ["public", "js", "blox", "pieces.js"] },
-];
-for (const { route, file } of subModules) {
-  const handler = (_req, res) => {
-    res
-      .type("application/javascript")
-      .set("Cache-Control", "public, max-age=31536000, immutable")
-      .sendFile(path.join(...file), { root: __dirname });
-  };
-  app.get(`/${route}`, handler);
-  app.get(`/public/${route}`, handler);
-}
-
 // Strict 404 for static assets — prevents SPA catch-all from masking missing files
 app.use(/\.(js|mjs|css|json|map|png|jpg|svg|woff2?)$/i, (_req, res) => {
   res.status(404).type("text/plain").send("Asset not found");
@@ -372,7 +263,6 @@ export { app, players };
 
 async function start() {
   await loadDb();
-  computeAssetHashes();
   app.listen(PORT, () => {
     console.log(`\n  🎮 Game Hub v${APP_VERSION} — http://localhost:${PORT}`);
     console.log(`     Farm 🌱 | Trivia 🧠 | Match-3 💎`);

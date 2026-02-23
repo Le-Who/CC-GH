@@ -10,8 +10,6 @@ import assert from "node:assert/strict";
 import {
   ECONOMY,
   CROPS,
-  GEM_TYPES,
-  BOARD_SIZE,
   OFFLINE_THRESHOLD_MS,
   createDefaultPlayer,
   calcRegen,
@@ -19,8 +17,6 @@ import {
   getWateringMultiplier,
   getGrowthPct,
   farmPlotsWithGrowth,
-  generateBoard,
-  findMatches,
   pickQuestions,
   makeClientQuestion,
   calculateSatietyDelta,
@@ -423,101 +419,6 @@ describe("farmPlotsWithGrowth", () => {
 });
 
 /* ─────────────────────────────────────────────────────
- *  generateBoard & findMatches
- * ───────────────────────────────────────────────────── */
-describe("generateBoard", () => {
-  it("creates an 8×8 grid", () => {
-    const board = generateBoard();
-    assert.equal(board.length, BOARD_SIZE);
-    for (const row of board) {
-      assert.equal(row.length, BOARD_SIZE);
-    }
-  });
-
-  it("uses only valid gem types", () => {
-    const board = generateBoard();
-    for (const row of board) {
-      for (const gem of row) {
-        assert.ok(GEM_TYPES.includes(gem), `Invalid gem type: ${gem}`);
-      }
-    }
-  });
-
-  it("has no initial matches (3-in-a-row)", () => {
-    // Run multiple times to increase confidence
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const board = generateBoard();
-      const matches = findMatches(board);
-      assert.equal(
-        matches.length,
-        0,
-        `Board had ${matches.length} initial matches on attempt ${attempt}`,
-      );
-    }
-  });
-});
-
-describe("findMatches", () => {
-  it("detects horizontal 3-in-a-row", () => {
-    // Create a board with a deliberate horizontal match
-    const board = Array.from({ length: 8 }, () =>
-      Array.from({ length: 8 }, () => "fire"),
-    );
-    // Make most cells unique to avoid extra matches
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        board[y][x] = GEM_TYPES[(y * 8 + x) % GEM_TYPES.length];
-      }
-    }
-    // Set a deliberate horizontal match at row 0, cols 0-2
-    board[0][0] = "dark";
-    board[0][1] = "dark";
-    board[0][2] = "dark";
-
-    const matches = findMatches(board);
-    const horiz = matches.find(
-      (m) => m.type === "dark" && m.gems.some((g) => g.y === 0),
-    );
-    assert.ok(horiz, "Should detect horizontal match");
-    assert.ok(horiz.gems.length >= 3);
-  });
-
-  it("detects vertical 3-in-a-row", () => {
-    const board = Array.from({ length: 8 }, () =>
-      Array.from({ length: 8 }, () => "fire"),
-    );
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-        board[y][x] = GEM_TYPES[(y * 8 + x) % GEM_TYPES.length];
-      }
-    }
-    // Set a deliberate vertical match at col 7, rows 0-2
-    board[0][7] = "light";
-    board[1][7] = "light";
-    board[2][7] = "light";
-
-    const matches = findMatches(board);
-    const vert = matches.find(
-      (m) => m.type === "light" && m.gems.some((g) => g.x === 7),
-    );
-    assert.ok(vert, "Should detect vertical match");
-    assert.ok(vert.gems.length >= 3);
-  });
-
-  it("returns empty array when no matches exist", () => {
-    // Checkerboard pattern — no 3-in-a-row possible
-    const board = Array.from({ length: 8 }, (_, y) =>
-      Array.from(
-        { length: 8 },
-        (_, x) => GEM_TYPES[(x + y * 2) % GEM_TYPES.length],
-      ),
-    );
-    const matches = findMatches(board);
-    assert.equal(matches.length, 0);
-  });
-});
-
-/* ─────────────────────────────────────────────────────
  *  pickQuestions & makeClientQuestion
  * ───────────────────────────────────────────────────── */
 const SAMPLE_QUESTIONS = [
@@ -633,14 +534,6 @@ describe("Constants", () => {
 
   it("OFFLINE_THRESHOLD_MS is 2 minutes", () => {
     assert.equal(OFFLINE_THRESHOLD_MS, 120000);
-  });
-
-  it("BOARD_SIZE is 8", () => {
-    assert.equal(BOARD_SIZE, 8);
-  });
-
-  it("GEM_TYPES has 6 gem types", () => {
-    assert.equal(GEM_TYPES.length, 6);
   });
 
   it("CROPS have energyYield and fullnessYield", () => {
