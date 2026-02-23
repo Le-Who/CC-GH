@@ -350,6 +350,10 @@ let _cachedNavDots = [];
 let _cachedNavTabs = [];
 
 function applyScreenClasses() {
+  // Re-query if cache is empty or contains detached (replaced by React) nodes
+  if (_cachedScreens.length === 0 || !_cachedScreens[0].isConnected) {
+    _cachedScreens = Array.from(document.querySelectorAll(".screen"));
+  }
   for (let i = 0; i < _cachedScreens.length; i++) {
     _cachedScreens[i].classList.toggle("active", i === HUB.currentScreen);
   }
