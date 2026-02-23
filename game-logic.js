@@ -304,9 +304,9 @@ export const QUEST_TIERS = {
 /* ═══════════════════════════════════════════════════
  *  MATCH-3 CONSTANTS (re-exported from client sub-module)
  * ═══════════════════════════════════════════════════ */
-export { GEM_TYPES, BOARD_SIZE } from "./public/js/match3/engine.js";
-import { GEM_TYPES } from "./public/js/match3/engine.js";
-import { BOARD_SIZE } from "./public/js/match3/engine.js";
+export { GEM_TYPES, BOARD_SIZE } from "./src/vanilla/match3/engine.js";
+import { GEM_TYPES } from "./src/vanilla/match3/engine.js";
+import { BOARD_SIZE } from "./src/vanilla/match3/engine.js";
 
 /* ═══════════════════════════════════════════════════
  *  PLAYER FACTORY
@@ -621,7 +621,7 @@ export function calcBloxReward(score) {
 }
 
 /* Building Blox — Piece Definitions (re-exported from client sub-module) */
-export { PIECES as BLOX_PIECES } from "./public/js/blox/pieces.js";
+export { PIECES as BLOX_PIECES } from "./src/vanilla/blox/pieces.js";
 
 export function farmPlotsWithGrowth(farm, now = Date.now()) {
   return farm.plots.map((pl) => {

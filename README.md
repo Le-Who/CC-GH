@@ -31,16 +31,16 @@
 
 ## ⚙️ Tech Stack
 
-| Layer        | Technology                                 |
-| ------------ | ------------------------------------------ |
-| **Runtime**  | Node.js 20                                 |
-| **Frontend** | Vanilla JS + CSS · ES Modules (import map) |
-| **Backend**  | Express.js 5.x                             |
-| **Database** | Google Cloud Firestore                     |
-| **Storage**  | Google Cloud Storage (legacy backup)       |
-| **Auth**     | Discord Embedded App SDK 1.0               |
-| **State**    | GameStore (Zustand-inspired vanilla JS)    |
-| **Testing**  | Node.js built-in `node:test` (zero deps)   |
+| Layer        | Technology                               |
+| ------------ | ---------------------------------------- |
+| **Runtime**  | Node.js 20                               |
+| **Frontend** | React 18 + Vite + Tailwind CSS v3        |
+| **Backend**  | Express.js 5.x                           |
+| **Database** | Google Cloud Firestore                   |
+| **Storage**  | Google Cloud Storage (legacy backup)     |
+| **Auth**     | Discord Embedded App SDK 1.0             |
+| **State**    | Zustand (React) + GameStore proxy        |
+| **Testing**  | Node.js built-in `node:test` (zero deps) |
 
 ---
 

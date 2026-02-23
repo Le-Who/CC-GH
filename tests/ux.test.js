@@ -656,7 +656,6 @@ describe("Global Version Constant", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
       "index.html",
     );
     const html = fs.readFileSync(htmlPath, "utf-8");
@@ -1057,8 +1056,8 @@ describe("Blox Drag-Tilt — rotateZ", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "blox.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1086,8 +1085,8 @@ describe("v6.1.1: safeShowModal export", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "shared.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1105,8 +1104,8 @@ describe("v6.1.1: safeShowModal export", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "hud.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1124,8 +1123,8 @@ describe("v6.1.1: safeShowModal export", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "main.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1145,8 +1144,8 @@ describe("v6.1.1: setPointerCapture removal", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "merge.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1166,8 +1165,8 @@ describe("v6.1.1: AbortController in api()", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "shared.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1187,8 +1186,8 @@ describe("v6.1.1: _forceCleanupDrag in merge.js", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "merge.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1208,8 +1207,8 @@ describe("v6.1.1: View Transition safety in goToScreen", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "shared.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
@@ -1233,8 +1232,8 @@ describe("v6.1.1: _feedFromModal try/finally", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "public",
-      "js",
+      "src",
+      "vanilla",
       "hud.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");

@@ -72,25 +72,20 @@ async function fetchResources() {
 /* ─── Update Display ─── */
 function updateDisplay(res) {
   if (!res) return;
-  // v4.15.2: Use cached DOM refs
-  if (!$energyText) $energyText = document.getElementById("hud-energy-text");
-  if (!$goldText) $goldText = document.getElementById("hud-gold-text");
-  if (!$energyEl) $energyEl = document.querySelector(".hud-energy");
-
-  if ($energyText) {
-    $energyText.textContent = `${res.energy.current}/${res.energy.max}`;
-  }
-  if ($goldText) {
-    $goldText.textContent = formatGold(res.gold);
-  }
-
-  // Low energy warning
-  if ($energyEl) {
-    $energyEl.classList.toggle("hud-energy-low", res.energy.current <= 3);
-  }
-
-  // Update tooltip
-  updateTooltip(res);
+  // React HUD listens to GameStore directly.
+  // We mirror the critical values to a 'shared' slice for the React layer to read easily.
+  const shared = GameStore.getState("shared") || {
+    energy: 0,
+    maxEnergy: 20,
+    gold: 0,
+    activeQuests: 0,
+  };
+  GameStore.setState("shared", {
+    ...shared,
+    energy: res.energy?.current || 0,
+    maxEnergy: res.energy?.max || 20,
+    gold: res?.gold || 0,
+  });
 }
 
 function formatGold(amount) {
@@ -473,13 +468,18 @@ function _checkEnergyPlayReady() {
 
 /* ─── Quest Log ─── */
 function _updateQuestBadge() {
-  const badge = document.getElementById("quest-badge");
-  if (!badge) return;
   const pet = GameStore.getState("pet");
   const orders = pet?.activeOrders || [];
-  // Show badge if any order can be fulfilled
   const canSubmitAny = orders.some((o) => _canFulfillOrder(o));
-  badge.style.display = canSubmitAny ? "flex" : "none";
+
+  // Inform React layer
+  const shared = GameStore.getState("shared") || { activeQuests: 0 };
+  if (shared.activeQuests !== (canSubmitAny ? 1 : 0)) {
+    GameStore.setState("shared", {
+      ...shared,
+      activeQuests: canSubmitAny ? 1 : 0,
+    });
+  }
 }
 
 function _canFulfillOrder(order) {

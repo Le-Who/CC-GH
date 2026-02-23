@@ -39,7 +39,7 @@ import {
   cloneBoard,
   DROP_TYPES,
   BOARD_SIZE as CLIENT_BOARD_SIZE,
-} from "../public/js/match3/engine.js";
+} from "../src/vanilla/match3/engine.js";
 
 /* ═══════════════════════════════════════════════════
  *  MATCH-3 — Board Generation Stress

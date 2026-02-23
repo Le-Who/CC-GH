@@ -5,10 +5,12 @@
   "private": true,
   "description": "Unified Game Hub — Farm + Trivia + Match-3 in one Discord Activity",
   "scripts": {
-    "build": "npx esbuild src/discord-entry.js --bundle --outfile=public/js/discord-sdk-bundle.js --format=iife --global-name=DiscordSDKModule --target=es2020",
-    "prestart": "npm run build",
+    "build:vanilla": "npx esbuild src/discord-entry.js --bundle --outfile=public/js/discord-sdk-bundle.js --format=iife --global-name=DiscordSDKModule --target=es2020",
+    "build": "vite build",
+    "prestart": "npm run build:vanilla",
     "start": "node server.js",
-    "dev": "node server.js",
+    "dev:server": "node server.js",
+    "dev": "vite",
     "test": "node --test tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/gcp.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/syntax.test.js",
     "test:perf": "node --test tests/perf.test.js"
   },
@@ -16,13 +18,26 @@
     "@discord/embedded-app-sdk": "^2.4.0",
     "@google-cloud/firestore": "^8.3.0",
     "@google-cloud/storage": "^7.7.0",
+    "clsx": "^2.1.1",
     "compression": "^1.8.1",
     "dotenv": "^16.3.1",
     "express": "5.2.1",
-    "node-fetch": "^3.3.2"
+    "framer-motion": "^12.34.3",
+    "lucide-react": "^0.575.0",
+    "node-fetch": "^3.3.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "esbuild": "^0.27.3"
+    "@tailwindcss/postcss": "^4.2.0",
+    "@vitejs/plugin-react": "^5.1.4",
+    "autoprefixer": "^10.4.24",
+    "esbuild": "^0.27.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.19",
+    "vite": "^7.3.1"
   },
   "overrides": {
     "google-gax": {

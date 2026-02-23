@@ -241,18 +241,7 @@ const PetCompanionImpl = (function () {
       }
     });
 
-    // Click-outside to close info panel (Fix 3)
-    document.addEventListener("click", (e) => {
-      if (!panelOpen) return;
-      const panel = document.getElementById("pet-info-panel");
-      const petContainer = document.getElementById("pet-container");
-      if (!panel) return;
-      // Close if click is outside both the panel and the pet itself
-      if (!panel.contains(e.target) && !petContainer?.contains(e.target)) {
-        panelOpen = false;
-        panel.style.display = "none";
-      }
-    });
+    // Click-outside to close info panel handled by React now
 
     // v4.15.2: Pre-create heart particle pool
     const heartsEl = document.getElementById("pet-hearts");
@@ -539,11 +528,10 @@ const PetCompanionImpl = (function () {
   /* ─── Info Panel ─── */
   function toggleInfoPanel() {
     panelOpen = !panelOpen;
-    const panel = document.getElementById("pet-info-panel");
-    if (panel) {
-      panel.style.display = panelOpen ? "block" : "none";
-      if (panelOpen) renderInfoPanel();
-    }
+    // Dispatch to React layer instead of showing vanilla DOM modal
+    document.dispatchEvent(
+      new CustomEvent("toggle-pet-info", { detail: { open: panelOpen } }),
+    );
   }
 
   function renderInfoPanel() {

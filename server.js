@@ -231,7 +231,7 @@ let indexHtmlTemplate = null;
 function getIndexHtml() {
   if (!indexHtmlTemplate) {
     indexHtmlTemplate = fs.readFileSync(
-      path.join(__dirname, "public", "index.html"),
+      path.join(__dirname, "index.html"),
       "utf-8",
     );
   }

@@ -1,3 +1,11 @@
+## [6.3.0] - 2026-02-23
+
+### Added
+- Migrated to React 18 via Vite. The legacy Vanilla JS engine is now encapsulated inside `VanillaShell.jsx`.
+- Integrated Zustand state management, syncing seamlessly with traditional backend data.
+- Tailwind V3 utilized for all new TopHUD, GameStoreUI, QuestUI, and PetInfoUI components.
+- Fully modernized UX with Framer Motion spring animations.
+
 # Changelog
 
 ## v6.3.0 — 2026-02-23

@@ -53,12 +53,16 @@ setModules({
 setWaterFn((plotIndex) => FarmGame.water(plotIndex));
 
 // ─── Boot sequence ───
-document.addEventListener("DOMContentLoaded", async () => {
+export async function bootApp() {
+  // Wait a tick for React to finish rendering strictly
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
   // Device detection (must be first for CSS classes)
   detectDevice();
 
   // Bind all navigation buttons (CSP-safe)
-  bindNavigation();
+  // Disable the old vanilla bottom nav binding so it doesn't conflict with React
+  // bindNavigation();
 
   // Keyboard arrow keys
   bindKeyboardNav();
@@ -69,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initialize Discord auth (or fallback to demo)
   await initDiscord();
 
-  // Initialize TopHUD (Energy & Gold) + Pet Companion
+  // Initialize Resources & Timers (HUD now acts purely as a logic controller)
   await HUD.init();
   PetCompanion.init();
 
@@ -88,23 +92,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Start periodic arrow flash on desktop (1.2)
   if (!HUB.isTouchDevice) startArrowFlash();
 
-  // Dismiss boot-loader overlay
-  const bootLoader = document.getElementById("boot-loader");
-  if (bootLoader) {
-    bootLoader.classList.add("hidden");
-    setTimeout(() => bootLoader.remove(), 600); // Remove from DOM after fade
-  }
+  // Expose HUB to window for React integration
+  window.HUB = HUB;
 
   // ═══ Phase 3 (v4.11): Cognitive Load Reduction ═══
-
-  // 7.7: Economy guide overlay toggle
-  const econBtn = document.getElementById("econ-guide-btn");
-  const econOverlay = document.getElementById("econ-guide-modal");
-  if (econBtn && econOverlay) {
-    econBtn.addEventListener("click", () => {
-      safeShowModal(econOverlay);
-    });
-  }
 
   // 7.1: Farm shop FAB → switch to shop tab
   const fab = document.getElementById("farm-shop-fab");
@@ -116,53 +107,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     // Show FAB on initial load if on farm screen
     if (HUB.currentScreen === 2) fab.classList.add("visible");
-  }
-
-  // 7.6: One-time energy tutorial tooltip
-  const ENERGY_TUT_KEY = "hub_energy_tutorial_shown";
-  if (!localStorage.getItem(ENERGY_TUT_KEY)) {
-    const energyPill = document.getElementById("hud-energy");
-    if (energyPill) {
-      setTimeout(() => {
-        const tip = document.createElement("div");
-        tip.className = "energy-tutorial";
-        tip.innerHTML =
-          "⚡ Energy recharges over time. Feed your pet crops to restore it!" +
-          ' <span class="tutorial-dismiss">✕</span>';
-        energyPill.style.position = "relative";
-        energyPill.appendChild(tip);
-        const dismiss = tip.querySelector(".tutorial-dismiss");
-        if (dismiss) {
-          dismiss.addEventListener("click", () => {
-            tip.remove();
-            localStorage.setItem(ENERGY_TUT_KEY, "1");
-          });
-        }
-        // Auto-dismiss after 10 seconds
-        setTimeout(() => {
-          if (tip.parentElement) {
-            tip.remove();
-            localStorage.setItem(ENERGY_TUT_KEY, "1");
-          }
-        }, 10000);
-      }, 3000); // Show after 3s delay
-    }
-  }
-
-  // 7.8: Initialize newly integrated UX Deliverables (Quest + Store)
-  const questOverlay = new QuestDropdown("quest-dropdown");
-  questOverlay.render();
-
-  const storeUi = new MonetizationStore("store-view-id");
-  storeUi.render();
-
-  // Wire up the new Store UI to the Top HUD gold button
-  const hudGoldBtn = document.getElementById("hud-gold");
-  const storeModal = document.getElementById("store-modal");
-  if (hudGoldBtn && storeModal) {
-    hudGoldBtn.addEventListener("click", () => {
-      safeShowModal(storeModal);
-    });
   }
 
   // 7.3: Trivia settings panel toggle
@@ -202,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   updateM3CellSize();
   updateBloxCellSize();
-  // v4.15.2: rAF-throttled resize to prevent layout thrashing
+
   let _resizePending = false;
   window.addEventListener("resize", () => {
     if (_resizePending) return;
@@ -213,4 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       _resizePending = false;
     });
   });
-});
+}
+
+// Ensure the default export is bootApp
+export default bootApp;
