@@ -10,3 +10,4 @@ tests/
 README.md
 CHANGELOG.md
 public/js/discord-sdk-bundle.js
+.agents/
