@@ -35,6 +35,7 @@ COPY game-logic.js .
 COPY storage.js .
 COPY playerManager.js .
 COPY routes/ ./routes/
+COPY middleware/ ./middleware/
 COPY src/vanilla/ ./src/vanilla/
 COPY data/ ./data/
 

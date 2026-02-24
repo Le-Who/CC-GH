@@ -387,6 +387,72 @@ export const STREAK_BONUSES = [
   },
 ];
 
+/* ═══════════════════════════════════════════════════
+ *  DAILY LOGIN REWARDS — 7-day rotating calendar
+ *  Every day always gives something. Resets weekly.
+ *  Layered ON TOP of streak multiplier bonuses.
+ * ═══════════════════════════════════════════════════ */
+export const DAILY_LOGIN_REWARDS = [
+  { day: 1, reward: { gold: 20 }, label: "Welcome Gift", emoji: "🪙" },
+  {
+    day: 2,
+    reward: { seeds: { strawberry: 3 } },
+    label: "Seed Pack",
+    emoji: "🍓",
+  },
+  { day: 3, reward: { gachaTokens: 1 }, label: "Gacha Token", emoji: "🎰" },
+  { day: 4, reward: { gold: 50 }, label: "Gold Rush", emoji: "💰" },
+  {
+    day: 5,
+    reward: { seeds: { blueberry: 5 } },
+    label: "Berry Basket",
+    emoji: "🫐",
+  },
+  { day: 6, reward: { gachaTokens: 2 }, label: "Double Tokens", emoji: "🎰" },
+  { day: 7, reward: { gold: 100 }, label: "Weekly Jackpot", emoji: "👑" },
+];
+
+/**
+ * Claim today's daily login reward. Applies reward to player.
+ * Returns { claimed, reward, dayOfWeek } or { claimed: false } if already claimed today.
+ */
+export function claimDailyReward(player, now = Date.now()) {
+  if (!player.dailyReward) {
+    player.dailyReward = { lastClaimDate: null, weekDay: 0 };
+  }
+  const today = new Date(now).toISOString().slice(0, 10);
+  if (player.dailyReward.lastClaimDate === today) {
+    return { claimed: false };
+  }
+
+  // Advance day counter (1-7, wraps)
+  player.dailyReward.weekDay = ((player.dailyReward.weekDay || 0) % 7) + 1;
+  player.dailyReward.lastClaimDate = today;
+
+  const dayConfig = DAILY_LOGIN_REWARDS[player.dailyReward.weekDay - 1];
+  const reward = dayConfig.reward;
+
+  // Apply reward to player
+  if (reward.gold) player.resources.gold += reward.gold;
+  if (reward.gachaTokens)
+    player.resources.gachaTokens =
+      (player.resources.gachaTokens || 0) + reward.gachaTokens;
+  if (reward.seeds) {
+    for (const [seedId, qty] of Object.entries(reward.seeds)) {
+      player.farm.inventory[seedId] =
+        (player.farm.inventory[seedId] || 0) + qty;
+    }
+  }
+
+  return {
+    claimed: true,
+    reward,
+    dayOfWeek: player.dailyReward.weekDay,
+    label: dayConfig.label,
+    emoji: dayConfig.emoji,
+  };
+}
+
 export function updateStreak(player, now = Date.now()) {
   if (!player.streak) {
     player.streak = {
@@ -638,8 +704,9 @@ export const EVENTS = [
     name: "Spring Bloom",
     emoji: "🌸",
     description: "Cherry blossoms are in season! Grow limited-edition flowers.",
-    startDate: null,
-    endDate: null,
+    startDate: "2026-03-20",
+    endDate: "2026-04-20",
+    recurring: true, // Annual event: Mar 20 – Apr 20
     bonuses: { xpMultiplier: 2 },
     specialCrop: {
       id: "cherry_blossom",
@@ -659,10 +726,34 @@ export const EVENTS = [
     name: "Harvest Moon",
     emoji: "🌕",
     description: "Under the harvest moon, crops grow faster and sell for more.",
-    startDate: null,
-    endDate: null,
+    startDate: "2026-09-15",
+    endDate: "2026-10-15",
+    recurring: true, // Annual event: Sep 15 – Oct 15
     bonuses: { goldMultiplier: 1.5, growthSpeedMultiplier: 0.75 },
     specialCrop: null,
+  },
+  {
+    id: "winter_fest",
+    name: "Winter Festival",
+    emoji: "❄️",
+    description:
+      "Cozy up! Double XP on all activities and a special snowflower seed.",
+    startDate: "2025-12-15",
+    endDate: "2026-01-15",
+    recurring: true, // Annual event: Dec 15 – Jan 15
+    bonuses: { xpMultiplier: 2, goldMultiplier: 1.25 },
+    specialCrop: {
+      id: "snowflower",
+      name: "Snowflower",
+      emoji: "❄️",
+      growthTime: 900_000,
+      sellPrice: 60,
+      seedPrice: 25,
+      xp: 20,
+      energyYield: 3,
+      fullnessYield: 12,
+      lore: "A crystalline bloom that only grows during the coldest nights. Its petals shimmer like fresh snow.",
+    },
   },
 ];
 
