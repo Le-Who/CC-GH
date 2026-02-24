@@ -220,6 +220,24 @@
     transform: scale(1);
   }
 }
+/* v7.1: Gold value text bounce — child element juice during .bump */
+@keyframes goldValueBounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.2);
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+}
+.hud-gold.bump #hud-gold-text {
+  animation: goldValueBounce 0.4s
+    var(--ease-bouncy, cubic-bezier(0.68, -0.55, 0.265, 1.55));
+}
 
 /* Shimmer flare effect */
 .hud-gold::before {

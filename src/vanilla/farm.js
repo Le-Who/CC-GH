@@ -8,11 +8,18 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, goToScreen } from "./shared.js";
-import { CROPS as CROPS_CONFIG } from "/game-logic.js";
+import {
+  CROPS as CROPS_CONFIG,
+  getUnlockedSeeds,
+  ACHIEVEMENTS,
+  SEASON_PASS,
+  PLOT_THEMES,
+  BOOSTER_CONFIG,
+} from "/game-logic.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
 import { getCropsData, setCropsCache } from "./crops.js";
-import { SoundEngine } from "./effects.js";
+import { SoundEngine, spawnCoinFly, spawnWaterDroplets } from "./effects.js";
 
 const FarmGameImpl = (() => {
   // state is synced with GameStore 'farm' slice
@@ -26,6 +33,56 @@ const FarmGameImpl = (() => {
   let harvestVersion = 0; // Track rapid harvesting for stale response rejection
   let waterVersion = 0; // Track rapid watering for stale response rejection
   const wateringInFlight = new Set(); // Prevent duplicate auto-water requests
+
+  /* ═══ v7.2: Progressive Seed Unlocking — Player Stats Helper ═══ */
+  function _getPlayerStats() {
+    const res = GameStore.getState("resources") || {};
+    const harvested = res.harvested || {};
+    const totalHarvests = Object.values(harvested).reduce((a, b) => a + b, 0);
+    // Gold earned: approximate from current gold + total spent (not exact, but good enough)
+    const goldEarned = res.gold || 0; // simplification: current gold as proxy
+    const plotsBought = state?.plots?.length || 6;
+    // Quest and days tracking from localStorage
+    const questsCompleted = parseInt(
+      localStorage.getItem("hub_quests_completed") || "0",
+      10,
+    );
+    const daysActive = parseInt(
+      localStorage.getItem("hub_days_active") || "1",
+      10,
+    );
+    return {
+      totalHarvests,
+      goldEarned,
+      questsCompleted,
+      plotsBought,
+      daysActive,
+    };
+  }
+
+  function _computeUnlocked() {
+    return getUnlockedSeeds(_getPlayerStats());
+  }
+
+  /** Check for fresh unlocks and show celebration toast */
+  function _checkNewUnlocks() {
+    const unlocked = _computeUnlocked();
+    const seenKey = "hub_unlocked_seeds_seen";
+    try {
+      const seen = JSON.parse(localStorage.getItem(seenKey) || "[]");
+      const fresh = unlocked.filter((id) => !seen.includes(id));
+      if (fresh.length > 0) {
+        for (const id of fresh) {
+          const cfg = crops[id] || CROPS_CONFIG[id];
+          if (cfg) showToast(`🔓 New seed unlocked: ${cfg.emoji} ${cfg.name}!`);
+        }
+        localStorage.setItem(seenKey, JSON.stringify(unlocked));
+        renderShop(); // Re-render to show newly unlocked
+      }
+    } catch {
+      /* localStorage error — skip */
+    }
+  }
 
   // ── Clock Desync Fix (v4.9) ──
   // Delta between server clock and client clock (ms). Positive = client is ahead.
@@ -169,6 +226,8 @@ const FarmGameImpl = (() => {
       syncToStore();
       render();
       renderShop();
+      renderFeaturedShelf(); // v7.2: featured seed shelf
+      _checkNewUnlocks(); // v7.2: detect fresh unlocks on load
       updateBuyBar();
     }
 
@@ -275,21 +334,70 @@ const FarmGameImpl = (() => {
       if (data.offlineReport) {
         showWelcomeBack(data.offlineReport);
       }
+
+      // v7.3: Store new feature data
+      if (data.streak) state._streak = data.streak;
+      if (data.streakResult) state._streakResult = data.streakResult;
+      if (data.newAchievements) state._newAchievements = data.newAchievements;
+      if (data.seasonPass) state._seasonPass = data.seasonPass;
+      if (data.cosmetics) state._cosmetics = data.cosmetics;
+      if (data.boosters) state._boosters = data.boosters;
+      if (data.journal) state._journal = data.journal;
+
       syncToStore();
       render();
       renderInventory();
+      renderStreakBadge();
+      renderBoosterButton();
+      _applyThemeClass();
+
+      // v7.3: Show streak toast
+      if (data.streakResult?.continued && data.streak?.current > 1) {
+        showToast(
+          `🔥 ${data.streak.current}-day streak! (${data.streak.bonusMultiplier}× gold)`,
+        );
+      }
+      if (data.streakResult?.bonusUnlocked) {
+        showToast(
+          `🎉 Streak milestone: ${data.streakResult.bonusUnlocked.label}!`,
+        );
+      }
+      // v7.3: Achievement toast
+      if (data.newAchievements?.length > 0) {
+        for (const id of data.newAchievements) {
+          const badge = ACHIEVEMENTS[id];
+          if (badge)
+            showToast(`🏆 Badge unlocked: ${badge.emoji} ${badge.name}!`);
+        }
+      }
     }
   }
 
-  /* ─── Welcome Back Modal (v6.2.1: native <dialog> for proper focus-trap + goToScreen compat) ─── */
+  /* ─── Welcome Back Modal (v7.1: Comfort-framed — warm, positive, never guilt) ─── */
   function showWelcomeBack(report) {
-    // Build body lines
+    // v7.1: Quick return (<30s) — skip modal entirely, let shared.js toast handle it
+    if (
+      HUB.lastActiveTimestamp &&
+      Date.now() - HUB.lastActiveTimestamp < 30_000
+    ) {
+      return;
+    }
+
+    // Build comfort-framed body lines
     const lines = [];
+
+    // Warm greeting (never mention how long they were away as guilt)
+    const petName = GameStore.getState("pet")?.name || "Your pet";
+    const offlineMins = report.offlineMinutes || 0;
+    const offlineLabel =
+      offlineMins >= 60
+        ? `${Math.floor(offlineMins / 60)}h ${offlineMins % 60}m`
+        : `${offlineMins}m`;
     lines.push(
-      `<p class="text-dim" style="margin:0 0 8px">⏰ You were away for ${report.offlineMinutes || 0} min</p>`,
+      `<p class="text-dim" style="margin:0 0 8px;font-size:0.78rem">☀️ While you rested (${offlineLabel}), your world kept growing!</p>`,
     );
 
-    // Harvested crops
+    // Harvested crops — frame as pet accomplishment
     const harvestedEntries = Object.entries(report.harvested || {});
     if (harvestedEntries.length > 0) {
       const items = harvestedEntries
@@ -299,11 +407,11 @@ const FarmGameImpl = (() => {
         })
         .join(", ");
       lines.push(
-        `<div style="margin:4px 0">🌾 <strong>Harvested:</strong> ${items}</div>`,
+        `<div style="margin:4px 0">🐾 <strong>${petName} harvested:</strong> ${items}</div>`,
       );
     }
 
-    // Planted crops
+    // Planted crops — frame as growth
     const plantedEntries = Object.entries(report.planted || {});
     if (plantedEntries.length > 0) {
       const items = plantedEntries
@@ -313,21 +421,19 @@ const FarmGameImpl = (() => {
         })
         .join(", ");
       lines.push(
-        `<div style="margin:4px 0">🌱 <strong>Planted:</strong> ${items}</div>`,
+        `<div style="margin:4px 0">🌱 <strong>Sprouted while away:</strong> ${items}</div>`,
       );
     }
 
-    // Auto-watered
+    // Auto-watered — frame as care
     if (report.autoWatered > 0) {
       lines.push(
-        `<div style="margin:4px 0">💧 <strong>Watered:</strong> ${report.autoWatered} crop${report.autoWatered > 1 ? "s" : ""}</div>`,
+        `<div style="margin:4px 0">💧 <strong>Stayed hydrated:</strong> ${report.autoWatered} crop${report.autoWatered > 1 ? "s" : ""} watered</div>`,
       );
     }
 
-    // Pet fullness + food eaten + XP (v6.2.2: energy is never consumed offline)
+    // Pet summary — frame as companionship, not resource consumption
     const summaryParts = [];
-    if (report.fullnessConsumed > 0)
-      summaryParts.push(`🍖 ${report.fullnessConsumed} fullness used`);
     const foodEntries = Object.entries(report.foodEaten || {});
     if (foodEntries.length > 0) {
       const foodItems = foodEntries
@@ -336,26 +442,26 @@ const FarmGameImpl = (() => {
           return c ? `${c.emoji}×${qty}` : `${id}×${qty}`;
         })
         .join(", ");
-      summaryParts.push(`🐾 Pet ate: ${foodItems}`);
+      summaryParts.push(`🍖 ${petName} snacked on: ${foodItems}`);
     }
     if (report.xpGained > 0)
-      summaryParts.push(`✨${report.xpGained} XP gained`);
+      summaryParts.push(`✨ +${report.xpGained} XP earned`);
     if (summaryParts.length > 0) {
       lines.push(
         `<div style="margin:6px 0;opacity:0.7;font-size:0.8rem">${summaryParts.join(" • ")}</div>`,
       );
     }
 
-    // Zeigarnik Effect (Open Loops section)
+    // Open Loops — reframed as excitement, not incomplete tasks
     if (report.openLoops && report.openLoops.length > 0) {
       lines.push(
         `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left;">`,
-        `<h3 style="font-size: 0.9rem; color: var(--brand-accent); margin: 0 0 8px;">⏳ Almost Ready:</h3>`,
+        `<h3 style="font-size: 0.9rem; color: var(--brand-accent); margin: 0 0 8px;">🌟 Almost Ready to Harvest:</h3>`,
       );
       report.openLoops.forEach((ol) => {
         lines.push(
           `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; margin-top: 6px;">`,
-          `<span>${ol.name} is growing</span>`,
+          `<span>${ol.name} is thriving!</span>`,
           `<span style="color: var(--ui-gold); font-weight: bold;">${ol.progress}%</span>`,
           `</div>`,
           `<div style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); width: 100%; overflow: hidden;"><div style="height: 100%; border-radius: 3px; width: ${ol.progress}%; background: var(--ui-gold);"></div></div>`,
@@ -364,15 +470,29 @@ const FarmGameImpl = (() => {
       lines.push(`</div>`);
     }
 
+    // Dynamic CTA based on last active game
+    const gameEmojis = {
+      trivia: "🧠",
+      blox: "🧱",
+      farm: "🌱",
+      match3: "💎",
+      merge: "✨",
+    };
+    const lastGame = HUB.screenNames[HUB.lastActiveGame] || "farm";
+    const ctaEmoji = gameEmojis[lastGame] || "🌱";
+    const ctaLabel =
+      lastGame === "farm"
+        ? "Back to Farming"
+        : `Resume ${lastGame.charAt(0).toUpperCase() + lastGame.slice(1)}`;
+
     // v6.2.1: native <dialog> — consistent with project convention (v4.14+)
-    // goToScreen() will now correctly close this via querySelectorAll("dialog[open]")
     const dialog = document.createElement("dialog");
     dialog.className = "modal welcome-back-dialog";
     dialog.innerHTML = `
       <div class="modal-card" style="text-align:center;max-width:320px">
-        <h2 style="margin:0 0 10px">🐾 Welcome Back!</h2>
+        <h2 style="margin:0 0 10px">☀️ Welcome Back!</h2>
         ${lines.join("")}
-        <button class="btn btn-primary" style="margin-top:14px;width:100%" id="wb-dismiss">Let's Go! 🌱</button>
+        <button class="btn btn-primary" style="margin-top:14px;width:100%" id="wb-dismiss">${ctaEmoji} ${ctaLabel}</button>
       </div>
     `;
     dialog.addEventListener("close", () => dialog.remove());
@@ -386,6 +506,68 @@ const FarmGameImpl = (() => {
     document
       .getElementById("wb-dismiss")
       ?.addEventListener("click", () => dialog.close());
+  }
+
+  /* ─── v7.3: Harvest All — Zeigarnik Effect closure ─── */
+  function harvestAll() {
+    if (!state?.plots) return;
+    const readyIndices = state.plots
+      .map((p, i) => ({ i, p }))
+      .filter(({ p }) => p.crop && getLocalGrowth(p) >= 1)
+      .map(({ i }) => i);
+    if (readyIndices.length === 0) {
+      showToast("🌾 No crops ready!");
+      return;
+    }
+    // Harvest each one sequentially to avoid race conditions
+    for (const idx of readyIndices) {
+      if (state.plots[idx]?.crop && getLocalGrowth(state.plots[idx]) >= 1) {
+        harvest(idx);
+      }
+    }
+    showToast(`🌾 Harvested ${readyIndices.length} crops!`);
+  }
+
+  /* ─── v7.3: Sell All — Reduce friction for bulk inventory ─── */
+  function sellAll() {
+    const res = GameStore.getState("resources") || {};
+    const harvested = { ...(res.harvested || {}) };
+    const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
+    if (entries.length === 0) {
+      showToast("❌ Nothing to sell!");
+      return;
+    }
+    let totalGold = 0;
+    let totalItems = 0;
+    for (const [cropId, qty] of entries) {
+      const sellPrice = CROPS_CONFIG[cropId]?.sellPrice || 0;
+      totalGold += sellPrice * qty;
+      totalItems += qty;
+    }
+    // Optimistic: clear all harvested, add gold
+    const newGold = (res.gold || 0) + totalGold;
+    GameStore.setState("resources", {
+      ...res,
+      gold: newGold,
+      harvested: {},
+    });
+    renderInventory();
+    render();
+    showToast(`💰 Sold ${totalItems} crops for ${totalGold}🪙!`);
+    HUD.animateGoldChange(totalGold);
+    HUD.updateDisplay(GameStore.getState("resources"));
+    // Fire requests for each crop type
+    for (const [cropId, qty] of entries) {
+      for (let j = 0; j < qty; j++) {
+        api("/api/farm/sell-crop", { userId: HUB.userId, cropId })
+          .then((data) => {
+            if (data?.success) {
+              if (data.resources) HUD?.syncFromServer?.(data.resources);
+            }
+          })
+          .catch(() => {});
+      }
+    }
   }
 
   /* ─── Plot Click Dispatcher ─── */
@@ -485,6 +667,30 @@ const FarmGameImpl = (() => {
 
     // Task 7.1: Update farm nav notification dot
     _updateFarmNavDot();
+
+    // v7.3: Harvest All button — show when ≥2 crops ready
+    _updateHarvestAllButton();
+  }
+
+  function _updateHarvestAllButton() {
+    const readyCount =
+      state?.plots?.filter((p) => p.crop && getLocalGrowth(p) >= 1).length || 0;
+    let btn = document.getElementById("farm-harvest-all-btn");
+    if (readyCount >= 2) {
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.id = "farm-harvest-all-btn";
+        btn.className = "farm-harvest-all-fab";
+        btn.addEventListener("click", harvestAll);
+        // Insert before farm-plots grid
+        const grid = $("farm-plots");
+        if (grid) grid.parentNode.insertBefore(btn, grid);
+      }
+      btn.textContent = `🌾 Harvest All (${readyCount})`;
+      btn.style.display = "";
+    } else if (btn) {
+      btn.style.display = "none";
+    }
   }
 
   /** Task 7.1: Show green dot on Farm tab if any crop is ready to harvest */
@@ -541,10 +747,16 @@ const FarmGameImpl = (() => {
       // v4.15.2: Water button handled by grid event delegation — no per-element listener
       div.title = isReady ? "Click to harvest!" : "Growing...";
     } else {
-      div.innerHTML = `<div class="plot-empty-label">Empty Plot</div><div style="font-size:1.4rem;opacity:0.3">🌱</div>`;
-      div.title = selectedSeed
+      // v7.3: Activation Energy — clear CTA replaces passive label
+      const hasSeeds =
+        selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
+      const ctaText = hasSeeds
+        ? `Plant ${crops[selectedSeed]?.emoji || "🌱"} ${crops[selectedSeed]?.name || selectedSeed}`
+        : "Tap to Plant 🌱";
+      div.innerHTML = `<div class="plot-empty-label">${ctaText}</div><div style="font-size:1.4rem;opacity:0.3">🌱</div>`;
+      div.title = hasSeeds
         ? `Plant ${crops[selectedSeed]?.name || selectedSeed}`
-        : "Select a seed first";
+        : "Select a seed from the shop";
     }
   }
 
@@ -564,51 +776,302 @@ const FarmGameImpl = (() => {
     if (secs > 0) return `${mins}m ${secs}s`;
     return `${mins}m`;
   }
+  /* ═══ v7.2: Featured Seed Shelf — 4-seed rotating strip ═══ */
+  let _shelfTimerInterval = null;
 
-  /* ─── Seed Shop Grid ─── */
+  function renderFeaturedShelf() {
+    const container = $("featured-shelf-container");
+    if (!container) return;
+    const unlocked = _computeUnlocked();
+    if (unlocked.length < 3) {
+      container.innerHTML = ""; // Too few seeds to feature
+      return;
+    }
+
+    // Deterministic rotation: changes every 4 hours
+    const ROTATION_MS = 4 * 3600_000;
+    const rotationKey = Math.floor(Date.now() / ROTATION_MS);
+
+    // Seeded shuffle using rotation key
+    const seeded = [...unlocked].sort((a, b) => {
+      const ha =
+        ((rotationKey * 2654435761 + a.charCodeAt(0) * 31) >>> 0) % 1000;
+      const hb =
+        ((rotationKey * 2654435761 + b.charCodeAt(0) * 31) >>> 0) % 1000;
+      return ha - hb;
+    });
+
+    // Pick 4 seeds: prioritize 1 untried seed + fill with profit-ranked
+    const history = _getPurchaseHistory();
+    const purchased = new Set(history.map((h) => h.seedId));
+    const untried = seeded.filter((id) => !purchased.has(id));
+    const tried = seeded.filter((id) => purchased.has(id));
+
+    // Sort tried by sell/cost ratio (best profit first)
+    const profitRanked = tried.sort((a, b) => {
+      const cfgA = crops[a] || CROPS_CONFIG[a] || {};
+      const cfgB = crops[b] || CROPS_CONFIG[b] || {};
+      const ratioA = (cfgA.sellPrice || 1) / (cfgA.seedPrice || 1);
+      const ratioB = (cfgB.sellPrice || 1) / (cfgB.seedPrice || 1);
+      return ratioB - ratioA;
+    });
+
+    const picks = [];
+    // Add 1 untried seed if available
+    if (untried.length > 0) picks.push(untried[0]);
+    // Fill with profit-ranked tried seeds
+    for (const id of profitRanked) {
+      if (picks.length >= 4) break;
+      if (!picks.includes(id)) picks.push(id);
+    }
+    // If still short, fill from seeded order
+    for (const id of seeded) {
+      if (picks.length >= 4) break;
+      if (!picks.includes(id)) picks.push(id);
+    }
+
+    // Countdown to next rotation
+    const nextRotation = (rotationKey + 1) * ROTATION_MS;
+    const msLeft = nextRotation - Date.now();
+    const hLeft = Math.floor(msLeft / 3600_000);
+    const mLeft = Math.floor((msLeft % 3600_000) / 60_000);
+    const timerText = hLeft > 0 ? `⟳ ${hLeft}h ${mLeft}m` : `⟳ ${mLeft}m`;
+
+    // Build shelf HTML — compact inline pill format
+    const cards = picks
+      .map((id) => {
+        const cfg = crops[id] || CROPS_CONFIG[id] || {};
+        const isNew = !purchased.has(id);
+        return `
+        <div class="featured-shelf-card${isNew ? " fs-untried" : ""}" data-seed="${id}">
+          <span class="fs-emoji">${cfg.emoji || "🌱"}</span>
+          <span class="fs-name">${cfg.name || id}</span>
+          <span class="fs-price">🪙${cfg.seedPrice || "?"}</span>
+        </div>
+      `;
+      })
+      .join("");
+
+    container.innerHTML = `
+      <div class="featured-shelf-header">
+        <span class="featured-shelf-title">🌟 Featured</span>
+        <span class="featured-shelf-timer">${timerText}</span>
+        <button class="shelf-collapse-btn" title="Hide featured seeds">✕</button>
+      </div>
+      <div class="featured-shelf">${cards}</div>
+    `;
+
+    // Collapse toggle
+    const collapseBtn = container.querySelector(".shelf-collapse-btn");
+    if (collapseBtn) {
+      collapseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        container.classList.toggle("shelf-collapsed");
+      });
+    }
+
+    // Tap handler — opens quick-buy with pre-selected seed
+    container.querySelectorAll(".featured-shelf-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const seedId = card.dataset.seed;
+        if (seedId) {
+          selectedSeed = seedId;
+          // Find first empty plot for quick-buy context
+          const emptyIdx = state?.plots?.findIndex((p) => !p.crop);
+          if (emptyIdx >= 0) {
+            showQuickBuy(emptyIdx);
+          } else {
+            // All plots full — buy 1 seed into inventory (don't just select)
+            const prevQty = buyQty;
+            buyQty = 1;
+            buySeeds(seedId);
+            buyQty = prevQty;
+          }
+        }
+      });
+    });
+
+    // Refresh timer every minute
+    if (_shelfTimerInterval) clearInterval(_shelfTimerInterval);
+    _shelfTimerInterval = setInterval(() => {
+      const now = Date.now();
+      const currentKey = Math.floor(now / ROTATION_MS);
+      if (currentKey !== rotationKey) {
+        renderFeaturedShelf(); // Rotation changed — re-render
+        return;
+      }
+      const ms = (currentKey + 1) * ROTATION_MS - now;
+      const h = Math.floor(ms / 3600_000);
+      const m = Math.floor((ms % 3600_000) / 60_000);
+      const timerEl = container.querySelector(".featured-shelf-timer");
+      if (timerEl) timerEl.textContent = h > 0 ? `⟳ ${h}h ${m}m` : `⟳ ${m}m`;
+    }, 60_000);
+  }
+
+  /* ─── Seed Shop Grid (v7.2 UX overhaul) ─── */
   function renderShop() {
     const grid = $("farm-shop-grid");
     grid.innerHTML = "";
-    // Task 6.2: Sort seeds by price ascending
     // Filter out non-crop entries (e.g. __hash from API response)
-    const sortedEntries = Object.entries(crops)
-      .filter(
-        ([id, cfg]) =>
-          typeof cfg === "object" && cfg !== null && !id.startsWith("__"),
-      )
-      .sort(([, a], [, b]) => (a.seedPrice || 0) - (b.seedPrice || 0));
-    for (const [id, cfg] of sortedEntries) {
-      const count = state?.inventory?.[id] || 0;
-      const card = document.createElement("div");
-      const isSelected = selectedSeed === id;
-      const isEmpty = count <= 0;
-      card.className = `farm-seed-card${isSelected ? " selected" : ""}${isEmpty ? " no-seeds" : ""}`;
-      // Use canonical CROPS_CONFIG for growth time (immune to stale cache)
-      const canonicalGrowth =
-        CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
-      const growthLabel = _formatGrowthTime(canonicalGrowth);
-      card.innerHTML = `
-        <div class="seed-emoji">${cfg.emoji}</div>
-        <div class="seed-name">${cfg.name}</div>
-        <div class="seed-price">🪙 ${cfg.seedPrice}</div>
-        <div class="seed-grow-time">⏰ ${growthLabel}</div>
-        <div class="seed-count">×${count}</div>
-        <button class="seed-quick-buy" data-crop="${id}" title="Buy 1 ${cfg.name}">🛒 Buy</button>
-      `;
-      card.onclick = (e) => {
-        if (e.target.closest(".seed-quick-buy")) return;
-        selectSeed(id);
-      };
-      const quickBuyBtn = card.querySelector(".seed-quick-buy");
-      if (quickBuyBtn) {
-        quickBuyBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          selectedSeed = id;
-          buyQty = 1;
-          buySeeds();
-        });
+    const allEntries = Object.entries(crops).filter(
+      ([id, cfg]) =>
+        typeof cfg === "object" && cfg !== null && !id.startsWith("__"),
+    );
+
+    // v7.2: Progressive unlock — compute which seeds are available
+    const unlocked = _computeUnlocked();
+
+    // Compute profit ratio for each seed — use authoritative CROPS_CONFIG.sellPrice
+    const withProfit = allEntries.map(([id, cfg]) => {
+      const growSec =
+        (CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000) / 1000;
+      const sellPrice = CROPS_CONFIG[id]?.sellPrice || cfg.sellPrice || 0;
+      const ratio = cfg.seedPrice > 0 ? sellPrice / cfg.seedPrice : 0;
+      return { id, cfg, sellPrice, ratio, growSec };
+    });
+
+    // Find the "Best Pick" — highest profit ratio among unlocked seeds
+    const unlockedWithProfit = withProfit.filter((s) =>
+      unlocked.includes(s.id),
+    );
+    const bestPick =
+      unlockedWithProfit.length > 0
+        ? unlockedWithProfit.reduce((best, s) =>
+            s.ratio > best.ratio ? s : best,
+          )
+        : null;
+
+    // Group: Quick Grow (< 60s), Best Value (top 3 profit), then All
+    const quickGrow = unlockedWithProfit
+      .filter((s) => s.growSec < 60)
+      .sort((a, b) => a.growSec - b.growSec);
+    const bestValue = [...unlockedWithProfit]
+      .sort((a, b) => b.ratio - a.ratio)
+      .slice(0, 3);
+
+    // Build sections
+    const sections = [];
+    if (bestValue.length > 0)
+      sections.push({ label: "💰 Best Value", seeds: bestValue });
+    if (quickGrow.length > 0)
+      sections.push({ label: "⚡ Quick Grow", seeds: quickGrow });
+    // All seeds sorted by price
+    const allSorted = [...withProfit].sort(
+      (a, b) => (a.cfg.seedPrice || 0) - (b.cfg.seedPrice || 0),
+    );
+    sections.push({ label: "🌱 All Seeds", seeds: allSorted });
+
+    // Track which seeds have been rendered (avoid duplicates across sections)
+    const rendered = new Set();
+
+    for (const section of sections) {
+      const sectionSeeds = section.seeds.filter(
+        (s) => !rendered.has(s.id) || section.label === "🌱 All Seeds",
+      );
+      if (sectionSeeds.length === 0) continue;
+
+      // Section header
+      const header = document.createElement("div");
+      header.className = "shop-section-header";
+      header.textContent = section.label;
+      grid.appendChild(header);
+
+      for (const { id, cfg, sellPrice, ratio } of sectionSeeds) {
+        if (section.label !== "🌱 All Seeds" && rendered.has(id)) continue;
+        rendered.add(id);
+
+        const isLocked = !unlocked.includes(id);
+        const count = state?.inventory?.[id] || 0;
+        const card = document.createElement("div");
+        const isSelected = selectedSeed === id;
+        const isEmpty = count <= 0;
+        const isBest = bestPick && id === bestPick.id;
+        const canonicalGrowth =
+          CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
+        const growthLabel = _formatGrowthTime(canonicalGrowth);
+
+        if (isLocked) {
+          const condition = CROPS_CONFIG[id]?.unlockCondition;
+          card.className = "farm-seed-card locked";
+          card.innerHTML = `
+            <div class="seed-emoji">🔒</div>
+            <div class="seed-info-col">
+              <div class="seed-name">${cfg.name}</div>
+              <div class="seed-lock-label">${condition?.label || "Locked"}</div>
+            </div>
+          `;
+          grid.appendChild(card);
+          continue;
+        }
+
+        card.className = `farm-seed-card${isSelected ? " selected" : ""}${isEmpty ? " no-seeds" : ""}${isBest ? " best-pick" : ""}`;
+        // Profit color indicator
+        const profitClass =
+          ratio >= 2 ? "profit-high" : ratio >= 1 ? "profit-ok" : "profit-low";
+        card.innerHTML = `
+          <div class="seed-emoji">${cfg.emoji}</div>
+          <div class="seed-info-col">
+            <div class="seed-name">${isBest ? "⭐ " : ""}${cfg.name}${count > 0 ? ` <span class="seed-inv-badge">×${count}</span>` : ""}</div>
+            <div class="seed-meta-row">
+              <span class="seed-grow-time">⏰ ${growthLabel}</span>
+              <span class="seed-profit ${profitClass}">📈 ${sellPrice}🪙</span>
+            </div>
+          </div>
+          <div class="seed-price-col">
+            <div class="seed-price">🪙 ${cfg.seedPrice}</div>
+            <button class="seed-quick-buy" data-crop="${id}" title="Buy 1 ${cfg.name}">Buy</button>
+          </div>
+        `;
+        card.onclick = (e) => {
+          if (e.target.closest(".seed-quick-buy")) return;
+          if (e.target.closest(".seed-buy-expanded")) return;
+          selectSeed(id);
+        };
+        const quickBuyBtn = card.querySelector(".seed-quick-buy");
+        if (quickBuyBtn) {
+          quickBuyBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectedSeed = id;
+            buyQty = 1;
+            buySeeds(id);
+          });
+        }
+        // v7.3: Inline stepper — expands inside selected card
+        if (isSelected) {
+          const totalCost = cfg.seedPrice * buyQty;
+          const goldAvail = HUD.getGold();
+          const canAfford = goldAvail >= totalCost;
+          const expandRow = document.createElement("div");
+          expandRow.className = "seed-buy-expanded";
+          expandRow.innerHTML = `
+            <button class="sbe-step" data-d="-10">−10</button>
+            <button class="sbe-step" data-d="-1">−</button>
+            <span class="sbe-qty">${buyQty}</span>
+            <button class="sbe-step" data-d="1">+</button>
+            <button class="sbe-step" data-d="10">+10</button>
+            <span class="sbe-cost">🪙 ${totalCost}</span>
+            <button class="sbe-buy${canAfford ? "" : " disabled"}">Buy</button>
+          `;
+          expandRow.querySelectorAll(".sbe-step").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const d = parseInt(btn.dataset.d, 10);
+              buyQty = Math.max(1, Math.min(99, buyQty + d));
+              if (selectedSeed) saveBuyQty(selectedSeed, buyQty);
+              renderShop();
+            });
+          });
+          const buyBtn = expandRow.querySelector(".sbe-buy");
+          if (buyBtn) {
+            buyBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              if (canAfford) buySeeds(id);
+            });
+          }
+          card.appendChild(expandRow);
+        }
+        grid.appendChild(card);
       }
-      grid.appendChild(card);
     }
   }
 
@@ -623,6 +1086,9 @@ const FarmGameImpl = (() => {
       c.classList.toggle("active", c.id === `farm-tab-content-${tab}`),
     );
     if (tab === "inv") renderInventory();
+    if (tab === "badges") renderBadges();
+    if (tab === "journal") renderJournal();
+    if (tab === "season") renderSeasonPass();
   }
 
   /* ─── Inventory Rendering (reads harvested from resources slice) ─── */
@@ -641,13 +1107,27 @@ const FarmGameImpl = (() => {
     }
 
     grid.innerHTML = "";
+    // v7.3: Sell All header button when ≥2 items
+    const totalItems = entries.reduce((sum, [, qty]) => sum + qty, 0);
+    if (totalItems >= 2) {
+      const totalGold = entries.reduce((sum, [cropId, qty]) => {
+        return sum + (CROPS_CONFIG[cropId]?.sellPrice || 0) * qty;
+      }, 0);
+      const sellAllBar = document.createElement("div");
+      sellAllBar.className = "farm-sell-all-bar";
+      sellAllBar.innerHTML = `
+        <span class="sell-all-label">📦 ${totalItems} crops</span>
+        <button class="farm-sell-all-btn" id="farm-sell-all-btn">💰 Sell All (${totalGold}🪙)</button>
+      `;
+      sellAllBar
+        .querySelector(".farm-sell-all-btn")
+        .addEventListener("click", sellAll);
+      grid.appendChild(sellAllBar);
+    }
     for (const [cropId, qty] of entries) {
       const cfg = crops[cropId] || {};
-      // Sell price = ceil((seedPrice * 0.5) * (growthTimeSec * 0.25))
-      const growSec = (cfg.growthTime || 15000) / 1000;
-      const sellPrice = Math.ceil(
-        (cfg.seedPrice || 0) * 0.5 * (growSec * 0.25),
-      );
+      // v7.3: Use authoritative sell price from CROPS_CONFIG (fixes client/server desync)
+      const sellPrice = CROPS_CONFIG[cropId]?.sellPrice || cfg.sellPrice || 0;
       const item = document.createElement("div");
       item.className = "farm-inv-item";
       item.innerHTML = `
@@ -672,6 +1152,206 @@ const FarmGameImpl = (() => {
     }
   }
 
+  /* ─── v7.3: Streak Badge ─── */
+  function renderStreakBadge() {
+    const streak = state?._streak;
+    if (!streak || streak.current < 1) return;
+    let badge = document.getElementById("farm-streak-badge");
+    if (!badge) {
+      badge = document.createElement("div");
+      badge.id = "farm-streak-badge";
+      badge.className = "farm-streak-badge";
+      const statsBar = document.querySelector(".farm-stats");
+      if (statsBar) statsBar.appendChild(badge);
+    }
+    const mult =
+      streak.bonusMultiplier > 1 ? ` (${streak.bonusMultiplier}×)` : "";
+    badge.innerHTML = `🔥 ${streak.current}-day streak${mult}`;
+  }
+
+  /* ─── v7.3: Booster Button ─── */
+  function renderBoosterButton() {
+    const boosters = state?._boosters;
+    let btn = document.getElementById("farm-booster-btn");
+    const fertCfg = BOOSTER_CONFIG?.fertilizer;
+    if (!fertCfg) return;
+    const isActive =
+      boosters?.fertilizer?.active &&
+      boosters.fertilizer.expiresAt > Date.now();
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "farm-booster-btn";
+      btn.className = "farm-booster-btn";
+      btn.addEventListener("click", async () => {
+        if (isActive) return;
+        const data = await api("/api/farm/activate-booster", {
+          userId: HUB.userId,
+          boosterId: "fertilizer",
+        });
+        if (data?.success) {
+          state._boosters = data.boosters;
+          if (data.resources) HUD.syncFromServer(data.resources);
+          renderBoosterButton();
+          showToast("⚡ Fertilizer activated! Growth speed doubled for 1h!");
+        } else {
+          showToast(`❌ ${data?.error || "Failed to activate"}`);
+        }
+      });
+      const statsBar = document.querySelector(".farm-stats");
+      if (statsBar) statsBar.appendChild(btn);
+    }
+    if (isActive) {
+      const remaining = Math.max(
+        0,
+        Math.ceil((boosters.fertilizer.expiresAt - Date.now()) / 60_000),
+      );
+      btn.textContent = `⚡ Active (${remaining}m)`;
+      btn.classList.add("active");
+    } else {
+      btn.textContent = `⚡ Fertilizer (${fertCfg.cost}🪙)`;
+      btn.classList.remove("active");
+    }
+  }
+
+  /* ─── v7.3: Apply Theme Class ─── */
+  function _applyThemeClass() {
+    const grid = $("farm-plots");
+    if (!grid) return;
+    const themeId = state?._cosmetics?.activePlotTheme || "default";
+    // Remove all theme classes
+    grid.className = grid.className.replace(/\bfarm-theme-\S+/g, "").trim();
+    if (themeId !== "default") {
+      grid.classList.add(`farm-theme-${themeId}`);
+    }
+  }
+
+  /* ─── v7.3: Render Badges Tab ─── */
+  function renderBadges() {
+    const grid = $("farm-badges-grid");
+    if (!grid) return;
+    const achievements = state?.achievements || {};
+    grid.innerHTML = "";
+    for (const [id, badge] of Object.entries(ACHIEVEMENTS)) {
+      const unlocked = !!achievements[id];
+      const claimed = achievements[id]?.seen;
+      const card = document.createElement("div");
+      card.className = `farm-badge-card${unlocked ? " unlocked" : " locked"}${claimed ? " claimed" : ""}`;
+      card.innerHTML = `
+        <div class="badge-emoji">${unlocked ? badge.emoji : "🔒"}</div>
+        <div class="badge-name">${badge.name}</div>
+        <div class="badge-desc">${badge.desc}</div>
+        ${unlocked && !claimed ? `<button class="badge-claim-btn">🎁 Claim ${badge.reward.gold ? badge.reward.gold + "🪙" : badge.reward.gachaTokens + "🎫"}</button>` : ""}
+        ${claimed ? '<div class="badge-claimed">✅ Claimed</div>' : ""}
+      `;
+      if (unlocked && !claimed) {
+        card
+          .querySelector(".badge-claim-btn")
+          .addEventListener("click", async () => {
+            const data = await api("/api/achievements/claim", {
+              userId: HUB.userId,
+              badgeId: id,
+            });
+            if (data?.success) {
+              state.achievements[id] = {
+                ...state.achievements[id],
+                seen: true,
+              };
+              if (data.resources) HUD.syncFromServer(data.resources);
+              renderBadges();
+              showToast(`🏆 Claimed: ${badge.emoji} ${badge.name}!`);
+            }
+          });
+      }
+      grid.appendChild(card);
+    }
+  }
+
+  /* ─── v7.3: Render Journal Tab ─── */
+  function renderJournal() {
+    const grid = $("farm-journal-grid");
+    if (!grid) return;
+    const discovered = state?._journal?.discovered || [];
+    grid.innerHTML = "";
+    const allCrops = Object.values(CROPS_CONFIG);
+    for (const cfg of allCrops) {
+      const found = discovered.includes(cfg.id);
+      const card = document.createElement("div");
+      card.className = `farm-journal-card${found ? " discovered" : " undiscovered"}`;
+      card.innerHTML = found
+        ? `<div class="journal-emoji">${cfg.emoji}</div>
+           <div class="journal-name">${cfg.name}</div>
+           <div class="journal-lore">${cfg.lore || ""}</div>
+           <div class="journal-stats">🪙${cfg.sellPrice} · ⏱${Math.round(cfg.growthTime / 60000)}m · ⭐${cfg.xp}XP</div>`
+        : `<div class="journal-emoji">❓</div>
+           <div class="journal-name">???</div>
+           <div class="journal-lore">Grow this crop to discover it!</div>`;
+      grid.appendChild(card);
+    }
+  }
+
+  /* ─── v7.3: Render Season Pass Tab ─── */
+  function renderSeasonPass() {
+    const container = $("farm-season-pass");
+    if (!container) return;
+    const sp = state?._seasonPass || { season: 1, xp: 0, tier: 0, claimed: [] };
+    const tiers = SEASON_PASS.tiers;
+    const maxXp = tiers[tiers.length - 1].xp;
+    const pct = Math.min(100, Math.round((sp.xp / maxXp) * 100));
+
+    let html = `
+      <div class="season-header">
+        <span class="season-title">⭐ ${SEASON_PASS.name}</span>
+        <span class="season-xp">${sp.xp} / ${maxXp} XP</span>
+      </div>
+      <div class="season-progress-bar">
+        <div class="season-progress-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="season-tiers">
+    `;
+    for (let i = 0; i < tiers.length; i++) {
+      const t = tiers[i];
+      const unlocked = sp.xp >= t.xp;
+      const claimed = sp.claimed?.includes(i);
+      const rewardText = t.reward.gold
+        ? `${t.reward.gold}🪙`
+        : t.reward.theme
+          ? `🎨 ${t.reward.theme}`
+          : t.reward.seeds
+            ? "🌱 Seeds"
+            : t.reward.gachaTokens
+              ? `${t.reward.gachaTokens}🎫`
+              : t.reward.title || "";
+      html += `
+        <div class="season-tier${unlocked ? " unlocked" : ""}${claimed ? " claimed" : ""}" data-tier="${i}">
+          <div class="tier-label">${t.label}</div>
+          <div class="tier-reward">${rewardText}</div>
+          <div class="tier-xp">${t.xp} XP</div>
+          ${unlocked && !claimed ? `<button class="tier-claim-btn" data-tier-idx="${i}">🎁 Claim</button>` : ""}
+          ${claimed ? '<div class="tier-claimed">✅</div>' : ""}
+        </div>
+      `;
+    }
+    html += "</div>";
+    container.innerHTML = html;
+
+    // Claim handlers
+    container.querySelectorAll(".tier-claim-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const idx = parseInt(btn.dataset.tierIdx);
+        const data = await api("/api/season-pass/claim", {
+          userId: HUB.userId,
+          tierIndex: idx,
+        });
+        if (data?.success) {
+          state._seasonPass = data.seasonPass;
+          if (data.resources) HUD.syncFromServer(data.resources);
+          renderSeasonPass();
+          showToast(`⭐ Season reward claimed: ${tiers[idx].label}!`);
+        }
+      });
+    });
+  }
+
   function selectSeed(id) {
     // Toggle: clicking same seed deselects it
     if (selectedSeed === id) {
@@ -683,7 +1363,9 @@ const FarmGameImpl = (() => {
       buyQty = stored[id] || 1;
     }
     renderShop();
-    updateBuyBar();
+    // v7.3: Hide global buy bar — stepper is inline per card now
+    const bar = $("farm-buy-bar");
+    if (bar) bar.style.display = "none";
     render(); // Re-render plots to update titles
   }
 
@@ -790,12 +1472,234 @@ const FarmGameImpl = (() => {
       });
   }
 
+  /* ═══════════════════════════════════════════════════
+   *  v7.1: Contextual Quick-Buy — Bottom Sheet
+   *  Shows top 3 seeds when tapping an empty plot.
+   *  Single tap = buy 1 seed + plant instantly.
+   * ═══════════════════════════════════════════════════ */
+  const PURCHASE_HISTORY_KEY = "farm_purchase_history";
+  const PURCHASE_HISTORY_MAX = 50;
+
+  function _getPurchaseHistory() {
+    try {
+      return JSON.parse(localStorage.getItem(PURCHASE_HISTORY_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function _trackPurchase(seedId) {
+    const history = _getPurchaseHistory();
+    history.push({ seedId, ts: Date.now() });
+    // FIFO cap
+    while (history.length > PURCHASE_HISTORY_MAX) history.shift();
+    localStorage.setItem(PURCHASE_HISTORY_KEY, JSON.stringify(history));
+  }
+
+  /** Get top N most-purchased seed IDs. Fallback: cheapest N. */
+  function _getTopSeeds(n = 3) {
+    const history = _getPurchaseHistory();
+    // v7.2: Only consider unlocked seeds
+    const unlocked = _computeUnlocked();
+    // Count purchases per seed
+    const counts = {};
+    for (const { seedId } of history) {
+      counts[seedId] = (counts[seedId] || 0) + 1;
+    }
+    // Sort by purchase count descending, filter to unlocked only
+    const ranked = Object.entries(counts)
+      .filter(
+        ([id]) => crops[id] && !id.startsWith("__") && unlocked.includes(id),
+      )
+      .sort(([, a], [, b]) => b - a)
+      .map(([id]) => id);
+
+    if (ranked.length >= n) return ranked.slice(0, n);
+
+    // Fallback: fill with cheapest unlocked seeds not already in the list
+    const allSeeds = Object.entries(crops)
+      .filter(
+        ([id, cfg]) =>
+          typeof cfg === "object" &&
+          cfg !== null &&
+          !id.startsWith("__") &&
+          unlocked.includes(id),
+      )
+      .sort(([, a], [, b]) => (a.seedPrice || 0) - (b.seedPrice || 0))
+      .map(([id]) => id);
+    const merged = [...ranked];
+    for (const id of allSeeds) {
+      if (merged.length >= n) break;
+      if (!merged.includes(id)) merged.push(id);
+    }
+    return merged.slice(0, n);
+  }
+
+  function showQuickBuy(plotId) {
+    // Don't show if no crops loaded
+    if (!crops || Object.keys(crops).length === 0) {
+      showToast("🛒 Loading seeds...");
+      return;
+    }
+    // Prevent duplicate sheets
+    const existing = document.getElementById("quick-buy-dialog");
+    if (existing) existing.remove();
+
+    const topSeeds = _getTopSeeds(3);
+    const goldAvail = HUD.getGold();
+
+    // Find most-purchased seed for "★" indicator
+    const history = _getPurchaseHistory();
+    const counts = {};
+    for (const { seedId } of history)
+      counts[seedId] = (counts[seedId] || 0) + 1;
+    const favSeed = Object.entries(counts).sort(
+      ([, a], [, b]) => b - a,
+    )[0]?.[0];
+
+    // Build seed cards
+    const cards = topSeeds
+      .map((id) => {
+        const cfg = crops[id];
+        if (!cfg) return "";
+        const canonicalGrowth =
+          CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
+        const growthLabel = _formatGrowthTime(canonicalGrowth);
+        const canAfford = goldAvail >= (cfg.seedPrice || 0);
+        const isFav = id === favSeed;
+        const invCount = state?.inventory?.[id] || 0;
+
+        return `
+        <button class="qb-seed-card${canAfford ? "" : " qb-muted"}" data-seed="${id}" ${canAfford ? "" : "disabled"}>
+          <span class="qb-seed-emoji">${cfg.emoji}</span>
+          <span class="qb-seed-info">
+            <span class="qb-seed-name">${isFav ? "★ " : ""}${cfg.name}</span>
+            <span class="qb-seed-meta">⏱ ${growthLabel}${invCount > 0 ? ` · 🎒${invCount}` : ""}</span>
+          </span>
+          <span class="qb-seed-price${canAfford ? "" : " qb-price-red"}">🪙 ${cfg.seedPrice || 0}</span>
+        </button>
+      `;
+      })
+      .join("");
+
+    const dialog = document.createElement("dialog");
+    dialog.id = "quick-buy-dialog";
+    dialog.className = "modal quick-buy-sheet";
+    dialog.innerHTML = `
+      <div class="qb-card">
+        <div class="qb-header">
+          <span class="qb-title">🌱 Quick Plant</span>
+          <span class="qb-balance">🪙 ${goldAvail}</span>
+        </div>
+        ${cards}
+        <button class="qb-more-link" id="qb-more">⋯ More in Seed Shop</button>
+      </div>
+    `;
+
+    // Event handlers
+    dialog.addEventListener("close", () => dialog.remove());
+    dialog.addEventListener("click", (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    // Seed card tap → buy 1 + plant instantly
+    dialog.querySelectorAll(".qb-seed-card:not([disabled])").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const seedId = btn.dataset.seed;
+        dialog.close();
+        _quickBuyAndPlant(seedId, plotId);
+      });
+    });
+
+    // Muted card tap → shake + tooltip
+    dialog.querySelectorAll(".qb-seed-card[disabled]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        const seedId = btn.dataset.seed;
+        const cfg = crops[seedId];
+        const deficit = (cfg?.seedPrice || 0) - goldAvail;
+        btn.classList.add("qb-shake");
+        showToast(`Need ${deficit}🪙 more`);
+        setTimeout(() => btn.classList.remove("qb-shake"), 400);
+      });
+    });
+
+    // "More in Seed Shop" link
+    dialog.querySelector("#qb-more")?.addEventListener("click", () => {
+      dialog.close();
+      if (FarmGameImpl.switchFarmTab) FarmGameImpl.switchFarmTab("shop");
+      else {
+        const shopEl = document.querySelector(".farm-shop");
+        if (shopEl) shopEl.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+
+    document.body.appendChild(dialog);
+    import("./shared.js").then(({ safeShowModal }) => safeShowModal(dialog));
+  }
+
+  /** Buy 1 seed + plant it in the given plot (single-tap flow) */
+  function _quickBuyAndPlant(seedId, plotId) {
+    const cfg = crops[seedId];
+    if (!cfg) return;
+    const goldAvail = HUD.getGold();
+    const price = cfg.seedPrice || 0;
+    if (goldAvail < price) {
+      showToast("❌ Not enough gold!");
+      return;
+    }
+
+    // Track purchase for history-based recommendations
+    _trackPurchase(seedId);
+
+    // Optimistic: deduct gold + add to inventory
+    const res = GameStore.getState("resources") || {};
+    GameStore.setState("resources", { ...res, gold: res.gold - price });
+    state.inventory[seedId] = (state.inventory[seedId] || 0) + 1;
+    syncToStore();
+    HUD.animateGoldChange(-price);
+
+    // Now plant using the seed
+    selectedSeed = seedId;
+    plant(plotId);
+    // plant() will deduct 1 from inventory and call the plant API
+
+    // Buy API call (fire-and-forget, same pattern as buySeeds)
+    const prevGold = goldAvail;
+    const myVersion = ++buySeedVersion;
+    api("/api/farm/buy-seeds", {
+      userId: HUB.userId,
+      cropId: seedId,
+      amount: 1,
+    })
+      .then((data) => {
+        if (buySeedVersion !== myVersion) return;
+        if (data.success) {
+          if (data.resources) HUD.syncFromServer(data.resources);
+          state.inventory = data.inventory;
+          syncToStore();
+        } else {
+          // Rollback gold only — do NOT re-render farm grid
+          // (plant API handles inventory; re-rendering here would
+          //  overwrite the already-planted optimistic plot state)
+          const res = GameStore.getState("resources") || {};
+          GameStore.setState("resources", { ...res, gold: prevGold });
+          syncToStore();
+          showToast(`❌ ${data.error}`);
+        }
+      })
+      .catch(() => {
+        if (buySeedVersion === myVersion) loadState();
+      });
+
+    // Show feedback
+    showToast(`Planted ${cfg.emoji} ${cfg.name}!`);
+  }
+
   function plant(plotId) {
     if (!selectedSeed) {
-      // Task 6: No seed selected — scroll to shop section
-      const shopEl = document.querySelector(".farm-shop");
-      if (shopEl) shopEl.scrollIntoView({ behavior: "smooth" });
-      showToast("🛒 Pick a seed to plant!");
+      // v7.1: Contextual Quick-Buy — show bottom sheet instead of scrolling to shop
+      showQuickBuy(plotId);
       return;
     }
     const seedCount = state?.inventory?.[selectedSeed] || 0;
@@ -873,6 +1777,17 @@ const FarmGameImpl = (() => {
     state.plots[plotId] = { ...state.plots[plotId], watered: true };
     syncToStore();
     render();
+
+    // v7.1: Farm Juice — water shimmer + droplets
+    const plotDiv = document.querySelector(
+      `.farm-plot[data-index="${plotId}"]`,
+    );
+    if (plotDiv) {
+      plotDiv.classList.add("water-shimmer");
+      setTimeout(() => plotDiv.classList.remove("water-shimmer"), 1300);
+      spawnWaterDroplets(plotDiv, 3);
+    }
+
     showToast(`💧 Watered! Growth ~30% faster`);
 
     // Bug 4.1 fix: timeout fallback to release lock even if server is slow
@@ -918,6 +1833,9 @@ const FarmGameImpl = (() => {
     harvested[plotSnapshot.crop] = (harvested[plotSnapshot.crop] || 0) + 1;
     GameStore.setState("resources", { ...res, harvested: harvested });
 
+    // v7.2: Check if harvest unlocked a new seed
+    _checkNewUnlocks();
+
     syncToStore();
 
     // Phase 2 Item 5: Sparkle particle on harvest
@@ -925,6 +1843,13 @@ const FarmGameImpl = (() => {
       `.farm-plot[data-index="${plotId}"]`,
     );
     if (plotDiv) spawnFarmSparkle(plotDiv);
+
+    // v7.1: Farm Juice — harvest pop animation + coin fly to HUD
+    if (plotDiv) {
+      const emoji = plotDiv.querySelector(".crop-emoji");
+      if (emoji) emoji.classList.add("harvest-pop");
+      spawnCoinFly(plotDiv, 3);
+    }
 
     render();
     renderShop();
@@ -1318,6 +2243,7 @@ const FarmGameImpl = (() => {
     plant,
     water,
     harvest,
+    harvestAll,
     buySeeds,
     buyPlot,
     selectSeed,

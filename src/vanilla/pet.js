@@ -391,6 +391,16 @@ const PetCompanionImpl = (function () {
     const goingRight = newX > currentX;
     container.style.setProperty("--pet-dir", goingRight ? "-1" : "1");
 
+    // v7.2: Dust puff on direction change
+    container.classList.remove("pet-dust-puff");
+    void container.offsetWidth;
+    container.classList.add("pet-dust-puff");
+    container.addEventListener(
+      "animationend",
+      () => container.classList.remove("pet-dust-puff"),
+      { once: true },
+    );
+
     // Unified flow: set state class synchronously, then position via single rAF
     STATE_CLASSES.forEach((cls) => container.classList.remove(cls));
     container.classList.add("state-roam");
@@ -493,13 +503,23 @@ const PetCompanionImpl = (function () {
     } else {
       setState(STATES.HAPPY);
       spawnHeart();
+      // v7.2: Tap bounce juice
+      const c = document.getElementById("pet-container");
+      if (c) {
+        c.classList.add("state-tapped");
+        c.addEventListener(
+          "animationend",
+          () => c.classList.remove("state-tapped"),
+          { once: true },
+        );
+      }
       setTimeout(() => {
         setState(STATES.IDLE);
       }, 1200);
     }
 
-    // Toggle info panel on double-tap
-    if (clickCount === 2) {
+    // Toggle info panel on triple-tap (raised from 2 to avoid accidental toggles during petting)
+    if (clickCount === 3) {
       toggleInfoPanel();
     }
   }
@@ -524,13 +544,24 @@ const PetCompanionImpl = (function () {
   }
 
   /* ─── Info Panel ─── */
+  let _lastToggle = 0;
   function toggleInfoPanel() {
+    // Cooldown: ignore rapid toggles (within 600ms)
+    const now = Date.now();
+    if (now - _lastToggle < 600) return;
+    _lastToggle = now;
+
     panelOpen = !panelOpen;
     // Dispatch to React layer instead of showing vanilla DOM modal
     document.dispatchEvent(
       new CustomEvent("toggle-pet-info", { detail: { open: panelOpen } }),
     );
   }
+
+  // Sync panelOpen when React closes the panel (click-outside or ✕ button)
+  document.addEventListener("pet-info-closed", () => {
+    panelOpen = false;
+  });
 
   function renderInfoPanel() {
     const panel = document.getElementById("pet-info-panel");

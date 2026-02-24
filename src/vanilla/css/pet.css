@@ -465,3 +465,86 @@
     font-size: 2.5rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+ *  v7.2 P3: Pet Interaction Juice — Tap + Hearts + Dust
+ * ═══════════════════════════════════════════════════ */
+
+/* Happy bounce on tap/click */
+@keyframes petTapBounce {
+  0% {
+    transform: scale(1) scaleX(var(--pet-dir, 1));
+  }
+  20% {
+    transform: scale(1.25, 0.8) scaleX(var(--pet-dir, 1));
+  }
+  40% {
+    transform: scale(0.9, 1.15) translateY(-14px) scaleX(var(--pet-dir, 1));
+  }
+  60% {
+    transform: scale(1.05, 0.95) translateY(-4px) scaleX(var(--pet-dir, 1));
+  }
+  80% {
+    transform: scale(0.98, 1.02) scaleX(var(--pet-dir, 1));
+  }
+  100% {
+    transform: scale(1) scaleX(var(--pet-dir, 1));
+  }
+}
+.pet-container.state-tapped .pet-sprite {
+  animation: petTapBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Heart particle burst on pet tap */
+@keyframes petHeartBurst {
+  0% {
+    transform: translate(-50%, 0) scale(0);
+    opacity: 1;
+  }
+  30% {
+    transform: translate(calc(-50% + var(--hx, 0px)), var(--hy, -20px))
+      scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(
+        calc(-50% + var(--hx, 0px) * 1.5),
+        calc(var(--hy, -20px) * 2)
+      )
+      scale(0.6);
+    opacity: 0;
+  }
+}
+.pet-heart-burst {
+  position: absolute;
+  font-size: 0.8rem;
+  animation: petHeartBurst 0.7s ease-out forwards;
+  pointer-events: none;
+  z-index: 48;
+}
+
+/* Dust puff on direction change */
+@keyframes petDustPuff {
+  0% {
+    transform: scale(0) translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2) translateY(-3px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.8) translateY(-8px);
+    opacity: 0;
+  }
+}
+.pet-dust {
+  position: absolute;
+  bottom: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(200, 190, 170, 0.4);
+  pointer-events: none;
+  animation: petDustPuff 0.4s ease-out forwards;
+}

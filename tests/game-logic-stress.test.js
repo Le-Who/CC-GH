@@ -669,14 +669,33 @@ describe("Farm Stress: Growth calculations", () => {
 
   it("watering multipliers are correct per growth tier", () => {
     // <15min → 0.7, 15min-<1h → 0.6, 1h+ → 0.55
-    assert.equal(getWateringMultiplier("strawberry"), 0.7); // 5 min
+    assert.equal(getWateringMultiplier("strawberry"), 0.7); // 60s (v7.3: rebalanced from 5s)
     assert.equal(getWateringMultiplier("blueberry"), 0.7); // 7 min
     assert.equal(getWateringMultiplier("tomato"), 0.6); // 15 min
     assert.equal(getWateringMultiplier("golden"), 0.6); // 30 min
-    assert.equal(getWateringMultiplier("corn"), 0.55); // 1 hr
+    assert.equal(getWateringMultiplier("corn"), 0.6); // 45 min (v7.3: rebalanced from 1h)
     assert.equal(getWateringMultiplier("sunflower"), 0.55); // 2 hr
     assert.equal(getWateringMultiplier("watermelon"), 0.55); // 4 hr
     assert.equal(getWateringMultiplier("pumpkin"), 0.55); // 8 hr
+  });
+
+  // v7.3: Guard against future ultra-fast crop exploits
+  it("no crop has growthTime under 30 seconds", () => {
+    for (const [id, cfg] of Object.entries(CROPS)) {
+      assert.ok(
+        cfg.growthTime >= 30_000,
+        `${id} has growthTime ${cfg.growthTime}ms — minimum is 30s to prevent spam exploits`,
+      );
+    }
+  });
+
+  // v7.3: Validate planter removed from default inventory
+  it("default player has no phantom 'planter' in farm inventory", () => {
+    const p = createDefaultPlayer("planter_test", "Test");
+    assert.ok(
+      !("planter" in p.farm.inventory),
+      `Default inventory contains 'planter' — a non-existent crop`,
+    );
   });
 });
 

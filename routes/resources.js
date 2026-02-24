@@ -96,11 +96,6 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     if (p.pet.level >= 5) p.pet.abilities.autoWater = true;
     if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
 
-    // Unlock abilities
-    if (p.pet.level >= 3) p.pet.abilities.autoHarvest = true;
-    if (p.pet.level >= 5) p.pet.abilities.autoWater = true;
-    if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
-
     // Happiness boost
     p.pet.stats.happiness = Math.min(100, p.pet.stats.happiness + 5);
 

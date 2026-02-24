@@ -1,10 +1,45 @@
-## [6.3.0] - 2026-02-23
+## [7.2.0] - 2026-02-24
 
-### Added
-- Migrated to React 18 via Vite. The legacy Vanilla JS engine is now encapsulated inside `VanillaShell.jsx`.
-- Integrated Zustand state management, syncing seamlessly with traditional backend data.
-- Tailwind V3 utilized for all new TopHUD, GameStoreUI, QuestUI, and PetInfoUI components.
-- Fully modernized UX with Framer Motion spring animations.
+### Added — Player Experience Overhaul (P2 + P3)
+
+#### Progressive Seed Unlocking (`game-logic.js`, `farm.js`)
+
+- 8 crops now have `unlockCondition` fields: 2 always-available (🍓 Strawberry, 🫐 Blueberry), 6 with progression gates (first harvest, first quest, gold earned, plots bought, total harvests, days active).
+- `getUnlockedSeeds(playerStats)` — pure function evaluates conditions against player stats.
+- Locked crops display as 🔒 cards with condition labels in the seed shop.
+- Unlock celebration toasts on first discovery.
+
+#### Featured Seed Shelf (`farm.js`, `htmlContent.html`)
+
+- 4-seed rotating shelf above farm plots, changes every 4 hours via deterministic seeded shuffle.
+- Prioritizes 1 untried seed + 3 profit-ranked familiar seeds.
+- Live countdown timer with auto-refresh on rotation boundary.
+
+#### New Themes (`soft-fantasy.css`, `minimal-calm.css`, `shared.js`)
+
+- 🌸 **Soft Fantasy** — dark plum/rose/lavender dreamscape palette with purple-tinted dreamy glows.
+- 🍃 **Minimal Calm** — stone white/sage zen palette. Disables neon glows, increases border-radius, reduces particle intensity by 50%.
+- `VALID_THEMES` expanded to 6 options: `neon-night`, `cozy-day`, `soft-fantasy`, `minimal-calm`, `seasonal`, `auto`.
+- **Seasonal auto-rotation**: `_getSeasonalTheme()` maps month → theme (Spring → soft-fantasy, Summer → cozy-day, Autumn/Winter → neon-night).
+
+#### Juice Animations
+
+- **Trivia** (`trivia.css`): `triviaCardFlip` 3D entrance, `triviaCorrectPop` button expand, `triviaStreakGlow` escalating gold glow, stagger-fade answer buttons (50ms each).
+- **Merge** (`merge.css`): `mergePull` magnetic attraction, `mergeCollide` brightness flash, `gachaCapsuleDrop` double bounce entrance, `gachaReveal` rarity light spear.
+- **Pet** (`pet.css`): `petTapBounce` squash+jump on tap, `petHeartBurst` expanding heart particles, `petDustPuff` direction-change dust cloud.
+- **Match-3** (`match3.css`): `m3SwapSpring` overshoot bounce on valid gem swap.
+- **Blox** (`blox.css`): `bloxPlaceBounce` squash+settle on piece placement.
+
+### Fixed (Audit)
+
+- **Theme CSS not bundled**: `main.jsx` was missing imports for `soft-fantasy.css` and `minimal-calm.css` — themes had no visual effect at runtime.
+- **Seasonal theme flash**: `index.html` early theme script set `data-theme="seasonal"` raw (no CSS rules), causing flash of unstyled content. Now resolves to actual month-based theme before first paint.
+
+### Tests
+
+- **343/343 pass**, 0 failures (+21 new tests: progressive unlocking, featured shelf, themes, juice keyframes, audit regressions).
+
+---
 
 # Changelog
 
@@ -233,4 +268,3 @@ Seven user-requested UX improvements across Pet, Quest Log, Match-3, Blox, and F
 #### Tests
 
 - **317/317 pass**, 0 failures.
-

@@ -24,6 +24,9 @@ export const HUB = {
   isTouchDevice: false,
   swipeBlocked: false, // true when Blox game is active to prevent accidental navigation
   viewTransitionActive: false, // Prevents showModal trapping bug
+  // v7.1: Interruption & Comfort System — return-tier tracking
+  lastActiveTimestamp: 0,
+  lastActiveGame: 2, // screen index at time of backgrounding
 };
 
 // ─── Module registry (set by main.js via setModules()) ───
@@ -691,4 +694,171 @@ export function cacheNavDOM() {
 export function applyInitialScreen() {
   applyScreenClasses();
   updateNavUI();
+}
+
+/* ═══════════════════════════════════════════════════
+ *  v7.1: Interruption & Comfort System
+ *  Classifies player returns into 3 tiers:
+ *   Quick  (<30s)  → toast only, no modal
+ *   Soft   (30s–24h) → floating comfort banner
+ *   Deep   (>24h)  → welcome-back modal (handled by farm.js)
+ * ═══════════════════════════════════════════════════ */
+const RETURN_TIER = {
+  QUICK_MS: 30_000,
+  SOFT_MS: 86_400_000, // 24h
+  BANNER_DURATION_MS: 5000,
+};
+
+/** Call once from main.js after boot */
+export function setupInterruptionSystem() {
+  HUB.lastActiveTimestamp = Date.now();
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      // Player backgrounded — snapshot state
+      HUB.lastActiveTimestamp = Date.now();
+      HUB.lastActiveGame = HUB.currentScreen;
+    } else {
+      // Player returned — classify tier
+      const delta = Date.now() - HUB.lastActiveTimestamp;
+      if (delta < RETURN_TIER.QUICK_MS) {
+        // Quick Return: instant resume, subtle toast
+        showToast("🌱 Back already! Nothing missed.", "success");
+      } else if (delta < RETURN_TIER.SOFT_MS) {
+        // Soft Return: floating comfort banner (non-blocking)
+        _showComfortBanner(delta);
+      }
+      // Deep Return (≥24h): farm.js showWelcomeBack handles this via API response
+    }
+  });
+}
+
+/** Soft-return comfort banner — auto-dismissing, non-intrusive */
+function _showComfortBanner(deltaMs) {
+  // Prevent duplicate banners
+  const existing = document.getElementById("comfort-banner");
+  if (existing) existing.remove();
+
+  const mins = Math.round(deltaMs / 60_000);
+  const hours = Math.floor(mins / 60);
+  const timeLabel = hours >= 1 ? `${hours}h ${mins % 60}m` : `${mins}m`;
+
+  const gameName = HUB.screenNames[HUB.lastActiveGame] || "farm";
+  const gameEmojis = {
+    trivia: "🧠",
+    blox: "🧱",
+    farm: "🌱",
+    match3: "💎",
+    merge: "✨",
+  };
+  const emoji = gameEmojis[gameName] || "🌱";
+
+  const banner = document.createElement("div");
+  banner.id = "comfort-banner";
+  banner.className = "comfort-banner";
+  banner.innerHTML = `
+    <span class="comfort-banner-text">${emoji} Your ${gameName} grew while you were away (${timeLabel})</span>
+    <button class="comfort-banner-dismiss" aria-label="Dismiss">✕</button>
+  `;
+  document.body.appendChild(banner);
+
+  // Trigger enter animation
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => banner.classList.add("show"));
+  });
+
+  // Dismiss handler
+  banner
+    .querySelector(".comfort-banner-dismiss")
+    .addEventListener("click", () => {
+      banner.classList.remove("show");
+      banner.addEventListener("transitionend", () => banner.remove(), {
+        once: true,
+      });
+    });
+
+  // Auto-dismiss
+  setTimeout(() => {
+    if (document.body.contains(banner)) {
+      banner.classList.remove("show");
+      banner.addEventListener("transitionend", () => banner.remove(), {
+        once: true,
+      });
+    }
+  }, RETURN_TIER.BANNER_DURATION_MS);
+}
+
+/** Exported for tests: return-tier thresholds */
+export { RETURN_TIER };
+
+/* ═══════════════════════════════════════════════════
+ *  v7.2: Theme System — Expanded Cozy Identity Layer
+ *  Manages [data-theme] on <html>. Supports:
+ *  - "neon-night" (default dark, no attribute needed)
+ *  - "cozy-day" (warm light mode)
+ *  - "soft-fantasy" (plum/rose/lavender dark)
+ *  - "minimal-calm" (stone white/sage zen)
+ *  - "seasonal" (auto-rotate by month)
+ *  - "auto" (follows OS prefers-color-scheme)
+ * ═══════════════════════════════════════════════════ */
+const THEME_KEY = "hub_theme";
+export const VALID_THEMES = [
+  "neon-night",
+  "cozy-day",
+  "soft-fantasy",
+  "minimal-calm",
+  "seasonal",
+  "auto",
+];
+
+/** Map month (0-11) → seasonal theme suggestion */
+function _getSeasonalTheme() {
+  const month = new Date().getMonth();
+  if (month >= 2 && month <= 4) return "soft-fantasy"; // Spring: Mar-May
+  if (month >= 5 && month <= 7) return "cozy-day"; // Summer: Jun-Aug
+  if (month >= 8 && month <= 10) return "neon-night"; // Autumn: Sep-Nov
+  return "neon-night"; // Winter: Dec-Feb
+}
+
+function _resolveTheme(pref) {
+  if (pref === "seasonal") return _getSeasonalTheme();
+  if (pref === "auto" || !VALID_THEMES.includes(pref)) {
+    return window.matchMedia("(prefers-color-scheme: light)").matches
+      ? "cozy-day"
+      : "neon-night";
+  }
+  return pref;
+}
+
+function _applyTheme(resolved) {
+  if (resolved === "neon-night") {
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    document.documentElement.setAttribute("data-theme", resolved);
+  }
+}
+
+export function initTheme() {
+  const pref = localStorage.getItem(THEME_KEY) || "auto";
+  _applyTheme(_resolveTheme(pref));
+
+  // Live OS preference change listener
+  window
+    .matchMedia("(prefers-color-scheme: light)")
+    .addEventListener("change", () => {
+      const current = localStorage.getItem(THEME_KEY) || "auto";
+      if (current === "auto") {
+        _applyTheme(_resolveTheme("auto"));
+      }
+    });
+}
+
+export function setTheme(name) {
+  if (!VALID_THEMES.includes(name)) name = "auto";
+  localStorage.setItem(THEME_KEY, name);
+  _applyTheme(_resolveTheme(name));
+}
+
+export function getTheme() {
+  return localStorage.getItem(THEME_KEY) || "auto";
 }

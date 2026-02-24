@@ -359,6 +359,8 @@
 
     <!-- Farm Main Content: plots + side panel -->
     <div class="farm-layout">
+      <!-- v7.2: Featured Seed Shelf (rendered by farm.js) -->
+      <div id="featured-shelf-container"></div>
       <div class="farm-plots" id="farm-plots"></div>
 
       <div class="farm-panel" id="farm-panel">
@@ -368,6 +370,15 @@
           </button>
           <button class="farm-tab" id="farm-tab-shop" data-tab="shop">
             🌾 Shop
+          </button>
+          <button class="farm-tab" id="farm-tab-badges" data-tab="badges">
+            🏆 Badges
+          </button>
+          <button class="farm-tab" id="farm-tab-journal" data-tab="journal">
+            📖 Journal
+          </button>
+          <button class="farm-tab" id="farm-tab-season" data-tab="season">
+            ⭐ Season
           </button>
         </div>
 
@@ -387,11 +398,29 @@
           ></div>
           <div class="farm-shop-grid" id="farm-shop-grid"></div>
         </div>
+
+        <!-- Badges Tab -->
+        <div class="farm-tab-content" id="farm-tab-content-badges">
+          <div class="farm-badges-grid" id="farm-badges-grid"></div>
+        </div>
+
+        <!-- Journal Tab -->
+        <div class="farm-tab-content" id="farm-tab-content-journal">
+          <div class="farm-journal-grid" id="farm-journal-grid"></div>
+        </div>
+
+        <!-- Season Pass Tab -->
+        <div class="farm-tab-content" id="farm-tab-content-season">
+          <div class="farm-season-pass" id="farm-season-pass"></div>
+        </div>
       </div>
     </div>
 
     <!-- Floating Shop FAB (toggled visible by shared.js on farm screen) -->
     <button class="farm-shop-fab" id="farm-shop-fab">🛒 Shop</button>
+
+    <!-- v7.2: Theme cycle button (floating, always visible) -->
+    <button class="theme-cycle-fab" id="theme-cycle-btn">🎨 Theme</button>
   </section>
 
   <!-- ────── MATCH-3 SCREEN ────── -->

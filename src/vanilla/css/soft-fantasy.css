@@ -1,0 +1,221 @@
+/* ═══════════════════════════════════════════════════
+ *  v7.2: Soft Fantasy Theme — Pastel Dreamscape
+ *  Overrides all CSS custom properties from base.css :root.
+ *  Applied via [data-theme="soft-fantasy"] on <html>.
+ *  Design: Dark plum/rose/lavender with dreamy glows.
+ * ═══════════════════════════════════════════════════ */
+
+[data-theme="soft-fantasy"] {
+  /* ── Background ── */
+  --bg: #1a1625;
+  --surface: #252038;
+  --surface-hover: #302a4a;
+  --surface-highlight: #3a3260;
+  --overlay: rgba(26, 22, 37, 0.94);
+
+  /* ── Brand ── */
+  --accent: #ff8fa3;
+  --accent-hover: #ff6b89;
+  --accent-muted: rgba(255, 143, 163, 0.12);
+  --accent-glow: rgba(255, 143, 163, 0.25);
+  --brand-secondary: #b4d4ff;
+  --brand-accent: #c4b5fd;
+  --brand-accent-muted: rgba(196, 181, 253, 0.1);
+
+  /* ── UI ── */
+  --text: #f5f0ff;
+  --text-dim: #9b8fbb;
+  --text-muted: #7a6e99;
+  --border: #3d3558;
+  --border-light: rgba(255, 143, 163, 0.06);
+  --gold: #ffd580;
+  --gold-hover: #ffca60;
+  --ui-gold: #ffd580;
+  --energy: #b4d4ff;
+  --danger: #ff6b6b;
+  --success: #86efac;
+  --info: #b4d4ff;
+
+  /* ── Rarity ── */
+  --rarity-common: #9b8fbb;
+  --rarity-rare: #b4d4ff;
+  --rarity-epic: #c4b5fd;
+  --rarity-legendary: #ffd580;
+
+  /* ── Shadows (purple-tinted dreamy glows) ── */
+  --elevation-shadow:
+    0 4px 20px rgba(26, 22, 37, 0.5), 0 0 30px rgba(196, 181, 253, 0.08);
+  --neon-glow:
+    0 0 15px rgba(255, 143, 163, 0.2), 0 0 40px rgba(255, 143, 163, 0.06);
+  --neon-accent:
+    0 0 15px rgba(196, 181, 253, 0.2), 0 0 40px rgba(196, 181, 253, 0.06);
+  --neon-gold: 0 0 15px rgba(255, 213, 128, 0.25), 0 0 0 transparent;
+
+  /* ── Motion (slightly softer ease) ── */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.2);
+  --ease-bouncy: cubic-bezier(0.5, -0.2, 0.265, 1.3);
+
+  /* ── Scrollbar ── */
+  color-scheme: dark;
+}
+
+/* ── Body & Background ── */
+[data-theme="soft-fantasy"] body {
+  background: linear-gradient(160deg, #1a1625 0%, #251e3a 40%, #1e1530 100%);
+  background-attachment: fixed;
+}
+
+/* ── Bottom Nav ── */
+[data-theme="soft-fantasy"] .bottom-nav,
+[data-theme="soft-fantasy"] [class*="BottomNav"] {
+  background: rgba(30, 24, 50, 0.92) !important;
+  border-top: 1px solid rgba(196, 181, 253, 0.12) !important;
+  backdrop-filter: blur(16px) saturate(1.5);
+  box-shadow: 0 -4px 20px rgba(196, 181, 253, 0.06);
+}
+
+/* ── Stats / HUD Bar ── */
+[data-theme="soft-fantasy"] .stats-bar {
+  background: rgba(37, 32, 56, 0.88);
+  border: 1px solid rgba(196, 181, 253, 0.08);
+  box-shadow:
+    0 4px 20px rgba(26, 22, 37, 0.5),
+    0 0 24px rgba(196, 181, 253, 0.04);
+}
+[data-theme="soft-fantasy"] .stats-bar::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(196, 181, 253, 0.06),
+    transparent
+  );
+}
+
+/* ── Buttons ── */
+[data-theme="soft-fantasy"] .btn-primary,
+[data-theme="soft-fantasy"] .btn[class*="primary"] {
+  background: linear-gradient(135deg, #ff8fa3, #c4b5fd) !important;
+  color: #1a1625 !important;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(255, 143, 163, 0.3);
+  border: none;
+}
+[data-theme="soft-fantasy"] .btn-primary:hover,
+[data-theme="soft-fantasy"] .btn[class*="primary"]:hover {
+  box-shadow: 0 6px 24px rgba(255, 143, 163, 0.45);
+  filter: brightness(1.05);
+}
+
+/* ── Cards / Panels ── */
+[data-theme="soft-fantasy"] .modal-card,
+[data-theme="soft-fantasy"] .modal {
+  background: rgba(37, 32, 56, 0.98) !important;
+  border: 1px solid rgba(196, 181, 253, 0.1);
+  box-shadow:
+    0 16px 48px rgba(26, 22, 37, 0.6),
+    0 0 40px rgba(196, 181, 253, 0.05);
+}
+
+/* ── Game Boards ── */
+[data-theme="soft-fantasy"] .m3-cell {
+  background: rgba(37, 32, 56, 0.5);
+  border: 1px solid rgba(196, 181, 253, 0.06);
+}
+[data-theme="soft-fantasy"] .blox-cell {
+  background: rgba(37, 32, 56, 0.4);
+  border: 1px solid rgba(196, 181, 253, 0.05);
+}
+[data-theme="soft-fantasy"] .merge-cell {
+  background: rgba(37, 32, 56, 0.4);
+  border: 1px solid rgba(196, 181, 253, 0.06);
+}
+
+/* ── Farm ── */
+[data-theme="soft-fantasy"] .farm-plot {
+  background: rgba(37, 32, 56, 0.6);
+  border: 1px solid rgba(196, 181, 253, 0.08);
+}
+[data-theme="soft-fantasy"] .seed-card {
+  background: rgba(37, 32, 56, 0.7);
+  border: 1px solid rgba(196, 181, 253, 0.08);
+}
+[data-theme="soft-fantasy"] .seed-card:hover:not([disabled]) {
+  border-color: rgba(255, 143, 163, 0.25);
+  box-shadow: 0 0 16px rgba(255, 143, 163, 0.12);
+}
+
+/* ── Trivia ── */
+[data-theme="soft-fantasy"] .trivia-answer-btn {
+  background: rgba(37, 32, 56, 0.8);
+  border: 1px solid rgba(196, 181, 253, 0.1);
+}
+[data-theme="soft-fantasy"] .trivia-answer-btn:hover:not(:disabled) {
+  background: rgba(255, 143, 163, 0.1);
+  border-color: rgba(255, 143, 163, 0.3);
+  box-shadow: 0 0 12px rgba(255, 143, 163, 0.1);
+}
+
+/* ── Selection & Backdrops ── */
+[data-theme="soft-fantasy"] ::selection {
+  background: rgba(255, 143, 163, 0.25);
+  color: #f5f0ff;
+}
+[data-theme="soft-fantasy"] dialog::backdrop {
+  background: rgba(26, 22, 37, 0.6);
+}
+
+/* ── Toasts & Banners ── */
+[data-theme="soft-fantasy"] .toast {
+  background: rgba(37, 32, 56, 0.96);
+  color: #f5f0ff;
+  border-color: rgba(196, 181, 253, 0.1);
+  box-shadow: 0 4px 16px rgba(26, 22, 37, 0.4);
+}
+[data-theme="soft-fantasy"] .comfort-banner {
+  background: rgba(37, 32, 56, 0.95);
+  border-color: rgba(196, 181, 253, 0.15);
+  color: #f5f0ff;
+  box-shadow:
+    0 4px 20px rgba(26, 22, 37, 0.4),
+    0 0 20px rgba(196, 181, 253, 0.06);
+}
+
+/* ── Quick-buy ── */
+[data-theme="soft-fantasy"] .qb-card {
+  background: rgba(37, 32, 56, 0.98);
+  border-color: rgba(196, 181, 253, 0.1);
+  box-shadow: 0 -4px 24px rgba(26, 22, 37, 0.5);
+}
+[data-theme="soft-fantasy"] .qb-seed-card {
+  background: rgba(196, 181, 253, 0.04);
+  border-color: rgba(196, 181, 253, 0.08);
+}
+[data-theme="soft-fantasy"] .qb-seed-card:hover:not([disabled]) {
+  background: rgba(255, 143, 163, 0.08);
+  border-color: rgba(255, 143, 163, 0.2);
+}
+[data-theme="soft-fantasy"] .qb-more-link {
+  color: rgba(155, 143, 187, 0.6);
+  border-color: rgba(196, 181, 253, 0.1);
+}
+
+/* ── Pause/Game-Over Overlays ── */
+[data-theme="soft-fantasy"] .blox-pause-overlay,
+[data-theme="soft-fantasy"] .blox-game-over-overlay,
+[data-theme="soft-fantasy"] .m3-game-over {
+  background: rgba(26, 22, 37, 0.92) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(196, 181, 253, 0.1);
+}
+
+/* ── Featured Shelf ── */
+[data-theme="soft-fantasy"] .featured-shelf {
+  background: rgba(37, 32, 56, 0.6);
+  border: 1px solid rgba(196, 181, 253, 0.08);
+}
+
+/* ── Theme-cycle FAB ── */
+[data-theme="soft-fantasy"] .theme-cycle-fab {
+  background: rgba(37, 32, 56, 0.8);
+  border-color: rgba(196, 181, 253, 0.15);
+}

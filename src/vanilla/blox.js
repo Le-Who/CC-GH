@@ -1069,6 +1069,20 @@ const BloxGameImpl = (() => {
     selectedPiece = -1;
 
     renderBoard();
+
+    // v7.2: Place bounce animation on the just-placed cells
+    for (const [dr, dc] of t.piece.cells) {
+      const cell = _boardCells[r + dr]?.[c + dc];
+      if (cell) {
+        cell.classList.add("blox-place-bounce");
+        cell.addEventListener(
+          "animationend",
+          () => cell.classList.remove("blox-place-bounce"),
+          { once: true },
+        );
+      }
+    }
+
     renderTray();
     initBoardMouseTracking(); // Re-bind after re-render
 
@@ -1413,9 +1427,9 @@ const BloxGameImpl = (() => {
     updateStats();
     // v4.9: refresh leaderboard on screen enter
     fetchBloxLeaderboard();
-    // Show pause overlay when entering screen (if game is active, pause it)
+    // v7.3: Auto-resume active games (comfort architecture — no blocking overlay)
     if (gameActive) {
-      showPauseOverlay();
+      resumeGame();
     } else {
       showPauseOverlay();
     }

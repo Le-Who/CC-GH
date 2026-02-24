@@ -27,6 +27,10 @@ import {
   cacheNavDOM,
   applyInitialScreen,
   safeShowModal,
+  setupInterruptionSystem,
+  initTheme,
+  setTheme,
+  VALID_THEMES,
 } from "./shared.js";
 import { HUD } from "./hud.js";
 import { PetCompanion, setWaterFn } from "./pet.js";
@@ -56,6 +60,9 @@ setWaterFn((plotIndex) => FarmGame.water(plotIndex));
 export async function bootApp() {
   // Wait a tick for React to finish rendering strictly
   await new Promise((resolve) => setTimeout(resolve, 0));
+
+  // v7.1: Apply saved theme before any DOM renders (prevents flash)
+  initTheme();
 
   // Device detection (must be first for CSS classes)
   detectDevice();
@@ -91,6 +98,9 @@ export async function bootApp() {
 
   // Start periodic arrow flash on desktop (1.2)
   if (!HUB.isTouchDevice) startArrowFlash();
+
+  // v7.1: Interruption & Comfort System (return-tier detection)
+  setupInterruptionSystem();
 
   // Expose HUB and navigation to window for React integration
   window.HUB = HUB;
@@ -160,6 +170,31 @@ export async function bootApp() {
       _resizePending = false;
     });
   });
+
+  // v7.2: Theme picker cycle button
+  const themeBtn = document.getElementById("theme-cycle-btn");
+  if (themeBtn) {
+    const themeLabels = {
+      "neon-night": "🌙 Neon Night",
+      "cozy-day": "☀️ Cozy Day",
+      "soft-fantasy": "🌸 Soft Fantasy",
+      "minimal-calm": "🍃 Minimal Calm",
+      seasonal: "🗓️ Seasonal",
+      auto: "🔄 Auto",
+    };
+    const themes = VALID_THEMES;
+    let idx = themes.indexOf(localStorage.getItem("hub_theme") || "auto");
+    if (idx < 0) idx = themes.length - 1;
+    themeBtn.textContent = themeLabels[themes[idx]] || themes[idx];
+    themeBtn.addEventListener("click", () => {
+      idx = (idx + 1) % themes.length;
+      setTheme(themes[idx]);
+      themeBtn.textContent = themeLabels[themes[idx]] || themes[idx];
+    });
+  }
+
+  // Signal to React (WelcomeScreen) that boot is complete
+  window.HUB.bootComplete = true;
 }
 
 // Ensure the default export is bootApp

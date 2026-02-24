@@ -1,0 +1,131 @@
+/* ═══════════════════════════════════════════════════
+ *  Store UI — Supplemental Styles (v7.0.0)
+ *  Hyper-Playful Neon
+ * ═══════════════════════════════════════════════════ */
+
+/* ── Scrollbar hiding for tab overflow ── */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Rarity indicators ── */
+.rarity-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.rarity-dot--common {
+  background: var(--rarity-common);
+}
+.rarity-dot--rare {
+  background: var(--rarity-rare);
+  box-shadow: 0 0 6px var(--rarity-rare);
+}
+.rarity-dot--epic {
+  background: var(--rarity-epic);
+  box-shadow: 0 0 8px var(--rarity-epic);
+}
+.rarity-dot--legendary {
+  background: var(--rarity-legendary);
+  box-shadow: 0 0 12px var(--rarity-legendary);
+  animation: legendaryPulse 2s infinite ease-in-out;
+}
+
+@keyframes legendaryPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--rarity-legendary);
+  }
+  50% {
+    box-shadow: 0 0 16px var(--rarity-legendary);
+  }
+}
+
+/* ── Neon Card Border Effect ── */
+.store-card-neon {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.store-card-neon::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, var(--accent), var(--brand-accent));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.store-card-neon:hover::before {
+  opacity: 1;
+}
+
+/* ── Merchant Timer ── */
+.merchant-timer {
+  font-family: "Varela Round", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: var(--neon-glow);
+}
+
+.merchant-timer--departed {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+/* ── Squash & Stretch Button Animation ── */
+.store-btn-squash {
+  transition: transform 0.15s var(--ease-spring);
+}
+
+.store-btn-squash:active {
+  transform: translateY(3px) scaleY(0.95);
+}
+
+/* ── Gacha Crystal Glow ── */
+.gacha-crystal-glow {
+  filter: drop-shadow(0 0 30px rgba(167, 139, 250, 0.5));
+  transition: filter 0.3s ease;
+}
+
+.gacha-crystal-glow--pulling {
+  filter: drop-shadow(0 0 60px rgba(167, 139, 250, 0.8))
+    drop-shadow(0 0 120px rgba(255, 51, 102, 0.3));
+}
+
+/* ── Scarcity Countdown ── */
+.scarcity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 51, 102, 0.15);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Focus States (accessibility) ── */
+.store-panel *:focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

@@ -218,6 +218,8 @@ async function rollGacha() {
     _renderBoard();
     _renderGeneratorPanel();
     showToast("🎰 Gacha roll! New item spawned!", "success");
+    // v7.2: Gacha capsule drop + reveal juice
+    _animateGachaDrop();
     return { success: true };
   } catch {
     GameStore.setState("resources", { ...res, gachaTokens: oldTokens });
@@ -240,6 +242,8 @@ async function freePull() {
     _renderBoard();
     _renderGeneratorPanel();
     showToast("🎁 Daily free item!", "success");
+    // v7.2: Gacha capsule drop juice
+    _animateGachaDrop();
     return { success: true };
   } catch {
     showToast("Network error", "error");
@@ -343,6 +347,32 @@ function _renderBoard() {
   }
   // Restart idle hint timer on any board render
   _resetIdleHintTimer();
+}
+
+/* v7.2: Gacha capsule drop + reveal animation on recently spawned cells */
+function _animateGachaDrop() {
+  if (!_boardEl) return;
+  const cells = _boardEl.querySelectorAll(".merge-cell.merge-item");
+  // Animate the last row of items (most likely newly spawned)
+  const items = Array.from(cells).slice(-3);
+  items.forEach((cell, i) => {
+    cell.classList.add("gacha-dropping");
+    cell.style.animationDelay = `${i * 80}ms`;
+    cell.addEventListener(
+      "animationend",
+      function handler() {
+        cell.classList.remove("gacha-dropping");
+        cell.classList.add("gacha-reveal");
+        cell.addEventListener(
+          "animationend",
+          () => cell.classList.remove("gacha-reveal"),
+          { once: true },
+        );
+        cell.removeEventListener("animationend", handler);
+      },
+      { once: true },
+    );
+  });
 }
 
 function _renderCell(r, c, item) {
@@ -541,11 +571,15 @@ function _onPointerUp(e) {
     // Try merge (async)
     mergeItems(ds.fromR, ds.fromC, toR, toC).then((result) => {
       if (result.success) {
-        // Pop animation on target
+        // Pop + collide animation on target
         target.classList.add("merge-pop");
+        target.classList.add("merge-collide"); // v7.2: flash burst
         target.addEventListener(
           "animationend",
-          () => target.classList.remove("merge-pop"),
+          () => {
+            target.classList.remove("merge-pop");
+            target.classList.remove("merge-collide");
+          },
           { once: true },
         );
       }
@@ -583,7 +617,18 @@ function _renderGeneratorPanel() {
 
   _genPanel.textContent = "";
 
-  // Generator buttons
+  // ─── Primary Section: Generators ───
+  const genSection = document.createElement("div");
+  genSection.className = "merge-panel-section merge-gen-section";
+
+  const genLabel = document.createElement("span");
+  genLabel.className = "merge-section-label";
+  genLabel.textContent = "⚡ Generators";
+  genSection.appendChild(genLabel);
+
+  const genRow = document.createElement("div");
+  genRow.className = "merge-gen-row";
+
   for (const chainId of mergeState.generators) {
     const chain = MERGE_CHAINS[chainId];
     if (!chain) continue;
@@ -607,7 +652,7 @@ function _renderGeneratorPanel() {
     }
 
     btn.addEventListener("click", () => _tapWithFuel(chainId));
-    _genPanel.appendChild(btn);
+    genRow.appendChild(btn);
 
     // Fuel slot badge (shows currently selected crop)
     const fuelCrop = _selectedFuel[chainId];
@@ -624,18 +669,27 @@ function _renderGeneratorPanel() {
           e.stopPropagation();
           _showCropPicker(chainId);
         });
-        _genPanel.appendChild(fuelBadge);
+        genRow.appendChild(fuelBadge);
       }
     }
   }
 
-  // Gacha button
+  genSection.appendChild(genRow);
+  _genPanel.appendChild(genSection);
+
+  // ─── Secondary Section: Tools ───
+  const toolsRow = document.createElement("div");
+  toolsRow.className = "merge-panel-section merge-tools-row";
+
+  // Gacha button (with token count inline)
+  const tokenCount = res?.gachaTokens || 0;
   const gachaBtn = document.createElement("button");
   gachaBtn.className = "merge-gen-btn merge-gacha-btn";
-  gachaBtn.textContent = `🎰 Gacha (${ECONOMY.GACHA_PULL_COST} Tokens)`;
+  gachaBtn.textContent = `🎰 Gacha (${tokenCount}/${ECONOMY.GACHA_PULL_COST})`;
   gachaBtn.title = `Spend ${ECONOMY.GACHA_PULL_COST} Gacha Tokens`;
+  gachaBtn.disabled = tokenCount < ECONOMY.GACHA_PULL_COST;
   gachaBtn.addEventListener("click", rollGacha);
-  _genPanel.appendChild(gachaBtn);
+  toolsRow.appendChild(gachaBtn);
 
   // Free pull button
   const mergeData = GameStore.getState("merge");
@@ -646,28 +700,24 @@ function _renderGeneratorPanel() {
 
   const freeBtn = document.createElement("button");
   freeBtn.className = "merge-gen-btn merge-free-btn";
-  freeBtn.textContent = canFreePull ? "🎁 Free Pull" : "🎁 Used Today";
+  freeBtn.textContent = canFreePull ? "🎁 Free" : "🎁 Used";
   freeBtn.disabled = !canFreePull;
   freeBtn.addEventListener("click", freePull);
-  _genPanel.appendChild(freeBtn);
+  toolsRow.appendChild(freeBtn);
 
   // Trash toggle
   const trashBtn = document.createElement("button");
   trashBtn.className = `merge-gen-btn merge-trash-btn${_trashMode ? " active" : ""}`;
-  trashBtn.textContent = "🗑️ Trash";
+  trashBtn.textContent = "🗑️";
   trashBtn.title = "Click items on board to remove them";
   trashBtn.addEventListener("click", () => {
     _trashMode = !_trashMode;
     trashBtn.classList.toggle("active", _trashMode);
     if (_boardEl) _boardEl.classList.toggle("trash-mode", _trashMode);
   });
-  _genPanel.appendChild(trashBtn);
+  toolsRow.appendChild(trashBtn);
 
-  // Token display
-  const tokenDisplay = document.createElement("span");
-  tokenDisplay.className = "merge-token-display";
-  tokenDisplay.textContent = `🎰 ${res?.gachaTokens || 0} Tokens`;
-  _genPanel.appendChild(tokenDisplay);
+  _genPanel.appendChild(toolsRow);
 }
 
 /* ─── Crop Picker Modal for Generator Tap ─── */

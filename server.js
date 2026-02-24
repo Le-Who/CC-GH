@@ -25,6 +25,10 @@ import bloxRoutes from "./routes/blox.js";
 import leaderboardRoutes from "./routes/leaderboard.js";
 import mergeRoutes from "./routes/mergeRoutes.js";
 import questRoutes from "./routes/questRoutes.js";
+import achievementRoutes from "./routes/achievements.js";
+import eventRoutes from "./routes/events.js";
+import seasonPassRoutes from "./routes/seasonpass.js";
+import { defaultLimiter, authLimiter } from "./middleware/rateLimit.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -149,6 +153,10 @@ app.get("/api/health", (_req, res) =>
 /* ═══════════════════════════════════════════════════
  *  MOUNT ROUTE MODULES
  * ═══════════════════════════════════════════════════ */
+// v7.3: Rate limiting
+app.use("/api/token", authLimiter);
+app.use("/api", defaultLimiter);
+
 app.use(farmRoutes(requireAuth, resolveUser));
 app.use(resourcesRoutes(requireAuth, resolveUser));
 app.use(triviaRouter);
@@ -157,6 +165,9 @@ app.use(bloxRoutes(requireAuth, resolveUser));
 app.use(leaderboardRoutes());
 app.use(mergeRoutes(requireAuth, resolveUser));
 app.use(questRoutes(requireAuth, resolveUser));
+app.use(achievementRoutes(requireAuth, resolveUser));
+app.use(eventRoutes(requireAuth));
+app.use(seasonPassRoutes(requireAuth, resolveUser));
 
 /* ═══════════════════════════════════════════════════
  *  STATIC FILES & INDEX INJECTION

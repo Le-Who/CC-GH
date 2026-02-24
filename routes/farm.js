@@ -13,6 +13,12 @@ import {
   processOfflineActions,
   getGrowthPct,
   farmPlotsWithGrowth,
+  updateStreak,
+  checkAchievements,
+  mergeCropConfig,
+  BOOSTER_CONFIG,
+  PLOT_THEMES,
+  SEASON_PASS,
 } from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
@@ -40,12 +46,31 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const offlineReport = processOfflineActions(p);
     if (offlineReport) debouncedSavePlayer(userId);
 
+    // v7.3: Streak system — check daily login
+    const streakResult = updateStreak(p);
+    // v7.3: Achievement check
+    const newAchievements = checkAchievements(p);
+    if (
+      streakResult.continued ||
+      streakResult.broken ||
+      newAchievements.length > 0
+    ) {
+      debouncedSavePlayer(userId);
+    }
+
     res.json({
       ...p.farm,
       plots: farmPlotsWithGrowth(p.farm),
       resources: p.resources,
       pet: p.pet,
       offlineReport,
+      streak: p.streak,
+      streakResult,
+      newAchievements,
+      seasonPass: p.seasonPass,
+      cosmetics: p.cosmetics,
+      boosters: p.boosters,
+      journal: p.journal,
       serverTime: Date.now(),
     });
   });
@@ -113,6 +138,18 @@ export default function farmRoutes(requireAuth, resolveUser) {
       tokenDrop = true;
     }
     p.farm.xp += cfg.xp;
+
+    // v7.3: Season pass XP from harvesting
+    if (!p.seasonPass)
+      p.seasonPass = { season: 1, xp: 0, tier: 0, claimed: [] };
+    p.seasonPass.xp += cfg.xp;
+
+    // v7.3: Journal discovery
+    if (!p.journal) p.journal = { discovered: [] };
+    if (!p.journal.discovered.includes(cropId)) {
+      p.journal.discovered.push(cropId);
+    }
+
     const newLevel = Math.floor(p.farm.xp / 100) + 1;
     const leveledUp = newLevel > p.farm.level;
     p.farm.level = newLevel;
@@ -218,6 +255,79 @@ export default function farmRoutes(requireAuth, resolveUser) {
       nextCost,
       maxPlots: MAX_PLOTS,
     });
+  });
+
+  /* ─── v7.3: Dynamic Crops Config ─── */
+  let cropOverrides = {}; // Live-ops tuning layer (in-memory for now)
+  router.get("/api/farm/crops", requireAuth, (_req, res) => {
+    const merged = mergeCropConfig(CROPS, cropOverrides);
+    res.json({ crops: merged });
+  });
+
+  /* ─── v7.3: Activate Fertilizer Booster ─── */
+  router.post("/api/farm/activate-booster", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { boosterId = "fertilizer" } = req.body;
+    const p = getPlayer(userId);
+    const cfg = BOOSTER_CONFIG[boosterId];
+    if (!cfg) return res.status(400).json({ error: "unknown booster" });
+    if (!p.boosters) p.boosters = {};
+    if (
+      p.boosters[boosterId]?.active &&
+      p.boosters[boosterId].expiresAt > Date.now()
+    ) {
+      return res.status(400).json({ error: "booster already active" });
+    }
+    if (p.resources.gold < cfg.cost) {
+      return res.status(400).json({ error: "not enough gold" });
+    }
+    p.resources.gold -= cfg.cost;
+    p.boosters[boosterId] = {
+      active: true,
+      expiresAt: Date.now() + cfg.durationMs,
+    };
+    debouncedSavePlayer(userId);
+    res.json({
+      success: true,
+      boosters: p.boosters,
+      resources: p.resources,
+    });
+  });
+
+  /* ─── v7.3: Buy Plot Theme ─── */
+  router.post("/api/farm/buy-theme", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { themeId } = req.body;
+    const p = getPlayer(userId);
+    const theme = PLOT_THEMES[themeId];
+    if (!theme) return res.status(400).json({ error: "unknown theme" });
+    if (!p.cosmetics)
+      p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
+    if (p.cosmetics.ownedThemes.includes(themeId)) {
+      return res.status(400).json({ error: "already owned" });
+    }
+    if (p.resources.gold < theme.cost) {
+      return res.status(400).json({ error: "not enough gold" });
+    }
+    p.resources.gold -= theme.cost;
+    p.cosmetics.ownedThemes.push(themeId);
+    debouncedSavePlayer(userId);
+    res.json({ success: true, cosmetics: p.cosmetics, resources: p.resources });
+  });
+
+  /* ─── v7.3: Set Active Theme ─── */
+  router.post("/api/farm/set-theme", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { themeId } = req.body;
+    const p = getPlayer(userId);
+    if (!p.cosmetics)
+      p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
+    if (!p.cosmetics.ownedThemes.includes(themeId)) {
+      return res.status(400).json({ error: "theme not owned" });
+    }
+    p.cosmetics.activePlotTheme = themeId;
+    debouncedSavePlayer(userId);
+    res.json({ success: true, cosmetics: p.cosmetics });
   });
 
   return router;

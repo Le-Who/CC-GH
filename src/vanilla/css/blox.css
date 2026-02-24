@@ -102,8 +102,8 @@
     transform: scale(1);
   }
   100% {
-    opacity: 0.85;
-    transform: scale(1.08);
+    opacity: 0.95;
+    transform: scale(1.1);
   }
 }
 @keyframes bloxShatter {
@@ -112,7 +112,7 @@
     opacity: 1;
   }
   40% {
-    transform: scale(1.12) translateY(2px);
+    transform: scale(1.18) translateY(2px);
     opacity: 0.7;
   }
   100% {
@@ -652,4 +652,26 @@
     border-color 0.4s ease,
     box-shadow 0.4s ease,
     filter 0.4s ease;
+}
+
+/* v7.2: Place Bounce — squash + settle on piece placement */
+@keyframes bloxPlaceBounce {
+  0% {
+    transform: scale(1.1);
+  }
+  30% {
+    transform: scale(0.92) scaleY(0.88);
+  }
+  50% {
+    transform: scale(1.05) scaleY(1.03);
+  }
+  70% {
+    transform: scale(0.98) scaleY(0.99);
+  }
+  100% {
+    transform: scale(1) scaleY(1);
+  }
+}
+.blox-cell.just-placed {
+  animation: bloxPlaceBounce 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }

@@ -117,12 +117,14 @@ export const CROPS = {
     id: "strawberry",
     name: "Strawberry",
     emoji: "🍓",
-    growthTime: 5_000, // 5 sec (Micro-strawberry Onboarding)
+    growthTime: 60_000, // 60 sec (v7.3: rebalanced from 5s — was 120 gold/min exploit)
     sellPrice: 15,
     seedPrice: 5,
     xp: 5,
     energyYield: 1,
     fullnessYield: 5,
+    unlockCondition: null, // always available
+    lore: "A tiny, sweet berry that grows faster than you can blink. The gateway crop for every aspiring farmer.",
   },
   blueberry: {
     id: "blueberry",
@@ -134,6 +136,8 @@ export const CROPS = {
     xp: 8,
     energyYield: 2,
     fullnessYield: 8,
+    unlockCondition: null, // always available
+    lore: "Plump and antioxidant-rich, blueberries thrive in slightly acidic soil. A reliable earner for patient farmers.",
   },
   tomato: {
     id: "tomato",
@@ -145,6 +149,12 @@ export const CROPS = {
     xp: 10,
     energyYield: 3,
     fullnessYield: 12,
+    unlockCondition: {
+      type: "totalHarvests",
+      value: 1,
+      label: "Harvest your first crop",
+    },
+    lore: "The classic red tomato — versatile, nutritious, and surprisingly profitable. Every farm needs a few.",
   },
   golden: {
     id: "golden",
@@ -156,17 +166,29 @@ export const CROPS = {
     xp: 50,
     energyYield: 4,
     fullnessYield: 15,
+    unlockCondition: {
+      type: "questsCompleted",
+      value: 1,
+      label: "Complete your first quest",
+    },
+    lore: "Legends say this rose blooms only for those who've proven their green thumb. Its petals shimmer with actual gold dust.",
   },
   corn: {
     id: "corn",
     name: "Corn",
     emoji: "🌽",
-    growthTime: 3_600_000, // 1 hr
+    growthTime: 2_700_000, // 45 min (v7.3: smoothed from 1h for mid-game comfort)
     sellPrice: 50,
     seedPrice: 20,
     xp: 15,
     energyYield: 6,
     fullnessYield: 20,
+    unlockCondition: {
+      type: "goldEarned",
+      value: 100,
+      label: "Earn 100🪙 total",
+    },
+    lore: "Standing tall in autumn fields, corn is the backbone of mid-tier farming. Patience pays off in golden kernels.",
   },
   sunflower: {
     id: "sunflower",
@@ -178,6 +200,12 @@ export const CROPS = {
     xp: 25,
     energyYield: 10,
     fullnessYield: 30,
+    unlockCondition: {
+      type: "plotsBought",
+      value: 3,
+      label: "Buy your 3rd farm plot",
+    },
+    lore: "Sunflowers track the sun across the sky. Their massive heads are worth a fortune — if you can wait long enough.",
   },
   watermelon: {
     id: "watermelon",
@@ -189,6 +217,12 @@ export const CROPS = {
     xp: 35,
     energyYield: 12,
     fullnessYield: 35,
+    unlockCondition: {
+      type: "totalHarvests",
+      value: 50,
+      label: "Harvest 50 crops total",
+    },
+    lore: "A colossal fruit that takes half a day to ripen. Cracking one open reveals the sweetest prize in farming.",
   },
   pumpkin: {
     id: "pumpkin",
@@ -200,8 +234,30 @@ export const CROPS = {
     xp: 80,
     energyYield: 15,
     fullnessYield: 40,
+    unlockCondition: { type: "daysActive", value: 7, label: "Play for 7 days" },
+    lore: "The king of all crops. Only the most dedicated farmers can coax a pumpkin to its enormous, glowing maturity.",
   },
 };
+
+/**
+ * v7.2: Progressive Seed Unlocking
+ * Evaluates each crop's unlockCondition against player stats.
+ * @param {object} playerStats - { totalHarvests, goldEarned, questsCompleted, plotsBought, daysActive }
+ * @returns {string[]} Array of unlocked crop IDs
+ */
+export function getUnlockedSeeds(playerStats = {}) {
+  const unlocked = [];
+  for (const [id, cfg] of Object.entries(CROPS)) {
+    if (!cfg.unlockCondition) {
+      unlocked.push(id);
+      continue;
+    }
+    const { type, value } = cfg.unlockCondition;
+    const stat = playerStats[type] || 0;
+    if (stat >= value) unlocked.push(id);
+  }
+  return unlocked;
+}
 
 /* ═══════════════════════════════════════════════════
  *  MERGE CHAINS (Gacha Merge v7.0)
@@ -307,6 +363,330 @@ export const QUEST_TIERS = {
  * ═══════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════
+ *  STREAK SYSTEM — Daily login bonuses
+ * ═══════════════════════════════════════════════════ */
+export const STREAK_BONUSES = [
+  { days: 3, multiplier: 1.1, label: "3-Day", bonus: null },
+  {
+    days: 7,
+    multiplier: 1.25,
+    label: "Week",
+    bonus: { seeds: { blueberry: 5 } },
+  },
+  {
+    days: 14,
+    multiplier: 1.5,
+    label: "2-Week",
+    bonus: { seeds: { tomato: 3 } },
+  },
+  {
+    days: 30,
+    multiplier: 2.0,
+    label: "Month",
+    bonus: { gold: 500, theme: "neon" },
+  },
+];
+
+export function updateStreak(player, now = Date.now()) {
+  if (!player.streak) {
+    player.streak = {
+      current: 0,
+      best: 0,
+      lastLoginDate: null,
+      bonusMultiplier: 1,
+    };
+  }
+  const today = new Date(now).toISOString().slice(0, 10);
+  if (player.streak.lastLoginDate === today) {
+    return { continued: false, broken: false, bonusUnlocked: null };
+  }
+  const yesterday = new Date(now - 86_400_000).toISOString().slice(0, 10);
+  let broken = false;
+  if (player.streak.lastLoginDate === yesterday) {
+    player.streak.current++;
+  } else {
+    broken = player.streak.current > 0;
+    player.streak.current = 1;
+  }
+  player.streak.lastLoginDate = today;
+  player.streak.best = Math.max(player.streak.best, player.streak.current);
+  let mult = 1;
+  let bonusUnlocked = null;
+  for (const tier of STREAK_BONUSES) {
+    if (player.streak.current >= tier.days) {
+      mult = tier.multiplier;
+      if (player.streak.current === tier.days) bonusUnlocked = tier;
+    }
+  }
+  player.streak.bonusMultiplier = mult;
+  return { continued: !broken, broken, bonusUnlocked };
+}
+
+/* ═══════════════════════════════════════════════════
+ *  ACHIEVEMENT BADGES
+ * ═══════════════════════════════════════════════════ */
+export const ACHIEVEMENTS = {
+  first_sprout: {
+    id: "first_sprout",
+    name: "First Sprout",
+    emoji: "🌱",
+    desc: "Plant your first crop",
+    reward: { gold: 10 },
+    check: (p) => (p.farm?.xp || 0) > 0,
+  },
+  berry_picker: {
+    id: "berry_picker",
+    name: "Berry Picker",
+    emoji: "🍓",
+    desc: "Harvest 10 strawberries",
+    reward: { gold: 25 },
+    check: (p) => (p.farm?.harvested?.strawberry || 0) >= 10,
+  },
+  green_thumb: {
+    id: "green_thumb",
+    name: "Green Thumb",
+    emoji: "🧑‍🌾",
+    desc: "Harvest 50 crops total",
+    reward: { gold: 50 },
+    check: (p) =>
+      Object.values(p.farm?.harvested || {}).reduce((a, b) => a + b, 0) >= 50,
+  },
+  rose_garden: {
+    id: "rose_garden",
+    name: "Rose Garden",
+    emoji: "🌹",
+    desc: "Harvest a Golden Rose",
+    reward: { gold: 100 },
+    check: (p) => (p.farm?.harvested?.golden || 0) >= 1,
+  },
+  pumpkin_king: {
+    id: "pumpkin_king",
+    name: "Pumpkin King",
+    emoji: "🎃",
+    desc: "Harvest a Pumpkin",
+    reward: { gold: 200 },
+    check: (p) => (p.farm?.harvested?.pumpkin || 0) >= 1,
+  },
+  land_baron: {
+    id: "land_baron",
+    name: "Land Baron",
+    emoji: "🏗️",
+    desc: "Buy 3 extra plots",
+    reward: { gold: 150 },
+    check: (p) => (p.farm?.plots?.length || 6) >= 9,
+  },
+  first_million: {
+    id: "first_million",
+    name: "Gold Hoarder",
+    emoji: "💰",
+    desc: "Earn 1000 gold total",
+    reward: { gold: 100 },
+    check: (p) => (p.resources?.gold || 0) >= 1000,
+  },
+  week_warrior: {
+    id: "week_warrior",
+    name: "Week Warrior",
+    emoji: "🔥",
+    desc: "7-day login streak",
+    reward: { gachaTokens: 5 },
+    check: (p) => (p.streak?.best || 0) >= 7,
+  },
+  pet_whisperer: {
+    id: "pet_whisperer",
+    name: "Pet Whisperer",
+    emoji: "🐾",
+    desc: "Pet affection level 5",
+    reward: { gold: 100 },
+    check: (p) => (p.pet?.affectionLevel || 1) >= 5,
+  },
+  gem_master: {
+    id: "gem_master",
+    name: "Gem Master",
+    emoji: "💎",
+    desc: "Match-3 score over 3000",
+    reward: { gold: 50 },
+    check: (p) => (p.match3?.highScore || 0) >= 3000,
+  },
+  merge_lord: {
+    id: "merge_lord",
+    name: "Merge Lord",
+    emoji: "🧩",
+    desc: "Create a legendary merge item",
+    reward: { gold: 200 },
+    check: (p) => {
+      const b = p.merge?.board;
+      if (!b) return false;
+      for (const r of b) for (const c of r) if (c?.level >= 7) return true;
+      return false;
+    },
+  },
+  farm_legend: {
+    id: "farm_legend",
+    name: "Farm Legend",
+    emoji: "⭐",
+    desc: "Reach farm level 10",
+    reward: { gold: 500 },
+    check: (p) => (p.farm?.level || 1) >= 10,
+  },
+};
+
+export function checkAchievements(player) {
+  if (!player.achievements) player.achievements = {};
+  const newlyUnlocked = [];
+  for (const [id, badge] of Object.entries(ACHIEVEMENTS)) {
+    if (player.achievements[id]) continue;
+    try {
+      if (badge.check(player)) {
+        player.achievements[id] = { unlockedAt: Date.now(), seen: false };
+        newlyUnlocked.push(id);
+      }
+    } catch {
+      /* guard */
+    }
+  }
+  return newlyUnlocked;
+}
+
+/* ═══════════════════════════════════════════════════
+ *  SEASON PASS
+ * ═══════════════════════════════════════════════════ */
+export const SEASON_PASS = {
+  season: 1,
+  name: "Season of Growth",
+  tiers: [
+    { xp: 0, reward: { gold: 50 }, label: "Welcome Gift" },
+    { xp: 100, reward: { seeds: { strawberry: 10 } }, label: "Starter Pack" },
+    { xp: 250, reward: { gold: 100 }, label: "Gold Rush" },
+    { xp: 500, reward: { theme: "autumn" }, label: "Autumn Harvest" },
+    {
+      xp: 1000,
+      reward: { gold: 300, gachaTokens: 5 },
+      label: "Treasure Trove",
+    },
+    { xp: 2000, reward: { title: "🌟 Farm Master" }, label: "Master Title" },
+    {
+      xp: 3500,
+      reward: { theme: "crystal", gold: 500 },
+      label: "Crystal Garden",
+    },
+    {
+      xp: 5000,
+      reward: { gold: 1000, title: "👑 Legend" },
+      label: "Legend Status",
+    },
+  ],
+};
+
+/* ═══════════════════════════════════════════════════
+ *  PLOT THEMES (Farm Cosmetics)
+ * ═══════════════════════════════════════════════════ */
+export const PLOT_THEMES = {
+  default: {
+    id: "default",
+    name: "Classic",
+    emoji: "🌿",
+    cost: 0,
+    borderColor: "rgba(34,197,94,0.4)",
+    glowColor: "rgba(34,197,94,0.15)",
+  },
+  neon: {
+    id: "neon",
+    name: "Neon Glow",
+    emoji: "💜",
+    cost: 200,
+    borderColor: "rgba(168,85,247,0.5)",
+    glowColor: "rgba(168,85,247,0.2)",
+  },
+  autumn: {
+    id: "autumn",
+    name: "Autumn Harvest",
+    emoji: "🍂",
+    cost: 300,
+    borderColor: "rgba(234,88,12,0.5)",
+    glowColor: "rgba(234,88,12,0.15)",
+  },
+  crystal: {
+    id: "crystal",
+    name: "Crystal Garden",
+    emoji: "💎",
+    cost: 500,
+    borderColor: "rgba(56,189,248,0.5)",
+    glowColor: "rgba(56,189,248,0.2)",
+  },
+};
+
+/* ═══════════════════════════════════════════════════
+ *  BOOSTER CONFIG
+ * ═══════════════════════════════════════════════════ */
+export const BOOSTER_CONFIG = {
+  fertilizer: {
+    id: "fertilizer",
+    name: "Fertilizer",
+    emoji: "⚡",
+    durationMs: 3_600_000,
+    growthMultiplier: 0.5,
+    cost: 50,
+  },
+};
+
+/* ═══════════════════════════════════════════════════
+ *  EVENT FRAMEWORK
+ * ═══════════════════════════════════════════════════ */
+export const EVENTS = [
+  {
+    id: "spring_bloom",
+    name: "Spring Bloom",
+    emoji: "🌸",
+    description: "Cherry blossoms are in season! Grow limited-edition flowers.",
+    startDate: null,
+    endDate: null,
+    bonuses: { xpMultiplier: 2 },
+    specialCrop: {
+      id: "cherry_blossom",
+      name: "Cherry Blossom",
+      emoji: "🌸",
+      growthTime: 600_000,
+      sellPrice: 75,
+      seedPrice: 30,
+      xp: 25,
+      energyYield: 3,
+      fullnessYield: 10,
+      lore: "A delicate pink blossom that only appears during the Spring Bloom festival.",
+    },
+  },
+  {
+    id: "harvest_moon",
+    name: "Harvest Moon",
+    emoji: "🌕",
+    description: "Under the harvest moon, crops grow faster and sell for more.",
+    startDate: null,
+    endDate: null,
+    bonuses: { goldMultiplier: 1.5, growthSpeedMultiplier: 0.75 },
+    specialCrop: null,
+  },
+];
+
+export function getActiveEvents(now = Date.now()) {
+  return EVENTS.filter((e) => {
+    if (!e.startDate || !e.endDate) return false;
+    const start = new Date(e.startDate).getTime();
+    const end = new Date(e.endDate).getTime();
+    return now >= start && now <= end;
+  });
+}
+
+export function mergeCropConfig(base, overrides = {}) {
+  const merged = {};
+  for (const [id, cfg] of Object.entries(base)) {
+    merged[id] = overrides[id] ? { ...cfg, ...overrides[id], id } : { ...cfg };
+  }
+  for (const [id, cfg] of Object.entries(overrides)) {
+    if (!base[id]) merged[id] = { ...cfg, id };
+  }
+  return merged;
+}
+
+/* ═══════════════════════════════════════════════════
  *  PLAYER FACTORY
  * ═══════════════════════════════════════════════════ */
 export function createDefaultPlayer(userId, username, now = Date.now()) {
@@ -349,7 +729,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
         plantedAt: null,
         watered: false,
       })),
-      inventory: { strawberry: 5, planter: 2 },
+      inventory: { strawberry: 5 },
       harvested: {},
     },
     merge: {
@@ -380,6 +760,13 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       highScore: 0,
       totalGames: 0,
     },
+    streak: { current: 0, best: 0, lastLoginDate: null, bonusMultiplier: 1 },
+    achievements: {},
+    journal: { discovered: [] },
+    cosmetics: { activePlotTheme: "default", ownedThemes: ["default"] },
+    seasonPass: { season: 1, xp: 0, tier: 0, claimed: [] },
+    boosters: { fertilizer: { active: false, expiresAt: 0 } },
+    schemaVersion: 6,
   };
 }
 

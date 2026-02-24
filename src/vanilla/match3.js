@@ -303,19 +303,26 @@ const Match3GameImpl = (() => {
   }
 
   function onEnter() {
-    /* v4.5.3: properly handle all states on screen re-entry */
+    /* v7.3: Auto-resume active games (comfort architecture — no blocking overlay) */
     if (gameActive) {
-      // Game in progress — show pause overlay with Resume/End
+      // Game in progress — resume seamlessly, no modal
+      if (gamePaused) {
+        gamePaused = false;
+        // Restart timed countdown if Time Attack mode
+        if (gameMode === "timed" && timedSecondsLeft > 0) {
+          startTimedCountdown();
+        }
+      }
+      hideM3PauseOverlay();
+      return;
+    }
+    const hasSaved = Object.keys(savedModes).length > 0;
+    if (hasSaved) {
+      // Saved sessions — show Continue/New overlay for user choice
       showM3PauseOverlay();
     } else {
-      const hasSaved = Object.keys(savedModes).length > 0;
-      if (hasSaved) {
-        // Saved sessions — show Continue/New/End overlay
-        showM3PauseOverlay();
-      } else {
-        // No game, no saved sessions — show mode selector directly
-        showModeSelector();
-      }
+      // No game, no saved sessions — show mode selector directly
+      showModeSelector();
     }
   }
 
@@ -1362,6 +1369,16 @@ const Match3GameImpl = (() => {
       cellB.style.transition = "";
       void $b.offsetHeight; // force synchronous layout flush
       $b.classList.remove("batch-update");
+
+      // v7.2: Swap spring overshoot bounce
+      [cellA, cellB].forEach((cell) => {
+        cell.classList.add("m3-swap-spring");
+        cell.addEventListener(
+          "animationend",
+          () => cell.classList.remove("m3-swap-spring"),
+          { once: true },
+        );
+      });
     } else {
       // Fallback: no visual cells, just do the board swap
       [board[fromY][fromX], board[toY][toX]] = [
@@ -1882,9 +1899,23 @@ const Match3GameImpl = (() => {
     fetchLeaderboard(scope);
   }
 
+  /* v7.3: Screen exit lifecycle — stop timers, pause game */
+  function onLeave() {
+    // Stop Time Attack timer to prevent background drain
+    stopTimedCountdown();
+    if (gameActive) {
+      gamePaused = true;
+    }
+    // Unblock swipe navigation
+    HUB.swipeBlocked = false;
+    // Flush pending sync
+    _flushM3Sync();
+  }
+
   return {
     init,
     onEnter,
+    onLeave,
     startGame,
     confirmAndStart,
     showModeSelector,

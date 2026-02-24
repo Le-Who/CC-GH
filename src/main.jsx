@@ -12,11 +12,20 @@ import "./vanilla/css/blox.css";
 import "./vanilla/css/hud.css";
 import "./vanilla/css/pet.css";
 import "./vanilla/css/merge.css";
+// Import local fonts to comply with Discord CSP (no external Google Fonts)
+import "@fontsource/bungee";
+import "@fontsource/nunito/400.css";
+import "@fontsource/nunito/600.css";
+import "@fontsource/nunito/700.css";
+import "@fontsource/nunito/800.css";
+import "@fontsource/nunito/900.css";
+import "@fontsource/varela-round";
 
-// Inject SDK dynamically to prevent Vite from analyzing it during build phase
-const sdkScript = document.createElement("script");
-sdkScript.src = "/js/discord-sdk.js";
-document.head.appendChild(sdkScript);
+import "./vanilla/css/welcome.css";
+import "./vanilla/css/store.css";
+import "./vanilla/css/cozy-day.css"; // v7.1: Cozy Day theme overrides
+import "./vanilla/css/soft-fantasy.css"; // v7.2: Soft Fantasy theme overrides
+import "./vanilla/css/minimal-calm.css"; // v7.2: Minimal Calm theme overrides
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

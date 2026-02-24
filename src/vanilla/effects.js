@@ -225,3 +225,97 @@ export const SoundEngine = (() => {
     },
   };
 })();
+
+/* ═══════════════════════════════════════════════════
+ *  v7.1: Farm Juice — DOM Particle Helpers
+ *  Pool-based, compositor-friendly (transform + opacity only).
+ *  Max 30 particles active (per design performance budget).
+ * ═══════════════════════════════════════════════════ */
+const _particlePool = [];
+const _PARTICLE_POOL_MAX = 30;
+
+function _getParticle() {
+  // Recycle from pool if available
+  for (const p of _particlePool) {
+    if (!p.parentElement) {
+      return p;
+    }
+  }
+  if (_particlePool.length >= _PARTICLE_POOL_MAX) return null;
+  const el = document.createElement("div");
+  el.style.cssText =
+    "position:fixed;pointer-events:none;z-index:999;font-size:1rem;";
+  _particlePool.push(el);
+  return el;
+}
+
+/**
+ * Spawn gold coin particles flying from sourceEl to the HUD gold counter.
+ * @param {HTMLElement} sourceEl — element to fly coins from
+ * @param {number} count — number of coins (default 3)
+ */
+export function spawnCoinFly(sourceEl, count = 3) {
+  if (!sourceEl || document.hidden) return;
+  const target =
+    document.querySelector(".hud-gold") ||
+    document.getElementById("hud-gold-text");
+  if (!target) return;
+  const srcRect = sourceEl.getBoundingClientRect();
+  const tgtRect = target.getBoundingClientRect();
+
+  for (let i = 0; i < count; i++) {
+    const p = _getParticle();
+    if (!p) break;
+    p.textContent = "🪙";
+    p.style.fontSize = "0.9rem";
+    p.style.left = `${srcRect.left + srcRect.width / 2}px`;
+    p.style.top = `${srcRect.top + srcRect.height / 2}px`;
+    p.style.opacity = "1";
+    p.style.transform = "scale(1)";
+    p.style.transition = "none";
+    document.body.appendChild(p);
+
+    const dx = tgtRect.left - srcRect.left + (Math.random() - 0.5) * 20;
+    const dy = tgtRect.top - srcRect.top + (Math.random() - 0.5) * 10;
+    const delay = i * 80;
+
+    setTimeout(() => {
+      p.style.transition = `all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)`;
+      p.style.transform = `translate(${dx}px, ${dy}px) scale(0.4)`;
+      p.style.opacity = "0.2";
+      setTimeout(() => p.remove(), 650);
+    }, delay);
+  }
+}
+
+/**
+ * Spawn water droplet particles rising from a farm plot.
+ * @param {HTMLElement} plotEl — farm plot element
+ * @param {number} count — number of droplets (default 3)
+ */
+export function spawnWaterDroplets(plotEl, count = 3) {
+  if (!plotEl || document.hidden) return;
+  const rect = plotEl.getBoundingClientRect();
+
+  for (let i = 0; i < count; i++) {
+    const p = _getParticle();
+    if (!p) break;
+    p.textContent = "💧";
+    p.style.fontSize = "0.7rem";
+    const xOff = (Math.random() - 0.5) * rect.width * 0.6;
+    p.style.left = `${rect.left + rect.width / 2 + xOff}px`;
+    p.style.top = `${rect.top + rect.height * 0.4}px`;
+    p.style.opacity = "0.8";
+    p.style.transform = "scale(1)";
+    p.style.transition = "none";
+    document.body.appendChild(p);
+
+    const delay = i * 120;
+    setTimeout(() => {
+      p.style.transition = `all 0.7s ease-out`;
+      p.style.transform = `translateY(-22px) scale(0.4)`;
+      p.style.opacity = "0";
+      setTimeout(() => p.remove(), 750);
+    }, delay);
+  }
+}

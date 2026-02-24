@@ -527,11 +527,25 @@ const TriviaGame = (() => {
     $("trivia-category").textContent = `${q.category} • ${q.difficulty}`;
     $("trivia-q-text").textContent = q.question;
 
+    // v7.2: Card flip entrance
+    const card = document.querySelector(".trivia-question-card");
+    if (card) {
+      card.classList.remove("flipping");
+      void card.offsetWidth; // force reflow
+      card.classList.add("flipping");
+      card.addEventListener(
+        "animationend",
+        () => card.classList.remove("flipping"),
+        { once: true },
+      );
+    }
+
     const ansDiv = $("trivia-answers");
     ansDiv.innerHTML = "";
-    q.answers.forEach((ans) => {
+    q.answers.forEach((ans, i) => {
       const btn = document.createElement("button");
       btn.className = "trivia-answer-btn";
+      btn.style.setProperty("--i", i); // v7.2: stagger-fade entrance
       btn.textContent = ans;
       btn.onclick = () => submitAnswer(ans);
       ansDiv.appendChild(btn);
@@ -617,16 +631,26 @@ const TriviaGame = (() => {
       });
     }
 
-    // Highlight correct/wrong
+    // Highlight correct/wrong + v7.2 juice
     btns.forEach((b) => {
-      if (b.textContent === data.correctAnswer) b.classList.add("correct");
-      else if (b.textContent === answer && !data.correct)
+      if (b.textContent === data.correctAnswer) {
+        b.classList.add("correct");
+        b.classList.add("correct-pop"); // v7.2: pop animation
+      } else if (b.textContent === answer && !data.correct)
         b.classList.add("wrong");
     });
 
     session.score = data.sessionScore;
     session.streak = data.streak;
     syncToStore();
+
+    // v7.2: Streak glow
+    const streakEl = $("trivia-streak-display");
+    if (streakEl && session.streak > 1) {
+      streakEl.classList.remove("trivia-streak-active");
+      void streakEl.offsetWidth;
+      streakEl.classList.add("trivia-streak-active");
+    }
 
     await sleep(1200);
 

@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v6.3.0**
+**Current version: v7.2.0**
 
 ---
 
@@ -20,6 +20,9 @@
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
 | ⚡ **Energy System**      | Native dialog overlays · 2.5-min regen · Gates match-3 and trivia plays      |
 | 💣 **Farm Uproot**        | Hold-to-confirm 2.5s removal of unwanted crops (no refund)                   |
+| 🔓 **Progressive Unlock** | Seeds gated by harvests, quests, gold, plots, days · unlock celebrations     |
+| 🌟 **Featured Shelf**     | 4-seed rotating shelf, curated by purchase history, refreshes every 4 hours  |
+| 🎨 **4 Themes**           | Neon Night · Cozy Day · Soft Fantasy · Minimal Calm · Seasonal auto-rotate   |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
 | 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
@@ -120,7 +123,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 320 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
+npm test          # All 343 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -130,7 +133,7 @@ npm run test:perf # Performance benchmarks only
 | **API**    | `tests/api.test.js`               |    26 |
 | **Blox**   | `tests/blox.test.js`              |    30 |
 | **M3**     | `tests/match3.test.js`            |    12 |
-| **UX**     | `tests/ux.test.js`                |    52 |
+| **UX**     | `tests/ux.test.js`                |    75 |
 | **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
 | **Stress** | `tests/game-logic-stress.test.js` |    58 |
@@ -200,19 +203,23 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 Older architecture evolution changes can be found in `legacy_readme.md`.
 
-### ✅ Completed in v6.3.0
+### ✅ Completed in v7.2.0
 
-1. **Psychological Marketing Integration**:
-   - **GameStore** with Decoy bundle & Scarcity timers.
-   - **Quest Log** dynamically applying the Goal-Gradient effect.
-   - **Welcome Back modal** demonstrating the Zeigarnik effect.
-2. **Micro-Interactions & Polish**:
-   - Match-3 Game Over particle splash (Peak-End Rule).
-   - Pet Renaming modal upon level-up/start (IKEA Effect).
-   - Nudge Theory fluid animations using spring bezier curves.
-3. **Modal Bugfixes**:
-   - Resolved the critical invisible Modal blocking UI bug caused by view transitions, implemented safely deferred dialog toggling in `shared.js`.
-   - Patched QuestUI `.quest-dropdown` wrapper overlap bug.
+1. **Player Experience Overhaul**:
+   - **Progressive Seed Unlocking**: 6 crops gated by player milestones (harvests, quests, gold, plots, days).
+   - **Featured Seed Shelf**: 4-seed rotating shelf with untried seed prioritization and live countdown.
+   - **4 Themes**: Neon Night, Cozy Day, 🌸 Soft Fantasy (plum/lavender dark), 🍃 Minimal Calm (zen white/sage).
+   - **Seasonal auto-rotation**: Month-based theme suggestion (Spring → Soft Fantasy, Summer → Cozy Day).
+2. **Juice Animations**:
+   - Trivia: 3D card flip, correct pop, streak glow, stagger-fade answers.
+   - Merge: magnetic pull, collide flash, gacha capsule bounce, rarity light spear.
+   - Pet: tap bounce, heart burst, dust puff.
+   - Match-3: spring swap. Blox: place bounce.
+3. **Psychological Marketing Integration** (v6.3.0):
+   - GameStore with Decoy bundle & Scarcity timers.
+   - Quest Log with Goal-Gradient effect.
+   - Welcome Back modal (Zeigarnik effect).
+   - Match-3 particle splash (Peak-End Rule), Pet renaming (IKEA Effect).
 
 ---
 

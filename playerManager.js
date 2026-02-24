@@ -78,13 +78,25 @@ function sanitizeForFirestore(obj) {
 export async function loadDb() {
   if (playersCol) {
     try {
-      const snapshot = await playersCol.limit(1000).get();
-      if (!snapshot.empty) {
+      // v7.3: Paginated loading — removes 1000-player cap
+      let lastDoc = null;
+      const PAGE_SIZE = 500;
+      let totalLoaded = 0;
+      do {
+        let query = playersCol.orderBy("__name__").limit(PAGE_SIZE);
+        if (lastDoc) query = query.startAfter(lastDoc);
+        const snapshot = await query.get();
+        if (snapshot.empty) break;
         snapshot.forEach((doc) => {
           players.set(doc.id, doc.data());
         });
+        totalLoaded += snapshot.size;
+        lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        if (snapshot.size < PAGE_SIZE) break; // Last page
+      } while (true);
+      if (totalLoaded > 0) {
         console.log(
-          `🔥 DB loaded from Firestore: ${players.size} players in hot-cache`,
+          `🔥 DB loaded from Firestore: ${totalLoaded} players in hot-cache (paginated)`,
         );
       } else {
         console.log("🔥 Firestore DB is empty. Starting fresh.");
@@ -271,7 +283,7 @@ export function getPlayer(userId, username) {
     // Ensure starter seeds exist
     if (!p.farm.inventory) p.farm.inventory = {};
     p.farm.inventory.strawberry = Math.max(p.farm.inventory.strawberry || 0, 5);
-    if (!p.farm.inventory.planter) p.farm.inventory.planter = 2;
+    // v7.3: Removed planter re-addition (phantom item fix)
 
     // Clear active plots (crops planted under old timers are invalid)
     if (p.farm.plots) {
@@ -316,6 +328,30 @@ export function getPlayer(userId, username) {
   // ─── Match-3 savedModes migration ───
   if (p.match3 && !p.match3.savedModes) {
     p.match3.savedModes = {};
+    NeedsSaveSync = true;
+  }
+
+  // ─── Schema v6 Migration (Retention + Monetization + Cosmetics) ───
+  if (!p.schemaVersion || p.schemaVersion < 6) {
+    if (!p.streak)
+      p.streak = {
+        current: 0,
+        best: 0,
+        lastLoginDate: null,
+        bonusMultiplier: 1,
+      };
+    if (!p.achievements) p.achievements = {};
+    if (!p.journal) p.journal = { discovered: [] };
+    if (!p.cosmetics)
+      p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
+    if (!p.seasonPass)
+      p.seasonPass = { season: 1, xp: 0, tier: 0, claimed: [] };
+    if (!p.boosters)
+      p.boosters = { fertilizer: { active: false, expiresAt: 0 } };
+    // Clean up phantom planter from v5 migration
+    if (p.farm?.inventory?.planter !== undefined)
+      delete p.farm.inventory.planter;
+    p.schemaVersion = 6;
     NeedsSaveSync = true;
   }
 
