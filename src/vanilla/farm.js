@@ -8,6 +8,7 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, goToScreen } from "./shared.js";
+import { PetEvents } from "./pet.js";
 import {
   CROPS as CROPS_CONFIG,
   getUnlockedSeeds,
@@ -33,6 +34,27 @@ const FarmGameImpl = (() => {
   let harvestVersion = 0; // Track rapid harvesting for stale response rejection
   let waterVersion = 0; // Track rapid watering for stale response rejection
   const wateringInFlight = new Set(); // Prevent duplicate auto-water requests
+
+  /* ═══ v7.5: Onboarding — Invisible Tutorial State ═══ */
+  const OB_KEY = "hub_farm_onboarding_done";
+  // Steps: 0=spotlight, 1=planted, 2=watered, 3=harvested, 4=sold/done
+  let _obStep = -1; // -1 = not onboarding
+  let _obProgressEl = null;
+
+  function _isFirstTime() {
+    if (localStorage.getItem(OB_KEY)) return false;
+    const stats = _getPlayerStats();
+    return stats.totalHarvests === 0;
+  }
+
+  function _markOnboardingDone() {
+    try {
+      localStorage.setItem(OB_KEY, "1");
+    } catch (_) {}
+    _obStep = -1;
+    _removeObProgress();
+    _revealFullUI();
+  }
 
   /* ═══ v7.2: Progressive Seed Unlocking — Player Stats Helper ═══ */
   function _getPlayerStats() {
@@ -229,6 +251,11 @@ const FarmGameImpl = (() => {
       renderFeaturedShelf(); // v7.2: featured seed shelf
       _checkNewUnlocks(); // v7.2: detect fresh unlocks on load
       updateBuyBar();
+
+      // v7.5: Start onboarding for first-time players
+      if (_isFirstTime()) {
+        _startOnboarding();
+      }
     }
 
     // Event delegation: single click handler on grid (never lost during DOM rebuild)
@@ -288,12 +315,15 @@ const FarmGameImpl = (() => {
     grid.addEventListener("pointercancel", cancelUproot);
     grid.addEventListener("pointerleave", cancelUproot);
 
-    // Farm panel tab switching
-    const tabInv = $("farm-tab-inv");
-    const tabShop = $("farm-tab-shop");
-    if (tabInv && tabShop) {
-      tabInv.onclick = () => switchFarmTab("inv");
-      tabShop.onclick = () => switchFarmTab("shop");
+    // Farm panel tab switching — delegate all 5 tabs
+    const tabBar = document.querySelector(".farm-panel-tabs");
+    if (tabBar) {
+      tabBar.addEventListener("click", (e) => {
+        const tab = e.target.closest(".farm-tab");
+        if (tab && tab.dataset.tab) {
+          switchFarmTab(tab.dataset.tab);
+        }
+      });
     }
     renderInventory();
   }
@@ -574,6 +604,13 @@ const FarmGameImpl = (() => {
   function onPlotClick(i) {
     const plot = state?.plots?.[i];
     if (!plot) return;
+
+    // v7.5: Onboarding override — guided actions only
+    if (_obStep >= 0) {
+      _handleOnboardingClick(i);
+      return;
+    }
+
     const pct = getLocalGrowth(plot);
     // v4.11.1: Trust local growth for harvest readiness. Local growth uses
     // clock-corrected time (getServerNow) and is validated again server-side
@@ -663,6 +700,11 @@ const FarmGameImpl = (() => {
       // Append Buy Plot card if under max
       appendBuyPlotCard(grid);
       firstRenderDone = true;
+    }
+
+    // v7.5: Apply onboarding visual state after render
+    if (_obStep >= 0) {
+      _applyOnboardingVisuals();
     }
 
     // Task 7.1: Update farm nav notification dot
@@ -861,14 +903,16 @@ const FarmGameImpl = (() => {
       <div class="featured-shelf">${cards}</div>
     `;
 
-    // Collapse toggle
+    // v8.0: Collapse toggle + toggle handle for re-open
     const collapseBtn = container.querySelector(".shelf-collapse-btn");
     if (collapseBtn) {
       collapseBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        container.classList.toggle("shelf-collapsed");
+        container.classList.add("shelf-collapsed");
+        _ensureToggleHandle(container);
       });
     }
+    _ensureToggleHandle(container);
 
     // Tap handler — opens quick-buy with pre-selected seed
     container.querySelectorAll(".featured-shelf-card").forEach((card) => {
@@ -908,15 +952,34 @@ const FarmGameImpl = (() => {
     }, 60_000);
   }
 
+  /* v8.0: Toggle handle — persistent tab on left edge to re-open shelf */
+  let _toggleHandle = null;
+  function _ensureToggleHandle(container) {
+    if (_toggleHandle) return; // Already exists
+    _toggleHandle = document.createElement("div");
+    _toggleHandle.className = "shelf-toggle-handle";
+    _toggleHandle.textContent = "🌟";
+    _toggleHandle.title = "Show Featured Seeds";
+    _toggleHandle.addEventListener("click", () => {
+      container.classList.remove("shelf-collapsed");
+    });
+    document.body.appendChild(_toggleHandle);
+  }
+
   /* ─── Seed Shop Grid (v7.2 UX overhaul) ─── */
   function renderShop() {
     const grid = $("farm-shop-grid");
     grid.innerHTML = "";
     // Filter out non-crop entries (e.g. __hash from API response)
-    const allEntries = Object.entries(crops).filter(
+    let allEntries = Object.entries(crops).filter(
       ([id, cfg]) =>
         typeof cfg === "object" && cfg !== null && !id.startsWith("__"),
     );
+
+    // v7.5: During onboarding, show only strawberry to reduce choice paralysis
+    if (_obStep >= 0 && _obStep < 3) {
+      allEntries = allEntries.filter(([id]) => id === "strawberry");
+    }
 
     // v7.2: Progressive unlock — compute which seeds are available
     const unlocked = _computeUnlocked();
@@ -1019,7 +1082,7 @@ const FarmGameImpl = (() => {
           </div>
           <div class="seed-price-col">
             <div class="seed-price">🪙 ${cfg.seedPrice}</div>
-            <button class="seed-quick-buy" data-crop="${id}" title="Buy 1 ${cfg.name}">Buy</button>
+            ${isSelected ? "" : `<button class="seed-quick-buy" data-crop="${id}" title="Buy 1 ${cfg.name}">Buy</button>`}
           </div>
         `;
         card.onclick = (e) => {
@@ -1638,7 +1701,9 @@ const FarmGameImpl = (() => {
     import("./shared.js").then(({ safeShowModal }) => safeShowModal(dialog));
   }
 
-  /** Buy 1 seed + plant it in the given plot (single-tap flow) */
+  /** Buy 1 seed + plant it in the given plot (single-tap flow)
+   *  v7.4: Fix race condition — buy API must complete BEFORE plant API fires.
+   *  Optimistic UI is shown immediately, but server calls are sequenced. */
   function _quickBuyAndPlant(seedId, plotId) {
     const cfg = crops[seedId];
     if (!cfg) return;
@@ -1659,41 +1724,94 @@ const FarmGameImpl = (() => {
     syncToStore();
     HUD.animateGoldChange(-price);
 
-    // Now plant using the seed
+    // Optimistic: plant immediately in UI (skip API call)
     selectedSeed = seedId;
-    plant(plotId);
-    // plant() will deduct 1 from inventory and call the plant API
+    const cropId = seedId;
+    const seedCount = state?.inventory?.[cropId] || 0;
+    // Apply optimistic plot update (mirrors plant() logic)
+    state.plots[plotId] = {
+      ...state.plots[plotId],
+      crop: cropId,
+      plantedAt: getServerNow(),
+      watered: false,
+      growthTime: crops[cropId]?.growthTime || 15000,
+    };
+    state.inventory[cropId] = Math.max(0, seedCount - 1);
+    justPlantedPlot = plotId;
+    syncToStore();
+    render();
+    renderShop();
+    updateBuyBar();
+    showToast(`Planted ${cfg.emoji} ${cfg.name}!`);
 
-    // Buy API call (fire-and-forget, same pattern as buySeeds)
+    // Dirt splash particle
+    const plotDiv = document.querySelector(
+      `.farm-plot[data-index="${plotId}"]`,
+    );
+    if (plotDiv) {
+      const cropEmoji = plotDiv.querySelector(".crop-emoji");
+      if (cropEmoji) cropEmoji.classList.add("planted-bounce");
+      spawnDirtSplash(plotDiv);
+    }
+
+    // Buy API first, THEN plant API — sequential to avoid "no seeds" race
     const prevGold = goldAvail;
     const myVersion = ++buySeedVersion;
+    const ver = (plotPlantVersions.get(plotId) || 0) + 1;
+    plotPlantVersions.set(plotId, ver);
+
     api("/api/farm/buy-seeds", {
       userId: HUB.userId,
       cropId: seedId,
       amount: 1,
     })
-      .then((data) => {
+      .then((buyData) => {
         if (buySeedVersion !== myVersion) return;
-        if (data.success) {
-          if (data.resources) HUD.syncFromServer(data.resources);
-          state.inventory = data.inventory;
-          syncToStore();
-        } else {
-          // Rollback gold only — do NOT re-render farm grid
-          // (plant API handles inventory; re-rendering here would
-          //  overwrite the already-planted optimistic plot state)
+        if (!buyData.success) {
+          // Rollback everything
           const res = GameStore.getState("resources") || {};
           GameStore.setState("resources", { ...res, gold: prevGold });
+          state.plots[plotId] = { crop: null, plantedAt: null, watered: false };
           syncToStore();
-          showToast(`❌ ${data.error}`);
+          render();
+          renderShop();
+          showToast(`❌ ${buyData.error || "Purchase failed"}`);
+          return;
+        }
+        // Buy succeeded — sync server resources
+        if (buyData.resources) HUD.syncFromServer(buyData.resources);
+        state.inventory = buyData.inventory;
+        syncToStore();
+
+        // NOW fire plant API (server has seeds in inventory)
+        return api("/api/farm/plant", {
+          userId: HUB.userId,
+          plotId,
+          cropId,
+        });
+      })
+      .then((plantData) => {
+        if (!plantData) return; // buy failed, already rolled back
+        if (plotPlantVersions.get(plotId) !== ver) return;
+        if (plantData.success) {
+          state.plots = plantData.plots;
+          state.inventory = plantData.inventory;
+          syncToStore();
+        } else {
+          // Plant failed — rollback plot (buy already consumed)
+          const msg =
+            plantData.error === "no seeds"
+              ? "🌾 Seed was used! Try buying more."
+              : plantData.error === "plot occupied"
+                ? "🚫 This plot is already in use"
+                : `❌ ${plantData.error}`;
+          showToast(msg);
+          loadState();
         }
       })
       .catch(() => {
         if (buySeedVersion === myVersion) loadState();
       });
-
-    // Show feedback
-    showToast(`Planted ${cfg.emoji} ${cfg.name}!`);
   }
 
   function plant(plotId) {
@@ -1705,8 +1823,8 @@ const FarmGameImpl = (() => {
     const seedCount = state?.inventory?.[selectedSeed] || 0;
     if (seedCount <= 0) {
       showToast("🌾 No seeds left! Buy more in the shop ↓");
-      const shopEl = document.querySelector(".farm-shop");
-      if (shopEl) shopEl.scrollIntoView({ behavior: "smooth" });
+      // Open quick-buy as a recovery action
+      showQuickBuy(plotId);
       return;
     }
     // Optimistic update (instant UI feedback)
@@ -1752,13 +1870,15 @@ const FarmGameImpl = (() => {
           state.inventory = data.inventory;
           syncToStore();
         } else {
-          // Error: full resync from server
+          // v7.4: User-friendly planting error messages (reduce frustration)
           const msg =
             data.error === "no seeds"
-              ? "🌾 No seeds left! Buy more in the shop ↓"
+              ? "🌾 Out of seeds — grab more from the shop!"
               : data.error === "plot occupied"
-                ? "🚫 This plot is already in use"
-                : `❌ ${data.error}`;
+                ? "🚫 This plot already has something growing"
+                : data.error === "unknown crop"
+                  ? "⚠️ This seed type isn't available right now"
+                  : `❌ ${data.error}`;
           showToast(msg);
           loadState();
         }
@@ -1789,6 +1909,7 @@ const FarmGameImpl = (() => {
     }
 
     showToast(`💧 Watered! Growth ~30% faster`);
+    PetEvents.emit("farm_water");
 
     // Bug 4.1 fix: timeout fallback to release lock even if server is slow
     const fallbackTimer = setTimeout(
@@ -1859,6 +1980,7 @@ const FarmGameImpl = (() => {
     // Bug 3 fix: toast shows only XP, no gold (harvest doesn't award gold)
     showToast(`${cfg?.emoji || "🌱"} Harvested! +${estimatedXP}XP`);
     SoundEngine.harvest(); // v6.2.1: audio + haptic feedback
+    PetEvents.emit("farm_harvest");
 
     // Fire-and-forget with version guard
     const myVersion = ++harvestVersion;
@@ -1951,6 +2073,7 @@ const FarmGameImpl = (() => {
     showToast(`💰 Sold! +${sellPrice}🪙`);
     HUD.animateGoldChange(sellPrice);
     HUD.updateDisplay(GameStore.getState("resources"));
+    PetEvents.emit("farm_sell");
 
     api("/api/farm/sell-crop", { userId: HUB.userId, cropId })
       .then((data) => {
@@ -2228,6 +2351,324 @@ const FarmGameImpl = (() => {
       document.body.appendChild(particle);
       setTimeout(() => particle.remove(), 800);
     }
+  }
+
+  /* ═══════════════════════════════════════════════════
+   *  v7.5: Onboarding — Invisible Tutorial System
+   *  Guides new players through core loop using visual cues.
+   *  Steps: spotlight → plant → water → harvest → reveal
+   * ═══════════════════════════════════════════════════ */
+
+  function _startOnboarding() {
+    _obStep = 0;
+    // Hide non-essential UI for cognitive focus (Hick's Law)
+    _hideAdvancedUI();
+    // Auto-select strawberry (cheapest, always unlocked)
+    selectedSeed = "strawberry";
+    // Show progress indicator
+    _showObProgress();
+    // Apply visual state on next frame
+    requestAnimationFrame(() => {
+      _applyOnboardingVisuals();
+    });
+  }
+
+  function _hideAdvancedUI() {
+    // Hide Featured Shelf
+    const shelf = $("featured-shelf-container");
+    if (shelf) shelf.classList.add("ob-hidden");
+    // Hide Booster button
+    const booster = document.getElementById("farm-booster-btn");
+    if (booster) booster.classList.add("ob-hidden");
+    // Hide Theme cycle button
+    const theme = document.getElementById("theme-cycle-btn");
+    if (theme) theme.classList.add("ob-hidden");
+    // Hide Shop FAB
+    const shopFab = $("farm-shop-fab");
+    if (shopFab) shopFab.classList.add("ob-hidden");
+    // Hide advanced tabs: badges, journal, season
+    const advTabs = ["farm-tab-badges", "farm-tab-journal", "farm-tab-season"];
+    for (const tabId of advTabs) {
+      const tab = document.getElementById(tabId);
+      if (tab) tab.classList.add("ob-hidden");
+    }
+    // Hide streak badge
+    const streak = document.getElementById("farm-streak-badge");
+    if (streak) streak.classList.add("ob-hidden");
+  }
+
+  function _applyOnboardingVisuals() {
+    const grid = $("farm-plots");
+    if (!grid || !state?.plots) return;
+    const plots = grid.querySelectorAll(".farm-plot:not(.skeleton)");
+
+    if (_obStep === 0) {
+      // Spotlight first empty plot, dim everything else
+      let targetIdx = state.plots.findIndex((p) => !p.crop);
+      if (targetIdx < 0) targetIdx = 0;
+      plots.forEach((div, i) => {
+        if (i === targetIdx) {
+          div.classList.add("ob-spotlight");
+          div.classList.remove("ob-dim");
+          // Add hand gesture if not already present
+          if (!div.querySelector(".ob-hand")) {
+            const hand = document.createElement("div");
+            hand.className = "ob-hand";
+            hand.textContent = "👆";
+            div.style.position = "relative";
+            div.appendChild(hand);
+          }
+        } else {
+          div.classList.add("ob-dim");
+          div.classList.remove("ob-spotlight");
+        }
+      });
+      // Dim buy plot card too
+      const buyCard = grid.querySelector(".buy-plot-card");
+      if (buyCard) buyCard.classList.add("ob-dim");
+    } else if (_obStep === 1) {
+      // After planting: pulse water button, keep other plots dimmed
+      plots.forEach((div, i) => {
+        if (i === 0) {
+          div.classList.remove("ob-spotlight", "ob-dim");
+          // Remove hand
+          const hand = div.querySelector(".ob-hand");
+          if (hand) hand.remove();
+          // Pulse water button
+          const waterBtn = div.querySelector(".farm-water-btn:not([disabled])");
+          if (waterBtn) {
+            waterBtn.classList.add("ob-water-pulse");
+          }
+        } else {
+          div.classList.add("ob-dim");
+        }
+      });
+    } else if (_obStep === 2) {
+      // After watering: keep dimmed, wait for harvest
+      plots.forEach((div, i) => {
+        if (i === 0) {
+          div.classList.remove("ob-dim", "ob-spotlight");
+          // Check if ready to harvest — add golden glow
+          const pct = getLocalGrowth(state.plots[0]);
+          if (pct >= 1) {
+            div.classList.add("ob-harvest-glow");
+            // Add hand if not present
+            if (!div.querySelector(".ob-hand")) {
+              const hand = document.createElement("div");
+              hand.className = "ob-hand";
+              hand.textContent = "👆";
+              div.style.position = "relative";
+              div.appendChild(hand);
+            }
+          }
+        } else {
+          div.classList.add("ob-dim");
+        }
+      });
+    }
+  }
+
+  function _handleOnboardingClick(plotIdx) {
+    const plot = state?.plots?.[plotIdx];
+    if (!plot) return;
+
+    if (_obStep === 0 && !plot.crop) {
+      // Step 0 → 1: Auto-plant strawberry (skip Quick Buy complexity)
+      const seedId = "strawberry";
+      const cfg = crops[seedId];
+      if (!cfg) return;
+      const price = cfg.seedPrice || 5;
+      const goldAvail = HUD.getGold();
+      if (goldAvail < price) {
+        showToast("❌ Not enough gold!");
+        return;
+      }
+
+      // Track purchase
+      _trackPurchase(seedId);
+
+      // Optimistic: deduct gold + plant
+      const res = GameStore.getState("resources") || {};
+      GameStore.setState("resources", { ...res, gold: res.gold - price });
+      state.inventory[seedId] = (state.inventory[seedId] || 0) + 1;
+      selectedSeed = seedId;
+      state.plots[plotIdx] = {
+        ...state.plots[plotIdx],
+        crop: seedId,
+        plantedAt: getServerNow(),
+        watered: false,
+        growthTime: cfg.growthTime || 60000,
+      };
+      state.inventory[seedId] = Math.max(0, (state.inventory[seedId] || 1) - 1);
+      justPlantedPlot = plotIdx;
+      syncToStore();
+      render();
+      renderShop();
+      HUD.animateGoldChange(-price);
+      showToast(`🌱 Planted ${cfg.emoji} ${cfg.name}!`);
+
+      // Dirt splash particle
+      const plotDiv = document.querySelector(
+        `.farm-plot[data-index="${plotIdx}"]`,
+      );
+      if (plotDiv) {
+        const cropEmoji = plotDiv.querySelector(".crop-emoji");
+        if (cropEmoji) cropEmoji.classList.add("planted-bounce");
+        spawnDirtSplash(plotDiv);
+      }
+
+      // Fire buy+plant API (same as _quickBuyAndPlant but simplified)
+      const myVersion = ++buySeedVersion;
+      const ver = (plotPlantVersions.get(plotIdx) || 0) + 1;
+      plotPlantVersions.set(plotIdx, ver);
+      api("/api/farm/buy-seeds", {
+        userId: HUB.userId,
+        cropId: seedId,
+        amount: 1,
+      })
+        .then((buyData) => {
+          if (buySeedVersion !== myVersion || !buyData.success) return;
+          if (buyData.resources) HUD.syncFromServer(buyData.resources);
+          state.inventory = buyData.inventory;
+          syncToStore();
+          return api("/api/farm/plant", {
+            userId: HUB.userId,
+            plotId: plotIdx,
+            cropId: seedId,
+          });
+        })
+        .then((plantData) => {
+          if (!plantData || plotPlantVersions.get(plotIdx) !== ver) return;
+          if (plantData.success) {
+            state.plots = plantData.plots;
+            state.inventory = plantData.inventory;
+            syncToStore();
+          }
+        })
+        .catch(() => {});
+
+      // Advance to step 1
+      _obStep = 1;
+      _updateObProgress();
+      requestAnimationFrame(() => _applyOnboardingVisuals());
+      return;
+    }
+
+    if (_obStep === 1 && plot.crop && !plot.watered) {
+      // Step 1 → 2: Water the crop
+      water(plotIdx);
+      _obStep = 2;
+      _updateObProgress();
+      requestAnimationFrame(() => _applyOnboardingVisuals());
+      return;
+    }
+
+    if (_obStep === 2 && plot.crop) {
+      const pct = getLocalGrowth(plot);
+      if (pct >= 1) {
+        // Step 2 → 3: Harvest with celebration!
+        const plotDiv = document.querySelector(
+          `.farm-plot[data-index="${plotIdx}"]`,
+        );
+        if (plotDiv) plotDiv.classList.add("ob-celebrate");
+        harvest(plotIdx);
+        _obStep = 3;
+        _updateObProgress();
+
+        // Remove all onboarding visuals
+        const grid = $("farm-plots");
+        if (grid) {
+          grid
+            .querySelectorAll(".ob-dim, .ob-spotlight, .ob-harvest-glow")
+            .forEach((el) => {
+              el.classList.remove("ob-dim", "ob-spotlight", "ob-harvest-glow");
+            });
+          grid.querySelectorAll(".ob-hand").forEach((el) => el.remove());
+        }
+
+        // Celebration toast
+        showToast("🎉 Amazing! You harvested your first crop!");
+
+        // Brief delay then complete onboarding
+        setTimeout(() => {
+          _markOnboardingDone();
+          showToast("🌟 You're a farmer! The whole world awaits.");
+        }, 1200);
+        return;
+      } else {
+        showToast("⏳ Still growing... almost there!");
+      }
+      return;
+    }
+  }
+
+  function _showObProgress() {
+    _removeObProgress();
+    const el = document.createElement("div");
+    el.className = "ob-progress";
+    el.id = "ob-progress-bar";
+    el.innerHTML = `
+      <span>🌱</span>
+      <span class="ob-progress-dot active"></span>
+      <span class="ob-progress-dot"></span>
+      <span class="ob-progress-dot"></span>
+    `;
+    document.body.appendChild(el);
+    _obProgressEl = el;
+  }
+
+  function _updateObProgress() {
+    const el = _obProgressEl || document.getElementById("ob-progress-bar");
+    if (!el) return;
+    const dots = el.querySelectorAll(".ob-progress-dot");
+    dots.forEach((dot, i) => {
+      dot.classList.remove("done", "active");
+      if (i < _obStep) dot.classList.add("done");
+      else if (i === _obStep) dot.classList.add("active");
+    });
+  }
+
+  function _removeObProgress() {
+    const el = _obProgressEl || document.getElementById("ob-progress-bar");
+    if (el) el.remove();
+    _obProgressEl = null;
+  }
+
+  function _revealFullUI() {
+    // Unhide all ob-hidden elements with stagger animation
+    const hidden = document.querySelectorAll(".ob-hidden");
+    hidden.forEach((el, i) => {
+      el.classList.remove("ob-hidden");
+      el.classList.add("ob-reveal");
+      el.style.animationDelay = `${i * 0.1}s`;
+      // Clean up after animation
+      setTimeout(
+        () => {
+          el.classList.remove("ob-reveal");
+          el.style.animationDelay = "";
+        },
+        1000 + i * 100,
+      );
+    });
+
+    // Remove all ob-* classes from plots
+    const grid = $("farm-plots");
+    if (grid) {
+      grid.querySelectorAll(".farm-plot").forEach((div) => {
+        div.classList.remove(
+          "ob-dim",
+          "ob-spotlight",
+          "ob-harvest-glow",
+          "ob-celebrate",
+        );
+      });
+      grid.querySelectorAll(".ob-hand, .ob-hint").forEach((el) => el.remove());
+    }
+
+    // Re-render shop with full seed list
+    renderShop();
+    renderFeaturedShelf();
+    renderInventory();
   }
 
   /* ─── Screen Enter/Exit ─── */

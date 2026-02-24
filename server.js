@@ -18,12 +18,13 @@ import { players, loadDb } from "./playerManager.js";
 
 /* ─── Route Modules ─── */
 import farmRoutes from "./routes/farm.js";
-import resourcesRoutes from "./routes/resources.js";
+import resourcesRoutes, { retentionRoutes } from "./routes/resources.js";
 import triviaRoutes from "./routes/trivia.js";
 import match3Routes from "./routes/match3.js";
 import bloxRoutes from "./routes/blox.js";
 import leaderboardRoutes from "./routes/leaderboard.js";
 import mergeRoutes from "./routes/mergeRoutes.js";
+import petRoomRoutes from "./routes/petRoom.js";
 import questRoutes from "./routes/questRoutes.js";
 import achievementRoutes from "./routes/achievements.js";
 import eventRoutes from "./routes/events.js";
@@ -164,10 +165,12 @@ app.use(match3Routes(requireAuth, resolveUser));
 app.use(bloxRoutes(requireAuth, resolveUser));
 app.use(leaderboardRoutes());
 app.use(mergeRoutes(requireAuth, resolveUser));
+app.use(petRoomRoutes(requireAuth, resolveUser));
 app.use(questRoutes(requireAuth, resolveUser));
 app.use(achievementRoutes(requireAuth, resolveUser));
 app.use(eventRoutes(requireAuth));
 app.use(seasonPassRoutes(requireAuth, resolveUser));
+app.use(retentionRoutes(requireAuth, resolveUser));
 
 /* ═══════════════════════════════════════════════════
  *  STATIC FILES & INDEX INJECTION

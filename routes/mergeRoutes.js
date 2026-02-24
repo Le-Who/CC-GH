@@ -219,11 +219,39 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     };
     board[fromR][fromC] = null;
 
+    // v8.0: Cosmetic unlock from accessories chain merges
+    let cosmeticUnlocked = null;
+    if (chain.cosmeticOutput && chain.cosmeticOutput[newLevel]) {
+      const cosmeticId = chain.cosmeticOutput[newLevel];
+      if (!p.pet) p.pet = {};
+      if (!p.pet.wardrobe) p.pet.wardrobe = [];
+      if (!p.pet.wardrobe.includes(cosmeticId)) {
+        p.pet.wardrobe.push(cosmeticId);
+        cosmeticUnlocked = cosmeticId;
+      }
+    }
+
+    // v8.0: Decoration unlock from wood chain merges
+    let decorationUnlocked = null;
+    if (chain.decorationOutput && chain.decorationOutput[newLevel]) {
+      const decoId = chain.decorationOutput[newLevel];
+      if (!p.pet) p.pet = {};
+      if (!p.pet.room)
+        p.pet.room = { wallpaper: "default", decorations: {}, inventory: [] };
+      if (!p.pet.room.inventory) p.pet.room.inventory = [];
+      if (!p.pet.room.inventory.includes(decoId)) {
+        p.pet.room.inventory.push(decoId);
+        decorationUnlocked = decoId;
+      }
+    }
+
     debouncedSavePlayer(userId);
     res.json({
       success: true,
       merge: p.merge,
       newItem: board[toR][toC],
+      cosmeticUnlocked,
+      decorationUnlocked,
     });
   });
 

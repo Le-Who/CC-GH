@@ -355,6 +355,48 @@ export function getPlayer(userId, username) {
     NeedsSaveSync = true;
   }
 
+  // ─── Schema v7 Migration (Retention UX — Daily Rewards, Weekly Challenges) ───
+  if (!p.schemaVersion || p.schemaVersion < 7) {
+    if (!p.dailyReward) p.dailyReward = { lastClaimDate: null, weekDay: 0 };
+    if (!p.weeklyChallenges) p.weeklyChallenges = null; // Generated on first API call
+    if (p.resources && !("gachaTokens" in p.resources))
+      p.resources.gachaTokens = 0;
+    p.schemaVersion = 7;
+    NeedsSaveSync = true;
+  }
+
+  // ─── Schema v8 Migration (Tamagotchi Companion — Needs, Evolution, Cosmetics) ───
+  if (!p.schemaVersion || p.schemaVersion < 8) {
+    const now = Date.now();
+    if (!p.pet) p.pet = {};
+    // Needs system — gentle decay, non-punitive
+    if (!p.pet.needs) {
+      p.pet.needs = {
+        hunger: 100,
+        happiness: 100,
+        cleanliness: 100,
+        lastDecayTimestamp: now,
+      };
+    }
+    // Evolution
+    if (p.pet.evolutionStage === undefined) p.pet.evolutionStage = 0;
+    if (p.pet.evolutionProgress === undefined) p.pet.evolutionProgress = 0;
+    // Cosmetics
+    if (!p.pet.equipped) {
+      p.pet.equipped = { hat: null, collar: null, effect: null };
+    }
+    if (!p.pet.wardrobe) p.pet.wardrobe = [];
+    // Pet snacks (3 starter snacks, separate from crop inventory)
+    if (p.pet.petFood === undefined) p.pet.petFood = 3;
+    // Room
+    if (!p.pet.room) {
+      p.pet.room = { wallpaper: "default", decorations: {}, inventory: [] };
+    }
+    if (!p.pet.room.inventory) p.pet.room.inventory = [];
+    p.schemaVersion = 8;
+    NeedsSaveSync = true;
+  }
+
   if (NeedsSaveSync) {
     debouncedSavePlayer(userId);
   }

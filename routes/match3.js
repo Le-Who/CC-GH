@@ -5,7 +5,12 @@
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
-import { ECONOMY, calcRegen, calcGoldReward } from "../game-logic.js";
+import {
+  ECONOMY,
+  calcRegen,
+  calcGoldReward,
+  updateWeeklyStat,
+} from "../game-logic.js";
 import { getPlayer, players, debouncedSavePlayer } from "../playerManager.js";
 
 export default function match3Routes(requireAuth, resolveUser) {
@@ -169,6 +174,10 @@ export default function match3Routes(requireAuth, resolveUser) {
     }
 
     p.match3.currentGame = null;
+
+    // v7.3: Weekly challenge stat tracking
+    updateWeeklyStat(p, "weeklyMatch3", 1);
+
     debouncedSavePlayer(userId);
 
     // Compute rank

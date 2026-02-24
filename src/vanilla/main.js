@@ -39,6 +39,15 @@ import { TriviaModule } from "./trivia.js";
 import { Match3Game } from "./match3.js";
 import { BloxGame } from "./blox.js";
 import { MergeGame } from "./merge.js";
+import {
+  checkDailyReward,
+  checkAndShowAchievements,
+  updateRetentionHUD,
+  showTomorrowPreview,
+  showPostGameCard,
+  showDailyRewardModal,
+  updatePetMoodBadge,
+} from "./retention.js";
 
 // ─── Wire module references into shared.js ───
 // This avoids circular imports: shared.js calls game modules
@@ -107,6 +116,33 @@ export async function bootApp() {
   window.HUB.goToScreen = goToScreen;
   window.HUB.showToast = showToast;
   window.HUB.api = api;
+  window.HUB.showTomorrowPreview = showTomorrowPreview;
+  window.HUB.showPostGameCard = showPostGameCard;
+  window.HUB.showDailyRewardModal = showDailyRewardModal;
+
+  // v7.3: Retention UX — Daily Reward check + Achievement pop-ups
+  checkDailyReward();
+  setTimeout(() => checkAndShowAchievements(), 3000);
+
+  // v7.3: Update retention HUD badge (account level + streak + daily gift)
+  const hudHeader =
+    document.querySelector(".hud-left") || document.querySelector(".hud-bar");
+  updateRetentionHUD(hudHeader);
+
+  // v7.3: Pet mood badge
+  const petContainer = document.getElementById("pet-container");
+  updatePetMoodBadge(petContainer);
+
+  // Refresh retention HUD periodically and on events
+  document.addEventListener("retention-refresh", () =>
+    updateRetentionHUD(hudHeader),
+  );
+  setInterval(() => {
+    if (!document.hidden) {
+      checkAndShowAchievements();
+      updateRetentionHUD(hudHeader);
+    }
+  }, 60_000);
 
   // ═══ Phase 3 (v4.11): Cognitive Load Reduction ═══
 
@@ -195,6 +231,24 @@ export async function bootApp() {
 
   // Signal to React (WelcomeScreen) that boot is complete
   window.HUB.bootComplete = true;
+
+  // v7.3: Tomorrow Preview on session exit (Zeigarnik Effect — open loops pull players back)
+  // Only fires after 5+ min session to avoid spamming on quick tab switches
+  const _sessionStart = Date.now();
+  let _tomorrowShown = false;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && !_tomorrowShown) {
+      const sessionMinutes = (Date.now() - _sessionStart) / 60_000;
+      if (sessionMinutes >= 5 && window.HUB?.showTomorrowPreview) {
+        _tomorrowShown = true;
+        window.HUB.showTomorrowPreview();
+        // Reset after 30 minutes so it can fire again in long sessions
+        setTimeout(() => {
+          _tomorrowShown = false;
+        }, 30 * 60_000);
+      }
+    }
+  });
 }
 
 // Ensure the default export is bootApp

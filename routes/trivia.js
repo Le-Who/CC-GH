@@ -13,6 +13,7 @@ import {
   calcRegen,
   pickQuestions,
   makeClientQuestion,
+  updateWeeklyStat,
 } from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
@@ -138,6 +139,10 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         ? ECONOMY.REWARD_TRIVIA_WIN
         : ECONOMY.REWARD_TRIVIA_LOSE;
       p.resources.gold += goldReward;
+
+      // v7.3: Weekly challenge stat tracking
+      updateWeeklyStat(p, "weeklyTrivia", 1);
+
       p.trivia.session = null;
       debouncedSavePlayer(userId);
     }

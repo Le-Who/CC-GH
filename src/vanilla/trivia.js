@@ -8,6 +8,7 @@
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep } from "./shared.js";
 import { HUD } from "./hud.js";
+import { PetEvents } from "./pet.js";
 
 const TriviaGame = (() => {
   let session = null; // { question, startTime, timerId }
@@ -644,6 +645,10 @@ const TriviaGame = (() => {
     session.streak = data.streak;
     syncToStore();
 
+    // v8.0: Happiness events
+    if (data.correct) PetEvents.emit("trivia_correct");
+    if (data.isComplete) PetEvents.emit("trivia_complete");
+
     // v7.2: Streak glow
     const streakEl = $("trivia-streak-display");
     if (streakEl && session.streak > 1) {
@@ -670,6 +675,20 @@ const TriviaGame = (() => {
   async function showResults(data) {
     showView("results");
     $("trivia-final-score").textContent = session.score;
+
+    // v7.3: Post-game card (Peak-End Rule + Goal-Gradient)
+    if (session.mode === "solo" && window.HUB?.showPostGameCard) {
+      setTimeout(() => {
+        window.HUB.showPostGameCard({
+          game: "Trivia",
+          emoji: "🧠",
+          score: session.score,
+          gold: data.goldReward || 0,
+          xp: 0,
+          extra: data.stats ? `Best Streak: ${data.stats.bestStreak}` : "",
+        });
+      }, 1000);
+    }
 
     if (data.forfeited) {
       $("trivia-results-extra").innerHTML = `

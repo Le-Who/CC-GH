@@ -10,6 +10,7 @@ import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, SoundEngine, debounce } from "./effects.js";
+import { PetEvents } from "./pet.js";
 
 import { GRID, PIECE_COUNT, PIECES } from "./blox/pieces.js";
 
@@ -288,6 +289,9 @@ const BloxGameImpl = (() => {
       showToast(msg);
       // v4.15.1: Floating score points over the board
       showBloxFloat(pts);
+
+      // v8.0: Happiness event for clearing lines
+      PetEvents.emit("blox_line_clear");
     }
 
     return cleared;
@@ -1256,6 +1260,8 @@ const BloxGameImpl = (() => {
     highScore = Math.max(highScore, score);
     HUB.swipeBlocked = false;
     clearSavedState();
+    // v8.0: Happiness event for completing a blox game
+    PetEvents.emit("blox_complete");
     // v4.9: clean up any attached piece
     if (attachedPieceIdx >= 0) detachPiece();
 
@@ -1274,6 +1280,21 @@ const BloxGameImpl = (() => {
     showGameOver(score);
     syncToStore();
     updateStats();
+
+    // v7.3: Post-game card (Peak-End Rule — strong ending creates return intent)
+    setTimeout(() => {
+      if (window.HUB?.showPostGameCard) {
+        window.HUB.showPostGameCard({
+          game: "Building Blox",
+          emoji: "🧱",
+          score,
+          gold: data?.goldReward || 0,
+          xp: 0,
+          extra: `${linesCleared} lines cleared`,
+        });
+      }
+    }, 1000);
+
     // v4.9: refresh leaderboard after score submission
     fetchBloxLeaderboard();
   }

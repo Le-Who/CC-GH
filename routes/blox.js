@@ -5,7 +5,12 @@
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
-import { ECONOMY, calcRegen, calcBloxReward } from "../game-logic.js";
+import {
+  ECONOMY,
+  calcRegen,
+  calcBloxReward,
+  updateWeeklyStat,
+} from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function bloxRoutes(requireAuth, resolveUser) {
@@ -51,6 +56,10 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (typeof score === "number" && score > 0) {
       p.blox.highScore = Math.max(p.blox.highScore, score);
     }
+
+    // v7.3: Weekly challenge stat tracking
+    updateWeeklyStat(p, "weeklyBlox", 1);
+
     debouncedSavePlayer(userId);
     res.json({
       success: true,

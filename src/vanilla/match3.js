@@ -13,6 +13,7 @@ import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, colorSplash, SoundEngine, debounce } from "./effects.js";
+import { PetEvents } from "./pet.js";
 import {
   GEM_TYPES,
   GEM_ICONS,
@@ -1030,6 +1031,20 @@ const Match3GameImpl = (() => {
     persistSavedModes();
 
     setTimeout(() => showGameOver(score), 500);
+
+    // v7.3: Post-game card (Peak-End Rule — strong ending creates return intent)
+    setTimeout(() => {
+      if (window.HUB?.showPostGameCard) {
+        window.HUB.showPostGameCard({
+          game: "Match-3",
+          emoji: "💎",
+          score,
+          gold: endData?.goldReward || 0,
+          xp: 0,
+        });
+      }
+    }, 1500);
+
     fetchLeaderboard();
     syncToStore();
     updateStartButton();
@@ -1474,10 +1489,33 @@ const Match3GameImpl = (() => {
       delete savedModes[gameMode];
       persistSavedModes();
 
+      // v8.0: Happiness event for completing a match-3 game
+      PetEvents.emit("match3_complete");
+
       setTimeout(() => {
         SoundEngine.gameOver(); // v6.2.1: low tone + long vibration
         showGameOver(score);
       }, 500);
+
+      // v7.3: Post-game card (Peak-End Rule)
+      setTimeout(() => {
+        if (window.HUB?.showPostGameCard) {
+          window.HUB.showPostGameCard({
+            game:
+              gameMode === "timed"
+                ? "Time Attack"
+                : gameMode === "drop"
+                  ? "Star Drop"
+                  : "Match-3",
+            emoji:
+              gameMode === "timed" ? "⏱️" : gameMode === "drop" ? "🎯" : "💎",
+            score,
+            gold: endData?.goldReward || 0,
+            xp: 0,
+          });
+        }
+      }, 1500);
+
       fetchLeaderboard();
       syncToStore();
       updateStartButton();

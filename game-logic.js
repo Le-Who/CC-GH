@@ -314,8 +314,127 @@ export const MERGE_CHAINS = {
       "Legendary Throne",
     ],
     emoji: ["🌿", "🪵", "🪓", "🪑", "💺", "🛋️", "🚪", "👑"],
+    /** L4+ items produce room decorations when merged */
+    decorationOutput: {
+      4: "deco_chair",
+      5: "deco_table",
+      6: "deco_wardrobe",
+    },
+  },
+  accessories: {
+    id: "accessories",
+    name: "Accessories",
+    items: [
+      "acc_thread",
+      "acc_cloth",
+      "acc_ribbon",
+      "acc_bow",
+      "acc_hat",
+      "acc_crown",
+      "acc_tiara",
+      "acc_legendary",
+    ],
+    names: [
+      "Thread",
+      "Cloth",
+      "Ribbon",
+      "Bow",
+      "Top Hat",
+      "Crown",
+      "Tiara",
+      "Legendary Crown",
+    ],
+    emoji: ["🧵", "🧶", "🎀", "🎗️", "🎩", "👑", "💎", "👑"],
+    /** L4+ items produce pet cosmetics when merged */
+    cosmeticOutput: {
+      4: "bow_basic",
+      5: "hat_top",
+      6: "crown_gold",
+    },
   },
 };
+
+/* ═══════════════════════════════════════════════════
+ *  v8.0 ROOM DECORATIONS — Placeable items for pet room
+ * ═══════════════════════════════════════════════════ */
+export const ROOM_DECORATIONS = {
+  deco_chair: {
+    id: "deco_chair",
+    emoji: "🪑",
+    name: "Cozy Chair",
+    rarity: "common",
+  },
+  deco_table: {
+    id: "deco_table",
+    emoji: "🛋️",
+    name: "Coffee Table",
+    rarity: "uncommon",
+  },
+  deco_wardrobe: {
+    id: "deco_wardrobe",
+    emoji: "🚪",
+    name: "Fancy Wardrobe",
+    rarity: "rare",
+  },
+  deco_rug: {
+    id: "deco_rug",
+    emoji: "🟫",
+    name: "Woven Rug",
+    rarity: "common",
+  },
+  deco_plant: {
+    id: "deco_plant",
+    emoji: "🪴",
+    name: "Potted Plant",
+    rarity: "common",
+  },
+  deco_lamp: {
+    id: "deco_lamp",
+    emoji: "💡",
+    name: "Warm Lamp",
+    rarity: "uncommon",
+  },
+  deco_bookshelf: {
+    id: "deco_bookshelf",
+    emoji: "📚",
+    name: "Bookshelf",
+    rarity: "rare",
+  },
+};
+
+export const ROOM_THEMES = [
+  {
+    id: "default",
+    name: "Cozy Den",
+    emoji: "🏠",
+    wallGradient: "linear-gradient(180deg, #1a1b2e 0%, #2d2b55 100%)",
+    floorColor: "#1e1c3a",
+  },
+  {
+    id: "meadow",
+    name: "Spring Meadow",
+    emoji: "🌿",
+    wallGradient:
+      "linear-gradient(180deg, #87ceeb 0%, #98fb98 60%, #228b22 100%)",
+    floorColor: "#2d5a27",
+  },
+  {
+    id: "ocean",
+    name: "Ocean View",
+    emoji: "🌊",
+    wallGradient:
+      "linear-gradient(180deg, #0077b6 0%, #00b4d8 40%, #90e0ef 100%)",
+    floorColor: "#023e8a",
+  },
+  {
+    id: "nightsky",
+    name: "Star Night",
+    emoji: "🌌",
+    wallGradient:
+      "linear-gradient(180deg, #0d0d2b 0%, #1a1a4e 50%, #2e1065 100%)",
+    floorColor: "#0a0a1f",
+  },
+];
 
 /** Crop tier for generator bundle size: cheap=2-3, mid=3-4, expensive=4-5 */
 export const CROP_TIERS = {
@@ -758,10 +877,29 @@ export const EVENTS = [
 ];
 
 export function getActiveEvents(now = Date.now()) {
+  const d = new Date(now);
   return EVENTS.filter((e) => {
     if (!e.startDate || !e.endDate) return false;
-    const start = new Date(e.startDate).getTime();
-    const end = new Date(e.endDate).getTime();
+    let start = new Date(e.startDate).getTime();
+    let end = new Date(e.endDate).getTime();
+    // For recurring events, adjust year to current year
+    if (e.recurring) {
+      const sDate = new Date(e.startDate);
+      const eDate = new Date(e.endDate);
+      sDate.setFullYear(d.getFullYear());
+      eDate.setFullYear(d.getFullYear());
+      // Handle cross-year events (e.g. Dec 15 – Jan 15)
+      if (eDate < sDate) {
+        // Check if we're in the Dec part or the Jan part
+        if (now >= sDate.getTime()) {
+          eDate.setFullYear(d.getFullYear() + 1);
+        } else {
+          sDate.setFullYear(d.getFullYear() - 1);
+        }
+      }
+      start = sDate.getTime();
+      end = eDate.getTime();
+    }
     return now >= start && now <= end;
   });
 }
@@ -786,7 +924,6 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 5,
     _lastSeen: now,
     resources: {
       gold: ECONOMY.GOLD_START,
@@ -809,6 +946,19 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       affectionXp: 0,
       affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false, autoPlant: false },
+      // v8.0 Tamagotchi companion
+      needs: {
+        hunger: 100,
+        happiness: 100,
+        cleanliness: 100,
+        lastDecayTimestamp: now,
+      },
+      evolutionStage: 0,
+      evolutionProgress: 0,
+      equipped: { hat: null, collar: null, effect: null },
+      wardrobe: [],
+      petFood: 3, // Starter snacks (25 fullness each)
+      room: { wallpaper: "default", decorations: {} },
     },
     farm: {
       coins: 0,
@@ -857,7 +1007,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
     cosmetics: { activePlotTheme: "default", ownedThemes: ["default"] },
     seasonPass: { season: 1, xp: 0, tier: 0, claimed: [] },
     boosters: { fertilizer: { active: false, expiresAt: 0 } },
-    schemaVersion: 6,
+    schemaVersion: 8,
   };
 }
 
@@ -1058,6 +1208,228 @@ export function calculateSatietyDelta(petState, currentTime) {
 }
 
 /* ═══════════════════════════════════════════════════
+ *  PET NEEDS — Tamagotchi Companion System (v8.0)
+ *  Gentle needs create daily check-in cadence.
+ *  Zero-state is cosmetic (sad face) — never punitive.
+ * ═══════════════════════════════════════════════════ */
+export const PET_NEEDS_CONFIG = {
+  HUNGER_DECAY_PER_HOUR: 2.5,
+  HAPPINESS_DECAY_PER_HOUR: 1.5,
+  CLEANLINESS_DECAY_PER_HOUR: 1,
+  OFFLINE_CAP_MS: 24 * 60 * 60 * 1000,
+  AUTO_FEED_THRESHOLD: 20,
+  SESSION_HAPPINESS_BONUS: 15,
+  CLEANLINESS_ONLINE_REGEN_PER_HOUR: 5,
+  RETURN_COMFORT_BOOST: 30, // +30 to all needs after 8h+ absence
+  RETURN_COMFORT_THRESHOLD_MS: 8 * 60 * 60 * 1000,
+};
+
+/**
+ * Calculate needs decay over elapsed offline time.
+ * Capped at 24h to prevent time-travel exploits.
+ * @param {{ hunger: number, happiness: number, cleanliness: number }} needs
+ * @param {number} elapsedMs — milliseconds since last update
+ * @returns {{ hunger: number, happiness: number, cleanliness: number, lastDecayTimestamp: number }}
+ */
+export function calculateNeedsDecay(needs, elapsedMs) {
+  const hours =
+    Math.min(Math.max(0, elapsedMs), PET_NEEDS_CONFIG.OFFLINE_CAP_MS) /
+    3_600_000;
+  return {
+    hunger: Math.max(
+      0,
+      (needs.hunger ?? 100) - PET_NEEDS_CONFIG.HUNGER_DECAY_PER_HOUR * hours,
+    ),
+    happiness: Math.max(
+      0,
+      (needs.happiness ?? 100) -
+        PET_NEEDS_CONFIG.HAPPINESS_DECAY_PER_HOUR * hours,
+    ),
+    cleanliness: Math.max(
+      0,
+      (needs.cleanliness ?? 100) -
+        PET_NEEDS_CONFIG.CLEANLINESS_DECAY_PER_HOUR * hours,
+    ),
+    lastDecayTimestamp: Date.now(),
+  };
+}
+
+/* ═══════════════════════════════════════════════════
+ *  PET MOOD — Derived from needs (never stored)
+ * ═══════════════════════════════════════════════════ */
+export const MOOD_THRESHOLDS = [
+  {
+    name: "ecstatic",
+    min: 80,
+    emoji: "🤩",
+    stateWeights: { roam: 85, idle: 10, play: 5, sleep: 0 },
+    farmBuff: 1.1,
+    gameBuff: 1.05,
+    helperEfficiency: 1.0,
+  },
+  {
+    name: "happy",
+    min: 60,
+    emoji: "😊",
+    stateWeights: { roam: 80, idle: 15, play: 0, sleep: 5 },
+    farmBuff: 1.05,
+    gameBuff: 1.0,
+    helperEfficiency: 1.0,
+  },
+  {
+    name: "content",
+    min: 40,
+    emoji: "😐",
+    stateWeights: { roam: 60, idle: 25, play: 0, sleep: 15 },
+    farmBuff: 1.0,
+    gameBuff: 1.0,
+    helperEfficiency: 1.0,
+  },
+  {
+    name: "lonely",
+    min: 20,
+    emoji: "😔",
+    stateWeights: { roam: 30, idle: 30, play: 0, sleep: 40 },
+    farmBuff: 1.0,
+    gameBuff: 1.0,
+    helperEfficiency: 0.75,
+  },
+  {
+    name: "sad",
+    min: 0,
+    emoji: "😢",
+    stateWeights: { roam: 10, idle: 20, play: 0, sleep: 70 },
+    farmBuff: 1.0,
+    gameBuff: 1.0,
+    helperEfficiency: 0.5,
+  },
+];
+
+/**
+ * Compute pet mood from current needs. Returns mood object from MOOD_THRESHOLDS.
+ * @param {{ hunger: number, happiness: number, cleanliness: number }} needs
+ */
+export function computeMood(needs) {
+  const h = needs?.hunger ?? 100;
+  const ha = needs?.happiness ?? 100;
+  const c = needs?.cleanliness ?? 100;
+  const score = h * 0.4 + ha * 0.4 + c * 0.2;
+  for (const t of MOOD_THRESHOLDS) {
+    if (score >= t.min) return { ...t, score };
+  }
+  return { ...MOOD_THRESHOLDS[MOOD_THRESHOLDS.length - 1], score };
+}
+
+/* ═══════════════════════════════════════════════════
+ *  PET HAPPINESS — Cross-mode generation rewards
+ * ═══════════════════════════════════════════════════ */
+export const HAPPINESS_REWARDS = {
+  session_login: 15,
+  farm_harvest: 5,
+  farm_water: 2,
+  match3_play: 8,
+  match3_combo4: 2,
+  blox_play: 8,
+  blox_line: 1,
+  trivia_correct: 3,
+  trivia_streak3: 5,
+  merge_complete: 4,
+  merge_legendary: 15,
+  pet_click: 3, // max 5/day
+  quest_complete: 12,
+};
+
+/* ═══════════════════════════════════════════════════
+ *  PET EVOLUTION — Visual progression stages
+ * ═══════════════════════════════════════════════════ */
+export const EVOLUTION_STAGES = [
+  { stage: 0, name: "Baby", minAffection: 0, abilityUnlock: null },
+  { stage: 1, name: "Juvenile", minAffection: 5, abilityUnlock: "autoFeed" },
+  { stage: 2, name: "Adult", minAffection: 10, abilityUnlock: "moodBuffs" },
+  {
+    stage: 3,
+    name: "Legendary",
+    minAffection: 15,
+    abilityUnlock: "enhancedBuffs",
+  },
+];
+
+/** Sprite sets per species per evolution stage */
+export const EVOLUTION_SPRITES = {
+  basic_dog: ["🐕", "🐕‍🦺", "🦮", "🐕‍🦺"],
+  basic_cat: ["🐱", "🐈", "🐈‍⬛", "🐈"],
+  basic_bunny: ["🐰", "🐇", "🐇", "🐇"],
+};
+
+/**
+ * Check which evolution stage the pet should be at.
+ * @param {number} affectionLevel
+ * @returns {{ stage, name, minAffection, abilityUnlock }}
+ */
+export function checkEvolution(affectionLevel) {
+  for (let i = EVOLUTION_STAGES.length - 1; i >= 0; i--) {
+    if (affectionLevel >= EVOLUTION_STAGES[i].minAffection)
+      return EVOLUTION_STAGES[i];
+  }
+  return EVOLUTION_STAGES[0];
+}
+
+/* ═══════════════════════════════════════════════════
+ *  PET COSMETICS — Earnable accessories & decorations
+ * ═══════════════════════════════════════════════════ */
+export const PET_COSMETICS = {
+  bow_basic: {
+    id: "bow_basic",
+    slot: "hat",
+    name: "Simple Bow",
+    emoji: "🎀",
+    source: "merge_l4",
+  },
+  hat_top: {
+    id: "hat_top",
+    slot: "hat",
+    name: "Top Hat",
+    emoji: "🎩",
+    source: "merge_l5",
+  },
+  crown_gold: {
+    id: "crown_gold",
+    slot: "hat",
+    name: "Golden Crown",
+    emoji: "👑",
+    source: "merge_l6",
+  },
+  collar_bell: {
+    id: "collar_bell",
+    slot: "collar",
+    name: "Bell Collar",
+    emoji: "🔔",
+    source: "quest",
+  },
+  collar_star: {
+    id: "collar_star",
+    slot: "collar",
+    name: "Star Collar",
+    emoji: "⭐",
+    source: "achievement",
+  },
+  effect_spark: {
+    id: "effect_spark",
+    slot: "effect",
+    name: "Sparkle Aura",
+    emoji: "✨",
+    source: "evolution",
+  },
+  effect_heart: {
+    id: "effect_heart",
+    slot: "effect",
+    name: "Heart Trail",
+    emoji: "💕",
+    source: "affection_15",
+  },
+};
+
+/* ═══════════════════════════════════════════════════
  *  FARM — Growth Calculations
  * ═══════════════════════════════════════════════════ */
 export function getWateringMultiplier(crop) {
@@ -1134,4 +1506,358 @@ export function makeClientQuestion(q, index, total) {
     index,
     total,
   };
+}
+
+/* ═══════════════════════════════════════════════════
+ *  WEEKLY CHALLENGES — Cross-game goals
+ *  Generated server-side, reset weekly (Monday 00:00 UTC).
+ *  Completing all = big bonus reward.
+ * ═══════════════════════════════════════════════════ */
+export const WEEKLY_CHALLENGE_TEMPLATES = [
+  // Farm
+  {
+    id: "harvest_10",
+    game: "farm",
+    emoji: "🌾",
+    desc: "Harvest 10 crops",
+    target: 10,
+    stat: "weeklyHarvests",
+  },
+  {
+    id: "harvest_25",
+    game: "farm",
+    emoji: "🌱",
+    desc: "Harvest 25 crops",
+    target: 25,
+    stat: "weeklyHarvests",
+  },
+  {
+    id: "gold_200",
+    game: "farm",
+    emoji: "🪙",
+    desc: "Earn 200🪙 from sales",
+    target: 200,
+    stat: "weeklyGoldEarned",
+  },
+  // Match-3
+  {
+    id: "m3_1500",
+    game: "match3",
+    emoji: "💎",
+    desc: "Score 1500+ in Gem Crush",
+    target: 1500,
+    stat: "weeklyMatch3Best",
+  },
+  {
+    id: "m3_games_3",
+    game: "match3",
+    emoji: "💎",
+    desc: "Play 3 Gem Crush games",
+    target: 3,
+    stat: "weeklyMatch3Games",
+  },
+  // Trivia
+  {
+    id: "trivia_5",
+    game: "trivia",
+    emoji: "🧠",
+    desc: "Answer 5 trivia correctly",
+    target: 5,
+    stat: "weeklyTriviaCorrect",
+  },
+  {
+    id: "trivia_10",
+    game: "trivia",
+    emoji: "🧠",
+    desc: "Answer 10 trivia correctly",
+    target: 10,
+    stat: "weeklyTriviaCorrect",
+  },
+  // Blox
+  {
+    id: "blox_3lines",
+    game: "blox",
+    emoji: "🧱",
+    desc: "Clear 3 lines in Blox",
+    target: 3,
+    stat: "weeklyBloxLines",
+  },
+  {
+    id: "blox_play",
+    game: "blox",
+    emoji: "🧱",
+    desc: "Play 2 Blox games",
+    target: 2,
+    stat: "weeklyBloxGames",
+  },
+  // Merge
+  {
+    id: "merge_lv4",
+    game: "merge",
+    emoji: "🧩",
+    desc: "Merge to level 4 item",
+    target: 4,
+    stat: "weeklyMergeBest",
+  },
+  {
+    id: "merge_5",
+    game: "merge",
+    emoji: "🧩",
+    desc: "Merge 5 pairs",
+    target: 5,
+    stat: "weeklyMergeCount",
+  },
+];
+
+/**
+ * Generate 5 weekly challenges (1 per game) from templates.
+ * @param {object} player - player state
+ * @param {number} now - current timestamp
+ * @returns {{ challenges, weekId, completionReward }}
+ */
+export function generateWeeklyChallenges(player, now = Date.now()) {
+  // Determine ISO week ID (Mon-based)
+  const d = new Date(now);
+  const dayOfWeek = d.getUTCDay() || 7;
+  const monday = new Date(now);
+  monday.setUTCDate(d.getUTCDate() - dayOfWeek + 1);
+  monday.setUTCHours(0, 0, 0, 0);
+  const weekId = monday.toISOString().slice(0, 10);
+
+  // Return existing if same week
+  if (player.weeklyChallenges?.weekId === weekId) {
+    return player.weeklyChallenges;
+  }
+
+  // Pick 1 challenge per game, randomly
+  const byGame = {};
+  for (const t of WEEKLY_CHALLENGE_TEMPLATES) {
+    if (!byGame[t.game]) byGame[t.game] = [];
+    byGame[t.game].push(t);
+  }
+  const challenges = [];
+  for (const game of ["farm", "match3", "trivia", "blox", "merge"]) {
+    const pool = byGame[game] || [];
+    if (pool.length > 0) {
+      challenges.push({
+        ...pool[Math.floor(Math.random() * pool.length)],
+        progress: 0,
+        completed: false,
+      });
+    }
+  }
+
+  player.weeklyChallenges = {
+    weekId,
+    challenges,
+    allCompleted: false,
+    completionReward: { gold: 200, gachaTokens: 3 },
+    weeklyStats: {},
+  };
+  return player.weeklyChallenges;
+}
+
+/**
+ * Update a weekly challenge stat.
+ * @returns {Array} newly completed challenge IDs (if any)
+ */
+export function updateWeeklyStat(player, stat, value) {
+  if (!player.weeklyChallenges?.challenges) return [];
+  const ws = player.weeklyChallenges;
+  // Update running stat (max for scores, accumulate for counts)
+  if (stat.includes("Best")) {
+    ws.weeklyStats[stat] = Math.max(ws.weeklyStats[stat] || 0, value);
+  } else {
+    ws.weeklyStats[stat] = (ws.weeklyStats[stat] || 0) + value;
+  }
+
+  const newlyCompleted = [];
+  for (const ch of ws.challenges) {
+    if (ch.completed) continue;
+    if (ch.stat === stat) {
+      ch.progress = ws.weeklyStats[stat] || 0;
+      if (ch.progress >= ch.target) {
+        ch.completed = true;
+        newlyCompleted.push(ch.id);
+      }
+    }
+  }
+
+  // Check all-complete bonus
+  if (!ws.allCompleted && ws.challenges.every((c) => c.completed)) {
+    ws.allCompleted = true;
+    const r = ws.completionReward;
+    if (r.gold) player.resources.gold += r.gold;
+    if (r.gachaTokens)
+      player.resources.gachaTokens =
+        (player.resources.gachaTokens || 0) + r.gachaTokens;
+  }
+
+  return newlyCompleted;
+}
+
+/* ═══════════════════════════════════════════════════
+ *  ACCOUNT LEVEL — Meta-XP across all games
+ *  Makes every action visible in a single number.
+ * ═══════════════════════════════════════════════════ */
+export const ACCOUNT_LEVEL_XP_PER_LEVEL = 150;
+
+export function calcAccountLevel(player) {
+  // Aggregate all XP sources
+  let totalXp = 0;
+  totalXp += player.farm?.xp || 0;
+  totalXp += (player.trivia?.totalCorrect || 0) * 5;
+  totalXp += (player.match3?.totalGames || 0) * 10;
+  totalXp += (player.blox?.totalGames || 0) * 10;
+  totalXp += (player.streak?.best || 0) * 5;
+  totalXp += Object.keys(player.achievements || {}).length * 50;
+  totalXp += player.seasonPass?.xp || 0;
+
+  const level = Math.floor(totalXp / ACCOUNT_LEVEL_XP_PER_LEVEL) + 1;
+  const xpInLevel = totalXp % ACCOUNT_LEVEL_XP_PER_LEVEL;
+  return {
+    level,
+    xp: xpInLevel,
+    xpToNext: ACCOUNT_LEVEL_XP_PER_LEVEL,
+    totalXp,
+  };
+}
+
+/* ═══════════════════════════════════════════════════
+ *  PET MOOD — Visual state from fullness
+ * ═══════════════════════════════════════════════════ */
+export function getPetMood(pet) {
+  const fullness = pet?.stats?.fullness ?? 0;
+  if (fullness >= 70) return { mood: "happy", emoji: "😊", label: "Happy" };
+  if (fullness >= 40) return { mood: "content", emoji: "🙂", label: "Content" };
+  if (fullness >= 15) return { mood: "hungry", emoji: "🥺", label: "Hungry" };
+  return { mood: "sleepy", emoji: "😴", label: "Sleepy" };
+}
+
+/* ═══════════════════════════════════════════════════
+ *  v8.0 PET MOOD BONUSES — per-mode gameplay buffs
+ * ═══════════════════════════════════════════════════ */
+export function getPetMoodBonus(moodName) {
+  const MOOD_BONUSES = {
+    ecstatic: {
+      match3ScoreMultiplier: 1.05,
+      farmGrowthMultiplier: 0.9,
+      triviaHintAvailable: true,
+      bloxPreviewBonus: 1,
+    },
+    happy: {
+      match3ScoreMultiplier: 1.03,
+      farmGrowthMultiplier: 0.95,
+      triviaHintAvailable: false,
+      bloxPreviewBonus: 1,
+    },
+    content: {
+      match3ScoreMultiplier: 1.0,
+      farmGrowthMultiplier: 1.0,
+      triviaHintAvailable: false,
+      bloxPreviewBonus: 0,
+    },
+    sad: {
+      match3ScoreMultiplier: 0.98,
+      farmGrowthMultiplier: 1.05,
+      triviaHintAvailable: false,
+      bloxPreviewBonus: 0,
+    },
+    distressed: {
+      match3ScoreMultiplier: 0.95,
+      farmGrowthMultiplier: 1.1,
+      triviaHintAvailable: false,
+      bloxPreviewBonus: 0,
+    },
+  };
+  return MOOD_BONUSES[moodName] || MOOD_BONUSES.content;
+}
+
+/* ═══════════════════════════════════════════════════
+ *  TOMORROW’S PREVIEW — Session-end teaser data
+ *  Returns context-aware reasons to return tomorrow.
+ * ═══════════════════════════════════════════════════ */
+export function getTomorrowPreview(player, now = Date.now()) {
+  const preview = [];
+
+  // Daily gift preview
+  const nextDay = ((player.dailyReward?.weekDay || 0) % 7) + 1;
+  const nextReward = DAILY_LOGIN_REWARDS[nextDay - 1];
+  if (nextReward) {
+    preview.push({
+      emoji: "🎁",
+      text: `Daily Gift: ${nextReward.emoji} ${nextReward.label}`,
+    });
+  }
+
+  // Growing crops
+  const growing = (player.farm?.plots || []).filter(
+    (p) => p.crop && p.plantedAt,
+  );
+  for (const plot of growing) {
+    const cfg = CROPS[plot.crop];
+    if (!cfg) continue;
+    const pct = getGrowthPct(plot, now);
+    if (pct < 1) {
+      const remainMs =
+        cfg.growthTime *
+        (1 - pct) *
+        (plot.watered ? getWateringMultiplier(plot.crop) : 1);
+      const remainH = Math.ceil(remainMs / 3_600_000);
+      if (remainH >= 1) {
+        preview.push({
+          emoji: cfg.emoji,
+          text: `${cfg.name} ripens in ~${remainH}h`,
+        });
+      }
+    }
+  }
+
+  // Active quests
+  const questCount = player.pet?.activeOrders?.length || 0;
+  if (questCount > 0) {
+    preview.push({
+      emoji: "📋",
+      text: `${questCount} quest${questCount > 1 ? "s" : ""} in progress`,
+    });
+  }
+
+  // Streak info
+  const streak = player.streak?.current || 0;
+  if (streak > 0) {
+    const nextMilestone = STREAK_BONUSES.find((b) => b.days > streak);
+    if (nextMilestone) {
+      preview.push({
+        emoji: "🔥",
+        text: `${nextMilestone.days - streak} day${nextMilestone.days - streak > 1 ? "s" : ""} to ${nextMilestone.label} streak bonus!`,
+      });
+    }
+  }
+
+  // Seed unlock proximity
+  const stats = {
+    totalHarvests: Object.values(player.farm?.harvested || {}).reduce(
+      (a, b) => a + b,
+      0,
+    ),
+    goldEarned: player.resources?.gold || 0,
+    questsCompleted:
+      player.pet?.activeOrders?.filter?.((o) => o.completed)?.length || 0,
+    plotsBought: Math.max(0, (player.farm?.plots?.length || 6) - 6),
+    daysActive: player.streak?.best || 0,
+  };
+  for (const [id, cfg] of Object.entries(CROPS)) {
+    if (!cfg.unlockCondition) continue;
+    const { type, value, label } = cfg.unlockCondition;
+    const stat = stats[type] || 0;
+    if (stat < value && stat >= value * 0.5) {
+      preview.push({
+        emoji: "🔓",
+        text: `Almost unlocked ${cfg.emoji} ${cfg.name}! (${label})`,
+      });
+      break; // Only show 1 unlock hint
+    }
+  }
+
+  return preview.slice(0, 4); // Max 4 items
 }

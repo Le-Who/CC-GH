@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "../store/gameStore";
+import {
+  computeMood,
+  EVOLUTION_SPRITES,
+  EVOLUTION_STAGES,
+  PET_COSMETICS,
+} from "/game-logic.js";
 
 const SKINS = {
   basic_dog: "🐕",
@@ -8,10 +14,36 @@ const SKINS = {
   basic_bunny: "🐰",
 };
 
+/** Simple need bar component */
+function NeedBar({ emoji, label, value, gradient, low }) {
+  return (
+    <div>
+      <div className="flex justify-between text-xs mb-1 font-mono">
+        <span className="text-textDim">
+          {emoji} {label}
+        </span>
+        <span className={low ? "text-danger" : "text-textDim"}>
+          {Math.round(value)}%
+        </span>
+      </div>
+      <div className="h-[6px] w-full bg-background rounded-full overflow-hidden">
+        <motion.div
+          className={`h-full rounded-full ${low ? "animate-pulse" : ""}`}
+          style={{ background: gradient }}
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function PetInfoUI() {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newNameInput, setNewNameInput] = useState("");
+  const [needsExpanded, setNeedsExpanded] = useState(false);
   const slices = useGameStore((state) => state.slices);
   const petData = slices.pet;
 
@@ -28,6 +60,34 @@ export default function PetInfoUI() {
   const xpPct = Math.min(100, (petData.xp / petData.xpToNextLevel) * 100);
   const fullness = petData.stats?.fullness ?? 0;
 
+  // v8.0: Compute mood from needs
+  const needs = petData.needs || {
+    hunger: 100,
+    happiness: 100,
+    cleanliness: 100,
+  };
+  const mood = computeMood(needs);
+  const moodScore = Math.round(mood.score);
+
+  // v8.0: Evolution
+  const evoStage = petData.evolutionStage || 0;
+  const evoInfo = EVOLUTION_STAGES?.[evoStage] || {
+    name: "Baby",
+    stage: 0,
+  };
+  const sprites = EVOLUTION_SPRITES?.[petData.skinId];
+  const petEmoji = sprites
+    ? sprites[Math.min(evoStage, sprites.length - 1)]
+    : SKINS[petData.skinId] || "🐕";
+
+  // v8.0: Equipped cosmetics
+  const equippedHat = petData.equipped?.hat
+    ? PET_COSMETICS?.[petData.equipped.hat]
+    : null;
+  const equippedCollar = petData.equipped?.collar
+    ? PET_COSMETICS?.[petData.equipped.collar]
+    : null;
+
   const handleRenameStart = () => {
     setNewNameInput(petData.name === "Buddy" ? "" : petData.name);
     setIsEditingName(true);
@@ -41,7 +101,6 @@ export default function PetInfoUI() {
 
     setIsEditingName(false);
 
-    // Dispatch to vanilla API logic we preserved in pet.js
     fetch("/api/pet/rename", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -56,6 +115,26 @@ export default function PetInfoUI() {
           }));
           if (window.HUB?.showToast)
             window.HUB.showToast("Pet renamed to " + data.pet.name, "success");
+        }
+      });
+  };
+
+  const handleFeedSnack = () => {
+    fetch("/api/pet/feed-snack", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.pet) {
+          useGameStore.setState((prev) => ({
+            slices: { ...prev.slices, pet: data.pet },
+          }));
+          if (window.HUB?.showToast)
+            window.HUB.showToast("Fed a snack! 🍖", "success");
+        } else if (data.error) {
+          if (window.HUB?.showToast) window.HUB.showToast(data.error, "error");
         }
       });
   };
@@ -93,8 +172,18 @@ export default function PetInfoUI() {
               >
                 ✕
               </button>
-              <div className="text-4xl mb-2">
-                {SKINS[petData.skinId] || "🐕"}
+              <div className="text-4xl mb-1 relative inline-block">
+                {petEmoji}
+                {equippedHat && (
+                  <span className="absolute -top-3 -right-2 text-lg">
+                    {equippedHat.emoji}
+                  </span>
+                )}
+                {equippedCollar && (
+                  <span className="absolute -bottom-1 right-0 text-xs">
+                    {equippedCollar.emoji}
+                  </span>
+                )}
               </div>
 
               {isEditingName ? (
@@ -134,10 +223,93 @@ export default function PetInfoUI() {
               )}
               <p className="text-sm font-bold text-primary tracking-widest uppercase">
                 Level {petData.level}
+                <span className="ml-2 text-textDim text-xs normal-case tracking-normal">
+                  {evoInfo.name}
+                </span>
               </p>
             </div>
 
-            <div className="p-4 pt-2 space-y-4">
+            <div className="p-4 pt-2 space-y-3">
+              {/* v8.0: Unified Mood Indicator */}
+              <div
+                className="flex items-center justify-between bg-background/60 rounded-xl px-3 py-2 cursor-pointer"
+                onClick={() => setNeedsExpanded(!needsExpanded)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{mood.emoji}</span>
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-white capitalize">
+                      {petData.name} is {mood.name}!
+                    </div>
+                    <div className="text-xs text-textDim">
+                      Tap to {needsExpanded ? "hide" : "show"} details
+                    </div>
+                  </div>
+                </div>
+                <div className="w-16">
+                  <div className="h-[6px] w-full bg-background rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{
+                        background:
+                          moodScore >= 60
+                            ? "linear-gradient(90deg, #00cc88, #00ffaa)"
+                            : moodScore >= 40
+                              ? "linear-gradient(90deg, #ffaa00, #ffdd44)"
+                              : "linear-gradient(90deg, #ff4466, #ff6688)",
+                      }}
+                      animate={{ width: `${moodScore}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* v8.0: Expandable needs detail */}
+              <AnimatePresence>
+                {needsExpanded && (
+                  <motion.div
+                    className="space-y-2"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <NeedBar
+                      emoji="🍖"
+                      label="Hunger"
+                      value={needs.hunger}
+                      gradient="linear-gradient(90deg, #ff6b35, #ffd700)"
+                      low={needs.hunger < 30}
+                    />
+                    <NeedBar
+                      emoji="😊"
+                      label="Happiness"
+                      value={needs.happiness}
+                      gradient="linear-gradient(90deg, #ff69b4, #ff1493)"
+                      low={needs.happiness < 30}
+                    />
+                    <NeedBar
+                      emoji="🧼"
+                      label="Cleanliness"
+                      value={needs.cleanliness}
+                      gradient="linear-gradient(90deg, #00bcd4, #4dd0e1)"
+                      low={needs.cleanliness < 30}
+                    />
+
+                    {/* Feed snack button */}
+                    {(petData.petFood || 0) > 0 && needs.hunger < 80 && (
+                      <button
+                        onClick={handleFeedSnack}
+                        className="w-full text-sm bg-gold/20 text-gold border border-gold/30 rounded-lg px-3 py-2 hover:bg-gold/30 transition-colors"
+                      >
+                        🍖 Feed Snack ({petData.petFood} left)
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* XP */}
               <div>
                 <div className="flex justify-between text-xs text-textDim mb-1 font-mono">
@@ -151,29 +323,6 @@ export default function PetInfoUI() {
                     className="h-full bg-primary"
                     initial={{ width: 0 }}
                     animate={{ width: `${xpPct}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Satiety */}
-              <div>
-                <div className="flex justify-between text-xs mb-1 font-mono font-bold">
-                  <span
-                    className={fullness >= 100 ? "text-danger" : "text-gold"}
-                  >
-                    {fullness >= 100 ? "🤢 FULL" : "🍖 FULLNESS"}
-                  </span>
-                  <span
-                    className={fullness >= 100 ? "text-danger" : "text-gold"}
-                  >
-                    {fullness}/100
-                  </span>
-                </div>
-                <div className="h-2 w-full bg-background rounded-full overflow-hidden border border-gold/20">
-                  <motion.div
-                    className="h-full bg-gold shadow-[0_0_10px_rgba(255,215,0,0.5)]"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${fullness}%` }}
                   />
                 </div>
               </div>
@@ -203,6 +352,68 @@ export default function PetInfoUI() {
                   <span className="text-xs">(Lv 7)</span>
                 </div>
               </div>
+
+              {/* v8.0: Wardrobe */}
+              {(petData.wardrobe || []).length > 0 && (
+                <div className="bg-background/80 rounded-xl p-3 text-left mt-2 border border-white/5">
+                  <h4 className="text-xs uppercase text-textDim font-bold tracking-wider mb-2">
+                    👗 Wardrobe
+                  </h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(petData.wardrobe || []).map((itemId) => {
+                      const cosmetic = PET_COSMETICS[itemId];
+                      if (!cosmetic) return null;
+                      const equipped =
+                        petData.equipped?.[cosmetic.slot] === itemId;
+                      return (
+                        <button
+                          key={itemId}
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/pet/equip", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  itemId: equipped ? null : itemId,
+                                  slot: cosmetic.slot,
+                                }),
+                              });
+                              if (res.ok) {
+                                const data = await res.json();
+                                if (data.pet) {
+                                  window.dispatchEvent(
+                                    new CustomEvent("pet-data-updated", {
+                                      detail: data.pet,
+                                    }),
+                                  );
+                                }
+                              }
+                            } catch {
+                              /* silent */
+                            }
+                          }}
+                          className={`flex flex-col items-center gap-1 p-2 rounded-lg border text-center transition-all ${
+                            equipped
+                              ? "border-primary/50 bg-primary/10 shadow-sm shadow-primary/20"
+                              : "border-white/8 bg-white/3 hover:border-white/15 hover:bg-white/6"
+                          }`}
+                          title={`${cosmetic.name} (${cosmetic.slot})`}
+                        >
+                          <span className="text-xl">{cosmetic.emoji}</span>
+                          <span className="text-[0.55rem] font-semibold text-textDim truncate w-full">
+                            {cosmetic.name}
+                          </span>
+                          <span
+                            className={`text-[0.5rem] font-bold ${equipped ? "text-primary" : "text-textDim/50"}`}
+                          >
+                            {equipped ? "EQUIPPED" : "EQUIP"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </>

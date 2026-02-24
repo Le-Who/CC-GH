@@ -1,0 +1,269 @@
+/* ═══════════════════════════════════════════════════
+ *  v8.0: Pet Room — 4×4 Decoration Grid
+ * ═══════════════════════════════════════════════════ */
+
+/* Panel overlay */
+.pet-room-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  animation: roomPanelIn 0.3s ease forwards;
+}
+@keyframes roomPanelIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes roomPanelOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Card */
+.pet-room-card {
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: rgba(15, 15, 25, 0.96);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  animation: roomCardIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes roomCardIn {
+  from {
+    transform: scale(0.9) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.pet-room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.pet-room-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text, #f8f9fa);
+}
+.pet-room-close {
+  background: none;
+  border: none;
+  color: var(--text-dim, #9ca3af);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.pet-room-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text, #f8f9fa);
+}
+
+/* Grid wrapper — theme background */
+.pet-room-grid-wrap {
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  transition: background 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* 4×4 grid */
+.pet-room-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 4px;
+  aspect-ratio: 1;
+}
+
+.pet-room-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  aspect-ratio: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.pet-room-cell.filled {
+  background: rgba(255, 255, 255, 0.08);
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.pet-room-cell:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(134, 239, 172, 0.3);
+}
+.pet-room-cell.drop-hover {
+  background: rgba(124, 92, 252, 0.15);
+  border-color: rgba(124, 92, 252, 0.5);
+  border-style: solid;
+  transform: scale(1.05);
+}
+
+.room-cell-emoji {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  animation: decoPlaceIn 0.3s ease;
+}
+@keyframes decoPlaceIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Theme selector */
+.pet-room-theme-bar {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+  margin-bottom: 10px;
+}
+.pet-room-theme-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.room-theme-btn {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim, #9ca3af);
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.room-theme-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text, #f8f9fa);
+}
+.room-theme-btn.active {
+  background: rgba(124, 92, 252, 0.15);
+  border-color: rgba(124, 92, 252, 0.4);
+  color: #a78bfa;
+}
+
+/* Inventory */
+.pet-room-inventory {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.room-inv-empty {
+  text-align: center;
+  padding: 12px;
+  font-size: 0.72rem;
+  color: var(--text-dim, #9ca3af);
+  font-style: italic;
+}
+.room-inv-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dim, #9ca3af);
+  margin-bottom: 6px;
+}
+.room-inv-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.room-inv-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: grab;
+  transition: all 0.15s;
+  font-size: 0.68rem;
+  color: var(--text, #f8f9fa);
+}
+.room-inv-item:hover:not(.placed) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(134, 239, 172, 0.3);
+}
+.room-inv-item.placed {
+  opacity: 0.45;
+  cursor: default;
+}
+.room-inv-item.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+.room-inv-emoji {
+  font-size: 1rem;
+}
+.room-inv-name {
+  font-weight: 600;
+  font-size: 0.6rem;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.room-inv-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  font-size: 0.45rem;
+  background: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+  padding: 1px 3px;
+  border-radius: 3px;
+  font-weight: 800;
+}
+
+/* Mobile: slightly smaller grid */
+@media (max-width: 480px) {
+  .pet-room-card {
+    width: calc(100vw - 16px);
+    padding: 12px;
+  }
+  .room-cell-emoji {
+    font-size: 1.2rem;
+  }
+}

@@ -250,11 +250,12 @@
 /* ─── Sleep ZZZ ─── */
 .pet-zzz {
   position: absolute;
-  top: -0.8em;
-  right: -0.4em;
-  font-size: 0.4em;
-  color: rgba(150, 180, 255, 0.8);
+  top: -1.8em;
+  right: -0.2em;
+  font-size: 0.9rem;
+  color: rgba(150, 180, 255, 0.9);
   animation: zzzFloat 2s ease-in-out infinite;
+  z-index: 48;
 }
 
 @keyframes zzzFloat {
@@ -547,4 +548,131 @@
   background: rgba(200, 190, 170, 0.4);
   pointer-events: none;
   animation: petDustPuff 0.4s ease-out forwards;
+}
+
+/* ═══════════════════════════════════════════════════
+ *  v8.0: Speech Bubble Animations
+ * ═══════════════════════════════════════════════════ */
+@keyframes petSpeechIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes petSpeechOut {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px) scale(0.9);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+ *  v8.0: Evolution Celebration Overlay
+ * ═══════════════════════════════════════════════════ */
+.pet-evolution-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(124, 92, 252, 0.25) 0%,
+    rgba(0, 0, 0, 0.85) 70%
+  );
+  animation: petEvolveIn 0.5s ease forwards;
+  pointer-events: none;
+}
+.pet-evolution-content {
+  text-align: center;
+  animation: petEvolveGlow 1.5s ease-in-out infinite alternate;
+}
+.pet-evolution-sprite {
+  font-size: 5rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px rgba(124, 92, 252, 0.6));
+  margin-bottom: 12px;
+}
+.pet-evolution-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24, #a78bfa, #f472b6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+.pet-evolution-stage {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(200, 180, 255, 0.8);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@keyframes petEvolveIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes petEvolveOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes petEvolveGlow {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 12px rgba(124, 92, 252, 0.3));
+  }
+  100% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 24px rgba(124, 92, 252, 0.6));
+  }
+}
+
+/* v8.0: Pet Info Action Buttons */
+.pet-info-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.pet-action-btn {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dim, #9ca3af);
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.pet-action-btn:hover {
+  background: rgba(124, 92, 252, 0.12);
+  border-color: rgba(124, 92, 252, 0.3);
+  color: #a78bfa;
+}
+.pet-action-btn:active {
+  transform: scale(0.96);
 }

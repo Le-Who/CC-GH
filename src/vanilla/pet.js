@@ -5,8 +5,16 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { api, showToast } from "./shared.js";
-import { calculateSatietyDelta, CROPS, MERGE_CHAINS } from "/game-logic.js";
+import { api, showToast, HUB } from "./shared.js";
+import { openRoom } from "./petRoom.js";
+import {
+  calculateSatietyDelta,
+  CROPS,
+  MERGE_CHAINS,
+  computeMood,
+  EVOLUTION_SPRITES,
+  HAPPINESS_REWARDS,
+} from "/game-logic.js";
 
 /* ─── Merge item display lookup (for quest requirement names) ─── */
 const _MERGE_DISPLAY = {};
@@ -90,8 +98,22 @@ const PetCompanionImpl = (function () {
       affectionXp: 0,
       affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false },
+      // v8.0 Tamagotchi
+      needs: {
+        hunger: 100,
+        happiness: 100,
+        cleanliness: 100,
+        lastDecayTimestamp: Date.now(),
+      },
+      evolutionStage: 0,
+      equipped: { hat: null, collar: null, effect: null },
+      wardrobe: [],
+      petFood: 3,
     });
   }
+
+  // v8.0: Current mood state (derived, not stored)
+  let currentMood = { name: "happy", emoji: "😊", score: 80 };
 
   /* ─── Init ─── */
   async function init() {
@@ -106,7 +128,20 @@ const PetCompanionImpl = (function () {
       if (data && data.pet) {
         petData = data.pet;
         GameStore.setState("pet", data.pet);
-        sprite.textContent = SKINS[data.pet.skinId] || SKINS.basic_dog;
+
+        // v8.0: Resolve evolution sprite
+        const stage = data.pet.evolutionStage || 0;
+        const sprites = EVOLUTION_SPRITES[data.pet.skinId];
+        sprite.textContent = sprites
+          ? sprites[Math.min(stage, sprites.length - 1)]
+          : SKINS[data.pet.skinId] || SKINS.basic_dog;
+
+        // v8.0: Store mood from server response
+        if (data.petMood) {
+          currentMood = data.petMood;
+        } else if (data.pet.needs) {
+          currentMood = computeMood(data.pet.needs);
+        }
 
         // Peak-End / IKEA Effect: Name pet at start if it's the default name
         if (data.pet.name === "Buddy" && data.pet.level === 1) {
@@ -279,6 +314,19 @@ const PetCompanionImpl = (function () {
     }
     container.classList.remove("pet-roaming");
 
+    // v7.4: Force-stop in-flight CSS transitions when entering sleep/idle
+    // This prevents the pet from visually sliding to a roam destination
+    // after the state has already changed to sleep.
+    if (newState === STATES.SLEEP || newState === STATES.IDLE) {
+      const matrix = new DOMMatrix(getComputedStyle(container).transform);
+      container.style.transition = "none";
+      container.style.transform = `translate3d(${matrix.m41}px, 0, 0)`;
+      // Allow future transitions after a frame
+      requestAnimationFrame(() => {
+        container.style.transition = "";
+      });
+    }
+
     // Synchronous class swap — no rAF, no animation reset, zero flicker
     STATE_CLASSES.forEach((cls) => container.classList.remove(cls));
     container.classList.add(`state-${newState}`);
@@ -298,58 +346,153 @@ const PetCompanionImpl = (function () {
 
   function scheduleNextState() {
     if (stateTimer) clearTimeout(stateTimer);
-    const delay = 3000 + Math.random() * 4000; // 3-7s (lively tempo)
+    // v8.0: Mood-aware tempo — happy pets are livelier, sad pets are sluggish
+    const moodScore = currentMood?.score ?? 60;
+    const tempoMult = moodScore >= 70 ? 0.7 : moodScore >= 40 ? 1.0 : 1.5;
+    const delay = (3000 + Math.random() * 4000) * tempoMult;
     stateTimer = setTimeout(() => {
       if (currentState === STATES.HAPPY || currentState === STATES.DIZZY) {
-        // Don't interrupt reaction states
         scheduleNextState();
         return;
       }
       if (currentState === STATES.SLEEP) {
-        // Stay asleep until interaction or auto-wake
         return;
       }
 
-      // Weighted behavior: 80% ROAM, 15% IDLE, 5% SLEEP
-      // Anti-repeat: skip SLEEP if previous was SLEEP
+      // v8.0: Mood-aware behavior weights
+      const moodName = currentMood?.name || "content";
+      let roamW, idleW, sleepW;
+      switch (moodName) {
+        case "ecstatic":
+          roamW = 0.9;
+          idleW = 0.1;
+          sleepW = 0.0;
+          break;
+        case "happy":
+          roamW = 0.85;
+          idleW = 0.12;
+          sleepW = 0.03;
+          break;
+        case "content":
+          roamW = 0.8;
+          idleW = 0.15;
+          sleepW = 0.05;
+          break;
+        case "sad":
+          roamW = 0.5;
+          idleW = 0.4;
+          sleepW = 0.1;
+          break;
+        case "distressed":
+          roamW = 0.3;
+          idleW = 0.5;
+          sleepW = 0.2;
+          break;
+        default:
+          roamW = 0.8;
+          idleW = 0.15;
+          sleepW = 0.05;
+      }
+
       let roll = Math.random();
       const canRoam =
         dockMode === "ground" || dockMode === "match3" || dockMode === "trivia";
 
-      // Anti-repeat adjustments
+      // Anti-repeat: never sleep twice in a row
       if (previousState === STATES.SLEEP) {
-        // After waking, never immediately sleep again
-        roll = Math.random() * 0.95; // Clamp out SLEEP range (0.95-1.0)
+        roll = Math.random() * (1 - sleepW);
       }
 
       previousState = currentState;
 
-      if (roll < 0.8 && canRoam) {
-        // 80%: ROAM (most movement — lively pet)
+      if (roll < roamW && canRoam) {
         setState(STATES.ROAM);
         roamToRandomPosition();
-      } else if (roll < 0.95) {
-        // 15%: IDLE (brief pause)
+      } else if (roll < roamW + idleW) {
         setState(STATES.IDLE);
+        // v8.0: Contextual speech bubble on idle (20% chance)
+        if (Math.random() < 0.2) showSpeechBubble();
       } else {
-        // 5%: SLEEP (short nap, 12s max)
         enterSleep();
       }
       scheduleNextState();
     }, delay);
   }
 
-  /** Enter sleep state with 30s auto-wake timer */
   function enterSleep() {
     setState(STATES.SLEEP);
     if (sleepTimer) clearTimeout(sleepTimer);
     sleepTimer = setTimeout(() => {
-      // Auto-wake after 12 seconds (short nap)
       if (currentState === STATES.SLEEP) {
         setState(STATES.IDLE);
         scheduleNextState();
       }
     }, 12000);
+  }
+
+  /* ─── v8.0: Contextual Speech Bubbles ─── */
+  const SPEECH_BY_MOOD = {
+    ecstatic: [
+      "🌟 I love you!",
+      "💖 Best day ever!",
+      "🎉 Yay!",
+      "✨ So happy!",
+    ],
+    happy: ["😊 I'm great!", "💛 Hehe~", "🌼 Nice day!", "🌞 Woof!"],
+    content: ["🙂 Doing okay!", "🐾 *stretch*", "🍎 Snack?", "💤 Hmm..."],
+    sad: [
+      "😞 I'm lonely...",
+      "💧 Play with me?",
+      "😔 *whimper*",
+      "🍵 I'm hungry...",
+    ],
+    distressed: [
+      "😢 Please help!",
+      "💨 I need you!",
+      "🩹 So hungry...",
+      "😱 Feed me!",
+    ],
+  };
+  let _speechTimer = null;
+
+  function showSpeechBubble() {
+    const container = document.getElementById("pet-container");
+    if (!container) return;
+    // Don't overlap speech bubbles
+    if (container.querySelector(".pet-speech-bubble")) return;
+
+    const mood = currentMood?.name || "content";
+    const lines = SPEECH_BY_MOOD[mood] || SPEECH_BY_MOOD.content;
+    const text = lines[Math.floor(Math.random() * lines.length)];
+
+    const bubble = document.createElement("div");
+    bubble.className = "pet-speech-bubble";
+    bubble.textContent = text;
+    bubble.style.cssText = `
+      position: absolute;
+      top: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface, #1e1e2e);
+      color: var(--text, #fff);
+      border: 1px solid var(--border, #333);
+      border-radius: 12px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      animation: petSpeechIn 0.3s ease forwards;
+      z-index: 200;
+    `;
+    container.appendChild(bubble);
+
+    // Auto-remove after 2.5s
+    _speechTimer = setTimeout(() => {
+      bubble.style.animation = "petSpeechOut 0.3s ease forwards";
+      setTimeout(() => bubble.remove(), 300);
+    }, 2500);
   }
 
   function roamToRandomPosition() {
@@ -600,6 +743,10 @@ const PetCompanionImpl = (function () {
             ${petData.abilities.autoPlant ? "✅" : "🔒"} Auto-Plant (Lv 7)
           </span>
         </div>
+        <div class="pet-info-actions">
+          <button class="pet-action-btn" id="btn-pet-room" title="Decorate your pet's room">🏠 Room</button>
+          <button class="pet-action-btn" id="btn-pet-share" title="Share your pet">📤 Share</button>
+        </div>
       </div>
     `;
 
@@ -613,8 +760,43 @@ const PetCompanionImpl = (function () {
     const renameBtn = document.getElementById("btn-rename-pet");
     if (renameBtn) {
       renameBtn.onclick = () => {
-        toggleInfoPanel(); // hide panel so modal is clear
+        toggleInfoPanel();
         promptForPetName(petData.name);
+      };
+    }
+
+    // v8.0: Room button
+    const roomBtn = document.getElementById("btn-pet-room");
+    if (roomBtn) {
+      roomBtn.onclick = () => {
+        toggleInfoPanel();
+        openRoom();
+      };
+    }
+
+    // v8.0: Share button
+    const shareBtn = document.getElementById("btn-pet-share");
+    if (shareBtn) {
+      shareBtn.onclick = async () => {
+        const shareUrl = `${location.origin}/api/pet/card/${HUB.userId}`;
+        if (HUB.sdk?.commands?.shareLink) {
+          try {
+            await HUB.sdk.commands.shareLink({
+              message: `Check out my pet ${petData.name}!`,
+              url: shareUrl,
+            });
+            showToast("📤 Shared to Discord!", "success");
+          } catch {
+            showToast("Could not share — try copying the link", "error");
+          }
+        } else {
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            showToast("📋 Pet link copied!", "success");
+          } catch {
+            showToast("Could not copy link", "error");
+          }
+        }
       };
     }
   }
@@ -812,15 +994,52 @@ const PetCompanionImpl = (function () {
     if (panelOpen) renderInfoPanel();
   }
 
-  /* ─── Sync from server data ─── */
+  let _lastEvolutionStage = -1; // Track for celebration detection
+
   function syncFromServer(pet) {
     if (!pet) return;
     petData = pet;
     GameStore.setState("pet", pet);
     const sprite = document.getElementById("pet-sprite");
     if (sprite) {
-      sprite.textContent = SKINS[pet.skinId] || SKINS.basic_dog;
+      // v8.0: Use evolution-aware sprite
+      const stage = pet.evolutionStage || 0;
+      const sprites = EVOLUTION_SPRITES[pet.skinId];
+      sprite.textContent = sprites
+        ? sprites[Math.min(stage, sprites.length - 1)]
+        : SKINS[pet.skinId] || SKINS.basic_dog;
+
+      // v8.0: Evolution celebration
+      if (_lastEvolutionStage >= 0 && stage > _lastEvolutionStage) {
+        _showEvolutionCelebration(sprite.textContent, stage);
+      }
+      _lastEvolutionStage = stage;
     }
+    // Update mood if needs exist
+    if (pet.needs) {
+      currentMood = computeMood(pet.needs);
+    }
+  }
+
+  /** v8.0: Full-screen evolution celebration overlay */
+  function _showEvolutionCelebration(spriteEmoji, stage) {
+    const stageNames = ["Baby", "Juvenile", "Adult", "Legendary"];
+    const overlay = document.createElement("div");
+    overlay.className = "pet-evolution-overlay";
+    overlay.innerHTML = `
+      <div class="pet-evolution-content">
+        <div class="pet-evolution-sprite">${spriteEmoji}</div>
+        <div class="pet-evolution-text">✨ Evolved!</div>
+        <div class="pet-evolution-stage">${stageNames[Math.min(stage, stageNames.length - 1)]} Stage</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Auto-dismiss after 3.5s
+    setTimeout(() => {
+      overlay.style.animation = "petEvolveOut 0.5s ease forwards";
+      setTimeout(() => overlay.remove(), 500);
+    }, 3500);
   }
 
   /* ─── Smart Docking ─── */
@@ -850,7 +1069,39 @@ const PetCompanionImpl = (function () {
     setDockMode,
     getDockMode,
     submitOrder,
+    getMood: () => currentMood,
   };
 })();
 
 export const PetCompanion = PetCompanionImpl;
+
+/* ═══════════════════════════════════════════════════
+ *  PetEvents — Cross-mode happiness event bus (v8.0)
+ *  Loosely coupled: modes fire events, pet system listens.
+ *  If pet system is down, events are silently dropped.
+ * ═══════════════════════════════════════════════════ */
+export const PetEvents = {
+  /**
+   * Emit a happiness event from any game mode.
+   * @param {string} source — key from HAPPINESS_REWARDS (e.g. 'farm_harvest')
+   */
+  async emit(source) {
+    if (!HAPPINESS_REWARDS[source]) {
+      console.warn(`PetEvents: unknown source "${source}"`);
+      return;
+    }
+    try {
+      const res = await api("/api/pet/happiness", { source });
+      if (res?.success) {
+        // Update local pet needs if we have them
+        const pet = GameStore.getState("pet");
+        if (pet?.needs) {
+          pet.needs.happiness = res.happiness;
+          GameStore.setState("pet", { ...pet });
+        }
+      }
+    } catch {
+      // Silent fail — game modes must not break if pet system is down
+    }
+  },
+};

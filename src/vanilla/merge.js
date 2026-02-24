@@ -9,6 +9,7 @@ import { api, showToast, HUB, safeShowModal } from "./shared.js";
 import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "/game-logic.js";
 import { HUD } from "./hud.js";
 import { SoundEngine } from "./effects.js";
+import { PetEvents } from "./pet.js";
 
 /* ─── Constants ─── */
 const BOARD_ROWS = 7;
@@ -177,6 +178,22 @@ async function mergeItems(fromR, fromC, toR, toC) {
     // Sync authoritative board
     GameStore.setState("merge", data.merge);
     SoundEngine.merge(); // v6.2.1: audio + haptic feedback on merge success
+
+    // v8.0: Cosmetic unlock celebration
+    if (data.cosmeticUnlocked) {
+      showToast(
+        `🎀 New cosmetic unlocked: ${data.cosmeticUnlocked}!`,
+        "success",
+      );
+      PetEvents.emit("cosmetic_unlock");
+    }
+
+    // v8.0: Decoration unlock celebration
+    if (data.decorationUnlocked) {
+      showToast(`🏠 New room decoration unlocked!`, "success");
+      PetEvents.emit("decoration_unlock");
+    }
+
     _renderBoard();
     return { success: true };
   } catch {

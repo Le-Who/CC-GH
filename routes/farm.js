@@ -19,6 +19,7 @@ import {
   BOOSTER_CONFIG,
   PLOT_THEMES,
   SEASON_PASS,
+  updateWeeklyStat,
 } from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
@@ -156,6 +157,10 @@ export default function farmRoutes(requireAuth, resolveUser) {
     plot.crop = null;
     plot.plantedAt = null;
     plot.watered = false;
+
+    // v7.3: Weekly challenge stat tracking
+    updateWeeklyStat(p, "weeklyHarvests", 1);
+
     debouncedSavePlayer(userId);
     res.json({
       success: true,
