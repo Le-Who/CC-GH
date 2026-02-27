@@ -758,8 +758,25 @@ export const EVENTS = [
 ];
 
 export function getActiveEvents(now = Date.now()) {
+  const currentDate = new Date(now);
+  const currentYear = currentDate.getFullYear();
   return EVENTS.filter((e) => {
     if (!e.startDate || !e.endDate) return false;
+    // For recurring events, normalize to the current year
+    if (e.recurring) {
+      const startMD = e.startDate.slice(5); // "MM-DD"
+      const endMD = e.endDate.slice(5);
+      // Try current year first, then check year boundary (Dec→Jan)
+      for (const year of [currentYear, currentYear - 1]) {
+        const start = new Date(`${year}-${startMD}`).getTime();
+        let endYear = year;
+        // Handle year-crossing events (e.g., Dec 15 → Jan 15)
+        if (endMD < startMD) endYear = year + 1;
+        const end = new Date(`${endYear}-${endMD}`).getTime();
+        if (now >= start && now <= end) return true;
+      }
+      return false;
+    }
     const start = new Date(e.startDate).getTime();
     const end = new Date(e.endDate).getTime();
     return now >= start && now <= end;
@@ -775,6 +792,32 @@ export function mergeCropConfig(base, overrides = {}) {
     if (!base[id]) merged[id] = { ...cfg, id };
   }
   return merged;
+}
+
+/* ═══════════════════════════════════════════════════
+ *  SHARED HELPERS (extracted for DRY)
+ * ═══════════════════════════════════════════════════ */
+
+/** Random integer in [min, max] inclusive */
+export function randInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+/** Pick random element from array */
+export function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Calculate gacha token reward based on score and thresholds.
+ * 1 base token + 1 per threshold exceeded.
+ */
+export function calcTokenReward(score) {
+  let tokens = ECONOMY.REWARD_GACHA_TOKENS;
+  for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
+    if (score >= threshold) tokens++;
+  }
+  return tokens;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -812,7 +855,6 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
     },
     room: { decorations: [], wallpaper: "default" },
     farm: {
-      coins: 0,
       xp: 0,
       level: 1,
       plots: Array.from({ length: 6 }, (_, i) => ({

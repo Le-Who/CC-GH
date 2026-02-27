@@ -1,3 +1,47 @@
+## [7.3.4] - 2026-02-28
+
+### Security & Architecture Audit
+
+Comprehensive 19-fix audit covering security, architecture, bugs, code duplication, performance, and maintainability. 10 files modified, 388/388 tests pass.
+
+#### Critical Fixes
+
+- **Blox gold exploit** (`blox.js`): `/api/blox/end` lacked session validation — players could call `/end` repeatedly without `/start` for infinite gold. Added `activeGame` flag set in `/start`, validated and cleared in `/end`.
+- **Anti-cheat score ceilings** (`blox.js`, `match3.js`): Client-reported scores were accepted without bounds. Added plausibility ceilings (Blox: 10K, Match-3: 30K) — suspiciously high scores are logged and rejected with zero reward.
+- **Rate limiter bypass** (`server.js`): `authLimiter` and `defaultLimiter` were mounted AFTER route handlers, so they never fired. Moved rate limiter `app.use()` calls before route mounts.
+- **Variable shadowing** (`questRoutes.js`): `for (const req of order.requirements)` shadowed the Express `req` parameter. Renamed to `requirement`.
+
+#### Architecture & Scalability
+
+- **Firestore factory** (`playerManager.js`): Replaced module-level `new Firestore()` with lazy `initFirestore()` called from `start()`. Prevents import-time crashes and enables mocking in tests.
+- **LRU player cache** (`playerManager.js`): `players` Map now has a 10,000-entry eviction threshold. Oldest entries are flushed to Firestore before deletion.
+- **Shared helpers** (`game-logic.js`): Extracted `randInt()`, `pick()`, `calcTokenReward()` — eliminated 3 duplicate definitions across `mergeRoutes.js` and `questRoutes.js`.
+- **Recurring events** (`game-logic.js`): `getActiveEvents()` now normalizes event dates to the current year for `recurring: true` events, including year-crossing support (Dec→Jan).
+
+#### Bug Fixes
+
+- **Merge coordinate validation** (`mergeRoutes.js`): Added `validCoord()` check for `/merge/merge` and `/merge/trash` — prevents out-of-bounds board access. Fixed validation order (check coords before accessing cells).
+- **Pet name XSS** (`resources.js`): `cleanName` now strips HTML tags via regex before truncation.
+- **Leaderboard room filter** (`leaderboard.js`): Removed broken room filter stub that used incorrect user-ID prefix matching on an already-filtered array.
+- **Dead `farm.coins`** (`game-logic.js`, `playerManager.js`): Removed `coins: 0` from `createDefaultPlayer()` and `farm.coins = 0` from v2 migration — field was never read or written by any route.
+- **`isDirectRun` detection** (`server.js`): Fragile `endsWith` path check replaced with `URL` comparison for Windows compatibility.
+- **Stale test** (`farm.test.js`): `schemaVersion` assertion updated from 6 to 7 (v7 room migration).
+
+#### DRY & Performance
+
+- **Gacha token calculation** (`match3.js`, `blox.js`): Inline token-threshold loops replaced with shared `calcTokenReward(score)` from `game-logic.js`.
+- **Leaderboard rank** (`match3.js`): Replaced O(N log N) full sort + `findIndex` with O(N) count of higher scores.
+
+#### Security Hardening
+
+- **CORS headers** (`server.js`): Added `Access-Control-Allow-Origin`, methods, headers, and `OPTIONS` preflight handler.
+- **Security headers** (`server.js`): Added `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`.
+- **Timer cleanup** (`middleware/rateLimit.js`): Added `.unref()` to `setInterval` cleanup timer so tests can exit cleanly.
+
+#### Tests — **388/388 pass**, 0 failures.
+
+---
+
 ## [7.3.3] - 2026-02-24
 
 ### Prod-Readiness Audit

@@ -5,7 +5,12 @@
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
-import { ECONOMY, calcRegen, calcGoldReward } from "../game-logic.js";
+import {
+  ECONOMY,
+  calcRegen,
+  calcGoldReward,
+  calcTokenReward,
+} from "../game-logic.js";
 import { getPlayer, players, debouncedSavePlayer } from "../playerManager.js";
 
 export default function match3Routes(requireAuth, resolveUser) {
@@ -148,22 +153,20 @@ export default function match3Routes(requireAuth, resolveUser) {
     let goldReward = 0;
     let tokenReward = 0;
 
-    // Anti-cheat / Basic validation (approx. 5000 is a very good score for 30 moves)
+    // Anti-cheat: Validate score plausibility (approx. 5000 is very good for 30 moves)
     if (typeof score === "number" && score > 0) {
       if (score > 30000) {
         console.warn(
-          `🚨 Anti-cheat trigger: Match-3 score ${score} by ${userId} is suspiciously high.`,
+          `🚨 Anti-cheat: Match-3 score ${score} by ${userId} rejected — exceeds plausibility ceiling.`,
         );
+        // Do NOT award gold for implausible scores
       } else {
         goldReward = calcGoldReward(score);
         p.resources.gold += goldReward;
         p.match3.highScore = Math.max(p.match3.highScore, score);
 
         // Gacha token reward: 1 base + bonus for high performance
-        tokenReward = ECONOMY.REWARD_GACHA_TOKENS;
-        for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
-          if (score >= threshold) tokenReward++;
-        }
+        tokenReward = calcTokenReward(score);
         p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
       }
     }
@@ -171,11 +174,12 @@ export default function match3Routes(requireAuth, resolveUser) {
     p.match3.currentGame = null;
     debouncedSavePlayer(userId);
 
-    // Compute rank
-    const allScores = [...players.values()]
-      .filter((pl) => pl.match3.highScore > 0)
-      .sort((a, b) => b.match3.highScore - a.match3.highScore);
-    const rank = allScores.findIndex((pl) => pl.userId === userId) + 1;
+    // Compute rank: count how many players have a higher score (O(N) vs O(N log N) sort)
+    let rank = 1;
+    const playerScore = p.match3.highScore;
+    for (const pl of players.values()) {
+      if ((pl.match3?.highScore || 0) > playerScore) rank++;
+    }
 
     res.json({
       success: true,
@@ -183,7 +187,7 @@ export default function match3Routes(requireAuth, resolveUser) {
       goldReward,
       tokenReward,
       highScore: p.match3.highScore,
-      rank: rank || allScores.length + 1,
+      rank,
     });
   });
 

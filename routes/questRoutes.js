@@ -6,21 +6,18 @@
  */
 import { Router } from "express";
 import crypto from "crypto";
-import { ECONOMY, CROPS, MERGE_CHAINS, QUEST_TIERS } from "../game-logic.js";
+import {
+  ECONOMY,
+  CROPS,
+  MERGE_CHAINS,
+  QUEST_TIERS,
+  randInt,
+  pick,
+} from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function questRoutes(requireAuth, resolveUser) {
   const router = Router();
-
-  /** Helper: random int in [min, max] inclusive */
-  function randInt(min, max) {
-    return min + Math.floor(Math.random() * (max - min + 1));
-  }
-
-  /** Helper: pick random from array */
-  function pick(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
 
   /** Helper: resolve range — returns fixed value or random in [min,max] */
   function resolveRange(val) {
@@ -154,12 +151,10 @@ export default function questRoutes(requireAuth, resolveUser) {
           !p.farm.harvested[requirement.id] ||
           p.farm.harvested[requirement.id] < requirement.qty
         ) {
-          return res
-            .status(400)
-            .json({
-              error: `not enough ${requirement.id}`,
-              need: requirement.qty,
-            });
+          return res.status(400).json({
+            error: `not enough ${requirement.id}`,
+            need: requirement.qty,
+          });
         }
       } else if (requirement.type === "merge") {
         let found = 0;
@@ -169,12 +164,10 @@ export default function questRoutes(requireAuth, resolveUser) {
           }
         }
         if (found < requirement.qty) {
-          return res
-            .status(400)
-            .json({
-              error: `not enough ${requirement.id} on board`,
-              need: requirement.qty,
-            });
+          return res.status(400).json({
+            error: `not enough ${requirement.id} on board`,
+            need: requirement.qty,
+          });
         }
       }
     }

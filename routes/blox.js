@@ -5,7 +5,12 @@
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
-import { ECONOMY, calcRegen, calcBloxReward } from "../game-logic.js";
+import {
+  ECONOMY,
+  calcRegen,
+  calcBloxReward,
+  calcTokenReward,
+} from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function bloxRoutes(requireAuth, resolveUser) {
@@ -59,10 +64,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
         p.resources.gold += goldReward;
 
         // Gacha token reward: 1 base + bonus for high performance
-        tokenReward = ECONOMY.REWARD_GACHA_TOKENS;
-        for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
-          if (score >= threshold) tokenReward++;
-        }
+        tokenReward = calcTokenReward(score);
         p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
         p.blox.highScore = Math.max(p.blox.highScore, score);
       }

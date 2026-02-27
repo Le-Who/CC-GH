@@ -125,7 +125,10 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       return res.status(400).json({ error: "Invalid name" });
     }
 
-    const cleanName = newName.trim().substring(0, 16);
+    const cleanName = newName
+      .trim()
+      .replace(/<[^>]*>/g, "") // Strip HTML tags (XSS prevention)
+      .substring(0, 16);
     p.pet.name = cleanName;
     debouncedSavePlayer(userId);
 

@@ -1,7 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Leaderboard Routes
- *  Match-3 and Building Blox leaderboards with scope filtering
+ *  Match-3 and Building Blox leaderboards
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
@@ -10,17 +10,8 @@ import { players } from "../playerManager.js";
 export default function leaderboardRoutes() {
   const router = Router();
 
-  router.get("/api/leaderboard", (req, res) => {
-    const { scope, roomId } = req.query;
-    let entries = [...players.values()];
-
-    // In a real Discord Activity, roomId would filter by voice channel participants.
-    // For the demo, we simulate "room" by grouping players who share a roomId prefix.
-    if (scope === "room" && roomId) {
-      entries = entries.filter(
-        (p) => p.id.startsWith(roomId) || entries.length <= 5,
-      );
-    }
+  router.get("/api/leaderboard", (_req, res) => {
+    const entries = [...players.values()];
 
     const leaders = entries
       .filter((p) => p.match3?.highScore > 0)
@@ -37,15 +28,8 @@ export default function leaderboardRoutes() {
   });
 
   // v4.9: Building Blox leaderboard
-  router.get("/api/blox/leaderboard", (req, res) => {
-    const { scope, roomId } = req.query;
-    let entries = [...players.values()];
-
-    if (scope === "room" && roomId) {
-      entries = entries.filter(
-        (p) => p.id.startsWith(roomId) || entries.length <= 5,
-      );
-    }
+  router.get("/api/blox/leaderboard", (_req, res) => {
+    const entries = [...players.values()];
 
     const leaders = entries
       .filter((p) => p.blox?.highScore > 0)

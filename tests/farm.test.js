@@ -274,10 +274,10 @@ describe("Crop Config", () => {
 /* ═══════════════════════════════════════════════════
  *  PLAYER FACTORY
  * ═══════════════════════════════════════════════════ */
-describe("createDefaultPlayer v6", () => {
-  it("creates player with schema version 6", () => {
+describe("createDefaultPlayer v7", () => {
+  it("creates player with schema version 7", () => {
     const p = createDefaultPlayer("u1", "test");
-    assert.equal(p.schemaVersion, 6);
+    assert.equal(p.schemaVersion, 7);
   });
 
   it("includes ALL new feature fields", () => {

@@ -11,6 +11,7 @@ import {
   CROP_TIERS,
   TIER_YIELD,
   calcRegen,
+  randInt,
 } from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
@@ -19,6 +20,11 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
   const BOARD_ROWS = 7,
     BOARD_COLS = 9;
+
+  /** Validate grid coordinate is a valid integer in [0, limit) */
+  function validCoord(v, limit) {
+    return Number.isInteger(v) && v >= 0 && v < limit;
+  }
 
   /**
    * v6.1.1: Hydrate merge board from Firestore.
@@ -61,11 +67,6 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       }
     }
     p.merge.board = board;
-  }
-
-  /** Helper: random int in [min, max] inclusive */
-  function randInt(min, max) {
-    return min + Math.floor(Math.random() * (max - min + 1));
   }
 
   /** Helper: get empty cells on a board */
@@ -196,8 +197,16 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     hydrateMergeBoard(p);
     const board = p.merge.board;
 
-    const src = board[fromR]?.[fromC];
-    const dst = board[toR]?.[toC];
+    if (
+      !validCoord(fromR, BOARD_ROWS) ||
+      !validCoord(fromC, BOARD_COLS) ||
+      !validCoord(toR, BOARD_ROWS) ||
+      !validCoord(toC, BOARD_COLS)
+    ) {
+      return res.status(400).json({ error: "invalid coordinates" });
+    }
+    const src = board[fromR][fromC];
+    const dst = board[toR][toC];
     if (!src || !dst) {
       return res.status(400).json({ error: "empty cell" });
     }
@@ -327,6 +336,9 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   router.post("/api/merge/trash", requireAuth, (req, res) => {
     const { userId } = resolveUser(req);
     const { r, c } = req.body;
+    if (!validCoord(r, BOARD_ROWS) || !validCoord(c, BOARD_COLS)) {
+      return res.status(400).json({ error: "invalid coordinates" });
+    }
     const p = getPlayer(userId);
     hydrateMergeBoard(p);
 

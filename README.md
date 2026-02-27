@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v7.3.3**
+**Current version: v7.3.4**
 
 ---
 
@@ -143,23 +143,23 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 345 tests across 11 suites
+npm test          # All 388 tests across 11 suites
 npm run test:perf # Performance benchmarks only
 ```
 
 | Type       | File                              | Count |
 | ---------- | --------------------------------- | ----: |
-| **Unit**   | `tests/unit.test.js`              |    59 |
-| **API**    | `tests/api.test.js`               |    26 |
+| **Unit**   | `tests/unit.test.js`              |    53 |
+| **API**    | `tests/api.test.js`               |    38 |
 | **Blox**   | `tests/blox.test.js`              |    30 |
 | **M3**     | `tests/match3.test.js`            |    12 |
 | **UX**     | `tests/ux.test.js`                |    75 |
 | **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
-| **Stress** | `tests/game-logic-stress.test.js` |    58 |
-| **Farm**   | `tests/farm.test.js`              |    12 |
+| **Stress** | `tests/game-logic-stress.test.js` |    57 |
+| **Farm**   | `tests/farm.test.js`              |    30 |
 | **Store**  | `tests/store.test.js`             |    10 |
-| **Syntax** | `tests/syntax.test.js`            |    28 |
+| **Syntax** | `tests/syntax.test.js`            |    48 |
 
 ---
 
@@ -227,20 +227,30 @@ Older architecture evolution changes can be found in `legacy_readme.md`.
 
 ### ✅ Completed in v7.3.x
 
-1. **Retention & Monetization Ready** (v7.3.0):
+1. **Security & Architecture Audit** (v7.3.4):
+   - Blox session validation (anti-gold-exploit) + anti-cheat score ceilings.
+   - Rate limiter mount order fixed (before route handlers).
+   - CORS + security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy).
+   - Firestore init refactored to lazy `initFirestore()` factory.
+   - LRU eviction (10K cap) for in-memory player cache.
+   - Shared helpers (`randInt`, `pick`, `calcTokenReward`) extracted to `game-logic.js`.
+   - Recurring events fixed with year-normalization.
+   - Merge board coordinate validation, pet name XSS sanitization.
+   - Dead code removal (`farm.coins`), `.unref()` for clean test shutdown.
+2. **Retention & Monetization Ready** (v7.3.0):
    - Post-game summary cards, tomorrow preview, weekly stats.
    - Daily login streaks with escalating multipliers.
    - Timed farm boosters (2× growth, 1.5× harvest).
    - Achievements, seasonal events, season pass (free + premium tracks).
    - Per-route rate limiting for API abuse prevention.
-2. **Pet Room — Phase 3** (v7.3.0):
+3. **Pet Room — Phase 3** (v7.3.0):
    - 4×4 decoratable room grid with stat-boosting decorations.
    - `PetRoomUI.jsx` component with tile placement and inventory.
    - Room decorations from Merge pipeline with rarity tiers.
-3. **Farm Panel Expansion** (v7.3.0+):
+4. **Farm Panel Expansion** (v7.3.0+):
    - Badges, Journal (crop discovery), and Season Pass tabs.
    - 30-second onboarding redesign with invisible tutorials.
-4. **Prod-Readiness Audit** (v7.3.3):
+5. **Prod-Readiness Audit** (v7.3.3):
    - Featured shelf repositioned to left sidebar (absolute positioning).
    - Pet profile mood meter and affection level restored.
    - HUD gold counter stabilized, dead imports removed.

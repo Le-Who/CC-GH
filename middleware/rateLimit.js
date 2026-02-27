@@ -13,7 +13,7 @@ const windows = new Map(); // userId → [timestamps]
  * @param {number} windowMs - Window duration in milliseconds
  */
 export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
-  // Cleanup old entries every 5 minutes
+  // Cleanup old entries every 5 minutes (unref for clean test exit)
   setInterval(() => {
     const cutoff = Date.now() - windowMs * 2;
     for (const [key, timestamps] of windows.entries()) {
@@ -21,7 +21,7 @@ export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
       if (valid.length === 0) windows.delete(key);
       else windows.set(key, valid);
     }
-  }, 300_000);
+  }, 300_000).unref();
 
   return (req, res, next) => {
     // Extract user ID from auth, body, or IP

@@ -14,7 +14,7 @@ import crypto from "crypto";
 import { fileURLToPath } from "url";
 import compression from "compression";
 import { initStorage, getBucket } from "./storage.js";
-import { players, loadDb } from "./playerManager.js";
+import { players, loadDb, initFirestore } from "./playerManager.js";
 
 /* ─── Route Modules ─── */
 import farmRoutes from "./routes/farm.js";
@@ -41,6 +41,24 @@ const APP_VERSION = pkg.version;
 const app = express();
 app.use(compression());
 app.use(express.json());
+
+// CORS — allow Discord Activity iframe and same-origin requests
+app.use((_req, res, next) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (_req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
+// Security headers (Helmet-like, no extra dependency)
+app.use((_req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "SAMEORIGIN");
+  res.set("X-XSS-Protection", "0"); // Modern browsers: rely on CSP instead
+  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
 
 const PORT = process.env.PORT || 8090;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "";
@@ -160,7 +178,7 @@ app.get("/api/health", (_req, res) =>
 /* ═══════════════════════════════════════════════════
  *  MOUNT ROUTE MODULES
  * ═══════════════════════════════════════════════════ */
-// v7.3: Rate limiting
+// v7.3: Rate limiting — MUST be before route handlers
 app.use("/api/token", authLimiter);
 app.use("/api", defaultLimiter);
 
@@ -264,6 +282,7 @@ app.get(/.*/, (_req, res) => {
 export { app, players };
 
 async function start() {
+  initFirestore();
   await loadDb();
   app.listen(PORT, () => {
     console.log(`\n  🎮 Game Hub v${APP_VERSION} — http://localhost:${PORT}`);
@@ -281,7 +300,8 @@ async function start() {
 // Only auto-start when run directly (not when imported in tests)
 const isDirectRun =
   process.argv[1] &&
-  import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
+  import.meta.url ===
+    new URL(`file:///${process.argv[1].replace(/\\/g, "/")}`).href;
 if (isDirectRun) {
   start().catch((e) => {
     console.error("Fatal startup error:", e);

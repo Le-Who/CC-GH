@@ -18,26 +18,37 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const players = new Map(); // userId -> { resources, pet, farm, trivia, match3 }
 const pendingSaves = new Map(); // userId -> timeoutId
 const SAVE_DELAY_MS = 2000; // Debounce threshold for rapid actions
+const MAX_CACHE_SIZE = 10000; // LRU eviction threshold
 
 let firestore = null;
 let playersCol = null;
 
-try {
-  const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT;
-  const DB_ID = process.env.FIRESTORE_DB_ID || "game-hub-db";
+/**
+ * Initialize Firestore connection. Call from server start() instead of
+ * module-level init — improves testability and prevents import-time crashes.
+ */
+export function initFirestore() {
+  if (playersCol) return; // Already initialized
+  try {
+    const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT;
+    const DB_ID = process.env.FIRESTORE_DB_ID || "game-hub-db";
 
-  const firestoreConfig = { databaseId: DB_ID };
-  if (PROJECT_ID) {
-    firestoreConfig.projectId = PROJECT_ID;
+    const firestoreConfig = { databaseId: DB_ID };
+    if (PROJECT_ID) {
+      firestoreConfig.projectId = PROJECT_ID;
+    }
+
+    firestore = new Firestore(firestoreConfig);
+    playersCol = firestore.collection("players");
+    console.log(
+      `🔥 Firestore initialized successfully. (Project: ${PROJECT_ID || "default"}, DB: ${DB_ID})`,
+    );
+  } catch (e) {
+    console.warn(
+      "⚠️ Firestore init failed, falling back to memory:",
+      e.message,
+    );
   }
-
-  firestore = new Firestore(firestoreConfig); // Uses Application Default Credentials
-  playersCol = firestore.collection("players");
-  console.log(
-    `🔥 Firestore initialized successfully. (Project: ${PROJECT_ID || "default"}, DB: ${DB_ID})`,
-  );
-} catch (e) {
-  console.warn("⚠️ Firestore init failed, falling back to memory:", e.message);
 }
 
 /* ─── Persistence ─── */
@@ -177,6 +188,25 @@ export function getPlayer(userId, username) {
   let NeedsSaveSync = false;
 
   if (!p) {
+    // LRU eviction: remove oldest entries when cache is full
+    if (players.size >= MAX_CACHE_SIZE) {
+      const oldestKey = players.keys().next().value;
+      if (oldestKey) {
+        // Flush pending save before eviction
+        if (pendingSaves.has(oldestKey)) {
+          clearTimeout(pendingSaves.get(oldestKey));
+          pendingSaves.delete(oldestKey);
+          const oldData = players.get(oldestKey);
+          if (oldData && playersCol) {
+            playersCol
+              .doc(oldestKey)
+              .set(sanitizeForFirestore(oldData))
+              .catch(() => {});
+          }
+        }
+        players.delete(oldestKey);
+      }
+    }
     p = createDefaultPlayer(userId, username);
     players.set(userId, p);
     NeedsSaveSync = true;
@@ -208,7 +238,6 @@ export function getPlayer(userId, username) {
         harvested: {},
       };
     }
-    p.farm.coins = 0;
     // Add missing fields
     if (!p.pet) {
       p.pet = {
