@@ -10,8 +10,29 @@
     <!--APP_VERSION_INJECT-->
     <!-- Include the Discord SDK script here; server.js will inject variables into this -->
     <script src="/js/discord-sdk.js"></script>
-    <script type="module" crossorigin src="/assets/index-Cx3W0WMZ.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-YgQ4Zlar.css">
+    <!-- v7.2: Theme flash prevention — applies before first paint -->
+    <script>
+      try {
+        var t = localStorage.getItem("hub_theme") || "auto";
+        if (t === "seasonal") {
+          var m = new Date().getMonth();
+          t =
+            m >= 2 && m <= 4
+              ? "soft-fantasy"
+              : m >= 5 && m <= 7
+                ? "cozy-day"
+                : "neon-night";
+        }
+        if (t === "auto")
+          t = matchMedia("(prefers-color-scheme: light)").matches
+            ? "cozy-day"
+            : "neon-night";
+        if (t !== "neon-night")
+          document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="/assets/index-V1l9R6n4.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D0t-4gRE.css">
   </head>
   <body>
     <div id="version-badge" class="hidden">{{APP_VERSION}}</div>

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="bodyGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E8C39E"/>
+      <stop offset="100%" stop-color="#CA9766"/>
+    </radialGradient>
+    <radialGradient id="earGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6E4D30"/>
+      <stop offset="100%" stop-color="#4B331F"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Shadow -->
+  <ellipse cx="60" cy="110" rx="35" ry="8" fill="rgba(0,0,0,0.15)" />
+
+  <!-- Hind Legs -->
+  <path d="M 35 105 Q 35 85 45 80 Q 55 95 45 105 Z" fill="#CA9766" />
+  <path d="M 85 105 Q 85 85 75 80 Q 65 95 75 105 Z" fill="#CA9766" />
+  
+  <!-- Back / Tail -->
+  <path d="M 25 70 Q 15 65 20 50 Q 30 60 30 70 Z" fill="#6E4D30" />
+
+  <!-- Main Body -->
+  <ellipse cx="60" cy="80" rx="36" ry="32" fill="url(#bodyGrad)" />
+  
+  <!-- Front Legs -->
+  <rect x="42" y="90" width="12" height="20" rx="6" fill="#DDB286" />
+  <rect x="66" y="90" width="12" height="20" rx="6" fill="#DDB286" />
+
+  <!-- Scarf / Collar Area (Anchor Base) -->
+  <path d="M 45 60 Q 60 70 75 60 Q 60 55 45 60 Z" fill="#D45D5D" />
+  <circle cx="60" cy="65" r="5" fill="#F4D03F" /> <!-- Tag -->
+
+  <!-- Head -->
+  <ellipse cx="60" cy="40" rx="30" ry="26" fill="url(#bodyGrad)" />
+  
+  <!-- Ears -->
+  <path d="M 35 25 Q 15 15 20 40 Q 30 35 35 25 Z" fill="url(#earGrad)" />
+  <path d="M 85 25 Q 105 15 100 40 Q 90 35 85 25 Z" fill="url(#earGrad)" />
+
+  <!-- Snout -->
+  <ellipse cx="60" cy="48" rx="14" ry="10" fill="#FFF2E5" />
+  <ellipse cx="60" cy="44" rx="5" ry="3" fill="#3D2B1F" /> <!-- Nose -->
+  
+  <!-- The face itself is handled by the expression layer via PET_EXPRESSIONS -->
+</svg>

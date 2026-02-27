@@ -747,6 +747,19 @@
 }
 /* Panel stacks below plots on narrow screens */
 @media (max-width: 640px) {
+  #featured-shelf-container {
+    position: static;
+    width: min(420px, calc(100vw - 40px));
+    flex-direction: row;
+    border-radius: 12px;
+    margin: 0 auto 8px;
+  }
+  .featured-shelf {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+  }
   .farm-panel {
     position: static;
     width: min(420px, calc(100vw - 40px));
@@ -1217,35 +1230,41 @@
  *  Floats above farm content, doesn't push plots down.
  * ═══════════════════════════════════════════════════ */
 #featured-shelf-container {
-  position: sticky;
+  position: absolute;
+  right: calc(100% + 12px);
   top: 0;
-  z-index: 20;
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 6px;
   background: rgba(var(--bg-rgb, 15 16 30) / 0.88);
   backdrop-filter: blur(18px) saturate(1.5);
-  border-bottom: 1px solid var(--border-light, rgba(255 255 255 / 0.08));
-  padding: 5px 8px 4px;
-  margin: 0 -12px; /* bleed to edges */
+  border: 1px solid var(--border-light, rgba(255 255 255 / 0.08));
+  border-radius: 16px;
+  z-index: 20;
   transition:
     max-height 0.3s ease,
     opacity 0.3s ease,
     padding 0.3s ease;
-  max-height: 70px;
-  overflow: hidden;
+  max-height: none;
+  overflow: visible;
 }
 #featured-shelf-container.shelf-collapsed {
   max-height: 0;
-  padding: 0 8px;
+  padding: 0 6px;
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 .featured-shelf {
   display: flex;
+  flex-direction: column;
   gap: 6px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x mandatory;
   padding-bottom: 2px;
 }
 .featured-shelf::-webkit-scrollbar {

@@ -35,6 +35,11 @@ function VanillaShell() {
       {/* ═══ Pet Companion Overlay (Managed by Vanilla pet.js, highly optimized physics) ═══ */}
       <div className="pet-overlay dock-ground" id="pet-overlay">
         <div className="pet-container state-idle" id="pet-container">
+          <div
+            className="pet-mood-indicator"
+            id="pet-mood-indicator"
+            style={{ display: "none" }}
+          ></div>
           <div className="pet-sprite" id="pet-sprite">
             🐕
           </div>

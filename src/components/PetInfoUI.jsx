@@ -1,12 +1,72 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "../store/gameStore";
+import { PET_ASSETS, PET_EXPRESSIONS } from "../../game-logic.js";
 
-const SKINS = {
-  basic_dog: "🐕",
-  basic_cat: "🐱",
-  basic_bunny: "🐰",
-};
+function PetAvatar({ petData }) {
+  if (!petData) return null;
+  const baseSkinId = petData.skinId || "basic_dog";
+  const assetDef = PET_ASSETS[baseSkinId];
+  if (!assetDef) return <span>🐕</span>;
+
+  const happiness = petData.stats?.happiness ?? 100;
+  let exprId = "happy";
+  if (happiness >= 90) exprId = "ecstatic";
+  else if (happiness >= 70) exprId = "happy";
+  else if (happiness >= 50) exprId = "content";
+  else if (happiness >= 30) exprId = "neutral";
+  else if (happiness >= 15) exprId = "sad";
+  else exprId = "miserable";
+
+  const expressionDef = PET_EXPRESSIONS[exprId];
+
+  // Scale down to fit the header nicely (around 80x80)
+  const scale = 80 / Math.max(assetDef.width, assetDef.height);
+
+  return (
+    <div className="relative mx-auto mb-2" style={{ width: 80, height: 80 }}>
+      <div
+        className="pet-render-stack absolute top-1/2 left-1/2"
+        style={{
+          width: assetDef.width,
+          height: assetDef.height,
+          transform: `translate(-50%, -50%) scale(${scale})`,
+          transformOrigin: "center center",
+        }}
+      >
+        {assetDef.type === "svg" ? (
+          <img
+            className="pet-layer pet-body pet-type-svg"
+            src={`/${assetDef.src}`}
+            alt={baseSkinId}
+          />
+        ) : (
+          <div
+            className="pet-layer pet-body pet-type-raster"
+            style={{
+              backgroundImage: `url('/${assetDef.src}')`,
+              width: assetDef.frameWidth,
+              animationTimingFunction: `steps(${assetDef.frames})`,
+            }}
+          />
+        )}
+
+        {expressionDef && assetDef.anchors?.face && (
+          <img
+            className="pet-layer pet-expression"
+            src={`/${expressionDef.src}`}
+            style={{
+              top: assetDef.anchors.face.top,
+              left: assetDef.anchors.face.left,
+              transform: "translate(-50%, -50%)",
+            }}
+            alt="expression"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function PetInfoUI() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,6 +84,33 @@ export default function PetInfoUI() {
   }, []);
 
   if (!petData) return null;
+
+  const happiness = petData.stats?.happiness ?? 100;
+  const affectionLevel = petData.affectionLevel ?? 1;
+  const affectionXp = petData.affectionXp ?? 0;
+
+  // Mood label matching the avatar expression thresholds
+  let moodLabel = "Happy";
+  let moodColor = "text-accent";
+  if (happiness >= 90) {
+    moodLabel = "Ecstatic 🌟";
+    moodColor = "text-gold";
+  } else if (happiness >= 70) {
+    moodLabel = "Happy 😊";
+    moodColor = "text-success";
+  } else if (happiness >= 50) {
+    moodLabel = "Content 😌";
+    moodColor = "text-accent";
+  } else if (happiness >= 30) {
+    moodLabel = "Neutral 😐";
+    moodColor = "text-textDim";
+  } else if (happiness >= 15) {
+    moodLabel = "Sad 😢";
+    moodColor = "text-warning";
+  } else {
+    moodLabel = "Miserable 😭";
+    moodColor = "text-danger";
+  }
 
   const xpPct = Math.min(100, (petData.xp / petData.xpToNextLevel) * 100);
   const fullness = petData.stats?.fullness ?? 0;
@@ -93,8 +180,8 @@ export default function PetInfoUI() {
               >
                 ✕
               </button>
-              <div className="text-4xl mb-2">
-                {SKINS[petData.skinId] || "🐕"}
+              <div className="flex justify-center mb-2">
+                <PetAvatar petData={petData} />
               </div>
 
               {isEditingName ? (
@@ -155,6 +242,28 @@ export default function PetInfoUI() {
                 </div>
               </div>
 
+              {/* Happiness / Mood */}
+              <div>
+                <div className="flex justify-between text-xs mb-1 font-mono font-bold">
+                  <span className={moodColor}>🧠 MOOD</span>
+                  <span className={moodColor}>{moodLabel}</span>
+                </div>
+                <div className="h-2 w-full bg-background rounded-full overflow-hidden border border-primary/20">
+                  <motion.div
+                    className="h-full bg-accent shadow-[0_0_10px_rgba(167,139,250,0.4)]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${happiness}%` }}
+                  />
+                </div>
+                <p className="text-[10px] text-textDim mt-0.5 text-left">
+                  {happiness >= 70
+                    ? "Your pet is thriving!"
+                    : happiness >= 40
+                      ? "Could use some attention…"
+                      : "Feed & play to cheer up!"}
+                </p>
+              </div>
+
               {/* Satiety */}
               <div>
                 <div className="flex justify-between text-xs mb-1 font-mono font-bold">
@@ -176,6 +285,22 @@ export default function PetInfoUI() {
                     animate={{ width: `${fullness}%` }}
                   />
                 </div>
+              </div>
+
+              {/* Affection */}
+              <div className="bg-background/60 rounded-xl p-2.5 text-left border border-pink-500/10">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-pink-400 tracking-wider uppercase">
+                    💕 Affection
+                  </span>
+                  <span className="text-xs font-mono font-bold text-pink-300">
+                    Lv {affectionLevel}
+                  </span>
+                </div>
+                <p className="text-[10px] text-textDim mt-1">
+                  Bond with your pet by feeding, playing, and completing quests
+                  together.
+                </p>
               </div>
 
               {/* Abilities */}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="bunnyBodyGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF5F5"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse cx="60" cy="110" rx="32" ry="8" fill="rgba(0,0,0,0.12)" />
+
+  <!-- Big Hind Legs -->
+  <ellipse cx="35" cy="98" rx="14" ry="10" fill="url(#bunnyBodyGrad)" />
+  <ellipse cx="85" cy="98" rx="14" ry="10" fill="url(#bunnyBodyGrad)" />
+  <ellipse cx="35" cy="98" rx="8" ry="6" fill="#F1F5F9" />
+  <ellipse cx="85" cy="98" rx="8" ry="6" fill="#F1F5F9" />
+
+  <!-- Fluffy Tail -->
+  <circle cx="28" cy="80" r="10" fill="#FFFFFF" />
+
+  <!-- Main Body -->
+  <ellipse cx="60" cy="80" rx="30" ry="28" fill="url(#bunnyBodyGrad)" />
+
+  <!-- Long Ears -->
+  <ellipse cx="40" cy="20" rx="8" ry="25" fill="url(#bunnyBodyGrad)" transform="rotate(-15 40 20)" />
+  <ellipse cx="40" cy="22" rx="4" ry="20" fill="#FBCFE8" transform="rotate(-15 40 20)" />
+  
+  <ellipse cx="80" cy="20" rx="8" ry="25" fill="url(#bunnyBodyGrad)" transform="rotate(15 80 20)" />
+  <ellipse cx="80" cy="22" rx="4" ry="20" fill="#FBCFE8" transform="rotate(15 80 20)" />
+
+  <!-- Head -->
+  <ellipse cx="60" cy="48" rx="26" ry="22" fill="url(#bunnyBodyGrad)" />
+  
+  <!-- Snout -->
+  <ellipse cx="60" cy="54" rx="4" ry="3" fill="#F472B6" />
+</svg>

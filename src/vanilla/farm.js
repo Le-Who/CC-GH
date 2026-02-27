@@ -295,6 +295,12 @@ const FarmGameImpl = (() => {
       tabInv.onclick = () => switchFarmTab("inv");
       tabShop.onclick = () => switchFarmTab("shop");
     }
+    const tabBadges = $("farm-tab-badges");
+    const tabJournal = $("farm-tab-journal");
+    const tabSeason = $("farm-tab-season");
+    if (tabBadges) tabBadges.onclick = () => switchFarmTab("badges");
+    if (tabJournal) tabJournal.onclick = () => switchFarmTab("journal");
+    if (tabSeason) tabSeason.onclick = () => switchFarmTab("season");
     renderInventory();
   }
 

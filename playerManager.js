@@ -355,6 +355,14 @@ export function getPlayer(userId, username) {
     NeedsSaveSync = true;
   }
 
+  // ─── Schema v7 Migration (Room system) ───
+  if (!p.schemaVersion || p.schemaVersion < 7) {
+    if (!p.room)
+      p.room = { decorations: [], inventory: [], wallpaper: "default" };
+    p.schemaVersion = 7;
+    NeedsSaveSync = true;
+  }
+
   if (NeedsSaveSync) {
     debouncedSavePlayer(userId);
   }

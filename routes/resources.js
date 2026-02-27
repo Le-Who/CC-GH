@@ -19,6 +19,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     res.json({
       resources: p.resources,
       pet: p.pet,
+      room: p.room,
       harvested: p.farm.harvested,
     });
   });
@@ -104,6 +105,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       success: true,
       resources: p.resources,
       pet: p.pet,
+      room: p.room,
       harvested: p.farm.harvested,
       leveledUp,
     });

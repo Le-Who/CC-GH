@@ -6,7 +6,6 @@
  * ═══════════════════════════════════════════════════ */
 
 import { GameStore } from "./store.js";
-import { GameStore as MonetizationStore } from "./store-ui.js";
 import { QuestDropdown } from "./quest.js";
 import {
   HUB,

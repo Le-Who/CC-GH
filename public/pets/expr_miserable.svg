@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <path d="M 11 16 L 17 20" stroke="#374151" stroke-width="2" stroke-linecap="round" />
+  <path d="M 17 16 L 11 20" stroke="#374151" stroke-width="2" stroke-linecap="round" />
+  
+  <path d="M 23 16 L 29 20" stroke="#374151" stroke-width="2" stroke-linecap="round" />
+  <path d="M 29 16 L 23 20" stroke="#374151" stroke-width="2" stroke-linecap="round" />
+  
+  <path d="M 15 27 Q 20 21 25 27" stroke="#374151" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  
+  <!-- Tears -->
+  <path d="M 14 22 Q 16 28 14 30 Q 12 28 14 22" fill="#60A5FA" />
+  <path d="M 26 22 Q 28 28 26 30 Q 24 28 26 22" fill="#60A5FA" />
+</svg>

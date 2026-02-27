@@ -86,7 +86,14 @@ function resolveUser(req) {
       username: req.discordUser.username || "Player",
     };
   }
-  return { userId: req.body.userId, username: req.body.username || "Player" };
+  // For GET requests (like /api/resources/state), fall back to query params or demo defaults
+  if (req.method === "GET") {
+    const uid = req.query?.userId || "demo-user";
+    const uname = req.query?.username || "Player";
+    return { userId: uid, username: uname };
+  }
+  // For POST requests, use body values (may be undefined — routes validate)
+  return { userId: req.body?.userId, username: req.body?.username || "Player" };
 }
 
 /* ═══════════════════════════════════════════════════

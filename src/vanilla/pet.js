@@ -6,7 +6,14 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { api, showToast } from "./shared.js";
-import { calculateSatietyDelta, CROPS, MERGE_CHAINS } from "/game-logic.js";
+import {
+  calculateSatietyDelta,
+  CROPS,
+  MERGE_CHAINS,
+  getRoomBonuses,
+  PET_ASSETS,
+  PET_EXPRESSIONS,
+} from "/game-logic.js";
 
 /* ─── Merge item display lookup (for quest requirement names) ─── */
 const _MERGE_DISPLAY = {};
@@ -91,6 +98,7 @@ const PetCompanionImpl = (function () {
       affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false },
     });
+    GameStore.registerSlice("room", { decorations: [], wallpaper: "default" });
   }
 
   /* ─── Init ─── */
@@ -106,11 +114,19 @@ const PetCompanionImpl = (function () {
       if (data && data.pet) {
         petData = data.pet;
         GameStore.setState("pet", data.pet);
-        sprite.textContent = SKINS[data.pet.skinId] || SKINS.basic_dog;
+        if (data.room) GameStore.setState("room", data.room);
+        _renderPetStack();
 
         // Peak-End / IKEA Effect: Name pet at start if it's the default name
         if (data.pet.name === "Buddy" && data.pet.level === 1) {
           setTimeout(() => promptForPetName(data.pet.name), 2000);
+
+          if (!localStorage.getItem("_pet_first_tap_nudge")) {
+            setTimeout(() => {
+              showBubble("Tap me to see my stats! ✨");
+              localStorage.setItem("_pet_first_tap_nudge", "1");
+            }, 5000);
+          }
         }
       }
     } catch (e) {
@@ -220,6 +236,7 @@ const PetCompanionImpl = (function () {
     // Subscribe to store
     GameStore.subscribe("pet", (newState) => {
       petData = newState;
+      _updateMoodIndicator();
       if (panelOpen) renderInfoPanel();
     });
 
@@ -419,7 +436,61 @@ const PetCompanionImpl = (function () {
     }, 3000);
   }
 
-  /* ─── Pet Action Bubble ─── */
+  /* ─── Render Engine ─── */
+  function _renderPetStack() {
+    const spriteContainer = document.getElementById("pet-sprite");
+    if (!spriteContainer || !petData) return;
+
+    const baseSkinId = petData.skinId || "basic_dog";
+    const assetDef = PET_ASSETS[baseSkinId];
+
+    // Fallback if missing schema
+    if (!assetDef) {
+      spriteContainer.innerHTML = SKINS[baseSkinId] || SKINS.basic_dog;
+      return;
+    }
+
+    // Determine current Expression from Happiness
+    const happiness = petData.stats?.happiness ?? 100;
+    let exprId = "happy";
+    if (happiness >= 90) exprId = "ecstatic";
+    else if (happiness >= 70) exprId = "happy";
+    else if (happiness >= 50) exprId = "content";
+    else if (happiness >= 30) exprId = "neutral";
+    else if (happiness >= 15) exprId = "sad";
+    else exprId = "miserable";
+
+    const expressionDef = PET_EXPRESSIONS[exprId];
+
+    // Build Layer Stack
+    let html = `<div class="pet-render-stack" style="width: ${assetDef.width}px; height: ${assetDef.height}px;">`;
+
+    // 1. Base Body Layer
+    if (assetDef.type === "svg") {
+      html += `<img class="pet-layer pet-body pet-type-svg" src="${assetDef.src}" alt="${baseSkinId}" />`;
+    } else if (assetDef.type === "raster_spritesheet") {
+      html += `<div class="pet-layer pet-body pet-type-raster" style="background-image: url('${assetDef.src}'); width: ${assetDef.frameWidth}px; animation-timing-function: steps(${assetDef.frames});"></div>`;
+    }
+
+    // 2. Facial Expression Layer (Anchored to 'face')
+    if (expressionDef && assetDef.anchors?.face) {
+      const faceAnchor = assetDef.anchors.face;
+      html += `<img class="pet-layer pet-expression" src="${expressionDef.src}" style="top: ${faceAnchor.top}; left: ${faceAnchor.left}; transform: translate(-50%, -50%);" />`;
+    }
+
+    // 3. Cosmetics / Wardrobe (TODO: Inject equipped items here based on anchors)
+    // if (petData.wardrobe?.hat) { ... }
+
+    html += `</div>`;
+
+    // Check if the HTML actually changed to prevent DOM thrashing re-paints
+    if (spriteContainer.innerHTML !== html) {
+      spriteContainer.innerHTML = html;
+      spriteContainer.classList.add("pet-has-stack");
+    }
+  }
+
+  /* ─── Pet Action/Mood Bubble ─── */
   function showBubble(text) {
     const container = document.getElementById("pet-container");
     if (!container) return;
@@ -431,6 +502,34 @@ const PetCompanionImpl = (function () {
     bubble.textContent = text;
     container.appendChild(bubble);
     setTimeout(() => bubble.remove(), 2500);
+  }
+
+  function _updateMoodIndicator() {
+    const indicator = document.getElementById("pet-mood-indicator");
+    if (!indicator || !petData) return;
+
+    // Determine Mood
+    const happiness = petData.stats?.happiness ?? 100;
+    const fullness = petData.stats?.fullness ?? 0;
+    let emoji = "";
+
+    if (fullness >= 90) {
+      emoji = "🤢"; // Too full
+    } else if (fullness >= 70) {
+      emoji = "😋"; // Full
+    } else if (happiness >= 90) {
+      emoji = "🤩"; // Ecstatic
+    } else if (happiness >= 50) {
+      indicator.style.display = "none"; // Neutral/Content -> hidden to reduce noise
+      return;
+    } else if (happiness >= 20) {
+      emoji = "😔"; // Sad
+    } else {
+      emoji = "😭"; // Miserable
+    }
+
+    indicator.style.display = "flex";
+    indicator.textContent = emoji;
   }
 
   /* ─── Auto-Water (Butler ability, level ≥ 3) ─── */
@@ -492,8 +591,8 @@ const PetCompanionImpl = (function () {
       clickCount = 0;
     }, 2000);
 
-    if (clickCount >= 5) {
-      // Easter egg: dizzy
+    if (clickCount >= 3) {
+      // Easter egg: dizzy on rapid multi-tap
       setState(STATES.DIZZY);
       clickCount = 0;
       setTimeout(() => {
@@ -513,14 +612,13 @@ const PetCompanionImpl = (function () {
           { once: true },
         );
       }
+
+      // v7.2: Single-tap to open info panel instead of triple tap
+      // Let animation play out before opening to give satisfying feedback
       setTimeout(() => {
         setState(STATES.IDLE);
-      }, 1200);
-    }
-
-    // Toggle info panel on triple-tap (raised from 2 to avoid accidental toggles during petting)
-    if (clickCount === 3) {
-      toggleInfoPanel();
+        if (!panelOpen) toggleInfoPanel();
+      }, 300);
     }
   }
 
@@ -688,7 +786,9 @@ const PetCompanionImpl = (function () {
   function _recalcSatiety() {
     const pet = GameStore.getState("pet");
     if (!pet) return;
-    const result = calculateSatietyDelta(pet, Date.now());
+    const room = GameStore.getState("room") || {};
+    const roomBonuses = getRoomBonuses({ room });
+    const result = calculateSatietyDelta(pet, Date.now(), roomBonuses);
     GameStore.setState("pet", {
       ...pet,
       stats: { ...pet.stats, fullness: result.fullness },
@@ -817,10 +917,7 @@ const PetCompanionImpl = (function () {
     if (!pet) return;
     petData = pet;
     GameStore.setState("pet", pet);
-    const sprite = document.getElementById("pet-sprite");
-    if (sprite) {
-      sprite.textContent = SKINS[pet.skinId] || SKINS.basic_dog;
-    }
+    _renderPetStack();
   }
 
   /* ─── Smart Docking ─── */

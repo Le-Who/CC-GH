@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <circle cx="14" cy="18" r="2.5" fill="#374151" />
+  <circle cx="26" cy="18" r="2.5" fill="#374151" />
+  <path d="M 16 26 Q 20 22 24 26" stroke="#374151" stroke-width="2" fill="none" stroke-linecap="round" />
+  <!-- Tear -->
+  <path d="M 12 21 Q 14 25 12 27 Q 10 25 12 21" fill="#60A5FA" opacity="0.8" />
+</svg>

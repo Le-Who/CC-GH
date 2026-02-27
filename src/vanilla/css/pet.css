@@ -108,6 +108,35 @@
   ); /* Stable GPU composite layer for emoji glyph caching */
 }
 
+/* ─── Hybrid Render Engine ─── */
+.pet-sprite.pet-has-stack {
+  contain: none; /* Disable contain for layered layout */
+  font-size: initial;
+  line-height: initial;
+}
+
+.pet-render-stack {
+  position: relative;
+  /* width and height are set inline from PET_ASSETS */
+}
+
+.pet-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Scale SVGs perfectly */
+}
+
+.pet-expression {
+  /* Dimensions for facial expressions */
+  width: auto;
+  height: auto;
+  min-width: 40px;
+  min-height: 40px;
+}
+
 /* ─── State Animations (class-based — synchronous swap, no rAF needed) ─── */
 .pet-container.state-idle .pet-sprite {
   animation: petBob 2s ease-in-out infinite both;
@@ -212,6 +241,35 @@
   }
   100% {
     transform: scale(1, 1) scaleX(var(--pet-dir, 1));
+  }
+}
+
+/* ─── Mood Indicator ─── */
+.pet-mood-indicator {
+  position: absolute;
+  top: -20px;
+  right: -10px;
+  font-size: 1.2rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  animation: floatMood 3s ease-in-out infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+@keyframes floatMood {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
   }
 }
 

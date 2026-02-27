@@ -5,6 +5,7 @@ import VanillaShell from "./components/VanillaShell.jsx";
 import GameStoreUI from "./components/GameStoreUI.jsx";
 import QuestUI from "./components/QuestUI.jsx";
 import PetInfoUI from "./components/PetInfoUI.jsx";
+import PetRoomUI from "./components/PetRoomUI.jsx";
 import WelcomeScreen from "./components/WelcomeScreen.jsx";
 
 export default function App() {
@@ -61,6 +62,8 @@ export default function App() {
         onOpenStore={() => setStoreOpen(true)}
         onOpenQuest={() => setQuestOpen(true)}
       />
+
+      <PetRoomUI active={activeTab === "room"} />
 
       {/* Modern React-based Bottom Navigation over Vanilla games */}
       <BottomNav activeTab={activeTab} onTabSelect={handleTabSelect} />

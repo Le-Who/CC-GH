@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v7.2.0**
+**Current version: v7.3.3**
 
 ---
 
@@ -18,11 +18,15 @@
 | 📋 **Pet Orders**         | Quest system: farm crops + merge items → tiered rewards + affection levels   |
 | 📋 **Quest Dropdown**     | Non-blocking dropdown with progress bars, click-outside-to-close             |
 | 🐾 **Pet Companion**      | Free-roaming pet with smart docking · Auto-water/harvest/plant abilities     |
+| 🏠 **Pet Room**           | 4×4 decoratable grid · Decorations from Merge pipeline · Stat bonuses        |
 | ⚡ **Energy System**      | Native dialog overlays · 2.5-min regen · Gates match-3 and trivia plays      |
 | 💣 **Farm Uproot**        | Hold-to-confirm 2.5s removal of unwanted crops (no refund)                   |
 | 🔓 **Progressive Unlock** | Seeds gated by harvests, quests, gold, plots, days · unlock celebrations     |
-| 🌟 **Featured Shelf**     | 4-seed rotating shelf, curated by purchase history, refreshes every 4 hours  |
+| 🌟 **Featured Shelf**     | Vertical sidebar left of farm, 4-seed rotation, curated by purchase history  |
 | 🎨 **4 Themes**           | Neon Night · Cozy Day · Soft Fantasy · Minimal Calm · Seasonal auto-rotate   |
+| 🔥 **Streaks & Boosters** | Daily login streaks with multipliers · Timed farm boosters (2× growth)       |
+| 🏆 **Achievements**       | Server-validated milestones · Badges tab in farm panel                       |
+| ⭐ **Season Pass**        | Free + premium tracks · Event-gated rewards                                  |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
 | 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
@@ -37,7 +41,7 @@
 | Layer        | Technology                               |
 | ------------ | ---------------------------------------- |
 | **Runtime**  | Node.js 20                               |
-| **Frontend** | React 18 + Vite + Tailwind CSS v3        |
+| **Frontend** | React 19 + Vite 7 + Tailwind CSS v3      |
 | **Backend**  | Express.js 5.x                           |
 | **Database** | Google Cloud Firestore                   |
 | **Storage**  | Google Cloud Storage (legacy backup)     |
@@ -82,36 +86,52 @@ npm run dev
 │   ├── blox.js            # /api/blox/* (start, end, state, sync)
 │   ├── mergeRoutes.js     # /api/merge/* (state, tap, merge, gacha, free-pull, trash)
 │   ├── questRoutes.js     # /api/quests/* (active, generate, submit)
+│   ├── achievements.js    # /api/achievements/* (milestones, badges)
+│   ├── events.js          # /api/events/* (seasonal events)
+│   ├── seasonpass.js      # /api/seasonpass/* (free + premium tracks)
 │   └── leaderboard.js     # Match-3 + Blox leaderboards
 ├── data/
 │   └── questions.json     # Trivia question bank
-├── public/
-│   ├── index.html         # Single-page shell (4-screen sliding track)
-│   ├── js/
-│   │   ├── main.js        # ES Module entry point (boot orchestrator)
-│   │   ├── shared.js      # HUB state, auth, navigation, toast, device detection
-│   │   ├── store.js       # GameStore (Zustand-like slice manager)
-│   │   ├── crops.js       # Crop metadata fetch/cache (replaces window globals)
-│   │   ├── hud.js         # Energy + Gold HUD, regen timer, Quest Log
-│   │   ├── pet.js         # Pet companion (roam, sleep, auto-water, abilities)
-│   │   ├── farm.js        # Farm module (plots, shop, buy-plot, optimistic updates)
-│   │   ├── trivia.js      # Trivia (solo + duels, lobby, history)
-│   │   ├── match3.js      # Match-3 barrel (swap animation, cascades, leaderboard)
-│   │   ├── match3/
-│   │   │   └── engine.js   # Pure game logic (generateBoard, findMatches, resolveBoard)
-│   │   ├── blox.js        # Building Blox barrel (pause, touch drag, ghost)
-│   │   ├── blox/
-│   │   │   └── pieces.js   # Static piece definitions (12 shapes)
-│   │   └── merge.js       # Gacha Merge engine (server-validated D&D, generators)
-│   └── css/               # Modular CSS (base, farm, trivia, match3, blox, merge, hud, pet)
+├── src/                   # Client source (Vite + React)
+│   ├── main.jsx           # React entry point, CSS imports, font loading
+│   ├── App.jsx            # Root component, tab routing, modal orchestration
+│   ├── components/
+│   │   ├── HUD.jsx        # Energy + Gold display (Zustand-subscribed)
+│   │   ├── BottomNav.jsx  # 6-tab bottom nav with framer-motion transitions
+│   │   ├── VanillaShell.jsx # Bridge: mounts vanilla HTML + boots vanilla main.js
+│   │   ├── GameStoreUI.jsx # Gacha / Cozy Pass / Bundles / Currency modals
+│   │   ├── QuestUI.jsx    # Quest log dropdown with progress bars
+│   │   ├── PetInfoUI.jsx  # Pet profile card (mood, affection, abilities)
+│   │   ├── PetRoomUI.jsx  # 4×4 decoratable pet room with inventory
+│   │   └── WelcomeScreen.jsx # Onboarding overlay (pet naming, free seed)
+│   ├── store/
+│   │   └── gameStore.js   # Zustand store with slice pattern
+│   └── vanilla/           # Vanilla JS game modules
+│       ├── main.js        # Boot orchestrator, module registry
+│       ├── shared.js      # HUB state, auth, navigation, toast, themes
+│       ├── store.js       # GameStore proxy (vanilla → Zustand bridge)
+│       ├── hud.js         # Energy + Gold HUD, regen timer
+│       ├── pet.js         # Pet companion (roam, sleep, auto-water, abilities)
+│       ├── farm.js        # Farm module (plots, shop, featured shelf, badges)
+│       ├── trivia.js      # Trivia (solo + duels, lobby, history)
+│       ├── match3.js      # Match-3 (swap animation, cascades, leaderboard)
+│       ├── blox.js        # Building Blox (pause, touch drag, ghost)
+│       ├── merge.js       # Gacha Merge (server-validated D&D, generators)
+│       ├── quest.js       # Quest dropdown (vanilla side)
+│       ├── effects.js     # Particle pool, sound engine, perlin shake
+│       └── css/           # Modular CSS (base, farm, trivia, match3, blox, merge, hud, pet)
 ├── tests/
-│   ├── unit.test.js       # 59 unit tests (pure functions)
-│   ├── api.test.js        # 26 API integration tests
-│   ├── blox.test.js       # 30 Building Blox tests
-│   ├── match3.test.js     # 12 tile clearing tests
-│   ├── ux.test.js         # 52 UX diagnostic tests
-│   ├── gcp.test.js        # 12 GCP resilience tests
-│   └── perf.test.js       # 15 performance benchmarks
+│   ├── unit.test.js       # Unit tests (pure functions)
+│   ├── api.test.js        # API integration tests
+│   ├── blox.test.js       # Building Blox tests
+│   ├── match3.test.js     # Tile clearing tests
+│   ├── ux.test.js         # UX invariant tests (pet transitions, farm ticks)
+│   ├── gcp.test.js        # GCP resilience tests
+│   ├── perf.test.js       # Performance benchmarks
+│   ├── game-logic-stress.test.js # Stress tests (100× offline sim)
+│   ├── farm.test.js       # Farm-specific tests
+│   ├── store.test.js      # GameStore slice tests
+│   └── syntax.test.js     # ESM parse validation (all .js files)
 ├── Dockerfile             # Cloud Run deployment (node:20-alpine)
 └── .github/
     └── workflows/
@@ -123,11 +143,11 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 343 tests (unit + API + blox + match3 + UX + GCP + perf + stress + syntax)
+npm test          # All 345 tests across 11 suites
 npm run test:perf # Performance benchmarks only
 ```
 
-| Type       | File                              | Tests |
+| Type       | File                              | Count |
 | ---------- | --------------------------------- | ----: |
 | **Unit**   | `tests/unit.test.js`              |    59 |
 | **API**    | `tests/api.test.js`               |    26 |
@@ -137,7 +157,9 @@ npm run test:perf # Performance benchmarks only
 | **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
 | **Stress** | `tests/game-logic-stress.test.js` |    58 |
-| **Syntax** | `tests/syntax.test.js`            |    14 |
+| **Farm**   | `tests/farm.test.js`              |    12 |
+| **Store**  | `tests/store.test.js`             |    10 |
+| **Syntax** | `tests/syntax.test.js`            |    28 |
 
 ---
 
@@ -203,23 +225,34 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 Older architecture evolution changes can be found in `legacy_readme.md`.
 
-### ✅ Completed in v7.2.0
+### ✅ Completed in v7.3.x
+
+1. **Retention & Monetization Ready** (v7.3.0):
+   - Post-game summary cards, tomorrow preview, weekly stats.
+   - Daily login streaks with escalating multipliers.
+   - Timed farm boosters (2× growth, 1.5× harvest).
+   - Achievements, seasonal events, season pass (free + premium tracks).
+   - Per-route rate limiting for API abuse prevention.
+2. **Pet Room — Phase 3** (v7.3.0):
+   - 4×4 decoratable room grid with stat-boosting decorations.
+   - `PetRoomUI.jsx` component with tile placement and inventory.
+   - Room decorations from Merge pipeline with rarity tiers.
+3. **Farm Panel Expansion** (v7.3.0+):
+   - Badges, Journal (crop discovery), and Season Pass tabs.
+   - 30-second onboarding redesign with invisible tutorials.
+4. **Prod-Readiness Audit** (v7.3.3):
+   - Featured shelf repositioned to left sidebar (absolute positioning).
+   - Pet profile mood meter and affection level restored.
+   - HUD gold counter stabilized, dead imports removed.
+
+### ✅ Completed in v7.2.x
 
 1. **Player Experience Overhaul**:
-   - **Progressive Seed Unlocking**: 6 crops gated by player milestones (harvests, quests, gold, plots, days).
-   - **Featured Seed Shelf**: 4-seed rotating shelf with untried seed prioritization and live countdown.
-   - **4 Themes**: Neon Night, Cozy Day, 🌸 Soft Fantasy (plum/lavender dark), 🍃 Minimal Calm (zen white/sage).
-   - **Seasonal auto-rotation**: Month-based theme suggestion (Spring → Soft Fantasy, Summer → Cozy Day).
-2. **Juice Animations**:
-   - Trivia: 3D card flip, correct pop, streak glow, stagger-fade answers.
-   - Merge: magnetic pull, collide flash, gacha capsule bounce, rarity light spear.
-   - Pet: tap bounce, heart burst, dust puff.
-   - Match-3: spring swap. Blox: place bounce.
-3. **Psychological Marketing Integration** (v6.3.0):
-   - GameStore with Decoy bundle & Scarcity timers.
-   - Quest Log with Goal-Gradient effect.
-   - Welcome Back modal (Zeigarnik effect).
-   - Match-3 particle splash (Peak-End Rule), Pet renaming (IKEA Effect).
+   - **Progressive Seed Unlocking**: 6 crops gated by player milestones.
+   - **Featured Seed Shelf**: 4-seed rotating vertical sidebar.
+   - **4 Themes**: Neon Night, Cozy Day, Soft Fantasy, Minimal Calm + seasonal auto-rotation.
+2. **Juice Animations**: Trivia 3D flip, Merge magnetic pull, Pet tap bounce, Match-3 spring swap, Blox place bounce.
+3. **Psychological Marketing** (v6.3.0): Decoy bundles, Goal-Gradient quests, Zeigarnik welcome-back, Peak-End particles.
 
 ---
 

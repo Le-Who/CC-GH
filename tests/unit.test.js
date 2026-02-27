@@ -32,7 +32,7 @@ describe("createDefaultPlayer", () => {
     const p = createDefaultPlayer("u1", "Alice");
     assert.equal(p.id, "u1");
     assert.equal(p.username, "Alice");
-    assert.equal(p.schemaVersion, 5);
+    assert.equal(p.schemaVersion, 7);
     assert.equal(p.resources.gold, ECONOMY.GOLD_START);
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_START);
     assert.equal(p.resources.energy.max, ECONOMY.ENERGY_MAX);
@@ -307,13 +307,13 @@ describe("getWateringMultiplier", () => {
     assert.equal(getWateringMultiplier("blueberry"), 0.7);
   });
 
-  it("returns 0.6 for medium crops (tomato, golden)", () => {
+  it("returns 0.6 for medium crops (tomato, golden, corn)", () => {
     assert.equal(getWateringMultiplier("tomato"), 0.6);
     assert.equal(getWateringMultiplier("golden"), 0.6);
+    assert.equal(getWateringMultiplier("corn"), 0.6);
   });
 
-  it("returns 0.55 for slow crops (corn, sunflower, watermelon, pumpkin)", () => {
-    assert.equal(getWateringMultiplier("corn"), 0.55);
+  it("returns 0.55 for slow crops (sunflower, watermelon, pumpkin)", () => {
     assert.equal(getWateringMultiplier("sunflower"), 0.55);
     assert.equal(getWateringMultiplier("watermelon"), 0.55);
     assert.equal(getWateringMultiplier("pumpkin"), 0.55);

@@ -148,38 +148,51 @@ export default function questRoutes(requireAuth, resolveUser) {
     const order = p.pet.activeOrders[orderIdx];
 
     // Validate all requirements
-    for (const req of order.requirements) {
-      if (req.type === "crop") {
-        if (!p.farm.harvested[req.id] || p.farm.harvested[req.id] < req.qty) {
+    for (const requirement of order.requirements) {
+      if (requirement.type === "crop") {
+        if (
+          !p.farm.harvested[requirement.id] ||
+          p.farm.harvested[requirement.id] < requirement.qty
+        ) {
           return res
             .status(400)
-            .json({ error: `not enough ${req.id}`, need: req.qty });
+            .json({
+              error: `not enough ${requirement.id}`,
+              need: requirement.qty,
+            });
         }
-      } else if (req.type === "merge") {
+      } else if (requirement.type === "merge") {
         let found = 0;
         for (const row of p.merge.board) {
           for (const cell of row) {
-            if (cell && cell.id === req.id) found++;
+            if (cell && cell.id === requirement.id) found++;
           }
         }
-        if (found < req.qty) {
+        if (found < requirement.qty) {
           return res
             .status(400)
-            .json({ error: `not enough ${req.id} on board`, need: req.qty });
+            .json({
+              error: `not enough ${requirement.id} on board`,
+              need: requirement.qty,
+            });
         }
       }
     }
 
     // Deduct items atomically
-    for (const req of order.requirements) {
-      if (req.type === "crop") {
-        p.farm.harvested[req.id] -= req.qty;
-        if (p.farm.harvested[req.id] <= 0) delete p.farm.harvested[req.id];
-      } else if (req.type === "merge") {
-        let remaining = req.qty;
+    for (const requirement of order.requirements) {
+      if (requirement.type === "crop") {
+        p.farm.harvested[requirement.id] -= requirement.qty;
+        if (p.farm.harvested[requirement.id] <= 0)
+          delete p.farm.harvested[requirement.id];
+      } else if (requirement.type === "merge") {
+        let remaining = requirement.qty;
         for (let r = 0; r < p.merge.board.length && remaining > 0; r++) {
           for (let c = 0; c < p.merge.board[r].length && remaining > 0; c++) {
-            if (p.merge.board[r][c] && p.merge.board[r][c].id === req.id) {
+            if (
+              p.merge.board[r][c] &&
+              p.merge.board[r][c].id === requirement.id
+            ) {
               p.merge.board[r][c] = null;
               remaining--;
             }

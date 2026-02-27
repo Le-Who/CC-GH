@@ -1,3 +1,124 @@
+## [7.3.3] - 2026-02-24
+
+### Prod-Readiness Audit
+
+Comprehensive codebase audit with systematic root cause investigation — 6 issues found and fixed.
+
+#### Featured Seeds Shelf Repositioned (`farm.css`)
+
+- **Root cause**: `position: sticky; top: 0` in normal document flow pushed farm tiles down instead of sitting to their left.
+- **Fix**: Changed to `position: absolute; right: calc(100% + 12px); top: 0` — mirrors the `.farm-panel` pattern on the right. Farm tiles remain centered.
+- Mobile fallback (≤640px): `position: static` with horizontal strip layout.
+
+#### Dead Import Removed (`main.js`)
+
+- `import { GameStore as MonetizationStore } from "./store-ui.js"` — imported but never used.
+
+#### Farm Panel Tabs Fixed (`farm.js`)
+
+- Badges, Journal, and Season tabs had no `onclick` handlers wired in `init()`. Only Inventory and Shop worked.
+- **Fix**: Added `switchFarmTab()` bindings for all 3 missing tabs.
+
+#### HUD Gold Counter Stabilized (`HUD.jsx`)
+
+- `key={shared.gold}` on `<motion.span>` caused a full remount + animation on every gold change.
+- **Fix**: Replaced with a plain `<span>`.
+
+#### Pet Profile Mood & Affection Restored (`PetInfoUI.jsx`)
+
+- **Regression**: Pet profile card was missing 🧠 Mood meter, mood labels, and 💕 Affection display.
+- **Fix**: Added animated progress bar with color-coded labels (Ecstatic → Miserable) + affection level pill.
+
+#### Tests — **345/345 pass**, 0 failures.
+
+---
+
+## [7.3.2] - 2026-02-24
+
+### Farm Onboarding Redesign & Interface Audit
+
+- Redesigned new-player onboarding: 30-second core loop with invisible tutorials, early rewards, gradual system reveal.
+- Fixed Featured Seeds block pushing farm tiles vertically.
+- Amount stepper UX improvements for seed purchases.
+- Tab state indicators made more visible and intuitive.
+- Pet behavior corrected during sleep mode.
+- Critical seed planting bug fixed.
+
+---
+
+## [7.3.1] - 2026-02-24
+
+### Deployment Bug Fixes
+
+Critical post-deployment fixes for the Discord Activity environment.
+
+- **CSP font loading**: Google Fonts blocked by Discord's `style-src` CSP. Bundled `@fontsource/bungee`, `@fontsource/nunito`, `@fontsource/varela-round` as local npm packages.
+- **Pet naming bug**: Name assigned during onboarding not persisted to pet data.
+- **401 Unauthorized errors**: Discord SDK token not forwarded to API calls — fixed auth initialization order.
+- **React hooks order** (`PetInfoUI.jsx`): `useState` calls placed after early return → Error #310. Moved all hooks to top of component.
+- **Loading screen**: Race condition between `bootComplete` flag and React mount resolved.
+
+---
+
+## [7.3.0] - 2026-02-24
+
+### Feature Release — Retention, Monetization Ready, Pet Room
+
+11 new features across retention, monetization readiness, scalability, and pet room.
+
+#### Retention Hooks (`farm.js`, `match3.js`, `blox.js`, `trivia.js`)
+
+- **Post-Game Cards**: End-of-game summary with stats, streaks, and "tomorrow preview" (Zeigarnik Effect).
+- **Weekly Stat Tracking**: Aggregated weekly performance metrics.
+- Integrated into game-over handlers for all 4 game modes.
+
+#### Streak & Booster Systems (`game-logic.js`, `playerManager.js`, `farm.js`)
+
+- Daily login streaks with escalating multipliers and grace period.
+- Timed farm boosters: 2× growth speed, 1.5× harvest value. Visual booster button.
+
+#### Achievement System (`routes/achievements.js`, `game-logic.js`)
+
+- Server-validated achievement tracking with tiered milestones. New route: `/api/achievements/*`.
+
+#### Events & Season Pass (`routes/events.js`, `routes/seasonpass.js`)
+
+- Time-limited seasonal events with bonus objectives. New route: `/api/events/*`.
+- Season pass scaffold: free + premium tracks. New route: `/api/seasonpass/*`.
+
+#### Rate Limiting (`server.js`)
+
+- Per-route rate limiting to prevent API abuse.
+
+#### Pet Room — Phase 3 (`PetRoomUI.jsx`, `game-logic.js`)
+
+- **4×4 decoratable room grid** — place decorations earned from Merge pipeline.
+- `ROOM_DECORATIONS` config: 10+ items with rarity, emoji, and stat bonuses (`happinessRate`, `affectionXpMult`, `fullnessRate`).
+- `computeRoomBonuses()` — pure function for aggregate bonuses.
+- New React component: `PetRoomUI.jsx` with grid rendering, tile tap placement, and inventory management.
+
+#### Farm Panel Expansion (`farm.js`)
+
+- Badge rendering (`renderBadges()`), Journal tab for crop discovery (`renderJournal()`), Season pass progress (`renderSeasonPass()`).
+
+---
+
+## [7.2.1] - 2026-02-24
+
+### Bug Fix Sprint — Game Menus & Interactions
+
+- **Quest list**: Opening quest log caused other content to vanish — z-index/visibility conflicts resolved.
+- **Gacha rolls**: Failing due to incorrect token validation — auth header forwarding fixed.
+- **Trivia buttons**: Answer buttons not responding — event delegation fix.
+- **Shop button**: 🛒 button not opening seed shop — wired to `GameStoreUI` state.
+- **Pet SVG flickering**: Roam→dock transition flicker — CSS transition timing adjusted.
+- **Pet tap behavior**: Repeated tapping no longer toggling profile rapidly; click-outside dismiss added.
+- **Seeds shop UX**: Improved scrolling, card sizing, and touch targets.
+
+#### Tests — **345/345 pass**, 0 failures.
+
+---
+
 ## [7.2.0] - 2026-02-24
 
 ### Added — Player Experience Overhaul (P2 + P3)

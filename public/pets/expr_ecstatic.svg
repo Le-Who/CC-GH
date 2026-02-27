@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <path d="M 12 18 Q 15 12 18 18" stroke="#374151" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <path d="M 22 18 Q 25 12 28 18" stroke="#374151" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  
+  <path d="M 15 24 Q 20 32 25 24 Z" fill="#EF4444" stroke="#7F1D1D" stroke-width="1.5" stroke-linejoin="round" />
+  
+  <!-- Blush -->
+  <ellipse cx="10" cy="22" rx="4" ry="2" fill="#FCA5A5" opacity="0.6" />
+  <ellipse cx="30" cy="22" rx="4" ry="2" fill="#FCA5A5" opacity="0.6" />
+</svg>

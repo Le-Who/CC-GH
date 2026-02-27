@@ -786,7 +786,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 5,
+    schemaVersion: 7,
     _lastSeen: now,
     resources: {
       gold: ECONOMY.GOLD_START,
@@ -810,6 +810,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false, autoPlant: false },
     },
+    room: { decorations: [], wallpaper: "default" },
     farm: {
       coins: 0,
       xp: 0,
@@ -857,7 +858,6 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
     cosmetics: { activePlotTheme: "default", ownedThemes: ["default"] },
     seasonPass: { season: 1, xp: 0, tier: 0, claimed: [] },
     boosters: { fertilizer: { active: false, expiresAt: 0 } },
-    schemaVersion: 6,
   };
 }
 
@@ -866,16 +866,19 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
  * ═══════════════════════════════════════════════════ */
 export function calcRegen(player, now = Date.now()) {
   const e = player.resources.energy;
-  if (e.current >= e.max) {
+  const bonuses = getRoomBonuses(player);
+  const maxEnergy = e.max + bonuses.energyMax;
+
+  if (e.current >= maxEnergy) {
     e.lastRegenTimestamp = now;
     return;
   }
   const delta = now - e.lastRegenTimestamp;
   const regenAmount = Math.floor(delta / ECONOMY.ENERGY_REGEN_INTERVAL_MS);
   if (regenAmount > 0) {
-    const newEnergy = Math.min(e.max, e.current + regenAmount);
+    const newEnergy = Math.min(maxEnergy, e.current + regenAmount);
     e.current = newEnergy;
-    if (newEnergy < e.max) {
+    if (newEnergy < maxEnergy) {
       e.lastRegenTimestamp = now - (delta % ECONOMY.ENERGY_REGEN_INTERVAL_MS);
     } else {
       e.lastRegenTimestamp = now;
@@ -1043,14 +1046,20 @@ export function processOfflineActions(player, now = Date.now()) {
 /* ═══════════════════════════════════════════════════
  *  PET SATIETY — Digestion Calculation (time-travel-proof)
  * ═══════════════════════════════════════════════════ */
-export function calculateSatietyDelta(petState, currentTime) {
+export function calculateSatietyDelta(
+  petState,
+  currentTime,
+  roomBonuses = { fullnessRate: 1, happinessRate: 1 },
+) {
   const fullness = petState?.stats?.fullness ?? 0;
   const lastTs = petState?.lastDigestionTimestamp ?? currentTime;
   const rawDelta = Math.max(0, currentTime - lastTs);
   // Cap offline progress at 24 hours to prevent time-travel exploits
   const cappedDelta = Math.min(rawDelta, ECONOMY.SATIETY_OFFLINE_CAP_MS);
-  const digested =
-    Math.floor(cappedDelta / 3_600_000) * ECONOMY.SATIETY_DECAY_PER_HOUR;
+
+  const decayRate = ECONOMY.SATIETY_DECAY_PER_HOUR * roomBonuses.fullnessRate;
+  const digested = Math.floor(cappedDelta / 3_600_000) * decayRate;
+
   return {
     fullness: Math.max(0, fullness - digested),
     lastDigestionTimestamp: currentTime,
@@ -1135,3 +1144,143 @@ export function makeClientQuestion(q, index, total) {
     total,
   };
 }
+
+/* ═══════════════════════════════════════════════════
+ *  PET HYBRID RENDER ENGINE SCHEMAS
+ * ═══════════════════════════════════════════════════ */
+
+export function getRoomBonuses(player) {
+  const bonuses = {
+    energyMax: 0,
+    happinessRate: 1,
+    fullnessRate: 1,
+    affectionXpMult: 1,
+  };
+  if (!player.room || !Array.isArray(player.room.decorations)) return bonuses;
+  player.room.decorations.forEach((decoId) => {
+    const deco = ROOM_DECORATIONS[decoId];
+    if (deco && deco.bonus) {
+      if (deco.bonus.type === "energyMax")
+        bonuses.energyMax += deco.bonus.value;
+      if (deco.bonus.type === "happinessRate")
+        bonuses.happinessRate += deco.bonus.value;
+      if (deco.bonus.type === "fullnessRate")
+        bonuses.fullnessRate += deco.bonus.value;
+      if (deco.bonus.type === "affectionXpMult")
+        bonuses.affectionXpMult += deco.bonus.value;
+    }
+  });
+  return bonuses;
+}
+
+export const PET_ASSETS = {
+  basic_dog: {
+    type: "svg",
+    src: "pets/basic_dog_body.svg", // SVG file inside public/pets/
+    width: 120,
+    height: 120,
+    anchors: {
+      head: { top: "15%", left: "45%" },
+      face: { top: "40%", left: "45%" },
+      neck: { top: "55%", left: "45%" },
+      body: { top: "50%", left: "50%" },
+    },
+  },
+  basic_cat: {
+    type: "svg",
+    src: "pets/basic_cat_body.svg",
+    width: 120,
+    height: 120,
+    anchors: {
+      head: { top: "10%", left: "50%" },
+      face: { top: "35%", left: "50%" },
+      neck: { top: "50%", left: "50%" },
+      body: { top: "50%", left: "50%" },
+    },
+  },
+  basic_bunny: {
+    type: "svg",
+    src: "pets/basic_bunny_body.svg",
+    width: 120,
+    height: 120,
+    anchors: {
+      head: { top: "5%", left: "50%" },
+      face: { top: "30%", left: "50%" },
+      neck: { top: "45%", left: "50%" },
+      body: { top: "50%", left: "50%" },
+    },
+  },
+};
+
+export const PET_EXPRESSIONS = {
+  ecstatic: { type: "svg", src: "pets/expr_ecstatic.svg" },
+  happy: { type: "svg", src: "pets/expr_happy.svg" },
+  content: { type: "svg", src: "pets/expr_content.svg" },
+  neutral: { type: "svg", src: "pets/expr_neutral.svg" },
+  sad: { type: "svg", src: "pets/expr_sad.svg" },
+  miserable: { type: "svg", src: "pets/expr_miserable.svg" },
+};
+
+export const ROOM_DECORATIONS = {
+  deco_chair: {
+    id: "deco_chair",
+    name: "Cozy Chair",
+    emoji: "🪑",
+    rarity: "common",
+    bonus: {
+      type: "fullnessRate",
+      value: 0.05,
+      desc: "Slower Pet Hunger (-5%)",
+    },
+  },
+  deco_table: {
+    id: "deco_table",
+    name: "Small Table",
+    emoji: "🪚",
+    rarity: "common",
+    bonus: { type: "energyMax", value: 5, desc: "+5 Max Energy" },
+  },
+  deco_plant: {
+    id: "deco_plant",
+    name: "Potted Plant",
+    emoji: "🪴",
+    rarity: "common",
+    bonus: { type: "happinessRate", value: 0.05, desc: "Slower Sadness (-5%)" },
+  },
+  deco_rug: {
+    id: "deco_rug",
+    name: "Soft Rug",
+    emoji: "🧶",
+    rarity: "uncommon",
+    bonus: {
+      type: "fullnessRate",
+      value: 0.1,
+      desc: "Slower Pet Hunger (-10%)",
+    },
+  },
+  deco_bed: {
+    id: "deco_bed",
+    name: "Pet Bed",
+    emoji: "🛏️",
+    rarity: "rare",
+    bonus: { type: "energyMax", value: 15, desc: "+15 Max Energy" },
+  },
+  deco_lamp: {
+    id: "deco_lamp",
+    name: "Warm Lamp",
+    emoji: "💡",
+    rarity: "uncommon",
+    bonus: { type: "affectionXpMult", value: 0.05, desc: "+5% Affection Gain" },
+  },
+  deco_bookshelf: {
+    id: "deco_bookshelf",
+    name: "Bookshelf",
+    emoji: "📚",
+    rarity: "rare",
+    bonus: {
+      type: "affectionXpMult",
+      value: 0.15,
+      desc: "+15% Affection Gain",
+    },
+  },
+};

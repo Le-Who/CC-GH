@@ -26,6 +26,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     }
     p.resources.energy.current -= ECONOMY.COST_BLOX;
     p.blox.totalGames++;
+    p.blox.activeGame = true;
     debouncedSavePlayer(userId);
     res.json({
       success: true,
@@ -38,19 +39,36 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { score, linesCleared } = req.body;
     const p = getPlayer(userId);
-    const goldReward = calcBloxReward(score);
-    p.resources.gold += goldReward;
 
-    // Gacha token reward: 1 base + bonus for high performance
-    let tokenReward = ECONOMY.REWARD_GACHA_TOKENS;
-    for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
-      if (score >= threshold) tokenReward++;
+    // Session validation: prevent gold farming without starting a game
+    if (!p.blox.activeGame) {
+      return res.status(403).json({ error: "No active Blox session" });
     }
-    p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
+
+    let goldReward = 0;
+    let tokenReward = 0;
 
     if (typeof score === "number" && score > 0) {
-      p.blox.highScore = Math.max(p.blox.highScore, score);
+      // Anti-cheat: cap suspiciously high scores
+      if (score > 10000) {
+        console.warn(
+          `🚨 Anti-cheat trigger: Blox score ${score} by ${userId} is suspiciously high.`,
+        );
+      } else {
+        goldReward = calcBloxReward(score);
+        p.resources.gold += goldReward;
+
+        // Gacha token reward: 1 base + bonus for high performance
+        tokenReward = ECONOMY.REWARD_GACHA_TOKENS;
+        for (const threshold of ECONOMY.TOKEN_BONUS_THRESHOLDS) {
+          if (score >= threshold) tokenReward++;
+        }
+        p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
+        p.blox.highScore = Math.max(p.blox.highScore, score);
+      }
     }
+
+    p.blox.activeGame = false;
     debouncedSavePlayer(userId);
     res.json({
       success: true,
