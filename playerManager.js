@@ -4,7 +4,7 @@
  *  Hot-cache in-memory state backed by Google Cloud Firestore
  * ═══════════════════════════════════════════════════════
  */
-import fs from "fs";
+
 import path from "path";
 import { fileURLToPath } from "url";
 import { Firestore } from "@google-cloud/firestore";

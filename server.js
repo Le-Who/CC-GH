@@ -384,7 +384,7 @@ app.post("/api/batch", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid batch format" });
     }
 
-    const { userId } = resolveUser(req);
+    resolveUser(req);
     const results = [];
 
     // Process sequentially to maintain data integrity and lock acquisition order

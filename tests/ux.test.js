@@ -1123,25 +1123,6 @@ describe("v6.1.1: safeShowModal export", () => {
       "hud.js must import safeShowModal from shared.js",
     );
   });
-
-  it("main.js imports safeShowModal from shared.js", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "main.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("safeShowModal") && js.includes('from "./shared.js"'),
-      "main.js must import safeShowModal from shared.js",
-    );
-  });
 });
 
 describe("v6.1.1: setPointerCapture removal", () => {

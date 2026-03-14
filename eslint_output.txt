@@ -1,0 +1,100 @@
+
+D:\projects\CC-GH-SKILLS\CC-GH\playerManager.js
+   7:8  warning  'fs' is defined but never used                  no-unused-vars
+  13:7  warning  '__dirname' is assigned a value but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\server.js
+  387:13  warning  'userId' is assigned a value but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\store\gameStore.js
+  3:37  warning  'set' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  3:42  warning  'get' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\auth-ui.js
+  160:16  warning  'err' is defined but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\blox.js
+    10:31  warning  'sleep' is defined but never used               no-unused-vars
+    12:23  warning  'SoundEngine' is defined but never used         no-unused-vars
+    72:14  warning  '_' is defined but never used                   no-unused-vars
+   209:11  warning  'cellCount' is assigned a value but never used  no-unused-vars
+   374:14  warning  '_' is defined but never used                   no-unused-vars
+   427:14  warning  '_' is defined but never used                   no-unused-vars
+  1342:14  warning  '_' is defined but never used                   no-unused-vars
+  1364:16  warning  '_' is defined but never used                   no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\crops.js
+  60:12  warning  '_' is defined but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\effects.js
+  150:14  warning  '_' is defined but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\farm.js
+    14:3   warning  'logout' is defined but never used                   no-unused-vars
+    15:3   warning  'forceUpdateReactRoot' is defined but never used     no-unused-vars
+    16:3   warning  'safeShowModal' is defined but never used            no-unused-vars
+    25:3   warning  'PLOT_THEMES' is defined but never used              no-unused-vars
+   126:12  warning  'syncFromStore' is defined but never used            no-unused-vars
+   189:14  warning  '_' is defined but never used                        no-unused-vars
+   217:16  warning  '_' is defined but never used                        no-unused-vars
+   322:16  warning  '_' is defined but never used                        no-unused-vars
+  1837:11  warning  'estimatedCoins' is assigned a value but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\hud.js
+   22:10  warning  '_formatReq' is defined but never used            no-unused-vars
+   42:5   warning  '$energyText' is assigned a value but never used  no-unused-vars
+   43:5   warning  '$goldText' is assigned a value but never used    no-unused-vars
+   44:5   warning  '$energyEl' is assigned a value but never used    no-unused-vars
+   91:10  warning  'formatGold' is defined but never used            no-unused-vars
+   97:10  warning  'updateTooltip' is defined but never used         no-unused-vars
+  508:10  warning  '_getPlayerQty' is defined but never used         no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\main.js
+   8:10  warning  'GameStore' is defined but never used       no-unused-vars
+   9:10  warning  'QuestDropdown' is defined but never used   no-unused-vars
+  16:3   warning  'sleep' is defined but never used           no-unused-vars
+  17:3   warning  'navigate' is defined but never used        no-unused-vars
+  19:3   warning  'updatePetDock' is defined but never used   no-unused-vars
+  20:3   warning  'bindNavigation' is defined but never used  no-unused-vars
+  28:3   warning  'safeShowModal' is defined but never used   no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\match3.js
+   15:23  warning  'colorSplash' is defined but never used          no-unused-vars
+   17:3   warning  'GEM_TYPES' is defined but never used            no-unused-vars
+   74:14  warning  '_' is defined but never used                    no-unused-vars
+  101:14  warning  '_' is defined but never used                    no-unused-vars
+  123:7   warning  'activeMode' is assigned a value but never used  no-unused-vars
+  262:16  warning  '_' is defined but never used                    no-unused-vars
+  524:20  warning  '_' is defined but never used                    no-unused-vars
+  532:20  warning  '_' is defined but never used                    no-unused-vars
+  555:18  warning  '_' is defined but never used                    no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\merge.js
+  121:12  warning  'err' is defined but never used                                      no-unused-vars
+  293:5   warning  '_cooldownTimer' is assigned a value but never used                  no-unused-vars
+  298:47  warning  'e' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\pet.js
+   30:10  warning  '_formatReq' is defined but never used       no-unused-vars
+  686:11  warning  'orders' is assigned a value but never used  no-unused-vars
+  813:18  warning  '_generateOrders' is defined but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\shared.js
+    7:10  warning  'GameStore' is defined but never used             no-unused-vars
+    9:47  warning  'getStoredAuth' is defined but never used         no-unused-vars
+  199:10  warning  'e' is defined but never used                     no-unused-vars
+  339:18  warning  '_' is defined but never used                     no-unused-vars
+  350:14  warning  '_' is defined but never used                     no-unused-vars
+  433:9   warning  'isTrivia' is assigned a value but never used     no-unused-vars
+  435:9   warning  'isBlox' is assigned a value but never used       no-unused-vars
+  436:9   warning  'isMerge' is assigned a value but never used      no-unused-vars
+  542:48  warning  'e' is defined but never used                     no-unused-vars
+  599:9   warning  'onPointerUp' is assigned a value but never used  no-unused-vars
+
+D:\projects\CC-GH-SKILLS\CC-GH\src\vanilla\trivia.js
+  795:14  warning  '_' is defined but never used  no-unused-vars
+  809:16  warning  '_' is defined but never used  no-unused-vars
+  822:14  warning  '_' is defined but never used  no-unused-vars
+  834:14  warning  '_' is defined but never used  no-unused-vars
+
+✖ 68 problems (0 errors, 68 warnings)

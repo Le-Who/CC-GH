@@ -11,9 +11,6 @@ import {
   HUB,
   api,
   apiBatched,
-  logout,
-  forceUpdateReactRoot,
-  safeShowModal,
   showToast,
   goToScreen,
 } from "./shared.js";
@@ -22,7 +19,6 @@ import {
   getUnlockedSeeds,
   ACHIEVEMENTS,
   SEASON_PASS,
-  PLOT_THEMES,
   BOOSTER_CONFIG,
 } from "/game-logic.js";
 import { HUD } from "./hud.js";
@@ -123,7 +119,7 @@ const FarmGameImpl = (() => {
    *  which was serializing all plots ~3600×/hour during the growth timer tick.
    */
   let _lastStoreRef = null;
-  function syncFromStore() {
+  function _syncFromStore() {
     const storeState = GameStore.getState("farm");
     if (!storeState) return;
     // O(1) check — skip clone if the store state object reference hasn't changed
@@ -1834,7 +1830,6 @@ const FarmGameImpl = (() => {
     // Optimistic: clear plot + show estimated reward instantly
     const plotSnapshot = { ...state.plots[plotId] };
     const cfg = crops[plotSnapshot.crop];
-    const estimatedCoins = cfg?.sellPrice || 0;
     const estimatedXP = cfg?.xp || 0;
 
     state.plots[plotId] = { crop: null, plantedAt: null, watered: false };

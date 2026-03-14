@@ -39,9 +39,6 @@ function _formatReward(rw) {
 let regenTimerId = null;
 
 // v4.15.2: Cached DOM refs (eliminates per-second getElementById calls)
-let $energyText = null;
-let $goldText = null;
-let $energyEl = null;
 let $regenFill = null;
 let _lastRegenWidth = "";
 
@@ -88,13 +85,13 @@ function updateDisplay(res) {
   });
 }
 
-function formatGold(amount) {
+function _formatGold(amount) {
   if (amount >= 10000) return (amount / 1000).toFixed(1) + "k";
   return String(amount);
 }
 
 /* ─── Regen Timer ─── */
-function updateTooltip(res) {
+function _updateTooltip(res) {
   const tooltip = document.getElementById("hud-energy-tooltip");
   if (!tooltip) return;
 

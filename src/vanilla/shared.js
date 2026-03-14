@@ -4,9 +4,8 @@
  *  CSP-compliant: no inline handlers, no external fonts
  *  v5: Native ES Module (was global IIFE)
  * ═══════════════════════════════════════════════════ */
-import { GameStore } from "./store.js";
 import { prefetchCrops } from "./crops.js";
-import { validateStoredToken, showAuthDialog, getStoredAuth, logout } from "./auth-ui.js";
+import { validateStoredToken, showAuthDialog, logout } from "./auth-ui.js";
 
 /**
  * @fileoverview shared.js
@@ -430,10 +429,7 @@ export function updatePetDock() {
   if (!overlay || !container) return;
 
   const isFarm = HUB.currentScreen === 2;
-  const isTrivia = HUB.currentScreen === 0;
   const isMatch3 = HUB.currentScreen === 3;
-  const isBlox = HUB.currentScreen === 1;
-  const isMerge = HUB.currentScreen === 4;
 
   // Determine new dock mode
   const newDockClass = isFarm
@@ -617,8 +613,15 @@ export function showToast(msg, type) {
 
   const onPointerDown = (e) => {
     // PointerDown implicitly works for mouse/touch/pen
-    startX = e.clientX;
+    startX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
     el.style.transition = "none";
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+    // Bind touch equivalents for mobile stability
+    window.addEventListener("touchmove", onPointerMove, { passive: true });
+    window.addEventListener("touchend", onPointerUp);
+    window.addEventListener("touchcancel", onPointerUp);
   };
   
   el.addEventListener("mousedown", onPointerDown);

@@ -7,9 +7,9 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
+import { HUB, api, showToast, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
-import { perlinShake, SoundEngine, debounce } from "./effects.js";
+import { perlinShake, debounce } from "./effects.js";
 
 import { GRID, PIECE_COUNT, PIECES } from "./blox/pieces.js";
 
@@ -191,13 +191,12 @@ const BloxGameImpl = (() => {
 
     // v4.16: Use reusable Uint8Array instead of Set<string> — no allocations
     _clearMap.fill(0);
-    let cellCount = 0;
+    _clearMap.fill(0);
     for (const r of rowsToClear) {
       for (let c = 0; c < GRID; c++) {
         const idx = r * GRID + c;
         if (_clearMap[idx] === 0) {
           _clearMap[idx] = 1;
-          cellCount++;
         }
       }
     }
@@ -206,7 +205,6 @@ const BloxGameImpl = (() => {
         const idx = r * GRID + c;
         if (_clearMap[idx] === 0) {
           _clearMap[idx] = 1;
-          cellCount++;
         }
       }
     }

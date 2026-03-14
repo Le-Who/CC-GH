@@ -12,9 +12,8 @@
 import { GameStore } from "./store.js";
 import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
-import { perlinShake, colorSplash, SoundEngine, debounce } from "./effects.js";
+import { perlinShake, SoundEngine, debounce } from "./effects.js";
 import {
-  GEM_TYPES,
   GEM_ICONS,
   BOARD_SIZE,
   DROP_TYPES,
@@ -119,8 +118,7 @@ const Match3GameImpl = (() => {
   const DROP_MOVE_LIMIT = 30;
   const DROP_STAR_COUNT = 3;
 
-  // activeMode tracks UI-selected mode, survives pause/restart
-  let activeMode = "classic";
+  // activeTracks UI-selected mode, survives pause/restart
 
   const $ = (id) => document.getElementById(id);
 

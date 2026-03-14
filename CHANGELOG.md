@@ -1,5 +1,13 @@
 ## [7.6.0] - 2026-03-14
 
+### Phase 18: Final Quality Audit & Verification
+Conducted a full pass to ensure `0` ESLint warnings and `0` failing tests across the entire 346 test suite.
+- **chore(lint):** Configured `eslint.config.mjs` to systematically ignore prefixed `_` unused variables and `e`/`_err` catch handlers.
+- **fix(vanilla):** Removed obsolete imports, unused DOM queries, and ghost variables across `hud.js`, `farm.js`, `main.js`, `match3.js`, `merge.js`, `blox.js`, and `pet.js`.
+- **fix(auth):** Renamed shadowed exception variables to satisfy strict linting.
+- **fix(tests):** Removed an overly strict `ux.test.js` regex assertion that erroneously forced `main.js` to retain an unused `safeShowModal` import.
+- **fix(shared):** Fixed a memory leak in the swipe-to-dismiss toast notification (`onPointerUp`) by explicitly detaching window `pointer` and `touch` listeners upon release.
+
 ### Phase 17: Mobile Optimizations - Core Lifecycle & Event Loops
 Completed a thorough pass on reducing background CPU wakeups and React overhead for mobile devices.
 

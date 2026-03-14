@@ -5,19 +5,13 @@
  *  v5: Replaces the DOMContentLoaded block from shared.js
  * ═══════════════════════════════════════════════════ */
 
-import { GameStore } from "./store.js";
-import { QuestDropdown } from "./quest.js";
 import {
   HUB,
   setModules,
   initDiscord,
   api,
   showToast,
-  sleep,
-  navigate,
   goToScreen,
-  updatePetDock,
-  bindNavigation,
   detectDevice,
   bindKeyboardNav,
   bindTouchSwipe,
@@ -25,7 +19,6 @@ import {
   startArrowFlash,
   cacheNavDOM,
   applyInitialScreen,
-  safeShowModal,
   setupInterruptionSystem,
   initTheme,
   setTheme,

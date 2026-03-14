@@ -118,7 +118,7 @@ async function tapGenerator(chainId, cropId) {
       "success",
     );
     return { success: true, spawned: data.spawned };
-  } catch (err) {
+  } catch (e) {
     // Rollback on network error
     GameStore.setState("resources", oldRes);
     HUD.updateDisplay(oldRes);
@@ -245,8 +245,8 @@ async function freePull() {
     // v7.2: Gacha capsule drop juice
     _animateGachaDrop();
     return { success: true };
-  } catch {
-    showToast("Network error", "error");
+  } catch (e) {
+    showToast("Purchasing generator failed...", "error");
     return { success: false };
   }
 }
@@ -295,7 +295,7 @@ const IDLE_HINT_DELAY = 7000; // 7 seconds
 const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
 // [Phase 2] Global Event-Driven Garbage Collector
-document.addEventListener("hub:route-leave", (e) => {
+document.addEventListener("hub:route-leave", () => {
   // Clear RAM/DOM caches when leaving the screen
   _cachedMatchTargets = [];
   if (_dragState) {

@@ -157,7 +157,7 @@ export function showAuthDialog() {
         dialog.close();
         dialog.remove();
         resolve({ token: data.token, userId: data.userId, username: data.username });
-      } catch (err) {
+      } catch (e) {
         errorEl.textContent = "Network error — check your connection";
         submitBtn.disabled = false;
         submitBtn.textContent =

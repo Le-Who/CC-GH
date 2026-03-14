@@ -683,7 +683,6 @@ const PetCompanionImpl = (function () {
 
     const xpPct = ((petData.xp / petData.xpToNextLevel) * 100).toFixed(1);
     const fullness = petData.stats?.fullness ?? 0;
-    const orders = petData.activeOrders || [];
 
     panel.innerHTML = `
       <button class="pet-info-close" id="pet-info-close">✕</button>
