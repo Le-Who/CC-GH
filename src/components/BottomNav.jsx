@@ -36,7 +36,7 @@ export default function BottomNav({ activeTab, onTabSelect }) {
                 ),
               )}
             >
-              {/* Animated Background Pill */}
+                {/* Animated Background Pill */}
               {isActive && (
                 <motion.div
                   layoutId="nav-pill"
@@ -45,27 +45,23 @@ export default function BottomNav({ activeTab, onTabSelect }) {
                 />
               )}
 
-              <motion.span
-                className="relative z-10 text-2xl mb-1"
-                animate={{
-                  y: isActive ? -4 : 0,
-                  scale: isActive ? 1.15 : 1,
-                  filter: isActive
-                    ? "drop-shadow(0 4px 8px rgba(167,139,250,0.6))"
-                    : "none",
-                }}
+              <span
+                className={twMerge(
+                  clsx(
+                    "relative z-10 text-2xl mb-1 transition-all duration-300",
+                    isActive ? "-translate-y-1 scale-110 drop-shadow-[0_4px_8px_rgba(167,139,250,0.6)]" : "translate-y-0 scale-100"
+                  )
+                )}
               >
                 {tab.icon}
                 {tab.id === "room" && hasNewRoomItems && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-400 z-20"
+                  <div
+                    className="absolute -top-1 -right-2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-400 z-20 animate-bounce"
                   >
                     NEW
-                  </motion.div>
+                  </div>
                 )}
-              </motion.span>
+              </span>
               <span className="relative z-10 text-[10px] uppercase tracking-wider font-bold">
                 {tab.label}
               </span>

@@ -2253,9 +2253,15 @@ const FarmGameImpl = (() => {
     startLocalGrowthTick();
   }
 
+  // Phase 17: Explicit suspension of game loop off-screen
+  function onLeave() {
+    stopLocalGrowthTick();
+  }
+
   return {
     init,
     onEnter,
+    onLeave,
     plant,
     water,
     harvest,

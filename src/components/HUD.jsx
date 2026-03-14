@@ -16,9 +16,7 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
       <div className="flex gap-3 pointer-events-auto">
         {/* Energy Pill */}
         <motion.div
-          className="relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-3 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-3 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
         >
           {/* Regen Fill Background */}
           <motion.div
@@ -36,8 +34,7 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
 
         {/* Gold Pill */}
         <motion.div
-          className="bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-4 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
-          whileHover={{ scale: 1.05 }}
+          className="bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-4 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
         >
           <span className="text-xl mr-2">🪙</span>
           <span className="font-heading font-bold text-gold tracking-wide">
@@ -48,10 +45,8 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
 
       <div className="flex gap-2 pointer-events-auto">
         {/* Quest Log Buton */}
-        <motion.button
-          className="relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5)]"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
+          className="relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
           onClick={onOpenQuest}
         >
           📋
@@ -63,17 +58,15 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
               transition={{ type: "spring", stiffness: 500 }}
             />
           )}
-        </motion.button>
+        </button>
 
         {/* Monetization Store Button */}
-        <motion.button
-          className="bg-gold text-background rounded-full w-12 h-12 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,215,0,0.4)]"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
+          className="bg-gold text-background rounded-full w-12 h-12 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-transform hover:scale-110 active:scale-90"
           onClick={onOpenStore}
         >
           🛒
-        </motion.button>
+        </button>
       </div>
     </div>
   );

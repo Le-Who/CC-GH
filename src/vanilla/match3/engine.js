@@ -215,6 +215,11 @@ export function hasValidMoves(b) {
   return false;
 }
 
+// v7.3: Performance optimization: double-buffered object pool for dirty masks
+// Eliminates Uint8Array garbage collection during long cascade loops
+const _dirtyPoolA = { rows: new Uint8Array(BOARD_SIZE), cols: new Uint8Array(BOARD_SIZE) };
+const _dirtyPoolB = { rows: new Uint8Array(BOARD_SIZE), cols: new Uint8Array(BOARD_SIZE) };
+
 /** Run a full cascade: match → clear → gravity → fill → repeat.
  *  Returns { steps, totalPoints, combo } for animation.
  *  @param {Function} [onCascadeStep] — optional callback after each step (for star-drop checks)
@@ -225,13 +230,16 @@ export function resolveBoard(b, onCascadeStep) {
   let cascadeCombo = 0;
   let matches = findMatches(b);
   let dirtyMask; // assigned at end of loop
+  let usePoolA = true;
 
   while (matches.length > 0) {
     cascadeCombo++;
-    const nextDirtyMask = {
-      rows: new Uint8Array(BOARD_SIZE),
-      cols: new Uint8Array(BOARD_SIZE)
-    };
+    
+    // Grab alternating array from the pool and zero it out
+    const nextDirtyMask = usePoolA ? _dirtyPoolA : _dirtyPoolB;
+    usePoolA = !usePoolA;
+    nextDirtyMask.rows.fill(0);
+    nextDirtyMask.cols.fill(0);
     
     const cleared = matches.map((idx) => {
       const x = idx % BOARD_SIZE;

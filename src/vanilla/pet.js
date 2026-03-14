@@ -240,11 +240,8 @@ const PetCompanionImpl = (function () {
       if (panelOpen) renderInfoPanel();
     });
 
-    // Start auto-water butler ability
-    startAutoWater();
-
-    // Start satiety digestion ticker (minutely online decay)
-    _startDigestionTicker();
+    // Phase 17: Unified pet ticker
+    _startUnifiedTicker();
 
     // Recalculate satiety on tab focus (visibility change)
     document.addEventListener("visibilitychange", () => {
@@ -532,31 +529,50 @@ const PetCompanionImpl = (function () {
     indicator.textContent = emoji;
   }
 
-  /* ─── Auto-Water (Butler ability, level ≥ 3) ─── */
-  let autoWaterTimer = null;
-  function startAutoWater() {
-    if (autoWaterTimer) clearInterval(autoWaterTimer);
-    autoWaterTimer = setInterval(() => {
-      if (!petData || petData.level < 3) return;
-      if (currentState === STATES.SLEEP) return;
-      // Check for crops needing water via GameStore
-      const farmState = GameStore.getState("farm");
-      if (!farmState || !farmState.plots) return;
+  /* ─── Phase 17: Unified Ticker Loop ─── */
+  // Replaces separate auto-water and digestion timers
+  let _unifiedTick = null;
+  let _tickCount = 0;
 
-      // Water up to 2 plots per tick
-      let watered = 0;
-      for (let i = 0; i < farmState.plots.length && watered < 2; i++) {
-        const p = farmState.plots[i];
-        if (p.crop && !p.watered && _waterFn) {
-          _waterFn(i);
-          watered++;
-        }
+  function _startUnifiedTicker() {
+    if (_unifiedTick) clearInterval(_unifiedTick);
+    _unifiedTick = setInterval(() => {
+      // 100% sleep when browser tab is hidden
+      if (document.hidden) return;
+      _tickCount++;
+
+      // Auto-water every 10s
+      if (_tickCount % 10 === 0) {
+        _tickAutoWater();
       }
-      if (watered > 0) {
-        showBubble(`💧 Watered ${watered}!`);
-        // No setState(HAPPY) — bubble is sufficient, avoids animation pop
+
+      // Digestion every 60s
+      if (_tickCount % 60 === 0) {
+        _recalcSatiety();
       }
-    }, 10000); // Every 10s, up to 2 plants
+    }, 1000);
+  }
+
+  /* ─── Auto-Water (Butler ability, level ≥ 3) ─── */
+  function _tickAutoWater() {
+    if (!petData || petData.level < 3) return;
+    if (currentState === STATES.SLEEP) return;
+    // Check for crops needing water via GameStore
+    const farmState = GameStore.getState("farm");
+    if (!farmState || !farmState.plots) return;
+
+    // Water up to 2 plots per tick
+    let watered = 0;
+    for (let i = 0; i < farmState.plots.length && watered < 2; i++) {
+      const p = farmState.plots[i];
+      if (p.crop && !p.watered && _waterFn) {
+        _waterFn(i);
+        watered++;
+      }
+    }
+    if (watered > 0) {
+      showBubble(`💧 Watered ${watered}!`);
+    }
   }
 
   /* ─── Inactivity → Sleep ─── */
@@ -780,9 +796,6 @@ const PetCompanionImpl = (function () {
     };
   }
 
-  /* ─── Satiety Digestion Helpers ─── */
-  let _digestionTimer = null;
-
   function _recalcSatiety() {
     const pet = GameStore.getState("pet");
     if (!pet) return;
@@ -794,14 +807,6 @@ const PetCompanionImpl = (function () {
       stats: { ...pet.stats, fullness: result.fullness },
       lastDigestionTimestamp: result.lastDigestionTimestamp,
     });
-  }
-
-  function _startDigestionTicker() {
-    if (_digestionTimer) clearInterval(_digestionTimer);
-    _digestionTimer = setInterval(() => {
-      if (document.hidden) return; // Skip when tab hidden
-      _recalcSatiety();
-    }, 60_000); // Every minute
   }
 
   /* ─── Generate new quest orders from server ─── */

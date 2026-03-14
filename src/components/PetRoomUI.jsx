@@ -46,6 +46,8 @@ function PetRoomAvatar({ petData }) {
             className="pet-layer pet-body pet-type-svg drop-shadow-xl"
             src={`/${assetDef.src}`}
             alt={baseSkinId}
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div
@@ -68,6 +70,8 @@ function PetRoomAvatar({ petData }) {
               transform: "translate(-50%, -50%)",
             }}
             alt="expression"
+            loading="lazy"
+            decoding="async"
           />
         )}
       </div>

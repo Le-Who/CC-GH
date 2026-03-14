@@ -1,5 +1,19 @@
-## [7.5.0] - 2026-03-14
+## [7.6.0] - 2026-03-14
 
+### Phase 17: Mobile Optimizations - Core Lifecycle & Event Loops
+Completed a thorough pass on reducing background CPU wakeups and React overhead for mobile devices.
+
+- **feat(shared):** Exposed `HUB.onScreenChange` event bus for localized game lifecycle management.
+- **perf(pet):** Unified `autoWaterTimer` and `_digestionTimer` into a single 1s tick that halts via `document.hidden`.
+- **perf(trivia):** Replaced hard 16ms JS `requestAnimationFrame` timer bar with GPU-accelerated CSS `transition`.
+- **perf(match3):** Implemented double-buffered global `_dirtyPool` to achieve zero-allocation array caching during cascade loops.
+- **perf(merge):** Explicitly suspend `_cooldownTimer` when `HUB.currentScreen` changes.
+- **perf(farm):** Hooked `stopLocalGrowthTick` into new `onLeave` lifecycle to stop polling off-screen.
+- **perf(react):** Downgraded React-bound `framer-motion` tap/hover events on `HUD.jsx` and `BottomNav.jsx` to sub-millisecond CSS pseudo-classes.
+- **perf(react):** Wrapped `App.jsx` modal callbacks in `useCallback` to prevent breaking `React.memo` on child components.
+- **perf(ui):** Added `loading="lazy" decoding="async"` to massive SVG and pet asset renders in `PetRoomUI.jsx` to unblock rasterizer threads.
+
+## [7.5.0] - 2026-03-14
 ### Mobile Performance Phase 2 (Zero-GC & Responsive UI)
 
 Comprehensive 9-fix architecture update targeting mobile latency, garbage collection spikes, and perceived performance in weak network environments. 346/346 tests pass.

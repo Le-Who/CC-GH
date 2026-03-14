@@ -913,7 +913,8 @@ function init() {
 
   // Periodically refresh cooldown timers (stored for cleanup in onLeave)
   _cooldownTimer = setInterval(() => {
-    if (document.hidden) return; // skip when tab is backgrounded
+    // Suspend if tab is hidden or user is on a different mini-game screen
+    if (document.hidden || HUB.currentScreen !== 4) return;
     const mergeState = GameStore.getState("merge");
     if (!mergeState) return;
     for (const chainId of mergeState.generators) {

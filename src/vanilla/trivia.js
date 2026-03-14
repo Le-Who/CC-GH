@@ -610,37 +610,58 @@ const TriviaGame = (() => {
     _lastDanger = false;
     if (_timerWrapperEl) _timerWrapperEl.classList.remove("danger");
     if (_timerTextEl) _timerTextEl.classList.remove("danger");
+    
     timerStart = Date.now();
     timerDuration = seconds * 1000;
-    updateTimer();
-  }
-  function updateTimer() {
-    const elapsed = Date.now() - timerStart;
-    const remaining = Math.max(0, timerDuration - elapsed);
-    const pct = (remaining / timerDuration) * 100;
-    const sec = Math.ceil(remaining / 1000);
-
-    if (_timerFillEl) _timerFillEl.style.width = pct + "%";
-    if (_timerTextEl) {
-      _timerTextEl.textContent = sec + "s";
-      // v4.15.3: Only toggle class when danger state actually changes
-      const isDanger = sec <= 3 && remaining > 0;
-      if (isDanger !== _lastDanger) {
-        _timerTextEl.classList.toggle("danger", isDanger);
-        if (_timerWrapperEl)
-          _timerWrapperEl.classList.toggle("danger", isDanger);
-        _lastDanger = isDanger;
+    
+    // Phase 17: GPU-Accelerated CSS Timer instead of 16ms JS loop
+    if (_timerFillEl) {
+      _timerFillEl.style.transition = "none";
+      _timerFillEl.style.width = "100%";
+      void _timerFillEl.offsetWidth; // flush layout
+      
+      _timerFillEl.style.transition = `width ${seconds}s linear`;
+      _timerFillEl.style.width = "0%";
+    }
+    
+    stopTimer();
+    // Coarse 1-second interval for text and end condition
+    timerRaf = setInterval(() => {
+      const elapsed = Date.now() - timerStart;
+      const remaining = Math.max(0, timerDuration - elapsed);
+      const sec = Math.ceil(remaining / 1000);
+      
+      if (_timerTextEl) {
+        _timerTextEl.textContent = sec + "s";
+        const isDanger = sec <= 3 && remaining > 0;
+        if (isDanger !== _lastDanger) {
+          _timerTextEl.classList.toggle("danger", isDanger);
+          if (_timerWrapperEl) _timerWrapperEl.classList.toggle("danger", isDanger);
+          _lastDanger = isDanger;
+        }
       }
-    }
-
-    if (remaining <= 0 && !session.answered) {
-      submitAnswer(null); // Time's up
-      return;
-    }
-    timerRaf = requestAnimationFrame(updateTimer);
+      
+      if (remaining <= 0) {
+        stopTimer();
+        if (!session.answered) submitAnswer(null); // Time's up
+      }
+    }, 1000);
+    
+    // Initial text update
+    if (_timerTextEl) _timerTextEl.textContent = seconds + "s";
   }
+
   function stopTimer() {
-    if (timerRaf) cancelAnimationFrame(timerRaf);
+    if (timerRaf) {
+      clearInterval(timerRaf);
+      timerRaf = null;
+    }
+    if (_timerFillEl) {
+      // Freeze the bar to its computed visual width upon stopping
+      const currentWidth = getComputedStyle(_timerFillEl).width;
+      _timerFillEl.style.transition = "none";
+      _timerFillEl.style.width = currentWidth;
+    }
   }
 
   /* ═══ SUBMIT ANSWER ═══ */

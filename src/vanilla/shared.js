@@ -68,6 +68,7 @@ export const HUB = {
   // v7.1: Interruption & Comfort System — return-tier tracking
   lastActiveTimestamp: 0,
   lastActiveGame: 2, // screen index at time of backgrounding
+  onScreenChange: [], // 17.1 API for lifecycle suspension
 };
 
 // ─── Module registry (set by main.js via setModules()) ───
@@ -535,6 +536,11 @@ function triggerScreenCallbacks() {
   // 7.1: Farm Shop FAB — visible only on farm screen
   const fab = document.getElementById("farm-shop-fab");
   if (fab) fab.classList.toggle("visible", name === "farm");
+
+  // Fire Phase 17 screen change listeners
+  HUB.onScreenChange.forEach(cb => {
+    try { cb(HUB.currentScreen, name); } catch(e) {}
+  });
 }
 
 /* ─── Centralized Toast Queue ─── */
