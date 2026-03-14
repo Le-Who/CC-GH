@@ -1327,6 +1327,7 @@ const Match3GameImpl = (() => {
   async function attemptSwap(fromX, fromY, toX, toY) {
     isAnimating = true;
     const $b = $("m3-board");
+    if (!$b) { isAnimating = false; return; }
     $b.classList.add("disabled");
     getCell(fromX, fromY)?.classList.remove("selected");
     selected = null;
@@ -1363,6 +1364,11 @@ const Match3GameImpl = (() => {
       cellB.style.transform = `translate(${-dx}px, ${-dy}px)`;
       cellA.style.zIndex = "2";
       await sleep(200);
+
+      if (_m3Cells.length === 0) {
+        isAnimating = false;
+        return; // Component unmounted
+      }
 
       // v5.0.2: Apply board swap BEFORE clearing transforms.
       // This way, when the CSS translate is removed and cells snap to grid
@@ -1432,12 +1438,17 @@ const Match3GameImpl = (() => {
 
     // 4. Animate the cascade steps
     await animateCascade(result.steps);
+    
+    if (_m3Cells.length === 0) {
+      isAnimating = false;
+      return; // Route changed during cascade
+    }
 
     // v5.0.2: Post-cascade full sync — guarantees all 64 cells match board[][]
     renderBoard(false);
 
     // 5. Update UI + persist state (v4.5.1)
-    updateStatsUI();
+    if ($("m3-score")) updateStatsUI();
     syncToStore();
     // Persist current game state after every swap so progress survives reload
     savedModes[gameMode] = {
@@ -1461,9 +1472,11 @@ const Match3GameImpl = (() => {
     if (combo > 1) SoundEngine.combo(combo);
     else SoundEngine.match();
 
-    if (combo > 1) showComboBanner(combo);
-    if (result.totalPoints > 0)
-      showFloatingPoints(toX, toY, result.totalPoints);
+    if ($("m3-combo-banner")) {
+      if (combo > 1) showComboBanner(combo);
+      if (result.totalPoints > 0)
+        showFloatingPoints(toX, toY, result.totalPoints);
+    }
 
     // 6. Check game over (mode-specific)
     const isGameOver = gameMode === "timed" ? false : movesLeft <= 0;
@@ -1536,6 +1549,7 @@ const Match3GameImpl = (() => {
     let speedMul = 1;
 
     for (let si = 0; si < steps.length; si++) {
+      if (_m3Cells.length === 0) return; // Component unmounted
       const step = steps[si];
 
       // ── Phase 0: Highlight matched gems (flash border/glow so player sees WHAT matched) ──
@@ -1545,8 +1559,10 @@ const Match3GameImpl = (() => {
       // v5.1.0: Hit-stop — micro-pause on big matches (≥5) for cinematic impact
       if (step.cleared.length >= 5) {
         await sleep(40);
+        if (_m3Cells.length === 0) return;
       }
       await sleep(Math.round(BASE_HIGHLIGHT_DUR * speedMul));
+      if (_m3Cells.length === 0) return;
 
       // ── Phase 1: Pop matched gems (scale → 0, white flash) ──
       for (const { x, y } of step.cleared) {
@@ -1582,6 +1598,7 @@ const Match3GameImpl = (() => {
         }
       }
       await sleep(Math.round(BASE_POP_DUR * speedMul));
+      if (_m3Cells.length === 0) return;
 
       // v5.2.0: Color Splash — flash board background with dominant gem color
       if (step.cleared.length >= 3) {
@@ -1625,8 +1642,10 @@ const Match3GameImpl = (() => {
       // This prevents false highlights on subsequent cascade steps.
       const snap = step.boardSnapshot;
       for (let y = 0; y < BOARD_SIZE; y++) {
+        if (!_m3Cells[y]) continue;
         for (let x = 0; x < BOARD_SIZE; x++) {
           const cell = _m3Cells[y][x];
+          if (!cell) continue;
           const type = snap[y][x];
           const isDrop = DROP_TYPES.includes(type);
           let cls = "m3-cell";
@@ -1675,6 +1694,7 @@ const Match3GameImpl = (() => {
         _prevCascadeChanged.push(cell);
       }
       await sleep(Math.round(BASE_FALL_WAIT * speedMul));
+      if (_m3Cells.length === 0) return;
 
       // Adaptive speed: each successive step is faster, but clamped at floor
       speedMul = Math.max(SPEED_FLOOR, speedMul * SPEED_DECAY);
@@ -1696,6 +1716,7 @@ const Match3GameImpl = (() => {
   }
 
   function updateStatsUI() {
+    if (!$("m3-score")) return;
     animateNumber($("m3-score"), score);
     // v5.0.2: Dynamic label — "Time" for timed mode, "Moves" otherwise
     $("m3-moves-label").textContent = gameMode === "timed" ? "Time" : "Moves";
@@ -1786,6 +1807,7 @@ const Match3GameImpl = (() => {
   }
 
   function showFloatingPoints(x, y, pts) {
+    if (!$("m3-board-container")) return;
     ensureFloatPool();
     if (floatPool.length === 0) return;
     const cs =
