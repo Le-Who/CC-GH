@@ -42,19 +42,40 @@ const app = express();
 app.use(compression());
 app.use(express.json());
 
-// CORS — allow Discord Activity iframe and same-origin requests
-app.use((_req, res, next) => {
-  res.set("Access-Control-Allow-Origin", "*");
+// CORS — scoped to Discord Activity origins in production, permissive in dev
+let _allowedOrigins = null;
+app.use((req, res, next) => {
+  if (!_allowedOrigins) {
+    _allowedOrigins = new Set([
+      "https://discord.com",
+      "https://ptb.discord.com",
+      "https://canary.discord.com",
+      `https://${process.env.DISCORD_CLIENT_ID || ""}.discordsays.com`,
+    ]);
+  }
+  const origin = req.headers.origin;
+  if (
+    process.env.NODE_ENV !== "production" ||
+    !origin ||
+    _allowedOrigins.has(origin) ||
+    origin.endsWith(".discordsays.com")
+  ) {
+    res.set("Access-Control-Allow-Origin", origin || "*");
+  }
   res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (_req.method === "OPTIONS") return res.sendStatus(204);
+  if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
 
 // Security headers (Helmet-like, no extra dependency)
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
-  res.set("X-Frame-Options", "SAMEORIGIN");
+  // Discord Activity requires iframe embedding — use CSP frame-ancestors instead of X-Frame-Options
+  res.set(
+    "Content-Security-Policy",
+    "frame-ancestors 'self' https://discord.com https://*.discord.com https://*.discordsays.com",
+  );
   res.set("X-XSS-Protection", "0"); // Modern browsers: rely on CSP instead
   res.set("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
@@ -113,6 +134,12 @@ function resolveUser(req) {
   // For POST requests, use body values (may be undefined — routes validate)
   return { userId: req.body?.userId, username: req.body?.username || "Player" };
 }
+
+/* ═══════════════════════════════════════════════════
+ *  RATE LIMITING — MUST be before all route handlers
+ * ═══════════════════════════════════════════════════ */
+app.use("/api/token", authLimiter);
+app.use("/api", defaultLimiter);
 
 /* ═══════════════════════════════════════════════════
  *  CONFIG & HEALTH ENDPOINTS
@@ -178,9 +205,7 @@ app.get("/api/health", (_req, res) =>
 /* ═══════════════════════════════════════════════════
  *  MOUNT ROUTE MODULES
  * ═══════════════════════════════════════════════════ */
-// v7.3: Rate limiting — MUST be before route handlers
-app.use("/api/token", authLimiter);
-app.use("/api", defaultLimiter);
+// Rate limiters mounted above (before config endpoints) — see line ~120
 
 app.use(farmRoutes(requireAuth, resolveUser));
 app.use(resourcesRoutes(requireAuth, resolveUser));
@@ -205,8 +230,21 @@ app.use(seasonPassRoutes(requireAuth, resolveUser));
 let sdkBundleCache = null;
 app.get("/js/discord-sdk.js", (_req, res) => {
   if (!sdkBundleCache) {
+    // Try public/js first (Docker build output), fallback to src/vanilla
+    const publicPath = path.join(
+      __dirname,
+      "public",
+      "js",
+      "discord-sdk-bundle.js",
+    );
+    const srcPath = path.join(
+      __dirname,
+      "src",
+      "vanilla",
+      "discord-sdk-bundle.js",
+    );
     sdkBundleCache = fs.readFileSync(
-      path.join(__dirname, "src", "vanilla", "discord-sdk-bundle.js"),
+      fs.existsSync(publicPath) ? publicPath : srcPath,
       "utf-8",
     );
   }
@@ -274,6 +312,12 @@ app.get(/.*/, (_req, res) => {
   res.set("Surrogate-Control", "no-store");
   res.set("Pragma", "no-cache");
   res.type("html").send(getIndexHtml());
+});
+
+// Global error handler (Express 5 catches async rejections automatically)
+app.use((err, _req, res, _next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Internal Server Error" });
 });
 
 /* ═══════════════════════════════════════════════════

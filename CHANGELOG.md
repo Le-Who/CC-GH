@@ -1,3 +1,43 @@
+## [7.3.5] - 2026-02-28
+
+### Security & Architecture Audit — Phase 2
+
+Comprehensive 20-fix audit covering security, architecture, bugs, code duplication, performance, and input validation. 10 files modified, 345/345 tests pass.
+
+#### Critical Fixes
+
+- **Discord iframe blocked** (`server.js`): `X-Frame-Options: SAMEORIGIN` prevented the app from loading inside Discord's Activity iframe. Replaced with CSP `frame-ancestors` directive scoping to Discord domains (`discord.com`, `*.discord.com`, `*.discordsays.com`).
+- **Rate limiter ordering** (`server.js`): `authLimiter` and `defaultLimiter` were mounted after `/api/token` route — token exchange was unprotected against brute-force. Moved rate limiter `app.use()` calls before all route handlers.
+- **`calcGoldReward` DoS** (`game-logic.js`): Unbounded `while` loop could freeze the event loop with crafted extreme scores (e.g., `9e15`). Added `SCORE_CAP = 50_000` iteration guard.
+
+#### High Fixes
+
+- **Duel interval leak** (`trivia.js`): `setInterval` for duel room cleanup lacked `.unref()`, preventing clean process exit in tests and after SIGTERM.
+- **Missing `blox.activeGame`** (`game-logic.js`): `createDefaultPlayer()` didn't include `activeGame: false` in `blox` — field was `undefined` for new players from Firestore.
+- **Quest merge-board crash** (`questRoutes.js`): `/api/quests/submit` validated merge items on `p.merge.board` without calling `hydrateMergeBoard()`. Firestore-stored boards (JSON strings or objects with numeric keys) caused silent validation failures.
+- **SDK bundle path** (`server.js`): In production (Docker), `sdkBundleCache` read from `src/vanilla/` which isn't copied to the container. Added fallback: `public/js/` → `src/vanilla/`.
+
+#### Medium Fixes
+
+- **Wildcard CORS** (`server.js`): `Access-Control-Allow-Origin: *` replaced with scoped Discord origins in production (discord.com, ptb, canary, discordsays). Dev mode retains permissive CORS.
+- **Gold duplication exploit** (`farm.js`): `/api/farm/buy-seeds` accepted `amount: -1` from client, producing negative cost → free gold. Now validates as positive integer, capped at 1000.
+- **Vestigial `farm.coins`** (`farm.js`): Removed dead `coins: p.farm.coins` from `/api/farm/plant` response.
+- **Duplicated chain-unlock** (`mergeRoutes.js`): Identical 10-line unlock block in `/gacha` and `/free-pull` extracted to `tryUnlockChain()` helper.
+- **No error handler** (`server.js`): Added global Express 5 error handler (`app.use((err, …) => …)`) to catch unhandled async rejections.
+- **Rate limiter cleanup** (`rateLimit.js`): 3 separate `setInterval` cleanup loops (one per limiter) consolidated to single module-level interval via `ensureCleanup()`.
+- **Leaderboard O(N)** (`leaderboard.js`): Full player-map sort on every request replaced with 30-second TTL cache for both Match-3 and Blox leaderboards.
+
+#### Low Fixes
+
+- **`plotId` validation** (`farm.js`): 4 endpoints (plant, water, harvest, uproot) now validate `plotId` as integer within bounds, preventing `undefined` plot access.
+- **Missing `room.inventory`** (`game-logic.js`): `createDefaultPlayer()` room object now includes `inventory: []`.
+- **Duel history O(N)** (`trivia.js`): `.unshift()` (O(N)) replaced with `.push()` (O(1)) + reverse-on-read in history endpoint.
+- **Graceful shutdown** (`playerManager.js`): `process.exit()` moved to `.then()` chain after flush, ensuring log message completes before exit.
+
+#### Tests — **345/345 pass**, 0 failures.
+
+---
+
 ## [7.3.4] - 2026-02-28
 
 ### Security & Architecture Audit

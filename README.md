@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v7.3.4**
+**Current version: v7.3.5**
 
 ---
 
@@ -29,7 +29,7 @@
 | ⭐ **Season Pass**        | Free + premium tracks · Event-gated rewards                                  |
 | 💾 **Offline Simulation** | Auto-harvest, auto-plant, auto-water while away · Welcome-back report        |
 | 🏠 **GameStore**          | Zustand-inspired slice pattern for state isolation between games             |
-| 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback)                                     |
+| 🔐 **Discord OAuth2**     | Dual-mode auth (token + userId fallback) · Scoped CORS origins               |
 | 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions                 |
 | ✨ **Nav Shimmer + Dots** | Active tab shimmer effect · Green notification dot on Farm when crops ready  |
 | 🔤 **Emoji Consistency**  | Robust font stack: Noto Color Emoji + Apple/Segoe fallbacks                  |
@@ -143,7 +143,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 388 tests across 11 suites
+npm test          # All 345 tests across 11 suites
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -227,7 +227,15 @@ Older architecture evolution changes can be found in `legacy_readme.md`.
 
 ### ✅ Completed in v7.3.x
 
-1. **Security & Architecture Audit** (v7.3.4):
+1. **Security & Architecture Audit — Phase 2** (v7.3.5):
+   - CSP `frame-ancestors` replaces `X-Frame-Options` for Discord iframe compatibility.
+   - Scoped CORS origins (Discord-only in production), wildcard removed.
+   - `calcGoldReward` DoS safety cap, buy-seeds amount validation (anti-exploit).
+   - Rate limiter ordering fixed (now before all routes, including `/api/token`).
+   - Quest merge-board hydration, leaderboard 30s TTL cache, duel history O(1).
+   - Global Express 5 error handler, rate limiter cleanup consolidation.
+   - `plotId` integer validation on 4 farm endpoints, `blox.activeGame` schema fix.
+2. **Security & Architecture Audit** (v7.3.4):
    - Blox session validation (anti-gold-exploit) + anti-cheat score ceilings.
    - Rate limiter mount order fixed (before route handlers).
    - CORS + security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy).
@@ -237,20 +245,20 @@ Older architecture evolution changes can be found in `legacy_readme.md`.
    - Recurring events fixed with year-normalization.
    - Merge board coordinate validation, pet name XSS sanitization.
    - Dead code removal (`farm.coins`), `.unref()` for clean test shutdown.
-2. **Retention & Monetization Ready** (v7.3.0):
+3. **Retention & Monetization Ready** (v7.3.0):
    - Post-game summary cards, tomorrow preview, weekly stats.
    - Daily login streaks with escalating multipliers.
    - Timed farm boosters (2× growth, 1.5× harvest).
    - Achievements, seasonal events, season pass (free + premium tracks).
    - Per-route rate limiting for API abuse prevention.
-3. **Pet Room — Phase 3** (v7.3.0):
+4. **Pet Room — Phase 3** (v7.3.0):
    - 4×4 decoratable room grid with stat-boosting decorations.
    - `PetRoomUI.jsx` component with tile placement and inventory.
    - Room decorations from Merge pipeline with rarity tiers.
-4. **Farm Panel Expansion** (v7.3.0+):
+5. **Farm Panel Expansion** (v7.3.0+):
    - Badges, Journal (crop discovery), and Season Pass tabs.
    - 30-second onboarding redesign with invisible tutorials.
-5. **Prod-Readiness Audit** (v7.3.3):
+6. **Prod-Readiness Audit** (v7.3.3):
    - Featured shelf repositioned to left sidebar (absolute positioning).
    - Pet profile mood meter and affection level restored.
    - HUD gold counter stabilized, dead imports removed.

@@ -70,10 +70,12 @@ export function calcGoldReward(score) {
   }
 
   // Beyond 4000: continue doubling, cap at 200% per 100 pts
+  // Safety cap prevents DoS from crafted extreme scores
   if (score >= 4000) {
     let tierStart = 4000;
     let rate = 0.4;
-    while (tierStart <= score) {
+    const SCORE_CAP = 50_000;
+    while (tierStart <= score && tierStart <= SCORE_CAP) {
       const tierEnd = tierStart + 999;
       const inTier = Math.min(score, tierEnd + 1) - tierStart;
       const steps = Math.floor(inTier / 100);
@@ -853,7 +855,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false, autoPlant: false },
     },
-    room: { decorations: [], wallpaper: "default" },
+    room: { decorations: [], inventory: [], wallpaper: "default" },
     farm: {
       xp: 0,
       level: 1,
@@ -893,6 +895,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
     blox: {
       highScore: 0,
       totalGames: 0,
+      activeGame: false,
     },
     streak: { current: 0, best: 0, lastLoginDate: null, bonusMultiplier: 1 },
     achievements: {},

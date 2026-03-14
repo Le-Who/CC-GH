@@ -181,7 +181,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   const DUEL_WAIT_EXPIRY_MS = 3 * 60 * 1000; // 3 min for waiting rooms
   const DUEL_FINISH_EXPIRY_MS = 10 * 60 * 1000; // 10 min for finished rooms
 
-  // Periodic cleanup of stale duel rooms
+  // Periodic cleanup of stale duel rooms (.unref() for clean test/process exit)
   setInterval(() => {
     const now = Date.now();
     for (const [id, room] of duelRooms) {
@@ -192,7 +192,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         duelRooms.delete(id);
       }
     }
-  }, 60_000);
+  }, 60_000).unref();
 
   function generateCode() {
     return Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -363,7 +363,8 @@ export default function triviaRoutes(requireAuth, resolveUser) {
             : sorted[0].score === sorted[1]?.score
               ? "Tie"
               : sorted[0].username;
-        duelHistory.unshift({
+        // Push (O(1)) instead of unshift (O(N)); reverse on read
+        duelHistory.push({
           roomId: room.roomId,
           finishedAt: Date.now(),
           players: Object.values(room.players).map((pl) => ({
@@ -495,9 +496,11 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 5));
 
     // Filter by user if specified, otherwise return all
+    // Reverse so newest entries are first (push() appends to end)
     let filtered = userId
       ? duelHistory.filter((d) => d.players.some((p) => p.userId === userId))
-      : duelHistory;
+      : [...duelHistory];
+    filtered.reverse();
 
     const total = filtered.length;
     const totalPages = Math.ceil(total / limit) || 1;

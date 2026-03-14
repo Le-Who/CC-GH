@@ -7,21 +7,28 @@
 
 const windows = new Map(); // userId → [timestamps]
 
-/**
- * Creates a rate limiter middleware.
- * @param {number} maxRequests - Max requests per window
- * @param {number} windowMs - Window duration in milliseconds
- */
-export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
-  // Cleanup old entries every 5 minutes (unref for clean test exit)
+// Single module-level cleanup (unref for clean test exit)
+let _cleanupStarted = false;
+function ensureCleanup(windowMs) {
+  if (_cleanupStarted) return;
+  _cleanupStarted = true;
   setInterval(() => {
-    const cutoff = Date.now() - windowMs * 2;
+    const cutoff = Date.now() - 120_000; // 2× longest window
     for (const [key, timestamps] of windows.entries()) {
       const valid = timestamps.filter((t) => t > cutoff);
       if (valid.length === 0) windows.delete(key);
       else windows.set(key, valid);
     }
   }, 300_000).unref();
+}
+
+/**
+ * Creates a rate limiter middleware.
+ * @param {number} maxRequests - Max requests per window
+ * @param {number} windowMs - Window duration in milliseconds
+ */
+export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
+  ensureCleanup(windowMs);
 
   return (req, res, next) => {
     // Extract user ID from auth, body, or IP

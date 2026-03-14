@@ -16,6 +16,42 @@ import {
 } from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
+/** Hydrate merge board from Firestore (JSON string or object→array recovery) */
+const BOARD_ROWS = 7,
+  BOARD_COLS = 9;
+function hydrateMergeBoard(p) {
+  if (!p.merge) return;
+  let board = p.merge.board;
+  if (typeof board === "string") {
+    try {
+      board = JSON.parse(board);
+    } catch {
+      /* leave as-is */
+    }
+  }
+  if (board && !Array.isArray(board)) {
+    board = Object.keys(board)
+      .sort((a, b) => a - b)
+      .map((k) => {
+        const row = board[k];
+        if (row && !Array.isArray(row)) {
+          return Object.keys(row)
+            .sort((a, b) => a - b)
+            .map((j) => row[j] ?? null);
+        }
+        return row;
+      });
+  }
+  if (Array.isArray(board)) {
+    while (board.length < BOARD_ROWS) board.push(Array(BOARD_COLS).fill(null));
+    for (let r = 0; r < board.length; r++) {
+      if (!Array.isArray(board[r])) board[r] = Array(BOARD_COLS).fill(null);
+      while (board[r].length < BOARD_COLS) board[r].push(null);
+    }
+  }
+  p.merge.board = board;
+}
+
 export default function questRoutes(requireAuth, resolveUser) {
   const router = Router();
 
@@ -135,6 +171,9 @@ export default function questRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { orderId } = req.body;
     const p = getPlayer(userId);
+
+    // Hydrate merge board in case it was stored as JSON string in Firestore
+    hydrateMergeBoard(p);
 
     const orderIdx = (p.pet.activeOrders || []).findIndex(
       (o) => o.id === orderId,

@@ -80,6 +80,19 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     return cells;
   }
 
+  /** Helper: unlock chain generator if not already unlocked */
+  function tryUnlockChain(p, chainId) {
+    if (!p.merge.generators.includes(chainId)) {
+      p.merge.generators.push(chainId);
+      if (!p.merge.generatorState[chainId]) {
+        p.merge.generatorState[chainId] = {
+          tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+          cooldownEnd: 0,
+        };
+      }
+    }
+  }
+
   /* ─── Merge State ─── */
   router.post("/api/merge/state", requireAuth, (req, res) => {
     const { userId, username } = resolveUser(req);
@@ -265,15 +278,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
 
     // Unlock chain generator if not already
-    if (!p.merge.generators.includes(chainId)) {
-      p.merge.generators.push(chainId);
-      if (!p.merge.generatorState[chainId]) {
-        p.merge.generatorState[chainId] = {
-          tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
-          cooldownEnd: 0,
-        };
-      }
-    }
+    tryUnlockChain(p, chainId);
 
     debouncedSavePlayer(userId);
     res.json({
@@ -314,15 +319,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     p.merge.lastFreePull = now;
 
     // Unlock chain generator if not already
-    if (!p.merge.generators.includes(chainId)) {
-      p.merge.generators.push(chainId);
-      if (!p.merge.generatorState[chainId]) {
-        p.merge.generatorState[chainId] = {
-          tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
-          cooldownEnd: 0,
-        };
-      }
-    }
+    tryUnlockChain(p, chainId);
 
     debouncedSavePlayer(userId);
     res.json({

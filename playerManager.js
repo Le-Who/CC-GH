@@ -171,8 +171,8 @@ export const gracefulShutdown = async () => {
       console.log(
         `🔥 Flushed ${flushPromises.length} players to Firestore. Bye!`,
       );
-      process.exit(0);
     })
+    .then(() => process.exit(0))
     .catch((err) => {
       console.error("❌ Error flushing to Firestore during shutdown:", err);
       process.exit(1);

@@ -80,9 +80,11 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { plotId, cropId } = req.body;
     const p = getPlayer(userId);
     if (!CROPS[cropId]) return res.status(400).json({ error: "unknown crop" });
-    const plot = p.farm.plots[plotId];
-    if (!plot || plot.crop)
-      return res.status(400).json({ error: "plot occupied" });
+    const idx = Number(plotId);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
+      return res.status(400).json({ error: "invalid plot" });
+    const plot = p.farm.plots[idx];
+    if (plot.crop) return res.status(400).json({ error: "plot occupied" });
     const seeds = p.farm.inventory[cropId] || 0;
     if (seeds <= 0) return res.status(400).json({ error: "no seeds" });
 
@@ -96,7 +98,6 @@ export default function farmRoutes(requireAuth, resolveUser) {
       success: true,
       plots: farmPlotsWithGrowth(p.farm),
       inventory: p.farm.inventory,
-      coins: p.farm.coins,
       serverTime: Date.now(),
     });
   });
@@ -105,8 +106,11 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { plotId } = req.body;
     const p = getPlayer(userId);
-    const plot = p.farm.plots[plotId];
-    if (!plot || !plot.crop || plot.watered)
+    const idx = Number(plotId);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
+      return res.status(400).json({ error: "invalid plot" });
+    const plot = p.farm.plots[idx];
+    if (!plot.crop || plot.watered)
       return res.status(400).json({ error: "cannot water" });
     plot.watered = true;
     debouncedSavePlayer(userId);
@@ -121,8 +125,11 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { plotId } = req.body;
     const p = getPlayer(userId);
-    const plot = p.farm.plots[plotId];
-    if (!plot || !plot.crop)
+    const idx = Number(plotId);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
+      return res.status(400).json({ error: "invalid plot" });
+    const plot = p.farm.plots[idx];
+    if (!plot.crop)
       return res.status(400).json({ error: "nothing to harvest" });
     if (getGrowthPct(plot) < 1)
       return res.status(400).json({ error: "not ready" });
@@ -176,9 +183,11 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     const { plotId } = req.body;
     const p = getPlayer(userId);
-    const plot = p.farm.plots[plotId];
-    if (!plot || !plot.crop)
-      return res.status(400).json({ error: "nothing to uproot" });
+    const idx = Number(plotId);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
+      return res.status(400).json({ error: "invalid plot" });
+    const plot = p.farm.plots[idx];
+    if (!plot.crop) return res.status(400).json({ error: "nothing to uproot" });
     if (getGrowthPct(plot) >= 1)
       return res.status(400).json({ error: "already ready — harvest instead" });
 
@@ -201,11 +210,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const p = getPlayer(userId);
     const cfg = CROPS[cropId];
     if (!cfg) return res.status(400).json({ error: "unknown crop" });
-    const cost = cfg.seedPrice * amount;
+    // Validate amount: must be positive integer, capped at 1000
+    const qty = Math.max(1, Math.floor(Number(amount) || 1));
+    if (qty > 1000) return res.status(400).json({ error: "amount too large" });
+    const cost = cfg.seedPrice * qty;
     if (p.resources.gold < cost)
       return res.status(400).json({ error: "not enough gold" });
     p.resources.gold -= cost;
-    p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + amount;
+    p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
     debouncedSavePlayer(userId);
     res.json({
       success: true,
