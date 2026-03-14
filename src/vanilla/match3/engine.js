@@ -224,7 +224,7 @@ export function resolveBoard(b, onCascadeStep) {
   let totalPoints = 0;
   let cascadeCombo = 0;
   let matches = findMatches(b);
-  let dirtyMask = null; // null means check all
+  let dirtyMask; // assigned at end of loop
 
   while (matches.length > 0) {
     cascadeCombo++;

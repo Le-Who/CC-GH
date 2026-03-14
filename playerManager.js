@@ -34,11 +34,7 @@ export async function withPlayerLock(userId, asyncFn) {
   
   // Create a new lock that waits for the previous one
   const nextLock = currentLock.then(async () => {
-    try {
-      return await asyncFn();
-    } catch (err) {
-      throw err; // Propagate the error to the caller
-    }
+    return await asyncFn();
   }).catch((err) => {
     // Prevent a failed lock from breaking the chain
     throw err;

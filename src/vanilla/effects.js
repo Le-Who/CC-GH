@@ -285,6 +285,8 @@ export function spawnCoinFly(sourceEl, count = 3) {
 
     // OPTIMIZATION 3: Web Animations API (WAAPI)
     // Runs in compositor thread, no GC pauses from setTimeouts
+    const dx = tgtRect.left + tgtRect.width / 2 - (srcRect.left + srcRect.width / 2);
+    const dy = tgtRect.top + tgtRect.height / 2 - (srcRect.top + srcRect.height / 2);
     const animation = p.animate(
       [
         { transform: 'scale(1) translate(0px, 0px)', opacity: 1 },
