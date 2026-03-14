@@ -303,6 +303,15 @@ const Match3GameImpl = (() => {
   function onEnter() {
     /* v7.3: Auto-resume active games (comfort architecture — no blocking overlay) */
     if (gameActive) {
+      // DOM was cleared by `hub:route-leave`, must rebuild
+      if (_m3Cells.length === 0) {
+        renderBoard(false);
+      }
+      
+      // Fix visual stuck states
+      selected = null;
+      isAnimating = false;
+      
       // Game in progress — resume seamlessly, no modal
       if (gamePaused) {
         gamePaused = false;
