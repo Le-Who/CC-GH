@@ -22,6 +22,8 @@ const MAX_CACHE_SIZE = 10000; // LRU eviction threshold
 
 let firestore = null;
 let playersCol = null;
+let usersCol = null;    // Simple-auth: username → password_hash
+let sessionsCol = null; // Simple-auth: token → { userId, username, createdAt }
 
 /**
  * Initialize Firestore connection. Call from server start() instead of
@@ -40,6 +42,8 @@ export function initFirestore() {
 
     firestore = new Firestore(firestoreConfig);
     playersCol = firestore.collection("players");
+    usersCol = firestore.collection("users");
+    sessionsCol = firestore.collection("sessions");
     console.log(
       `🔥 Firestore initialized successfully. (Project: ${PROJECT_ID || "default"}, DB: ${DB_ID})`,
     );
@@ -49,6 +53,16 @@ export function initFirestore() {
       e.message,
     );
   }
+}
+
+/** Accessor for users collection (simple-auth) */
+export function getUsersCol() {
+  return usersCol;
+}
+
+/** Accessor for sessions collection (simple-auth) */
+export function getSessionsCol() {
+  return sessionsCol;
 }
 
 /* ─── Persistence ─── */

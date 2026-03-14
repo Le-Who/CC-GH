@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Unified Server (Production-Ready)
  *  Farm + Trivia (Solo & Duel) + Match-3 (with Leaderboard)
- *  Discord OAuth2 · GCS Persistence · Dual-Mode Auth
+ *  Discord OAuth2 · Simple Auth · GCS Persistence · Tri-Mode Auth
  * ═══════════════════════════════════════════════════════
  */
 import "dotenv/config";
@@ -15,6 +15,7 @@ import { fileURLToPath } from "url";
 import compression from "compression";
 import { initStorage, getBucket } from "./storage.js";
 import { players, loadDb, initFirestore } from "./playerManager.js";
+import authRoutes, { validateSimpleAuthToken } from "./routes/auth.js";
 
 /* ─── Route Modules ─── */
 import farmRoutes from "./routes/farm.js";
@@ -30,6 +31,9 @@ import eventRoutes from "./routes/events.js";
 import seasonPassRoutes from "./routes/seasonpass.js";
 import { defaultLimiter, authLimiter } from "./middleware/rateLimit.js";
 
+// ─── Custom Domain (for non-Discord access via short URL) ───
+const CUSTOM_DOMAIN = process.env.CUSTOM_DOMAIN || ""; // e.g. "gamehub.example.com"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ─── Global Version Constant (single source: package.json) ───
@@ -42,7 +46,7 @@ const app = express();
 app.use(compression());
 app.use(express.json());
 
-// CORS — scoped to Discord Activity origins in production, permissive in dev
+// CORS — scoped to Discord Activity + custom domain origins in production, permissive in dev
 let _allowedOrigins = null;
 app.use((req, res, next) => {
   if (!_allowedOrigins) {
@@ -52,6 +56,11 @@ app.use((req, res, next) => {
       "https://canary.discord.com",
       `https://${process.env.DISCORD_CLIENT_ID || ""}.discordsays.com`,
     ]);
+    // Custom domain support (non-Discord access)
+    if (CUSTOM_DOMAIN) {
+      _allowedOrigins.add(`https://${CUSTOM_DOMAIN}`);
+      _allowedOrigins.add(`http://${CUSTOM_DOMAIN}`); // for local dev
+    }
   }
   const origin = req.headers.origin;
   if (
@@ -71,11 +80,12 @@ app.use((req, res, next) => {
 // Security headers (Helmet-like, no extra dependency)
 app.use((_req, res, next) => {
   res.set("X-Content-Type-Options", "nosniff");
-  // Discord Activity requires iframe embedding — use CSP frame-ancestors instead of X-Frame-Options
-  res.set(
-    "Content-Security-Policy",
-    "frame-ancestors 'self' https://discord.com https://*.discord.com https://*.discordsays.com",
-  );
+  // CSP frame-ancestors: Discord iframe + custom domain + self (for non-iframe access)
+  let cspAncestors = "'self' https://discord.com https://*.discord.com https://*.discordsays.com";
+  if (CUSTOM_DOMAIN) {
+    cspAncestors += ` https://${CUSTOM_DOMAIN}`;
+  }
+  res.set("Content-Security-Policy", `frame-ancestors ${cspAncestors}`);
   res.set("X-XSS-Protection", "0"); // Modern browsers: rely on CSP instead
   res.set("Referrer-Policy", "strict-origin-when-cross-origin");
   next();
@@ -92,46 +102,75 @@ const DISCORD_ENABLED = !!(CLIENT_ID && CLIENT_SECRET);
 initStorage(GCS_BUCKET);
 
 /* ═══════════════════════════════════════════════════
- *  AUTH MIDDLEWARE
+ *  AUTH MIDDLEWARE (Tri-Mode: Discord · Simple-Auth · Demo)
  * ═══════════════════════════════════════════════════ */
 
-/* ─── Discord Auth (dual-mode) ─── */
+/**
+ * requireAuth — validates authentication via one of three modes:
+ *   1. Simple-auth token (prefix "sa_") → Firestore sessions lookup
+ *   2. Discord OAuth token → Discord API validation
+ *   3. No auth configured → demo mode (skip auth)
+ */
 const requireAuth = async (req, res, next) => {
-  if (!DISCORD_ENABLED) return next(); // demo mode — skip auth
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: "No token provided" });
-  const token = authHeader.split(" ")[1];
-  try {
-    const userReq = await fetch("https://discord.com/api/users/@me", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!userReq.ok) throw new Error("Invalid token");
-    req.discordUser = await userReq.json();
-    next();
-  } catch (e) {
-    return res.status(401).json({ error: "Invalid token" });
+  const token = authHeader ? authHeader.split(" ")[1] : null;
+
+  // Mode 1: Simple-auth session token (sa_ prefix)
+  if (token && token.startsWith("sa_")) {
+    const user = await validateSimpleAuthToken(token);
+    if (!user) return res.status(401).json({ error: "Session expired or invalid" });
+    req.simpleUser = user;
+    return next();
   }
+
+  // Mode 2: Discord OAuth token
+  if (DISCORD_ENABLED && token) {
+    try {
+      const userReq = await fetch("https://discord.com/api/users/@me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!userReq.ok) throw new Error("Invalid token");
+      req.discordUser = await userReq.json();
+      return next();
+    } catch (e) {
+      return res.status(401).json({ error: "Invalid token" });
+    }
+  }
+
+  // Mode 3: Demo mode — no auth required
+  if (!DISCORD_ENABLED) return next();
+
+  // No valid token provided
+  return res.status(401).json({ error: "No token provided" });
 };
 
 /**
- * resolveUser — extracts userId/username from either Discord auth or request body.
- * In production (Discord enabled): uses req.discordUser from requireAuth.
- * In demo mode: uses req.body.userId / req.body.username.
+ * resolveUser — extracts userId/username from:
+ *   1. req.discordUser (Discord OAuth)
+ *   2. req.simpleUser (Simple-auth session)
+ *   3. req.body / req.query (demo mode fallback)
  */
 function resolveUser(req) {
+  // Discord user (set by requireAuth mode 2)
   if (req.discordUser) {
     return {
       userId: req.discordUser.id,
       username: req.discordUser.username || "Player",
     };
   }
-  // For GET requests (like /api/resources/state), fall back to query params or demo defaults
+  // Simple-auth user (set by requireAuth mode 1)
+  if (req.simpleUser) {
+    return {
+      userId: req.simpleUser.userId,
+      username: req.simpleUser.username || "Player",
+    };
+  }
+  // Demo mode fallback
   if (req.method === "GET") {
     const uid = req.query?.userId || "demo-user";
     const uname = req.query?.username || "Player";
     return { userId: uid, username: uname };
   }
-  // For POST requests, use body values (may be undefined — routes validate)
   return { userId: req.body?.userId, username: req.body?.username || "Player" };
 }
 
@@ -139,7 +178,12 @@ function resolveUser(req) {
  *  RATE LIMITING — MUST be before all route handlers
  * ═══════════════════════════════════════════════════ */
 app.use("/api/token", authLimiter);
-app.use("/api", defaultLimiter);
+app.use("/api/auth", authLimiter);
+// Default limiter for all /api except auth paths (they have their own authLimiter)
+app.use("/api", (req, res, next) => {
+  if (req.path.startsWith("/auth") || req.path.startsWith("/token")) return next();
+  return defaultLimiter(req, res, next);
+});
 
 /* ═══════════════════════════════════════════════════
  *  CONFIG & HEALTH ENDPOINTS
@@ -150,6 +194,8 @@ app.get("/api/config", (_req, res) => {
   res.json({
     clientId: CLIENT_ID || "",
     discordEnabled: DISCORD_ENABLED,
+    simpleAuthEnabled: true, // Always available when Discord is not the only option
+    customDomain: CUSTOM_DOMAIN || null,
   });
 });
 
@@ -205,7 +251,10 @@ app.get("/api/health", (_req, res) =>
 /* ═══════════════════════════════════════════════════
  *  MOUNT ROUTE MODULES
  * ═══════════════════════════════════════════════════ */
-// Rate limiters mounted above (before config endpoints) — see line ~120
+// Rate limiters mounted above (before config endpoints)
+
+// Auth routes (register, login, logout, me) — no requireAuth needed
+app.use(authRoutes());
 
 app.use(farmRoutes(requireAuth, resolveUser));
 app.use(resourcesRoutes(requireAuth, resolveUser));

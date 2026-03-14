@@ -6,11 +6,13 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { prefetchCrops } from "./crops.js";
+import { validateStoredToken, showAuthDialog, getStoredAuth, logout } from "./auth-ui.js";
 
 export const HUB = {
   userId: null,
   username: "Player",
   accessToken: null,
+  authMode: "demo", // "discord" | "simple" | "demo"
   sdk: null,
   currentScreen: 2, // 0=Trivia, 1=Blox, 2=Farm, 3=Match3, 4=Merge
   screenNames: ["trivia", "blox", "farm", "match3", "merge"],
@@ -45,41 +47,32 @@ export function setModules(mods) {
   Object.assign(_modules, mods);
 }
 
-/* ─── Discord SDK Init ─── */
+/* ─── Auth Init (Discord SDK or Simple Auth or Demo) ─── */
 export async function initDiscord() {
   // Prefetch crops data in parallel with auth (they're static, so start early)
   prefetchCrops();
 
-  // 1. Fetch Client ID Config
+  // 1. Fetch server config
   let clientId = "";
+  let simpleAuthEnabled = false;
   try {
-    const res = await fetch("/api/config/discord");
+    const res = await fetch("/api/config");
     if (res.ok) {
       const data = await res.json();
-      clientId = data.clientId;
+      clientId = data.clientId || "";
+      simpleAuthEnabled = !!data.simpleAuthEnabled;
     }
   } catch (e) {
-    console.warn("Failed to fetch Discord config:", e.message);
+    console.warn("Failed to fetch config:", e.message);
   }
 
-  // Fallback / Demo Mode
-  if (!clientId) {
-    console.log("No client_id configured — running in demo mode");
-    // Fallback: demo mode — random userId
-    HUB.userId = "hub_" + Math.random().toString(36).slice(2, 8);
-    HUB.username = "Player";
-    console.log(`Demo mode: ${HUB.userId}`);
-    return;
-  }
-
-  // Try Discord Embedded App SDK (only works inside Discord iframe)
-  if (typeof DiscordSDK !== "undefined") {
+  // 2. Try Discord Embedded App SDK first (only works inside Discord iframe)
+  if (clientId && typeof DiscordSDK !== "undefined") {
     try {
       const sdk = new DiscordSDK(clientId);
       await sdk.ready();
       console.log("Discord SDK ready");
 
-      // Authorize and get code
       const { code } = await sdk.commands.authorize({
         client_id: clientId,
         response_type: "code",
@@ -88,7 +81,6 @@ export async function initDiscord() {
         scope: ["identify", "guilds"],
       });
 
-      // Exchange code for access token via our server
       const tokenRes = await fetch("/api/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,8 +89,8 @@ export async function initDiscord() {
       const tokenData = await tokenRes.json();
       if (tokenData.access_token) {
         HUB.accessToken = tokenData.access_token;
+        HUB.authMode = "discord";
 
-        // Fetch user info
         const userRes = await fetch("https://discord.com/api/users/@me", {
           headers: { Authorization: `Bearer ${HUB.accessToken}` },
         });
@@ -106,27 +98,52 @@ export async function initDiscord() {
         HUB.userId = user.id;
         HUB.username = user.global_name || user.username || "Player";
 
-        // Notify SDK we're authenticated
         await sdk.commands.authenticate({ access_token: HUB.accessToken });
-        HUB.sdk = sdk; // Store for voice invite access
+        HUB.sdk = sdk;
         console.log(`Discord auth OK: ${HUB.username} (${HUB.userId})`);
         return;
       }
     } catch (e) {
-      console.warn(
-        "Discord SDK init failed (expected outside Discord):",
-        e.message || e,
-      );
+      console.warn("Discord SDK init failed (expected outside Discord):", e.message || e);
     }
-  } else {
-    console.log("DiscordSDK not available — running in demo mode");
   }
 
-  // If we reached here, auth failed or SDK missing -> Demo Mode as fallback
+  // 3. Try Simple Auth (stored session or login dialog)
+  if (simpleAuthEnabled) {
+    // Check for existing session in localStorage
+    const stored = await validateStoredToken();
+    if (stored) {
+      HUB.accessToken = stored.token;
+      HUB.userId = stored.userId;
+      HUB.username = stored.username;
+      HUB.authMode = "simple";
+      console.log(`Simple auth restored: ${HUB.username} (${HUB.userId})`);
+      return;
+    }
+
+    // No stored session — show login/register dialog
+    console.log("No session found — showing login dialog");
+    const authResult = await showAuthDialog();
+    if (authResult) {
+      HUB.accessToken = authResult.token;
+      HUB.userId = authResult.userId;
+      HUB.username = authResult.username;
+      HUB.authMode = "simple";
+      console.log(`Simple auth OK: ${HUB.username} (${HUB.userId})`);
+      return;
+    }
+    // User chose "Continue as Guest" — fall through to demo mode
+  }
+
+  // 4. Demo mode fallback
   HUB.userId = "hub_" + Math.random().toString(36).slice(2, 8);
   HUB.username = "Player";
-  console.log(`Fallback Demo mode: ${HUB.userId}`);
+  HUB.authMode = "demo";
+  console.log(`Demo mode: ${HUB.userId}`);
 }
+
+/** Expose logout for external use (React HUD, etc.) */
+export { logout };
 
 /* ─── API Helper (auto-attaches auth, with retry + timeout) ─── */
 export async function api(path, body) {

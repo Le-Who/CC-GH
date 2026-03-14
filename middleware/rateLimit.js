@@ -31,9 +31,12 @@ export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
   ensureCleanup(windowMs);
 
   return (req, res, next) => {
+    // Skip rate limiting in test environment
+    if (process.env.NODE_ENV === "test") return next();
+
     // Extract user ID from auth, body, or IP
     const userId =
-      req.discordUser?.id || req.body?.userId || req.ip || "anonymous";
+      req.discordUser?.id || req.simpleUser?.userId || req.body?.userId || req.ip || "anonymous";
     const now = Date.now();
     const key = `${userId}:${maxRequests}`;
 
@@ -63,4 +66,4 @@ export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
 /** Pre-configured limiters */
 export const defaultLimiter = createRateLimiter(60, 60_000);
 export const farmLimiter = createRateLimiter(30, 60_000);
-export const authLimiter = createRateLimiter(10, 60_000);
+export const authLimiter = createRateLimiter(20, 60_000);

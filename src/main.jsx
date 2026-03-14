@@ -26,6 +26,7 @@ import "./vanilla/css/store.css";
 import "./vanilla/css/cozy-day.css"; // v7.1: Cozy Day theme overrides
 import "./vanilla/css/soft-fantasy.css"; // v7.2: Soft Fantasy theme overrides
 import "./vanilla/css/minimal-calm.css"; // v7.2: Minimal Calm theme overrides
+import "./vanilla/css/auth.css"; // v7.4: Simple auth login/register dialog
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
