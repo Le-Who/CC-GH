@@ -729,14 +729,19 @@ const BloxGameImpl = (() => {
       moveDragPreview(ev.touches[0], true);
 
       // Show ghost on board — offset by liftY to match preview position
-      clearGhost();
       const target = getBoardTarget(
         ev.touches[0].clientX,
         ev.touches[0].clientY - liftY,
         tray[dragPieceIdx].piece,
       );
-      if (target)
-        showGhostAt(tray[dragPieceIdx].piece, target.targetR, target.targetC);
+      const key = target ? `${dragPieceIdx},${target.targetR},${target.targetC}` : "";
+      if (key !== _lastGhostKey) {
+        clearGhost();
+        if (target) {
+          showGhostAt(tray[dragPieceIdx].piece, target.targetR, target.targetC);
+        }
+        _lastGhostKey = key;
+      }
     };
 
     const onEnd = (ev) => {
@@ -800,7 +805,10 @@ const BloxGameImpl = (() => {
     selectedPiece = idx;
     mouseDragging = false; // Will become true on first mousemove
     _cacheBoardRect(); // v4.16: cache geometry once per drag
-    renderTray();
+    
+    // Visually mark the piece via CSS class on its wrapper (no renderTray to avoid DOM wipe)
+    const wrapper = e.target.closest(".blox-piece-wrapper");
+    if (wrapper) wrapper.classList.add("dragging");
 
     const startX = e.clientX;
     const startY = e.clientY;
@@ -822,14 +830,19 @@ const BloxGameImpl = (() => {
 
       if (mouseDragging) {
         moveDragPreview(ev, false);
-        clearGhost();
         const target = getBoardTarget(
           ev.clientX,
           ev.clientY,
           tray[dragPieceIdx].piece,
         );
-        if (target)
-          showGhostAt(tray[dragPieceIdx].piece, target.targetR, target.targetC);
+        const key = target ? `${dragPieceIdx},${target.targetR},${target.targetC}` : "";
+        if (key !== _lastGhostKey) {
+          clearGhost();
+          if (target) {
+            showGhostAt(tray[dragPieceIdx].piece, target.targetR, target.targetC);
+          }
+          _lastGhostKey = key;
+        }
       }
     };
 
@@ -860,10 +873,13 @@ const BloxGameImpl = (() => {
         dragPieceIdx = -1;
         mouseDragging = false;
         _clearBoardRectCache(); // v4.16: release cached rect
+        renderTray(); // Restore visual state
       } else {
         // Short click — use existing click-to-select (already handled by click event)
         dragPieceIdx = -1;
         _clearBoardRectCache(); // v4.16: release cached rect
+        const wrapper = e.target.closest(".blox-piece-wrapper");
+        if (wrapper) wrapper.classList.remove("dragging");
       }
     };
 
