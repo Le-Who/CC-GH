@@ -486,10 +486,24 @@ const Match3GameImpl = (() => {
 
       if (data.game) {
         const restoredMode = data.game.mode || gameMode;
-        board = hydrateBoard(data.game.board) || generateBoard();
-        score = data.game.score || 0;
-        movesLeft = data.game.movesLeft || 0;
-        combo = data.game.combo || 0;
+        
+        // BUGFIX: Backend /api/game/start session doesn't contain a board.
+        // We MUST load the active board from mergedModes, falling back only if absent.
+        const s = mergedModes[restoredMode];
+        if (s) {
+          board = hydrateBoard(s.board) || generateBoard();
+          score = typeof s.score === "number" ? s.score : (data.game.score || 0);
+          movesLeft = typeof s.movesLeft === "number" ? s.movesLeft : (data.game.movesLeft || 0);
+          combo = typeof s.combo === "number" ? s.combo : (data.game.combo || 0);
+          timedSecondsLeft = s.timedSecondsLeft || TIMED_DURATION;
+          restoreDropState(s);
+        } else {
+          board = hydrateBoard(data.game.board) || generateBoard();
+          score = data.game.score || 0;
+          movesLeft = data.game.movesLeft || 0;
+          combo = data.game.combo || 0;
+        }
+
         highScore = data.highScore || 0;
         gameActive = movesLeft > 0;
         gameMode = restoredMode;
