@@ -124,7 +124,30 @@ export function generateBoard() {
       b[y][x] = gem;
     }
   }
+
   return b;
+}
+
+// v7.3: Early-exit fast detector for `hasValidMoves`.
+// Stops at the *first* match found instead of mapping the entire board.
+export function hasAnyMatch(b) {
+  // Horizontal
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    for (let x = 0; x < BOARD_SIZE - 2; x++) {
+      const type = b[y][x];
+      if (!type || DROP_TYPES.includes(type)) continue;
+      if (type === b[y][x + 1] && type === b[y][x + 2]) return true;
+    }
+  }
+  // Vertical
+  for (let x = 0; x < BOARD_SIZE; x++) {
+    for (let y = 0; y < BOARD_SIZE - 2; y++) {
+      const type = b[y][x];
+      if (!type || DROP_TYPES.includes(type)) continue;
+      if (type === b[y + 1][x] && type === b[y + 2][x]) return true;
+    }
+  }
+  return false;
 }
 
 // PRE-ALLOCATED BUFFER FOR MATCH-3 (OPT 9)
@@ -198,16 +221,18 @@ export function findMatches(b, dirtyMask = null) {
 export function hasValidMoves(b) {
   for (let y = 0; y < BOARD_SIZE; y++) {
     for (let x = 0; x < BOARD_SIZE - 1; x++) {
+      if (b[y][x] === b[y][x + 1]) continue; // Optimization: don't swap identical gems
       [b[y][x], b[y][x + 1]] = [b[y][x + 1], b[y][x]];
-      const hasMatch = findMatches(b).length > 0;
+      const hasMatch = hasAnyMatch(b);
       [b[y][x], b[y][x + 1]] = [b[y][x + 1], b[y][x]];
       if (hasMatch) return true;
     }
   }
   for (let x = 0; x < BOARD_SIZE; x++) {
     for (let y = 0; y < BOARD_SIZE - 1; y++) {
+      if (b[y][x] === b[y + 1][x]) continue; 
       [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
-      const hasMatch = findMatches(b).length > 0;
+      const hasMatch = hasAnyMatch(b);
       [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
       if (hasMatch) return true;
     }
