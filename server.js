@@ -391,11 +391,10 @@ async function start() {
 }
 
 // Only auto-start when run directly (not when imported in tests)
-// path.resolve() handles both relative ("server.js") and absolute paths
+// Compare resolved file paths — works on both Windows and Linux/Docker
 const isDirectRun =
   process.argv[1] &&
-  import.meta.url ===
-    new URL(`file:///${path.resolve(process.argv[1]).replace(/\\/g, "/")}`).href;
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isDirectRun) {
   start().catch((e) => {
     console.error("Fatal startup error:", e);
