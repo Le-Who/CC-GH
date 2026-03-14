@@ -23,7 +23,7 @@ export default function match3Routes(requireAuth, resolveUser) {
     if (typeof raw === "string") {
       try {
         return JSON.parse(raw);
-      } catch (_) {
+      } catch {
         return {};
       }
     }
@@ -132,7 +132,7 @@ export default function match3Routes(requireAuth, resolveUser) {
   /* ─── Game End (dedicated endpoint for highScore save + gold reward) ─── */
   router.post("/api/game/end", requireAuth, (req, res) => {
     const { userId } = resolveUser(req);
-    const { score, movesLeft, fromQuit } = req.body;
+    const { score, fromQuit } = req.body;
     if (!userId) return res.status(400).json({ error: "userId required" });
 
     const p = getPlayer(userId);

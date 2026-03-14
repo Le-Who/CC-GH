@@ -99,7 +99,7 @@ export class QuestDropdown {
     const pet = GameStore.getState("pet");
     const orders = pet?.activeOrders || [];
 
-    let content = "";
+    let content;
     if (orders.length === 0) {
       content =
         '<p class="text-dim" style="font-size:0.82rem;margin:8px 0;text-align:center">No active quests. Generate some!</p>';

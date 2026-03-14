@@ -42,7 +42,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
 
   router.post("/api/blox/end", requireAuth, (req, res) => {
     const { userId } = resolveUser(req);
-    const { score, linesCleared } = req.body;
+    const { score } = req.body;
     const p = getPlayer(userId);
 
     // Session validation: prevent gold farming without starting a game
@@ -91,7 +91,9 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (typeof p.blox.savedState === "string") {
       try {
         parsed = JSON.parse(p.blox.savedState);
-      } catch (_) {}
+      } catch {
+        // legacy ignore
+      }
     } else if (p.blox.savedState && typeof p.blox.savedState === "object") {
       parsed = p.blox.savedState; // Legacy: already an object (pre-stringify migration)
     }

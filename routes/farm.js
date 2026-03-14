@@ -18,7 +18,6 @@ import {
   mergeCropConfig,
   BOOSTER_CONFIG,
   PLOT_THEMES,
-  SEASON_PASS,
 } from "../game-logic.js";
 import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 

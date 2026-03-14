@@ -5,3 +5,7 @@ data/hub-db.json
 public/js/discord-sdk-bundle.js
 .agents/
 dist/
+.vscode/
+.idea/
+.DS_Store
+eslint.config.*

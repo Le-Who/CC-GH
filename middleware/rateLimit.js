@@ -9,7 +9,7 @@ const windows = new Map(); // userId → [timestamps]
 
 // Single module-level cleanup (unref for clean test exit)
 let _cleanupStarted = false;
-function ensureCleanup(windowMs) {
+function ensureCleanup(_windowMs) {
   if (_cleanupStarted) return;
   _cleanupStarted = true;
   setInterval(() => {

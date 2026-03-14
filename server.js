@@ -10,7 +10,6 @@ import express from "express";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import { fileURLToPath } from "url";
 import compression from "compression";
 import { initStorage, getBucket } from "./storage.js";
@@ -132,7 +131,7 @@ const requireAuth = async (req, res, next) => {
       if (!userReq.ok) throw new Error("Invalid token");
       req.discordUser = await userReq.json();
       return next();
-    } catch (e) {
+    } catch {
       return res.status(401).json({ error: "Invalid token" });
     }
   }

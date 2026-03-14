@@ -452,7 +452,7 @@ const PetCompanionImpl = (function () {
 
     // Determine current Expression from Happiness
     const happiness = petData.stats?.happiness ?? 100;
-    let exprId = "happy";
+    let exprId;
     if (happiness >= 90) exprId = "ecstatic";
     else if (happiness >= 70) exprId = "happy";
     else if (happiness >= 50) exprId = "content";
@@ -511,7 +511,7 @@ const PetCompanionImpl = (function () {
     // Determine Mood
     const happiness = petData.stats?.happiness ?? 100;
     const fullness = petData.stats?.fullness ?? 0;
-    let emoji = "";
+    let emoji;
 
     if (fullness >= 90) {
       emoji = "🤢"; // Too full

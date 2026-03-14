@@ -22,3 +22,9 @@ CHANGELOG.md
 
 # generated bundle (built during Docker build)
 public/js/discord-sdk-bundle.js
+
+# IDE and tool configs
+.vscode/
+.idea/
+.DS_Store
+eslint.config.*

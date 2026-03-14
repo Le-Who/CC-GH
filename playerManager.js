@@ -107,6 +107,7 @@ export async function loadDb() {
       let lastDoc = null;
       const PAGE_SIZE = 500;
       let totalLoaded = 0;
+      let lastSnapshotSize = 0;
       do {
         let query = playersCol.orderBy("__name__").limit(PAGE_SIZE);
         if (lastDoc) query = query.startAfter(lastDoc);
@@ -117,8 +118,9 @@ export async function loadDb() {
         });
         totalLoaded += snapshot.size;
         lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        lastSnapshotSize = snapshot.size;
         if (snapshot.size < PAGE_SIZE) break; // Last page
-      } while (true);
+      } while (lastSnapshotSize === PAGE_SIZE);
       if (totalLoaded > 0) {
         console.log(
           `🔥 DB loaded from Firestore: ${totalLoaded} players in hot-cache (paginated)`,

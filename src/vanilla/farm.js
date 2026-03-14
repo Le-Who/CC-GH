@@ -169,7 +169,7 @@ const FarmGameImpl = (() => {
   async function init() {
     showSkeleton();
 
-    // Pre-populate crops from localStorage cache to prevent 🌱 fallback
+    // Pre-populate crops from localStorage cache to prevent 🌱 fallback
     // emojis while the network request is in flight
     try {
       const cached = JSON.parse(localStorage.getItem("hub_crops_cache"));
@@ -1102,8 +1102,7 @@ const FarmGameImpl = (() => {
     const grid = $("farm-inventory-grid");
     if (!grid) return;
 
-    let harvested = {};
-    harvested = GameStore.getState("resources")?.harvested || {};
+    const harvested = GameStore.getState("resources")?.harvested || {};
 
     const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
     if (entries.length === 0) {

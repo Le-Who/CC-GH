@@ -172,7 +172,6 @@ const BloxGameImpl = (() => {
   // for the .clearing CSS animation.
   // v4.16: Uint8Array visited map instead of Set<string> (zero GC pressure)
   function clearLines() {
-    let cleared = 0;
     const rowsToClear = [];
     const colsToClear = [];
 
@@ -212,7 +211,7 @@ const BloxGameImpl = (() => {
       }
     }
 
-    cleared = rowsToClear.length + colsToClear.length;
+    const cleared = rowsToClear.length + colsToClear.length;
 
     if (cleared > 0) {
       // 1. Start CSS animation + clear board state via cached DOM refs

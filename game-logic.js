@@ -1001,7 +1001,7 @@ export function processOfflineActions(player, now = Date.now()) {
     }
     // Try to refuel
     const deficit = cost - pet.stats.fullness;
-    const gained = tryRefuel(deficit);
+    tryRefuel(deficit);
     if (pet.stats.fullness >= cost) {
       pet.stats.fullness -= cost;
       report.fullnessConsumed += cost;
