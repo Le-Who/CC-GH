@@ -1365,6 +1365,7 @@ const Match3GameImpl = (() => {
 
       if (_m3Cells.length === 0) {
         isAnimating = false;
+        $b.classList.remove("disabled");
         return; // Component unmounted
       }
 
@@ -1439,6 +1440,8 @@ const Match3GameImpl = (() => {
     
     if (_m3Cells.length === 0) {
       isAnimating = false;
+      const boardEl = $("m3-board");
+      if (boardEl) boardEl.classList.remove("disabled");
       return; // Route changed during cascade
     }
 
@@ -1956,6 +1959,11 @@ const Match3GameImpl = (() => {
     if (gameActive) {
       gamePaused = true;
     }
+    // RESET ANIMATION STATE to prevent deadlock on return
+    isAnimating = false;
+    const $b = $("m3-board");
+    if ($b) $b.classList.remove("disabled");
+
     // Unblock swipe navigation
     HUB.swipeBlocked = false;
     // Flush pending sync

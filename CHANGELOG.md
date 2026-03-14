@@ -244,6 +244,14 @@ Critical post-deployment fixes for the Discord Activity environment.
 
 ---
 
+## [6.2.2] - 2026-03-14
+
+### Fixed
+- **Match-3 Validation Null Issue**: Fixed a crash where navigating away during early Match-3 board animations caused a `TypeError: Cannot read properties of null (reading 'classList')` by adding explicit DOM node existence checks.
+- **Match-3 UI Deadlock**: Fixed an issue where navigating away from a game of Match-3 mid-animation left the internal engine state permanently greyed-out and frozen (`isAnimating = true`) causing the game to be unplayable when returning.
+
+---
+
 ## [7.3.0] - 2026-02-24
 
 ### Feature Release — Retention, Monetization Ready, Pet Room
