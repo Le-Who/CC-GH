@@ -1,6 +1,10 @@
-/* ═══════════════════════════════════════════════════
- *  Game Hub — Match-3 Screen Styles (v6.2.0)
- * ═══════════════════════════════════════════════════ */
+/* =========================================================================
+ *  Game Hub — Match 3 Game Styles (v6.0)
+ * ========================================================================= */
+:root {
+  /* OPTIMIZATION 7: Pure CSS responsive sizing (eliminates JS Layout Thrashing) */
+  --m3-cell: clamp(28px, min(11vw, 8vh), 48px);
+}
 
 /* Scope overlays to this screen only */
 #screen-match3 {

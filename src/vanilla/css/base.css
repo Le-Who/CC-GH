@@ -129,11 +129,12 @@ body {
 h1,
 h2,
 h3 {
-  font-family: "Bungee", "Fredoka One", system-ui, sans-serif;
+  /* OPTIMIZATION 9: Fast fallback to system fonts to avoid FOUT */
+  font-family: "Bungee", "Fredoka One", system-ui, -apple-system, sans-serif;
 }
 
 .font-numbers {
-  font-family: "Varela Round", system-ui, sans-serif;
+  font-family: "Varela Round", system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
 }
 

@@ -148,8 +148,8 @@ async function mergeItems(fromR, fromC, toR, toC) {
   }
 
   // Optimistic: merge immediately in local state
-  const oldBoard = board.map((r) => [...r]);
-  const newBoard = board.map((r) => [...r]);
+  const oldBoard = structuredClone(board);
+  const newBoard = structuredClone(board);
   const nextInfo = ITEM_LOOKUP[info.nextId];
   newBoard[toR][toC] = {
     id: info.nextId,
@@ -259,8 +259,8 @@ async function trashMergeItem(r, c) {
   if (!mergeState || !mergeState.board[r]?.[c]) return { success: false };
 
   // Snapshot for rollback
-  const oldBoard = mergeState.board.map((row) => [...row]);
-  const newBoard = mergeState.board.map((row) => [...row]);
+  const oldBoard = structuredClone(mergeState.board);
+  const newBoard = structuredClone(mergeState.board);
   newBoard[r][c] = null;
   GameStore.setState("merge", { ...mergeState, board: newBoard });
   _renderBoard();
@@ -286,6 +286,7 @@ let _cells = []; // 2D DOM cache: _cells[row][col]
 let _boardEl = null;
 let _dragState = null;
 let _trashMode = false;
+let _cachedMatchTargets = []; // OPTIMIZATION 1: Cache rects to avoid Layout Thrashing in RAF
 let _selectedFuel = {}; // chainId → cropId (fuel slot memory)
 let _idleHintTimer = null;
 let _dragSafetyTimer = null; // v6.2.0: force-cleanup stuck drags
@@ -361,11 +362,14 @@ function _animateGachaDrop() {
     cell.addEventListener(
       "animationend",
       function handler() {
+        if (HUB.currentScreen !== 4) return; // OPTIMIZATION 8: Leak protection
         cell.classList.remove("gacha-dropping");
         cell.classList.add("gacha-reveal");
         cell.addEventListener(
           "animationend",
-          () => cell.classList.remove("gacha-reveal"),
+          () => {
+            if (HUB.currentScreen === 4) cell.classList.remove("gacha-reveal");
+          },
           { once: true },
         );
         cell.removeEventListener("animationend", handler);
@@ -411,11 +415,13 @@ function _forceCleanupDrag() {
     _dragState.originCell.classList.remove("merge-cell--dragging");
   }
   // Clear match highlights
+  _cachedMatchTargets = [];
   if (_boardEl) {
     _boardEl
       .querySelectorAll(".merge-cell--match-highlight")
       .forEach((c) => c.classList.remove("merge-cell--match-highlight"));
   }
+  HUB.swipeBlocked = false;
   _dragState = null;
 }
 
@@ -453,10 +459,11 @@ function _onPointerDown(e) {
     will-change: transform;
     font-size: 2rem;
     width: 48px; height: 48px;
-    display: flex; align-items: center; justify-content: center;
+    justify-content: center;
     border-radius: 12px;
     background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(8px);
+    /* OPTIMIZATION 1: Replaced expensive backdrop-filter: blur with opacity */
+    opacity: 0.9;
     box-shadow: 0 16px 32px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
     transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1);
   `;
@@ -485,19 +492,29 @@ function _onPointerDown(e) {
   // Highlight matching items on board
   const mergeState = GameStore.getState("merge");
   const src = mergeState?.board[r]?.[c];
+  _cachedMatchTargets = [];
   if (src) {
     for (let ri = 0; ri < BOARD_ROWS; ri++) {
       for (let ci = 0; ci < BOARD_COLS; ci++) {
         if (ri === r && ci === c) continue;
         const dst = mergeState.board[ri]?.[ci];
         if (dst && dst.id === src.id) {
-          _cells[ri][ci].classList.add("merge-cell--match-highlight");
+          const targetCell = _cells[ri][ci];
+          targetCell.classList.add("merge-cell--match-highlight");
+          // OPTIMIZATION 1: Cache rect to avoid DOM queries during RAF drag
+          const rect = targetCell.getBoundingClientRect();
+          _cachedMatchTargets.push({
+            el: targetCell,
+            cx: rect.left + rect.width / 2,
+            cy: rect.top + rect.height / 2,
+          });
         }
       }
     }
   }
 
   // v6.2.0: Removed setPointerCapture — document-level listeners handle everything
+  HUB.swipeBlocked = true;
   e.preventDefault();
 }
 
@@ -511,22 +528,15 @@ function _onPointerMove(e) {
     let snapY = e.clientY - 24;
     const SNAP_RADIUS = 40;
 
-    if (_boardEl) {
-      const matchTargets = _boardEl.querySelectorAll(
-        ".merge-cell--match-highlight",
-      );
-      for (const t of matchTargets) {
-        const rect = t.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
-        if (dist < SNAP_RADIUS) {
-          snapX = cx - 24;
-          snapY = cy - 24;
-          t.classList.add("merge-cell--magnetic-lock");
-        } else {
-          t.classList.remove("merge-cell--magnetic-lock");
-        }
+    // OPTIMIZATION 1: Used cached targets array with zero DOM queries
+    for (const t of _cachedMatchTargets) {
+      const dist = Math.hypot(e.clientX - t.cx, e.clientY - t.cy);
+      if (dist < SNAP_RADIUS) {
+        snapX = t.cx - 24;
+        snapY = t.cy - 24;
+        t.el.classList.add("merge-cell--magnetic-lock");
+      } else {
+        t.el.classList.remove("merge-cell--magnetic-lock");
       }
     }
 
@@ -540,6 +550,9 @@ function _onPointerMove(e) {
 
 function _onPointerUp(e) {
   if (!_dragState || e.pointerId !== _dragState.pointerId) return;
+  
+  HUB.swipeBlocked = false;
+  
   const ds = _dragState;
   _dragState = null;
   if (_dragSafetyTimer) {
@@ -577,8 +590,10 @@ function _onPointerUp(e) {
         target.addEventListener(
           "animationend",
           () => {
-            target.classList.remove("merge-pop");
-            target.classList.remove("merge-collide");
+            if (HUB.currentScreen === 4) {
+              target.classList.remove("merge-pop");
+              target.classList.remove("merge-collide");
+            }
           },
           { once: true },
         );

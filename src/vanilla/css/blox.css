@@ -2,6 +2,10 @@
  *  Game Hub — Building Blox Screen Styles (v6.2.0)
  * ═══════════════════════════════════════════════════ */
 
+:root {
+  --blox-cell: clamp(24px, min(9vw, 6vh), 36px);
+}
+
 /* Scope overlays to this screen only */
 #screen-blox {
   position: relative;

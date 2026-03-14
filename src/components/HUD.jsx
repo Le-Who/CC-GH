@@ -3,15 +3,13 @@ import { motion } from "framer-motion";
 import { useGameStore } from "../store/gameStore";
 
 export default function HUD({ onOpenStore, onOpenQuest }) {
-  const slices = useGameStore((state) => state.slices);
-  const shared = slices.shared || {
-    energy: 30,
-    maxEnergy: 30,
-    gold: 0,
-    activeQuests: 0,
-  };
+  // OPTIMIZATION 6: Using atomic selectors to prevent React re-renders on unrelated game state changes
+  const energy = useGameStore((state) => state.slices.shared?.energy ?? 30);
+  const maxEnergy = useGameStore((state) => state.slices.shared?.maxEnergy ?? 30);
+  const gold = useGameStore((state) => state.slices.shared?.gold ?? 0);
+  const activeQuests = useGameStore((state) => state.slices.shared?.activeQuests ?? 0);
 
-  const energyPercent = Math.min(100, (shared.energy / shared.maxEnergy) * 100);
+  const energyPercent = Math.min(100, (energy / maxEnergy) * 100);
 
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-50 pointer-events-none">
@@ -31,8 +29,8 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
           />
           <span className="relative z-10 text-xl mr-2">⚡</span>
           <span className="relative z-10 font-heading font-bold text-white tracking-wide">
-            {shared.energy}
-            <span className="text-textDim text-sm">/{shared.maxEnergy}</span>
+            {energy}
+            <span className="text-textDim text-sm">/{maxEnergy}</span>
           </span>
         </motion.div>
 
@@ -43,7 +41,7 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
         >
           <span className="text-xl mr-2">🪙</span>
           <span className="font-heading font-bold text-gold tracking-wide">
-            {shared.gold}
+            {gold}
           </span>
         </motion.div>
       </div>
@@ -57,7 +55,7 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
           onClick={onOpenQuest}
         >
           📋
-          {shared.activeQuests > 0 && (
+          {activeQuests > 0 && (
             <motion.div
               className="absolute top-0 right-0 w-4 h-4 bg-danger rounded-full border-2 border-background"
               initial={{ scale: 0 }}

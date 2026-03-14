@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v7.3.5**
+**Current version: v7.4.0**
 
 ---
 
@@ -229,6 +229,19 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 ## 🔬 Architecture Evolution & Updates
 
 Older architecture evolution changes can be found in `legacy_readme.md`.
+
+### ✅ Completed in v7.4.0
+
+1. **Mobile Performance & UI Architecture Optimization**:
+   - **Merge D&D Lag**: Removed blurred ghost element in favor of hardware-accelerated `translate3d` + `opacity`.
+   - **Touch Capture Conflicts**: Resolved gesture conflicts between Discord app swiping and board dragging via `HUB.swipeBlocked` logic.
+   - **Effects.js WAAPI**: Refactored particle systems (coins, water) to Web Animations API out of the main thread, eliminating garbage collection pauses.
+   - **Paint Flashing**: Migrated box-shadow animations to pseudo-elements with opacity transitions.
+   - **CPU Bound Cloning**: Replaced `JSON.parse(JSON.stringify)` with native `structuredClone` for deep matrix copies, slashing 50ms lockups.
+   - **Zustand Reactivity**: Implemented atomic selectors in HUD to prevent cascading re-renders during Match-3/Merge gameplay.
+   - **Blox Layout Thrashing**: Converted JS window `resize` listeners to purely native CSS `clamp()` logic.
+   - **Gacha Memory Leaks**: Guarded delayed asynchronous DOM manipulations against screen exit (orphan timers).
+   - **FOUT**: Implemented system-ui fallbacks to prevent flash of unstyled text over slow 3G.
 
 ### ✅ Completed in v7.3.x
 

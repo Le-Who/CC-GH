@@ -247,11 +247,11 @@ const Match3GameImpl = (() => {
       // Snapshot active game into savedModes before flushing
       if (gameActive) {
         savedModes[gameMode] = {
-          board: cloneBoard(board),
+          board: structuredClone(board),
           score,
           movesLeft,
           combo,
-          dropStars: cloneDropStars(dropStars),
+          dropStars: structuredClone(dropStars),
           starsDropped,
           timedSecondsLeft,
         };
@@ -511,7 +511,7 @@ const Match3GameImpl = (() => {
         if (gameActive) {
           savedModes = { ...mergedModes };
           savedModes[restoredMode] = {
-            board: JSON.parse(JSON.stringify(board)),
+            board: structuredClone(board),
             score,
             movesLeft,
             combo,

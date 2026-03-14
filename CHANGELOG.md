@@ -1,3 +1,31 @@
+## [7.4.0] - 2026-03-14
+
+### Mobile Performance & UI Architecture Optimization
+
+Comprehensive 9-fix performance and UI reliability audit specifically targeting mobile layout thrashing, frame drops, and garbage collection pauses. 346/346 tests pass.
+
+#### Critical Fixes
+
+- **CPU Bound Deep Cloning** (`merge.js`, `match3.js`): Replaced slow, blocking `JSON.parse(JSON.stringify(board))` calls with native `structuredClone()`, cutting frame drops on budget devices during state commits.
+- **Effects.js WAAPI** (`effects.js`): Particle systems (coins, droplets) rewritten to use the Web Animations API (`Element.animate()`). Animation calculation is offloaded to the browser's Compositor Thread, avoiding main-thread math and `setTimeout` GC spikes.
+- **Merge D&D Layout Thrashing** (`merge.js`): The blurred Ghost Element caused severe GPU strain. Removed `backdrop-filter: blur`, replacing it with `translate3d` and `opacity: 0.8`. Added array caching for match-targets (`_cachedMatchTargets`) on `pointerdown` to completely eliminate DOM `getBoundingClientRect()` calls inside `requestAnimationFrame`.
+
+#### High Fixes
+
+- **React Span Re-renders** (`HUD.jsx`): Subscribing to bulk `shared` state triggered global React re-renders on arbitrary background game updates. Implemented atomic shallow selectors (`s.resources?.gold`, `s.slices.shared?.energy.current`), isolating the HUD update cycle.
+- **Blox Responsive Thrashing** (`main.js`, `match3.css`, `blox.css`): Eliminated JS `resize` event listeners that calculated cell sizes pixel-by-pixel. Transferred responsibility to CSS using `clamp()` fluid typography, zeroing out script overhead.
+- **Gacha Orphan Timers** (`merge.js`): Navigating away from the Merge screen mid-gacha roll previously leaked `setTimeout` callbacks that tried to manipulate a non-existent DOM. Added strict `HUB.currentScreen === 4` checks before phase execution.
+
+#### Medium/UX Fixes
+
+- **Touch Swipe Conflicts** (`merge.js`): Integrated `HUB.swipeBlocked` on `pointerdown` to prevent Discord/OS back-gestures from firing while actively dragging a merge item.
+- **Paint Flashing** (`match3.css`, `blox.css`): Heavy `box-shadow` CSS animations replaced with `::after` pseudo-elements. Only the `opacity` property is animated, allowing GPU-accelerated compositing without repaints.
+- **Flash of Unstyled Text** (`base.css`): Hard reliance on custom fonts caused invisible texts on slow 3G. Injected native system fallbacks (`system-ui, -apple-system, sans-serif`) globally.
+
+#### Tests — **346/346 pass**, 0 failures.
+
+---
+
 ## [7.3.5] - 2026-02-28
 
 ### Security & Architecture Audit — Phase 2

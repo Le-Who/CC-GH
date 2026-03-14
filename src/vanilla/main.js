@@ -132,43 +132,9 @@ export async function bootApp() {
     });
   }
 
-  // Cell size for match-3 based on viewport (responsive, mobile-aware)
-  function updateM3CellSize() {
-    const maxByWidth = Math.floor((window.innerWidth - 80) / 8);
-    const maxByHeight = Math.floor((window.innerHeight - 280) / 8);
-    const isMobile = window.innerWidth <= 480 || HUB.isTouchDevice;
-    const cs = Math.max(
-      isMobile ? 36 : 28,
-      Math.min(isMobile ? 56 : 48, maxByWidth, maxByHeight),
-    );
-    document.documentElement.style.setProperty("--m3-cell", cs + "px");
-  }
-
-  // Cell size for Building Blox (10x10 grid, slightly smaller cells)
-  function updateBloxCellSize() {
-    const maxByWidth = Math.floor((window.innerWidth - 60) / 10);
-    const maxByHeight = Math.floor((window.innerHeight - 320) / 10);
-    const isMobile = window.innerWidth <= 480 || HUB.isTouchDevice;
-    const cs = Math.max(
-      isMobile ? 28 : 24,
-      Math.min(isMobile ? 44 : 38, maxByWidth, maxByHeight),
-    );
-    document.documentElement.style.setProperty("--blox-cell", cs + "px");
-  }
-
-  updateM3CellSize();
-  updateBloxCellSize();
-
-  let _resizePending = false;
-  window.addEventListener("resize", () => {
-    if (_resizePending) return;
-    _resizePending = true;
-    requestAnimationFrame(() => {
-      updateM3CellSize();
-      updateBloxCellSize();
-      _resizePending = false;
-    });
-  });
+  // OPTIMIZATION 7: Removed JS resize listeners for grid sizes.
+  // This layout is now purely managed by CSS `clamp()` in match3.css and blox.css
+  // entirely eliminating window resize Layout Thrashing.
 
   // v7.2: Theme picker cycle button
   const themeBtn = document.getElementById("theme-cycle-btn");
