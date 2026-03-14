@@ -222,31 +222,57 @@ process.on("SIGINT", gracefulShutdown);
 /* ─── Player Factory with Schema Migration ─── */
 export function getPlayer(userId, username) {
   let p = players.get(userId);
+
+  // If player returned while being evicted, rescue them (cancel eviction)
+  if (p && p._isEvicting) {
+    p._isEvicting = false;
+  }
+
   let NeedsSaveSync = false;
 
   if (!p) {
     // LRU eviction: remove oldest entries when cache is full
     if (players.size >= MAX_CACHE_SIZE) {
-      const oldestKey = players.keys().next().value;
+      let oldestKey = null;
+      // Find the first key that isn't already in the process of evicting
+      for (const key of players.keys()) {
+        const data = players.get(key);
+        if (!data._isEvicting) {
+          oldestKey = key;
+          break;
+        }
+      }
+
       if (oldestKey) {
-        // Flush pending save before eviction
-        if (pendingSaves.has(oldestKey)) {
-          clearTimeout(pendingSaves.get(oldestKey));
-          pendingSaves.delete(oldestKey);
-          const oldData = players.get(oldestKey);
-          if (oldData && playersCol) {
-            playersCol
+        const oldData = players.get(oldestKey);
+        oldData._isEvicting = true; // Mark as flushing
+
+        // Flush pending save asynchronously BEFORE eviction, guarded by player lock
+        withPlayerLock(oldestKey, async () => {
+          if (pendingSaves.has(oldestKey)) {
+            clearTimeout(pendingSaves.get(oldestKey));
+            pendingSaves.delete(oldestKey);
+          }
+          if (playersCol) {
+            await playersCol
               .doc(oldestKey)
               .set(sanitizeForFirestore(oldData))
-              .catch(() => {});
+              .catch((e) => console.error(`Eviction save failed for ${oldestKey}:`, e));
           }
-        }
-        players.delete(oldestKey);
+          // Only delete if they didn't return during the I/O pause
+          if (oldData._isEvicting) {
+            players.delete(oldestKey);
+          }
+        });
       }
     }
     p = createDefaultPlayer(userId, username);
     players.set(userId, p);
     NeedsSaveSync = true;
+  } else {
+    // True LRU: refresh position by moving to the end of the Map
+    players.delete(userId);
+    players.set(userId, p);
   }
 
   // ─── Schema Migration ───
