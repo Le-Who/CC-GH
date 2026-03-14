@@ -17,6 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
  * ═══════════════════════════════════════════════════ */
 export const players = new Map(); // userId -> { resources, pet, farm, trivia, match3 }
 const pendingSaves = new Map(); // userId -> timeoutId
+const playerLocks = new Map(); // userId -> Promise (mutex for concurrency)
 const SAVE_DELAY_MS = 2000; // Debounce threshold for rapid actions
 const MAX_CACHE_SIZE = 10000; // LRU eviction threshold
 
@@ -24,6 +25,28 @@ let firestore = null;
 let playersCol = null;
 let usersCol = null;    // Simple-auth: username → password_hash
 let sessionsCol = null; // Simple-auth: token → { userId, username, createdAt }
+
+/**
+ * Executes an async function exclusively per player, preventing race conditions like double-spends.
+ */
+export async function withPlayerLock(userId, asyncFn) {
+  const currentLock = playerLocks.get(userId) || Promise.resolve();
+  
+  // Create a new lock that waits for the previous one
+  const nextLock = currentLock.then(async () => {
+    try {
+      return await asyncFn();
+    } catch (err) {
+      throw err; // Propagate the error to the caller
+    }
+  }).catch((err) => {
+    // Prevent a failed lock from breaking the chain
+    throw err;
+  });
+  
+  playerLocks.set(userId, nextLock.catch(() => {})); // Store silent-catch to not crash unhandled extensions
+  return nextLock;
+}
 
 /**
  * Initialize Firestore connection. Call from server start() instead of
@@ -155,8 +178,10 @@ export function debouncedSavePlayer(userId) {
 
     try {
       await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
+      playerData._saveError = false; // Reset circuit breaker on success
     } catch (e) {
       console.error(`❌ Failed to save player ${userId} to Firestore:`, e);
+      playerData._saveError = true; // Trip the circuit breaker
     }
   }, SAVE_DELAY_MS);
 

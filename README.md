@@ -208,7 +208,7 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 ---
 
-## 💾 Persistence Strategy
+## 💾 Persistence & Concurrency Strategy
 
 > Each game uses the persistence approach best suited to its gameplay pattern:
 
@@ -219,6 +219,11 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 - **Quests**: Server-authoritative — order generation, requirement validation, item deduction, and reward granting all server-side (`/api/quests/*`).
 - **Trivia**: Ephemeral — no persistence between sessions (each game is fresh).
 
+### ⚠️ Operational Limitations
+- **Single-Node Invariant:** The backend relies on an in-memory `players` Map for fast reads and deferred writes (debounced Firestore syncing). It **cannot** be horizontally scaled across multiple instances without sticky sessions or a Redis migration.
+- **Concurrency Locking:** To prevent double-spend exploits, mutating endpoints utilize a per-user `withPlayerLock` async mutex.
+- **Circuit Breaker:** If Firestore experiences backpressure and `debouncedSavePlayer` is rejected, the server flips a `_saveError` flag on the affected user, returning HTTP 503s for all subsequent mutations until the database recovers, safeguarding against silent data obliteration on process exit.
+
 ---
 
 ## 🔬 Architecture Evolution & Updates
@@ -227,7 +232,11 @@ Older architecture evolution changes can be found in `legacy_readme.md`.
 
 ### ✅ Completed in v7.3.x
 
-1. **Security & Architecture Audit — Phase 2** (v7.3.5):
+1. **Architecture Resilience & Concurrency Audit** (v7.3.6):
+   - **Double-Spend Fix:** Developed a zero-dependency async mutex (`withPlayerLock`) for `playerManager.js`. Ensures perfect serialization of simultaneous requests from the same user.
+   - **Persistence Circuit Breaker:** `debouncedSavePlayer` Firestore failures now actively mark users with `_saveError = true` tripping an Express middleware 503 boundary to halt state divergence on DB outage.
+   - Integration tests updated to validate HTTP 400 rejection streams under race conditions (e.g. `gcp.test.js`).
+2. **Security & Architecture Audit — Phase 2** (v7.3.5):
    - CSP `frame-ancestors` replaces `X-Frame-Options` for Discord iframe compatibility.
    - Scoped CORS origins (Discord-only in production), wildcard removed.
    - `calcGoldReward` DoS safety cap, buy-seeds amount validation (anti-exploit).

@@ -216,10 +216,17 @@ describe("GCP: Concurrent Request Safety", () => {
     const results = await Promise.all(requests);
 
     const successCount = results.filter((r) => r.status === 200).length;
+    const failCount = results.filter((r) => r.status === 400).length;
+    
     assert.equal(
       successCount,
       1,
       `Expected exactly 1 harvest success, got ${successCount}`,
+    );
+    assert.equal(
+      failCount,
+      9,
+      `Expected 9 harvest failures due to plot already harvested, got ${failCount}`,
     );
   });
 });
@@ -441,6 +448,10 @@ describe("GCP: Idempotency", () => {
       Date.now() - CROPS.strawberry.growthTime - 1000;
 
     const harvestedBefore = player.farm.harvested.strawberry || 0;
+    
+    // We send them sequentially here in this test block (use Promise.all in concurrent tests above)
+    // To ensure they aren't racing the HTTP request but actually hit the endpoint.
+    // However, even sequential or concurrent, the second MUST receive a 400 and NOT give double rewards.
     const harvest1 = await post("/api/farm/harvest", {
       userId: "idemp_harvest",
       plotId: 0,
@@ -451,7 +462,7 @@ describe("GCP: Idempotency", () => {
     });
 
     assert.equal(harvest1.status, 200);
-    assert.equal(harvest2.status, 400, "Second harvest must fail");
+    assert.equal(harvest2.status, 400, "Second harvest must fail because it's no longer ready");
     // Harvest awards harvested count (gold comes from sell-crop endpoint)
     const harvestedGained =
       (player.farm.harvested.strawberry || 0) - harvestedBefore;

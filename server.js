@@ -174,13 +174,27 @@ function resolveUser(req) {
 }
 
 /* ═══════════════════════════════════════════════════
- *  RATE LIMITING — MUST be before all route handlers
+ *  RATE LIMITING & CIRCUIT BREAKER — MUST be before route handlers
  * ═══════════════════════════════════════════════════ */
 app.use("/api/token", authLimiter);
 app.use("/api/auth", authLimiter);
-// Default limiter for all /api except auth paths (they have their own authLimiter)
+// Default limiter for all /api except auth paths
 app.use("/api", (req, res, next) => {
   if (req.path.startsWith("/auth") || req.path.startsWith("/token")) return next();
+  
+  // v7.3.6: Circuit Breaker - Halt mutations if Firestore save failed recently
+  if (req.method === "POST") {
+    const user = req.discordUser || req.simpleUser || { userId: req.body?.userId };
+    if (user && user.userId) {
+      const p = players.get(user.userId);
+      if (p && p._saveError) {
+        return res.status(503).json({ 
+          error: "Database is experiencing issues. Please wait a moment before taking actions." 
+        });
+      }
+    }
+  }
+
   return defaultLimiter(req, res, next);
 });
 
