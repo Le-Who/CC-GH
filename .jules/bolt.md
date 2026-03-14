@@ -1,0 +1,3 @@
+## 2024-05-24 - Match-3 State Persistence Bottleneck
+**Learning:** `JSON.parse(JSON.stringify(...))` was being used for deep cloning board states and drop stars on every match-3 move. This blocks the main thread with synchronous serialization and parsing, causing noticeable GC pauses and dropped frames, especially on mobile devices.
+**Action:** Always prefer native `structuredClone()` or purpose-built recursive cloning helpers (e.g., `cloneBoard`, `cloneDropStars`) for deep copies in frequent operations (like game loops and state snapshots) to avoid expensive string operations and reduce GC pressure.

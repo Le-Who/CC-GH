@@ -517,12 +517,13 @@ const Match3GameImpl = (() => {
 
         if (gameActive) {
           savedModes = { ...mergedModes };
+          // ⚡ Bolt: Use optimized clone functions instead of JSON stringify to prevent GC pauses
           savedModes[restoredMode] = {
             board: structuredClone(board),
             score,
             movesLeft,
             combo,
-            dropStars: JSON.parse(JSON.stringify(dropStars)),
+            dropStars: structuredClone(dropStars),
             starsDropped,
             timedSecondsLeft,
           };
@@ -598,12 +599,13 @@ const Match3GameImpl = (() => {
     if (savedModes[mode]) {
       // Save current mode FIRST (if active) before restoring the target mode
       if (gameActive && gameMode !== mode) {
+      // ⚡ Bolt: Use optimized clone functions instead of JSON stringify to prevent GC pauses
         savedModes[gameMode] = {
-          board: JSON.parse(JSON.stringify(board)),
+          board: structuredClone(board),
           score,
           movesLeft,
           combo,
-          dropStars: JSON.parse(JSON.stringify(dropStars)),
+          dropStars: structuredClone(dropStars),
           starsDropped,
           timedSecondsLeft,
         };
