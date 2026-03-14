@@ -294,6 +294,21 @@ let _cooldownTimer = null; // v6.2.1: stored for cleanup in onLeave()
 const IDLE_HINT_DELAY = 7000; // 7 seconds
 const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
+// [Phase 2] Global Event-Driven Garbage Collector
+document.addEventListener("hub:route-leave", (e) => {
+  // Clear RAM/DOM caches when leaving the screen
+  _cachedMatchTargets = [];
+  if (_dragState) {
+    if (_dragState.ghost) _dragState.ghost.remove();
+    if (_dragState.originCell) _dragState.originCell.classList.remove("merge-cell--dragging");
+    _dragState = null;
+  }
+  if (_dragSafetyTimer) {
+    clearTimeout(_dragSafetyTimer);
+    _dragSafetyTimer = null;
+  }
+});
+
 /* ─── Board Rendering ─── */
 function createBoardDOM() {
   _boardEl = document.getElementById("merge-board");
@@ -453,7 +468,10 @@ function _onPointerDown(e) {
   ghost.style.cssText = `
     position: fixed;
     left: 0; top: 0;
-    transform: translate3d(${e.clientX - 24}px, ${e.clientY - 24}px, 0) scale(1.15);
+    --x: ${Math.round(e.clientX - 24)}px;
+    --y: ${Math.round(e.clientY - 24)}px;
+    --tilt: 0deg;
+    transform: translate3d(var(--x), var(--y), 0) scale(1.15) rotate(var(--tilt));
     pointer-events: none;
     z-index: 9999;
     will-change: transform;
@@ -479,6 +497,10 @@ function _onPointerDown(e) {
     ghost,
     originCell: cell,
     lastX: e.clientX,
+    lastY: e.clientY,
+    cachedCSSX: e.clientX - 24,
+    cachedCSSY: e.clientY - 24,
+    cachedCSSTilt: 0,
   };
 
   // v6.2.0: Safety timeout — force-cleanup if drag lives too long
@@ -544,7 +566,22 @@ function _onPointerMove(e) {
     _dragState.lastX = e.clientX;
     const tilt = Math.max(-12, Math.min(12, dx * 0.7));
 
-    _dragState.ghost.style.transform = `translate3d(${snapX}px, ${snapY}px, 0) scale(1.15) rotate(${tilt}deg)`;
+    // OPTIMIZATION 8: CSS Custom Properties Binding + Sub-pixel Caching
+    // Only update DOM if change is significant (> 0.5px) to save JS string allocs
+    if (
+      Math.abs(snapX - _dragState.cachedCSSX) > 0.5 ||
+      Math.abs(snapY - _dragState.cachedCSSY) > 0.5 ||
+      Math.abs(tilt - _dragState.cachedCSSTilt) > 1.0
+    ) {
+      _dragState.cachedCSSX = snapX;
+      _dragState.cachedCSSY = snapY;
+      _dragState.cachedCSSTilt = Math.round(tilt);
+      
+      const st = _dragState.ghost.style;
+      st.setProperty("--x", `${Math.round(snapX)}px`);
+      st.setProperty("--y", `${Math.round(snapY)}px`);
+      st.setProperty("--tilt", `${Math.round(tilt)}deg`);
+    }
   });
 }
 
@@ -607,7 +644,9 @@ function _onPointerUp(e) {
     const cellRect = ds.originCell.getBoundingClientRect();
     ds.ghost.style.transition =
       "transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1)";
-    ds.ghost.style.transform = `translate3d(${cellRect.left}px, ${cellRect.top}px, 0)`;
+    ds.ghost.style.setProperty("--x", `${Math.round(cellRect.left)}px`);
+    ds.ghost.style.setProperty("--y", `${Math.round(cellRect.top)}px`);
+    ds.ghost.style.setProperty("--tilt", `0deg`);
     ds.ghost.addEventListener("transitionend", () => ds.ghost.remove(), {
       once: true,
     });

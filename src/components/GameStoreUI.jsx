@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "../store/gameStore";
 
@@ -44,11 +45,15 @@ export default function GameStoreUI({ isOpen, onClose }) {
   const resources = slices.resources || { gold: 0, gachaTokens: 0 };
   const [activeTab, setActiveTab] = useState("gacha");
 
-  // Analytics: store opened
+  // Analytics & Body class toggle for CSS bypass
   useEffect(() => {
     if (isOpen) {
       console.log("[Analytics] STORE_OPENED", { timestamp: Date.now() });
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
     }
+    return () => document.body.classList.remove("modal-open");
   }, [isOpen]);
 
   const handleTabChange = useCallback((tabId) => {
@@ -56,15 +61,17 @@ export default function GameStoreUI({ isOpen, onClose }) {
     console.log("[Analytics] STORE_TAB_CHANGED", { tab: tabId });
   }, []);
 
-  if (!isOpen) return null;
+  if (!isOpen && typeof document === "undefined") return null;
 
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto p-4 sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Seed Store"
-    >
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-auto p-4 sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Seed Store"
+        >
       <motion.div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         initial={{ opacity: 0 }}
@@ -195,6 +202,9 @@ export default function GameStoreUI({ isOpen, onClose }) {
         </div>
       </motion.div>
     </div>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 }
 

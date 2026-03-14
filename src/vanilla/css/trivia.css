@@ -67,6 +67,32 @@
   line-height: 1.4;
   margin-bottom: 16px;
 }
+
+/* v5.0: Double Buffering Image Container (Opt 6) */
+.trivia-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.trivia-image-buffer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+}
+.trivia-image-buffer.active {
+  opacity: 1;
+}
+
 .trivia-answers {
   display: flex;
   flex-direction: column;

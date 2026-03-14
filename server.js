@@ -376,6 +376,49 @@ app.get(/.*/, (_req, res) => {
   res.type("html").send(getIndexHtml());
 });
 
+// [Phase 2] Optimistic UI & Batch Sync Endpoint
+app.post("/api/batch", requireAuth, async (req, res) => {
+  try {
+    const { requests } = req.body;
+    if (!Array.isArray(requests)) {
+      return res.status(400).json({ error: "Invalid batch format" });
+    }
+
+    const { userId } = resolveUser(req);
+    const results = [];
+
+    // Process sequentially to maintain data integrity and lock acquisition order
+    for (const subReq of requests) {
+      const { path, body, id } = subReq;
+      try {
+        // We simulate an internal fetch or direct handler call.
+        // For simplicity and to reuse all Express middleware/logic, we can do an internal fetch 
+        // using the same server instance, but that requires knowing the port.
+        // A simpler way: just let the client send them sequentially, but in the background. 
+        // Wait, if it's an internal fetch, we need the full URL.
+        const url = `http://localhost:${PORT}${path}`;
+        const internalRes = await fetch(url, {
+          method: body ? "POST" : "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": req.headers.authorization // Forward auth
+          },
+          body: body ? JSON.stringify(body) : undefined
+        });
+        const data = await internalRes.json().catch(() => ({}));
+        results.push({ id, status: internalRes.status, data });
+      } catch (err) {
+        results.push({ id, status: 500, error: err.message });
+      }
+    }
+
+    res.json({ results });
+  } catch (err) {
+    console.error("Batch error:", err);
+    res.status(500).json({ error: "Batch processing failed" });
+  }
+});
+
 // Global error handler (Express 5 catches async rejections automatically)
 app.use((err, _req, res, _next) => {
   console.error("Unhandled error:", err);

@@ -234,6 +234,14 @@ export const SoundEngine = (() => {
 const _particlePool = [];
 const _PARTICLE_POOL_MAX = 30;
 
+// [Phase 2] Global Event-Driven Garbage Collector
+document.addEventListener("hub:route-leave", () => {
+  for (const p of _particlePool) {
+    if (p.parentElement) p.remove();
+  }
+  _particlePool.length = 0; // Clear references
+});
+
 function _getParticle() {
   // Recycle from pool if available
   for (const p of _particlePool) {

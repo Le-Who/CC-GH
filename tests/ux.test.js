@@ -1070,8 +1070,8 @@ describe("Blox Drag-Tilt — rotateZ", () => {
       "blox.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
-    // Find the moveDragPreview function body
-    const match = js.match(/function moveDragPreview[\s\S]*?^\s*\}/m);
+    // Find the moveDragPreview function body (up to the next function declaration)
+    const match = js.match(/function moveDragPreview[\s\S]*?function removeDragPreview/m);
     assert.ok(match, "moveDragPreview function must exist in blox.js");
     assert.ok(
       match[0].includes("rotateZ"),

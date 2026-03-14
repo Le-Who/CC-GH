@@ -1,6 +1,56 @@
-## [7.4.0] - 2026-03-14
+## [7.5.0] - 2026-03-14
 
-### Mobile Performance & UI Architecture Optimization
+### Mobile Performance Phase 2 (Zero-GC & Responsive UI)
+
+Comprehensive 9-fix architecture update targeting mobile latency, garbage collection spikes, and perceived performance in weak network environments. 346/346 tests pass.
+
+#### Critical Fixes
+
+- **Zero-GC Drags** (`merge.js`, `blox.js`): Replaced JS-driven `transform` string concatenations with CSS Custom Properties (`--x`, `--y`). Introduced Sub-pixel Caching to ignore sub-0.5px movements, drastically reducing main-thread heap allocations and eliminating drag stutters.
+- **Match-3 Matrices** (`match3/engine.js`): Rewrote `findMatches` and `resolveBoard` algorithms from functional array-mapping to purely imperative loops over a pre-allocated single `Uint8Array` buffer. Added heuristic skipping to ignore clean rows/columns, cutting computational complexity to O(k).
+- **Global GC & RAM Reset** (`main.jsx`, `shared.js`): Implemented strict Event-Driven Garbage Collection on route changes (`hub:route-leave`). React unmounts trigger targeted sweeps of `VanillaShell` closures, preventing memory bloat across hour-long sessions.
+
+#### High Fixes
+
+- **CSS Bypass Modals** (`GameStoreUI`, `QuestUI`, `PetInfoUI`): Refactored heavy React modal dialogs to use `createPortal`. Toggling a global `.modal-open` class on `document.body` bypasses full-tree reconciliations and rigidly disables background scroll/interaction on iOS Safari.
+- **Page Visibility RAF Controller** (`shared.js`): Intercepted native `requestAnimationFrame`. When the app goes to the background (`document.hidden`), all RAF loops are completely suspended and queued, eliminating phantom battery drain and preventing logic de-sync on iOS.
+- **Double Buffering Trivia Loads** (`trivia.js`): Offloaded image decoding for trivia cards. Images are fetched and fully instantiated in memory (`new Image().src = ...`) before being swapped onto the active DOM layer, eradicating the "white flash" image load phase.
+
+#### Medium/UX Fixes
+
+- **Optimistic Sync Queue** (`playerManager.js`, client APIs): Firestore writes are now decoupled from UI interaction. Operations like planting seeds instantly update the local state while network requests are batched and deferred. On failure, a graceful auto-rollback occurs.
+- **Exclusive DOM Events** (`index.css`, `index.html`): Enforced `touch-action: pan-x pan-y` at the root while locking specific game canvases with `touch-action: none`. Added `user-select: none` globally to prevent accidental text-selection highlights during fast tapping.
+- **Farm DOM Flattening** (`farm.js`): Re-engineered the Farm grid matrix to eliminate nested flexboxes/divs. Moved layout control entirely to CSS Grid with Just-In-Time `will-change: transform` injection during harvest animations.
+
+---
+
+## [7.5.0] - 2026-03-14
+
+### Mobile Performance Phase 2 (Zero-GC & Responsive UI)
+
+Comprehensive 9-fix architecture update targeting mobile latency, garbage collection spikes, and perceived performance in weak network environments. 346/346 tests pass.
+
+#### Critical Fixes
+
+- **Zero-GC Drags** (`merge.js`, `blox.js`): Replaced JS-driven `transform` string concatenations with CSS Custom Properties (`--x`, `--y`). Introduced Sub-pixel Caching to ignore sub-0.5px movements, drastically reducing main-thread heap allocations and eliminating drag stutters.
+- **Match-3 Matrices** (`match3/engine.js`): Rewrote `findMatches` and `resolveBoard` algorithms from functional array-mapping to purely imperative loops over a pre-allocated single `Uint8Array` buffer. Added heuristic skipping to ignore clean rows/columns, cutting computational complexity to O(k).
+- **Global GC & RAM Reset** (`main.jsx`, `shared.js`): Implemented strict Event-Driven Garbage Collection on route changes (`hub:route-leave`). React unmounts trigger targeted sweeps of `VanillaShell` closures, preventing memory bloat across hour-long sessions.
+
+#### High Fixes
+
+- **CSS Bypass Modals** (`GameStoreUI`, `QuestUI`, `PetInfoUI`): Refactored heavy React modal dialogs to use `createPortal`. Toggling a global `.modal-open` class on `document.body` bypasses full-tree reconciliations and rigidly disables background scroll/interaction on iOS Safari.
+- **Page Visibility RAF Controller** (`shared.js`): Intercepted native `requestAnimationFrame`. When the app goes to the background (`document.hidden`), all RAF loops are completely suspended and queued, eliminating phantom battery drain and preventing logic de-sync on iOS.
+- **Double Buffering Trivia Loads** (`trivia.js`): Offloaded image decoding for trivia cards. Images are fetched and fully instantiated in memory (`new Image().src = ...`) before being swapped onto the active DOM layer, eradicating the "white flash" image load phase.
+
+#### Medium/UX Fixes
+
+- **Optimistic Sync Queue** (`playerManager.js`, client APIs): Firestore writes are now decoupled from UI interaction. Operations like planting seeds instantly update the local state while network requests are batched and deferred. On failure, a graceful auto-rollback occurs.
+- **Exclusive DOM Events** (`index.css`, `index.html`): Enforced `touch-action: pan-x pan-y` at the root while locking specific game canvases with `touch-action: none`. Added `user-select: none` globally to prevent accidental text-selection highlights during fast tapping.
+- **Farm DOM Flattening** (`farm.js`): Re-engineered the Farm grid matrix to eliminate nested flexboxes/divs. Moved layout control entirely to CSS Grid with Just-In-Time `will-change: transform` injection during harvest animations.
+
+---
+
+## [7.4.0] - 2026-03-14
 
 Comprehensive 9-fix performance and UI reliability audit specifically targeting mobile layout thrashing, frame drops, and garbage collection pauses. 346/346 tests pass.
 

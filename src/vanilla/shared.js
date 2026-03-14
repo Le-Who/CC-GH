@@ -8,6 +8,45 @@ import { GameStore } from "./store.js";
 import { prefetchCrops } from "./crops.js";
 import { validateStoredToken, showAuthDialog, getStoredAuth, logout } from "./auth-ui.js";
 
+/**
+ * @fileoverview shared.js
+ * Common utilities and global state for Game Hub
+ */
+
+/* ─── [Phase 2] Optimistic Page Visibility RAF Controller ─── */
+// Globally proxy requestAnimationFrame to completely suspend loops when hidden
+const nativeRaf = window.requestAnimationFrame;
+const nativeCancel = window.cancelAnimationFrame;
+const rafQueue = new Map();
+let rafFakeId = Number.MAX_SAFE_INTEGER - 10000; // high enough to not collide
+
+window.requestAnimationFrame = function (callback) {
+  if (document.hidden) {
+    const id = rafFakeId--;
+    rafQueue.set(id, callback);
+    return id;
+  }
+  const id = nativeRaf((time) => {
+    rafQueue.delete(id);
+    callback(time);
+  });
+  rafQueue.set(id, callback);
+  return id;
+};
+
+window.cancelAnimationFrame = function (id) {
+  rafQueue.delete(id);
+  nativeCancel(id);
+};
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    const callbacks = Array.from(rafQueue.values());
+    rafQueue.clear();
+    callbacks.forEach((cb) => window.requestAnimationFrame(cb));
+  }
+});
+
 export const HUB = {
   userId: null,
   username: "Player",
@@ -145,6 +184,62 @@ export async function initDiscord() {
 /** Expose logout for external use (React HUD, etc.) */
 export { logout };
 
+/* ─── [Phase 2] Optimistic Batching Queue ─── */
+const BATCH_QUEUE_KEY = "hub_offline_batch_queue";
+let apiBatchQueue = [];
+let apiBatchTimer = null;
+
+// Load any pending offline mutations on boot
+try {
+  const saved = localStorage.getItem(BATCH_QUEUE_KEY);
+  if (saved) {
+    apiBatchQueue = JSON.parse(saved);
+  }
+} catch (e) {
+  // Ignore
+}
+
+// Listen for network reconnection to flush
+window.addEventListener("online", () => {
+  if (apiBatchQueue.length > 0) flushApiBatch();
+});
+
+function flushApiBatch() {
+  if (apiBatchQueue.length === 0) return;
+  const toSend = [...apiBatchQueue];
+  apiBatchQueue = [];
+  localStorage.removeItem(BATCH_QUEUE_KEY);
+
+  api("/api/batch", { requests: toSend }).catch((err) => {
+    // If it fails again, put them back at the beginning of the queue
+    if (err.error === "NETWORK_ERROR" || err.error === "TIMEOUT") {
+      apiBatchQueue = [...toSend, ...apiBatchQueue];
+      localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
+    }
+  });
+}
+
+/** 
+ * Enqueues a mutative request to be sent in a debounced batch.
+ * Guarantees eventual consistency. Promises resolve immediately for Optimistic UI.
+ */
+export async function apiBatched(path, body) {
+  const req = { id: Math.random().toString(36).slice(2), path, body };
+  apiBatchQueue.push(req);
+  localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
+
+  if (apiBatchTimer) clearTimeout(apiBatchTimer);
+  
+  // High volume = flush more often, otherwise 3s debounce
+  if (apiBatchQueue.length >= 10) {
+    flushApiBatch();
+  } else {
+    apiBatchTimer = setTimeout(flushApiBatch, 3000);
+  }
+
+  return { success: true, _optimistic: true };
+}
+
 /* ─── API Helper (auto-attaches auth, with retry + timeout) ─── */
 export async function api(path, body) {
   const MAX_RETRIES = 1;
@@ -201,6 +296,12 @@ export function navigate(dir) {
 export function goToScreen(index) {
   const maxScreen = HUB.screenNames.length - 1;
   if (index < 0 || index > maxScreen || index === HUB.currentScreen) return;
+
+  // [Phase 2] Global Event-Driven Garbage Collector
+  // Signify that we are leaving the current screen so engines can dump large DOM/RAM caches
+  document.dispatchEvent(new CustomEvent("hub:route-leave", {
+    detail: { from: HUB.currentScreen, to: index }
+  }));
 
   // v6.2.0: Set spatial slide direction
   const isBack = index < HUB.currentScreen;
@@ -484,8 +585,8 @@ export function showToast(msg, type) {
 
   const onPointerMove = (e) => {
     if (!startX) return;
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    currentX = Math.max(0, clientX - startX); // Only swipe right
+    currentX = e.clientX - startX;
+    if (currentX < 0) currentX = 0; // only swipe right
     el.style.setProperty("--swipe-x", `${currentX}px`);
   };
 
@@ -495,10 +596,9 @@ export function showToast(msg, type) {
     el.style.transition = ""; // Restore css transition
 
     // Clean up window listeners immediately to prevent memory leaks
-    window.removeEventListener("mousemove", onPointerMove);
-    window.removeEventListener("mouseup", onPointerUp);
-    window.removeEventListener("touchmove", onPointerMove);
-    window.removeEventListener("touchend", onPointerUp);
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    window.removeEventListener("pointercancel", onPointerUp);
 
     if (currentX > 75) {
       el.classList.add("swiped-out");
@@ -510,16 +610,11 @@ export function showToast(msg, type) {
   };
 
   const onPointerDown = (e) => {
-    startX = e.clientX || (e.touches && e.touches[0].clientX);
+    // PointerDown implicitly works for mouse/touch/pen
+    startX = e.clientX;
     el.style.transition = "none";
-
-    // Attach move/up listeners dynamically only when actively dragging
-    window.addEventListener("mousemove", onPointerMove, { passive: true });
-    window.addEventListener("mouseup", onPointerUp);
-    window.addEventListener("touchmove", onPointerMove, { passive: true });
-    window.addEventListener("touchend", onPointerUp);
   };
-
+  
   el.addEventListener("mousedown", onPointerDown);
   el.addEventListener("touchstart", onPointerDown, { passive: true });
 

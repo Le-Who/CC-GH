@@ -263,11 +263,11 @@ const Match3GameImpl = (() => {
       _flushM3Sync();
     });
 
-    // v5.1.0: Board tilt — micro-parallax via mousemove (rAF-gated, ±2.5°)
+    // v5.1.0: Board tilt — micro-parallax via pointermove (rAF-gated, ±2.5°)
     const boardContainer = $("m3-board-container");
     if (boardContainer) {
       let _tiltRaf = 0;
-      boardContainer.addEventListener("mousemove", (e) => {
+      boardContainer.addEventListener("pointermove", (e) => {
         if (_tiltRaf) return;
         _tiltRaf = requestAnimationFrame(() => {
           _tiltRaf = 0;
@@ -282,7 +282,7 @@ const Match3GameImpl = (() => {
             board.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
         });
       });
-      boardContainer.addEventListener("mouseleave", () => {
+      boardContainer.addEventListener("pointerleave", () => {
         const board = boardContainer.querySelector(".m3-board");
         if (board) board.style.transform = "";
       });
@@ -1123,6 +1123,11 @@ const Match3GameImpl = (() => {
   /* ═══ Render Board (v4.16: DOM-cached diff-update — zero innerHTML rebuild) ═══ */
   let _m3Cells = []; // 2D cache: _m3Cells[y][x] = DOM element
 
+  // [Phase 2] Global Event-Driven Garbage Collector
+  document.addEventListener("hub:route-leave", () => {
+    _m3Cells = [];
+  });
+
   function renderBoard(animate) {
     const $b = $("m3-board");
     $b.classList.remove("disabled");
@@ -1199,6 +1204,9 @@ const Match3GameImpl = (() => {
     let swiping = false;
 
     $b.addEventListener("pointerdown", (e) => {
+      // FIX: Always block screen swipe while interacting with board (even if game is inactive)
+      HUB.swipeBlocked = true;
+
       // v4.8: Auto-start game on piece interaction when mode is pre-selected
       if (!gameActive && !isAnimating && !gamePaused) {
         confirmAndStart(getSelectedMode());
@@ -1214,12 +1222,14 @@ const Match3GameImpl = (() => {
       startCellY = parseInt(cell.dataset.y);
       swiping = true;
 
-      // Block screen swipe while interacting with board
-      HUB.swipeBlocked = true;
       e.preventDefault();
     });
 
     $b.addEventListener("pointerup", (e) => {
+      // FIX: Always restore screen swipe on touch end if game is NOT active
+      setTimeout(() => {
+        if (!gameActive) HUB.swipeBlocked = false;
+      }, 100);
       if (!swiping || startCellX < 0) {
         swiping = false;
         return;
@@ -1229,11 +1239,6 @@ const Match3GameImpl = (() => {
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       const THRESHOLD = 20; // px
-
-      // Restore screen swipe
-      setTimeout(() => {
-        if (!gameActive) HUB.swipeBlocked = false;
-      }, 100);
 
       // If movement is too small, treat as click (handled by click listener)
       if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
@@ -1266,6 +1271,17 @@ const Match3GameImpl = (() => {
 
     // Cancel swipe if pointer leaves board
     $b.addEventListener("pointerleave", () => {
+      setTimeout(() => {
+        if (!gameActive) HUB.swipeBlocked = false;
+      }, 100);
+      swiping = false;
+      startCellX = -1;
+    });
+
+    $b.addEventListener("pointercancel", () => {
+      setTimeout(() => {
+        if (!gameActive) HUB.swipeBlocked = false;
+      }, 100);
       swiping = false;
       startCellX = -1;
     });

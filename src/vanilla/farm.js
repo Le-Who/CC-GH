@@ -7,7 +7,14 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast, goToScreen } from "./shared.js";
+import {
+  HUB,
+  api,
+  apiBatched,
+  logout,
+  forceUpdateReactRoot,
+  safeShowModal,
+} from "./shared.js";
 import {
   CROPS as CROPS_CONFIG,
   getUnlockedSeeds,
@@ -728,8 +735,10 @@ const FarmGameImpl = (() => {
       const cfg = crops[plot.crop] || {};
       const isJustPlanted = justPlantedPlot === i;
       const displayPct = isJustPlanted ? 100 : Math.round(pct * 100);
+      
+      // v5.0: Flattened DOM structure (dirt/background handled by CSS pseudo-elements)
       div.innerHTML = `
-        <div class="crop-emoji">${cfg.emoji || "🌱"}</div>
+        <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? 'animate-grow' : ''}">${cfg.emoji || "🌱"}</div>
         <div class="crop-name">${cfg.name || plot.crop}</div>
         <div class="growth-bar"><div class="growth-bar-fill${isReady ? " done" : ""}${isJustPlanted ? " plant-burst" : ""}" style="width:${displayPct}%"></div></div>
         ${!isReady ? `<div class="growth-time-label">${formatTimeLeft(plot, pct)}</div>` : ""}
@@ -750,19 +759,15 @@ const FarmGameImpl = (() => {
           });
         }
       }
-      // v4.15.2: Water button handled by grid event delegation — no per-element listener
       div.title = isReady ? "Click to harvest!" : "Growing...";
     } else {
-      // v7.3: Activation Energy — clear CTA replaces passive label
-      const hasSeeds =
-        selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
+      // Empty plot
+      const hasSeeds = selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
       const ctaText = hasSeeds
         ? `Plant ${crops[selectedSeed]?.emoji || "🌱"} ${crops[selectedSeed]?.name || selectedSeed}`
         : "Tap to Plant 🌱";
-      div.innerHTML = `<div class="plot-empty-label">${ctaText}</div><div style="font-size:1.4rem;opacity:0.3">🌱</div>`;
-      div.title = hasSeeds
-        ? `Plant ${crops[selectedSeed]?.name || selectedSeed}`
-        : "Select a seed from the shop";
+      div.innerHTML = `<div class="plot-empty-label">${ctaText}</div>`;
+      div.title = hasSeeds ? `Plant ${crops[selectedSeed]?.name || selectedSeed}` : "Select a seed from the shop";
     }
   }
 
@@ -1447,19 +1452,19 @@ const FarmGameImpl = (() => {
 
     // Fire-and-forget with version guard
     const myVersion = ++buySeedVersion;
-    api("/api/farm/buy-seeds", {
+    apiBatched("/api/farm/buy-seeds", {
       userId: HUB.userId,
       cropId,
       amount: savedQty,
     })
       .then((data) => {
-        if (buySeedVersion !== myVersion) return;
+        if (buySeedVersion !== myVersion || data._optimistic) return;
         if (data.success) {
           // Silently sync server state
           if (data.resources) {
             HUD.syncFromServer(data.resources);
           }
-          state.inventory = data.inventory;
+          if (data.inventory) state.inventory = data.inventory;
           syncToStore();
         } else {
           // Rollback gold + inventory
@@ -1672,16 +1677,16 @@ const FarmGameImpl = (() => {
     // Buy API call (fire-and-forget, same pattern as buySeeds)
     const prevGold = goldAvail;
     const myVersion = ++buySeedVersion;
-    api("/api/farm/buy-seeds", {
+    apiBatched("/api/farm/buy-seeds", {
       userId: HUB.userId,
       cropId: seedId,
       amount: 1,
     })
       .then((data) => {
-        if (buySeedVersion !== myVersion) return;
+        if (buySeedVersion !== myVersion || data._optimistic) return;
         if (data.success) {
           if (data.resources) HUD.syncFromServer(data.resources);
-          state.inventory = data.inventory;
+          if (data.inventory) state.inventory = data.inventory;
           syncToStore();
         } else {
           // Rollback gold only — do NOT re-render farm grid
@@ -1743,18 +1748,18 @@ const FarmGameImpl = (() => {
     // Fire-and-forget with PER-PLOT version guard (Bug 4 fix)
     const ver = (plotPlantVersions.get(plotId) || 0) + 1;
     plotPlantVersions.set(plotId, ver);
-    api("/api/farm/plant", {
+    apiBatched("/api/farm/plant", {
       userId: HUB.userId,
       plotId,
       cropId,
     })
       .then((data) => {
         // Only process if this plot hasn't been re-planted since
-        if (plotPlantVersions.get(plotId) !== ver) return;
+        if (plotPlantVersions.get(plotId) !== ver || data._optimistic) return;
         if (data.success) {
           // Silently sync server state — NO re-render (optimistic UI is correct)
-          state.plots = data.plots;
-          state.inventory = data.inventory;
+          if (data.plots) state.plots = data.plots;
+          if (data.inventory) state.inventory = data.inventory;
           syncToStore();
         } else {
           // Error: full resync from server
@@ -1803,13 +1808,14 @@ const FarmGameImpl = (() => {
 
     // Fire-and-forget with version guard
     const myVersion = ++waterVersion;
-    api("/api/farm/water", { userId: HUB.userId, plotId })
+    apiBatched("/api/farm/water", { userId: HUB.userId, plotId })
       .then((data) => {
         clearTimeout(fallbackTimer);
-        wateringInFlight.delete(plotId);
-        if (waterVersion !== myVersion) return;
+        // Only delete the lock if we get a real response, NOT optimistic
+        if (!data._optimistic) wateringInFlight.delete(plotId);
+        if (waterVersion !== myVersion || data._optimistic) return;
         if (data.success) {
-          state.plots = data.plots;
+          if (data.plots) state.plots = data.plots;
           syncToStore();
         } else {
           loadState();
@@ -1867,11 +1873,11 @@ const FarmGameImpl = (() => {
 
     // Fire-and-forget with version guard
     const myVersion = ++harvestVersion;
-    api("/api/farm/harvest", { userId: HUB.userId, plotId })
+    apiBatched("/api/farm/harvest", { userId: HUB.userId, plotId })
       .then((data) => {
-        if (harvestVersion !== myVersion) return;
+        if (harvestVersion !== myVersion || data._optimistic) return;
         if (data.success) {
-          state.plots = data.plots;
+          if (data.plots) state.plots = data.plots;
           state.xp = data.xp;
           state.level = data.level;
           if (data.resources) {
@@ -1909,12 +1915,13 @@ const FarmGameImpl = (() => {
     showToast("💣 Uprooted! No refund.");
 
     try {
-      const data = await api("/api/farm/uproot", {
+      const data = await apiBatched("/api/farm/uproot", {
         userId: HUB.userId,
         plotId,
       });
+      if (data._optimistic) return;
       if (data?.success) {
-        state.plots = data.plots;
+        if (data.plots) state.plots = data.plots;
         if (data.resources) HUD.syncFromServer(data.resources);
         syncToStore();
         render();
@@ -1957,8 +1964,9 @@ const FarmGameImpl = (() => {
     HUD.animateGoldChange(sellPrice);
     HUD.updateDisplay(GameStore.getState("resources"));
 
-    api("/api/farm/sell-crop", { userId: HUB.userId, cropId })
+    apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId })
       .then((data) => {
+        if (data._optimistic) return;
         if (data?.success) {
           if (data.resources) HUD?.syncFromServer?.(data.resources);
           if (data.harvested) syncHarvestedToStore(data.harvested);
@@ -2020,8 +2028,9 @@ const FarmGameImpl = (() => {
     showToast(`🍖 Fed pet! +${energyYield}⚡`);
     HUD.updateDisplay(GameStore.getState("resources"));
 
-    api("/api/pet/feed", { userId: HUB.userId, cropId })
+    apiBatched("/api/pet/feed", { userId: HUB.userId, cropId })
       .then((data) => {
+        if (data._optimistic) return;
         if (data?.success) {
           if (data.resources) HUD?.syncFromServer?.(data.resources);
           if (data.harvested) syncHarvestedToStore(data.harvested);

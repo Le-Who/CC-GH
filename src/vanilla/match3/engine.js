@@ -127,12 +127,22 @@ export function generateBoard() {
   return b;
 }
 
-export function findMatches(b) {
-  const matched = new Uint8Array(BOARD_SIZE * BOARD_SIZE);
+// PRE-ALLOCATED BUFFER FOR MATCH-3 (OPT 9)
+// Eliminates allocation of Uint8Array every frame/cascade step.
+const _matchBuffer = new Uint8Array(BOARD_SIZE * BOARD_SIZE);
+// Pre-allocated result array to avoid `new Array` allocs in tight loops if possible,
+// but since we must return variable length arrays for the engine iterators,
+// we just recycle the buffer and return a standard flat array.
+
+export function findMatches(b, dirtyMask = null) {
+  _matchBuffer.fill(0);
   let count = 0;
 
   // Horizontal
   for (let y = 0; y < BOARD_SIZE; y++) {
+    // OPT 9 Heuristic: Skip clean rows if mask is provided
+    if (dirtyMask && !dirtyMask.rows[y]) continue;
+
     for (let x = 0; x < BOARD_SIZE - 2; x++) {
       const type = b[y][x];
       if (!type || DROP_TYPES.includes(type)) continue;
@@ -141,8 +151,8 @@ export function findMatches(b) {
         while (end < BOARD_SIZE && b[y][end] === type) end++;
         for (let k = x; k < end; k++) {
           const idx = y * BOARD_SIZE + k;
-          if (matched[idx] === 0) {
-            matched[idx] = 1;
+          if (_matchBuffer[idx] === 0) {
+            _matchBuffer[idx] = 1;
             count++;
           }
         }
@@ -150,8 +160,12 @@ export function findMatches(b) {
       }
     }
   }
+  
   // Vertical
   for (let x = 0; x < BOARD_SIZE; x++) {
+    // OPT 9 Heuristic: Skip clean columns if mask is provided
+    if (dirtyMask && !dirtyMask.cols[x]) continue;
+
     for (let y = 0; y < BOARD_SIZE - 2; y++) {
       const type = b[y][x];
       if (!type || DROP_TYPES.includes(type)) continue;
@@ -160,8 +174,8 @@ export function findMatches(b) {
         while (end < BOARD_SIZE && b[end][x] === type) end++;
         for (let k = y; k < end; k++) {
           const idx = k * BOARD_SIZE + x;
-          if (matched[idx] === 0) {
-            matched[idx] = 1;
+          if (_matchBuffer[idx] === 0) {
+            _matchBuffer[idx] = 1;
             count++;
           }
         }
@@ -174,7 +188,7 @@ export function findMatches(b) {
   if (count > 0) {
     const len = BOARD_SIZE * BOARD_SIZE;
     for (let i = 0; i < len; i++) {
-      if (matched[i]) result.push(i);
+      if (_matchBuffer[i] === 1) result.push(i);
     }
   }
   return result;
@@ -210,12 +224,21 @@ export function resolveBoard(b, onCascadeStep) {
   let totalPoints = 0;
   let cascadeCombo = 0;
   let matches = findMatches(b);
+  let dirtyMask = null; // null means check all
 
   while (matches.length > 0) {
     cascadeCombo++;
+    const nextDirtyMask = {
+      rows: new Uint8Array(BOARD_SIZE),
+      cols: new Uint8Array(BOARD_SIZE)
+    };
+    
     const cleared = matches.map((idx) => {
       const x = idx % BOARD_SIZE;
       const y = Math.floor(idx / BOARD_SIZE);
+      // Mark cleared cells as dirty
+      nextDirtyMask.rows[y] = 1;
+      nextDirtyMask.cols[x] = 1;
       return { x, y, type: b[y][x] };
     });
     totalPoints += cleared.length * 10 * Math.min(cascadeCombo, 5);
@@ -229,6 +252,8 @@ export function resolveBoard(b, onCascadeStep) {
     const fallen = [];
     const filled = [];
     for (let x = 0; x < BOARD_SIZE; x++) {
+      // If this column had no matches and no items above matches, it skips gravity
+      // but gravity logic is fast enough.
       let wy = BOARD_SIZE - 1;
       for (let y = BOARD_SIZE - 1; y >= 0; y--) {
         if (b[y][x]) {
@@ -236,6 +261,10 @@ export function resolveBoard(b, onCascadeStep) {
             b[wy][x] = b[y][x];
             b[y][x] = null;
             fallen.push({ x, fromY: y, toY: wy });
+            // Mark fallen destinations and origins as dirty
+            nextDirtyMask.rows[wy] = 1;
+            nextDirtyMask.rows[y] = 1;
+            nextDirtyMask.cols[x] = 1;
           }
           wy--;
         }
@@ -243,6 +272,9 @@ export function resolveBoard(b, onCascadeStep) {
       for (let y = wy; y >= 0; y--) {
         b[y][x] = randomGem();
         filled.push({ x, y, type: b[y][x] });
+        // Mark filled cells as dirty
+        nextDirtyMask.rows[y] = 1;
+        nextDirtyMask.cols[x] = 1;
       }
     }
 
@@ -257,7 +289,8 @@ export function resolveBoard(b, onCascadeStep) {
     // Callback for star-drop mode checks
     if (onCascadeStep) onCascadeStep();
 
-    matches = findMatches(b);
+    dirtyMask = nextDirtyMask;
+    matches = findMatches(b, dirtyMask);
   }
 
   return { steps, totalPoints, combo: cascadeCombo };

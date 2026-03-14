@@ -515,6 +515,8 @@ const TriviaGame = (() => {
     renderQuestion(data.question);
   }
 
+  let currentImageBufferId = "trivia-img-a"; // "trivia-img-a" or "trivia-img-b"
+
   /* ═══ QUESTION RENDERING ═══ */
   function renderQuestion(q) {
     if (!q) return;
@@ -526,6 +528,37 @@ const TriviaGame = (() => {
       session.streak > 0 ? `🔥 ${session.streak}` : "";
     $("trivia-category").textContent = `${q.category} • ${q.difficulty}`;
     $("trivia-q-text").textContent = q.question;
+
+    // v5.0: Double Buffering Image Load (Opt 6)
+    const imgContainer = $("trivia-image-container");
+    const imgA = $("trivia-img-a");
+    const imgB = $("trivia-img-b");
+    if (imgContainer && imgA && imgB) {
+      if (q.imageUrl) {
+        imgContainer.style.display = "";
+        const nextBufferId = currentImageBufferId === "trivia-img-a" ? "trivia-img-b" : "trivia-img-a";
+        const nextBuffer = nextBufferId === "trivia-img-a" ? imgA : imgB;
+        const currentBuffer = currentImageBufferId === "trivia-img-a" ? imgA : imgB;
+        
+        nextBuffer.src = q.imageUrl;
+        // Wait for image to load before fading (avoids jitter)
+        nextBuffer.onload = () => {
+          nextBuffer.classList.add("active");
+          currentBuffer.classList.remove("active");
+          currentImageBufferId = nextBufferId;
+        };
+        // Fallback if cached or fails
+        if (nextBuffer.complete) {
+          nextBuffer.classList.add("active");
+          currentBuffer.classList.remove("active");
+          currentImageBufferId = nextBufferId;
+        }
+      } else {
+        imgContainer.style.display = "none";
+        imgA.classList.remove("active");
+        imgB.classList.remove("active");
+      }
+    }
 
     // v7.2: Card flip entrance
     const card = document.querySelector(".trivia-question-card");
@@ -562,6 +595,13 @@ const TriviaGame = (() => {
   let _timerTextEl = null;
   let _timerWrapperEl = null;
   let _lastDanger = false;
+
+  // [Phase 2] Global Event-Driven Garbage Collector
+  document.addEventListener("hub:route-leave", () => {
+    _timerFillEl = null;
+    _timerTextEl = null;
+    _timerWrapperEl = null;
+  });
 
   function startTimer(seconds) {
     _timerFillEl = $("trivia-timer-fill");

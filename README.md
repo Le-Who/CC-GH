@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v7.4.0**
+**Current version: v7.5.0** (Mobile Performance Update: Zero-GC architecture, CSS Bypass Modals, RAF Throttling)
 
 ---
 
@@ -33,6 +33,8 @@
 | 📱 **Navigation**         | Persistent bottom tab bar with Native HTML5 View Transitions                 |
 | ✨ **Nav Shimmer + Dots** | Active tab shimmer effect · Green notification dot on Farm when crops ready  |
 | 🔤 **Emoji Consistency**  | Robust font stack: Noto Color Emoji + Apple/Segoe fallbacks                  |
+| ⚡ **Zero-GC Drags**      | CSS Custom Properties & Sub-pixel caching for 60fps mobile drag-and-drop     |
+| 🌍 **Optimistic Sync**    | Debounced & batched Firestore sync with graceful UI fallback                 |
 
 ---
 

@@ -10,4 +10,9 @@
   body::-webkit-scrollbar {
     display: none;
   }
+  
+  /* v5.0 Opt 7: React Portal Modal Body Bypass */
+  body.modal-open {
+    overflow: hidden;
+  }
 }

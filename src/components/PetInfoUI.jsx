@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "../store/gameStore";
 import { PET_ASSETS, PET_EXPRESSIONS } from "../../game-logic.js";
@@ -83,7 +84,17 @@ export default function PetInfoUI() {
     return () => document.removeEventListener("toggle-pet-info", handleToggle);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [isOpen]);
+
   if (!petData) return null;
+  if (!isOpen && typeof document === "undefined") return null;
 
   const happiness = petData.stats?.happiness ?? 100;
   const affectionLevel = petData.affectionLevel ?? 1;
@@ -147,7 +158,7 @@ export default function PetInfoUI() {
       });
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -332,6 +343,7 @@ export default function PetInfoUI() {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
