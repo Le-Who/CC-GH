@@ -68,7 +68,7 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
 
   const handleSell = useCallback((cropId) => {
     if (window.HUB?.api) {
-      window.HUB.api("/api/farm/sell", {
+      window.HUB.api("/api/farm/sell-crop", {
         userId: window.HUB.userId,
         cropId,
         quantity: 1,
@@ -82,7 +82,7 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
 
   const handleFeed = useCallback((cropId) => {
     if (window.HUB?.api) {
-      window.HUB.api("/api/farm/feed", {
+      window.HUB.api("/api/pet/feed", {
         userId: window.HUB.userId,
         cropId,
         quantity: 1,

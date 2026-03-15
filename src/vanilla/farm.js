@@ -611,9 +611,12 @@ const FarmGameImpl = (() => {
     if (!state) return;
     // Gold comes from HUD (unified resources), fallback to state.coins for compat
     const gold = HUD.getGold();
-    $("farm-coins").textContent = gold;
-    $("farm-xp").textContent = state.xp;
-    $("farm-level").textContent = `Lv${state.level}`;
+    const coinsEl = $("farm-coins");
+    const xpEl = $("farm-xp");
+    const levelEl = $("farm-level");
+    if (coinsEl) coinsEl.textContent = gold;
+    if (xpEl) xpEl.textContent = state.xp;
+    if (levelEl) levelEl.textContent = `Lv${state.level}`;
 
     const grid = $("farm-plots");
     const existing = grid.querySelectorAll(".farm-plot:not(.skeleton)");
