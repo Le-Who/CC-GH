@@ -51,7 +51,7 @@ export default function QuestUI({ isOpen, onClose }) {
             {/* Header */}
             <div className="flex justify-between items-center px-4 py-3 bg-white/5 border-b border-white/10">
               <h3 className="text-xl font-heading font-bold text-white tracking-wide">📋 Quests</h3>
-              <button onClick={onClose} className="text-textDim hover:text-white transition-colors">✕</button>
+              <button aria-label="Close quests" onClick={onClose} className="text-textDim hover:text-white transition-colors">✕</button>
             </div>
 
             {/* List */}

@@ -46,6 +46,7 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
       <div className="flex gap-2 pointer-events-auto">
         {/* Quest Log Buton */}
         <button
+          aria-label="Open Quest Log"
           className="relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
           onClick={onOpenQuest}
         >
@@ -62,6 +63,7 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
 
         {/* Monetization Store Button */}
         <button
+          aria-label="Open Store"
           className="bg-gold text-background rounded-full w-12 h-12 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-transform hover:scale-110 active:scale-90"
           onClick={onOpenStore}
         >

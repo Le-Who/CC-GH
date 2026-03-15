@@ -183,6 +183,7 @@ export default function PetInfoUI() {
             {/* Header */}
             <div className="relative p-4 pb-2">
               <button
+                aria-label="Close pet info"
                 onClick={() => {
                   setIsOpen(false);
                   document.dispatchEvent(new Event("pet-info-closed"));
@@ -213,6 +214,7 @@ export default function PetInfoUI() {
                     Save
                   </button>
                   <button
+                    aria-label="Cancel editing pet name"
                     onClick={() => setIsEditingName(false)}
                     className="text-sm bg-surfaceHover px-2 py-1 rounded hover:opacity-90"
                   >
@@ -223,6 +225,7 @@ export default function PetInfoUI() {
                 <h3 className="text-xl font-bold text-white font-heading">
                   {petData.name}
                   <button
+                    aria-label="Edit pet name"
                     onClick={handleRenameStart}
                     className="ml-2 text-sm opacity-50 hover:opacity-100"
                   >
