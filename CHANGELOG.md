@@ -18,6 +18,10 @@ Massive milestone release decoupling the vanilla JS game logic engines from thei
 - **Save Data Wipe Prevention**: Fixed an architectural flaw where non-blocking read-routes could trigger a simultaneous synchronous `getPlayer()` initialization on server boot before the Redis/Firestore pipeline returned the actual save data, overwriting legitimate profiles with blank Level 1 bases. Added `ensurePlayerLoaded` to the authorization middleware.
 - **HUD Engine Exception**: Fixed a legacy `G.animateGoldChange is not a function` Uncaught TypeError cascading from vanilla scripts during reward granting by piping a CustomEvent down to the new React `HUD` view to orchestrate `framer-motion` floating coin animations.
 
+- **Match-3 Zombie State Leak**: Fixed an issue where the game would drop into `-1 MOVES`. Wrapped endgame sync in `try/finally` blocks and guarded the initialization step to prevent users from reviving and playing concluded sessions indefinitely.
+- **Pet Naming Loop**: Fixed a bug where `pet.js` would continually prompt the user for their pet's name on launch, conflicting with the React onboarding flow.
+- **Farm UI & UX Design Overhaul**: Redesigned the seed shop UI. Fixed horizontal tab truncation via `flex-wrap`, widened the Featured shelf to prevent text cut-offs, completely removed the redundant dual-coins HUD, and rehoused the 'Buy' quantity stepper into elegant glassmorphism pills to cure severe element clipping.
+
 #### Tests — **342/342 pass**, 0 failures.
 
 ---

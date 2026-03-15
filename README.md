@@ -152,7 +152,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 345 tests across 11 suites
+npm test          # All 342 tests across 11 suites
 npm run test:perf # Performance benchmarks only
 ```
 
@@ -162,7 +162,7 @@ npm run test:perf # Performance benchmarks only
 | **API**    | `tests/api.test.js`               |    38 |
 | **Blox**   | `tests/blox.test.js`              |    30 |
 | **M3**     | `tests/match3.test.js`            |    12 |
-| **UX**     | `tests/ux.test.js`                |    75 |
+| **UX**     | `tests/ux.test.js`                |    72 |
 | **GCP**    | `tests/gcp.test.js`               |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
 | **Stress** | `tests/game-logic-stress.test.js` |    57 |
