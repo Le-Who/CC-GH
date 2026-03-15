@@ -36,7 +36,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
   );
 
   router.post("/api/farm/state", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       calcRegen(p);
@@ -72,13 +72,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
         journal: p.journal,
         serverTime: Date.now(),
       });
-    });
+    }, username);
   });
 
   router.post("/api/farm/plant", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { plotId, cropId } = req.body;
       if (!CROPS[cropId]) return res.status(400).json({ error: "unknown crop" });
       const idx = Number(plotId);
@@ -100,13 +100,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
         inventory: p.farm.inventory,
         serverTime: Date.now(),
       });
-    });
+    }, username);
   });
 
   router.post("/api/farm/water", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -120,13 +120,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
         plots: farmPlotsWithGrowth(p.farm),
         serverTime: Date.now(),
       });
-    });
+    }, username);
   });
 
   router.post("/api/farm/harvest", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -189,14 +189,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
         leveledUp,
         serverTime: Date.now(),
       });
-    });
+    }, username);
   });
 
   /* ─── Uproot (💣 — no refund) ─── */
   router.post("/api/farm/uproot", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -216,13 +216,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
         resources: p.resources,
         serverTime: Date.now(),
       });
-    });
+    }, username);
   });
 
   router.post("/api/farm/buy-seeds", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { cropId, amount = 1 } = req.body;
       const cfg = CROPS[cropId];
       if (!cfg) return res.status(400).json({ error: "unknown crop" });
@@ -239,16 +239,16 @@ export default function farmRoutes(requireAuth, resolveUser) {
         resources: p.resources,
         inventory: p.farm.inventory,
       });
-    });
+    }, username);
   });
 
   const BUY_PLOT_BASE_COST = 200;
   const MAX_PLOTS = 12;
 
   router.post("/api/farm/buy-plot", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const currentPlots = p.farm.plots.length;
 
       if (currentPlots >= MAX_PLOTS) {
@@ -282,7 +282,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         nextCost,
         maxPlots: MAX_PLOTS,
       });
-    });
+    }, username);
   });
 
   /* ─── v7.3: Dynamic Crops Config ─── */
@@ -294,9 +294,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   /* ─── v7.3: Activate Fertilizer Booster ─── */
   router.post("/api/farm/activate-booster", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { boosterId = "fertilizer" } = req.body;
       const cfg = BOOSTER_CONFIG[boosterId];
       if (!cfg) return res.status(400).json({ error: "unknown booster" });
@@ -320,14 +320,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
         boosters: p.boosters,
         resources: p.resources,
       });
-    });
+    }, username);
   });
 
   /* ─── v7.3: Buy Plot Theme ─── */
   router.post("/api/farm/buy-theme", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { themeId } = req.body;
       const theme = PLOT_THEMES[themeId];
       if (!theme) return res.status(400).json({ error: "unknown theme" });
@@ -342,14 +342,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.resources.gold -= theme.cost;
       p.cosmetics.ownedThemes.push(themeId);
       res.json({ success: true, cosmetics: p.cosmetics, resources: p.resources });
-    });
+    }, username);
   });
 
   /* ─── v7.3: Set Active Theme ─── */
   router.post("/api/farm/set-theme", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const { themeId } = req.body;
       if (!p.cosmetics)
         p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
@@ -358,7 +358,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       }
       p.cosmetics.activePlotTheme = themeId;
       res.json({ success: true, cosmetics: p.cosmetics });
-    });
+    }, username);
   });
 
   return router;

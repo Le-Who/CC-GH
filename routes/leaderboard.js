@@ -33,6 +33,7 @@ export default function leaderboardRoutes() {
         (data->'match3'->>'totalGames')::int as total_games
       FROM players
       WHERE data->'match3'->>'highScore' IS NOT NULL
+        AND data->'match3'->>'highScore' ~ '^\\d+$'
       ORDER BY (data->'match3'->>'highScore')::int DESC
       LIMIT 15
     `;
@@ -60,6 +61,7 @@ export default function leaderboardRoutes() {
         (data->'blox'->>'highScore')::int as high_score
       FROM players
       WHERE data->'blox'->>'highScore' IS NOT NULL
+        AND data->'blox'->>'highScore' ~ '^\\d+$'
       ORDER BY (data->'blox'->>'highScore')::int DESC
       LIMIT 15
     `;
@@ -73,12 +75,24 @@ export default function leaderboardRoutes() {
     return _bloxCache;
   }
 
-  router.get("/api/leaderboard", async (_req, res) => {
-    res.json(await getMatch3Leaders());
+  router.get("/api/leaderboard", async (req, res) => {
+    try {
+      const leaders = await getMatch3Leaders();
+      res.json(leaders);
+    } catch (err) {
+      console.error("Leaderboard Match-3 fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch leaderboard" });
+    }
   });
 
-  router.get("/api/blox/leaderboard", async (_req, res) => {
-    res.json(await getBloxLeaders());
+  router.get("/api/blox/leaderboard", async (req, res) => {
+    try {
+      const leaders = await getBloxLeaders();
+      res.json(leaders);
+    } catch (err) {
+      console.error("Leaderboard Blox fetch error:", err);
+      res.status(500).json({ error: "Failed to fetch leaderboard" });
+    }
   });
 
   return router;

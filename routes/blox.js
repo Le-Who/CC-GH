@@ -17,9 +17,9 @@ export default function bloxRoutes(requireAuth, resolveUser) {
   const router = Router();
 
   router.post("/api/blox/start", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       calcRegen(p);
 
       if (p.resources.energy.current < ECONOMY.COST_BLOX) {
@@ -31,20 +31,20 @@ export default function bloxRoutes(requireAuth, resolveUser) {
       }
       p.resources.energy.current -= ECONOMY.COST_BLOX;
       p.blox.totalGames++;
-      p.blox.activeGame = true;
+      p.blox.activeGame = true;
       res.json({
         success: true,
         resources: p.resources,
         highScore: p.blox.highScore,
       });
-    });
+    }, username);
   });
 
   router.post("/api/blox/end", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { score } = req.body;
+      const { score } = req.body;
 
       // Session validation: prevent gold farming without starting a game
       if (!p.blox.activeGame) {
@@ -70,7 +70,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
         }
       }
 
-      p.blox.activeGame = false;
+      p.blox.activeGame = false;
       res.json({
         success: true,
         resources: p.resources,
@@ -78,43 +78,42 @@ export default function bloxRoutes(requireAuth, resolveUser) {
         tokenReward,
         highScore: p.blox.highScore,
       });
-    });
+    }, username);
   });
 
   // v4.12.3: Get saved board state for cross-device sync
   router.post("/api/blox/state", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-    if (!userId) return res.status(400).json({ error: "userId required" });
-    // v5.0.1: savedState stored as JSON string to avoid Firestore nested-array rejection
-    let parsed = null;
-    if (typeof p.blox.savedState === "string") {
-      try {
-        parsed = JSON.parse(p.blox.savedState);
-      } catch {
-        // legacy ignore
+    await withPlayerLock(userId, async (p) => {
+      // v5.0.1: savedState stored as JSON string to avoid Firestore nested-array rejection
+      let parsed = null;
+      if (typeof p.blox.savedState === "string") {
+        try {
+          parsed = JSON.parse(p.blox.savedState);
+        } catch {
+          // legacy ignore
+        }
+      } else if (p.blox.savedState && typeof p.blox.savedState === "object") {
+        parsed = p.blox.savedState; // Legacy: already an object (pre-stringify migration)
       }
-    } else if (p.blox.savedState && typeof p.blox.savedState === "object") {
-      parsed = p.blox.savedState; // Legacy: already an object (pre-stringify migration)
-    }
-    res.json({
-      savedState: parsed,
-      highScore: p.blox.highScore,
-    });
+      res.json({
+        savedState: parsed,
+        highScore: p.blox.highScore,
       });
+    }, username);
   });
 
   // v4.12.3: Sync board state from client to server
   router.post("/api/blox/sync", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { savedState } = req.body;
+      const { savedState } = req.body;
       // v5.0.1: Store as JSON string — Firestore rejects nested arrays (board is 2D array)
-      p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
+      p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
       res.json({ success: true });
-    });
+    }, username);
   });
 
   return router;

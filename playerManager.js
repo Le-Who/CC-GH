@@ -35,7 +35,7 @@ import {
  * 7. UPSERTs mutated result back to Postgres.
  * 8. Writes thru to Redis synchronously before returning.
  */
-export async function withPlayerLock(userId, asyncFn) {
+export async function withPlayerLock(userId, asyncFn, username = null) {
   const sql = getDb();
   if (!sql) {
     throw new Error("DATABASE_URL must be configured for v10.0 Postgres migration.");
@@ -48,48 +48,43 @@ export async function withPlayerLock(userId, asyncFn) {
   }
 
   try {
-    console.log(`[LOCK] Attempting sql.begin for ${userId}`);
     return await sql.begin(async (tx) => {
-    console.log(`[LOCK] sql.begin entered for ${userId}`);
     // 1. Guarantee row exists before locking (UPSERT -> DO NOTHING)
-    const defaultPlayer = createDefaultPlayer(userId, `Player_${userId.substring(0, 5)}`);
-    console.log(`[LOCK] Executing INSERT ON CONFLICT for ${userId}`);
+    // v10.1: Cleaner default name (omit sa_ prefix or raw IDs)
+    const displayName = username || `Player_${userId.slice(-4)}`;
+    const defaultPlayer = createDefaultPlayer(userId, displayName);
+    
     await tx`
       INSERT INTO players (id, data, updated_at)
       VALUES (${userId}, ${defaultPlayer}, now())
       ON CONFLICT (id) DO NOTHING
     `;
 
-    console.log(`[LOCK] Executing SELECT FOR UPDATE for ${userId}`);
     // 2. Acquire ACID row lock
     const [row] = await tx`
       SELECT data FROM players WHERE id = ${userId} FOR UPDATE
     `;
-    console.log(`[LOCK] Acquired SELECT FOR UPDATE for ${userId}`);
 
     // 3. Reconcile state & Apply Migrations
-    // If Redis is fresher or matches database, apply migrations on it, otherwise use DB truth.
     let playerRaw = redisData ?? row.data;
     let player = applyMigrations(playerRaw);
+
+    // v10.1: Sync username from current auth session to ensure leaderboard accuracy
+    if (username && player.username !== username) {
+      player.username = username;
+    }
 
     // 4. Execute Route Handler
     const result = await asyncFn(player);
     
     // Safety check: Prevent Express Response leaking into Database
-    // If the handler returned a response object explicitly, we abort the transaction.
     if (result && (result.statusCode || result.headersSent || !result.userId)) {
-      // It's likely an Express response or an invalid object. We abort the update
-      // but return the result so the router responds correctly (by throwing and catching).
       const abortErr = new Error("EXPRESS_RESPONSE_ABORT");
       abortErr.result = result;
       throw abortErr;
     }
 
     // 5. Save back to DB within transaction
-    // We save `player`, which was mutated by reference in the asyncFn handler.
-    if (userId.startsWith('feed')) {
-      console.log(`[P MANAGER] Before Save, ${userId} harvested:`, JSON.stringify(player.farm.harvested));
-    }
     await tx`
       UPDATE players SET data = ${player}, updated_at = now()
       WHERE id = ${userId}

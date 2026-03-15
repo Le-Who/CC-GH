@@ -13,7 +13,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
 
   /* ─── Get Unified Inventory (Matches frontend api("/api/resources/state")) ─── */
   router.get("/api/resources/state", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       calcRegen(p);
@@ -23,12 +23,12 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
         room: p.room,
         harvested: p.farm.harvested,
       });
-    });
+    }, username);
   });
 
   /* ─── Sell Crop (Bulk support) ─── */
   router.post("/api/farm/sell-crop", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       const { cropId, amount = 1 } = req.body;
@@ -49,12 +49,12 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
         harvested: p.farm.harvested,
         soldFor: totalEarnings,
       });
-    });
+    }, username);
   });
 
   /* ─── Feed Pet (Aligned with game-logic.js satiety) ─── */
   router.post("/api/pet/feed", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       const { cropId } = req.body;
@@ -87,12 +87,12 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
         resources: p.resources,
         harvested: p.farm.harvested
       });
-    });
+    }, username);
   });
 
   /* ─── Rename Pet ─── */
   router.post("/api/pet/rename", requireAuth, async (req, res) => {
-    const { userId } = resolveUser(req);
+    const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       const { newName } = req.body;
@@ -101,7 +101,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       }
       p.pet.name = newName.trim().slice(0, 16);
       res.json({ success: true, pet: p.pet });
-    });
+    }, username);
   });
 
   return router;
