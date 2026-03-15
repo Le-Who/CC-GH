@@ -16,12 +16,10 @@ dist/
 .idea/
 .DS_Store
 eslint.config.*
-
 # legacy and dev artifacts
 legacy_readme.md
 legacy_changelog.md
 eslint_output.txt
 eslint-errors.json
 concurrency_test.js
-design/
 scripts/

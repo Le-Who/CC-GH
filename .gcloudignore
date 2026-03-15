@@ -1,10 +1,8 @@
 .gcloudignore
 .git
 .github
-
 # node dependencies
 node_modules/
-
 # environments and secrets
 .env
 .env.example
@@ -13,27 +11,22 @@ data/hub-db.json
 dist/
 # logs
 *.log
-
 # testing and docs
 tests/
 *.test.js
 README.md
 CHANGELOG.md
-
 # generated bundle (built during Docker build)
 public/js/discord-sdk-bundle.js
-
 # IDE and tool configs
 .vscode/
 .idea/
 .DS_Store
 eslint.config.*
-
 # legacy and dev artifacts
 legacy_readme.md
 legacy_changelog.md
 eslint_output.txt
 eslint-errors.json
 concurrency_test.js
-design/
 scripts/
