@@ -1,3 +1,25 @@
+## [9.0.0] - 2026-03-15
+
+### V9 Stateless Architecture & Extracted React Hooks UI
+
+Massive milestone release decoupling the vanilla JS game logic engines from their UI bindings, transitioning the backend to a fully stateless distributed cache, and purging legacy DOM manipulators.
+
+#### Core Architecture
+- **Stateless Upstash Redis Architecture**: `playerManager.js` completely rewritten to use a Redis cache as the primary traffic layer, flushing to Firestore only on debounce timeouts. Uses distributed locks (`SETNX`) to ensure horizontal scalability across multiple server instances.
+- **Service Worker / PWA Support**: Implemented `vite-plugin-pwa` to cache core assets, icons, and JS bundles locally. Minimizes cold boot load times and provides a robust, installable manifest.
+- **React Hooks UI Layer**: Eliminated the tightly-coupled `GameStore` logic. Fully extracted `useFarmEngine`, `useMatch3Engine`, `useBloxEngine`, `useHUDEngine`, and `useMergeEngine` to serve as pure, distinct data bridges.
+- **Headless Engine Isolation**: The vanilla engines now run entirely headless, calculating game logic state purely, while the React UI layer pulls from the exposed custom Hooks.
+
+#### Bug Fixes & Dead Code Pruning
+- **Concurrency Locks**: Fixed a severe race-condition in `farm.js` where rapid clicking could bypass the queue and cause desynced watering timers or phantom crops.
+- **Blox Drag Performance**: Refactored drag logic to fix severe frame lag and piece-dropping issues during cross-screen puzzle manipulation.
+- **Dead Legacy Cleanups**: Safely deleted 4 obsolete vanilla files (`quest.js`, `store-ui.js`, `hud.css`, `store.css`) and gutted obsolete DOM manipulation queries out of `hud.js` following the UI migration to React.
+- **Strict Lint Validation**: Cleared out all ghost variables and unused imports (`import React from 'react'`) from the codebase, satisfying strict native JSX ESLint constraints.
+
+#### Tests — **342/342 pass**, 0 failures.
+
+---
+
 ## [8.0.0] - 2026-03-15
 
 ### Architecture & Mobile UX Redesign

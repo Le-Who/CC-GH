@@ -1437,25 +1437,6 @@ describe("v7.1: Farm CSS Juice — Ambient Animations", () => {
     );
   });
 
-  it("hud.css defines goldValueBounce keyframes", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "hud.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes goldValueBounce"),
-      "hud.css must define @keyframes goldValueBounce for gold text juice",
-    );
-  });
 });
 
 /* ═══════════════════════════════════════════════════

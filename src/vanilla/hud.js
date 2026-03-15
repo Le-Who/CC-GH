@@ -8,6 +8,7 @@ import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
 import { HUB, api, goToScreen, showToast, safeShowModal } from "./shared.js";
 import { CROPS, MERGE_CHAINS } from "/game-logic.js";
+import { hudStore } from "../hooks/useHUDEngine.js";
 
 /* ─── Merge item display lookup (for quest requirement names) ─── */
 const _MERGE_DISPLAY = {};
@@ -38,9 +39,7 @@ function _formatReward(rw) {
 
 let regenTimerId = null;
 
-// v4.15.2: Cached DOM refs (eliminates per-second getElementById calls)
-let $regenFill = null;
-let _lastRegenWidth = "";
+
 
 /* ─── GameStore Slice Registration ─── */
 function registerSlice() {
@@ -69,20 +68,8 @@ async function fetchResources() {
 /* ─── Update Display ─── */
 function updateDisplay(res) {
   if (!res) return;
-  // React HUD listens to GameStore directly.
-  // We mirror the critical values to a 'shared' slice for the React layer to read easily.
-  const shared = GameStore.getState("shared") || {
-    energy: 0,
-    maxEnergy: 20,
-    gold: 0,
-    activeQuests: 0,
-  };
-  GameStore.setState("shared", {
-    ...shared,
-    energy: res.energy?.current || 0,
-    maxEnergy: res.energy?.max || 20,
-    gold: res?.gold || 0,
-  });
+  // v9.0: No longer mirrors to 'shared' slice. React HUD reads from hudStore
+  // via the resources ↔ hudStore bridge in useGameBridge.js.
 }
 
 function _formatGold(amount) {
@@ -91,22 +78,6 @@ function _formatGold(amount) {
 }
 
 /* ─── Regen Timer ─── */
-function _updateTooltip(res) {
-  const tooltip = document.getElementById("hud-energy-tooltip");
-  if (!tooltip) return;
-
-  if (res.energy.current >= res.energy.max) {
-    tooltip.textContent = "Energy full!";
-    return;
-  }
-
-  const elapsed = Date.now() - res.energy.lastRegenTimestamp;
-  const interval = 150 * 1000; // 2.5 min — matches game-logic.js ENERGY_REGEN_INTERVAL_MS
-  const remaining = interval - (elapsed % interval);
-  const mins = Math.floor(remaining / 60000);
-  const secs = Math.floor((remaining % 60000) / 1000);
-  tooltip.textContent = `Next +1⚡ in ${mins}:${String(secs).padStart(2, "0")}`;
-}
 
 function startRegenTimer() {
   stopRegenTimer();
@@ -118,16 +89,6 @@ function startRegenTimer() {
       const interval = 150 * 1000; // 2.5 min — matches game-logic.js
       // v4.15.2: Early return when energy is full (skip all DOM ops)
       if (e.current >= e.max) {
-        if (_lastRegenWidth !== "0%") {
-          if (!$regenFill)
-            $regenFill = document.getElementById("hud-energy-regen-fill");
-          if ($regenFill) {
-            $regenFill.style.width = "0%";
-            // v4.15.3: Stop aurora animation when energy full
-            $regenFill.classList.remove("aurora-active");
-          }
-          _lastRegenWidth = "0%";
-        }
         return;
       }
       const delta = now - e.lastRegenTimestamp;
@@ -141,22 +102,6 @@ function startRegenTimer() {
         }
         GameStore.setState("resources", { ...res, energy: e });
       }
-      // Update regen micro-progress bar
-      const elapsed = now - e.lastRegenTimestamp;
-      const pct = Math.min(100, (elapsed / interval) * 100);
-      const newWidth = `${pct}%`;
-      if (newWidth !== _lastRegenWidth) {
-        if (!$regenFill)
-          $regenFill = document.getElementById("hud-energy-regen-fill");
-        if ($regenFill) {
-          $regenFill.style.width = newWidth;
-          // v4.15.3: Start aurora animation when regenerating
-          if (!$regenFill.classList.contains("aurora-active")) {
-            $regenFill.classList.add("aurora-active");
-          }
-        }
-        _lastRegenWidth = newWidth;
-      }
       updateDisplay({ ...res, energy: e });
     }
   }, 1000);
@@ -167,24 +112,6 @@ function stopRegenTimer() {
     clearInterval(regenTimerId);
     regenTimerId = null;
   }
-}
-
-/* ─── Gold Animation ─── */
-function animateGoldChange(amount) {
-  const goldEl = document.querySelector(".hud-gold");
-  if (!goldEl) return;
-
-  // Glassmorphism Spring Bump (Peak-End / Dopamine hit)
-  goldEl.classList.remove("bump");
-  void goldEl.offsetWidth; // Trigger reflow
-  goldEl.classList.add("bump");
-
-  const float = document.createElement("span");
-  float.className = "hud-gold-change" + (amount < 0 ? " negative" : "");
-  float.textContent = (amount > 0 ? "+" : "") + amount;
-  goldEl.style.position = "relative";
-  goldEl.appendChild(float);
-  setTimeout(() => float.remove(), 1500);
 }
 
 /* ─── Energy Check (for gatekeeping) ─── */
@@ -234,10 +161,6 @@ async function init() {
   GameStore.subscribe("resources", (newState) => {
     updateDisplay(newState);
   });
-
-  // Quest Log button
-  const questLogBtn = document.getElementById("quest-log-btn");
-  if (questLogBtn) questLogBtn.addEventListener("click", _openQuestLog);
 
   // Bind to the new Quest UI component
   document.addEventListener("quest-submit", async (e) => {
@@ -469,13 +392,11 @@ function _updateQuestBadge() {
   const orders = pet?.activeOrders || [];
   const canSubmitAny = orders.some((o) => _canFulfillOrder(o));
 
-  // Inform React layer
-  const shared = GameStore.getState("shared") || { activeQuests: 0 };
-  if (shared.activeQuests !== (canSubmitAny ? 1 : 0)) {
-    GameStore.setState("shared", {
-      ...shared,
-      activeQuests: canSubmitAny ? 1 : 0,
-    });
+  // v9.0: Write directly to hudStore (eliminates 'shared' slice middleman)
+  const current = hudStore.getState().activeQuests;
+  const next = canSubmitAny ? 1 : 0;
+  if (current !== next) {
+    hudStore.getState().setActiveQuests(next);
   }
 }
 
@@ -612,7 +533,6 @@ export const HUD = {
   syncFromServer,
   hasEnergy,
   getGold,
-  animateGoldChange,
   startRegenTimer,
   stopRegenTimer,
   showEnergyModal,

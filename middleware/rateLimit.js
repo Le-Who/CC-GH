@@ -1,19 +1,26 @@
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Rate Limiter Middleware
- *  In-memory sliding window per user ID
+ *  v9.0: Redis INCR + TTL when available, in-memory fallback
+ *
+ *  Uses Redis fixed-window counter for distributed rate limiting.
+ *  Falls back to in-memory sliding window when Redis is disabled.
  * ═══════════════════════════════════════════════════════
  */
 
+import { isRedisEnabled, getRedisClient } from "../redisAdapter.js";
+
+const RATE_KEY_PREFIX = "rate:";
+
+/* ─── In-memory fallback (original implementation) ─── */
 const windows = new Map(); // userId → [timestamps]
 
-// Single module-level cleanup (unref for clean test exit)
 let _cleanupStarted = false;
-function ensureCleanup(_windowMs) {
+function ensureCleanup() {
   if (_cleanupStarted) return;
   _cleanupStarted = true;
   setInterval(() => {
-    const cutoff = Date.now() - 120_000; // 2× longest window
+    const cutoff = Date.now() - 120_000;
     for (const [key, timestamps] of windows.entries()) {
       const valid = timestamps.filter((t) => t > cutoff);
       if (valid.length === 0) windows.delete(key);
@@ -24,24 +31,54 @@ function ensureCleanup(_windowMs) {
 
 /**
  * Creates a rate limiter middleware.
+ * Redis path: INCR key with TTL = windowMs (fixed-window counter, shared across instances).
+ * Local path: in-memory sliding window (original behavior, single-instance only).
  * @param {number} maxRequests - Max requests per window
  * @param {number} windowMs - Window duration in milliseconds
  */
 export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
-  ensureCleanup(windowMs);
+  ensureCleanup();
+  const windowSec = Math.ceil(windowMs / 1000);
 
-  return (req, res, next) => {
+  return async (req, res, next) => {
     // Skip rate limiting in test environment
     if (process.env.NODE_ENV === "test") return next();
 
     // Extract user ID from auth, body, or IP
     const userId =
       req.discordUser?.id || req.simpleUser?.userId || req.body?.userId || req.ip || "anonymous";
-    const now = Date.now();
-    const key = `${userId}:${maxRequests}`;
+    const bucketKey = `${userId}:${maxRequests}`;
 
-    if (!windows.has(key)) windows.set(key, []);
-    const timestamps = windows.get(key);
+    if (isRedisEnabled()) {
+      // ─── Redis fixed-window counter ───
+      try {
+        const redis = getRedisClient();
+        const redisKey = `${RATE_KEY_PREFIX}${bucketKey}:${Math.floor(Date.now() / windowMs)}`;
+        const count = await redis.incr(redisKey);
+        if (count === 1) {
+          // First request in this window — set TTL
+          await redis.expire(redisKey, windowSec + 1); // +1s safety margin
+        }
+
+        if (count > maxRequests) {
+          const retryAfter = windowSec;
+          res.set("Retry-After", String(retryAfter));
+          return res.status(429).json({
+            error: "Too many requests",
+            retryAfter,
+          });
+        }
+        return next();
+      } catch (e) {
+        // Redis error — fall through to in-memory
+        console.warn("Rate limiter Redis error, using in-memory fallback:", e.message);
+      }
+    }
+
+    // ─── In-memory sliding window (fallback) ───
+    const now = Date.now();
+    if (!windows.has(bucketKey)) windows.set(bucketKey, []);
+    const timestamps = windows.get(bucketKey);
 
     // Remove expired timestamps
     const cutoff = now - windowMs;

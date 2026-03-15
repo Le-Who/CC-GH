@@ -1,9 +1,112 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "autoUpdate",  // Auto-updates SW on new deploy
+      injectRegister: "auto",       // Auto-injects SW registration in index.html
+
+      // Workbox configuration
+      workbox: {
+        // Precache all Vite-built assets (hashed filenames)
+        globPatterns: [
+          "**/*.{js,css,html,woff,woff2,svg}",
+        ],
+        // Skip waiting + claim clients = instant activation on deploy
+        skipWaiting: true,
+        clientsClaim: true,
+        // Clean old caches on SW update
+        cleanupOutdatedCaches: true,
+
+        // Runtime caching strategies
+        runtimeCaching: [
+          // HTML navigation — NetworkFirst (always get fresh HTML from server)
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-cache",
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24, // 24h
+              },
+            },
+          },
+          // Discord SDK bundle — StaleWhileRevalidate (non-hashed, served dynamically)
+          {
+            urlPattern: /\/js\/discord-sdk\.js$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "discord-sdk-cache",
+              expiration: {
+                maxEntries: 2,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+            },
+          },
+          // API GET requests — NetworkFirst with short cache (leaderboard, config, state)
+          {
+            urlPattern: /\/api\/.*$/,
+            handler: "NetworkFirst",
+            method: "GET",
+            options: {
+              cacheName: "api-get-cache",
+              networkTimeoutSeconds: 5,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 5, // 5 min
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          // Font files — CacheFirst (fonts rarely change)
+          {
+            urlPattern: /\.(?:woff|woff2|ttf|otf)$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "font-cache",
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+        ],
+      },
+
+      // PWA manifest
+      manifest: {
+        name: "Game Hub Ultra",
+        short_name: "GameHub",
+        description: "5-in-1 Discord game hub — Farm, Trivia, Match-3, Blox, Merge",
+        theme_color: "#1a1a2e",
+        background_color: "#1a1a2e",
+        display: "standalone",
+        scope: "/",
+        start_url: "/",
+        icons: [
+          {
+            src: "/icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "/icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
+      },
+    }),
+  ],
   build: {
     outDir: "dist",
     emptyOutDir: true,

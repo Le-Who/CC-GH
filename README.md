@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v8.1.0** (Architecture Hardening: Race Condition Fixes, Redis Consistency, Mobile UX)
+**Current version: v9.0.0** (Stateless Redis Scaling, React Hooks Extraction, PWA Support, Bug Sweep)
 
 ---
 
@@ -50,9 +50,9 @@
 | **Backend**  | Express.js 5.x                           |
 | **Database** | Google Cloud Firestore                   |
 | **Storage**  | Google Cloud Storage (legacy backup)     |
-| **Auth**     | Discord Embedded App SDK 1.0             |
-| **State**    | Zustand (React) + GameStore proxy        |
-| **Testing**  | Node.js built-in `node:test` (zero deps) |
+| **Auth**     | Discord Activity SDK 1.0 + Simple Auth   |
+| **State**    | React Hooks + Vanilla Bridges            |
+| **Testing**  | Node.js built-in `node:test` (342 pass)  |
 
 ---
 

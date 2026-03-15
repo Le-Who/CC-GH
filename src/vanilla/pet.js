@@ -117,10 +117,8 @@ const PetCompanionImpl = (function () {
         if (data.room) GameStore.setState("room", data.room);
         _renderPetStack();
 
-        // Peak-End / IKEA Effect: Name pet at start if it's the default name
+        // Nudge for new players to tap the pet
         if (data.pet.name === "Buddy" && data.pet.level === 1) {
-          setTimeout(() => promptForPetName(data.pet.name), 2000);
-
           if (!localStorage.getItem("_pet_first_tap_nudge")) {
             setTimeout(() => {
               showBubble("Tap me to see my stats! ✨");

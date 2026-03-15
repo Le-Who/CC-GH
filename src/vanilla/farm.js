@@ -233,7 +233,6 @@ const FarmGameImpl = (() => {
       renderShop();
       renderFeaturedShelf(); // v7.2: featured seed shelf
       _checkNewUnlocks(); // v7.2: detect fresh unlocks on load
-      updateBuyBar();
     }
 
     // Event delegation: single click handler on grid (never lost during DOM rebuild)
@@ -1377,48 +1376,6 @@ const FarmGameImpl = (() => {
     render(); // Re-render plots to update titles
   }
 
-  /* ─── Horizontal Buy Bar ─── */
-  function updateBuyBar() {
-    const bar = $("farm-buy-bar");
-    if (!bar) return;
-
-    if (!selectedSeed || !crops[selectedSeed]) {
-      bar.style.display = "none";
-      return;
-    }
-
-    bar.style.display = "";
-    const cfg = crops[selectedSeed];
-    const totalCost = cfg.seedPrice * buyQty;
-    const goldAvail = HUD.getGold();
-    const canAfford = goldAvail >= totalCost;
-
-    bar.innerHTML = `
-      <span class="buy-bar-seed">${cfg.emoji} ${cfg.name}</span>
-      <span class="buy-bar-stepper">
-        <button class="step-lg" id="buy-qty-m10">−10</button>
-        <button id="buy-qty-minus">−</button>
-        <span class="qty-display" id="buy-qty-val">${buyQty}</span>
-        <button id="buy-qty-plus">+</button>
-        <button class="step-lg" id="buy-qty-p10">+10</button>
-      </span>
-      <span class="buy-bar-total">🪙 ${totalCost}</span>
-      <button class="buy-bar-btn${canAfford ? "" : " disabled"}" id="buy-bar-go">${canAfford ? "Buy" : "💰?"}</button>
-    `;
-
-    function setQty(q) {
-      buyQty = Math.max(1, Math.min(99, q));
-      if (selectedSeed) saveBuyQty(selectedSeed, buyQty);
-      updateBuyBar();
-    }
-    $("buy-qty-m10").onclick = () => setQty(buyQty - 10);
-    $("buy-qty-minus").onclick = () => setQty(buyQty - 1);
-    $("buy-qty-plus").onclick = () => setQty(buyQty + 1);
-    $("buy-qty-p10").onclick = () => setQty(buyQty + 10);
-    $("buy-bar-go").onclick = () => {
-      if (canAfford) buySeeds(selectedSeed);
-    };
-  }
 
   /* ─── Actions ─── */
   let buySeedVersion = 0;
@@ -1446,7 +1403,6 @@ const FarmGameImpl = (() => {
     HUD.animateGoldChange(-totalCost);
     buyQty = 1;
     if (selectedSeed) saveBuyQty(selectedSeed, 1);
-    updateBuyBar();
 
     // Fire-and-forget with version guard
     const myVersion = ++buySeedVersion;
@@ -1731,7 +1687,6 @@ const FarmGameImpl = (() => {
     syncToStore();
     render();
     renderShop();
-    updateBuyBar();
 
     // Phase 2 Item 5: Dirt Splash particle on plant
     const plotDiv = document.querySelector(
@@ -1861,7 +1816,6 @@ const FarmGameImpl = (() => {
 
     render();
     renderShop();
-    updateBuyBar();
     renderInventory();
 
     // Bug 3 fix: toast shows only XP, no gold (harvest doesn't award gold)

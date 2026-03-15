@@ -8,6 +8,7 @@ import PetInfoUI from "./components/PetInfoUI.jsx";
 import PetRoomUI from "./components/PetRoomUI.jsx";
 import WelcomeScreen from "./components/WelcomeScreen.jsx";
 import MobileShopDrawer from "./components/MobileShopDrawer.jsx";
+import { initGameBridge } from "./hooks/useGameBridge.js";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("farm");
@@ -22,6 +23,8 @@ export default function App() {
     function checkReady() {
       if (window.HUB?.bootComplete === true) {
         setAppReady(true);
+        // Wire hook stores ↔ legacy GameStore slices (idempotent)
+        initGameBridge();
         return true;
       }
       return false;

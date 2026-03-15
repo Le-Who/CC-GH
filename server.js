@@ -262,6 +262,12 @@ app.get("/api/health", (_req, res) =>
   }),
 );
 
+// v9.0: Service Worker cache escape hatch — wipes caches, IndexedDB, localStorage
+app.get("/api/clear-cache", (_req, res) => {
+  res.set("Clear-Site-Data", '"cache", "storage"');
+  res.json({ cleared: true });
+});
+
 /* ═══════════════════════════════════════════════════
  *  MOUNT ROUTE MODULES
  * ═══════════════════════════════════════════════════ */

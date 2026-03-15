@@ -1,20 +1,19 @@
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useGameStore } from "../store/gameStore";
+import { hudStore } from "../hooks/useHUDEngine";
 
 /**
  * HUD — Top bar with energy/gold pills + quest/store buttons.
- * v8.0: Compact mode for small viewports (< 500px height).
- *   - Single-line layout with smaller pills
- *   - Quest + Store buttons collapse into a "⋮" overflow menu
- *   - safe-area-inset-top padding for notched devices
+ * v9.0: Reads from typed hudStore (via useHUDEngine) instead of
+ *       legacy GameStore 'shared' slice. Data flows:
+ *       hud.js → GameStore('resources') → bridge → hudStore → HUD.jsx
  */
 
 export default function HUD({ onOpenStore, onOpenQuest }) {
-  const energy = useGameStore((state) => state.slices.shared?.energy ?? 30);
-  const maxEnergy = useGameStore((state) => state.slices.shared?.maxEnergy ?? 30);
-  const gold = useGameStore((state) => state.slices.shared?.gold ?? 0);
-  const activeQuests = useGameStore((state) => state.slices.shared?.activeQuests ?? 0);
+  const energy = hudStore((s) => s.energy?.current ?? 0);
+  const maxEnergy = hudStore((s) => s.energy?.max ?? 20);
+  const gold = hudStore((s) => s.gold ?? 0);
+  const activeQuests = hudStore((s) => s.activeQuests ?? 0);
 
   const [moreOpen, setMoreOpen] = useState(false);
   const toggleMore = useCallback(() => setMoreOpen((p) => !p), []);

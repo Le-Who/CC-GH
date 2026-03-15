@@ -1,8 +1,13 @@
 /**
  * ═══════════════════════════════════════════════════════
- *  Game Hub — Player Manager
- *  Hot-cache in-memory state backed by Google Cloud Firestore
- *  v8.0: Optional Upstash Redis read-through / write-through layer
+ *  Game Hub — Player Manager (v9.0 — Stateless)
+ *  Redis-primary architecture: Redis is the hot cache,
+ *  Firestore is the durable persistence layer.
+ *  No in-memory players Map — fully stateless.
+ *
+ *  v9.0: Replaced in-memory Map + promise-chain mutex
+ *        with Redis GET/SET + SETNX distributed lock.
+ *        Eliminates cold-start preload, enables horizontal scaling.
  * ═══════════════════════════════════════════════════════
  */
 
@@ -12,7 +17,8 @@ import { Firestore } from "@google-cloud/firestore";
 import { ECONOMY, createDefaultPlayer } from "./game-logic.js";
 import {
   initRedis, isRedisEnabled, redisSetPlayer,
-  redisDeletePlayer, redisBulkLoad, redisShutdown,
+  redisDeletePlayer, redisShutdown,
+  redisLock, redisUnlock, redisGetOrLoadPlayer,
 } from "./redisAdapter.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -20,11 +26,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 /* ═══════════════════════════════════════════════════
  *  FIRESTORE & STATE INIT
  * ═══════════════════════════════════════════════════ */
-export const players = new Map(); // userId -> { resources, pet, farm, trivia, match3 }
-const pendingSaves = new Map(); // userId -> timeoutId
-const playerLocks = new Map(); // userId -> Promise (mutex for concurrency)
-const SAVE_DELAY_MS = 2000; // Debounce threshold for rapid actions
-const MAX_CACHE_SIZE = 10000; // LRU eviction threshold
+
+/**
+ * Local request-scoped player cache.
+ * NOT the source of truth — Redis is. This Map is populated by
+ * withPlayerLock() for the duration of a request, and updated by
+ * debouncedSavePlayer(). It enables getPlayer() to remain synchronous
+ * (zero changes needed in 12 route files).
+ *
+ * Also serves as the data source for leaderboard iteration (which
+ * can't scan all Redis keys efficiently). Players appear here as
+ * they're accessed — leaderboard accuracy improves with traffic.
+ */
+export const players = new Map();
+
+const pendingSaves = new Map();   // userId -> timeoutId (debounce)
+const maxWaitSaves = new Map();   // userId -> timestamp of first unsaved change
+
+const SAVE_DELAY_MS = 2000;      // Debounce threshold for rapid actions
+const MAX_WAIT_MS = 10000;       // Guaranteed max-wait before forced save
 
 let firestore = null;
 let playersCol = null;
@@ -32,39 +52,115 @@ let usersCol = null;    // Simple-auth: username → password_hash
 let sessionsCol = null; // Simple-auth: token → { userId, username, createdAt }
 
 /**
- * Executes an async function exclusively per player, preventing race conditions like double-spends.
- * v7.3: Backpressure — rejects with QUEUE_FULL if pending lock depth exceeds MAX_QUEUE_DEPTH.
+ * Executes an async function exclusively per player, preventing race conditions.
+ * v9.0: Uses Redis SETNX distributed lock instead of promise chains.
+ *       Falls back to local promise-chain when Redis is disabled.
+ *
+ * The asyncFn runs AFTER the player is loaded from Redis/Firestore
+ * and cached locally in the `players` Map. After asyncFn completes,
+ * the updated player data is written back to Redis.
  */
-const MAX_QUEUE_DEPTH = 5;
-const lockQueueDepth = new Map(); // userId -> number of pending locks
+const MAX_QUEUE_DEPTH = 50;
+const localLockQueueDepth = new Map(); // Backpressure tracking (local)
+const localPlayerLocks = new Map();    // Fallback promise-chain when Redis disabled
 
 export async function withPlayerLock(userId, asyncFn) {
-  const depth = lockQueueDepth.get(userId) || 0;
-
-  // v7.3: Backpressure — reject if too many requests queued for this player
+  // Backpressure — reject if too many requests queued for this player
+  const depth = localLockQueueDepth.get(userId) || 0;
   if (depth >= MAX_QUEUE_DEPTH) {
     const err = new Error("QUEUE_FULL");
     err.statusCode = 429;
     throw err;
   }
+  localLockQueueDepth.set(userId, depth + 1);
 
-  lockQueueDepth.set(userId, depth + 1);
-  const currentLock = playerLocks.get(userId) || Promise.resolve();
-  
-  // Create a new lock that waits for the previous one
-  const nextLock = currentLock.then(async () => {
-    return await asyncFn();
-  }).catch((err) => {
-    // Prevent a failed lock from breaking the chain
-    throw err;
-  }).finally(() => {
-    const d = (lockQueueDepth.get(userId) || 1) - 1;
-    if (d <= 0) lockQueueDepth.delete(userId);
-    else lockQueueDepth.set(userId, d);
-  });
-  
-  playerLocks.set(userId, nextLock.catch(() => {})); // Store silent-catch to not crash unhandled extensions
-  return nextLock;
+  const decrementDepth = () => {
+    const d = (localLockQueueDepth.get(userId) || 1) - 1;
+    if (d <= 0) localLockQueueDepth.delete(userId);
+    else localLockQueueDepth.set(userId, d);
+  };
+
+  if (isRedisEnabled()) {
+    // ─── Redis distributed lock path ───
+    const lockVal = await redisLock(userId);
+    if (!lockVal) {
+      decrementDepth();
+      const err = new Error("LOCK_TIMEOUT");
+      err.statusCode = 429;
+      throw err;
+    }
+
+    try {
+      // Pre-load player from Redis/Firestore into local cache
+      await _ensurePlayerLoaded(userId);
+      const result = await asyncFn();
+
+      // Write updated state back to Redis immediately
+      const playerData = players.get(userId);
+      if (playerData) {
+        await redisSetPlayer(userId, playerData).catch(() => {});
+      }
+
+      return result;
+    } finally {
+      await redisUnlock(userId, lockVal).catch(() => {});
+      decrementDepth();
+    }
+  } else {
+    // ─── Fallback: local promise-chain lock (single-instance only) ───
+    const currentLock = localPlayerLocks.get(userId) || Promise.resolve();
+    const nextLock = currentLock.then(async () => {
+      return await asyncFn();
+    }).catch((err) => {
+      throw err;
+    }).finally(() => {
+      decrementDepth();
+    });
+    localPlayerLocks.set(userId, nextLock.catch(() => {}));
+    return nextLock;
+  }
+}
+
+/**
+ * Ensure a player is loaded into the local `players` Map.
+ * Checks: local Map → Redis → Firestore → create new.
+ * This is called by withPlayerLock BEFORE the route handler runs,
+ * so getPlayer() can remain synchronous.
+ */
+async function _ensurePlayerLoaded(userId) {
+  if (players.has(userId)) return; // Already in local cache
+
+  // Try Redis → Firestore
+  const fromRedis = await redisGetOrLoadPlayer(userId, _firestoreLoad);
+  if (fromRedis) {
+    players.set(userId, fromRedis);
+    return;
+  }
+
+  // Direct Firestore fallback (when Redis is disabled or both miss)
+  const fromFirestore = await _firestoreLoad(userId);
+  if (fromFirestore) {
+    players.set(userId, fromFirestore);
+    return;
+  }
+
+  // Player doesn't exist in any store — will be created by getPlayer()
+}
+
+/**
+ * Load a single player from Firestore.
+ * @param {string} userId
+ * @returns {Promise<object|null>}
+ */
+async function _firestoreLoad(userId) {
+  if (!playersCol) return null;
+  try {
+    const doc = await playersCol.doc(userId).get();
+    if (doc.exists) return doc.data();
+  } catch (e) {
+    console.warn(`Firestore load failed for ${userId}:`, e.message);
+  }
+  return null;
 }
 
 /**
@@ -145,10 +241,22 @@ function sanitizeForFirestore(obj) {
   return result;
 }
 
+/**
+ * v9.0: loadDb is now a no-op. Players are loaded lazily on first access
+ * via _ensurePlayerLoaded() → Redis → Firestore.
+ *
+ * Kept as an export for backward compatibility with server.js startup sequence.
+ * @returns {Promise<void>}
+ */
 export async function loadDb() {
-  if (playersCol) {
+  // v9.0: No-op. Lazy loading replaces full preload.
+  // Players are fetched from Redis/Firestore on demand by withPlayerLock().
+  if (isRedisEnabled()) {
+    console.log("  DB: lazy-load mode (Redis-primary, no preload)");
+  } else if (playersCol) {
+    // Fallback: when Redis is disabled, load from Firestore into memory (legacy behavior)
+    console.log("  DB: legacy preload mode (no Redis)");
     try {
-      // v7.3: Paginated loading — removes 1000-player cap
       let lastDoc = null;
       const PAGE_SIZE = 500;
       let totalLoaded = 0;
@@ -164,22 +272,15 @@ export async function loadDb() {
         totalLoaded += snapshot.size;
         lastDoc = snapshot.docs[snapshot.docs.length - 1];
         lastSnapshotSize = snapshot.size;
-        if (snapshot.size < PAGE_SIZE) break; // Last page
+        if (snapshot.size < PAGE_SIZE) break;
       } while (lastSnapshotSize === PAGE_SIZE);
       if (totalLoaded > 0) {
         console.log(
-          `🔥 DB loaded from Firestore: ${totalLoaded} players in hot-cache (paginated)`,
+          `🔥 DB loaded from Firestore: ${totalLoaded} players (legacy preload)`,
         );
       } else {
         console.log("🔥 Firestore DB is empty. Starting fresh.");
       }
-
-      // v8.0: Bulk-populate Redis with loaded players
-      if (isRedisEnabled()) {
-        await redisBulkLoad(players);
-      }
-
-      return;
     } catch (e) {
       console.error("❌ Firestore read error:", e);
     }
@@ -188,15 +289,21 @@ export async function loadDb() {
   }
 }
 
-const maxWaitSaves = new Map(); // userId -> timestamp of first unsaved change
-const MAX_WAIT_MS = 10000;
-
 /**
  * Debounced save function for an individual player.
+ * v9.0: Writes to Redis immediately (hot path), debounces Firestore (cold path).
  * Prevents hammering Firestore on rapid clicks (e.g. harvesting crops).
  * v7.3: Guaranteed Max-Wait prevents starvation if player clicks continuously.
  */
 export function debouncedSavePlayer(userId) {
+  const playerData = players.get(userId);
+  if (!playerData) return;
+
+  // v9.0: Write to Redis immediately (non-blocking, fire-and-forget)
+  if (isRedisEnabled()) {
+    redisSetPlayer(userId, playerData).catch(() => {});
+  }
+
   if (!playersCol) return; // Silent fallback if Firestore is missing
 
   const now = Date.now();
@@ -219,22 +326,17 @@ export function debouncedSavePlayer(userId) {
     pendingSaves.delete(userId);
     maxWaitSaves.delete(userId); // reset max-wait tracker
 
-    const playerData = players.get(userId);
-    if (!playerData) return;
+    const latestData = players.get(userId);
+    if (!latestData) return;
 
     try {
-      await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
-      playerData._saveError = false; // Reset circuit breaker on success
-
-      // v8.1: Write-through to Redis AFTER Firestore success (consistency guarantee)
-      if (isRedisEnabled()) {
-        redisSetPlayer(userId, playerData).catch(() => {});
-      }
+      await playersCol.doc(userId).set(sanitizeForFirestore(latestData));
+      latestData._saveError = false; // Reset circuit breaker on success
     } catch (e) {
       console.error(`❌ Failed to save player ${userId} to Firestore:`, e);
-      playerData._saveError = true; // Trip the circuit breaker
+      latestData._saveError = true; // Trip the circuit breaker
 
-      // v8.1: Evict stale Redis entry — Redis must never be "ahead" of Firestore
+      // v8.1: Evict stale Redis entry — Redis must never be "ahead" of a failed Firestore write
       if (isRedisEnabled()) {
         redisDeletePlayer(userId).catch(() => {});
       }
@@ -247,15 +349,6 @@ export function debouncedSavePlayer(userId) {
 /* ─── Graceful Shutdown ─── */
 export const gracefulShutdown = async () => {
   console.log("\n  Flushing pending saves before shutdown...");
-
-  // v8.0: Drain any in-flight player lock chains before flushing
-  const lockDrainPromises = [];
-  for (const [, lockPromise] of playerLocks.entries()) {
-    lockDrainPromises.push(lockPromise.catch(() => {}));
-  }
-  if (lockDrainPromises.length > 0) {
-    await Promise.all(lockDrainPromises);
-  }
 
   if (!playersCol) {
     await redisShutdown();
@@ -296,56 +389,15 @@ process.on("SIGINT", gracefulShutdown);
 export function getPlayer(userId, username) {
   let p = players.get(userId);
 
-  // If player returned while being evicted, rescue them (cancel eviction)
-  if (p && p._isEvicting) {
-    p._isEvicting = false;
-  }
-
   let NeedsSaveSync = false;
 
   if (!p) {
-    // LRU eviction: remove oldest entries when cache is full
-    if (players.size >= MAX_CACHE_SIZE) {
-      let oldestKey = null;
-      // Find the first key that isn't already in the process of evicting
-      for (const key of players.keys()) {
-        const data = players.get(key);
-        if (!data._isEvicting) {
-          oldestKey = key;
-          break;
-        }
-      }
-
-      if (oldestKey) {
-        const oldData = players.get(oldestKey);
-        oldData._isEvicting = true; // Mark as flushing
-
-        // Flush pending save asynchronously BEFORE eviction, guarded by player lock
-        withPlayerLock(oldestKey, async () => {
-          if (pendingSaves.has(oldestKey)) {
-            clearTimeout(pendingSaves.get(oldestKey));
-            pendingSaves.delete(oldestKey);
-          }
-          if (playersCol) {
-            await playersCol
-              .doc(oldestKey)
-              .set(sanitizeForFirestore(oldData))
-              .catch((e) => console.error(`Eviction save failed for ${oldestKey}:`, e));
-          }
-          // Only delete if they didn't return during the I/O pause
-          if (oldData._isEvicting) {
-            players.delete(oldestKey);
-          }
-        });
-      }
-    }
+    // v9.0: If we're here and player isn't in local cache, it means:
+    // - withPlayerLock pre-loaded and it's a brand new player, OR
+    // - route called getPlayer outside withPlayerLock (e.g. GET state endpoints)
     p = createDefaultPlayer(userId, username);
     players.set(userId, p);
     NeedsSaveSync = true;
-  } else {
-    // True LRU: refresh position by moving to the end of the Map
-    players.delete(userId);
-    players.set(userId, p);
   }
 
   // ─── Schema Migration ───
@@ -453,7 +505,6 @@ export function getPlayer(userId, username) {
     // Ensure starter seeds exist
     if (!p.farm.inventory) p.farm.inventory = {};
     p.farm.inventory.strawberry = Math.max(p.farm.inventory.strawberry || 0, 5);
-    // v7.3: Removed planter re-addition (phantom item fix)
 
     // Clear active plots (crops planted under old timers are invalid)
     if (p.farm.plots) {

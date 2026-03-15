@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useDragControls } from "framer-motion";
-import { useGameStore } from "../store/gameStore";
+import { hudStore } from "../hooks/useHUDEngine";
+import { farmStore } from "../hooks/useFarmEngine";
 
 /**
  * MobileShopDrawer — Bottom-sheet pattern for quick access to
@@ -31,10 +32,10 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Get inventory data from Zustand
-  const inventory = useGameStore((s) => s.slices?.farm?.inventory) || {};
-  const gold = useGameStore((s) => s.slices.shared?.gold ?? 0);
-  const energy = useGameStore((s) => s.slices.shared?.energy ?? 0);
+  // Get data from typed hook stores
+  const inventory = farmStore((s) => s.inventory) || {};
+  const gold = hudStore((s) => s.gold ?? 0);
+  const energy = hudStore((s) => s.energy?.current ?? 0);
 
   const sheetHeight = snapPosition * viewportH;
 

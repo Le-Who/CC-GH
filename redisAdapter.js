@@ -174,6 +174,98 @@ export async function isNonceSeenRedis(userId, nonce) {
 }
 
 /* ═══════════════════════════════════════════════════
+ *  Distributed Lock — SETNX-based per-player mutex
+ *  Replaces the in-memory withPlayerLock promise chain.
+ *  Uses SET NX EX (set-if-not-exists with TTL).
+ * ═══════════════════════════════════════════════════ */
+
+const LOCK_KEY_PREFIX = "lock:player:";
+const LOCK_TTL_SECONDS = 10;    // Auto-release after 10s (prevent deadlocks)
+const LOCK_RETRY_MS = 50;       // Wait between retry attempts
+const LOCK_MAX_RETRIES = 8;     // ~400ms total wait budget
+
+/**
+ * Acquire a distributed lock for a player.
+ * @param {string} userId
+ * @param {string} [lockValue] — Unique value for this lock holder (for safe release)
+ * @returns {Promise<string|null>} The lock value if acquired, null if failed
+ */
+export async function redisLock(userId, lockValue) {
+  if (!redisEnabled) return lockValue || "local"; // Degrade to no-lock (single-instance mode)
+  const key = `${LOCK_KEY_PREFIX}${userId}`;
+  const val = lockValue || `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  for (let attempt = 0; attempt < LOCK_MAX_RETRIES; attempt++) {
+    try {
+      const wasSet = await redis.set(key, val, { nx: true, ex: LOCK_TTL_SECONDS });
+      if (wasSet !== null) return val; // Lock acquired
+    } catch (e) {
+      console.warn(`Redis LOCK attempt ${attempt + 1} failed for ${userId}:`, e.message);
+      if (attempt >= LOCK_MAX_RETRIES - 1) return null;
+    }
+    // Wait before retrying
+    await new Promise((r) => setTimeout(r, LOCK_RETRY_MS));
+  }
+  return null; // Could not acquire lock after all retries
+}
+
+/**
+ * Release a distributed lock for a player.
+ * Only releases if the lock value matches (prevents releasing someone else's lock).
+ * @param {string} userId
+ * @param {string} lockValue — The value returned by redisLock()
+ */
+export async function redisUnlock(userId, lockValue) {
+  if (!redisEnabled) return;
+  const key = `${LOCK_KEY_PREFIX}${userId}`;
+  try {
+    // Atomic check-and-delete via Lua script to prevent race conditions
+    // If current value matches our lock value → delete; otherwise → no-op
+    const script = `if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end`;
+    await redis.eval(script, [key], [lockValue]);
+  } catch (e) {
+    // Fallback: simple DEL if Lua eval fails (Upstash REST may not support eval)
+    try {
+      const currentVal = await redis.get(key);
+      if (currentVal === lockValue) {
+        await redis.del(key);
+      }
+    } catch (delErr) {
+      console.warn(`Redis UNLOCK failed for ${userId}:`, delErr.message);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+ *  Player Get-Or-Load — Redis first, Firestore fallback
+ *  This replaces direct reads from the in-memory players Map.
+ * ═══════════════════════════════════════════════════ */
+
+/**
+ * Get a player from Redis, falling back to Firestore on cache miss.
+ * On miss: fetches from Firestore → caches in Redis → returns.
+ * @param {string} userId
+ * @param {Function} firestoreLoader — async (userId) => playerData|null
+ * @returns {Promise<object|null>} Player data or null if not found anywhere
+ */
+export async function redisGetOrLoadPlayer(userId, firestoreLoader) {
+  if (!redisEnabled) return null; // Caller handles fallback
+
+  // 1. Try Redis cache
+  const cached = await redisGetPlayer(userId);
+  if (cached) return cached;
+
+  // 2. Cache miss — load from Firestore
+  if (!firestoreLoader) return null;
+  const firestoreData = await firestoreLoader(userId);
+  if (!firestoreData) return null;
+
+  // 3. Populate Redis for next read
+  await redisSetPlayer(userId, firestoreData).catch(() => {});
+  return firestoreData;
+}
+
+/* ═══════════════════════════════════════════════════
  *  Pub/Sub Helpers (Future: cross-instance sync)
  * ═══════════════════════════════════════════════════ */
 
