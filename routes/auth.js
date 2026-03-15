@@ -8,7 +8,7 @@
 import { Router } from "express";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { getUsersCol, getSessionsCol } from "../playerManager.js";
+import { getDb } from "../db.js";
 
 // In-memory fallback for testing (when Firestore is unavailable)
 const _memUsers = new Map();     // username → { userId, username, passwordHash }
@@ -49,14 +49,15 @@ export default function authRoutes() {
     }
 
     const usernameLower = username.toLowerCase();
-    const usersCol = getUsersCol();
-    const sessionsCol = getSessionsCol();
 
     try {
       // Check if user already exists
-      if (usersCol) {
-        const existing = await usersCol.doc(usernameLower).get();
-        if (existing.exists) {
+      const sql = getDb();
+      if (sql) {
+        const existing = await sql`
+          SELECT data FROM auth_users WHERE id = ${usernameLower}
+        `;
+        if (existing.length > 0) {
           return res.status(409).json({ error: "Username already taken" });
         }
       } else {
@@ -77,8 +78,11 @@ export default function authRoutes() {
       };
 
       // Store user
-      if (usersCol) {
-        await usersCol.doc(usernameLower).set(userData);
+      if (sql) {
+        await sql`
+          INSERT INTO auth_users (id, data)
+          VALUES (${usernameLower}, ${userData})
+        `;
       } else {
         _memUsers.set(usernameLower, userData);
       }
@@ -92,8 +96,11 @@ export default function authRoutes() {
         expiresAt: Date.now() + SESSION_TTL_MS,
       };
 
-      if (sessionsCol) {
-        await sessionsCol.doc(token).set(sessionData);
+      if (sql) {
+        await sql`
+          INSERT INTO auth_sessions (id, data, expires_at)
+          VALUES (${token}, ${sessionData}, ${sessionData.expiresAt})
+        `;
       } else {
         _memSessions.set(token, sessionData);
       }
@@ -114,17 +121,18 @@ export default function authRoutes() {
     }
 
     const usernameLower = username.toLowerCase();
-    const usersCol = getUsersCol();
-    const sessionsCol = getSessionsCol();
 
     try {
       let userData;
-      if (usersCol) {
-        const doc = await usersCol.doc(usernameLower).get();
-        if (!doc.exists) {
+      const sql = getDb();
+      if (sql) {
+        const existing = await sql`
+          SELECT data FROM auth_users WHERE id = ${usernameLower}
+        `;
+        if (existing.length === 0) {
           return res.status(401).json({ error: "Invalid username or password" });
         }
-        userData = doc.data();
+        userData = existing[0].data;
       } else {
         userData = _memUsers.get(usernameLower);
         if (!userData) {
@@ -147,8 +155,11 @@ export default function authRoutes() {
         expiresAt: Date.now() + SESSION_TTL_MS,
       };
 
-      if (sessionsCol) {
-        await sessionsCol.doc(token).set(sessionData);
+      if (sql) {
+        await sql`
+          INSERT INTO auth_sessions (id, data, expires_at)
+          VALUES (${token}, ${sessionData}, ${sessionData.expiresAt})
+        `;
       } else {
         _memSessions.set(token, sessionData);
       }
@@ -176,16 +187,17 @@ export default function authRoutes() {
       return res.status(401).json({ error: "Invalid token format" });
     }
 
-    const sessionsCol = getSessionsCol();
-
     try {
       let session;
-      if (sessionsCol) {
-        const doc = await sessionsCol.doc(token).get();
-        if (!doc.exists) {
+      const sql = getDb();
+      if (sql) {
+        const existing = await sql`
+          SELECT data FROM auth_sessions WHERE id = ${token}
+        `;
+        if (existing.length === 0) {
           return res.status(401).json({ error: "Session expired or invalid" });
         }
-        session = doc.data();
+        session = existing[0].data;
       } else {
         session = _memSessions.get(token);
         if (!session) {
@@ -196,8 +208,8 @@ export default function authRoutes() {
       // Check expiry
       if (session.expiresAt && session.expiresAt < Date.now()) {
         // Clean up expired session
-        if (sessionsCol) {
-          await sessionsCol.doc(token).delete();
+        if (sql) {
+          await sql`DELETE FROM auth_sessions WHERE id = ${token}`;
         } else {
           _memSessions.delete(token);
         }
@@ -229,8 +241,9 @@ export default function authRoutes() {
     const sessionsCol = getSessionsCol();
 
     try {
-      if (sessionsCol) {
-        await sessionsCol.doc(token).delete();
+      const sql = getDb();
+      if (sql) {
+        await sql`DELETE FROM auth_sessions WHERE id = ${token}`;
       } else {
         _memSessions.delete(token);
       }
@@ -255,14 +268,16 @@ export default function authRoutes() {
 export async function validateSimpleAuthToken(token) {
   if (!token || !token.startsWith("sa_")) return null;
 
-  const sessionsCol = getSessionsCol();
+  const sql = getDb();
 
   try {
     let session;
-    if (sessionsCol) {
-      const doc = await sessionsCol.doc(token).get();
-      if (!doc.exists) return null;
-      session = doc.data();
+    if (sql) {
+      const existing = await sql`
+        SELECT data FROM auth_sessions WHERE id = ${token}
+      `;
+      if (existing.length === 0) return null;
+      session = existing[0].data;
     } else {
       session = _memSessions.get(token);
       if (!session) return null;
@@ -270,8 +285,8 @@ export async function validateSimpleAuthToken(token) {
 
     // Check expiry
     if (session.expiresAt && session.expiresAt < Date.now()) {
-      if (sessionsCol) {
-        sessionsCol.doc(token).delete().catch(() => {});
+      if (sql) {
+        sql`DELETE FROM auth_sessions WHERE id = ${token}`.catch(() => {});
       } else {
         _memSessions.delete(token);
       }

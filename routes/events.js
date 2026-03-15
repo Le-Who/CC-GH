@@ -11,7 +11,7 @@ export default function eventRoutes(requireAuth) {
   const router = Router();
 
   /* ─── Get Active Events ─── */
-  router.get("/api/events/active", requireAuth, (_req, res) => {
+  router.get("/api/events/active", requireAuth, async (_req, res) => {
     const active = getActiveEvents();
     res.json({
       events: active.map((e) => ({

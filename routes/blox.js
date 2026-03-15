@@ -11,7 +11,7 @@ import {
   calcBloxReward,
   calcTokenReward,
 } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer, withPlayerLock } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function bloxRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -19,8 +19,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
   router.post("/api/blox/start", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
       calcRegen(p);
 
       if (p.resources.energy.current < ECONOMY.COST_BLOX) {
@@ -32,8 +31,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
       }
       p.resources.energy.current -= ECONOMY.COST_BLOX;
       p.blox.totalGames++;
-      p.blox.activeGame = true;
-      debouncedSavePlayer(userId);
+      p.blox.activeGame = true;
       res.json({
         success: true,
         resources: p.resources,
@@ -45,9 +43,8 @@ export default function bloxRoutes(requireAuth, resolveUser) {
   router.post("/api/blox/end", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const { score } = req.body;
-      const p = getPlayer(userId);
+    await withPlayerLock(userId, async (p) => {
+      const { score } = req.body;
 
       // Session validation: prevent gold farming without starting a game
       if (!p.blox.activeGame) {
@@ -73,8 +70,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
         }
       }
 
-      p.blox.activeGame = false;
-      debouncedSavePlayer(userId);
+      p.blox.activeGame = false;
       res.json({
         success: true,
         resources: p.resources,
@@ -86,10 +82,11 @@ export default function bloxRoutes(requireAuth, resolveUser) {
   });
 
   // v4.12.3: Get saved board state for cross-device sync
-  router.post("/api/blox/state", requireAuth, (req, res) => {
+  router.post("/api/blox/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    if (!userId) return res.status(400).json({ error: "userId required" });
     // v5.0.1: savedState stored as JSON string to avoid Firestore nested-array rejection
     let parsed = null;
     if (typeof p.blox.savedState === "string") {
@@ -105,18 +102,17 @@ export default function bloxRoutes(requireAuth, resolveUser) {
       savedState: parsed,
       highScore: p.blox.highScore,
     });
+      });
   });
 
   // v4.12.3: Sync board state from client to server
   router.post("/api/blox/sync", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const { savedState } = req.body;
-      const p = getPlayer(userId);
+    await withPlayerLock(userId, async (p) => {
+      const { savedState } = req.body;
       // v5.0.1: Store as JSON string — Firestore rejects nested arrays (board is 2D array)
-      p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
-      debouncedSavePlayer(userId);
+      p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
       res.json({ success: true });
     });
   });

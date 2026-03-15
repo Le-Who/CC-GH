@@ -14,7 +14,7 @@ import {
   pickQuestions,
   makeClientQuestion,
 } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -37,11 +37,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     return pickQuestions(QUESTIONS, count, difficulty);
   }
 
-  router.post("/api/trivia/start", requireAuth, (req, res) => {
+  router.post("/api/trivia/start", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
-    const { count = 5, difficulty } = req.body;
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    const { count = 5, difficulty } = req.body;
+    if (!userId) return res.status(400).json({ error: "userId required" });
     calcRegen(p);
 
     // Energy check
@@ -62,8 +63,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       score: 0,
       streak: 0,
       startedAt: Date.now(),
-    };
-    debouncedSavePlayer(userId);
+    };
 
     res.json({
       success: true,
@@ -75,11 +75,13 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       },
       question: makeClientQuestion(questions[0], 0, questions.length),
     });
+      });
   });
 
-  router.post("/api/trivia/forfeit", requireAuth, (req, res) => {
-    const { userId } = resolveUser(req);
-    const p = getPlayer(userId);
+  router.post("/api/trivia/forfeit", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     const s = p.trivia.session;
     if (!s) return res.status(400).json({ error: "no session" });
 
@@ -89,8 +91,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     p.trivia.totalPlayed++;
     p.trivia.bestStreak = Math.max(p.trivia.bestStreak, s.streak);
     const finalScore = s.score;
-    p.trivia.session = null;
-    debouncedSavePlayer(userId);
+    p.trivia.session = null;
 
     res.json({
       success: true,
@@ -102,12 +103,14 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         totalCorrect: p.trivia.totalCorrect,
       },
     });
+      });
   });
 
-  router.post("/api/trivia/answer", requireAuth, (req, res) => {
+  router.post("/api/trivia/answer", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { answer, timeMs } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { answer, timeMs } = req.body;
     const s = p.trivia.session;
     if (!s) return res.status(400).json({ error: "no session" });
     const q = s.questions[s.index];
@@ -138,8 +141,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         ? ECONOMY.REWARD_TRIVIA_WIN
         : ECONOMY.REWARD_TRIVIA_LOSE;
       p.resources.gold += goldReward;
-      p.trivia.session = null;
-      debouncedSavePlayer(userId);
+      p.trivia.session = null;
     }
 
     let nextQuestion = null;
@@ -170,6 +172,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
           }
         : undefined,
     });
+      });
   });
 
   /* ═══════════════════════════════════════════════════
@@ -199,8 +202,10 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     return Math.random().toString(36).slice(2, 8).toUpperCase();
   }
 
-  router.post("/api/trivia/duel/create", requireAuth, (req, res) => {
+  router.post("/api/trivia/duel/create", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     const { count = 5, difficulty } = req.body;
     if (!userId) return res.status(400).json({ error: "userId required" });
 
@@ -227,9 +232,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         const oldestKey = duelRooms.keys().next().value;
         if (oldestKey) duelRooms.delete(oldestKey);
       }
-    }
-
-    const p = getPlayer(userId, username);
+    }
     calcRegen(p);
 
     // Energy check
@@ -263,8 +266,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       },
       createdAt: Date.now(),
       status: "waiting", // waiting -> active -> finished
-    });
-    debouncedSavePlayer(userId);
+    });
 
     res.json({
       success: true,
@@ -273,10 +275,13 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       inviteCode,
       questionCount: questions.length,
     });
+      });
   });
 
-  router.post("/api/trivia/duel/join", requireAuth, (req, res) => {
+  router.post("/api/trivia/duel/join", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     const { inviteCode } = req.body;
     if (!userId || !inviteCode)
       return res.status(400).json({ error: "userId and inviteCode required" });
@@ -299,9 +304,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         error: "You're already in this room — share the code with a friend!",
       });
     if (Object.keys(room.players).length >= 2)
-      return res.status(400).json({ error: "Room is full" });
-
-    const p = getPlayer(userId, username);
+      return res.status(400).json({ error: "Room is full" });
     if (!room.players[userId]) {
       room.players[userId] = {
         userId,
@@ -325,9 +328,10 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       players: playerNames,
       questionCount: room.questions.length,
     });
+      });
   });
 
-  router.post("/api/trivia/duel/start", requireAuth, (req, res) => {
+  router.post("/api/trivia/duel/start", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     const { roomId } = req.body;
     const room = duelRooms.get(roomId);
@@ -349,8 +353,10 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     });
   });
 
-  router.post("/api/trivia/duel/answer", requireAuth, (req, res) => {
+  router.post("/api/trivia/duel/answer", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     const { roomId, answer, timeMs } = req.body;
     const room = duelRooms.get(roomId);
     if (!room) return res.status(404).json({ error: "Room not found" });
@@ -426,6 +432,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       isComplete,
       nextQuestion,
     });
+      });
   });
 
   router.get("/api/trivia/duel/status/:roomId", (req, res) => {
@@ -473,7 +480,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     });
   });
 
-  router.post("/api/trivia/duel/leave", requireAuth, (req, res) => {
+  router.post("/api/trivia/duel/leave", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     const { roomId } = req.body;
     if (!roomId) return res.status(400).json({ error: "roomId required" });
@@ -488,8 +495,10 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   });
 
   /* ─── Duel Ready-Up ─── */
-  router.post("/api/trivia/duel/ready", requireAuth, (req, res) => {
+  router.post("/api/trivia/duel/ready", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     const { roomId } = req.body;
     const room = duelRooms.get(roomId);
     if (!room) return res.status(404).json({ error: "Room not found" });
@@ -514,6 +523,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       status: room.status,
       players: playersInfo,
     });
+      });
   });
 
   /* ─── Duel History ─── */

@@ -6,49 +6,50 @@
  */
 import { Router } from "express";
 import { ACHIEVEMENTS, checkAchievements } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function achievementRoutes(requireAuth, resolveUser) {
   const router = Router();
 
   /* ─── Get All Achievements ─── */
-  router.get("/api/achievements", requireAuth, (req, res) => {
+  router.get("/api/achievements", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
 
-    // Check for newly unlocked badges
-    const newlyUnlocked = checkAchievements(p);
-    if (newlyUnlocked.length > 0) debouncedSavePlayer(userId);
+    await withPlayerLock(userId, async (p) => {
+      // Check for newly unlocked badges
+      const newlyUnlocked = checkAchievements(p);
 
-    // Build response with all badges + player status
-    const badges = {};
-    for (const [id, badge] of Object.entries(ACHIEVEMENTS)) {
-      badges[id] = {
-        id: badge.id,
-        name: badge.name,
-        emoji: badge.emoji,
-        desc: badge.desc,
-        reward: badge.reward,
-        unlocked: !!p.achievements[id],
-        unlockedAt: p.achievements[id]?.unlockedAt || null,
-        seen: p.achievements[id]?.seen || false,
-      };
-    }
+      // Build response with all badges + player status
+      const badges = {};
+      for (const [id, badge] of Object.entries(ACHIEVEMENTS)) {
+        badges[id] = {
+          id: badge.id,
+          name: badge.name,
+          emoji: badge.emoji,
+          desc: badge.desc,
+          reward: badge.reward,
+          unlocked: !!p.achievements[id],
+          unlockedAt: p.achievements[id]?.unlockedAt || null,
+          seen: p.achievements[id]?.seen || false,
+        };
+      }
 
-    res.json({
-      badges,
-      newlyUnlocked,
-      totalUnlocked: Object.keys(p.achievements).length,
-      totalBadges: Object.keys(ACHIEVEMENTS).length,
+      res.json({
+        badges,
+        newlyUnlocked,
+        totalUnlocked: Object.keys(p.achievements).length,
+        totalBadges: Object.keys(ACHIEVEMENTS).length,
+      });
     });
   });
 
   /* ─── Claim Achievement Reward ─── */
-  router.post("/api/achievements/claim", requireAuth, (req, res) => {
+  router.post("/api/achievements/claim", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { badgeId } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { badgeId } = req.body;
 
     if (!badgeId || !ACHIEVEMENTS[badgeId]) {
       return res.status(400).json({ error: "invalid badge ID" });
@@ -68,14 +69,13 @@ export default function achievementRoutes(requireAuth, resolveUser) {
         (p.resources.gachaTokens || 0) + reward.gachaTokens;
 
     // Mark as claimed
-    p.achievements[badgeId].seen = true;
-
-    debouncedSavePlayer(userId);
+    p.achievements[badgeId].seen = true;
     res.json({
       success: true,
       reward,
       resources: p.resources,
     });
+      });
   });
 
   return router;

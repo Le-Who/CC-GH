@@ -57,6 +57,7 @@ export function initRedis() {
  * Check if Redis is enabled and available.
  */
 export function isRedisEnabled() {
+  if (process.env.NODE_ENV === "test") return false;
   return redisEnabled && redis !== null;
 }
 

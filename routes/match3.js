@@ -11,7 +11,7 @@ import {
   calcGoldReward,
   calcTokenReward,
 } from "../game-logic.js";
-import { getPlayer, players, debouncedSavePlayer, withPlayerLock } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function match3Routes(requireAuth, resolveUser) {
   const router = Router();
@@ -31,15 +31,17 @@ export default function match3Routes(requireAuth, resolveUser) {
     return {};
   }
 
-  router.post("/api/game/state", requireAuth, (req, res) => {
+  router.post("/api/game/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    if (!userId) return res.status(400).json({ error: "userId required" });
     res.json({
       game: p.match3.currentGame || null,
       highScore: p.match3.highScore,
       savedModes: _parseSavedModes(p.match3.savedModes),
     });
+      });
   });
 
   // v4.15.1: Sync saved mode states — immediate Firestore write (critical state).
@@ -48,9 +50,8 @@ export default function match3Routes(requireAuth, resolveUser) {
   router.post("/api/game/sync-modes", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const { savedModes, game } = req.body;
-      const p = getPlayer(userId);
+    await withPlayerLock(userId, async (p) => {
+      const { savedModes, game } = req.body;
       let changed = false;
 
       if (savedModes && typeof savedModes === "object") {
@@ -64,8 +65,7 @@ export default function match3Routes(requireAuth, resolveUser) {
         changed = true;
       }
 
-      if (changed) {
-        debouncedSavePlayer(userId);
+      if (changed) {
       }
       res.json({ success: true });
     });
@@ -74,14 +74,12 @@ export default function match3Routes(requireAuth, resolveUser) {
   router.post("/api/game/start", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
       const { mode = "classic", isResume } = req.body;
 
       // v5.0.2: Resume path — register session without charging energy.
       if (isResume) {
-        p.match3.currentGame = { score: 0, movesLeft: 30, combo: 0, mode };
-        debouncedSavePlayer(userId);
+        p.match3.currentGame = { score: 0, movesLeft: 30, combo: 0, mode };
         return res.json({
           success: true,
           resources: p.resources,
@@ -103,8 +101,7 @@ export default function match3Routes(requireAuth, resolveUser) {
 
       const game = { score: 0, movesLeft: 30, combo: 0, mode };
       p.match3.currentGame = game;
-      p.match3.totalGames++;
-      debouncedSavePlayer(userId);
+      p.match3.totalGames++;
 
       res.json({
         success: true,
@@ -118,9 +115,8 @@ export default function match3Routes(requireAuth, resolveUser) {
   router.post("/api/game/end", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const { score, fromQuit } = req.body;
-      const p = getPlayer(userId);
+    await withPlayerLock(userId, async (p) => {
+      const { score, fromQuit } = req.body;
 
       // Prevent awarding gold if there was no active session logged
       if (
@@ -154,8 +150,7 @@ export default function match3Routes(requireAuth, resolveUser) {
         }
       }
 
-      p.match3.currentGame = null;
-      debouncedSavePlayer(userId);
+      p.match3.currentGame = null;
 
       // Compute rank
       let rank = 1;

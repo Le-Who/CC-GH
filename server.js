@@ -12,10 +12,10 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import compression from "compression";
-import { initStorage, getBucket } from "./storage.js";
-import { players, loadDb, initFirestore, ensurePlayerLoaded } from "./playerManager.js";
+import { ensurePlayerLoaded } from "./playerManager.js";
 import { isRedisEnabled, isNonceSeenRedis } from "./redisAdapter.js";
 import authRoutes, { validateSimpleAuthToken } from "./routes/auth.js";
+import { getDb } from "./db.js";
 
 /* ─── Route Modules ─── */
 import farmRoutes from "./routes/farm.js";
@@ -95,11 +95,7 @@ const PORT = process.env.PORT || 8090;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "";
 const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "";
-const GCS_BUCKET = process.env.GCS_BUCKET || "";
 const DISCORD_ENABLED = !!(CLIENT_ID && CLIENT_SECRET);
-
-// Initialize GCS (no-op if GCS_BUCKET is empty)
-initStorage(GCS_BUCKET);
 
 /* ═══════════════════════════════════════════════════
  *  AUTH MIDDLEWARE (Tri-Mode: Discord · Simple-Auth · Demo)
@@ -181,23 +177,8 @@ function resolveUser(req) {
  * ═══════════════════════════════════════════════════ */
 app.use("/api/token", authLimiter);
 app.use("/api/auth", authLimiter);
-// Default limiter for all /api except auth paths
 app.use("/api", (req, res, next) => {
   if (req.path.startsWith("/auth") || req.path.startsWith("/token")) return next();
-  
-  // v7.3.6: Circuit Breaker - Halt mutations if Firestore save failed recently
-  if (req.method === "POST") {
-    const user = req.discordUser || req.simpleUser || { userId: req.body?.userId };
-    if (user && user.userId) {
-      const p = players.get(user.userId);
-      if (p && p._saveError) {
-        return res.status(503).json({ 
-          error: "Database is experiencing issues. Please wait a moment before taking actions." 
-        });
-      }
-    }
-  }
-
   return defaultLimiter(req, res, next);
 });
 
@@ -253,16 +234,40 @@ app.post("/api/token", async (req, res) => {
 const triviaRouter = triviaRoutes(requireAuth, resolveUser);
 const duelRooms = triviaRouter._duelRooms;
 
-app.get("/api/health", (_req, res) =>
+app.get("/api/health", async (_req, res) => {
+  let dbOk = false;
+  try {
+    const sql = getDb();
+    if (sql) {
+      await sql`SELECT 1`;
+      dbOk = true;
+    }
+  } catch (e) {
+    console.error("Health check DB error:", e);
+  }
+
   res.json({
-    status: "ok",
-    players: players.size,
+    status: dbOk ? "ok" : "degraded (database offline)",
     duels: duelRooms.size,
     uptime: Math.floor(process.uptime()),
-    gcs: !!getBucket(),
     discord: DISCORD_ENABLED,
-  }),
-);
+    postgres: dbOk,
+  });
+});
+
+app.get("/api/health/ping", async (_req, res) => {
+  try {
+    const sql = getDb();
+    if (sql) {
+      await sql`SELECT 1`;
+      res.status(200).send("PONG_PG");
+    } else {
+      res.status(200).send("PONG_NO_DB");
+    }
+  } catch (e) {
+    res.status(500).send("PING_FAIL");
+  }
+});
 
 // v9.0: Service Worker cache escape hatch — wipes caches, IndexedDB, localStorage
 app.get("/api/clear-cache", (_req, res) => {
@@ -504,20 +509,18 @@ app.use((err, _req, res, _next) => {
 /* ═══════════════════════════════════════════════════
  *  STARTUP
  * ═══════════════════════════════════════════════════ */
-export { app, players };
+export { app };
+import { initDb } from "./db.js";
 
 async function start() {
-  initFirestore();
-  await loadDb();
+  initDb();
   app.listen(PORT, () => {
     console.log(`\n  🎮 Game Hub v${APP_VERSION} — http://localhost:${PORT}`);
     console.log(`     Farm 🌱 | Trivia 🧠 | Match-3 💎`);
     console.log(
       `     Discord: ${DISCORD_ENABLED ? "✅ enabled" : "⚠️  demo mode (no creds)"}`,
     );
-    console.log(
-      `     Storage: ${getBucket() ? "☁️  GCS" : "💾 local (ephemeral)"}`,
-    );
+    console.log(`     Database: PostgreSQL + Upstash Redis`);
     console.log(`     Duel system active | Leaderboard enabled\n`);
   });
 }

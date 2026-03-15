@@ -6,16 +6,17 @@
  */
 import { Router } from "express";
 import { SEASON_PASS } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function seasonPassRoutes(requireAuth, resolveUser) {
   const router = Router();
 
   /* ─── Get Season Pass Progress ─── */
-  router.get("/api/season-pass", requireAuth, (req, res) => {
+  router.get("/api/season-pass", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    if (!userId) return res.status(400).json({ error: "userId required" });
     if (!p.seasonPass) {
       p.seasonPass = { season: 1, xp: 0, tier: 0, claimed: [] };
     }
@@ -38,13 +39,15 @@ export default function seasonPassRoutes(requireAuth, resolveUser) {
         claimed: p.seasonPass.claimed.includes(i),
       })),
     });
+      });
   });
 
   /* ─── Claim Tier Reward ─── */
-  router.post("/api/season-pass/claim", requireAuth, (req, res) => {
+  router.post("/api/season-pass/claim", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { tierIndex } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { tierIndex } = req.body;
     if (!p.seasonPass) {
       p.seasonPass = { season: 1, xp: 0, tier: 0, claimed: [] };
     }
@@ -84,8 +87,7 @@ export default function seasonPassRoutes(requireAuth, resolveUser) {
       }
     }
 
-    p.seasonPass.claimed.push(tierIndex);
-    debouncedSavePlayer(userId);
+    p.seasonPass.claimed.push(tierIndex);
 
     res.json({
       success: true,
@@ -93,6 +95,7 @@ export default function seasonPassRoutes(requireAuth, resolveUser) {
       resources: p.resources,
       seasonPass: p.seasonPass,
     });
+      });
   });
 
   return router;

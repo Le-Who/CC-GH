@@ -6,15 +6,16 @@
  */
 import { Router } from "express";
 import { ECONOMY, CROPS, calcRegen } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function resourcesRoutes(requireAuth, resolveUser) {
   const router = Router();
 
-  router.get("/api/resources/state", requireAuth, (req, res) => {
+  router.get("/api/resources/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    if (!userId) return res.status(400).json({ error: "userId required" });
     calcRegen(p);
     res.json({
       resources: p.resources,
@@ -22,13 +23,15 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       room: p.room,
       harvested: p.farm.harvested,
     });
+      });
   });
 
   /* ─── Sell Crop ─── */
-  router.post("/api/farm/sell-crop", requireAuth, (req, res) => {
+  router.post("/api/farm/sell-crop", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { cropId } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { cropId } = req.body;
     if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
       return res.status(400).json({ error: "no harvested crop to sell" });
     }
@@ -37,20 +40,21 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     const sellPrice = cfg.sellPrice;
     p.farm.harvested[cropId]--;
     if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
-    p.resources.gold += sellPrice;
-    debouncedSavePlayer(userId);
+    p.resources.gold += sellPrice;
     res.json({
       success: true,
       resources: p.resources,
       harvested: p.farm.harvested,
       soldFor: sellPrice,
     });
+      });
   });
 
-  router.post("/api/pet/feed", requireAuth, (req, res) => {
+  router.post("/api/pet/feed", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { cropId } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { cropId } = req.body;
     calcRegen(p);
 
     // Validate crop
@@ -98,9 +102,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
 
     // Happiness boost
-    p.pet.stats.happiness = Math.min(100, p.pet.stats.happiness + 5);
-
-    debouncedSavePlayer(userId);
+    p.pet.stats.happiness = Math.min(100, p.pet.stats.happiness + 5);
     res.json({
       success: true,
       resources: p.resources,
@@ -109,13 +111,15 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       harvested: p.farm.harvested,
       leveledUp,
     });
+      });
   });
 
   /* ─── Rename Pet (IKEA Effect UX) ─── */
-  router.post("/api/pet/rename", requireAuth, (req, res) => {
+  router.post("/api/pet/rename", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { newName } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { newName } = req.body;
 
     if (
       !newName ||
@@ -129,13 +133,13 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       .trim()
       .replace(/<[^>]*>/g, "") // Strip HTML tags (XSS prevention)
       .substring(0, 16);
-    p.pet.name = cleanName;
-    debouncedSavePlayer(userId);
+    p.pet.name = cleanName;
 
     res.json({
       success: true,
       pet: p.pet,
     });
+      });
   });
 
   return router;

@@ -19,7 +19,7 @@ import {
   BOOSTER_CONFIG,
   PLOT_THEMES,
 } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer, withPlayerLock } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function farmRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -38,8 +38,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.post("/api/farm/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async () => {
-      const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
       calcRegen(p);
 
       // Run offline simulation (harvest → plant → water)
@@ -56,8 +55,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         streakResult.continued ||
         streakResult.broken ||
         newAchievements.length > 0
-      ) {
-        debouncedSavePlayer(userId);
+      ) {
       }
 
       res.json({
@@ -80,9 +78,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   router.post("/api/farm/plant", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { plotId, cropId } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { plotId, cropId } = req.body;
       if (!CROPS[cropId]) return res.status(400).json({ error: "unknown crop" });
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -95,8 +93,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.farm.inventory[cropId] = seeds - 1;
       plot.crop = cropId;
       plot.plantedAt = Date.now();
-      plot.watered = false;
-      debouncedSavePlayer(userId);
+      plot.watered = false;
 
       res.json({
         success: true,
@@ -109,17 +106,16 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   router.post("/api/farm/water", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { plotId } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
         return res.status(400).json({ error: "invalid plot" });
       const plot = p.farm.plots[idx];
       if (!plot.crop || plot.watered)
         return res.status(400).json({ error: "cannot water" });
-      plot.watered = true;
-      debouncedSavePlayer(userId);
+      plot.watered = true;
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -130,9 +126,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   router.post("/api/farm/harvest", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { plotId } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
         return res.status(400).json({ error: "invalid plot" });
@@ -181,8 +177,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.farm.level = newLevel;
       plot.crop = null;
       plot.plantedAt = null;
-      plot.watered = false;
-      debouncedSavePlayer(userId);
+      plot.watered = false;
       res.json({
         success: true,
         reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
@@ -201,9 +196,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
   /* ─── Uproot (💣 — no refund) ─── */
   router.post("/api/farm/uproot", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { plotId } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
         return res.status(400).json({ error: "invalid plot" });
@@ -215,8 +210,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       // Hard write-off: seed is lost, plot cleared
       plot.crop = null;
       plot.plantedAt = null;
-      plot.watered = false;
-      debouncedSavePlayer(userId);
+      plot.watered = false;
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -228,9 +222,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   router.post("/api/farm/buy-seeds", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { cropId, amount = 1 } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { cropId, amount = 1 } = req.body;
       const cfg = CROPS[cropId];
       if (!cfg) return res.status(400).json({ error: "unknown crop" });
       // Validate amount: must be positive integer, capped at 1000
@@ -240,8 +234,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       if (p.resources.gold < cost)
         return res.status(400).json({ error: "not enough gold" });
       p.resources.gold -= cost;
-      p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
-      debouncedSavePlayer(userId);
+      p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
       res.json({
         success: true,
         resources: p.resources,
@@ -255,8 +248,8 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   router.post("/api/farm/buy-plot", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
       const currentPlots = p.farm.plots.length;
 
       if (currentPlots >= MAX_PLOTS) {
@@ -281,9 +274,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const nextCost =
         currentPlots + 1 < MAX_PLOTS
           ? BUY_PLOT_BASE_COST * Math.pow(2, currentPlots + 1 - 6)
-          : null;
-
-      debouncedSavePlayer(userId);
+          : null;
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -297,7 +288,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
   /* ─── v7.3: Dynamic Crops Config ─── */
   let cropOverrides = {}; // Live-ops tuning layer (in-memory for now)
-  router.get("/api/farm/crops", requireAuth, (_req, res) => {
+  router.get("/api/farm/crops", requireAuth, async (_req, res) => {
     const merged = mergeCropConfig(CROPS, cropOverrides);
     res.json({ crops: merged });
   });
@@ -305,9 +296,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
   /* ─── v7.3: Activate Fertilizer Booster ─── */
   router.post("/api/farm/activate-booster", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { boosterId = "fertilizer" } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { boosterId = "fertilizer" } = req.body;
       const cfg = BOOSTER_CONFIG[boosterId];
       if (!cfg) return res.status(400).json({ error: "unknown booster" });
       if (!p.boosters) p.boosters = {};
@@ -324,8 +315,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.boosters[boosterId] = {
         active: true,
         expiresAt: Date.now() + cfg.durationMs,
-      };
-      debouncedSavePlayer(userId);
+      };
       res.json({
         success: true,
         boosters: p.boosters,
@@ -337,9 +327,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
   /* ─── v7.3: Buy Plot Theme ─── */
   router.post("/api/farm/buy-theme", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { themeId } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { themeId } = req.body;
       const theme = PLOT_THEMES[themeId];
       if (!theme) return res.status(400).json({ error: "unknown theme" });
       if (!p.cosmetics)
@@ -351,8 +341,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         return res.status(400).json({ error: "not enough gold" });
       }
       p.resources.gold -= theme.cost;
-      p.cosmetics.ownedThemes.push(themeId);
-      debouncedSavePlayer(userId);
+      p.cosmetics.ownedThemes.push(themeId);
       res.json({ success: true, cosmetics: p.cosmetics, resources: p.resources });
     });
   });
@@ -360,16 +349,15 @@ export default function farmRoutes(requireAuth, resolveUser) {
   /* ─── v7.3: Set Active Theme ─── */
   router.post("/api/farm/set-theme", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    await withPlayerLock(userId, async () => {
-      const { themeId } = req.body;
-      const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+      const { themeId } = req.body;
       if (!p.cosmetics)
         p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
       if (!p.cosmetics.ownedThemes.includes(themeId)) {
         return res.status(400).json({ error: "theme not owned" });
       }
-      p.cosmetics.activePlotTheme = themeId;
-      debouncedSavePlayer(userId);
+      p.cosmetics.activePlotTheme = themeId;
       res.json({ success: true, cosmetics: p.cosmetics });
     });
   });

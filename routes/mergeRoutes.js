@@ -13,7 +13,7 @@ import {
   calcRegen,
   randInt,
 } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 export default function mergeRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -94,22 +94,25 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   }
 
   /* ─── Merge State ─── */
-  router.post("/api/merge/state", requireAuth, (req, res) => {
+  router.post("/api/merge/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    if (!userId) return res.status(400).json({ error: "userId required" });
     hydrateMergeBoard(p);
     res.json({
       merge: p.merge,
       resources: p.resources,
     });
+      });
   });
 
   /* ─── Generator Tap ─── */
-  router.post("/api/merge/tap", requireAuth, (req, res) => {
+  router.post("/api/merge/tap", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { chainId, cropId } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { chainId, cropId } = req.body;
     hydrateMergeBoard(p);
     calcRegen(p);
 
@@ -190,9 +193,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     gs.tapsLeft--;
     if (gs.tapsLeft <= 0) {
       gs.cooldownEnd = Date.now() + ECONOMY.GENERATOR_COOLDOWN_MS;
-    }
-
-    debouncedSavePlayer(userId);
+    }
     res.json({
       success: true,
       merge: p.merge,
@@ -200,13 +201,15 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       harvested: p.farm.harvested,
       spawned,
     });
+      });
   });
 
   /* ─── Merge Items ─── */
-  router.post("/api/merge/merge", requireAuth, (req, res) => {
+  router.post("/api/merge/merge", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { fromR, fromC, toR, toC } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { fromR, fromC, toR, toC } = req.body;
     hydrateMergeBoard(p);
     const board = p.merge.board;
 
@@ -239,20 +242,20 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       chainId: src.chainId,
       level: newLevel,
     };
-    board[fromR][fromC] = null;
-
-    debouncedSavePlayer(userId);
+    board[fromR][fromC] = null;
     res.json({
       success: true,
       merge: p.merge,
       newItem: board[toR][toC],
     });
+      });
   });
 
   /* ─── Gacha Roll ─── */
-  router.post("/api/merge/gacha", requireAuth, (req, res) => {
-    const { userId } = resolveUser(req);
-    const p = getPlayer(userId);
+  router.post("/api/merge/gacha", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     hydrateMergeBoard(p);
 
     if ((p.resources.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) {
@@ -278,21 +281,21 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
 
     // Unlock chain generator if not already
-    tryUnlockChain(p, chainId);
-
-    debouncedSavePlayer(userId);
+    tryUnlockChain(p, chainId);
     res.json({
       success: true,
       merge: p.merge,
       resources: p.resources,
       spawned: { r, c, chainId },
     });
+      });
   });
 
   /* ─── Daily Free Pull ─── */
-  router.post("/api/merge/free-pull", requireAuth, (req, res) => {
-    const { userId } = resolveUser(req);
-    const p = getPlayer(userId);
+  router.post("/api/merge/free-pull", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     hydrateMergeBoard(p);
     const now = Date.now();
 
@@ -319,33 +322,33 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     p.merge.lastFreePull = now;
 
     // Unlock chain generator if not already
-    tryUnlockChain(p, chainId);
-
-    debouncedSavePlayer(userId);
+    tryUnlockChain(p, chainId);
     res.json({
       success: true,
       merge: p.merge,
       spawned: { r, c, chainId },
     });
+      });
   });
 
   /* ─── Trash Item ─── */
-  router.post("/api/merge/trash", requireAuth, (req, res) => {
+  router.post("/api/merge/trash", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
     const { r, c } = req.body;
     if (!validCoord(r, BOARD_ROWS) || !validCoord(c, BOARD_COLS)) {
       return res.status(400).json({ error: "invalid coordinates" });
-    }
-    const p = getPlayer(userId);
+    }
     hydrateMergeBoard(p);
 
     if (!p.merge.board[r]?.[c]) {
       return res.status(400).json({ error: "empty cell" });
     }
 
-    p.merge.board[r][c] = null;
-    debouncedSavePlayer(userId);
+    p.merge.board[r][c] = null;
     res.json({ success: true, merge: p.merge });
+      });
   });
 
   return router;

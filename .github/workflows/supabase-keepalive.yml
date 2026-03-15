@@ -1,0 +1,23 @@
+name: Supabase Keep-Alive Cron
+
+on:
+  schedule:
+    # Run every 3 days at midnight UTC to prevent Supabase 7-day auto-pause
+    - cron: '0 0 */3 * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Game Hub Health Endpoint
+        # --max-time 30: Fail fast if the project is cold-starting (takes minutes),
+        # preventing GitHub Actions from hanging and consuming free minutes.
+        run: |
+          if [ -z "${{ secrets.GAME_HUB_URL }}" ]; then
+            echo "Error: GAME_HUB_URL secret is not set."
+            exit 1
+          fi
+          echo "Pinging ${{ secrets.GAME_HUB_URL }}/api/health/ping..."
+          curl -sf --max-time 30 ${{ secrets.GAME_HUB_URL }}/api/health/ping
+          echo -e "\n✅ Ping successful."

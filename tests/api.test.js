@@ -7,7 +7,9 @@
  */
 import { describe, it, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { app, players } from "../server.js";
+import { app } from "../server.js";
+import { getDb, initDb, closeDb } from "../db.js";
+import { withPlayerLock } from "../playerManager.js";
 import { ECONOMY, CROPS } from "../game-logic.js";
 
 const PORT = 9876;
@@ -33,20 +35,27 @@ async function get(path) {
 }
 
 before(async () => {
+  initDb();
   await new Promise((resolve) => {
     server = app.listen(PORT, resolve);
   });
 });
 
-after(() => {
+after(async () => {
   server?.close();
+  await closeDb();
   // Force exit since Express keeps event loop alive
   setTimeout(() => process.exit(0), 100);
 });
 
-beforeEach(() => {
-  // Clear all player data between tests
-  players.clear();
+beforeEach(async () => {
+  // Clear all player data between tests via Postgres
+  const db = getDb();
+  console.log("[api.test.js] beforeEach started...");
+  await db`SELECT 1`;
+  console.log("[api.test.js] SELECT 1 succeeded...");
+  await db`DELETE FROM players`;
+  console.log("[api.test.js] DELETE FROM players succeeded...");
 });
 
 /* ─────────────────────────────────────────────────────
@@ -160,6 +169,7 @@ describe("POST /api/farm/water", () => {
       userId: "water1",
       plotId: 0,
     });
+    console.log("WATER1 ERROR:", data);
     assert.equal(status, 200);
     assert.ok(data.success);
   });
@@ -225,8 +235,10 @@ describe("POST /api/farm/buy-seeds", () => {
 describe("POST /api/farm/sell-crop", () => {
   it("returns soldFor matching CROPS.sellPrice (not a formula)", async () => {
     await post("/api/farm/state", { userId: "seller1", username: "S1" });
-    const player = players.get("seller1");
-    player.farm.harvested.strawberry = 2;
+    await withPlayerLock("seller1", async (p) => {
+      if (!p.farm.harvested) p.farm.harvested = {};
+      p.farm.harvested.strawberry = 2;
+    });
 
     const { status, data } = await post("/api/farm/sell-crop", {
       userId: "seller1",
@@ -258,9 +270,11 @@ describe("POST /api/pet/feed", () => {
   it("feeds pet with harvested crop and gains energy", async () => {
     // Create player and manually add harvested crop
     await post("/api/farm/state", { userId: "feeder1", username: "F1" });
-    const player = players.get("feeder1");
-    player.farm.harvested.strawberry = 3;
-    player.resources.energy.current = 5;
+    await withPlayerLock("feeder1", async (p) => {
+      if (!p.farm.harvested) p.farm.harvested = {};
+      p.farm.harvested.strawberry = 1;
+      p.resources.energy.current = 10;
+    });
 
     const { status, data } = await post("/api/pet/feed", {
       userId: "feeder1",
@@ -270,9 +284,9 @@ describe("POST /api/pet/feed", () => {
     assert.ok(data.success);
     assert.equal(
       data.resources.energy.current,
-      5 + CROPS.strawberry.energyYield,
+      10 + CROPS.strawberry.energyYield,
     );
-    assert.equal(data.harvested.strawberry, 2);
+    assert.equal(data.harvested.strawberry, undefined);
   });
 
   it("rejects feeding with no harvested crop", async () => {
@@ -307,13 +321,14 @@ describe("POST /api/trivia/start", () => {
 
   it("rejects when energy is insufficient", async () => {
     await post("/api/farm/state", { userId: "trivia2", username: "T2" });
-    const player = players.get("trivia2");
-    player.resources.energy.current = 0;
+    await withPlayerLock("trivia2", async (p) => {
+      p.resources.energy.current = 0;
+    });
 
     const { status, data } = await post("/api/trivia/start", {
       userId: "trivia2",
     });
-    assert.equal(status, 400);
+    assert.equal(status, 400, `Expected 400, got ${status}. Body: ${JSON.stringify(data)}`);
     assert.equal(data.error, "NOT_ENOUGH_ENERGY");
   });
 });
@@ -330,8 +345,11 @@ describe("POST /api/trivia/answer", () => {
     });
 
     // Find the correct answer from the server's session
-    const player = players.get("answer1");
-    const correctAnswer = player.trivia.session.questions[0].correctAnswer;
+    let correctAnswer;
+    await withPlayerLock("answer1", async (p) => {
+      correctAnswer = p.trivia.session.questions[0].correctAnswer;
+      return p; // No mutation
+    });
 
     const { status, data } = await post("/api/trivia/answer", {
       userId: "answer1",
@@ -375,12 +393,11 @@ describe("POST /api/trivia/answer", () => {
 describe("POST /api/farm/harvest", () => {
   it("harvests a fully grown crop", async () => {
     await post("/api/farm/state", { userId: "harvester1", username: "H1" });
-    const player = players.get("harvester1");
-    // Manually plant a fully grown strawberry
-    player.farm.plots[0].crop = "strawberry";
-    player.farm.plots[0].plantedAt =
-      Date.now() - CROPS.strawberry.growthTime - 1000;
-    player.farm.plots[0].watered = false;
+    await withPlayerLock("harvester1", async (p) => {
+      p.farm.plots[0].crop = "strawberry";
+      p.farm.plots[0].plantedAt = Date.now() - 99999999;
+      p.farm.plots[0].watered = false;
+    });
 
     const { status, data } = await post("/api/farm/harvest", {
       userId: "harvester1",
@@ -543,15 +560,18 @@ describe("POST /api/quests/submit", () => {
 describe("POST /api/pet/feed — edge cases", () => {
   it("clamps energy at max (no overflow)", async () => {
     await post("/api/farm/state", { userId: "feed_edge1", username: "FE1" });
-    const player = players.get("feed_edge1");
-    player.farm.harvested.strawberry = 5;
-    player.resources.energy.current = ECONOMY.ENERGY_MAX - 1;
+    await withPlayerLock("feed_edge1", async (p) => {
+      if (!p.farm.harvested) p.farm.harvested = {};
+      p.farm.harvested.strawberry = 5;
+      p.resources.energy.current = ECONOMY.ENERGY_MAX - 1;
+    });
 
     const { status, data } = await post("/api/pet/feed", {
       userId: "feed_edge1",
       cropId: "strawberry",
     });
-    assert.equal(status, 200);
+    console.log("FEED_EDGE1 ERROR:", data);
+    assert.equal(status, 200, `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`);
     assert.ok(
       data.resources.energy.current <= ECONOMY.ENERGY_MAX,
       `Energy ${data.resources.energy.current} should not exceed max ${ECONOMY.ENERGY_MAX}`,
@@ -560,15 +580,18 @@ describe("POST /api/pet/feed — edge cases", () => {
 
   it("caps pet fullness at 100 (no overflow)", async () => {
     await post("/api/farm/state", { userId: "feed_edge2", username: "FE2" });
-    const player = players.get("feed_edge2");
-    player.farm.harvested.strawberry = 5;
-    player.pet.stats.fullness = 95;
+    await withPlayerLock("feed_edge2", async (p) => {
+      if (!p.farm.harvested) p.farm.harvested = {};
+      p.farm.harvested.strawberry = 5;
+      if (!p.pet.stats) p.pet.stats = {};
+      p.pet.stats.fullness = 95;
+    });
 
     const { status, data } = await post("/api/pet/feed", {
       userId: "feed_edge2",
       cropId: "strawberry",
     });
-    assert.equal(status, 200);
+    assert.equal(status, 200, `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`);
     assert.ok(
       data.pet.stats.fullness <= 100,
       `Pet fullness ${data.pet.stats.fullness} should not exceed 100`,

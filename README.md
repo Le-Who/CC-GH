@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v9.0.0** (Stateless Redis Scaling, React Hooks Extraction, PWA Support, Bug Sweep)
+**Current version: v10.0** (ACID Postgres Migration, Stateless Scaling, Redis Read-Through Cache)
 
 ---
 
@@ -48,8 +48,8 @@
 | **Runtime**  | Node.js 20                               |
 | **Frontend** | React 19 + Vite 7 + Tailwind CSS v3      |
 | **Backend**  | Express.js 5.x                           |
-| **Database** | Google Cloud Firestore                   |
-| **Storage**  | Google Cloud Storage (legacy backup)     |
+| **Database** | Supabase PostgreSQL                      |
+| **Cache**    | Upstash Redis (REST)                     |
 | **Auth**     | Discord Activity SDK 1.0 + Simple Auth   |
 | **State**    | React Hooks + Vanilla Bridges            |
 | **Testing**  | Node.js built-in `node:test` (342 pass)  |
@@ -71,10 +71,10 @@ npm run dev
 | `DISCORD_CLIENT_ID`     | ✅       | Discord app client ID             |
 | `DISCORD_CLIENT_SECRET` | ✅       | Discord app client secret         |
 | `DISCORD_REDIRECT_URI`  | ✅       | OAuth2 redirect URI               |
+| `DATABASE_URL`          | ✅       | Supabase Transaction Pooler URL (port 6543) |
+| `UPSTASH_REDIS_URL`     | ✅       | Redis REST URL for caching and nonces       |
+| `UPSTASH_REDIS_TOKEN`   | ✅       | Redis REST token                            |
 | `PORT`                  | ❌       | Server port (default: `8090`)     |
-| `GCS_BUCKET`            | ❌       | GCS bucket for persistent storage |
-| `UPSTASH_REDIS_URL`     | ❌       | Optional Redis REST URL for distributed cache |
-| `UPSTASH_REDIS_TOKEN`   | ❌       | Optional Redis REST token                     |
 | `SIMPLE_AUTH_ENABLED`   | ❌       | Enable username/password auth (default: `false`) |
 | `CUSTOM_DOMAIN`         | ❌       | Custom domain for CORS allowlist              |
 
@@ -86,7 +86,8 @@ npm run dev
 ├── server.js              # Express composition root (~350 lines)
 ├── playerManager.js       # Player state, persistence, schema migration
 ├── game-logic.js          # Pure functions (crops, energy, offline simulation)
-├── storage.js             # GCS + local file persistence adapter
+├── db.js                  # Postgres Connection Pool adapter
+├── redisAdapter.js        # Redis cache and idempotency nonce adapter
 ├── routes/                # Feature-specific Express routers
 │   ├── farm.js            # /api/farm/* + /api/content/crops
 │   ├── resources.js       # /api/resources/* + /api/pet/* + sell-crop
@@ -163,7 +164,7 @@ npm run test:perf # Performance benchmarks only
 | **Blox**   | `tests/blox.test.js`              |    30 |
 | **M3**     | `tests/match3.test.js`            |    12 |
 | **UX**     | `tests/ux.test.js`                |    72 |
-| **GCP**    | `tests/gcp.test.js`               |    20 |
+| **ACID**   | `tests/db.test.js`                |    20 |
 | **Perf**   | `tests/perf.test.js`              |    15 |
 | **Stress** | `tests/game-logic-stress.test.js` |    57 |
 | **Farm**   | `tests/farm.test.js`              |    30 |
@@ -181,7 +182,7 @@ gcloud run deploy game-hub \
   --region europe-west4 \
   --allow-unauthenticated \
   --port 8080 \
-  --set-env-vars "DISCORD_CLIENT_ID=...,DISCORD_CLIENT_SECRET=...,DISCORD_REDIRECT_URI=...,GCS_BUCKET=..."
+  --set-env-vars "DISCORD_CLIENT_ID=...,DISCORD_CLIENT_SECRET=...,DISCORD_REDIRECT_URI=...,DATABASE_URL=...,UPSTASH_REDIS_URL=...,UPSTASH_REDIS_TOKEN=..."
 ```
 
 ---
@@ -217,22 +218,22 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 ---
 
-## 💾 Persistence & Concurrency Strategy
+## 💾 Persistence & Architecture (v10.0 Postgres ACID)
 
-> Each game uses the persistence approach best suited to its gameplay pattern:
+> Game Hub uses a highly parallelized stateless architecture backed by **PostgreSQL** and **Upstash Redis**.
 
-- **Farm & Pet**: Server-authoritative — all state in Firestore, client polls and pushes via REST API.
-- **Match-3**: Client-side `localStorage` + server `sync-modes` for cross-device persistence. Server for leaderboard. Firestore board data includes automatic object→array hydration.
-- **Blox**: Client-side `localStorage` + server `sync` for cross-device resume. Server for leaderboard. Firestore board/tray data includes automatic hydration.
-- **Merge**: Fully server-authoritative — all actions validated on server (`/api/merge/*`). Client uses optimistic updates with automatic rollback on rejection.
-- **Quests**: Server-authoritative — order generation, requirement validation, item deduction, and reward granting all server-side (`/api/quests/*`).
-- **Trivia**: Ephemeral — no persistence between sessions (each game is fresh).
+### Architecture & Data Flow
 
-### ⚠️ Operational Limitations
-- **Single-Node Invariant:** The backend relies on an in-memory `players` Map for fast reads and deferred writes (debounced Firestore syncing). It **cannot** be horizontally scaled across multiple instances without sticky sessions or a Redis migration.
-- **Concurrency Locking:** To prevent double-spend exploits, mutating endpoints utilize a per-user `withPlayerLock` async mutex. As of v8.1, all game routes (Farm, Match-3, Blox, Merge, Quests) use this lock.
-- **Circuit Breaker:** If Firestore experiences backpressure and `debouncedSavePlayer` is rejected, the server flips a `_saveError` flag on the affected user, returning HTTP 503s for all subsequent mutations until the database recovers, safeguarding against silent data obliteration on process exit.
-- **Redis Consistency (v8.1):** Redis writes occur AFTER Firestore success. On Firestore failure, the Redis entry is actively evicted to prevent stale-cache data loss on restart.
+1. **Traffic Layer (REST API)**: Requests arrive at Node.js and are authenticated via Discord OAuth or Simple Auth. Rate limits are evaluated in Redis.
+2. **Read-Through Cache (Redis)**: `ensurePlayerLoaded` executes a sub-millisecond Redis `GET`. If the user data exists, routing proceeds. If absent, the data is pulled from Postgres into Redis.
+3. **Concurrency Boundary (Postgres `SELECT FOR UPDATE`)**: Mutating endpoints (like planting crops) are wrapped in `withPlayerLock(userId)`. This utilizes Postgres native ACID properties:
+    * It executes `INSERT ... ON CONFLICT DO NOTHING` to guarantee the row exists safely.
+    * It executes `SELECT ... FOR UPDATE` to exclusively lock the user's row, preventing double-spend race conditions.
+4. **Execution & Write-Through Layer**: The route handler mutates the loaded JSONB state. It returns the modified object, which is synchronously `UPDATE`d in Postgres within the transaction, and then fire-and-forget written-through to Redis before the lock is released.
+
+### ⚠️ Known Limitations (Supabase Free Tier)
+- **7-Day Auto Pause:** Supabase Free projects pause after 7 days of inactivity. This is mitigated by a GitHub Action cron job (`.github/workflows/supabase-keepalive.yml`) that pings the server every 3 days.
+- **Connection Limits**: Supabase Free supports ~20 direct connections. You **MUST** use the Supabase Transaction Pooler URL (`port 6543`) in your `DATABASE_URL` environment variable, or the app will immediately crash Node.js with connection exhaustion during load spikes. `db.js` explicitly caps the internal Node pool to 8 to survive this limit.
 
 ---
 

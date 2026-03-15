@@ -13,7 +13,7 @@ import {
   randInt,
   pick,
 } from "../game-logic.js";
-import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
+import { withPlayerLock } from "../playerManager.js";
 
 /** Hydrate merge board from Firestore (JSON string or object→array recovery) */
 const BOARD_ROWS = 7,
@@ -114,21 +114,24 @@ export default function questRoutes(requireAuth, resolveUser) {
   }
 
   /* ─── Get Active Orders ─── */
-  router.get("/api/quests/active", requireAuth, (req, res) => {
+  router.get("/api/quests/active", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
+    await withPlayerLock(userId, async (p) => {
+    if (!userId) return res.status(400).json({ error: "userId required" });
     res.json({
       orders: p.pet.activeOrders || [],
       affectionXp: p.pet.affectionXp || 0,
       affectionLevel: p.pet.affectionLevel || 1,
     });
+      });
   });
 
   /* ─── Generate New Orders ─── */
-  router.post("/api/quests/generate", requireAuth, (req, res) => {
-    const { userId } = resolveUser(req);
-    const p = getPlayer(userId);
+  router.post("/api/quests/generate", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
 
     // Max 3 active orders
     if ((p.pet.activeOrders || []).length >= 3) {
@@ -155,21 +158,21 @@ export default function questRoutes(requireAuth, resolveUser) {
     }
 
     if (!p.pet.activeOrders) p.pet.activeOrders = [];
-    p.pet.activeOrders.push(...newOrders);
-
-    debouncedSavePlayer(userId);
+    p.pet.activeOrders.push(...newOrders);
     res.json({
       success: true,
       orders: p.pet.activeOrders,
       newOrders,
     });
+      });
   });
 
   /* ─── Submit (Fulfill) Order ─── */
-  router.post("/api/quests/submit", requireAuth, (req, res) => {
+  router.post("/api/quests/submit", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
-    const { orderId } = req.body;
-    const p = getPlayer(userId);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    await withPlayerLock(userId, async (p) => {
+    const { orderId } = req.body;
 
     // Hydrate merge board in case it was stored as JSON string in Firestore
     hydrateMergeBoard(p);
@@ -255,9 +258,7 @@ export default function questRoutes(requireAuth, resolveUser) {
     }
 
     // Remove fulfilled order
-    p.pet.activeOrders.splice(orderIdx, 1);
-
-    debouncedSavePlayer(userId);
+    p.pet.activeOrders.splice(orderIdx, 1);
     res.json({
       success: true,
       reward: rw,
@@ -268,6 +269,7 @@ export default function questRoutes(requireAuth, resolveUser) {
       affectionLeveledUp: afLeveledUp,
       orders: p.pet.activeOrders,
     });
+      });
   });
 
   return router;

@@ -1,6 +1,6 @@
 {
   "name": "game-hub",
-  "version": "9.0.0",
+  "version": "10.0.0",
   "type": "module",
   "private": true,
   "description": "Unified Game Hub — Farm + Trivia + Match-3 in one Discord Activity",
@@ -11,7 +11,7 @@
     "start": "node server.js",
     "dev:server": "node server.js",
     "dev": "vite",
-    "test": "node --test tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/gcp.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/syntax.test.js",
+    "test": "node --test tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/db.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/syntax.test.js",
     "test:perf": "node --test tests/perf.test.js"
   },
   "dependencies": {
@@ -19,8 +19,6 @@
     "@fontsource/bungee": "^5.2.7",
     "@fontsource/nunito": "^5.2.7",
     "@fontsource/varela-round": "^5.2.8",
-    "@google-cloud/firestore": "^8.3.0",
-    "@google-cloud/storage": "^7.7.0",
     "@upstash/redis": "^1.37.0",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
@@ -30,6 +28,7 @@
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
     "node-fetch": "^3.3.2",
+    "postgres": "^3.4.8",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwind-merge": "^3.5.0",
