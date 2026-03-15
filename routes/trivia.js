@@ -180,6 +180,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   const DUEL_HISTORY_MAX = 50;
   const DUEL_WAIT_EXPIRY_MS = 3 * 60 * 1000; // 3 min for waiting rooms
   const DUEL_FINISH_EXPIRY_MS = 10 * 60 * 1000; // 10 min for finished rooms
+  const MAX_DUEL_ROOMS = 2000; // v7.3: Hard capacity limit to prevent OOM
 
   // Periodic cleanup of stale duel rooms (.unref() for clean test/process exit)
   setInterval(() => {
@@ -202,6 +203,32 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     const { count = 5, difficulty } = req.body;
     if (!userId) return res.status(400).json({ error: "userId required" });
+
+    // v7.3: Per-user quota — prevent a single user from spamming rooms
+    for (const [, room] of duelRooms) {
+      if (room.status === "waiting" && room.players[userId]) {
+        return res.status(429).json({ error: "ACTIVE_ROOM_EXISTS", message: "You already have a waiting room" });
+      }
+    }
+
+    // v7.3: Hard capacity limit with oldest-eviction fallback
+    if (duelRooms.size >= MAX_DUEL_ROOMS) {
+      // Evict oldest "waiting" rooms first, then oldest overall
+      let evicted = false;
+      for (const [id, room] of duelRooms) {
+        if (room.status === "waiting") {
+          duelRooms.delete(id);
+          evicted = true;
+          break;
+        }
+      }
+      if (!evicted) {
+        // All rooms are active/finished — evict absolute oldest
+        const oldestKey = duelRooms.keys().next().value;
+        if (oldestKey) duelRooms.delete(oldestKey);
+      }
+    }
+
     const p = getPlayer(userId, username);
     calcRegen(p);
 
