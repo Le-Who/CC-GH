@@ -115,7 +115,7 @@ export default function questRoutes(requireAuth, resolveUser) {
 
   /* ─── Get Active Orders ─── */
   router.get("/api/quests/active", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
     if (!userId) return res.status(400).json({ error: "userId required" });

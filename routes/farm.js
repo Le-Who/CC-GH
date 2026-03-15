@@ -36,9 +36,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
   );
 
   router.post("/api/farm/state", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       calcRegen(p);
 
       // Run offline simulation (harvest → plant → water)
@@ -55,8 +55,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         streakResult.continued ||
         streakResult.broken ||
         newAchievements.length > 0
-      ) {
-      }
+      ) { /* consolidated save handled by wrapper returning p */ }
 
       res.json({
         ...p.farm,
@@ -80,7 +79,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { plotId, cropId } = req.body;
+      const { plotId, cropId } = req.body;
       if (!CROPS[cropId]) return res.status(400).json({ error: "unknown crop" });
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -93,7 +92,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.farm.inventory[cropId] = seeds - 1;
       plot.crop = cropId;
       plot.plantedAt = Date.now();
-      plot.watered = false;
+      plot.watered = false;
 
       res.json({
         success: true,
@@ -108,14 +107,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { plotId } = req.body;
+      const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
         return res.status(400).json({ error: "invalid plot" });
       const plot = p.farm.plots[idx];
       if (!plot.crop || plot.watered)
         return res.status(400).json({ error: "cannot water" });
-      plot.watered = true;
+      plot.watered = true;
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -128,7 +127,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { plotId } = req.body;
+      const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
         return res.status(400).json({ error: "invalid plot" });
@@ -177,7 +176,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.farm.level = newLevel;
       plot.crop = null;
       plot.plantedAt = null;
-      plot.watered = false;
+      plot.watered = false;
       res.json({
         success: true,
         reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
@@ -198,7 +197,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { plotId } = req.body;
+      const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
         return res.status(400).json({ error: "invalid plot" });
@@ -210,7 +209,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       // Hard write-off: seed is lost, plot cleared
       plot.crop = null;
       plot.plantedAt = null;
-      plot.watered = false;
+      plot.watered = false;
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -224,7 +223,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { cropId, amount = 1 } = req.body;
+      const { cropId, amount = 1 } = req.body;
       const cfg = CROPS[cropId];
       if (!cfg) return res.status(400).json({ error: "unknown crop" });
       // Validate amount: must be positive integer, capped at 1000
@@ -234,7 +233,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       if (p.resources.gold < cost)
         return res.status(400).json({ error: "not enough gold" });
       p.resources.gold -= cost;
-      p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
+      p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
       res.json({
         success: true,
         resources: p.resources,
@@ -249,7 +248,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.post("/api/farm/buy-plot", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    await withPlayerLock(userId, async (p) => {
       const currentPlots = p.farm.plots.length;
 
       if (currentPlots >= MAX_PLOTS) {
@@ -274,7 +273,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const nextCost =
         currentPlots + 1 < MAX_PLOTS
           ? BUY_PLOT_BASE_COST * Math.pow(2, currentPlots + 1 - 6)
-          : null;
+          : null;
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -298,7 +297,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { boosterId = "fertilizer" } = req.body;
+      const { boosterId = "fertilizer" } = req.body;
       const cfg = BOOSTER_CONFIG[boosterId];
       if (!cfg) return res.status(400).json({ error: "unknown booster" });
       if (!p.boosters) p.boosters = {};
@@ -315,7 +314,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       p.boosters[boosterId] = {
         active: true,
         expiresAt: Date.now() + cfg.durationMs,
-      };
+      };
       res.json({
         success: true,
         boosters: p.boosters,
@@ -329,7 +328,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { themeId } = req.body;
+      const { themeId } = req.body;
       const theme = PLOT_THEMES[themeId];
       if (!theme) return res.status(400).json({ error: "unknown theme" });
       if (!p.cosmetics)
@@ -341,7 +340,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         return res.status(400).json({ error: "not enough gold" });
       }
       p.resources.gold -= theme.cost;
-      p.cosmetics.ownedThemes.push(themeId);
+      p.cosmetics.ownedThemes.push(themeId);
       res.json({ success: true, cosmetics: p.cosmetics, resources: p.resources });
     });
   });
@@ -351,13 +350,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { themeId } = req.body;
+      const { themeId } = req.body;
       if (!p.cosmetics)
         p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
       if (!p.cosmetics.ownedThemes.includes(themeId)) {
         return res.status(400).json({ error: "theme not owned" });
       }
-      p.cosmetics.activePlotTheme = themeId;
+      p.cosmetics.activePlotTheme = themeId;
       res.json({ success: true, cosmetics: p.cosmetics });
     });
   });

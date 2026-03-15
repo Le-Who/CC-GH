@@ -16,7 +16,6 @@ import { getDb } from "./db.js";
 import {
   isRedisEnabled,
   redisSetPlayer,
-  redisDeletePlayer,
   redisGetOrLoadPlayer,
 } from "./redisAdapter.js";
 

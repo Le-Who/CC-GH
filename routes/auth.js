@@ -238,8 +238,6 @@ export default function authRoutes() {
       return res.json({ success: true });
     }
 
-    const sessionsCol = getSessionsCol();
-
     try {
       const sql = getDb();
       if (sql) {

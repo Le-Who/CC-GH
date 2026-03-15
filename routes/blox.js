@@ -17,7 +17,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
   const router = Router();
 
   router.post("/api/blox/start", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       calcRegen(p);
@@ -83,7 +83,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
 
   // v4.12.3: Get saved board state for cross-device sync
   router.post("/api/blox/state", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
     if (!userId) return res.status(400).json({ error: "userId required" });

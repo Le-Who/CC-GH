@@ -38,7 +38,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   }
 
   router.post("/api/trivia/start", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
     const { count = 5, difficulty } = req.body;
@@ -203,7 +203,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   }
 
   router.post("/api/trivia/duel/create", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
     const { count = 5, difficulty } = req.body;
@@ -279,7 +279,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   });
 
   router.post("/api/trivia/duel/join", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
     const { inviteCode } = req.body;
@@ -356,7 +356,8 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   router.post("/api/trivia/duel/answer", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    // eslint-disable-next-line no-unused-vars
+    await withPlayerLock(userId, async (p) => {
     const { roomId, answer, timeMs } = req.body;
     const room = duelRooms.get(roomId);
     if (!room) return res.status(404).json({ error: "Room not found" });
@@ -498,7 +499,8 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   router.post("/api/trivia/duel/ready", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    // eslint-disable-next-line no-unused-vars
+    await withPlayerLock(userId, async (p) => {
     const { roomId } = req.body;
     const room = duelRooms.get(roomId);
     if (!room) return res.status(404).json({ error: "Room not found" });

@@ -13,7 +13,7 @@ export default function seasonPassRoutes(requireAuth, resolveUser) {
 
   /* ─── Get Season Pass Progress ─── */
   router.get("/api/season-pass", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
     if (!userId) return res.status(400).json({ error: "userId required" });
