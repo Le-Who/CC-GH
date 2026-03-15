@@ -74,9 +74,50 @@ export function cloneDropStars(ds) {
 
 // ─── Firestore hydration helpers ───
 
-/** Firestore converts 2D arrays to objects — convert back */
+// v7.3: Compact serialization — gem type to single-char mapping
+const GEM_TO_CHAR = { fire: "F", water: "W", earth: "E", air: "A", light: "L", dark: "D",
+  drop_gold: "G", drop_seeds: "S", drop_energy: "N", "": "." };
+const CHAR_TO_GEM = Object.fromEntries(Object.entries(GEM_TO_CHAR).map(([k, v]) => [v, k]));
+
+/**
+ * v7.3: Serialize a 2D board to a compact flat string (e.g. "FWEAD.WL...")
+ * Reduces Firestore document size by ~70% compared to nested arrays/objects.
+ */
+export function serializeBoard(b) {
+  if (!b || !Array.isArray(b)) return null;
+  let s = "";
+  for (let y = 0; y < b.length; y++) {
+    for (let x = 0; x < b[y].length; x++) {
+      s += GEM_TO_CHAR[b[y][x]] || ".";
+    }
+  }
+  return s;
+}
+
+/**
+ * v7.3: Deserialize a flat string back to a 2D board array.
+ * @param {string} s - flat string of single-char gem codes
+ * @param {number} size - board dimension (default: BOARD_SIZE)
+ */
+export function deserializeBoard(s, size = BOARD_SIZE) {
+  if (typeof s !== "string") return null;
+  const b = [];
+  for (let y = 0; y < size; y++) {
+    b[y] = [];
+    for (let x = 0; x < size; x++) {
+      const ch = s[y * size + x] || ".";
+      b[y][x] = CHAR_TO_GEM[ch] || "";
+    }
+  }
+  return b;
+}
+
+/** Firestore converts 2D arrays to objects — convert back.
+ *  v7.3: Also supports flat-string format for compact storage. */
 export function hydrateBoard(b) {
   if (b == null) return null;
+  // v7.3: flat-string format support (backwards-compatible)
+  if (typeof b === "string") return deserializeBoard(b);
   if (Array.isArray(b)) return b;
   return Object.keys(b)
     .sort((a, c) => Number(a) - Number(c))
