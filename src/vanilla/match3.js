@@ -613,46 +613,52 @@ const Match3GameImpl = (() => {
       gameMode = mode;
 
       const s = savedModes[mode];
-      board = hydrateBoard(cloneBoard(s.board));
-      score = s.score;
-      movesLeft = s.movesLeft;
-      combo = s.combo;
-      restoreDropState(s);
-      timedSecondsLeft = s.timedSecondsLeft || TIMED_DURATION;
-      gameActive = true;
 
-      hideGameOver();
-      hideM3PauseOverlay();
-      hideModeSelector();
-      selected = null;
-      isAnimating = false;
-
-      // Resume timer if needed
-      if (gameMode === "timed") {
-        $("m3-moves-label").textContent = "Time";
-        $("m3-moves").style.color = timedSecondsLeft <= 10 ? "#ef4444" : "";
-        startTimedCountdown();
+      // Prevent restoring a logically dead session (dirty state leak bug)
+      if ((mode === "timed" && s.timedSecondsLeft <= 0) || (mode !== "timed" && s.movesLeft <= 0)) {
+        delete savedModes[mode];
+        persistSavedModes();
+        // Fall through to start a fresh game below
       } else {
-        $("m3-moves-label").textContent = "Moves";
+        board = hydrateBoard(cloneBoard(s.board));
+        score = s.score;
+        movesLeft = s.movesLeft;
+        combo = s.combo;
+        restoreDropState(s);
+        timedSecondsLeft = s.timedSecondsLeft || TIMED_DURATION;
+        gameActive = true;
+
+        hideGameOver();
+        hideM3PauseOverlay();
+        hideModeSelector();
+        selected = null;
+        isAnimating = false;
+
+        // Resume timer if needed
+        if (gameMode === "timed") {
+          $("m3-moves-label").textContent = "Time";
+          $("m3-moves").style.color = timedSecondsLeft <= 10 ? "#ef4444" : "";
+          startTimedCountdown();
+        } else {
+          $("m3-moves-label").textContent = "Moves";
+        }
+
+        // v5.0.2: Register session on server (fire-and-forget, no energy charge).
+        api("/api/game/start", {
+          userId: HUB.userId,
+          username: HUB.username,
+          mode: gameMode,
+          isResume: true,
+        }).catch(() => {});
+
+        persistSavedModes();
+        updateStatsUI();
+        renderBoard(true);
+        syncToStore();
+        updateStartButton();
+        showToast(`🔄 Resumed ${mode} game`);
+        return;
       }
-
-      // v5.0.2: Register session on server (fire-and-forget, no energy charge).
-      // Without this, /api/game/end returns 403 "Invalid session" because
-      // the resume path previously skipped /api/game/start entirely.
-      api("/api/game/start", {
-        userId: HUB.userId,
-        username: HUB.username,
-        mode: gameMode,
-        isResume: true,
-      }).catch(() => {});
-
-      persistSavedModes();
-      updateStatsUI();
-      renderBoard(true);
-      syncToStore();
-      updateStartButton();
-      showToast(`🔄 Resumed ${mode} game`);
-      return;
     }
 
     // Energy gatekeep — checked BEFORE any mode state mutation (v4.4 fix)
@@ -1513,27 +1519,36 @@ const Match3GameImpl = (() => {
         showToast(`🎁 Rewards: ${parts.join(" · ")}`);
       }
 
-      const endData = await api("/api/game/end", {
-        userId: HUB.userId,
-        score: endScore,
-        mode: gameMode,
-      }).catch(() => null);
-      if (endData?.highScore) highScore = endData.highScore;
-      if (endData?.resources) {
-        HUD.syncFromServer(endData.resources);
-        if (endData.goldReward) HUD.animateGoldChange(endData.goldReward);
-      }
-      // Clear saved state for this mode
-      delete savedModes[gameMode];
-      persistSavedModes();
+      try {
+        const endData = await api("/api/game/end", {
+          userId: HUB.userId,
+          score: endScore,
+          mode: gameMode,
+        });
+        if (endData?.highScore) highScore = endData.highScore;
+        if (endData?.resources) {
+          try {
+            HUD.syncFromServer(endData.resources);
+            if (endData.goldReward) HUD.animateGoldChange(endData.goldReward);
+          } catch (uiErr) {
+            console.warn("HUD update failed, ignoring to prevent state leak:", uiErr);
+          }
+        }
+      } catch (err) {
+        console.warn("Server sync for game end failed", err);
+      } finally {
+        // Clear saved state for this mode REGARDLESS of errors
+        delete savedModes[gameMode];
+        persistSavedModes();
 
-      setTimeout(() => {
-        SoundEngine.gameOver(); // v6.2.1: low tone + long vibration
-        showGameOver(score);
-      }, 500);
-      fetchLeaderboard();
-      syncToStore();
-      updateStartButton();
+        setTimeout(() => {
+          SoundEngine.gameOver(); // v6.2.1: low tone + long vibration
+          showGameOver(score);
+        }, 500);
+        fetchLeaderboard();
+        syncToStore();
+        updateStartButton();
+      }
     } else {
       // v4.15.1: Check for deadlock after cascade — reshuffle if stuck
       if (!hasValidMoves(board)) {
