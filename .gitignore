@@ -9,3 +9,9 @@ dist/
 .idea/
 .DS_Store
 eslint.config.*
+
+# legacy and dev artifacts
+eslint_output.txt
+eslint-errors.json
+concurrency_test.js
+scripts/
