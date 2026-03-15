@@ -1052,13 +1052,17 @@ const FarmGameImpl = (() => {
           const expandRow = document.createElement("div");
           expandRow.className = "seed-buy-expanded";
           expandRow.innerHTML = `
-            <button class="sbe-step" data-d="-10">−10</button>
-            <button class="sbe-step" data-d="-1">−</button>
-            <span class="sbe-qty">${buyQty}</span>
-            <button class="sbe-step" data-d="1">+</button>
-            <button class="sbe-step" data-d="10">+10</button>
-            <span class="sbe-cost">🪙 ${totalCost}</span>
-            <button class="sbe-buy${canAfford ? "" : " disabled"}">Buy</button>
+            <div class="sbe-stepper">
+              <button class="sbe-step step-outer" data-d="-10">−10</button>
+              <button class="sbe-step" data-d="-1">−</button>
+              <span class="sbe-qty">${buyQty}</span>
+              <button class="sbe-step" data-d="1">+</button>
+              <button class="sbe-step step-outer" data-d="10">+10</button>
+            </div>
+            <div class="sbe-actions">
+              <span class="sbe-cost">🪙 ${totalCost}</span>
+              <button class="sbe-buy${canAfford ? "" : " disabled"}">Buy</button>
+            </div>
           `;
           expandRow.querySelectorAll(".sbe-step").forEach((btn) => {
             btn.addEventListener("click", (e) => {
