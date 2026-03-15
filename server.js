@@ -13,7 +13,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import compression from "compression";
 import { initStorage, getBucket } from "./storage.js";
-import { players, loadDb, initFirestore } from "./playerManager.js";
+import { players, loadDb, initFirestore, ensurePlayerLoaded } from "./playerManager.js";
 import { isRedisEnabled, isNonceSeenRedis } from "./redisAdapter.js";
 import authRoutes, { validateSimpleAuthToken } from "./routes/auth.js";
 
@@ -120,6 +120,7 @@ const requireAuth = async (req, res, next) => {
     const user = await validateSimpleAuthToken(token);
     if (!user) return res.status(401).json({ error: "Session expired or invalid" });
     req.simpleUser = user;
+    await ensurePlayerLoaded(user.userId);
     return next();
   }
 
@@ -131,6 +132,7 @@ const requireAuth = async (req, res, next) => {
       });
       if (!userReq.ok) throw new Error("Invalid token");
       req.discordUser = await userReq.json();
+      await ensurePlayerLoaded(req.discordUser.id);
       return next();
     } catch {
       return res.status(401).json({ error: "Invalid token" });

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { hudStore } from "../hooks/useHUDEngine";
 
@@ -17,6 +17,20 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
 
   const [moreOpen, setMoreOpen] = useState(false);
   const toggleMore = useCallback(() => setMoreOpen((p) => !p), []);
+
+  const [floatingGold, setFloatingGold] = useState([]);
+  useEffect(() => {
+    const handleAnimate = (e) => {
+      const amount = e.detail;
+      const id = Date.now() + Math.random();
+      setFloatingGold(prev => [...prev, { id, amount }]);
+      setTimeout(() => {
+        setFloatingGold(prev => prev.filter(x => x.id !== id));
+      }, 1500);
+    };
+    window.addEventListener("animate-gold", handleAnimate);
+    return () => window.removeEventListener("animate-gold", handleAnimate);
+  }, []);
 
   const energyPercent = Math.min(100, (energy / maxEnergy) * 100);
 
@@ -47,12 +61,27 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
 
           {/* Gold Pill */}
           <motion.div
-            className="hud-pill bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-3 py-1 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            className="hud-pill bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-3 py-1 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer relative"
           >
             <span className="hud-icon mr-1.5">🪙</span>
             <span className="font-heading font-bold text-gold tracking-wide hud-value">
               {gold}
             </span>
+            <AnimatePresence>
+              {floatingGold.map((fg) => (
+                <motion.div
+                  key={fg.id}
+                  initial={{ opacity: 0, y: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, y: -25, scale: 1.2 }}
+                  exit={{ opacity: 0, y: -40 }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+                  className={`pointer-events-none absolute left-6 top-0 font-bold ${fg.amount > 0 ? 'text-green-400' : 'text-danger'}`}
+                  style={{ textShadow: "0px 2px 4px rgba(0,0,0,0.8)" }}
+                >
+                  {fg.amount > 0 ? `+${fg.amount}` : fg.amount}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </motion.div>
         </div>
 

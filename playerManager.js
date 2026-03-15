@@ -92,7 +92,7 @@ export async function withPlayerLock(userId, asyncFn) {
 
     try {
       // Pre-load player from Redis/Firestore into local cache
-      await _ensurePlayerLoaded(userId);
+      await ensurePlayerLoaded(userId);
       const result = await asyncFn();
 
       // Write updated state back to Redis immediately
@@ -125,9 +125,10 @@ export async function withPlayerLock(userId, asyncFn) {
  * Ensure a player is loaded into the local `players` Map.
  * Checks: local Map → Redis → Firestore → create new.
  * This is called by withPlayerLock BEFORE the route handler runs,
+ * and by requireAuth in server.js to prevent getPlayer() from generating blank data.
  * so getPlayer() can remain synchronous.
  */
-async function _ensurePlayerLoaded(userId) {
+export async function ensurePlayerLoaded(userId) {
   if (players.has(userId)) return; // Already in local cache
 
   // Try Redis → Firestore

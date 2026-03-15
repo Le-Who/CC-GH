@@ -125,6 +125,10 @@ function getGold() {
   return res ? res.gold : 0;
 }
 
+export function animateGoldChange(amount) {
+  window.dispatchEvent(new CustomEvent("animate-gold", { detail: amount }));
+}
+
 /* ─── Update from server response ─── */
 function syncFromServer(resources) {
   if (!resources) return;
@@ -537,4 +541,5 @@ export const HUD = {
   stopRegenTimer,
   showEnergyModal,
   hideEnergyModal,
+  animateGoldChange,
 };

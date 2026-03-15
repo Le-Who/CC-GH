@@ -15,6 +15,8 @@ Massive milestone release decoupling the vanilla JS game logic engines from thei
 - **Blox Drag Performance**: Refactored drag logic to fix severe frame lag and piece-dropping issues during cross-screen puzzle manipulation.
 - **Dead Legacy Cleanups**: Safely deleted 4 obsolete vanilla files (`quest.js`, `store-ui.js`, `hud.css`, `store.css`) and gutted obsolete DOM manipulation queries out of `hud.js` following the UI migration to React.
 - **Strict Lint Validation**: Cleared out all ghost variables and unused imports (`import React from 'react'`) from the codebase, satisfying strict native JSX ESLint constraints.
+- **Save Data Wipe Prevention**: Fixed an architectural flaw where non-blocking read-routes could trigger a simultaneous synchronous `getPlayer()` initialization on server boot before the Redis/Firestore pipeline returned the actual save data, overwriting legitimate profiles with blank Level 1 bases. Added `ensurePlayerLoaded` to the authorization middleware.
+- **HUD Engine Exception**: Fixed a legacy `G.animateGoldChange is not a function` Uncaught TypeError cascading from vanilla scripts during reward granting by piping a CustomEvent down to the new React `HUD` view to orchestrate `framer-motion` floating coin animations.
 
 #### Tests — **342/342 pass**, 0 failures.
 
