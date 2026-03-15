@@ -6,7 +6,7 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install -g npm@11.10.1 && npm ci
+RUN npm install -g npm@11.10.1 && npm ci --legacy-peer-deps
 
 COPY . .
 
@@ -21,7 +21,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install -g npm@11.10.1 && npm ci --omit=dev
+RUN npm install -g npm@11.10.1 && npm ci --omit=dev --legacy-peer-deps
 
 # Copy Vite build output
 COPY --from=build /app/dist/ ./dist/
