@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v10.0** (ACID Postgres Migration, Stateless Scaling, Redis Read-Through Cache)
+**Current version: v10.0.1** (ACID Postgres Migration, Stateless Scaling, Redis Read-Through Cache)
 
 ---
 
@@ -52,7 +52,7 @@
 | **Cache**    | Upstash Redis (REST)                     |
 | **Auth**     | Discord Activity SDK 1.0 + Simple Auth   |
 | **State**    | React Hooks + Vanilla Bridges            |
-| **Testing**  | Node.js built-in `node:test` (342 pass)  |
+| **Testing**  | Node.js built-in `node:test` (367 pass)  |
 
 ---
 
@@ -101,7 +101,8 @@ npm run dev
 │   ├── seasonpass.js      # /api/seasonpass/* (free + premium tracks)
 │   └── leaderboard.js     # Match-3 + Blox leaderboards
 ├── data/
-│   └── questions.json     # Trivia question bank
+│   ├── questions.json     # Trivia question bank
+│   └── migrate-on-cloud.js # Idempotent Firestore → Postgres migration script (Cloud Run Job)
 ├── src/                   # Client source (Vite + React)
 │   ├── main.jsx           # React entry point, CSS imports, font loading
 │   ├── App.jsx            # Root component, tab routing, modal orchestration
@@ -153,7 +154,7 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 342 tests across 11 suites
+npm test          # All 367 tests across 11 suites
 npm run test:perf # Performance benchmarks only
 ```
 

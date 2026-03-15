@@ -1,3 +1,23 @@
+## [10.0.1] - 2026-03-15
+
+### Data Migration Recovery & Deployment Fixes
+
+#### Root Cause
+After the v10.0.0 Supabase PostgreSQL launch, all existing players received **"Invalid username or password"** errors. The initial migration only transferred the `players` Firestore collection; the `users` and `sessions` collections were not migrated.
+
+#### Fix
+- **`data/migrate-on-cloud.js`**: New idempotent migration script using `@google-cloud/firestore` + `postgres` that UPSERTs all three collections (`users` → `auth_users`, `sessions` → `auth_sessions`, `players` → `players`) via bulk idempotent UPSERTs.
+- Deployed as a **Google Cloud Run Job** (`gcloud run jobs deploy migrate-job`) to leverage the GCP service account's native Firestore access without requiring local credentials.
+- Recovery verified: **2 auth_users**, **23 auth_sessions**, **56 players** confirmed in Postgres post-migration with valid bcrypt `$2b$10$` password hashes.
+
+#### Deployment Fixes
+- **Dockerfile scope**: The migration script is stored in `data/` to ensure it is included in the production Docker image's `COPY` directive.
+- **Cloud Run Job**: `--execute-now --wait` flag used to execute, monitor, and verify the migration in a single atomic command.
+
+#### Tests — **367/367 pass**, 0 failures.
+
+---
+
 ## [9.0.0] - 2026-03-15
 
 ### V9 Stateless Architecture & Extracted React Hooks UI
