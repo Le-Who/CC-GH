@@ -6,7 +6,7 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
-import { HUB, api, goToScreen, showToast, safeShowModal } from "./shared.js";
+import { HUB, api, apiBatched, goToScreen, showToast, safeShowModal } from "./shared.js";
 import { CROPS, MERGE_CHAINS } from "/game-logic.js";
 import { hudStore } from "../hooks/useHUDEngine.js";
 
@@ -326,15 +326,13 @@ async function _feedFromModal(cropId, btn) {
 
   try {
     // Server call
-    const data = await api("/api/pet/feed", {
+    // v8.2: Use apiBatched for consistency and to handle rapid clicks through the batch queue
+    apiBatched("/api/pet/feed", {
       cropId,
       userId: HUB.userId,
     });
-
-    if (data && data.success) {
-      if (data.resources) syncFromServer(data.resources);
-    }
   } finally {
+
     // v6.2.0: Guaranteed refresh — re-enables buttons even on network error
     _refreshModalItems();
     _checkEnergyPlayReady();

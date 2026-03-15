@@ -566,18 +566,54 @@ const FarmGameImpl = (() => {
     showToast(`💰 Sold ${totalItems} crops for ${totalGold}🪙!`);
     HUD.animateGoldChange(totalGold);
     HUD.updateDisplay(GameStore.getState("resources"));
-    // Fire requests for each crop type
+    
+    // v8.2: Fire one request per CROP TYPE instead of per item
     for (const [cropId, qty] of entries) {
-      for (let j = 0; j < qty; j++) {
-        api("/api/farm/sell-crop", { userId: HUB.userId, cropId })
-          .then((data) => {
-            if (data?.success) {
-              if (data.resources) HUD?.syncFromServer?.(data.resources);
-            }
-          })
-          .catch(() => {});
-      }
+      apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId, amount: qty })
+        .then((data) => {
+          if (data._optimistic) return;
+          if (data?.success) {
+            if (data.resources) HUD?.syncFromServer?.(data.resources);
+            if (data.harvested) syncHarvestedToStore(data.harvested);
+          }
+        })
+        .catch(() => {});
     }
+  }
+
+  function sellCrop(cropId, sellPrice) {
+    const res = GameStore.getState("resources") || {};
+    const harvested = { ...(res.harvested || {}) };
+    if (!harvested[cropId] || harvested[cropId] <= 0) {
+      showToast("❌ No crops to sell!");
+      return;
+    }
+    // Optimistic: deduct crop, add gold
+    harvested[cropId]--;
+    if (harvested[cropId] <= 0) delete harvested[cropId];
+    const newGold = (res.gold || 0) + sellPrice;
+    GameStore.setState("resources", {
+      ...res,
+      gold: newGold,
+      harvested: harvested,
+    });
+    renderInventory();
+    render();
+    showToast(`💰 Sold! +${sellPrice}🪙`);
+    HUD.animateGoldChange(sellPrice);
+    HUD.updateDisplay(GameStore.getState("resources"));
+
+    // v8.2: Switch to apiBatched for consistency and reduced server pressure
+    apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId, amount: 1 })
+      .then((data) => {
+        if (data._optimistic) return;
+        if (data?.success) {
+          if (data.resources) HUD?.syncFromServer?.(data.resources);
+          if (data.harvested) syncHarvestedToStore(data.harvested);
+          renderInventory();
+        }
+      })
+      .catch(() => {});
   }
 
   /* ─── Plot Click Dispatcher ─── */
@@ -1910,42 +1946,6 @@ const FarmGameImpl = (() => {
       render();
       showToast("Network error", "error");
     }
-  }
-
-  /* ─── Sell Crop ─── */
-  function sellCrop(cropId, sellPrice) {
-    // GameStore always available in ESM
-    const res = GameStore.getState("resources") || {};
-    const harvested = { ...(res.harvested || {}) };
-    if (!harvested[cropId] || harvested[cropId] <= 0) {
-      showToast("❌ No crops to sell!");
-      return;
-    }
-    // Optimistic: deduct crop, add gold
-    harvested[cropId]--;
-    if (harvested[cropId] <= 0) delete harvested[cropId];
-    const newGold = (res.gold || 0) + sellPrice;
-    GameStore.setState("resources", {
-      ...res,
-      gold: newGold,
-      harvested: harvested,
-    });
-    renderInventory();
-    render();
-    showToast(`💰 Sold! +${sellPrice}🪙`);
-    HUD.animateGoldChange(sellPrice);
-    HUD.updateDisplay(GameStore.getState("resources"));
-
-    apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId })
-      .then((data) => {
-        if (data._optimistic) return;
-        if (data?.success) {
-          if (data.resources) HUD?.syncFromServer?.(data.resources);
-          if (data.harvested) syncHarvestedToStore(data.harvested);
-          renderInventory();
-        }
-      })
-      .catch(() => {});
   }
 
   /* ─── Feed Pet (crop → energy) ─── */
