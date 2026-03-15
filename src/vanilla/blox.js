@@ -43,6 +43,9 @@ const BloxGameImpl = (() => {
   // v4.16: Cached board geometry during drag (eliminates per-frame getBoundingClientRect)
   let _cachedBoardRect = null;
 
+  // v7.3: AbortController lifecycle — cleanly removes dangling drag listeners on route-leave
+  let _dragAbortController = null;
+
   // v4.16: Debounced server sync (3s throttle instead of per-placement HTTP)
   let _syncDirty = false;
   // v6.2.1: debounce instead of setInterval — eliminates timer leak on screen leave
@@ -443,6 +446,13 @@ const BloxGameImpl = (() => {
   document.addEventListener("hub:route-leave", () => {
     _boardCells = [];
     _cachedBoardRect = null;
+    // v7.3: Abort dangling drag listeners to prevent zombie events
+    if (_dragAbortController) {
+      _dragAbortController.abort();
+      _dragAbortController = null;
+    }
+    dragPieceIdx = -1;
+    dragDragging = false;
     if (dragPreviewEl) {
       dragPreviewEl.remove();
       dragPreviewEl = null;
@@ -771,6 +781,9 @@ const BloxGameImpl = (() => {
       document.removeEventListener("pointercancel", onUp);
       document.body.style.cursor = "";
       
+      // v7.3: Clean up AbortController for this drag session
+      _dragAbortController = null;
+      
       if (trayEl) trayEl.style.pointerEvents = "";
       clearGhost();
       
@@ -801,9 +814,13 @@ const BloxGameImpl = (() => {
       }
     };
     
-    document.addEventListener("pointermove", onMove, { passive: false });
-    document.addEventListener("pointerup", onUp, { passive: false });
-    document.addEventListener("pointercancel", onUp, { passive: false });
+    // v7.3: Create AbortController for this drag session — allows route-leave to cancel
+    _dragAbortController = new AbortController();
+    const dragSignal = _dragAbortController.signal;
+
+    document.addEventListener("pointermove", onMove, { passive: false, signal: dragSignal });
+    document.addEventListener("pointerup", onUp, { passive: false, signal: dragSignal });
+    document.addEventListener("pointercancel", onUp, { passive: false, signal: dragSignal });
   }
 
   // ── Drag preview (shared by touch + mouse) ──
