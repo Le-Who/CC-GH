@@ -156,12 +156,28 @@ export async function loadDb() {
   }
 }
 
+const maxWaitSaves = new Map(); // userId -> timestamp of first unsaved change
+const MAX_WAIT_MS = 10000;
+
 /**
  * Debounced save function for an individual player.
  * Prevents hammering Firestore on rapid clicks (e.g. harvesting crops).
+ * v7.3: Guaranteed Max-Wait prevents starvation if player clicks continuously.
  */
 export function debouncedSavePlayer(userId) {
   if (!playersCol) return; // Silent fallback if Firestore is missing
+
+  const now = Date.now();
+  let firstTrigger = maxWaitSaves.get(userId);
+  if (!firstTrigger) {
+    firstTrigger = now;
+    maxWaitSaves.set(userId, firstTrigger);
+  }
+
+  // Calculate dynamic delay: standard debounce, UNLESS we hit the max-wait ceiling
+  const elapsed = now - firstTrigger;
+  const timeRemaining = Math.max(0, MAX_WAIT_MS - elapsed);
+  const nextDelay = Math.min(SAVE_DELAY_MS, timeRemaining);
 
   if (pendingSaves.has(userId)) {
     clearTimeout(pendingSaves.get(userId));
@@ -169,6 +185,8 @@ export function debouncedSavePlayer(userId) {
 
   const timeoutId = setTimeout(async () => {
     pendingSaves.delete(userId);
+    maxWaitSaves.delete(userId); // reset max-wait tracker
+
     const playerData = players.get(userId);
     if (!playerData) return;
 
@@ -179,7 +197,7 @@ export function debouncedSavePlayer(userId) {
       console.error(`❌ Failed to save player ${userId} to Firestore:`, e);
       playerData._saveError = true; // Trip the circuit breaker
     }
-  }, SAVE_DELAY_MS);
+  }, nextDelay);
 
   pendingSaves.set(userId, timeoutId);
 }

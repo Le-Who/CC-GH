@@ -309,7 +309,7 @@ const BloxGameImpl = (() => {
     if (bloxFloatPool.length === 0) return;
     const container = $("blox-board");
     if (!container) return;
-    const rect = container.getBoundingClientRect();
+    const rect = _cachedBoardRect || container.getBoundingClientRect();
     const parentRect = container.parentElement.getBoundingClientRect();
     // Center of board relative to parent
     const cx = rect.left - parentRect.left + rect.width / 2;
@@ -590,7 +590,7 @@ const BloxGameImpl = (() => {
       const t = tray[selectedPiece];
       if (!t || t.placed) return null;
 
-      const rect = gridEl.getBoundingClientRect();
+      const rect = _cachedBoardRect || gridEl.getBoundingClientRect();
       const cellSize = rect.width / GRID;
       const hoveredR = Math.floor((e.clientY - rect.top) / cellSize);
       const hoveredC = Math.floor((e.clientX - rect.left) / cellSize);
