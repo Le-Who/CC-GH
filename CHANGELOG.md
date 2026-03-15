@@ -1,3 +1,26 @@
+## [8.0.0] - 2026-03-15
+
+### Architecture & Mobile UX Redesign
+
+Comprehensive 9-fix architecture update targeting scalable distributed caching, offline fault tolerance, and compact mobile viewport optimization. 345/345 tests pass.
+
+#### Critical Architecture & Caching
+- **Upstash Redis Adapter** (`redisAdapter.js`): Implemented a complete read-through/write-through cache layer with `@upstash/redis` REST SDK. Features bulk pipeline loading on startup and gracefully degrades to in-memory maps if `UPSTASH_REDIS_URL` is omitted.
+- **Distributed Nonce Deduplication** (`server.js`, `redisAdapter.js`): The `/api/batch` endpoint now uses atomic Redis `SET NX` with a 5-minute TTL to guarantee strict cross-instance idempotency for batched client requests.
+- **Batch Endpoint Refactor** (`server.js`): Eliminated the `fetch(localhost)` antipattern. Batched requests now use direct Express `app.handle()` dispatch with mock req/res objects, cutting overhead and eliminating connection exhaustion.
+
+#### High Reliability Fixes
+- **Graceful Shutdown Drain** (`playerManager.js`): PM2/Docker SIGTERM now explicitly `await Promise.all()` on all pending player operation lock chains before flushing to Firestore, preventing data corruption during deployment restarts.
+- **Offline Simulation Guard** (`game-logic.js`): Added strict `isNaN` and bounds-checking for the `_lastSeen` timestamp in `processOfflineActions`. Prevents runaway integer-overflow simulations caused by corrupted client clocks or payload tampering.
+
+#### Mobile UX & Responsive UI
+- **Framer Motion Shop Drawer** (`MobileShopDrawer.jsx`, `BottomNav.jsx`): Replaced the massive full-screen farm shop with a swipeable, 3-snap (30%, 55%, 90%) bottom-sheet drawer using `framer-motion`. Added a contextual "Bag" icon to the bottom nav when the inventory is non-empty.
+- **Compact Viewport HUD** (`HUD.jsx`, `base.css`): At `< 500px` height, the HUD collapses into a single-line layout, shrinking resource pills and tucking actions into a "⋮" overflow menu to maximize vertical game space.
+- **Responsive Navigation** (`base.css`): Bottom nav height dynamically shrinks from `68px` → `56px` → `48px` on compact screens by fading out text labels and reducing icon scales.
+- **GameStore & Touch Targets** (`GameStoreUI.jsx`, `base.css`): Constrained store modal to `calc(100dvh - 100px)` preventing overflow clipping on iOS. Injected `@media (pointer: coarse)` CSS enforcement guaranteeing `44px` minimum touch targets across all major action buttons.
+
+---
+
 ## [7.6.0] - 2026-03-14
 
 ### Phase 18: Final Quality Audit & Verification

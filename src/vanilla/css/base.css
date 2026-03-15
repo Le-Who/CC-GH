@@ -1739,3 +1739,122 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   background: rgba(255, 80, 80, 0.2);
   color: #f87171;
 }
+
+/* ═══════════════════════════════════════════════════
+ *  v8.0: Compact Viewport Breakpoints
+ *  Reduces chrome overhead on small screens for more game area.
+ *  Bottom nav: 68px → 56px → 48px
+ *  HUD: full buttons → overflow "⋮" menu
+ * ═══════════════════════════════════════════════════ */
+
+:root {
+  --nav-height: 68px;
+}
+
+/* Bottom nav — standard responsive classes */
+.bottom-nav-bar {
+  height: var(--nav-height);
+}
+
+/* Standard icon sizes */
+.nav-tab-icon {
+  font-size: 1.5rem;
+}
+
+.nav-tab-label {
+  font-size: 10px;
+}
+
+/* ─── Compact Mode: viewport height < 500px ─── */
+@media (max-height: 500px) {
+  :root {
+    --nav-height: 56px;
+  }
+
+  /* Smaller nav icons, hidden labels */
+  .nav-tab-icon {
+    font-size: 1.25rem;
+    margin-bottom: 0 !important;
+  }
+  .nav-tab-label {
+    display: none;
+  }
+  .nav-tab-btn {
+    padding: 4px 2px;
+  }
+
+  /* HUD: Hide full-size buttons, show compact overflow */
+  .hud-btn-full {
+    display: none !important;
+  }
+  .hud-btn-compact {
+    display: block !important;
+  }
+
+  /* HUD pills: smaller */
+  .hud-pill {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+  .hud-icon {
+    font-size: 1rem;
+  }
+  .hud-value {
+    font-size: 0.85rem;
+  }
+  .hud-max {
+    font-size: 0.7rem;
+  }
+
+  /* Reduce screen padding to maximize game content area */
+  .screen {
+    padding-top: 44px;
+    padding-bottom: calc(var(--nav-height) + 4px);
+  }
+
+  /* Toast stacking adjusts for shorter nav */
+  .toast-container {
+    bottom: 70px;
+  }
+}
+
+/* ─── Ultra-Compact Mode: viewport height < 400px ─── */
+@media (max-height: 400px) {
+  :root {
+    --nav-height: 48px;
+  }
+
+  .nav-tab-icon {
+    font-size: 1.1rem;
+  }
+
+  .screen {
+    padding-top: 36px;
+    padding-bottom: calc(var(--nav-height) + 2px);
+  }
+
+  /* HUD pills even more compact */
+  .hud-pill {
+    padding: 3px 6px;
+    font-size: 0.78rem;
+  }
+  .hud-icon {
+    font-size: 0.9rem;
+  }
+
+  .toast-container {
+    bottom: 56px;
+  }
+}
+
+/* ─── Touch Target Enforcement ─── */
+@media (pointer: coarse) {
+  /* Ensure all interactive elements meet 44px minimum on touch devices */
+  .farm-inv-btn,
+  .merge-gen-btn,
+  .merge-crop-btn,
+  .pet-quest-gen-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

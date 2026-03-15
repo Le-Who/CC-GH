@@ -2,6 +2,7 @@
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Player Manager
  *  Hot-cache in-memory state backed by Google Cloud Firestore
+ *  v8.0: Optional Upstash Redis read-through / write-through layer
  * ═══════════════════════════════════════════════════════
  */
 
@@ -9,6 +10,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Firestore } from "@google-cloud/firestore";
 import { ECONOMY, createDefaultPlayer } from "./game-logic.js";
+import {
+  initRedis, isRedisEnabled, redisGetPlayer, redisSetPlayer,
+  redisDeletePlayer, redisBulkLoad, redisShutdown,
+} from "./redisAdapter.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -90,6 +95,9 @@ export function initFirestore() {
       e.message,
     );
   }
+
+  // v8.0: Initialize Redis (feature-flagged via env vars)
+  initRedis();
 }
 
 /** Accessor for users collection (simple-auth) */
@@ -165,6 +173,12 @@ export async function loadDb() {
       } else {
         console.log("🔥 Firestore DB is empty. Starting fresh.");
       }
+
+      // v8.0: Bulk-populate Redis with loaded players
+      if (isRedisEnabled()) {
+        await redisBulkLoad(players);
+      }
+
       return;
     } catch (e) {
       console.error("❌ Firestore read error:", e);
@@ -209,6 +223,11 @@ export function debouncedSavePlayer(userId) {
     if (!playerData) return;
 
     try {
+      // v8.0: Write-through to Redis (non-blocking, fire-and-forget)
+      if (isRedisEnabled()) {
+        redisSetPlayer(userId, playerData).catch(() => {});
+      }
+
       await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
       playerData._saveError = false; // Reset circuit breaker on success
     } catch (e) {
@@ -222,8 +241,19 @@ export function debouncedSavePlayer(userId) {
 
 /* ─── Graceful Shutdown ─── */
 export const gracefulShutdown = async () => {
-  console.log("\n  Flushing pending Firestore saves before shutdown...");
+  console.log("\n  Flushing pending saves before shutdown...");
+
+  // v8.0: Drain any in-flight player lock chains before flushing
+  const lockDrainPromises = [];
+  for (const [, lockPromise] of playerLocks.entries()) {
+    lockDrainPromises.push(lockPromise.catch(() => {}));
+  }
+  if (lockDrainPromises.length > 0) {
+    await Promise.all(lockDrainPromises);
+  }
+
   if (!playersCol) {
+    await redisShutdown();
     process.exit(0);
     return;
   }
@@ -238,18 +268,20 @@ export const gracefulShutdown = async () => {
       );
     }
   }
+  pendingSaves.clear();
+  maxWaitSaves.clear();
 
-  Promise.all(flushPromises)
-    .then(() => {
-      console.log(
-        `🔥 Flushed ${flushPromises.length} players to Firestore. Bye!`,
-      );
-    })
-    .then(() => process.exit(0))
-    .catch((err) => {
-      console.error("❌ Error flushing to Firestore during shutdown:", err);
-      process.exit(1);
-    });
+  try {
+    await Promise.all(flushPromises);
+    console.log(
+      `🔥 Flushed ${flushPromises.length} players to Firestore. Bye!`,
+    );
+    await redisShutdown();
+    process.exit(0);
+  } catch (err) {
+    console.error("❌ Error flushing during shutdown:", err);
+    process.exit(1);
+  }
 };
 
 process.on("SIGTERM", gracefulShutdown);

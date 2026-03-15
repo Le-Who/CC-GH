@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v7.5.0** (Mobile Performance Update: Zero-GC architecture, CSS Bypass Modals, RAF Throttling)
+**Current version: v8.0.0** (Architecture Update: Upstash Redis, Distributed Caching, Mobile UX Redesign)
 
 ---
 
@@ -34,7 +34,10 @@
 | ✨ **Nav Shimmer + Dots** | Active tab shimmer effect · Green notification dot on Farm when crops ready  |
 | 🔤 **Emoji Consistency**  | Robust font stack: Noto Color Emoji + Apple/Segoe fallbacks                  |
 | ⚡ **Zero-GC Drags**      | CSS Custom Properties & Sub-pixel caching for 60fps mobile drag-and-drop     |
-| 🌍 **Optimistic Sync**    | Debounced & batched Firestore sync with graceful UI fallback                 |
+| 📱 **Mobile Shop Drawer** | Framer Motion bottom-sheet for inventory (swipeable 3-snap positions)        |
+| ✨ **Compact Mobile UX**  | Responsive navigation (48-68px) and HUD overflow menu for small viewports    |
+| 🧱 **Upstash Redis**      | Distributed player cache + atomic SET NX idempotency deduplication           |
+| 🌍 **Optimistic Sync**    | Debounced & batched Firestore sync with direct Express loopback dispatch     |
 
 ---
 
@@ -70,6 +73,8 @@ npm run dev
 | `DISCORD_REDIRECT_URI`  | ✅       | OAuth2 redirect URI               |
 | `PORT`                  | ❌       | Server port (default: `8090`)     |
 | `GCS_BUCKET`            | ❌       | GCS bucket for persistent storage |
+| `UPSTASH_REDIS_URL`     | ❌       | Optional Redis REST URL for distributed cache |
+| `UPSTASH_REDIS_TOKEN`   | ❌       | Optional Redis REST token                     |
 
 ---
 

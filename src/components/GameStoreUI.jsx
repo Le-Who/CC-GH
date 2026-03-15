@@ -82,7 +82,10 @@ export default function GameStoreUI({ isOpen, onClose }) {
       />
       <motion.div
         className="store-panel relative w-full max-w-2xl border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        style={{ background: "var(--surface)" }}
+        style={{
+          background: "var(--surface)",
+          maxHeight: "calc(100dvh - 100px)",
+        }}
         initial={{ scale: 0.9, y: 20, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.95, y: 10, opacity: 0 }}
@@ -153,6 +156,7 @@ export default function GameStoreUI({ isOpen, onClose }) {
                   boxShadow: isActive
                     ? "0 0 12px rgba(255, 51, 102, 0.4)"
                     : "none",
+                  minHeight: "44px",
                 }}
                 role="tab"
                 aria-selected={isActive}
@@ -165,9 +169,10 @@ export default function GameStoreUI({ isOpen, onClose }) {
           })}
         </nav>
 
-        {/* Content Area */}
+        {/* Content Area — v8.0: dynamic height cap, no fixed min-height */}
         <div
-          className="p-6 h-[50vh] min-h-[400px] overflow-y-auto"
+          className="p-4 sm:p-6 overflow-y-auto flex-1"
+          style={{ minHeight: "200px" }}
           role="tabpanel"
           id={`tabpanel-${activeTab}`}
           aria-label={`${activeTab} content`}
@@ -189,6 +194,7 @@ export default function GameStoreUI({ isOpen, onClose }) {
             borderColor: "var(--border)",
             color: "var(--text-muted)",
             fontSize: "0.7rem",
+            paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
           }}
         >
           All prices final • Drop rates verified •{" "}

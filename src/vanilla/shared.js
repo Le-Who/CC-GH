@@ -222,9 +222,23 @@ function flushApiBatch() {
 /** 
  * Enqueues a mutative request to be sent in a debounced batch.
  * Guarantees eventual consistency. Promises resolve immediately for Optimistic UI.
+ * v8.0: Adds idempotency nonce to prevent double-application on replay.
  */
+function generateNonce(path, body) {
+  // Deterministic nonce: hash of path + sorted body keys + 500ms time bucket
+  const timeBucket = Math.floor(Date.now() / 500);
+  const bodyStr = body ? JSON.stringify(body, Object.keys(body).sort()) : "";
+  let hash = 0;
+  const str = `${path}:${bodyStr}:${timeBucket}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
 export async function apiBatched(path, body) {
-  const req = { id: Math.random().toString(36).slice(2), path, body };
+  const nonce = generateNonce(path, body);
+  const req = { id: Math.random().toString(36).slice(2), path, body, nonce };
   apiBatchQueue.push(req);
   localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
 

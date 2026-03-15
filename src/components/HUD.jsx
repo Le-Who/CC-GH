@@ -1,72 +1,137 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useGameStore } from "../store/gameStore";
 
+/**
+ * HUD — Top bar with energy/gold pills + quest/store buttons.
+ * v8.0: Compact mode for small viewports (< 500px height).
+ *   - Single-line layout with smaller pills
+ *   - Quest + Store buttons collapse into a "⋮" overflow menu
+ *   - safe-area-inset-top padding for notched devices
+ */
+
 export default function HUD({ onOpenStore, onOpenQuest }) {
-  // OPTIMIZATION 6: Using atomic selectors to prevent React re-renders on unrelated game state changes
   const energy = useGameStore((state) => state.slices.shared?.energy ?? 30);
   const maxEnergy = useGameStore((state) => state.slices.shared?.maxEnergy ?? 30);
   const gold = useGameStore((state) => state.slices.shared?.gold ?? 0);
   const activeQuests = useGameStore((state) => state.slices.shared?.activeQuests ?? 0);
 
+  const [moreOpen, setMoreOpen] = useState(false);
+  const toggleMore = useCallback(() => setMoreOpen((p) => !p), []);
+
   const energyPercent = Math.min(100, (energy / maxEnergy) * 100);
 
   return (
-    <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-50 pointer-events-none">
-      <div className="flex gap-3 pointer-events-auto">
-        {/* Energy Pill */}
-        <motion.div
-          className="relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-3 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          {/* Regen Fill Background */}
+    <div
+      className="absolute top-0 left-0 right-0 z-50 pointer-events-none"
+      style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 12px)" }}
+    >
+      <div className="flex justify-between items-center px-4 py-1 pointer-events-none">
+        {/* Left: Resource pills */}
+        <div className="flex gap-2 pointer-events-auto">
+          {/* Energy Pill — compact on small viewports */}
           <motion.div
-            className="absolute left-0 top-0 bottom-0 bg-accent/20 z-0"
-            initial={{ width: 0 }}
-            animate={{ width: `${energyPercent}%` }}
-            transition={{ type: "spring", bounce: 0, duration: 0.5 }}
-          />
-          <span className="relative z-10 text-xl mr-2">⚡</span>
-          <span className="relative z-10 font-heading font-bold text-white tracking-wide">
-            {energy}
-            <span className="text-textDim text-sm">/{maxEnergy}</span>
-          </span>
-        </motion.div>
-
-        {/* Gold Pill */}
-        <motion.div
-          className="bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-4 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-        >
-          <span className="text-xl mr-2">🪙</span>
-          <span className="font-heading font-bold text-gold tracking-wide">
-            {gold}
-          </span>
-        </motion.div>
-      </div>
-
-      <div className="flex gap-2 pointer-events-auto">
-        {/* Quest Log Buton */}
-        <button
-          className="relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-12 h-12 flex items-center justify-center text-2xl shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
-          onClick={onOpenQuest}
-        >
-          📋
-          {activeQuests > 0 && (
+            className="hud-pill relative overflow-hidden bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-2.5 py-1 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
             <motion.div
-              className="absolute top-0 right-0 w-4 h-4 bg-danger rounded-full border-2 border-background"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500 }}
+              className="absolute left-0 top-0 bottom-0 bg-accent/20 z-0"
+              initial={{ width: 0 }}
+              animate={{ width: `${energyPercent}%` }}
+              transition={{ type: "spring", bounce: 0, duration: 0.5 }}
             />
-          )}
-        </button>
+            <span className="relative z-10 hud-icon mr-1.5">⚡</span>
+            <span className="relative z-10 font-heading font-bold text-white tracking-wide hud-value">
+              {energy}
+              <span className="text-textDim hud-max">/{maxEnergy}</span>
+            </span>
+          </motion.div>
 
-        {/* Monetization Store Button */}
-        <button
-          className="bg-gold text-background rounded-full w-12 h-12 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-transform hover:scale-110 active:scale-90"
-          onClick={onOpenStore}
-        >
-          🛒
-        </button>
+          {/* Gold Pill */}
+          <motion.div
+            className="hud-pill bg-surface/80 backdrop-blur-md border border-border rounded-full flex items-center px-3 py-1 shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <span className="hud-icon mr-1.5">🪙</span>
+            <span className="font-heading font-bold text-gold tracking-wide hud-value">
+              {gold}
+            </span>
+          </motion.div>
+        </div>
+
+        {/* Right: Action buttons */}
+        <div className="flex gap-2 pointer-events-auto">
+          {/* Full-size buttons (hidden on compact viewports via CSS) */}
+          <button
+            className="hud-btn-full relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-11 h-11 flex items-center justify-center text-xl shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
+            onClick={onOpenQuest}
+            aria-label="Open quest log"
+          >
+            📋
+            {activeQuests > 0 && (
+              <motion.div
+                className="absolute top-0 right-0 w-3.5 h-3.5 bg-danger rounded-full border-2 border-background"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500 }}
+              />
+            )}
+          </button>
+
+          <button
+            className="hud-btn-full bg-gold text-background rounded-full w-11 h-11 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(255,215,0,0.4)] transition-transform hover:scale-110 active:scale-90"
+            onClick={onOpenStore}
+            aria-label="Open store"
+          >
+            🛒
+          </button>
+
+          {/* Compact overflow button (shown only on compact viewports via CSS) */}
+          <div className="hud-btn-compact relative" style={{ display: "none" }}>
+            <button
+              className="bg-surface/80 backdrop-blur-md border border-border rounded-full w-11 h-11 flex items-center justify-center text-lg shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
+              onClick={toggleMore}
+              aria-label="More actions"
+              aria-expanded={moreOpen}
+            >
+              ⋮
+              {activeQuests > 0 && (
+                <div className="absolute top-0 right-0 w-3 h-3 bg-danger rounded-full border-2 border-background" />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {moreOpen && (
+                <motion.div
+                  className="absolute top-full right-0 mt-2 flex flex-col gap-2 p-2 rounded-xl"
+                  style={{
+                    background: "rgba(20, 21, 35, 0.95)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    backdropFilter: "blur(16px)",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                  }}
+                  initial={{ opacity: 0, scale: 0.9, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <button
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white/80 hover:bg-white/10 transition-colors whitespace-nowrap"
+                    style={{ minHeight: "44px" }}
+                    onClick={() => { onOpenQuest(); setMoreOpen(false); }}
+                  >
+                    📋 Quests {activeQuests > 0 && <span className="w-2 h-2 bg-danger rounded-full" />}
+                  </button>
+                  <button
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-gold hover:bg-white/10 transition-colors whitespace-nowrap"
+                    style={{ minHeight: "44px" }}
+                    onClick={() => { onOpenStore(); setMoreOpen(false); }}
+                  >
+                    🛒 Store
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </div>
   );

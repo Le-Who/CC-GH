@@ -12,14 +12,27 @@ const TABS = [
   { id: "room", icon: "🏠", label: "Room" },
 ];
 
-export default function BottomNav({ activeTab, onTabSelect }) {
+/**
+ * BottomNav — Persistent bottom navigation bar.
+ * v8.0: Responsive height reduction on small viewports.
+ *  - Standard: 68px height, icon + label
+ *  - Compact (< 500px viewport height): 56px, smaller icons, no labels
+ *  - Includes bag icon for MobileShopDrawer access on farm tab
+ */
+export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
   const roomInventory = useGameStore((state) => state.slices.room?.inventory);
   const hasNewRoomItems = roomInventory ? roomInventory.length > 0 : false;
+  const farmInventory = useGameStore((s) => s.slices?.farm?.inventory) || {};
+  const hasItems = Object.values(farmInventory).some((qty) => qty > 0);
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-[68px] pb-safe z-50">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 bottom-nav-bar"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
       <div className="absolute inset-0 bg-[#0D0F1A]/90 backdrop-blur-xl border-t border-white/10" />
 
-      <div className="relative flex justify-around items-stretch h-full px-2">
+      <div className="relative flex justify-around items-stretch h-full px-1">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
 
@@ -29,7 +42,7 @@ export default function BottomNav({ activeTab, onTabSelect }) {
               onClick={() => onTabSelect(tab.id)}
               className={twMerge(
                 clsx(
-                  "relative flex flex-col items-center justify-center flex-1 transition-colors duration-300",
+                  "relative flex flex-col items-center justify-center flex-1 transition-colors duration-300 nav-tab-btn",
                   isActive
                     ? "text-primary"
                     : "text-white/40 hover:text-white/60",
@@ -40,7 +53,7 @@ export default function BottomNav({ activeTab, onTabSelect }) {
               {isActive && (
                 <motion.div
                   layoutId="nav-pill"
-                  className="absolute inset-x-2 inset-y-1 bg-primary/15 border border-primary/30 rounded-xl shadow-[0_0_12px_rgba(167,139,250,0.3)] z-0"
+                  className="absolute inset-x-1 inset-y-1 bg-primary/15 border border-primary/30 rounded-xl shadow-[0_0_12px_rgba(167,139,250,0.3)] z-0"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               )}
@@ -48,8 +61,8 @@ export default function BottomNav({ activeTab, onTabSelect }) {
               <span
                 className={twMerge(
                   clsx(
-                    "relative z-10 text-2xl mb-1 transition-all duration-300",
-                    isActive ? "-translate-y-1 scale-110 drop-shadow-[0_4px_8px_rgba(167,139,250,0.6)]" : "translate-y-0 scale-100"
+                    "relative z-10 nav-tab-icon mb-0.5 transition-all duration-300",
+                    isActive ? "-translate-y-0.5 scale-110 drop-shadow-[0_4px_8px_rgba(167,139,250,0.6)]" : "translate-y-0 scale-100"
                   )
                 )}
               >
@@ -62,12 +75,32 @@ export default function BottomNav({ activeTab, onTabSelect }) {
                   </div>
                 )}
               </span>
-              <span className="relative z-10 text-[10px] uppercase tracking-wider font-bold">
+              <span className="relative z-10 nav-tab-label text-[10px] uppercase tracking-wider font-bold">
                 {tab.label}
               </span>
             </button>
           );
         })}
+
+        {/* Bag / Drawer toggle — visible on farm tab when inventory has items */}
+        {activeTab === "farm" && hasItems && (
+          <button
+            onClick={onOpenDrawer}
+            className="relative flex flex-col items-center justify-center transition-colors duration-300 text-amber-400 hover:text-amber-300 nav-tab-btn"
+            style={{ flex: "0 0 52px" }}
+            aria-label="Open inventory drawer"
+          >
+            <span className="nav-tab-icon relative z-10">🎒</span>
+            <span className="relative z-10 nav-tab-label text-[10px] uppercase tracking-wider font-bold">
+              Bag
+            </span>
+            <motion.div
+              className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-400 rounded-full"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            />
+          </button>
+        )}
       </div>
     </nav>
   );

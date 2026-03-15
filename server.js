@@ -14,6 +14,7 @@ import { fileURLToPath } from "url";
 import compression from "compression";
 import { initStorage, getBucket } from "./storage.js";
 import { players, loadDb, initFirestore } from "./playerManager.js";
+import { isRedisEnabled, isNonceSeenRedis } from "./redisAdapter.js";
 import authRoutes, { validateSimpleAuthToken } from "./routes/auth.js";
 
 /* ─── Route Modules ─── */
@@ -376,7 +377,28 @@ app.get(/.*/, (_req, res) => {
   res.type("html").send(getIndexHtml());
 });
 
-// [Phase 2] Optimistic UI & Batch Sync Endpoint
+// [Phase 2] Optimistic UI & Batch Sync Endpoint — v8.0 Direct Dispatch
+// Nonce deduplication: tracks last N nonces per user to reject replayed mutations
+const NONCE_CACHE_SIZE = 100;
+const nonceCache = new Map(); // userId → Set<nonce>
+
+function isNonceSeen(userId, nonce) {
+  if (!nonce) return false; // Legacy clients without nonces always pass
+  let set = nonceCache.get(userId);
+  if (!set) {
+    set = new Set();
+    nonceCache.set(userId, set);
+  }
+  if (set.has(nonce)) return true;
+  set.add(nonce);
+  // LRU eviction: keep only last N nonces
+  if (set.size > NONCE_CACHE_SIZE) {
+    const first = set.values().next().value;
+    set.delete(first);
+  }
+  return false;
+}
+
 app.post("/api/batch", requireAuth, async (req, res) => {
   try {
     const { requests } = req.body;
@@ -385,28 +407,65 @@ app.post("/api/batch", requireAuth, async (req, res) => {
     }
 
     resolveUser(req);
+    const userId = req.body?.userId || req.discordUser?.id || req.simpleUser?.userId;
     const results = [];
 
-    // Process sequentially to maintain data integrity and lock acquisition order
+    // Process sequentially to maintain data integrity
     for (const subReq of requests) {
-      const { path, body, id } = subReq;
+      const { path: subPath, body, id, nonce } = subReq;
+
+      // Idempotency check: prefer Redis (distributed), fallback to in-memory
+      if (nonce) {
+        let isDuplicate = false;
+        if (isRedisEnabled()) {
+          isDuplicate = await isNonceSeenRedis(userId, nonce);
+        } else {
+          isDuplicate = isNonceSeen(userId, nonce);
+        }
+        if (isDuplicate) {
+          results.push({ id, status: 409, data: { error: "Duplicate request" } });
+          continue;
+        }
+      }
+
       try {
-        // We simulate an internal fetch or direct handler call.
-        // For simplicity and to reuse all Express middleware/logic, we can do an internal fetch 
-        // using the same server instance, but that requires knowing the port.
-        // A simpler way: just let the client send them sequentially, but in the background. 
-        // Wait, if it's an internal fetch, we need the full URL.
-        const url = `http://localhost:${PORT}${path}`;
-        const internalRes = await fetch(url, {
-          method: body ? "POST" : "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": req.headers.authorization // Forward auth
-          },
-          body: body ? JSON.stringify(body) : undefined
+        // Direct dispatch via mock req/res instead of self-fetch
+        const data = await new Promise((resolve, reject) => {
+          const mockReq = Object.create(req); // Inherit auth headers
+          mockReq.method = body ? "POST" : "GET";
+          mockReq.url = subPath;
+          mockReq.path = subPath;
+          mockReq.body = body || {};
+          mockReq.headers = { ...req.headers };
+
+          const chunks = [];
+          const mockRes = {
+            statusCode: 200,
+            _headers: {},
+            set(k, v) { this._headers[k] = v; return this; },
+            status(code) { this.statusCode = code; return this; },
+            json(data) {
+              resolve({ status: this.statusCode, data });
+            },
+            send(d) {
+              resolve({ status: this.statusCode, data: typeof d === "string" ? JSON.parse(d) : d });
+            },
+            end() { resolve({ status: this.statusCode, data: {} }); },
+            type() { return this; },
+            get(h) { return this._headers[h]; },
+            getHeader(h) { return this._headers[h]; },
+            setHeader(k, v) { this._headers[k] = v; },
+            removeHeader() {},
+            headersSent: false,
+          };
+
+          // Use Express router to dispatch
+          app.handle(mockReq, mockRes, (err) => {
+            if (err) reject(err);
+            else resolve({ status: 404, data: { error: "Route not found" } });
+          });
         });
-        const data = await internalRes.json().catch(() => ({}));
-        results.push({ id, status: internalRes.status, data });
+        results.push({ id, status: data.status, data: data.data });
       } catch (err) {
         results.push({ id, status: 500, error: err.message });
       }

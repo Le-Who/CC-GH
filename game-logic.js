@@ -944,7 +944,14 @@ const OFFLINE_HARVEST_COST = 2; // per crop harvested
 const OFFLINE_PLANT_COST = 4; // per seed planted
 
 export function processOfflineActions(player, now = Date.now()) {
-  const lastSeen = player._lastSeen || now;
+  // Guard: skip simulation entirely for players without valid _lastSeen
+  // (new players, corrupted data) — prevents runaway epoch-scale elapsed times
+  if (!player._lastSeen || typeof player._lastSeen !== "number" || isNaN(player._lastSeen)) {
+    player._lastSeen = now;
+    return null;
+  }
+
+  const lastSeen = player._lastSeen;
   const elapsed = now - lastSeen;
   player._lastSeen = now;
 
