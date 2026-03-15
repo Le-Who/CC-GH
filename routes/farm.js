@@ -135,8 +135,19 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const plot = p.farm.plots[idx];
       if (!plot.crop)
         return res.status(400).json({ error: "nothing to harvest" });
-      if (getGrowthPct(plot) < 1)
-        return res.status(400).json({ error: "not ready" });
+      if (getGrowthPct(plot) < 1) {
+        // v7.3: Include remainingMs and serverTime for client-side healing reconciliation
+        const cfg = CROPS[plot.crop];
+        const mult = plot.watered ? 0.5 : 1; // approximate watering multiplier
+        const totalGrowMs = (cfg?.growthTime || 60000) * mult;
+        const elapsed = Date.now() - (plot.plantedAt || Date.now());
+        const remainingMs = Math.max(0, totalGrowMs - elapsed);
+        return res.status(400).json({
+          error: "not ready",
+          remainingMs,
+          serverTime: Date.now(),
+        });
+      }
       const cfg = CROPS[plot.crop];
       const cropId = plot.crop;
       // Produce crop item for pet feeding (no gold from harvest)

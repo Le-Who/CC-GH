@@ -1886,7 +1886,21 @@ const FarmGameImpl = (() => {
           renderInventory();
           if (data.leveledUp) showToast(`🎉 Level Up! Lv${data.level}`);
         } else {
-          loadState();
+          // v7.3: Healing Reconciliation — graceful rollback on time-drift rejection
+          if (data.error === "not ready" || data.error === "NOT_READY") {
+            // Re-sync clock from server response to correct future checks
+            if (data.serverTime) updateClockDelta(data.serverTime);
+            // Restore the plot snapshot so user sees it growing again
+            state.plots[plotId] = plotSnapshot;
+            syncToStore();
+            render();
+            // Show user-friendly toast with remaining time
+            const remainMs = data.remainingMs || 0;
+            const remainLabel = remainMs > 0 ? _formatGrowthTime(remainMs) : "a moment";
+            showToast(`⏳ Not quite ready — ${remainLabel} left`);
+          } else {
+            loadState();
+          }
         }
       })
       .catch(() => {
