@@ -1166,18 +1166,32 @@ export function farmPlotsWithGrowth(farm, now = Date.now()) {
  *  TRIVIA — Question Selection
  * ═══════════════════════════════════════════════════ */
 export function pickQuestions(questions, count = 5, difficulty = "all") {
-  let pool = [...questions];
-  if (difficulty && difficulty !== "all")
-    pool = pool.filter((q) => q.difficulty === difficulty);
-  return pool
-    .sort(() => Math.random() - 0.5)
-    .slice(0, Math.min(count, pool.length));
+  let pool = difficulty && difficulty !== "all"
+    ? questions.filter((q) => q.difficulty === difficulty)
+    : [...questions];
+
+  // O(k) partial Fisher-Yates shuffle
+  const limit = Math.min(count, pool.length);
+  const result = [];
+  for (let i = 0; i < limit; i++) {
+    const randIdx = i + Math.floor(Math.random() * (pool.length - i));
+    result.push(pool[randIdx]);
+    const temp = pool[i];
+    pool[i] = pool[randIdx];
+    pool[randIdx] = temp;
+  }
+  return result;
 }
 
 export function makeClientQuestion(q, index, total) {
-  const answers = [q.correctAnswer, ...q.wrongAnswers].sort(
-    () => Math.random() - 0.5,
-  );
+  const answers = [q.correctAnswer, ...q.wrongAnswers];
+  // O(1) Fisher-Yates shuffle
+  for (let i = answers.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = answers[i];
+    answers[i] = answers[j];
+    answers[j] = temp;
+  }
   return {
     question: q.question,
     answers,
