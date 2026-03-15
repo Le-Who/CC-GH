@@ -28,8 +28,22 @@ let sessionsCol = null; // Simple-auth: token → { userId, username, createdAt 
 
 /**
  * Executes an async function exclusively per player, preventing race conditions like double-spends.
+ * v7.3: Backpressure — rejects with QUEUE_FULL if pending lock depth exceeds MAX_QUEUE_DEPTH.
  */
+const MAX_QUEUE_DEPTH = 5;
+const lockQueueDepth = new Map(); // userId -> number of pending locks
+
 export async function withPlayerLock(userId, asyncFn) {
+  const depth = lockQueueDepth.get(userId) || 0;
+
+  // v7.3: Backpressure — reject if too many requests queued for this player
+  if (depth >= MAX_QUEUE_DEPTH) {
+    const err = new Error("QUEUE_FULL");
+    err.statusCode = 429;
+    throw err;
+  }
+
+  lockQueueDepth.set(userId, depth + 1);
   const currentLock = playerLocks.get(userId) || Promise.resolve();
   
   // Create a new lock that waits for the previous one
@@ -38,6 +52,10 @@ export async function withPlayerLock(userId, asyncFn) {
   }).catch((err) => {
     // Prevent a failed lock from breaking the chain
     throw err;
+  }).finally(() => {
+    const d = (lockQueueDepth.get(userId) || 1) - 1;
+    if (d <= 0) lockQueueDepth.delete(userId);
+    else lockQueueDepth.set(userId, d);
   });
   
   playerLocks.set(userId, nextLock.catch(() => {})); // Store silent-catch to not crash unhandled extensions
