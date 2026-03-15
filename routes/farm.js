@@ -35,42 +35,46 @@ export default function farmRoutes(requireAuth, resolveUser) {
     res.json({ ...CROPS, __hash: cropsHash }),
   );
 
-  router.post("/api/farm/state", requireAuth, (req, res) => {
+  router.post("/api/farm/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    const p = getPlayer(userId, username);
-    calcRegen(p);
+    await withPlayerLock(userId, async () => {
+      const p = getPlayer(userId, username);
+      calcRegen(p);
 
-    // Run offline simulation (harvest → plant → water)
-    const offlineReport = processOfflineActions(p);
-    if (offlineReport) debouncedSavePlayer(userId);
+      // Run offline simulation (harvest → plant → water)
+      const offlineReport = processOfflineActions(p);
 
-    // v7.3: Streak system — check daily login
-    const streakResult = updateStreak(p);
-    // v7.3: Achievement check
-    const newAchievements = checkAchievements(p);
-    if (
-      streakResult.continued ||
-      streakResult.broken ||
-      newAchievements.length > 0
-    ) {
-      debouncedSavePlayer(userId);
-    }
+      // v7.3: Streak system — check daily login
+      const streakResult = updateStreak(p);
+      // v7.3: Achievement check
+      const newAchievements = checkAchievements(p);
 
-    res.json({
-      ...p.farm,
-      plots: farmPlotsWithGrowth(p.farm),
-      resources: p.resources,
-      pet: p.pet,
-      offlineReport,
-      streak: p.streak,
-      streakResult,
-      newAchievements,
-      seasonPass: p.seasonPass,
-      cosmetics: p.cosmetics,
-      boosters: p.boosters,
-      journal: p.journal,
-      serverTime: Date.now(),
+      // v8.1: Single consolidated save instead of 3 separate debouncedSavePlayer calls
+      if (
+        offlineReport ||
+        streakResult.continued ||
+        streakResult.broken ||
+        newAchievements.length > 0
+      ) {
+        debouncedSavePlayer(userId);
+      }
+
+      res.json({
+        ...p.farm,
+        plots: farmPlotsWithGrowth(p.farm),
+        resources: p.resources,
+        pet: p.pet,
+        offlineReport,
+        streak: p.streak,
+        streakResult,
+        newAchievements,
+        seasonPass: p.seasonPass,
+        cosmetics: p.cosmetics,
+        boosters: p.boosters,
+        journal: p.journal,
+        serverTime: Date.now(),
+      });
     });
   });
 

@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v8.0.0** (Architecture Update: Upstash Redis, Distributed Caching, Mobile UX Redesign)
+**Current version: v8.1.0** (Architecture Hardening: Race Condition Fixes, Redis Consistency, Mobile UX)
 
 ---
 
@@ -75,6 +75,8 @@ npm run dev
 | `GCS_BUCKET`            | ❌       | GCS bucket for persistent storage |
 | `UPSTASH_REDIS_URL`     | ❌       | Optional Redis REST URL for distributed cache |
 | `UPSTASH_REDIS_TOKEN`   | ❌       | Optional Redis REST token                     |
+| `SIMPLE_AUTH_ENABLED`   | ❌       | Enable username/password auth (default: `false`) |
+| `CUSTOM_DOMAIN`         | ❌       | Custom domain for CORS allowlist              |
 
 ---
 
@@ -228,8 +230,9 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 
 ### ⚠️ Operational Limitations
 - **Single-Node Invariant:** The backend relies on an in-memory `players` Map for fast reads and deferred writes (debounced Firestore syncing). It **cannot** be horizontally scaled across multiple instances without sticky sessions or a Redis migration.
-- **Concurrency Locking:** To prevent double-spend exploits, mutating endpoints utilize a per-user `withPlayerLock` async mutex.
+- **Concurrency Locking:** To prevent double-spend exploits, mutating endpoints utilize a per-user `withPlayerLock` async mutex. As of v8.1, all game routes (Farm, Match-3, Blox, Merge, Quests) use this lock.
 - **Circuit Breaker:** If Firestore experiences backpressure and `debouncedSavePlayer` is rejected, the server flips a `_saveError` flag on the affected user, returning HTTP 503s for all subsequent mutations until the database recovers, safeguarding against silent data obliteration on process exit.
+- **Redis Consistency (v8.1):** Redis writes occur AFTER Firestore success. On Firestore failure, the Redis entry is actively evicted to prevent stale-cache data loss on restart.
 
 ---
 

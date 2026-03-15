@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 import { Firestore } from "@google-cloud/firestore";
 import { ECONOMY, createDefaultPlayer } from "./game-logic.js";
 import {
-  initRedis, isRedisEnabled, redisGetPlayer, redisSetPlayer,
+  initRedis, isRedisEnabled, redisSetPlayer,
   redisDeletePlayer, redisBulkLoad, redisShutdown,
 } from "./redisAdapter.js";
 
@@ -223,16 +223,21 @@ export function debouncedSavePlayer(userId) {
     if (!playerData) return;
 
     try {
-      // v8.0: Write-through to Redis (non-blocking, fire-and-forget)
+      await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
+      playerData._saveError = false; // Reset circuit breaker on success
+
+      // v8.1: Write-through to Redis AFTER Firestore success (consistency guarantee)
       if (isRedisEnabled()) {
         redisSetPlayer(userId, playerData).catch(() => {});
       }
-
-      await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
-      playerData._saveError = false; // Reset circuit breaker on success
     } catch (e) {
       console.error(`❌ Failed to save player ${userId} to Firestore:`, e);
       playerData._saveError = true; // Trip the circuit breaker
+
+      // v8.1: Evict stale Redis entry — Redis must never be "ahead" of Firestore
+      if (isRedisEnabled()) {
+        redisDeletePlayer(userId).catch(() => {});
+      }
     }
   }, nextDelay);
 
@@ -344,6 +349,11 @@ export function getPlayer(userId, username) {
   }
 
   // ─── Schema Migration ───
+  // v8.1: Early-return — skip all migration checks for fully-migrated players
+  if (p.schemaVersion >= 7 && !NeedsSaveSync) {
+    return p;
+  }
+
   if (!p.schemaVersion || p.schemaVersion < 2) {
     // Reset economy to fair defaults
     p.resources = {

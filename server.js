@@ -438,10 +438,11 @@ app.post("/api/batch", requireAuth, async (req, res) => {
           mockReq.body = body || {};
           mockReq.headers = { ...req.headers };
 
-          const chunks = [];
+          // Mock express response object
           const mockRes = {
             statusCode: 200,
             _headers: {},
+            locals: {},
             set(k, v) { this._headers[k] = v; return this; },
             status(code) { this.statusCode = code; return this; },
             json(data) {
@@ -451,11 +452,19 @@ app.post("/api/batch", requireAuth, async (req, res) => {
               resolve({ status: this.statusCode, data: typeof d === "string" ? JSON.parse(d) : d });
             },
             end() { resolve({ status: this.statusCode, data: {} }); },
+            // v8.1: Additional methods for robustness against middleware/route evolution
+            sendStatus(code) {
+              this.statusCode = code;
+              resolve({ status: code, data: {} });
+            },
+            redirect(_url) { resolve({ status: 302, data: {} }); },
             type() { return this; },
             get(h) { return this._headers[h]; },
             getHeader(h) { return this._headers[h]; },
             setHeader(k, v) { this._headers[k] = v; },
             removeHeader() {},
+            append(k, v) { this._headers[k] = v; },
+            vary() { return this; },
             headersSent: false,
           };
 

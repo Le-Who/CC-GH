@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -25,9 +26,24 @@ export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
   const farmInventory = useGameStore((s) => s.slices?.farm?.inventory) || {};
   const hasItems = Object.values(farmInventory).some((qty) => qty > 0);
 
+  // v8.1: Responsive compact mode for small viewports (iPhone SE in Discord iframe)
+  const [isCompact, setIsCompact] = React.useState(() => window.innerHeight <= 500);
+  React.useEffect(() => {
+    const onResize = () => setIsCompact(window.innerHeight <= 500);
+    window.addEventListener("resize", onResize);
+    // Set CSS custom property for base.css viewport padding
+    document.documentElement.style.setProperty(
+      "--bottom-nav-height",
+      isCompact ? "48px" : "68px",
+    );
+    return () => window.removeEventListener("resize", onResize);
+  }, [isCompact]);
+
+  const navHeight = isCompact ? "h-12" : "h-[68px]";
+
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bottom-nav-bar"
+      className={`fixed bottom-0 left-0 right-0 z-50 bottom-nav-bar ${navHeight}`}
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <div className="absolute inset-0 bg-[#0D0F1A]/90 backdrop-blur-xl border-t border-white/10" />
@@ -75,9 +91,11 @@ export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
                   </div>
                 )}
               </span>
-              <span className="relative z-10 nav-tab-label text-[10px] uppercase tracking-wider font-bold">
-                {tab.label}
-              </span>
+              {!isCompact && (
+                <span className="relative z-10 nav-tab-label text-[10px] uppercase tracking-wider font-bold">
+                  {tab.label}
+                </span>
+              )}
             </button>
           );
         })}

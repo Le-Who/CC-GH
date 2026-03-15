@@ -615,6 +615,10 @@ export function showToast(msg, type) {
     window.removeEventListener("pointermove", onPointerMove);
     window.removeEventListener("pointerup", onPointerUp);
     window.removeEventListener("pointercancel", onPointerUp);
+    // v8.1: Also remove touch listeners (were added in onPointerDown but never cleaned up)
+    window.removeEventListener("touchmove", onPointerMove);
+    window.removeEventListener("touchend", onPointerUp);
+    window.removeEventListener("touchcancel", onPointerUp);
 
     if (currentX > 75) {
       el.classList.add("swiped-out");

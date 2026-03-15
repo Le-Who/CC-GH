@@ -412,9 +412,10 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
   background: transparent;
   transition: background 0.2s ease;
 }
-/* Bottom padding for ALL devices so content doesn't hide behind nav-bar */
+/* v8.1: Viewport padding managed by React BottomNav — removed legacy 60px padding.
+   React BottomNav uses fixed positioning and content padding is handled via CSS custom property. */
 .viewport {
-  padding-bottom: 60px;
+  padding-bottom: var(--bottom-nav-height, 68px);
 }
 .screen {
   padding-bottom: 8px;
