@@ -10,7 +10,8 @@ Comprehensive security, desync, and performance audit covering Farm, Match-3, Me
 - **UI Element Crash**: Fixed initialization crashes relating to obsolete DOM properties (`farm-coins`, `farm-xp`, `farm-level`).
 - **Disappearing Planted Seeds**: Fixed a V10 Postgres migration oversight where Express Response closures interrupted database `UPDATE` locks, permanently dropping state updates upon planting or watering seeds.
 - **Global Welcome Back Notification**: Restricted the `offlineReport` dialog exclusively to the Farm tab (id: `2`), eliminating invasive popups blocking Match-3 and Trivia sessions. Ambient toast notifications serve as fallback.
-
+- **Batched Request Desynchronization**: Resolved a native Node.js Exception where the `express.json()` parser recursively consumed batched mock requests in `server.js`. The dispatcher has been migrated to standard `fetch()` loopbacks.
+- **Flickering Plant Layout Wobbles**: Enforced a strict static width on the DOM node containing the `growth-time-label` and restricted the `.farm-plot` flexbox transitions to transform and opacity. This prevents the text countdown shifts from constantly invalidating the layout center on every `setInterval` tick.
 #### Match-3 & Blox Modules 
 - **Match-3 Freezes**: Hardened `animateCascade` and `attemptSwap` functions, adding explicit type checking and `sleep` boundaries to prevent the engine from locking the board indefinitely upon concurrent or rapid swaps.
 - **Blox Persistence Check**: Verified ghost piece D&D interactions and guaranteed clean `getCenterOffset` targeting math. No severe desyncs found.

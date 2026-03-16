@@ -736,7 +736,9 @@ const FarmGameImpl = (() => {
           if (waterBtn && isReady) waterBtn.remove();
         }
         // Always update classes (no onclick — delegation handles it)
-        div.className = `farm-plot${plot.crop ? "" : " empty"}${isReady ? " ready" : ""}${isAlmostReady ? " almost-ready" : ""}`;
+        div.classList.toggle("empty", !plot.crop);
+        div.classList.toggle("ready", !!isReady);
+        div.classList.toggle("almost-ready", !!isAlmostReady);
         div.dataset.index = i;
       });
     } else {

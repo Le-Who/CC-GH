@@ -442,52 +442,40 @@ app.post("/api/batch", requireAuth, async (req, res) => {
       }
 
       try {
-        // Direct dispatch via mock req/res instead of self-fetch
-        const data = await new Promise((resolve, reject) => {
-          const mockReq = Object.create(req); // Inherit auth headers
-          mockReq.method = body ? "POST" : "GET";
-          mockReq.url = subPath;
-          mockReq.path = subPath;
-          mockReq.body = body || {};
-          mockReq.headers = { ...req.headers };
+        // Direct loopback fetch to bypass Node 24 native stream parsing crashes 
+        // caused by synthetic Express request objects in app.handle()
+        const headers = { "Content-Type": "application/json" };
+        if (req.headers.authorization) headers.authorization = req.headers.authorization;
+        let fetchUrl = `http://127.0.0.1:${PORT}${subPath}`;
+        if (req.method === "GET" || subPath.includes("?")) {
+           const sep = fetchUrl.includes("?") ? "&" : "?";
+           fetchUrl += `${sep}userId=${userId}`;
+        }
+        
+        let subBody = body ? { ...body } : {};
+        if (userId) {
+          subBody.userId = userId;
+          subBody.username = resolveUser(req).username;
+        }
+        
+        const fetchCtx = { 
+          method: body ? "POST" : "GET", 
+          headers 
+        };
+        
+        if (fetchCtx.method === "POST" || fetchCtx.method === "PUT") {
+          fetchCtx.body = JSON.stringify(subBody);
+        }
 
-          // Mock express response object
-          const mockRes = {
-            statusCode: 200,
-            _headers: {},
-            locals: {},
-            set(k, v) { this._headers[k] = v; return this; },
-            status(code) { this.statusCode = code; return this; },
-            json(data) {
-              resolve({ status: this.statusCode, data });
-            },
-            send(d) {
-              resolve({ status: this.statusCode, data: typeof d === "string" ? JSON.parse(d) : d });
-            },
-            end() { resolve({ status: this.statusCode, data: {} }); },
-            // v8.1: Additional methods for robustness against middleware/route evolution
-            sendStatus(code) {
-              this.statusCode = code;
-              resolve({ status: code, data: {} });
-            },
-            redirect(_url) { resolve({ status: 302, data: {} }); },
-            type() { return this; },
-            get(h) { return this._headers[h]; },
-            getHeader(h) { return this._headers[h]; },
-            setHeader(k, v) { this._headers[k] = v; },
-            removeHeader() {},
-            append(k, v) { this._headers[k] = v; },
-            vary() { return this; },
-            headersSent: false,
-          };
-
-          // Use Express router to dispatch
-          app.handle(mockReq, mockRes, (err) => {
-            if (err) reject(err);
-            else resolve({ status: 404, data: { error: "Route not found" } });
-          });
-        });
-        results.push({ id, status: data.status, data: data.data });
+        const response = await fetch(fetchUrl, fetchCtx);
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          data = { error: "Invalid JSON response" };
+        }
+        
+        results.push({ id, status: response.status, data });
       } catch (err) {
         results.push({ id, status: 500, error: err.message });
       }
