@@ -77,13 +77,6 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
 
     // 4. Execute Route Handler
     const result = await asyncFn(player);
-    
-    // Safety check: Prevent Express Response leaking into Database
-    if (result && (result.statusCode || result.headersSent || !result.userId)) {
-      const abortErr = new Error("EXPRESS_RESPONSE_ABORT");
-      abortErr.result = result;
-      throw abortErr;
-    }
 
     // 5. Save back to DB within transaction
     await tx`

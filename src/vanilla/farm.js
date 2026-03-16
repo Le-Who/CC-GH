@@ -426,6 +426,13 @@ const FarmGameImpl = (() => {
       return;
     }
 
+    // Bug 2.1: Only show the full modal if we are actually looking at the Farm tab
+    // Otherwise it's invasive and breaks flow in other games
+    if (HUB.currentScreen !== 2) {
+      showToast("🌱 Your farm grew while you were away!");
+      return;
+    }
+
     // Build comfort-framed body lines
     const lines = [];
 
