@@ -345,9 +345,9 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       success: true,
       question: makeClientQuestion(first, 0, room.questions.length),
       opponent:
-        Object.values(room.players)
-          .filter((pl) => pl.userId !== userId)
-          .map((pl) => pl.username)[0] || "Waiting...",
+        // ⚡ Bolt: Use .find() instead of .filter().map()[0] to enable early exit and minimize intermediate array allocations
+        Object.values(room.players).find((pl) => pl.userId !== userId)
+          ?.username || "Waiting...",
     });
   });
 
