@@ -8,6 +8,8 @@ Comprehensive security, desync, and performance audit covering Farm, Match-3, Me
 - **Inventory & Crop Selling Recovery**: Fixed a bug where missing fallback parameters in `syncToStore` caused sold or fed crops to vanish locally without triggering cross-tab sync broadcasts, preventing local inventory updates.
 - **Race Condition Prevention**: Enforced strict `withPlayerLock` and bounds-checking, resolving visually jumping empty plots and missing plant occurrences under poor network connectivity.
 - **UI Element Crash**: Fixed initialization crashes relating to obsolete DOM properties (`farm-coins`, `farm-xp`, `farm-level`).
+- **Disappearing Planted Seeds**: Fixed a V10 Postgres migration oversight where Express Response closures interrupted database `UPDATE` locks, permanently dropping state updates upon planting or watering seeds.
+- **Global Welcome Back Notification**: Restricted the `offlineReport` dialog exclusively to the Farm tab (id: `2`), eliminating invasive popups blocking Match-3 and Trivia sessions. Ambient toast notifications serve as fallback.
 
 #### Match-3 & Blox Modules 
 - **Match-3 Freezes**: Hardened `animateCascade` and `attemptSwap` functions, adding explicit type checking and `sleep` boundaries to prevent the engine from locking the board indefinitely upon concurrent or rapid swaps.
