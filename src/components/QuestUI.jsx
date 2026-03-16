@@ -1,21 +1,23 @@
-import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useGameStore } from '../store/gameStore';
-import { CROPS } from '/game-logic.js';
+import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useGameStore } from "../store/gameStore";
+import { CROPS } from "/game-logic.js";
 
 export default function QuestUI({ isOpen, onClose }) {
-  const slices = useGameStore(state => state.slices);
+  const slices = useGameStore((state) => state.slices);
   const pet = slices.pet || {};
   const orders = pet.activeOrders || [];
-  
+
   // Expose vanilla dispatch methods
   const handleFulfill = (orderId) => {
-    document.dispatchEvent(new CustomEvent('quest-submit', { detail: orderId }));
+    document.dispatchEvent(
+      new CustomEvent("quest-submit", { detail: orderId }),
+    );
   };
 
   const generateQuests = () => {
-    document.dispatchEvent(new CustomEvent('quest-generate'));
+    document.dispatchEvent(new CustomEvent("quest-generate"));
   };
 
   useEffect(() => {
@@ -34,14 +36,16 @@ export default function QuestUI({ isOpen, onClose }) {
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div 
+          <motion.div
             className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm pointer-events-auto"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={onClose}
           />
 
           {/* Modal / Dropdown */}
-          <motion.div 
+          <motion.div
             className="fixed top-20 right-4 w-80 bg-surface/95 backdrop-blur-xl border border-border rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-[101] flex flex-col pointer-events-auto overflow-hidden"
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -50,8 +54,16 @@ export default function QuestUI({ isOpen, onClose }) {
           >
             {/* Header */}
             <div className="flex justify-between items-center px-4 py-3 bg-white/5 border-b border-white/10">
-              <h3 className="text-xl font-heading font-bold text-white tracking-wide">📋 Quests</h3>
-              <button onClick={onClose} className="text-textDim hover:text-white transition-colors">✕</button>
+              <h3 className="text-xl font-heading font-bold text-white tracking-wide">
+                📋 Quests
+              </h3>
+              <button
+                onClick={onClose}
+                className="text-textDim hover:text-white transition-colors"
+                aria-label="Close quests"
+              >
+                ✕
+              </button>
             </div>
 
             {/* List */}
@@ -60,7 +72,7 @@ export default function QuestUI({ isOpen, onClose }) {
                 <div className="text-center py-8 text-textDim flex flex-col items-center gap-2">
                   <div className="text-4xl opacity-50">📭</div>
                   <p>No active quests.</p>
-                  <button 
+                  <button
                     onClick={generateQuests}
                     className="mt-2 px-4 py-1.5 rounded-full border border-primary text-primary hover:bg-primary/20 transition-colors text-sm"
                   >
@@ -69,11 +81,11 @@ export default function QuestUI({ isOpen, onClose }) {
                 </div>
               ) : (
                 orders.map((order) => (
-                  <QuestItem 
-                    key={order.id} 
-                    order={order} 
-                    slices={slices} 
-                    onFulfill={() => handleFulfill(order.id)} 
+                  <QuestItem
+                    key={order.id}
+                    order={order}
+                    slices={slices}
+                    onFulfill={() => handleFulfill(order.id)}
                   />
                 ))
               )}
@@ -82,29 +94,29 @@ export default function QuestUI({ isOpen, onClose }) {
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 
 function QuestItem({ order, slices, onFulfill }) {
   const harvested = slices.resources?.harvested || {};
   const mergeBoard = slices.merge?.board || [];
-  
+
   // Calculate if CAN fulfill and build display list
   let canFulfill = true;
-  
+
   const reqsUI = order.requirements.map((req, idx) => {
     let hasQty = 0;
     let label = req.id;
     let emoji = "📦";
 
-    if (req.type === 'crop') {
+    if (req.type === "crop") {
       const c = CROPS[req.id];
-      emoji = c?.emoji || '🌿';
+      emoji = c?.emoji || "🌿";
       label = c?.name || req.id;
       hasQty = harvested[req.id] || 0;
-    } else if (req.type === 'merge') {
-      emoji = '🧩';
+    } else if (req.type === "merge") {
+      emoji = "🧩";
       label = req.id;
       // count
       for (const row of mergeBoard) {
@@ -120,14 +132,16 @@ function QuestItem({ order, slices, onFulfill }) {
     return (
       <div key={idx} className="flex flex-col gap-1 mb-2">
         <div className="flex justify-between text-sm">
-          <span className="text-text">{emoji} {label}</span>
+          <span className="text-text">
+            {emoji} {label}
+          </span>
           <span className={hasQty >= req.qty ? "text-success" : "text-textDim"}>
             {hasQty} / {req.qty}
           </span>
         </div>
         <div className="h-1.5 w-full bg-background rounded-full overflow-hidden">
-          <motion.div 
-            className={`h-full ${hasQty >= req.qty ? 'bg-success' : 'bg-primary'}`}
+          <motion.div
+            className={`h-full ${hasQty >= req.qty ? "bg-success" : "bg-primary"}`}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
           />
@@ -137,26 +151,28 @@ function QuestItem({ order, slices, onFulfill }) {
   });
 
   return (
-    <motion.div 
+    <motion.div
       layout
       className="p-3 bg-background/60 rounded-xl border border-border"
     >
       <div className="flex justify-between items-start mb-3">
-        <h4 className="font-bold text-white text-sm">Order {order.id.split('-')[0]}</h4>
+        <h4 className="font-bold text-white text-sm">
+          Order {order.id.split("-")[0]}
+        </h4>
         <div className="text-gold font-bold text-sm bg-gold/10 px-2 py-0.5 rounded">
           +{order.reward?.gold || 0} 🪙
         </div>
       </div>
-      
+
       {reqsUI}
 
       <button
         disabled={!canFulfill}
         onClick={onFulfill}
         className={`w-full mt-2 py-1.5 rounded-lg text-sm font-bold transition-all ${
-          canFulfill 
-            ? 'bg-success text-white shadow-[0_0_12px_rgba(0,200,83,0.3)] hover:brightness-110' 
-            : 'bg-surfaceHover text-textDim cursor-not-allowed hidden'
+          canFulfill
+            ? "bg-success text-white shadow-[0_0_12px_rgba(0,200,83,0.3)] hover:brightness-110"
+            : "bg-surfaceHover text-textDim cursor-not-allowed hidden"
         }`}
       >
         Complete Order

@@ -188,6 +188,7 @@ export default function PetInfoUI() {
                   document.dispatchEvent(new Event("pet-info-closed"));
                 }}
                 className="absolute top-4 right-4 text-textDim hover:text-white"
+                aria-label="Close pet info"
               >
                 ✕
               </button>
@@ -215,6 +216,7 @@ export default function PetInfoUI() {
                   <button
                     onClick={() => setIsEditingName(false)}
                     className="text-sm bg-surfaceHover px-2 py-1 rounded hover:opacity-90"
+                    aria-label="Cancel rename"
                   >
                     ✕
                   </button>
@@ -225,6 +227,7 @@ export default function PetInfoUI() {
                   <button
                     onClick={handleRenameStart}
                     className="ml-2 text-sm opacity-50 hover:opacity-100"
+                    aria-label="Rename pet"
                   >
                     ✏️
                   </button>
@@ -344,6 +347,6 @@ export default function PetInfoUI() {
         </>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
