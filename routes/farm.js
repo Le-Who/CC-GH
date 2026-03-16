@@ -20,6 +20,7 @@ import {
   PLOT_THEMES,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { getDb } from "../db.js";
 
 export default function farmRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -93,6 +94,12 @@ export default function farmRoutes(requireAuth, resolveUser) {
       plot.crop = cropId;
       plot.plantedAt = Date.now();
       plot.watered = false;
+
+      const sql = getDb();
+      if (sql) {
+        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
+            VALUES (${userId}, ${username}, 'plant', ${sql.json({ crop_id: cropId })})`.catch(console.error);
+      }
 
       res.json({
         success: true,
@@ -177,6 +184,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
       plot.crop = null;
       plot.plantedAt = null;
       plot.watered = false;
+
+      const sql = getDb();
+      if (sql) {
+        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
+            VALUES (${userId}, ${username}, 'harvest', ${sql.json({ crop_id: cropId, xp_gained: cfg.xp, is_rare: !!cfg.isRare })})`.catch(console.error);
+      }
+
       res.json({
         success: true,
         reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
@@ -270,6 +284,12 @@ export default function farmRoutes(requireAuth, resolveUser) {
         watered: false,
       });
 
+      const sql = getDb();
+      if (sql) {
+        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
+            VALUES (${userId}, ${username}, 'buy_plot', ${sql.json({ plot_id: currentPlots, cost })})`.catch(console.error);
+      }
+
       const nextCost =
         currentPlots + 1 < MAX_PLOTS
           ? BUY_PLOT_BASE_COST * Math.pow(2, currentPlots + 1 - 6)
@@ -290,6 +310,21 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.get("/api/farm/crops", requireAuth, async (_req, res) => {
     const merged = mergeCropConfig(CROPS, cropOverrides);
     res.json({ crops: merged });
+  });
+
+  /* ─── Fetch Player Journal (Feature 5) ─── */
+  router.get("/api/farm/stats", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    const sql = getDb();
+    if (!sql) return res.status(503).json({ error: "Database not available" });
+    try {
+      const rows = await sql`SELECT * FROM player_stats_view WHERE user_id = ${userId}`;
+      res.json({ success: true, stats: rows[0] || {} });
+    } catch (e) {
+      console.error("Stats fetching error", e);
+      res.status(500).json({ error: "Failed to fetch stats" });
+    }
   });
 
   /* ─── v7.3: Activate Fertilizer Booster ─── */

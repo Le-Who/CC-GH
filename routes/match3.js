@@ -12,6 +12,7 @@ import {
   calcTokenReward,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { getDb } from "../db.js";
 
 export default function match3Routes(requireAuth, resolveUser) {
   const router = Router();
@@ -150,8 +151,14 @@ export default function match3Routes(requireAuth, resolveUser) {
 
       p.match3.currentGame = null;
 
-      // Compute rank
-      let rank = 1;
+      // Compute actual leaderboard rank
+      const sql = getDb();
+      const [{ count }] = await sql`
+        SELECT COUNT(*) as count 
+        FROM players 
+        WHERE (data->'match3'->>'highScore')::int > ${p.match3.highScore}
+      `;
+      const rank = parseInt(count) + 1;
 
       res.json({
         success: true,

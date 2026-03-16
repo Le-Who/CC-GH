@@ -31,6 +31,7 @@ import { TriviaModule } from "./trivia.js";
 import { Match3Game } from "./match3.js";
 import { BloxGame } from "./blox.js";
 import { MergeGame } from "./merge.js";
+import { initRealtime } from "./realtime.js";
 
 // ─── Wire module references into shared.js ───
 // This avoids circular imports: shared.js calls game modules
@@ -79,6 +80,9 @@ export async function bootApp() {
   // Populate cached DOM collections for zero-querySelectorAll navigation
   cacheNavDOM();
   applyInitialScreen();
+
+  // Initialize Realtime Cross-Tab Sync
+  initRealtime();
 
   // Init the active screen (Farm)
   HUB.initialized.farm = true;

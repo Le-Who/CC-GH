@@ -1,3 +1,14 @@
+## [10.1.0] - 2026-03-16
+
+### Real-Time Multiplayer & Cross-Tab Synchronization
+
+- **Cross-Tab Object Sync**: Implemented seamless multi-tab state synchronization using `localStorage` events backed by `Supabase Realtime Broadcast`. Farm, inventory, and resources now instantaneously sync across concurrent devices and tabs.
+- **Activity Feed**: Added live multiplayer event streaming. `player_events` table captures harvest, plant, sell, and feed actions. Displayed via React overlay driven by Supabase Postgres Subscriptions.
+- **Player Stats Journal**: Introduced `player_stats_view` Materialized View to aggregate lifetime player interactions. Included a concurrent background refresh loop for rapid front-end statistical queries without O(N) penalties.
+- **Zero-Loading Screen**: Migrated initial bootstrap load to `idb-keyval`, delivering immediate UI paint from indexedDB cache while background-syncing with the server.
+
+---
+
 ## [10.0.1] - 2026-03-15
 
 ### Data Migration Recovery & Deployment Fixes

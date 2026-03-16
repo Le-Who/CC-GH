@@ -29,20 +29,19 @@ export default function leaderboardRoutes() {
     const rows = await sql`
       SELECT 
         data->>'username' as username,
-        (data->'match3'->>'highScore')::int as high_score,
-        (data->'match3'->>'totalGames')::int as total_games
+        COALESCE((data->'match3'->>'highScore')::int, 0) as high_score,
+        COALESCE((data->'match3'->>'totalGames')::int, 0) as total_games
       FROM players
-      WHERE data->'match3'->>'highScore' IS NOT NULL
-        AND data->'match3'->>'highScore' ~ '^\\d+$'
-      ORDER BY (data->'match3'->>'highScore')::int DESC
+      WHERE (data->'match3'->>'highScore')::int > 0
+      ORDER BY high_score DESC
       LIMIT 15
     `;
 
     _match3Cache = rows.map((r, i) => ({
       rank: i + 1,
-      username: r.username,
+      username: r.username || "Player",
       highScore: r.high_score,
-      totalGames: r.total_games || 0,
+      totalGames: r.total_games,
     }));
     _match3CacheTime = now;
     return _match3Cache;
@@ -58,17 +57,16 @@ export default function leaderboardRoutes() {
     const rows = await sql`
       SELECT 
         data->>'username' as username,
-        (data->'blox'->>'highScore')::int as high_score
+        COALESCE((data->'blox'->>'highScore')::int, 0) as high_score
       FROM players
-      WHERE data->'blox'->>'highScore' IS NOT NULL
-        AND data->'blox'->>'highScore' ~ '^\\d+$'
-      ORDER BY (data->'blox'->>'highScore')::int DESC
+      WHERE (data->'blox'->>'highScore')::int > 0
+      ORDER BY high_score DESC
       LIMIT 15
     `;
 
     _bloxCache = rows.map((r, i) => ({
       rank: i + 1,
-      username: r.username,
+      username: r.username || "Player",
       highScore: r.high_score,
     }));
     _bloxCacheTime = now;

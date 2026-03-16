@@ -41,11 +41,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
     throw new Error("DATABASE_URL must be configured for v10.0 Postgres migration.");
   }
 
-  // Pre-fetch from Redis (if enabled) outside the transaction to minimize lock time
-  let redisData = null;
-  if (isRedisEnabled()) {
-    redisData = await redisGetOrLoadPlayer(userId, _postgresLoadOnly);
-  }
+
 
   try {
     return await sql.begin(async (tx) => {
@@ -66,13 +62,18 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
     `;
 
     // 3. Reconcile state & Apply Migrations
-    let playerRaw = redisData ?? row.data;
+    let playerRaw = row.data;
     let player = applyMigrations(playerRaw);
 
     // v10.1: Sync username from current auth session to ensure leaderboard accuracy
     if (username && player.username !== username) {
       player.username = username;
     }
+
+    // v10.2: Sync _lastSeen to current time after every active session.
+    // This ensures that manual actions "count" as activity, preventing
+    // subsequent offline simulations from overlapping with these actions.
+    player._lastSeen = Date.now();
 
     // 4. Execute Route Handler
     const result = await asyncFn(player);

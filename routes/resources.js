@@ -7,6 +7,7 @@
 import { Router } from "express";
 import { CROPS, calcRegen } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { getDb } from "../db.js";
 
 export default function resourcesRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -31,6 +32,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
+      calcRegen(p);
       const { cropId, amount = 1 } = req.body;
       const qty = Math.max(1, Math.floor(Number(amount) || 1));
 
@@ -43,6 +45,13 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       p.farm.harvested[cropId] -= qty;
       if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
       p.resources.gold += totalEarnings;
+
+      const sql = getDb();
+      if (sql) {
+        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
+            VALUES (${userId}, ${username}, 'sell', ${sql.json({ crop_id: cropId, amount: qty, gold_earned: totalEarnings })})`.catch(console.error);
+      }
+
       res.json({
         success: true,
         resources: p.resources,
@@ -81,6 +90,12 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       p.pet.stats.fullness = Math.min(100, p.pet.stats.fullness + fullnessYield);
       p.resources.energy.current = Math.min(p.resources.energy.max, p.resources.energy.current + energyYield);
       
+      const sql = getDb();
+      if (sql) {
+        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
+            VALUES (${userId}, ${username}, 'feed_pet', ${sql.json({ crop_id: cropId })})`.catch(console.error);
+      }
+
       res.json({
         success: true,
         pet: p.pet,

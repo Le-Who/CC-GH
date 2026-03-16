@@ -9,7 +9,7 @@ import { hudStore } from "../hooks/useHUDEngine";
  *       hud.js → GameStore('resources') → bridge → hudStore → HUD.jsx
  */
 
-export default function HUD({ onOpenStore, onOpenQuest }) {
+export default function HUD({ onOpenStore, onOpenQuest, onOpenJournal }) {
   const energy = hudStore((s) => s.energy?.current ?? 0);
   const maxEnergy = hudStore((s) => s.energy?.max ?? 20);
   const gold = hudStore((s) => s.gold ?? 0);
@@ -90,6 +90,14 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
           {/* Full-size buttons (hidden on compact viewports via CSS) */}
           <button
             className="hud-btn-full relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-11 h-11 flex items-center justify-center text-xl shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
+            onClick={onOpenJournal}
+            aria-label="Open farming journal"
+          >
+            📖
+          </button>
+
+          <button
+            className="hud-btn-full relative bg-surface/80 backdrop-blur-md border border-border rounded-full w-11 h-11 flex items-center justify-center text-xl shadow-[0_4px_16px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 active:scale-90"
             onClick={onOpenQuest}
             aria-label="Open quest log"
           >
@@ -141,6 +149,13 @@ export default function HUD({ onOpenStore, onOpenQuest }) {
                   exit={{ opacity: 0, scale: 0.9, y: -8 }}
                   transition={{ duration: 0.15 }}
                 >
+                  <button
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white/80 hover:bg-white/10 transition-colors whitespace-nowrap"
+                    style={{ minHeight: "44px" }}
+                    onClick={() => { onOpenJournal(); setMoreOpen(false); }}
+                  >
+                    📖 Journal
+                  </button>
                   <button
                     className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white/80 hover:bg-white/10 transition-colors whitespace-nowrap"
                     style={{ minHeight: "44px" }}

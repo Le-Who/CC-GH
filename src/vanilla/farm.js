@@ -6,6 +6,7 @@
  *  ─ GameStore integration (slice isolation, optimistic updates)
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
+import { get, set } from "idb-keyval";
 import { GameStore } from "./store.js";
 import {
   HUB,
@@ -172,7 +173,26 @@ const FarmGameImpl = (() => {
 
   /* ─── Init (parallel loading) ─── */
   async function init() {
-    showSkeleton();
+    // Feature 6: Zero-Loading Screen (IDB Offline-First)
+    try {
+      const idbState = await get("hub_farm_state_" + HUB.userId);
+      if (idbState) {
+        state = idbState;
+        updateClockDelta(idbState.serverTime || Date.now());
+        if (idbState.resources) HUD.syncFromServer(idbState.resources);
+        if (idbState.pet) PetCompanion.syncFromServer(idbState.pet);
+        syncHarvestedToStore(idbState.harvested);
+        syncToStore(false);
+        render();
+        renderShop();
+        renderFeaturedShelf();
+        _checkNewUnlocks();
+      } else {
+        showSkeleton();
+      }
+    } catch (_) {
+      showSkeleton();
+    }
 
     // Pre-populate crops from localStorage cache to prevent 🌱 fallback
     // emojis while the network request is in flight
@@ -233,6 +253,9 @@ const FarmGameImpl = (() => {
       renderShop();
       renderFeaturedShelf(); // v7.2: featured seed shelf
       _checkNewUnlocks(); // v7.2: detect fresh unlocks on load
+
+      // Save latest server state to IDB
+      set("hub_farm_state_" + HUB.userId, stateData).catch(() => {});
     }
 
     // Event delegation: single click handler on grid (never lost during DOM rebuild)
@@ -360,6 +383,9 @@ const FarmGameImpl = (() => {
       renderStreakBadge();
       renderBoosterButton();
       _applyThemeClass();
+
+      // Save latest server state to IDB
+      set("hub_farm_state_" + HUB.userId, data).catch(() => {});
 
       // v7.3: Show streak toast
       if (data.streakResult?.continued && data.streak?.current > 1) {
@@ -2227,6 +2253,23 @@ const FarmGameImpl = (() => {
   function onLeave() {
     stopLocalGrowthTick();
   }
+
+  // Feature 1: Listen to cross-tab Realtime broadcasts
+  document.addEventListener("farm_state_sync", (e) => {
+    const payload = e.detail;
+    if (state && payload) {
+      if (payload.plots) state.plots = payload.plots;
+      if (payload.inventory) state.inventory = payload.inventory;
+      
+      // Hydrate GameStore without triggering a return broadcast
+      import('./store.js').then(({ GameStore }) => {
+        GameStore.setState('farm', { ...state });
+      });
+
+      if (typeof render === 'function') render();
+      if (typeof renderShop === 'function') renderShop();
+    }
+  });
 
   return {
     init,

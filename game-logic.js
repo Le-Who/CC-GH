@@ -952,11 +952,16 @@ export function processOfflineActions(player, now = Date.now()) {
   }
 
   const lastSeen = player._lastSeen;
-  const elapsed = now - lastSeen;
-  player._lastSeen = now;
+  const rawElapsed = now - lastSeen;
+  // Cap offline progress at 24 hours to prevent extreme runaway simulations
+  // and handle potential clock-skew in the future.
+  const elapsed = Math.max(0, Math.min(rawElapsed, ECONOMY.SATIETY_OFFLINE_CAP_MS));
+  player._lastSeen = lastSeen + elapsed;
 
   // Only simulate if away for more than 2 minutes
   if (elapsed < OFFLINE_THRESHOLD_MS) return null;
+
+  const simNow = lastSeen + elapsed;
 
   const pet = player.pet;
   const report = {
@@ -1020,7 +1025,7 @@ export function processOfflineActions(player, now = Date.now()) {
   // Step 1: Auto-Harvest (costs fullness per crop)
   if (pet.abilities.autoHarvest) {
     for (const plot of player.farm.plots) {
-      if (plot.crop && plot.plantedAt && getGrowthPct(plot, now) >= 1) {
+      if (plot.crop && plot.plantedAt && getGrowthPct(plot, simNow) >= 1) {
         if (!spendFullness(OFFLINE_HARVEST_COST)) break;
         const cfg = CROPS[plot.crop];
         if (!cfg) continue;
@@ -1076,7 +1081,7 @@ export function processOfflineActions(player, now = Date.now()) {
   // Zeigarnik Effect: Identify open loops (unfinished tasks)
   for (const plot of player.farm.plots) {
     if (plot.crop && plot.plantedAt) {
-      const pct = getGrowthPct(plot, now);
+      const pct = getGrowthPct(plot, simNow);
       if (pct > 0 && pct < 1) {
         report.openLoops.push({
           type: "crop",

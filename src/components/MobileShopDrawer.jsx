@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useMotionValue, useTransform, useDragControls } from "framer-motion";
 import { hudStore } from "../hooks/useHUDEngine";
 import { farmStore } from "../hooks/useFarmEngine";
+import { broadcastStateUpdate } from "../vanilla/realtime.js";
 
 /**
  * MobileShopDrawer — Bottom-sheet pattern for quick access to
@@ -33,7 +34,7 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
   }, []);
 
   // Get data from typed hook stores
-  const inventory = farmStore((s) => s.inventory) || {};
+  const inventory = farmStore((s) => s.harvested) || {};
   const gold = hudStore((s) => s.gold ?? 0);
   const energy = hudStore((s) => s.energy?.current ?? 0);
 
@@ -71,10 +72,16 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
       window.HUB.api("/api/farm/sell-crop", {
         userId: window.HUB.userId,
         cropId,
-        quantity: 1,
+        amount: 1,
       }).then((res) => {
         if (res?.success) {
           window.HUB?.showToast?.(`Sold 1× ${cropId}`, "success");
+          farmStore.getState().addHarvested(cropId, -1);
+          if (res.resources) hudStore.getState().syncFromServer(res.resources);
+          if (res.harvested) farmStore.setState({ harvested: res.harvested });
+          broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
+        } else {
+          window.HUB?.showToast?.(`❌ ${res.error || "Failed to sell"}`);
         }
       });
     }
@@ -85,10 +92,15 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
       window.HUB.api("/api/pet/feed", {
         userId: window.HUB.userId,
         cropId,
-        quantity: 1,
       }).then((res) => {
         if (res?.success) {
           window.HUB?.showToast?.(`Fed pet 1× ${cropId}`, "success");
+          farmStore.getState().addHarvested(cropId, -1);
+          if (res.resources) hudStore.getState().syncFromServer(res.resources);
+          if (res.harvested) farmStore.setState({ harvested: res.harvested });
+          broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
+        } else {
+          window.HUB?.showToast?.(`❌ ${res.error || "Failed to feed pet"}`);
         }
       });
     }

@@ -514,6 +514,19 @@ import { initDb } from "./db.js";
 
 async function start() {
   initDb();
+
+  // Feature 5 loop: Refresh materialized view every 5 minutes (concurrently so frontend is not blocked)
+  setInterval(async () => {
+    const sql = getDb();
+    if (sql) {
+      try {
+        await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY player_stats_view`;
+      } catch (err) {
+        console.error("Failed to refresh materialized view:", err.message);
+      }
+    }
+  }, 5 * 60 * 1000);
+
   app.listen(PORT, () => {
     console.log(`\n  🎮 Game Hub v${APP_VERSION} — http://localhost:${PORT}`);
     console.log(`     Farm 🌱 | Trivia 🧠 | Match-3 💎`);

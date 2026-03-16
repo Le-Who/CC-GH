@@ -11,7 +11,7 @@
 /* ─── Plot Grid ─── */
 .farm-plots {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   width: min(420px, calc(100vw - 80px));
   position: relative;
@@ -103,6 +103,10 @@
   color: var(--text-dim);
   transition: color 0.15s;
   z-index: 2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 .farm-plot.empty:hover .plot-empty-label {
   color: #86efac;
@@ -199,6 +203,13 @@
   100% {
     background-position: 200% 0;
   }
+}
+
+.growth-time-label {
+  font-size: 0.70rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
 }
 
 /* ─── Water Button ─── */

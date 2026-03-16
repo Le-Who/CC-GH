@@ -8,6 +8,8 @@ import PetInfoUI from "./components/PetInfoUI.jsx";
 import PetRoomUI from "./components/PetRoomUI.jsx";
 import WelcomeScreen from "./components/WelcomeScreen.jsx";
 import MobileShopDrawer from "./components/MobileShopDrawer.jsx";
+import { ActivityFeed } from "./components/ActivityFeed.jsx";
+import { PlayerJournal } from "./components/PlayerJournal.jsx";
 import { initGameBridge } from "./hooks/useGameBridge.js";
 
 export default function App() {
@@ -15,6 +17,7 @@ export default function App() {
   const [isStoreOpen, setStoreOpen] = useState(false);
   const [isQuestOpen, setQuestOpen] = useState(false);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [isJournalOpen, setJournalOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [appReady, setAppReady] = useState(false);
 
@@ -61,6 +64,8 @@ export default function App() {
   const handleCloseQuest = useCallback(() => setQuestOpen(false), []);
   const handleOpenDrawer = useCallback(() => setDrawerOpen(true), []);
   const handleCloseDrawer = useCallback(() => setDrawerOpen(false), []);
+  const handleOpenJournal = useCallback(() => setJournalOpen(true), []);
+  const handleCloseJournal = useCallback(() => setJournalOpen(false), []);
 
   return (
     <div className="relative w-full h-[100dvh] bg-background text-text overflow-hidden flex flex-col items-center justify-center font-body antialiased">
@@ -76,6 +81,7 @@ export default function App() {
       <HUD
         onOpenStore={handleOpenStore}
         onOpenQuest={handleOpenQuest}
+        onOpenJournal={handleOpenJournal}
       />
 
       <PetRoomUI active={activeTab === "room"} />
@@ -91,6 +97,8 @@ export default function App() {
       <GameStoreUI isOpen={isStoreOpen} onClose={handleCloseStore} />
       <QuestUI isOpen={isQuestOpen} onClose={handleCloseQuest} />
       <PetInfoUI />
+      {isJournalOpen && <PlayerJournal onClose={handleCloseJournal} />}
+      {appReady && <ActivityFeed />}
 
       {/* Mobile bottom-sheet drawer for farm inventory quick-access */}
       <MobileShopDrawer
