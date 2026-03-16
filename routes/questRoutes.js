@@ -15,7 +15,7 @@ import {
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 
-/** Hydrate merge board from Firestore (JSON string or object→array recovery) */
+/** Hydrate merge board from Postgres (JSON string or object→array recovery) */
 const BOARD_ROWS = 7,
   BOARD_COLS = 9;
 function hydrateMergeBoard(p) {
@@ -174,7 +174,7 @@ export default function questRoutes(requireAuth, resolveUser) {
     await withPlayerLock(userId, async (p) => {
     const { orderId } = req.body;
 
-    // Hydrate merge board in case it was stored as JSON string in Firestore
+    // Hydrate merge board in case it was stored as JSON string in Postgres
     hydrateMergeBoard(p);
 
     const orderIdx = (p.pet.activeOrders || []).findIndex(

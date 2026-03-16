@@ -10,7 +10,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { getDb } from "../db.js";
 
-// In-memory fallback for testing (when Firestore is unavailable)
+// In-memory fallback for testing (when Postgres is unavailable)
 const _memUsers = new Map();     // username → { userId, username, passwordHash }
 const _memSessions = new Map();  // token → { userId, username, createdAt }
 

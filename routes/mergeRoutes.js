@@ -35,7 +35,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   function hydrateMergeBoard(p) {
     if (!p.merge) return;
     let board = p.merge.board;
-    // Case 1: JSON-stringified by sanitizeForFirestore
+    // Case 1: JSON-stringified by sanitizeBoardData
     if (typeof board === "string") {
       try {
         board = JSON.parse(board);
@@ -43,7 +43,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         /* leave as-is */
       }
     }
-    // Case 2: Firestore converted array → object with numeric keys
+    // Case 2: Postgres converted array → object with numeric keys
     if (board && !Array.isArray(board)) {
       board = Object.keys(board)
         .sort((a, b) => a - b)

@@ -17,7 +17,7 @@ import { getDb } from "../db.js";
 export default function match3Routes(requireAuth, resolveUser) {
   const router = Router();
 
-  // v5.0.1: savedModes stored as JSON string to avoid Firestore nested-array rejection.
+  // v5.0.1: savedModes stored as JSON string to avoid Postgres nested-array/object issues.
   // Parse back to object for API responses, with legacy object fallback.
   function _parseSavedModes(raw) {
     if (!raw) return {};
@@ -44,7 +44,7 @@ export default function match3Routes(requireAuth, resolveUser) {
     }, username);
   });
 
-  // v4.15.1: Sync saved mode states — immediate Firestore write (critical state).
+  // v4.15.1: Sync saved mode states — immediate Postgres write (critical state).
   // The 2s debounce caused data loss when users closed tabs quickly or
   // Cloud Run cold-started between requests.
   router.post("/api/game/sync-modes", requireAuth, async (req, res) => {
@@ -55,7 +55,7 @@ export default function match3Routes(requireAuth, resolveUser) {
       let changed = false;
 
       if (savedModes && typeof savedModes === "object") {
-        // v5.0.1: Store as JSON string — Firestore rejects nested arrays (board is 2D)
+        // v5.0.1: Store as JSON string — Postgres safety boundary for nested arrays (board is 2D)
         p.match3.savedModes = JSON.stringify(savedModes);
         changed = true;
       }

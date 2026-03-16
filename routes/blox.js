@@ -86,7 +86,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      // v5.0.1: savedState stored as JSON string to avoid Firestore nested-array rejection
+      // v5.0.1: savedState stored as JSON string to avoid Postgres structural issues
       let parsed = null;
       if (typeof p.blox.savedState === "string") {
         try {
@@ -110,7 +110,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       const { savedState } = req.body;
-      // v5.0.1: Store as JSON string — Firestore rejects nested arrays (board is 2D array)
+      // v5.0.1: Store as JSON string — Postgres boundary for nested arrays (board is 2D array)
       p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
       res.json({ success: true });
     }, username);
