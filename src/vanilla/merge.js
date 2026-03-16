@@ -43,6 +43,23 @@ function registerSlice() {
   });
 }
 
+/**
+ * v6.3.0: Background state reconciliation
+ * Called after an optimistic update fails to self-heal any overlapping state desyncs.
+ */
+async function syncMergeStateFallback() {
+  try {
+    const data = await api("/api/merge/state", { userId: HUB.userId });
+    if (data?.merge) GameStore.setState("merge", data.merge);
+    if (data?.resources) {
+      GameStore.setState("resources", data.resources);
+      HUD.updateDisplay(data.resources);
+    }
+  } catch (e) {
+    // Offline or hard error, keep local rollback
+  }
+}
+
 /* ═══════════════════════════════════════════════════
  *  Actions (Optimistic Update → Server Validation)
  * ═══════════════════════════════════════════════════ */
@@ -98,6 +115,7 @@ async function tapGenerator(chainId, cropId) {
       // Rollback
       GameStore.setState("resources", oldRes);
       HUD.updateDisplay(oldRes);
+      syncMergeStateFallback(); // Self-heal overlapping desyncs
       showToast(data?.error || "Tap failed", "error");
       return { success: false };
     }
@@ -122,6 +140,7 @@ async function tapGenerator(chainId, cropId) {
     // Rollback on network error
     GameStore.setState("resources", oldRes);
     HUD.updateDisplay(oldRes);
+    syncMergeStateFallback();
     showToast("Network error", "error");
     return { success: false };
   }
@@ -172,6 +191,7 @@ async function mergeItems(fromR, fromC, toR, toC) {
       // Rollback
       GameStore.setState("merge", { ...mergeState, board: oldBoard });
       _renderBoard();
+      syncMergeStateFallback();
       return { success: false };
     }
     // Sync authoritative board
@@ -182,6 +202,7 @@ async function mergeItems(fromR, fromC, toR, toC) {
   } catch {
     GameStore.setState("merge", { ...mergeState, board: oldBoard });
     _renderBoard();
+    syncMergeStateFallback();
     return { success: false };
   }
 }
@@ -209,6 +230,7 @@ async function rollGacha() {
     if (!data?.success) {
       GameStore.setState("resources", { ...res, gachaTokens: oldTokens });
       HUD.updateDisplay(GameStore.getState("resources"));
+      syncMergeStateFallback();
       showToast(data?.error || "Gacha failed", "error");
       return { success: false };
     }
@@ -224,6 +246,7 @@ async function rollGacha() {
   } catch {
     GameStore.setState("resources", { ...res, gachaTokens: oldTokens });
     HUD.updateDisplay(GameStore.getState("resources"));
+    syncMergeStateFallback();
     return { success: false };
   }
 }
@@ -270,11 +293,13 @@ async function trashMergeItem(r, c) {
     if (!data?.success) {
       GameStore.setState("merge", { ...mergeState, board: oldBoard });
       _renderBoard();
+      syncMergeStateFallback();
     }
     return { success: true };
   } catch {
     GameStore.setState("merge", { ...mergeState, board: oldBoard });
     _renderBoard();
+    syncMergeStateFallback();
     return { success: false };
   }
 }

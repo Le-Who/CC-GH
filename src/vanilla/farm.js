@@ -26,6 +26,7 @@ import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
 import { getCropsData, setCropsCache } from "./crops.js";
 import { SoundEngine, spawnCoinFly, spawnWaterDroplets } from "./effects.js";
+import { broadcastStateUpdate } from "./realtime.js";
 
 const FarmGameImpl = (() => {
   // state is synced with GameStore 'farm' slice
@@ -103,9 +104,15 @@ const FarmGameImpl = (() => {
   }
 
   /** Push local state to GameStore (farm slice) */
-  function syncToStore() {
+  function syncToStore(broadcast = true) {
     if (state) {
       GameStore.setState("farm", { ...state });
+      if (broadcast) {
+        broadcastStateUpdate({
+          plots: state.plots,
+          inventory: state.inventory,
+        });
+      }
     }
   }
 

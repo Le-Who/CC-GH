@@ -1,6 +1,27 @@
-## [10.1.0] - 2026-03-16
+## [10.1.1] - 2026-03-16
 
-### Real-Time Multiplayer & Cross-Tab Synchronization
+### Systematic Debugging & Core Engine Audit
+
+Comprehensive security, desync, and performance audit covering Farm, Match-3, Merge, and Blox engines.
+
+#### Farm Module 
+- **Inventory & Crop Selling Recovery**: Fixed a bug where missing fallback parameters in `syncToStore` caused sold or fed crops to vanish locally without triggering cross-tab sync broadcasts, preventing local inventory updates.
+- **Race Condition Prevention**: Enforced strict `withPlayerLock` and bounds-checking, resolving visually jumping empty plots and missing plant occurrences under poor network connectivity.
+- **UI Element Crash**: Fixed initialization crashes relating to obsolete DOM properties (`farm-coins`, `farm-xp`, `farm-level`).
+
+#### Match-3 & Blox Modules 
+- **Match-3 Freezes**: Hardened `animateCascade` and `attemptSwap` functions, adding explicit type checking and `sleep` boundaries to prevent the engine from locking the board indefinitely upon concurrent or rapid swaps.
+- **Blox Persistence Check**: Verified ghost piece D&D interactions and guaranteed clean `getCenterOffset` targeting math. No severe desyncs found.
+
+#### Merge Module & Core Bridges 
+- **Merge State Fallback Healing**: Introduced `syncMergeStateFallback()` which executes aggressively in the background if a batched Optimistic UI action crashes, automatically repairing visual desynchronization and resetting `generatorState` locks.
+- **Bridge Idempotency**: Audited `apiBatched`, `useGameBridge.js`, and `realtime.js`. Confirmed strict monotonic execution paths via `nonce` duplication filtering without recursive React re-renders.
+
+#### Tests — **325/325 pass**, 0 failures.
+
+---
+
+## [10.1.0] - 2026-03-16
 
 - **Cross-Tab Object Sync**: Implemented seamless multi-tab state synchronization using `localStorage` events backed by `Supabase Realtime Broadcast`. Farm, inventory, and resources now instantaneously sync across concurrent devices and tabs.
 - **Activity Feed**: Added live multiplayer event streaming. `player_events` table captures harvest, plant, sell, and feed actions. Displayed via React overlay driven by Supabase Postgres Subscriptions.
