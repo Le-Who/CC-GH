@@ -14,6 +14,11 @@ dist/
 # testing and docs
 tests/
 *.test.js
+*.spec.js
+playwright-report/
+test-results/
+playwright.config.js
+playwright/
 README.md
 CHANGELOG.md
 # generated bundle (built during Docker build)

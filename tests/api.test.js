@@ -115,41 +115,57 @@ describe("POST /api/farm/state", () => {
   });
 });
 
+import { injectTestPlayer } from "./test-utils.js";
+
 /* ─────────────────────────────────────────────────────
  *  Farm Plant
  * ───────────────────────────────────────────────────── */
 describe("POST /api/farm/plant", () => {
   it("plants a seed on an empty plot", async () => {
-    // First get state to create the player
-    await post("/api/farm/state", { userId: "farmer1", username: "Farmer" });
+    // Arrange: bypass API, inject directly
+    await injectTestPlayer("farmer1", "Farmer");
 
+    // Act
     const { status, data } = await post("/api/farm/plant", {
       userId: "farmer1",
       plotId: 0,
       cropId: "strawberry",
     });
+
+    // Assert
     assert.equal(status, 200);
     assert.equal(data.success, true);
     assert.ok(data.plots[0].crop === "strawberry" || data.plots[0].crop);
   });
 
   it("rejects planting with no seeds", async () => {
-    await post("/api/farm/state", { userId: "farmer2", username: "F2" });
+    // Arrange
+    await injectTestPlayer("farmer2", "F2", (p) => {
+      p.farm.inventory.golden = 0; // Ensure no seeds
+    });
+
+    // Act
     const { status } = await post("/api/farm/plant", {
       userId: "farmer2",
       plotId: 0,
-      cropId: "golden", // No golden seeds by default
+      cropId: "golden", // No golden seeds
     });
+
+    // Assert
     assert.equal(status, 400);
   });
 
   it("rejects invalid crop", async () => {
-    await post("/api/farm/state", { userId: "farmer3", username: "F3" });
+    await injectTestPlayer("farmer3", "F3");
+    
+    // Act
     const { status } = await post("/api/farm/plant", {
       userId: "farmer3",
       plotId: 0,
       cropId: "nonexistent_crop",
     });
+    
+    // Assert
     assert.equal(status, 400);
   });
 });
@@ -159,43 +175,56 @@ describe("POST /api/farm/plant", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/farm/water", () => {
   it("waters a planted plot", async () => {
-    await post("/api/farm/state", { userId: "water1", username: "W1" });
-    await post("/api/farm/plant", {
-      userId: "water1",
-      plotId: 0,
-      cropId: "strawberry",
+    // Arrange: Inject player with a planted, unwatered crop
+    await injectTestPlayer("water1", "W1", (p) => {
+      p.farm.plots[0].crop = "strawberry";
+      p.farm.plots[0].plantedAt = Date.now() - 1000;
+      p.farm.plots[0].watered = false;
     });
+
+    // Act
     const { status, data } = await post("/api/farm/water", {
       userId: "water1",
       plotId: 0,
     });
-    console.log("WATER1 ERROR:", data);
-    assert.equal(status, 200);
+
+    // Assert
+    assert.equal(status, 200, `Expected 200, got ${status}. ${JSON.stringify(data)}`);
     assert.ok(data.success);
+    assert.equal(data.plots[0].watered, true);
   });
 
   it("rejects double-watering", async () => {
-    await post("/api/farm/state", { userId: "water2", username: "W2" });
-    await post("/api/farm/plant", {
-      userId: "water2",
-      plotId: 0,
-      cropId: "strawberry",
+    // Arrange: Inject player with an ALREADY WATERED crop
+    await injectTestPlayer("water2", "W2", (p) => {
+      p.farm.plots[0].crop = "strawberry";
+      p.farm.plots[0].plantedAt = Date.now() - 1000;
+      p.farm.plots[0].watered = true; 
     });
-    await post("/api/farm/water", { userId: "water2", plotId: 0 });
-    // Second water attempt
+    
+    // Act
     const { status } = await post("/api/farm/water", {
       userId: "water2",
       plotId: 0,
     });
+
+    // Assert
     assert.equal(status, 400);
   });
 
   it("rejects watering empty plot", async () => {
-    await post("/api/farm/state", { userId: "water3", username: "W3" });
+    // Arrange
+    await injectTestPlayer("water3", "W3", (p) => {
+      p.farm.plots[0].crop = null; 
+    });
+
+    // Act
     const { status } = await post("/api/farm/water", {
       userId: "water3",
       plotId: 0,
     });
+
+    // Assert
     assert.equal(status, 400);
   });
 });
@@ -205,12 +234,20 @@ describe("POST /api/farm/water", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/farm/buy-seeds", () => {
   it("buys seeds with sufficient gold", async () => {
-    await post("/api/farm/state", { userId: "buyer1", username: "B1" });
+    // Arrange: Give player plenty of gold (start is 50, but let's be explicit)
+    await injectTestPlayer("buyer1", "B1", (p) => {
+      p.resources.gold = 100;
+      p.farm.inventory.strawberry = 5; // Default is 5
+    });
+
+    // Act
     const { status, data } = await post("/api/farm/buy-seeds", {
       userId: "buyer1",
       cropId: "strawberry",
       amount: 2,
     });
+
+    // Assert
     assert.equal(status, 200);
     assert.ok(data.success);
     // Should have 5 (default) + 2 = 7 strawberry seeds
@@ -218,13 +255,20 @@ describe("POST /api/farm/buy-seeds", () => {
   });
 
   it("rejects purchase with insufficient gold", async () => {
-    await post("/api/farm/state", { userId: "buyer2", username: "B2" });
+    // Arrange: Zero gold
+    await injectTestPlayer("buyer2", "B2", (p) => {
+      p.resources.gold = 0;
+    });
+    
+    // Act
     // Try to buy 100 golden roses (60 gold each = 6000 gold needed)
     const { status } = await post("/api/farm/buy-seeds", {
       userId: "buyer2",
       cropId: "golden",
       amount: 100,
     });
+
+    // Assert
     assert.equal(status, 400);
   });
 });
@@ -234,16 +278,19 @@ describe("POST /api/farm/buy-seeds", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/farm/sell-crop", () => {
   it("returns soldFor matching CROPS.sellPrice (not a formula)", async () => {
-    await post("/api/farm/state", { userId: "seller1", username: "S1" });
-    await withPlayerLock("seller1", async (p) => {
+    // Arrange: Inject harvested crops
+    await injectTestPlayer("seller1", "S1", (p) => {
       if (!p.farm.harvested) p.farm.harvested = {};
       p.farm.harvested.strawberry = 2;
     });
 
+    // Act
     const { status, data } = await post("/api/farm/sell-crop", {
       userId: "seller1",
       cropId: "strawberry",
     });
+
+    // Assert
     assert.equal(status, 200);
     assert.ok(data.success);
     assert.equal(
@@ -254,11 +301,19 @@ describe("POST /api/farm/sell-crop", () => {
   });
 
   it("rejects selling crop not in inventory", async () => {
-    await post("/api/farm/state", { userId: "seller2", username: "S2" });
+    // Arrange: Ensure inventory is empty for the crop
+    await injectTestPlayer("seller2", "S2", (p) => {
+      if (!p.farm.harvested) p.farm.harvested = {};
+      p.farm.harvested.golden = 0;
+    });
+
+    // Act
     const { status } = await post("/api/farm/sell-crop", {
       userId: "seller2",
       cropId: "golden",
     });
+
+    // Assert
     assert.equal(status, 400);
   });
 });
@@ -268,18 +323,21 @@ describe("POST /api/farm/sell-crop", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/pet/feed", () => {
   it("feeds pet with harvested crop and gains energy", async () => {
+    // Arrange
     // Create player and manually add harvested crop
-    await post("/api/farm/state", { userId: "feeder1", username: "F1" });
-    await withPlayerLock("feeder1", async (p) => {
+    await injectTestPlayer("feeder1", "F1", (p) => {
       if (!p.farm.harvested) p.farm.harvested = {};
       p.farm.harvested.strawberry = 1;
       p.resources.energy.current = 10;
     });
 
+    // Act
     const { status, data } = await post("/api/pet/feed", {
       userId: "feeder1",
       cropId: "strawberry",
     });
+
+    // Assert
     assert.equal(status, 200);
     assert.ok(data.success);
     assert.equal(
@@ -290,11 +348,16 @@ describe("POST /api/pet/feed", () => {
   });
 
   it("rejects feeding with no harvested crop", async () => {
-    await post("/api/farm/state", { userId: "feeder2", username: "F2" });
+    // Arrange
+    await injectTestPlayer("feeder2", "F2");
+
+    // Act
     const { status } = await post("/api/pet/feed", {
       userId: "feeder2",
       cropId: "strawberry",
     });
+
+    // Assert
     assert.equal(status, 400);
   });
 });
@@ -304,11 +367,14 @@ describe("POST /api/pet/feed", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/trivia/start", () => {
   it("starts a trivia session and deducts energy", async () => {
-    await post("/api/farm/state", { userId: "trivia1", username: "T1" });
+    await injectTestPlayer("trivia1", "T1");
+    // Act
     const { status, data } = await post("/api/trivia/start", {
       userId: "trivia1",
       count: 5,
     });
+    
+    // Assert
     assert.equal(status, 200);
     assert.ok(data.question);
     assert.ok(data.question.answers);
@@ -320,14 +386,15 @@ describe("POST /api/trivia/start", () => {
   });
 
   it("rejects when energy is insufficient", async () => {
-    await post("/api/farm/state", { userId: "trivia2", username: "T2" });
-    await withPlayerLock("trivia2", async (p) => {
+    await injectTestPlayer("trivia2", "T2", (p) => {
       p.resources.energy.current = 0;
     });
 
     const { status, data } = await post("/api/trivia/start", {
       userId: "trivia2",
     });
+    
+    // Assert
     assert.equal(status, 400, `Expected 400, got ${status}. Body: ${JSON.stringify(data)}`);
     assert.equal(data.error, "NOT_ENOUGH_ENERGY");
   });
@@ -338,7 +405,8 @@ describe("POST /api/trivia/start", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/trivia/answer", () => {
   it("scores correct answer with points and streak", async () => {
-    await post("/api/farm/state", { userId: "answer1", username: "A1" });
+    await injectTestPlayer("answer1", "A1");
+    // Act (Start)
     const start = await post("/api/trivia/start", {
       userId: "answer1",
       count: 2,
@@ -351,11 +419,14 @@ describe("POST /api/trivia/answer", () => {
       return p; // No mutation
     });
 
+    // Act (Answer)
     const { status, data } = await post("/api/trivia/answer", {
       userId: "answer1",
       answer: correctAnswer,
       timeMs: 3000,
     });
+    
+    // Assert
     assert.equal(status, 200);
     assert.equal(data.correct, true);
     assert.ok(data.points > 0);
@@ -363,7 +434,7 @@ describe("POST /api/trivia/answer", () => {
   });
 
   it("scores wrong answer with 0 points", async () => {
-    await post("/api/farm/state", { userId: "answer2", username: "A2" });
+    await injectTestPlayer("answer2", "A2");
     await post("/api/trivia/start", { userId: "answer2", count: 2 });
 
     const { data } = await post("/api/trivia/answer", {
@@ -377,7 +448,7 @@ describe("POST /api/trivia/answer", () => {
   });
 
   it("rejects when no active session", async () => {
-    await post("/api/farm/state", { userId: "answer3", username: "A3" });
+    await injectTestPlayer("answer3", "A3");
     const { status } = await post("/api/trivia/answer", {
       userId: "answer3",
       answer: "A",
@@ -392,17 +463,20 @@ describe("POST /api/trivia/answer", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/farm/harvest", () => {
   it("harvests a fully grown crop", async () => {
-    await post("/api/farm/state", { userId: "harvester1", username: "H1" });
-    await withPlayerLock("harvester1", async (p) => {
+    // Arrange: Plant far in the past
+    await injectTestPlayer("harvester1", "H1", (p) => {
       p.farm.plots[0].crop = "strawberry";
       p.farm.plots[0].plantedAt = Date.now() - 99999999;
       p.farm.plots[0].watered = false;
     });
 
+    // Act
     const { status, data } = await post("/api/farm/harvest", {
       userId: "harvester1",
       plotId: 0,
     });
+    
+    // Assert
     assert.equal(status, 200);
     assert.ok(data.reward);
     assert.equal(data.reward.coins, CROPS.strawberry.sellPrice);
@@ -410,17 +484,21 @@ describe("POST /api/farm/harvest", () => {
   });
 
   it("rejects harvesting unready crop", async () => {
-    await post("/api/farm/state", { userId: "harvester2", username: "H2" });
-    await post("/api/farm/plant", {
-      userId: "harvester2",
-      plotId: 0,
-      cropId: "strawberry",
+    // Arrange: planted just now
+    await injectTestPlayer("harvester2", "H2", (p) => {
+      p.farm.plots[0].crop = "strawberry";
+      p.farm.plots[0].plantedAt = Date.now();
+      p.farm.plots[0].watered = false;
     });
+    
+    // Act
     // Try to harvest immediately (not grown yet)
     const { status } = await post("/api/farm/harvest", {
       userId: "harvester2",
       plotId: 0,
     });
+    
+    // Assert
     assert.equal(status, 400);
   });
 });
@@ -455,7 +533,7 @@ describe("GET /api/health", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/merge/state", () => {
   it("returns default merge state for new player", async () => {
-    await post("/api/farm/state", { userId: "merge1", username: "M1" });
+    await injectTestPlayer("merge1", "M1");
     const { status, data } = await post("/api/merge/state", {
       userId: "merge1",
     });
@@ -478,7 +556,7 @@ describe("POST /api/merge/state", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/merge/tap", () => {
   it("rejects tap when no generators available", async () => {
-    await post("/api/farm/state", { userId: "merge_tap1", username: "MT1" });
+    await injectTestPlayer("merge_tap1", "MT1");
     const { status } = await post("/api/merge/tap", {
       userId: "merge_tap1",
       generatorIndex: 99,
@@ -497,7 +575,7 @@ describe("POST /api/merge/tap", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/merge/trash", () => {
   it("rejects trashing from empty cell", async () => {
-    await post("/api/farm/state", { userId: "merge_trash1", username: "MTR1" });
+    await injectTestPlayer("merge_trash1", "MTR1");
     const { status } = await post("/api/merge/trash", {
       userId: "merge_trash1",
       row: 0,
@@ -517,7 +595,7 @@ describe("POST /api/merge/trash", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/quests/generate", () => {
   it("generates quest orders for a player", async () => {
-    await post("/api/farm/state", { userId: "quest1", username: "Q1" });
+    await injectTestPlayer("quest1", "Q1");
     const { status, data } = await post("/api/quests/generate", {
       userId: "quest1",
     });
@@ -537,7 +615,7 @@ describe("POST /api/quests/generate", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/quests/submit", () => {
   it("rejects submit with invalid orderId", async () => {
-    await post("/api/farm/state", { userId: "quest_sub1", username: "QS1" });
+    await injectTestPlayer("quest_sub1", "QS1");
     const { status } = await post("/api/quests/submit", {
       userId: "quest_sub1",
       orderId: "nonexistent-order-id",
@@ -559,8 +637,7 @@ describe("POST /api/quests/submit", () => {
  * ───────────────────────────────────────────────────── */
 describe("POST /api/pet/feed — edge cases", () => {
   it("clamps energy at max (no overflow)", async () => {
-    await post("/api/farm/state", { userId: "feed_edge1", username: "FE1" });
-    await withPlayerLock("feed_edge1", async (p) => {
+    await injectTestPlayer("feed_edge1", "FE1", (p) => {
       if (!p.farm.harvested) p.farm.harvested = {};
       p.farm.harvested.strawberry = 5;
       p.resources.energy.current = ECONOMY.ENERGY_MAX - 1;
@@ -570,7 +647,6 @@ describe("POST /api/pet/feed — edge cases", () => {
       userId: "feed_edge1",
       cropId: "strawberry",
     });
-    console.log("FEED_EDGE1 ERROR:", data);
     assert.equal(status, 200, `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`);
     assert.ok(
       data.resources.energy.current <= ECONOMY.ENERGY_MAX,
@@ -579,8 +655,7 @@ describe("POST /api/pet/feed — edge cases", () => {
   });
 
   it("caps pet fullness at 100 (no overflow)", async () => {
-    await post("/api/farm/state", { userId: "feed_edge2", username: "FE2" });
-    await withPlayerLock("feed_edge2", async (p) => {
+    await injectTestPlayer("feed_edge2", "FE2", (p) => {
       if (!p.farm.harvested) p.farm.harvested = {};
       p.farm.harvested.strawberry = 5;
       if (!p.pet.stats) p.pet.stats = {};

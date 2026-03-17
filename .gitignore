@@ -15,3 +15,8 @@ eslint_output.txt
 eslint-errors.json
 concurrency_test.js
 scripts/
+
+# testing
+playwright-report/
+test-results/
+playwright/.cache/

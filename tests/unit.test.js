@@ -87,57 +87,76 @@ describe("createDefaultPlayer", () => {
  * ───────────────────────────────────────────────────── */
 describe("calcRegen", () => {
   it("does nothing when energy is already at max", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "Test");
     const before = p.resources.energy.current;
+
+    // Act
     calcRegen(p);
+
+    // Assert
     assert.equal(p.resources.energy.current, before);
   });
 
   it("regenerates 1 energy after one regen interval", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 5;
     p.resources.energy.lastRegenTimestamp = now;
-
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS;
+
+    // Act
     calcRegen(p, future);
+
+    // Assert
     assert.equal(p.resources.energy.current, 6);
   });
 
   it("regenerates multiple energy after multiple intervals", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 0;
     p.resources.energy.lastRegenTimestamp = now;
-
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS * 5;
+
+    // Act
     calcRegen(p, future);
+
+    // Assert
     assert.equal(p.resources.energy.current, 5);
   });
 
   it("caps energy at max", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 18;
     p.resources.energy.lastRegenTimestamp = now;
-
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS * 10;
+
+    // Act
     calcRegen(p, future);
+
+    // Assert
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_MAX);
   });
 
   it("preserves partial tick progress", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 5;
     p.resources.energy.lastRegenTimestamp = now;
-
-    // 1.5 intervals — should give 1 energy, preserve half-tick
     const halfInterval = Math.floor(ECONOMY.ENERGY_REGEN_INTERVAL_MS / 2);
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS + halfInterval;
+
+    // Act
     calcRegen(p, future);
+
+    // Assert
     assert.equal(p.resources.energy.current, 6);
-    // lastRegenTimestamp should be set to preserve the remaining half
     assert.ok(p.resources.energy.lastRegenTimestamp > now);
     assert.ok(p.resources.energy.lastRegenTimestamp < future);
   });
@@ -148,87 +167,107 @@ describe("calcRegen", () => {
  * ───────────────────────────────────────────────────── */
 describe("processOfflineActions", () => {
   it("[FIX 1 REGRESSION] returns null for elapsed < 2 minutes", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
-    // Simulate being away for 30 seconds
-    const result = processOfflineActions(p, now + 30000);
+    const future = now + 30000; // 30 seconds
+
+    // Act
+    const result = processOfflineActions(p, future);
+
+    // Assert
     assert.equal(result, null);
   });
 
   it("[FIX 1 REGRESSION] returns null for elapsed < 120s (threshold)", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
-    // 119 seconds — just under threshold
-    const result = processOfflineActions(p, now + 119999);
+    const future = now + 119999; // 119 seconds — just under threshold
+
+    // Act
+    const result = processOfflineActions(p, future);
+
+    // Assert
     assert.equal(result, null);
   });
 
   it("returns null when no abilities are enabled even if away > 2 min", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
-    // All abilities are false by default (autoHarvest, autoPlant, autoWater)
-    const result = processOfflineActions(p, now + 300000);
+    const future = now + 300000;
+
+    // Act
+    const result = processOfflineActions(p, future);
+
+    // Assert
     assert.equal(result, null);
   });
 
   it("auto-waters unwatered crops when ability is enabled", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoWater = true;
-    // Plant strawberry on plot 0
     p.farm.plots[0].crop = "strawberry";
     p.farm.plots[0].plantedAt = now;
     p.farm.plots[0].watered = false;
+    const future = now + 300000;
 
-    const result = processOfflineActions(p, now + 300000);
+    // Act
+    const result = processOfflineActions(p, future);
+
+    // Assert
     assert.ok(result);
     assert.equal(result.autoWatered, 1);
     assert.equal(p.farm.plots[0].watered, true);
   });
 
   it("auto-harvests fully grown crops (costs fullness, not energy)", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoHarvest = true;
     p.pet.stats.fullness = 50;
     const energyBefore = p.resources.energy.current;
 
-    // Plant a strawberry that is fully grown (planted long ago)
     p.farm.plots[0].crop = "strawberry";
     p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 1000;
     p.farm.plots[0].watered = false;
+    const future = now + 300000;
 
-    const result = processOfflineActions(p, now + 300000);
+    // Act
+    const result = processOfflineActions(p, future);
+
+    // Assert
     assert.ok(result);
     assert.equal(result.harvested.strawberry, 1);
     assert.ok(result.fullnessConsumed > 0, "Should consume fullness");
     assert.equal(result.xpGained, CROPS.strawberry.xp);
-    // Plot should be cleared
     assert.equal(p.farm.plots[0].crop, null);
-    // Player should have the harvest
     assert.equal(p.farm.harvested.strawberry, 1);
-    // Energy must NOT be touched
     assert.equal(p.resources.energy.current, energyBefore);
   });
 
   it("auto-plants seeds on empty plots (costs fullness, not energy)", () => {
+    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoPlant = true;
     p.pet.stats.fullness = 50;
     const energyBefore = p.resources.energy.current;
     p.farm.inventory.strawberry = 3;
+    const future = now + 300000;
 
-    const result = processOfflineActions(p, now + 300000);
+    // Act
+    const result = processOfflineActions(p, future);
+
+    // Assert
     assert.ok(result);
-    // Should have planted at least 1
-    const totalPlanted = Object.values(result.planted).reduce(
-      (a, b) => a + b,
-      0,
-    );
+    const totalPlanted = Object.values(result.planted).reduce((a, b) => a + b, 0);
     assert.ok(totalPlanted > 0);
     assert.ok(result.fullnessConsumed > 0, "Should consume fullness");
-    // Energy must NOT be touched
     assert.equal(p.resources.energy.current, energyBefore);
   });
 
@@ -628,5 +667,56 @@ describe("forceGrowAll", () => {
 
   it("handles null input gracefully", () => {
     assert.doesNotThrow(() => forceGrowAll(null));
+  });
+});
+
+/* ─────────────────────────────────────────────────────
+ *  Additional Coverage: Offline Engine Edge Cases
+ * ───────────────────────────────────────────────────── */
+describe("processOfflineActions - Edge Cases", () => {
+  it("prevents negative duration offline calculations", () => {
+    const now = Date.now();
+    const lastSeenStr = now + 100000;
+    const player = {
+      _lastSeen: lastSeenStr, 
+      resources: { 
+        energy: { current: 10, max: 200, lastRegenTimestamp: now } 
+      },
+      farm: { plots: [] },
+      pet: { abilities: {} },
+    };
+    const result = processOfflineActions(player, now);
+    // Should return null (no actions taken)
+    assert.equal(result, null);
+    // lastSeen was in the future, elapsed became 0, _lastSeen stays as lastSeenStr
+    assert.equal(player._lastSeen, lastSeenStr);
+  });
+
+  it("handles offline generation when energy is already maxed", () => {
+    const lastSeen = Date.now() - 3600000;
+    const player = {
+      _lastSeen: lastSeen,
+      resources: { 
+        energy: { current: 200, max: 200, lastRegenTimestamp: lastSeen } 
+      },
+      farm: { plots: [] },
+      pet: { abilities: {} },
+    };
+    const result = processOfflineActions(player, Date.now());
+    // No activities => null report
+    assert.equal(result, null);
+    assert.ok(player._lastSeen > lastSeen);
+  });
+});
+
+/* ─────────────────────────────────────────────────────
+ *  Additional Coverage: Trivia Questions
+ * ───────────────────────────────────────────────────── */
+describe("makeClientQuestion - Edge Cases", () => {
+  it("handles missing question gracefully", () => {
+    assert.doesNotThrow(() => {
+      const q = makeClientQuestion(undefined);
+      assert.equal(q, undefined);
+    });
   });
 });

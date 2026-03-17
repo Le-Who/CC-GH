@@ -1187,6 +1187,7 @@ export function pickQuestions(questions, count = 5, difficulty = "all") {
 }
 
 export function makeClientQuestion(q, index, total) {
+  if (!q || !q.correctAnswer || !q.wrongAnswers) return undefined;
   const answers = [q.correctAnswer, ...q.wrongAnswers].sort(
     () => Math.random() - 0.5,
   );

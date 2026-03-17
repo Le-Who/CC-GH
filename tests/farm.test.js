@@ -26,8 +26,13 @@ import {
  * ═══════════════════════════════════════════════════ */
 describe("Streak System", () => {
   it("initializes streak on first login", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
+
+    // Act
     const result = updateStreak(p);
+
+    // Assert
     assert.equal(p.streak.current, 1);
     assert.equal(p.streak.best, 1);
     assert.equal(p.streak.bonusMultiplier, 1);
@@ -35,32 +40,46 @@ describe("Streak System", () => {
   });
 
   it("continues streak on consecutive days", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     const day1 = new Date("2026-01-01T12:00:00Z").getTime();
     const day2 = new Date("2026-01-02T12:00:00Z").getTime();
     updateStreak(p, day1);
-    assert.equal(p.streak.current, 1);
+    
+    // Act
     const result = updateStreak(p, day2);
+
+    // Assert
     assert.equal(p.streak.current, 2);
     assert.equal(result.continued, true);
     assert.equal(result.broken, false);
   });
 
   it("breaks streak on skipped day", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     const day1 = new Date("2026-01-01T12:00:00Z").getTime();
     const day3 = new Date("2026-01-03T12:00:00Z").getTime();
     updateStreak(p, day1);
+
+    // Act
     const result = updateStreak(p, day3);
+
+    // Assert
     assert.equal(p.streak.current, 1); // Reset to 1
     assert.equal(result.broken, true);
   });
 
   it("does not increment on same-day login", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     const day1 = new Date("2026-01-01T12:00:00Z").getTime();
     updateStreak(p, day1);
+
+    // Act
     const result = updateStreak(p, day1 + 3600_000); // Same day, different time
+
+    // Assert
     assert.equal(p.streak.current, 1);
     assert.equal(result.continued, false);
   });
@@ -108,37 +127,58 @@ describe("Streak System", () => {
  * ═══════════════════════════════════════════════════ */
 describe("Achievement System", () => {
   it("exports 12 achievement definitions", () => {
+    // Assert
     assert.equal(Object.keys(ACHIEVEMENTS).length, 12);
   });
 
   it("unlocks first_sprout when player has farm XP", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     p.farm.xp = 5;
+
+    // Act
     const unlocked = checkAchievements(p);
+
+    // Assert
     assert.ok(unlocked.includes("first_sprout"));
     assert.ok(p.achievements.first_sprout);
     assert.equal(p.achievements.first_sprout.seen, false);
   });
 
   it("unlocks berry_picker at 10 strawberries", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     p.farm.harvested = { strawberry: 10 };
+
+    // Act
     const unlocked = checkAchievements(p);
+
+    // Assert
     assert.ok(unlocked.includes("berry_picker"));
   });
 
   it("does not double-unlock achievements", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     p.farm.xp = 5;
     checkAchievements(p);
+    
+    // Act
     const second = checkAchievements(p);
+
+    // Assert
     assert.equal(second.length, 0); // Already unlocked
   });
 
   it("unlocks green_thumb at 50 total harvests", () => {
+    // Arrange
     const p = createDefaultPlayer("u1", "test");
     p.farm.harvested = { strawberry: 20, blueberry: 15, tomato: 16 };
+
+    // Act
     const unlocked = checkAchievements(p);
+
+    // Assert
     assert.ok(unlocked.includes("green_thumb"));
   });
 

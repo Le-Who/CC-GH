@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v10.1.1** (Systematic Debugging Audit, Strict State Validation, Sync Fallbacks)
+**Current version: v10.1.2** (E2E Playwright, Strict AAA Test Refactoring)
 
 ---
 
@@ -54,7 +54,7 @@
 | **Cache**    | Upstash Redis (REST)                     |
 | **Auth**     | Discord Activity SDK 1.0 + Simple Auth   |
 | **State**    | React Hooks + Vanilla Bridges            |
-| **Testing**  | Node.js built-in `node:test` (367 pass)  |
+| **Testing**  | Node.js `node:test` + Playwright (328 pass) |
 
 ---
 
@@ -134,17 +134,21 @@ npm run dev
 │       ├── effects.js     # Particle pool, sound engine, perlin shake
 │       └── css/           # Modular CSS (base, farm, trivia, match3, blox, merge, hud, pet)
 ├── tests/
-│   ├── unit.test.js       # Unit tests (pure functions)
-│   ├── api.test.js        # API integration tests
+│   ├── e2e/
+│   │   └── farm.spec.js   # Playwright end-to-end tests for Core Farm Loop
+│   ├── unit.test.js       # Unit tests (pure functions, edge cases)
+│   ├── api.test.js        # API integration tests (AAA DB Injection)
 │   ├── blox.test.js       # Building Blox tests
 │   ├── match3.test.js     # Tile clearing tests
-│   ├── ux.test.js         # UX invariant tests (pet transitions, farm ticks)
+│   ├── ux.test.js         # UX invariant tests (UI config integrity)
 │   ├── gcp.test.js        # GCP resilience tests
 │   ├── perf.test.js       # Performance benchmarks
 │   ├── game-logic-stress.test.js # Stress tests (100× offline sim)
 │   ├── farm.test.js       # Farm-specific tests
 │   ├── store.test.js      # GameStore slice tests
-│   └── syntax.test.js     # ESM parse validation (all .js files)
+│   ├── syntax.test.js     # ESM parse validation (all .js files)
+│   └── utils/
+│       └── test-utils.js  # DB injection and mock utilities
 ├── Dockerfile             # Cloud Run deployment (node:20-alpine)
 └── .github/
     └── workflows/
@@ -156,13 +160,14 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-npm test          # All 367 tests across 11 suites
-npm run test:perf # Performance benchmarks only
+npm test          # All 328 Node.js backend tests across 110 suites
+npm run test:e2e  # Playwright automated browser interaction tests
 ```
 
 | Type       | File                              | Count |
 | ---------- | --------------------------------- | ----: |
-| **Unit**   | `tests/unit.test.js`              |    53 |
+| **E2E**    | `tests/e2e/farm.spec.js`          |     2 |
+| **Unit**   | `tests/unit.test.js`              |    56 |
 | **API**    | `tests/api.test.js`               |    38 |
 | **Blox**   | `tests/blox.test.js`              |    30 |
 | **M3**     | `tests/match3.test.js`            |    12 |

@@ -1,3 +1,20 @@
+## [10.1.2] - 2026-03-16
+
+### E2E Testing & AAA Refactoring
+
+Comprehensive testing overhaul achieving lightning-fast validation and browser-level stability. 328/328 tests passing across all tiers.
+
+#### Integration Test Refactoring (AAA Pattern)
+- **Direct Database Injection**: Refactored `api.test.js` to strictly adhere to the Arrange-Act-Assert layout. Eliminated slow and flaky API-driven test setup (e.g., repeatedly calling `/api/farm/state`) in favor of direct PostgreSQL `INSERT` provisioning via the new `injectTestPlayer()` utility.
+- **Edge Case Coverage**: Expanded unit tests (`unit.test.js`) to cover obscure offline simulation edge cases, including clock-skew negative limits and energy max-out skips.
+
+#### Playwright E2E Testing
+- **Core Farm Loop Validation**: Introduced `tests/e2e/farm.spec.js` using Playwright to exercise the complete `buy -> plant -> water -> wait -> harvest -> sell` engine lifecycle within a headless Chromium engine.
+- **Natural Tick Observability**: Hardened E2E testing to successfully wait out natural 30-second crop growth cycles without relying on dangerous `__DEV_MODE__` clock hacks that subvert `requestAnimationFrame`.
+- **Race Condition Mitigations**: Implemented strict `page.waitForResponse` barriers against `/api/batch` to ensure the fast client Optimistic UI doesn't outpace the server's Postgres lock resolution.
+
+---
+
 ## [10.1.1] - 2026-03-16
 
 ### Systematic Debugging & Core Engine Audit
