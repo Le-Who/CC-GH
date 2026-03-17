@@ -20,21 +20,7 @@ export function initRealtime() {
   }
 
   supabase = createClient(url, key);
-
-  if (!HUB.userId) return;
-
-  // Subscribe to Broadcasts
-  realtimeChannel = supabase.channel(`player_${HUB.userId}`, {
-    config: {
-      broadcast: { self: false }
-    }
-  });
-
-  realtimeChannel
-    .on('broadcast', { event: 'state_sync' }, ({ payload }) => {
-      applySyncPayload(payload);
-    })
-    .subscribe();
+  _subscribeChannel();
 
   // Listen to LocalStorage for cross-tab sync
   window.addEventListener('storage', (e) => {
@@ -49,9 +35,66 @@ export function initRealtime() {
   });
 }
 
+/** Create and subscribe to the per-user broadcast channel */
+function _subscribeChannel() {
+  if (!supabase || !HUB.userId) return;
+  // Tear down any existing channel first
+  if (realtimeChannel) {
+    try { supabase.removeChannel(realtimeChannel); } catch (_) {}
+    realtimeChannel = null;
+  }
+
+  realtimeChannel = supabase.channel(`player_${HUB.userId}`, {
+    config: {
+      broadcast: { self: false }
+    }
+  });
+
+  realtimeChannel
+    .on('broadcast', { event: 'state_sync' }, ({ payload }) => {
+      applySyncPayload(payload);
+    })
+    .subscribe();
+}
+
+/**
+ * v10.2: Suspend Realtime — tear down channel to free network resources.
+ * Called when the page is backgrounded (visibilitychange).
+ */
+export function suspendRealtime() {
+  if (supabase && realtimeChannel) {
+    try { supabase.removeChannel(realtimeChannel); } catch (_) {}
+    realtimeChannel = null;
+  }
+}
+
+/**
+ * v10.2: Resume Realtime — reconnect to channel after page resumes.
+ * Called when the page becomes visible again.
+ */
+export function resumeRealtime() {
+  if (supabase && !realtimeChannel && HUB.userId) {
+    _subscribeChannel();
+  }
+}
+
 function applySyncPayload(payload) {
   if (!payload) return;
-  // Hydrate local stores seamlessly
+
+  // v10.2: Support delta payloads (Improvement 3)
+  // Format: { entity: 'plot', id: N, changes: {...} } for granular updates
+  if (payload.entity === 'plot' && typeof payload.id === 'number' && payload.changes) {
+    const currentPlots = farmStore.getState()?.plots;
+    if (currentPlots && currentPlots[payload.id]) {
+      const updated = [...currentPlots];
+      updated[payload.id] = { ...updated[payload.id], ...payload.changes };
+      farmStore.setState({ plots: updated });
+      document.dispatchEvent(new CustomEvent('farm_state_sync', { detail: { plots: updated } }));
+    }
+    return;
+  }
+
+  // Full-state payload handling (legacy)
   if (payload.harvested) {
     farmStore.setState({ harvested: payload.harvested });
   }
@@ -64,28 +107,38 @@ function applySyncPayload(payload) {
   }
   if (payload.plots) {
      farmStore.setState({ plots: payload.plots });
-     // Notify vanilla DOM as well if active
-     if (typeof window.HUB !== 'undefined' && window.HUB.initialized?.farm) {
-         // Re-render farm if needed, we might need a custom event or let React handle it.
-         // Actually, if plots change, we should reload the state from API to be safe, 
-         // OR just pass it to the Vanilla renderer via a global hook.
-         document.dispatchEvent(new CustomEvent('farm_state_sync', { detail: payload }));
-     }
+     // Notify vanilla DOM as well if the farm module is initialized
+     document.dispatchEvent(new CustomEvent('farm_state_sync', { detail: payload }));
   }
 }
 
+/**
+ * v10.2: Broadcast state update to other tabs/devices.
+ * Guarded against REST fallback: only sends over WebSocket if the socket is actually connected
+ * and the channel is fully joined.
+ */
 export function broadcastStateUpdate(payload) {
-  // 1. Cross-Tab Sync (Same Device)
+  // 1. Cross-Tab Sync (Same Device) — always works
   try {
     localStorage.setItem('hub_sync_state', JSON.stringify({ ts: Date.now(), payload }));
-  } catch (e) {}
+  } catch (_) {}
 
   // 2. Cross-Device Sync (Supabase Broadcast)
-  if (realtimeChannel && realtimeChannel.state === 'joined') {
+  // v10.2: Strict guard — only push if WebSocket is truly connected AND channel joined.
+  // This prevents the "@supabase/realtime-js falling back to REST" warning.
+  // If the socket is disconnected, we silently drop the visual-only broadcast;
+  // target devices will self-heal via their 30s loadState() polling.
+  if (
+    realtimeChannel &&
+    realtimeChannel.state === 'joined' &&
+    supabase?.realtime?.isConnected?.()
+  ) {
     realtimeChannel.send({
       type: 'broadcast',
       event: 'state_sync',
       payload
-    }).catch(console.warn);
+    }).catch(() => {
+      // Silently drop — target devices will sync via REST polling
+    });
   }
 }

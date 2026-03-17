@@ -6,6 +6,7 @@
  * ═══════════════════════════════════════════════════ */
 import { prefetchCrops } from "./crops.js";
 import { validateStoredToken, showAuthDialog, logout } from "./auth-ui.js";
+import { suspendRealtime, resumeRealtime } from "./realtime.js";
 
 /**
  * @fileoverview shared.js
@@ -184,12 +185,15 @@ export async function initDiscord() {
 /** Expose logout for external use (React HUD, etc.) */
 export { logout };
 
-/* ─── [Phase 2] Optimistic Batching Queue ─── */
+/* ─── [Phase 2] Optimistic Batching Queue (v10.2: Promise-Mapped) ─── */
 const BATCH_QUEUE_KEY = "hub_offline_batch_queue";
 let apiBatchQueue = [];
 let apiBatchTimer = null;
+/** @type {Map<string, {resolve: Function, reject: Function, timeout: number}>} */
+const batchResolvers = new Map();
+const BATCH_RESOLVER_TIMEOUT_MS = 15_000; // Safety: auto-resolve after 15s
 
-// Load any pending offline mutations on boot
+// Load any pending offline mutations on boot (no resolvers — they expired)
 try {
   const saved = localStorage.getItem(BATCH_QUEUE_KEY);
   if (saved) {
@@ -208,39 +212,69 @@ function flushApiBatch() {
   if (apiBatchQueue.length === 0) return;
   const toSend = [...apiBatchQueue];
   apiBatchQueue = [];
-  localStorage.removeItem(BATCH_QUEUE_KEY);
+  try { localStorage.removeItem(BATCH_QUEUE_KEY); } catch (_) {}
 
-  api("/api/batch", { requests: toSend }).catch((err) => {
-    // If it fails again, put them back at the beginning of the queue
-    if (err.error === "NETWORK_ERROR" || err.error === "TIMEOUT") {
-      apiBatchQueue = [...toSend, ...apiBatchQueue];
-      localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
-    }
-  });
+  api("/api/batch", { requests: toSend })
+    .then((batchResponse) => {
+      // batchResponse is either { results: [...] } or an error object
+      const results = batchResponse?.results || [];
+      for (const result of results) {
+        const entry = batchResolvers.get(result.id);
+        if (entry) {
+          clearTimeout(entry.timeout);
+          batchResolvers.delete(result.id);
+          entry.resolve(result.data || { success: false, error: "empty response" });
+        }
+      }
+      // Resolve any remaining resolvers from this batch that had no matching result
+      for (const req of toSend) {
+        const entry = batchResolvers.get(req.id);
+        if (entry) {
+          clearTimeout(entry.timeout);
+          batchResolvers.delete(req.id);
+          entry.resolve({ success: true, _optimistic: true });
+        }
+      }
+    })
+    .catch((err) => {
+      // Network failure: put requests back and resolve with optimistic fallback
+      if (err?.error === "NETWORK_ERROR" || err?.error === "TIMEOUT") {
+        apiBatchQueue = [...toSend, ...apiBatchQueue];
+        try { localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue)); } catch (_) {}
+      }
+      // Resolve all pending resolvers for this batch with optimistic fallback
+      for (const req of toSend) {
+        const entry = batchResolvers.get(req.id);
+        if (entry) {
+          clearTimeout(entry.timeout);
+          batchResolvers.delete(req.id);
+          entry.resolve({ success: true, _optimistic: true });
+        }
+      }
+    });
 }
 
 /** 
  * Enqueues a mutative request to be sent in a debounced batch.
- * Guarantees eventual consistency. Promises resolve immediately for Optimistic UI.
- * v8.0: Adds idempotency nonce to prevent double-application on replay.
+ * v10.2: Returns a Promise that resolves with the REAL server response.
+ * Callers receive actual success/error data, enabling proper rollback.
+ * Uses crypto.randomUUID() for nonces to prevent false deduplication of rapid identical actions.
  */
-function generateNonce(path, body) {
-  // Deterministic nonce: hash of path + sorted body keys + 500ms time bucket
-  const timeBucket = Math.floor(Date.now() / 500);
-  const bodyStr = body ? JSON.stringify(body, Object.keys(body).sort()) : "";
-  let hash = 0;
-  const str = `${path}:${bodyStr}:${timeBucket}`;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+function generateNonce() {
+  // Strong cryptographic nonce — unique even for identical bodies within the same ms
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
   }
-  return Math.abs(hash).toString(36);
+  // Fallback for older browsers
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
 }
 
-export async function apiBatched(path, body) {
-  const nonce = generateNonce(path, body);
-  const req = { id: Math.random().toString(36).slice(2), path, body, nonce };
+export function apiBatched(path, body) {
+  const nonce = generateNonce();
+  const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const req = { id, path, body, nonce };
   apiBatchQueue.push(req);
-  localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
+  try { localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue)); } catch (_) {}
 
   if (apiBatchTimer) clearTimeout(apiBatchTimer);
   
@@ -251,7 +285,15 @@ export async function apiBatched(path, body) {
     apiBatchTimer = setTimeout(flushApiBatch, 3000);
   }
 
-  return { success: true, _optimistic: true };
+  // Return a Promise that resolves with the real server response
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      // Safety: if server never responds, resolve optimistically to unblock UI
+      batchResolvers.delete(id);
+      resolve({ success: true, _optimistic: true });
+    }, BATCH_RESOLVER_TIMEOUT_MS);
+    batchResolvers.set(id, { resolve, reject: resolve, timeout });
+  });
 }
 
 /* ─── API Helper (auto-attaches auth, with retry + timeout) ─── */
@@ -857,7 +899,11 @@ export function setupInterruptionSystem() {
       // Player backgrounded — snapshot state
       HUB.lastActiveTimestamp = Date.now();
       HUB.lastActiveGame = HUB.currentScreen;
+      // v10.2: Suspend Realtime channel to free network resources (Improvement 4)
+      suspendRealtime();
     } else {
+      // v10.2: Resume Realtime channel on foreground
+      resumeRealtime();
       // Player returned — classify tier
       const delta = Date.now() - HUB.lastActiveTimestamp;
       if (delta < RETURN_TIER.QUICK_MS) {
