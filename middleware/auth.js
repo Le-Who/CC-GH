@@ -9,7 +9,7 @@ import { validateSimpleAuthToken } from "../routes/auth.js";
 
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "";
-export const DISCORD_ENABLED = !!(CLIENT_ID && CLIENT_SECRET);
+export const DISCORD_ENABLED = process.env.NODE_ENV === "test" ? false : !!(CLIENT_ID && CLIENT_SECRET);
 
 /**
  * requireAuth — validates authentication via one of three modes:

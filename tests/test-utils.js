@@ -1,5 +1,6 @@
 import { getDb } from "../db.js";
 import { createDefaultPlayer } from "../game-logic.js";
+import { redisSetPlayer, isRedisEnabled } from "../redisAdapter.js";
 
 /**
  * Injects a player directly into the PostgreSQL database for testing.
@@ -26,6 +27,10 @@ export async function injectTestPlayer(userId, username = "TestPlayer", stateMod
     VALUES (${userId}, ${playerState})
     ON CONFLICT (id) DO UPDATE SET data = ${playerState}
   `;
+
+  if (isRedisEnabled()) {
+    await redisSetPlayer(userId, playerState);
+  }
 
   return playerState;
 }

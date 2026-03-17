@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Unit Tests
  *  Tests for pure game logic extracted into game-logic.js
- *  Run:  node --test tests/unit.test.js
+ *  Run:  node --test tests/game-logic.test.js
  * ═══════════════════════════════════════════════════════
  */
 import { describe, it } from "node:test";
