@@ -3,20 +3,3 @@ data/hub-db.json
 *.log
 .env
 public/js/discord-sdk-bundle.js
-.agents/
-dist/
-.vscode/
-.idea/
-.DS_Store
-eslint.config.*
-
-# legacy and dev artifacts
-eslint_output.txt
-eslint-errors.json
-concurrency_test.js
-scripts/
-
-# testing
-playwright-report/
-test-results/
-playwright/.cache/

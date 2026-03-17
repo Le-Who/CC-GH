@@ -12,9 +12,10 @@ import {
   CROPS,
   createDefaultPlayer,
   processOfflineActions,
+  generateBoard,
+  findMatches,
   pickQuestions,
 } from "../game-logic.js";
-import { generateBoard, findMatches } from "../src/vanilla/match3/engine.js";
 
 /**
  * Run a function N times, return p50/p95/max in ms.

@@ -10,6 +10,8 @@ import assert from "node:assert/strict";
 import {
   ECONOMY,
   CROPS,
+  GEM_TYPES,
+  BOARD_SIZE,
   OFFLINE_THRESHOLD_MS,
   createDefaultPlayer,
   calcRegen,
@@ -17,11 +19,10 @@ import {
   getWateringMultiplier,
   getGrowthPct,
   farmPlotsWithGrowth,
+  generateBoard,
+  findMatches,
   pickQuestions,
   makeClientQuestion,
-  calculateSatietyDelta,
-  getScaledTime,
-  forceGrowAll,
 } from "../game-logic.js";
 
 /* ─────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ describe("createDefaultPlayer", () => {
     const p = createDefaultPlayer("u1", "Alice");
     assert.equal(p.id, "u1");
     assert.equal(p.username, "Alice");
-    assert.equal(p.schemaVersion, 7);
+    assert.equal(p.schemaVersion, 2);
     assert.equal(p.resources.gold, ECONOMY.GOLD_START);
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_START);
     assert.equal(p.resources.energy.max, ECONOMY.ENERGY_MAX);
@@ -40,17 +41,6 @@ describe("createDefaultPlayer", () => {
     assert.ok(p.farm);
     assert.ok(p.trivia);
     assert.ok(p.match3);
-    // v6.0: Economy fields
-    assert.equal(p.pet.stats.fullness, 0);
-    assert.ok(Array.isArray(p.pet.activeOrders));
-    assert.equal(p.resources.gachaTokens, 0);
-    // v7.0: Merge + Affection fields
-    assert.ok(p.merge);
-    assert.equal(p.merge.board.length, 7);
-    assert.equal(p.merge.board[0].length, 9);
-    assert.ok(Array.isArray(p.merge.generators));
-    assert.equal(p.pet.affectionXp, 0);
-    assert.equal(p.pet.affectionLevel, 1);
   });
 
   it("[FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp", () => {
@@ -87,196 +77,150 @@ describe("createDefaultPlayer", () => {
  * ───────────────────────────────────────────────────── */
 describe("calcRegen", () => {
   it("does nothing when energy is already at max", () => {
-    // Arrange
     const p = createDefaultPlayer("u1", "Test");
     const before = p.resources.energy.current;
-
-    // Act
     calcRegen(p);
-
-    // Assert
     assert.equal(p.resources.energy.current, before);
   });
 
   it("regenerates 1 energy after one regen interval", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 5;
     p.resources.energy.lastRegenTimestamp = now;
+
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS;
-
-    // Act
     calcRegen(p, future);
-
-    // Assert
     assert.equal(p.resources.energy.current, 6);
   });
 
   it("regenerates multiple energy after multiple intervals", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 0;
     p.resources.energy.lastRegenTimestamp = now;
+
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS * 5;
-
-    // Act
     calcRegen(p, future);
-
-    // Assert
     assert.equal(p.resources.energy.current, 5);
   });
 
   it("caps energy at max", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 18;
     p.resources.energy.lastRegenTimestamp = now;
+
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS * 10;
-
-    // Act
     calcRegen(p, future);
-
-    // Assert
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_MAX);
   });
 
   it("preserves partial tick progress", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.resources.energy.current = 5;
     p.resources.energy.lastRegenTimestamp = now;
+
+    // 1.5 intervals — should give 1 energy, preserve half-tick
     const halfInterval = Math.floor(ECONOMY.ENERGY_REGEN_INTERVAL_MS / 2);
     const future = now + ECONOMY.ENERGY_REGEN_INTERVAL_MS + halfInterval;
-
-    // Act
     calcRegen(p, future);
-
-    // Assert
     assert.equal(p.resources.energy.current, 6);
+    // lastRegenTimestamp should be set to preserve the remaining half
     assert.ok(p.resources.energy.lastRegenTimestamp > now);
     assert.ok(p.resources.energy.lastRegenTimestamp < future);
   });
 });
 
 /* ─────────────────────────────────────────────────────
- *  processOfflineActions (v6.2.2 — fullness-based)
+ *  processOfflineActions
  * ───────────────────────────────────────────────────── */
 describe("processOfflineActions", () => {
   it("[FIX 1 REGRESSION] returns null for elapsed < 2 minutes", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
-    const future = now + 30000; // 30 seconds
-
-    // Act
-    const result = processOfflineActions(p, future);
-
-    // Assert
+    // Simulate being away for 30 seconds
+    const result = processOfflineActions(p, now + 30000);
     assert.equal(result, null);
   });
 
   it("[FIX 1 REGRESSION] returns null for elapsed < 120s (threshold)", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
-    const future = now + 119999; // 119 seconds — just under threshold
-
-    // Act
-    const result = processOfflineActions(p, future);
-
-    // Assert
+    // 119 seconds — just under threshold
+    const result = processOfflineActions(p, now + 119999);
     assert.equal(result, null);
   });
 
   it("returns null when no abilities are enabled even if away > 2 min", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
-    const future = now + 300000;
-
-    // Act
-    const result = processOfflineActions(p, future);
-
-    // Assert
+    // All abilities are false by default (autoHarvest, autoPlant, autoWater)
+    const result = processOfflineActions(p, now + 300000);
     assert.equal(result, null);
   });
 
   it("auto-waters unwatered crops when ability is enabled", () => {
-    // Arrange
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoWater = true;
+    // Plant strawberry on plot 0
     p.farm.plots[0].crop = "strawberry";
     p.farm.plots[0].plantedAt = now;
     p.farm.plots[0].watered = false;
-    const future = now + 300000;
 
-    // Act
-    const result = processOfflineActions(p, future);
-
-    // Assert
+    const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
     assert.equal(result.autoWatered, 1);
     assert.equal(p.farm.plots[0].watered, true);
   });
 
-  it("auto-harvests fully grown crops (costs fullness, not energy)", () => {
-    // Arrange
+  it("auto-harvests fully grown crops (deducts 1 energy each)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoHarvest = true;
-    p.pet.stats.fullness = 50;
-    const energyBefore = p.resources.energy.current;
+    p.resources.energy.current = 5;
 
+    // Plant a strawberry that is fully grown (planted long ago)
     p.farm.plots[0].crop = "strawberry";
     p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 1000;
     p.farm.plots[0].watered = false;
-    const future = now + 300000;
 
-    // Act
-    const result = processOfflineActions(p, future);
-
-    // Assert
+    const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
     assert.equal(result.harvested.strawberry, 1);
-    assert.ok(result.fullnessConsumed > 0, "Should consume fullness");
+    assert.equal(result.energyConsumed, 1);
     assert.equal(result.xpGained, CROPS.strawberry.xp);
+    // Plot should be cleared
     assert.equal(p.farm.plots[0].crop, null);
+    // Player should have the harvest
     assert.equal(p.farm.harvested.strawberry, 1);
-    assert.equal(p.resources.energy.current, energyBefore);
   });
 
-  it("auto-plants seeds on empty plots (costs fullness, not energy)", () => {
-    // Arrange
+  it("auto-plants seeds on empty plots (deducts 2 energy each)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoPlant = true;
-    p.pet.stats.fullness = 50;
-    const energyBefore = p.resources.energy.current;
+    p.resources.energy.current = 10;
     p.farm.inventory.strawberry = 3;
-    const future = now + 300000;
 
-    // Act
-    const result = processOfflineActions(p, future);
-
-    // Assert
+    const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
-    const totalPlanted = Object.values(result.planted).reduce((a, b) => a + b, 0);
+    // Should have planted up to 3 strawberries (6 energy needed, have 10)
+    const totalPlanted = Object.values(result.planted).reduce(
+      (a, b) => a + b,
+      0,
+    );
     assert.ok(totalPlanted > 0);
-    assert.ok(result.fullnessConsumed > 0, "Should consume fullness");
-    assert.equal(p.resources.energy.current, energyBefore);
+    assert.equal(result.energyConsumed, totalPlanted * 2);
   });
 
-  it("stops auto-harvest when fullness runs out (no cheap food)", () => {
+  it("stops auto-harvest when energy runs out", () => {
     const now = Date.now();
     const p = createDefaultPlayer("u1", "Test", now);
     p.pet.abilities.autoHarvest = true;
-    p.pet.stats.fullness = 3; // Only enough for 1 harvest (cost=2)
-    p.farm.inventory = {}; // No food to eat
+    p.resources.energy.current = 2;
 
     // Plant 4 fully grown strawberries
     for (let i = 0; i < 4; i++) {
@@ -286,46 +230,8 @@ describe("processOfflineActions", () => {
 
     const result = processOfflineActions(p, now + 300000);
     assert.ok(result);
-    assert.equal(result.harvested.strawberry, 1); // Only 1 affordable
-    assert.equal(result.fullnessConsumed, 2);
-  });
-
-  it("auto-eats cheap crops to refuel when fullness is 0", () => {
-    const now = Date.now();
-    const p = createDefaultPlayer("u1", "Test", now);
-    p.pet.abilities.autoHarvest = true;
-    p.pet.stats.fullness = 0; // Empty!
-    p.farm.inventory.strawberry = 5; // Cheap crop available
-
-    // Plant 1 fully grown strawberry
-    p.farm.plots[0].crop = "strawberry";
-    p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 1000;
-
-    const result = processOfflineActions(p, now + 300000);
-    assert.ok(result);
-    assert.equal(result.harvested.strawberry, 1);
-    assert.ok(
-      result.foodEaten.strawberry > 0,
-      "Should have eaten strawberries",
-    );
-  });
-
-  it("does NOT eat mid/expensive crops for refuel", () => {
-    const now = Date.now();
-    const p = createDefaultPlayer("u1", "Test", now);
-    p.pet.abilities.autoHarvest = true;
-    p.pet.stats.fullness = 0;
-    p.farm.inventory = { tomato: 10, pumpkin: 5 }; // Only mid+expensive
-
-    p.farm.plots[0].crop = "strawberry";
-    p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 1000;
-
-    const result = processOfflineActions(p, now + 300000);
-    // Should fail to harvest — no cheap food, no fullness
-    assert.equal(result, null);
-    // Inventory untouched
-    assert.equal(p.farm.inventory.tomato, 10);
-    assert.equal(p.farm.inventory.pumpkin, 5);
+    assert.equal(result.energyConsumed, 2); // Only 2 harvested
+    assert.equal(result.harvested.strawberry, 2);
   });
 
   it("updates _lastSeen to current time", () => {
@@ -341,21 +247,18 @@ describe("processOfflineActions", () => {
  *  getWateringMultiplier
  * ───────────────────────────────────────────────────── */
 describe("getWateringMultiplier", () => {
-  it("returns 0.7 for fast crops (strawberry, blueberry)", () => {
+  it("returns 0.7 for fast crops (strawberry)", () => {
     assert.equal(getWateringMultiplier("strawberry"), 0.7);
-    assert.equal(getWateringMultiplier("blueberry"), 0.7);
   });
 
-  it("returns 0.6 for medium crops (tomato, golden, corn)", () => {
+  it("returns 0.6 for medium crops (tomato, corn)", () => {
     assert.equal(getWateringMultiplier("tomato"), 0.6);
-    assert.equal(getWateringMultiplier("golden"), 0.6);
     assert.equal(getWateringMultiplier("corn"), 0.6);
   });
 
-  it("returns 0.55 for slow crops (sunflower, watermelon, pumpkin)", () => {
+  it("returns 0.55 for slow crops (sunflower, golden)", () => {
     assert.equal(getWateringMultiplier("sunflower"), 0.55);
-    assert.equal(getWateringMultiplier("watermelon"), 0.55);
-    assert.equal(getWateringMultiplier("pumpkin"), 0.55);
+    assert.equal(getWateringMultiplier("golden"), 0.55);
   });
 
   it("returns 0.7 for unknown crops", () => {
@@ -454,6 +357,101 @@ describe("farmPlotsWithGrowth", () => {
     assert.equal(result[1].growth, 0);
     assert.equal(result[1].growthTime, 0);
     assert.equal(result[1].wateringMultiplier, 1);
+  });
+});
+
+/* ─────────────────────────────────────────────────────
+ *  generateBoard & findMatches
+ * ───────────────────────────────────────────────────── */
+describe("generateBoard", () => {
+  it("creates an 8×8 grid", () => {
+    const board = generateBoard();
+    assert.equal(board.length, BOARD_SIZE);
+    for (const row of board) {
+      assert.equal(row.length, BOARD_SIZE);
+    }
+  });
+
+  it("uses only valid gem types", () => {
+    const board = generateBoard();
+    for (const row of board) {
+      for (const gem of row) {
+        assert.ok(GEM_TYPES.includes(gem), `Invalid gem type: ${gem}`);
+      }
+    }
+  });
+
+  it("has no initial matches (3-in-a-row)", () => {
+    // Run multiple times to increase confidence
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const board = generateBoard();
+      const matches = findMatches(board);
+      assert.equal(
+        matches.length,
+        0,
+        `Board had ${matches.length} initial matches on attempt ${attempt}`,
+      );
+    }
+  });
+});
+
+describe("findMatches", () => {
+  it("detects horizontal 3-in-a-row", () => {
+    // Create a board with a deliberate horizontal match
+    const board = Array.from({ length: 8 }, () =>
+      Array.from({ length: 8 }, () => "fire"),
+    );
+    // Make most cells unique to avoid extra matches
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        board[y][x] = GEM_TYPES[(y * 8 + x) % GEM_TYPES.length];
+      }
+    }
+    // Set a deliberate horizontal match at row 0, cols 0-2
+    board[0][0] = "dark";
+    board[0][1] = "dark";
+    board[0][2] = "dark";
+
+    const matches = findMatches(board);
+    const horiz = matches.find(
+      (m) => m.type === "dark" && m.gems.some((g) => g.y === 0),
+    );
+    assert.ok(horiz, "Should detect horizontal match");
+    assert.ok(horiz.gems.length >= 3);
+  });
+
+  it("detects vertical 3-in-a-row", () => {
+    const board = Array.from({ length: 8 }, () =>
+      Array.from({ length: 8 }, () => "fire"),
+    );
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        board[y][x] = GEM_TYPES[(y * 8 + x) % GEM_TYPES.length];
+      }
+    }
+    // Set a deliberate vertical match at col 7, rows 0-2
+    board[0][7] = "light";
+    board[1][7] = "light";
+    board[2][7] = "light";
+
+    const matches = findMatches(board);
+    const vert = matches.find(
+      (m) => m.type === "light" && m.gems.some((g) => g.x === 7),
+    );
+    assert.ok(vert, "Should detect vertical match");
+    assert.ok(vert.gems.length >= 3);
+  });
+
+  it("returns empty array when no matches exist", () => {
+    // Checkerboard pattern — no 3-in-a-row possible
+    const board = Array.from({ length: 8 }, (_, y) =>
+      Array.from(
+        { length: 8 },
+        (_, x) => GEM_TYPES[(x + y * 2) % GEM_TYPES.length],
+      ),
+    );
+    const matches = findMatches(board);
+    assert.equal(matches.length, 0);
   });
 });
 
@@ -575,148 +573,11 @@ describe("Constants", () => {
     assert.equal(OFFLINE_THRESHOLD_MS, 120000);
   });
 
-  it("CROPS have energyYield and fullnessYield", () => {
-    for (const [id, cfg] of Object.entries(CROPS)) {
-      assert.ok(cfg.energyYield > 0, `${id} missing energyYield`);
-      assert.ok(cfg.fullnessYield > 0, `${id} missing fullnessYield`);
-    }
-  });
-});
-
-/* ─────────────────────────────────────────────────────
- *  calculateSatietyDelta (v6.0)
- * ───────────────────────────────────────────────────── */
-describe("calculateSatietyDelta", () => {
-  it("returns unchanged fullness if no time has passed", () => {
-    const now = Date.now();
-    const result = calculateSatietyDelta(
-      { stats: { fullness: 50 }, lastDigestionTimestamp: now },
-      now,
-    );
-    assert.equal(result.fullness, 50);
+  it("BOARD_SIZE is 8", () => {
+    assert.equal(BOARD_SIZE, 8);
   });
 
-  it("reduces fullness by 10 per hour", () => {
-    const now = Date.now();
-    const twoHoursAgo = now - 2 * 3_600_000;
-    const result = calculateSatietyDelta(
-      { stats: { fullness: 80 }, lastDigestionTimestamp: twoHoursAgo },
-      now,
-    );
-    assert.equal(result.fullness, 60); // 80 - (2 * 10)
-  });
-
-  it("clamps fullness to 0 (never negative)", () => {
-    const now = Date.now();
-    const result = calculateSatietyDelta(
-      { stats: { fullness: 5 }, lastDigestionTimestamp: now - 24 * 3_600_000 },
-      now,
-    );
-    assert.equal(result.fullness, 0);
-  });
-
-  it("caps offline progress at 24 hours", () => {
-    const now = Date.now();
-    // 48 hours ago — but cap at 24h = 240 digested, from fullness 100 → 0 (not -140)
-    const result = calculateSatietyDelta(
-      {
-        stats: { fullness: 100 },
-        lastDigestionTimestamp: now - 48 * 3_600_000,
-      },
-      now,
-    );
-    assert.equal(result.fullness, 0);
-  });
-
-  it("handles missing stats gracefully", () => {
-    const now = Date.now();
-    const result = calculateSatietyDelta({}, now);
-    assert.equal(result.fullness, 0);
-  });
-});
-
-/* ─────────────────────────────────────────────────────
- *  getScaledTime (v6.0)
- * ───────────────────────────────────────────────────── */
-describe("getScaledTime", () => {
-  it("returns the same time when DEV_MODE is off", () => {
-    assert.equal(getScaledTime(300_000), 300_000);
-  });
-
-  it("returns minimum 1ms", () => {
-    assert.equal(getScaledTime(0), 1);
-  });
-});
-
-/* ─────────────────────────────────────────────────────
- *  forceGrowAll (v6.0)
- * ───────────────────────────────────────────────────── */
-describe("forceGrowAll", () => {
-  it("sets planted crops to fully grown", () => {
-    const now = Date.now();
-    const plots = [
-      { crop: "strawberry", plantedAt: now },
-      { crop: null, plantedAt: null },
-    ];
-    forceGrowAll(plots, now);
-    // First plot should be fully grown
-    assert.ok(plots[0].plantedAt < now - 999_000_000);
-    // Empty plot unchanged
-    assert.equal(plots[1].plantedAt, null);
-  });
-
-  it("handles null input gracefully", () => {
-    assert.doesNotThrow(() => forceGrowAll(null));
-  });
-});
-
-/* ─────────────────────────────────────────────────────
- *  Additional Coverage: Offline Engine Edge Cases
- * ───────────────────────────────────────────────────── */
-describe("processOfflineActions - Edge Cases", () => {
-  it("prevents negative duration offline calculations", () => {
-    const now = Date.now();
-    const lastSeenStr = now + 100000;
-    const player = {
-      _lastSeen: lastSeenStr, 
-      resources: { 
-        energy: { current: 10, max: 200, lastRegenTimestamp: now } 
-      },
-      farm: { plots: [] },
-      pet: { abilities: {} },
-    };
-    const result = processOfflineActions(player, now);
-    // Should return null (no actions taken)
-    assert.equal(result, null);
-    // lastSeen was in the future, elapsed became 0, _lastSeen stays as lastSeenStr
-    assert.equal(player._lastSeen, lastSeenStr);
-  });
-
-  it("handles offline generation when energy is already maxed", () => {
-    const lastSeen = Date.now() - 3600000;
-    const player = {
-      _lastSeen: lastSeen,
-      resources: { 
-        energy: { current: 200, max: 200, lastRegenTimestamp: lastSeen } 
-      },
-      farm: { plots: [] },
-      pet: { abilities: {} },
-    };
-    const result = processOfflineActions(player, Date.now());
-    // No activities => null report
-    assert.equal(result, null);
-    assert.ok(player._lastSeen > lastSeen);
-  });
-});
-
-/* ─────────────────────────────────────────────────────
- *  Additional Coverage: Trivia Questions
- * ───────────────────────────────────────────────────── */
-describe("makeClientQuestion - Edge Cases", () => {
-  it("handles missing question gracefully", () => {
-    assert.doesNotThrow(() => {
-      const q = makeClientQuestion(undefined);
-      assert.equal(q, undefined);
-    });
+  it("GEM_TYPES has 6 gem types", () => {
+    assert.equal(GEM_TYPES.length, 6);
   });
 });

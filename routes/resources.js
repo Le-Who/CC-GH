@@ -1,122 +1,96 @@
 /**
  * ═══════════════════════════════════════════════════════
- *  Game Hub — Resources & Items Routes
- *  Unified inventory, crop selling, pet feeding
+ *  Game Hub — Resources & Pet Routes
+ *  Energy/gold state, crop selling, pet feeding
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
-import { CROPS, calcRegen } from "../game-logic.js";
-import { withPlayerLock } from "../playerManager.js";
-import { getDb } from "../db.js";
+import { ECONOMY, CROPS, calcRegen } from "../game-logic.js";
+import { getPlayer, debouncedSavePlayer } from "../playerManager.js";
 
 export default function resourcesRoutes(requireAuth, resolveUser) {
   const router = Router();
 
-  /* ─── Get Unified Inventory (Matches frontend api("/api/resources/state")) ─── */
-  router.get("/api/resources/state", requireAuth, async (req, res) => {
+  router.get("/api/resources/state", requireAuth, (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      calcRegen(p);
-      res.json({
-        resources: p.resources,
-        pet: p.pet,
-        room: p.room,
-        harvested: p.farm.harvested,
-      });
-    }, username);
+    const p = getPlayer(userId, username);
+    calcRegen(p);
+    res.json({
+      resources: p.resources,
+      pet: p.pet,
+      harvested: p.farm.harvested,
+    });
   });
 
-  /* ─── Sell Crop (Bulk support) ─── */
-  router.post("/api/farm/sell-crop", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
-    if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      calcRegen(p);
-      const { cropId, amount = 1 } = req.body;
-      const qty = Math.max(1, Math.floor(Number(amount) || 1));
-
-      if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] < qty) {
-        return res.status(400).json({ error: "no harvested crop to sell" });
-      }
-      const cfg = CROPS[cropId];
-      if (!cfg) return res.status(400).json({ error: "unknown crop" });
-      const totalEarnings = cfg.sellPrice * qty;
-      p.farm.harvested[cropId] -= qty;
-      if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
-      p.resources.gold += totalEarnings;
-
-      const sql = getDb();
-      if (sql) {
-        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
-            VALUES (${userId}, ${username}, 'sell', ${sql.json({ crop_id: cropId, amount: qty, gold_earned: totalEarnings })})`.catch(console.error);
-      }
-
-      res.json({
-        success: true,
-        resources: p.resources,
-        harvested: p.farm.harvested,
-        soldFor: totalEarnings,
-      });
-    }, username);
+  /* ─── Sell Crop ─── */
+  router.post("/api/farm/sell-crop", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { cropId } = req.body;
+    const p = getPlayer(userId);
+    if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
+      return res.status(400).json({ error: "no harvested crop to sell" });
+    }
+    const cfg = CROPS[cropId];
+    if (!cfg) return res.status(400).json({ error: "unknown crop" });
+    const sellPrice = cfg.sellPrice;
+    p.farm.harvested[cropId]--;
+    if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
+    p.resources.gold += sellPrice;
+    debouncedSavePlayer(userId);
+    res.json({
+      success: true,
+      resources: p.resources,
+      harvested: p.farm.harvested,
+      soldFor: sellPrice,
+    });
   });
 
-  /* ─── Feed Pet (Aligned with game-logic.js satiety) ─── */
-  router.post("/api/pet/feed", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
-    if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      const { cropId } = req.body;
-      calcRegen(p);
+  router.post("/api/pet/feed", requireAuth, (req, res) => {
+    const { userId } = resolveUser(req);
+    const { cropId } = req.body;
+    const p = getPlayer(userId);
+    calcRegen(p);
 
-      if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
-        return res.status(400).json({ error: "no harvested crop to feed" });
-      }
-      const cfg = CROPS[cropId];
-      if (!cfg) return res.status(400).json({ error: "unknown crop" });
+    // Validate crop
+    if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
+      return res.status(400).json({ error: "no harvested crop to feed" });
+    }
 
-      // v6.2.0: Pet uses fullness stats instead of legacy hunger
-      if (!p.pet.stats) p.pet.stats = { happiness: 100, fullness: 0 };
-      if (p.pet.stats.fullness >= 100) {
-        return res.status(400).json({ error: "pet is full" });
-      }
+    // Deduct crop
+    p.farm.harvested[cropId]--;
+    if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
 
-      p.farm.harvested[cropId]--;
-      if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
-      
-      const fullnessYield = cfg.fullnessYield || 10;
-      const energyYield = cfg.energyYield || 2;
+    // Restore energy
+    const e = p.resources.energy;
+    e.current = Math.min(e.max, e.current + ECONOMY.FEED_ENERGY);
 
-      p.pet.stats.fullness = Math.min(100, p.pet.stats.fullness + fullnessYield);
-      p.resources.energy.current = Math.min(p.resources.energy.max, p.resources.energy.current + energyYield);
-      
-      const sql = getDb();
-      if (sql) {
-        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
-            VALUES (${userId}, ${username}, 'feed_pet', ${sql.json({ crop_id: cropId })})`.catch(console.error);
-      }
+    // Pet XP & leveling
+    p.pet.xp += ECONOMY.FEED_PET_XP;
+    let leveledUp = false;
+    while (p.pet.xp >= p.pet.xpToNextLevel) {
+      p.pet.xp -= p.pet.xpToNextLevel;
+      p.pet.level++;
+      p.pet.xpToNextLevel = Math.floor(p.pet.xpToNextLevel * 1.5);
+      leveledUp = true;
+    }
 
-      res.json({
-        success: true,
-        pet: p.pet,
-        resources: p.resources,
-        harvested: p.farm.harvested
-      });
-    }, username);
-  });
+    // Unlock abilities
+    if (p.pet.level >= 3) p.pet.abilities.autoHarvest = true;
+    if (p.pet.level >= 5) p.pet.abilities.autoWater = true;
+    if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
 
-  /* ─── Rename Pet ─── */
-  router.post("/api/pet/rename", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
-    if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      const { newName } = req.body;
-      if (!newName || typeof newName !== "string") {
-        return res.status(400).json({ error: "invalid name" });
-      }
-      p.pet.name = newName.trim().slice(0, 16);
-      res.json({ success: true, pet: p.pet });
-    }, username);
+    // Happiness boost
+    p.pet.stats.happiness = Math.min(100, p.pet.stats.happiness + 5);
+
+    debouncedSavePlayer(userId);
+    res.json({
+      success: true,
+      resources: p.resources,
+      pet: p.pet,
+      harvested: p.farm.harvested,
+      leveledUp,
+    });
   });
 
   return router;

@@ -1,0 +1,506 @@
+/* ═══════════════════════════════════════════════════
+ *  Game Hub — Shared Module (v5.0.0)
+ *  Discord SDK auth, API helper, screen navigation
+ *  CSP-compliant: no inline handlers, no external fonts
+ *  v5: Native ES Module (was global IIFE)
+ * ═══════════════════════════════════════════════════ */
+import { GameStore } from "./store.js";
+import { prefetchCrops } from "./crops.js";
+
+export const HUB = {
+  userId: null,
+  username: "Player",
+  accessToken: null,
+  sdk: null,
+  currentScreen: 2, // 0=Trivia, 1=Blox, 2=Farm, 3=Match3
+  screenNames: ["trivia", "blox", "farm", "match3"],
+  initialized: { trivia: false, blox: false, farm: false, match3: false },
+  isTouchDevice: false,
+  swipeBlocked: false, // true when Blox game is active to prevent accidental navigation
+};
+
+// ─── Module registry (set by main.js via setModules()) ───
+let _modules = {
+  FarmGame: null,
+  TriviaGame: null,
+  Match3Game: null,
+  BloxGame: null,
+  PetCompanion: null,
+  HUD: null,
+};
+
+/** Called by main.js after all modules are imported */
+export function setModules(mods) {
+  Object.assign(_modules, mods);
+}
+
+/* ─── Discord SDK Init ─── */
+export async function initDiscord() {
+  // Prefetch crops data in parallel with auth (they're static, so start early)
+  prefetchCrops();
+
+  // 1. Fetch Client ID Config
+  let clientId = "";
+  try {
+    const res = await fetch("/api/config/discord");
+    if (res.ok) {
+      const data = await res.json();
+      clientId = data.clientId;
+    }
+  } catch (e) {
+    console.warn("Failed to fetch Discord config:", e.message);
+  }
+
+  // Fallback / Demo Mode
+  if (!clientId) {
+    console.log("No client_id configured — running in demo mode");
+    // Fallback: demo mode — random userId
+    HUB.userId = "hub_" + Math.random().toString(36).slice(2, 8);
+    HUB.username = "Player";
+    console.log(`Demo mode: ${HUB.userId}`);
+    return;
+  }
+
+  // Try Discord Embedded App SDK (only works inside Discord iframe)
+  if (typeof DiscordSDK !== "undefined") {
+    try {
+      const sdk = new DiscordSDK(clientId);
+      await sdk.ready();
+      console.log("Discord SDK ready");
+
+      // Authorize and get code
+      const { code } = await sdk.commands.authorize({
+        client_id: clientId,
+        response_type: "code",
+        state: "",
+        prompt: "none",
+        scope: ["identify", "guilds"],
+      });
+
+      // Exchange code for access token via our server
+      const tokenRes = await fetch("/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const tokenData = await tokenRes.json();
+      if (tokenData.access_token) {
+        HUB.accessToken = tokenData.access_token;
+
+        // Fetch user info
+        const userRes = await fetch("https://discord.com/api/users/@me", {
+          headers: { Authorization: `Bearer ${HUB.accessToken}` },
+        });
+        const user = await userRes.json();
+        HUB.userId = user.id;
+        HUB.username = user.global_name || user.username || "Player";
+
+        // Notify SDK we're authenticated
+        await sdk.commands.authenticate({ access_token: HUB.accessToken });
+        HUB.sdk = sdk; // Store for voice invite access
+        console.log(`Discord auth OK: ${HUB.username} (${HUB.userId})`);
+        return;
+      }
+    } catch (e) {
+      console.warn(
+        "Discord SDK init failed (expected outside Discord):",
+        e.message || e,
+      );
+    }
+  } else {
+    console.log("DiscordSDK not available — running in demo mode");
+  }
+
+  // If we reached here, auth failed or SDK missing -> Demo Mode as fallback
+  HUB.userId = "hub_" + Math.random().toString(36).slice(2, 8);
+  HUB.username = "Player";
+  console.log(`Fallback Demo mode: ${HUB.userId}`);
+}
+
+/* ─── API Helper (auto-attaches auth, with retry) ─── */
+export async function api(path, body) {
+  const MAX_RETRIES = 1;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const headers = { "Content-Type": "application/json" };
+    if (HUB.accessToken) {
+      headers["Authorization"] = `Bearer ${HUB.accessToken}`;
+    }
+    try {
+      const res = await fetch(path, {
+        method: body ? "POST" : "GET",
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        console.error(`API ${path} → ${res.status}: ${text}`);
+        return { error: `Server error ${res.status}`, _httpStatus: res.status };
+      }
+      return res.json();
+    } catch (err) {
+      if (attempt < MAX_RETRIES) {
+        showToast("⚠️ Connection lost — retrying…");
+        await sleep(2000);
+        continue;
+      }
+      console.error(`API ${path} network error:`, err);
+      showToast("❌ Network error — please check your connection");
+      return { error: "NETWORK_ERROR" };
+    }
+  }
+}
+
+/* ─── Navigation ─── */
+export function navigate(dir) {
+  const next = HUB.currentScreen + dir;
+  if (next < 0 || next > 3) return;
+  goToScreen(next);
+}
+
+export function goToScreen(index) {
+  if (index < 0 || index > 3 || index === HUB.currentScreen) return;
+
+  const updateDOM = () => {
+    HUB.currentScreen = index;
+    applyScreenClasses();
+    updateNavUI();
+    updatePetDock();
+    triggerScreenCallbacks();
+    // Update farm notification badge when switching screens
+    if (_modules.FarmGame?.updateFarmBadge) {
+      _modules.FarmGame.updateFarmBadge();
+    }
+  };
+
+  // 1. Native View Transitions API support (Fall 2023+ browsers)
+  if (document.startViewTransition) {
+    document.startViewTransition(() => updateDOM());
+  } else {
+    // 2. Fallback for older browsers (instant switch)
+    updateDOM();
+  }
+}
+
+/** Smart Docking: smooth transition between dock positions */
+export function updatePetDock() {
+  const overlay = document.getElementById("pet-overlay");
+  const container = document.getElementById("pet-container");
+  if (!overlay || !container) return;
+
+  const isFarm = HUB.currentScreen === 2;
+  const isTrivia = HUB.currentScreen === 0;
+  const isMatch3 = HUB.currentScreen === 3;
+  const isBlox = HUB.currentScreen === 1;
+
+  // Determine new dock mode
+  const newDockClass = isFarm
+    ? "dock-ground"
+    : isMatch3
+      ? "dock-match3"
+      : "dock-trivia";
+  const newPetMode = isFarm ? "ground" : isMatch3 ? "match3" : "trivia";
+
+  // Clear any roaming class to prevent transition conflicts
+  container.classList.remove("pet-roaming");
+
+  // Apply new dock class
+  overlay.classList.remove("dock-ground", "dock-match3", "dock-trivia");
+  overlay.classList.add(newDockClass);
+
+  // Add transitioning class for smooth animation to dock center
+  container.classList.add("pet-transitioning");
+  // Clear inline transform so CSS default transform takes over (smoothly via transition)
+  container.style.transform = "";
+
+  // Clean up transition class after animation completes
+  setTimeout(() => {
+    container.classList.remove("pet-transitioning");
+  }, 550);
+
+  // Notify pet module of new dock mode
+  if (_modules.PetCompanion?.setDockMode) {
+    _modules.PetCompanion.setDockMode(newPetMode);
+  }
+}
+
+// v4.16: Cached DOM collections (populated once at init)
+let _cachedScreens = [];
+let _cachedNavDots = [];
+let _cachedNavTabs = [];
+
+function applyScreenClasses() {
+  for (let i = 0; i < _cachedScreens.length; i++) {
+    _cachedScreens[i].classList.toggle("active", i === HUB.currentScreen);
+  }
+}
+
+function updateNavUI() {
+  const $left = document.getElementById("nav-left");
+  const $right = document.getElementById("nav-right");
+  $left.classList.toggle("hidden", HUB.currentScreen === 0);
+  $right.classList.toggle("hidden", HUB.currentScreen === 3);
+
+  // Desktop dots (cached)
+  for (let i = 0; i < _cachedNavDots.length; i++) {
+    _cachedNavDots[i].classList.toggle("active", i === HUB.currentScreen);
+  }
+  // Mobile bottom nav-bar (cached)
+  for (const tab of _cachedNavTabs) {
+    const idx = parseInt(tab.dataset.screen, 10);
+    tab.classList.toggle("active", idx === HUB.currentScreen);
+  }
+}
+
+function triggerScreenCallbacks() {
+  const name = HUB.screenNames[HUB.currentScreen];
+
+  // Screen leave callbacks (hide elements that might leak into other screens)
+  if (name !== "trivia" && _modules.TriviaGame?.onLeave) {
+    _modules.TriviaGame.onLeave();
+  }
+
+  // Lazy init
+  if (!HUB.initialized[name]) {
+    HUB.initialized[name] = true;
+    if (name === "farm") _modules.FarmGame?.init();
+    if (name === "trivia") _modules.TriviaGame?.init();
+    if (name === "match3") _modules.Match3Game?.init();
+    if (name === "blox") _modules.BloxGame?.init();
+  }
+  // Screen enter callbacks
+  if (name === "farm") _modules.FarmGame?.onEnter();
+  if (name === "trivia") _modules.TriviaGame?.onEnter();
+  if (name === "match3") _modules.Match3Game?.onEnter();
+  if (name === "blox") _modules.BloxGame?.onEnter();
+
+  // 7.1: Farm Shop FAB — visible only on farm screen
+  const fab = document.getElementById("farm-shop-fab");
+  if (fab) fab.classList.toggle("visible", name === "farm");
+}
+
+/* ─── Centralized Toast Queue ─── */
+const MAX_TOASTS = 3;
+const _toastIcons = { success: "✅ ", error: "❌ ", info: "ℹ️ " };
+let _lastToastMsg = "";
+let _lastToastTime = 0;
+
+function initToastContainer() {
+  let container = document.getElementById("toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+export function showToast(msg, type) {
+  // Dedup: skip if same exact message within 1s
+  const now = Date.now();
+  if (msg === _lastToastMsg && now - _lastToastTime < 1000) return;
+  _lastToastMsg = msg;
+  _lastToastTime = now;
+
+  const container = initToastContainer();
+
+  // Enforce max stack size by popping the oldest
+  while (container.children.length >= MAX_TOASTS) {
+    container.firstChild.remove();
+  }
+
+  const el = document.createElement("div");
+  el.className = "toast" + (type ? ` toast-${type}` : "");
+  const icon = type && _toastIcons[type] ? _toastIcons[type] : "";
+  el.innerHTML = `<span>${icon}${msg}</span>`;
+
+  container.appendChild(el);
+
+  // Trigger reflow for intro animation
+  void el.offsetWidth;
+  el.classList.add("show");
+
+  setTimeout(() => {
+    el.classList.remove("show");
+    el.addEventListener("transitionend", () => el.remove(), { once: true });
+  }, 2500);
+}
+
+/* ─── Sleep ─── */
+export function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/* ─── Bind Navigation Buttons (CSP-safe, no inline handlers) ─── */
+export function bindNavigation() {
+  // Nav arrows
+  document
+    .getElementById("nav-left")
+    .addEventListener("click", () => navigate(-1));
+  document
+    .getElementById("nav-right")
+    .addEventListener("click", () => navigate(1));
+
+  // Nav dots
+  document
+    .getElementById("nav-dot-trivia")
+    .addEventListener("click", () => goToScreen(0));
+  document
+    .getElementById("nav-dot-blox")
+    .addEventListener("click", () => goToScreen(1));
+  document
+    .getElementById("nav-dot-farm")
+    .addEventListener("click", () => goToScreen(2));
+  document
+    .getElementById("nav-dot-match3")
+    .addEventListener("click", () => goToScreen(3));
+
+  // Mobile bottom nav-bar tabs
+  document.querySelectorAll(".nav-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const idx = parseInt(tab.dataset.screen, 10);
+      if (!isNaN(idx)) goToScreen(idx);
+    });
+  });
+}
+
+/* ─── Device Detection ─── */
+export function detectDevice() {
+  HUB.isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+  document.body.classList.add(
+    HUB.isTouchDevice ? "touch-device" : "pointer-device",
+  );
+}
+
+/* ─── Keyboard Navigation ─── */
+export function bindKeyboardNav() {
+  document.addEventListener("keydown", (e) => {
+    // Don't hijack keyboard when user is typing in an input/textarea
+    if (
+      e.target.tagName === "INPUT" ||
+      e.target.tagName === "TEXTAREA" ||
+      e.target.isContentEditable
+    )
+      return;
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      navigate(-1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      navigate(1);
+    }
+  });
+}
+
+/* ─── Touch Swipe Gestures ─── */
+export function bindTouchSwipe() {
+  const viewport = document.querySelector(".viewport");
+  if (!viewport) return;
+
+  let startX = 0;
+  let startY = 0;
+  let swiping = false;
+
+  viewport.addEventListener(
+    "touchstart",
+    (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      swiping = true;
+    },
+    { passive: true },
+  );
+
+  viewport.addEventListener(
+    "touchend",
+    (e) => {
+      if (!swiping) return;
+      if (HUB.swipeBlocked) {
+        swiping = false;
+        return;
+      }
+      swiping = false;
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const THRESHOLD = 50;
+
+      // Only trigger if horizontal swipe is dominant
+      if (Math.abs(dx) > THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        if (dx < 0)
+          navigate(1); // swipe left → next
+        else navigate(-1); // swipe right → prev
+      }
+    },
+    { passive: true },
+  );
+}
+
+/* ─── Bounce Hint (v4.9: re-show after 3 days, item 1.4) ─── */
+export function triggerSwipeHint() {
+  const HINT_KEY = "hub_swipe_hint_ts";
+  const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
+  const last = parseInt(localStorage.getItem(HINT_KEY) || "0", 10);
+  if (last && Date.now() - last < THREE_DAYS) return;
+  localStorage.setItem(HINT_KEY, String(Date.now()));
+
+  const track = document.getElementById("track");
+  if (!track) return;
+
+  // Small delay so user sees the initial state first
+  setTimeout(() => {
+    track.classList.add("hint-bounce");
+    track.addEventListener(
+      "animationend",
+      () => {
+        track.classList.remove("hint-bounce");
+        applyScreenClasses(); // Restore correct position
+      },
+      { once: true },
+    );
+  }, 800);
+}
+
+/* ─── Arrow Hint Flash (1.2: subtle periodic flash every ~90s for 2s) ─── */
+let _arrowFlashInterval = null;
+function flashNavArrows() {
+  const $left = document.getElementById("nav-left");
+  const $right = document.getElementById("nav-right");
+  if (!$left || !$right) return;
+
+  // Only flash arrows that aren't .hidden
+  [$left, $right].forEach((arrow) => {
+    if (arrow.classList.contains("hidden")) return;
+    arrow.classList.add("arrow-hint-flash");
+    arrow.addEventListener(
+      "animationend",
+      () => arrow.classList.remove("arrow-hint-flash"),
+      { once: true },
+    );
+  });
+}
+export function startArrowFlash() {
+  if (_arrowFlashInterval) return;
+  // v4.16: Visibility gate — skip CSS class manipulation when tab is hidden (saves battery)
+  _arrowFlashInterval = setInterval(() => {
+    if (document.hidden) return;
+    flashNavArrows();
+  }, 90000); // every 90s
+}
+
+/**
+ * Populate cached DOM collections for zero-querySelectorAll navigation.
+ * Must be called once after DOM is ready.
+ */
+export function cacheNavDOM() {
+  _cachedScreens = Array.from(document.querySelectorAll(".screen"));
+  _cachedNavDots = Array.from(document.querySelectorAll(".nav-dot"));
+  _cachedNavTabs = Array.from(document.querySelectorAll(".nav-tab"));
+}
+
+/** Apply initial screen state */
+export function applyInitialScreen() {
+  applyScreenClasses();
+  updateNavUI();
+}

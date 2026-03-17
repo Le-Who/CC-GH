@@ -232,13 +232,15 @@ describe("Growth Tick Efficiency", () => {
     const plots = [
       {
         crop: "strawberry",
-        plantedAt: now - CROPS.strawberry.growthTime,
+        plantedAt: now - 30000,
         watered: false,
+        growthTime: CROPS.strawberry.growthTime,
       },
       {
         crop: "tomato",
-        plantedAt: now - CROPS.tomato.growthTime,
+        plantedAt: now - 60000,
         watered: false,
+        growthTime: CROPS.tomato.growthTime,
       },
     ];
     const hasGrowing = plots.some((p) => p.crop && getGrowthPct(p, now) < 1);
@@ -423,7 +425,7 @@ describe("Watering Growth Speed", () => {
 
   it("watered plot grows faster than unwatered", () => {
     const now = Date.now();
-    const plantedAt = now - 2000; // changed from 10000 because strawberry growthTime is now 5000ms
+    const plantedAt = now - 10000;
     const crop = CROPS.strawberry;
     const unwateredGrowth = getGrowthPct(
       {
@@ -656,6 +658,7 @@ describe("Global Version Constant", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
+      "public",
       "index.html",
     );
     const html = fs.readFileSync(htmlPath, "utf-8");
@@ -731,8 +734,7 @@ describe("Blox Transition Safety", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "blox.css",
     );
@@ -761,8 +763,7 @@ describe("CSS Containment — Game Boards", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       filename,
     );
@@ -847,8 +848,7 @@ describe("Contextual Gem Glow — CSS Custom Properties", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "match3.css",
     );
@@ -870,8 +870,7 @@ describe("Contextual Gem Glow — CSS Custom Properties", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "match3.css",
     );
@@ -931,8 +930,7 @@ describe("Squash & Stretch — Fall Keyframes", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "match3.css",
     );
@@ -959,8 +957,7 @@ describe("Color Splash — CSS Rule", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "match3.css",
     );
@@ -989,8 +986,7 @@ describe("Danger Vignette — CSS Rule", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "match3.css",
     );
@@ -1019,8 +1015,7 @@ describe("Ambient Dust Particles — CSS Keyframes", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "match3.css",
     );
@@ -1039,8 +1034,7 @@ describe("Ambient Dust Particles — CSS Keyframes", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
       "css",
       "blox.css",
     );
@@ -1065,1034 +1059,17 @@ describe("Blox Drag-Tilt — rotateZ", () => {
         new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
       ),
       "..",
-      "src",
-      "vanilla",
+      "public",
+      "js",
       "blox.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
-    // Find the moveDragPreview function body (up to the next function declaration)
-    const match = js.match(/function moveDragPreview[\s\S]*?function removeDragPreview/m);
+    // Find the moveDragPreview function body
+    const match = js.match(/function moveDragPreview[\s\S]*?^\s*\}/m);
     assert.ok(match, "moveDragPreview function must exist in blox.js");
     assert.ok(
       match[0].includes("rotateZ"),
       "moveDragPreview must include rotateZ for drag-tilt effect",
-    );
-  });
-});
-
-/* ═══════════════════════════════════════════════════
- *  v6.1.1 Fix Verification — Static Analysis
- *  Ensures critical bug fixes remain in place.
- * ═══════════════════════════════════════════════════ */
-
-describe("v6.1.1: safeShowModal export", () => {
-  it("shared.js exports safeShowModal", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "shared.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("export function safeShowModal"),
-      "shared.js must export safeShowModal",
-    );
-  });
-
-  it("hud.js imports safeShowModal from shared.js", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "hud.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("safeShowModal") && js.includes('from "./shared.js"'),
-      "hud.js must import safeShowModal from shared.js",
-    );
-  });
-});
-
-describe("v6.1.1: setPointerCapture removal", () => {
-  it("merge.js does NOT use setPointerCapture", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "merge.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      !js.includes(".setPointerCapture("),
-      "merge.js must NOT call .setPointerCapture() (causes pointer event leaks)",
-    );
-  });
-});
-
-describe("v6.1.1: AbortController in api()", () => {
-  it("shared.js api() uses AbortController for fetch timeout", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "shared.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("AbortController") && js.includes("controller.abort"),
-      "api() must use AbortController with abort timeout",
-    );
-  });
-});
-
-describe("v6.1.1: _forceCleanupDrag in merge.js", () => {
-  it("merge.js defines _forceCleanupDrag", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "merge.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("function _forceCleanupDrag"),
-      "merge.js must define _forceCleanupDrag for orphan ghost cleanup",
-    );
-  });
-});
-
-describe("v6.1.1: View Transition safety in goToScreen", () => {
-  it("shared.js goToScreen uses skipTransition safety timeout", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "shared.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("skipTransition"),
-      "goToScreen must use skipTransition() as safety timeout for View Transitions",
-    );
-    assert.ok(
-      js.includes("vt.finished"),
-      "goToScreen must handle vt.finished promise for cleanup",
-    );
-  });
-});
-
-describe("v6.1.1: _feedFromModal try/finally", () => {
-  it("hud.js _feedFromModal uses try/finally for guaranteed refresh", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "hud.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    // Find _feedFromModal function body
-    const fnMatch = js.match(/async function _feedFromModal[\s\S]*?^\}/m);
-    assert.ok(fnMatch, "_feedFromModal must exist in hud.js");
-    assert.ok(
-      fnMatch[0].includes("finally"),
-      "_feedFromModal must use try/finally for guaranteed button re-enable",
-    );
-  });
-});
-
-/* ═══════════════════════════════════════════════════
- *  v7.1: Interruption & Comfort System — Return Tier Tests
- *  Verifies return-tier classification and comfort framing.
- * ═══════════════════════════════════════════════════ */
-describe("Interruption System — Return Tier Classification", () => {
-  // Mirror the RETURN_TIER constants from shared.js
-  const RETURN_TIER = {
-    QUICK_MS: 30_000,
-    SOFT_MS: 86_400_000,
-  };
-
-  function classifyReturn(deltaMs) {
-    if (deltaMs < RETURN_TIER.QUICK_MS) return "quick";
-    if (deltaMs < RETURN_TIER.SOFT_MS) return "soft";
-    return "deep";
-  }
-
-  it("quick return (<30s) should NOT show welcome-back modal", () => {
-    assert.equal(classifyReturn(5_000), "quick");
-    assert.equal(classifyReturn(29_999), "quick");
-    assert.notEqual(
-      classifyReturn(30_000),
-      "quick",
-      "30s boundary should NOT be quick",
-    );
-  });
-
-  it("soft return (30s–24h) should show comfort banner", () => {
-    assert.equal(classifyReturn(30_000), "soft");
-    assert.equal(classifyReturn(60_000), "soft");
-    assert.equal(classifyReturn(3_600_000), "soft");
-    assert.equal(classifyReturn(86_399_999), "soft");
-  });
-
-  it("deep return (>24h) should show comfort report modal", () => {
-    assert.equal(classifyReturn(86_400_000), "deep");
-    assert.equal(classifyReturn(172_800_000), "deep"); // 48h
-  });
-
-  it("tier boundaries are monotonically increasing (quick < soft < deep)", () => {
-    assert.ok(
-      RETURN_TIER.QUICK_MS < RETURN_TIER.SOFT_MS,
-      `Quick (${RETURN_TIER.QUICK_MS}ms) must be less than Soft (${RETURN_TIER.SOFT_MS}ms)`,
-    );
-  });
-});
-
-describe("Comfort Framing — Welcome-Back Copy", () => {
-  it("welcome-back modal in farm.js uses warm comfort language", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "farm.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-
-    // Extract the showWelcomeBack function body
-    const fnMatch = js.match(/function showWelcomeBack[\s\S]*?^\s{2}\}/m);
-    assert.ok(fnMatch, "showWelcomeBack must exist in farm.js");
-    const body = fnMatch[0];
-
-    // Positive: should contain warm framing
-    assert.ok(
-      body.includes("Welcome Back"),
-      "Modal must include 'Welcome Back' greeting",
-    );
-
-    // Negative: guilt-inducing phrases should NOT appear
-    const guiltPhrases = [
-      "You were away for",
-      "ran out",
-      "break it",
-      "don't forget",
-      "you missed",
-      "fullness used",
-    ];
-    for (const phrase of guiltPhrases) {
-      assert.ok(
-        !body.includes(phrase),
-        `Welcome-back modal should NOT contain guilt phrase: "${phrase}"`,
-      );
-    }
-  });
-});
-
-describe("v7.1: Comfort Banner & Interruption System — CSS & Export", () => {
-  it("base.css contains .comfort-banner styles", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "base.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes(".comfort-banner"),
-      "base.css must define .comfort-banner",
-    );
-    assert.ok(
-      css.includes(".comfort-banner.show"),
-      "base.css must define .comfort-banner.show transition state",
-    );
-  });
-
-  it("shared.js exports setupInterruptionSystem", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "shared.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("export function setupInterruptionSystem"),
-      "shared.js must export setupInterruptionSystem",
-    );
-  });
-
-  it("main.js calls setupInterruptionSystem during boot", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "main.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("setupInterruptionSystem()"),
-      "main.js must call setupInterruptionSystem() during boot",
-    );
-  });
-});
-
-describe("v7.1: Farm CSS Juice — Ambient Animations", () => {
-  it("farm.css defines cropSway keyframes for ambient sway", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "farm.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes cropSway"),
-      "farm.css must define @keyframes cropSway",
-    );
-    assert.ok(
-      css.includes("@keyframes readyPulse"),
-      "farm.css must define @keyframes readyPulse",
-    );
-  });
-
-  it("farm.css respects prefers-reduced-motion for animations", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "farm.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("prefers-reduced-motion"),
-      "farm.css must include prefers-reduced-motion to disable ambient animations",
-    );
-  });
-
-});
-
-/* ═══════════════════════════════════════════════════
- *  v7.1 P1: Quick-Buy Seed Ranking Tests
- * ═══════════════════════════════════════════════════ */
-describe("Quick-Buy — Top Seeds Ranking", () => {
-  it("returns cheapest seeds when no purchase history exists", () => {
-    // Simulate _getTopSeeds logic with empty history
-    const crops = {
-      tomato: { seedPrice: 10 },
-      strawberry: { seedPrice: 5 },
-      corn: { seedPrice: 20 },
-      blueberry: { seedPrice: 8 },
-    };
-    const history = [];
-    const counts = {};
-    for (const { seedId } of history)
-      counts[seedId] = (counts[seedId] || 0) + 1;
-    const ranked = Object.entries(counts)
-      .filter(([id]) => crops[id])
-      .sort(([, a], [, b]) => b - a)
-      .map(([id]) => id);
-
-    const allSeeds = Object.entries(crops)
-      .sort(([, a], [, b]) => a.seedPrice - b.seedPrice)
-      .map(([id]) => id);
-    const merged = [...ranked];
-    for (const id of allSeeds) {
-      if (merged.length >= 3) break;
-      if (!merged.includes(id)) merged.push(id);
-    }
-    const top3 = merged.slice(0, 3);
-    assert.deepStrictEqual(top3, ["strawberry", "blueberry", "tomato"]);
-  });
-
-  it("ranks most-purchased seeds first", () => {
-    const crops = { tomato: {}, strawberry: {}, corn: {}, blueberry: {} };
-    const history = [
-      { seedId: "corn" },
-      { seedId: "corn" },
-      { seedId: "corn" },
-      { seedId: "strawberry" },
-      { seedId: "strawberry" },
-      { seedId: "tomato" },
-    ];
-    const counts = {};
-    for (const { seedId } of history)
-      counts[seedId] = (counts[seedId] || 0) + 1;
-    const ranked = Object.entries(counts)
-      .filter(([id]) => crops[id])
-      .sort(([, a], [, b]) => b - a)
-      .map(([id]) => id)
-      .slice(0, 3);
-    assert.deepStrictEqual(ranked, ["corn", "strawberry", "tomato"]);
-  });
-});
-
-describe("v7.1 P1: Cozy Day Theme — CSS Variable Overrides", () => {
-  it("cozy-day.css overrides all critical root CSS variables", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "cozy-day.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-
-    // Must override critical variables
-    const requiredVars = [
-      "--bg",
-      "--surface",
-      "--accent",
-      "--text",
-      "--text-dim",
-      "--gold",
-      "--border",
-      "--neon-glow",
-    ];
-    for (const v of requiredVars) {
-      assert.ok(css.includes(v), `cozy-day.css must override ${v}`);
-    }
-  });
-
-  it("cozy-day.css uses [data-theme='cozy-day'] selector", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "cozy-day.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes('[data-theme="cozy-day"]'),
-      "Must use [data-theme='cozy-day'] selector",
-    );
-  });
-});
-
-describe("v7.1 P1: Theme Flash Prevention", () => {
-  it("index.html contains inline theme script in head", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const htmlPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "index.html",
-    );
-    const html = fs.readFileSync(htmlPath, "utf-8");
-    assert.ok(
-      html.includes("hub_theme") && html.includes("data-theme"),
-      "index.html must have inline theme flash prevention script",
-    );
-  });
-
-  it("shared.js exports initTheme and setTheme", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "shared.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("export function initTheme"),
-      "shared.js must export initTheme",
-    );
-    assert.ok(
-      js.includes("export function setTheme"),
-      "shared.js must export setTheme",
-    );
-  });
-
-  it("main.js calls initTheme during boot", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "main.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("initTheme()"),
-      "main.js must call initTheme() during boot",
-    );
-  });
-});
-
-describe("v7.1 P1: Farm Juice — Harvest & Water Keyframes", () => {
-  it("farm.css defines harvestPop and coinFly keyframes", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "farm.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes harvestPop"),
-      "farm.css must define @keyframes harvestPop",
-    );
-    assert.ok(
-      css.includes("@keyframes coinFly"),
-      "farm.css must define @keyframes coinFly",
-    );
-    assert.ok(
-      css.includes("@keyframes waterRise"),
-      "farm.css must define @keyframes waterRise",
-    );
-    assert.ok(
-      css.includes("@keyframes waterShimmer"),
-      "farm.css must define @keyframes waterShimmer",
-    );
-  });
-
-  it("farm.css defines quick-buy sheet styles", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const cssPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "farm.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes(".quick-buy-sheet"),
-      "farm.css must define .quick-buy-sheet",
-    );
-    assert.ok(
-      css.includes(".qb-seed-card"),
-      "farm.css must define .qb-seed-card",
-    );
-  });
-});
-
-describe("v7.1 P1: Effects.js — Particle Helpers", () => {
-  it("effects.js exports spawnCoinFly", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "effects.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("export function spawnCoinFly"),
-      "effects.js must export spawnCoinFly",
-    );
-  });
-
-  it("effects.js exports spawnWaterDroplets", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "effects.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("export function spawnWaterDroplets"),
-      "effects.js must export spawnWaterDroplets",
-    );
-  });
-
-  it("particle pool has max 30 capacity (performance budget)", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const jsPath = path.join(
-      path.dirname(
-        new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-      ),
-      "..",
-      "src",
-      "vanilla",
-      "effects.js",
-    );
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("_PARTICLE_POOL_MAX = 30"),
-      "Particle pool must be capped at 30 per performance budget",
-    );
-  });
-});
-
-/* ═══════════════════════════════════════════════════
- *  v7.2 P2: Progressive Seed Unlocking + Featured Shelf + Juice Polish
- * ═══════════════════════════════════════════════════ */
-describe("v7.2 P2: Progressive Seed Unlocking", () => {
-  it("getUnlockedSeeds returns only strawberry and blueberry for new player", async () => {
-    // Direct call — getUnlockedSeeds is exported alongside CROPS
-    const unlocked = (await import("../game-logic.js")).getUnlockedSeeds({
-      totalHarvests: 0,
-      goldEarned: 0,
-      questsCompleted: 0,
-      plotsBought: 0,
-      daysActive: 0,
-    });
-    assert.deepStrictEqual(unlocked, ["strawberry", "blueberry"]);
-  });
-
-  it("getUnlockedSeeds includes tomato after first harvest", async () => {
-    const { getUnlockedSeeds } = await import("../game-logic.js");
-    const unlocked = getUnlockedSeeds({
-      totalHarvests: 1,
-      goldEarned: 0,
-      questsCompleted: 0,
-      plotsBought: 0,
-      daysActive: 0,
-    });
-    assert.ok(
-      unlocked.includes("tomato"),
-      "Tomato should unlock after first harvest",
-    );
-    assert.ok(unlocked.includes("strawberry"), "Strawberry always available");
-    assert.ok(unlocked.includes("blueberry"), "Blueberry always available");
-    assert.strictEqual(unlocked.length, 3, "Only 3 seeds should be unlocked");
-  });
-
-  it("getUnlockedSeeds unlocks all seeds with maxed stats", async () => {
-    const { getUnlockedSeeds, CROPS: C } = await import("../game-logic.js");
-    const unlocked = getUnlockedSeeds({
-      totalHarvests: 100,
-      goldEarned: 500,
-      questsCompleted: 5,
-      plotsBought: 6,
-      daysActive: 10,
-    });
-    assert.strictEqual(
-      unlocked.length,
-      Object.keys(C).length,
-      "All seeds should be unlocked",
-    );
-  });
-});
-
-describe("v7.2 P2: Featured Shelf Rotation", () => {
-  it("rotation key changes every 4 hours", () => {
-    const ROTATION_MS = 4 * 3600_000;
-    const now = Date.now();
-    const key1 = Math.floor(now / ROTATION_MS);
-    const key2 = Math.floor((now + ROTATION_MS) / ROTATION_MS);
-    assert.notStrictEqual(key1, key2, "Keys must differ across 4h boundaries");
-    const keySame = Math.floor((now + 1000) / ROTATION_MS);
-    assert.strictEqual(
-      key1,
-      keySame,
-      "Keys must be same within same 4h window",
-    );
-  });
-});
-
-describe("v7.2 P2: Locked Seed Card CSS", () => {
-  it("farm.css contains .farm-seed-card.locked styles", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "farm.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes(".farm-seed-card.locked"),
-      "Must have locked card class",
-    );
-    assert.ok(css.includes("seed-lock-label"), "Must have lock label class");
-    assert.ok(css.includes("seedUnlock"), "Must have seedUnlock keyframes");
-  });
-});
-
-describe("v7.2 P2: Match-3 Swap Spring Keyframes", () => {
-  it("match3.css contains m3SwapSpring keyframes", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "match3.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes m3SwapSpring"),
-      "Must have m3SwapSpring keyframes",
-    );
-    assert.ok(css.includes(".m3-cell.swapping"), "Must have swapping class");
-  });
-});
-
-describe("v7.2 P2: Blox Place Bounce Keyframes", () => {
-  it("blox.css contains bloxPlaceBounce keyframes", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "blox.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes bloxPlaceBounce"),
-      "Must have bloxPlaceBounce keyframes",
-    );
-    assert.ok(
-      css.includes(".blox-cell.just-placed"),
-      "Must have just-placed class",
-    );
-  });
-});
-
-/* ═══════════════════════════════════════════════════
- *  v7.2 P3: Themes + Trivia/Merge/Pet Juice
- * ═══════════════════════════════════════════════════ */
-describe("v7.2 P3: Soft Fantasy Theme", () => {
-  it("soft-fantasy.css has correct data-theme selector and key tokens", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "soft-fantasy.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes('[data-theme="soft-fantasy"]'),
-      "Must use correct data-theme selector",
-    );
-    assert.ok(css.includes("--bg: #1a1625"), "Must have plum background");
-    assert.ok(css.includes("--accent: #ff8fa3"), "Must have soft rose accent");
-    assert.ok(css.includes("--text: #f5f0ff"), "Must have lavender white text");
-  });
-});
-
-describe("v7.2 P3: Minimal Calm Theme", () => {
-  it("minimal-calm.css has correct data-theme selector and key tokens", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "minimal-calm.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes('[data-theme="minimal-calm"]'),
-      "Must use correct data-theme selector",
-    );
-    assert.ok(
-      css.includes("--bg: #f5f5f3"),
-      "Must have stone white background",
-    );
-    assert.ok(
-      css.includes("--accent: #3d6b50"),
-      "Must have forest sage accent",
-    );
-    assert.ok(css.includes("--radius-md: 16px"), "Must increase border radius");
-  });
-});
-
-describe("v7.2 P3: Theme System Expansion", () => {
-  it("shared.js VALID_THEMES includes soft-fantasy, minimal-calm, seasonal", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const jsPath = path.join(__dirname, "..", "src", "vanilla", "shared.js");
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes('"soft-fantasy"'),
-      "VALID_THEMES must include soft-fantasy",
-    );
-    assert.ok(
-      js.includes('"minimal-calm"'),
-      "VALID_THEMES must include minimal-calm",
-    );
-    assert.ok(js.includes('"seasonal"'), "VALID_THEMES must include seasonal");
-    assert.ok(
-      js.includes("_getSeasonalTheme"),
-      "Must have seasonal theme resolver",
-    );
-  });
-});
-
-describe("v7.2 P3: Trivia Juice Keyframes", () => {
-  it("trivia.css contains triviaCardFlip, triviaCorrectPop, triviaStreakGlow", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "trivia.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes triviaCardFlip"),
-      "Must have triviaCardFlip",
-    );
-    assert.ok(
-      css.includes("@keyframes triviaCorrectPop"),
-      "Must have triviaCorrectPop",
-    );
-    assert.ok(
-      css.includes("@keyframes triviaStreakGlow"),
-      "Must have triviaStreakGlow",
-    );
-    assert.ok(
-      css.includes("triviaAnswerSlide"),
-      "Must have stagger answer entrance",
-    );
-  });
-});
-
-describe("v7.2 P3: Merge Juice Keyframes", () => {
-  it("merge.css contains mergePull, mergeCollide, gachaCapsuleDrop, gachaReveal", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "merge.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(css.includes("@keyframes mergePull"), "Must have mergePull");
-    assert.ok(
-      css.includes("@keyframes mergeCollide"),
-      "Must have mergeCollide",
-    );
-    assert.ok(
-      css.includes("@keyframes gachaCapsuleDrop"),
-      "Must have gachaCapsuleDrop",
-    );
-    assert.ok(css.includes("@keyframes gachaReveal"), "Must have gachaReveal");
-  });
-});
-
-describe("v7.2 P3: Pet Interaction Juice Keyframes", () => {
-  it("pet.css contains petTapBounce, petHeartBurst, petDustPuff", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const cssPath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "vanilla",
-      "css",
-      "pet.css",
-    );
-    const css = fs.readFileSync(cssPath, "utf-8");
-    assert.ok(
-      css.includes("@keyframes petTapBounce"),
-      "Must have petTapBounce",
-    );
-    assert.ok(
-      css.includes("@keyframes petHeartBurst"),
-      "Must have petHeartBurst",
-    );
-    assert.ok(css.includes("@keyframes petDustPuff"), "Must have petDustPuff");
-    assert.ok(
-      css.includes(".pet-container.state-tapped"),
-      "Must have tapped state class",
-    );
-  });
-});
-
-/* ═══════════════════════════════════════════════════
- *  v7.2 Audit: Regression guards for CSS import + theme flash fix
- * ═══════════════════════════════════════════════════ */
-describe("v7.2 Audit: Theme CSS Imports", () => {
-  it("main.jsx imports soft-fantasy.css and minimal-calm.css", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const jsPath = path.join(__dirname, "..", "src", "main.jsx");
-    const js = fs.readFileSync(jsPath, "utf-8");
-    assert.ok(
-      js.includes("soft-fantasy.css"),
-      "main.jsx must import soft-fantasy.css",
-    );
-    assert.ok(
-      js.includes("minimal-calm.css"),
-      "main.jsx must import minimal-calm.css",
-    );
-    assert.ok(
-      js.includes("cozy-day.css"),
-      "main.jsx must import cozy-day.css (existing)",
-    );
-  });
-});
-
-describe("v7.2 Audit: Theme Flash Prevention", () => {
-  it("index.html handles seasonal theme before first paint", async () => {
-    const fs = await import("node:fs");
-    const path = await import("node:path");
-    const __dirname = path.dirname(
-      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
-    );
-    const htmlPath = path.join(__dirname, "..", "index.html");
-    const html = fs.readFileSync(htmlPath, "utf-8");
-    assert.ok(
-      html.includes('"seasonal"'),
-      "Must handle seasonal in flash prevention",
-    );
-    assert.ok(
-      html.includes("getMonth"),
-      "Must resolve seasonal by month before paint",
     );
   });
 });

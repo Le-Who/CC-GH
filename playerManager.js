@@ -1,159 +1,158 @@
 /**
  * ═══════════════════════════════════════════════════════
- *  Game Hub — Player Manager (v10.0 — Postgres ACID)
- *  Relational database primary architecture using Postgres.
- *  Redis retained strictly as a read-through cache & rate-limiter.
- *
- *  v10.0: Replaced Firestore & Redis SETNX with Postgres 
- *         row-level locking (SELECT ... FOR UPDATE).
- *         Global `players` Map completely eliminated for true
- *         horizontal scaling.
+ *  Game Hub — Player Manager
+ *  Hot-cache in-memory state backed by Google Cloud Firestore
  * ═══════════════════════════════════════════════════════
  */
-
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { Firestore } from "@google-cloud/firestore";
 import { ECONOMY, createDefaultPlayer } from "./game-logic.js";
-import { getDb } from "./db.js";
-import {
-  isRedisEnabled,
-  redisSetPlayer,
-  redisGetOrLoadPlayer,
-} from "./redisAdapter.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /* ═══════════════════════════════════════════════════
- *  POSTGRES ACID LOCK & STATE INIT
+ *  FIRESTORE & STATE INIT
  * ═══════════════════════════════════════════════════ */
+export const players = new Map(); // userId -> { resources, pet, farm, trivia, match3 }
+const pendingSaves = new Map(); // userId -> timeoutId
+const SAVE_DELAY_MS = 2000; // Debounce threshold for rapid actions
+
+let firestore = null;
+let playersCol = null;
+
+try {
+  firestore = new Firestore({ databaseId: "game-hub-db" }); // Uses Application Default Credentials
+  playersCol = firestore.collection("players");
+  console.log("🔥 Firestore initialized successfully.");
+} catch (e) {
+  console.warn("⚠️ Firestore init failed, falling back to memory:", e.message);
+}
+
+/* ─── Persistence ─── */
 
 /**
- * Executes an async function exclusively per player, using Postgres row-level locks.
- * 
- * 1. Reads from Redis BEFORE opening the transaction.
- * 2. Opens Postgres transaction.
- * 3. UPSERTS the player to ensure the row exists.
- * 4. SELECTs the row FOR UPDATE (acquires ACID lock).
- * 5. Applies backward-compatible schema migrations.
- * 6. Executes route handler logic.
- * 7. UPSERTs mutated result back to Postgres.
- * 8. Writes thru to Redis synchronously before returning.
+ * v5.0.1: Recursively sanitize data for Firestore.
+ * Firestore rejects `undefined` values with "invalid nested entity".
+ * This converts undefined → null and ensures arrays are dense.
  */
-export async function withPlayerLock(userId, asyncFn, username = null) {
-  const sql = getDb();
-  if (!sql) {
-    throw new Error("DATABASE_URL must be configured for v10.0 Postgres migration.");
+function sanitizeForFirestore(obj) {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== "object") return obj;
+  if (obj instanceof Date) return obj;
+  if (Array.isArray(obj)) {
+    const result = [];
+    for (let i = 0; i < obj.length; i++) {
+      result[i] = sanitizeForFirestore(obj[i] !== undefined ? obj[i] : null);
+    }
+    return result;
   }
+  const result = {};
+  for (const [key, val] of Object.entries(obj)) {
+    result[key] = sanitizeForFirestore(val !== undefined ? val : null);
+  }
+  return result;
+}
 
-
-
-  try {
-    return await sql.begin(async (tx) => {
-    // 1. Guarantee row exists before locking (UPSERT -> DO NOTHING)
-    // v10.1: Cleaner default name (omit sa_ prefix or raw IDs)
-    const displayName = username || `Player_${userId.slice(-4)}`;
-    const defaultPlayer = createDefaultPlayer(userId, displayName);
-    
-    await tx`
-      INSERT INTO players (id, data, updated_at)
-      VALUES (${userId}, ${defaultPlayer}, now())
-      ON CONFLICT (id) DO NOTHING
-    `;
-
-    // 2. Acquire ACID row lock
-    const [row] = await tx`
-      SELECT data FROM players WHERE id = ${userId} FOR UPDATE
-    `;
-
-    // 3. Reconcile state & Apply Migrations
-    let playerRaw = row.data;
-    let player = applyMigrations(playerRaw);
-
-    // v10.1: Sync username from current auth session to ensure leaderboard accuracy
-    if (username && player.username !== username) {
-      player.username = username;
+export async function loadDb() {
+  if (playersCol) {
+    try {
+      const snapshot = await playersCol.limit(1000).get();
+      if (!snapshot.empty) {
+        snapshot.forEach((doc) => {
+          players.set(doc.id, doc.data());
+        });
+        console.log(
+          `🔥 DB loaded from Firestore: ${players.size} players in hot-cache`,
+        );
+      } else {
+        console.log("🔥 Firestore DB is empty. Starting fresh.");
+      }
+      return;
+    } catch (e) {
+      console.error("❌ Firestore read error:", e);
     }
-
-    // v10.2: Sync _lastSeen to current time after every active session.
-    // This ensures that manual actions "count" as activity, preventing
-    // subsequent offline simulations from overlapping with these actions.
-    player._lastSeen = Date.now();
-
-    // 4. Execute Route Handler
-    const result = await asyncFn(player);
-
-    // 5. Save back to DB within transaction
-    await tx`
-      UPDATE players SET data = ${player}, updated_at = now()
-      WHERE id = ${userId}
-    `;
-
-    // 6. Write-through to Redis cache
-    if (isRedisEnabled()) {
-      await redisSetPlayer(userId, player).catch((err) => console.error("Redis write-through failed:", err.message));
-    }
-
-    return result || player;
-    });
-  } catch (err) {
-    if (err.message === "EXPRESS_RESPONSE_ABORT") {
-      return err.result;
-    }
-    console.error(`[withPlayerLock] Unhandled exception for user ${userId}:`, err);
-    throw err;
+  } else {
+    console.log("  DB: starting fresh (no existing data found, no Firestore)");
   }
 }
 
 /**
- * Ensures a player is loaded and readable (e.g. for GET requests).
- * Performs a lock-free SELECT without `FOR UPDATE`.
+ * Debounced save function for an individual player.
+ * Prevents hammering Firestore on rapid clicks (e.g. harvesting crops).
  */
-export async function ensurePlayerLoaded(userId) {
-  if (isRedisEnabled()) {
-    await redisGetOrLoadPlayer(userId, _postgresLoadOnly);
-    return;
-  }
-  await _postgresLoadOnly(userId);
-}
+export function debouncedSavePlayer(userId) {
+  if (!playersCol) return; // Silent fallback if Firestore is missing
 
-/**
- * Read-only fetch from Postgres. No locking.
- */
-async function _postgresLoadOnly(userId) {
-  const sql = getDb();
-  if (!sql) return null;
-  try {
-    const [row] = await sql`SELECT data FROM players WHERE id = ${userId}`;
-    return row ? row.data : null;
-  } catch (e) {
-    console.error(`Postgres load failed for ${userId}:`, e.message);
-    return null;
+  if (pendingSaves.has(userId)) {
+    clearTimeout(pendingSaves.get(userId));
   }
+
+  const timeoutId = setTimeout(async () => {
+    pendingSaves.delete(userId);
+    const playerData = players.get(userId);
+    if (!playerData) return;
+
+    try {
+      await playersCol.doc(userId).set(sanitizeForFirestore(playerData));
+    } catch (e) {
+      console.error(`❌ Failed to save player ${userId} to Firestore:`, e);
+    }
+  }, SAVE_DELAY_MS);
+
+  pendingSaves.set(userId, timeoutId);
 }
 
 /* ─── Graceful Shutdown ─── */
-// v10.0: Handled in db.js internally. No pending queues exist.
 export const gracefulShutdown = async () => {
-    console.log("Shutting down cleanly (no pending queues in v10).");
+  console.log("\n  Flushing pending Firestore saves before shutdown...");
+  if (!playersCol) {
     process.exit(0);
+    return;
+  }
+
+  const flushPromises = [];
+  for (const [userId, timeoutId] of pendingSaves.entries()) {
+    clearTimeout(timeoutId);
+    const playerData = players.get(userId);
+    if (playerData) {
+      flushPromises.push(
+        playersCol.doc(userId).set(sanitizeForFirestore(playerData)),
+      );
+    }
+  }
+
+  Promise.all(flushPromises)
+    .then(() => {
+      console.log(
+        `🔥 Flushed ${flushPromises.length} players to Firestore. Bye!`,
+      );
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("❌ Error flushing to Firestore during shutdown:", err);
+      process.exit(1);
+    });
 };
 
 process.on("SIGTERM", gracefulShutdown);
 process.on("SIGINT", gracefulShutdown);
 
-/* ─── Schema Migration Factory ─── */
-/**
- * Applies necessary schema migrations continuously on load.
- * NOTE: getPlayer() no longer returns from a local Map. It is
- * strictly a migration pipeline used by withPlayerLock.
- */
-export function applyMigrations(p) {
-  const currentSchemaVersion = 7;
-  
-  if (!p) return null;
+/* ─── Player Factory with Schema Migration ─── */
+export function getPlayer(userId, username) {
+  let p = players.get(userId);
+  let NeedsSaveSync = false;
 
-  // v8.1: Early-return
-  if (p.schemaVersion >= currentSchemaVersion) {
-    return p;
+  if (!p) {
+    p = createDefaultPlayer(userId, username);
+    players.set(userId, p);
+    NeedsSaveSync = true;
   }
 
+  // ─── Schema Migration ───
   if (!p.schemaVersion || p.schemaVersion < 2) {
+    // Reset economy to fair defaults
     p.resources = {
       gold: ECONOMY.GOLD_START,
       energy: {
@@ -162,98 +161,51 @@ export function applyMigrations(p) {
         lastRegenTimestamp: Date.now(),
       },
     };
-    if (!p.farm) {
-      p.farm = {
-        coins: 0, xp: 0, level: 1,
-        plots: Array.from({ length: 6 }, (_, i) => ({
-          id: i, crop: null, plantedAt: null, watered: false,
-        })),
-        inventory: {}, harvested: {},
-      };
-    }
+    p.farm.coins = 0;
+    // Add missing fields
     if (!p.pet) {
       p.pet = {
-        name: "Buddy", level: 1, xp: 0, xpToNextLevel: 100,
-        skinId: "basic_dog", stats: { happiness: 100 },
+        name: "Buddy",
+        level: 1,
+        xp: 0,
+        xpToNextLevel: 100,
+        skinId: "basic_dog",
+        stats: { happiness: 100 },
         abilities: { autoHarvest: false, autoWater: false, autoPlant: false },
       };
     }
     if (!p.farm.harvested) p.farm.harvested = {};
+    // Clear stale game sessions
     if (p.trivia) p.trivia.session = null;
     if (p.match3) p.match3.currentGame = null;
     if (p.match3 && !p.match3.savedModes) p.match3.savedModes = {};
     p.schemaVersion = 2;
+    NeedsSaveSync = true;
   }
 
-  if (p.schemaVersion < 3) {
-    if (!p.pet.stats) p.pet.stats = { happiness: 100 };
-    if (!("fullness" in p.pet.stats)) p.pet.stats.fullness = 0;
-    if (!p.pet.lastDigestionTimestamp) p.pet.lastDigestionTimestamp = Date.now();
-    if (!p.pet.activeOrders) p.pet.activeOrders = [];
-    if (!p.pet.abilities) p.pet.abilities = {};
-    if (!("autoPlant" in p.pet.abilities)) p.pet.abilities.autoPlant = false;
-    if (!("gachaTokens" in p.resources)) p.resources.gachaTokens = 0;
-    p.schemaVersion = 3;
+  if (username && p.username !== username) {
+    p.username = username;
+    NeedsSaveSync = true;
   }
 
-  if (p.schemaVersion < 4) {
-    if (!p.merge) {
-      const BOARD_ROWS = 7, BOARD_COLS = 9;
-      p.merge = {
-        board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
-        generators: ["textile"], inventory: [], lastFreePull: 0,
-        generatorState: { textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 } },
-      };
-    }
-    if (!("affectionXp" in p.pet)) p.pet.affectionXp = 0;
-    if (!("affectionLevel" in p.pet)) p.pet.affectionLevel = 1;
-    p.schemaVersion = 4;
-  }
-
-  if (p.schemaVersion < 5) {
-    p.resources.gold = ECONOMY.GOLD_START;
-    p.farm.xp = 0;
-    p.farm.level = 1;
-    if (!p.farm.inventory) p.farm.inventory = {};
-    p.farm.inventory.strawberry = Math.max(p.farm.inventory.strawberry || 0, 5);
-    if (p.farm.plots) {
-      for (const plot of p.farm.plots) {
-        plot.crop = null; plot.plantedAt = null; plot.watered = false;
-      }
-    }
-    if (p.match3) {
-      p.match3.currentGame = null;
-      p.match3.savedModes = {};
-    }
-    p._lastSeen = Date.now();
-    p.resources.gachaTokens = (p.resources.gachaTokens || 0) + 5;
-    p.schemaVersion = 5;
-  }
-
+  // ─── Blox Schema Migration ───
   if (!p.blox) {
     p.blox = { highScore: 0, totalGames: 0, savedState: null };
+    NeedsSaveSync = true;
   }
   if (p.blox && !("savedState" in p.blox)) {
     p.blox.savedState = null;
+    NeedsSaveSync = true;
   }
+
+  // ─── Match-3 savedModes migration ───
   if (p.match3 && !p.match3.savedModes) {
     p.match3.savedModes = {};
+    NeedsSaveSync = true;
   }
 
-  if (!p.schemaVersion || p.schemaVersion < 6) {
-    if (!p.streak) p.streak = { current: 0, best: 0, lastLoginDate: null, bonusMultiplier: 1 };
-    if (!p.achievements) p.achievements = {};
-    if (!p.journal) p.journal = { discovered: [] };
-    if (!p.cosmetics) p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
-    if (!p.seasonPass) p.seasonPass = { season: 1, xp: 0, tier: 0, claimed: [] };
-    if (!p.boosters) p.boosters = { fertilizer: { active: false, expiresAt: 0 } };
-    if (p.farm?.inventory?.planter !== undefined) delete p.farm.inventory.planter;
-    p.schemaVersion = 6;
-  }
-
-  if (!p.schemaVersion || p.schemaVersion < 7) {
-    if (!p.room) p.room = { decorations: [], inventory: [], wallpaper: "default" };
-    p.schemaVersion = 7;
+  if (NeedsSaveSync) {
+    debouncedSavePlayer(userId);
   }
 
   return p;

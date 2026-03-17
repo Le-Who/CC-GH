@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Game Hub</title>
+    <meta
+      name="description"
+      content="Unified Game Hub: Farm, Trivia (Solo &amp; Duel), Match-3 with Leaderboard — Discord Activities Framework Demo"
+    />
+    <link rel="stylesheet" href="css/base.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/farm.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/trivia.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/match3.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/blox.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/hud.css?v=5.2.0" />
+    <link rel="stylesheet" href="css/pet.css?v=5.2.0" />
+  </head>
+  <body>
+    <!-- ═══ Boot Loading Overlay ═══ -->
+    <div class="boot-loader" id="boot-loader">
+      <div class="boot-spinner"></div>
+      <div class="boot-text">Loading Game Hub…</div>
+    </div>
+
+    <!-- ═══ Nav Dots (desktop only fallback) ═══ -->
+    <div class="nav-dots">
+      <button class="nav-dot" id="nav-dot-trivia" title="Trivia"></button>
+      <button class="nav-dot" id="nav-dot-blox" title="Building Blox"></button>
+      <button class="nav-dot active" id="nav-dot-farm" title="Farm"></button>
+      <button class="nav-dot" id="nav-dot-match3" title="Match-3"></button>
+    </div>
+    <!-- ═══ Mobile Bottom Nav Bar ═══ -->
+    <nav class="nav-bar" id="nav-bar">
+      <button class="nav-tab" id="nav-tab-trivia" data-screen="0">
+        <span class="nav-tab-icon">🧠</span>
+        <span class="nav-tab-label">Trivia</span>
+      </button>
+      <button class="nav-tab" id="nav-tab-blox" data-screen="1">
+        <span class="nav-tab-icon">🧱</span>
+        <span class="nav-tab-label">Blox</span>
+      </button>
+      <button class="nav-tab active" id="nav-tab-farm" data-screen="2">
+        <span class="nav-tab-icon">🌱</span>
+        <span class="nav-tab-label">Farm</span>
+      </button>
+      <button class="nav-tab" id="nav-tab-match3" data-screen="3">
+        <span class="nav-tab-icon">💎</span>
+        <span class="nav-tab-label">Match-3</span>
+      </button>
+    </nav>
+    <!-- Farm ready badge (Issue 7) -->
+    <span class="farm-ready-badge" id="farm-ready-badge"></span>
+
+    <!-- ═══ TopHUD — Energy & Gold ═══ -->
+    <div class="top-hud" id="top-hud">
+      <div class="hud-energy" id="hud-energy">
+        <!-- Bug 7: regen fill behind content, fills entire energy pill -->
+        <div
+          class="hud-energy-regen-fill"
+          id="hud-energy-regen-fill"
+          style="width: 0%"
+        ></div>
+        <span class="hud-icon">⚡</span>
+        <span id="hud-energy-text">--/--</span>
+        <div class="hud-energy-tooltip" id="hud-energy-tooltip">Loading...</div>
+      </div>
+      <div class="hud-gold" id="hud-gold">
+        <span class="hud-icon">🪙</span>
+        <span id="hud-gold-text">--</span>
+      </div>
+      <button class="econ-guide-btn" id="econ-guide-btn" title="Economy Guide">
+        ?
+      </button>
+    </div>
+
+    <!-- ═══ 7.1: Farm Shop FAB ═══ -->
+    <button class="farm-shop-fab" id="farm-shop-fab" title="Open Shop">
+      🛒
+    </button>
+
+    <!-- ═══ 7.7: Economy Guide Overlay ═══ -->
+    <dialog class="modal" id="econ-guide-modal">
+      <div class="modal-card">
+        <h3>💰 Economy Flow</h3>
+        <div class="econ-guide-flow">
+          <div class="econ-step">⚡ Energy → Play Games</div>
+          <div class="econ-arrow">↓</div>
+          <div class="econ-step">💎 Score Points → Earn 🪙 Gold</div>
+          <div class="econ-arrow">↓</div>
+          <div class="econ-step">🪙 Gold → Buy 🌾 Seeds</div>
+          <div class="econ-arrow">↓</div>
+          <div class="econ-step">🌱 Plant & Harvest Crops</div>
+          <div class="econ-arrow">↓</div>
+          <div class="econ-step">🥕 Feed Pet → Restore ⚡ Energy</div>
+        </div>
+        <form method="dialog">
+          <button class="btn btn-secondary btn-sm" id="econ-guide-close">
+            Got it!
+          </button>
+        </form>
+      </div>
+    </dialog>
+
+    <!-- ═══ Viewport ═══ -->
+    <div class="viewport" id="viewport">
+      <!-- ────── TRIVIA SCREEN ────── -->
+      <section class="screen" id="screen-trivia">
+        <div class="screen-header">
+          <h1>🧠 Brain Blitz</h1>
+          <div class="subtitle">Trivia — Solo & Duel</div>
+        </div>
+
+        <!-- Menu -->
+        <div id="trivia-menu" class="card">
+          <div class="trivia-modes">
+            <button class="trivia-mode-btn" id="btn-trivia-solo">
+              <span class="mode-icon">🎯</span>
+              <span class="mode-label">Solo</span>
+              <span class="mode-desc">5 questions, beat your best</span>
+            </button>
+            <button class="trivia-mode-btn" id="btn-trivia-create-duel">
+              <span class="mode-icon">⚔️</span>
+              <span class="mode-label">Create Duel</span>
+              <span class="mode-desc">Challenge a friend</span>
+            </button>
+            <button class="trivia-mode-btn" id="btn-trivia-join-duel">
+              <span class="mode-icon">🤝</span>
+              <span class="mode-label">Join Duel</span>
+              <span class="mode-desc">Enter invite code</span>
+            </button>
+          </div>
+          <!-- 7.3: Trivia Settings -->
+          <button class="trivia-settings-toggle" id="trivia-settings-toggle">
+            ⚙️ Settings
+          </button>
+          <div class="trivia-settings-panel" id="trivia-settings-panel">
+            <label
+              >Category
+              <select id="trivia-category-select">
+                <option value="" selected>All Categories</option>
+                <option value="science">Science</option>
+                <option value="history">History</option>
+                <option value="geography">Geography</option>
+                <option value="entertainment">Entertainment</option>
+                <option value="sports">Sports</option>
+              </select>
+            </label>
+            <label
+              >Difficulty
+              <select id="trivia-difficulty-select">
+                <option value="">Any</option>
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- Play (solo & duel) -->
+        <div
+          id="trivia-play"
+          class="card trivia-question-card"
+          style="display: none"
+        >
+          <div class="trivia-progress" id="trivia-progress"></div>
+          <div class="trivia-score-live">
+            <span>Score: <strong id="trivia-score-display">0</strong></span>
+            <span id="trivia-streak-display"></span>
+          </div>
+          <div class="trivia-timer">
+            <div class="trivia-timer-bar">
+              <div class="trivia-timer-fill" id="trivia-timer-fill"></div>
+            </div>
+            <div class="trivia-timer-text" id="trivia-timer-text">15s</div>
+          </div>
+          <div class="trivia-category" id="trivia-category"></div>
+          <div class="trivia-q-text" id="trivia-q-text"></div>
+          <div class="trivia-answers" id="trivia-answers"></div>
+          <button
+            class="btn btn-forfeit"
+            id="btn-trivia-forfeit"
+            style="display: none"
+          >
+            🏳️ Give Up
+          </button>
+        </div>
+
+        <!-- Duel Create -->
+        <div
+          id="trivia-duel-create"
+          class="card trivia-duel-panel"
+          style="display: none"
+        >
+          <h2 style="font-size: 1.2rem; margin-bottom: 6px">
+            ⚔️ Duel Created!
+          </h2>
+          <p class="text-dim" style="font-size: 0.8rem">
+            Share this code with your opponent:
+          </p>
+          <div class="trivia-invite-code" id="duel-invite-code"></div>
+          <button
+            class="btn btn-secondary btn-sm"
+            style="margin: 0 auto 12px; display: block"
+            id="btn-duel-copy-code"
+          >
+            📋 Copy Code
+          </button>
+          <button
+            class="btn btn-secondary btn-sm"
+            style="margin: 0 auto 12px; display: block"
+            id="btn-duel-voice-invite"
+          >
+            🎙️ Invite from Voice
+          </button>
+          <div class="trivia-duel-status">
+            <span class="spinner">⏳</span> Waiting for opponent...
+          </div>
+          <div class="trivia-countdown" id="duel-create-countdown"></div>
+          <button
+            class="btn btn-secondary btn-sm mt-12"
+            id="btn-duel-create-cancel"
+          >
+            ← Cancel
+          </button>
+        </div>
+
+        <!-- Duel Join -->
+        <div
+          id="trivia-duel-join"
+          class="card trivia-duel-panel"
+          style="display: none"
+        >
+          <h2 style="font-size: 1.2rem; margin-bottom: 12px">🤝 Join Duel</h2>
+          <input
+            class="trivia-duel-input"
+            id="duel-join-input"
+            placeholder="Enter invite code"
+            maxlength="6"
+          />
+          <div style="display: flex; gap: 8px; margin-top: 12px">
+            <button
+              class="btn btn-primary btn-sm"
+              style="flex: 1"
+              id="btn-duel-join-submit"
+            >
+              Join
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-duel-join-back">
+              ← Back
+            </button>
+          </div>
+        </div>
+
+        <!-- Duel Wait -->
+        <div
+          id="trivia-duel-wait"
+          class="card trivia-duel-panel"
+          style="display: none"
+        >
+          <div class="trivia-duel-status">
+            <span class="spinner">⏳</span> Waiting for host to start...
+          </div>
+          <div class="trivia-countdown" id="duel-wait-countdown"></div>
+          <button
+            class="btn btn-secondary btn-sm mt-12"
+            id="btn-duel-wait-cancel"
+          >
+            ← Cancel
+          </button>
+        </div>
+
+        <!-- Duel Lobby (Issue 8: Ready-up) -->
+        <div
+          id="trivia-duel-lobby"
+          class="card trivia-duel-panel"
+          style="display: none"
+        >
+          <h2 style="font-size: 1.2rem; margin-bottom: 8px">⚔️ Duel Lobby</h2>
+          <p class="text-dim" style="font-size: 0.78rem; margin-bottom: 8px">
+            Both players must be ready to start
+          </p>
+          <div class="duel-lobby-players" id="duel-lobby-players"></div>
+          <button
+            class="btn btn-primary mt-12"
+            style="width: 100%"
+            id="btn-duel-ready"
+          >
+            ✅ I'm Ready!
+          </button>
+          <div class="duel-lobby-timeout" id="duel-lobby-timeout"></div>
+          <button
+            class="btn btn-secondary btn-sm mt-12"
+            id="btn-duel-lobby-cancel"
+          >
+            ← Leave
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div id="trivia-results" class="card" style="display: none">
+          <h2 style="font-size: 1.3rem">🏆 Results</h2>
+          <div class="trivia-results-score" id="trivia-final-score">0</div>
+          <div id="trivia-results-extra"></div>
+          <button class="btn btn-primary mt-16" id="btn-trivia-play-again">
+            🔄 Play Again
+          </button>
+        </div>
+
+        <!-- Duel History (visible on trivia menu) -->
+        <div
+          id="trivia-duel-history"
+          class="card duel-history-panel"
+          style="display: none"
+        >
+          <h3 style="font-size: 0.95rem; margin-bottom: 8px">
+            ⚔️ Recent Duels
+          </h3>
+          <div id="duel-history-list"></div>
+          <div class="duel-history-pager" id="duel-history-pager"></div>
+        </div>
+
+        <!-- Duel History Bar (collapsed, shown when submenus open) -->
+        <div
+          id="trivia-duel-history-bar"
+          class="duel-history-bar"
+          style="display: none"
+        >
+          ⚔️ Recent Duels ▲
+        </div>
+      </section>
+
+      <!-- ────── BUILDING BLOX SCREEN ────── -->
+      <section class="screen" id="screen-blox">
+        <div class="screen-header">
+          <h1>🧱 Building Blox</h1>
+          <div class="subtitle">Block Puzzle • Clear Lines</div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat">
+            <div class="stat-value text-gold" id="blox-score">0</div>
+            <div class="stat-label">🏆 Score</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: #06b6d4" id="blox-lines">
+              0
+            </div>
+            <div class="stat-label">📊 Lines</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: #a78bfa" id="blox-best">
+              0
+            </div>
+            <div class="stat-label">🏆 Best</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value text-gold" id="blox-reward">—</div>
+            <div class="stat-label">🪙 Gold</div>
+          </div>
+        </div>
+
+        <div class="blox-main">
+          <!-- Leaderboard Panel (v4.9: always visible, glassmorphism) -->
+          <div class="blox-lb-panel" id="blox-lb-panel">
+            <div class="blox-lb-title">🏆 Leaderboard</div>
+            <div class="blox-lb-tabs">
+              <button
+                class="blox-lb-tab active"
+                data-scope="global"
+                id="blox-lb-tab-all"
+              >
+                All
+              </button>
+              <button
+                class="blox-lb-tab"
+                data-scope="room"
+                id="blox-lb-tab-room"
+              >
+                Voice
+              </button>
+            </div>
+            <table class="blox-lb-table">
+              <tbody id="blox-lb-body">
+                <tr>
+                  <td colspan="3" class="blox-lb-empty">No scores yet</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="blox-layout">
+            <div class="blox-board" id="blox-board"></div>
+            <div class="blox-tray" id="blox-tray"></div>
+            <!-- Pause / Welcome overlay -->
+            <dialog class="modal" id="blox-pause-overlay">
+              <div class="modal-card">
+                <h2 style="margin-top: 0">🧱 Building Blox</h2>
+                <form
+                  method="dialog"
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                    margin-top: 1.5rem;
+                  "
+                >
+                  <button class="btn btn-primary" id="blox-btn-new">
+                    🧱 New Game
+                  </button>
+                  <button
+                    class="btn btn-secondary"
+                    id="blox-btn-resume"
+                    style="display: none"
+                  >
+                    ▶ Continue
+                  </button>
+                  <button
+                    class="btn btn-danger"
+                    id="blox-btn-end"
+                    style="display: none"
+                  >
+                    🏁 End Game
+                  </button>
+                </form>
+              </div>
+            </dialog>
+          </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <dialog class="modal" id="blox-overlay">
+          <div class="modal-card overlay-gameover">
+            <h2>🏆 Game Over</h2>
+            <div class="overlay-score" id="blox-final-score">0</div>
+            <div class="overlay-detail">
+              Lines:
+              <strong class="text-accent" id="blox-final-lines">0</strong>
+            </div>
+            <div class="overlay-detail" style="margin-bottom: 20px">
+              Best:
+              <strong class="text-accent" id="blox-final-best">0</strong>
+            </div>
+            <form method="dialog">
+              <button class="btn btn-primary" id="btn-blox-play-again">
+                🔄 Play Again
+              </button>
+            </form>
+          </div>
+        </dialog>
+      </section>
+
+      <!-- ────── FARM SCREEN ────── -->
+      <section class="screen" id="screen-farm">
+        <div class="screen-header">
+          <h1>🌱 Cozy Farm</h1>
+          <div class="subtitle">Plant • Grow • Harvest</div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat">
+            <div class="stat-value text-gold" id="farm-coins">200</div>
+            <div class="stat-label">🪙 Coins</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value text-accent" id="farm-xp">0</div>
+            <div class="stat-label">⭐ XP</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value text-success" id="farm-level">Lv1</div>
+            <div class="stat-label">🏅 Level</div>
+          </div>
+        </div>
+
+        <!-- Farm Main Content: plots + side panel -->
+        <div class="farm-layout">
+          <div class="farm-plots" id="farm-plots"></div>
+
+          <div class="farm-panel" id="farm-panel">
+            <div class="farm-panel-tabs">
+              <button class="farm-tab active" id="farm-tab-inv" data-tab="inv">
+                📦 Inventory
+              </button>
+              <button class="farm-tab" id="farm-tab-shop" data-tab="shop">
+                🌾 Shop
+              </button>
+            </div>
+
+            <!-- Inventory Tab -->
+            <div class="farm-tab-content active" id="farm-tab-content-inv">
+              <div class="farm-inventory-grid" id="farm-inventory-grid">
+                <div class="farm-inv-empty">No crops harvested yet</div>
+              </div>
+            </div>
+
+            <!-- Shop Tab -->
+            <div class="farm-tab-content" id="farm-tab-content-shop">
+              <div
+                class="farm-buy-bar"
+                id="farm-buy-bar"
+                style="display: none"
+              ></div>
+              <div class="farm-shop-grid" id="farm-shop-grid"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ────── MATCH-3 SCREEN ────── -->
+      <section class="screen" id="screen-match3">
+        <div class="screen-header">
+          <h1>💎 Gem Crush</h1>
+          <div class="subtitle">Match-3 Puzzle</div>
+        </div>
+
+        <div class="stats-bar">
+          <div class="stat">
+            <div class="stat-value text-gold" id="m3-score">0</div>
+            <div class="stat-label">🏆 Score</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: #60a5fa" id="m3-moves">
+              30
+            </div>
+            <div class="stat-label" id="m3-moves-label">Moves</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" style="color: #f472b6" id="m3-combo">—</div>
+            <div class="stat-label">🔥 Combo</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value text-accent" id="m3-best">0</div>
+            <div class="stat-label">🏆 Best</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value text-gold" id="m3-gold">—</div>
+            <div class="stat-label">🪙 Reward</div>
+          </div>
+        </div>
+
+        <div class="m3-layout">
+          <div class="m3-main">
+            <div class="m3-board-container" id="m3-board-container">
+              <div class="m3-board" id="m3-board"></div>
+              <div class="m3-combo-banner" id="m3-combo-banner"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 16px">
+              <button class="btn btn-primary" id="m3-btn-start">
+                🎮 New Game
+              </button>
+              <button class="btn btn-secondary m3-lb-toggle" id="m3-btn-lb">
+                🏆 Leaderboard
+              </button>
+            </div>
+
+            <!-- Leaderboard Panel (v4.12.2: always-visible right side, mirrors Blox left) -->
+            <div class="m3-lb-panel" id="m3-lb-panel">
+              <div class="m3-lb-title">🏆 Leaderboard</div>
+              <div class="m3-lb-tabs">
+                <button
+                  class="m3-lb-tab active"
+                  data-scope="global"
+                  id="btn-lb-tab-all"
+                >
+                  All
+                </button>
+                <button
+                  class="m3-lb-tab"
+                  data-scope="room"
+                  id="btn-lb-tab-room"
+                >
+                  Voice
+                </button>
+              </div>
+              <table class="m3-lb-table">
+                <tbody id="m3-lb-body">
+                  <tr>
+                    <td colspan="3" class="m3-lb-empty">No scores yet 🏆</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pause / Continue Modal (mirrors Blox pattern) -->
+        <dialog class="modal" id="m3-pause-overlay">
+          <div class="modal-card overlay-pause">
+            <h2 id="m3-pause-title">💎 Gem Crush</h2>
+            <div class="overlay-actions">
+              <button class="btn btn-primary" id="m3-pause-resume">
+                ▶️ Continue
+              </button>
+              <button class="btn btn-secondary" id="m3-pause-new">
+                🎮 New Game
+              </button>
+              <button
+                class="btn btn-muted"
+                id="m3-pause-end"
+                style="display: none"
+              >
+                🛑 End Game
+              </button>
+            </div>
+          </div>
+        </dialog>
+
+        <!-- Game Over Overlay -->
+        <dialog class="modal" id="m3-overlay">
+          <div class="modal-card overlay-gameover">
+            <h2>🏆 Game Over</h2>
+            <div class="overlay-score" id="m3-final-score">0</div>
+            <div class="overlay-detail" style="margin-bottom: 20px">
+              Best: <strong class="text-accent" id="m3-final-best">0</strong>
+            </div>
+            <div
+              id="m3-new-record"
+              style="
+                display: none;
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #fbbf24;
+                margin-bottom: 12px;
+                animation: goldFloat 2s ease infinite alternate;
+              "
+            >
+              🎉 New Record!
+            </div>
+            <form method="dialog">
+              <button class="btn btn-primary" id="btn-m3-dismiss">✅ OK</button>
+            </form>
+          </div>
+        </dialog>
+      </section>
+      <!-- /screen-track removed for View Transitions API -->
+    </div>
+    <!-- /viewport -->
+
+    <!-- ═══ Nav Arrows (desktop: glassmorphic edge strips, after viewport for CSS ~) ═══ -->
+    <!-- ═══ Pet Companion Overlay ═══ -->
+    <div class="pet-overlay dock-ground" id="pet-overlay">
+      <div class="pet-container state-idle" id="pet-container">
+        <div class="pet-sprite" id="pet-sprite">🐕</div>
+        <div class="pet-hearts" id="pet-hearts"></div>
+      </div>
+    </div>
+    <div class="pet-info-panel" id="pet-info-panel" style="display: none"></div>
+
+    <!-- ═══ Quick-Feed Energy Modal ═══ -->
+    <dialog class="modal" id="energy-modal">
+      <div
+        class="modal-card overlay-energy"
+        style="text-align: center; max-width: 340px"
+      >
+        <h2 style="margin: 0 0 6px">⚡ Not Enough Energy</h2>
+        <p
+          class="text-dim"
+          id="energy-modal-desc"
+          style="margin: 0 0 12px; font-size: 0.85rem"
+        >
+          Feed your pet to restore energy!
+        </p>
+        <div
+          id="energy-modal-items"
+          style="max-height: 200px; overflow-y: auto"
+        ></div>
+        <div
+          id="energy-modal-play"
+          style="display: none; margin-top: 10px"
+        ></div>
+        <form method="dialog" style="margin-top: 12px; display: flex; gap: 8px">
+          <button
+            class="btn btn-secondary btn-sm"
+            id="energy-modal-farm"
+            style="flex: 1"
+          >
+            🌾 Go to Farm
+          </button>
+          <button class="btn btn-secondary btn-sm" style="flex: 1">
+            Close
+          </button>
+        </form>
+      </div>
+    </dialog>
+
+    <button class="nav-arrow nav-left" id="nav-left">‹</button>
+    <button class="nav-arrow nav-right" id="nav-right">›</button>
+
+    <!-- ═══ Version Badge ═══ -->
+    <div
+      id="version-badge"
+      style="
+        position: fixed;
+        bottom: 4px;
+        right: 6px;
+        font-size: 0.55rem;
+        color: rgba(255, 255, 255, 0.18);
+        pointer-events: none;
+        z-index: 999;
+        font-family: monospace;
+      "
+    >
+      {{APP_VERSION}}
+    </div>
+
+    <!-- v4.6: Server injects window.__APP_VERSION__ here -->
+    <!--APP_VERSION_INJECT-->
+
+    <!-- ═══ Scripts ═══ -->
+    <script src="js/discord-sdk.js"></script>
+    <!--IMPORT_MAP_INJECT-->
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

@@ -1,706 +1,799 @@
-## [10.1.2] - 2026-03-16
+# Changelog
 
-### E2E Testing & AAA Refactoring
+## v5.2.0 — 2026-02-21
 
-Comprehensive testing overhaul achieving lightning-fast validation and browser-level stability. 328/328 tests passing across all tiers.
+### Visual Polish — Immersive Enhancements
 
-#### Integration Test Refactoring (AAA Pattern)
-- **Direct Database Injection**: Refactored `api.test.js` to strictly adhere to the Arrange-Act-Assert layout. Eliminated slow and flaky API-driven test setup (e.g., repeatedly calling `/api/farm/state`) in favor of direct PostgreSQL `INSERT` provisioning via the new `injectTestPlayer()` utility.
-- **Edge Case Coverage**: Expanded unit tests (`unit.test.js`) to cover obscure offline simulation edge cases, including clock-skew negative limits and energy max-out skips.
+Six performance-safe visual features across Match-3 and Blox. All compositor-only (`transform`, `opacity`, `box-shadow`) — zero layout thrashing.
 
-#### Playwright E2E Testing
-- **Core Farm Loop Validation**: Introduced `tests/e2e/farm.spec.js` using Playwright to exercise the complete `buy -> plant -> water -> wait -> harvest -> sell` engine lifecycle within a headless Chromium engine.
-- **Natural Tick Observability**: Hardened E2E testing to successfully wait out natural 30-second crop growth cycles without relying on dangerous `__DEV_MODE__` clock hacks that subvert `requestAnimationFrame`.
-- **Race Condition Mitigations**: Implemented strict `page.waitForResponse` barriers against `/api/batch` to ensure the fast client Optimistic UI doesn't outpace the server's Postgres lock resolution.
+#### Match-3
 
----
+- **Squash & Stretch** — Gems deform during falls (stretch on drop `scaleY(1.14)`, squash on landing `scaleX(1.14)`), settling via spring bounce to natural scale.
+- **Perlin Noise Screen Shake** — Replaced repeating CSS keyframe shakes with JS-driven simplex noise for organic, non-repeating vibration with linear decay. Used on invalid swaps (3px, 400ms) and big combos (6px, 500ms).
+- **Color Splash** — Board container background briefly flares with the dominant gem color (`--gem-color`) on matches ≥3, using CSS `box-shadow: inset` with 600ms fade-out.
+- **Ambient Dust Particles** — Subtle floating particles via CSS `::before` pseudo-element on `.m3-board-container`, using layered `radial-gradient` sprites animated with `ambientDrift` (18s loop).
+- **Danger Vignette** — Red pulsing vignette on screen edges when Time Attack timer reaches ≤15s. Uses `::after` pseudo-element with `radial-gradient` and `dangerPulse` opacity animation (1.2s).
 
-## [10.1.1] - 2026-03-16
+#### Building Blox
 
-### Systematic Debugging & Core Engine Audit
+- **Perlin Noise Screen Shake** — Same organic shake for invalid placements (3px, 350ms) and multi-line clears (5px, 450ms).
+- **Drag-Tilt** — Dragged pieces tilt toward the movement direction via `rotateZ`, using velocity delta with LERP smoothing (factor 0.15, clamped ±8°).
+- **Ambient Dust Particles** — Same particle layer on `.blox-layout` with cyan/purple/orange palette (20s loop).
 
-Comprehensive security, desync, and performance audit covering Farm, Match-3, Merge, and Blox engines.
+#### Infrastructure
 
-#### Farm Module 
-- **Inventory & Crop Selling Recovery**: Fixed a bug where missing fallback parameters in `syncToStore` caused sold or fed crops to vanish locally without triggering cross-tab sync broadcasts, preventing local inventory updates.
-- **Race Condition Prevention**: Enforced strict `withPlayerLock` and bounds-checking, resolving visually jumping empty plots and missing plant occurrences under poor network connectivity.
-- **UI Element Crash**: Fixed initialization crashes relating to obsolete DOM properties (`farm-coins`, `farm-xp`, `farm-level`).
-- **Disappearing Planted Seeds**: Fixed a V10 Postgres migration oversight where Express Response closures interrupted database `UPDATE` locks, permanently dropping state updates upon planting or watering seeds.
-- **Global Welcome Back Notification**: Restricted the `offlineReport` dialog exclusively to the Farm tab (id: `2`), eliminating invasive popups blocking Match-3 and Trivia sessions. Ambient toast notifications serve as fallback.
-- **Batched Request Desynchronization**: Resolved a native Node.js Exception where the `express.json()` parser recursively consumed batched mock requests in `server.js`. The dispatcher has been migrated to standard `fetch()` loopbacks.
-- **Flickering Plant Layout Wobbles**: Enforced a strict static width on the DOM node containing the `growth-time-label` and restricted the `.farm-plot` flexbox transitions to transform and opacity. This prevents the text countdown shifts from constantly invalidating the layout center on every `setInterval` tick.
-#### Match-3 & Blox Modules 
-- **Match-3 Freezes**: Hardened `animateCascade` and `attemptSwap` functions, adding explicit type checking and `sleep` boundaries to prevent the engine from locking the board indefinitely upon concurrent or rapid swaps.
-- **Blox Persistence Check**: Verified ghost piece D&D interactions and guaranteed clean `getCenterOffset` targeting math. No severe desyncs found.
-
-#### Merge Module & Core Bridges 
-- **Merge State Fallback Healing**: Introduced `syncMergeStateFallback()` which executes aggressively in the background if a batched Optimistic UI action crashes, automatically repairing visual desynchronization and resetting `generatorState` locks.
-- **Bridge Idempotency**: Audited `apiBatched`, `useGameBridge.js`, and `realtime.js`. Confirmed strict monotonic execution paths via `nonce` duplication filtering without recursive React re-renders.
-
-#### Tests — **325/325 pass**, 0 failures.
+- Version bump: `5.1.0` → `5.2.0` in `package.json`, `match3.css`, `blox.css`, `match3.js`, `blox.js`, `base.css`
+- New UX tests: squash & stretch, color splash, danger vignette, ambient dust, drag-tilt
 
 ---
 
-## [10.1.0] - 2026-03-16
+## v5.1.0 — 2026-02-21
 
-- **Cross-Tab Object Sync**: Implemented seamless multi-tab state synchronization using `localStorage` events backed by `Supabase Realtime Broadcast`. Farm, inventory, and resources now instantaneously sync across concurrent devices and tabs.
-- **Activity Feed**: Added live multiplayer event streaming. `player_events` table captures harvest, plant, sell, and feed actions. Displayed via React overlay driven by Supabase Postgres Subscriptions.
-- **Player Stats Journal**: Introduced `player_stats_view` Materialized View to aggregate lifetime player interactions. Included a concurrent background refresh loop for rapid front-end statistical queries without O(N) penalties.
-- **Zero-Loading Screen**: Migrated initial bootstrap load to `idb-keyval`, delivering immediate UI paint from indexedDB cache while background-syncing with the server.
+### Fluid Hub — Visual Enhancements
 
----
+Four performance-safe visual improvements across Match-3 and Blox, all using compositor-only CSS properties (`transform`, `opacity`) and lightweight JS patterns.
 
-## [10.0.1] - 2026-03-15
+#### 1. Contextual Neon Glow (`match3.css`)
 
-### Data Migration Recovery & Deployment Fixes
+- Each gem type now defines `--gem-color` CSS custom property
+- `m3MatchGlow` keyframes use `var(--gem-color)` so match highlights glow in the gem's own color (fire=red, water=blue, etc.)
+- Pop flash uses `mix-blend-mode: screen` for additive blending
 
-#### Root Cause
-After the v10.0.0 Supabase PostgreSQL launch, all existing players received **"Invalid username or password"** errors. The initial migration only transferred the `players` Firestore collection; the `users` and `sessions` collections were not migrated.
+#### 2. Springy LERP UI (`match3.css`, `match3.js`, `blox.css`, `blox.js`)
 
-#### Fix
-- **`data/migrate-on-cloud.js`**: New idempotent migration script using `@google-cloud/firestore` + `postgres` that UPSERTs all three collections (`users` → `auth_users`, `sessions` → `auth_sessions`, `players` → `players`) via bulk idempotent UPSERTs.
-- Deployed as a **Google Cloud Run Job** (`gcloud run jobs deploy migrate-job`) to leverage the GCP service account's native Firestore access without requiring local credentials.
-- Recovery verified: **2 auth_users**, **23 auth_sessions**, **56 players** confirmed in Postgres post-migration with valid bcrypt `$2b$10$` password hashes.
+- Mode cards in Match-3 use staggered entrance with spring easing (`cubic-bezier(0.34, 1.56, 0.64, 1)`) and `transition-delay: calc(var(--i) * 0.06s)`
+- Blox pause buttons cascade in with `animation-delay: calc(var(--i) * 0.07s)`
+- Blox ghost cells have smooth `transition: opacity 0.08s ease-out` for LERP-style grid snapping
 
-#### Deployment Fixes
-- **Dockerfile scope**: The migration script is stored in `data/` to ensure it is included in the production Docker image's `COPY` directive.
-- **Cloud Run Job**: `--execute-now --wait` flag used to execute, monitor, and verify the migration in a single atomic command.
+#### 3. Pseudo-3D Parallax (`match3.css`, `match3.js`, `blox.css`, `blox.js`)
 
-#### Tests — **367/367 pass**, 0 failures.
+- Both game boards respond to mouse cursor with micro-tilt (`rotateX`/`rotateY`, ±2.5°)
+- `perspective: 800px` on parent containers creates depth
+- rAF-gated mousemove listener — zero layout thrashing
+- Smoothed via `transition: transform 0.15s ease-out` on the board element
 
----
+#### 4. Hit-Stop & Kinematic Gravity (`match3.js`)
 
-## [9.0.0] - 2026-03-15
+- Big matches (≥5 gems) trigger a 40ms hit-stop freeze before the pop phase
+- Fall duration formula changed from linear (`0.25 + (dist-1) * 0.04`) to sqrt-based (`0.18 + √dist * 0.12`) — short falls are snappier, long falls feel heavier
 
-### V9 Stateless Architecture & Extracted React Hooks UI
+#### Tests (`ux.test.js`)
 
-Massive milestone release decoupling the vanilla JS game logic engines from their UI bindings, transitioning the backend to a fully stateless distributed cache, and purging legacy DOM manipulators.
+- Updated gravity timing invariants for new sqrt formula (5 tests)
+- Added contextual gem glow CSS validation (2 tests)
+- Added board tilt rotation bounds verification (4 tests)
+- Fixed `.m3-board` containment test regex to avoid matching `.m3-board-container > .m3-board`
+- **280 tests pass** (was 273)
 
-#### Core Architecture
-- **Stateless Upstash Redis Architecture**: `playerManager.js` completely rewritten to use a Redis cache as the primary traffic layer, flushing to Firestore only on debounce timeouts. Uses distributed locks (`SETNX`) to ensure horizontal scalability across multiple server instances.
-- **Service Worker / PWA Support**: Implemented `vite-plugin-pwa` to cache core assets, icons, and JS bundles locally. Minimizes cold boot load times and provides a robust, installable manifest.
-- **React Hooks UI Layer**: Eliminated the tightly-coupled `GameStore` logic. Fully extracted `useFarmEngine`, `useMatch3Engine`, `useBloxEngine`, `useHUDEngine`, and `useMergeEngine` to serve as pure, distinct data bridges.
-- **Headless Engine Isolation**: The vanilla engines now run entirely headless, calculating game logic state purely, while the React UI layer pulls from the exposed custom Hooks.
+#### Version Bumps
 
-#### Bug Fixes & Dead Code Pruning
-- **Concurrency Locks**: Fixed a severe race-condition in `farm.js` where rapid clicking could bypass the queue and cause desynced watering timers or phantom crops.
-- **Blox Drag Performance**: Refactored drag logic to fix severe frame lag and piece-dropping issues during cross-screen puzzle manipulation.
-- **Dead Legacy Cleanups**: Safely deleted 4 obsolete vanilla files (`quest.js`, `store-ui.js`, `hud.css`, `store.css`) and gutted obsolete DOM manipulation queries out of `hud.js` following the UI migration to React.
-- **Strict Lint Validation**: Cleared out all ghost variables and unused imports (`import React from 'react'`) from the codebase, satisfying strict native JSX ESLint constraints.
-- **Save Data Wipe Prevention**: Fixed an architectural flaw where non-blocking read-routes could trigger a simultaneous synchronous `getPlayer()` initialization on server boot before the Redis/Firestore pipeline returned the actual save data, overwriting legitimate profiles with blank Level 1 bases. Added `ensurePlayerLoaded` to the authorization middleware.
-- **HUD Engine Exception**: Fixed a legacy `G.animateGoldChange is not a function` Uncaught TypeError cascading from vanilla scripts during reward granting by piping a CustomEvent down to the new React `HUD` view to orchestrate `framer-motion` floating coin animations.
+- `package.json`: 5.0.1 → 5.1.0
+- `match3.css`, `match3.js`: v5.0.2 → v5.1.0
+- `blox.css`, `blox.js`: v5.0.0 → v5.1.0
 
-- **Match-3 Zombie State Leak**: Fixed an issue where the game would drop into `-1 MOVES`. Wrapped endgame sync in `try/finally` blocks and guarded the initialization step to prevent users from reviving and playing concluded sessions indefinitely.
-- **Pet Naming Loop**: Fixed a bug where `pet.js` would continually prompt the user for their pet's name on launch, conflicting with the React onboarding flow.
-- **Farm UI & UX Design Overhaul**: Redesigned the seed shop UI. Fixed horizontal tab truncation via `flex-wrap`, widened the Featured shelf to prevent text cut-offs, completely removed the redundant dual-coins HUD, and rehoused the 'Buy' quantity stepper into elegant glassmorphism pills to cure severe element clipping.
+## v5.0.2 — 2026-02-21
 
-#### Tests — **342/342 pass**, 0 failures.
+### Match-3 — Cascade Animation Redesign
 
----
+Cascade animation was unreadable — impossible to track which gems matched and how pieces moved. Additionally, a visual/logical desync meant selected gems couldn't be swapped despite appearing valid.
 
-## [8.0.0] - 2026-03-15
+**Root cause**: Sparse diff optimization (v5.0.1) updated only 3–10 cells per cascade step, leaving stale CSS classes (`popping`, inline transforms) on untouched cells. The `board[][]` data reflected the correct final state, but DOM cells showed outdated types and positions.
 
-### Architecture & Mobile UX Redesign
+#### Animation Fix (`match3.js`, `match3.css`)
 
-Comprehensive 9-fix architecture update targeting scalable distributed caching, offline fault tolerance, and compact mobile viewport optimization. 345/345 tests pass.
+- **Swap snapback eliminated**: Board data + cell content are now updated _before_ clearing CSS `translate()` transforms. Previously, transforms were cleared first → gems snapped back to original positions showing the old type, then cascade updated them — causing a misleading visual snapback.
+- **Phased cascade**: Rewrote `animateCascade()` from 2-phase (pop → fall) to 4-phase pipeline:
+  1. **Matched highlight** (200ms) — `.matched-highlight` golden glow on all matched gems so player sees _what_ matched
+  2. **Pop** (220ms) — `.popping` scale→0 with white flash
+  3. **Explicit cleanup + full sync** — removes `.popping`, then syncs all 64 cells to `board[][]` (type, icon, className)
+  4. **Fall with column-stagger** — `.falling` with `x * 30ms` delay per column → organic wave effect
+- **~40% faster cascade**: Total per-step time reduced from ~1010ms (350+360+300) to ~620ms (200+220+200). Each successive step accelerates ×0.85.
+- **Post-cascade full sync**: `renderBoard(false)` called after `animateCascade()` completes — guarantees zero desync survivors.
+- **CSS durations synced**: `.popping` 0.36→0.22s, `.matched-highlight` 0.35→0.2s — CSS animations now fit within their JS phase windows.
+- **Swap jerk eliminated**: Added `.m3-board.batch-update` CSS rule + forced layout flush during swap transform cleanup. The base `.m3-cell` transition no longer re-animates the secondary piece back to its grid position.
 
-#### Critical Architecture & Caching
-- **Upstash Redis Adapter** (`redisAdapter.js`): Implemented a complete read-through/write-through cache layer with `@upstash/redis` REST SDK. Features bulk pipeline loading on startup and gracefully degrades to in-memory maps if `UPSTASH_REDIS_URL` is omitted.
-- **Distributed Nonce Deduplication** (`server.js`, `redisAdapter.js`): The `/api/batch` endpoint now uses atomic Redis `SET NX` with a 5-minute TTL to guarantee strict cross-instance idempotency for batched client requests.
-- **Batch Endpoint Refactor** (`server.js`): Eliminated the `fetch(localhost)` antipattern. Batched requests now use direct Express `app.handle()` dispatch with mock req/res objects, cutting overhead and eliminating connection exhaustion.
+#### State Desync Fix (`match3.js`, `engine.js`)
 
-#### High Reliability Fixes
-- **Graceful Shutdown Drain** (`playerManager.js`): PM2/Docker SIGTERM now explicitly `await Promise.all()` on all pending player operation lock chains before flushing to Firestore, preventing data corruption during deployment restarts.
-- **Offline Simulation Guard** (`game-logic.js`): Added strict `isNaN` and bounds-checking for the `_lastSeen` timestamp in `processOfflineActions`. Prevents runaway integer-overflow simulations caused by corrupted client clocks or payload tampering.
+- **Board Snapshots**: `resolveBoard()` now attaches a frozen `boardSnapshot` (via `cloneBoard()`) to each cascade step. The cascade animation syncs DOM against these intermediate snapshots instead of the globally-mutated `board[][]`, preventing false highlights on gems that haven't moved yet.
+- **Dataset-type self-healing guard**: `onCellClick()` now checks `cell.dataset.type !== board[y][x]` before processing. On mismatch, triggers `renderBoard(false)` to heal the desync automatically.
+- **Full board sync in cascade**: After each cascade step's pop phase, all 64 cells are synchronized — eliminates the class of bugs where sparse diff left cells visually stale.
 
-#### Mobile UX & Responsive UI
-- **Framer Motion Shop Drawer** (`MobileShopDrawer.jsx`, `BottomNav.jsx`): Replaced the massive full-screen farm shop with a swipeable, 3-snap (30%, 55%, 90%) bottom-sheet drawer using `framer-motion`. Added a contextual "Bag" icon to the bottom nav when the inventory is non-empty.
-- **Compact Viewport HUD** (`HUD.jsx`, `base.css`): At `< 500px` height, the HUD collapses into a single-line layout, shrinking resource pills and tucking actions into a "⋮" overflow menu to maximize vertical game space.
-- **Responsive Navigation** (`base.css`): Bottom nav height dynamically shrinks from `68px` → `56px` → `48px` on compact screens by fading out text labels and reducing icon scales.
-- **GameStore & Touch Targets** (`GameStoreUI.jsx`, `base.css`): Constrained store modal to `calc(100dvh - 100px)` preventing overflow clipping on iOS. Injected `@media (pointer: coarse)` CSS enforcement guaranteeing `44px` minimum touch targets across all major action buttons.
+### CSS
 
----
+- **New `.matched-highlight`**: Golden pulse glow (`m3MatchGlow` keyframes) — `box-shadow` ring + `scale(1.15)` — highlights matched gems before pop.
+- **New `.m3-board.batch-update`**: Transition suppression during programmatic DOM updates.
 
-## [7.6.0] - 2026-03-14
+### Time Attack Bug Fixes (`match3.js`, `routes/match3.js`)
 
-### Phase 18: Final Quality Audit & Verification
-Conducted a full pass to ensure `0` ESLint warnings and `0` failing tests across the entire 346 test suite.
-- **chore(lint):** Configured `eslint.config.mjs` to systematically ignore prefixed `_` unused variables and `e`/`_err` catch handlers.
-- **fix(vanilla):** Removed obsolete imports, unused DOM queries, and ghost variables across `hud.js`, `farm.js`, `main.js`, `match3.js`, `merge.js`, `blox.js`, and `pet.js`.
-- **fix(auth):** Renamed shadowed exception variables to satisfy strict linting.
-- **fix(tests):** Removed an overly strict `ux.test.js` regex assertion that erroneously forced `main.js` to retain an unused `safeShowModal` import.
-- **fix(shared):** Fixed a memory leak in the swipe-to-dismiss toast notification (`onPointerUp`) by explicitly detaching window `pointer` and `touch` listeners upon release.
+- **Score carryover fix**: Force-set `$("m3-score").textContent = "0"` on fresh start to prevent `animateNumber` from visually interpolating from the old session's score.
+- **403 "Invalid session" fix**: Resume path now fires `/api/game/start` with `isResume: true` (fire-and-forget). Server registers a session stub without charging energy, so `/api/game/end` no longer 403s.
+- **Timer label fix**: `m3-moves-label` now dynamically shows "Time" for timed mode instead of blank or "Moves".
 
-### Phase 17: Mobile Optimizations - Core Lifecycle & Event Loops
-Completed a thorough pass on reducing background CPU wakeups and React overhead for mobile devices.
+### Blox — Clearing Animation Cutoff Fix
 
-- **feat(shared):** Exposed `HUB.onScreenChange` event bus for localized game lifecycle management.
-- **perf(pet):** Unified `autoWaterTimer` and `_digestionTimer` into a single 1s tick that halts via `document.hidden`.
-- **perf(trivia):** Replaced hard 16ms JS `requestAnimationFrame` timer bar with GPU-accelerated CSS `transition`.
-- **perf(match3):** Implemented double-buffered global `_dirtyPool` to achieve zero-allocation array caching during cascade loops.
-- **perf(merge):** Explicitly suspend `_cooldownTimer` when `HUB.currentScreen` changes.
-- **perf(farm):** Hooked `stopLocalGrowthTick` into new `onLeave` lifecycle to stop polling off-screen.
-- **perf(react):** Downgraded React-bound `framer-motion` tap/hover events on `HUD.jsx` and `BottomNav.jsx` to sub-millisecond CSS pseudo-classes.
-- **perf(react):** Wrapped `App.jsx` modal callbacks in `useCallback` to prevent breaking `React.memo` on child components.
-- **perf(ui):** Added `loading="lazy" decoding="async"` to massive SVG and pet asset renders in `PetRoomUI.jsx` to unblock rasterizer threads.
+- **Dynamic timeout**: `renderBoard()` timeout now calculated from `(staggerIdx - 1) * staggerDelay + SHATTER_DUR + 20ms` instead of hardcoded 300ms. Fixes animation being cut short on multi-line clears.
+- **Adaptive stagger**: Step reduced from 20ms→10ms for multi-line clears (>1 line), keeping total animation snappy while preserving the wave dissolve effect.
 
-## [7.5.0] - 2026-03-14
-### Mobile Performance Phase 2 (Zero-GC & Responsive UI)
+## v5.0.1 — 2026-02-21
 
-Comprehensive 9-fix architecture update targeting mobile latency, garbage collection spikes, and perceived performance in weak network environments. 346/346 tests pass.
+### Performance — Visual Smoothness (Match-3 + Blox)
 
-#### Critical Fixes
+5 performance bottlenecks identified with 9 solutions each; best aspects synthesized into unified fixes across 4 files.
 
-- **Zero-GC Drags** (`merge.js`, `blox.js`): Replaced JS-driven `transform` string concatenations with CSS Custom Properties (`--x`, `--y`). Introduced Sub-pixel Caching to ignore sub-0.5px movements, drastically reducing main-thread heap allocations and eliminating drag stutters.
-- **Match-3 Matrices** (`match3/engine.js`): Rewrote `findMatches` and `resolveBoard` algorithms from functional array-mapping to purely imperative loops over a pre-allocated single `Uint8Array` buffer. Added heuristic skipping to ignore clean rows/columns, cutting computational complexity to O(k).
-- **Global GC & RAM Reset** (`main.jsx`, `shared.js`): Implemented strict Event-Driven Garbage Collection on route changes (`hub:route-leave`). React unmounts trigger targeted sweeps of `VanillaShell` closures, preventing memory bloat across hour-long sessions.
+#### Match-3
 
-#### High Fixes
+- **`will-change` cleanup**: Removed permanent `will-change: transform` from all 64 `.m3-cell` elements (64 GPU layers → auto-promote only during animation). Kept `will-change` on `.popping`, `.falling`, `.entering`, `.reshuffling` classes.
+- **Filter-free hover**: Replaced `filter: brightness(1.12)` / `brightness(0.92)` on `:hover` / `:active` with `border-color: rgba(255,255,255,0.25)`. Removed `filter 0.18s ease` from base transition. Eliminates full-cell repaints during rapid mouse movement across the 8×8 grid.
+- **`text-shadow` on `.gem-icon`**: Replaced `filter: drop-shadow(0 2px 4px)` with `text-shadow: 0 2px 4px` — cheaper for emoji/text rendering (no filter repaint per cell).
+- **Sparse cascade diff**: `animateCascade()` now iterates only affected cells from `step.cleared`, `step.fallen`, `step.filled` (typically 3–10 per step) instead of all 64 cells. Tracks `_prevCascadeChanged` for stale CSS property cleanup between steps.
+- **Reduced backdrop blur**: `.m3-board` `backdrop-filter` reduced from `blur(12px)` to `blur(4px)`, background opacity increased to `rgba(30, 32, 50, 0.92)`. ~70% blur computation savings.
 
-- **CSS Bypass Modals** (`GameStoreUI`, `QuestUI`, `PetInfoUI`): Refactored heavy React modal dialogs to use `createPortal`. Toggling a global `.modal-open` class on `document.body` bypasses full-tree reconciliations and rigidly disables background scroll/interaction on iOS Safari.
-- **Page Visibility RAF Controller** (`shared.js`): Intercepted native `requestAnimationFrame`. When the app goes to the background (`document.hidden`), all RAF loops are completely suspended and queued, eliminating phantom battery drain and preventing logic de-sync on iOS.
-- **Double Buffering Trivia Loads** (`trivia.js`): Offloaded image decoding for trivia cards. Images are fetched and fully instantiated in memory (`new Image().src = ...`) before being swapped onto the active DOM layer, eradicating the "white flash" image load phase.
+#### Blox
 
-#### Medium/UX Fixes
+- **Clearing `will-change` removed**: `.blox-cell.clearing` no longer sets `will-change: transform, opacity` — browser auto-promotes during `bloxShatter` animation.
+- **Staggered clearing**: Each clearing cell gets `animationDelay = idx × 20ms`, so only 2–3 cells are GPU-promoted simultaneously (previously all 10–20 at once).
+- **Faster clearing**: Animation shortened from `0.28s + 0.1s delay` to `0.24s` (no delay). `renderBoard()` timeout reduced 380ms → 300ms. `checkDelay` reduced 430ms → 350ms.
+- **Reduced backdrop blur**: `.blox-board` receives same treatment: `blur(12px)` → `blur(4px)`, `rgba(30, 32, 50, 0.92)`.
 
-- **Optimistic Sync Queue** (`playerManager.js`, client APIs): Firestore writes are now decoupled from UI interaction. Operations like planting seeds instantly update the local state while network requests are batched and deferred. On failure, a graceful auto-rollback occurs.
-- **Exclusive DOM Events** (`index.css`, `index.html`): Enforced `touch-action: pan-x pan-y` at the root while locking specific game canvases with `touch-action: none`. Added `user-select: none` globally to prevent accidental text-selection highlights during fast tapping.
-- **Farm DOM Flattening** (`farm.js`): Re-engineered the Farm grid matrix to eliminate nested flexboxes/divs. Moved layout control entirely to CSS Grid with Just-In-Time `will-change: transform` injection during harvest animations.
+### Star Drop — Color Redesign
 
----
+All 3 drop gem colors radically changed to occupy unique hue gaps with zero overlap against any of the 6 regular gem types:
 
-## [7.5.0] - 2026-03-14
+| Drop Gem     | Old Color                                | New Color                          | Hue Gap                              |
+| ------------ | ---------------------------------------- | ---------------------------------- | ------------------------------------ |
+| 💰 Gold Bag  | Rose-gold H:35° (near `light` amber)     | **Hot pink / magenta** H:330°      | Between `dark` 280° and `fire` 0°    |
+| 🌾 Seed Pack | Emerald H:160° (near `earth` green)      | **Chartreuse / lime-yellow** H:80° | Between `light` 50° and `earth` 120° |
+| ⚡ Energy    | Violet H:280° (overlapped `dark` purple) | **Indigo / deep blue** H:240°      | Between `water` 220° and `dark` 265° |
 
-### Mobile Performance Phase 2 (Zero-GC & Responsive UI)
+### Bug Fixes
 
-Comprehensive 9-fix architecture update targeting mobile latency, garbage collection spikes, and perceived performance in weak network environments. 346/346 tests pass.
+#### Firestore — Nested Array Rejection (Critical)
 
-#### Critical Fixes
+- **Root cause**: Firestore does not support nested arrays (arrays inside arrays). Both `blox.savedState.board` (10×10 2D) and `match3.savedModes[mode].board` (8×8 2D) violated this constraint, causing `INVALID_ARGUMENT: Property blox/match3 contains an invalid nested entity` on every save.
+- **Fix — JSON-stringify on write**: `routes/blox.js` `/api/blox/sync` now `JSON.stringify(savedState)` before storing; `/api/blox/state` parses back. `routes/match3.js` `/api/game/sync-modes` does the same for `savedModes`. Both have legacy fallback for pre-stringify data.
+- **Fix — Recursive sanitizer**: Added `sanitizeForFirestore()` in `playerManager.js` — recursively strips `undefined` → `null` and ensures dense arrays before every Firestore `.set()` call (both `debouncedSavePlayer` and `gracefulShutdown`).
 
-- **Zero-GC Drags** (`merge.js`, `blox.js`): Replaced JS-driven `transform` string concatenations with CSS Custom Properties (`--x`, `--y`). Introduced Sub-pixel Caching to ignore sub-0.5px movements, drastically reducing main-thread heap allocations and eliminating drag stutters.
-- **Match-3 Matrices** (`match3/engine.js`): Rewrote `findMatches` and `resolveBoard` algorithms from functional array-mapping to purely imperative loops over a pre-allocated single `Uint8Array` buffer. Added heuristic skipping to ignore clean rows/columns, cutting computational complexity to O(k).
-- **Global GC & RAM Reset** (`main.jsx`, `shared.js`): Implemented strict Event-Driven Garbage Collection on route changes (`hub:route-leave`). React unmounts trigger targeted sweeps of `VanillaShell` closures, preventing memory bloat across hour-long sessions.
+#### Blox — Ghost Breathing Animation Restart
 
-#### High Fixes
+- **Root cause**: `mousemove` handler called `clearGhost()` + `showGhostAt()` on every pixel of movement. Removing and re-adding the `ghost` CSS class restarted the 1.2s `ghostBreathe` animation from frame 0, causing janky flickering and unnecessary GPU work.
+- **Fix**: Added `_lastGhostKey` position cache (`selectedPiece,row,col`). Ghost is only cleared and re-shown when the cursor enters a **different grid cell**. Within the same cell, the breathing animation runs uninterrupted.
 
-- **CSS Bypass Modals** (`GameStoreUI`, `QuestUI`, `PetInfoUI`): Refactored heavy React modal dialogs to use `createPortal`. Toggling a global `.modal-open` class on `document.body` bypasses full-tree reconciliations and rigidly disables background scroll/interaction on iOS Safari.
-- **Page Visibility RAF Controller** (`shared.js`): Intercepted native `requestAnimationFrame`. When the app goes to the background (`document.hidden`), all RAF loops are completely suspended and queued, eliminating phantom battery drain and preventing logic de-sync on iOS.
-- **Double Buffering Trivia Loads** (`trivia.js`): Offloaded image decoding for trivia cards. Images are fetched and fully instantiated in memory (`new Image().src = ...`) before being swapped onto the active DOM layer, eradicating the "white flash" image load phase.
+#### Match-3 — Gem Visual Displacement After Swap
 
-#### Medium/UX Fixes
-
-- **Optimistic Sync Queue** (`playerManager.js`, client APIs): Firestore writes are now decoupled from UI interaction. Operations like planting seeds instantly update the local state while network requests are batched and deferred. On failure, a graceful auto-rollback occurs.
-- **Exclusive DOM Events** (`index.css`, `index.html`): Enforced `touch-action: pan-x pan-y` at the root while locking specific game canvases with `touch-action: none`. Added `user-select: none` globally to prevent accidental text-selection highlights during fast tapping.
-- **Farm DOM Flattening** (`farm.js`): Re-engineered the Farm grid matrix to eliminate nested flexboxes/divs. Moved layout control entirely to CSS Grid with Just-In-Time `will-change: transform` injection during harvest animations.
-
----
-
-## [7.4.0] - 2026-03-14
-
-Comprehensive 9-fix performance and UI reliability audit specifically targeting mobile layout thrashing, frame drops, and garbage collection pauses. 346/346 tests pass.
-
-#### Critical Fixes
-
-- **CPU Bound Deep Cloning** (`merge.js`, `match3.js`): Replaced slow, blocking `JSON.parse(JSON.stringify(board))` calls with native `structuredClone()`, cutting frame drops on budget devices during state commits.
-- **Effects.js WAAPI** (`effects.js`): Particle systems (coins, droplets) rewritten to use the Web Animations API (`Element.animate()`). Animation calculation is offloaded to the browser's Compositor Thread, avoiding main-thread math and `setTimeout` GC spikes.
-- **Merge D&D Layout Thrashing** (`merge.js`): The blurred Ghost Element caused severe GPU strain. Removed `backdrop-filter: blur`, replacing it with `translate3d` and `opacity: 0.8`. Added array caching for match-targets (`_cachedMatchTargets`) on `pointerdown` to completely eliminate DOM `getBoundingClientRect()` calls inside `requestAnimationFrame`.
-
-#### High Fixes
-
-- **React Span Re-renders** (`HUD.jsx`): Subscribing to bulk `shared` state triggered global React re-renders on arbitrary background game updates. Implemented atomic shallow selectors (`s.resources?.gold`, `s.slices.shared?.energy.current`), isolating the HUD update cycle.
-- **Blox Responsive Thrashing** (`main.js`, `match3.css`, `blox.css`): Eliminated JS `resize` event listeners that calculated cell sizes pixel-by-pixel. Transferred responsibility to CSS using `clamp()` fluid typography, zeroing out script overhead.
-- **Gacha Orphan Timers** (`merge.js`): Navigating away from the Merge screen mid-gacha roll previously leaked `setTimeout` callbacks that tried to manipulate a non-existent DOM. Added strict `HUB.currentScreen === 4` checks before phase execution.
-
-#### Medium/UX Fixes
-
-- **Touch Swipe Conflicts** (`merge.js`): Integrated `HUB.swipeBlocked` on `pointerdown` to prevent Discord/OS back-gestures from firing while actively dragging a merge item.
-- **Paint Flashing** (`match3.css`, `blox.css`): Heavy `box-shadow` CSS animations replaced with `::after` pseudo-elements. Only the `opacity` property is animated, allowing GPU-accelerated compositing without repaints.
-- **Flash of Unstyled Text** (`base.css`): Hard reliance on custom fonts caused invisible texts on slow 3G. Injected native system fallbacks (`system-ui, -apple-system, sans-serif`) globally.
-
-#### Tests — **346/346 pass**, 0 failures.
-
----
-
-## [7.3.5] - 2026-02-28
-
-### Security & Architecture Audit — Phase 2
-
-Comprehensive 20-fix audit covering security, architecture, bugs, code duplication, performance, and input validation. 10 files modified, 345/345 tests pass.
-
-#### Critical Fixes
-
-- **Discord iframe blocked** (`server.js`): `X-Frame-Options: SAMEORIGIN` prevented the app from loading inside Discord's Activity iframe. Replaced with CSP `frame-ancestors` directive scoping to Discord domains (`discord.com`, `*.discord.com`, `*.discordsays.com`).
-- **Rate limiter ordering** (`server.js`): `authLimiter` and `defaultLimiter` were mounted after `/api/token` route — token exchange was unprotected against brute-force. Moved rate limiter `app.use()` calls before all route handlers.
-- **`calcGoldReward` DoS** (`game-logic.js`): Unbounded `while` loop could freeze the event loop with crafted extreme scores (e.g., `9e15`). Added `SCORE_CAP = 50_000` iteration guard.
-
-#### High Fixes
-
-- **Duel interval leak** (`trivia.js`): `setInterval` for duel room cleanup lacked `.unref()`, preventing clean process exit in tests and after SIGTERM.
-- **Missing `blox.activeGame`** (`game-logic.js`): `createDefaultPlayer()` didn't include `activeGame: false` in `blox` — field was `undefined` for new players from Firestore.
-- **Quest merge-board crash** (`questRoutes.js`): `/api/quests/submit` validated merge items on `p.merge.board` without calling `hydrateMergeBoard()`. Firestore-stored boards (JSON strings or objects with numeric keys) caused silent validation failures.
-- **SDK bundle path** (`server.js`): In production (Docker), `sdkBundleCache` read from `src/vanilla/` which isn't copied to the container. Added fallback: `public/js/` → `src/vanilla/`.
-
-#### Medium Fixes
-
-- **Wildcard CORS** (`server.js`): `Access-Control-Allow-Origin: *` replaced with scoped Discord origins in production (discord.com, ptb, canary, discordsays). Dev mode retains permissive CORS.
-- **Gold duplication exploit** (`farm.js`): `/api/farm/buy-seeds` accepted `amount: -1` from client, producing negative cost → free gold. Now validates as positive integer, capped at 1000.
-- **Vestigial `farm.coins`** (`farm.js`): Removed dead `coins: p.farm.coins` from `/api/farm/plant` response.
-- **Duplicated chain-unlock** (`mergeRoutes.js`): Identical 10-line unlock block in `/gacha` and `/free-pull` extracted to `tryUnlockChain()` helper.
-- **No error handler** (`server.js`): Added global Express 5 error handler (`app.use((err, …) => …)`) to catch unhandled async rejections.
-- **Rate limiter cleanup** (`rateLimit.js`): 3 separate `setInterval` cleanup loops (one per limiter) consolidated to single module-level interval via `ensureCleanup()`.
-- **Leaderboard O(N)** (`leaderboard.js`): Full player-map sort on every request replaced with 30-second TTL cache for both Match-3 and Blox leaderboards.
-
-#### Low Fixes
-
-- **`plotId` validation** (`farm.js`): 4 endpoints (plant, water, harvest, uproot) now validate `plotId` as integer within bounds, preventing `undefined` plot access.
-- **Missing `room.inventory`** (`game-logic.js`): `createDefaultPlayer()` room object now includes `inventory: []`.
-- **Duel history O(N)** (`trivia.js`): `.unshift()` (O(N)) replaced with `.push()` (O(1)) + reverse-on-read in history endpoint.
-- **Graceful shutdown** (`playerManager.js`): `process.exit()` moved to `.then()` chain after flush, ensuring log message completes before exit.
-
-#### Tests — **345/345 pass**, 0 failures.
-
----
-
-## [7.3.4] - 2026-02-28
-
-### Security & Architecture Audit
-
-Comprehensive 19-fix audit covering security, architecture, bugs, code duplication, performance, and maintainability. 10 files modified, 388/388 tests pass.
-
-#### Critical Fixes
-
-- **Blox gold exploit** (`blox.js`): `/api/blox/end` lacked session validation — players could call `/end` repeatedly without `/start` for infinite gold. Added `activeGame` flag set in `/start`, validated and cleared in `/end`.
-- **Anti-cheat score ceilings** (`blox.js`, `match3.js`): Client-reported scores were accepted without bounds. Added plausibility ceilings (Blox: 10K, Match-3: 30K) — suspiciously high scores are logged and rejected with zero reward.
-- **Rate limiter bypass** (`server.js`): `authLimiter` and `defaultLimiter` were mounted AFTER route handlers, so they never fired. Moved rate limiter `app.use()` calls before route mounts.
-- **Variable shadowing** (`questRoutes.js`): `for (const req of order.requirements)` shadowed the Express `req` parameter. Renamed to `requirement`.
-
-#### Architecture & Scalability
-
-- **Firestore factory** (`playerManager.js`): Replaced module-level `new Firestore()` with lazy `initFirestore()` called from `start()`. Prevents import-time crashes and enables mocking in tests.
-- **LRU player cache** (`playerManager.js`): `players` Map now has a 10,000-entry eviction threshold. Oldest entries are flushed to Firestore before deletion.
-- **Shared helpers** (`game-logic.js`): Extracted `randInt()`, `pick()`, `calcTokenReward()` — eliminated 3 duplicate definitions across `mergeRoutes.js` and `questRoutes.js`.
-- **Recurring events** (`game-logic.js`): `getActiveEvents()` now normalizes event dates to the current year for `recurring: true` events, including year-crossing support (Dec→Jan).
-
-#### Bug Fixes
-
-- **Merge coordinate validation** (`mergeRoutes.js`): Added `validCoord()` check for `/merge/merge` and `/merge/trash` — prevents out-of-bounds board access. Fixed validation order (check coords before accessing cells).
-- **Pet name XSS** (`resources.js`): `cleanName` now strips HTML tags via regex before truncation.
-- **Leaderboard room filter** (`leaderboard.js`): Removed broken room filter stub that used incorrect user-ID prefix matching on an already-filtered array.
-- **Dead `farm.coins`** (`game-logic.js`, `playerManager.js`): Removed `coins: 0` from `createDefaultPlayer()` and `farm.coins = 0` from v2 migration — field was never read or written by any route.
-- **`isDirectRun` detection** (`server.js`): Fragile `endsWith` path check replaced with `URL` comparison for Windows compatibility.
-- **Stale test** (`farm.test.js`): `schemaVersion` assertion updated from 6 to 7 (v7 room migration).
-
-#### DRY & Performance
-
-- **Gacha token calculation** (`match3.js`, `blox.js`): Inline token-threshold loops replaced with shared `calcTokenReward(score)` from `game-logic.js`.
-- **Leaderboard rank** (`match3.js`): Replaced O(N log N) full sort + `findIndex` with O(N) count of higher scores.
-
-#### Security Hardening
-
-- **CORS headers** (`server.js`): Added `Access-Control-Allow-Origin`, methods, headers, and `OPTIONS` preflight handler.
-- **Security headers** (`server.js`): Added `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`.
-- **Timer cleanup** (`middleware/rateLimit.js`): Added `.unref()` to `setInterval` cleanup timer so tests can exit cleanly.
-
-#### Tests — **388/388 pass**, 0 failures.
-
----
-
-## [7.3.3] - 2026-02-24
-
-### Prod-Readiness Audit
-
-Comprehensive codebase audit with systematic root cause investigation — 6 issues found and fixed.
-
-#### Featured Seeds Shelf Repositioned (`farm.css`)
-
-- **Root cause**: `position: sticky; top: 0` in normal document flow pushed farm tiles down instead of sitting to their left.
-- **Fix**: Changed to `position: absolute; right: calc(100% + 12px); top: 0` — mirrors the `.farm-panel` pattern on the right. Farm tiles remain centered.
-- Mobile fallback (≤640px): `position: static` with horizontal strip layout.
-
-#### Dead Import Removed (`main.js`)
-
-- `import { GameStore as MonetizationStore } from "./store-ui.js"` — imported but never used.
-
-#### Farm Panel Tabs Fixed (`farm.js`)
-
-- Badges, Journal, and Season tabs had no `onclick` handlers wired in `init()`. Only Inventory and Shop worked.
-- **Fix**: Added `switchFarmTab()` bindings for all 3 missing tabs.
-
-#### HUD Gold Counter Stabilized (`HUD.jsx`)
-
-- `key={shared.gold}` on `<motion.span>` caused a full remount + animation on every gold change.
-- **Fix**: Replaced with a plain `<span>`.
-
-#### Pet Profile Mood & Affection Restored (`PetInfoUI.jsx`)
-
-- **Regression**: Pet profile card was missing 🧠 Mood meter, mood labels, and 💕 Affection display.
-- **Fix**: Added animated progress bar with color-coded labels (Ecstatic → Miserable) + affection level pill.
-
-#### Tests — **345/345 pass**, 0 failures.
-
----
-
-## [7.3.2] - 2026-02-24
-
-### Farm Onboarding Redesign & Interface Audit
-
-- Redesigned new-player onboarding: 30-second core loop with invisible tutorials, early rewards, gradual system reveal.
-- Fixed Featured Seeds block pushing farm tiles vertically.
-- Amount stepper UX improvements for seed purchases.
-- Tab state indicators made more visible and intuitive.
-- Pet behavior corrected during sleep mode.
-- Critical seed planting bug fixed.
-
----
-
-## [7.3.1] - 2026-02-24
-
-### Deployment Bug Fixes
-
-Critical post-deployment fixes for the Discord Activity environment.
-
-- **CSP font loading**: Google Fonts blocked by Discord's `style-src` CSP. Bundled `@fontsource/bungee`, `@fontsource/nunito`, `@fontsource/varela-round` as local npm packages.
-- **Pet naming bug**: Name assigned during onboarding not persisted to pet data.
-- **401 Unauthorized errors**: Discord SDK token not forwarded to API calls — fixed auth initialization order.
-- **React hooks order** (`PetInfoUI.jsx`): `useState` calls placed after early return → Error #310. Moved all hooks to top of component.
-- **Loading screen**: Race condition between `bootComplete` flag and React mount resolved.
-
----
-
-## [6.2.2] - 2026-03-14
-
-### Fixed
-- **Match-3 Validation Null Issue**: Fixed a crash where navigating away during early Match-3 board animations caused a `TypeError: Cannot read properties of null (reading 'classList')` by adding explicit DOM node existence checks.
-- **Match-3 UI Deadlock**: Fixed an issue where navigating away from a game of Match-3 mid-animation left the internal engine state permanently greyed-out and frozen (`isAnimating = true`) causing the game to be unplayable when returning.
-
----
-
-## [7.3.0] - 2026-02-24
-
-### Feature Release — Retention, Monetization Ready, Pet Room
-
-11 new features across retention, monetization readiness, scalability, and pet room.
-
-#### Retention Hooks (`farm.js`, `match3.js`, `blox.js`, `trivia.js`)
-
-- **Post-Game Cards**: End-of-game summary with stats, streaks, and "tomorrow preview" (Zeigarnik Effect).
-- **Weekly Stat Tracking**: Aggregated weekly performance metrics.
-- Integrated into game-over handlers for all 4 game modes.
-
-#### Streak & Booster Systems (`game-logic.js`, `playerManager.js`, `farm.js`)
-
-- Daily login streaks with escalating multipliers and grace period.
-- Timed farm boosters: 2× growth speed, 1.5× harvest value. Visual booster button.
-
-#### Achievement System (`routes/achievements.js`, `game-logic.js`)
-
-- Server-validated achievement tracking with tiered milestones. New route: `/api/achievements/*`.
-
-#### Events & Season Pass (`routes/events.js`, `routes/seasonpass.js`)
-
-- Time-limited seasonal events with bonus objectives. New route: `/api/events/*`.
-- Season pass scaffold: free + premium tracks. New route: `/api/seasonpass/*`.
-
-#### Rate Limiting (`server.js`)
-
-- Per-route rate limiting to prevent API abuse.
-
-#### Pet Room — Phase 3 (`PetRoomUI.jsx`, `game-logic.js`)
-
-- **4×4 decoratable room grid** — place decorations earned from Merge pipeline.
-- `ROOM_DECORATIONS` config: 10+ items with rarity, emoji, and stat bonuses (`happinessRate`, `affectionXpMult`, `fullnessRate`).
-- `computeRoomBonuses()` — pure function for aggregate bonuses.
-- New React component: `PetRoomUI.jsx` with grid rendering, tile tap placement, and inventory management.
-
-#### Farm Panel Expansion (`farm.js`)
-
-- Badge rendering (`renderBadges()`), Journal tab for crop discovery (`renderJournal()`), Season pass progress (`renderSeasonPass()`).
-
----
-
-## [7.2.1] - 2026-02-24
-
-### Bug Fix Sprint — Game Menus & Interactions
-
-- **Quest list**: Opening quest log caused other content to vanish — z-index/visibility conflicts resolved.
-- **Gacha rolls**: Failing due to incorrect token validation — auth header forwarding fixed.
-- **Trivia buttons**: Answer buttons not responding — event delegation fix.
-- **Shop button**: 🛒 button not opening seed shop — wired to `GameStoreUI` state.
-- **Pet SVG flickering**: Roam→dock transition flicker — CSS transition timing adjusted.
-- **Pet tap behavior**: Repeated tapping no longer toggling profile rapidly; click-outside dismiss added.
-- **Seeds shop UX**: Improved scrolling, card sizing, and touch targets.
-
-#### Tests — **345/345 pass**, 0 failures.
-
----
-
-## [7.2.0] - 2026-02-24
-
-### Added — Player Experience Overhaul (P2 + P3)
-
-#### Progressive Seed Unlocking (`game-logic.js`, `farm.js`)
-
-- 8 crops now have `unlockCondition` fields: 2 always-available (🍓 Strawberry, 🫐 Blueberry), 6 with progression gates (first harvest, first quest, gold earned, plots bought, total harvests, days active).
-- `getUnlockedSeeds(playerStats)` — pure function evaluates conditions against player stats.
-- Locked crops display as 🔒 cards with condition labels in the seed shop.
-- Unlock celebration toasts on first discovery.
-
-#### Featured Seed Shelf (`farm.js`, `htmlContent.html`)
-
-- 4-seed rotating shelf above farm plots, changes every 4 hours via deterministic seeded shuffle.
-- Prioritizes 1 untried seed + 3 profit-ranked familiar seeds.
-- Live countdown timer with auto-refresh on rotation boundary.
-
-#### New Themes (`soft-fantasy.css`, `minimal-calm.css`, `shared.js`)
-
-- 🌸 **Soft Fantasy** — dark plum/rose/lavender dreamscape palette with purple-tinted dreamy glows.
-- 🍃 **Minimal Calm** — stone white/sage zen palette. Disables neon glows, increases border-radius, reduces particle intensity by 50%.
-- `VALID_THEMES` expanded to 6 options: `neon-night`, `cozy-day`, `soft-fantasy`, `minimal-calm`, `seasonal`, `auto`.
-- **Seasonal auto-rotation**: `_getSeasonalTheme()` maps month → theme (Spring → soft-fantasy, Summer → cozy-day, Autumn/Winter → neon-night).
-
-#### Juice Animations
-
-- **Trivia** (`trivia.css`): `triviaCardFlip` 3D entrance, `triviaCorrectPop` button expand, `triviaStreakGlow` escalating gold glow, stagger-fade answer buttons (50ms each).
-- **Merge** (`merge.css`): `mergePull` magnetic attraction, `mergeCollide` brightness flash, `gachaCapsuleDrop` double bounce entrance, `gachaReveal` rarity light spear.
-- **Pet** (`pet.css`): `petTapBounce` squash+jump on tap, `petHeartBurst` expanding heart particles, `petDustPuff` direction-change dust cloud.
-- **Match-3** (`match3.css`): `m3SwapSpring` overshoot bounce on valid gem swap.
-- **Blox** (`blox.css`): `bloxPlaceBounce` squash+settle on piece placement.
-
-### Fixed (Audit)
-
-- **Theme CSS not bundled**: `main.jsx` was missing imports for `soft-fantasy.css` and `minimal-calm.css` — themes had no visual effect at runtime.
-- **Seasonal theme flash**: `index.html` early theme script set `data-theme="seasonal"` raw (no CSS rules), causing flash of unstyled content. Now resolves to actual month-based theme before first paint.
+- **Root cause**: `attemptSwap()` sets `transform: translate()` on both cells for the swap slide animation. After `await sleep(200)`, the sparse cascade diff only clears transforms on cells in `step.cleared/fallen/filled`. If the non-matching swapped cell wasn't in those sets, its residual `translate()` persisted, visually displacing the gem to another cell's position.
+- **Fix**: Added explicit `transform/transition/zIndex` cleanup on both swapped cells immediately after the 200ms slide animation completes, before cascade begins.
 
 ### Tests
 
-- **343/343 pass**, 0 failures (+21 new tests: progressive unlocking, featured shelf, themes, juice keyframes, audit regressions).
+- Updated "Star Drop — Color Uniqueness" tests: all 3 drop gems now pass strict non-overlap checks against all regular gems (old `drop_energy`/`dark` exception removed).
+- 273 tests passing (178 in targeted suites).
+
+### Version Headers
+
+- All CSS file headers aligned to `v5.0.0` (6 files updated from stale `v4.9`–`v4.16.0`).
+- `ux.test.js` section header updated from `v4.5.3` → `v5.0.0`.
+
+## v5.0.0 — 2026-02-21
+
+### ES Module Migration
+
+All 8 frontend JS modules converted from IIFE pattern to native ES Modules. Single `<script type="module">` entry point replaces 9 script tags.
+
+#### Architecture
+
+- **`main.js`** — new entry point; DOMContentLoaded orchestrator importing all modules
+- **Module registry** (`setModules()` in `shared.js`) — avoids circular imports between core utils and game modules
+- **`setWaterFn()`** setter in `pet.js` — resolves pet→farm circular dependency
+- **Import map** — server generates `<script type="importmap">` from content hashes; automatic cache busting, zero manual `?v=` bumps
+
+#### Modules Converted
+
+- `store.js`, `shared.js`, `hud.js`, `pet.js`, `farm.js`, `trivia.js`, `match3.js`, `blox.js`
+- All `typeof` runtime guards removed (ESM guarantees import resolution)
+
+#### Module Decomposition (Phase 4)
+
+- **`match3/engine.js`** — pure game logic extracted (generateBoard, findMatches, resolveBoard, hasValidMoves, calcGoldReward, hydration helpers)
+- **`blox/pieces.js`** — static piece definitions (GRID, PIECE_COUNT, 12 shapes)
+
+#### Infrastructure
+
+- `index.html` — 9 `<script>` tags → `<script type="module" src="js/main.js">`
+- `server.js` — `getIndexHtml()` injects `<script type="importmap">` with MD5 content hashes for all JS modules + sub-modules
+- `discord-sdk.js` remains IIFE (classic `<script>` — must load before ES modules)
+
+#### Post-Migration Audit Cleanup
+
+- **`crops.js`** — new module centralizing crop data fetch/cache; eliminates `window.__cropsPromise` and `window.__cropsCache` globals
+- Removed deprecated `navBarAutoHide()` (empty body, v5 persistent nav)
+- Fixed `applyScreenPosition()` → `applyScreenClasses()` (renamed function reference)
+- Removed redundant `"use strict"` from ESM IIFE closures (`blox.js`, `pet.js`)
+- Updated stale match3.js header to `@see ./match3/engine.js`
+- **Button binding SRP** — moved 16 game-specific button bindings from `shared.js` `bindNavigation()` into `trivia.js` (12), `match3.js` (3), `blox.js` (1); `bindNavigation()` now handles only navigation (arrows, dots, tabs)
+
+#### Full-Stack Audit Fixes
+
+- **🔴 Data loss fix** — `routes/resources.js` called deprecated no-op `debouncedSaveDb()`; replaced with `debouncedSavePlayer(userId)` for sell-crop and pet-feed persistence
+- **Sell-price fix** — sell-crop was using a hardcoded formula (strawberry=10🪙) instead of `CROPS.sellPrice` (strawberry=15🪙); now uses canonical data
+- **DRY constants** — `BLOX_PIECES` (110 lines) and `GEM_TYPES`/`BOARD_SIZE` removed from `game-logic.js`, re-exported from client sub-modules (`blox/pieces.js`, `match3/engine.js`)
+- **Cache performance** — `Cache-Control: no-store` on all JS/CSS replaced with caching-friendly policy; import-map hashes handle invalidation
+- **Scalability guard** — `loadDb()` Firestore read now uses `.limit(1000)` to prevent unbounded memory growth
+
+## v4.16.0 — 2026-02-21
+
+### DOM-Cached Rendering (Third Performance Audit)
+
+#### Building Blox (`blox.js`)
+
+- **Cached board cells** (`_boardCells[][]`): `renderBoard()` creates 100 `div` elements once and caches them in a 2D array. All subsequent renders diff-update only `className` and `style.background` — zero `innerHTML`, zero `createElement`, zero GC pressure.
+- **O(1) cell access**: `clearLines()` and `showGhostAt()` use `_boardCells[r][c]` direct array lookup instead of `querySelector('[data-r=...][data-c=...]')`.
+- **Ghost tracking array** (`_ghostCells[]`): `showGhostAt()` pushes cells to tracking array; `clearGhost()` iterates only ghosted cells instead of `querySelectorAll('.ghost')` over all 100 nodes.
+
+#### Gem Crush (`match3.js`)
+
+- **Cached board cells** (`_m3Cells[][]`): `renderBoard()` creates 64 cells once. Subsequent renders and `animateCascade()` steps diff-update existing DOM nodes — eliminating 64× `createElement` + 64× `addEventListener` per cascade step.
+- **Event delegation**: Single `click` listener on `.m3-board` replaces 64 per-cell closures. Cell coordinates read from `dataset.x`/`dataset.y` on the clicked target.
+- **O(1) `getCell()`**: `_m3Cells[y][x]` direct access replaces `querySelector('.m3-cell[data-x=...][data-y=...]')`.
+
+#### Navigation (`shared.js`)
+
+- **Cached nav collections**: `_cachedScreens[]`, `_cachedNavDots[]`, `_cachedNavTabs[]` populated once at `DOMContentLoaded`. `applyScreenClasses()` and `updateNavUI()` iterate cached arrays — zero `querySelectorAll` per screen transition.
+
+## v4.15.3 — 2026-02-20
+
+### Performance Optimizations (Second Audit)
+
+- **Trivia timer DOM cache** (`trivia.js`): Cached `timerFillEl` and `timerTextEl` refs at `startTimer()`. Added `lastDanger` diff guard — eliminates `getElementById` × 2 and redundant `classList.toggle` per rAF frame (~60fps).
+- **Farm glow compositor-only** (`farm.css`): Replaced paint-heavy `box-shadow` animation on `.farm-plot.ready` with `::after` pseudo + `opacity` animation. Only the compositor runs now — zero repaint across 6–9 simultaneous plots.
+- **HUD aurora animation gate** (`hud.css` + `hud.js`): Gated `auroraShift` animation behind `.aurora-active` class. Animation only runs while energy is regenerating; stops when full — eliminates continuous `background-position` repaint.
+- **Toast `will-change` lifecycle** (`base.css`): Moved `will-change: transform, opacity` from `.toast` to `.toast.show`. GPU composite layers now only exist during visible toast animation.
+- **Cache-busting params** (`index.html`): Updated all 15 CSS/JS `?v=` params from stale `4.9`/`4.11` to `4.15.3` — ensures browsers serve latest code after deploy.
+- **Duel history render cache** (`trivia.js`): Added `_lastHistoryJSON` cache to skip DOM rebuild on unchanged data in `renderDuelHistory()`.
+
+## v4.15.2 — 2026-02-20
+
+### Performance Optimizations
+
+- **Resize throttling** (`shared.js`): Replaced raw `resize` listener with `requestAnimationFrame` guard. Prevents layout thrashing (alternating DOM reads/writes at 60fps) during window resize.
+- **Farm growth tick visibility gate** (`farm.js`): `startLocalGrowthTick()` now skips `render()` entirely when the farm screen is not active (`HUB.currentScreen !== 2`). Badge updates throttled to fire only when the harvestable-plot count actually changes.
+- **Pet heart particle pool** (`pet.js`): Replaced `createElement`/`remove` churn with ring-buffer object pool of 5 pre-created `<span>` elements (same pattern as Match-3/Blox float points). Eliminates GC pressure on rapid pet clicks.
+- **HUD regen timer optimization** (`hud.js`): Cached all DOM refs (`$energyText`, `$goldText`, `$regenFill`, `$energyEl`) at init. Added early return when energy is full (skips all DOM ops). Regen fill width only written when the value actually changes. Page Visibility API gate pauses the 1s timer when tab is hidden.
+- **Farm water button delegation** (`farm.js`): Removed per-element `addEventListener` from `rebuildPlot()`. Water button clicks now routed through the grid's single event delegation handler, eliminating closure creation on every DOM rebuild.
+
+## v4.15.1 — 2026-02-20
+
+### Bug Fixes
+
+- **Match-3 session loss between visits**: Sessions vanished on re-entry because `init()` skipped localStorage and relied solely on the server, which used a 2s debounced Firestore write. If the tab closed during the debounce window or Cloud Run cold-started, `savedModes` was lost. Fix: `init()` now pre-loads localStorage, `restoreGame()` merges server + localStorage (server wins per-mode, localStorage fills gaps), and `beforeunload` snapshots the active game into `savedModes` + writes localStorage before the server flush.
+- **Blox tab-close data race**: Added `localStorage.setItem()` in Blox `beforeunload` handler as safety net against server debounce race (same pattern as Match-3 fix).
+
+### UX Improvements
+
+#### Building Blox
+
+- **Floating score points**: Object-pooled `+pts` text floats above the board on every line clear. Uses ring-buffer pool of 5 pre-created DOM nodes (ported from Match-3 pattern) with scattered CSS trajectories via `--float-dx`/`--float-rot` custom properties.
+- **Radial petrification game-over**: When no pieces fit, filled blocks "freeze" from center outward — each cell's `transition-delay` is calculated as Euclidean distance from board center × 60ms. Cells turn gray (`#475569`), lose pseudo-3D shadows, and gain `grayscale(0.8)` filter before the game-over overlay appears.
+
+#### Match-3 (Gem Crush)
+
+- **Deadlock reshuffle animation**: When no valid moves remain after a cascade, the board reshuffles with a 3D card-flip wave (`rotateY` 0→90→90→0) instead of silently regenerating. Each cell flips at a diagonal-wave delay (`(col + row) × 0.04s`); gem types change mid-flip while invisible. Drop tokens are preserved during reshuffle.
+
+## v4.15.0 — 2026-02-20
+
+### Juicy UI — Visual Overhaul (Match-3 + Building Blox)
+
+#### Match-3 (Gem Crush)
+
+- **Spring-physics fall**: 5-keyframe bounce animation with overshoot → settle, replacing the simple 2-step drop.
+- **Organic hover/active**: Back-ease `cubic-bezier(0.175, 0.885, 0.32, 1.275)` on cells with brightness shift and gem-icon micro-rotation.
+- **Flash-pop clear**: Matched gems flash to `brightness(2.8)` before shattering, creating a more satisfying destruction effect.
+- **Wave entrance**: Board fill uses diagonal wave delay (`col * 0.05s + row * 0.05s`) with spring overshoot and rotation.
+- **GPU-optimized drop-gem glow**: Replaced expensive `box-shadow` animation with `::after` pseudo-element using `opacity`/`transform` only (compositor-only properties).
+- **Scattered float-points**: Score popups now arc along random trajectories via `--float-dx` and `--float-rot` CSS custom properties.
+- **Combo banner vibration**: New `m3ComboPop` keyframe with spring-pop entrance and micro-rotation wobble.
+- **Intensity-scaled shake**: `combo >= 3` triggers heavy 2D screen shake with rotation (`shake-heavy` class).
+
+#### Building Blox
+
+- **Pseudo-3D blocks**: Filled cells get inner bevel highlight + shadow (`inset ±2px`) for a tactile, neumorphic look.
+- **Breathing ghost**: Placement preview pulses `opacity 0.35→0.7` via `ghostBreathe` animation, inviting the player to release.
+- **Flash-then-shatter clear**: Two-phase line clear — 100ms white brightness flash, then 280ms shatter-down with opacity fade.
+- **Elevated lift**: Piece pickup immediately scales to `1.05` with `translateY(-4px)` and deep `box-shadow: 0 12px 28px` shadow.
+- **GPU-accelerated drag**: `moveDragPreview()` now uses `transform: translate3d()` instead of `left/top` for smooth 60-120fps compositing.
+- **Hit-stop freeze**: Multi-line clears (≥2) add 120ms cinematic pause before game-over check, letting the player absorb the impact.
+- **Heavy shake**: Multi-line clears trigger `bloxShakeHeavy` with 2D translation + rotation.
+
+### Visual UX Performance & Physics
+
+#### Match-3
+
+- **Dynamic gravity**: Fall animation now uses CSS variable `--drop-dist` (set per gem by JS) to scale `translateY` distance proportionally to actual rows traveled. Duration scales via `--fall-dur`: `0.25s` base + `0.04s` per extra row, capped at `0.55s`. Short falls are snappy; long cascades are dramatic.
+- **Object-pooled float points**: Replaced `createElement`/`remove` pattern with a ring-buffer pool of 8 pre-created `.m3-float-points` DOM nodes. Eliminates GC pauses during intense combo cascades.
+- **CSS containment**: Added `contain: layout style paint` to `.m3-board`, isolating repaints from surrounding page elements.
+
+#### Building Blox
+
+- **Compositor-safe transitions**: Replaced `transition: all 0.18s` on `.blox-cell` with explicit `transform`, `opacity`, `border-color`, `background` — prevents layout thrashing when hovering over the 100-cell grid.
+- **Spring return animation**: Pieces dropped outside the board or in invalid positions now visually spring back to their tray slot via `bloxSpringReturn` keyframes (400ms with overshoot bounce) instead of vanishing instantly.
+- **CSS containment**: Added `contain: layout style paint` to `.blox-board`.
+
+### Tests
+
+- 10 new UX invariant tests (194 total): dynamic gravity timing, transition safety, CSS containment, pool capacity, spring return duration.
+
+### Bug Fixes
+
+- **Modal scrollbar flash**: `<dialog>` overlays briefly showed horizontal then vertical scrollbars during `modalPop` scale animation. Root cause: user-agent `overflow: auto` on `<dialog>` combined with `scale(0.9→1)` caused intermediate-size overflow recalculation. Fix: added `overflow: hidden`, `max-width/height` constraints, scrollbar suppression (`scrollbar-width: none` + `::-webkit-scrollbar`) on `.modal`; `contain: layout` and `width: min()` on `.modal-card`.
+
+### Cross-Device State Sync Fixes
+
+- **M3 board hydration**: `restoreGame()` now calls `hydrateBoard()` on all server `savedModes` boards. Firestore converts 2D arrays to objects — without hydration, `board[y][x]` returned `undefined` on cross-device restore.
+- **M3 dropStars hydration**: Added `hydrateArray()` utility and applied in `restoreDropState()`. Firestore converted `[{x,y}]` to `{0:{x,y}}`, breaking `for..of` iteration.
+- **Blox auto-apply server state**: `init()` now loads and applies server state to in-memory variables immediately, making Resume work correctly with cross-device data.
+- **Blox graceful pieceId fallback**: `loadState()` now falls back to the "dot" piece for unknown piece IDs instead of discarding the entire save.
+- **Tab-close state flush**: Both games now use `fetch({keepalive: true})` on `beforeunload` to guarantee state delivery when the browser closes during the 2s server-side debounce window. Uses `fetch` instead of `sendBeacon` to preserve Discord auth headers.
+
+## v4.14.3 — 2026-02-20
+
+### Deployment & Data Recovery
+
+- **Express 5.x Routing Crash**: Swapped deprecated wildcard string route `app.get("*")` to RegExp `app.get(/.*/)` in `server.js`.
+- **Missing `saveDb` Export**: Removed stale import from `playerManager.js` that crashed the server on start.
+- **Discord Auth Missing in Production**: Cloud Run was deployed without `DISCORD_CLIENT_ID`/`DISCORD_CLIENT_SECRET` env vars, causing all users to fall into demo mode with random IDs. Fixed deploy command to include all Discord credentials.
+- **Player Data Restoration**: Migrated 11 players from legacy `hub-db.json` (GCS bucket) into Firestore. Wrote a one-off migration script with recursive sanitization for Firestore constraints (no `undefined`, no nested arrays).
+
+### Frontend Hotfixes (Phase 2 Residuals)
+
+- **`applyScreenPosition` undefined**: Replaced deprecated DOM call in `shared.js` with its View Transitions replacement `applyScreenClasses()`.
+- **Building Blox crash on launch**: Converted `blox-pause-overlay` from legacy `<div>` to native `<dialog>` element.
+- **Match-3 Game Over overlay stuck**: Converted `m3-overlay` from `<div>` to `<dialog>`, replaced stale `classList.remove("show")` calls with `.close()`.
+- **Match-3 Pause overlay invisible**: `m3-pause-overlay` was a `<dialog>` in HTML but JS used `classList.add("show")` — replaced with `.showModal()`/`.close()`.
+- **Energy Modal crash**: Fixed `hud.js` assigning `.onclick` to nonexistent `energy-modal-close` element; switched to native `<dialog>` `.showModal()`/`.close()`.
+- **Economy Guide `?` button dead**: JS referenced `econ-guide-overlay` but HTML ID is `econ-guide-modal`. Fixed ID and switched to dialog API.
+- **Black text in dialogs**: Added `color: inherit` to `.modal` CSS to override browser default black text on `<dialog>` elements.
+
+### Architecture
+
+- **SmartLoader removed**: Replaced dynamic `document.createElement("script")` lazy loading with static `<script>` tags for all 4 game modules. Eliminates caching bugs from Discord's CDN proxy serving stale scripts.
+- **Content-hash cache busting**: Server's `getIndexHtml()` replaces `?v=` on all script/CSS tags with per-file MD5 hashes at startup. No more version-string cache misses.
+
+### Firestore Compatibility
+
+- **Match-3 `board.map` crash**: Firestore converts 2D arrays to objects with numeric keys. Added `hydrateBoard()` helper in `match3.js` to convert back.
+- **Blox board/tray hydration**: Same Firestore object→array fix applied to `blox.js` for both `board` and `tray` data.
+
+### UX
+
+- **Toasts repositioned**: Moved toast container from centered to bottom-right to avoid blocking the game board during play.
+
+### Tech Stack
+
+- **Express 5.x**: Upgraded from Express 4.18 to Express 5.2.1.
+- **Firestore**: Replaced GCS JSON file persistence with Google Cloud Firestore for player data.
+
+## v4.14.0 — 2026-02-20
+
+### UI/UX Refactoring (v5 Phase 2)
+
+- **Native View Transitions**: Replaced brittle CSS `-vw` screen track translations with the `document.startViewTransition()` API for smooth, native-feeling screen routing.
+- **Persistent Navigation**: Eliminated the jarring `nav-hidden` auto-hide mechanic. The Bottom Nav Bar is now persistently visible.
+- **Dynamic CSS Constraints**: Refactored Building Blox and Match-3 layouts to use CSS `flex: 1` scaling, fitting the game boards within the safe area between the TopHUD and Nav Bar without overlap or scrolling.
+- **Standardized `<dialog>` Overlays**: Upgraded all custom inline `.overlay` modals (Game Over, Pause, Economy Guide, Energy Prompt) to use native HTML5 `<dialog>` elements with built-in `::backdrop` dimming, guaranteeing perfect z-index focus trapping.
+- **Centralized Toast Queue**: Replaced disjointed `showToast` functions scattered across game modules with a unified global `ToastManager` queue. Toasts now stack neatly above the Nav Bar dynamically, holding a maximum of 3 notifications to prevent screen clutter.
+
+## v4.13.0 — 2026-02-20
+
+### Project & UX Analysis Complete
+
+Conducted a deep architectural and visual analysis across the entire `CC-GH` codebase. Identified core software limitations (e.g., imperative `.innerHTML` manipulation, fragile manual state management, in-memory DB constraints) and UX issues (brittle `translateX` navigation, blocking overlays, jumpy progress bars).
+
+### Synthesized Architectural Roadmap
+
+- **Componentization**: Transitioning to native ES Modules (`type="module"`) with Web Components for encapsulated DOM rendering—preserving the zero-build philosophy while eliminating global scope pollution.
+- **State & Network Sync**: Moving from manual REST polling/retries to a robust WebSocket-based protocol for deterministic state updates.
+- **Backend Robustness**: Upgrading the in-memory player Map to disk-backed SQLite or Redis for concurrent scalability and crash safety.
+
+### Synthesized UX/UI Roadmap
+
+- **View Transitions API**: Replacing the brittle `-200vw` layout track with native HTML5 View Transitions for seamless, responsive navigation.
+- **Native Dialogs & Smart Queues**: Standardizing all overlays to use the native `<dialog>` element for perfect z-index trapping, and implementing a centralized Toast Queue Manager.
+- **Persistent UX**: Adapting game boards to fit dynamically between the TopHUD and a persistently visible Nav Bar, avoiding the jarring auto-hide mechanic.
+
+## v4.12.3 — 2026-02-19
+
+### Blox Cross-Device Sync
+
+- **Server-side board persistence**: Added `savedState` to player data with automatic migration.
+- **New endpoints**: `POST /api/blox/state` (fetch saved board), `POST /api/blox/sync` (push board to server).
+- **Client sync**: `saveState()` fire-and-forgets to server after every piece placement. `init()` fetches server state and merges into localStorage for cross-device resume.
+- **Bug fix**: Removed stale `closeLeaderboard` reference in Match-3 `init()` that crashed on load.
+
+## v4.12.2 — 2026-02-19
+
+### Match-3 Inline Leaderboard
+
+- **Always-visible leaderboard**: Panel docked right of the board on desktop (≥680px), mirroring Blox left-side pattern. No more toggling.
+- **Mobile toggle**: On narrow screens (<640px), leaderboard is hidden by default with a toggle button. Removed old fixed slide-in panel, backdrop, and close button.
+- **Simplified JS**: Removed `openLeaderboard()`/`closeLeaderboard()`/`lbVisible` — replaced with single `toggleLeaderboard()` using `.show-mobile` class.
+
+## v4.12.1 — 2026-02-19
+
+### Match-3 Star Drop Persistence Fix
+
+- **Star Drop state loss**: `restoreGame()` now hydrates last-mode board from `savedModes` instead of generating a fresh board. Drop tokens (`💰🌾⚡`) are correctly restored on re-entry.
+- **DRY helper**: Added `restoreDropState(saved)` — shared by both `restoreGame()` and `startGame()` resume paths, eliminating the root asymmetry.
+- **Saved-session badges**: Mode cards now show `▶ 120pts · 18 moves` when a saved session exists, informing players before they click.
+- **CSS**: Added `has-save` styling for mode card description text (accent color + bold).
+
+## v4.12.0 — 2026-02-19
+
+### Server Modularization
+
+Refactored monolithic `server.js` (1542 lines) into a modular composition root (~220 lines) with feature-specific route modules. Zero functional changes — all 184 tests passing.
+
+- **`playerManager.js`** [NEW]: Extracted player state management, persistence (GCS + local fallback), schema migration, and graceful shutdown.
+- **`data/questions.json`** [NEW]: Extracted hardcoded trivia question bank from server.js.
+- **`routes/farm.js`** [NEW]: Farm endpoints (`/api/farm/*`, `/api/content/crops`).
+- **`routes/resources.js`** [NEW]: Resource and Pet endpoints (`/api/resources/*`, `/api/pet/*`, `/api/farm/sell-crop`).
+- **`routes/trivia.js`** [NEW]: Solo and Duel Trivia endpoints, room management, history.
+- **`routes/match3.js`** [NEW]: Match-3 game endpoints (`/api/game/*`).
+- **`routes/blox.js`** [NEW]: Building Blox endpoints (`/api/blox/*`).
+- **`routes/leaderboard.js`** [NEW]: Match-3 and Blox leaderboard endpoints.
+- **`server.js`** [MODIFIED]: Now a composition root — imports, configures, and mounts all route modules.
+
+### Deployment Fix
+
+- **Dockerfile**: Added `COPY playerManager.js`, `COPY routes/`, `COPY data/` — missing modules caused `ERR_MODULE_NOT_FOUND` on Cloud Run.
+- **`.dockerignore`**: Changed `data/` → `data/hub-db.json` — `data/questions.json` was being excluded from the Docker build context.
+
+### Housekeeping
+
+- `package.json` version bumped to `4.12.0`.
+- Updated all README files with new project structure and test counts.
+
+## v4.11.1 — 2026-02-19
+
+### Bug Fixes
+
+- **Farm harvest stuck** (Bug 1): Crops couldn't be harvested immediately after growth completed. Root cause: harvest guard required stale server-side `plot.growth` (refreshed only every 30s) AND `startLocalGrowthTick` stopped rendering entirely when all crops finished. Fix: trust local clock-corrected growth (server validates on harvest API); do one final render on the growing→done transition.
+- **Blox leaderboard 500** (Bug 2): `/api/blox/leaderboard` crashed when iterating players whose DB records pre-dated the Blox feature (`p.blox` undefined). Fix: optional chaining `p.blox?.highScore`.
+- **Match-3 cross-device desync** (Bug 3): Server stored only one `currentGame` — multi-mode sessions (Classic/Timed/Drop) existed only in device-local `localStorage` and couldn't cross devices. Fix: added `savedModes` field to server player record, new `/api/game/sync-modes` endpoint, `persistSavedModes()` syncs to server, `restoreGame()` merges server modes.
+
+## v4.11.0 — 2026-02-19
+
+### UX/UI Audit — Phase 3 (Cognitive Load Reduction)
+
+- **Farm shop FAB** (7.1): Floating 🛒 button on farm screen opens shop tab directly.
+- **Match-3 recommended badge** (7.2): "⭐ Recommended" badge on Classic mode for first 3 games, auto-hides after.
+- **Trivia settings panel** (7.3): ⚙️ Settings toggle exposes category and difficulty selectors. Defaults: All/Medium.
+- **Farm growth time estimate** (7.4): "~45s left" / "~2m left" label below growth bar on each plot.
+- **Energy tutorial tooltip** (7.6): One-time tooltip on energy pill explaining how energy works. Auto-dismisses after 10s.
+- **Economy guide overlay** (7.7): `?` button in TopHUD opens a flow diagram showing the full economy loop.
+
+### Housekeeping
+
+- Cache-busting: CSS `?v=4.9` → `?v=4.11` in `index.html`.
+- `package.json` version bumped to `4.11.0`.
+
+## v4.10.0 — 2026-02-19
+
+### UX/UI Audit — Phase 2 (Accessibility + Consistency)
+
+- **Gold color brightened** (5.2): `--gold` changed from `#fbbf24` → `#f5cf50` for better contrast on dark glass panels (~5.5:1 ratio on `#1e1b2e` surfaces).
+- **Button style convention** (6.5): `btn-danger` (red gradient) and `btn-success` (green gradient) standardized in `base.css`. Convention established: primary=purple, success/confirm=green, danger=red. Duplicate `btn-danger` removed from `blox.css`.
+
+> **Note:** Items 5.1, 5.4, 5.5, 5.6, 6.1, 6.2, 6.4 were already implemented in Phase 1 (v4.9).
+
+## v4.9.1 — 2026-02-19
+
+### Bug Fixes
+
+- **Screen headers hidden**: Removed per-game `<h2>` headers (`display: none`) — nav bar already provides game labels. Reclaims ~70px of vertical space, fixing Blox piece tray being clipped behind the nav bar and farm plots being partially obscured.
+- **Match-3 cross-device desync**: `restoreGame()` now treats server state as authoritative — clears localStorage `savedModes` entirely and replaces with only the server's active session. Prevents stale sessions from device A appearing on device B.
+
+## v4.9.0 — 2026-02-19
+
+### UX/UI Audit — Phase 1 (Navigation, Visual Polish, Feedback)
+
+#### Navigation Overhaul
+
+- **Universal bottom nav bar**: Now visible on ALL devices (was mobile-only). Desktop nav dots removed — single navigation paradigm everywhere.
+- **Auto-hide during gameplay**: Nav bar slides away during active Blox/Match-3 sessions via `.nav-hidden` class, recoverable on game-over/pause. `navBarAutoHide(hide)` helper in `shared.js`.
+- **Periodic arrow flash** (desktop): Nav arrows flash subtly every 90 seconds to remind pointer users of swipe navigation.
+- **Swipe hint re-show**: Swipe hint now re-shows after 3 days (was fire-once). Uses timestamp (`hub_swipe_hint_ts`) instead of boolean flag.
+
+#### Visual Polish
+
+- **Warm pastel overlay accents**: Game-over (gold `#f5cf50`), energy confirm (green `#a8d8a8`), pause (lavender `#c4b5e0`) overlays now have colored top borders for visual typing.
+- **Toast tinted backgrounds**: Success/error/info toasts get subtle background tints matching their border color + leading emoji icons (✅/❌/ℹ️).
+- **Stats bar labels**: Bumped from `0.6rem` → `0.72rem` with emoji icon prefixes (🏆, 🪙, ⭐, 🔥, 📊, 🏅) for scan-ability.
+- **Blox ghost cell**: Dashed border + lower opacity (`0.45`) for better valid/occupied distinction.
+- **Match-3 mode card lift**: Active mode card lifts `translateY(-2px)` with deeper shadow for clear selection state.
+- **Crop emoji enlarged**: `2rem` → `2.3rem` for better readability on farm plots.
+
+#### Touch & Interaction
+
+- **Buy-bar stepper buttons**: `26×26px` → `38×38px` for reliable mobile tapping (item 3.3).
+- **Seed card min-height**: 88px floor prevents cramped touch targets on small seed cards.
+- **Farm inventory buttons**: Mobile min-height `36px` → `44px` for Apple HIG compliance.
+- **Base button padding**: `11px` → `13px` for all `.btn` elements.
+
+#### Consistency & Layout
+
+- **Card/stats-bar widths**: Standardized from `min(520px, calc(100vw-80px))` → `min(480px, calc(100vw-60px))` across all game screens.
+- **Overlay z-index**: Bumped from `200` → `250` to layer above nav bar correctly.
+- **Inline styles → utility classes**: Game-over overlays replaced inline font/color with `.overlay-score` and `.overlay-detail` classes.
+- **Farm tab warm fill**: Active farm panel tab background bumped to `0.1` opacity with `0.78rem` font.
+- **Text contrast**: `--text-dim` brightened from `#94a3b8` → `#a3b1c6` for fine-print readability.
+
+#### Feedback & Animations
+
+- **Plant bounce** (`plantBounce`): Subtle scale pulse on harvest (wired via `.plant-bounce` class).
+- **Screen shake** (`screenShake`): Dramatic shake for Blox game-over (wired via `.screen-shake` class).
+- **Farm tab gold pulse**: Nav tab gets `navTabFarmPulse` animation + badge pulse when crops are ready (`.farm-ready` class on nav tab).
+
+### Version Bump
+
+- All CSS/JS/HTML version query strings → `v4.9`. File headers bumped in `base.css`, `farm.css`, `match3.css`, `blox.css`, `shared.js`.
+
+## v4.8.1 — 2026-02-19
+
+### Bug Fixes
+
+- **Blox leaderboard alignment**: Leaderboard panel was shifted too far left and pushed the game board off-center. `blox-lb-panel` is now `position: absolute; right: calc(50% + 220px)` — floats to the left of the centered board without affecting layout flow. Game area is always centered on the player's screen.
+- **Blox board centering**: Removed `gap` and `align-items` from `.blox-main` flex container so the board+tray column is the sole flex child driving centering.
+
+### Version Bump
+
+- `blox.css` header → `v4.8.1`.
+
+## v4.8.0 — 2026-02-19
+
+### Bug Fixes
+
+- **Energy pill regen bar clipping**: Added `overflow: hidden` to `.hud-energy` so the aurora fill bar stays within the pill's rounded boundary at all widths (previously overflowed at 1-5%).
+
+### Match-3 UX Overhaul
+
+- **Mode persistence**: The last-played mode is always pre-highlighted in the mode selector bar. Players no longer see "no mode selected" on screen re-entry or after game-over.
+- **Auto-start on piece interaction**: Touching/clicking the board when no game is active auto-triggers the energy confirmation for the pre-selected mode — no need to manually click a mode card first.
+- **Energy confirmation dialog**: New `confirmAndStart()` shows "Spend 5⚡ to play Classic?" before deducting energy. Saved sessions resume for free (no confirmation). Replaces the old silent energy deduction on mode card click.
+- **Simplified game-over overlay**: Removed "Play Again" button. Shows score, best score, and "🎉 New Record!" congrats when applicable. Single "✅ OK" dismiss returns the player to the board with the mode bar visible.
+- **Mode card routing**: Clicking a mode card when no game is active routes through `confirmAndStart()`. During an active game, it switches modes directly.
+
+### Version Bump
+
+- All file headers, `package.json` → `v4.8.0`.
+
+## v4.7.0 — 2026-02-19
+
+### Bug Fixes
+
+- **Blox premature game-over**: `clearLines()` now clears `board[][]` synchronously; the 300ms `setTimeout` only handles the visual `.clearing` CSS animation. The game-over check (`canAnyPieceFit()`) is deferred until after the animation completes, ensuring it runs against the correct board state.
+- **Match-3 API race condition**: Removed the duplicate fire-and-forget `/api/game/move` call inside the game-over branch of `attemptSwap()`. This call raced with `/api/game/end`, causing 400 "no active game" errors on the server.
+
+### Tests
+
+- 4 new game-over correctness tests in `blox.test.js` — verifies synchronous line clearing and correct `canAnyPieceFit()` behaviour after clears.
+
+### Version Bump
+
+- All file headers, `package.json` → `v4.7.0`.
+
+## v4.6.0 — 2026-02-18
+
+### Bug Fixes
+
+- **Play Again button not working**: `showModeSelector()` now dismisses the game-over overlay (`#m3-overlay`) and pause overlay before showing mode selection. Previously the game-over overlay stayed on top, blocking all interaction. Also resets `gameActive`, `gamePaused`, and `swipeBlocked` for clean state.
+
+### Global Version Constant
+
+- **Single source of truth**: Server reads `package.json` version at startup, injects `window.__APP_VERSION__` into HTML via `<!--APP_VERSION_INJECT-->` placeholder.
+- **SmartLoader auto-sync**: `shared.js` SmartLoader reads `window.__APP_VERSION__` for cache-bust — no more hardcoded version strings.
+- **Version badge auto-sync**: `{{APP_VERSION}}` placeholder in badge div, replaced by server.
+- **Eliminates manual updates**: Only `package.json` and file headers need manual version bumps on release.
+
+### Star Drop Visual Enhancement
+
+- **Unique colors**: Drop gems now use radial gradients with hues that don't overlap any of the 6 regular gem types:
+  - 💰 Gold Bag: rose-gold metallic (`#ffe4c4 → #e6a654 → #c4803d`)
+  - 🌾 Seed Pack: deep emerald (`#b4ffd0 → #10b981 → #047857`)
+  - ⚡ Energy: electric violet (`#e0c3fc → #a855f7 → #7c3aed`)
+- **Unique borders**: Thick white border (3px, 85% opacity) + animated `dropBorderPulse` glow with per-type `--drop-color` custom property. Glow expands outward in sync with existing `dropGlow` pulse.
+- **3D inner glow**: Radial gradient placed at 35% 35% creates a gem-like highlight that no regular flat-gradient tile has.
+
+### Version Bump
+
+- All file headers, `package.json` → `v4.6.0`.
+
+## v4.5.3 — 2026-02-18
+
+### Match-3 Mode Selector Fix (Critical)
+
+- **Mode selector always accessible**: `init()` eagerly creates the mode selector so it exists for `hideModeSelector()`. After "Continue", mode switcher bar appears inline — player can always switch modes.
+- **`onEnter()` state handling**: Properly distinguishes active game → pause overlay, saved sessions → continue overlay, no sessions → mode selector directly. Previously showed pause overlay in all cases.
+- **"New Game" / "Play Again" → mode selector**: Both `m3-btn-start` and `btn-m3-play-again` now open the mode selector instead of calling `startGame()` directly.
+- **`showModeSelector` exported**: Available to external callers (`shared.js` wiring).
+
+### UX Button Hierarchy
+
+- **Continue is primary**: When saved sessions exist, "▶ Continue" is `btn-primary` (first, most prominent), "🎮 New Game" is `btn-secondary`, "🛑 End All Sessions" is `btn-muted` (small, transparent, least prominent).
+- **DOM reordering**: Buttons dynamically reordered each time the pause overlay opens to ensure correct visual hierarchy regardless of initial HTML order.
+- **Handler reset**: All button `onclick` handlers reset on each overlay open to prevent leaking handlers from prior overlay states.
+- **`.btn-muted` CSS class**: New button style — transparent, dim, small text — for destructive-but-rare actions.
+- **`.overlay-actions`**: Flex column layout for consistent vertical button stacking.
+
+### Version Bump
+
+- All file headers, cache-bust strings, package.json → `v4.5.3`.
+
+## v4.5.2 — 2026-02-18
+
+### Stale Cache Fix (Critical)
+
+- **Cache-bust audit**: All `?v=4.1` strings in `index.html` (7 CSS + 4 JS) and `shared.js` SmartLoader updated to `?v=4.5.2`. Server content-hash injection still runs at runtime, but source now matches.
+- **SmartLoader**: Dynamically created `<script>` tags now use `?v=4.5.2` instead of stale `?v=4.1`.
+
+### Test Script Fix (Critical)
+
+- **`npm test` now runs all 167 tests**: Added `blox.test.js` (26), `match3.test.js` (12), `ux.test.js` (29), `gcp.test.js` (20) to `package.json` test script. Previously only 80 of 167 tests ran.
+
+### Header Audit
+
+- **All file headers aligned to `v4.5.2`**: `shared.js`, `store.js`, `hud.js`, `pet.js`, `farm.js`, `trivia.js`, `blox.js`, `match3.js`, `match3.css`, `blox.css`, `blox.test.js`.
+- **Version badge**: `index.html` badge updated to `v4.5.2`.
+
+### Docs
+
+- **README**: Fixed Demo Showcase `3-in-1 Hub` → `4-in-1 Hub`.
+
+## v4.5.1 — 2026-02-18
+
+### Match-3 Session Persistence (Critical)
+
+- **Save on creation**: New games stashed into `savedModes` immediately after board generation — game state now survives page reload even without making any moves.
+- **Persist after every swap**: `savedModes` updated and written to `localStorage` after each successful gem swap — mid-game progress never lost.
+- **Zero-move boards saved**: Removed `score > 0` gate — boards with no moves made are preserved when switching modes (no energy re-charge).
+- **Resume overlay**: When saved sessions exist after reload, pause overlay shows "▶ Continue" + "🛑 End All Sessions" + "🎮 New Game" instead of just "New Game".
+- **Auto-classic start**: If no saved sessions exist on first launch, classic mode starts automatically (no manual mode selection needed).
+
+## v4.5 — 2026-02-18
+
+### Match-3 Mode Selector UX
+
+- **Mode selector always accessible**: Shown directly on init and onEnter — no more invisible "New Game" gate required to browse modes
+- **Energy denial → mode selector**: When energy check fails, user returns to mode selector instead of being trapped with stale `gameMode`
+- Header bumped to v4.5
+
+### Farm UX
+
+- **Click-to-water**: Tapping a growing, unwatered plant now triggers watering instead of showing "Still growing" toast — eliminates frustration with small water button
+- Updated toast: "💧 Already watered! Growing…" for already-watered plants
+
+### Notification Badge Fix (Critical)
+
+- **Wrong screen index**: `updateFarmBadge()` used hardcoded screen `1` (Blox) instead of `2` (Farm) — clicking the badge navigated to Blox instead of Farm
+- **Direction arrows**: Fixed `point-left`/`point-right` logic for 4-screen layout
+- Farm module bumped from v3.3 → v4.5
+
+### Toast System
+
+- **Deduplication**: Same message within 1.5s is suppressed (prevents toast stacking from rapid actions)
+- **Color variants**: `showToast(msg, "success"|"error"|"info")` for context-appropriate left-border colors
+- Duration extended 2.1s → 2.5s
+
+### Stale Cache Fix
+
+- **In-game version badge**: Fixed stale `v4.1` → `v4.5` in `index.html`
+
+## v4.4 — 2026-02-17
+
+### Match-3 Critical Fixes
+
+- **Energy Guard Fix**: Energy check now runs _before_ `gameMode` mutation. Previously, failing the energy check left `gameMode` corrupted, causing board state to copy across modes. `match3.js`.
+- **State Persistence**: `savedModes` now persisted to `localStorage` (`m3_saved_modes`). Game states for each mode survive page reload — no more lost progress. `match3.js`.
+- **Restore Continuity**: `restoreGame()` now populates `savedModes` from server data, so "Continue" works correctly on first entry after reload. `match3.js`.
+
+### Blox Mobile Fixes
+
+- **Touch Drag Freeze**: Removed `renderTray()` call during `touchstart` — it was destroying the DOM touch target mid-event, causing browsers to cancel the touch sequence. Now uses CSS `.dragging` class for visual feedback. `blox.js`, `blox.css`.
+- **Ghost Alignment**: Ghost preview now aligned with the lifted drag preview by offsetting `getBoardTarget()` coordinates by `liftY`. `blox.js`.
+- **Lift Reduced 15%**: Touch lift factor reduced from 2.5× to 2.125× cell size for better finger proximity. `blox.js`.
+
+## v4.3.1 — 2026-02-17
+
+### Hotfix
+
+- **Blox Startup Crash**: Fixed `SyntaxError: Identifier 'dragPreviewEl' has already been declared` caused by duplicate variable declaration in v4.3. `blox.js`.
+
+## v4.3 — 2026-02-17
+
+### Critical Fixes
+
+- **Match-3 Star Drop Deadlock**: Added `hasValidMoves()` check after board generation and star placement. If no moves are possible, the board is regenerated until playable. `match3.js`.
+- **Match-3 State Persistence**: Switching modes (Classic/Timed/Drop) now saves the previous game state (board/score/timer). Returning resumes where you left off without consuming energy. `match3.js`.
+- **Match-3 Timer Fix**: Fixed "Time Attack" timer bleeding into other modes. Timer is now properly cleared on mode switch. `match3.js`.
+- **Blox Mobile Drag**: Drag preview now scaled to **1:1 board size** (was mini) and offset above finger for better visibility. `blox.js`.
+- **Touch Stability**: Added `touch-action: none` to full gameplay containers to prevent browser scrolling interference. `blox.css`, `match3.css`.
+
+## v4.2 — 2026-02-17
+
+### Improvements
+
+- **Blox PC Drag**: Added mouse drag-and-drop (click-hold). `blox.js`.
+- **Blox Stability**: Fixed mobile touch piece-stuck issue. `blox.js`.
+- **Match-3 Pause**: Added pause/continue overlay to match Blox UX. `match3.js`.
+- **Match-3 Swipe**: Added touch/mouse swipe gesture for gem swapping. `match3.js`.
+- **Star Drop Logic**: Bonus items now preserved during gravity/cascades. `match3.js`.
+
+## v4.1 — 2026-02-17
+
+### UX Overhaul
+
+- **Mobile Bottom Nav Bar**: 60px tab bar (emoji+labels), touch devices only. `base.css`, `shared.js`, `index.html`.
+- **Blox Persistence**: `localStorage` save/restore board+tray+score. `blox.js`.
+- **Blox Pause Overlay**: Frosted-glass overlay (New/Continue/End). Replaces old start button. `blox.css`, `index.html`.
+- **Blox Ghost Fix**: Board-level `mousemove` + `click` with center-of-mass offset. No per-cell gap flicker, placement matches ghost exactly. `blox.js`.
+- **Blox Touch Drag**: Tray→board drag with floating preview + `HUB.swipeBlocked`. `blox.js`, `blox.css`.
+- **Match-3 Sidebar**: Vertical mode selector left of board on desktop >680px. `match3.css`.
+- **Match-3 Mode Switch**: Non-active modes clickable during play (toast, no `confirm()`). `match3.js`.
+- **Match-3 Descriptions**: 0.68rem, readable text. Star Drop moves 20→30. `match3.js`, `match3.css`.
+- **Farm Mobile Buttons**: Sell/Feed enlarged (8px×14px, 0.82rem, 36px min-height) at <640px. `farm.css`.
+
+### Bugfixes (same day)
+
+- `confirm()` blocked by Discord sandbox — replaced with toast+direct switch.
+- Ghost/placement offset mismatch — unified `getTargetFromEvent()` for both.
 
 ---
 
-# Changelog
+## v4.0 — 2026-02-17
 
-## v6.3.0 — 2026-02-23
+### New: Building Blox 🧱
 
-### Psychological Marketing UX/UI Integration
+- 10×10 grid block puzzle, 12 piece shapes, ghost preview, progressive scoring.
+- Energy cost 4⚡. Server endpoints: `/api/blox/start`, `/api/blox/end`.
+- `blox.test.js`: 26 tests (shapes, placement, clearing, scoring, game-over, reward).
 
-Major feature release focusing on behavioral psychology and dark-pattern-free engagement loops (Sprints 1-3).
-Integrated Nudge Theory, the Zeigarnik Effect, the Peak-End Rule, and the IKEA Effect into core gameplay interactions.
+### Match-3 Mode Selector Fix
 
-#### 1. GameStore (Decoy Effect & Scarcity)
+- Removed absolute sidebar (clipped by `overflow-x: hidden`). Inline horizontal cards.
 
-- Added `store.js` and `store-ui.js` with a new reactive `MonetizationStore` container.
-- **Decoy Effect**: Added an inferior "decoy" bundle to make the target bundle look vastly superior.
-- **Scarcity & Urgency**: Implemented a rotating daily special with a countdown timer.
-- **Foot-in-the-Door**: Added a completely free daily retention bundle to train users on the checkout flow.
+### Navigation: 3→4 screens
 
-#### 2. Quest System Upgrade (Goal-Gradient Effect)
-
-- Converted hardcoded quests to a dynamic reactive menu in `quest.js`.
-- Progress bars now start at 25% (visual head start) to simulate the **Goal-Gradient Effect**, driving completion rates.
-- Quests auto-subscribe to the `GameStore` state singleton for instant reactivity.
-
-#### 3. Welcome Back Modal (Zeigarnik Effect)
-
-- Modified `game-logic.js` to identify "open loops" (e.g. unharvested crops, partially fed pets).
-- `farm.js` now natively renders these unfinished tasks as blinking alerts upon return.
-
-#### 4. Micro-Interactions & Polish (Peak-End Rule)
-
-- **Peak-End Rule**: Game Over modal in Match-3 now features an explosive, physics-driven CSS-only particle scatter `m3-splash-particle`.
-- **IKEA Effect**: New naming prompt `promptForPetName` allows the player to rename their companion pet upon level-up or at start, boosting emotional attachment.
-- **Nudge Theory Fluidity**: `scroll-behavior: smooth` and `cubic-bezier` spring transition variables applied to quest dropdowns and global panels for fluid, satisfying UX.
-
-#### Engineering & Tests
-
-- 100% test coverage maintained (322/322 tests pass).
+- Screen order: Trivia → Blox → Farm → Match-3. Farm remains default (index 2).
 
 ---
 
-## v6.2.3 — 2026-02-22
+## v3.3 — 2026-02-17
 
-### Bug Fixes — Pet Drag, Farm Timers, Shop Display, UI Freeze
+- Match-3 mode selector auto-shown on first visit (was blank screen).
+- Energy HUD tooltip: fixed 5min→2.5min interval; `syncFromServer` smart-merge.
+- Pet profile: removed duplicate feed section, added Auto-Plant ability display.
+- Farm emojis: pre-populate from `localStorage` cache before API.
+- Test fix: `ux.test.js` `getWateringMultiplier` was testing default, not crop-specific.
+- Removed dead `feedPet()`/`renderFeedButtons()` from `pet.js`.
 
-Six bug fixes targeting gameplay regressions and a critical UI unresponsiveness issue.
+## v3.2 — 2026-02-17
 
-#### 1. Pet Drag Flyoff (`pet.js`)
+- `gcp.test.js`: 20 resilience tests (latency, concurrency, payload, save stress, stale reconnect, idempotency).
+- Test audit: removed `match3.test.js` skip clause, pet flicker tests assert real buffers.
 
-- **Root cause**: Each `pointermove` frame re-read `getComputedStyle().transform.m41`, which already included the resolved `translateX(-50%)` pixel offset (~24px). Adding `dx` to this value each frame caused compounding leftward drift.
-- **Fix**: Absolute X position captured **once** on `pointerdown` and tracked via accumulated deltas — no computed style reads during drag. Removed `translateX(-50%)` from drag/drop transforms entirely.
+## v3.1.1 — 2026-02-17 (hotfix)
 
-#### 2. Farm Timer Label Static (`farm.js`)
+- `STAR_TYPE` undefined crash → `DROP_TYPES.includes()`.
+- `[object Object]` reward display → compact text preview.
+- Mode selector sidebar: absolute left of board (reverted in v4.0).
+- Cache bust all `?v=3.0` → `?v=3.1`.
 
-- **Root cause**: The `render()` diff-update path updated `.growth-bar-fill` width but **never** refreshed `.growth-time-label` text content. The 500ms growth tick moved the bar, but the timer text stayed frozen at its initial value.
-- **Fix**: Diff-update now calls `formatTimeLeft(plot, pct)` on every tick to update the label. Also removes uproot 💣 button when crop reaches harvest-ready.
+## v3.1 — 2026-02-17
 
-#### 3. Shop "undefined" Card + Wrong Growth Times (`farm.js`)
+- **Farm**: Gold sync instant, harvest persist, sell button, feed pet, water timeout, `/api/farm/sell-crop`.
+- **Match-3**: Star Drop 3 types, Time Attack timer-only, play-again flow.
+- **Energy**: Regen 150s (was 300s), aurora pill gradient.
+- **CSS**: `.farm-inv-btn.sell/.feed`, `.drop-gold/.drop-seeds/.drop-energy`.
+- **Tests**: 12 tile clearing tests.
 
-- **"undefined" card**: API `/api/content/crops` returns `{ ...CROPS, __hash: "..." }`. The `__hash` key is a string, not a crop object — iterating it produced an empty card with "undefined" name/price/emoji.
-- **Wrong growth times**: The `crops` variable (populated from API/localStorage cache) could contain stale `growthTime` values from older game versions.
-- **Fix**: Added `.filter()` to exclude non-object entries and `__hash`-prefixed keys. Shop now uses `CROPS_CONFIG[id]?.growthTime` (canonical import from `game-logic.js`) instead of relying on the cached API data.
+## v3.0 — 2026-02-17
 
-#### 4. Toast Event Listener Memory Leak (`shared.js`)
-
-- **Root cause**: `showToast()` attached `window.addEventListener("mousemove", ...)` and `window.addEventListener("mouseup", ...)` for swipe-to-dismiss on **every** toast, but **never removed** them. After dozens of toasts, thousands of orphaned listeners ran on every mouse pixel, causing `[Violation] Forced reflow` and main-thread lockups.
-- **Fix**: Move/up listeners now attach on `mousedown`/`touchstart` only, and are removed immediately in the `mouseup`/`touchend` handler.
-
-#### 5. safeShowModal Backdrop Click Trap (`shared.js`)
-
-- **Root cause**: The backdrop click-to-close listener used `{ once: true }`. If a user clicked **inside** the dialog first (e.g., missed a button), the event bubbled to `<dialog>`, consumed the one-shot listener without closing, and destroyed the only close mechanism. The invisible `::backdrop` then permanently trapped all pointer events until `ESC` was pressed.
-- **Fix**: Replaced with a persistent `click` listener that checks `e.target === dialogEl` and validates via `getBoundingClientRect()` bounds. Self-removes only when actually closing the dialog.
-
-#### 6. Centralized Modal Opening (`blox.js`, `match3.js`, `merge.js`)
-
-- **6 direct `.showModal()` calls** across Blox (2), Match-3 (3), and Merge (1) bypassed the anti-stacking logic in `safeShowModal()`.
-- **Fix**: All replaced with `safeShowModal()` — ensures any previously open dialog is closed before showing a new one, and all modals get the fortified backdrop click handler.
-
-#### Version Bumps
-
-- `package.json`: 6.2.2 → 6.2.3
-
-#### Tests
-
-- **320/320 pass**, 0 failures.
-
----
-
-## v6.2.2 — 2026-02-22
-
-### Offline Economy Rebalance — Autonomous Pet
-
-Critical UX fix: players no longer return to 0 Energy after being away. The pet's offline automation now runs on its own **Fullness** gauge instead of draining the player's Energy.
-
-#### Core Mechanic Change (`game-logic.js`)
-
-- **`processOfflineActions()`** completely rewritten:
-  - **Auto-Harvest**: costs **2 Fullness** per crop (was 1 Energy).
-  - **Auto-Plant**: costs **4 Fullness** per seed (was 2 Energy).
-  - **Auto-Water**: still free (ability-gated only).
-  - **Player Energy**: **never modified** during offline simulation.
-- **Self-Sustain (Auto-Eat)**: When the pet's fullness runs out mid-session, it automatically eats **cheap-tier crops only** (`strawberry`, `blueberry` — `CROP_TIERS[id] === "cheap"`) from the player's inventory to refuel. Mid and expensive crops (tomato, golden, corn, sunflower, watermelon, pumpkin) are never consumed.
-- **Report fields**: `energyConsumed` removed, replaced with `fullnessConsumed` and `foodEaten: { [cropId]: count }`.
-
-#### Welcome-Back Dialog (`farm.js`)
-
-- Updated to display `🍖 fullness used` and `🐾 Pet ate: 🍓×N` instead of `⚡ energy used`.
-
-#### Tests
-
-- **320/320 pass**, 0 failures (+2 new tests for auto-eat and mid/expensive food protection).
-- 100× stress test now asserts energy is **never modified** (was: "never below 0").
-
-#### Version Bumps
-
-- `package.json`: 6.2.1 → 6.2.2
-
----
-
-## v6.2.1 — 2026-02-22
-
-### Performance & UX — 7-Fix Optimization Pass
-
-Comprehensive performance audit and remediation. Zero breaking changes, 318/318 tests pass.
-
-#### 1. `effects.js` — Shared Effects Module (DRY)
-
-- **New module** `public/js/effects.js` — centralised source of truth for all visual/audio effects.
-- **`perlinShake(el, intensity, durationMs)`**: Removed 39-line duplicate from `match3.js` and 30-line duplicate from `blox.js` (−120 lines total). Now a single versioned export with a **Page Visibility gate** — skips animation when tab is backgrounded (Discord Electron iframe focus).
-- **`colorSplash(el, color)`**: Inset box-shadow flash with zero layout impact.
-- **`debounce(fn, wait)`**: Utility with `.cancel()` / `.flush()` used for П7 timer fixes.
-- **`SoundEngine`**: Web Audio API synthesiser + `navigator.vibrate()`. See П6 below.
-- Registered in `server.js` import map for content-hash cache busting.
-
-#### 2. Farm Dirty-Check — O(1) Reference Equality
-
-- `syncFromStore()` in `farm.js` previously serialised all plots via `JSON.stringify(storeState.plots)` on every call.
-- The local growth timer calls this **every ~1 second**, producing ~**3,600 `JSON.stringify` calls per hour**.
-- **Fix**: Replaced with a simple reference equality check (`storeState === _lastStoreRef`). Object identity is guaranteed by GameStore's immutable-update pattern — if the reference didn't change, the data didn't change.
-
-#### 3. Merge Generator Panel — Conditional Re-render
-
-- `GameStore.subscribe("merge", ...)` previously called both `_renderBoard()` **and** `_renderGeneratorPanel()` on every state change, including drag/merge operations that don't touch generator data.
-- **Fix**: Panel re-renders only when `generatorState`, `generators`, or `lastFreePull` actually changes. Board renders unconditionally. Eliminates 4–7 `createElement` + `addEventListener` calls per user drag.
-
-#### 4. Timer Leak Cleanup — 3 Modules
-
-- `match3.js`, `blox.js`, and `merge.js` each maintained a permanent `setInterval` that ran indefinitely after module initialisation, regardless of whether the screen was active.
-- **Fix**: All three replaced with `debounce(fn, 3000)` from `effects.js`. Debounced functions are cancelled in new `onLeave()` callbacks called by `shared.js` during screen navigation.
-- **Page Visibility gate**: Sync skips when `document.hidden` (tab backgrounded) — reduces background network load on Discord mobile.
-- `merge.js`: `_idleHintTimer` and `_cooldownTimer` cleared in `onLeave()`. `onLeave` added to public API and wired into `shared.js` `triggerScreenCallbacks()`.
-
-#### 5. Welcome-Back Modal — Native `<dialog>`
-
-- `showWelcomeBack()` in `farm.js` was creating a raw `div.overlay` appended to `<body>`.
-- This bypassed `goToScreen()`'s `querySelectorAll("dialog[open]")` cleanup, meaning the overlay could persist invisibly after navigation.
-- **Fix**: Migrated to native `<dialog>` via `safeShowModal()` — consistent with the project-wide overlay convention (v4.14+). Gains: native focus-trap, Escape-to-close, backdrop click-to-close, and correct `goToScreen` cleanup.
-
-#### 6. SoundEngine — Web Audio + Vibration API
-
-- **Zero assets**: All sounds synthesised programmatically using `OscillatorNode` + exponential gain ramp. No files, no network requests, no permissions required.
-- **`navigator.vibrate()`**: Short haptic patterns on Android (Discord mobile). Silently ignored on desktop/iOS.
-- **Triggers wired**:
-  - `match3.js`: invalid swap → `SoundEngine.error()`, match cascade → `.match()` / `.combo(n)`, game over → `.gameOver()`
-  - `farm.js`: harvest → `SoundEngine.harvest()`
-  - `merge.js`: successful merge → `SoundEngine.merge()`
-- Volume: default 40%, stored in `localStorage('hub_sfx_vol')`, range 0–1.
-
-#### Version Bumps
-
-- `package.json`: 6.2.0 → 6.2.1
-- `match3.js`, `blox.js`, `farm.js`, `merge.js` headers: `v6.2.0` → `v6.2.1`
-
-#### Tests
-
-- **318/318 pass**, 0 failures. (+1 test picked up by runner from new module structure.)
-
----
-
-## v6.2.0 — 2026-02-22
-
-### UX/UI Overhaul — 7-Task Code Audit
-
-Seven user-requested UX improvements across Pet, Quest Log, Match-3, Blox, and Farm screens.
-
-#### 1. Pet Panel Cleanup (`pet.js`)
-
-- **Removed Quests tab**: Quests are now exclusively accessed via the HUD dropdown — eliminates redundancy.
-- **Removed Stats tab button**: Stats display directly without tab switching. Cleaner UI with fewer clicks.
-
-#### 2. Quest Log → Non-Blocking Dropdown (`index.html`, `hud.js`, `hud.css`)
-
-- **Dropdown menu**: Converted from modal `<dialog>` to absolute-positioned dropdown anchored below the HUD button.
-- **Progress bars**: Each quest requirement now shows a visual fill bar (`have / need`) with green glow when complete.
-- **`_getPlayerQty()` helper**: Calculates current inventory for real-time progress display.
-- **Click-outside-to-close**: Auto-dismisses when clicking outside the dropdown panel.
-
-#### 3. Overlay Dismiss Buttons (`index.html`, `blox.js`, `match3.js`, `base.css`)
-
-- **"👁️ Just Looking" button**: Added to both Blox and Match-3 pause overlays. Closes the overlay without affecting game state — players can browse screens freely.
-- **`.btn-dismiss` CSS**: Dashed border, low-opacity style that brightens on hover.
-
-#### 4. Cascade Animation Speed (`match3.js`)
-
-- **+15% base timing**: `BASE_HIGHLIGHT_DUR` 200→230ms, `BASE_POP_DUR` 220→250ms, `BASE_FALL_WAIT` 200→230ms.
-- **Flatter decay curve**: `SPEED_DECAY` 0.85→0.92 — higher combos remain readable.
-- **Speed floor**: Added `SPEED_FLOOR = 0.65` — cascades never run faster than 65% of base speed.
-
-#### 5. Farm Shop Improvements (`farm.js`, `farm.css`)
-
-- **Empty plot → shop redirect**: Clicking an empty plot without a seed selected scrolls to the shop section with a toast hint.
-- **Growth time labels**: New `_formatGrowthTime(ms)` helper formats growth times as `2m 15s` / `1h 30m`. Shown as `⏰ [time]` on seed cards.
-- **Sort by price**: Seeds in the shop grid are sorted by `seedPrice` ascending.
-- **`.seed-grow-time` CSS**: Subtle gold label for growth time display.
-
-#### 6. Nav Tab Shimmer + Notification Dots (`base.css`, `farm.js`)
-
-- **Shimmer effect**: Active nav tab has a subtle diagonal light sweep animation (`navShimmer` keyframes, 4s cycle).
-- **Farm notification dot**: Green pulsing `nav-notify-dot` appears on the Farm tab when any crop is fully grown. Auto-managed by `_updateFarmNavDot()` in the render cycle.
-- **Dot CSS**: `.dot-green` (harvest) and `.dot-red` (alert) variants with box-shadow glow.
-
-#### Version Bumps
-
-- `package.json`: 6.1.1 → 6.2.0
-- All CSS/JS file headers: `v6.1.1` → `v6.2.0`
-
-#### Tests
-
-- **317/317 pass**, 0 failures.
+- 7 hotfixes: farm panel overlay, harvest sync, toast XP-only, per-plot version, energy trust server, mode selector fix, regen bar fill.

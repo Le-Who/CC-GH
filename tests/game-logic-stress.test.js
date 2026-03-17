@@ -14,7 +14,9 @@ import assert from "node:assert/strict";
 import {
   ECONOMY,
   CROPS,
-  CROP_TIERS,
+  GEM_TYPES,
+  BOARD_SIZE,
+  BLOX_PIECES,
   createDefaultPlayer,
   calcRegen,
   calcGoldReward,
@@ -22,6 +24,9 @@ import {
   processOfflineActions,
   getWateringMultiplier,
   getGrowthPct,
+  generateBoard,
+  findMatches,
+  randomGem,
 } from "../game-logic.js";
 
 // Client engine (different findMatches implementation)
@@ -32,10 +37,8 @@ import {
   hasValidMoves,
   cloneBoard,
   DROP_TYPES,
-  BOARD_SIZE,
-  GEM_TYPES,
-} from "../src/vanilla/match3/engine.js";
-import { PIECES as BLOX_PIECES } from "../src/vanilla/blox/pieces.js";
+  BOARD_SIZE as CLIENT_BOARD_SIZE,
+} from "../public/js/match3/engine.js";
 
 /* ═══════════════════════════════════════════════════
  *  MATCH-3 — Board Generation Stress
@@ -43,7 +46,7 @@ import { PIECES as BLOX_PIECES } from "../src/vanilla/blox/pieces.js";
 describe("Match-3 Stress: Board Generation", () => {
   it("1000 boards: every board is 8×8, all cells are valid gems", () => {
     for (let i = 0; i < 1000; i++) {
-      const board = clientGenerateBoard();
+      const board = generateBoard();
       assert.equal(board.length, BOARD_SIZE, `Board ${i} wrong height`);
       for (let y = 0; y < BOARD_SIZE; y++) {
         assert.equal(
@@ -58,6 +61,18 @@ describe("Match-3 Stress: Board Generation", () => {
           );
         }
       }
+    }
+  });
+
+  it("1000 boards: zero initial matches (server findMatches)", () => {
+    for (let i = 0; i < 1000; i++) {
+      const board = generateBoard();
+      const matches = findMatches(board);
+      assert.equal(
+        matches.length,
+        0,
+        `Board ${i} has ${matches.length} initial matches`,
+      );
     }
   });
 
@@ -83,11 +98,11 @@ describe("Match-3 Stress: Board Generation", () => {
     }
   });
 
-  it("500 client boards: all 6 gem types appear with roughly even distribution", () => {
+  it("500 boards: all 6 gem types appear with roughly even distribution", () => {
     const counts = {};
     for (const gem of GEM_TYPES) counts[gem] = 0;
     for (let i = 0; i < 500; i++) {
-      const board = clientGenerateBoard();
+      const board = generateBoard();
       for (const row of board) {
         for (const gem of row) counts[gem]++;
       }
@@ -119,13 +134,111 @@ describe("Match-3 Stress: Board Generation", () => {
 });
 
 /* ═══════════════════════════════════════════════════
+ *  MATCH-3 — findMatches Correctness (Server)
+ * ═══════════════════════════════════════════════════ */
+describe("Match-3: findMatches server correctness", () => {
+  function makeUniqueBoard() {
+    // Checkerboard — guarantees zero matches
+    return Array.from({ length: BOARD_SIZE }, (_, y) =>
+      Array.from(
+        { length: BOARD_SIZE },
+        (_, x) => GEM_TYPES[(x + y * 2) % GEM_TYPES.length],
+      ),
+    );
+  }
+
+  it("detects horizontal 3-in-a-row", () => {
+    const b = makeUniqueBoard();
+    b[0][0] = b[0][1] = b[0][2] = "dark";
+    const m = findMatches(b);
+    assert.ok(m.length > 0, "No matches found");
+    const hit = m.find((mm) => mm.type === "dark");
+    assert.ok(hit, "Match type 'dark' not found");
+    assert.equal(hit.gems.length, 3);
+  });
+
+  it("detects horizontal 5-in-a-row as a single match of at least 5", () => {
+    const b = makeUniqueBoard();
+    // Use a gem type that doesn't appear in row 3 of the pattern
+    const rowGems = new Set(b[3]);
+    const safeGem = GEM_TYPES.find((g) => !rowGems.has(g)) || "fire";
+    b[3][1] = b[3][2] = b[3][3] = b[3][4] = b[3][5] = safeGem;
+    const m = findMatches(b);
+    const hit = m.find((mm) => mm.type === safeGem && mm.gems.length >= 5);
+    assert.ok(hit, "5-in-a-row not detected");
+    assert.ok(hit.gems.length >= 5, `Expected ≥ 5, got ${hit.gems.length}`);
+  });
+
+  it("detects horizontal 8-in-a-row (full width)", () => {
+    const b = makeUniqueBoard();
+    for (let x = 0; x < BOARD_SIZE; x++) b[4][x] = "water";
+    const m = findMatches(b);
+    const hit = m.find((mm) => mm.type === "water" && mm.gems.length === 8);
+    assert.ok(hit, "Full-row 8-in-a-row not detected");
+  });
+
+  it("detects vertical 3-in-a-row", () => {
+    const b = makeUniqueBoard();
+    b[0][7] = b[1][7] = b[2][7] = "light";
+    const m = findMatches(b);
+    const hit = m.find((mm) => mm.type === "light");
+    assert.ok(hit, "Vertical match not found");
+    assert.equal(hit.gems.length, 3);
+  });
+
+  it("detects vertical 8-in-a-column (full height)", () => {
+    const b = makeUniqueBoard();
+    for (let y = 0; y < BOARD_SIZE; y++) b[y][0] = "earth";
+    const m = findMatches(b);
+    const hit = m.find((mm) => mm.type === "earth" && mm.gems.length === 8);
+    assert.ok(hit, "Full-column 8-in-a-row not detected");
+  });
+
+  it("L-shaped cross: shared cell counted in both matches", () => {
+    const b = makeUniqueBoard();
+    // Horizontal: row 3, cols 2-4 = "air"
+    b[3][2] = b[3][3] = b[3][4] = "air";
+    // Vertical: col 4, rows 3-5 = "air"
+    b[4][4] = b[5][4] = "air"; // b[3][4] already set
+    const m = findMatches(b);
+    // Should find at least 2 matches (1 horizontal, 1 vertical)
+    const airMatches = m.filter((mm) => mm.type === "air");
+    assert.ok(
+      airMatches.length >= 2,
+      `Expected 2+ air matches, got ${airMatches.length}`,
+    );
+  });
+
+  it("null cells never produce matches", () => {
+    const b = Array.from({ length: BOARD_SIZE }, () =>
+      Array(BOARD_SIZE).fill(null),
+    );
+    const m = findMatches(b);
+    assert.equal(m.length, 0, "Null board should have 0 matches");
+  });
+
+  it("full board of same gem returns all cells matched", () => {
+    const b = Array.from({ length: BOARD_SIZE }, () =>
+      Array(BOARD_SIZE).fill("fire"),
+    );
+    const m = findMatches(b);
+    // All 64 cells should be covered by matches
+    const allGems = new Set();
+    for (const match of m) {
+      for (const g of match.gems) allGems.add(`${g.x},${g.y}`);
+    }
+    assert.equal(allGems.size, 64, `Only ${allGems.size}/64 cells matched`);
+  });
+});
+
+/* ═══════════════════════════════════════════════════
  *  MATCH-3 — findMatches Correctness (Client engine.js)
  * ═══════════════════════════════════════════════════ */
 describe("Match-3: findMatches client correctness", () => {
   function makeUniqueBoard() {
-    return Array.from({ length: BOARD_SIZE }, (_, y) =>
+    return Array.from({ length: CLIENT_BOARD_SIZE }, (_, y) =>
       Array.from(
-        { length: BOARD_SIZE },
+        { length: CLIENT_BOARD_SIZE },
         (_, x) => GEM_TYPES[(x + y * 2) % GEM_TYPES.length],
       ),
     );
@@ -668,34 +781,15 @@ describe("Farm Stress: Growth calculations", () => {
   });
 
   it("watering multipliers are correct per growth tier", () => {
-    // <15min → 0.7, 15min-<1h → 0.6, 1h+ → 0.55
-    assert.equal(getWateringMultiplier("strawberry"), 0.7); // 60s (v7.3: rebalanced from 5s)
-    assert.equal(getWateringMultiplier("blueberry"), 0.7); // 7 min
-    assert.equal(getWateringMultiplier("tomato"), 0.6); // 15 min
-    assert.equal(getWateringMultiplier("golden"), 0.6); // 30 min
-    assert.equal(getWateringMultiplier("corn"), 0.6); // 45 min (v7.3: rebalanced from 1h)
-    assert.equal(getWateringMultiplier("sunflower"), 0.55); // 2 hr
-    assert.equal(getWateringMultiplier("watermelon"), 0.55); // 4 hr
-    assert.equal(getWateringMultiplier("pumpkin"), 0.55); // 8 hr
-  });
-
-  // v7.3: Guard against future ultra-fast crop exploits
-  it("no crop has growthTime under 30 seconds", () => {
-    for (const [id, cfg] of Object.entries(CROPS)) {
-      assert.ok(
-        cfg.growthTime >= 30_000,
-        `${id} has growthTime ${cfg.growthTime}ms — minimum is 30s to prevent spam exploits`,
-      );
-    }
-  });
-
-  // v7.3: Validate planter removed from default inventory
-  it("default player has no phantom 'planter' in farm inventory", () => {
-    const p = createDefaultPlayer("planter_test", "Test");
-    assert.ok(
-      !("planter" in p.farm.inventory),
-      `Default inventory contains 'planter' — a non-existent crop`,
-    );
+    // < 30s → 0.7, 30s-59s → 0.6, 60s+ → 0.55
+    assert.equal(getWateringMultiplier("strawberry"), 0.7); // 15s
+    assert.equal(getWateringMultiplier("blueberry"), 0.7); // 20s
+    assert.equal(getWateringMultiplier("tomato"), 0.6); // 30s
+    assert.equal(getWateringMultiplier("corn"), 0.6); // 45s
+    assert.equal(getWateringMultiplier("sunflower"), 0.55); // 60s
+    assert.equal(getWateringMultiplier("watermelon"), 0.55); // 75s
+    assert.equal(getWateringMultiplier("golden"), 0.55); // 90s
+    assert.equal(getWateringMultiplier("pumpkin"), 0.55); // 120s
   });
 });
 
@@ -712,26 +806,17 @@ describe("Farm: Economy invariants", () => {
     }
   });
 
-  it("longer growthTime → higher sellPrice within same tier", () => {
-    // Compare only within same CROP_TIERS tier.
-    // Golden Rose is an intentional prestige outlier (short growth, premium price).
-    const PRESTIGE_CROPS = new Set(["golden"]);
-    const tiers = {};
-    for (const [id, tier] of Object.entries(CROP_TIERS)) {
-      if (PRESTIGE_CROPS.has(id)) continue;
-      if (!tiers[tier]) tiers[tier] = [];
-      tiers[tier].push(CROPS[id]);
-    }
-    for (const [tier, crops] of Object.entries(tiers)) {
-      const sorted = crops.sort((a, b) => a.growthTime - b.growthTime);
-      for (let i = 1; i < sorted.length; i++) {
-        if (sorted[i].growthTime > sorted[i - 1].growthTime) {
-          assert.ok(
-            sorted[i].sellPrice >= sorted[i - 1].sellPrice,
-            `[${tier}] ${sorted[i].id} (${sorted[i].growthTime}ms) sells for ${sorted[i].sellPrice} but ` +
-              `${sorted[i - 1].id} (${sorted[i - 1].growthTime}ms) sells for ${sorted[i - 1].sellPrice}`,
-          );
-        }
+  it("longer growthTime → higher sellPrice (value scales with time)", () => {
+    const sorted = Object.values(CROPS).sort(
+      (a, b) => a.growthTime - b.growthTime,
+    );
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i].growthTime > sorted[i - 1].growthTime) {
+        assert.ok(
+          sorted[i].sellPrice >= sorted[i - 1].sellPrice,
+          `${sorted[i].id} (${sorted[i].growthTime}ms) sells for ${sorted[i].sellPrice} but ` +
+            `${sorted[i - 1].id} (${sorted[i - 1].growthTime}ms) sells for ${sorted[i - 1].sellPrice}`,
+        );
       }
     }
   });
@@ -754,19 +839,20 @@ describe("Farm: Economy invariants", () => {
 });
 
 /* ═══════════════════════════════════════════════════
- *  FARM — Offline Simulation Stress (v6.2.2 — fullness-based)
+ *  FARM — Offline Simulation Stress
  * ═══════════════════════════════════════════════════ */
 describe("Farm Stress: processOfflineActions", () => {
-  it("100× random states: energy is NEVER modified", () => {
+  it("100× random states: energy never goes below 0", () => {
     for (let i = 0; i < 100; i++) {
       const now = Date.now();
       const p = createDefaultPlayer(`stress_${i}`, "Stress", now - 600000);
       p.pet.abilities.autoHarvest = Math.random() > 0.5;
       p.pet.abilities.autoPlant = Math.random() > 0.5;
       p.pet.abilities.autoWater = Math.random() > 0.5;
-      p.pet.stats.fullness = Math.floor(Math.random() * ECONOMY.SATIETY_MAX);
-      const energyBefore = p.resources.energy.current;
-      // Random seeds (including cheap crops for auto-eat)
+      p.resources.energy.current = Math.floor(
+        Math.random() * ECONOMY.ENERGY_MAX,
+      );
+      // Random seeds
       p.farm.inventory.strawberry = Math.floor(Math.random() * 20);
       p.farm.inventory.tomato = Math.floor(Math.random() * 10);
       // Random plots
@@ -779,20 +865,18 @@ describe("Farm Stress: processOfflineActions", () => {
         }
       }
       processOfflineActions(p, now);
-      assert.equal(
-        p.resources.energy.current,
-        energyBefore,
-        `Game ${i}: energy was modified from ${energyBefore} to ${p.resources.energy.current}`,
+      assert.ok(
+        p.resources.energy.current >= 0,
+        `Game ${i}: energy went to ${p.resources.energy.current}`,
       );
     }
   });
 
-  it("harvest costs fullness (not energy)", () => {
+  it("harvest costs exactly 1 energy per crop", () => {
     const now = Date.now();
     const p = createDefaultPlayer("h_test", "Test", now - 300000);
     p.pet.abilities.autoHarvest = true;
-    p.pet.stats.fullness = 50;
-    const energyBefore = p.resources.energy.current;
+    p.resources.energy.current = 10;
     // Plant 3 fully-grown strawberries
     for (let i = 0; i < 3; i++) {
       p.farm.plots[i].crop = "strawberry";
@@ -801,16 +885,14 @@ describe("Farm Stress: processOfflineActions", () => {
     const report = processOfflineActions(p, now);
     assert.ok(report);
     assert.equal(report.harvested.strawberry, 3);
-    assert.ok(report.fullnessConsumed > 0, "Should consume fullness");
-    assert.equal(p.resources.energy.current, energyBefore, "Energy untouched");
+    assert.equal(report.energyConsumed, 3); // 1 per harvest
   });
 
-  it("plant costs fullness (not energy)", () => {
+  it("plant costs exactly 2 energy per seed", () => {
     const now = Date.now();
     const p = createDefaultPlayer("p_test", "Test", now - 300000);
     p.pet.abilities.autoPlant = true;
-    p.pet.stats.fullness = 50;
-    const energyBefore = p.resources.energy.current;
+    p.resources.energy.current = 10;
     p.farm.inventory.strawberry = 10;
     // All plots empty
     const report = processOfflineActions(p, now);
@@ -819,18 +901,14 @@ describe("Farm Stress: processOfflineActions", () => {
       (a, b) => a + b,
       0,
     );
-    assert.ok(totalPlanted > 0);
-    assert.ok(report.fullnessConsumed > 0, "Should consume fullness");
-    assert.equal(p.resources.energy.current, energyBefore, "Energy untouched");
+    assert.equal(report.energyConsumed, totalPlanted * 2);
   });
 
-  it("auto-water is free (no fullness or energy cost)", () => {
+  it("auto-water is free (no energy cost)", () => {
     const now = Date.now();
     const p = createDefaultPlayer("w_test", "Test", now - 300000);
     p.pet.abilities.autoWater = true;
-    p.pet.stats.fullness = 0; // No fullness
     p.resources.energy.current = 0; // No energy
-    p.farm.inventory = {}; // No food
     // Plant crops but don't water
     for (let i = 0; i < 4; i++) {
       p.farm.plots[i].crop = "strawberry";
@@ -840,7 +918,7 @@ describe("Farm Stress: processOfflineActions", () => {
     const report = processOfflineActions(p, now);
     assert.ok(report);
     assert.equal(report.autoWatered, 4);
-    assert.equal(report.fullnessConsumed, 0, "Water should be free");
+    assert.equal(report.energyConsumed, 0, "Water should be free");
     assert.equal(p.resources.energy.current, 0, "Energy should stay at 0");
   });
 
@@ -849,7 +927,7 @@ describe("Farm Stress: processOfflineActions", () => {
       const now = Date.now();
       const p = createDefaultPlayer(`seed_${i}`, "Test", now - 300000);
       p.pet.abilities.autoPlant = true;
-      p.pet.stats.fullness = 100;
+      p.resources.energy.current = 20;
       p.farm.inventory.strawberry = 2; // Only 2 seeds
       processOfflineActions(p, now);
       assert.ok(
@@ -865,19 +943,19 @@ describe("Farm Stress: processOfflineActions", () => {
     p.pet.abilities.autoHarvest = true;
     p.pet.abilities.autoPlant = true;
     p.pet.abilities.autoWater = true;
-    p.pet.stats.fullness = 6; // 2 for harvest + 4 for plant = exactly 6
-    // Use tomato (mid-tier) so auto-eat can't refuel from inventory
-    p.farm.inventory = { tomato: 5 };
-    // Plot 0: fully grown (can harvest for 2 fullness)
+    p.resources.energy.current = 3; // Only 3 energy
+    p.farm.inventory.strawberry = 5;
+    // Plot 0: fully grown (can harvest for 1 energy)
     p.farm.plots[0].crop = "strawberry";
     p.farm.plots[0].plantedAt = now - CROPS.strawberry.growthTime - 5000;
-    // Plots 1-5: empty (can plant for 4 fullness each)
+    // Plots 1-5: empty (can plant for 2 energy each)
 
     const report = processOfflineActions(p, now);
     assert.ok(report);
-    // Should harvest first (2 fullness), then plant 1 (4 fullness), total = 6
+    // Should harvest first (1 energy), then plant (2 energy), total = 3
     assert.equal(report.harvested.strawberry, 1, "Should harvest 1");
-    assert.equal(report.fullnessConsumed, 6, "Should use all 6 fullness");
+    assert.equal(report.energyConsumed, 3, "Should use all 3 energy");
+    // 1 harvest + 1 plant = 3 energy
     const totalPlanted = Object.values(report.planted).reduce(
       (a, b) => a + b,
       0,
@@ -885,7 +963,7 @@ describe("Farm Stress: processOfflineActions", () => {
     assert.equal(
       totalPlanted,
       1,
-      "Should plant exactly 1 with remaining 4 fullness",
+      "Should plant exactly 1 with remaining 2 energy",
     );
   });
 
@@ -893,7 +971,7 @@ describe("Farm Stress: processOfflineActions", () => {
     const now = Date.now();
     const p = createDefaultPlayer("level_test", "Test", now - 300000);
     p.pet.abilities.autoHarvest = true;
-    p.pet.stats.fullness = 50;
+    p.resources.energy.current = 20;
     p.farm.xp = 250;
     // Plant 2 fully-grown strawberries (5 xp each)
     p.farm.plots[0].crop = "strawberry";

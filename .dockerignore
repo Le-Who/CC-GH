@@ -10,16 +10,3 @@ tests/
 README.md
 CHANGELOG.md
 public/js/discord-sdk-bundle.js
-.agents/
-dist/
-.vscode/
-.idea/
-.DS_Store
-eslint.config.*
-# legacy and dev artifacts
-legacy_readme.md
-legacy_changelog.md
-eslint_output.txt
-eslint-errors.json
-concurrency_test.js
-scripts/

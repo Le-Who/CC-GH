@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Unified Server (Production-Ready)
  *  Farm + Trivia (Solo & Duel) + Match-3 (with Leaderboard)
- *  Discord OAuth2 · Simple Auth · GCS Persistence · Tri-Mode Auth
+ *  Discord OAuth2 · GCS Persistence · Dual-Mode Auth
  * ═══════════════════════════════════════════════════════
  */
 import "dotenv/config";
@@ -10,12 +10,11 @@ import express from "express";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { fileURLToPath } from "url";
 import compression from "compression";
-import { ensurePlayerLoaded } from "./playerManager.js";
-import { isRedisEnabled, isNonceSeenRedis } from "./redisAdapter.js";
-import authRoutes, { validateSimpleAuthToken } from "./routes/auth.js";
-import { getDb } from "./db.js";
+import { initStorage, getBucket } from "./storage.js";
+import { players, loadDb } from "./playerManager.js";
 
 /* ─── Route Modules ─── */
 import farmRoutes from "./routes/farm.js";
@@ -24,15 +23,6 @@ import triviaRoutes from "./routes/trivia.js";
 import match3Routes from "./routes/match3.js";
 import bloxRoutes from "./routes/blox.js";
 import leaderboardRoutes from "./routes/leaderboard.js";
-import mergeRoutes from "./routes/mergeRoutes.js";
-import questRoutes from "./routes/questRoutes.js";
-import achievementRoutes from "./routes/achievements.js";
-import eventRoutes from "./routes/events.js";
-import seasonPassRoutes from "./routes/seasonpass.js";
-import { defaultLimiter, authLimiter } from "./middleware/rateLimit.js";
-
-// ─── Custom Domain (for non-Discord access via short URL) ───
-const CUSTOM_DOMAIN = process.env.CUSTOM_DOMAIN || ""; // e.g. "gamehub.example.com"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -46,141 +36,52 @@ const app = express();
 app.use(compression());
 app.use(express.json());
 
-// CORS — scoped to Discord Activity + custom domain origins in production, permissive in dev
-let _allowedOrigins = null;
-app.use((req, res, next) => {
-  if (!_allowedOrigins) {
-    _allowedOrigins = new Set([
-      "https://discord.com",
-      "https://ptb.discord.com",
-      "https://canary.discord.com",
-      `https://${process.env.DISCORD_CLIENT_ID || ""}.discordsays.com`,
-    ]);
-    // Custom domain support (non-Discord access)
-    if (CUSTOM_DOMAIN) {
-      _allowedOrigins.add(`https://${CUSTOM_DOMAIN}`);
-      _allowedOrigins.add(`http://${CUSTOM_DOMAIN}`); // for local dev
-    }
-  }
-  const origin = req.headers.origin;
-  if (
-    process.env.NODE_ENV !== "production" ||
-    !origin ||
-    _allowedOrigins.has(origin) ||
-    origin.endsWith(".discordsays.com")
-  ) {
-    res.set("Access-Control-Allow-Origin", origin || "*");
-  }
-  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  if (req.method === "OPTIONS") return res.sendStatus(204);
-  next();
-});
-
-// Security headers (Helmet-like, no extra dependency)
-app.use((_req, res, next) => {
-  res.set("X-Content-Type-Options", "nosniff");
-  // CSP frame-ancestors: Discord iframe + custom domain + self (for non-iframe access)
-  let cspAncestors = "'self' https://discord.com https://*.discord.com https://*.discordsays.com";
-  if (CUSTOM_DOMAIN) {
-    cspAncestors += ` https://${CUSTOM_DOMAIN}`;
-  }
-  res.set("Content-Security-Policy", `frame-ancestors ${cspAncestors}`);
-  res.set("X-XSS-Protection", "0"); // Modern browsers: rely on CSP instead
-  res.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  next();
-});
-
 const PORT = process.env.PORT || 8090;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "";
 const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "";
+const GCS_BUCKET = process.env.GCS_BUCKET || "";
 const DISCORD_ENABLED = !!(CLIENT_ID && CLIENT_SECRET);
 
+// Initialize GCS (no-op if GCS_BUCKET is empty)
+initStorage(GCS_BUCKET);
+
 /* ═══════════════════════════════════════════════════
- *  AUTH MIDDLEWARE (Tri-Mode: Discord · Simple-Auth · Demo)
+ *  AUTH MIDDLEWARE
  * ═══════════════════════════════════════════════════ */
 
-/**
- * requireAuth — validates authentication via one of three modes:
- *   1. Simple-auth token (prefix "sa_") → Firestore sessions lookup
- *   2. Discord OAuth token → Discord API validation
- *   3. No auth configured → demo mode (skip auth)
- */
+/* ─── Discord Auth (dual-mode) ─── */
 const requireAuth = async (req, res, next) => {
+  if (!DISCORD_ENABLED) return next(); // demo mode — skip auth
   const authHeader = req.headers.authorization;
-  const token = authHeader ? authHeader.split(" ")[1] : null;
-
-  // Mode 1: Simple-auth session token (sa_ prefix)
-  if (token && token.startsWith("sa_")) {
-    const user = await validateSimpleAuthToken(token);
-    if (!user) return res.status(401).json({ error: "Session expired or invalid" });
-    req.simpleUser = user;
-    await ensurePlayerLoaded(user.userId);
-    return next();
+  if (!authHeader) return res.status(401).json({ error: "No token provided" });
+  const token = authHeader.split(" ")[1];
+  try {
+    const userReq = await fetch("https://discord.com/api/users/@me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!userReq.ok) throw new Error("Invalid token");
+    req.discordUser = await userReq.json();
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: "Invalid token" });
   }
-
-  // Mode 2: Discord OAuth token
-  if (DISCORD_ENABLED && token) {
-    try {
-      const userReq = await fetch("https://discord.com/api/users/@me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!userReq.ok) throw new Error("Invalid token");
-      req.discordUser = await userReq.json();
-      await ensurePlayerLoaded(req.discordUser.id);
-      return next();
-    } catch {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-  }
-
-  // Mode 3: Demo mode — no auth required
-  if (!DISCORD_ENABLED) return next();
-
-  // No valid token provided
-  return res.status(401).json({ error: "No token provided" });
 };
 
 /**
- * resolveUser — extracts userId/username from:
- *   1. req.discordUser (Discord OAuth)
- *   2. req.simpleUser (Simple-auth session)
- *   3. req.body / req.query (demo mode fallback)
+ * resolveUser — extracts userId/username from either Discord auth or request body.
+ * In production (Discord enabled): uses req.discordUser from requireAuth.
+ * In demo mode: uses req.body.userId / req.body.username.
  */
 function resolveUser(req) {
-  // Discord user (set by requireAuth mode 2)
   if (req.discordUser) {
     return {
       userId: req.discordUser.id,
       username: req.discordUser.username || "Player",
     };
   }
-  // Simple-auth user (set by requireAuth mode 1)
-  if (req.simpleUser) {
-    return {
-      userId: req.simpleUser.userId,
-      username: req.simpleUser.username || "Player",
-    };
-  }
-  // Demo mode fallback
-  if (req.method === "GET") {
-    const uid = req.query?.userId || "demo-user";
-    const uname = req.query?.username || "Player";
-    return { userId: uid, username: uname };
-  }
-  return { userId: req.body?.userId, username: req.body?.username || "Player" };
+  return { userId: req.body.userId, username: req.body.username || "Player" };
 }
-
-/* ═══════════════════════════════════════════════════
- *  RATE LIMITING & CIRCUIT BREAKER — MUST be before route handlers
- * ═══════════════════════════════════════════════════ */
-app.use("/api/token", authLimiter);
-app.use("/api/auth", authLimiter);
-app.use("/api", (req, res, next) => {
-  if (req.path.startsWith("/auth") || req.path.startsWith("/token")) return next();
-  return defaultLimiter(req, res, next);
-});
 
 /* ═══════════════════════════════════════════════════
  *  CONFIG & HEALTH ENDPOINTS
@@ -191,8 +92,6 @@ app.get("/api/config", (_req, res) => {
   res.json({
     clientId: CLIENT_ID || "",
     discordEnabled: DISCORD_ENABLED,
-    simpleAuthEnabled: true, // Always available when Discord is not the only option
-    customDomain: CUSTOM_DOMAIN || null,
   });
 });
 
@@ -234,66 +133,26 @@ app.post("/api/token", async (req, res) => {
 const triviaRouter = triviaRoutes(requireAuth, resolveUser);
 const duelRooms = triviaRouter._duelRooms;
 
-app.get("/api/health", async (_req, res) => {
-  let dbOk = false;
-  try {
-    const sql = getDb();
-    if (sql) {
-      await sql`SELECT 1`;
-      dbOk = true;
-    }
-  } catch (e) {
-    console.error("Health check DB error:", e);
-  }
-
+app.get("/api/health", (_req, res) =>
   res.json({
-    status: dbOk ? "ok" : "degraded (database offline)",
+    status: "ok",
+    players: players.size,
     duels: duelRooms.size,
     uptime: Math.floor(process.uptime()),
+    gcs: !!getBucket(),
     discord: DISCORD_ENABLED,
-    postgres: dbOk,
-  });
-});
-
-app.get("/api/health/ping", async (_req, res) => {
-  try {
-    const sql = getDb();
-    if (sql) {
-      await sql`SELECT 1`;
-      res.status(200).send("PONG_PG");
-    } else {
-      res.status(200).send("PONG_NO_DB");
-    }
-  } catch (e) {
-    res.status(500).send("PING_FAIL");
-  }
-});
-
-// v9.0: Service Worker cache escape hatch — wipes caches, IndexedDB, localStorage
-app.get("/api/clear-cache", (_req, res) => {
-  res.set("Clear-Site-Data", '"cache", "storage"');
-  res.json({ cleared: true });
-});
+  }),
+);
 
 /* ═══════════════════════════════════════════════════
  *  MOUNT ROUTE MODULES
  * ═══════════════════════════════════════════════════ */
-// Rate limiters mounted above (before config endpoints)
-
-// Auth routes (register, login, logout, me) — no requireAuth needed
-app.use(authRoutes());
-
 app.use(farmRoutes(requireAuth, resolveUser));
 app.use(resourcesRoutes(requireAuth, resolveUser));
 app.use(triviaRouter);
 app.use(match3Routes(requireAuth, resolveUser));
 app.use(bloxRoutes(requireAuth, resolveUser));
 app.use(leaderboardRoutes());
-app.use(mergeRoutes(requireAuth, resolveUser));
-app.use(questRoutes(requireAuth, resolveUser));
-app.use(achievementRoutes(requireAuth, resolveUser));
-app.use(eventRoutes(requireAuth));
-app.use(seasonPassRoutes(requireAuth, resolveUser));
 
 /* ═══════════════════════════════════════════════════
  *  STATIC FILES & INDEX INJECTION
@@ -306,21 +165,8 @@ app.use(seasonPassRoutes(requireAuth, resolveUser));
 let sdkBundleCache = null;
 app.get("/js/discord-sdk.js", (_req, res) => {
   if (!sdkBundleCache) {
-    // Try public/js first (Docker build output), fallback to src/vanilla
-    const publicPath = path.join(
-      __dirname,
-      "public",
-      "js",
-      "discord-sdk-bundle.js",
-    );
-    const srcPath = path.join(
-      __dirname,
-      "src",
-      "vanilla",
-      "discord-sdk-bundle.js",
-    );
     sdkBundleCache = fs.readFileSync(
-      fs.existsSync(publicPath) ? publicPath : srcPath,
+      path.join(__dirname, "public", "js", "discord-sdk-bundle.js"),
       "utf-8",
     );
   }
@@ -331,14 +177,46 @@ app.get("/js/discord-sdk.js", (_req, res) => {
     .send(prefix + sdkBundleCache);
 });
 
+// ─── Content-Hash Cache Busting ───
+const assetHashes = {};
+function computeAssetHashes() {
+  const pubDir = path.join(__dirname, "public");
+  const scanDirs = ["js", "css"];
+  for (const dir of scanDirs) {
+    const dirPath = path.join(pubDir, dir);
+    if (!fs.existsSync(dirPath)) continue;
+    // Recursive scan to handle sub-modules (match3/, blox/)
+    const entries = fs.readdirSync(dirPath, {
+      withFileTypes: true,
+      recursive: true,
+    });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (entry.name === "discord-sdk-bundle.js") continue; // served dynamically
+      const filePath = path.join(entry.parentPath || entry.path, entry.name);
+      const relPath = path.relative(pubDir, filePath).replace(/\\/g, "/");
+      const content = fs.readFileSync(filePath);
+      const hash = crypto
+        .createHash("md5")
+        .update(content)
+        .digest("hex")
+        .slice(0, 8);
+      assetHashes[relPath] = hash;
+    }
+  }
+  console.log(
+    "  📦 Asset hashes computed:",
+    Object.keys(assetHashes).length,
+    "files",
+  );
+}
+
 // Serve index.html with injected content hashes + version constant
 let indexHtmlTemplate = null;
 function getIndexHtml() {
   if (!indexHtmlTemplate) {
-    const distIndex = path.join(__dirname, "dist", "index.html");
-    const rootIndex = path.join(__dirname, "index.html");
     indexHtmlTemplate = fs.readFileSync(
-      fs.existsSync(distIndex) ? distIndex : rootIndex,
+      path.join(__dirname, "public", "index.html"),
       "utf-8",
     );
   }
@@ -353,6 +231,42 @@ function getIndexHtml() {
   // v4.6: Replace version badge placeholder
   html = html.replace("{{APP_VERSION}}", `v${APP_VERSION}`);
 
+  // v5: Inject import map for ES Module cache busting
+  const jsModules = [
+    "store.js",
+    "shared.js",
+    "hud.js",
+    "pet.js",
+    "farm.js",
+    "trivia.js",
+    "match3.js",
+    "blox.js",
+    "main.js",
+    // Sub-modules (Phase 4)
+    "match3/engine.js",
+    "blox/pieces.js",
+    "crops.js",
+  ];
+  const importMapEntries = {};
+  for (const mod of jsModules) {
+    const key = `js/${mod}`;
+    const hash = assetHashes[key];
+    if (hash) {
+      importMapEntries[`./${key}`] = `./${key}?v=${hash}`;
+    }
+  }
+  const importMapTag = `<script type="importmap">{"imports":${JSON.stringify(importMapEntries)}}</script>`;
+  html = html.replace("<!--IMPORT_MAP_INJECT-->", importMapTag);
+
+  // Replace all ?v=X.Y.Z with ?v=<content-hash> (CSS files)
+  for (const [asset, hash] of Object.entries(assetHashes)) {
+    // Match href="css/file.css?v=..." or src="js/file.js?v=..."
+    const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    html = html.replace(
+      new RegExp(`(${escaped})\\?v=[^"']+`, "g"),
+      `$1?v=${hash}`,
+    );
+  }
   return html;
 }
 
@@ -365,24 +279,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve dist/ if it exists (Vite build output)
-if (fs.existsSync(path.join(__dirname, "dist"))) {
-  app.use(express.static(path.join(__dirname, "dist"), { index: false }));
-}
-
-// Serve root-level game-logic.js with correct MIME type (not in public/)
-app.get("/game-logic.js", (_req, res) => {
-  res
-    .type("application/javascript")
-    .set("Cache-Control", "no-cache")
-    .sendFile("game-logic.js", { root: __dirname });
-});
-
-// Strict 404 for static assets — prevents SPA catch-all from masking missing files
-app.use(/\.(js|mjs|css|json|map|png|jpg|svg|woff2?)$/i, (_req, res) => {
-  res.status(404).type("text/plain").send("Asset not found");
-});
-
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    index: false, // Don't serve index.html statically — we inject hashes
+  }),
+);
 app.get(/.*/, (_req, res) => {
   res.set("Cache-Control", "no-cache, no-store, must-revalidate");
   res.set("Surrogate-Control", "no-store");
@@ -390,147 +291,31 @@ app.get(/.*/, (_req, res) => {
   res.type("html").send(getIndexHtml());
 });
 
-// [Phase 2] Optimistic UI & Batch Sync Endpoint — v8.0 Direct Dispatch
-// Nonce deduplication: tracks last N nonces per user to reject replayed mutations
-const NONCE_CACHE_SIZE = 100;
-const nonceCache = new Map(); // userId → Set<nonce>
-
-function isNonceSeen(userId, nonce) {
-  if (!nonce) return false; // Legacy clients without nonces always pass
-  let set = nonceCache.get(userId);
-  if (!set) {
-    set = new Set();
-    nonceCache.set(userId, set);
-  }
-  if (set.has(nonce)) return true;
-  set.add(nonce);
-  // LRU eviction: keep only last N nonces
-  if (set.size > NONCE_CACHE_SIZE) {
-    const first = set.values().next().value;
-    set.delete(first);
-  }
-  return false;
-}
-
-app.post("/api/batch", requireAuth, async (req, res) => {
-  try {
-    const { requests } = req.body;
-    if (!Array.isArray(requests)) {
-      return res.status(400).json({ error: "Invalid batch format" });
-    }
-
-    resolveUser(req);
-    const userId = req.body?.userId || req.discordUser?.id || req.simpleUser?.userId;
-    const results = [];
-
-    // Process sequentially to maintain data integrity
-    for (const subReq of requests) {
-      const { path: subPath, body, id, nonce } = subReq;
-
-      // Idempotency check: prefer Redis (distributed), fallback to in-memory
-      if (nonce) {
-        let isDuplicate = false;
-        if (isRedisEnabled()) {
-          isDuplicate = await isNonceSeenRedis(userId, nonce);
-        } else {
-          isDuplicate = isNonceSeen(userId, nonce);
-        }
-        if (isDuplicate) {
-          results.push({ id, status: 409, data: { error: "Duplicate request" } });
-          continue;
-        }
-      }
-
-      try {
-        // Direct loopback fetch to bypass Node 24 native stream parsing crashes 
-        // caused by synthetic Express request objects in app.handle()
-        const headers = { "Content-Type": "application/json" };
-        if (req.headers.authorization) headers.authorization = req.headers.authorization;
-        let fetchUrl = `http://127.0.0.1:${PORT}${subPath}`;
-        if (req.method === "GET" || subPath.includes("?")) {
-           const sep = fetchUrl.includes("?") ? "&" : "?";
-           fetchUrl += `${sep}userId=${userId}`;
-        }
-        
-        let subBody = body ? { ...body } : {};
-        if (userId) {
-          subBody.userId = userId;
-          subBody.username = resolveUser(req).username;
-        }
-        
-        const fetchCtx = { 
-          method: body ? "POST" : "GET", 
-          headers 
-        };
-        
-        if (fetchCtx.method === "POST" || fetchCtx.method === "PUT") {
-          fetchCtx.body = JSON.stringify(subBody);
-        }
-
-        const response = await fetch(fetchUrl, fetchCtx);
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          data = { error: "Invalid JSON response" };
-        }
-        
-        results.push({ id, status: response.status, data });
-      } catch (err) {
-        results.push({ id, status: 500, error: err.message });
-      }
-    }
-
-    res.json({ results });
-  } catch (err) {
-    console.error("Batch error:", err);
-    res.status(500).json({ error: "Batch processing failed" });
-  }
-});
-
-// Global error handler (Express 5 catches async rejections automatically)
-app.use((err, _req, res, _next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Internal Server Error" });
-});
-
 /* ═══════════════════════════════════════════════════
  *  STARTUP
  * ═══════════════════════════════════════════════════ */
-export { app };
-import { initDb } from "./db.js";
+export { app, players };
 
 async function start() {
-  initDb();
-
-  // Feature 5 loop: Refresh materialized view every 5 minutes (concurrently so frontend is not blocked)
-  setInterval(async () => {
-    const sql = getDb();
-    if (sql) {
-      try {
-        await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY player_stats_view`;
-      } catch (err) {
-        console.error("Failed to refresh materialized view:", err.message);
-      }
-    }
-  }, 5 * 60 * 1000);
-
+  await loadDb();
+  computeAssetHashes();
   app.listen(PORT, () => {
     console.log(`\n  🎮 Game Hub v${APP_VERSION} — http://localhost:${PORT}`);
     console.log(`     Farm 🌱 | Trivia 🧠 | Match-3 💎`);
     console.log(
       `     Discord: ${DISCORD_ENABLED ? "✅ enabled" : "⚠️  demo mode (no creds)"}`,
     );
-    console.log(`     Database: PostgreSQL + Upstash Redis`);
+    console.log(
+      `     Storage: ${getBucket() ? "☁️  GCS" : "💾 local (ephemeral)"}`,
+    );
     console.log(`     Duel system active | Leaderboard enabled\n`);
   });
 }
 
 // Only auto-start when run directly (not when imported in tests)
-// Compare resolved file paths — works on both Windows and Linux/Docker
 const isDirectRun =
   process.argv[1] &&
-  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"));
 if (isDirectRun) {
   start().catch((e) => {
     console.error("Fatal startup error:", e);

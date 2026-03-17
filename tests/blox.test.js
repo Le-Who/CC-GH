@@ -7,8 +7,7 @@
  */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { ECONOMY, calcBloxReward } from "../game-logic.js";
-import { PIECES as BLOX_PIECES } from "../src/vanilla/blox/pieces.js";
+import { ECONOMY, calcBloxReward, BLOX_PIECES } from "../game-logic.js";
 
 /* ═══ Piece Shape Validation ═══ */
 describe("Building Blox — Piece Shapes", () => {

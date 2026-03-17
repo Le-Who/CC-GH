@@ -21,7 +21,8 @@ import { pathToFileURL } from "node:url";
 const CLIENT_JS_DIR = path.resolve(
   new URL(".", import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
   "..",
-  "src", "vanilla",
+  "public",
+  "js",
 );
 
 // Recursively find all .js files
