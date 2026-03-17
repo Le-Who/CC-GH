@@ -81,7 +81,7 @@ export function broadcastStateUpdate(payload) {
   } catch (e) {}
 
   // 2. Cross-Device Sync (Supabase Broadcast)
-  if (realtimeChannel) {
+  if (realtimeChannel && realtimeChannel.state === 'joined') {
     realtimeChannel.send({
       type: 'broadcast',
       event: 'state_sync',
