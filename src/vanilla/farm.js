@@ -8,13 +8,7 @@
  * ═══════════════════════════════════════════════════ */
 import { get, set } from "idb-keyval";
 import { GameStore } from "./store.js";
-import {
-  HUB,
-  api,
-  apiBatched,
-  showToast,
-  goToScreen,
-} from "./shared.js";
+import { HUB, api, apiBatched, showToast, goToScreen } from "./shared.js";
 import {
   CROPS as CROPS_CONFIG,
   getUnlockedSeeds,
@@ -45,7 +39,11 @@ const FarmGameImpl = (() => {
   function _getPlayerStats() {
     const res = GameStore.getState("resources") || {};
     const harvested = res.harvested || {};
-    const totalHarvests = Object.values(harvested).reduce((a, b) => a + b, 0);
+    // ⚡ Bolt: Replaced Object.values().reduce with for...in for memory efficiency
+    let totalHarvests = 0;
+    for (const key in harvested) {
+      totalHarvests += harvested[key];
+    }
     // Gold earned: approximate from current gold + total spent (not exact, but good enough)
     const goldEarned = res.gold || 0; // simplification: current gold as proxy
     const plotsBought = state?.plots?.length || 6;
@@ -606,10 +604,14 @@ const FarmGameImpl = (() => {
     showToast(`💰 Sold ${totalItems} crops for ${totalGold}🪙!`);
     HUD.animateGoldChange(totalGold);
     HUD.updateDisplay(GameStore.getState("resources"));
-    
+
     // v8.2: Fire one request per CROP TYPE instead of per item
     for (const [cropId, qty] of entries) {
-      apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId, amount: qty })
+      apiBatched("/api/farm/sell-crop", {
+        userId: HUB.userId,
+        cropId,
+        amount: qty,
+      })
         .then((data) => {
           if (data._optimistic) return;
           if (data?.success) {
@@ -813,10 +815,10 @@ const FarmGameImpl = (() => {
       const cfg = crops[plot.crop] || {};
       const isJustPlanted = justPlantedPlot === i;
       const displayPct = isJustPlanted ? 100 : Math.round(pct * 100);
-      
+
       // v5.0: Flattened DOM structure (dirt/background handled by CSS pseudo-elements)
       div.innerHTML = `
-        <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? 'animate-grow' : ''}">${cfg.emoji || "🌱"}</div>
+        <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? "animate-grow" : ""}">${cfg.emoji || "🌱"}</div>
         <div class="crop-name">${cfg.name || plot.crop}</div>
         <div class="growth-bar"><div class="growth-bar-fill${isReady ? " done" : ""}${isJustPlanted ? " plant-burst" : ""}" style="width:${displayPct}%"></div></div>
         ${!isReady ? `<div class="growth-time-label">${formatTimeLeft(plot, pct)}</div>` : ""}
@@ -840,12 +842,15 @@ const FarmGameImpl = (() => {
       div.title = isReady ? "Click to harvest!" : "Growing...";
     } else {
       // Empty plot
-      const hasSeeds = selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
+      const hasSeeds =
+        selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
       const ctaText = hasSeeds
         ? `Plant ${crops[selectedSeed]?.emoji || "🌱"} ${crops[selectedSeed]?.name || selectedSeed}`
         : "Tap to Plant 🌱";
       div.innerHTML = `<div class="plot-empty-label">${ctaText}</div>`;
-      div.title = hasSeeds ? `Plant ${crops[selectedSeed]?.name || selectedSeed}` : "Select a seed from the shop";
+      div.title = hasSeeds
+        ? `Plant ${crops[selectedSeed]?.name || selectedSeed}`
+        : "Select a seed from the shop";
     }
   }
 
@@ -1461,7 +1466,6 @@ const FarmGameImpl = (() => {
     render(); // Re-render plots to update titles
   }
 
-
   /* ─── Actions ─── */
   let buySeedVersion = 0;
   function buySeeds(cropId) {
@@ -1935,7 +1939,8 @@ const FarmGameImpl = (() => {
             render();
             // Show user-friendly toast with remaining time
             const remainMs = data.remainingMs || 0;
-            const remainLabel = remainMs > 0 ? _formatGrowthTime(remainMs) : "a moment";
+            const remainLabel =
+              remainMs > 0 ? _formatGrowthTime(remainMs) : "a moment";
             showToast(`⏳ Not quite ready — ${remainLabel} left`);
           } else {
             loadState();
@@ -2276,14 +2281,14 @@ const FarmGameImpl = (() => {
     if (state && payload) {
       if (payload.plots) state.plots = payload.plots;
       if (payload.inventory) state.inventory = payload.inventory;
-      
+
       // Hydrate GameStore without triggering a return broadcast
-      import('./store.js').then(({ GameStore }) => {
-        GameStore.setState('farm', { ...state });
+      import("./store.js").then(({ GameStore }) => {
+        GameStore.setState("farm", { ...state });
       });
 
-      if (typeof render === 'function') render();
-      if (typeof renderShop === 'function') renderShop();
+      if (typeof render === "function") render();
+      if (typeof renderShop === "function") renderShop();
     }
   });
 

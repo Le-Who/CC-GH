@@ -24,10 +24,20 @@ export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
   const roomInventory = useGameStore((state) => state.slices.room?.inventory);
   const hasNewRoomItems = roomInventory ? roomInventory.length > 0 : false;
   const farmInventory = useGameStore((s) => s.slices?.farm?.inventory) || {};
-  const hasItems = Object.values(farmInventory).some((qty) => qty > 0);
+
+  // ⚡ Bolt: Replaced Object.values().some with for...in loop with early exit for render path efficiency
+  let hasItems = false;
+  for (const key in farmInventory) {
+    if (farmInventory[key] > 0) {
+      hasItems = true;
+      break;
+    }
+  }
 
   // v8.1: Responsive compact mode for small viewports (iPhone SE in Discord iframe)
-  const [isCompact, setIsCompact] = React.useState(() => window.innerHeight <= 500);
+  const [isCompact, setIsCompact] = React.useState(
+    () => window.innerHeight <= 500,
+  );
   React.useEffect(() => {
     const onResize = () => setIsCompact(window.innerHeight <= 500);
     window.addEventListener("resize", onResize);
@@ -65,7 +75,7 @@ export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
                 ),
               )}
             >
-                {/* Animated Background Pill */}
+              {/* Animated Background Pill */}
               {isActive && (
                 <motion.div
                   layoutId="nav-pill"
@@ -78,15 +88,15 @@ export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
                 className={twMerge(
                   clsx(
                     "relative z-10 nav-tab-icon mb-0.5 transition-all duration-300",
-                    isActive ? "-translate-y-0.5 scale-110 drop-shadow-[0_4px_8px_rgba(167,139,250,0.6)]" : "translate-y-0 scale-100"
-                  )
+                    isActive
+                      ? "-translate-y-0.5 scale-110 drop-shadow-[0_4px_8px_rgba(167,139,250,0.6)]"
+                      : "translate-y-0 scale-100",
+                  ),
                 )}
               >
                 {tab.icon}
                 {tab.id === "room" && hasNewRoomItems && (
-                  <div
-                    className="absolute -top-1 -right-2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-400 z-20 animate-bounce"
-                  >
+                  <div className="absolute -top-1 -right-2 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-lg border border-red-400 z-20 animate-bounce">
                     NEW
                   </div>
                 )}

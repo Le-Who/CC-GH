@@ -157,8 +157,16 @@ export const ACHIEVEMENTS = {
     emoji: "🧑‍🌾",
     desc: "Harvest 50 crops total",
     reward: { gold: 50 },
-    check: (p) =>
-      Object.values(p.farm?.harvested || {}).reduce((a, b) => a + b, 0) >= 50,
+    // ⚡ Bolt: Use for...in loop for early exit instead of full array creation and iteration
+    check: (p) => {
+      let total = 0;
+      const harvested = p.farm?.harvested || {};
+      for (const key in harvested) {
+        total += harvested[key];
+        if (total >= 50) return true;
+      }
+      return false;
+    },
   },
   rose_garden: {
     id: "rose_garden",
