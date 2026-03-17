@@ -17,7 +17,7 @@
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
-import { MERGE_CHAINS, ECONOMY } from "/game-logic.js";
+import { MERGE_CHAINS, ECONOMY } from "../../game-logic.js";
 
 const BOARD_ROWS = 7;
 const BOARD_COLS = 9;
