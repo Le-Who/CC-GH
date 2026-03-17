@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { get, set } from 'idb-keyval';
 import { HUB } from './shared.js';
 import { HUD } from './hud.js';
 import { PetCompanion } from './pet.js';
@@ -54,7 +55,36 @@ function _subscribeChannel() {
     .on('broadcast', { event: 'state_sync' }, ({ payload }) => {
       applySyncPayload(payload);
     })
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        flushOfflineQueue();
+      }
+    });
+}
+
+/**
+ * Reads offline state updates from IndexedDB and sends them when the
+ * connection is restored. We only store the most recent update.
+ */
+async function flushOfflineQueue() {
+  if (!realtimeChannel || realtimeChannel.state !== 'joined' || !supabase?.realtime?.isConnected?.()) return;
+
+  try {
+    const payload = await get('hub_offline_sync_queue');
+    if (payload) {
+      realtimeChannel.send({
+        type: 'broadcast',
+        event: 'state_sync',
+        payload
+      }).then(() => {
+        set('hub_offline_sync_queue', null);
+      }).catch(() => {
+        // Failed to flush, will try again next connection
+      });
+    }
+  } catch (err) {
+    console.error('Failed to flush offline sync queue:', err);
+  }
 }
 
 /**
@@ -138,7 +168,11 @@ export function broadcastStateUpdate(payload) {
       event: 'state_sync',
       payload
     }).catch(() => {
-      // Silently drop — target devices will sync via REST polling
+      // ⚡ Bolt: Queue to IndexedDB if send fails
+      set('hub_offline_sync_queue', payload).catch(() => {});
     });
+  } else {
+    // ⚡ Bolt: Queue to IndexedDB if disconnected
+    set('hub_offline_sync_queue', payload).catch(() => {});
   }
 }
