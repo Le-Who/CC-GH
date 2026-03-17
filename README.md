@@ -54,15 +54,15 @@
 | **Cache**    | Upstash Redis (REST)                     |
 | **Auth**     | Discord Activity SDK 1.0 + Simple Auth   |
 | **State**    | React Hooks + Vanilla Bridges            |
-| **Testing**  | Node.js `node:test` + Playwright (328 pass) |
+| **Testing**  | Node.js `node:test` + Playwright (393 pass) |
 
 ---
 
 ## 🚀 Quick Start
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 # → http://localhost:8090
 ```
 
@@ -188,8 +188,8 @@ The client is a hybrid of React 19 and Vanilla JS for maximum rendering performa
 ## 🧪 Testing
 
 ```bash
-npm test          # All 328 Node.js backend tests across 110 suites
-npm run test:e2e  # Playwright automated browser interaction tests
+pnpm test          # All 393 Node.js backend tests across 129 suites
+pnpm test:e2e      # Playwright automated browser interaction tests
 ```
 
 | Type       | File                              | Count |
@@ -263,7 +263,7 @@ Smart docking: pet roams within stats-bar bounds on game screens, full ground on
 1. **Traffic Layer (REST API)**: Requests arrive at Node.js and are authenticated via Discord OAuth or Simple Auth. Rate limits are evaluated in Redis.
 2. **Read-Through Cache (Redis)**: `ensurePlayerLoaded` executes a sub-millisecond Redis `GET`. If the user data exists, routing proceeds. If absent, the data is pulled from Postgres into Redis.
 3. **Concurrency Boundary (Postgres `SELECT FOR UPDATE`)**: Mutating endpoints (like planting crops) are wrapped in `withPlayerLock(userId)`. This utilizes Postgres native ACID properties:
-    * It executes `INSERT ... ON CONFLICT DO NOTHING` to guarantee the row exists safely.
+    * It executes `INSERT ... ON CONFLICT DO UPDATE SET updated_at = now()` to guarantee the row exists **and** acquires a row-level lock on it atomically, preventing concurrent deletions.
     * It executes `SELECT ... FOR UPDATE` to exclusively lock the user's row, preventing double-spend race conditions.
 4. **Execution & Write-Through Layer**: The route handler mutates the loaded JSONB state. It returns the modified object, which is synchronously `UPDATE`d in Postgres within the transaction, and then fire-and-forget written-through to Redis before the lock is released.
 

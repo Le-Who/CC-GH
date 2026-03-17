@@ -53,15 +53,21 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
     await tx`
       INSERT INTO players (id, data, updated_at)
       VALUES (${userId}, ${defaultPlayer}, now())
-      ON CONFLICT (id) DO NOTHING
+      ON CONFLICT (id) DO UPDATE SET updated_at = now()
     `;
 
-    // 2. Acquire ACID row lock
+    // 2. Acquire ACID row lock (guaranteed to exist after UPSERT above)
     const [row] = await tx`
       SELECT data FROM players WHERE id = ${userId} FOR UPDATE
     `;
 
-    // 3. Reconcile state & Apply Migrations
+    // 3. Defensive guard: row should always exist after UPSERT, but
+    //    protect against edge cases (PgBouncer routing, concurrent DDL, etc.)
+    if (!row) {
+      throw new Error(`FATAL: Player row missing after UPSERT for ${userId}`);
+    }
+
+    // 4. Reconcile state & Apply Migrations
     let playerRaw = row.data;
     let player = applyMigrations(playerRaw);
 
@@ -75,16 +81,16 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
     // subsequent offline simulations from overlapping with these actions.
     player._lastSeen = Date.now();
 
-    // 4. Execute Route Handler
+    // 5. Execute Route Handler
     const result = await asyncFn(player);
 
-    // 5. Save back to DB within transaction
+    // 6. Save back to DB within transaction
     await tx`
       UPDATE players SET data = ${player}, updated_at = now()
       WHERE id = ${userId}
     `;
 
-    // 6. Write-through to Redis cache
+    // 7. Write-through to Redis cache
     if (isRedisEnabled()) {
       await redisSetPlayer(userId, player).catch((err) => console.error("Redis write-through failed:", err.message));
     }

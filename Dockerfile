@@ -5,23 +5,25 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install -g npm@11.10.1 && npm ci --legacy-peer-deps
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 # Run Vite build to generate the production dist/ folder
-RUN npm run build
+RUN pnpm run build
 
 # Bundle Discord SDK into public/js/
-RUN npx esbuild src/discord-entry.js --bundle --outfile=public/js/discord-sdk-bundle.js --format=iife --global-name=DiscordSDKModule --target=es2020
+RUN pnpm exec esbuild src/discord-entry.js --bundle --outfile=public/js/discord-sdk-bundle.js --format=iife --global-name=DiscordSDKModule --target=es2020
 
 # ── Stage 2: Production ──
 FROM node:22-alpine
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install -g npm@11.10.1 && npm ci --omit=dev --legacy-peer-deps
+RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
 
 # Copy Vite build output
 COPY --from=build /app/dist/ ./dist/

@@ -21,14 +21,17 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build Discord SDK bundle
-        run: npm run build
+        run: pnpm run build
 
-      - name: Run all tests (184)
-        run: npm test
+      - name: Run all tests (393)
+        run: pnpm test
 
   docker:
     runs-on: ubuntu-latest

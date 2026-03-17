@@ -23,3 +23,6 @@ eslint_output.txt
 eslint-errors.json
 concurrency_test.js
 scripts/
+
+package-lock.json
+.pnpm-store

@@ -20,3 +20,6 @@ scripts/
 playwright-report/
 test-results/
 playwright/.cache/
+
+package-lock.json
+.pnpm-store
