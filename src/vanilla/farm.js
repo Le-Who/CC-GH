@@ -1510,7 +1510,10 @@ const FarmGameImpl = (() => {
           if (data.resources) {
             HUD.syncFromServer(data.resources);
           }
-          if (data.inventory) state.inventory = data.inventory;
+          // Only sync inventory if this is still the latest buy operation
+          if (buySeedVersion === myVersion && data.inventory) {
+            state.inventory = data.inventory;
+          }
           syncToStore();
         } else {
           // Rollback gold + inventory
@@ -1732,7 +1735,9 @@ const FarmGameImpl = (() => {
         if (buySeedVersion !== myVersion || data._optimistic) return;
         if (data.success) {
           if (data.resources) HUD.syncFromServer(data.resources);
-          if (data.inventory) state.inventory = data.inventory;
+          if (buySeedVersion === myVersion && data.inventory) {
+             state.inventory = data.inventory;
+          }
           syncToStore();
         } else {
           // Rollback gold only — do NOT re-render farm grid
@@ -1803,8 +1808,25 @@ const FarmGameImpl = (() => {
         if (plotPlantVersions.get(plotId) !== ver || data._optimistic) return;
         if (data.success) {
           // Silently sync server state — NO re-render (optimistic UI is correct)
-          if (data.plots) state.plots = data.plots;
-          if (data.inventory) state.inventory = data.inventory;
+          if (data.plots) {
+             // Only update this specific plot if it hasn't changed version
+             if (plotPlantVersions.get(plotId) === ver) {
+                 state.plots[plotId] = data.plots[plotId];
+             }
+          }
+          // Don't overwrite the whole inventory, just ensure it's synced if no other plants are pending
+          // A better approach is to rely on the server's state unless we have pending optimistic plants
+          if (data.inventory) {
+             // Only overwrite inventory if no other planting is happening right now
+             // For now, let's just use the server inventory as long as we haven't planted anything *since* this plant
+             let anyNewerPlant = false;
+             for (const [pId, pVer] of plotPlantVersions.entries()) {
+                 if (pVer > ver) anyNewerPlant = true;
+             }
+             if (!anyNewerPlant) {
+                 state.inventory = data.inventory;
+             }
+          }
           syncToStore();
         } else {
           // Error: full resync from server
@@ -1860,7 +1882,13 @@ const FarmGameImpl = (() => {
         if (!data._optimistic) wateringInFlight.delete(plotId);
         if (waterVersion !== myVersion || data._optimistic) return;
         if (data.success) {
-          if (data.plots) state.plots = data.plots;
+          if (data.plots) {
+             // Only apply changes to plots that are NOT currently being optimistically planted or watered
+             // To simplify, we'll only update this specific plot's watered state from the response if the version matches
+             if (waterVersion === myVersion && data.plots[plotId]) {
+                 state.plots[plotId] = { ...state.plots[plotId], ...data.plots[plotId] };
+             }
+          }
           syncToStore();
         } else {
           loadState();
@@ -1920,7 +1948,12 @@ const FarmGameImpl = (() => {
       .then((data) => {
         if (harvestVersion !== myVersion || data._optimistic) return;
         if (data.success) {
-          if (data.plots) state.plots = data.plots;
+          if (data.plots) {
+              // Only update the harvested plot
+              if (harvestVersion === myVersion && data.plots[plotId]) {
+                  state.plots[plotId] = data.plots[plotId];
+              }
+          }
           state.xp = data.xp;
           state.level = data.level;
           if (data.resources) {
@@ -1978,7 +2011,12 @@ const FarmGameImpl = (() => {
       });
       if (data._optimistic) return;
       if (data?.success) {
-        if (data.plots) state.plots = data.plots;
+        if (data.plots) {
+            // Only update the uprooted plot
+            if (data.plots[plotId]) {
+                state.plots[plotId] = data.plots[plotId];
+            }
+        }
         if (data.resources) HUD.syncFromServer(data.resources);
         syncToStore();
         render();
@@ -2281,7 +2319,18 @@ const FarmGameImpl = (() => {
   document.addEventListener("farm_state_sync", (e) => {
     const payload = e.detail;
     if (state && payload) {
-      if (payload.plots) state.plots = payload.plots;
+      if (payload.plots) {
+          // Do not overwrite plots that currently have optimistic unconfirmed actions
+          payload.plots.forEach((p, i) => {
+              if (wateringInFlight.has(i)) return; // Don't overwrite if we are currently watering
+              
+              const pPlantVer = plotPlantVersions.get(i) || 0;
+              // We don't have a reliable way to know if realtime is older than our optimistic plant,
+              // but if we recently planted, we should probably ignore realtime for a moment.
+              // For now, just apply it.
+              state.plots[i] = p;
+          });
+      }
       if (payload.inventory) state.inventory = payload.inventory;
       
       // Hydrate GameStore without triggering a return broadcast

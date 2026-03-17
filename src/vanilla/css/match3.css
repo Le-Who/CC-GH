@@ -28,7 +28,7 @@
   position: relative;
   perspective: 800px;
   perspective-origin: 50% 50%;
-  overflow: visible;
+  overflow: visible; /* we keep container visible for flyout numbers */
 }
 /* v5.2.0: Color Splash — board background flares with dominant gem color on combo */
 .m3-board-container.color-splash {
@@ -94,6 +94,9 @@
   backdrop-filter: blur(4px);
   touch-action: none; /* prevent browser gestures during swipe */
   contain: layout style paint; /* isolate repaints from rest of page */
+  overflow: hidden; /* Masked drop: hide falling gems until they enter grid */
+  mask-image: linear-gradient(to bottom, transparent, black 12px, black 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12px, black 100%);
 }
 
 /* ─── Cell (Juicy UI: organic back-ease interactions) ─── */
@@ -170,13 +173,36 @@
   --gem-color: rgba(139, 92, 246, 0.7);
 }
 
-/* Selection */
+/* Selection & Hint */
 .m3-cell.selected {
   transform: scale(1.12);
   box-shadow:
     0 0 0 3px var(--accent),
     0 0 20px var(--accent-glow);
   z-index: 10;
+}
+.m3-cell.hint-pulse {
+  animation: hintWiggle 1.5s infinite ease-in-out;
+  z-index: 5;
+}
+.m3-cell.hint-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 15px var(--gem-color, rgba(255,255,255,0.4));
+  animation: hintGlow 1.5s infinite ease-in-out;
+  pointer-events: none;
+}
+@keyframes hintWiggle {
+  0%, 100% { transform: scale(1) rotate(0); }
+  10%, 30% { transform: scale(1.08) rotate(-4deg); }
+  20%, 40% { transform: scale(1.08) rotate(4deg); }
+  50% { transform: scale(1) rotate(0); }
+}
+@keyframes hintGlow {
+  0%, 100% { opacity: 0; }
+  25% { opacity: 1; }
 }
 
 /* ─── Animations (Juicy UI: spring physics, flash pop, wave entrance) ─── */
@@ -391,6 +417,37 @@
   animation: m3ScoreUp 0.9s ease-out forwards;
 }
 
+/* Grand Match Text Popup */
+.m3-grand-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  font-family: 'Inter', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #fff;
+  text-transform: uppercase;
+  font-style: italic;
+  letter-spacing: 2px;
+  text-shadow: 
+    0 4px 0 #d946ef,
+    0 -4px 0 #3b82f6,
+    4px 0 0 #facc15,
+    -4px 0 0 #10b981,
+    0 0 30px rgba(255,255,255,0.8);
+  pointer-events: none;
+  z-index: 80;
+  animation: m3GrandPop 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes m3GrandPop {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(-15deg); opacity: 0; }
+  15% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; }
+  30% { transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; }
+  80% { transform: translate(-50%, -80%) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -120%) scale(0.8); opacity: 0; }
+}
+
 /* Combo banner (spring pop with vibration) */
 .m3-combo-banner {
   position: absolute;
@@ -409,6 +466,26 @@
 }
 .m3-combo-banner.show {
   animation: m3ComboPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Directional Lasers for Match 4 */
+.m3-laser-trail {
+  position: absolute;
+  pointer-events: none;
+  z-index: 100;
+  border-radius: 10px;
+  background: white;
+  opacity: 0.9;
+}
+@keyframes laserH {
+  0% { transform: translate(-50%, -50%) scaleX(0); opacity: 1; }
+  20% { transform: translate(-50%, -50%) scaleX(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleX(1); opacity: 0; }
+}
+@keyframes laserV {
+  0% { transform: translate(-50%, -50%) scaleY(0); opacity: 1; }
+  20% { transform: translate(-50%, -50%) scaleY(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scaleY(1); opacity: 0; }
 }
 
 /* ─── Match-3 Layout (board left, leaderboard right) ─── */

@@ -31,6 +31,7 @@ import {
   findMatches,
   hasValidMoves,
   resolveBoard,
+  hasAnyMatch,
 } from "./match3/engine.js";
 
 const Match3GameImpl = (() => {
@@ -176,6 +177,7 @@ const Match3GameImpl = (() => {
 
       // Update DOM in-place (still mid-flip, invisible)
       renderBoard(false);
+      resetHintTimer();
     }, 250);
 
     // Phase 3: Cleanup after full flip completes
@@ -311,6 +313,7 @@ const Match3GameImpl = (() => {
       // Fix visual stuck states
       selected = null;
       isAnimating = false;
+      resetHintTimer();
       
       // Game in progress — resume seamlessly, no modal
       if (gamePaused) {
@@ -633,6 +636,7 @@ const Match3GameImpl = (() => {
         hideModeSelector();
         selected = null;
         isAnimating = false;
+        resetHintTimer();
 
         // Resume timer if needed
         if (gameMode === "timed") {
@@ -700,6 +704,7 @@ const Match3GameImpl = (() => {
     selected = null;
     isAnimating = false;
     gamePaused = false;
+    resetHintTimer();
 
     // Generate board client-side
     board = generateBoard();
@@ -1318,11 +1323,13 @@ const Match3GameImpl = (() => {
     if (!selected) {
       selected = { x, y };
       getCell(x, y)?.classList.add("selected");
+      resetHintTimer();
       return;
     }
     if (selected.x === x && selected.y === y) {
       getCell(x, y)?.classList.remove("selected");
       selected = null;
+      resetHintTimer();
       return;
     }
     const dx = Math.abs(selected.x - x),
@@ -1333,12 +1340,14 @@ const Match3GameImpl = (() => {
       getCell(selected.x, selected.y)?.classList.remove("selected");
       selected = { x, y };
       getCell(x, y)?.classList.add("selected");
+      resetHintTimer();
     }
   }
 
   /* ═══ Swap — Client-Side with Smooth Animations ═══ */
   async function attemptSwap(fromX, fromY, toX, toY) {
     isAnimating = true;
+    clearHint();
     const $b = $("m3-board");
     if (!$b) { isAnimating = false; return; }
     $b.classList.add("disabled");
@@ -1354,12 +1363,32 @@ const Match3GameImpl = (() => {
 
     const matches = findMatches(testBoard);
     if (matches.length === 0) {
-      // Invalid swap — v5.2.0: Perlin noise shake (organic)
-      // Target container, not board (board has tilt transform)
-      perlinShake($("m3-board-container"), 3, 400);
-      SoundEngine.error(); // v6.2.1: audio + haptic feedback
+      // Invalid swap — UX Feature 5: Rubber Band Bounce + Head Shake
+      const cellA = getCell(fromX, fromY);
+      const cellB = getCell(toX, toY);
+      if (cellA && cellB) {
+        const cellSize = cellA.offsetWidth || 48;
+        const dx = (toX - fromX) * cellSize * 0.5; // Only go 50% distance
+        const dy = (toY - fromY) * cellSize * 0.5;
+        
+        cellA.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        cellB.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        cellA.style.transform = `translate(${dx}px, ${dy}px) rotate(3deg)`;
+        cellB.style.transform = `translate(${-dx}px, ${-dy}px) rotate(-3deg)`;
+        
+        SoundEngine.error();
+        await sleep(150);
+        
+        cellA.style.transform = "";
+        cellB.style.transform = "";
+        await sleep(150);
+        
+        cellA.style.transition = "";
+        cellB.style.transition = "";
+      }
       isAnimating = false;
       $b.classList.remove("disabled");
+      resetHintTimer(); // Reset hint timer on misclick
       return;
     }
 
@@ -1553,12 +1582,14 @@ const Match3GameImpl = (() => {
       // v4.15.1: Check for deadlock after cascade — reshuffle if stuck
       if (!hasValidMoves(board)) {
         triggerReshuffle();
+        resetHintTimer();
         return; // triggerReshuffle handles isAnimating and disabled cleanup
       }
     }
 
     isAnimating = false;
     $b.classList.remove("disabled");
+    resetHintTimer();
   }
 
   /* ═══ Cascade Animation (v5.0.2: phased — highlight → pop → sync → fall) ═══ */
@@ -1566,62 +1597,107 @@ const Match3GameImpl = (() => {
 
   async function animateCascade(steps) {
     _prevCascadeChanged = [];
-    const BASE_HIGHLIGHT_DUR = 230; // v6.2: +15% (was 200)
-    const BASE_POP_DUR = 250; // v6.2: +15% (was 220)
-    const BASE_FALL_WAIT = 230; // v6.2: +15% (was 200)
-    const SPEED_DECAY = 0.92; // v6.2: flatter curve (was 0.85) — combos stay readable
-    const SPEED_FLOOR = 0.65; // v6.2: minimum multiplier floor — never faster than 65%
+    const BASE_HIGHLIGHT_DUR = 230; 
+    const BASE_POP_DUR = 250; 
+    const BASE_FALL_WAIT = 230; 
+    const SPEED_DECAY = 0.92; 
+    // UX Feature 1: Hard Speed Floor (min 200ms = 0.8) to prevent disappearing gems
+    const SPEED_FLOOR = 0.8; 
     let speedMul = 1;
 
     for (let si = 0; si < steps.length; si++) {
       if (_m3Cells.length === 0) return; // Component unmounted
       const step = steps[si];
 
-      // ── Phase 0: Highlight matched gems (flash border/glow so player sees WHAT matched) ──
+      // UX Feature 3: Grand Match Text Popup + Particles (matches of 4 or 5)
+      const primaryMatchLen = step.cleared.length;
+      if (primaryMatchLen >= 4) {
+         const firstCell = step.cleared[0];
+         showGrandMatchPopup(firstCell.x, firstCell.y, primaryMatchLen);
+      }
+
+      // ── Phase 0: Highlight matched gems ──
       for (const { x, y } of step.cleared) {
         _m3Cells[y]?.[x]?.classList.add("matched-highlight");
       }
-      // v5.1.0: Hit-stop — micro-pause on big matches (≥5) for cinematic impact
-      if (step.cleared.length >= 5) {
-        await sleep(40);
+      // UX Feature 1: Adaptive Thresholding Hit-Stop (longer pause for bigger matches)
+      if (primaryMatchLen >= 5) {
+        perlinShake($("m3-board-container"), 5, 300);
+        await sleep(100 * speedMul);
+        if (_m3Cells.length === 0) return;
+      } else if (primaryMatchLen >= 4) {
+        await sleep(60 * speedMul);
         if (_m3Cells.length === 0) return;
       }
       await sleep(Math.round(BASE_HIGHLIGHT_DUR * speedMul));
       if (_m3Cells.length === 0) return;
 
-      // ── Phase 1: Pop matched gems (scale → 0, white flash) ──
-      for (const { x, y } of step.cleared) {
+      // Phase 1: Pop matched gems
+      for (let i = 0; i < step.cleared.length; i++) {
+        const { x, y } = step.cleared[i];
         const cell = _m3Cells[y]?.[x];
         if (!cell) continue;
         cell.classList.remove("matched-highlight");
         cell.classList.add("popping");
 
-        // Phase 2 Item 2: Glow Trail Particle
         const rect = cell.getBoundingClientRect();
-        const trail = document.createElement("div");
-        trail.className = "m3-glow-trail";
-        const gemColor =
-          getComputedStyle(cell).getPropertyValue("--gem-color").trim() ||
-          "rgba(255,255,255,0.8)";
-        trail.style.background = gemColor;
-        trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
         const container = $("m3-board-container");
         if (container) {
           const containerRect = container.getBoundingClientRect();
-          trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
-          trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
-          trail.style.setProperty(
-            "--trail-dx",
-            `${(Math.random() - 0.5) * 100}px`,
-          );
-          trail.style.setProperty(
-            "--trail-dy",
-            `${(Math.random() - 0.5) * 100 - 150}px`,
-          );
-          container.appendChild(trail);
-          setTimeout(() => trail.remove(), 600);
+          const trail = document.createElement("div");
+          const gemColor = getComputedStyle(cell).getPropertyValue("--gem-color").trim() || "rgba(255,255,255,0.8)";
+          if (primaryMatchLen === 4 && i === 0) {
+            // Laser trail for Match 4
+            trail.className = "m3-laser-trail";
+            trail.style.background = gemColor;
+            trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
+            trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+            trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
+
+            // Determine if match is horizontal or vertical based on positions
+            const isHorizontal = step.cleared.every(c => c.y === step.cleared[0].y);
+            if (isHorizontal) {
+               trail.style.width = '200vw'; // Shoot across screen
+               trail.style.height = '6px';
+               trail.style.transform = 'translate(-50%, -50%)';
+               trail.style.animation = 'laserH 0.4s ease-out forwards';
+            } else {
+               trail.style.height = '200vh';
+               trail.style.width = '6px';
+               trail.style.transform = 'translate(-50%, -50%)';
+               trail.style.animation = 'laserV 0.4s ease-out forwards';
+            }
+            container.appendChild(trail);
+            setTimeout(() => trail.remove(), 400);
+
+          } else if (primaryMatchLen >= 5 && i < 3) {
+            // Explosion particles for Match 5
+            trail.className = "m3-glow-trail";
+            trail.style.background = gemColor;
+            trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
+            trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+            trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
+            
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 100 + Math.random() * 150;
+            trail.style.setProperty("--trail-dx", `${Math.cos(angle) * dist}px`);
+            trail.style.setProperty("--trail-dy", `${Math.sin(angle) * dist}px`);
+            container.appendChild(trail);
+            setTimeout(() => trail.remove(), 600);
+          } else {
+            // Standard pop particles
+            trail.className = "m3-glow-trail";
+            trail.style.background = gemColor;
+            trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
+            trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
+            trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
+            trail.style.setProperty("--trail-dx", `${(Math.random() - 0.5) * 100}px`);
+            trail.style.setProperty("--trail-dy", `${(Math.random() - 0.5) * 100 - 150}px`);
+            container.appendChild(trail);
+            setTimeout(() => trail.remove(), 600);
+          }
         }
-      }
+      } // CLOSE FOR LOOP
       await sleep(Math.round(BASE_POP_DUR * speedMul));
       if (_m3Cells.length === 0) return;
 
@@ -1695,7 +1771,8 @@ const Match3GameImpl = (() => {
         fallDistMap.set(`${f.x},${f.toY}`, f.toY - f.fromY);
       }
       for (const f of step.filled) {
-        fallDistMap.set(`${f.x},${f.y}`, f.y + 1);
+        // UX Feature 4: Masked Drop with Squash/Stretch (start higher off-screen)
+        fallDistMap.set(`${f.x},${f.y}`, f.y + 4); // fall from +4 cells above the top
       }
 
       // Build unique set of cells that need fall animation
@@ -1738,6 +1815,77 @@ const Match3GameImpl = (() => {
   /* ═══ UI Helpers ═══ */
   function getCell(x, y) {
     return _m3Cells[y]?.[x] || null;
+  }
+
+  // UX Feature 3: Grand Match Text Popup
+  function showGrandMatchPopup(cx, cy, length) {
+    const container = $("m3-board-container");
+    if (!container) return;
+    const textEl = document.createElement("div");
+    textEl.className = "m3-grand-text";
+    textEl.textContent = length >= 5 ? "MEGA!" : "AWESOME!";
+    
+    // Position near the match
+    const cell = getCell(cx, cy);
+    if (cell) {
+        const rect = cell.getBoundingClientRect();
+        const contRect = container.getBoundingClientRect();
+        textEl.style.left = `${rect.left - contRect.left + rect.width / 2}px`;
+        textEl.style.top = `${rect.top - contRect.top + rect.height / 2}px`;
+    }
+    
+    container.appendChild(textEl);
+    setTimeout(() => textEl.remove(), 1200);
+  }
+
+  // UX Feature 2: Hint System
+  let hintTimer = null;
+  
+  function resetHintTimer() {
+    clearHint();
+    if (hintTimer) clearTimeout(hintTimer);
+    if (!gameActive || gamePaused) return;
+
+    hintTimer = setTimeout(() => {
+      showHint();
+    }, 4500); // 4.5 seconds timeout
+  }
+
+  function clearHint() {
+    const hintCell = document.querySelector(".m3-cell.hint-pulse");
+    if (hintCell) hintCell.classList.remove("hint-pulse");
+  }
+
+  function showHint() {
+    if (!gameActive || gamePaused || isAnimating || selected) return;
+    // Find a valid move
+    const b = board;
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      for (let x = 0; x < BOARD_SIZE - 1; x++) {
+        if (b[y][x] === b[y][x + 1]) continue;
+        [b[y][x], b[y][x + 1]] = [b[y][x + 1], b[y][x]];
+        const hasMatch = hasAnyMatch(b);
+        [b[y][x], b[y][x + 1]] = [b[y][x + 1], b[y][x]];
+        if (hasMatch) {
+          const cell = getCell(x, y);
+          if (cell) cell.classList.add("hint-pulse");
+          return; // found one
+        }
+      }
+    }
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      for (let y = 0; y < BOARD_SIZE - 1; y++) {
+        if (b[y][x] === b[y + 1][x]) continue; 
+        [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
+        const hasMatch = hasAnyMatch(b);
+        [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
+        if (hasMatch) {
+          const cell = getCell(x, y);
+          if (cell) cell.classList.add("hint-pulse");
+          return;
+        }
+      }
+    }
   }
 
   function updateStatsUI() {
