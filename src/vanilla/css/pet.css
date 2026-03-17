@@ -130,11 +130,10 @@
 }
 
 .pet-expression {
-  /* Dimensions for facial expressions */
-  width: auto;
-  height: auto;
-  min-width: 40px;
-  min-height: 40px;
+  /* Dimensions for facial expressions (40px/120px = 33.33% of base size) */
+  width: 33.33%;
+  height: 33.33%;
+  object-fit: contain;
 }
 
 /* ─── State Animations (class-based — synchronous swap, no rAF needed) ─── */
