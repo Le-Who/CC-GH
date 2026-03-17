@@ -683,9 +683,9 @@ const PetCompanionImpl = (function () {
     const fullness = petData.stats?.fullness ?? 0;
 
     panel.innerHTML = `
-      <button class="pet-info-close" id="pet-info-close">✕</button>
+      <button class="pet-info-close" id="pet-info-close" aria-label="Close pet info">✕</button>
       <div class="pet-info-header">
-        <span class="pet-info-name">${SKINS[petData.skinId] || "🐕"} ${petData.name} <button class="btn btn-sm" id="btn-rename-pet" style="padding: 2px 6px; font-size: 0.7rem; margin-left: 6px; background: rgba(255,255,255,0.1);">✏️</button></span>
+        <span class="pet-info-name">${SKINS[petData.skinId] || "🐕"} ${petData.name} <button class="btn btn-sm" id="btn-rename-pet" aria-label="Rename pet" style="padding: 2px 6px; font-size: 0.7rem; margin-left: 6px; background: rgba(255,255,255,0.1);">✏️</button></span>
         <span class="pet-info-level">Lv ${petData.level}</span>
       </div>
       <div class="pet-tab-content" id="pet-tab-stats">
