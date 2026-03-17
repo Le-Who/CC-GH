@@ -56,7 +56,14 @@ export const farmStore = create((set, get) => ({
 
   getUnlockedSeeds: () => {
     const { harvested, plots } = get();
-    const totalHarvests = Object.values(harvested || {}).reduce((a, b) => a + b, 0);
+    let totalHarvests = 0;
+    if (harvested) {
+      for (const key in harvested) {
+        if (Object.hasOwn(harvested, key)) {
+          totalHarvests += harvested[key];
+        }
+      }
+    }
     return getUnlockedSeeds({
       totalHarvests,
       goldEarned: 0,
@@ -177,3 +184,12 @@ export const useFarmInventory = () => farmStore((s) => s.inventory);
 export const useFarmHarvested = () => farmStore((s) => s.harvested);
 export const useFarmLoading = () => farmStore((s) => s.isLoading);
 export const useSelectedSeed = () => farmStore((s) => s.selectedSeed);
+
+export const useHasFarmItems = () => farmStore((s) => {
+  const inv = s.inventory;
+  if (!inv) return false;
+  for (const key in inv) {
+    if (Object.hasOwn(inv, key) && inv[key] > 0) return true;
+  }
+  return false;
+});

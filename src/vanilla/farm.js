@@ -45,7 +45,14 @@ const FarmGameImpl = (() => {
   function _getPlayerStats() {
     const res = GameStore.getState("resources") || {};
     const harvested = res.harvested || {};
-    const totalHarvests = Object.values(harvested).reduce((a, b) => a + b, 0);
+    let totalHarvests = 0;
+    if (harvested) {
+      for (const key in harvested) {
+        if (Object.hasOwn(harvested, key)) {
+          totalHarvests += harvested[key];
+        }
+      }
+    }
     // Gold earned: approximate from current gold + total spent (not exact, but good enough)
     const goldEarned = res.gold || 0; // simplification: current gold as proxy
     const plotsBought = state?.plots?.length || 6;

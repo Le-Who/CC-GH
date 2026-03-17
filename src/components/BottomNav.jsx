@@ -23,8 +23,15 @@ const TABS = [
 export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
   const roomInventory = useGameStore((state) => state.slices.room?.inventory);
   const hasNewRoomItems = roomInventory ? roomInventory.length > 0 : false;
-  const farmInventory = useGameStore((s) => s.slices?.farm?.inventory) || {};
-  const hasItems = Object.values(farmInventory).some((qty) => qty > 0);
+  // v8.2: using derived selector for performance instead of Object.values().some() inline
+  const hasItems = useGameStore((s) => {
+    const inv = s.slices?.farm?.inventory;
+    if (!inv) return false;
+    for (const key in inv) {
+      if (Object.hasOwn(inv, key) && inv[key] > 0) return true;
+    }
+    return false;
+  });
 
   // v8.1: Responsive compact mode for small viewports (iPhone SE in Discord iframe)
   const [isCompact, setIsCompact] = React.useState(() => window.innerHeight <= 500);
