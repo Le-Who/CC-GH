@@ -11,7 +11,7 @@
     "start": "node server.js",
     "dev:server": "node server.js",
     "dev": "vite",
-    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/db.test.js tests/useToast.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/syntax.test.js",
+    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/db.test.js tests/useToast.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/syntax.test.js tests/merge.test.js",
     "test:perf": "node --test tests/perf.test.js"
   },
   "dependencies": {
@@ -34,7 +34,7 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwind-merge": "^3.5.0",
-    "zustand": "^5.0.11"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
