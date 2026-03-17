@@ -32,6 +32,7 @@ COPY --from=build /app/public/ ./public/
 # Copy backend source
 COPY server.js .
 COPY game-logic.js .
+COPY game-logic/ ./game-logic/
 COPY db.js .
 COPY playerManager.js .
 COPY redisAdapter.js .
