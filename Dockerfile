@@ -10,12 +10,6 @@ RUN npm install -g npm@11.10.1 && npm ci --legacy-peer-deps
 
 COPY . .
 
-# Pass Supabase connection strings to Vite at build time
-ARG VITE_SUPABASE_URL
-ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
-
 # Run Vite build to generate the production dist/ folder
 RUN npm run build
 
