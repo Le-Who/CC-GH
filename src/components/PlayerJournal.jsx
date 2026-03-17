@@ -22,15 +22,19 @@ export function PlayerJournal({ onClose }) {
       <div 
         className="bg-slate-800 border-2 border-slate-600 rounded-xl max-w-sm w-full p-6 text-white shadow-2xl relative" 
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="journal-title"
       >
         <button 
           onClick={onClose} 
           className="absolute top-3 right-3 text-slate-400 hover:text-white text-xl leading-none"
+          aria-label="Close journal"
         >
           ✕
         </button>
         
-        <h2 className="text-xl font-bold mb-6 text-amber-400 flex items-center gap-2">
+        <h2 id="journal-title" className="text-xl font-bold mb-6 text-amber-400 flex items-center gap-2">
           <span>📖</span> Farming Journal
         </h2>
         
