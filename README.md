@@ -85,12 +85,25 @@ npm run dev
 ## 🏗 Project Structure
 
 ```
-├── server.js              # Express composition root (~350 lines)
+├── server.js              # Express composition root (~330 lines)
 ├── playerManager.js       # Player state, persistence, schema migration
-├── game-logic.js          # Pure functions (crops, energy, offline simulation)
+├── game-logic.js          # Barrel re-export for backward compatibility
 ├── db.js                  # Postgres Connection Pool adapter
 ├── redisAdapter.js        # Redis cache and idempotency nonce adapter
+├── game-logic/            # Atomized game domain logic modules
+│   ├── economy.js         # Economy configs, reward calculators
+│   ├── crops.js           # Crop definitions, tiers, seed unlocks
+│   ├── farm.js            # Growth calculations, offline simulation
+│   ├── player.js          # Default player factory, energy regen
+│   ├── meta.js            # Achievements, streaks, daily rewards, season pass
+│   ├── pet-assets.js      # Decor, pet schemas, plot themes
+│   ├── merge-config.js    # Merge chains, board hydration logic
+│   └── helpers.js         # Shared utilities (random, scaling)
+├── middleware/            # Express middlewares
+│   ├── auth.js            # Tri-mode authentication logic
+│   └── rateLimit.js       # API and auth rate limiters
 ├── routes/                # Feature-specific Express routers
+│   ├── batch.js           # /api/batch (Optimistic UI sync & nonces)
 │   ├── farm.js            # /api/farm/* + /api/content/crops
 │   ├── resources.js       # /api/resources/* + /api/pet/* + sell-crop
 │   ├── trivia.js          # Solo trivia + duel rooms + history
@@ -154,6 +167,21 @@ npm run dev
     └── workflows/
         └── ci.yml         # CI: test on Node 20+22, Docker build
 ```
+
+### Client-Side Architecture
+The client is a hybrid of React 19 and Vanilla JS for maximum rendering performance:
+1. **React / Zustand Shell**: The root `App.jsx` handles tab navigation, the unified GameStore, and overlay modals (Quest Log, Shop, Pet UI).
+2. **Vanilla JS Game Engines**: The core game loops (Farm, Match-3, Blox, Merge) are completely vanilla JS mounted inside `VanillaShell.jsx`. Each engine operates independently, reading initial state from the server and updating the `store.js` proxy.
+3. **Optimistic UI Sync**: The `shared.js` module collects all player mutations (e.g., planting a seed, moving a piece) and batches them to the `/api/batch` endpoint. This guarantees instant UI feedback with reliable background synchronization.
+
+---
+
+## 🛠️ How to Add a New Game/Feature
+1. **Define State**: Update `game-logic/player.js` (`createDefaultPlayer`) with the new game's initial state defaults.
+2. **Create Routes**: Add a new Express router in `routes/` (e.g., `routes/mygame.js`) wrapping all mutating endpoints in `withPlayerLock(userId)`. Mount it in `server.js`.
+3. **Client Engine**: Build the game logic in Vanilla JS or React. If vanilla, place it in `src/vanilla/mygame.js` and mount it via a new React component using `<VanillaShell ... />`.
+4. **Zustand Bridge**: If the game provides UI updates to the HUD (like rewarding gold/energy), dispatch those updates through the global store (`src/store/gameStore.js`).
+5. **Add Tests**: Create unit/API tests to ensure data invariants are held (e.g. `tests/mygame.test.js`).
 
 ---
 

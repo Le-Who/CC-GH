@@ -12,9 +12,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import compression from "compression";
-import { ensurePlayerLoaded } from "./playerManager.js";
-import { isRedisEnabled, isNonceSeenRedis } from "./redisAdapter.js";
-import authRoutes, { validateSimpleAuthToken } from "./routes/auth.js";
+import authRoutes from "./routes/auth.js";
+import batchRoutes from "./routes/batch.js";
+import { requireAuth, resolveUser, DISCORD_ENABLED } from "./middleware/auth.js";
 import { getDb } from "./db.js";
 
 /* ─── Route Modules ─── */
@@ -95,82 +95,11 @@ const PORT = process.env.PORT || 8090;
 const CLIENT_ID = process.env.DISCORD_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "";
 const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "";
-const DISCORD_ENABLED = !!(CLIENT_ID && CLIENT_SECRET);
 
 /* ═══════════════════════════════════════════════════
  *  AUTH MIDDLEWARE (Tri-Mode: Discord · Simple-Auth · Demo)
  * ═══════════════════════════════════════════════════ */
-
-/**
- * requireAuth — validates authentication via one of three modes:
- *   1. Simple-auth token (prefix "sa_") → Firestore sessions lookup
- *   2. Discord OAuth token → Discord API validation
- *   3. No auth configured → demo mode (skip auth)
- */
-const requireAuth = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const token = authHeader ? authHeader.split(" ")[1] : null;
-
-  // Mode 1: Simple-auth session token (sa_ prefix)
-  if (token && token.startsWith("sa_")) {
-    const user = await validateSimpleAuthToken(token);
-    if (!user) return res.status(401).json({ error: "Session expired or invalid" });
-    req.simpleUser = user;
-    await ensurePlayerLoaded(user.userId);
-    return next();
-  }
-
-  // Mode 2: Discord OAuth token
-  if (DISCORD_ENABLED && token) {
-    try {
-      const userReq = await fetch("https://discord.com/api/users/@me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!userReq.ok) throw new Error("Invalid token");
-      req.discordUser = await userReq.json();
-      await ensurePlayerLoaded(req.discordUser.id);
-      return next();
-    } catch {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-  }
-
-  // Mode 3: Demo mode — no auth required
-  if (!DISCORD_ENABLED) return next();
-
-  // No valid token provided
-  return res.status(401).json({ error: "No token provided" });
-};
-
-/**
- * resolveUser — extracts userId/username from:
- *   1. req.discordUser (Discord OAuth)
- *   2. req.simpleUser (Simple-auth session)
- *   3. req.body / req.query (demo mode fallback)
- */
-function resolveUser(req) {
-  // Discord user (set by requireAuth mode 2)
-  if (req.discordUser) {
-    return {
-      userId: req.discordUser.id,
-      username: req.discordUser.username || "Player",
-    };
-  }
-  // Simple-auth user (set by requireAuth mode 1)
-  if (req.simpleUser) {
-    return {
-      userId: req.simpleUser.userId,
-      username: req.simpleUser.username || "Player",
-    };
-  }
-  // Demo mode fallback
-  if (req.method === "GET") {
-    const uid = req.query?.userId || "demo-user";
-    const uname = req.query?.username || "Player";
-    return { userId: uid, username: uname };
-  }
-  return { userId: req.body?.userId, username: req.body?.username || "Player" };
-}
+// Extracted to middleware/auth.js
 
 /* ═══════════════════════════════════════════════════
  *  RATE LIMITING & CIRCUIT BREAKER — MUST be before route handlers
@@ -390,103 +319,8 @@ app.get(/.*/, (_req, res) => {
   res.type("html").send(getIndexHtml());
 });
 
-// [Phase 2] Optimistic UI & Batch Sync Endpoint — v8.0 Direct Dispatch
-// Nonce deduplication: tracks last N nonces per user to reject replayed mutations
-const NONCE_CACHE_SIZE = 100;
-const nonceCache = new Map(); // userId → Set<nonce>
-
-function isNonceSeen(userId, nonce) {
-  if (!nonce) return false; // Legacy clients without nonces always pass
-  let set = nonceCache.get(userId);
-  if (!set) {
-    set = new Set();
-    nonceCache.set(userId, set);
-  }
-  if (set.has(nonce)) return true;
-  set.add(nonce);
-  // LRU eviction: keep only last N nonces
-  if (set.size > NONCE_CACHE_SIZE) {
-    const first = set.values().next().value;
-    set.delete(first);
-  }
-  return false;
-}
-
-app.post("/api/batch", requireAuth, async (req, res) => {
-  try {
-    const { requests } = req.body;
-    if (!Array.isArray(requests)) {
-      return res.status(400).json({ error: "Invalid batch format" });
-    }
-
-    resolveUser(req);
-    const userId = req.body?.userId || req.discordUser?.id || req.simpleUser?.userId;
-    const results = [];
-
-    // Process sequentially to maintain data integrity
-    for (const subReq of requests) {
-      const { path: subPath, body, id, nonce } = subReq;
-
-      // Idempotency check: prefer Redis (distributed), fallback to in-memory
-      if (nonce) {
-        let isDuplicate = false;
-        if (isRedisEnabled()) {
-          isDuplicate = await isNonceSeenRedis(userId, nonce);
-        } else {
-          isDuplicate = isNonceSeen(userId, nonce);
-        }
-        if (isDuplicate) {
-          results.push({ id, status: 409, data: { error: "Duplicate request" } });
-          continue;
-        }
-      }
-
-      try {
-        // Direct loopback fetch to bypass Node 24 native stream parsing crashes 
-        // caused by synthetic Express request objects in app.handle()
-        const headers = { "Content-Type": "application/json" };
-        if (req.headers.authorization) headers.authorization = req.headers.authorization;
-        let fetchUrl = `http://127.0.0.1:${PORT}${subPath}`;
-        if (req.method === "GET" || subPath.includes("?")) {
-           const sep = fetchUrl.includes("?") ? "&" : "?";
-           fetchUrl += `${sep}userId=${userId}`;
-        }
-        
-        let subBody = body ? { ...body } : {};
-        if (userId) {
-          subBody.userId = userId;
-          subBody.username = resolveUser(req).username;
-        }
-        
-        const fetchCtx = { 
-          method: body ? "POST" : "GET", 
-          headers 
-        };
-        
-        if (fetchCtx.method === "POST" || fetchCtx.method === "PUT") {
-          fetchCtx.body = JSON.stringify(subBody);
-        }
-
-        const response = await fetch(fetchUrl, fetchCtx);
-        let data;
-        try {
-          data = await response.json();
-        } catch {
-          data = { error: "Invalid JSON response" };
-        }
-        
-        results.push({ id, status: response.status, data });
-      } catch (err) {
-        results.push({ id, status: 500, error: err.message });
-      }
-    }
-
-    res.json({ results });
-  } catch (err) {
-    console.error("Batch error:", err);
-    res.status(500).json({ error: "Batch processing failed" });
-  }
-});
+// [Phase 2] Optimistic UI & Batch Sync Endpoint
+app.use(batchRoutes(requireAuth, resolveUser, PORT));
 
 // Global error handler (Express 5 catches async rejections automatically)
 app.use((err, _req, res, _next) => {
