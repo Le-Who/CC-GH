@@ -28,6 +28,9 @@ export function storeAuth(token, userId, username) {
 export function clearAuth() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
+  localStorage.removeItem('gh_token');
+  localStorage.removeItem('gh_userId');
+  localStorage.removeItem('gh_username');
 }
 
 /** Validate stored token against server */
