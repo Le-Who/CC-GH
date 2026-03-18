@@ -178,6 +178,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
    *  DUEL SYSTEM
    * ═══════════════════════════════════════════════════ */
   const duelRooms = new Map(); // roomId -> duel state
+  const waitingRoomsByUser = new Map(); // v10.1: userId -> roomId for 'waiting' rooms
   const duelHistory = []; // Circular buffer of finished duel results (max 50)
   const DUEL_HISTORY_MAX = 50;
   const DUEL_WAIT_EXPIRY_MS = 3 * 60 * 1000; // 3 min for waiting rooms
@@ -190,6 +191,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     for (const [id, room] of duelRooms) {
       const age = now - room.createdAt;
       if (room.status === "waiting" && age > DUEL_WAIT_EXPIRY_MS) {
+        // Sync v10.1: Remove waiting room player from index if it matches this room
+        for (const userId in room.players) {
+          if (waitingRoomsByUser.get(userId) === id) {
+            waitingRoomsByUser.delete(userId);
+          }
+        }
         duelRooms.delete(id);
       } else if (room.status === "finished" && age > DUEL_FINISH_EXPIRY_MS) {
         duelRooms.delete(id);
@@ -207,11 +214,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     await withPlayerLock(userId, async (p) => {
       const { count = 5, difficulty } = req.body;
 
-      // v7.3: Per-user quota — prevent a single user from spamming rooms
-      for (const [, room] of duelRooms) {
-        if (room.status === "waiting" && room.players[userId]) {
-          return res.status(429).json({ error: "ACTIVE_ROOM_EXISTS", message: "You already have a waiting room" });
-        }
+      // v10.1: Optimized O(1) quota check via waitingRoomsByUser index
+      if (waitingRoomsByUser.has(userId)) {
+        return res.status(429).json({
+          error: "ACTIVE_ROOM_EXISTS",
+          message: "You already have a waiting room",
+        });
       }
 
       // v7.3: Hard capacity limit with oldest-eviction fallback
@@ -220,6 +228,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         let evicted = false;
         for (const [id, room] of duelRooms) {
           if (room.status === "waiting") {
+            // Sync v10.1: Remove evicted room's players from index if they match
+            for (const pId in room.players) {
+              if (waitingRoomsByUser.get(pId) === id) {
+                waitingRoomsByUser.delete(pId);
+              }
+            }
             duelRooms.delete(id);
             evicted = true;
             break;
@@ -265,6 +279,8 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         createdAt: Date.now(),
         status: "waiting", // waiting -> active -> finished
       });
+      // Sync v10.1: Track user's active waiting room
+      waitingRoomsByUser.set(userId, roomId);
 
       res.json({
         success: true,
@@ -316,7 +332,16 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       }
 
       // Move to lobby when 2 players joined (ready-up required)
-      if (Object.keys(room.players).length >= 2) room.status = "lobby";
+      if (Object.keys(room.players).length >= 2) {
+        // Sync v10.1: Transition from waiting to lobby removes players from index if they match
+        const rId = room.roomId;
+        for (const pId in room.players) {
+          if (waitingRoomsByUser.get(pId) === rId) {
+            waitingRoomsByUser.delete(pId);
+          }
+        }
+        room.status = "lobby";
+      }
 
       const playerNames = Object.values(room.players).map((pl) => pl.username);
       res.json({
@@ -442,6 +467,13 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       room.status === "waiting" &&
       Date.now() - room.createdAt > DUEL_WAIT_EXPIRY_MS
     ) {
+      // Sync v10.1: Remove waiting room player from index if it matches
+      const rId = room.roomId;
+      for (const pId in room.players) {
+        if (waitingRoomsByUser.get(pId) === rId) {
+          waitingRoomsByUser.delete(pId);
+        }
+      }
       duelRooms.delete(req.params.roomId);
       return res.status(404).json({ error: "Room expired" });
     }
@@ -484,6 +516,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     if (!roomId) return res.status(400).json({ error: "roomId required" });
     const room = duelRooms.get(roomId);
     if (!room) return res.json({ success: true }); // already gone
+
+    // Sync v10.1: Remove user from waiting room index if leaving their own waiting room
+    if (room.status === "waiting" && waitingRoomsByUser.get(userId) === roomId) {
+      waitingRoomsByUser.delete(userId);
+    }
+
     delete room.players[userId];
     // Delete room if empty
     if (Object.keys(room.players).length === 0) {
