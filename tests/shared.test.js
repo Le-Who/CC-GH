@@ -181,6 +181,20 @@ describe("Shared Module Unit Tests", () => {
       shared.setTheme("invalid-theme");
       assert.equal(shared.getTheme(), "auto");
     });
+
+    it("setTheme falls back to auto for untyped or null theme", () => {
+      shared.setTheme(null);
+      assert.equal(shared.getTheme(), "auto");
+
+      shared.setTheme(undefined);
+      assert.equal(shared.getTheme(), "auto");
+
+      shared.setTheme(123);
+      assert.equal(shared.getTheme(), "auto");
+
+      shared.setTheme({});
+      assert.equal(shared.getTheme(), "auto");
+    });
   });
 
   describe("Interruption System", () => {

@@ -262,7 +262,9 @@ export async function redisGetOrLoadPlayer(userId, firestoreLoader) {
   if (!firestoreData) return null;
 
   // 3. Populate Redis for next read
-  await redisSetPlayer(userId, firestoreData).catch(() => {});
+  await redisSetPlayer(userId, firestoreData).catch((error) => {
+    console.warn(`⚠️ Error populating Redis for ${userId}:`, error);
+  });
   return firestoreData;
 }
 

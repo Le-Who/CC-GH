@@ -149,6 +149,7 @@ export default function questRoutes(requireAuth, resolveUser) {
       const order = p.pet.activeOrders[orderIdx];
 
       // Validate all requirements
+      let mergeInventory = null;
       for (const requirement of order.requirements) {
         if (requirement.type === "crop") {
           if (
@@ -161,12 +162,17 @@ export default function questRoutes(requireAuth, resolveUser) {
             });
           }
         } else if (requirement.type === "merge") {
-          let found = 0;
-          for (const row of p.merge.board) {
-            for (const cell of row) {
-              if (cell && cell.id === requirement.id) found++;
+          if (!mergeInventory) {
+            mergeInventory = {};
+            for (const row of p.merge.board) {
+              for (const cell of row) {
+                if (cell) {
+                  mergeInventory[cell.id] = (mergeInventory[cell.id] || 0) + 1;
+                }
+              }
             }
           }
+          const found = mergeInventory[requirement.id] || 0;
           if (found < requirement.qty) {
             return res.status(400).json({
               error: `not enough ${requirement.id} on board`,

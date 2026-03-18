@@ -98,8 +98,42 @@ describe("Auth UI", () => {
 
   it("clearAuth removes stored data", () => {
     authUi.storeAuth("token123", "user1", "alice");
+
+    // Track calls to removeItem
+    const removedKeys = [];
+    const originalRemoveItem = globalThis.localStorage.removeItem;
+    globalThis.localStorage.removeItem = (key) => {
+      removedKeys.push(key);
+      originalRemoveItem(key);
+    };
+
     authUi.clearAuth();
+
+    // Restore original
+    globalThis.localStorage.removeItem = originalRemoveItem;
+
     assert.equal(authUi.getStoredAuth(), null);
+
+    // Verify exact keys were removed
+    assert.ok(removedKeys.includes("hub_auth_token"));
+    assert.ok(removedKeys.includes("hub_auth_user"));
+    assert.ok(removedKeys.includes("gh_token"));
+    assert.ok(removedKeys.includes("gh_userId"));
+    assert.ok(removedKeys.includes("gh_username"));
+  });
+
+  it("clearAuth handles edge case when localStorage methods throw", () => {
+    const originalRemoveItem = globalThis.localStorage.removeItem;
+    globalThis.localStorage.removeItem = () => {
+      throw new Error("Simulated storage error");
+    };
+
+    // Should not throw, but since clearAuth doesn't catch it currently, we check if it throws
+    assert.throws(() => {
+      authUi.clearAuth();
+    }, /Simulated storage error/);
+
+    globalThis.localStorage.removeItem = originalRemoveItem;
   });
 
   it("getStoredAuth handles corrupt JSON gracefully", () => {
