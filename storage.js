@@ -12,10 +12,11 @@ let bucket = null;
 /**
  * Initialize storage with optional GCS bucket.
  * @param {string} bucketName — GCS bucket name (empty = local only)
+ * @param {any} _Storage — Storage class override (for testing)
  */
-export function initStorage(bucketName) {
+export function initStorage(bucketName, _Storage = Storage) {
   if (bucketName) {
-    const storage = new Storage(); // auto-authenticates on GCP
+    const storage = new _Storage(); // auto-authenticates on GCP
     bucket = storage.bucket(bucketName);
     console.log(`  ☁️  GCS bucket: ${bucketName}`);
   } else {
@@ -28,6 +29,11 @@ export function initStorage(bucketName) {
 /** Get the current bucket instance (or null if local-only). */
 export function getBucket() {
   return bucket;
+}
+
+/** Reset the bucket instance (for testing only). */
+export function _resetBucket() {
+  bucket = null;
 }
 
 /**
