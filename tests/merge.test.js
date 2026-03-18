@@ -46,6 +46,91 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.deepStrictEqual(board[0][0], { id: "textile_1", chainId: "textile", level: 0 });
       assert.strictEqual(mergeStore.getState().boardItemCount(), 1);
     });
+
+    it("setGenerators updates the generators list", () => {
+      mergeStore.getState().setGenerators(["textile", "wood"]);
+      assert.deepStrictEqual(mergeStore.getState().generators, ["textile", "wood"]);
+    });
+
+    it("setGeneratorState updates the generator states", () => {
+      const newState = { textile: { tapsLeft: 5, cooldownEnd: 1000 } };
+      mergeStore.getState().setGeneratorState(newState);
+      assert.deepStrictEqual(mergeStore.getState().generatorState, newState);
+    });
+
+    it("setLastFreePull updates the last free pull timestamp", () => {
+      const now = Date.now();
+      mergeStore.getState().setLastFreePull(now);
+      assert.strictEqual(mergeStore.getState().lastFreePull, now);
+    });
+
+    it("setSelectedFuel updates fuel selection for a chain", () => {
+      mergeStore.getState().setSelectedFuel("textile", "strawberry");
+      assert.deepStrictEqual(mergeStore.getState().selectedFuel, { textile: "strawberry" });
+
+      mergeStore.getState().setSelectedFuel("wood", "corn");
+      assert.deepStrictEqual(mergeStore.getState().selectedFuel, { textile: "strawberry", wood: "corn" });
+    });
+  });
+
+  describe("Computed Properties", () => {
+    it("getItemInfo returns correct info or null", () => {
+      const info = mergeStore.getState().getItemInfo("thread");
+      assert.ok(info);
+      assert.strictEqual(info.chainId, "textile");
+      assert.strictEqual(info.level, 0);
+
+      const invalid = mergeStore.getState().getItemInfo("invalid_item");
+      assert.strictEqual(invalid, null);
+    });
+
+    it("isOnCooldown correctly identifies active cooldowns", () => {
+      const chainId = "textile";
+
+      // No cooldown
+      mergeStore.getState().setGeneratorState({ [chainId]: { tapsLeft: 0, cooldownEnd: 0 } });
+      assert.strictEqual(mergeStore.getState().isOnCooldown(chainId), false);
+
+      // Past cooldown
+      mergeStore.getState().setGeneratorState({ [chainId]: { tapsLeft: 0, cooldownEnd: Date.now() - 1000 } });
+      assert.strictEqual(mergeStore.getState().isOnCooldown(chainId), false);
+
+      // Future cooldown
+      mergeStore.getState().setGeneratorState({ [chainId]: { tapsLeft: 0, cooldownEnd: Date.now() + 10000 } });
+      assert.strictEqual(mergeStore.getState().isOnCooldown(chainId), true);
+
+      // Missing chain
+      assert.strictEqual(mergeStore.getState().isOnCooldown("unknown"), false);
+    });
+
+    it("canFreePull correctly compares dates", () => {
+      const now = new Date();
+
+      // Never pulled
+      mergeStore.getState().setLastFreePull(0);
+      assert.strictEqual(mergeStore.getState().canFreePull(), true);
+
+      // Pulled yesterday
+      const yesterday = new Date();
+      yesterday.setDate(now.getDate() - 1);
+      mergeStore.getState().setLastFreePull(yesterday.getTime());
+      assert.strictEqual(mergeStore.getState().canFreePull(), true);
+
+      // Pulled today
+      mergeStore.getState().setLastFreePull(now.getTime());
+      assert.strictEqual(mergeStore.getState().canFreePull(), false);
+    });
+
+    it("boardItemCount returns correct count of non-null cells", () => {
+      assert.strictEqual(mergeStore.getState().boardItemCount(), 0);
+
+      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      newBoard[0][0] = { id: "item1" };
+      newBoard[1][1] = { id: "item2" };
+      mergeStore.getState().setBoard(newBoard);
+
+      assert.strictEqual(mergeStore.getState().boardItemCount(), 2);
+    });
   });
 
   describe("Computed: canMerge", () => {
@@ -93,6 +178,25 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
         const { canMerge } = mergeStore.getState();
         assert.strictEqual(canMerge(0, 0, 0, 1), true);
       }
+    });
+
+    it("returns false for out-of-bounds coordinates", () => {
+      const { canMerge } = mergeStore.getState();
+      assert.strictEqual(canMerge(-1, 0, 0, 0), false);
+      assert.strictEqual(canMerge(0, 0, 7, 0), false);
+      assert.strictEqual(canMerge(0, 0, 0, 9), false);
+    });
+  });
+
+  describe("Cell Operations", () => {
+    it("clearCell removes item from specified coordinates", () => {
+      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      newBoard[3][3] = { id: "some_item" };
+      mergeStore.getState().setBoard(newBoard);
+      assert.strictEqual(mergeStore.getState().board[3][3].id, "some_item");
+
+      mergeStore.getState().clearCell(3, 3);
+      assert.strictEqual(mergeStore.getState().board[3][3], null);
     });
   });
 
@@ -145,6 +249,26 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
   });
 
+  describe("Snapshot & Rollback", () => {
+    it("snapshot returns a deep copy and rollback restores state", () => {
+      const originalState = mergeStore.getState().snapshot();
+
+      // Modify state
+      mergeStore.getState().setGenerators(["wood"]);
+      mergeStore.getState().setLastFreePull(999);
+
+      const modifiedState = mergeStore.getState();
+      assert.deepStrictEqual(modifiedState.generators, ["wood"]);
+      assert.strictEqual(modifiedState.lastFreePull, 999);
+
+      // Rollback
+      mergeStore.getState().rollback(originalState);
+      const restoredState = mergeStore.getState();
+      assert.deepStrictEqual(restoredState.generators, ["textile"]);
+      assert.strictEqual(restoredState.lastFreePull, 0);
+    });
+  });
+
   describe("Actions: syncFromServer", () => {
     it("syncs subset of fields from server while preserving others", () => {
       const serverData = {
@@ -160,6 +284,23 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       // Ensure other fields are intact
       assert.strictEqual(state.trashMode, false);
       assert.strictEqual(state.boardItemCount(), 0);
+    });
+
+    it("handles null or undefined mergeData gracefully", () => {
+      const initialState = mergeStore.getState().snapshot();
+      mergeStore.getState().syncFromServer(null);
+      assert.deepStrictEqual(mergeStore.getState().snapshot(), initialState);
+
+      mergeStore.getState().syncFromServer(undefined);
+      assert.deepStrictEqual(mergeStore.getState().snapshot(), initialState);
+    });
+
+    it("uses existing state when fields are missing from mergeData", () => {
+      const partialData = { inventory: ["gold_item"] };
+      mergeStore.getState().syncFromServer(partialData);
+      const state = mergeStore.getState();
+      assert.deepStrictEqual(state.inventory, ["gold_item"]);
+      assert.deepStrictEqual(state.generators, ["textile"]);
     });
   });
 });
