@@ -8,13 +8,7 @@
  * ═══════════════════════════════════════════════════ */
 import { get, set } from "idb-keyval";
 import { GameStore } from "./store.js";
-import {
-  HUB,
-  api,
-  apiBatched,
-  showToast,
-  goToScreen,
-} from "./shared.js";
+import { HUB, api, apiBatched, showToast, goToScreen } from "./shared.js";
 import {
   CROPS as CROPS_CONFIG,
   getUnlockedSeeds,
@@ -613,10 +607,14 @@ const FarmGameImpl = (() => {
     showToast(`💰 Sold ${totalItems} crops for ${totalGold}🪙!`);
     HUD.animateGoldChange(totalGold);
     HUD.updateDisplay(GameStore.getState("resources"));
-    
+
     // v8.2: Fire one request per CROP TYPE instead of per item
     for (const [cropId, qty] of entries) {
-      apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId, amount: qty })
+      apiBatched("/api/farm/sell-crop", {
+        userId: HUB.userId,
+        cropId,
+        amount: qty,
+      })
         .then((data) => {
           if (data._optimistic) return;
           if (data?.success) {
@@ -820,16 +818,16 @@ const FarmGameImpl = (() => {
       const cfg = crops[plot.crop] || {};
       const isJustPlanted = justPlantedPlot === i;
       const displayPct = isJustPlanted ? 100 : Math.round(pct * 100);
-      
+
       // v5.0: Flattened DOM structure (dirt/background handled by CSS pseudo-elements)
       div.innerHTML = `
-        <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? 'animate-grow' : ''}">${cfg.emoji || "🌱"}</div>
+        <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? "animate-grow" : ""}">${cfg.emoji || "🌱"}</div>
         <div class="crop-name">${cfg.name || plot.crop}</div>
         <div class="growth-bar"><div class="growth-bar-fill${isReady ? " done" : ""}${isJustPlanted ? " plant-burst" : ""}" style="width:${displayPct}%"></div></div>
         ${!isReady ? `<div class="growth-time-label">${formatTimeLeft(plot, pct)}</div>` : ""}
-        ${!isReady ? '<button class="farm-uproot-btn" title="Hold 2.5s to uproot">💣</button>' : ""}
-        ${!plot.watered && !isReady ? '<button class="farm-water-btn" title="Water">💧</button>' : ""}
-        ${plot.watered ? '<button class="farm-water-btn watered" disabled>💧</button>' : ""}
+        ${!isReady ? '<button class="farm-uproot-btn" aria-label="Hold to uproot plot" title="Hold 2.5s to uproot">💣</button>' : ""}
+        ${!plot.watered && !isReady ? '<button class="farm-water-btn" aria-label="Water plot" title="Water">💧</button>' : ""}
+        ${plot.watered ? '<button class="farm-water-btn watered" aria-label="Plot watered" disabled>💧</button>' : ""}
       `;
       // Animate rollback: 100% → real value
       if (isJustPlanted) {
@@ -847,12 +845,15 @@ const FarmGameImpl = (() => {
       div.title = isReady ? "Click to harvest!" : "Growing...";
     } else {
       // Empty plot
-      const hasSeeds = selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
+      const hasSeeds =
+        selectedSeed && (state?.inventory?.[selectedSeed] || 0) > 0;
       const ctaText = hasSeeds
         ? `Plant ${crops[selectedSeed]?.emoji || "🌱"} ${crops[selectedSeed]?.name || selectedSeed}`
         : "Tap to Plant 🌱";
       div.innerHTML = `<div class="plot-empty-label">${ctaText}</div>`;
-      div.title = hasSeeds ? `Plant ${crops[selectedSeed]?.name || selectedSeed}` : "Select a seed from the shop";
+      div.title = hasSeeds
+        ? `Plant ${crops[selectedSeed]?.name || selectedSeed}`
+        : "Select a seed from the shop";
     }
   }
 
@@ -952,7 +953,7 @@ const FarmGameImpl = (() => {
       <div class="featured-shelf-header">
         <span class="featured-shelf-title">🌟 Featured</span>
         <span class="featured-shelf-timer">${timerText}</span>
-        <button class="shelf-collapse-btn" title="Hide featured seeds">✕</button>
+        <button class="shelf-collapse-btn" aria-label="Hide featured seeds" title="Hide featured seeds">✕</button>
       </div>
       <div class="featured-shelf">${cards}</div>
     `;
@@ -1141,11 +1142,11 @@ const FarmGameImpl = (() => {
           expandRow.className = "seed-buy-expanded";
           expandRow.innerHTML = `
             <div class="sbe-stepper">
-              <button class="sbe-step step-outer" data-d="-10">−10</button>
-              <button class="sbe-step" data-d="-1">−</button>
+              <button class="sbe-step step-outer" aria-label="Decrease quantity by 10" data-d="-10">−10</button>
+              <button class="sbe-step" aria-label="Decrease quantity by 1" data-d="-1">−</button>
               <span class="sbe-qty">${buyQty}</span>
-              <button class="sbe-step" data-d="1">+</button>
-              <button class="sbe-step step-outer" data-d="10">+10</button>
+              <button class="sbe-step" aria-label="Increase quantity by 1" data-d="1">+</button>
+              <button class="sbe-step step-outer" aria-label="Increase quantity by 10" data-d="10">+10</button>
             </div>
             <div class="sbe-actions">
               <span class="sbe-cost">🪙 ${totalCost}</span>
@@ -1468,7 +1469,6 @@ const FarmGameImpl = (() => {
     render(); // Re-render plots to update titles
   }
 
-
   /* ─── Actions ─── */
   let buySeedVersion = 0;
   function buySeeds(cropId) {
@@ -1736,7 +1736,7 @@ const FarmGameImpl = (() => {
         if (data.success) {
           if (data.resources) HUD.syncFromServer(data.resources);
           if (buySeedVersion === myVersion && data.inventory) {
-             state.inventory = data.inventory;
+            state.inventory = data.inventory;
           }
           syncToStore();
         } else {
@@ -1809,23 +1809,23 @@ const FarmGameImpl = (() => {
         if (data.success) {
           // Silently sync server state — NO re-render (optimistic UI is correct)
           if (data.plots) {
-             // Only update this specific plot if it hasn't changed version
-             if (plotPlantVersions.get(plotId) === ver) {
-                 state.plots[plotId] = data.plots[plotId];
-             }
+            // Only update this specific plot if it hasn't changed version
+            if (plotPlantVersions.get(plotId) === ver) {
+              state.plots[plotId] = data.plots[plotId];
+            }
           }
           // Don't overwrite the whole inventory, just ensure it's synced if no other plants are pending
           // A better approach is to rely on the server's state unless we have pending optimistic plants
           if (data.inventory) {
-             // Only overwrite inventory if no other planting is happening right now
-             // For now, let's just use the server inventory as long as we haven't planted anything *since* this plant
-             let anyNewerPlant = false;
-             for (const [pId, pVer] of plotPlantVersions.entries()) {
-                 if (pVer > ver) anyNewerPlant = true;
-             }
-             if (!anyNewerPlant) {
-                 state.inventory = data.inventory;
-             }
+            // Only overwrite inventory if no other planting is happening right now
+            // For now, let's just use the server inventory as long as we haven't planted anything *since* this plant
+            let anyNewerPlant = false;
+            for (const [pId, pVer] of plotPlantVersions.entries()) {
+              if (pVer > ver) anyNewerPlant = true;
+            }
+            if (!anyNewerPlant) {
+              state.inventory = data.inventory;
+            }
           }
           syncToStore();
         } else {
@@ -1883,11 +1883,14 @@ const FarmGameImpl = (() => {
         if (waterVersion !== myVersion || data._optimistic) return;
         if (data.success) {
           if (data.plots) {
-             // Only apply changes to plots that are NOT currently being optimistically planted or watered
-             // To simplify, we'll only update this specific plot's watered state from the response if the version matches
-             if (waterVersion === myVersion && data.plots[plotId]) {
-                 state.plots[plotId] = { ...state.plots[plotId], ...data.plots[plotId] };
-             }
+            // Only apply changes to plots that are NOT currently being optimistically planted or watered
+            // To simplify, we'll only update this specific plot's watered state from the response if the version matches
+            if (waterVersion === myVersion && data.plots[plotId]) {
+              state.plots[plotId] = {
+                ...state.plots[plotId],
+                ...data.plots[plotId],
+              };
+            }
           }
           syncToStore();
         } else {
@@ -1949,10 +1952,10 @@ const FarmGameImpl = (() => {
         if (harvestVersion !== myVersion || data._optimistic) return;
         if (data.success) {
           if (data.plots) {
-              // Only update the harvested plot
-              if (harvestVersion === myVersion && data.plots[plotId]) {
-                  state.plots[plotId] = data.plots[plotId];
-              }
+            // Only update the harvested plot
+            if (harvestVersion === myVersion && data.plots[plotId]) {
+              state.plots[plotId] = data.plots[plotId];
+            }
           }
           state.xp = data.xp;
           state.level = data.level;
@@ -1975,7 +1978,8 @@ const FarmGameImpl = (() => {
             render();
             // Show user-friendly toast with remaining time
             const remainMs = data.remainingMs || 0;
-            const remainLabel = remainMs > 0 ? _formatGrowthTime(remainMs) : "a moment";
+            const remainLabel =
+              remainMs > 0 ? _formatGrowthTime(remainMs) : "a moment";
             showToast(`⏳ Not quite ready — ${remainLabel} left`);
           } else {
             loadState();
@@ -2012,10 +2016,10 @@ const FarmGameImpl = (() => {
       if (data._optimistic) return;
       if (data?.success) {
         if (data.plots) {
-            // Only update the uprooted plot
-            if (data.plots[plotId]) {
-                state.plots[plotId] = data.plots[plotId];
-            }
+          // Only update the uprooted plot
+          if (data.plots[plotId]) {
+            state.plots[plotId] = data.plots[plotId];
+          }
         }
         if (data.resources) HUD.syncFromServer(data.resources);
         syncToStore();
@@ -2320,26 +2324,26 @@ const FarmGameImpl = (() => {
     const payload = e.detail;
     if (state && payload) {
       if (payload.plots) {
-          // Do not overwrite plots that currently have optimistic unconfirmed actions
-          payload.plots.forEach((p, i) => {
-              if (wateringInFlight.has(i)) return; // Don't overwrite if we are currently watering
-              
-              const pPlantVer = plotPlantVersions.get(i) || 0;
-              // We don't have a reliable way to know if realtime is older than our optimistic plant,
-              // but if we recently planted, we should probably ignore realtime for a moment.
-              // For now, just apply it.
-              state.plots[i] = p;
-          });
+        // Do not overwrite plots that currently have optimistic unconfirmed actions
+        payload.plots.forEach((p, i) => {
+          if (wateringInFlight.has(i)) return; // Don't overwrite if we are currently watering
+
+          const pPlantVer = plotPlantVersions.get(i) || 0;
+          // We don't have a reliable way to know if realtime is older than our optimistic plant,
+          // but if we recently planted, we should probably ignore realtime for a moment.
+          // For now, just apply it.
+          state.plots[i] = p;
+        });
       }
       if (payload.inventory) state.inventory = payload.inventory;
-      
+
       // Hydrate GameStore without triggering a return broadcast
-      import('./store.js').then(({ GameStore }) => {
-        GameStore.setState('farm', { ...state });
+      import("./store.js").then(({ GameStore }) => {
+        GameStore.setState("farm", { ...state });
       });
 
-      if (typeof render === 'function') render();
-      if (typeof renderShop === 'function') renderShop();
+      if (typeof render === "function") render();
+      if (typeof renderShop === "function") renderShop();
     }
   });
 
