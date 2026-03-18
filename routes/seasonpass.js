@@ -23,8 +23,11 @@ export default function seasonPassRoutes(requireAuth, resolveUser) {
 
     // Calculate current tier based on XP
     let currentTier = 0;
-    for (let i = 0; i < SEASON_PASS.tiers.length; i++) {
-      if (p.seasonPass.xp >= SEASON_PASS.tiers[i].xp) currentTier = i;
+    for (let i = SEASON_PASS.tiers.length - 1; i >= 0; i--) {
+      if (p.seasonPass.xp >= SEASON_PASS.tiers[i].xp) {
+        currentTier = i;
+        break;
+      }
     }
     p.seasonPass.tier = currentTier;
 
