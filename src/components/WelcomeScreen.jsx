@@ -98,11 +98,6 @@ export default function WelcomeScreen({ onComplete, isReady }) {
       }
     }
 
-    // Analytics placeholder
-    console.log("[Analytics] WELCOME_PET_NAMED", {
-      name: trimmed,
-      isDefault: trimmed === "Sparky",
-    });
     setStage("free-seed");
   }, [petName]);
 
