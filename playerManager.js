@@ -224,7 +224,9 @@ export function applyMigrations(p) {
     p.farm.inventory.strawberry = Math.max(p.farm.inventory.strawberry || 0, 5);
     if (p.farm.plots) {
       for (const plot of p.farm.plots) {
-        plot.crop = null; plot.plantedAt = null; plot.watered = false;
+        if (plot.crop !== null || plot.plantedAt !== null || plot.watered !== false) {
+          plot.crop = null; plot.plantedAt = null; plot.watered = false;
+        }
       }
     }
     if (p.match3) {
