@@ -365,6 +365,7 @@ export const EVENTS = [
 export function getActiveEvents(now = Date.now()) {
   const currentDate = new Date(now);
   const currentYear = currentDate.getFullYear();
+  const checkYears = [currentYear, currentYear - 1];
   return EVENTS.filter((e) => {
     if (!e.startDate || !e.endDate) return false;
     // For recurring events, normalize to the current year
@@ -372,7 +373,7 @@ export function getActiveEvents(now = Date.now()) {
       const startMD = e.startDate.slice(5); // "MM-DD"
       const endMD = e.endDate.slice(5);
       // Try current year first, then check year boundary (Dec→Jan)
-      for (const year of [currentYear, currentYear - 1]) {
+      for (const year of checkYears) {
         const start = new Date(`${year}-${startMD}`).getTime();
         let endYear = year;
         // Handle year-crossing events (e.g., Dec 15 → Jan 15)
