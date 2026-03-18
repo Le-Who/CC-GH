@@ -11,7 +11,7 @@
     "start": "node server.js",
     "dev:server": "node server.js",
     "dev": "vite",
-    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/db.test.js tests/useToast.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/effects.test.js tests/syntax.test.js tests/shared.test.js tests/merge.test.js tests/auth-ui.test.js tests/hud.test.js",
+    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/effects.test.js tests/syntax.test.js tests/shared.test.js tests/merge.test.js tests/auth-ui.test.js tests/hud.test.js tests/gameStore.test.js",
     "test:perf": "node --test tests/perf.test.js"
   },
   "dependencies": {
