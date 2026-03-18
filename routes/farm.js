@@ -71,6 +71,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         cosmetics: p.cosmetics,
         boosters: p.boosters,
         journal: p.journal,
+        _onboarded: p._onboarded || false,
         serverTime: Date.now(),
       });
     }, username);

@@ -1858,8 +1858,9 @@ const Match3GameImpl = (() => {
 
   function showHint() {
     if (!gameActive || gamePaused || isAnimating || selected) return;
-    // Find a valid move
-    const b = board;
+    // Use a CLONE to avoid corrupting the live board if hasAnyMatch throws
+    const b = cloneBoard(board);
+    // Horizontal swaps
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE - 1; x++) {
         if (b[y][x] === b[y][x + 1]) continue;
@@ -1869,13 +1870,14 @@ const Match3GameImpl = (() => {
         if (hasMatch) {
           const cell = getCell(x, y);
           if (cell) cell.classList.add("hint-pulse");
-          return; // found one
+          return;
         }
       }
     }
+    // Vertical swaps
     for (let x = 0; x < BOARD_SIZE; x++) {
       for (let y = 0; y < BOARD_SIZE - 1; y++) {
-        if (b[y][x] === b[y + 1][x]) continue; 
+        if (b[y][x] === b[y + 1][x]) continue;
         [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
         const hasMatch = hasAnyMatch(b);
         [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];

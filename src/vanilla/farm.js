@@ -40,6 +40,7 @@ const FarmGameImpl = (() => {
   let harvestVersion = 0; // Track rapid harvesting for stale response rejection
   let waterVersion = 0; // Track rapid watering for stale response rejection
   const wateringInFlight = new Set(); // Prevent duplicate auto-water requests
+  const optimisticActionTimestamps = new Map(); // plotId -> Date.now() to prevent realtime overwrites
 
   /* ═══ v7.2: Progressive Seed Unlocking — Player Stats Helper ═══ */
   function _getPlayerStats() {
@@ -376,6 +377,8 @@ const FarmGameImpl = (() => {
       if (data.pet) {
         PetCompanion.syncFromServer(data.pet);
       }
+      // Expose onboarding flag for WelcomeScreen (survives Discord iframe resets)
+      HUB._onboarded = data._onboarded || false;
       // Bug 2 fix: sync server harvested → resources.harvested
       syncHarvestedToStore(data.harvested);
       if (data.offlineReport) {
@@ -1781,6 +1784,7 @@ const FarmGameImpl = (() => {
     };
     state.inventory[cropId] = Math.max(0, seedCount - 1);
     justPlantedPlot = plotId;
+    optimisticActionTimestamps.set(plotId, Date.now());
     syncToStore();
     render();
     renderShop();
@@ -1820,7 +1824,7 @@ const FarmGameImpl = (() => {
              // Only overwrite inventory if no other planting is happening right now
              // For now, let's just use the server inventory as long as we haven't planted anything *since* this plant
              let anyNewerPlant = false;
-             for (const [pId, pVer] of plotPlantVersions.entries()) {
+             for (const [_pId, pVer] of plotPlantVersions.entries()) {
                  if (pVer > ver) anyNewerPlant = true;
              }
              if (!anyNewerPlant) {
@@ -1851,6 +1855,7 @@ const FarmGameImpl = (() => {
     wateringInFlight.add(plotId);
 
     // Optimistic update (instant UI)
+    optimisticActionTimestamps.set(plotId, Date.now());
     state.plots[plotId] = { ...state.plots[plotId], watered: true };
     syncToStore();
     render();
@@ -1919,6 +1924,7 @@ const FarmGameImpl = (() => {
     // v7.2: Check if harvest unlocked a new seed
     _checkNewUnlocks();
 
+    optimisticActionTimestamps.set(plotId, Date.now());
     syncToStore();
 
     // Phase 2 Item 5: Sparkle particle on harvest
@@ -1999,6 +2005,7 @@ const FarmGameImpl = (() => {
 
     // Optimistic: clear the plot (NO seed refund)
     const oldPlot = { ...plot };
+    optimisticActionTimestamps.set(plotId, Date.now());
     state.plots[plotId] = { crop: null, plantedAt: null, watered: false };
     syncToStore();
     render();
@@ -2324,10 +2331,11 @@ const FarmGameImpl = (() => {
           payload.plots.forEach((p, i) => {
               if (wateringInFlight.has(i)) return; // Don't overwrite if we are currently watering
               
-              const pPlantVer = plotPlantVersions.get(i) || 0;
-              // We don't have a reliable way to know if realtime is older than our optimistic plant,
-              // but if we recently planted, we should probably ignore realtime for a moment.
-              // For now, just apply it.
+              const lastOpt = optimisticActionTimestamps.get(i) || 0;
+              // If we took an optimistic action in the last 5 seconds, ignore the incoming broadcast
+              // This guarantees the local UI doesn't flicker/rollback from older network broadcasts
+              if (Date.now() - lastOpt < 5000) return;
+
               state.plots[i] = p;
           });
       }

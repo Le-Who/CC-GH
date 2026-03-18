@@ -1,3 +1,45 @@
+## [10.1.5] - 2026-03-18
+
+### Pet Naming Loop & Farm Sync Resilience
+
+Fixed two critical persistence and network-race issues causing poor user experience:
+
+#### Pet Naming Prompt Loop Fix
+- **Root cause:** Welcome screen relied on `localStorage.getItem("gh_onboarded")`, which is wiped between sessions in Discord Embedded App iframes context.
+- **Fix:** Implemented a server-side `_onboarded` flag stored securely in PostgreSQL. The `WelcomeScreen` now performs a robust 3-tier check (Server-side flag → Implicit rename signal → Local fallback) to guarantee returning users skip the onboarding flow seamlessly.
+
+#### Farm Action Rollback Prevention
+- **Root cause:** The optimistic API batches actions with a 3-second debounce (`apiBatched`), but incoming cross-tab / server broadcasts (`farm_state_sync`) were unconditionally applied. If a broadcast arrived while a local action was still in the debounce queue, the plot would "flicker" back to its old state (e.g. unplanted/unwatered) until the server eventually resolved the batch.
+- **Fix:** Introduced `optimisticActionTimestamps` to track real-time local mutations for `plant`, `water`, `harvest`, and `uproot`. The `farm_state_sync` event listener now securely ignores incoming payload updates for any plot modified by the local user within the last 5 seconds. Actions are now 100% resilient and visually seamless.
+
+---
+## [10.1.4] - 2026-03-17
+
+### Match-3 UX/UI Visual Improvements (5 Features)
+
+Comprehensive visual juice pass for the Match-3 game module, fixing the cascade disappearing-gems bug and adding 4 new interaction feedback systems.
+
+#### Cascade Disappearance Fix (Adaptive Thresholding + Hit-Stop)
+- **Root cause**: `SPEED_FLOOR` at `0.65` allowed animation durations to drop below browser rendering thresholds (~130ms), so CSS transitions couldn't complete before DOM updates replaced them.
+- **Fix**: `SPEED_FLOOR` raised from `0.65` → `0.80` (minimum ~200ms per phase). Added cinematic hit-stop pauses: **100ms** for 5+ matches with `perlinShake`, **60ms** for match-4.
+
+#### Hint System (Wiggle + Glow)
+- After **4.5 seconds** of player inactivity, one valid-move gem receives `hint-pulse` class with subtle wiggle animation (±4° rotation) and pulsing glow in the gem's own `--gem-color`. Clears on any interaction.
+
+#### Grand Match Feedback (Directional Laser + Text Popup)
+- **Match 4**: Directional CSS laser beam (`laserH`/`laserV`) shoots through the matched row/column.
+- **Match 5+**: Radial explosion particles + animated "MEGA!" / "AWESOME!" text popup with spring overshoot and drift-up fade (`m3GrandPop` keyframe).
+
+#### Masked Drop Spawning (Squash & Stretch)
+- `.m3-board` now has `overflow: hidden` + CSS `mask-image` gradient at the top edge. New gems start from `y + 4` cells above (instead of `y + 1`), creating a visible "drop from reservoir" effect leveraging the existing `m3Fall` squash/stretch physics.
+
+#### Misclick Rubber Band Bounce
+- On invalid swap, both gems slide **50%** toward each other with spring cubic-bezier, slight head-shake rotation (±3°), then bounce back after 150ms. Replaces the old `perlinShake` full-board shake for a more intuitive "these can't swap" signal.
+
+#### Tests — **393/393 pass**, 0 failures.
+
+---
+
 ## [10.1.3] - 2026-03-17
 
 ### Engine Hot-Path Optimization (Zero Array Allocation Iteration)

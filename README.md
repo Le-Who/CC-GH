@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v10.1.2** (E2E Playwright, Strict AAA Test Refactoring)
+**Current version: v10.1.5** (Pet Naming Loop & Farm Sync Resilience)
 
 ---
 
@@ -12,7 +12,7 @@
 | ------------------------- | ---------------------------------------------------------------------------- |
 | 🌱 **Cozy Farm**          | Plant, water, harvest crops · Buy plots · Seed shop with 8 crop types        |
 | 🧠 **Brain Blitz**        | Solo trivia + async duels via invite codes · 3 difficulty tiers              |
-| 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, and leaderboard · 3 game modes · Juicy UI |
+| 💎 **Gem Crush**          | 8×8 match-3 with cascades, combos, leaderboard · 3 modes · Hint system · Grand match feedback |
 | 🧱 **Building Blox**      | 10×10 block puzzle · 12 pieces · cross-device sync · touch drag · Juicy UI   |
 | 🔮 **Gacha Merge**        | 7×9 merge board · 2 chains × 8 levels · generators + gacha + daily free pull |
 | 📋 **Pet Orders**         | Quest system: farm crops + merge items → tiered rewards + affection levels   |

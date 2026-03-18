@@ -19,6 +19,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
     username: username || "Player",
     schemaVersion: 7,
     _lastSeen: now,
+    _onboarded: false,
     resources: {
       gold: ECONOMY.GOLD_START,
       energy: {

@@ -115,6 +115,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
         return res.status(400).json({ error: "invalid name" });
       }
       p.pet.name = newName.trim().slice(0, 16);
+      p._onboarded = true;
       res.json({ success: true, pet: p.pet });
     }, username);
   });

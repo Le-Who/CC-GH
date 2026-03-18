@@ -30,13 +30,27 @@ export default function WelcomeScreen({ onComplete, isReady }) {
   useEffect(() => {
     if (isReady && stage === "loading") {
       // Small delay so the greeting animation feels intentional, not jarring
+      const checkOnboarded = () => {
+        // 1. Server-side flag (survives Discord iframe resets)
+        const serverOnboarded = window.HUB?._onboarded;
+        // 2. Pet name changed from default (implicit onboarding signal)
+        const petName = window.HUB?.pet?.name || window.GameStore?.getState?.("pet")?.name;
+        const petRenamed = petName && petName !== "Buddy";
+        // 3. localStorage fallback (fastest, but ephemeral in Discord)
+        const localOnboarded = localStorage.getItem("gh_onboarded");
+        return serverOnboarded || petRenamed || localOnboarded;
+      };
       const t = setTimeout(() => {
-        // Smart skip for returning users:
-        if (localStorage.getItem("gh_onboarded")) {
-          // They already onboarded, so this was just a loading screen
+        if (checkOnboarded()) {
           onComplete();
         } else {
+          // Farm API may still be in-flight — re-check once more after 1s
+          const retry = setTimeout(() => {
+            if (stage === "greeting" || stage === "loading") return; // user already moved on
+            if (checkOnboarded()) onComplete();
+          }, 1500);
           setStage("greeting");
+          return () => clearTimeout(retry);
         }
       }, 600);
       return () => clearTimeout(t);
@@ -101,12 +115,14 @@ export default function WelcomeScreen({ onComplete, isReady }) {
     const durationMs = Date.now() - startTime.current;
     console.log("[Analytics] WELCOME_COMPLETED", { durationMs });
     localStorage.setItem("gh_onboarded", "true");
+    if (window.HUB) window.HUB._onboarded = true;
     onComplete();
   }, [onComplete]);
 
   const handleSkip = useCallback(() => {
     console.log("[Analytics] WELCOME_SKIPPED", { stageAtSkip: stage });
     localStorage.setItem("gh_onboarded", "true");
+    if (window.HUB) window.HUB._onboarded = true;
     onComplete();
   }, [stage, onComplete]);
 
