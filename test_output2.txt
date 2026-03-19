@@ -1,0 +1,4515 @@
+
+> game-hub@10.1.1 test /app
+> node --test --test-concurrency=1 tests/unit.test.js tests/api.test.js tests/blox.test.js tests/match3.test.js tests/ux.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/effects.test.js tests/syntax.test.js tests/shared.test.js tests/merge.test.js tests/auth-ui.test.js tests/useBloxEngine.test.js tests/hud.test.js tests/gameStore.test.js
+
+TAP version 13
+# 🐘 Postgres database initialized successfully via Transaction Pooler.
+# [api.test.js] beforeEach started...
+# [api.test.js] SELECT 1 succeeded...
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '42P07',
+#   message: 'relation "players" already exists, skipping',
+#   file: 'parse_utilcmd.c',
+#   line: '207',
+#   routine: 'transformCreateStmt'
+# }
+# [api.test.js] DELETE FROM players succeeded...
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '42P07',
+#   message: 'relation "auth_users" already exists, skipping',
+#   file: 'parse_utilcmd.c',
+#   line: '207',
+#   routine: 'transformCreateStmt'
+# }
+# [api.test.js] beforeEach started...
+# Subtest: GET /api/config/discord
+    # Subtest: returns clientId field
+    ok 1 - returns clientId field
+      ---
+      duration_ms: 936.302615
+      type: 'test'
+      ...
+    1..1
+ok 1 - GET /api/config/discord
+  ---
+  duration_ms: 938.917549
+  type: 'suite'
+  ...
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '42P07',
+#   message: 'relation "auth_sessions" already exists, skipping',
+#   file: 'parse_utilcmd.c',
+#   line: '207',
+#   routine: 'transformCreateStmt'
+# }
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: GET /api/content/crops
+    # Subtest: returns all crop definitions
+    ok 1 - returns all crop definitions
+      ---
+      duration_ms: 258.899454
+      type: 'test'
+      ...
+    1..1
+ok 2 - GET /api/content/crops
+  ---
+  duration_ms: 259.411242
+  type: 'suite'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/farm/state
+    # Subtest: returns default state for new player
+    not ok 1 - returns default state for new player
+      ---
+      duration_ms: 268.027719
+      type: 'test'
+      location: '/app/tests/api.test.js:87:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:92:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: [FIX 1 REGRESSION] does not return offlineReport for new player
+    ok 2 - [FIX 1 REGRESSION] does not return offlineReport for new player
+      ---
+      duration_ms: 249.866417
+      type: 'test'
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: requires userId
+    not ok 3 - requires userId
+      ---
+      duration_ms: 249.765667
+      type: 'test'
+      location: '/app/tests/api.test.js:111:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:113:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..3
+not ok 3 - POST /api/farm/state
+  ---
+  duration_ms: 768.461698
+  type: 'suite'
+  location: '/app/tests/api.test.js:86:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/farm/plant
+    # Subtest: plants a seed on an empty plot
+    not ok 1 - plants a seed on an empty plot
+      ---
+      duration_ms: 495.209582
+      type: 'test'
+      location: '/app/tests/api.test.js:124:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:136:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects planting with no seeds
+    not ok 2 - rejects planting with no seeds
+      ---
+      duration_ms: 493.225962
+      type: 'test'
+      location: '/app/tests/api.test.js:141:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:155:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects invalid crop
+    not ok 3 - rejects invalid crop
+      ---
+      duration_ms: 494.421628
+      type: 'test'
+      location: '/app/tests/api.test.js:158:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:169:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..3
+not ok 4 - POST /api/farm/plant
+  ---
+  duration_ms: 1483.996395
+  type: 'suite'
+  location: '/app/tests/api.test.js:123:1'
+  failureType: 'subtestsFailed'
+  error: '3 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/farm/water
+    # Subtest: waters a planted plot
+    not ok 1 - waters a planted plot
+      ---
+      duration_ms: 496.142838
+      type: 'test'
+      location: '/app/tests/api.test.js:177:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected 200, got 401. {"error":"No token provided"}
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:192:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects double-watering
+    not ok 2 - rejects double-watering
+      ---
+      duration_ms: 496.829821
+      type: 'test'
+      location: '/app/tests/api.test.js:197:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:212:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects watering empty plot
+    not ok 3 - rejects watering empty plot
+      ---
+      duration_ms: 494.09183
+      type: 'test'
+      location: '/app/tests/api.test.js:215:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:228:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..3
+not ok 5 - POST /api/farm/water
+  ---
+  duration_ms: 1487.809939
+  type: 'suite'
+  location: '/app/tests/api.test.js:176:1'
+  failureType: 'subtestsFailed'
+  error: '3 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/farm/buy-seeds
+    # Subtest: buys seeds with sufficient gold
+    not ok 1 - buys seeds with sufficient gold
+      ---
+      duration_ms: 495.718669
+      type: 'test'
+      location: '/app/tests/api.test.js:236:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:251:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects purchase with insufficient gold
+    not ok 2 - rejects purchase with insufficient gold
+      ---
+      duration_ms: 492.468504
+      type: 'test'
+      location: '/app/tests/api.test.js:257:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:272:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 6 - POST /api/farm/buy-seeds
+  ---
+  duration_ms: 988.915325
+  type: 'suite'
+  location: '/app/tests/api.test.js:235:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/farm/sell-crop
+    # Subtest: returns soldFor matching CROPS.sellPrice (not a formula)
+    not ok 1 - returns soldFor matching CROPS.sellPrice (not a formula)
+      ---
+      duration_ms: 494.872157
+      type: 'test'
+      location: '/app/tests/api.test.js:280:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:294:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects selling crop not in inventory
+    not ok 2 - rejects selling crop not in inventory
+      ---
+      duration_ms: 491.805192
+      type: 'test'
+      location: '/app/tests/api.test.js:303:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:317:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 7 - POST /api/farm/sell-crop
+  ---
+  duration_ms: 987.176827
+  type: 'suite'
+  location: '/app/tests/api.test.js:279:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/pet/feed
+    # Subtest: feeds pet with harvested crop and gains energy
+    not ok 1 - feeds pet with harvested crop and gains energy
+      ---
+      duration_ms: 493.808279
+      type: 'test'
+      location: '/app/tests/api.test.js:325:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:341:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects feeding with no harvested crop
+    not ok 2 - rejects feeding with no harvested crop
+      ---
+      duration_ms: 490.867456
+      type: 'test'
+      location: '/app/tests/api.test.js:350:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:361:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 8 - POST /api/pet/feed
+  ---
+  duration_ms: 985.153786
+  type: 'suite'
+  location: '/app/tests/api.test.js:324:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/trivia/start
+    # Subtest: starts a trivia session and deducts energy
+    not ok 1 - starts a trivia session and deducts energy
+      ---
+      duration_ms: 492.325856
+      type: 'test'
+      location: '/app/tests/api.test.js:369:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:378:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects when energy is insufficient
+    not ok 2 - rejects when energy is insufficient
+      ---
+      duration_ms: 492.378824
+      type: 'test'
+      location: '/app/tests/api.test.js:388:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected 400, got 401. Body: {"error":"No token provided"}
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:398:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 9 - POST /api/trivia/start
+  ---
+  duration_ms: 985.324086
+  type: 'suite'
+  location: '/app/tests/api.test.js:368:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [withPlayerLock] Unhandled exception for user answer1: TypeError: Cannot read properties of null (reading 'questions')
+#     at file:///app/tests/api.test.js:418:40
+#     at file:///app/playerManager.js:85:26
+#     at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+#     at async scope (file:///app/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js:260:18)
+#     at async Function.begin (file:///app/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js:243:14)
+#     at async withPlayerLock (file:///app/playerManager.js:47:12)
+#     at async TestContext.<anonymous> (file:///app/tests/api.test.js:417:5)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Promise.all (index 0)
+#     at async Suite.run (node:internal/test_runner/test:1442:7)
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/trivia/answer
+    # Subtest: scores correct answer with points and streak
+    not ok 1 - scores correct answer with points and streak
+      ---
+      duration_ms: 1223.844836
+      type: 'test'
+      location: '/app/tests/api.test.js:407:3'
+      failureType: 'testCodeFailure'
+      error: "Cannot read properties of null (reading 'questions')"
+      code: 'ERR_TEST_FAILURE'
+      name: 'TypeError'
+      stack: |-
+        file:///app/tests/api.test.js:418:40
+        file:///app/playerManager.js:85:26
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async scope (file:///app/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js:260:18)
+        async Function.begin (file:///app/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/index.js:243:14)
+        async withPlayerLock (file:///app/playerManager.js:47:12)
+        async TestContext.<anonymous> (file:///app/tests/api.test.js:417:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: scores wrong answer with 0 points
+    not ok 2 - scores wrong answer with 0 points
+      ---
+      duration_ms: 502.883429
+      type: 'test'
+      location: '/app/tests/api.test.js:436:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+        + actual - expected
+
+        + undefined
+        - false
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: false
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:445:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects when no active session
+    not ok 3 - rejects when no active session
+      ---
+      duration_ms: 493.769504
+      type: 'test'
+      location: '/app/tests/api.test.js:450:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:457:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..3
+not ok 10 - POST /api/trivia/answer
+  ---
+  duration_ms: 2221.258479
+  type: 'suite'
+  location: '/app/tests/api.test.js:406:1'
+  failureType: 'subtestsFailed'
+  error: '3 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/farm/harvest
+    # Subtest: harvests a fully grown crop
+    not ok 1 - harvests a fully grown crop
+      ---
+      duration_ms: 495.528903
+      type: 'test'
+      location: '/app/tests/api.test.js:465:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:480:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: rejects harvesting unready crop
+    not ok 2 - rejects harvesting unready crop
+      ---
+      duration_ms: 491.839133
+      type: 'test'
+      location: '/app/tests/api.test.js:486:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:502:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 11 - POST /api/farm/harvest
+  ---
+  duration_ms: 987.946011
+  type: 'suite'
+  location: '/app/tests/api.test.js:464:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/game/state (match-3)
+    # Subtest: returns match-3 state for new player
+    not ok 1 - returns match-3 state for new player
+      ---
+      duration_ms: 251.313121
+      type: 'test'
+      location: '/app/tests/api.test.js:510:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:515:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..1
+not ok 12 - POST /api/game/state (match-3)
+  ---
+  duration_ms: 251.881425
+  type: 'suite'
+  location: '/app/tests/api.test.js:509:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: GET /api/health
+    # Subtest: returns healthy status
+    ok 1 - returns healthy status
+      ---
+      duration_ms: 372.567073
+      type: 'test'
+      ...
+    1..1
+ok 13 - GET /api/health
+  ---
+  duration_ms: 372.915999
+  type: 'suite'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/merge/state
+    # Subtest: returns default merge state for new player
+    not ok 1 - returns default merge state for new player
+      ---
+      duration_ms: 492.863285
+      type: 'test'
+      location: '/app/tests/api.test.js:535:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:540:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: requires userId
+    not ok 2 - requires userId
+      ---
+      duration_ms: 249.632724
+      type: 'test'
+      location: '/app/tests/api.test.js:548:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:550:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 14 - POST /api/merge/state
+  ---
+  duration_ms: 743.016691
+  type: 'suite'
+  location: '/app/tests/api.test.js:534:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/merge/tap
+    # Subtest: rejects tap when no generators available
+    not ok 1 - rejects tap when no generators available
+      ---
+      duration_ms: 492.644165
+      type: 'test'
+      location: '/app/tests/api.test.js:558:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:564:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: requires userId
+    not ok 2 - requires userId
+      ---
+      duration_ms: 251.17203
+      type: 'test'
+      location: '/app/tests/api.test.js:567:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:569:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 15 - POST /api/merge/tap
+  ---
+  duration_ms: 744.409536
+  type: 'suite'
+  location: '/app/tests/api.test.js:557:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/merge/trash
+    # Subtest: rejects trashing from empty cell
+    not ok 1 - rejects trashing from empty cell
+      ---
+      duration_ms: 491.247771
+      type: 'test'
+      location: '/app/tests/api.test.js:577:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:584:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: requires userId
+    not ok 2 - requires userId
+      ---
+      duration_ms: 250.097947
+      type: 'test'
+      location: '/app/tests/api.test.js:587:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:589:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 16 - POST /api/merge/trash
+  ---
+  duration_ms: 742.109927
+  type: 'suite'
+  location: '/app/tests/api.test.js:576:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/quests/generate
+    # Subtest: generates quest orders for a player
+    not ok 1 - generates quest orders for a player
+      ---
+      duration_ms: 493.705586
+      type: 'test'
+      location: '/app/tests/api.test.js:597:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:602:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: requires userId
+    not ok 2 - requires userId
+      ---
+      duration_ms: 257.701879
+      type: 'test'
+      location: '/app/tests/api.test.js:606:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        The expression evaluated to a falsy value:
+
+          assert.ok(status === 400 || status === 200)
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: '=='
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:609:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 17 - POST /api/quests/generate
+  ---
+  duration_ms: 751.919517
+  type: 'suite'
+  location: '/app/tests/api.test.js:596:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/quests/submit
+    # Subtest: rejects submit with invalid orderId
+    not ok 1 - rejects submit with invalid orderId
+      ---
+      duration_ms: 490.751432
+      type: 'test'
+      location: '/app/tests/api.test.js:617:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 400
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 400
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:623:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+    # Subtest: requires userId
+    not ok 2 - requires userId
+      ---
+      duration_ms: 250.227133
+      type: 'test'
+      location: '/app/tests/api.test.js:626:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        The expression evaluated to a falsy value:
+
+          assert.ok(status === 400 || status === 200)
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: '=='
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:631:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 18 - POST /api/quests/submit
+  ---
+  duration_ms: 741.524008
+  type: 'suite'
+  location: '/app/tests/api.test.js:616:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+# [api.test.js] beforeEach started...
+# Subtest: POST /api/pet/feed — edge cases
+    # Subtest: clamps energy at max (no overflow)
+    not ok 1 - clamps energy at max (no overflow)
+      ---
+      duration_ms: 491.956455
+      type: 'test'
+      location: '/app/tests/api.test.js:639:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected 200, got 401. Body: {"error":"No token provided"}
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:650:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+# [api.test.js] SELECT 1 succeeded...
+# [api.test.js] DELETE FROM players succeeded...
+    # Subtest: caps pet fullness at 100 (no overflow)
+    not ok 2 - caps pet fullness at 100 (no overflow)
+      ---
+      duration_ms: 495.028617
+      type: 'test'
+      location: '/app/tests/api.test.js:657:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected 200, got 401. Body: {"error":"No token provided"}
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/api.test.js:669:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..2
+not ok 19 - POST /api/pet/feed — edge cases
+  ---
+  duration_ms: 987.422493
+  type: 'suite'
+  location: '/app/tests/api.test.js:638:1'
+  failureType: 'subtestsFailed'
+  error: '2 subtests failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: Auth UI
+    # Subtest: storeAuth and getStoredAuth work
+    ok 1 - storeAuth and getStoredAuth work
+      ---
+      duration_ms: 6.224626
+      type: 'test'
+      ...
+    # Subtest: clearAuth removes stored data
+    ok 2 - clearAuth removes stored data
+      ---
+      duration_ms: 1.883172
+      type: 'test'
+      ...
+    # Subtest: clearAuth handles edge case when localStorage methods throw
+    ok 3 - clearAuth handles edge case when localStorage methods throw
+      ---
+      duration_ms: 2.062209
+      type: 'test'
+      ...
+    # Subtest: getStoredAuth handles corrupt JSON gracefully
+    ok 4 - getStoredAuth handles corrupt JSON gracefully
+      ---
+      duration_ms: 1.71811
+      type: 'test'
+      ...
+    # Subtest: validateStoredToken returns null if no token
+    ok 5 - validateStoredToken returns null if no token
+      ---
+      duration_ms: 2.813803
+      type: 'test'
+      ...
+    # Subtest: validateStoredToken works with valid token
+    ok 6 - validateStoredToken works with valid token
+      ---
+      duration_ms: 1.720812
+      type: 'test'
+      ...
+    # Subtest: validateStoredToken clears auth and returns null if 401
+    ok 7 - validateStoredToken clears auth and returns null if 401
+      ---
+      duration_ms: 1.476006
+      type: 'test'
+      ...
+    # Subtest: validateStoredToken keeps auth on network error
+    ok 8 - validateStoredToken keeps auth on network error
+      ---
+      duration_ms: 2.045168
+      type: 'test'
+      ...
+    # Subtest: logout clears auth and reloads
+    ok 9 - logout clears auth and reloads
+      ---
+      duration_ms: 1.679529
+      type: 'test'
+      ...
+    # Subtest: logout handles missing token safely
+    ok 10 - logout handles missing token safely
+      ---
+      duration_ms: 1.416246
+      type: 'test'
+      ...
+    # Subtest: showAuthDialog can resolve as guest
+    ok 11 - showAuthDialog can resolve as guest
+      ---
+      duration_ms: 1.512266
+      type: 'test'
+      ...
+    # Subtest: showAuthDialog can resolve via form submit
+    ok 12 - showAuthDialog can resolve via form submit
+      ---
+      duration_ms: 2.069846
+      type: 'test'
+      ...
+    # Subtest: showAuthDialog handles form submit error
+    ok 13 - showAuthDialog handles form submit error
+      ---
+      duration_ms: 3.187309
+      type: 'test'
+      ...
+    # Subtest: showAuthDialog handles form submit network error
+    ok 14 - showAuthDialog handles form submit network error
+      ---
+      duration_ms: 1.626902
+      type: 'test'
+      ...
+    # Subtest: showAuthDialog tab switching works
+    ok 15 - showAuthDialog tab switching works
+      ---
+      duration_ms: 1.68397
+      type: 'test'
+      ...
+    1..15
+ok 20 - Auth UI
+  ---
+  duration_ms: 35.359879
+  type: 'suite'
+  ...
+# Subtest: Building Blox — Piece Shapes
+    # Subtest: all pieces have valid cell coordinates (non-negative)
+    ok 1 - all pieces have valid cell coordinates (non-negative)
+      ---
+      duration_ms: 2.759596
+      type: 'test'
+      ...
+    # Subtest: all pieces have unique IDs
+    ok 2 - all pieces have unique IDs
+      ---
+      duration_ms: 0.236727
+      type: 'test'
+      ...
+    # Subtest: all pieces have at least 1 cell
+    ok 3 - all pieces have at least 1 cell
+      ---
+      duration_ms: 0.193134
+      type: 'test'
+      ...
+    # Subtest: all pieces have a color string
+    ok 4 - all pieces have a color string
+      ---
+      duration_ms: 0.227143
+      type: 'test'
+      ...
+    # Subtest: no pieces exceed 5x5 bounding box
+    ok 5 - no pieces exceed 5x5 bounding box
+      ---
+      duration_ms: 0.240414
+      type: 'test'
+      ...
+    # Subtest: piece library contains expected variety
+    ok 6 - piece library contains expected variety
+      ---
+      duration_ms: 0.25694
+      type: 'test'
+      ...
+    1..6
+ok 21 - Building Blox — Piece Shapes
+  ---
+  duration_ms: 5.856704
+  type: 'suite'
+  ...
+# Subtest: Building Blox — Placement Logic
+    # Subtest: places a 1-cell piece at origin
+    ok 1 - places a 1-cell piece at origin
+      ---
+      duration_ms: 0.690149
+      type: 'test'
+      ...
+    # Subtest: rejects placement out of bounds
+    ok 2 - rejects placement out of bounds
+      ---
+      duration_ms: 0.516279
+      type: 'test'
+      ...
+    # Subtest: rejects placement on occupied cells
+    ok 3 - rejects placement on occupied cells
+      ---
+      duration_ms: 0.481667
+      type: 'test'
+      ...
+    # Subtest: i5 piece fits at (0,0) and (0,5) but not (0,6)
+    ok 4 - i5 piece fits at (0,0) and (0,5) but not (0,6)
+      ---
+      duration_ms: 0.407639
+      type: 'test'
+      ...
+    1..4
+ok 22 - Building Blox — Placement Logic
+  ---
+  duration_ms: 2.642122
+  type: 'suite'
+  ...
+# Subtest: Building Blox — Line Clearing
+    # Subtest: detects a full row
+    ok 1 - detects a full row
+      ---
+      duration_ms: 1.355864
+      type: 'test'
+      ...
+    # Subtest: detects a full column
+    ok 2 - detects a full column
+      ---
+      duration_ms: 0.179248
+      type: 'test'
+      ...
+    # Subtest: detects simultaneous row + column clear
+    ok 3 - detects simultaneous row + column clear
+      ---
+      duration_ms: 0.157205
+      type: 'test'
+      ...
+    # Subtest: detects multiple row clears
+    ok 4 - detects multiple row clears
+      ---
+      duration_ms: 0.315597
+      type: 'test'
+      ...
+    # Subtest: no clears on empty board
+    ok 5 - no clears on empty board
+      ---
+      duration_ms: 0.217084
+      type: 'test'
+      ...
+    # Subtest: no clears on nearly-full row (one gap)
+    ok 6 - no clears on nearly-full row (one gap)
+      ---
+      duration_ms: 0.143094
+      type: 'test'
+      ...
+    1..6
+ok 23 - Building Blox — Line Clearing
+  ---
+  duration_ms: 2.624552
+  type: 'suite'
+  ...
+# Subtest: Building Blox — calcBloxReward
+    # Subtest: returns REWARD_BLOX_LOSE for 0 or negative scores
+    ok 1 - returns REWARD_BLOX_LOSE for 0 or negative scores
+      ---
+      duration_ms: 0.362779
+      type: 'test'
+      ...
+    # Subtest: returns REWARD_BLOX_LOSE for non-number input
+    ok 2 - returns REWARD_BLOX_LOSE for non-number input
+      ---
+      duration_ms: 0.10866
+      type: 'test'
+      ...
+    # Subtest: returns proportional for low scores (1–99)
+    ok 3 - returns proportional for low scores (1–99)
+      ---
+      duration_ms: 0.099707
+      type: 'test'
+      ...
+    # Subtest: returns base reward at score=100
+    ok 4 - returns base reward at score=100
+      ---
+      duration_ms: 0.090217
+      type: 'test'
+      ...
+    # Subtest: reward increases with score
+    ok 5 - reward increases with score
+      ---
+      duration_ms: 0.102961
+      type: 'test'
+      ...
+    # Subtest: reward is capped at 400
+    ok 6 - reward is capped at 400
+      ---
+      duration_ms: 0.102317
+      type: 'test'
+      ...
+    # Subtest: ECONOMY has blox cost
+    ok 7 - ECONOMY has blox cost
+      ---
+      duration_ms: 0.088513
+      type: 'test'
+      ...
+    1..7
+ok 24 - Building Blox — calcBloxReward
+  ---
+  duration_ms: 1.284516
+  type: 'suite'
+  ...
+# Subtest: Building Blox — Game Over Detection
+    # Subtest: 1-cell piece always fits on non-full board
+    ok 1 - 1-cell piece always fits on non-full board
+      ---
+      duration_ms: 0.41899
+      type: 'test'
+      ...
+    # Subtest: large piece does not fit on nearly-full board
+    ok 2 - large piece does not fit on nearly-full board
+      ---
+      duration_ms: 1.698896
+      type: 'test'
+      ...
+    # Subtest: all piececs fit on empty board
+    ok 3 - all piececs fit on empty board
+      ---
+      duration_ms: 0.219196
+      type: 'test'
+      ...
+    1..3
+ok 25 - Building Blox — Game Over Detection
+  ---
+  duration_ms: 2.494459
+  type: 'suite'
+  ...
+# Subtest: Building Blox — Game-Over Correctness
+    # Subtest: clearLines clears board cells synchronously
+    ok 1 - clearLines clears board cells synchronously
+      ---
+      duration_ms: 0.462036
+      type: 'test'
+      ...
+    # Subtest: canAnyPieceFit sees empty cells after synchronous line clear
+    ok 2 - canAnyPieceFit sees empty cells after synchronous line clear
+      ---
+      duration_ms: 0.454931
+      type: 'test'
+      ...
+    # Subtest: game does NOT end when moves exist in newly-cleared cells
+    ok 3 - game does NOT end when moves exist in newly-cleared cells
+      ---
+      duration_ms: 0.523412
+      type: 'test'
+      ...
+    # Subtest: dot piece always fits on empty board (sanity)
+    ok 4 - dot piece always fits on empty board (sanity)
+      ---
+      duration_ms: 0.234348
+      type: 'test'
+      ...
+    1..4
+ok 26 - Building Blox — Game-Over Correctness
+  ---
+  duration_ms: 1.855426
+  type: 'suite'
+  ...
+# 🐘 Postgres database initialized successfully via Transaction Pooler.
+# Subtest: Postgres: Latency Tolerance
+    # Subtest: POST /api/farm/state responds within budget
+    not ok 1 - POST /api/farm/state responds within budget
+      ---
+      duration_ms: 60.853706
+      type: 'test'
+      location: '/app/tests/db.test.js:76:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/db.test.js:81:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+      ...
+    1..1
+not ok 27 - Postgres: Latency Tolerance
+  ---
+  duration_ms: 64.374169
+  type: 'suite'
+  location: '/app/tests/db.test.js:72:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: Postgres: ACID Concurrency Request Safety
+    # Subtest: 20 parallel buy-seeds requests don't overspend gold
+    not ok 1 - 20 parallel buy-seeds requests don't overspend gold
+      ---
+      duration_ms: 11.902975
+      type: 'test'
+      location: '/app/tests/db.test.js:93:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        Expected values to be strictly equal:
+
+        401 !== 200
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: 200
+      actual: 401
+      operator: 'strictEqual'
+      stack: |-
+        TestContext.<anonymous> (file:///app/tests/db.test.js:96:12)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Test.run (node:internal/test_runner/test:1054:7)
+        async Promise.all (index 0)
+        async Suite.run (node:internal/test_runner/test:1442:7)
+        async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..1
+not ok 28 - Postgres: ACID Concurrency Request Safety
+  ---
+  duration_ms: 12.500146
+  type: 'suite'
+  location: '/app/tests/db.test.js:92:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# {
+#   severity_local: 'NOTICE',
+#   severity: 'NOTICE',
+#   code: '42P07',
+#   message: 'relation "players" already exists, skipping',
+#   file: 'parse_utilcmd.c',
+#   line: '207',
+#   routine: 'transformCreateStmt'
+# }
+# Database schema init error: write CONNECTION_ENDED aws-1-eu-central-1.pooler.supabase.com:6543
+# Subtest: effects.js - debounce
+    # Subtest: delays execution
+    ok 1 - delays execution
+      ---
+      duration_ms: 61.410897
+      type: 'test'
+      ...
+    # Subtest: coalesces multiple calls
+    ok 2 - coalesces multiple calls
+      ---
+      duration_ms: 60.779994
+      type: 'test'
+      ...
+    # Subtest: cancel prevents execution
+    ok 3 - cancel prevents execution
+      ---
+      duration_ms: 61.046746
+      type: 'test'
+      ...
+    # Subtest: flush executes immediately
+    ok 4 - flush executes immediately
+      ---
+      duration_ms: 61.25671
+      type: 'test'
+      ...
+    1..4
+ok 29 - effects.js - debounce
+  ---
+  duration_ms: 246.503084
+  type: 'suite'
+  ...
+# Subtest: effects.js - perlinShake
+    # Subtest: skips if el is falsy
+    ok 1 - skips if el is falsy
+      ---
+      duration_ms: 0.477572
+      type: 'test'
+      ...
+    # Subtest: skips if document.hidden is true
+    ok 2 - skips if document.hidden is true
+      ---
+      duration_ms: 0.342998
+      type: 'test'
+      ...
+    # Subtest: applies transform over time and resets
+    ok 3 - applies transform over time and resets
+      ---
+      duration_ms: 81.505129
+      type: 'test'
+      ...
+    1..3
+ok 30 - effects.js - perlinShake
+  ---
+  duration_ms: 83.409548
+  type: 'suite'
+  ...
+# Subtest: effects.js - colorSplash
+    # Subtest: skips if el is falsy
+    ok 1 - skips if el is falsy
+      ---
+      duration_ms: 0.483693
+      type: 'test'
+      ...
+    # Subtest: applies box-shadow immediately and removes it on next frame
+    ok 2 - applies box-shadow immediately and removes it on next frame
+      ---
+      duration_ms: 21.370185
+      type: 'test'
+      ...
+    1..2
+ok 31 - effects.js - colorSplash
+  ---
+  duration_ms: 22.577676
+  type: 'suite'
+  ...
+# Subtest: effects.js - SoundEngine
+    # Subtest: gets and sets volume
+    ok 1 - gets and sets volume
+      ---
+      duration_ms: 1.097426
+      type: 'test'
+      ...
+    # Subtest: clamps volume between 0 and 1
+    ok 2 - clamps volume between 0 and 1
+      ---
+      duration_ms: 0.39194
+      type: 'test'
+      ...
+    # Subtest: handles audio events gracefully
+    ok 3 - handles audio events gracefully
+      ---
+      duration_ms: 0.980546
+      type: 'test'
+      ...
+    # Subtest: skips playing when volume is 0
+    ok 4 - skips playing when volume is 0
+      ---
+      duration_ms: 0.204034
+      type: 'test'
+      ...
+    # Subtest: handles missing AudioContext gracefully
+    ok 5 - handles missing AudioContext gracefully
+      ---
+      duration_ms: 0.199651
+      type: 'test'
+      ...
+    1..5
+ok 32 - effects.js - SoundEngine
+  ---
+  duration_ms: 3.168077
+  type: 'suite'
+  ...
+# Subtest: effects.js - spawnCoinFly
+    # Subtest: skips if sourceEl is falsy
+    ok 1 - skips if sourceEl is falsy
+      ---
+      duration_ms: 0.359646
+      type: 'test'
+      ...
+    # Subtest: skips if document.hidden is true
+    ok 2 - skips if document.hidden is true
+      ---
+      duration_ms: 0.149633
+      type: 'test'
+      ...
+    # Subtest: skips if target is not found
+    ok 3 - skips if target is not found
+      ---
+      duration_ms: 0.176247
+      type: 'test'
+      ...
+    # Subtest: spawns particles and they resolve animation
+    ok 4 - spawns particles and they resolve animation
+      ---
+      duration_ms: 21.054563
+      type: 'test'
+      ...
+    1..4
+ok 33 - effects.js - spawnCoinFly
+  ---
+  duration_ms: 22.078405
+  type: 'suite'
+  ...
+# Subtest: effects.js - spawnWaterDroplets
+    # Subtest: skips if plotEl is falsy
+    ok 1 - skips if plotEl is falsy
+      ---
+      duration_ms: 0.525767
+      type: 'test'
+      ...
+    # Subtest: skips if document.hidden is true
+    ok 2 - skips if document.hidden is true
+      ---
+      duration_ms: 0.215165
+      type: 'test'
+      ...
+    # Subtest: spawns particles and they resolve animation
+    ok 3 - spawns particles and they resolve animation
+      ---
+      duration_ms: 20.723046
+      type: 'test'
+      ...
+    1..3
+ok 34 - effects.js - spawnWaterDroplets
+  ---
+  duration_ms: 21.924451
+  type: 'suite'
+  ...
+# Subtest: Match-3 Stress: Board Generation
+    # Subtest: 1000 boards: every board is 8×8, all cells are valid gems
+    ok 1 - 1000 boards: every board is 8×8, all cells are valid gems
+      ---
+      duration_ms: 27.88685
+      type: 'test'
+      ...
+    # Subtest: 1000 client boards: zero initial matches (client findMatches)
+    ok 2 - 1000 client boards: zero initial matches (client findMatches)
+      ---
+      duration_ms: 11.156956
+      type: 'test'
+      ...
+    # Subtest: 1000 boards: hasValidMoves returns true (no deadlocks)
+    ok 3 - 1000 boards: hasValidMoves returns true (no deadlocks)
+      ---
+      duration_ms: 36.044406
+      type: 'test'
+      ...
+    # Subtest: 500 client boards: all 6 gem types appear with roughly even distribution
+    ok 4 - 500 client boards: all 6 gem types appear with roughly even distribution
+      ---
+      duration_ms: 5.714769
+      type: 'test'
+      ...
+    # Subtest: drop tokens never appear in generated boards
+    ok 5 - drop tokens never appear in generated boards
+      ---
+      duration_ms: 4.525901
+      type: 'test'
+      ...
+    1..5
+ok 35 - Match-3 Stress: Board Generation
+  ---
+  duration_ms: 86.903799
+  type: 'suite'
+  ...
+# Subtest: Match-3: findMatches client correctness
+    # Subtest: client findMatches returns flat index array (not objects)
+    ok 1 - client findMatches returns flat index array (not objects)
+      ---
+      duration_ms: 0.541507
+      type: 'test'
+      ...
+    # Subtest: client detects horizontal 3-in-a-row at correct indices
+    ok 2 - client detects horizontal 3-in-a-row at correct indices
+      ---
+      duration_ms: 0.358991
+      type: 'test'
+      ...
+    # Subtest: client skips DROP_TYPES in match detection
+    ok 3 - client skips DROP_TYPES in match detection
+      ---
+      duration_ms: 0.499987
+      type: 'test'
+      ...
+    # Subtest: mixed drop tokens + gems in a row don't produce false match
+    ok 4 - mixed drop tokens + gems in a row don't produce false match
+      ---
+      duration_ms: 0.454357
+      type: 'test'
+      ...
+    # Subtest: full board same gem: all 64 cells matched
+    ok 5 - full board same gem: all 64 cells matched
+      ---
+      duration_ms: 0.431089
+      type: 'test'
+      ...
+    1..5
+ok 36 - Match-3: findMatches client correctness
+  ---
+  duration_ms: 2.979863
+  type: 'suite'
+  ...
+# Subtest: Match-3: resolveBoard cascade correctness
+    # Subtest: single match: combo=1, points = count*10
+    ok 1 - single match: combo=1, points = count*10
+      ---
+      duration_ms: 0.824136
+      type: 'test'
+      ...
+    # Subtest: scoring cap: combo multiplier maxes at 5
+    ok 2 - scoring cap: combo multiplier maxes at 5
+      ---
+      duration_ms: 0.139868
+      type: 'test'
+      ...
+    # Subtest: 100× stress: resolved board has zero matches, 64 valid cells
+    ok 3 - 100× stress: resolved board has zero matches, 64 valid cells
+      ---
+      duration_ms: 6.69887
+      type: 'test'
+      ...
+    # Subtest: gravity: no floating gems after resolve
+    ok 4 - gravity: no floating gems after resolve
+      ---
+      duration_ms: 3.632154
+      type: 'test'
+      ...
+    # Subtest: drop tokens survive clearing even if adjacent to match
+    ok 5 - drop tokens survive clearing even if adjacent to match
+      ---
+      duration_ms: 0.628976
+      type: 'test'
+      ...
+    # Subtest: totalPoints is always > 0 when matches existed
+    ok 6 - totalPoints is always > 0 when matches existed
+      ---
+      duration_ms: 1.048423
+      type: 'test'
+      ...
+    1..6
+ok 37 - Match-3: resolveBoard cascade correctness
+  ---
+  duration_ms: 13.342463
+  type: 'suite'
+  ...
+# Subtest: Match-3: calcGoldReward correctness
+    # Subtest: score ≤ 0 → REWARD_MATCH3_LOSE
+    ok 1 - score ≤ 0 → REWARD_MATCH3_LOSE
+      ---
+      duration_ms: 0.403991
+      type: 'test'
+      ...
+    # Subtest: score=500 → proportional (floor(40 × 0.5) = 20)
+    ok 2 - score=500 → proportional (floor(40 × 0.5) = 20)
+      ---
+      duration_ms: 0.121038
+      type: 'test'
+      ...
+    # Subtest: score=1000 → base reward (40)
+    ok 3 - score=1000 → base reward (40)
+      ---
+      duration_ms: 0.145713
+      type: 'test'
+      ...
+    # Subtest: score=1500 → base + tier1 bonus
+    ok 4 - score=1500 → base + tier1 bonus
+      ---
+      duration_ms: 0.163187
+      type: 'test'
+      ...
+    # Subtest: score=2000 → base + full tier1
+    ok 5 - score=2000 → base + full tier1
+      ---
+      duration_ms: 0.103599
+      type: 'test'
+      ...
+    # Subtest: 100 ascending scores → non-decreasing reward (monotonicity)
+    ok 6 - 100 ascending scores → non-decreasing reward (monotonicity)
+      ---
+      duration_ms: 0.432629
+      type: 'test'
+      ...
+    # Subtest: very high score (50000) → reward is large but finite
+    ok 7 - very high score (50000) → reward is large but finite
+      ---
+      duration_ms: 0.125948
+      type: 'test'
+      ...
+    1..7
+ok 38 - Match-3: calcGoldReward correctness
+  ---
+  duration_ms: 1.755772
+  type: 'suite'
+  ...
+# Subtest: Blox Stress: Piece integrity
+    # Subtest: every piece fits within 10×10 grid at (0,0)
+    ok 1 - every piece fits within 10×10 grid at (0,0)
+      ---
+      duration_ms: 0.329239
+      type: 'test'
+      ...
+    # Subtest: no duplicate cells within any piece
+    ok 2 - no duplicate cells within any piece
+      ---
+      duration_ms: 0.237267
+      type: 'test'
+      ...
+    # Subtest: piece library has expected 12 pieces with sizes 1-5
+    ok 3 - piece library has expected 12 pieces with sizes 1-5
+      ---
+      duration_ms: 0.159783
+      type: 'test'
+      ...
+    1..3
+ok 39 - Blox Stress: Piece integrity
+  ---
+  duration_ms: 0.920436
+  type: 'suite'
+  ...
+# Subtest: Blox Stress: Placement + Line Clearing
+    # Subtest: scoring: 1 line = 10pts, 2 lines = 30pts, 3 lines = 45pts
+    ok 1 - scoring: 1 line = 10pts, 2 lines = 30pts, 3 lines = 45pts
+      ---
+      duration_ms: 0.271066
+      type: 'test'
+      ...
+    # Subtest: row + column intersection: cleared cells are null
+    ok 2 - row + column intersection: cleared cells are null
+      ---
+      duration_ms: 0.329609
+      type: 'test'
+      ...
+    # Subtest: 200× random games: always terminate, game-over is honest
+    ok 3 - 200× random games: always terminate, game-over is honest
+      ---
+      duration_ms: 1012.398571
+      type: 'test'
+      ...
+    # Subtest: clearLines opens space for pieces: game doesn't end prematurely
+    ok 4 - clearLines opens space for pieces: game doesn't end prematurely
+      ---
+      duration_ms: 0.583612
+      type: 'test'
+      ...
+    1..4
+ok 40 - Blox Stress: Placement + Line Clearing
+  ---
+  duration_ms: 1013.811246
+  type: 'suite'
+  ...
+# Subtest: Blox: calcBloxReward correctness
+    # Subtest: score=0 → REWARD_BLOX_LOSE (5)
+    ok 1 - score=0 → REWARD_BLOX_LOSE (5)
+      ---
+      duration_ms: 0.344057
+      type: 'test'
+      ...
+    # Subtest: score=50 → proportional floor(35×0.5)=17
+    ok 2 - score=50 → proportional floor(35×0.5)=17
+      ---
+      duration_ms: 0.128964
+      type: 'test'
+      ...
+    # Subtest: score=100 → base reward (35)
+    ok 3 - score=100 → base reward (35)
+      ---
+      duration_ms: 0.095116
+      type: 'test'
+      ...
+    # Subtest: score=99999 → capped at 400
+    ok 4 - score=99999 → capped at 400
+      ---
+      duration_ms: 0.089299
+      type: 'test'
+      ...
+    # Subtest: 100 ascending scores → non-decreasing (monotonicity)
+    ok 5 - 100 ascending scores → non-decreasing (monotonicity)
+      ---
+      duration_ms: 0.375482
+      type: 'test'
+      ...
+    # Subtest: client reward formula matches server formula
+    ok 6 - client reward formula matches server formula
+      ---
+      duration_ms: 0.764903
+      type: 'test'
+      ...
+    1..6
+ok 41 - Blox: calcBloxReward correctness
+  ---
+  duration_ms: 2.056768
+  type: 'suite'
+  ...
+# Subtest: Farm Stress: Growth calculations
+    # Subtest: all 8 crops: unwatered 0%, 50%, 100% growth at correct timestamps
+    ok 1 - all 8 crops: unwatered 0%, 50%, 100% growth at correct timestamps
+      ---
+      duration_ms: 0.654448
+      type: 'test'
+      ...
+    # Subtest: all 8 crops: watered crop finishes faster than unwatered
+    ok 2 - all 8 crops: watered crop finishes faster than unwatered
+      ---
+      duration_ms: 0.342129
+      type: 'test'
+      ...
+    # Subtest: watering multipliers are correct per growth tier
+    ok 3 - watering multipliers are correct per growth tier
+      ---
+      duration_ms: 0.129187
+      type: 'test'
+      ...
+    # Subtest: no crop has growthTime under 30 seconds
+    ok 4 - no crop has growthTime under 30 seconds
+      ---
+      duration_ms: 0.138675
+      type: 'test'
+      ...
+    # Subtest: default player has no phantom 'planter' in farm inventory
+    ok 5 - default player has no phantom 'planter' in farm inventory
+      ---
+      duration_ms: 0.562054
+      type: 'test'
+      ...
+    1..5
+ok 42 - Farm Stress: Growth calculations
+  ---
+  duration_ms: 2.172371
+  type: 'suite'
+  ...
+# Subtest: Farm: Economy invariants
+    # Subtest: sellPrice > seedPrice for all crops (profit is positive)
+    ok 1 - sellPrice > seedPrice for all crops (profit is positive)
+      ---
+      duration_ms: 0.220438
+      type: 'test'
+      ...
+    # Subtest: longer growthTime → higher sellPrice within same tier
+    ok 2 - longer growthTime → higher sellPrice within same tier
+      ---
+      duration_ms: 0.269695
+      type: 'test'
+      ...
+    # Subtest: all crops have positive XP
+    ok 3 - all crops have positive XP
+      ---
+      duration_ms: 0.149989
+      type: 'test'
+      ...
+    # Subtest: exactly 8 crops exist
+    ok 4 - exactly 8 crops exist
+      ---
+      duration_ms: 0.165605
+      type: 'test'
+      ...
+    # Subtest: all crop IDs match their key
+    ok 5 - all crop IDs match their key
+      ---
+      duration_ms: 0.137704
+      type: 'test'
+      ...
+    1..5
+ok 43 - Farm: Economy invariants
+  ---
+  duration_ms: 1.148096
+  type: 'suite'
+  ...
+# Subtest: Farm Stress: processOfflineActions
+    # Subtest: 100× random states: energy is NEVER modified
+    ok 1 - 100× random states: energy is NEVER modified
+      ---
+      duration_ms: 3.403572
+      type: 'test'
+      ...
+    # Subtest: harvest costs fullness (not energy)
+    ok 2 - harvest costs fullness (not energy)
+      ---
+      duration_ms: 0.26279
+      type: 'test'
+      ...
+    # Subtest: plant costs fullness (not energy)
+    ok 3 - plant costs fullness (not energy)
+      ---
+      duration_ms: 0.215671
+      type: 'test'
+      ...
+    # Subtest: auto-water is free (no fullness or energy cost)
+    ok 4 - auto-water is free (no fullness or energy cost)
+      ---
+      duration_ms: 0.209985
+      type: 'test'
+      ...
+    # Subtest: seeds never go negative after auto-plant
+    ok 5 - seeds never go negative after auto-plant
+      ---
+      duration_ms: 0.820803
+      type: 'test'
+      ...
+    # Subtest: priority order: harvest → plant → water
+    ok 6 - priority order: harvest → plant → water
+      ---
+      duration_ms: 0.22644
+      type: 'test'
+      ...
+    # Subtest: farm level = floor(xp/100) + 1
+    ok 7 - farm level = floor(xp/100) + 1
+      ---
+      duration_ms: 0.202494
+      type: 'test'
+      ...
+    1..7
+ok 44 - Farm Stress: processOfflineActions
+  ---
+  duration_ms: 5.643276
+  type: 'suite'
+  ...
+# Subtest: Farm: Energy regen edge cases
+    # Subtest: massive elapsed (1 hour) → capped at ENERGY_MAX
+    ok 1 - massive elapsed (1 hour) → capped at ENERGY_MAX
+      ---
+      duration_ms: 0.403682
+      type: 'test'
+      ...
+    # Subtest: 0 elapsed → no regen
+    ok 2 - 0 elapsed → no regen
+      ---
+      duration_ms: 0.15779
+      type: 'test'
+      ...
+    # Subtest: partial tick preserved across multiple calls
+    ok 3 - partial tick preserved across multiple calls
+      ---
+      duration_ms: 0.149908
+      type: 'test'
+      ...
+    # Subtest: 100× random energy states: regen never exceeds max
+    ok 4 - 100× random energy states: regen never exceeds max
+      ---
+      duration_ms: 2.180809
+      type: 'test'
+      ...
+    1..4
+ok 45 - Farm: Energy regen edge cases
+  ---
+  duration_ms: 3.125566
+  type: 'suite'
+  ...
+# Subtest: GameStore.subscribe
+    # Subtest: calls the callback when the specific slice updates
+    ok 1 - calls the callback when the specific slice updates
+      ---
+      duration_ms: 2.403796
+      type: 'test'
+      ...
+    # Subtest: does not call the callback when a different slice updates
+    ok 2 - does not call the callback when a different slice updates
+      ---
+      duration_ms: 0.370629
+      type: 'test'
+      ...
+    # Subtest: stops calling the callback after unsubscribe is called
+    ok 3 - stops calling the callback after unsubscribe is called
+      ---
+      duration_ms: 0.422414
+      type: 'test'
+      ...
+    # Subtest: only calls the callback if the slice actually changes
+    ok 4 - only calls the callback if the slice actually changes
+      ---
+      duration_ms: 0.848874
+      type: 'test'
+      ...
+    1..4
+ok 46 - GameStore.subscribe
+  ---
+  duration_ms: 7.178907
+  type: 'suite'
+  ...
+# Subtest: HUD Module
+    # Subtest: fetchResources
+        # Subtest: catches api error, logs warning, and returns null
+        ok 1 - catches api error, logs warning, and returns null
+          ---
+          duration_ms: 6.042146
+          type: 'test'
+          ...
+        1..1
+    ok 1 - fetchResources
+      ---
+      duration_ms: 7.082212
+      type: 'suite'
+      ...
+    1..1
+ok 47 - HUD Module
+  ---
+  duration_ms: 7.712357
+  type: 'suite'
+  ...
+# Subtest: findMatches
+    # Subtest: finds a horizontal match of 3
+    ok 1 - finds a horizontal match of 3
+      ---
+      duration_ms: 2.965348
+      type: 'test'
+      ...
+    # Subtest: finds a horizontal match of 4
+    ok 2 - finds a horizontal match of 4
+      ---
+      duration_ms: 0.308336
+      type: 'test'
+      ...
+    # Subtest: finds a vertical match of 3
+    ok 3 - finds a vertical match of 3
+      ---
+      duration_ms: 0.346388
+      type: 'test'
+      ...
+    # Subtest: returns empty set when no matches exist
+    ok 4 - returns empty set when no matches exist
+      ---
+      duration_ms: 0.247019
+      type: 'test'
+      ...
+    # Subtest: does NOT match drop-type gems
+    ok 5 - does NOT match drop-type gems
+      ---
+      duration_ms: 0.267653
+      type: 'test'
+      ...
+    # Subtest: does not match across different gem types
+    ok 6 - does not match across different gem types
+      ---
+      duration_ms: 0.202042
+      type: 'test'
+      ...
+    # Subtest: finds overlapping horizontal + vertical (L-shape)
+    ok 7 - finds overlapping horizontal + vertical (L-shape)
+      ---
+      duration_ms: 0.227591
+      type: 'test'
+      ...
+    1..7
+ok 48 - findMatches
+  ---
+  duration_ms: 6.15284
+  type: 'suite'
+  ...
+# Subtest: resolveBoard
+    # Subtest: clears only matched tiles
+    ok 1 - clears only matched tiles
+      ---
+      duration_ms: 1.8521
+      type: 'test'
+      ...
+    # Subtest: applies gravity: tiles fall down to fill gaps
+    ok 2 - applies gravity: tiles fall down to fill gaps
+      ---
+      duration_ms: 0.678834
+      type: 'test'
+      ...
+    # Subtest: produces zero steps for a match-free board
+    ok 3 - produces zero steps for a match-free board
+      ---
+      duration_ms: 0.4884
+      type: 'test'
+      ...
+    # Subtest: handles cascading matches (chain reaction)
+    ok 4 - handles cascading matches (chain reaction)
+      ---
+      duration_ms: 0.342209
+      type: 'test'
+      ...
+    1..4
+ok 49 - resolveBoard
+  ---
+  duration_ms: 3.988158
+  type: 'suite'
+  ...
+# Subtest: drop type exclusion
+    # Subtest: drop gems survive matching even when 3 are adjacent
+    ok 1 - drop gems survive matching even when 3 are adjacent
+      ---
+      duration_ms: 0.312341
+      type: 'test'
+      ...
+    1..1
+ok 50 - drop type exclusion
+  ---
+  duration_ms: 0.434246
+  type: 'suite'
+  ...
+# Subtest: Merge Engine Hooks (useMergeEngine)
+    # Subtest: Initial State & Basic Actions
+        # Subtest: initializes with an empty 7x9 board
+        ok 1 - initializes with an empty 7x9 board
+          ---
+          duration_ms: 1.56761
+          type: 'test'
+          ...
+        # Subtest: toggleTrashMode flips trashMode state
+        ok 2 - toggleTrashMode flips trashMode state
+          ---
+          duration_ms: 0.494062
+          type: 'test'
+          ...
+        # Subtest: setBoard updates the board
+        ok 3 - setBoard updates the board
+          ---
+          duration_ms: 1.316453
+          type: 'test'
+          ...
+        # Subtest: setGenerators updates the generators list
+        ok 4 - setGenerators updates the generators list
+          ---
+          duration_ms: 0.553176
+          type: 'test'
+          ...
+        # Subtest: setGeneratorState updates the generator states
+        ok 5 - setGeneratorState updates the generator states
+          ---
+          duration_ms: 0.707704
+          type: 'test'
+          ...
+        # Subtest: setLastFreePull updates the last free pull timestamp
+        ok 6 - setLastFreePull updates the last free pull timestamp
+          ---
+          duration_ms: 0.52522
+          type: 'test'
+          ...
+        # Subtest: setSelectedFuel updates fuel selection for a chain
+        ok 7 - setSelectedFuel updates fuel selection for a chain
+          ---
+          duration_ms: 0.506384
+          type: 'test'
+          ...
+        1..7
+    ok 1 - Initial State & Basic Actions
+      ---
+      duration_ms: 7.008508
+      type: 'suite'
+      ...
+    # Subtest: Computed Properties
+        # Subtest: getItemInfo returns correct info or null
+        ok 1 - getItemInfo returns correct info or null
+          ---
+          duration_ms: 1.607585
+          type: 'test'
+          ...
+        # Subtest: isOnCooldown correctly identifies active cooldowns
+        ok 2 - isOnCooldown correctly identifies active cooldowns
+          ---
+          duration_ms: 0.57029
+          type: 'test'
+          ...
+        # Subtest: canFreePull correctly compares dates
+        ok 3 - canFreePull correctly compares dates
+          ---
+          duration_ms: 0.817896
+          type: 'test'
+          ...
+        # Subtest: boardItemCount returns correct count of non-null cells
+        ok 4 - boardItemCount returns correct count of non-null cells
+          ---
+          duration_ms: 0.367235
+          type: 'test'
+          ...
+        1..4
+    ok 2 - Computed Properties
+      ---
+      duration_ms: 3.804649
+      type: 'suite'
+      ...
+    # Subtest: Computed: canMerge
+        # Subtest: returns false if source or destination is empty
+        ok 1 - returns false if source or destination is empty
+          ---
+          duration_ms: 0.338037
+          type: 'test'
+          ...
+        # Subtest: returns false if items have different chainIds or levels
+        ok 2 - returns false if items have different chainIds or levels
+          ---
+          duration_ms: 0.336362
+          type: 'test'
+          ...
+        # Subtest: returns false if item has no nextId (max level)
+        ok 3 - returns false if item has no nextId (max level)
+          ---
+          duration_ms: 0.296321
+          type: 'test'
+          ...
+        # Subtest: returns true for mergeable items
+        ok 4 - returns true for mergeable items
+          ---
+          duration_ms: 0.294291
+          type: 'test'
+          ...
+        # Subtest: returns false for out-of-bounds coordinates
+        ok 5 - returns false for out-of-bounds coordinates
+          ---
+          duration_ms: 0.357901
+          type: 'test'
+          ...
+        1..5
+    ok 3 - Computed: canMerge
+      ---
+      duration_ms: 1.849222
+      type: 'suite'
+      ...
+    # Subtest: Cell Operations
+        # Subtest: clearCell removes item from specified coordinates
+        ok 1 - clearCell removes item from specified coordinates
+          ---
+          duration_ms: 0.451556
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Cell Operations
+      ---
+      duration_ms: 0.543492
+      type: 'suite'
+      ...
+    # Subtest: Actions: mergeOptimistic & rollback
+        # Subtest: returns null if source is empty or unmergeable
+        ok 1 - returns null if source is empty or unmergeable
+          ---
+          duration_ms: 0.461784
+          type: 'test'
+          ...
+        # Subtest: performs optimistic merge and returns old board for rollback
+        ok 2 - performs optimistic merge and returns old board for rollback
+          ---
+          duration_ms: 0.850326
+          type: 'test'
+          ...
+        1..2
+    ok 5 - Actions: mergeOptimistic & rollback
+      ---
+      duration_ms: 1.438201
+      type: 'suite'
+      ...
+    # Subtest: Snapshot & Rollback
+        # Subtest: snapshot returns a deep copy and rollback restores state
+        ok 1 - snapshot returns a deep copy and rollback restores state
+          ---
+          duration_ms: 0.529875
+          type: 'test'
+          ...
+        1..1
+    ok 6 - Snapshot & Rollback
+      ---
+      duration_ms: 0.745848
+      type: 'suite'
+      ...
+    # Subtest: Actions: syncFromServer
+        # Subtest: syncs subset of fields from server while preserving others
+        ok 1 - syncs subset of fields from server while preserving others
+          ---
+          duration_ms: 0.40041
+          type: 'test'
+          ...
+        # Subtest: handles null or undefined mergeData gracefully
+        ok 2 - handles null or undefined mergeData gracefully
+          ---
+          duration_ms: 0.49563
+          type: 'test'
+          ...
+        # Subtest: uses existing state when fields are missing from mergeData
+        ok 3 - uses existing state when fields are missing from mergeData
+          ---
+          duration_ms: 0.380639
+          type: 'test'
+          ...
+        1..3
+    ok 7 - Actions: syncFromServer
+      ---
+      duration_ms: 1.480245
+      type: 'suite'
+      ...
+    1..7
+ok 51 - Merge Engine Hooks (useMergeEngine)
+  ---
+  duration_ms: 18.061387
+  type: 'suite'
+  ...
+#     generateBoard: p50=0.006ms p95=0.011ms max=1.044ms
+#     findMatches: p50=0.0028ms p95=0.0029ms max=0.0394ms
+#     processOfflineActions (full): p50=0.030ms p95=0.047ms max=0.440ms
+#     processOfflineActions (no-op): p50=0.0005ms p95=0.0035ms max=0.0412ms
+#     pickQuestions (500 pool): p50=0.055ms p95=0.088ms max=0.382ms
+# Subtest: perf: generateBoard
+    # Subtest: generates 100 boards in < 50ms total
+    ok 1 - generates 100 boards in < 50ms total
+      ---
+      duration_ms: 3.732723
+      type: 'test'
+      ...
+    # Subtest: single board p95 < 1ms
+    ok 2 - single board p95 < 1ms
+      ---
+      duration_ms: 4.279328
+      type: 'test'
+      ...
+    1..2
+ok 52 - perf: generateBoard
+  ---
+  duration_ms: 9.397462
+  type: 'suite'
+  ...
+# Subtest: perf: findMatches
+    # Subtest: scans 1000 boards in < 20ms total
+    ok 1 - scans 1000 boards in < 20ms total
+      ---
+      duration_ms: 8.32722
+      type: 'test'
+      ...
+    # Subtest: single scan p95 < 0.1ms
+    ok 2 - single scan p95 < 0.1ms
+      ---
+      duration_ms: 2.50879
+      type: 'test'
+      ...
+    1..2
+ok 53 - perf: findMatches
+  ---
+  duration_ms: 11.074353
+  type: 'suite'
+  ...
+# Subtest: perf: processOfflineActions
+    # Subtest: full simulation (6 plots, all abilities) p95 < 0.5ms
+    ok 1 - full simulation (6 plots, all abilities) p95 < 0.5ms
+      ---
+      duration_ms: 9.831272
+      type: 'test'
+      ...
+    # Subtest: no-op simulation (< 2min offline) p95 < 0.05ms
+    ok 2 - no-op simulation (< 2min offline) p95 < 0.05ms
+      ---
+      duration_ms: 1.774299
+      type: 'test'
+      ...
+    1..2
+ok 54 - perf: processOfflineActions
+  ---
+  duration_ms: 12.14068
+  type: 'suite'
+  ...
+# Subtest: perf: pickQuestions
+    # Subtest: picks from 500 questions p95 < 0.5ms
+    ok 1 - picks from 500 questions p95 < 0.5ms
+      ---
+      duration_ms: 22.571488
+      type: 'test'
+      ...
+    1..1
+ok 55 - perf: pickQuestions
+  ---
+  duration_ms: 22.909418
+  type: 'suite'
+  ...
+# Subtest: Shared Module Unit Tests
+    # Subtest: HUB Configuration
+        # Subtest: should export HUB with default initial state
+        ok 1 - should export HUB with default initial state
+          ---
+          duration_ms: 5.972076
+          type: 'test'
+          ...
+        1..1
+    ok 1 - HUB Configuration
+      ---
+      duration_ms: 6.994658
+      type: 'suite'
+      ...
+    # Subtest: Theme Management
+        # Subtest: VALID_THEMES includes correct themes
+        ok 1 - VALID_THEMES includes correct themes
+          ---
+          duration_ms: 2.106835
+          type: 'test'
+          ...
+        # Subtest: setTheme saves to localStorage and updates document element
+        ok 2 - setTheme saves to localStorage and updates document element
+          ---
+          duration_ms: 2.805137
+          type: 'test'
+          ...
+        # Subtest: setTheme falls back to auto for invalid theme
+        ok 3 - setTheme falls back to auto for invalid theme
+          ---
+          duration_ms: 2.13036
+          type: 'test'
+          ...
+        # Subtest: setTheme falls back to auto for untyped or null theme
+        ok 4 - setTheme falls back to auto for untyped or null theme
+          ---
+          duration_ms: 2.28081
+          type: 'test'
+          ...
+        1..4
+    ok 2 - Theme Management
+      ---
+      duration_ms: 9.78628
+      type: 'suite'
+      ...
+    # Subtest: Interruption System
+        # Subtest: exports RETURN_TIER constants
+        ok 1 - exports RETURN_TIER constants
+          ---
+          duration_ms: 2.313706
+          type: 'test'
+          ...
+        # Subtest: setupInterruptionSystem sets HUB.lastActiveTimestamp
+        ok 2 - setupInterruptionSystem sets HUB.lastActiveTimestamp
+          ---
+          duration_ms: 1.874792
+          type: 'test'
+          ...
+        1..2
+    ok 3 - Interruption System
+      ---
+      duration_ms: 4.439738
+      type: 'suite'
+      ...
+    # Subtest: API Helpers
+        # Subtest: apiBatched sets up a batching timeout
+        ok 1 - apiBatched sets up a batching timeout
+          ---
+          duration_ms: 2.433535
+          type: 'test'
+          ...
+        # Subtest: api handles basic fetch mock
+        ok 2 - api handles basic fetch mock
+          ---
+          duration_ms: 2.744119
+          type: 'test'
+          ...
+        1..2
+    ok 4 - API Helpers
+      ---
+      duration_ms: 5.509614
+      type: 'suite'
+      ...
+    # Subtest: Navigation & DOM
+        # Subtest: goToScreen updates HUB.currentScreen
+        ok 1 - goToScreen updates HUB.currentScreen
+          ---
+          duration_ms: 2.438512
+          type: 'test'
+          ...
+        # Subtest: navigate updates HUB.currentScreen with bounds checking
+        ok 2 - navigate updates HUB.currentScreen with bounds checking
+          ---
+          duration_ms: 1.708467
+          type: 'test'
+          ...
+        # Subtest: cacheNavDOM does not throw
+        ok 3 - cacheNavDOM does not throw
+          ---
+          duration_ms: 1.652823
+          type: 'test'
+          ...
+        # Subtest: applyInitialScreen does not throw
+        ok 4 - applyInitialScreen does not throw
+          ---
+          duration_ms: 2.239533
+          type: 'test'
+          ...
+        1..4
+    ok 5 - Navigation & DOM
+      ---
+      duration_ms: 8.282799
+      type: 'suite'
+      ...
+    1..5
+ok 56 - Shared Module Unit Tests
+  ---
+  duration_ms: 36.903751
+  type: 'suite'
+  ...
+# Subtest: Client JS Syntax Validation
+    # Subtest: found 16 client JS files to validate
+    ok 1 - found 16 client JS files to validate
+      ---
+      duration_ms: 1.507098
+      type: 'test'
+      ...
+    # Subtest: auth-ui.js — parses without SyntaxError
+    ok 2 - auth-ui.js — parses without SyntaxError
+      ---
+      duration_ms: 1.336977
+      type: 'test'
+      ...
+    # Subtest: blox/pieces.js — parses without SyntaxError
+    ok 3 - blox/pieces.js — parses without SyntaxError
+      ---
+      duration_ms: 0.799099
+      type: 'test'
+      ...
+    # Subtest: blox.js — parses without SyntaxError
+    ok 4 - blox.js — parses without SyntaxError
+      ---
+      duration_ms: 52.087103
+      type: 'test'
+      ...
+    # Subtest: crops.js — parses without SyntaxError
+    ok 5 - crops.js — parses without SyntaxError
+      ---
+      duration_ms: 1.01941
+      type: 'test'
+      ...
+    # Subtest: effects.js — parses without SyntaxError
+    ok 6 - effects.js — parses without SyntaxError
+      ---
+      duration_ms: 1.180629
+      type: 'test'
+      ...
+    # Subtest: farm.js — parses without SyntaxError
+    ok 7 - farm.js — parses without SyntaxError
+      ---
+      duration_ms: 7.523987
+      type: 'test'
+      ...
+    # Subtest: hud.js — parses without SyntaxError
+    ok 8 - hud.js — parses without SyntaxError
+      ---
+      duration_ms: 0.922697
+      type: 'test'
+      ...
+    # Subtest: main.js — parses without SyntaxError
+    ok 9 - main.js — parses without SyntaxError
+      ---
+      duration_ms: 14.895525
+      type: 'test'
+      ...
+    # Subtest: match3/engine.js — parses without SyntaxError
+    ok 10 - match3/engine.js — parses without SyntaxError
+      ---
+      duration_ms: 1.602921
+      type: 'test'
+      ...
+    # Subtest: match3.js — parses without SyntaxError
+    ok 11 - match3.js — parses without SyntaxError
+      ---
+      duration_ms: 1.027908
+      type: 'test'
+      ...
+    # Subtest: merge.js — parses without SyntaxError
+    ok 12 - merge.js — parses without SyntaxError
+      ---
+      duration_ms: 0.330099
+      type: 'test'
+      ...
+    # Subtest: pet.js — parses without SyntaxError
+    ok 13 - pet.js — parses without SyntaxError
+      ---
+      duration_ms: 0.275649
+      type: 'test'
+      ...
+    # Subtest: realtime.js — parses without SyntaxError
+    ok 14 - realtime.js — parses without SyntaxError
+      ---
+      duration_ms: 0.608011
+      type: 'test'
+      ...
+    # Subtest: shared.js — parses without SyntaxError
+    ok 15 - shared.js — parses without SyntaxError
+      ---
+      duration_ms: 0.595258
+      type: 'test'
+      ...
+    # Subtest: store.js — parses without SyntaxError
+    ok 16 - store.js — parses without SyntaxError
+      ---
+      duration_ms: 3.007687
+      type: 'test'
+      ...
+    # Subtest: trivia.js — parses without SyntaxError
+    ok 17 - trivia.js — parses without SyntaxError
+      ---
+      duration_ms: 0.768679
+      type: 'test'
+      ...
+    1..17
+ok 57 - Client JS Syntax Validation
+  ---
+  duration_ms: 92.722227
+  type: 'suite'
+  ...
+# Subtest: createDefaultPlayer
+    # Subtest: returns a player with all required fields
+    ok 1 - returns a player with all required fields
+      ---
+      duration_ms: 1.560305
+      type: 'test'
+      ...
+    # Subtest: [FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp
+    ok 2 - [FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp
+      ---
+      duration_ms: 0.463233
+      type: 'test'
+      ...
+    # Subtest: defaults username to 'Player' when omitted
+    ok 3 - defaults username to 'Player' when omitted
+      ---
+      duration_ms: 0.268472
+      type: 'test'
+      ...
+    # Subtest: creates 6 empty farm plots
+    ok 4 - creates 6 empty farm plots
+      ---
+      duration_ms: 0.304273
+      type: 'test'
+      ...
+    # Subtest: starts with 5 strawberry seeds
+    ok 5 - starts with 5 strawberry seeds
+      ---
+      duration_ms: 0.309382
+      type: 'test'
+      ...
+    1..5
+ok 58 - createDefaultPlayer
+  ---
+  duration_ms: 4.724555
+  type: 'suite'
+  ...
+# Subtest: calcRegen
+    # Subtest: does nothing when energy is already at max
+    ok 1 - does nothing when energy is already at max
+      ---
+      duration_ms: 0.412837
+      type: 'test'
+      ...
+    # Subtest: regenerates 1 energy after one regen interval
+    ok 2 - regenerates 1 energy after one regen interval
+      ---
+      duration_ms: 0.360986
+      type: 'test'
+      ...
+    # Subtest: regenerates multiple energy after multiple intervals
+    ok 3 - regenerates multiple energy after multiple intervals
+      ---
+      duration_ms: 0.542275
+      type: 'test'
+      ...
+    # Subtest: caps energy at max
+    ok 4 - caps energy at max
+      ---
+      duration_ms: 0.440328
+      type: 'test'
+      ...
+    # Subtest: preserves partial tick progress
+    ok 5 - preserves partial tick progress
+      ---
+      duration_ms: 0.664919
+      type: 'test'
+      ...
+    1..5
+ok 59 - calcRegen
+  ---
+  duration_ms: 3.011454
+  type: 'suite'
+  ...
+# Subtest: processOfflineActions
+    # Subtest: [FIX 1 REGRESSION] returns null for elapsed < 2 minutes
+    ok 1 - [FIX 1 REGRESSION] returns null for elapsed < 2 minutes
+      ---
+      duration_ms: 0.678469
+      type: 'test'
+      ...
+    # Subtest: [FIX 1 REGRESSION] returns null for elapsed < 120s (threshold)
+    ok 2 - [FIX 1 REGRESSION] returns null for elapsed < 120s (threshold)
+      ---
+      duration_ms: 0.15734
+      type: 'test'
+      ...
+    # Subtest: returns null when no abilities are enabled even if away > 2 min
+    ok 3 - returns null when no abilities are enabled even if away > 2 min
+      ---
+      duration_ms: 0.198372
+      type: 'test'
+      ...
+    # Subtest: auto-waters unwatered crops when ability is enabled
+    ok 4 - auto-waters unwatered crops when ability is enabled
+      ---
+      duration_ms: 0.323165
+      type: 'test'
+      ...
+    # Subtest: auto-harvests fully grown crops (costs fullness, not energy)
+    ok 5 - auto-harvests fully grown crops (costs fullness, not energy)
+      ---
+      duration_ms: 0.255803
+      type: 'test'
+      ...
+    # Subtest: auto-plants seeds on empty plots (costs fullness, not energy)
+    ok 6 - auto-plants seeds on empty plots (costs fullness, not energy)
+      ---
+      duration_ms: 0.483086
+      type: 'test'
+      ...
+    # Subtest: stops auto-harvest when fullness runs out (no cheap food)
+    ok 7 - stops auto-harvest when fullness runs out (no cheap food)
+      ---
+      duration_ms: 0.423687
+      type: 'test'
+      ...
+    # Subtest: auto-eats cheap crops to refuel when fullness is 0
+    ok 8 - auto-eats cheap crops to refuel when fullness is 0
+      ---
+      duration_ms: 1.612687
+      type: 'test'
+      ...
+    # Subtest: does NOT eat mid/expensive crops for refuel
+    ok 9 - does NOT eat mid/expensive crops for refuel
+      ---
+      duration_ms: 0.262419
+      type: 'test'
+      ...
+    # Subtest: updates _lastSeen to current time
+    ok 10 - updates _lastSeen to current time
+      ---
+      duration_ms: 0.166082
+      type: 'test'
+      ...
+    1..10
+ok 60 - processOfflineActions
+  ---
+  duration_ms: 4.976959
+  type: 'suite'
+  ...
+# Subtest: getWateringMultiplier
+    # Subtest: returns 0.7 for fast crops (strawberry, blueberry)
+    ok 1 - returns 0.7 for fast crops (strawberry, blueberry)
+      ---
+      duration_ms: 0.180321
+      type: 'test'
+      ...
+    # Subtest: returns 0.6 for medium crops (tomato, golden, corn)
+    ok 2 - returns 0.6 for medium crops (tomato, golden, corn)
+      ---
+      duration_ms: 0.103461
+      type: 'test'
+      ...
+    # Subtest: returns 0.55 for slow crops (sunflower, watermelon, pumpkin)
+    ok 3 - returns 0.55 for slow crops (sunflower, watermelon, pumpkin)
+      ---
+      duration_ms: 0.134373
+      type: 'test'
+      ...
+    # Subtest: returns 0.7 for unknown crops
+    ok 4 - returns 0.7 for unknown crops
+      ---
+      duration_ms: 0.139097
+      type: 'test'
+      ...
+    1..4
+ok 61 - getWateringMultiplier
+  ---
+  duration_ms: 0.715295
+  type: 'suite'
+  ...
+# Subtest: getGrowthPct
+    # Subtest: returns 0 for empty plot
+    ok 1 - returns 0 for empty plot
+      ---
+      duration_ms: 0.233161
+      type: 'test'
+      ...
+    # Subtest: returns 0 for unknown crop
+    ok 2 - returns 0 for unknown crop
+      ---
+      duration_ms: 0.151566
+      type: 'test'
+      ...
+    # Subtest: returns 0 at planting time
+    ok 3 - returns 0 at planting time
+      ---
+      duration_ms: 0.147319
+      type: 'test'
+      ...
+    # Subtest: returns 1 at full growth time (unwatered)
+    ok 4 - returns 1 at full growth time (unwatered)
+      ---
+      duration_ms: 0.185295
+      type: 'test'
+      ...
+    # Subtest: returns 1 sooner when watered (multiplier applies)
+    ok 5 - returns 1 sooner when watered (multiplier applies)
+      ---
+      duration_ms: 0.233829
+      type: 'test'
+      ...
+    # Subtest: caps at 1 even if way past growth time
+    ok 6 - caps at 1 even if way past growth time
+      ---
+      duration_ms: 0.176463
+      type: 'test'
+      ...
+    # Subtest: returns intermediate value during growth
+    ok 7 - returns intermediate value during growth
+      ---
+      duration_ms: 0.238708
+      type: 'test'
+      ...
+    1..7
+ok 62 - getGrowthPct
+  ---
+  duration_ms: 1.663661
+  type: 'suite'
+  ...
+# Subtest: farmPlotsWithGrowth
+    # Subtest: adds growth, growthTime, and wateringMultiplier to each plot
+    ok 1 - adds growth, growthTime, and wateringMultiplier to each plot
+      ---
+      duration_ms: 0.299995
+      type: 'test'
+      ...
+    1..1
+ok 63 - farmPlotsWithGrowth
+  ---
+  duration_ms: 0.427587
+  type: 'suite'
+  ...
+# Subtest: pickQuestions
+    # Subtest: returns the requested number of questions
+    ok 1 - returns the requested number of questions
+      ---
+      duration_ms: 0.269724
+      type: 'test'
+      ...
+    # Subtest: returns all if count exceeds pool size
+    ok 2 - returns all if count exceeds pool size
+      ---
+      duration_ms: 0.134014
+      type: 'test'
+      ...
+    # Subtest: filters by difficulty
+    ok 3 - filters by difficulty
+      ---
+      duration_ms: 0.198489
+      type: 'test'
+      ...
+    # Subtest: returns all when difficulty is 'all'
+    ok 4 - returns all when difficulty is 'all'
+      ---
+      duration_ms: 0.119381
+      type: 'test'
+      ...
+    1..4
+ok 64 - pickQuestions
+  ---
+  duration_ms: 1.322568
+  type: 'suite'
+  ...
+# Subtest: makeClientQuestion
+    # Subtest: includes all 4 answers (1 correct + 3 wrong)
+    ok 1 - includes all 4 answers (1 correct + 3 wrong)
+      ---
+      duration_ms: 0.391351
+      type: 'test'
+      ...
+    # Subtest: includes metadata (category, difficulty, points, timeLimit)
+    ok 2 - includes metadata (category, difficulty, points, timeLimit)
+      ---
+      duration_ms: 0.253114
+      type: 'test'
+      ...
+    # Subtest: includes index and total
+    ok 3 - includes index and total
+      ---
+      duration_ms: 0.135356
+      type: 'test'
+      ...
+    # Subtest: does NOT expose correctAnswer directly
+    ok 4 - does NOT expose correctAnswer directly
+      ---
+      duration_ms: 0.155068
+      type: 'test'
+      ...
+    1..4
+ok 65 - makeClientQuestion
+  ---
+  duration_ms: 1.206264
+  type: 'suite'
+  ...
+# Subtest: Constants
+    # Subtest: ECONOMY has required fields
+    ok 1 - ECONOMY has required fields
+      ---
+      duration_ms: 0.240133
+      type: 'test'
+      ...
+    # Subtest: CROPS has at least 5 crop types
+    ok 2 - CROPS has at least 5 crop types
+      ---
+      duration_ms: 0.213843
+      type: 'test'
+      ...
+    # Subtest: OFFLINE_THRESHOLD_MS is 2 minutes
+    ok 3 - OFFLINE_THRESHOLD_MS is 2 minutes
+      ---
+      duration_ms: 0.346021
+      type: 'test'
+      ...
+    # Subtest: CROPS have energyYield and fullnessYield
+    ok 4 - CROPS have energyYield and fullnessYield
+      ---
+      duration_ms: 0.249409
+      type: 'test'
+      ...
+    1..4
+ok 66 - Constants
+  ---
+  duration_ms: 1.30793
+  type: 'suite'
+  ...
+# Subtest: calculateSatietyDelta
+    # Subtest: returns unchanged fullness if no time has passed
+    ok 1 - returns unchanged fullness if no time has passed
+      ---
+      duration_ms: 0.468146
+      type: 'test'
+      ...
+    # Subtest: reduces fullness by 10 per hour
+    ok 2 - reduces fullness by 10 per hour
+      ---
+      duration_ms: 0.150679
+      type: 'test'
+      ...
+    # Subtest: clamps fullness to 0 (never negative)
+    ok 3 - clamps fullness to 0 (never negative)
+      ---
+      duration_ms: 0.121532
+      type: 'test'
+      ...
+    # Subtest: caps offline progress at 24 hours
+    ok 4 - caps offline progress at 24 hours
+      ---
+      duration_ms: 0.146544
+      type: 'test'
+      ...
+    # Subtest: handles missing stats gracefully
+    ok 5 - handles missing stats gracefully
+      ---
+      duration_ms: 0.135463
+      type: 'test'
+      ...
+    1..5
+ok 67 - calculateSatietyDelta
+  ---
+  duration_ms: 1.29635
+  type: 'suite'
+  ...
+# Subtest: getScaledTime
+    # Subtest: returns the same time when DEV_MODE is off
+    ok 1 - returns the same time when DEV_MODE is off
+      ---
+      duration_ms: 0.230219
+      type: 'test'
+      ...
+    # Subtest: returns minimum 1ms
+    ok 2 - returns minimum 1ms
+      ---
+      duration_ms: 0.109113
+      type: 'test'
+      ...
+    1..2
+ok 68 - getScaledTime
+  ---
+  duration_ms: 0.456661
+  type: 'suite'
+  ...
+# Subtest: forceGrowAll
+    # Subtest: sets planted crops to fully grown
+    ok 1 - sets planted crops to fully grown
+      ---
+      duration_ms: 0.230686
+      type: 'test'
+      ...
+    # Subtest: handles null input gracefully
+    ok 2 - handles null input gracefully
+      ---
+      duration_ms: 0.298126
+      type: 'test'
+      ...
+    1..2
+ok 69 - forceGrowAll
+  ---
+  duration_ms: 0.68991
+  type: 'suite'
+  ...
+# Subtest: processOfflineActions - Edge Cases
+    # Subtest: prevents negative duration offline calculations
+    ok 1 - prevents negative duration offline calculations
+      ---
+      duration_ms: 0.23818
+      type: 'test'
+      ...
+    # Subtest: handles offline generation when energy is already maxed
+    ok 2 - handles offline generation when energy is already maxed
+      ---
+      duration_ms: 0.201481
+      type: 'test'
+      ...
+    1..2
+ok 70 - processOfflineActions - Edge Cases
+  ---
+  duration_ms: 0.661323
+  type: 'suite'
+  ...
+# Subtest: makeClientQuestion - Edge Cases
+    # Subtest: handles missing question gracefully
+    ok 1 - handles missing question gracefully
+      ---
+      duration_ms: 0.237735
+      type: 'test'
+      ...
+    1..1
+ok 71 - makeClientQuestion - Edge Cases
+  ---
+  duration_ms: 0.334121
+  type: 'suite'
+  ...
+# Subtest: useBloxEngine (Zustand Store)
+    # Subtest: Actions
+        # Subtest: newGame() initializes the board, tray, and game state
+        ok 1 - newGame() initializes the board, tray, and game state
+          ---
+          duration_ms: 3.696184
+          type: 'test'
+          ...
+        # Subtest: selectPiece() updates selectedPiece index
+        ok 2 - selectPiece() updates selectedPiece index
+          ---
+          duration_ms: 0.521123
+          type: 'test'
+          ...
+        # Subtest: placePieceAt() places a piece on the board and updates the tray
+        ok 3 - placePieceAt() places a piece on the board and updates the tray
+          ---
+          duration_ms: 0.546578
+          type: 'test'
+          ...
+        # Subtest: placePieceAt() does nothing if piece is already placed or invalid
+        ok 4 - placePieceAt() does nothing if piece is already placed or invalid
+          ---
+          duration_ms: 1.206107
+          type: 'test'
+          ...
+        # Subtest: addScore() and addLines() accumulate values
+        ok 5 - addScore() and addLines() accumulate values
+          ---
+          duration_ms: 0.785876
+          type: 'test'
+          ...
+        # Subtest: setters update simple state variables correctly
+        ok 6 - setters update simple state variables correctly
+          ---
+          duration_ms: 0.524271
+          type: 'test'
+          ...
+        # Subtest: clearBoardCell() clears a specific cell
+        ok 7 - clearBoardCell() clears a specific cell
+          ---
+          duration_ms: 0.490243
+          type: 'test'
+          ...
+        # Subtest: refillTray() generates 3 new pieces
+        ok 8 - refillTray() generates 3 new pieces
+          ---
+          duration_ms: 0.372199
+          type: 'test'
+          ...
+        # Subtest: restoreState(), snapshot(), and rollback() handle store state correctly
+        ok 9 - restoreState(), snapshot(), and rollback() handle store state correctly
+          ---
+          duration_ms: 0.864658
+          type: 'test'
+          ...
+        1..9
+    ok 1 - Actions
+      ---
+      duration_ms: 10.50214
+      type: 'suite'
+      ...
+    # Subtest: Computed functions
+        # Subtest: canPlace() returns correct validation
+        ok 1 - canPlace() returns correct validation
+          ---
+          duration_ms: 0.689182
+          type: 'test'
+          ...
+        # Subtest: canAnyPieceFit() returns correct validation
+        ok 2 - canAnyPieceFit() returns correct validation
+          ---
+          duration_ms: 0.685285
+          type: 'test'
+          ...
+        # Subtest: allPlaced() returns true when all tray pieces are placed
+        ok 3 - allPlaced() returns true when all tray pieces are placed
+          ---
+          duration_ms: 0.635824
+          type: 'test'
+          ...
+        1..3
+    ok 2 - Computed functions
+      ---
+      duration_ms: 3.560441
+      type: 'suite'
+      ...
+    1..2
+ok 72 - useBloxEngine (Zustand Store)
+  ---
+  duration_ms: 14.878219
+  type: 'suite'
+  ...
+# Subtest: useModal Store
+    # Subtest: initializes with activeModal: null, modalProps: {}, and _stack: []
+    ok 1 - initializes with activeModal: null, modalProps: {}, and _stack: []
+      ---
+      duration_ms: 2.613998
+      type: 'test'
+      ...
+    # Subtest: openModal
+        # Subtest: opens a modal with given id and props
+        ok 1 - opens a modal with given id and props
+          ---
+          duration_ms: 1.866576
+          type: 'test'
+          ...
+        # Subtest: opens a modal with empty props by default
+        ok 2 - opens a modal with empty props by default
+          ---
+          duration_ms: 0.592226
+          type: 'test'
+          ...
+        # Subtest: pushes the current modal to the stack if one is already open
+        ok 3 - pushes the current modal to the stack if one is already open
+          ---
+          duration_ms: 0.562306
+          type: 'test'
+          ...
+        1..3
+    ok 2 - openModal
+      ---
+      duration_ms: 3.509184
+      type: 'suite'
+      ...
+    # Subtest: closeModal
+        # Subtest: closes the active modal and resets state when the stack is empty
+        ok 1 - closes the active modal and resets state when the stack is empty
+          ---
+          duration_ms: 0.61405
+          type: 'test'
+          ...
+        # Subtest: pops the previous modal from the stack and sets it as active
+        ok 2 - pops the previous modal from the stack and sets it as active
+          ---
+          duration_ms: 0.323934
+          type: 'test'
+          ...
+        1..2
+    ok 3 - closeModal
+      ---
+      duration_ms: 1.445039
+      type: 'suite'
+      ...
+    # Subtest: closeAll
+        # Subtest: resets all state and clears the stack
+        ok 1 - resets all state and clears the stack
+          ---
+          duration_ms: 0.333729
+          type: 'test'
+          ...
+        1..1
+    ok 4 - closeAll
+      ---
+      duration_ms: 0.47677
+      type: 'suite'
+      ...
+    # Subtest: isOpen
+        # Subtest: returns true if the specified modal is active
+        ok 1 - returns true if the specified modal is active
+          ---
+          duration_ms: 0.387496
+          type: 'test'
+          ...
+        # Subtest: returns false if the specified modal is not active
+        ok 2 - returns false if the specified modal is not active
+          ---
+          duration_ms: 0.35343
+          type: 'test'
+          ...
+        # Subtest: returns false if there is no active modal
+        ok 3 - returns false if there is no active modal
+          ---
+          duration_ms: 0.283497
+          type: 'test'
+          ...
+        1..3
+    ok 5 - isOpen
+      ---
+      duration_ms: 1.276527
+      type: 'suite'
+      ...
+    1..5
+ok 73 - useModal Store
+  ---
+  duration_ms: 11.472256
+  type: 'suite'
+  ...
+# (node:5280) ExperimentalWarning: The MockTimers API is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: useToast Store
+    # Subtest: initializes with an empty toasts array
+    ok 1 - initializes with an empty toasts array
+      ---
+      duration_ms: 2.628231
+      type: 'test'
+      ...
+    # Subtest: adds a toast with id, message, type, and timestamp
+    ok 2 - adds a toast with id, message, type, and timestamp
+      ---
+      duration_ms: 0.808356
+      type: 'test'
+      ...
+    # Subtest: defaults type to 'info' if not provided
+    ok 3 - defaults type to 'info' if not provided
+      ---
+      duration_ms: 0.829334
+      type: 'test'
+      ...
+    # Subtest: maintains a maximum of 3 toasts
+    ok 4 - maintains a maximum of 3 toasts
+      ---
+      duration_ms: 1.01214
+      type: 'test'
+      ...
+    # Subtest: deduplicates identical messages within 1 second
+    ok 5 - deduplicates identical messages within 1 second
+      ---
+      duration_ms: 1.296315
+      type: 'test'
+      ...
+    # Subtest: auto-removes a toast after 2.5s
+    ok 6 - auto-removes a toast after 2.5s
+      ---
+      duration_ms: 0.621325
+      type: 'test'
+      ...
+    # Subtest: dismisses a specific toast by id
+    ok 7 - dismisses a specific toast by id
+      ---
+      duration_ms: 0.368855
+      type: 'test'
+      ...
+    # Subtest: clears all toasts
+    ok 8 - clears all toasts
+      ---
+      duration_ms: 0.447963
+      type: 'test'
+      ...
+    1..8
+ok 74 - useToast Store
+  ---
+  duration_ms: 11.123642
+  type: 'suite'
+  ...
+# Subtest: Pet Flicker — Transition Invariants
+    # Subtest: roam duration (3s idle reset) must exceed walk transition (2.5s) by >= 200ms buffer
+    ok 1 - roam duration (3s idle reset) must exceed walk transition (2.5s) by >= 200ms buffer
+      ---
+      duration_ms: 2.593711
+      type: 'test'
+      ...
+    # Subtest: dock transition must be at least 3× shorter than roam transition
+    ok 2 - dock transition must be at least 3× shorter than roam transition
+      ---
+      duration_ms: 0.187763
+      type: 'test'
+      ...
+    # Subtest: state machine min delay must exceed roam + 500ms safety buffer
+    ok 3 - state machine min delay must exceed roam + 500ms safety buffer
+      ---
+      duration_ms: 0.167973
+      type: 'test'
+      ...
+    # Subtest: pet-roaming class removal timeout must match or exceed CSS transition duration
+    ok 4 - pet-roaming class removal timeout must match or exceed CSS transition duration
+      ---
+      duration_ms: 0.241782
+      type: 'test'
+      ...
+    # Subtest: dock and roam classes must never be applied simultaneously
+    ok 5 - dock and roam classes must never be applied simultaneously
+      ---
+      duration_ms: 0.221654
+      type: 'test'
+      ...
+    # Subtest: pet-transitioning cleanup timeout must exceed dock CSS transition by >= 30ms
+    ok 6 - pet-transitioning cleanup timeout must exceed dock CSS transition by >= 30ms
+      ---
+      duration_ms: 0.147294
+      type: 'test'
+      ...
+    1..6
+ok 75 - Pet Flicker — Transition Invariants
+  ---
+  duration_ms: 5.311247
+  type: 'suite'
+  ...
+# Subtest: Pet Zone Bounds
+    # Subtest: stats-bar formula produces valid range on 375px screen
+    ok 1 - stats-bar formula produces valid range on 375px screen
+      ---
+      duration_ms: 0.561991
+      type: 'test'
+      ...
+    # Subtest: stats-bar formula produces valid range on 1920px screen
+    ok 2 - stats-bar formula produces valid range on 1920px screen
+      ---
+      duration_ms: 0.416967
+      type: 'test'
+      ...
+    # Subtest: stats-bar formula degrades gracefully on ultra-narrow screen (120px)
+    ok 3 - stats-bar formula degrades gracefully on ultra-narrow screen (120px)
+      ---
+      duration_ms: 0.332723
+      type: 'test'
+      ...
+    # Subtest: ground mode uses full viewport with 40px padding
+    ok 4 - ground mode uses full viewport with 40px padding
+      ---
+      duration_ms: 0.364559
+      type: 'test'
+      ...
+    1..4
+ok 76 - Pet Zone Bounds
+  ---
+  duration_ms: 2.105351
+  type: 'suite'
+  ...
+# Subtest: Harvest Optimistic Rewards
+    # Subtest: all crops have sellPrice and xp for optimistic estimation
+    ok 1 - all crops have sellPrice and xp for optimistic estimation
+      ---
+      duration_ms: 0.235109
+      type: 'test'
+      ...
+    # Subtest: optimistic reward matches crops config (no server bonuses)
+    ok 2 - optimistic reward matches crops config (no server bonuses)
+      ---
+      duration_ms: 0.112492
+      type: 'test'
+      ...
+    # Subtest: pumpkin has highest reward (premium crop progression)
+    ok 3 - pumpkin has highest reward (premium crop progression)
+      ---
+      duration_ms: 0.189897
+      type: 'test'
+      ...
+    # Subtest: harvest clears plot locally before server response
+    ok 4 - harvest clears plot locally before server response
+      ---
+      duration_ms: 0.260769
+      type: 'test'
+      ...
+    1..4
+ok 77 - Harvest Optimistic Rewards
+  ---
+  duration_ms: 1.040474
+  type: 'suite'
+  ...
+# Subtest: Growth Tick Efficiency
+    # Subtest: empty farm should skip render (hasGrowingPlots = false)
+    ok 1 - empty farm should skip render (hasGrowingPlots = false)
+      ---
+      duration_ms: 0.529282
+      type: 'test'
+      ...
+    # Subtest: fully grown farm should skip render (all at 100%)
+    ok 2 - fully grown farm should skip render (all at 100%)
+      ---
+      duration_ms: 0.432493
+      type: 'test'
+      ...
+    # Subtest: partially grown farm SHOULD trigger render
+    ok 3 - partially grown farm SHOULD trigger render
+      ---
+      duration_ms: 0.171963
+      type: 'test'
+      ...
+    1..3
+ok 78 - Growth Tick Efficiency
+  ---
+  duration_ms: 1.288571
+  type: 'suite'
+  ...
+# Subtest: Water Race Condition
+    # Subtest: in-flight Set prevents duplicate watering of same plot
+    ok 1 - in-flight Set prevents duplicate watering of same plot
+      ---
+      duration_ms: 0.216477
+      type: 'test'
+      ...
+    # Subtest: auto-water skips already-watered plots
+    ok 2 - auto-water skips already-watered plots
+      ---
+      duration_ms: 0.972572
+      type: 'test'
+      ...
+    # Subtest: auto-water respects 2-per-tick limit
+    ok 3 - auto-water respects 2-per-tick limit
+      ---
+      duration_ms: 0.232401
+      type: 'test'
+      ...
+    1..3
+ok 79 - Water Race Condition
+  ---
+  duration_ms: 1.665106
+  type: 'suite'
+  ...
+# Subtest: Plant/Harvest Version Guard
+    # Subtest: version counter increments per operation
+    ok 1 - version counter increments per operation
+      ---
+      duration_ms: 0.159994
+      type: 'test'
+      ...
+    # Subtest: stale response is rejected when version has advanced
+    ok 2 - stale response is rejected when version has advanced
+      ---
+      duration_ms: 0.119787
+      type: 'test'
+      ...
+    # Subtest: current response is accepted when version matches
+    ok 3 - current response is accepted when version matches
+      ---
+      duration_ms: 0.163681
+      type: 'test'
+      ...
+    # Subtest: harvest version guard follows same pattern
+    ok 4 - harvest version guard follows same pattern
+      ---
+      duration_ms: 0.120155
+      type: 'test'
+      ...
+    1..4
+ok 80 - Plant/Harvest Version Guard
+  ---
+  duration_ms: 0.732886
+  type: 'suite'
+  ...
+# Subtest: Debounced Render Queue
+    # Subtest: multiple queue calls result in single render flag
+    ok 1 - multiple queue calls result in single render flag
+      ---
+      duration_ms: 0.202302
+      type: 'test'
+      ...
+    # Subtest: renderPending flag prevents re-entrant renders
+    ok 2 - renderPending flag prevents re-entrant renders
+      ---
+      duration_ms: 0.127034
+      type: 'test'
+      ...
+    1..2
+ok 81 - Debounced Render Queue
+  ---
+  duration_ms: 0.555272
+  type: 'suite'
+  ...
+# Subtest: Watering Growth Speed
+    # Subtest: watering multiplier reduces growth time by 20-45%
+    ok 1 - watering multiplier reduces growth time by 20-45%
+      ---
+      duration_ms: 0.535301
+      type: 'test'
+      ...
+    # Subtest: watered plot grows faster than unwatered
+    ok 2 - watered plot grows faster than unwatered
+      ---
+      duration_ms: 0.202922
+      type: 'test'
+      ...
+    # Subtest: growth percentage is capped at 1.0
+    ok 3 - growth percentage is capped at 1.0
+      ---
+      duration_ms: 0.141526
+      type: 'test'
+      ...
+    1..3
+ok 82 - Watering Growth Speed
+  ---
+  duration_ms: 1.048237
+  type: 'suite'
+  ...
+# Subtest: Match-3 Mode Selector — State Machine
+    # Subtest: onEnter: active game → pause overlay (not mode selector)
+    ok 1 - onEnter: active game → pause overlay (not mode selector)
+      ---
+      duration_ms: 0.242471
+      type: 'test'
+      ...
+    # Subtest: onEnter: saved sessions → pause overlay
+    ok 2 - onEnter: saved sessions → pause overlay
+      ---
+      duration_ms: 0.153789
+      type: 'test'
+      ...
+    # Subtest: onEnter: no game, no saved → mode selector directly
+    ok 3 - onEnter: no game, no saved → mode selector directly
+      ---
+      duration_ms: 0.113493
+      type: 'test'
+      ...
+    # Subtest: button hierarchy: Continue is first and primary when sessions exist
+    ok 4 - button hierarchy: Continue is first and primary when sessions exist
+      ---
+      duration_ms: 0.194552
+      type: 'test'
+      ...
+    # Subtest: button hierarchy: End All Sessions is last and muted when sessions exist
+    ok 5 - button hierarchy: End All Sessions is last and muted when sessions exist
+      ---
+      duration_ms: 0.159506
+      type: 'test'
+      ...
+    # Subtest: button hierarchy: active game has only Continue + End (no New Game)
+    ok 6 - button hierarchy: active game has only Continue + End (no New Game)
+      ---
+      duration_ms: 0.333851
+      type: 'test'
+      ...
+    # Subtest: no sessions: only New Game visible
+    ok 7 - no sessions: only New Game visible
+      ---
+      duration_ms: 0.168844
+      type: 'test'
+      ...
+    1..7
+ok 83 - Match-3 Mode Selector — State Machine
+  ---
+  duration_ms: 1.772419
+  type: 'suite'
+  ...
+# Subtest: Star Drop — Color Uniqueness
+    # Subtest: drop_gold hue range is distinct from all regular gems
+    ok 1 - drop_gold hue range is distinct from all regular gems
+      ---
+      duration_ms: 0.280845
+      type: 'test'
+      ...
+    # Subtest: drop_seeds hue range is distinct from earth and air gems
+    ok 2 - drop_seeds hue range is distinct from earth and air gems
+      ---
+      duration_ms: 0.262756
+      type: 'test'
+      ...
+    # Subtest: all 3 drop types have distinct hue ranges from each other
+    ok 3 - all 3 drop types have distinct hue ranges from each other
+      ---
+      duration_ms: 0.203248
+      type: 'test'
+      ...
+    # Subtest: drop_energy hue range is distinct from all regular gems
+    ok 4 - drop_energy hue range is distinct from all regular gems
+      ---
+      duration_ms: 0.189847
+      type: 'test'
+      ...
+    1..4
+ok 84 - Star Drop — Color Uniqueness
+  ---
+  duration_ms: 1.163532
+  type: 'suite'
+  ...
+# Subtest: Global Version Constant
+    # Subtest: package.json version is a valid semver string
+    ok 1 - package.json version is a valid semver string
+      ---
+      duration_ms: 2.103783
+      type: 'test'
+      ...
+    # Subtest: server.js getIndexHtml injects version placeholder markers exist in HTML
+    ok 2 - server.js getIndexHtml injects version placeholder markers exist in HTML
+      ---
+      duration_ms: 0.507399
+      type: 'test'
+      ...
+    1..2
+ok 85 - Global Version Constant
+  ---
+  duration_ms: 2.755608
+  type: 'suite'
+  ...
+# Subtest: Match-3 Kinematic Gravity — Timing Invariants
+    # Subtest: 1-row fall uses base duration ~0.30s (0.18 + sqrt(1)*0.12)
+    ok 1 - 1-row fall uses base duration ~0.30s (0.18 + sqrt(1)*0.12)
+      ---
+      duration_ms: 0.36123
+      type: 'test'
+      ...
+    # Subtest: 8-row fall duration caps below 0.55s ceiling
+    ok 2 - 8-row fall duration caps below 0.55s ceiling
+      ---
+      duration_ms: 0.194659
+      type: 'test'
+      ...
+    # Subtest: fall duration increases monotonically with distance
+    ok 3 - fall duration increases monotonically with distance
+      ---
+      duration_ms: 0.178201
+      type: 'test'
+      ...
+    # Subtest: extreme distance (20 rows) is clamped to 0.55s ceiling
+    ok 4 - extreme distance (20 rows) is clamped to 0.55s ceiling
+      ---
+      duration_ms: 0.11075
+      type: 'test'
+      ...
+    # Subtest: short falls (1–2) produce natural deceleration curve
+    ok 5 - short falls (1–2) produce natural deceleration curve
+      ---
+      duration_ms: 0.136421
+      type: 'test'
+      ...
+    1..5
+ok 86 - Match-3 Kinematic Gravity — Timing Invariants
+  ---
+  duration_ms: 1.285332
+  type: 'suite'
+  ...
+# Subtest: Blox Transition Safety
+    # Subtest: .blox-cell CSS must not use 'transition: all' (causes layout thrashing)
+    ok 1 - .blox-cell CSS must not use 'transition: all' (causes layout thrashing)
+      ---
+      duration_ms: 0.832025
+      type: 'test'
+      ...
+    1..1
+ok 87 - Blox Transition Safety
+  ---
+  duration_ms: 0.931446
+  type: 'suite'
+  ...
+# Subtest: CSS Containment — Game Boards
+    # Subtest: .m3-board has contain: layout style paint
+    ok 1 - .m3-board has contain: layout style paint
+      ---
+      duration_ms: 0.976795
+      type: 'test'
+      ...
+    # Subtest: .blox-board has contain: layout style paint
+    ok 2 - .blox-board has contain: layout style paint
+      ---
+      duration_ms: 0.817142
+      type: 'test'
+      ...
+    1..2
+ok 88 - CSS Containment — Game Boards
+  ---
+  duration_ms: 3.490666
+  type: 'suite'
+  ...
+# Subtest: Float-Points Pool & Spring Return
+    # Subtest: float pool capacity is at least 6 (covers 3-combo cascades)
+    ok 1 - float pool capacity is at least 6 (covers 3-combo cascades)
+      ---
+      duration_ms: 0.216432
+      type: 'test'
+      ...
+    # Subtest: float pool ring index correctly wraps around
+    ok 2 - float pool ring index correctly wraps around
+      ---
+      duration_ms: 0.150367
+      type: 'test'
+      ...
+    # Subtest: spring return duration (400ms) is perceptible but not sluggish
+    ok 3 - spring return duration (400ms) is perceptible but not sluggish
+      ---
+      duration_ms: 0.094631
+      type: 'test'
+      ...
+    1..3
+ok 89 - Float-Points Pool & Spring Return
+  ---
+  duration_ms: 0.589245
+  type: 'suite'
+  ...
+# Subtest: Contextual Gem Glow — CSS Custom Properties
+    # Subtest: each gem type defines --gem-color in match3.css
+    ok 1 - each gem type defines --gem-color in match3.css
+      ---
+      duration_ms: 0.630783
+      type: 'test'
+      ...
+    # Subtest: m3MatchGlow keyframes use var(--gem-color) for contextual glow
+    ok 2 - m3MatchGlow keyframes use var(--gem-color) for contextual glow
+      ---
+      duration_ms: 0.452288
+      type: 'test'
+      ...
+    1..2
+ok 90 - Contextual Gem Glow — CSS Custom Properties
+  ---
+  duration_ms: 1.219675
+  type: 'suite'
+  ...
+# Subtest: Board Tilt — Rotation Bounds
+    # Subtest: center cursor produces zero tilt
+    ok 1 - center cursor produces zero tilt
+      ---
+      duration_ms: 0.154267
+      type: 'test'
+      ...
+    # Subtest: extreme left (-0.5) produces -2.5° tilt
+    ok 2 - extreme left (-0.5) produces -2.5° tilt
+      ---
+      duration_ms: 0.130178
+      type: 'test'
+      ...
+    # Subtest: extreme right (+0.5) produces +2.5° tilt
+    ok 3 - extreme right (+0.5) produces +2.5° tilt
+      ---
+      duration_ms: 0.095534
+      type: 'test'
+      ...
+    # Subtest: tilt never exceeds ±3° for any valid cursor position
+    ok 4 - tilt never exceeds ±3° for any valid cursor position
+      ---
+      duration_ms: 0.306417
+      type: 'test'
+      ...
+    1..4
+ok 91 - Board Tilt — Rotation Bounds
+  ---
+  duration_ms: 0.847763
+  type: 'suite'
+  ...
+# Subtest: Squash & Stretch — Fall Keyframes
+    # Subtest: m3Fall keyframes include scaleX and scaleY in match3.css
+    ok 1 - m3Fall keyframes include scaleX and scaleY in match3.css
+      ---
+      duration_ms: 0.832948
+      type: 'test'
+      ...
+    1..1
+ok 92 - Squash & Stretch — Fall Keyframes
+  ---
+  duration_ms: 0.945971
+  type: 'suite'
+  ...
+# Subtest: Color Splash — CSS Rule
+    # Subtest: .m3-board-container.color-splash rule exists in match3.css
+    ok 1 - .m3-board-container.color-splash rule exists in match3.css
+      ---
+      duration_ms: 0.53482
+      type: 'test'
+      ...
+    1..1
+ok 93 - Color Splash — CSS Rule
+  ---
+  duration_ms: 0.626987
+  type: 'suite'
+  ...
+# Subtest: Danger Vignette — CSS Rule
+    # Subtest: .danger-vignette and dangerPulse exist in match3.css
+    ok 1 - .danger-vignette and dangerPulse exist in match3.css
+      ---
+      duration_ms: 0.573684
+      type: 'test'
+      ...
+    1..1
+ok 94 - Danger Vignette — CSS Rule
+  ---
+  duration_ms: 0.6616
+  type: 'suite'
+  ...
+# Subtest: Ambient Dust Particles — CSS Keyframes
+    # Subtest: ambientDrift keyframes exist in match3.css
+    ok 1 - ambientDrift keyframes exist in match3.css
+      ---
+      duration_ms: 0.588684
+      type: 'test'
+      ...
+    # Subtest: bloxAmbientDrift keyframes exist in blox.css
+    ok 2 - bloxAmbientDrift keyframes exist in blox.css
+      ---
+      duration_ms: 0.557783
+      type: 'test'
+      ...
+    1..2
+ok 95 - Ambient Dust Particles — CSS Keyframes
+  ---
+  duration_ms: 1.275239
+  type: 'suite'
+  ...
+# Subtest: Blox Drag-Tilt — rotateZ
+    # Subtest: moveDragPreview in blox.js includes rotateZ
+    ok 1 - moveDragPreview in blox.js includes rotateZ
+      ---
+      duration_ms: 0.706123
+      type: 'test'
+      ...
+    1..1
+ok 96 - Blox Drag-Tilt — rotateZ
+  ---
+  duration_ms: 0.808079
+  type: 'suite'
+  ...
+# Subtest: v6.1.1: safeShowModal export
+    # Subtest: shared.js exports safeShowModal
+    ok 1 - shared.js exports safeShowModal
+      ---
+      duration_ms: 1.346598
+      type: 'test'
+      ...
+    # Subtest: hud.js imports safeShowModal from shared.js
+    ok 2 - hud.js imports safeShowModal from shared.js
+      ---
+      duration_ms: 0.422475
+      type: 'test'
+      ...
+    1..2
+ok 97 - v6.1.1: safeShowModal export
+  ---
+  duration_ms: 1.9026
+  type: 'suite'
+  ...
+# Subtest: v6.1.1: setPointerCapture removal
+    # Subtest: merge.js does NOT use setPointerCapture
+    ok 1 - merge.js does NOT use setPointerCapture
+      ---
+      duration_ms: 2.078618
+      type: 'test'
+      ...
+    1..1
+ok 98 - v6.1.1: setPointerCapture removal
+  ---
+  duration_ms: 2.517646
+  type: 'suite'
+  ...
+# Subtest: v6.1.1: AbortController in api()
+    # Subtest: shared.js api() uses AbortController for fetch timeout
+    ok 1 - shared.js api() uses AbortController for fetch timeout
+      ---
+      duration_ms: 0.466422
+      type: 'test'
+      ...
+    1..1
+ok 99 - v6.1.1: AbortController in api()
+  ---
+  duration_ms: 0.55137
+  type: 'suite'
+  ...
+# Subtest: v6.1.1: _forceCleanupDrag in merge.js
+    # Subtest: merge.js defines _forceCleanupDrag
+    ok 1 - merge.js defines _forceCleanupDrag
+      ---
+      duration_ms: 0.484572
+      type: 'test'
+      ...
+    1..1
+ok 100 - v6.1.1: _forceCleanupDrag in merge.js
+  ---
+  duration_ms: 0.567412
+  type: 'suite'
+  ...
+# Subtest: v6.1.1: View Transition safety in goToScreen
+    # Subtest: shared.js goToScreen uses skipTransition safety timeout
+    ok 1 - shared.js goToScreen uses skipTransition safety timeout
+      ---
+      duration_ms: 0.464596
+      type: 'test'
+      ...
+    1..1
+ok 101 - v6.1.1: View Transition safety in goToScreen
+  ---
+  duration_ms: 0.537768
+  type: 'suite'
+  ...
+# Subtest: v6.1.1: _feedFromModal try/finally
+    # Subtest: hud.js _feedFromModal uses try/finally for guaranteed refresh
+    ok 1 - hud.js _feedFromModal uses try/finally for guaranteed refresh
+      ---
+      duration_ms: 0.509666
+      type: 'test'
+      ...
+    1..1
+ok 102 - v6.1.1: _feedFromModal try/finally
+  ---
+  duration_ms: 0.678499
+  type: 'suite'
+  ...
+# Subtest: Interruption System — Return Tier Classification
+    # Subtest: quick return (<30s) should NOT show welcome-back modal
+    ok 1 - quick return (<30s) should NOT show welcome-back modal
+      ---
+      duration_ms: 0.222857
+      type: 'test'
+      ...
+    # Subtest: soft return (30s–24h) should show comfort banner
+    ok 2 - soft return (30s–24h) should show comfort banner
+      ---
+      duration_ms: 0.148801
+      type: 'test'
+      ...
+    # Subtest: deep return (>24h) should show comfort report modal
+    ok 3 - deep return (>24h) should show comfort report modal
+      ---
+      duration_ms: 0.09539
+      type: 'test'
+      ...
+    # Subtest: tier boundaries are monotonically increasing (quick < soft < deep)
+    ok 4 - tier boundaries are monotonically increasing (quick < soft < deep)
+      ---
+      duration_ms: 0.085448
+      type: 'test'
+      ...
+    1..4
+ok 103 - Interruption System — Return Tier Classification
+  ---
+  duration_ms: 0.691075
+  type: 'suite'
+  ...
+# Subtest: Comfort Framing — Welcome-Back Copy
+    # Subtest: welcome-back modal in farm.js uses warm comfort language
+    ok 1 - welcome-back modal in farm.js uses warm comfort language
+      ---
+      duration_ms: 1.319496
+      type: 'test'
+      ...
+    1..1
+ok 104 - Comfort Framing — Welcome-Back Copy
+  ---
+  duration_ms: 1.392307
+  type: 'suite'
+  ...
+# Subtest: v7.1: Comfort Banner & Interruption System — CSS & Export
+    # Subtest: base.css contains .comfort-banner styles
+    ok 1 - base.css contains .comfort-banner styles
+      ---
+      duration_ms: 0.616645
+      type: 'test'
+      ...
+    # Subtest: shared.js exports setupInterruptionSystem
+    ok 2 - shared.js exports setupInterruptionSystem
+      ---
+      duration_ms: 0.427304
+      type: 'test'
+      ...
+    # Subtest: main.js calls setupInterruptionSystem during boot
+    ok 3 - main.js calls setupInterruptionSystem during boot
+      ---
+      duration_ms: 0.42121
+      type: 'test'
+      ...
+    1..3
+ok 105 - v7.1: Comfort Banner & Interruption System — CSS & Export
+  ---
+  duration_ms: 1.603698
+  type: 'suite'
+  ...
+# Subtest: v7.1: Farm CSS Juice — Ambient Animations
+    # Subtest: farm.css defines cropSway keyframes for ambient sway
+    ok 1 - farm.css defines cropSway keyframes for ambient sway
+      ---
+      duration_ms: 0.787246
+      type: 'test'
+      ...
+    # Subtest: farm.css respects prefers-reduced-motion for animations
+    ok 2 - farm.css respects prefers-reduced-motion for animations
+      ---
+      duration_ms: 0.47787
+      type: 'test'
+      ...
+    1..2
+ok 106 - v7.1: Farm CSS Juice — Ambient Animations
+  ---
+  duration_ms: 1.411492
+  type: 'suite'
+  ...
+# Subtest: Quick-Buy — Top Seeds Ranking
+    # Subtest: returns cheapest seeds when no purchase history exists
+    ok 1 - returns cheapest seeds when no purchase history exists
+      ---
+      duration_ms: 0.477316
+      type: 'test'
+      ...
+    # Subtest: ranks most-purchased seeds first
+    ok 2 - ranks most-purchased seeds first
+      ---
+      duration_ms: 0.261443
+      type: 'test'
+      ...
+    1..2
+ok 107 - Quick-Buy — Top Seeds Ranking
+  ---
+  duration_ms: 0.838917
+  type: 'suite'
+  ...
+# Subtest: v7.1 P1: Cozy Day Theme — CSS Variable Overrides
+    # Subtest: cozy-day.css overrides all critical root CSS variables
+    ok 1 - cozy-day.css overrides all critical root CSS variables
+      ---
+      duration_ms: 0.40805
+      type: 'test'
+      ...
+    # Subtest: cozy-day.css uses [data-theme='cozy-day'] selector
+    ok 2 - cozy-day.css uses [data-theme='cozy-day'] selector
+      ---
+      duration_ms: 0.294162
+      type: 'test'
+      ...
+    1..2
+ok 108 - v7.1 P1: Cozy Day Theme — CSS Variable Overrides
+  ---
+  duration_ms: 0.802986
+  type: 'suite'
+  ...
+# Subtest: v7.1 P1: Theme Flash Prevention
+    # Subtest: index.html contains inline theme script in head
+    ok 1 - index.html contains inline theme script in head
+      ---
+      duration_ms: 0.313075
+      type: 'test'
+      ...
+    # Subtest: shared.js exports initTheme and setTheme
+    ok 2 - shared.js exports initTheme and setTheme
+      ---
+      duration_ms: 0.59315
+      type: 'test'
+      ...
+    # Subtest: main.js calls initTheme during boot
+    ok 3 - main.js calls initTheme during boot
+      ---
+      duration_ms: 0.311225
+      type: 'test'
+      ...
+    1..3
+ok 109 - v7.1 P1: Theme Flash Prevention
+  ---
+  duration_ms: 1.3565
+  type: 'suite'
+  ...
+# Subtest: v7.1 P1: Farm Juice — Harvest & Water Keyframes
+    # Subtest: farm.css defines harvestPop and coinFly keyframes
+    ok 1 - farm.css defines harvestPop and coinFly keyframes
+      ---
+      duration_ms: 1.65426
+      type: 'test'
+      ...
+    # Subtest: farm.css defines quick-buy sheet styles
+    ok 2 - farm.css defines quick-buy sheet styles
+      ---
+      duration_ms: 0.526687
+      type: 'test'
+      ...
+    1..2
+ok 110 - v7.1 P1: Farm Juice — Harvest & Water Keyframes
+  ---
+  duration_ms: 2.376466
+  type: 'suite'
+  ...
+# Subtest: v7.1 P1: Effects.js — Particle Helpers
+    # Subtest: effects.js exports spawnCoinFly
+    ok 1 - effects.js exports spawnCoinFly
+      ---
+      duration_ms: 0.355472
+      type: 'test'
+      ...
+    # Subtest: effects.js exports spawnWaterDroplets
+    ok 2 - effects.js exports spawnWaterDroplets
+      ---
+      duration_ms: 0.416483
+      type: 'test'
+      ...
+    # Subtest: particle pool has max 30 capacity (performance budget)
+    ok 3 - particle pool has max 30 capacity (performance budget)
+      ---
+      duration_ms: 0.324722
+      type: 'test'
+      ...
+    1..3
+ok 111 - v7.1 P1: Effects.js — Particle Helpers
+  ---
+  duration_ms: 1.2303
+  type: 'suite'
+  ...
+# Subtest: v7.2 P2: Progressive Seed Unlocking
+    # Subtest: getUnlockedSeeds returns only strawberry and blueberry for new player
+    ok 1 - getUnlockedSeeds returns only strawberry and blueberry for new player
+      ---
+      duration_ms: 0.515611
+      type: 'test'
+      ...
+    # Subtest: getUnlockedSeeds includes tomato after first harvest
+    ok 2 - getUnlockedSeeds includes tomato after first harvest
+      ---
+      duration_ms: 0.227283
+      type: 'test'
+      ...
+    # Subtest: getUnlockedSeeds unlocks all seeds with maxed stats
+    ok 3 - getUnlockedSeeds unlocks all seeds with maxed stats
+      ---
+      duration_ms: 0.183783
+      type: 'test'
+      ...
+    1..3
+ok 112 - v7.2 P2: Progressive Seed Unlocking
+  ---
+  duration_ms: 1.065829
+  type: 'suite'
+  ...
+# Subtest: v7.2 P2: Featured Shelf Rotation
+    # Subtest: rotation key changes every 4 hours
+    ok 1 - rotation key changes every 4 hours
+      ---
+      duration_ms: 0.122118
+      type: 'test'
+      ...
+    1..1
+ok 113 - v7.2 P2: Featured Shelf Rotation
+  ---
+  duration_ms: 0.193587
+  type: 'suite'
+  ...
+# Subtest: v7.2 P2: Locked Seed Card CSS
+    # Subtest: farm.css contains .farm-seed-card.locked styles
+    ok 1 - farm.css contains .farm-seed-card.locked styles
+      ---
+      duration_ms: 0.496253
+      type: 'test'
+      ...
+    1..1
+ok 114 - v7.2 P2: Locked Seed Card CSS
+  ---
+  duration_ms: 0.591412
+  type: 'suite'
+  ...
+# Subtest: v7.2 P2: Match-3 Swap Spring Keyframes
+    # Subtest: match3.css contains m3SwapSpring keyframes
+    ok 1 - match3.css contains m3SwapSpring keyframes
+      ---
+      duration_ms: 0.435748
+      type: 'test'
+      ...
+    1..1
+ok 115 - v7.2 P2: Match-3 Swap Spring Keyframes
+  ---
+  duration_ms: 0.507091
+  type: 'suite'
+  ...
+# Subtest: v7.2 P2: Blox Place Bounce Keyframes
+    # Subtest: blox.css contains bloxPlaceBounce keyframes
+    ok 1 - blox.css contains bloxPlaceBounce keyframes
+      ---
+      duration_ms: 0.343556
+      type: 'test'
+      ...
+    1..1
+ok 116 - v7.2 P2: Blox Place Bounce Keyframes
+  ---
+  duration_ms: 0.412954
+  type: 'suite'
+  ...
+# Subtest: v7.2 P3: Soft Fantasy Theme
+    # Subtest: soft-fantasy.css has correct data-theme selector and key tokens
+    ok 1 - soft-fantasy.css has correct data-theme selector and key tokens
+      ---
+      duration_ms: 0.431467
+      type: 'test'
+      ...
+    1..1
+ok 117 - v7.2 P3: Soft Fantasy Theme
+  ---
+  duration_ms: 0.504972
+  type: 'suite'
+  ...
+# Subtest: v7.2 P3: Minimal Calm Theme
+    # Subtest: minimal-calm.css has correct data-theme selector and key tokens
+    ok 1 - minimal-calm.css has correct data-theme selector and key tokens
+      ---
+      duration_ms: 0.320627
+      type: 'test'
+      ...
+    1..1
+ok 118 - v7.2 P3: Minimal Calm Theme
+  ---
+  duration_ms: 0.392961
+  type: 'suite'
+  ...
+# Subtest: v7.2 P3: Theme System Expansion
+    # Subtest: shared.js VALID_THEMES includes soft-fantasy, minimal-calm, seasonal
+    ok 1 - shared.js VALID_THEMES includes soft-fantasy, minimal-calm, seasonal
+      ---
+      duration_ms: 0.595844
+      type: 'test'
+      ...
+    1..1
+ok 119 - v7.2 P3: Theme System Expansion
+  ---
+  duration_ms: 0.668224
+  type: 'suite'
+  ...
+# Subtest: v7.2 P3: Trivia Juice Keyframes
+    # Subtest: trivia.css contains triviaCardFlip, triviaCorrectPop, triviaStreakGlow
+    ok 1 - trivia.css contains triviaCardFlip, triviaCorrectPop, triviaStreakGlow
+      ---
+      duration_ms: 0.386708
+      type: 'test'
+      ...
+    1..1
+ok 120 - v7.2 P3: Trivia Juice Keyframes
+  ---
+  duration_ms: 0.465277
+  type: 'suite'
+  ...
+# Subtest: v7.2 P3: Merge Juice Keyframes
+    # Subtest: merge.css contains mergePull, mergeCollide, gachaCapsuleDrop, gachaReveal
+    ok 1 - merge.css contains mergePull, mergeCollide, gachaCapsuleDrop, gachaReveal
+      ---
+      duration_ms: 0.500912
+      type: 'test'
+      ...
+    1..1
+ok 121 - v7.2 P3: Merge Juice Keyframes
+  ---
+  duration_ms: 0.575345
+  type: 'suite'
+  ...
+# Subtest: v7.2 P3: Pet Interaction Juice Keyframes
+    # Subtest: pet.css contains petTapBounce, petHeartBurst, petDustPuff
+    ok 1 - pet.css contains petTapBounce, petHeartBurst, petDustPuff
+      ---
+      duration_ms: 0.447289
+      type: 'test'
+      ...
+    1..1
+ok 122 - v7.2 P3: Pet Interaction Juice Keyframes
+  ---
+  duration_ms: 1.387555
+  type: 'suite'
+  ...
+# Subtest: v7.2 Audit: Theme CSS Imports
+    # Subtest: main.jsx imports soft-fantasy.css and minimal-calm.css
+    ok 1 - main.jsx imports soft-fantasy.css and minimal-calm.css
+      ---
+      duration_ms: 0.410232
+      type: 'test'
+      ...
+    1..1
+ok 123 - v7.2 Audit: Theme CSS Imports
+  ---
+  duration_ms: 0.489602
+  type: 'suite'
+  ...
+# Subtest: v7.2 Audit: Theme Flash Prevention
+    # Subtest: index.html handles seasonal theme before first paint
+    ok 1 - index.html handles seasonal theme before first paint
+      ---
+      duration_ms: 0.360874
+      type: 'test'
+      ...
+    1..1
+ok 124 - v7.2 Audit: Theme Flash Prevention
+  ---
+  duration_ms: 0.431608
+  type: 'suite'
+  ...
+1..124
+# tests 435
+# suites 143
+# pass 399
+# fail 36
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 28356.106017
+ ELIFECYCLE  Test failed. See above for more details.

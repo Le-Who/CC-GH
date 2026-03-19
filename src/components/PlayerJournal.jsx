@@ -26,6 +26,7 @@ export function PlayerJournal({ onClose }) {
         <button 
           onClick={onClose} 
           className="absolute top-3 right-3 text-slate-400 hover:text-white text-xl leading-none"
+          aria-label="Close journal"
         >
           ✕
         </button>
