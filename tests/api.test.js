@@ -1,3 +1,4 @@
+process.env.DISCORD_CLIENT_ID = ""; process.env.DISCORD_CLIENT_SECRET = "";
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — API Integration Tests
