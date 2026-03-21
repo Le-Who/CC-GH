@@ -1,6 +1,10 @@
 import { Router } from "express";
 import fetch from "node-fetch";
+import http from "http";
 import { isRedisEnabled, isNonceSeenRedis } from "../redisAdapter.js";
+
+// Global keep-alive agent to significantly optimize localhost loopback fetch speeds
+const batchHttpAgent = new http.Agent({ keepAlive: true });
 
 /**
  * Game Hub — Batch Request Router
@@ -79,7 +83,8 @@ export default function batchRoutes(requireAuth, resolveUser, PORT) {
           
           const fetchCtx = { 
             method: body ? "POST" : "GET", 
-            headers 
+            headers,
+            agent: batchHttpAgent
           };
           
           if (fetchCtx.method === "POST" || fetchCtx.method === "PUT") {

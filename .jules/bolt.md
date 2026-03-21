@@ -1,0 +1,3 @@
+## 2024-05-19 - Fast API Batching with Keep-Alive
+**Learning:** `app.handle(mockReq, mockRes)` is too brittle for complex Express 5 setups because standard Express internal streams, parsed request properties, and middleware chains break down when they encounter simple POJO synthetic request/response objects.
+**Action:** For internal loopback `fetch` performance optimizations (e.g. batch requests to `127.0.0.1`), use `node-fetch` and instantiate a global `http.Agent({ keepAlive: true })` inside the module. This eliminates TCP handshake overhead on every call while perfectly preserving route parsing compatibility.
