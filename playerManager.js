@@ -11,6 +11,7 @@
  * ═══════════════════════════════════════════════════════
  */
 
+import crypto from "crypto";
 import { ECONOMY, createDefaultPlayer } from "./game-logic.js";
 import { getDb } from "./db.js";
 import {
@@ -20,20 +21,47 @@ import {
 } from "./redisAdapter.js";
 
 /* ═══════════════════════════════════════════════════
- *  POSTGRES ACID LOCK & STATE INIT
+ *  HYBRID LOCKING: In-Process Mutex + OCC Safety Net
+ *
+ *  Layer 1: In-process Promise-chain mutex per userId
+ *           → serializes requests within a single Node instance
+ *           → zero DB overhead, zero lock contention
+ *
+ *  Layer 2: OCC _version nonce on UPDATE
+ *           → distributed safety net for horizontal scaling
+ *           → catches races between multiple Node instances
  * ═══════════════════════════════════════════════════ */
 
+/** @type {Map<string, Promise<any>>} */
+const _mutexChain = new Map();
+
 /**
- * Executes an async function exclusively per player, using Postgres row-level locks.
- * 
- * 1. Reads from Redis BEFORE opening the transaction.
- * 2. Opens Postgres transaction.
- * 3. UPSERTS the player to ensure the row exists.
- * 4. SELECTs the row FOR UPDATE (acquires ACID lock).
- * 5. Applies backward-compatible schema migrations.
- * 6. Executes route handler logic.
- * 7. UPSERTs mutated result back to Postgres.
- * 8. Writes thru to Redis synchronously before returning.
+ * Acquires an in-process mutex for the given player ID.
+ * Concurrent calls for the same userId are queued and executed serially.
+ * Different userIds proceed in parallel with no contention.
+ */
+function _acquireMutex(userId, fn) {
+  const prev = _mutexChain.get(userId) || Promise.resolve();
+  const next = prev
+    .catch(() => {}) // swallow previous errors so chain doesn't break
+    .then(() => fn());
+  _mutexChain.set(userId, next);
+  // Cleanup entry when chain completes to prevent memory leak
+  next.finally(() => {
+    if (_mutexChain.get(userId) === next) _mutexChain.delete(userId);
+  });
+  return next;
+}
+
+/**
+ * Executes an async function exclusively per player.
+ *
+ * 1. Acquires in-process mutex (serializes within this Node instance).
+ * 2. UPSERTs the player (DO NOTHING if exists).
+ * 3. Fetches current state & _version without DB locks.
+ * 4. Executes route handler.
+ * 5. Saves state back using OCC (UPDATE ... WHERE _version = old).
+ * 6. If OCC fails (multi-instance race), retries up to 3 times.
  */
 export async function withPlayerLock(userId, asyncFn, username = null) {
   const sql = getDb();
@@ -41,69 +69,78 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
     throw new Error("DATABASE_URL must be configured for v10.0 Postgres migration.");
   }
 
+  return _acquireMutex(userId, async () => {
+    try {
+      const displayName = username || `Player_${userId.slice(-4)}`;
+      const defaultPlayer = createDefaultPlayer(userId, displayName);
+      defaultPlayer._version = crypto.randomUUID();
 
+      // 1. Guarantee row exists without bumping state
+      await sql`
+        INSERT INTO players (id, data, updated_at)
+        VALUES (${userId}, ${defaultPlayer}, now())
+        ON CONFLICT (id) DO NOTHING
+      `;
 
-  try {
-    return await sql.begin(async (tx) => {
-    // 1. Guarantee row exists before locking (UPSERT -> DO NOTHING)
-    // v10.1: Cleaner default name (omit sa_ prefix or raw IDs)
-    const displayName = username || `Player_${userId.slice(-4)}`;
-    const defaultPlayer = createDefaultPlayer(userId, displayName);
-    
-    await tx`
-      INSERT INTO players (id, data, updated_at)
-      VALUES (${userId}, ${defaultPlayer}, now())
-      ON CONFLICT (id) DO UPDATE SET updated_at = now()
-    `;
+      const OCC_RETRIES = 3;
+      for (let attempt = 1; attempt <= OCC_RETRIES; attempt++) {
+        // 2. Lock-free fetch
+        const [row] = await sql`SELECT data FROM players WHERE id = ${userId}`;
+        if (!row) throw new Error(`FATAL: Player row missing for ${userId}`);
 
-    // 2. Acquire ACID row lock (guaranteed to exist after UPSERT above)
-    const [row] = await tx`
-      SELECT data FROM players WHERE id = ${userId} FOR UPDATE
-    `;
+        let playerRaw = row.data;
+        let player = applyMigrations(playerRaw);
+        const oldVersion = playerRaw._version || "0";
 
-    // 3. Defensive guard: row should always exist after UPSERT, but
-    //    protect against edge cases (PgBouncer routing, concurrent DDL, etc.)
-    if (!row) {
-      throw new Error(`FATAL: Player row missing after UPSERT for ${userId}`);
+        // Reconcile standard state
+        if (username && player.username !== username) {
+          player.username = username;
+        }
+        player._lastSeen = Date.now();
+
+        // 3. Execute Route Handler (only on first attempt — res may already be sent)
+        if (attempt === 1) {
+          await asyncFn(player);
+        }
+
+        // 4. Generate next OCC version
+        player._version = crypto.randomUUID();
+
+        // 5. Save back using OCC (Atomic Update)
+        const [updatedRow] = await sql`
+          UPDATE players
+          SET data = ${player}, updated_at = now()
+          WHERE id = ${userId}
+            AND COALESCE(data->>'_version', '0') = ${oldVersion}
+          RETURNING id
+        `;
+
+        if (updatedRow) {
+          // Success!
+          if (isRedisEnabled()) {
+            await redisSetPlayer(userId, player).catch((err) =>
+              console.error("Redis write-through failed:", err.message)
+            );
+          }
+          return player;
+        }
+
+        // OCC collision (multi-instance race) — retry
+        console.warn(`[OCC] Retry ${attempt}/${OCC_RETRIES} for ${userId} (cross-instance collision).`);
+        if (attempt < OCC_RETRIES) {
+          await new Promise((r) => setTimeout(r, 15 + Math.random() * 30));
+        }
+      }
+
+      throw new Error(`[OCC] Max retries exhausted for ${userId}. Extreme cross-instance contention.`);
+    } catch (err) {
+      if (err.message === "EXPRESS_RESPONSE_ABORT") {
+        return err.result;
+      }
+      console.error(`[withPlayerLock] Unhandled exception for user ${userId}:`, err);
+      throw err;
     }
-
-    // 4. Reconcile state & Apply Migrations
-    let playerRaw = row.data;
-    let player = applyMigrations(playerRaw);
-
-    // v10.1: Sync username from current auth session to ensure leaderboard accuracy
-    if (username && player.username !== username) {
-      player.username = username;
-    }
-
-    // v10.2: Sync _lastSeen to current time after every active session.
-    // This ensures that manual actions "count" as activity, preventing
-    // subsequent offline simulations from overlapping with these actions.
-    player._lastSeen = Date.now();
-
-    // 5. Execute Route Handler
-    const result = await asyncFn(player);
-
-    // 6. Save back to DB within transaction
-    await tx`
-      UPDATE players SET data = ${player}, updated_at = now()
-      WHERE id = ${userId}
-    `;
-
-    // 7. Write-through to Redis cache
-    if (isRedisEnabled()) {
-      await redisSetPlayer(userId, player).catch((err) => console.error("Redis write-through failed:", err.message));
-    }
-
-    return result || player;
-    });
-  } catch (err) {
-    if (err.message === "EXPRESS_RESPONSE_ABORT") {
-      return err.result;
-    }
-    console.error(`[withPlayerLock] Unhandled exception for user ${userId}:`, err);
-    throw err;
-  }
+  });
 }
 
 /**

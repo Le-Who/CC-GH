@@ -33,7 +33,7 @@ app.post("/batch", (req, res) => {
   app.handle(mockReq, mockRes);
 });
 
-const server = app.listen(3001, async () => {
+const _server = app.listen(3001, async () => {
     try {
         const res = await fetch("http://localhost:3001/batch", {
             method: "POST",

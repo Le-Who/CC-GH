@@ -8,7 +8,6 @@
 import { ECONOMY } from "./economy.js";
 import { CROPS, CROP_TIERS } from "./crops.js";
 import { getScaledTime } from "./helpers.js";
-import { getRoomBonuses } from "./pet-assets.js";
 
 /* ═══════════════════════════════════════════════════
  *  FARM — Growth Calculations

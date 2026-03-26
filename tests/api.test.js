@@ -52,7 +52,8 @@ after(async () => {
 beforeEach(async () => {
   // 🛑 PRODUCTION DATABASE SAFETY GUARD
   const dbUrl = process.env.DATABASE_URL || "";
-  if (dbUrl.includes("pooler.supabase.com") || dbUrl.includes("supabase.co")) {
+  const PRODUCTION_PROJECT_REF = "dhrsygifwgtezdijjtwx";
+  if (dbUrl.includes(PRODUCTION_PROJECT_REF)) {
     throw new Error(
       "🛑 REFUSING TO RUN TESTS AGAINST PRODUCTION DATABASE!\n" +
       "DATABASE_URL points to Supabase production. Set it to a local/test database."
@@ -60,12 +61,14 @@ beforeEach(async () => {
   }
 
   // Clear all player data between tests via Postgres
+  // Must delete player_events first to satisfy FK constraints
   const db = getDb();
   console.log("[api.test.js] beforeEach started...");
   await db`SELECT 1`;
   console.log("[api.test.js] SELECT 1 succeeded...");
+  await db`DELETE FROM player_events`;
   await db`DELETE FROM players`;
-  console.log("[api.test.js] DELETE FROM players succeeded...");
+  console.log("[api.test.js] DELETE FROM players/events succeeded...");
 });
 
 /* ─────────────────────────────────────────────────────

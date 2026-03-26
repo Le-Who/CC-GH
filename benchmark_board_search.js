@@ -32,10 +32,10 @@ function runBenchmark() {
   for (let i = 0; i < ITERATIONS; i++) {
     for (const req of requirements) {
       if (req.type === "merge") {
-        let found = 0;
+        let _found = 0;
         for (const row of p.merge.board) {
           for (const cell of row) {
-            if (cell && cell.id === req.id) found++;
+            if (cell && cell.id === req.id) _found++;
           }
         }
       }
@@ -63,7 +63,7 @@ function runBenchmark() {
           }
         }
 
-        const found = inventory[req.id] || 0;
+        const _found = inventory[req.id] || 0;
       }
     }
   }

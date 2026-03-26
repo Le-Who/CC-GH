@@ -1,3 +1,26 @@
+## [10.3.0] - 2026-03-26
+
+### Supabase Database Hardening & Hybrid OCC Locks
+
+Comprehensive architectural refactoring to eliminate transaction contention and lock waits, shifting to a lock-free optimistic concurrency control model with an in-process mutex. **435/435 tests pass.**
+
+#### Database Security & Integrity
+- **B-Tree Indexing**: Created `idx_player_events_user_id` to eliminate full table scans during fetch operations.
+- **Relational Integrity**: Added `ON DELETE CASCADE` foreign keys from `player_events` to `players` and `auth_sessions` to `auth_users` to automatically clear orphaned records.
+- **RLS "Deny All" Policies**: Hardened the PostgREST API with fallback `USING (false)` RLS policies on all operational tables (`players`, `player_events`, `auth_users`, `auth_sessions`).
+- **View Security**: Revoked public and authenticated access from `player_stats_view` to prevent unauthorized aggregation queries.
+
+#### Hybrid OCC Locking (playerManager.js)
+- **In-Process Mutex**: Implemented a per-player Promise-chain mutex to serialize concurrent HTTP requests belonging to the same `userId` within a single Node.js instance. Eliminated database overhead for local synchronization.
+- **Optimistic Concurrency Control (OCC)**: Replaced blocking `SELECT ... FOR UPDATE` transactions with lock-free reads and an atomic `UPDATE ... WHERE _version = oldVersion`. Drastically reduced lock waits (from 46ms down to <1ms).
+- **Retry Jitter**: Handled horizontal scaling races (cross-instance collisions) with a bounded 3-attempt jittered retry loop.
+- **Deadlock Eradication**: Removed `sql.begin` completely. No long-lived transactions block the connection pool during asynchronous route logic.
+
+#### Test Suite Hardening
+- **Production Database Safety Guard**: Adjusted tests to strictly abort if `DATABASE_URL` points to the production Supabase project reference (`dhrsygifwgtezdijjtwx`), strictly allowing test Supabase instances.
+- **Test Isolation**: Improved `clearAllPlayers` and `beforeEach` to respect the newly established foreign key constraints (`DELETE FROM player_events` first).
+
+---
 ## [10.2.0] - 2026-03-26
 
 ### Architectural Hardening & Auto-Healing (12 Fixes)

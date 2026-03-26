@@ -8,7 +8,8 @@ import { createDefaultPlayer } from "../game-logic.js";
  * ══════════════════════════════════════════════════════
  */
 const DB_URL = process.env.DATABASE_URL || "";
-const IS_PRODUCTION_DB = DB_URL.includes("pooler.supabase.com") || DB_URL.includes("supabase.co");
+const PRODUCTION_PROJECT_REF = "dhrsygifwgtezdijjtwx";
+const IS_PRODUCTION_DB = DB_URL.includes(PRODUCTION_PROJECT_REF);
 
 function assertNotProduction(operation) {
   if (IS_PRODUCTION_DB) {
@@ -57,6 +58,7 @@ export async function clearAllPlayers() {
   assertNotProduction("DELETE FROM players");
   const db = getDb();
   if (db) {
+    await db`DELETE FROM player_events`;
     await db`DELETE FROM players`;
   }
 }
