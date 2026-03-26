@@ -50,6 +50,15 @@ after(async () => {
 });
 
 beforeEach(async () => {
+  // 🛑 PRODUCTION DATABASE SAFETY GUARD
+  const dbUrl = process.env.DATABASE_URL || "";
+  if (dbUrl.includes("pooler.supabase.com") || dbUrl.includes("supabase.co")) {
+    throw new Error(
+      "🛑 REFUSING TO RUN TESTS AGAINST PRODUCTION DATABASE!\n" +
+      "DATABASE_URL points to Supabase production. Set it to a local/test database."
+    );
+  }
+
   // Clear all player data between tests via Postgres
   const db = getDb();
   console.log("[api.test.js] beforeEach started...");
