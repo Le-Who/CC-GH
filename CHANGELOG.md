@@ -1,3 +1,24 @@
+## [10.2.0] - 2026-03-26
+
+### Architectural Hardening & Auto-Healing (12 Fixes)
+
+Comprehensive 3-round architectural refactoring focusing on state synchronization, concurrency locks, and mobile UX. **435/435 tests pass.**
+
+#### Global Auto-Healing architecture
+- **`hub:state-desync` Event System**: Implemented across all 5 stateful engines (Farm, HUD, Merge, Pet/Room, Match3/Blox). The central `apiBatched` queue now instantly fires a global desync broadcast upon any `4xx/5xx` backend failure, automatically triggering all engines to silently re-fetch their authoritative states without user disruption.
+- **Optimistic Rollback**: Integrated snapshot-restore logic into `hud.js` pet feeding. Network denials now effortlessly "bounce" visual sliders and quantities back to their initial state.
+- **`MobileShopDrawer` Safety**: Swapped standalone `window.HUB.api()` calls in React to `apiBatched()`, placing inventory sales firmly inside the auto-healing safety net.
+
+#### Concurrency & Network Resilience
+- **Batch Router Throttle** (`batch.js`): Rewrote the `/api/batch` router loop from a synchronous `for...of` iteration into chunked parallel execution (`max concurrency: 3`). Fully eliminates intermittent Supabase Connection Pool exhaustion (504 timeouts) during cross-game action sprays.
+- **Strict In-Flight Locks**: Placed strict mutability flags in `farm.js` (`plantingInFlight`) and `trivia.js` (`_startSoloInFlight`), blocking rapid-click double execution bugs before network promises can resolve.
+- **Clock Drift Heartbeat**: Injected a lightweight 5-minute interval (`api("/api/farm/state")`) that continuously self-corrects the client's `clockDelta` representation to prevent iOS sleep-mode drift.
+
+#### Mobile UX & GC Optimization
+- **Farm Panel Overflow** (`base.css` / `farm.css`): Fixed a viewport calculation where farm interface tabs were shoved behind the 68px Bottom Navigation bar on tiny screens. Enforced rigid `max-height: 50vh`.
+- **Background CPU Throttle** (`hud.js` / `pet.js`): Halted the `setInterval` HUD energy regen ticks and Pet satiety polling whenever `document.hidden` is true. Eliminates phantom DOM reflows and background battery sink.
+
+---
 ## [10.1.5] - 2026-03-18
 
 ### Pet Naming Loop & Farm Sync Resilience

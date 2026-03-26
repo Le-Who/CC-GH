@@ -417,8 +417,9 @@ body.pointer-device:hover .nav-arrow:not(.hidden) {
 .viewport {
   padding-bottom: var(--bottom-nav-height, 68px);
 }
+/* v8.3: Ensure content clears the React BottomNav on all viewports */
 .screen {
-  padding-bottom: 8px;
+  padding-bottom: calc(var(--bottom-nav-height, 68px) + 8px);
 }
 /* Move version badge above nav-bar */
 #version-badge {

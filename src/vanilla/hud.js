@@ -82,6 +82,8 @@ function _formatGold(amount) {
 function startRegenTimer() {
   stopRegenTimer();
   regenTimerId = setInterval(() => {
+    // v8.3: Skip regen ticks when tab is hidden (saves CPU, prevents phantom DOM ops)
+    if (document.hidden) return;
     const res = GameStore.getState("resources");
     if (res) {
       const e = { ...res.energy };
@@ -160,6 +162,12 @@ async function init() {
     updateDisplay(data.resources);
   }
   startRegenTimer();
+
+  // v8.3: Auto-heal on global desync — re-fetch authoritative resources
+  document.addEventListener("hub:state-desync", () => {
+    console.warn("[HUD] hub:state-desync — re-fetching resources");
+    fetchResources();
+  });
 
   // Subscribe to store changes
   GameStore.subscribe("resources", (newState) => {
@@ -324,12 +332,30 @@ async function _feedFromModal(cropId, btn) {
     GameStore.setState("resources", updated);
   }
 
+  // v8.3: Capture pre-feed snapshots for rollback on failure
+  const _preRes = res ? { ...res, energy: { ...res.energy } } : null;
+  const _prePet = pet ? { ...pet, stats: { ...pet.stats } } : null;
+  const _preHarvested = resAfter?.harvested ? { ...resAfter.harvested } : null;
+
   try {
     // Server call
     // v8.2: Use apiBatched for consistency and to handle rapid clicks through the batch queue
     apiBatched("/api/pet/feed", {
       cropId,
       userId: HUB.userId,
+    }).then((data) => {
+      // v8.3: Rollback on server rejection
+      if (data?.error || data?.success === false) {
+        console.warn("[HUD] Pet feed rejected by server, rolling back optimistic state");
+        if (_preRes) syncFromServer(_preRes);
+        if (_prePet) GameStore.setState("pet", _prePet);
+        if (_preHarvested) {
+          const r = GameStore.getState("resources") || {};
+          GameStore.setState("resources", { ...r, harvested: _preHarvested });
+        }
+        _refreshModalItems();
+        showToast(`❌ ${data?.error || "Feed failed"}`, "error");
+      }
     });
   } finally {
 

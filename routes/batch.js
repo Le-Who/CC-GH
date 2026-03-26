@@ -44,29 +44,28 @@ export default function batchRoutes(requireAuth, resolveUser, PORT) {
 
       const user = resolveUser(req);
       const userId = req.body?.userId || req.discordUser?.id || req.simpleUser?.userId;
-      const results = [];
 
-      // Process sequentially to maintain data integrity
-      for (const subReq of requests) {
+      // v8.3: Concurrency-limited parallel processing to prevent DB pool exhaustion.
+      // Max 3 simultaneous loopback fetches instead of N sequential ones.
+      const BATCH_CONCURRENCY = 3;
+
+      async function processSubReq(subReq) {
         let { path: subPath, body, id, nonce } = subReq;
 
         // Idempotency check: prefer Redis (distributed), fallback to in-memory
         if (nonce) {
-          let isDuplicate = false;
+          let isDuplicate;
           if (isRedisEnabled()) {
             isDuplicate = await isNonceSeenRedis(userId, nonce);
           } else {
             isDuplicate = isNonceSeen(userId, nonce);
           }
           if (isDuplicate) {
-            results.push({ id, status: 409, data: { error: "Duplicate request" } });
-            continue;
+            return { id, status: 409, data: { error: "Duplicate request" } };
           }
         }
 
         try {
-          // Direct loopback fetch to bypass Node 24 native stream parsing crashes 
-          // caused by synthetic Express request objects in app.handle()
           const headers = { "Content-Type": "application/json" };
           if (req.headers.authorization) headers.authorization = req.headers.authorization;
           let fetchUrl = `http://127.0.0.1:${PORT}${subPath}`;
@@ -99,10 +98,18 @@ export default function batchRoutes(requireAuth, resolveUser, PORT) {
             data = { error: "Invalid JSON response" };
           }
           
-          results.push({ id, status: response.status, data });
+          return { id, status: response.status, data };
         } catch (err) {
-          results.push({ id, status: 500, error: err.message });
+          return { id, status: 500, error: err.message };
         }
+      }
+
+      // Process in chunks of BATCH_CONCURRENCY
+      const results = [];
+      for (let i = 0; i < requests.length; i += BATCH_CONCURRENCY) {
+        const chunk = requests.slice(i, i + BATCH_CONCURRENCY);
+        const chunkResults = await Promise.all(chunk.map(processSubReq));
+        results.push(...chunkResults);
       }
 
       res.json({ results });

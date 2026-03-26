@@ -10,7 +10,7 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast, sleep, safeShowModal } from "./shared.js";
+import { HUB, api, apiBatched, showToast, sleep, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, SoundEngine, debounce } from "./effects.js";
 import {
@@ -380,7 +380,8 @@ const Match3GameImpl = (() => {
             gameActive = false;
             stopTimedCountdown();
             highScore = Math.max(highScore, score);
-            const endData = await api("/api/game/end", {
+            // v8.3: Use apiBatched for desync detection + auto-healing
+            const endData = await apiBatched("/api/game/end", {
               userId: HUB.userId,
               score,
               mode: gameMode,
@@ -1047,7 +1048,8 @@ const Match3GameImpl = (() => {
     const adjustedScore = Math.floor(score * 1.5);
     highScore = Math.max(highScore, score);
 
-    const endData = await api("/api/game/end", {
+    // v8.3: Use apiBatched for desync detection + auto-healing
+    const endData = await apiBatched("/api/game/end", {
       userId: HUB.userId,
       score: adjustedScore,
       mode: "timed",
@@ -1549,7 +1551,8 @@ const Match3GameImpl = (() => {
       }
 
       try {
-        const endData = await api("/api/game/end", {
+        // v8.3: Use apiBatched for desync detection + auto-healing
+        const endData = await apiBatched("/api/game/end", {
           userId: HUB.userId,
           score: endScore,
           mode: gameMode,

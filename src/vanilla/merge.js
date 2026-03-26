@@ -319,6 +319,12 @@ let _cooldownTimer = null; // v6.2.1: stored for cleanup in onLeave()
 const IDLE_HINT_DELAY = 7000; // 7 seconds
 const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
+// v8.3: Auto-heal on global desync — re-sync merge board from server
+document.addEventListener("hub:state-desync", () => {
+  console.warn("[Merge] hub:state-desync — re-syncing state");
+  syncMergeStateFallback();
+});
+
 // [Phase 2] Global Event-Driven Garbage Collector
 document.addEventListener("hub:route-leave", () => {
   // Clear RAM/DOM caches when leaving the screen

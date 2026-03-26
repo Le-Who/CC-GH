@@ -208,6 +208,16 @@ window.addEventListener("online", () => {
   if (apiBatchQueue.length > 0) flushApiBatch();
 });
 
+// v10.3: Debounced desync dispatcher — coalesces multiple failures in a single batch
+let _desyncTimer = null;
+function _scheduleDesync() {
+  if (_desyncTimer) return; // already scheduled
+  _desyncTimer = setTimeout(() => {
+    _desyncTimer = null;
+    document.dispatchEvent(new CustomEvent("hub:state-desync"));
+  }, 500);
+}
+
 function flushApiBatch() {
   if (apiBatchQueue.length === 0) return;
   const toSend = [...apiBatchQueue];
@@ -218,12 +228,17 @@ function flushApiBatch() {
     .then((batchResponse) => {
       // batchResponse is either { results: [...] } or an error object
       const results = batchResponse?.results || [];
+      let hasFailure = false;
       for (const result of results) {
         const entry = batchResolvers.get(result.id);
         if (entry) {
           clearTimeout(entry.timeout);
           batchResolvers.delete(result.id);
           entry.resolve(result.data || { success: false, error: "empty response" });
+        }
+        // v10.3: Detect logical failures (4xx/5xx or error payload)
+        if (result.status >= 400 || result.data?.error) {
+          hasFailure = true;
         }
       }
       // Resolve any remaining resolvers from this batch that had no matching result
@@ -234,6 +249,10 @@ function flushApiBatch() {
           batchResolvers.delete(req.id);
           entry.resolve({ success: true, _optimistic: true });
         }
+      }
+      // v10.3: Auto-heal — request all engines to re-fetch authoritative state
+      if (hasFailure) {
+        _scheduleDesync();
       }
     })
     .catch((err) => {

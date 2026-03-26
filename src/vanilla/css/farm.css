@@ -858,6 +858,9 @@
     position: static;
     width: min(420px, calc(100vw - 40px));
     margin-top: 12px;
+    /* v8.3: Constrain panel height so tabs don't clip behind BottomNav */
+    max-height: 50vh;
+    overflow-y: auto;
   }
   /* Mobile: larger touch targets for inventory sell/feed buttons */
   .farm-inv-btn {

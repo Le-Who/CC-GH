@@ -241,6 +241,20 @@ const PetCompanionImpl = (function () {
     // Phase 17: Unified pet ticker
     _startUnifiedTicker();
 
+    // v8.3: Auto-heal on global desync — re-fetch pet + room state
+    document.addEventListener("hub:state-desync", async () => {
+      console.warn("[Pet] hub:state-desync — re-fetching pet/room state");
+      try {
+        const data = await api("/api/resources/state");
+        if (data?.pet) {
+          petData = data.pet;
+          GameStore.setState("pet", data.pet);
+          _renderPetStack();
+        }
+        if (data?.room) GameStore.setState("room", data.room);
+      } catch (_) {}
+    });
+
     // Recalculate satiety on tab focus (visibility change)
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) _recalcSatiety();

@@ -40,6 +40,8 @@ const FarmGameImpl = (() => {
   let harvestVersion = 0; // Track rapid harvesting for stale response rejection
   let waterVersion = 0; // Track rapid watering for stale response rejection
   const wateringInFlight = new Set(); // Prevent duplicate auto-water requests
+  const plantingInFlight = new Set(); // v10.3: Prevent double-plant on rapid taps
+  const harvestingInFlight = new Set(); // v10.3: Prevent double-harvest on rapid taps
   const optimisticActionTimestamps = new Map(); // plotId -> Date.now() to prevent realtime overwrites
 
   /* ═══ v7.2: Progressive Seed Unlocking — Player Stats Helper ═══ */
@@ -272,6 +274,50 @@ const FarmGameImpl = (() => {
       // Save latest server state to IDB
       set("hub_farm_state_" + HUB.userId, stateData).catch(() => {});
     }
+
+    // v10.3: Auto-Healing — listen for centralized desync event from shared.js batch processor
+    // When any batched mutation fails (4xx/5xx), all engines re-fetch authoritative state
+    document.addEventListener("hub:state-desync", () => {
+      console.warn("[Farm] hub:state-desync received — re-fetching authoritative state");
+      showToast("🔄 Syncing...");
+      loadState();
+    });
+
+    // v8.3: Periodic clock re-sync to prevent drift in long sessions
+    const CLOCK_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    let _clockSyncTimer = null;
+    function _startClockSync() {
+      if (_clockSyncTimer) return;
+      _clockSyncTimer = setInterval(async () => {
+        try {
+          const data = await api("/api/farm/state", {
+            userId: HUB.userId,
+            username: HUB.username,
+          });
+          if (data?.serverTime) updateClockDelta(data.serverTime);
+        } catch (_) {}
+      }, CLOCK_SYNC_INTERVAL);
+    }
+    function _stopClockSync() {
+      if (_clockSyncTimer) {
+        clearInterval(_clockSyncTimer);
+        _clockSyncTimer = null;
+      }
+    }
+    _startClockSync();
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        _stopClockSync();
+      } else {
+        // Force immediate re-sync on tab resume
+        api("/api/farm/state", { userId: HUB.userId, username: HUB.username })
+          .then((data) => {
+            if (data?.serverTime) updateClockDelta(data.serverTime);
+          })
+          .catch(() => {});
+        _startClockSync();
+      }
+    });
 
     // Event delegation: single click handler on grid (never lost during DOM rebuild)
     const grid = $("farm-plots");
@@ -1761,7 +1807,12 @@ const FarmGameImpl = (() => {
   }
 
   function plant(plotId) {
+    // v10.3: In-flight guard — prevent double-plant on rapid taps
+    if (plantingInFlight.has(plotId)) return;
+    plantingInFlight.add(plotId);
+
     if (!selectedSeed) {
+      plantingInFlight.delete(plotId);
       // v7.1: Contextual Quick-Buy — show bottom sheet instead of scrolling to shop
       showQuickBuy(plotId);
       return;
@@ -1808,6 +1859,7 @@ const FarmGameImpl = (() => {
       cropId,
     })
       .then((data) => {
+        plantingInFlight.delete(plotId); // v10.3: release lock
         // Only process if this plot hasn't been re-planted since
         if (plotPlantVersions.get(plotId) !== ver || data._optimistic) return;
         if (data.success) {
@@ -1845,6 +1897,7 @@ const FarmGameImpl = (() => {
         }
       })
       .catch(() => {
+        plantingInFlight.delete(plotId); // v10.3: release lock
         if (plotPlantVersions.get(plotId) === ver) loadState();
       });
   }
@@ -1907,6 +1960,10 @@ const FarmGameImpl = (() => {
   }
 
   function harvest(plotId) {
+    // v10.3: In-flight guard — prevent double-harvest on rapid taps
+    if (harvestingInFlight.has(plotId)) return;
+    harvestingInFlight.add(plotId);
+
     // Optimistic: clear plot + show estimated reward instantly
     const plotSnapshot = { ...state.plots[plotId] };
     const cfg = crops[plotSnapshot.crop];
@@ -1952,6 +2009,7 @@ const FarmGameImpl = (() => {
     const myVersion = ++harvestVersion;
     apiBatched("/api/farm/harvest", { userId: HUB.userId, plotId })
       .then((data) => {
+        harvestingInFlight.delete(plotId); // v10.3: release lock
         if (harvestVersion !== myVersion || data._optimistic) return;
         if (data.success) {
           if (data.plots) {
@@ -1989,6 +2047,7 @@ const FarmGameImpl = (() => {
         }
       })
       .catch(() => {
+        harvestingInFlight.delete(plotId); // v10.3: release lock
         if (harvestVersion === myVersion) loadState();
       });
   }

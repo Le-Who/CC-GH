@@ -203,13 +203,16 @@ const TriviaGame = (() => {
   }
 
   /* ═══ SOLO MODE ═══ */
+  let _startSoloInFlight = false; // v8.3: Prevent double session start
   async function startSolo() {
+    if (_startSoloInFlight) return;
     // Energy gatekeep — show quick-feed modal instead of toast
     if (!HUD.hasEnergy(3)) {
       HUD.showEnergyModal(3, () => startSolo());
       return;
     }
 
+    _startSoloInFlight = true;
     const data = await api("/api/trivia/start", {
       userId: HUB.userId,
       username: HUB.username,
@@ -221,9 +224,10 @@ const TriviaGame = (() => {
     });
     if (data && data.error === "NOT_ENOUGH_ENERGY") {
       showToast("⚡ Not enough energy!");
+      _startSoloInFlight = false;
       return;
     }
-    if (!data.success) return;
+    if (!data.success) { _startSoloInFlight = false; return; }
 
     // Sync resources (energy deducted)
     if (data.resources) {
@@ -234,6 +238,7 @@ const TriviaGame = (() => {
     syncToStore();
     showView("solo");
     renderQuestion(data.question);
+    _startSoloInFlight = false;
   }
 
   /* ═══ FORFEIT (Solo) ═══ */

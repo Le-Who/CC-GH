@@ -7,7 +7,7 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, showToast, safeShowModal } from "./shared.js";
+import { HUB, api, apiBatched, showToast, safeShowModal } from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, debounce } from "./effects.js";
 
@@ -1239,7 +1239,8 @@ const BloxGameImpl = (() => {
     // v4.9: clean up any attached piece
     if (attachedPieceIdx >= 0) detachPiece();
 
-    const data = await api("/api/blox/end", {
+    // v8.3: Use apiBatched for desync detection + auto-healing
+    const data = await apiBatched("/api/blox/end", {
       userId: HUB.userId,
       score,
       linesCleared,

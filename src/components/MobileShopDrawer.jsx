@@ -68,8 +68,9 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
     .sort((a, b) => b[1] - a[1]);
 
   const handleSell = useCallback((cropId) => {
-    if (window.HUB?.api) {
-      window.HUB.api("/api/farm/sell-crop", {
+    if (window.HUB?.apiBatched) {
+      // v8.3: Use apiBatched for desync detection + auto-healing
+      window.HUB.apiBatched("/api/farm/sell-crop", {
         userId: window.HUB.userId,
         cropId,
         amount: 1,
@@ -88,8 +89,9 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
   }, []);
 
   const handleFeed = useCallback((cropId) => {
-    if (window.HUB?.api) {
-      window.HUB.api("/api/pet/feed", {
+    if (window.HUB?.apiBatched) {
+      // v8.3: Use apiBatched for desync detection + auto-healing
+      window.HUB.apiBatched("/api/pet/feed", {
         userId: window.HUB.userId,
         cropId,
       }).then((res) => {
