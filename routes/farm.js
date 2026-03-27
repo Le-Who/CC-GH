@@ -142,7 +142,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const plot = p.farm.plots[idx];
       if (!plot.crop)
         return res.status(400).json({ error: "nothing to harvest" });
-      if (getGrowthPct(plot) < 1) {
+      // Allow 2500ms grace period for client-server network latency and time drift
+      // Otherwise, the legitimate optimistic UI triggers a 400 error which freezes the game.
+      if (getGrowthPct(plot, Date.now() + 2500) < 1) {
         // v7.3: Include remainingMs and serverTime for client-side healing reconciliation
         const cfg = CROPS[plot.crop];
         const mult = plot.watered ? 0.5 : 1; // approximate watering multiplier
@@ -150,9 +152,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
         const elapsed = Date.now() - (plot.plantedAt || Date.now());
         const remainingMs = Math.max(0, totalGrowMs - elapsed);
         return res.status(400).json({
-          error: "not ready",
+          error: "crop not grown",
           remainingMs,
-          serverTime: Date.now(),
+          serverTime: Date.now()
         });
       }
       const cfg = CROPS[plot.crop];

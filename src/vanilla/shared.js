@@ -237,7 +237,8 @@ function flushApiBatch() {
           entry.resolve(result.data || { success: false, error: "empty response" });
         }
         // v10.3: Detect logical failures (4xx/5xx or error payload)
-        if (result.status >= 400 || result.data?.error) {
+        // Ignoring 409 Duplicate request so safe network retries don't freeze the UI 
+        if ((result.status >= 400 && result.status !== 409) || (result.data && result.data.error && result.status !== 409)) {
           hasFailure = true;
         }
       }
