@@ -1371,6 +1371,34 @@ const BloxGameImpl = (() => {
     // v4.9: Initial leaderboard fetch
     fetchBloxLeaderboard();
 
+    // v10.4: Auto-Healing — re-fetch authoritative state on desync
+    document.addEventListener("hub:state-desync", async () => {
+      console.warn("[Blox] hub:state-desync received — re-syncing state");
+      try {
+        const serverData = await api("/api/blox/state", {
+          userId: HUB.userId,
+          username: HUB.username,
+        });
+        if (serverData?.savedState) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData.savedState));
+          const loaded = loadState();
+          if (loaded && loaded.gameActive) {
+            board = loaded.board;
+            tray = loaded.tray;
+            score = loaded.score;
+            linesCleared = loaded.linesCleared;
+            highScore = Math.max(highScore, loaded.highScore);
+            renderBoard();
+            renderTray();
+            updateStats();
+          }
+        }
+        if (serverData?.highScore) highScore = Math.max(highScore, serverData.highScore);
+      } catch (e) {
+        console.warn("[Blox] Desync re-fetch failed:", e.message);
+      }
+    });
+
     // v4.16: Flush pending debounced sync on tab close (keepalive guarantees delivery)
     window.addEventListener("beforeunload", () => {
       if (!gameActive) return;

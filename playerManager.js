@@ -59,9 +59,14 @@ function _acquireMutex(userId, fn) {
  * 1. Acquires in-process mutex (serializes within this Node instance).
  * 2. UPSERTs the player (DO NOTHING if exists).
  * 3. Fetches current state & _version without DB locks.
- * 4. Executes route handler.
+ * 4. Executes route handler (re-applied on every OCC retry attempt).
  * 5. Saves state back using OCC (UPDATE ... WHERE _version = old).
  * 6. If OCC fails (multi-instance race), retries up to 3 times.
+ *
+ * CRITICAL: asyncFn is called on EVERY retry attempt against freshly-loaded
+ * state. This ensures mutations are never silently dropped during OCC
+ * collisions. The HTTP response (res.json) is only sent on the first
+ * attempt; subsequent calls to res.json are harmlessly ignored by Express.
  */
 export async function withPlayerLock(userId, asyncFn, username = null) {
   const sql = getDb();
@@ -84,7 +89,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
 
       const OCC_RETRIES = 3;
       for (let attempt = 1; attempt <= OCC_RETRIES; attempt++) {
-        // 2. Lock-free fetch
+        // 2. Lock-free fetch (always get fresh state on each attempt)
         const [row] = await sql`SELECT data FROM players WHERE id = ${userId}`;
         if (!row) throw new Error(`FATAL: Player row missing for ${userId}`);
 
@@ -98,10 +103,12 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         }
         player._lastSeen = Date.now();
 
-        // 3. Execute Route Handler (only on first attempt — res may already be sent)
-        if (attempt === 1) {
-          await asyncFn(player);
-        }
+        // 3. Execute Route Handler on EVERY attempt
+        // On retries, asyncFn re-applies the mutation against fresh DB state.
+        // res.json() calls on attempt >= 2 are harmlessly ignored (headersSent).
+        // Side-effects like player_events INSERTs use .catch() (fire-and-forget)
+        // so a duplicate analytics row is acceptable vs silent data loss.
+        await asyncFn(player);
 
         // 4. Generate next OCC version
         player._version = crypto.randomUUID();
@@ -125,8 +132,8 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
           return player;
         }
 
-        // OCC collision (multi-instance race) — retry
-        console.warn(`[OCC] Retry ${attempt}/${OCC_RETRIES} for ${userId} (cross-instance collision).`);
+        // OCC collision (multi-instance race) — retry with fresh state
+        console.warn(`[OCC] Retry ${attempt}/${OCC_RETRIES} for ${userId} — re-applying mutation against fresh state.`);
         if (attempt < OCC_RETRIES) {
           await new Promise((r) => setTimeout(r, 15 + Math.random() * 30));
         }

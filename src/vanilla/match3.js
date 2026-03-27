@@ -2147,6 +2147,17 @@ const Match3GameImpl = (() => {
     _flushM3Sync();
   }
 
+  // v10.4: Auto-Healing — re-fetch authoritative state on desync
+  document.addEventListener("hub:state-desync", async () => {
+    console.warn("[Match3] hub:state-desync received — re-syncing state");
+    try {
+      await restoreGame();
+      syncToStore();
+    } catch (e) {
+      console.warn("[Match3] Desync re-fetch failed:", e.message);
+    }
+  });
+
   return {
     init,
     onEnter,
