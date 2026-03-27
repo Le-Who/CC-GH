@@ -224,6 +224,9 @@ app.use(achievementRoutes(requireAuth, resolveUser));
 app.use(eventRoutes(requireAuth));
 app.use(seasonPassRoutes(requireAuth, resolveUser));
 
+// [Phase 2] Optimistic UI & Batch Sync Endpoint (v10.4: internal dispatch, no HTTP loopback)
+app.use(batchRoutes(requireAuth, resolveUser, PORT, app));
+
 /* ═══════════════════════════════════════════════════
  *  STATIC FILES & INDEX INJECTION
  * ═══════════════════════════════════════════════════ */
@@ -319,8 +322,7 @@ app.get(/.*/, (_req, res) => {
   res.type("html").send(getIndexHtml());
 });
 
-// [Phase 2] Optimistic UI & Batch Sync Endpoint
-app.use(batchRoutes(requireAuth, resolveUser, PORT));
+// NOTE: batch route is mounted above (before SPA catch-all) for proper routing
 
 // Global error handler (Express 5 catches async rejections automatically)
 app.use((err, _req, res, _next) => {
