@@ -1,3 +1,26 @@
+## [10.4.0] - 2026-03-27
+
+### Synchronization Hardening — Zero Data Loss Architecture
+
+Critical architectural fixes targeting silent data loss during OCC collisions, TCP socket exhaustion in batch processing, and incomplete auto-healing coverage. **All tests pass.**
+
+#### Critical: OCC Data Loss Fix (`playerManager.js`)
+- **Root cause**: `asyncFn(player)` was guarded by `if (attempt === 1)` — OCC retries saved **unmodified state** to DB, silently erasing the player's last action (plants disappearing, watering reverting).
+- **Fix**: Removed the `attempt === 1` guard. Business logic now re-executes on every retry attempt against freshly-loaded DB state, guaranteeing mutations are never silently dropped.
+
+#### Batch Router Rewrite — Zero-Loopback (`routes/batch.js`)
+- **Eliminated HTTP loopback**: Replaced `fetch('http://127.0.0.1:PORT/...')` with in-process `app.handle(mockReq, mockRes)` dispatch. Removes TCP socket overhead, double JSON serialization, and rate-limiter re-evaluation for sub-requests.
+- **Mount order fix** (`server.js`): Moved `/api/batch` mount before the SPA catch-all to prevent GET sub-requests from hitting the HTML fallback.
+- **Rate limiter bypass** (`middleware/rateLimit.js`): Internal batch dispatches (`req._isBatchInternal`) skip rate limiting since the parent `/api/batch` request is already rate-limited.
+
+#### Universal Auto-Healing (`hub:state-desync`)
+- **Match-3** (`match3.js`): Added `hub:state-desync` listener — calls `restoreGame()` to re-sync all saved modes from server.
+- **Building Blox** (`blox.js`): Added `hub:state-desync` listener — re-fetches `/api/blox/state` and applies server-authoritative board/tray/score.
+- **Trivia** (`trivia.js`): Added `hub:state-desync` listener — resets to menu on sync failure (trivia is session-based, no persistent client state to heal).
+- Previously only Farm, HUD, Merge, and Pet had desync listeners.
+
+---
+
 ## [10.3.0] - 2026-03-26
 
 ### Supabase Database Hardening & Hybrid OCC Locks

@@ -44,6 +44,9 @@ export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
     // Skip rate limiting in test environment
     if (process.env.NODE_ENV === "test") return next();
 
+    // Skip rate limiting for internal batch dispatch (already rate-limited at /api/batch level)
+    if (req._isBatchInternal) return next();
+
     // Extract user ID from auth, body, or IP
     const userId =
       req.discordUser?.id || req.simpleUser?.userId || req.body?.userId || req.ip || "anonymous";
