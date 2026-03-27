@@ -89,6 +89,15 @@ function dispatchInternal(app, method, path, body, headers) {
         this.statusCode = code;
         return this;
       },
+
+      setHeader(name, value) {
+        if (typeof name === "string") this._headers[name.toLowerCase()] = value;
+      },
+      
+      getHeader(name) {
+        if (typeof name === "string") return this._headers[name.toLowerCase()];
+        return undefined;
+      },
       
       json(data) {
         if (resolved) return this;
@@ -115,12 +124,13 @@ function dispatchInternal(app, method, path, body, headers) {
       },
 
       set(name, value) {
-        if (typeof name === "string") this._headers[name.toLowerCase()] = value;
+        this.setHeader(name, value);
         return this;
       },
 
       header(name, value) {
-        return this.set(name, value);
+        this.setHeader(name, value);
+        return this;
       },
 
       get headersSent() {
