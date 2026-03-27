@@ -54,7 +54,7 @@
 | **Cache**    | Upstash Redis (REST)                     |
 | **Auth**     | Discord Activity SDK 1.0 + Simple Auth   |
 | **State**    | React Hooks + Vanilla Bridges            |
-| **Testing**  | Node.js `node:test` + Playwright (393 pass) |
+| **Testing**  | Node.js `node:test` + Playwright (444 pass) |
 
 ---
 
@@ -138,10 +138,11 @@ pnpm dev
 │       ├── store.js       # GameStore proxy (vanilla → Zustand bridge)
 │       ├── hud.js         # Energy + Gold HUD, regen timer
 │       ├── pet.js         # Pet companion (roam, sleep, auto-water, abilities)
-│       ├── farm.js        # Farm module (plots, shop, featured shelf, badges)
+│       ├── farm/          # Farm module (modularized: plotGrid, seedShop, inventory, tabs, quickBuy)
 │       ├── trivia.js      # Trivia (solo + duels, lobby, history)
 │       ├── match3.js      # Match-3 (swap animation, cascades, leaderboard)
 │       ├── blox.js        # Building Blox (pause, touch drag, ghost)
+│       ├── blox/          # Blox engine (pieces.js, engine.js — pure stateless game logic)
 │       ├── merge.js       # Gacha Merge (server-validated D&D, generators)
 │       ├── quest.js       # Quest dropdown (vanilla side)
 │       ├── effects.js     # Particle pool, sound engine, perlin shake
@@ -188,7 +189,7 @@ The client is a hybrid of React 19 and Vanilla JS for maximum rendering performa
 ## 🧪 Testing
 
 ```bash
-pnpm test          # All 393 Node.js backend tests across 129 suites
+pnpm test          # All 444 Node.js backend tests across 143 suites
 pnpm test:e2e      # Playwright automated browser interaction tests
 ```
 

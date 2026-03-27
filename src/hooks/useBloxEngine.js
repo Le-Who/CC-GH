@@ -15,6 +15,7 @@
  */
 import { create } from "zustand";
 import { GRID, PIECES, PIECE_COUNT } from "../vanilla/blox/pieces.js";
+import { canPlace, canAnyPieceFit, placePiece } from "../vanilla/blox/engine.js";
 
 export const bloxStore = create((set, get) => ({
   // ─── State ───
@@ -29,26 +30,11 @@ export const bloxStore = create((set, get) => ({
 
   // ─── Computed ───
   canPlace: (piece, row, col) => {
-    const { board } = get();
-    for (const [dr, dc] of piece.cells) {
-      const r = row + dr, c = col + dc;
-      if (r < 0 || r >= GRID || c < 0 || c >= GRID) return false;
-      if (board[r][c] !== null) return false;
-    }
-    return true;
+    return canPlace(get().board, piece, row, col);
   },
 
   canAnyPieceFit: () => {
-    const { tray, canPlace } = get();
-    for (const t of tray) {
-      if (t.placed) continue;
-      for (let r = 0; r < GRID; r++) {
-        for (let c = 0; c < GRID; c++) {
-          if (canPlace(t.piece, r, c)) return true;
-        }
-      }
-    }
-    return false;
+    return canAnyPieceFit(get().board, get().tray);
   },
 
   allPlaced: () => get().tray.every(t => t.placed),
@@ -78,9 +64,7 @@ export const bloxStore = create((set, get) => ({
     if (!t || t.placed) return s;
 
     const newBoard = s.board.map(r => [...r]);
-    for (const [dr, dc] of t.piece.cells) {
-      newBoard[row + dr][col + dc] = t.piece.color;
-    }
+    placePiece(newBoard, t.piece, row, col);
 
     const newTray = s.tray.map((item, i) =>
       i === pieceIdx ? { ...item, placed: true } : item

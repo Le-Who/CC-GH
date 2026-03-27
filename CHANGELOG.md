@@ -1,3 +1,22 @@
+## [10.4.4] - 2026-03-27
+
+### Blox & Match-3 Engine Atomization + Performance Fix
+
+#### Blox Engine Atomization (`src/vanilla/blox/engine.js`) [NEW]
+- Extracted 5 pure stateless functions (`createEmptyBoard`, `canPlace`, `placePiece`, `canAnyPieceFit`, `getCenterOffset`) into a shared engine module.
+- Both `blox.js` (vanilla DOM facade) and `useBloxEngine.js` (Zustand store) now import from `engine.js`, eliminating ~50 lines of duplicated game logic.
+- Single source of truth for piece placement validation, game-over detection, and board initialization.
+
+#### Layout Thrashing Fix — Drag Performance (`blox.js`, `match3.js`)
+- **Root cause**: `getBoundingClientRect()` called every `requestAnimationFrame` inside `pointermove` for the micro-parallax tilt effect. This forced synchronous layout recalculation while CSS custom properties were being mutated, causing severe FPS drops during piece dragging.
+- **Fix**: Introduced `_cachedTiltRect` / `_cachedBoardRect` caches invalidated only on `resize`/`scroll` events. Eliminates forced reflows during the drag-and-drop hot path.
+
+#### Test Regression Fix (`tests/ux.test.js`)
+- Updated `showWelcomeBack` test to reference `farm/index.js` (modularized path) instead of legacy `farm.js`.
+- Fixed regex to capture the full function body by matching the unindented closing brace (`^\}`) instead of inner braces.
+
+#### Tests — **444/444 pass**, 0 failures.
+
 ## [10.4.3] - 2026-03-27
 
 ### Codebase & Supabase Polish

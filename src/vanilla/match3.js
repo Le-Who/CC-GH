@@ -267,11 +267,18 @@ const Match3GameImpl = (() => {
     const boardContainer = $("m3-board-container");
     if (boardContainer) {
       let _tiltRaf = 0;
+      let _cachedTiltRect = null;
+      window.addEventListener("resize", () => { _cachedTiltRect = null; }, { passive: true });
+      window.addEventListener("scroll", () => { _cachedTiltRect = null; }, { passive: true, capture: true });
+
       boardContainer.addEventListener("pointermove", (e) => {
         if (_tiltRaf) return;
         _tiltRaf = requestAnimationFrame(() => {
           _tiltRaf = 0;
-          const rect = boardContainer.getBoundingClientRect();
+          if (!_cachedTiltRect) {
+            _cachedTiltRect = boardContainer.getBoundingClientRect();
+          }
+          const rect = _cachedTiltRect;
           const cx = (e.clientX - rect.left) / rect.width - 0.5; // -0.5..+0.5
           const cy = (e.clientY - rect.top) / rect.height - 0.5;
           const maxDeg = 2.5;

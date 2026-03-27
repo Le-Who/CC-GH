@@ -12,6 +12,7 @@ import { HUD } from "./hud.js";
 import { perlinShake, debounce } from "./effects.js";
 
 import { GRID, PIECE_COUNT, PIECES } from "./blox/pieces.js";
+import { createEmptyBoard, canPlace, placePiece, canAnyPieceFit, getCenterOffset } from "./blox/engine.js";
 
 const BloxGameImpl = (() => {
   const STORAGE_KEY = "blox_state";
@@ -115,10 +116,6 @@ const BloxGameImpl = (() => {
   let attachMoveHandler = null;
 
   // ── Board helpers ──
-  function createEmptyBoard() {
-    return Array.from({ length: GRID }, () => Array(GRID).fill(null));
-  }
-
   function randomPiece() {
     return PIECES[Math.floor(Math.random() * PIECES.length)];
   }
@@ -131,43 +128,7 @@ const BloxGameImpl = (() => {
     selectedPiece = -1;
   }
 
-  function canPlace(piece, row, col) {
-    for (const [dr, dc] of piece.cells) {
-      const r = row + dr,
-        c = col + dc;
-      if (r < 0 || r >= GRID || c < 0 || c >= GRID) return false;
-      if (board[r][c] !== null) return false;
-    }
-    return true;
-  }
 
-  function placePiece(piece, row, col) {
-    for (const [dr, dc] of piece.cells) {
-      board[row + dr][col + dc] = piece.color;
-    }
-  }
-
-  // ── Grab-point anchor: nearest real cell to geometric center ──
-  // Returns the cell [dr, dc] from the piece that's closest to its
-  // geometric center. This ensures the anchor is always an actual
-  // cell, preventing the ghost from "wobbling" between grid positions.
-  function getCenterOffset(piece) {
-    const rows = piece.cells.map((c) => c[0]);
-    const cols = piece.cells.map((c) => c[1]);
-    const avgR = rows.reduce((a, b) => a + b, 0) / rows.length;
-    const avgC = cols.reduce((a, b) => a + b, 0) / cols.length;
-    // Snap to nearest actual cell in the piece
-    let bestCell = piece.cells[0];
-    let bestDist = Infinity;
-    for (const [r, c] of piece.cells) {
-      const d = (r - avgR) ** 2 + (c - avgC) ** 2;
-      if (d < bestDist) {
-        bestDist = d;
-        bestCell = [r, c];
-      }
-    }
-    return { dr: bestCell[0], dc: bestCell[1] };
-  }
 
   // ── Line clearing ──
   // v4.7: Board cells are cleared SYNCHRONOUSLY so canAnyPieceFit()
@@ -337,18 +298,7 @@ const BloxGameImpl = (() => {
     }, 1000);
   }
 
-  // ── Game-over check ──
-  function canAnyPieceFit() {
-    for (const t of tray) {
-      if (t.placed) continue;
-      for (let r = 0; r < GRID; r++) {
-        for (let c = 0; c < GRID; c++) {
-          if (canPlace(t.piece, r, c)) return true;
-        }
-      }
-    }
-    return false;
-  }
+
 
   // ── Persistence (v4.16: debounced server sync — 3s throttle) ──
   function _buildSavePayload() {
@@ -653,7 +603,7 @@ const BloxGameImpl = (() => {
 
   function showGhostAt(piece, r, c) {
     if (_boardCells.length === 0) return;
-    const valid = canPlace(piece, r, c);
+    const valid = canPlace(board, piece, r, c);
     for (const [dr, dc] of piece.cells) {
       const gr = r + dr,
         gc = c + dc;
@@ -790,7 +740,7 @@ const BloxGameImpl = (() => {
       if (dragDragging && dragPieceIdx >= 0) {
         let placed = false;
         const target = getBoardTarget(ev.clientX, ev.clientY - liftY, tray[dragPieceIdx].piece);
-        if (target && canPlace(tray[dragPieceIdx].piece, target.targetR, target.targetC)) {
+        if (target && canPlace(board, tray[dragPieceIdx].piece, target.targetR, target.targetC)) {
           placed = true;
           removeDragPreview();
           onCellClick(target.targetR, target.targetC);
@@ -1028,7 +978,7 @@ const BloxGameImpl = (() => {
     if (!gameActive || gamePaused || selectedPiece < 0) return;
     const t = tray[selectedPiece];
     if (!t || t.placed) return;
-    if (!canPlace(t.piece, r, c)) {
+    if (!canPlace(board, t.piece, r, c)) {
       const gridEl = $("blox-board");
       if (gridEl) {
         // v5.2.0: Perlin noise shake for invalid placement
@@ -1039,7 +989,7 @@ const BloxGameImpl = (() => {
       return;
     }
 
-    placePiece(t.piece, r, c);
+    placePiece(board, t.piece, r, c);
     t.placed = true;
 
     // v4.9: Clean up attach mode after successful placement
@@ -1086,7 +1036,7 @@ const BloxGameImpl = (() => {
             refillTray();
             renderTray();
             saveState();
-            if (!canAnyPieceFit()) {
+            if (!canAnyPieceFit(board, tray)) {
               gameOver();
             }
           },
@@ -1095,9 +1045,9 @@ const BloxGameImpl = (() => {
       } else {
         if (checkDelay > 0) {
           setTimeout(() => {
-            if (!canAnyPieceFit()) gameOver();
+            if (!canAnyPieceFit(board, tray)) gameOver();
           }, checkDelay);
-        } else if (!canAnyPieceFit()) {
+        } else if (!canAnyPieceFit(board, tray)) {
           setTimeout(gameOver, 400);
         }
       }
@@ -1412,11 +1362,19 @@ const BloxGameImpl = (() => {
     const bloxBoardEl = $("blox-board");
     if (bloxBoardEl) {
       let _tiltRaf = 0;
+      // Optimization: Cache the getBoundingClientRect to prevent layout thrashing
+      let _cachedTiltRect = null;
+      window.addEventListener("resize", () => { _cachedTiltRect = null; }, { passive: true });
+      window.addEventListener("scroll", () => { _cachedTiltRect = null; }, { passive: true, capture: true });
+
       bloxBoardEl.addEventListener("pointermove", (e) => {
         if (_tiltRaf) return;
         _tiltRaf = requestAnimationFrame(() => {
           _tiltRaf = 0;
-          const rect = bloxBoardEl.getBoundingClientRect();
+          if (!_cachedTiltRect) {
+            _cachedTiltRect = bloxBoardEl.getBoundingClientRect();
+          }
+          const rect = _cachedTiltRect;
           const cx = (e.clientX - rect.left) / rect.width - 0.5;
           const cy = (e.clientY - rect.top) / rect.height - 0.5;
           const maxDeg = 2.5;

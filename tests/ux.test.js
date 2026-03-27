@@ -1295,13 +1295,14 @@ describe("Comfort Framing — Welcome-Back Copy", () => {
       "..",
       "src",
       "vanilla",
-      "farm.js",
+      "farm",
+      "index.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
 
     // Extract the showWelcomeBack function body
-    const fnMatch = js.match(/function showWelcomeBack[\s\S]*?^\s{2}\}/m);
-    assert.ok(fnMatch, "showWelcomeBack must exist in farm.js");
+    const fnMatch = js.match(/function showWelcomeBack[\s\S]*?^\}/m);
+    assert.ok(fnMatch, "showWelcomeBack must exist in farm/index.js");
     const body = fnMatch[0];
 
     // Positive: should contain warm framing
