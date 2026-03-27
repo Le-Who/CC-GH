@@ -843,7 +843,6 @@ const TriviaGame = (() => {
 
   // v10.4: Auto-Healing — reset to menu on desync (trivia is stateless client-side)
   document.addEventListener("hub:state-desync", () => {
-    console.warn("[Trivia] hub:state-desync received — resetting to menu");
     if (session) {
       stopTimer();
       clearDuelPolling();

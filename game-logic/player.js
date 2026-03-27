@@ -9,8 +9,58 @@ import { ECONOMY } from "./economy.js";
 import { getRoomBonuses } from "./pet-assets.js";
 
 /* ═══════════════════════════════════════════════════
- *  PLAYER FACTORY
+ *  PLAYER FACTORY & TYPES
  * ═══════════════════════════════════════════════════ */
+
+/**
+ * @typedef {Object} FarmPlot
+ * @property {number} id
+ * @property {string|null} crop
+ * @property {number|null} plantedAt
+ * @property {boolean} watered
+ */
+
+/**
+ * @typedef {Object} PlayerState
+ * @property {string} id
+ * @property {string} username
+ * @property {number} schemaVersion
+ * @property {number} _lastSeen
+ * @property {boolean} _onboarded
+ * @property {Object} resources
+ * @property {number} resources.gold
+ * @property {Object} resources.energy
+ * @property {number} resources.energy.current
+ * @property {number} resources.energy.max
+ * @property {number} resources.energy.lastRegenTimestamp
+ * @property {number} resources.gachaTokens
+ * @property {Object} pet
+ * @property {Object} room
+ * @property {Object} farm
+ * @property {number} farm.xp
+ * @property {number} farm.level
+ * @property {FarmPlot[]} farm.plots
+ * @property {Object.<string, number>} farm.inventory
+ * @property {Object.<string, number>} farm.harvested
+ * @property {Object} merge
+ * @property {Object} trivia
+ * @property {Object} match3
+ * @property {Object} blox
+ * @property {Object} streak
+ * @property {Object} achievements
+ * @property {Object} journal
+ * @property {Object} cosmetics
+ * @property {Object} seasonPass
+ * @property {Object} boosters
+ */
+
+/**
+ * Creates a default player state object.
+ * @param {string} userId 
+ * @param {string} username 
+ * @param {number} [now]
+ * @returns {PlayerState}
+ */
 export function createDefaultPlayer(userId, username, now = Date.now()) {
   const BOARD_ROWS = 7,
     BOARD_COLS = 9;

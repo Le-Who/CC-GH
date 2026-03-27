@@ -243,7 +243,6 @@ const PetCompanionImpl = (function () {
 
     // v8.3: Auto-heal on global desync — re-fetch pet + room state
     document.addEventListener("hub:state-desync", async () => {
-      console.warn("[Pet] hub:state-desync — re-fetching pet/room state");
       try {
         const data = await api("/api/resources/state");
         if (data?.pet) {

@@ -321,7 +321,6 @@ const DRAG_SAFETY_TIMEOUT = 5000; // 5 seconds max drag duration
 
 // v8.3: Auto-heal on global desync — re-sync merge board from server
 document.addEventListener("hub:state-desync", () => {
-  console.warn("[Merge] hub:state-desync — re-syncing state");
   syncMergeStateFallback();
 });
 

@@ -1,3 +1,16 @@
+## [10.4.3] - 2026-03-27
+
+### Codebase & Supabase Polish
+- **Database Optimization**: Added `(id, (data->>'_version'))` and `updated_at` indexes to both Prod and Test Supabase instances to ensure optimal lookup speed for OCC locking.
+- **Frontend Cleanup**: Scrubbed legacy `console.warn` outputs related to `hub:state-desync` from vanilla JS game engines to declutter production console logs.
+- **Type Safety**: Provided strict JSDoc `@typedef` blocks in `game-logic/player.js` for IDE autocompletion of Player, Farm, Merge, and Pet states.
+
+## [10.4.2] - 2026-03-27
+
+### The "3-Second Desync" Express 5 Bugfix
+- **Root cause**: Express 5.2.1 internals call `res.setHeader()` and `res.getHeader()` when `res.json()` is executed. The previous `mockRes` in `routes/batch.js` lacked these native methods, throwing a hidden `TypeError` and returning `500` for every batched request. This perfectly aligned with the 3000ms debounce timer on the frontend, triggering a frustrating reverting of the UI every 3 seconds.
+- **Fix**: Added `setHeader` and `getHeader` to `mockRes`, restoring zero-TCP-overhead loopbacks (`app.handle`) and rate-limiter bypasses.
+
 ## [10.4.0] - 2026-03-27
 
 ### Synchronization Hardening — Zero Data Loss Architecture

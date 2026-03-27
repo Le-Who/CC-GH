@@ -165,7 +165,6 @@ async function init() {
 
   // v8.3: Auto-heal on global desync — re-fetch authoritative resources
   document.addEventListener("hub:state-desync", () => {
-    console.warn("[HUD] hub:state-desync — re-fetching resources");
     fetchResources();
   });
 

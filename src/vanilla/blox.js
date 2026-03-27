@@ -1373,7 +1373,6 @@ const BloxGameImpl = (() => {
 
     // v10.4: Auto-Healing — re-fetch authoritative state on desync
     document.addEventListener("hub:state-desync", async () => {
-      console.warn("[Blox] hub:state-desync received — re-syncing state");
       try {
         const serverData = await api("/api/blox/state", {
           userId: HUB.userId,

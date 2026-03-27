@@ -278,7 +278,6 @@ const FarmGameImpl = (() => {
     // v10.3: Auto-Healing — listen for centralized desync event from shared.js batch processor
     // When any batched mutation fails (4xx/5xx), all engines re-fetch authoritative state
     document.addEventListener("hub:state-desync", () => {
-      console.warn("[Farm] hub:state-desync received — re-fetching authoritative state");
       showToast("🔄 Syncing...");
       loadState();
     });
