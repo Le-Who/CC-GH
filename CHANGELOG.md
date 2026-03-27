@@ -1,3 +1,10 @@
+## [10.4.6] - 2026-03-27
+
+### Gacha Merge Architecture & Render Optimization
+- **Atomization**: Split the massive 1002-line `merge.js` monolith into a scalable `src/vanilla/merge/` directory structure (`api.js`, `board.js`, `panel.js`, `engine.js`, `index.js`).
+- **DOM Rendering Performance (`board.js`)**: Implemented VDOM-style dirty-checking for the `_renderCell` loop. By storing a `_cachedState` key on the `.merge-cell` elements, the board drops the amount of synchronous DOM writes during a merge operation from 126 writes down to exactly 2.
+- **Tests**: Transferred `.setPointerCapture` drag-safety UI tests to the new `board.js` file (448/448 passing).
+
 ## [10.4.5] - 2026-03-27
 
 ### Blox UX/Performance Refactor (Ghost Overlay)

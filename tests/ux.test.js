@@ -1136,12 +1136,13 @@ describe("v6.1.1: setPointerCapture removal", () => {
       "..",
       "src",
       "vanilla",
-      "merge.js",
+      "merge",
+      "board.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
     assert.ok(
       !js.includes(".setPointerCapture("),
-      "merge.js must NOT call .setPointerCapture() (causes pointer event leaks)",
+      "merge/board.js must NOT call .setPointerCapture() (causes pointer event leaks)",
     );
   });
 });
@@ -1178,12 +1179,13 @@ describe("v6.1.1: _forceCleanupDrag in merge.js", () => {
       "..",
       "src",
       "vanilla",
-      "merge.js",
+      "merge",
+      "board.js",
     );
     const js = fs.readFileSync(jsPath, "utf-8");
     assert.ok(
       js.includes("function _forceCleanupDrag"),
-      "merge.js must define _forceCleanupDrag for orphan ghost cleanup",
+      "merge/board.js must define _forceCleanupDrag for orphan ghost cleanup",
     );
   });
 });
