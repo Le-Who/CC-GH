@@ -44,6 +44,9 @@ const BloxGameImpl = (() => {
   // v4.16: Cached board geometry during drag (eliminates per-frame getBoundingClientRect)
   let _cachedBoardRect = null;
 
+  // v10.4.5: Ghost overlay layer — decoupled from main board DOM to isolate style recalcs
+  let _ghostLayerEl = null;
+
   // v7.3: AbortController lifecycle — cleanly removes dangling drag listeners on route-leave
   let _dragAbortController = null;
 
@@ -396,6 +399,7 @@ const BloxGameImpl = (() => {
   document.addEventListener("hub:route-leave", () => {
     _boardCells = [];
     _cachedBoardRect = null;
+    _ghostLayerEl = null;
     // v7.3: Abort dangling drag listeners to prevent zombie events
     if (_dragAbortController) {
       _dragAbortController.abort();
@@ -413,9 +417,7 @@ const BloxGameImpl = (() => {
     const gridEl = $("blox-board");
     if (!gridEl) return;
 
-    // v5.0.1: Flush stale ghost references BEFORE resetting classNames.
-    // Without this, _ghostCells holds orphaned refs after className wipe,
-    // causing partial/broken ghost preview on subsequent showGhostAt().
+    // v10.4.5: Clear ghost overlay (decoupled from board cells)
     clearGhost();
 
     // First render: create cells once and cache them
@@ -437,12 +439,27 @@ const BloxGameImpl = (() => {
       }
     }
 
+    // v10.4.5: Create ghost overlay layer once, as child of board (absolutely positioned)
+    if (!_ghostLayerEl) {
+      const existing = gridEl.querySelector("#blox-ghost-layer");
+      if (existing) {
+        _ghostLayerEl = existing;
+      } else {
+        const layer = document.createElement("div");
+        layer.id = "blox-ghost-layer";
+        layer.className = "blox-ghost-layer";
+        gridEl.appendChild(layer);
+        _ghostLayerEl = layer;
+      }
+    }
+
     // v5.0.1: Suppress CSS transitions during batch update.
     // Cached DOM nodes inherit the .blox-cell transition (background 0.12s),
     // causing a visible cell-by-cell fill effect on programmatic updates.
     gridEl.classList.add("batch-update");
 
     // Diff-update: only change classes + background on existing cached nodes
+    // v10.4.5: No ghost cleanup needed here — ghost lives in separate overlay
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
         const cell = _boardCells[r][c];
@@ -454,8 +471,6 @@ const BloxGameImpl = (() => {
           cell.className = "blox-cell";
           cell.style.background = "";
         }
-        // v5.0.1: Clear residual ghost CSS property from previous showGhostAt()
-        cell.style.removeProperty("--ghost-color");
       }
     }
 
@@ -601,32 +616,28 @@ const BloxGameImpl = (() => {
     });
   }
 
+  // v10.4.5: Ghost rendering decoupled from board cells → overlay layer
+  // Ghost cells are lightweight divs injected into #blox-ghost-layer,
+  // positioned via CSS Grid (same template as board). Zero board DOM mutations.
   function showGhostAt(piece, r, c) {
-    if (_boardCells.length === 0) return;
+    if (!_ghostLayerEl) return;
     const valid = canPlace(board, piece, r, c);
     for (const [dr, dc] of piece.cells) {
       const gr = r + dr,
         gc = c + dc;
       if (gr < 0 || gr >= GRID || gc < 0 || gc >= GRID) continue;
-      const cell = _boardCells[gr]?.[gc];
-      if (cell) {
-        cell.classList.add("ghost");
-        if (!valid) cell.classList.add("ghost-invalid");
-        else cell.style.setProperty("--ghost-color", piece.color);
-        _ghostCells.push(cell);
-      }
+      const ghost = document.createElement("div");
+      ghost.className = valid ? "blox-ghost-cell" : "blox-ghost-cell ghost-invalid";
+      ghost.style.gridRow = `${gr + 1}`;
+      ghost.style.gridColumn = `${gc + 1}`;
+      if (valid) ghost.style.setProperty("--ghost-color", piece.color);
+      _ghostLayerEl.appendChild(ghost);
     }
   }
 
-  // v4.16: Track ghost cells directly instead of querySelectorAll('.ghost')
-  let _ghostCells = [];
-
+  // v10.4.5: Clear ghost overlay — O(1) innerHTML wipe, zero iteration
   function clearGhost() {
-    for (const cell of _ghostCells) {
-      cell.classList.remove("ghost", "ghost-invalid");
-      cell.style.removeProperty("--ghost-color");
-    }
-    _ghostCells.length = 0;
+    if (_ghostLayerEl) _ghostLayerEl.innerHTML = "";
   }
 
   // ── Shared: compute board target from a pointer position ──

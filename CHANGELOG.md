@@ -1,3 +1,14 @@
+## [10.4.5] - 2026-03-27
+
+### Blox UX/Performance Refactor (Ghost Overlay)
+
+#### Decoupled Ghost Render Grid (`blox.js`, `css/blox.css`) [MODIFIED]
+- **Root Cause**: During drag-and-drop piece manipulation, `showGhostAt()` was repeatedly adding/removing `.ghost` CSS classes directly on the main 10x10 DOM board (`.blox-cell`). Due to the `display: grid` calculations on the board container, this triggered massive synchronous Style Recalculations and Paints every time the ghost moved across cell boundaries.
+- **Fix**: Extracted ghost rendering into an independent, lightweight `<div id="blox-ghost-layer">` which natively sits over the board with `pointer-events: none;`. 
+- **Impact**: Zero DOM mutations on the 100-cell board grid during dragging. The `showGhostAt` function now only injects tiny transient `<div class="blox-ghost-cell">` elements into the non-interactable overlay layer. Drag-and-drop is now strictly O(1) in terms of style invalidation scope.
+
+#### Tests — 444/444 pass.
+
 ## [10.4.4] - 2026-03-27
 
 ### Blox & Match-3 Engine Atomization + Performance Fix

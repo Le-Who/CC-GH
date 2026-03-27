@@ -36,8 +36,9 @@
   border-radius: 16px;
   backdrop-filter: blur(4px);
   touch-action: none; /* prevent browser gestures on board */
-  contain: layout style paint; /* isolate repaints from rest of page */
+  contain: style paint; /* v10.4.5: removed `layout` so position:relative works for ghost overlay */
   transition: transform 0.15s ease-out; /* v5.1.0: tilt smoothing */
+  position: relative; /* v10.4.5: containing block for ghost overlay */
 }
 
 /* ─── Cell (Juicy UI: pseudo-3D bevel + organic interactions) ─── */
@@ -76,15 +77,39 @@
   transition: none !important;
 }
 
-/* v5.1.0: Ghost LERP — smooth snap transition between grid cells */
-.blox-cell.ghost {
-  background: var(--ghost-color, rgba(167, 139, 250, 0.25)) !important;
+/* v10.4.5: Ghost Overlay Layer — decoupled from board DOM
+ * Mirrors the board's grid template but sits on top with pointer-events: none.
+ * Ghost cells are injected/removed here without touching main board cells,
+ * eliminating Style Recalculation on the 100-cell playfield during drag. */
+.blox-ghost-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(10, var(--blox-cell, 36px));
+  grid-template-rows: repeat(10, var(--blox-cell, 36px));
+  gap: 2px;
+  padding: 8px;
+  pointer-events: none;
+  z-index: 5;
+  border-radius: 16px;
+}
+
+/* v10.4.5: Ghost cell — lives in overlay, not on board */
+.blox-ghost-cell {
+  width: var(--blox-cell, 36px);
+  height: var(--blox-cell, 36px);
+  border-radius: 6px;
+  background: var(--ghost-color, rgba(167, 139, 250, 0.25));
   border: 1px dashed rgba(255, 255, 255, 0.4);
   animation: ghostBreathe 1.2s ease-in-out infinite;
   transition: opacity 0.08s ease-out;
+  pointer-events: none;
 }
-.blox-cell.ghost-invalid {
-  background: rgba(239, 68, 68, 0.2) !important;
+.blox-ghost-cell.ghost-invalid {
+  background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.4);
   animation: none;
 }
