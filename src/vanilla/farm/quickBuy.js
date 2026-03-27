@@ -7,7 +7,10 @@ import { CROPS as CROPS_CONFIG } from "/game-logic.js";
 import { GameStore } from "../store.js";
 import { HUD } from "../hud.js";
 import {
-  getTopSeeds, trackPurchase, getPurchaseHistory, formatGrowthTime,
+  getTopSeeds,
+  trackPurchase,
+  getPurchaseHistory,
+  formatGrowthTime,
 } from "./utils.js";
 
 let _state = null;
@@ -15,8 +18,13 @@ let _crops = {};
 let _actions = null;
 let _buySeedVersion = 0;
 
-export function setQuickBuyDeps(deps) { _actions = deps; }
-export function syncQuickBuyState(state, crops) { _state = state; _crops = crops; }
+export function setQuickBuyDeps(deps) {
+  _actions = deps;
+}
+export function syncQuickBuyState(state, crops) {
+  _state = state;
+  _crops = crops;
+}
 
 export function showQuickBuy(plotId) {
   if (!_crops || Object.keys(_crops).length === 0) {
@@ -35,15 +43,17 @@ export function showQuickBuy(plotId) {
   for (const { seedId } of history) counts[seedId] = (counts[seedId] || 0) + 1;
   const favSeed = Object.entries(counts).sort(([, a], [, b]) => b - a)[0]?.[0];
 
-  const cards = topSeeds.map((id) => {
-    const cfg = _crops[id];
-    if (!cfg) return "";
-    const canonicalGrowth = CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
-    const growthLabel = formatGrowthTime(canonicalGrowth);
-    const canAfford = goldAvail >= (cfg.seedPrice || 0);
-    const isFav = id === favSeed;
-    const invCount = _state?.inventory?.[id] || 0;
-    return `
+  const cards = topSeeds
+    .map((id) => {
+      const cfg = _crops[id];
+      if (!cfg) return "";
+      const canonicalGrowth =
+        CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
+      const growthLabel = formatGrowthTime(canonicalGrowth);
+      const canAfford = goldAvail >= (cfg.seedPrice || 0);
+      const isFav = id === favSeed;
+      const invCount = _state?.inventory?.[id] || 0;
+      return `
       <button class="qb-seed-card${canAfford ? "" : " qb-muted"}" data-seed="${id}" ${canAfford ? "" : "disabled"}>
         <span class="qb-seed-emoji">${cfg.emoji}</span>
         <span class="qb-seed-info">
@@ -52,7 +62,8 @@ export function showQuickBuy(plotId) {
         </span>
         <span class="qb-seed-price${canAfford ? "" : " qb-price-red"}">🪙 ${cfg.seedPrice || 0}</span>
       </button>`;
-  }).join("");
+    })
+    .join("");
 
   const dialog = document.createElement("dialog");
   dialog.id = "quick-buy-dialog";
@@ -68,7 +79,9 @@ export function showQuickBuy(plotId) {
     </div>`;
 
   dialog.addEventListener("close", () => dialog.remove());
-  dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
 
   dialog.querySelectorAll(".qb-seed-card:not([disabled])").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -104,7 +117,10 @@ function quickBuyAndPlant(seedId, plotId) {
   if (!cfg) return;
   const goldAvail = HUD.getGold();
   const price = cfg.seedPrice || 0;
-  if (goldAvail < price) { showToast("❌ Not enough gold!"); return; }
+  if (goldAvail < price) {
+    showToast("❌ Not enough gold!");
+    return;
+  }
 
   trackPurchase(seedId);
 
@@ -122,7 +138,11 @@ function quickBuyAndPlant(seedId, plotId) {
   // Buy API call (fire-and-forget)
   const prevGold = goldAvail;
   const myVersion = ++_buySeedVersion;
-  apiBatched("/api/farm/buy-seeds", { userId: HUB.userId, cropId: seedId, amount: 1 })
+  apiBatched("/api/farm/buy-seeds", {
+    userId: HUB.userId,
+    cropId: seedId,
+    amount: 1,
+  })
     .then((data) => {
       if (_buySeedVersion !== myVersion || data._optimistic) return;
       if (data.success) {
@@ -138,7 +158,9 @@ function quickBuyAndPlant(seedId, plotId) {
         showToast(`❌ ${data.error}`);
       }
     })
-    .catch(() => { if (_buySeedVersion === myVersion) _actions?.loadState?.(); });
+    .catch(() => {
+      if (_buySeedVersion === myVersion) _actions?.loadState?.();
+    });
 
   showToast(`Planted ${cfg.emoji} ${cfg.name}!`);
 }

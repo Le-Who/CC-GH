@@ -75,9 +75,21 @@ export function cloneDropStars(ds) {
 // ─── Firestore hydration helpers ───
 
 // v7.3: Compact serialization — gem type to single-char mapping
-const GEM_TO_CHAR = { fire: "F", water: "W", earth: "E", air: "A", light: "L", dark: "D",
-  drop_gold: "G", drop_seeds: "S", drop_energy: "N", "": "." };
-const CHAR_TO_GEM = Object.fromEntries(Object.entries(GEM_TO_CHAR).map(([k, v]) => [v, k]));
+const GEM_TO_CHAR = {
+  fire: "F",
+  water: "W",
+  earth: "E",
+  air: "A",
+  light: "L",
+  dark: "D",
+  drop_gold: "G",
+  drop_seeds: "S",
+  drop_energy: "N",
+  "": ".",
+};
+const CHAR_TO_GEM = Object.fromEntries(
+  Object.entries(GEM_TO_CHAR).map(([k, v]) => [v, k]),
+);
 
 /**
  * v7.3: Serialize a 2D board to a compact flat string (e.g. "FWEAD.WL...")
@@ -224,7 +236,7 @@ export function findMatches(b, dirtyMask = null) {
       }
     }
   }
-  
+
   // Vertical
   for (let x = 0; x < BOARD_SIZE; x++) {
     // OPT 9 Heuristic: Skip clean columns if mask is provided
@@ -271,7 +283,7 @@ export function hasValidMoves(b) {
   }
   for (let x = 0; x < BOARD_SIZE; x++) {
     for (let y = 0; y < BOARD_SIZE - 1; y++) {
-      if (b[y][x] === b[y + 1][x]) continue; 
+      if (b[y][x] === b[y + 1][x]) continue;
       [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
       const hasMatch = hasAnyMatch(b);
       [b[y + 1][x], b[y][x]] = [b[y][x], b[y + 1][x]];
@@ -283,8 +295,14 @@ export function hasValidMoves(b) {
 
 // v7.3: Performance optimization: double-buffered object pool for dirty masks
 // Eliminates Uint8Array garbage collection during long cascade loops
-const _dirtyPoolA = { rows: new Uint8Array(BOARD_SIZE), cols: new Uint8Array(BOARD_SIZE) };
-const _dirtyPoolB = { rows: new Uint8Array(BOARD_SIZE), cols: new Uint8Array(BOARD_SIZE) };
+const _dirtyPoolA = {
+  rows: new Uint8Array(BOARD_SIZE),
+  cols: new Uint8Array(BOARD_SIZE),
+};
+const _dirtyPoolB = {
+  rows: new Uint8Array(BOARD_SIZE),
+  cols: new Uint8Array(BOARD_SIZE),
+};
 
 /** Run a full cascade: match → clear → gravity → fill → repeat.
  *  Returns { steps, totalPoints, combo } for animation.
@@ -300,13 +318,13 @@ export function resolveBoard(b, onCascadeStep) {
 
   while (matches.length > 0) {
     cascadeCombo++;
-    
+
     // Grab alternating array from the pool and zero it out
     const nextDirtyMask = usePoolA ? _dirtyPoolA : _dirtyPoolB;
     usePoolA = !usePoolA;
     nextDirtyMask.rows.fill(0);
     nextDirtyMask.cols.fill(0);
-    
+
     const cleared = matches.map((idx) => {
       const x = idx % BOARD_SIZE;
       const y = Math.floor(idx / BOARD_SIZE);

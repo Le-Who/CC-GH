@@ -144,7 +144,10 @@ export async function initDiscord() {
         return;
       }
     } catch (e) {
-      console.warn("Discord SDK init failed (expected outside Discord):", e.message || e);
+      console.warn(
+        "Discord SDK init failed (expected outside Discord):",
+        e.message || e,
+      );
     }
   }
 
@@ -222,7 +225,9 @@ function flushApiBatch() {
   if (apiBatchQueue.length === 0) return;
   const toSend = [...apiBatchQueue];
   apiBatchQueue = [];
-  try { localStorage.removeItem(BATCH_QUEUE_KEY); } catch (_) {}
+  try {
+    localStorage.removeItem(BATCH_QUEUE_KEY);
+  } catch (_) {}
 
   api("/api/batch", { requests: toSend })
     .then((batchResponse) => {
@@ -234,11 +239,16 @@ function flushApiBatch() {
         if (entry) {
           clearTimeout(entry.timeout);
           batchResolvers.delete(result.id);
-          entry.resolve(result.data || { success: false, error: "empty response" });
+          entry.resolve(
+            result.data || { success: false, error: "empty response" },
+          );
         }
         // v10.3: Detect logical failures (4xx/5xx or error payload)
-        // Ignoring 409 Duplicate request so safe network retries don't freeze the UI 
-        if ((result.status >= 400 && result.status !== 409) || (result.data && result.data.error && result.status !== 409)) {
+        // Ignoring 409 Duplicate request so safe network retries don't freeze the UI
+        if (
+          (result.status >= 400 && result.status !== 409) ||
+          (result.data && result.data.error && result.status !== 409)
+        ) {
           hasFailure = true;
         }
       }
@@ -260,7 +270,9 @@ function flushApiBatch() {
       // Network failure: put requests back and resolve with optimistic fallback
       if (err?.error === "NETWORK_ERROR" || err?.error === "TIMEOUT") {
         apiBatchQueue = [...toSend, ...apiBatchQueue];
-        try { localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue)); } catch (_) {}
+        try {
+          localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
+        } catch (_) {}
       }
       // Resolve all pending resolvers for this batch with optimistic fallback
       for (const req of toSend) {
@@ -274,7 +286,7 @@ function flushApiBatch() {
     });
 }
 
-/** 
+/**
  * Enqueues a mutative request to be sent in a debounced batch.
  * v10.2: Returns a Promise that resolves with the REAL server response.
  * Callers receive actual success/error data, enabling proper rollback.
@@ -294,10 +306,12 @@ export function apiBatched(path, body) {
   const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
   const req = { id, path, body, nonce };
   apiBatchQueue.push(req);
-  try { localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue)); } catch (_) {}
+  try {
+    localStorage.setItem(BATCH_QUEUE_KEY, JSON.stringify(apiBatchQueue));
+  } catch (_) {}
 
   if (apiBatchTimer) clearTimeout(apiBatchTimer);
-  
+
   // High volume = flush more often, otherwise 3s debounce
   if (apiBatchQueue.length >= 10) {
     flushApiBatch();
@@ -375,9 +389,11 @@ export function goToScreen(index) {
 
   // [Phase 2] Global Event-Driven Garbage Collector
   // Signify that we are leaving the current screen so engines can dump large DOM/RAM caches
-  document.dispatchEvent(new CustomEvent("hub:route-leave", {
-    detail: { from: HUB.currentScreen, to: index }
-  }));
+  document.dispatchEvent(
+    new CustomEvent("hub:route-leave", {
+      detail: { from: HUB.currentScreen, to: index },
+    }),
+  );
 
   // v6.2.0: Set spatial slide direction
   const isBack = index < HUB.currentScreen;
@@ -610,8 +626,10 @@ function triggerScreenCallbacks() {
   if (fab) fab.classList.toggle("visible", name === "farm");
 
   // Fire Phase 17 screen change listeners
-  HUB.onScreenChange.forEach(cb => {
-    try { cb(HUB.currentScreen, name); } catch(e) {}
+  HUB.onScreenChange.forEach((cb) => {
+    try {
+      cb(HUB.currentScreen, name);
+    } catch (e) {}
   });
 }
 
@@ -693,7 +711,12 @@ export function showToast(msg, type) {
 
   const onPointerDown = (e) => {
     // PointerDown implicitly works for mouse/touch/pen
-    startX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : 0);
+    startX =
+      e.clientX !== undefined
+        ? e.clientX
+        : e.touches
+          ? e.touches[0].clientX
+          : 0;
     el.style.transition = "none";
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", onPointerUp);
@@ -703,7 +726,7 @@ export function showToast(msg, type) {
     window.addEventListener("touchend", onPointerUp);
     window.addEventListener("touchcancel", onPointerUp);
   };
-  
+
   el.addEventListener("mousedown", onPointerDown);
   el.addEventListener("touchstart", onPointerDown, { passive: true });
 

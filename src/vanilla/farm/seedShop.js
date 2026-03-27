@@ -11,7 +11,11 @@ import {
 import { GameStore } from "../store.js";
 import { HUD } from "../hud.js";
 import {
-  $, formatGrowthTime, loadBuyQtys, saveBuyQty, getPurchaseHistory,
+  $,
+  formatGrowthTime,
+  loadBuyQtys,
+  saveBuyQty,
+  getPurchaseHistory,
 } from "./utils.js";
 
 // ── Module state ──
@@ -52,9 +56,21 @@ function _getPlayerStats() {
   }
   const goldEarned = res.gold || 0;
   const plotsBought = _state?.plots?.length || 6;
-  const questsCompleted = parseInt(localStorage.getItem("hub_quests_completed") || "0", 10);
-  const daysActive = parseInt(localStorage.getItem("hub_days_active") || "1", 10);
-  return { totalHarvests, goldEarned, questsCompleted, plotsBought, daysActive };
+  const questsCompleted = parseInt(
+    localStorage.getItem("hub_quests_completed") || "0",
+    10,
+  );
+  const daysActive = parseInt(
+    localStorage.getItem("hub_days_active") || "1",
+    10,
+  );
+  return {
+    totalHarvests,
+    goldEarned,
+    questsCompleted,
+    plotsBought,
+    daysActive,
+  };
 }
 
 export function computeUnlocked() {
@@ -76,7 +92,9 @@ export function checkNewUnlocks() {
       localStorage.setItem(seenKey, JSON.stringify(unlocked));
       renderShop();
     }
-  } catch { /* localStorage error — skip */ }
+  } catch {
+    /* localStorage error — skip */
+  }
 }
 
 /* ─── Select Seed ─── */
@@ -119,7 +137,11 @@ export function buySeeds(cropId) {
   if (_selectedSeed) saveBuyQty(_selectedSeed, 1);
 
   const myVersion = ++_buySeedVersion;
-  apiBatched("/api/farm/buy-seeds", { userId: HUB.userId, cropId, amount: savedQty })
+  apiBatched("/api/farm/buy-seeds", {
+    userId: HUB.userId,
+    cropId,
+    amount: savedQty,
+  })
     .then((data) => {
       if (_buySeedVersion !== myVersion || data._optimistic) return;
       if (data.success) {
@@ -138,7 +160,9 @@ export function buySeeds(cropId) {
         showToast(`❌ ${data.error}`);
       }
     })
-    .catch(() => { if (_buySeedVersion === myVersion) _actions?.loadState?.(); });
+    .catch(() => {
+      if (_buySeedVersion === myVersion) _actions?.loadState?.();
+    });
 }
 
 /* ═══ Featured Seed Shelf ═══ */
@@ -146,7 +170,10 @@ export function renderFeaturedShelf() {
   const container = $("featured-shelf-container");
   if (!container) return;
   const unlocked = computeUnlocked();
-  if (unlocked.length < 3) { container.innerHTML = ""; return; }
+  if (unlocked.length < 3) {
+    container.innerHTML = "";
+    return;
+  }
 
   const ROTATION_MS = 4 * 3600_000;
   const rotationKey = Math.floor(Date.now() / ROTATION_MS);
@@ -163,13 +190,22 @@ export function renderFeaturedShelf() {
   const profitRanked = tried.sort((a, b) => {
     const cfgA = _crops[a] || CROPS_CONFIG[a] || {};
     const cfgB = _crops[b] || CROPS_CONFIG[b] || {};
-    return ((cfgB.sellPrice || 1) / (cfgB.seedPrice || 1)) - ((cfgA.sellPrice || 1) / (cfgA.seedPrice || 1));
+    return (
+      (cfgB.sellPrice || 1) / (cfgB.seedPrice || 1) -
+      (cfgA.sellPrice || 1) / (cfgA.seedPrice || 1)
+    );
   });
 
   const picks = [];
   if (untried.length > 0) picks.push(untried[0]);
-  for (const id of profitRanked) { if (picks.length >= 4) break; if (!picks.includes(id)) picks.push(id); }
-  for (const id of seeded) { if (picks.length >= 4) break; if (!picks.includes(id)) picks.push(id); }
+  for (const id of profitRanked) {
+    if (picks.length >= 4) break;
+    if (!picks.includes(id)) picks.push(id);
+  }
+  for (const id of seeded) {
+    if (picks.length >= 4) break;
+    if (!picks.includes(id)) picks.push(id);
+  }
 
   const nextRotation = (rotationKey + 1) * ROTATION_MS;
   const msLeft = nextRotation - Date.now();
@@ -177,15 +213,17 @@ export function renderFeaturedShelf() {
   const mLeft = Math.floor((msLeft % 3600_000) / 60_000);
   const timerText = hLeft > 0 ? `⟳ ${hLeft}h ${mLeft}m` : `⟳ ${mLeft}m`;
 
-  const cards = picks.map((id) => {
-    const cfg = _crops[id] || CROPS_CONFIG[id] || {};
-    const isNew = !purchased.has(id);
-    return `<div class="featured-shelf-card${isNew ? " fs-untried" : ""}" data-seed="${id}">
+  const cards = picks
+    .map((id) => {
+      const cfg = _crops[id] || CROPS_CONFIG[id] || {};
+      const isNew = !purchased.has(id);
+      return `<div class="featured-shelf-card${isNew ? " fs-untried" : ""}" data-seed="${id}">
       <span class="fs-emoji">${cfg.emoji || "🌱"}</span>
       <span class="fs-name">${cfg.name || id}</span>
       <span class="fs-price">🪙${cfg.seedPrice || "?"}</span>
     </div>`;
-  }).join("");
+    })
+    .join("");
 
   container.innerHTML = `
     <div class="featured-shelf-header">
@@ -226,7 +264,10 @@ export function renderFeaturedShelf() {
   _shelfTimerInterval = setInterval(() => {
     const now = Date.now();
     const currentKey = Math.floor(now / ROTATION_MS);
-    if (currentKey !== rotationKey) { renderFeaturedShelf(); return; }
+    if (currentKey !== rotationKey) {
+      renderFeaturedShelf();
+      return;
+    }
     const ms = (currentKey + 1) * ROTATION_MS - now;
     const h = Math.floor(ms / 3600_000);
     const m = Math.floor((ms % 3600_000) / 60_000);
@@ -241,28 +282,41 @@ export function renderShop() {
   if (!grid) return;
   grid.innerHTML = "";
   const allEntries = Object.entries(_crops).filter(
-    ([id, cfg]) => typeof cfg === "object" && cfg !== null && !id.startsWith("__"),
+    ([id, cfg]) =>
+      typeof cfg === "object" && cfg !== null && !id.startsWith("__"),
   );
   const unlocked = computeUnlocked();
 
   const withProfit = allEntries.map(([id, cfg]) => {
-    const growSec = (CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000) / 1000;
+    const growSec =
+      (CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000) / 1000;
     const sellPrice = CROPS_CONFIG[id]?.sellPrice || cfg.sellPrice || 0;
     const ratio = cfg.seedPrice > 0 ? sellPrice / cfg.seedPrice : 0;
     return { id, cfg, sellPrice, ratio, growSec };
   });
 
   const unlockedWithProfit = withProfit.filter((s) => unlocked.includes(s.id));
-  const bestPick = unlockedWithProfit.length > 0
-    ? unlockedWithProfit.reduce((best, s) => (s.ratio > best.ratio ? s : best))
-    : null;
+  const bestPick =
+    unlockedWithProfit.length > 0
+      ? unlockedWithProfit.reduce((best, s) =>
+          s.ratio > best.ratio ? s : best,
+        )
+      : null;
 
-  const quickGrow = unlockedWithProfit.filter((s) => s.growSec < 60).sort((a, b) => a.growSec - b.growSec);
-  const bestValue = [...unlockedWithProfit].sort((a, b) => b.ratio - a.ratio).slice(0, 3);
+  const quickGrow = unlockedWithProfit
+    .filter((s) => s.growSec < 60)
+    .sort((a, b) => a.growSec - b.growSec);
+  const bestValue = [...unlockedWithProfit]
+    .sort((a, b) => b.ratio - a.ratio)
+    .slice(0, 3);
   const sections = [];
-  if (bestValue.length > 0) sections.push({ label: "💰 Best Value", seeds: bestValue });
-  if (quickGrow.length > 0) sections.push({ label: "⚡ Quick Grow", seeds: quickGrow });
-  const allSorted = [...withProfit].sort((a, b) => (a.cfg.seedPrice || 0) - (b.cfg.seedPrice || 0));
+  if (bestValue.length > 0)
+    sections.push({ label: "💰 Best Value", seeds: bestValue });
+  if (quickGrow.length > 0)
+    sections.push({ label: "⚡ Quick Grow", seeds: quickGrow });
+  const allSorted = [...withProfit].sort(
+    (a, b) => (a.cfg.seedPrice || 0) - (b.cfg.seedPrice || 0),
+  );
   sections.push({ label: "🌱 All Seeds", seeds: allSorted });
 
   const rendered = new Set();
@@ -285,7 +339,8 @@ export function renderShop() {
       const isSelected = _selectedSeed === id;
       const isEmpty = count <= 0;
       const isBest = bestPick && id === bestPick.id;
-      const canonicalGrowth = CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
+      const canonicalGrowth =
+        CROPS_CONFIG[id]?.growthTime || cfg.growthTime || 15000;
       const growthLabel = formatGrowthTime(canonicalGrowth);
 
       if (isLocked) {
@@ -302,7 +357,8 @@ export function renderShop() {
       }
 
       card.className = `farm-seed-card${isSelected ? " selected" : ""}${isEmpty ? " no-seeds" : ""}${isBest ? " best-pick" : ""}`;
-      const profitClass = ratio >= 2 ? "profit-high" : ratio >= 1 ? "profit-ok" : "profit-low";
+      const profitClass =
+        ratio >= 2 ? "profit-high" : ratio >= 1 ? "profit-ok" : "profit-low";
       card.innerHTML = `
         <div class="seed-emoji">${cfg.emoji}</div>
         <div class="seed-info-col">
@@ -377,14 +433,18 @@ export function renderBoosterButton(api) {
   let btn = document.getElementById("farm-booster-btn");
   const fertCfg = BOOSTER_CONFIG?.fertilizer;
   if (!fertCfg) return;
-  const isActive = boosters?.fertilizer?.active && boosters.fertilizer.expiresAt > Date.now();
+  const isActive =
+    boosters?.fertilizer?.active && boosters.fertilizer.expiresAt > Date.now();
   if (!btn) {
     btn = document.createElement("button");
     btn.id = "farm-booster-btn";
     btn.className = "farm-booster-btn";
     btn.addEventListener("click", async () => {
       if (isActive) return;
-      const data = await api("/api/farm/activate-booster", { userId: HUB.userId, boosterId: "fertilizer" });
+      const data = await api("/api/farm/activate-booster", {
+        userId: HUB.userId,
+        boosterId: "fertilizer",
+      });
       if (data?.success) {
         _state._boosters = data.boosters;
         if (data.resources) HUD.syncFromServer(data.resources);
@@ -398,7 +458,10 @@ export function renderBoosterButton(api) {
     if (statsBar) statsBar.appendChild(btn);
   }
   if (isActive) {
-    const remaining = Math.max(0, Math.ceil((boosters.fertilizer.expiresAt - Date.now()) / 60_000));
+    const remaining = Math.max(
+      0,
+      Math.ceil((boosters.fertilizer.expiresAt - Date.now()) / 60_000),
+    );
     btn.textContent = `⚡ Active (${remaining}m)`;
     btn.classList.add("active");
   } else {
@@ -419,7 +482,8 @@ export function renderStreakBadge() {
     const statsBar = document.querySelector(".farm-stats");
     if (statsBar) statsBar.appendChild(badge);
   }
-  const mult = streak.bonusMultiplier > 1 ? ` (${streak.bonusMultiplier}×)` : "";
+  const mult =
+    streak.bonusMultiplier > 1 ? ` (${streak.bonusMultiplier}×)` : "";
   badge.innerHTML = `🔥 ${streak.current}-day streak${mult}`;
 }
 

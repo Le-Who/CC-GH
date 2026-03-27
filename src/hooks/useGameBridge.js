@@ -116,7 +116,8 @@ export function initGameBridge() {
     return {
       board: sliceData.board || mergeStore.getState().board,
       generators: sliceData.generators || mergeStore.getState().generators,
-      generatorState: sliceData.generatorState || mergeStore.getState().generatorState,
+      generatorState:
+        sliceData.generatorState || mergeStore.getState().generatorState,
       inventory: sliceData.inventory || [],
       lastFreePull: sliceData.lastFreePull || 0,
     };
@@ -135,7 +136,11 @@ export function initGameBridge() {
     if (!sliceData) return;
     return {
       gold: sliceData.gold ?? 0,
-      energy: sliceData.energy ?? { current: 0, max: 20, lastRegenTimestamp: Date.now() },
+      energy: sliceData.energy ?? {
+        current: 0,
+        max: 20,
+        lastRegenTimestamp: Date.now(),
+      },
       harvested: sliceData.harvested ?? {},
       gachaTokens: sliceData.gachaTokens ?? 0,
     };

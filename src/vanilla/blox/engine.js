@@ -11,7 +11,8 @@ export function createEmptyBoard() {
 
 export function canPlace(board, piece, row, col) {
   for (const [dr, dc] of piece.cells) {
-    const r = row + dr, c = col + dc;
+    const r = row + dr,
+      c = col + dc;
     if (r < 0 || r >= GRID || c < 0 || c >= GRID) return false;
     if (board[r][c] !== null) return false;
   }

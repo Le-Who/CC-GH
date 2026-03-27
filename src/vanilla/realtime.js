@@ -1,9 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
-import { HUB } from './shared.js';
-import { HUD } from './hud.js';
-import { PetCompanion } from './pet.js';
-import { farmStore } from '../hooks/useFarmEngine.js';
-import { hudStore } from '../hooks/useHUDEngine.js';
+import { createClient } from "@supabase/supabase-js";
+import { HUB } from "./shared.js";
+import { HUD } from "./hud.js";
+import { PetCompanion } from "./pet.js";
+import { farmStore } from "../hooks/useFarmEngine.js";
+import { hudStore } from "../hooks/useHUDEngine.js";
 
 export let supabase = null;
 let realtimeChannel = null;
@@ -15,7 +15,9 @@ export function initRealtime() {
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (!url || !key) {
-    console.warn('Realtime Sync Disabled: Missing Supabase credentials in .env');
+    console.warn(
+      "Realtime Sync Disabled: Missing Supabase credentials in .env",
+    );
     return;
   }
 
@@ -23,13 +25,13 @@ export function initRealtime() {
   _subscribeChannel();
 
   // Listen to LocalStorage for cross-tab sync
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'hub_sync_state' && e.newValue) {
+  window.addEventListener("storage", (e) => {
+    if (e.key === "hub_sync_state" && e.newValue) {
       try {
         const data = JSON.parse(e.newValue);
         applySyncPayload(data.payload);
       } catch (err) {
-        console.error('Cross-Tab sync parse error:', err);
+        console.error("Cross-Tab sync parse error:", err);
       }
     }
   });
@@ -40,18 +42,20 @@ function _subscribeChannel() {
   if (!supabase || !HUB.userId) return;
   // Tear down any existing channel first
   if (realtimeChannel) {
-    try { supabase.removeChannel(realtimeChannel); } catch (_) {}
+    try {
+      supabase.removeChannel(realtimeChannel);
+    } catch (_) {}
     realtimeChannel = null;
   }
 
   realtimeChannel = supabase.channel(`player_${HUB.userId}`, {
     config: {
-      broadcast: { self: false }
-    }
+      broadcast: { self: false },
+    },
   });
 
   realtimeChannel
-    .on('broadcast', { event: 'state_sync' }, ({ payload }) => {
+    .on("broadcast", { event: "state_sync" }, ({ payload }) => {
       applySyncPayload(payload);
     })
     .subscribe();
@@ -63,7 +67,9 @@ function _subscribeChannel() {
  */
 export function suspendRealtime() {
   if (supabase && realtimeChannel) {
-    try { supabase.removeChannel(realtimeChannel); } catch (_) {}
+    try {
+      supabase.removeChannel(realtimeChannel);
+    } catch (_) {}
     realtimeChannel = null;
   }
 }
@@ -83,13 +89,19 @@ function applySyncPayload(payload) {
 
   // v10.2: Support delta payloads (Improvement 3)
   // Format: { entity: 'plot', id: N, changes: {...} } for granular updates
-  if (payload.entity === 'plot' && typeof payload.id === 'number' && payload.changes) {
+  if (
+    payload.entity === "plot" &&
+    typeof payload.id === "number" &&
+    payload.changes
+  ) {
     const currentPlots = farmStore.getState()?.plots;
     if (currentPlots && currentPlots[payload.id]) {
       const updated = [...currentPlots];
       updated[payload.id] = { ...updated[payload.id], ...payload.changes };
       farmStore.setState({ plots: updated });
-      document.dispatchEvent(new CustomEvent('farm_state_sync', { detail: { plots: updated } }));
+      document.dispatchEvent(
+        new CustomEvent("farm_state_sync", { detail: { plots: updated } }),
+      );
     }
     return;
   }
@@ -106,9 +118,11 @@ function applySyncPayload(payload) {
     PetCompanion.syncFromServer(payload.pet);
   }
   if (payload.plots) {
-     farmStore.setState({ plots: payload.plots });
-     // Notify vanilla DOM as well if the farm module is initialized
-     document.dispatchEvent(new CustomEvent('farm_state_sync', { detail: payload }));
+    farmStore.setState({ plots: payload.plots });
+    // Notify vanilla DOM as well if the farm module is initialized
+    document.dispatchEvent(
+      new CustomEvent("farm_state_sync", { detail: payload }),
+    );
   }
 }
 
@@ -120,7 +134,10 @@ function applySyncPayload(payload) {
 export function broadcastStateUpdate(payload) {
   // 1. Cross-Tab Sync (Same Device) — always works
   try {
-    localStorage.setItem('hub_sync_state', JSON.stringify({ ts: Date.now(), payload }));
+    localStorage.setItem(
+      "hub_sync_state",
+      JSON.stringify({ ts: Date.now(), payload }),
+    );
   } catch (_) {}
 
   // 2. Cross-Device Sync (Supabase Broadcast)
@@ -130,15 +147,17 @@ export function broadcastStateUpdate(payload) {
   // target devices will self-heal via their 30s loadState() polling.
   if (
     realtimeChannel &&
-    realtimeChannel.state === 'joined' &&
+    realtimeChannel.state === "joined" &&
     supabase?.realtime?.isConnected?.()
   ) {
-    realtimeChannel.send({
-      type: 'broadcast',
-      event: 'state_sync',
-      payload
-    }).catch(() => {
-      // Silently drop — target devices will sync via REST polling
-    });
+    realtimeChannel
+      .send({
+        type: "broadcast",
+        event: "state_sync",
+        payload,
+      })
+      .catch(() => {
+        // Silently drop — target devices will sync via REST polling
+      });
   }
 }

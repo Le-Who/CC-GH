@@ -3,9 +3,19 @@ import { HUB, api } from "../shared.js";
 import { HUD } from "../hud.js";
 
 import { registerSlice } from "./engine.js";
-import { createBoardDOM, renderBoard, handleLeave as boardOnLeave } from "./board.js";
-import { renderGeneratorPanel, handleCooldownTimers, clearCooldownTimers } from "./panel.js";
-import { tapGenerator, mergeItems, rollGacha, freePull, trashMergeItem } from "./api.js";
+import {
+  createBoardDOM,
+  renderBoard,
+  handleLeave as boardOnLeave,
+} from "./board.js";
+import { renderGeneratorPanel, handleCooldownTimers } from "./panel.js";
+import {
+  tapGenerator,
+  mergeItems,
+  rollGacha,
+  freePull,
+  trashMergeItem,
+} from "./api.js";
 
 /* ═══════════════════════════════════════════════════
  *  Init & Lifecycle

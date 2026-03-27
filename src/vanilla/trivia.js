@@ -227,7 +227,10 @@ const TriviaGame = (() => {
       _startSoloInFlight = false;
       return;
     }
-    if (!data.success) { _startSoloInFlight = false; return; }
+    if (!data.success) {
+      _startSoloInFlight = false;
+      return;
+    }
 
     // Sync resources (energy deducted)
     if (data.resources) {
@@ -541,10 +544,14 @@ const TriviaGame = (() => {
     if (imgContainer && imgA && imgB) {
       if (q.imageUrl) {
         imgContainer.style.display = "";
-        const nextBufferId = currentImageBufferId === "trivia-img-a" ? "trivia-img-b" : "trivia-img-a";
+        const nextBufferId =
+          currentImageBufferId === "trivia-img-a"
+            ? "trivia-img-b"
+            : "trivia-img-a";
         const nextBuffer = nextBufferId === "trivia-img-a" ? imgA : imgB;
-        const currentBuffer = currentImageBufferId === "trivia-img-a" ? imgA : imgB;
-        
+        const currentBuffer =
+          currentImageBufferId === "trivia-img-a" ? imgA : imgB;
+
         nextBuffer.src = q.imageUrl;
         // Wait for image to load before fading (avoids jitter)
         nextBuffer.onload = () => {
@@ -615,43 +622,44 @@ const TriviaGame = (() => {
     _lastDanger = false;
     if (_timerWrapperEl) _timerWrapperEl.classList.remove("danger");
     if (_timerTextEl) _timerTextEl.classList.remove("danger");
-    
+
     timerStart = Date.now();
     timerDuration = seconds * 1000;
-    
+
     // Phase 17: GPU-Accelerated CSS Timer instead of 16ms JS loop
     if (_timerFillEl) {
       _timerFillEl.style.transition = "none";
       _timerFillEl.style.width = "100%";
       void _timerFillEl.offsetWidth; // flush layout
-      
+
       _timerFillEl.style.transition = `width ${seconds}s linear`;
       _timerFillEl.style.width = "0%";
     }
-    
+
     stopTimer();
     // Coarse 1-second interval for text and end condition
     timerRaf = setInterval(() => {
       const elapsed = Date.now() - timerStart;
       const remaining = Math.max(0, timerDuration - elapsed);
       const sec = Math.ceil(remaining / 1000);
-      
+
       if (_timerTextEl) {
         _timerTextEl.textContent = sec + "s";
         const isDanger = sec <= 3 && remaining > 0;
         if (isDanger !== _lastDanger) {
           _timerTextEl.classList.toggle("danger", isDanger);
-          if (_timerWrapperEl) _timerWrapperEl.classList.toggle("danger", isDanger);
+          if (_timerWrapperEl)
+            _timerWrapperEl.classList.toggle("danger", isDanger);
           _lastDanger = isDanger;
         }
       }
-      
+
       if (remaining <= 0) {
         stopTimer();
         if (!session.answered) submitAnswer(null); // Time's up
       }
     }, 1000);
-    
+
     // Initial text update
     if (_timerTextEl) _timerTextEl.textContent = seconds + "s";
   }

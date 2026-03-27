@@ -3,7 +3,11 @@
  *  Renders secondary farm panel tabs.
  * ═══════════════════════════════════════════════════ */
 import { HUB, showToast, api } from "../shared.js";
-import { CROPS as CROPS_CONFIG, ACHIEVEMENTS, SEASON_PASS } from "/game-logic.js";
+import {
+  CROPS as CROPS_CONFIG,
+  ACHIEVEMENTS,
+  SEASON_PASS,
+} from "/game-logic.js";
 import { HUD } from "../hud.js";
 import { $ } from "./utils.js";
 import { renderInventory } from "./inventory.js";
@@ -11,15 +15,21 @@ import { renderInventory } from "./inventory.js";
 let _state = null;
 let _actions = null;
 
-export function setTabsDeps(deps) { _actions = deps; }
-export function syncTabsState(state) { _state = state; }
+export function setTabsDeps(deps) {
+  _actions = deps;
+}
+export function syncTabsState(state) {
+  _state = state;
+}
 
 /* ─── Tab Switching ─── */
 export function switchFarmTab(tab) {
   const tabs = document.querySelectorAll(".farm-tab");
   tabs.forEach((t) => t.classList.toggle("active", t.dataset.tab === tab));
   const contents = document.querySelectorAll(".farm-tab-content");
-  contents.forEach((c) => c.classList.toggle("active", c.id === `farm-tab-content-${tab}`));
+  contents.forEach((c) =>
+    c.classList.toggle("active", c.id === `farm-tab-content-${tab}`),
+  );
   if (tab === "inv") renderInventory();
   if (tab === "badges") renderBadges();
   if (tab === "journal") renderJournal();
@@ -45,15 +55,23 @@ export function renderBadges() {
       ${claimed ? '<div class="badge-claimed">✅ Claimed</div>' : ""}
     `;
     if (unlocked && !claimed) {
-      card.querySelector(".badge-claim-btn").addEventListener("click", async () => {
-        const data = await api("/api/achievements/claim", { userId: HUB.userId, badgeId: id });
-        if (data?.success) {
-          _state.achievements[id] = { ..._state.achievements[id], seen: true };
-          if (data.resources) HUD.syncFromServer(data.resources);
-          renderBadges();
-          showToast(`🏆 Claimed: ${badge.emoji} ${badge.name}!`);
-        }
-      });
+      card
+        .querySelector(".badge-claim-btn")
+        .addEventListener("click", async () => {
+          const data = await api("/api/achievements/claim", {
+            userId: HUB.userId,
+            badgeId: id,
+          });
+          if (data?.success) {
+            _state.achievements[id] = {
+              ..._state.achievements[id],
+              seen: true,
+            };
+            if (data.resources) HUD.syncFromServer(data.resources);
+            renderBadges();
+            showToast(`🏆 Claimed: ${badge.emoji} ${badge.name}!`);
+          }
+        });
     }
     grid.appendChild(card);
   }
@@ -103,11 +121,15 @@ export function renderSeasonPass() {
     const t = tiers[i];
     const unlocked = sp.xp >= t.xp;
     const claimed = sp.claimed?.includes(i);
-    const rewardText = t.reward.gold ? `${t.reward.gold}🪙`
-      : t.reward.theme ? `🎨 ${t.reward.theme}`
-      : t.reward.seeds ? "🌱 Seeds"
-      : t.reward.gachaTokens ? `${t.reward.gachaTokens}🎫`
-      : t.reward.title || "";
+    const rewardText = t.reward.gold
+      ? `${t.reward.gold}🪙`
+      : t.reward.theme
+        ? `🎨 ${t.reward.theme}`
+        : t.reward.seeds
+          ? "🌱 Seeds"
+          : t.reward.gachaTokens
+            ? `${t.reward.gachaTokens}🎫`
+            : t.reward.title || "";
     html += `
       <div class="season-tier${unlocked ? " unlocked" : ""}${claimed ? " claimed" : ""}" data-tier="${i}">
         <div class="tier-label">${t.label}</div>
@@ -123,7 +145,10 @@ export function renderSeasonPass() {
   container.querySelectorAll(".tier-claim-btn").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const idx = parseInt(btn.dataset.tierIdx);
-      const data = await api("/api/season-pass/claim", { userId: HUB.userId, tierIndex: idx });
+      const data = await api("/api/season-pass/claim", {
+        userId: HUB.userId,
+        tierIndex: idx,
+      });
       if (data?.success) {
         _state._seasonPass = data.seasonPass;
         if (data.resources) HUD.syncFromServer(data.resources);

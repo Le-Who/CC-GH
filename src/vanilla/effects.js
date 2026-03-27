@@ -285,19 +285,21 @@ export function spawnCoinFly(sourceEl, count = 3) {
 
     // OPTIMIZATION 3: Web Animations API (WAAPI)
     // Runs in compositor thread, no GC pauses from setTimeouts
-    const dx = tgtRect.left + tgtRect.width / 2 - (srcRect.left + srcRect.width / 2);
-    const dy = tgtRect.top + tgtRect.height / 2 - (srcRect.top + srcRect.height / 2);
+    const dx =
+      tgtRect.left + tgtRect.width / 2 - (srcRect.left + srcRect.width / 2);
+    const dy =
+      tgtRect.top + tgtRect.height / 2 - (srcRect.top + srcRect.height / 2);
     const animation = p.animate(
       [
-        { transform: 'scale(1) translate(0px, 0px)', opacity: 1 },
-        { transform: `translate(${dx}px, ${dy}px) scale(0.4)`, opacity: 0.2 }
+        { transform: "scale(1) translate(0px, 0px)", opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0.4)`, opacity: 0.2 },
       ],
       {
         duration: 600,
         delay: i * 80,
-        easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-        fill: 'forwards'
-      }
+        easing: "cubic-bezier(0.25, 0.1, 0.25, 1)",
+        fill: "forwards",
+      },
     );
 
     animation.finished.then(() => p.remove()).catch(() => p.remove());
@@ -329,15 +331,15 @@ export function spawnWaterDroplets(plotEl, count = 3) {
     // OPTIMIZATION 3: Web Animations API (WAAPI)
     const animation = p.animate(
       [
-        { transform: 'scale(1) translateY(0px)', opacity: 0.8 },
-        { transform: 'translateY(-22px) scale(0.4)', opacity: 0 }
+        { transform: "scale(1) translateY(0px)", opacity: 0.8 },
+        { transform: "translateY(-22px) scale(0.4)", opacity: 0 },
       ],
       {
         duration: 700,
         delay: i * 120,
-        easing: 'ease-out',
-        fill: 'forwards'
-      }
+        easing: "ease-out",
+        fill: "forwards",
+      },
     );
 
     animation.finished.then(() => p.remove()).catch(() => p.remove());

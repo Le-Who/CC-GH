@@ -10,7 +10,14 @@
  *  v5: Native ES Module (was IIFE)
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
-import { HUB, api, apiBatched, showToast, sleep, safeShowModal } from "./shared.js";
+import {
+  HUB,
+  api,
+  apiBatched,
+  showToast,
+  sleep,
+  safeShowModal,
+} from "./shared.js";
 import { HUD } from "./hud.js";
 import { perlinShake, SoundEngine, debounce } from "./effects.js";
 import {
@@ -268,8 +275,20 @@ const Match3GameImpl = (() => {
     if (boardContainer) {
       let _tiltRaf = 0;
       let _cachedTiltRect = null;
-      window.addEventListener("resize", () => { _cachedTiltRect = null; }, { passive: true });
-      window.addEventListener("scroll", () => { _cachedTiltRect = null; }, { passive: true, capture: true });
+      window.addEventListener(
+        "resize",
+        () => {
+          _cachedTiltRect = null;
+        },
+        { passive: true },
+      );
+      window.addEventListener(
+        "scroll",
+        () => {
+          _cachedTiltRect = null;
+        },
+        { passive: true, capture: true },
+      );
 
       boardContainer.addEventListener("pointermove", (e) => {
         if (_tiltRaf) return;
@@ -316,12 +335,12 @@ const Match3GameImpl = (() => {
       if (_m3Cells.length === 0) {
         renderBoard(false);
       }
-      
+
       // Fix visual stuck states
       selected = null;
       isAnimating = false;
       resetHintTimer();
-      
+
       // Game in progress — resume seamlessly, no modal
       if (gamePaused) {
         gamePaused = false;
@@ -504,15 +523,18 @@ const Match3GameImpl = (() => {
 
       if (data.game) {
         const restoredMode = data.game.mode || gameMode;
-        
+
         // BUGFIX: Backend /api/game/start session doesn't contain a board.
         // We MUST load the active board from mergedModes, falling back only if absent.
         const s = mergedModes[restoredMode];
         if (s) {
           board = hydrateBoard(s.board) || generateBoard();
-          score = typeof s.score === "number" ? s.score : (data.game.score || 0);
-          movesLeft = typeof s.movesLeft === "number" ? s.movesLeft : (data.game.movesLeft || 0);
-          combo = typeof s.combo === "number" ? s.combo : (data.game.combo || 0);
+          score = typeof s.score === "number" ? s.score : data.game.score || 0;
+          movesLeft =
+            typeof s.movesLeft === "number"
+              ? s.movesLeft
+              : data.game.movesLeft || 0;
+          combo = typeof s.combo === "number" ? s.combo : data.game.combo || 0;
           timedSecondsLeft = s.timedSecondsLeft || TIMED_DURATION;
           restoreDropState(s);
         } else {
@@ -626,7 +648,10 @@ const Match3GameImpl = (() => {
       const s = savedModes[mode];
 
       // Prevent restoring a logically dead session (dirty state leak bug)
-      if ((mode === "timed" && s.timedSecondsLeft <= 0) || (mode !== "timed" && s.movesLeft <= 0)) {
+      if (
+        (mode === "timed" && s.timedSecondsLeft <= 0) ||
+        (mode !== "timed" && s.movesLeft <= 0)
+      ) {
         delete savedModes[mode];
         persistSavedModes();
         // Fall through to start a fresh game below
@@ -1358,7 +1383,10 @@ const Match3GameImpl = (() => {
     isAnimating = true;
     clearHint();
     const $b = $("m3-board");
-    if (!$b) { isAnimating = false; return; }
+    if (!$b) {
+      isAnimating = false;
+      return;
+    }
     $b.classList.add("disabled");
     getCell(fromX, fromY)?.classList.remove("selected");
     selected = null;
@@ -1379,19 +1407,21 @@ const Match3GameImpl = (() => {
         const cellSize = cellA.offsetWidth || 48;
         const dx = (toX - fromX) * cellSize * 0.5; // Only go 50% distance
         const dy = (toY - fromY) * cellSize * 0.5;
-        
-        cellA.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-        cellB.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+
+        cellA.style.transition =
+          "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        cellB.style.transition =
+          "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
         cellA.style.transform = `translate(${dx}px, ${dy}px) rotate(3deg)`;
         cellB.style.transform = `translate(${-dx}px, ${-dy}px) rotate(-3deg)`;
-        
+
         SoundEngine.error();
         await sleep(150);
-        
+
         cellA.style.transform = "";
         cellB.style.transform = "";
         await sleep(150);
-        
+
         cellA.style.transition = "";
         cellB.style.transition = "";
       }
@@ -1490,7 +1520,7 @@ const Match3GameImpl = (() => {
 
     // 4. Animate the cascade steps
     await animateCascade(result.steps);
-    
+
     if (_m3Cells.length === 0) {
       isAnimating = false;
       const boardEl = $("m3-board");
@@ -1570,7 +1600,10 @@ const Match3GameImpl = (() => {
             HUD.syncFromServer(endData.resources);
             if (endData.goldReward) HUD.animateGoldChange(endData.goldReward);
           } catch (uiErr) {
-            console.warn("HUD update failed, ignoring to prevent state leak:", uiErr);
+            console.warn(
+              "HUD update failed, ignoring to prevent state leak:",
+              uiErr,
+            );
           }
         }
       } catch (err) {
@@ -1607,12 +1640,12 @@ const Match3GameImpl = (() => {
 
   async function animateCascade(steps) {
     _prevCascadeChanged = [];
-    const BASE_HIGHLIGHT_DUR = 230; 
-    const BASE_POP_DUR = 250; 
-    const BASE_FALL_WAIT = 230; 
-    const SPEED_DECAY = 0.92; 
+    const BASE_HIGHLIGHT_DUR = 230;
+    const BASE_POP_DUR = 250;
+    const BASE_FALL_WAIT = 230;
+    const SPEED_DECAY = 0.92;
     // UX Feature 1: Hard Speed Floor (min 200ms = 0.8) to prevent disappearing gems
-    const SPEED_FLOOR = 0.8; 
+    const SPEED_FLOOR = 0.8;
     let speedMul = 1;
 
     for (let si = 0; si < steps.length; si++) {
@@ -1622,8 +1655,8 @@ const Match3GameImpl = (() => {
       // UX Feature 3: Grand Match Text Popup + Particles (matches of 4 or 5)
       const primaryMatchLen = step.cleared.length;
       if (primaryMatchLen >= 4) {
-         const firstCell = step.cleared[0];
-         showGrandMatchPopup(firstCell.x, firstCell.y, primaryMatchLen);
+        const firstCell = step.cleared[0];
+        showGrandMatchPopup(firstCell.x, firstCell.y, primaryMatchLen);
       }
 
       // ── Phase 0: Highlight matched gems ──
@@ -1655,7 +1688,9 @@ const Match3GameImpl = (() => {
         if (container) {
           const containerRect = container.getBoundingClientRect();
           const trail = document.createElement("div");
-          const gemColor = getComputedStyle(cell).getPropertyValue("--gem-color").trim() || "rgba(255,255,255,0.8)";
+          const gemColor =
+            getComputedStyle(cell).getPropertyValue("--gem-color").trim() ||
+            "rgba(255,255,255,0.8)";
           if (primaryMatchLen === 4 && i === 0) {
             // Laser trail for Match 4
             trail.className = "m3-laser-trail";
@@ -1665,21 +1700,22 @@ const Match3GameImpl = (() => {
             trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
 
             // Determine if match is horizontal or vertical based on positions
-            const isHorizontal = step.cleared.every(c => c.y === step.cleared[0].y);
+            const isHorizontal = step.cleared.every(
+              (c) => c.y === step.cleared[0].y,
+            );
             if (isHorizontal) {
-               trail.style.width = '200vw'; // Shoot across screen
-               trail.style.height = '6px';
-               trail.style.transform = 'translate(-50%, -50%)';
-               trail.style.animation = 'laserH 0.4s ease-out forwards';
+              trail.style.width = "200vw"; // Shoot across screen
+              trail.style.height = "6px";
+              trail.style.transform = "translate(-50%, -50%)";
+              trail.style.animation = "laserH 0.4s ease-out forwards";
             } else {
-               trail.style.height = '200vh';
-               trail.style.width = '6px';
-               trail.style.transform = 'translate(-50%, -50%)';
-               trail.style.animation = 'laserV 0.4s ease-out forwards';
+              trail.style.height = "200vh";
+              trail.style.width = "6px";
+              trail.style.transform = "translate(-50%, -50%)";
+              trail.style.animation = "laserV 0.4s ease-out forwards";
             }
             container.appendChild(trail);
             setTimeout(() => trail.remove(), 400);
-
           } else if (primaryMatchLen >= 5 && i < 3) {
             // Explosion particles for Match 5
             trail.className = "m3-glow-trail";
@@ -1687,11 +1723,17 @@ const Match3GameImpl = (() => {
             trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
             trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
             trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
-            
+
             const angle = Math.random() * Math.PI * 2;
             const dist = 100 + Math.random() * 150;
-            trail.style.setProperty("--trail-dx", `${Math.cos(angle) * dist}px`);
-            trail.style.setProperty("--trail-dy", `${Math.sin(angle) * dist}px`);
+            trail.style.setProperty(
+              "--trail-dx",
+              `${Math.cos(angle) * dist}px`,
+            );
+            trail.style.setProperty(
+              "--trail-dy",
+              `${Math.sin(angle) * dist}px`,
+            );
             container.appendChild(trail);
             setTimeout(() => trail.remove(), 600);
           } else {
@@ -1701,8 +1743,14 @@ const Match3GameImpl = (() => {
             trail.style.boxShadow = `0 0 10px ${gemColor}, 0 0 20px ${gemColor}`;
             trail.style.left = `${rect.left - containerRect.left + rect.width / 2}px`;
             trail.style.top = `${rect.top - containerRect.top + rect.height / 2}px`;
-            trail.style.setProperty("--trail-dx", `${(Math.random() - 0.5) * 100}px`);
-            trail.style.setProperty("--trail-dy", `${(Math.random() - 0.5) * 100 - 150}px`);
+            trail.style.setProperty(
+              "--trail-dx",
+              `${(Math.random() - 0.5) * 100}px`,
+            );
+            trail.style.setProperty(
+              "--trail-dy",
+              `${(Math.random() - 0.5) * 100 - 150}px`,
+            );
             container.appendChild(trail);
             setTimeout(() => trail.remove(), 600);
           }
@@ -1834,23 +1882,23 @@ const Match3GameImpl = (() => {
     const textEl = document.createElement("div");
     textEl.className = "m3-grand-text";
     textEl.textContent = length >= 5 ? "MEGA!" : "AWESOME!";
-    
+
     // Position near the match
     const cell = getCell(cx, cy);
     if (cell) {
-        const rect = cell.getBoundingClientRect();
-        const contRect = container.getBoundingClientRect();
-        textEl.style.left = `${rect.left - contRect.left + rect.width / 2}px`;
-        textEl.style.top = `${rect.top - contRect.top + rect.height / 2}px`;
+      const rect = cell.getBoundingClientRect();
+      const contRect = container.getBoundingClientRect();
+      textEl.style.left = `${rect.left - contRect.left + rect.width / 2}px`;
+      textEl.style.top = `${rect.top - contRect.top + rect.height / 2}px`;
     }
-    
+
     container.appendChild(textEl);
     setTimeout(() => textEl.remove(), 1200);
   }
 
   // UX Feature 2: Hint System
   let hintTimer = null;
-  
+
   function resetHintTimer() {
     clearHint();
     if (hintTimer) clearTimeout(hintTimer);

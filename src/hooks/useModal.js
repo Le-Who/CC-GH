@@ -62,11 +62,12 @@ export const modalStore = create((set, get) => ({
   },
 
   /** Close all modals and clear stack */
-  closeAll: () => set({
-    activeModal: null,
-    modalProps: {},
-    _stack: [],
-  }),
+  closeAll: () =>
+    set({
+      activeModal: null,
+      modalProps: {},
+      _stack: [],
+    }),
 
   /** Check if a specific modal is active */
   isOpen: (modalId) => get().activeModal === modalId,

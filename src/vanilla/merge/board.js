@@ -4,7 +4,7 @@ import { BOARD_ROWS, BOARD_COLS, ITEM_LOOKUP } from "./engine.js";
 import { trashMergeItem, mergeItems } from "./api.js";
 
 /* ─── State ─── */
-let _cells = []; 
+let _cells = [];
 let _boardEl = null;
 let _dragState = null;
 let _trashMode = false;
@@ -35,7 +35,8 @@ export function handleLeave() {
   _cachedMatchTargets = [];
   if (_dragState) {
     if (_dragState.ghost) _dragState.ghost.remove();
-    if (_dragState.originCell) _dragState.originCell.classList.remove("merge-cell--dragging");
+    if (_dragState.originCell)
+      _dragState.originCell.classList.remove("merge-cell--dragging");
     _dragState = null;
   }
   if (_dragSafetyTimer) {
@@ -77,7 +78,7 @@ export function createBoardDOM() {
 export function renderBoard() {
   const mergeState = GameStore.getState("merge");
   if (!mergeState || !_boardEl) return;
-  
+
   let isEmpty = true;
   for (let r = 0; r < BOARD_ROWS; r++) {
     for (let c = 0; c < BOARD_COLS; c++) {
@@ -86,13 +87,14 @@ export function renderBoard() {
       _renderCell(r, c, item);
     }
   }
-  
+
   // Empty-board onboarding hint
   let hint = _boardEl.querySelector(".merge-empty-hint");
   if (isEmpty && !hint) {
     hint = document.createElement("div");
     hint.className = "merge-empty-hint";
-    hint.textContent = "🌱 Tap a generator below to start! Feed crops → get items → merge to level up";
+    hint.textContent =
+      "🌱 Tap a generator below to start! Feed crops → get items → merge to level up";
     _boardEl.appendChild(hint);
   } else if (!isEmpty && hint) {
     hint.remove();
@@ -139,12 +141,16 @@ function _animateGachaDrop() {
         if (HUB.currentScreen !== 4) return;
         cell.classList.remove("gacha-dropping");
         cell.classList.add("gacha-reveal");
-        cell.addEventListener("animationend", () => {
-          if (HUB.currentScreen === 4) cell.classList.remove("gacha-reveal");
-        }, { once: true });
+        cell.addEventListener(
+          "animationend",
+          () => {
+            if (HUB.currentScreen === 4) cell.classList.remove("gacha-reveal");
+          },
+          { once: true },
+        );
         cell.removeEventListener("animationend", handler);
       },
-      { once: true }
+      { once: true },
     );
   });
 }
@@ -152,7 +158,9 @@ function _animateGachaDrop() {
 function _resetIdleHintTimer() {
   if (_idleHintTimer) clearTimeout(_idleHintTimer);
   if (_boardEl) {
-    _boardEl.querySelectorAll(".merge-cell--hint").forEach(c => c.classList.remove("merge-cell--hint"));
+    _boardEl
+      .querySelectorAll(".merge-cell--hint")
+      .forEach((c) => c.classList.remove("merge-cell--hint"));
   }
   _idleHintTimer = setTimeout(_showIdleHint, IDLE_HINT_DELAY);
 }
@@ -188,11 +196,16 @@ function _forceCleanupDrag() {
     _dragSafetyTimer = null;
   }
   document.querySelectorAll(".merge-drag-ghost").forEach((g) => g.remove());
-  if (_dragState?.originCell) _dragState.originCell.classList.remove("merge-cell--dragging");
+  if (_dragState?.originCell)
+    _dragState.originCell.classList.remove("merge-cell--dragging");
   _cachedMatchTargets = [];
   if (_boardEl) {
-    _boardEl.querySelectorAll(".merge-cell--match-highlight").forEach((c) => c.classList.remove("merge-cell--match-highlight"));
-    _boardEl.querySelectorAll(".merge-cell--magnetic-lock").forEach((c) => c.classList.remove("merge-cell--magnetic-lock"));
+    _boardEl
+      .querySelectorAll(".merge-cell--match-highlight")
+      .forEach((c) => c.classList.remove("merge-cell--match-highlight"));
+    _boardEl
+      .querySelectorAll(".merge-cell--magnetic-lock")
+      .forEach((c) => c.classList.remove("merge-cell--magnetic-lock"));
   }
   HUB.swipeBlocked = false;
   _dragState = null;
@@ -234,8 +247,16 @@ function _onPointerDown(e) {
   cell.classList.add("merge-cell--dragging");
 
   _dragState = {
-    pointerId: e.pointerId, fromR: r, fromC: c, ghost, originCell: cell,
-    lastX: e.clientX, lastY: e.clientY, cachedCSSX: e.clientX - 24, cachedCSSY: e.clientY - 24, cachedCSSTilt: 0,
+    pointerId: e.pointerId,
+    fromR: r,
+    fromC: c,
+    ghost,
+    originCell: cell,
+    lastX: e.clientX,
+    lastY: e.clientY,
+    cachedCSSX: e.clientX - 24,
+    cachedCSSY: e.clientY - 24,
+    cachedCSSTilt: 0,
   };
 
   _dragSafetyTimer = setTimeout(() => {
@@ -254,7 +275,11 @@ function _onPointerDown(e) {
           const targetCell = _cells[ri][ci];
           targetCell.classList.add("merge-cell--match-highlight");
           const rect = targetCell.getBoundingClientRect();
-          _cachedMatchTargets.push({ el: targetCell, cx: rect.left + rect.width / 2, cy: rect.top + rect.height / 2 });
+          _cachedMatchTargets.push({
+            el: targetCell,
+            cx: rect.left + rect.width / 2,
+            cy: rect.top + rect.height / 2,
+          });
         }
       }
     }
@@ -268,12 +293,15 @@ function _onPointerMove(e) {
   if (!_dragState || e.pointerId !== _dragState.pointerId) return;
   requestAnimationFrame(() => {
     if (!_dragState) return;
-    let snapX = e.clientX - 24; let snapY = e.clientY - 24; const SNAP_RADIUS = 40;
+    let snapX = e.clientX - 24;
+    let snapY = e.clientY - 24;
+    const SNAP_RADIUS = 40;
 
     for (const t of _cachedMatchTargets) {
       const dist = Math.hypot(e.clientX - t.cx, e.clientY - t.cy);
       if (dist < SNAP_RADIUS) {
-        snapX = t.cx - 24; snapY = t.cy - 24;
+        snapX = t.cx - 24;
+        snapY = t.cy - 24;
         t.el.classList.add("merge-cell--magnetic-lock");
       } else {
         t.el.classList.remove("merge-cell--magnetic-lock");
@@ -284,8 +312,14 @@ function _onPointerMove(e) {
     _dragState.lastX = e.clientX;
     const tilt = Math.max(-12, Math.min(12, dx * 0.7));
 
-    if (Math.abs(snapX - _dragState.cachedCSSX) > 0.5 || Math.abs(snapY - _dragState.cachedCSSY) > 0.5 || Math.abs(tilt - _dragState.cachedCSSTilt) > 1.0) {
-      _dragState.cachedCSSX = snapX; _dragState.cachedCSSY = snapY; _dragState.cachedCSSTilt = Math.round(tilt);
+    if (
+      Math.abs(snapX - _dragState.cachedCSSX) > 0.5 ||
+      Math.abs(snapY - _dragState.cachedCSSY) > 0.5 ||
+      Math.abs(tilt - _dragState.cachedCSSTilt) > 1.0
+    ) {
+      _dragState.cachedCSSX = snapX;
+      _dragState.cachedCSSY = snapY;
+      _dragState.cachedCSSTilt = Math.round(tilt);
       _dragState.ghost.style.setProperty("--x", `${Math.round(snapX)}px`);
       _dragState.ghost.style.setProperty("--y", `${Math.round(snapY)}px`);
       _dragState.ghost.style.setProperty("--tilt", `${Math.round(tilt)}deg`);
@@ -297,7 +331,7 @@ function _onPointerUp(e) {
   if (!_dragState || e.pointerId !== _dragState.pointerId) return;
   HUB.swipeBlocked = false;
   const ds = _dragState;
-  
+
   ds.originCell.classList.remove("merge-cell--dragging");
   if (_boardEl) {
     _boardEl.querySelectorAll(".merge-cell--match-highlight").forEach((c) => {
@@ -307,7 +341,9 @@ function _onPointerUp(e) {
   }
 
   ds.ghost.style.display = "none";
-  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest(".merge-cell");
+  const target = document
+    .elementFromPoint(e.clientX, e.clientY)
+    ?.closest(".merge-cell");
   ds.ghost.style.display = "";
 
   if (target && target !== ds.originCell) {
@@ -317,20 +353,32 @@ function _onPointerUp(e) {
       if (result.success) {
         target.classList.add("merge-pop");
         target.classList.add("merge-collide");
-        target.addEventListener("animationend", () => {
-          if (HUB.currentScreen === 4) { target.classList.remove("merge-pop"); target.classList.remove("merge-collide"); }
-        }, { once: true });
+        target.addEventListener(
+          "animationend",
+          () => {
+            if (HUB.currentScreen === 4) {
+              target.classList.remove("merge-pop");
+              target.classList.remove("merge-collide");
+            }
+          },
+          { once: true },
+        );
       }
     });
     ds.ghost.remove();
   } else {
     const cellRect = ds.originCell.getBoundingClientRect();
-    ds.ghost.style.transition = "transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1)";
+    ds.ghost.style.transition =
+      "transform 0.3s cubic-bezier(0.34, 1.3, 0.64, 1)";
     ds.ghost.style.setProperty("--x", `${Math.round(cellRect.left)}px`);
     ds.ghost.style.setProperty("--y", `${Math.round(cellRect.top)}px`);
     ds.ghost.style.setProperty("--tilt", `0deg`);
-    ds.ghost.addEventListener("transitionend", () => ds.ghost.remove(), { once: true });
-    setTimeout(() => { if (ds.ghost.parentNode) ds.ghost.remove(); }, 500);
+    ds.ghost.addEventListener("transitionend", () => ds.ghost.remove(), {
+      once: true,
+    });
+    setTimeout(() => {
+      if (ds.ghost.parentNode) ds.ghost.remove();
+    }, 500);
   }
   _forceCleanupDrag(); // Clean up state refs
 }

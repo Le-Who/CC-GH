@@ -19,7 +19,7 @@ import { create } from "zustand";
 let _nextId = 1;
 
 export const toastStore = create((set, get) => ({
-  toasts: [],  // [{ id, message, type, timestamp }]
+  toasts: [], // [{ id, message, type, timestamp }]
 
   addToast: (message, type = "info") => {
     // Dedup: skip if same message within 1s
@@ -34,7 +34,7 @@ export const toastStore = create((set, get) => ({
     const toast = { id, message, type, timestamp: now };
 
     set((s) => ({
-      toasts: [...s.toasts.slice(-2), toast],  // Max 3 toasts
+      toasts: [...s.toasts.slice(-2), toast], // Max 3 toasts
     }));
 
     // Auto-remove after 2.5s
@@ -45,9 +45,10 @@ export const toastStore = create((set, get) => ({
     }, 2500);
   },
 
-  dismiss: (id) => set((s) => ({
-    toasts: s.toasts.filter((t) => t.id !== id),
-  })),
+  dismiss: (id) =>
+    set((s) => ({
+      toasts: s.toasts.filter((t) => t.id !== id),
+    })),
 
   clearAll: () => set({ toasts: [] }),
 }));

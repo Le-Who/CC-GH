@@ -6,9 +6,22 @@ var DiscordSDKModule = (() => {
   };
 
   // node_modules/@discord/embedded-app-sdk/output/_virtual/_commonjsHelpers.mjs
-  var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
+  var commonjsGlobal =
+    typeof globalThis !== "undefined"
+      ? globalThis
+      : typeof window !== "undefined"
+        ? window
+        : typeof global !== "undefined"
+          ? global
+          : typeof self !== "undefined"
+            ? self
+            : {};
   function getDefaultExportFromCjs(x) {
-    return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
+    return x &&
+      x.__esModule &&
+      Object.prototype.hasOwnProperty.call(x, "default")
+      ? x["default"]
+      : x;
   }
 
   // node_modules/@discord/embedded-app-sdk/output/_virtual/index4.mjs
@@ -19,10 +32,10 @@ var DiscordSDKModule = (() => {
   function requireEventemitter3() {
     if (hasRequiredEventemitter3) return eventemitter3.exports;
     hasRequiredEventemitter3 = 1;
-    (function(module) {
-      var has = Object.prototype.hasOwnProperty, prefix = "~";
-      function Events2() {
-      }
+    (function (module) {
+      var has = Object.prototype.hasOwnProperty,
+        prefix = "~";
+      function Events2() {}
       if (Object.create) {
         Events2.prototype = /* @__PURE__ */ Object.create(null);
         if (!new Events2().__proto__) prefix = false;
@@ -36,8 +49,10 @@ var DiscordSDKModule = (() => {
         if (typeof fn !== "function") {
           throw new TypeError("The listener must be a function");
         }
-        var listener = new EE(fn, context || emitter, once), evt = prefix ? prefix + event : event;
-        if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;
+        var listener = new EE(fn, context || emitter, once),
+          evt = prefix ? prefix + event : event;
+        if (!emitter._events[evt])
+          ((emitter._events[evt] = listener), emitter._eventsCount++);
         else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);
         else emitter._events[evt] = [emitter._events[evt], listener];
         return emitter;
@@ -51,9 +66,11 @@ var DiscordSDKModule = (() => {
         this._eventsCount = 0;
       }
       EventEmitter2.prototype.eventNames = function eventNames() {
-        var names = [], events, name;
+        var names = [],
+          events,
+          name;
         if (this._eventsCount === 0) return names;
-        for (name in events = this._events) {
+        for (name in (events = this._events)) {
           if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
         }
         if (Object.getOwnPropertySymbols) {
@@ -62,7 +79,8 @@ var DiscordSDKModule = (() => {
         return names;
       };
       EventEmitter2.prototype.listeners = function listeners(event) {
-        var evt = prefix ? prefix + event : event, handlers = this._events[evt];
+        var evt = prefix ? prefix + event : event,
+          handlers = this._events[evt];
         if (!handlers) return [];
         if (handlers.fn) return [handlers.fn];
         for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
@@ -71,7 +89,8 @@ var DiscordSDKModule = (() => {
         return ee;
       };
       EventEmitter2.prototype.listenerCount = function listenerCount(event) {
-        var evt = prefix ? prefix + event : event, listeners = this._events[evt];
+        var evt = prefix ? prefix + event : event,
+          listeners = this._events[evt];
         if (!listeners) return 0;
         if (listeners.fn) return 1;
         return listeners.length;
@@ -79,31 +98,43 @@ var DiscordSDKModule = (() => {
       EventEmitter2.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
         var evt = prefix ? prefix + event : event;
         if (!this._events[evt]) return false;
-        var listeners = this._events[evt], len = arguments.length, args, i;
+        var listeners = this._events[evt],
+          len = arguments.length,
+          args,
+          i;
         if (listeners.fn) {
-          if (listeners.once) this.removeListener(event, listeners.fn, void 0, true);
+          if (listeners.once)
+            this.removeListener(event, listeners.fn, void 0, true);
           switch (len) {
             case 1:
-              return listeners.fn.call(listeners.context), true;
+              return (listeners.fn.call(listeners.context), true);
             case 2:
-              return listeners.fn.call(listeners.context, a1), true;
+              return (listeners.fn.call(listeners.context, a1), true);
             case 3:
-              return listeners.fn.call(listeners.context, a1, a2), true;
+              return (listeners.fn.call(listeners.context, a1, a2), true);
             case 4:
-              return listeners.fn.call(listeners.context, a1, a2, a3), true;
+              return (listeners.fn.call(listeners.context, a1, a2, a3), true);
             case 5:
-              return listeners.fn.call(listeners.context, a1, a2, a3, a4), true;
+              return (
+                listeners.fn.call(listeners.context, a1, a2, a3, a4),
+                true
+              );
             case 6:
-              return listeners.fn.call(listeners.context, a1, a2, a3, a4, a5), true;
+              return (
+                listeners.fn.call(listeners.context, a1, a2, a3, a4, a5),
+                true
+              );
           }
           for (i = 1, args = new Array(len - 1); i < len; i++) {
             args[i - 1] = arguments[i];
           }
           listeners.fn.apply(listeners.context, args);
         } else {
-          var length = listeners.length, j;
+          var length = listeners.length,
+            j;
           for (i = 0; i < length; i++) {
-            if (listeners[i].once) this.removeListener(event, listeners[i].fn, void 0, true);
+            if (listeners[i].once)
+              this.removeListener(event, listeners[i].fn, void 0, true);
             switch (len) {
               case 1:
                 listeners[i].fn.call(listeners[i].context);
@@ -118,9 +149,10 @@ var DiscordSDKModule = (() => {
                 listeners[i].fn.call(listeners[i].context, a1, a2, a3);
                 break;
               default:
-                if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
-                  args[j - 1] = arguments[j];
-                }
+                if (!args)
+                  for (j = 1, args = new Array(len - 1); j < len; j++) {
+                    args[j - 1] = arguments[j];
+                  }
                 listeners[i].fn.apply(listeners[i].context, args);
             }
           }
@@ -133,7 +165,12 @@ var DiscordSDKModule = (() => {
       EventEmitter2.prototype.once = function once(event, fn, context) {
         return addListener(this, event, fn, context, true);
       };
-      EventEmitter2.prototype.removeListener = function removeListener(event, fn, context, once) {
+      EventEmitter2.prototype.removeListener = function removeListener(
+        event,
+        fn,
+        context,
+        once,
+      ) {
         var evt = prefix ? prefix + event : event;
         if (!this._events[evt]) return this;
         if (!fn) {
@@ -142,21 +179,36 @@ var DiscordSDKModule = (() => {
         }
         var listeners = this._events[evt];
         if (listeners.fn) {
-          if (listeners.fn === fn && (!once || listeners.once) && (!context || listeners.context === context)) {
+          if (
+            listeners.fn === fn &&
+            (!once || listeners.once) &&
+            (!context || listeners.context === context)
+          ) {
             clearEvent(this, evt);
           }
         } else {
-          for (var i = 0, events = [], length = listeners.length; i < length; i++) {
-            if (listeners[i].fn !== fn || once && !listeners[i].once || context && listeners[i].context !== context) {
+          for (
+            var i = 0, events = [], length = listeners.length;
+            i < length;
+            i++
+          ) {
+            if (
+              listeners[i].fn !== fn ||
+              (once && !listeners[i].once) ||
+              (context && listeners[i].context !== context)
+            ) {
               events.push(listeners[i]);
             }
           }
-          if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
+          if (events.length)
+            this._events[evt] = events.length === 1 ? events[0] : events;
           else clearEvent(this, evt);
         }
         return this;
       };
-      EventEmitter2.prototype.removeAllListeners = function removeAllListeners(event) {
+      EventEmitter2.prototype.removeAllListeners = function removeAllListeners(
+        event,
+      ) {
         var evt;
         if (event) {
           evt = prefix ? prefix + event : event;
@@ -180,14 +232,14 @@ var DiscordSDKModule = (() => {
 
   // node_modules/@discord/embedded-app-sdk/output/_virtual/index.mjs
   var eventemitter3Exports = requireEventemitter3();
-  var EventEmitter = /* @__PURE__ */ getDefaultExportFromCjs(eventemitter3Exports);
+  var EventEmitter =
+    /* @__PURE__ */ getDefaultExportFromCjs(eventemitter3Exports);
 
   // node_modules/@discord/embedded-app-sdk/output/lib/zod/lib/index.mjs
   var util;
-  (function(util2) {
+  (function (util2) {
     util2.assertEqual = (val) => val;
-    function assertIs(_arg) {
-    }
+    function assertIs(_arg) {}
     util2.assertIs = assertIs;
     function assertNever(_x) {
       throw new Error();
@@ -201,7 +253,9 @@ var DiscordSDKModule = (() => {
       return obj;
     };
     util2.getValidEnumValues = (obj) => {
-      const validKeys = util2.objectKeys(obj).filter((k) => typeof obj[obj[k]] !== "number");
+      const validKeys = util2
+        .objectKeys(obj)
+        .filter((k) => typeof obj[obj[k]] !== "number");
       const filtered = {};
       for (const k of validKeys) {
         filtered[k] = obj[k];
@@ -209,29 +263,37 @@ var DiscordSDKModule = (() => {
       return util2.objectValues(filtered);
     };
     util2.objectValues = (obj) => {
-      return util2.objectKeys(obj).map(function(e) {
+      return util2.objectKeys(obj).map(function (e) {
         return obj[e];
       });
     };
-    util2.objectKeys = typeof Object.keys === "function" ? (obj) => Object.keys(obj) : (object) => {
-      const keys = [];
-      for (const key in object) {
-        if (Object.prototype.hasOwnProperty.call(object, key)) {
-          keys.push(key);
-        }
-      }
-      return keys;
-    };
+    util2.objectKeys =
+      typeof Object.keys === "function"
+        ? (obj) => Object.keys(obj)
+        : (object) => {
+            const keys = [];
+            for (const key in object) {
+              if (Object.prototype.hasOwnProperty.call(object, key)) {
+                keys.push(key);
+              }
+            }
+            return keys;
+          };
     util2.find = (arr, checker) => {
       for (const item of arr) {
-        if (checker(item))
-          return item;
+        if (checker(item)) return item;
       }
       return void 0;
     };
-    util2.isInteger = typeof Number.isInteger === "function" ? (val) => Number.isInteger(val) : (val) => typeof val === "number" && isFinite(val) && Math.floor(val) === val;
+    util2.isInteger =
+      typeof Number.isInteger === "function"
+        ? (val) => Number.isInteger(val)
+        : (val) =>
+            typeof val === "number" && isFinite(val) && Math.floor(val) === val;
     function joinValues(array, separator = " | ") {
-      return array.map((val) => typeof val === "string" ? `'${val}'` : val).join(separator);
+      return array
+        .map((val) => (typeof val === "string" ? `'${val}'` : val))
+        .join(separator);
     }
     util2.joinValues = joinValues;
     util2.jsonStringifyReplacer = (_, value) => {
@@ -242,11 +304,11 @@ var DiscordSDKModule = (() => {
     };
   })(util || (util = {}));
   var objectUtil;
-  (function(objectUtil2) {
+  (function (objectUtil2) {
     objectUtil2.mergeShapes = (first, second) => {
       return {
         ...first,
-        ...second
+        ...second,
         // second overwrites first
       };
     };
@@ -271,7 +333,7 @@ var DiscordSDKModule = (() => {
     "void",
     "never",
     "map",
-    "set"
+    "set",
   ]);
   var getParsedType = (data) => {
     const t = typeof data;
@@ -297,7 +359,12 @@ var DiscordSDKModule = (() => {
         if (data === null) {
           return ZodParsedType.null;
         }
-        if (data.then && typeof data.then === "function" && data.catch && typeof data.catch === "function") {
+        if (
+          data.then &&
+          typeof data.then === "function" &&
+          data.catch &&
+          typeof data.catch === "function"
+        ) {
           return ZodParsedType.promise;
         }
         if (typeof Map !== "undefined" && data instanceof Map) {
@@ -330,7 +397,7 @@ var DiscordSDKModule = (() => {
     "too_big",
     "invalid_intersection_types",
     "not_multiple_of",
-    "not_finite"
+    "not_finite",
   ]);
   var quotelessJson = (obj) => {
     const json = JSON.stringify(obj, null, 2);
@@ -359,9 +426,11 @@ var DiscordSDKModule = (() => {
       return this.issues;
     }
     format(_mapper) {
-      const mapper = _mapper || function(issue) {
-        return issue.message;
-      };
+      const mapper =
+        _mapper ||
+        function (issue) {
+          return issue.message;
+        };
       const fieldErrors = { _errors: [] };
       const processError = (error) => {
         for (const issue of error.issues) {
@@ -492,8 +561,7 @@ var DiscordSDKModule = (() => {
           message = `Number must be ${issue.exact ? `exactly equal to ` : issue.inclusive ? `greater than or equal to ` : `greater than `}${issue.minimum}`;
         else if (issue.type === "date")
           message = `Date must be ${issue.exact ? `exactly equal to ` : issue.inclusive ? `greater than or equal to ` : `greater than `}${new Date(Number(issue.minimum))}`;
-        else
-          message = "Invalid input";
+        else message = "Invalid input";
         break;
       case ZodIssueCode.too_big:
         if (issue.type === "array")
@@ -506,8 +574,7 @@ var DiscordSDKModule = (() => {
           message = `BigInt must be ${issue.exact ? `exactly` : issue.inclusive ? `less than or equal to` : `less than`} ${issue.maximum}`;
         else if (issue.type === "date")
           message = `Date must be ${issue.exact ? `exactly` : issue.inclusive ? `smaller than or equal to` : `smaller than`} ${new Date(Number(issue.maximum))}`;
-        else
-          message = "Invalid input";
+        else message = "Invalid input";
         break;
       case ZodIssueCode.custom:
         message = `Invalid input`;
@@ -536,27 +603,33 @@ var DiscordSDKModule = (() => {
   }
   var makeIssue = (params) => {
     const { data, path, errorMaps, issueData } = params;
-    const fullPath = [...path, ...issueData.path || []];
+    const fullPath = [...path, ...(issueData.path || [])];
     const fullIssue = {
       ...issueData,
-      path: fullPath
+      path: fullPath,
     };
     if (issueData.message !== void 0) {
       return {
         ...issueData,
         path: fullPath,
-        message: issueData.message
+        message: issueData.message,
       };
     }
     let errorMessage = "";
-    const maps = errorMaps.filter((m) => !!m).slice().reverse();
+    const maps = errorMaps
+      .filter((m) => !!m)
+      .slice()
+      .reverse();
     for (const map of maps) {
-      errorMessage = map(fullIssue, { data, defaultError: errorMessage }).message;
+      errorMessage = map(fullIssue, {
+        data,
+        defaultError: errorMessage,
+      }).message;
     }
     return {
       ...issueData,
       path: fullPath,
-      message: errorMessage
+      message: errorMessage,
     };
   };
   var EMPTY_PATH = [];
@@ -570,9 +643,9 @@ var DiscordSDKModule = (() => {
         ctx.common.contextualErrorMap,
         ctx.schemaErrorMap,
         overrideMap,
-        overrideMap === errorMap ? void 0 : errorMap
+        overrideMap === errorMap ? void 0 : errorMap,
         // then global default map
-      ].filter((x) => !!x)
+      ].filter((x) => !!x),
     });
     ctx.common.issues.push(issue);
   }
@@ -581,20 +654,16 @@ var DiscordSDKModule = (() => {
       this.value = "valid";
     }
     dirty() {
-      if (this.value === "valid")
-        this.value = "dirty";
+      if (this.value === "valid") this.value = "dirty";
     }
     abort() {
-      if (this.value !== "aborted")
-        this.value = "aborted";
+      if (this.value !== "aborted") this.value = "aborted";
     }
     static mergeArray(status, results) {
       const arrayValue = [];
       for (const s of results) {
-        if (s.status === "aborted")
-          return INVALID;
-        if (s.status === "dirty")
-          status.dirty();
+        if (s.status === "aborted") return INVALID;
+        if (s.status === "dirty") status.dirty();
         arrayValue.push(s.value);
       }
       return { status: status.value, value: arrayValue };
@@ -606,7 +675,7 @@ var DiscordSDKModule = (() => {
         const value = await pair.value;
         syncPairs.push({
           key,
-          value
+          value,
         });
       }
       return _ParseStatus.mergeObjectSync(status, syncPairs);
@@ -615,15 +684,14 @@ var DiscordSDKModule = (() => {
       const finalObject = {};
       for (const pair of pairs) {
         const { key, value } = pair;
-        if (key.status === "aborted")
-          return INVALID;
-        if (value.status === "aborted")
-          return INVALID;
-        if (key.status === "dirty")
-          status.dirty();
-        if (value.status === "dirty")
-          status.dirty();
-        if (key.value !== "__proto__" && (typeof value.value !== "undefined" || pair.alwaysSet)) {
+        if (key.status === "aborted") return INVALID;
+        if (value.status === "aborted") return INVALID;
+        if (key.status === "dirty") status.dirty();
+        if (value.status === "dirty") status.dirty();
+        if (
+          key.value !== "__proto__" &&
+          (typeof value.value !== "undefined" || pair.alwaysSet)
+        ) {
           finalObject[key.value] = value.value;
         }
       }
@@ -631,7 +699,7 @@ var DiscordSDKModule = (() => {
     }
   };
   var INVALID = Object.freeze({
-    status: "aborted"
+    status: "aborted",
   });
   var DIRTY = (value) => ({ status: "dirty", value });
   var OK = (value) => ({ status: "valid", value });
@@ -640,17 +708,37 @@ var DiscordSDKModule = (() => {
   var isValid = (x) => x.status === "valid";
   var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
   function __classPrivateFieldGet(receiver, state, kind, f) {
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    if (
+      typeof state === "function"
+        ? receiver !== state || !f
+        : !state.has(receiver)
+    )
+      throw new TypeError(
+        "Cannot read private member from an object whose class did not declare it",
+      );
     return state.get(receiver);
   }
   function __classPrivateFieldSet(receiver, state, value, kind, f) {
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return state.set(receiver, value), value;
+    if (
+      typeof state === "function"
+        ? receiver !== state || !f
+        : !state.has(receiver)
+    )
+      throw new TypeError(
+        "Cannot write private member to an object whose class did not declare it",
+      );
+    return (state.set(receiver, value), value);
   }
   var errorUtil;
-  (function(errorUtil2) {
-    errorUtil2.errToObj = (message) => typeof message === "string" ? { message } : message || {};
-    errorUtil2.toString = (message) => typeof message === "string" ? message : message === null || message === void 0 ? void 0 : message.message;
+  (function (errorUtil2) {
+    errorUtil2.errToObj = (message) =>
+      typeof message === "string" ? { message } : message || {};
+    errorUtil2.toString = (message) =>
+      typeof message === "string"
+        ? message
+        : message === null || message === void 0
+          ? void 0
+          : message.message;
   })(errorUtil || (errorUtil = {}));
   var _ZodEnum_cache;
   var _ZodNativeEnum_cache;
@@ -683,36 +771,58 @@ var DiscordSDKModule = (() => {
       return {
         success: false,
         get error() {
-          if (this._error)
-            return this._error;
+          if (this._error) return this._error;
           const error = new ZodError(ctx.common.issues);
           this._error = error;
           return this._error;
-        }
+        },
       };
     }
   };
   function processCreateParams(params) {
-    if (!params)
-      return {};
-    const { errorMap: errorMap2, invalid_type_error, required_error, description } = params;
+    if (!params) return {};
+    const {
+      errorMap: errorMap2,
+      invalid_type_error,
+      required_error,
+      description,
+    } = params;
     if (errorMap2 && (invalid_type_error || required_error)) {
-      throw new Error(`Can't use "invalid_type_error" or "required_error" in conjunction with custom error map.`);
+      throw new Error(
+        `Can't use "invalid_type_error" or "required_error" in conjunction with custom error map.`,
+      );
     }
-    if (errorMap2)
-      return { errorMap: errorMap2, description };
+    if (errorMap2) return { errorMap: errorMap2, description };
     const customMap = (iss, ctx) => {
       var _a, _b;
       const { message } = params;
       if (iss.code === "invalid_enum_value") {
-        return { message: message !== null && message !== void 0 ? message : ctx.defaultError };
+        return {
+          message:
+            message !== null && message !== void 0 ? message : ctx.defaultError,
+        };
       }
       if (typeof ctx.data === "undefined") {
-        return { message: (_a = message !== null && message !== void 0 ? message : required_error) !== null && _a !== void 0 ? _a : ctx.defaultError };
+        return {
+          message:
+            (_a =
+              message !== null && message !== void 0
+                ? message
+                : required_error) !== null && _a !== void 0
+              ? _a
+              : ctx.defaultError,
+        };
       }
-      if (iss.code !== "invalid_type")
-        return { message: ctx.defaultError };
-      return { message: (_b = message !== null && message !== void 0 ? message : invalid_type_error) !== null && _b !== void 0 ? _b : ctx.defaultError };
+      if (iss.code !== "invalid_type") return { message: ctx.defaultError };
+      return {
+        message:
+          (_b =
+            message !== null && message !== void 0
+              ? message
+              : invalid_type_error) !== null && _b !== void 0
+            ? _b
+            : ctx.defaultError,
+      };
     };
     return { errorMap: customMap, description };
   }
@@ -752,14 +862,16 @@ var DiscordSDKModule = (() => {
       return getParsedType(input.data);
     }
     _getOrReturnCtx(input, ctx) {
-      return ctx || {
-        common: input.parent.common,
-        data: input.data,
-        parsedType: getParsedType(input.data),
-        schemaErrorMap: this._def.errorMap,
-        path: input.path,
-        parent: input.parent
-      };
+      return (
+        ctx || {
+          common: input.parent.common,
+          data: input.data,
+          parsedType: getParsedType(input.data),
+          schemaErrorMap: this._def.errorMap,
+          path: input.path,
+          parent: input.parent,
+        }
+      );
     }
     _processInputParams(input) {
       return {
@@ -770,8 +882,8 @@ var DiscordSDKModule = (() => {
           parsedType: getParsedType(input.data),
           schemaErrorMap: this._def.errorMap,
           path: input.path,
-          parent: input.parent
-        }
+          parent: input.parent,
+        },
       };
     }
     _parseSync(input) {
@@ -787,8 +899,7 @@ var DiscordSDKModule = (() => {
     }
     parse(data, params) {
       const result = this.safeParse(data, params);
-      if (result.success)
-        return result.data;
+      if (result.success) return result.data;
       throw result.error;
     }
     safeParse(data, params) {
@@ -796,39 +907,53 @@ var DiscordSDKModule = (() => {
       const ctx = {
         common: {
           issues: [],
-          async: (_a = params === null || params === void 0 ? void 0 : params.async) !== null && _a !== void 0 ? _a : false,
-          contextualErrorMap: params === null || params === void 0 ? void 0 : params.errorMap
+          async:
+            (_a =
+              params === null || params === void 0 ? void 0 : params.async) !==
+              null && _a !== void 0
+              ? _a
+              : false,
+          contextualErrorMap:
+            params === null || params === void 0 ? void 0 : params.errorMap,
         },
-        path: (params === null || params === void 0 ? void 0 : params.path) || [],
+        path:
+          (params === null || params === void 0 ? void 0 : params.path) || [],
         schemaErrorMap: this._def.errorMap,
         parent: null,
         data,
-        parsedType: getParsedType(data)
+        parsedType: getParsedType(data),
       };
       const result = this._parseSync({ data, path: ctx.path, parent: ctx });
       return handleResult(ctx, result);
     }
     async parseAsync(data, params) {
       const result = await this.safeParseAsync(data, params);
-      if (result.success)
-        return result.data;
+      if (result.success) return result.data;
       throw result.error;
     }
     async safeParseAsync(data, params) {
       const ctx = {
         common: {
           issues: [],
-          contextualErrorMap: params === null || params === void 0 ? void 0 : params.errorMap,
-          async: true
+          contextualErrorMap:
+            params === null || params === void 0 ? void 0 : params.errorMap,
+          async: true,
         },
-        path: (params === null || params === void 0 ? void 0 : params.path) || [],
+        path:
+          (params === null || params === void 0 ? void 0 : params.path) || [],
         schemaErrorMap: this._def.errorMap,
         parent: null,
         data,
-        parsedType: getParsedType(data)
+        parsedType: getParsedType(data),
       };
-      const maybeAsyncResult = this._parse({ data, path: ctx.path, parent: ctx });
-      const result = await (isAsync(maybeAsyncResult) ? maybeAsyncResult : Promise.resolve(maybeAsyncResult));
+      const maybeAsyncResult = this._parse({
+        data,
+        path: ctx.path,
+        parent: ctx,
+      });
+      const result = await (isAsync(maybeAsyncResult)
+        ? maybeAsyncResult
+        : Promise.resolve(maybeAsyncResult));
       return handleResult(ctx, result);
     }
     refine(check, message) {
@@ -843,10 +968,11 @@ var DiscordSDKModule = (() => {
       };
       return this._refinement((val, ctx) => {
         const result = check(val);
-        const setError = () => ctx.addIssue({
-          code: ZodIssueCode.custom,
-          ...getIssueProperties(val)
-        });
+        const setError = () =>
+          ctx.addIssue({
+            code: ZodIssueCode.custom,
+            ...getIssueProperties(val),
+          });
         if (typeof Promise !== "undefined" && result instanceof Promise) {
           return result.then((data) => {
             if (!data) {
@@ -868,7 +994,11 @@ var DiscordSDKModule = (() => {
     refinement(check, refinementData) {
       return this._refinement((val, ctx) => {
         if (!check(val)) {
-          ctx.addIssue(typeof refinementData === "function" ? refinementData(val, ctx) : refinementData);
+          ctx.addIssue(
+            typeof refinementData === "function"
+              ? refinementData(val, ctx)
+              : refinementData,
+          );
           return false;
         } else {
           return true;
@@ -879,7 +1009,7 @@ var DiscordSDKModule = (() => {
       return new ZodEffects({
         schema: this,
         typeName: ZodFirstPartyTypeKind.ZodEffects,
-        effect: { type: "refinement", refinement }
+        effect: { type: "refinement", refinement },
       });
     }
     superRefine(refinement) {
@@ -911,7 +1041,7 @@ var DiscordSDKModule = (() => {
         ...processCreateParams(this._def),
         schema: this,
         typeName: ZodFirstPartyTypeKind.ZodEffects,
-        effect: { type: "transform", transform: transform2 }
+        effect: { type: "transform", transform: transform2 },
       });
     }
     default(def) {
@@ -920,14 +1050,14 @@ var DiscordSDKModule = (() => {
         ...processCreateParams(this._def),
         innerType: this,
         defaultValue: defaultValueFunc,
-        typeName: ZodFirstPartyTypeKind.ZodDefault
+        typeName: ZodFirstPartyTypeKind.ZodDefault,
       });
     }
     brand() {
       return new ZodBranded({
         typeName: ZodFirstPartyTypeKind.ZodBranded,
         type: this,
-        ...processCreateParams(this._def)
+        ...processCreateParams(this._def),
       });
     }
     catch(def) {
@@ -936,14 +1066,14 @@ var DiscordSDKModule = (() => {
         ...processCreateParams(this._def),
         innerType: this,
         catchValue: catchValueFunc,
-        typeName: ZodFirstPartyTypeKind.ZodCatch
+        typeName: ZodFirstPartyTypeKind.ZodCatch,
       });
     }
     describe(description) {
       const This = this.constructor;
       return new This({
         ...this._def,
-        description
+        description,
       });
     }
     pipe(target) {
@@ -962,15 +1092,21 @@ var DiscordSDKModule = (() => {
   var cuidRegex = /^c[^\s-]{8,}$/i;
   var cuid2Regex = /^[0-9a-z]+$/;
   var ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/;
-  var uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
+  var uuidRegex =
+    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
   var nanoidRegex = /^[a-z0-9_-]{21}$/i;
-  var durationRegex = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
-  var emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
+  var durationRegex =
+    /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
+  var emailRegex =
+    /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
   var _emojiRegex = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`;
   var emojiRegex;
-  var ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-  var ipv6Regex = /^(([a-f0-9]{1,4}:){7}|::([a-f0-9]{1,4}:){0,6}|([a-f0-9]{1,4}:){1}:([a-f0-9]{1,4}:){0,5}|([a-f0-9]{1,4}:){2}:([a-f0-9]{1,4}:){0,4}|([a-f0-9]{1,4}:){3}:([a-f0-9]{1,4}:){0,3}|([a-f0-9]{1,4}:){4}:([a-f0-9]{1,4}:){0,2}|([a-f0-9]{1,4}:){5}:([a-f0-9]{1,4}:){0,1})([a-f0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$/;
-  var base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+  var ipv4Regex =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
+  var ipv6Regex =
+    /^(([a-f0-9]{1,4}:){7}|::([a-f0-9]{1,4}:){0,6}|([a-f0-9]{1,4}:){1}:([a-f0-9]{1,4}:){0,5}|([a-f0-9]{1,4}:){2}:([a-f0-9]{1,4}:){0,4}|([a-f0-9]{1,4}:){3}:([a-f0-9]{1,4}:){0,3}|([a-f0-9]{1,4}:){4}:([a-f0-9]{1,4}:){0,2}|([a-f0-9]{1,4}:){5}:([a-f0-9]{1,4}:){0,1})([a-f0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$/;
+  var base64Regex =
+    /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
   var dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
   var dateRegex = new RegExp(`^${dateRegexSource}$`);
   function timeRegexSource(args) {
@@ -989,8 +1125,7 @@ var DiscordSDKModule = (() => {
     let regex = `${dateRegexSource}T${timeRegexSource(args)}`;
     const opts = [];
     opts.push(args.local ? `Z?` : `Z`);
-    if (args.offset)
-      opts.push(`([+-]\\d{2}:?\\d{2})`);
+    if (args.offset) opts.push(`([+-]\\d{2}:?\\d{2})`);
     regex = `${regex}(${opts.join("|")})`;
     return new RegExp(`^${regex}$`);
   }
@@ -1014,7 +1149,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx2, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.string,
-          received: ctx2.parsedType
+          received: ctx2.parsedType,
         });
         return INVALID;
       }
@@ -1030,7 +1165,7 @@ var DiscordSDKModule = (() => {
               type: "string",
               inclusive: true,
               exact: false,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1043,7 +1178,7 @@ var DiscordSDKModule = (() => {
               type: "string",
               inclusive: true,
               exact: false,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1059,7 +1194,7 @@ var DiscordSDKModule = (() => {
                 type: "string",
                 inclusive: true,
                 exact: true,
-                message: check.message
+                message: check.message,
               });
             } else if (tooSmall) {
               addIssueToContext(ctx, {
@@ -1068,7 +1203,7 @@ var DiscordSDKModule = (() => {
                 type: "string",
                 inclusive: true,
                 exact: true,
-                message: check.message
+                message: check.message,
               });
             }
             status.dirty();
@@ -1079,7 +1214,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "email",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1092,7 +1227,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "emoji",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1102,7 +1237,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "uuid",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1112,7 +1247,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "nanoid",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1122,7 +1257,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "cuid",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1132,7 +1267,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "cuid2",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1142,7 +1277,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "ulid",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1154,7 +1289,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "url",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1166,7 +1301,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "regex",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1178,7 +1313,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.invalid_string,
               validation: { includes: check.value, position: check.position },
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1192,7 +1327,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.invalid_string,
               validation: { startsWith: check.value },
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1202,7 +1337,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.invalid_string,
               validation: { endsWith: check.value },
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1213,7 +1348,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.invalid_string,
               validation: "datetime",
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1224,7 +1359,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.invalid_string,
               validation: "date",
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1235,7 +1370,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.invalid_string,
               validation: "time",
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1245,7 +1380,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "duration",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1255,7 +1390,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "ip",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1265,7 +1400,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               validation: "base64",
               code: ZodIssueCode.invalid_string,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1279,13 +1414,13 @@ var DiscordSDKModule = (() => {
       return this.refinement((data) => regex.test(data), {
         validation,
         code: ZodIssueCode.invalid_string,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     _addCheck(check) {
       return new _ZodString({
         ...this._def,
-        checks: [...this._def.checks, check]
+        checks: [...this._def.checks, check],
       });
     }
     email(message) {
@@ -1326,15 +1461,35 @@ var DiscordSDKModule = (() => {
           precision: null,
           offset: false,
           local: false,
-          message: options
+          message: options,
         });
       }
       return this._addCheck({
         kind: "datetime",
-        precision: typeof (options === null || options === void 0 ? void 0 : options.precision) === "undefined" ? null : options === null || options === void 0 ? void 0 : options.precision,
-        offset: (_a = options === null || options === void 0 ? void 0 : options.offset) !== null && _a !== void 0 ? _a : false,
-        local: (_b = options === null || options === void 0 ? void 0 : options.local) !== null && _b !== void 0 ? _b : false,
-        ...errorUtil.errToObj(options === null || options === void 0 ? void 0 : options.message)
+        precision:
+          typeof (options === null || options === void 0
+            ? void 0
+            : options.precision) === "undefined"
+            ? null
+            : options === null || options === void 0
+              ? void 0
+              : options.precision,
+        offset:
+          (_a =
+            options === null || options === void 0
+              ? void 0
+              : options.offset) !== null && _a !== void 0
+            ? _a
+            : false,
+        local:
+          (_b =
+            options === null || options === void 0 ? void 0 : options.local) !==
+            null && _b !== void 0
+            ? _b
+            : false,
+        ...errorUtil.errToObj(
+          options === null || options === void 0 ? void 0 : options.message,
+        ),
       });
     }
     date(message) {
@@ -1345,66 +1500,81 @@ var DiscordSDKModule = (() => {
         return this._addCheck({
           kind: "time",
           precision: null,
-          message: options
+          message: options,
         });
       }
       return this._addCheck({
         kind: "time",
-        precision: typeof (options === null || options === void 0 ? void 0 : options.precision) === "undefined" ? null : options === null || options === void 0 ? void 0 : options.precision,
-        ...errorUtil.errToObj(options === null || options === void 0 ? void 0 : options.message)
+        precision:
+          typeof (options === null || options === void 0
+            ? void 0
+            : options.precision) === "undefined"
+            ? null
+            : options === null || options === void 0
+              ? void 0
+              : options.precision,
+        ...errorUtil.errToObj(
+          options === null || options === void 0 ? void 0 : options.message,
+        ),
       });
     }
     duration(message) {
-      return this._addCheck({ kind: "duration", ...errorUtil.errToObj(message) });
+      return this._addCheck({
+        kind: "duration",
+        ...errorUtil.errToObj(message),
+      });
     }
     regex(regex, message) {
       return this._addCheck({
         kind: "regex",
         regex,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     includes(value, options) {
       return this._addCheck({
         kind: "includes",
         value,
-        position: options === null || options === void 0 ? void 0 : options.position,
-        ...errorUtil.errToObj(options === null || options === void 0 ? void 0 : options.message)
+        position:
+          options === null || options === void 0 ? void 0 : options.position,
+        ...errorUtil.errToObj(
+          options === null || options === void 0 ? void 0 : options.message,
+        ),
       });
     }
     startsWith(value, message) {
       return this._addCheck({
         kind: "startsWith",
         value,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     endsWith(value, message) {
       return this._addCheck({
         kind: "endsWith",
         value,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     min(minLength, message) {
       return this._addCheck({
         kind: "min",
         value: minLength,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     max(maxLength, message) {
       return this._addCheck({
         kind: "max",
         value: maxLength,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     length(len, message) {
       return this._addCheck({
         kind: "length",
         value: len,
-        ...errorUtil.errToObj(message)
+        ...errorUtil.errToObj(message),
       });
     }
     /**
@@ -1417,19 +1587,19 @@ var DiscordSDKModule = (() => {
     trim() {
       return new _ZodString({
         ...this._def,
-        checks: [...this._def.checks, { kind: "trim" }]
+        checks: [...this._def.checks, { kind: "trim" }],
       });
     }
     toLowerCase() {
       return new _ZodString({
         ...this._def,
-        checks: [...this._def.checks, { kind: "toLowerCase" }]
+        checks: [...this._def.checks, { kind: "toLowerCase" }],
       });
     }
     toUpperCase() {
       return new _ZodString({
         ...this._def,
-        checks: [...this._def.checks, { kind: "toUpperCase" }]
+        checks: [...this._def.checks, { kind: "toUpperCase" }],
       });
     }
     get isDatetime() {
@@ -1478,8 +1648,7 @@ var DiscordSDKModule = (() => {
       let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min === null || ch.value > min)
-            min = ch.value;
+          if (min === null || ch.value > min) min = ch.value;
         }
       }
       return min;
@@ -1488,8 +1657,7 @@ var DiscordSDKModule = (() => {
       let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max === null || ch.value < max)
-            max = ch.value;
+          if (max === null || ch.value < max) max = ch.value;
         }
       }
       return max;
@@ -1500,8 +1668,12 @@ var DiscordSDKModule = (() => {
     return new ZodString({
       checks: [],
       typeName: ZodFirstPartyTypeKind.ZodString,
-      coerce: (_a = params === null || params === void 0 ? void 0 : params.coerce) !== null && _a !== void 0 ? _a : false,
-      ...processCreateParams(params)
+      coerce:
+        (_a = params === null || params === void 0 ? void 0 : params.coerce) !==
+          null && _a !== void 0
+          ? _a
+          : false,
+      ...processCreateParams(params),
     });
   };
   function floatSafeRemainder(val, step) {
@@ -1510,7 +1682,7 @@ var DiscordSDKModule = (() => {
     const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
     const valInt = parseInt(val.toFixed(decCount).replace(".", ""));
     const stepInt = parseInt(step.toFixed(decCount).replace(".", ""));
-    return valInt % stepInt / Math.pow(10, decCount);
+    return (valInt % stepInt) / Math.pow(10, decCount);
   }
   var ZodNumber = class _ZodNumber extends ZodType {
     constructor() {
@@ -1529,7 +1701,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx2, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.number,
-          received: ctx2.parsedType
+          received: ctx2.parsedType,
         });
         return INVALID;
       }
@@ -1543,12 +1715,14 @@ var DiscordSDKModule = (() => {
               code: ZodIssueCode.invalid_type,
               expected: "integer",
               received: "float",
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
         } else if (check.kind === "min") {
-          const tooSmall = check.inclusive ? input.data < check.value : input.data <= check.value;
+          const tooSmall = check.inclusive
+            ? input.data < check.value
+            : input.data <= check.value;
           if (tooSmall) {
             ctx = this._getOrReturnCtx(input, ctx);
             addIssueToContext(ctx, {
@@ -1557,12 +1731,14 @@ var DiscordSDKModule = (() => {
               type: "number",
               inclusive: check.inclusive,
               exact: false,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
         } else if (check.kind === "max") {
-          const tooBig = check.inclusive ? input.data > check.value : input.data >= check.value;
+          const tooBig = check.inclusive
+            ? input.data > check.value
+            : input.data >= check.value;
           if (tooBig) {
             ctx = this._getOrReturnCtx(input, ctx);
             addIssueToContext(ctx, {
@@ -1571,7 +1747,7 @@ var DiscordSDKModule = (() => {
               type: "number",
               inclusive: check.inclusive,
               exact: false,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1581,7 +1757,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.not_multiple_of,
               multipleOf: check.value,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1590,7 +1766,7 @@ var DiscordSDKModule = (() => {
             ctx = this._getOrReturnCtx(input, ctx);
             addIssueToContext(ctx, {
               code: ZodIssueCode.not_finite,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1621,21 +1797,21 @@ var DiscordSDKModule = (() => {
             kind,
             value,
             inclusive,
-            message: errorUtil.toString(message)
-          }
-        ]
+            message: errorUtil.toString(message),
+          },
+        ],
       });
     }
     _addCheck(check) {
       return new _ZodNumber({
         ...this._def,
-        checks: [...this._def.checks, check]
+        checks: [...this._def.checks, check],
       });
     }
     int(message) {
       return this._addCheck({
         kind: "int",
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     positive(message) {
@@ -1643,7 +1819,7 @@ var DiscordSDKModule = (() => {
         kind: "min",
         value: 0,
         inclusive: false,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     negative(message) {
@@ -1651,7 +1827,7 @@ var DiscordSDKModule = (() => {
         kind: "max",
         value: 0,
         inclusive: false,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     nonpositive(message) {
@@ -1659,7 +1835,7 @@ var DiscordSDKModule = (() => {
         kind: "max",
         value: 0,
         inclusive: true,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     nonnegative(message) {
@@ -1667,20 +1843,20 @@ var DiscordSDKModule = (() => {
         kind: "min",
         value: 0,
         inclusive: true,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     multipleOf(value, message) {
       return this._addCheck({
         kind: "multipleOf",
         value,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     finite(message) {
       return this._addCheck({
         kind: "finite",
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     safe(message) {
@@ -1688,20 +1864,19 @@ var DiscordSDKModule = (() => {
         kind: "min",
         inclusive: true,
         value: Number.MIN_SAFE_INTEGER,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       })._addCheck({
         kind: "max",
         inclusive: true,
         value: Number.MAX_SAFE_INTEGER,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     get minValue() {
       let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min === null || ch.value > min)
-            min = ch.value;
+          if (min === null || ch.value > min) min = ch.value;
         }
       }
       return min;
@@ -1710,26 +1885,32 @@ var DiscordSDKModule = (() => {
       let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max === null || ch.value < max)
-            max = ch.value;
+          if (max === null || ch.value < max) max = ch.value;
         }
       }
       return max;
     }
     get isInt() {
-      return !!this._def.checks.find((ch) => ch.kind === "int" || ch.kind === "multipleOf" && util.isInteger(ch.value));
+      return !!this._def.checks.find(
+        (ch) =>
+          ch.kind === "int" ||
+          (ch.kind === "multipleOf" && util.isInteger(ch.value)),
+      );
     }
     get isFinite() {
-      let max = null, min = null;
+      let max = null,
+        min = null;
       for (const ch of this._def.checks) {
-        if (ch.kind === "finite" || ch.kind === "int" || ch.kind === "multipleOf") {
+        if (
+          ch.kind === "finite" ||
+          ch.kind === "int" ||
+          ch.kind === "multipleOf"
+        ) {
           return true;
         } else if (ch.kind === "min") {
-          if (min === null || ch.value > min)
-            min = ch.value;
+          if (min === null || ch.value > min) min = ch.value;
         } else if (ch.kind === "max") {
-          if (max === null || ch.value < max)
-            max = ch.value;
+          if (max === null || ch.value < max) max = ch.value;
         }
       }
       return Number.isFinite(min) && Number.isFinite(max);
@@ -1739,8 +1920,10 @@ var DiscordSDKModule = (() => {
     return new ZodNumber({
       checks: [],
       typeName: ZodFirstPartyTypeKind.ZodNumber,
-      coerce: (params === null || params === void 0 ? void 0 : params.coerce) || false,
-      ...processCreateParams(params)
+      coerce:
+        (params === null || params === void 0 ? void 0 : params.coerce) ||
+        false,
+      ...processCreateParams(params),
     });
   };
   var ZodBigInt = class _ZodBigInt extends ZodType {
@@ -1759,7 +1942,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx2, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.bigint,
-          received: ctx2.parsedType
+          received: ctx2.parsedType,
         });
         return INVALID;
       }
@@ -1767,7 +1950,9 @@ var DiscordSDKModule = (() => {
       const status = new ParseStatus();
       for (const check of this._def.checks) {
         if (check.kind === "min") {
-          const tooSmall = check.inclusive ? input.data < check.value : input.data <= check.value;
+          const tooSmall = check.inclusive
+            ? input.data < check.value
+            : input.data <= check.value;
           if (tooSmall) {
             ctx = this._getOrReturnCtx(input, ctx);
             addIssueToContext(ctx, {
@@ -1775,12 +1960,14 @@ var DiscordSDKModule = (() => {
               type: "bigint",
               minimum: check.value,
               inclusive: check.inclusive,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
         } else if (check.kind === "max") {
-          const tooBig = check.inclusive ? input.data > check.value : input.data >= check.value;
+          const tooBig = check.inclusive
+            ? input.data > check.value
+            : input.data >= check.value;
           if (tooBig) {
             ctx = this._getOrReturnCtx(input, ctx);
             addIssueToContext(ctx, {
@@ -1788,7 +1975,7 @@ var DiscordSDKModule = (() => {
               type: "bigint",
               maximum: check.value,
               inclusive: check.inclusive,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1798,7 +1985,7 @@ var DiscordSDKModule = (() => {
             addIssueToContext(ctx, {
               code: ZodIssueCode.not_multiple_of,
               multipleOf: check.value,
-              message: check.message
+              message: check.message,
             });
             status.dirty();
           }
@@ -1829,15 +2016,15 @@ var DiscordSDKModule = (() => {
             kind,
             value,
             inclusive,
-            message: errorUtil.toString(message)
-          }
-        ]
+            message: errorUtil.toString(message),
+          },
+        ],
       });
     }
     _addCheck(check) {
       return new _ZodBigInt({
         ...this._def,
-        checks: [...this._def.checks, check]
+        checks: [...this._def.checks, check],
       });
     }
     positive(message) {
@@ -1845,7 +2032,7 @@ var DiscordSDKModule = (() => {
         kind: "min",
         value: BigInt(0),
         inclusive: false,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     negative(message) {
@@ -1853,7 +2040,7 @@ var DiscordSDKModule = (() => {
         kind: "max",
         value: BigInt(0),
         inclusive: false,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     nonpositive(message) {
@@ -1861,7 +2048,7 @@ var DiscordSDKModule = (() => {
         kind: "max",
         value: BigInt(0),
         inclusive: true,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     nonnegative(message) {
@@ -1869,22 +2056,21 @@ var DiscordSDKModule = (() => {
         kind: "min",
         value: BigInt(0),
         inclusive: true,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     multipleOf(value, message) {
       return this._addCheck({
         kind: "multipleOf",
         value,
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     get minValue() {
       let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min === null || ch.value > min)
-            min = ch.value;
+          if (min === null || ch.value > min) min = ch.value;
         }
       }
       return min;
@@ -1893,8 +2079,7 @@ var DiscordSDKModule = (() => {
       let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max === null || ch.value < max)
-            max = ch.value;
+          if (max === null || ch.value < max) max = ch.value;
         }
       }
       return max;
@@ -1905,8 +2090,12 @@ var DiscordSDKModule = (() => {
     return new ZodBigInt({
       checks: [],
       typeName: ZodFirstPartyTypeKind.ZodBigInt,
-      coerce: (_a = params === null || params === void 0 ? void 0 : params.coerce) !== null && _a !== void 0 ? _a : false,
-      ...processCreateParams(params)
+      coerce:
+        (_a = params === null || params === void 0 ? void 0 : params.coerce) !==
+          null && _a !== void 0
+          ? _a
+          : false,
+      ...processCreateParams(params),
     });
   };
   var ZodBoolean = class extends ZodType {
@@ -1920,7 +2109,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.boolean,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -1930,8 +2119,10 @@ var DiscordSDKModule = (() => {
   ZodBoolean.create = (params) => {
     return new ZodBoolean({
       typeName: ZodFirstPartyTypeKind.ZodBoolean,
-      coerce: (params === null || params === void 0 ? void 0 : params.coerce) || false,
-      ...processCreateParams(params)
+      coerce:
+        (params === null || params === void 0 ? void 0 : params.coerce) ||
+        false,
+      ...processCreateParams(params),
     });
   };
   var ZodDate = class _ZodDate extends ZodType {
@@ -1945,14 +2136,14 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx2, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.date,
-          received: ctx2.parsedType
+          received: ctx2.parsedType,
         });
         return INVALID;
       }
       if (isNaN(input.data.getTime())) {
         const ctx2 = this._getOrReturnCtx(input);
         addIssueToContext(ctx2, {
-          code: ZodIssueCode.invalid_date
+          code: ZodIssueCode.invalid_date,
         });
         return INVALID;
       }
@@ -1968,7 +2159,7 @@ var DiscordSDKModule = (() => {
               inclusive: true,
               exact: false,
               minimum: check.value,
-              type: "date"
+              type: "date",
             });
             status.dirty();
           }
@@ -1981,7 +2172,7 @@ var DiscordSDKModule = (() => {
               inclusive: true,
               exact: false,
               maximum: check.value,
-              type: "date"
+              type: "date",
             });
             status.dirty();
           }
@@ -1991,35 +2182,34 @@ var DiscordSDKModule = (() => {
       }
       return {
         status: status.value,
-        value: new Date(input.data.getTime())
+        value: new Date(input.data.getTime()),
       };
     }
     _addCheck(check) {
       return new _ZodDate({
         ...this._def,
-        checks: [...this._def.checks, check]
+        checks: [...this._def.checks, check],
       });
     }
     min(minDate, message) {
       return this._addCheck({
         kind: "min",
         value: minDate.getTime(),
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     max(maxDate, message) {
       return this._addCheck({
         kind: "max",
         value: maxDate.getTime(),
-        message: errorUtil.toString(message)
+        message: errorUtil.toString(message),
       });
     }
     get minDate() {
       let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min === null || ch.value > min)
-            min = ch.value;
+          if (min === null || ch.value > min) min = ch.value;
         }
       }
       return min != null ? new Date(min) : null;
@@ -2028,8 +2218,7 @@ var DiscordSDKModule = (() => {
       let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max === null || ch.value < max)
-            max = ch.value;
+          if (max === null || ch.value < max) max = ch.value;
         }
       }
       return max != null ? new Date(max) : null;
@@ -2038,9 +2227,11 @@ var DiscordSDKModule = (() => {
   ZodDate.create = (params) => {
     return new ZodDate({
       checks: [],
-      coerce: (params === null || params === void 0 ? void 0 : params.coerce) || false,
+      coerce:
+        (params === null || params === void 0 ? void 0 : params.coerce) ||
+        false,
       typeName: ZodFirstPartyTypeKind.ZodDate,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodSymbol = class extends ZodType {
@@ -2051,7 +2242,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.symbol,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2061,7 +2252,7 @@ var DiscordSDKModule = (() => {
   ZodSymbol.create = (params) => {
     return new ZodSymbol({
       typeName: ZodFirstPartyTypeKind.ZodSymbol,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodUndefined = class extends ZodType {
@@ -2072,7 +2263,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.undefined,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2082,7 +2273,7 @@ var DiscordSDKModule = (() => {
   ZodUndefined.create = (params) => {
     return new ZodUndefined({
       typeName: ZodFirstPartyTypeKind.ZodUndefined,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodNull = class extends ZodType {
@@ -2093,7 +2284,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.null,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2103,7 +2294,7 @@ var DiscordSDKModule = (() => {
   ZodNull.create = (params) => {
     return new ZodNull({
       typeName: ZodFirstPartyTypeKind.ZodNull,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodAny = class extends ZodType {
@@ -2118,7 +2309,7 @@ var DiscordSDKModule = (() => {
   ZodAny.create = (params) => {
     return new ZodAny({
       typeName: ZodFirstPartyTypeKind.ZodAny,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodUnknown = class extends ZodType {
@@ -2133,7 +2324,7 @@ var DiscordSDKModule = (() => {
   ZodUnknown.create = (params) => {
     return new ZodUnknown({
       typeName: ZodFirstPartyTypeKind.ZodUnknown,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodNever = class extends ZodType {
@@ -2142,7 +2333,7 @@ var DiscordSDKModule = (() => {
       addIssueToContext(ctx, {
         code: ZodIssueCode.invalid_type,
         expected: ZodParsedType.never,
-        received: ctx.parsedType
+        received: ctx.parsedType,
       });
       return INVALID;
     }
@@ -2150,7 +2341,7 @@ var DiscordSDKModule = (() => {
   ZodNever.create = (params) => {
     return new ZodNever({
       typeName: ZodFirstPartyTypeKind.ZodNever,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodVoid = class extends ZodType {
@@ -2161,7 +2352,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.void,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2171,7 +2362,7 @@ var DiscordSDKModule = (() => {
   ZodVoid.create = (params) => {
     return new ZodVoid({
       typeName: ZodFirstPartyTypeKind.ZodVoid,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodArray = class _ZodArray extends ZodType {
@@ -2182,7 +2373,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.array,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2197,7 +2388,7 @@ var DiscordSDKModule = (() => {
             type: "array",
             inclusive: true,
             exact: true,
-            message: def.exactLength.message
+            message: def.exactLength.message,
           });
           status.dirty();
         }
@@ -2210,7 +2401,7 @@ var DiscordSDKModule = (() => {
             type: "array",
             inclusive: true,
             exact: false,
-            message: def.minLength.message
+            message: def.minLength.message,
           });
           status.dirty();
         }
@@ -2223,20 +2414,26 @@ var DiscordSDKModule = (() => {
             type: "array",
             inclusive: true,
             exact: false,
-            message: def.maxLength.message
+            message: def.maxLength.message,
           });
           status.dirty();
         }
       }
       if (ctx.common.async) {
-        return Promise.all([...ctx.data].map((item, i) => {
-          return def.type._parseAsync(new ParseInputLazyPath(ctx, item, ctx.path, i));
-        })).then((result2) => {
+        return Promise.all(
+          [...ctx.data].map((item, i) => {
+            return def.type._parseAsync(
+              new ParseInputLazyPath(ctx, item, ctx.path, i),
+            );
+          }),
+        ).then((result2) => {
           return ParseStatus.mergeArray(status, result2);
         });
       }
       const result = [...ctx.data].map((item, i) => {
-        return def.type._parseSync(new ParseInputLazyPath(ctx, item, ctx.path, i));
+        return def.type._parseSync(
+          new ParseInputLazyPath(ctx, item, ctx.path, i),
+        );
       });
       return ParseStatus.mergeArray(status, result);
     }
@@ -2246,19 +2443,19 @@ var DiscordSDKModule = (() => {
     min(minLength, message) {
       return new _ZodArray({
         ...this._def,
-        minLength: { value: minLength, message: errorUtil.toString(message) }
+        minLength: { value: minLength, message: errorUtil.toString(message) },
       });
     }
     max(maxLength, message) {
       return new _ZodArray({
         ...this._def,
-        maxLength: { value: maxLength, message: errorUtil.toString(message) }
+        maxLength: { value: maxLength, message: errorUtil.toString(message) },
       });
     }
     length(len, message) {
       return new _ZodArray({
         ...this._def,
-        exactLength: { value: len, message: errorUtil.toString(message) }
+        exactLength: { value: len, message: errorUtil.toString(message) },
       });
     }
     nonempty(message) {
@@ -2272,7 +2469,7 @@ var DiscordSDKModule = (() => {
       maxLength: null,
       exactLength: null,
       typeName: ZodFirstPartyTypeKind.ZodArray,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   function deepPartialify(schema) {
@@ -2284,12 +2481,12 @@ var DiscordSDKModule = (() => {
       }
       return new ZodObject({
         ...schema._def,
-        shape: () => newShape
+        shape: () => newShape,
       });
     } else if (schema instanceof ZodArray) {
       return new ZodArray({
         ...schema._def,
-        type: deepPartialify(schema.element)
+        type: deepPartialify(schema.element),
       });
     } else if (schema instanceof ZodOptional) {
       return ZodOptional.create(deepPartialify(schema.unwrap()));
@@ -2309,11 +2506,10 @@ var DiscordSDKModule = (() => {
       this.augment = this.extend;
     }
     _getCached() {
-      if (this._cached !== null)
-        return this._cached;
+      if (this._cached !== null) return this._cached;
       const shape = this._def.shape();
       const keys = util.objectKeys(shape);
-      return this._cached = { shape, keys };
+      return (this._cached = { shape, keys });
     }
     _parse(input) {
       const parsedType = this._getType(input);
@@ -2322,14 +2518,19 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx2, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.object,
-          received: ctx2.parsedType
+          received: ctx2.parsedType,
         });
         return INVALID;
       }
       const { status, ctx } = this._processInputParams(input);
       const { shape, keys: shapeKeys } = this._getCached();
       const extraKeys = [];
-      if (!(this._def.catchall instanceof ZodNever && this._def.unknownKeys === "strip")) {
+      if (
+        !(
+          this._def.catchall instanceof ZodNever &&
+          this._def.unknownKeys === "strip"
+        )
+      ) {
         for (const key in ctx.data) {
           if (!shapeKeys.includes(key)) {
             extraKeys.push(key);
@@ -2342,8 +2543,10 @@ var DiscordSDKModule = (() => {
         const value = ctx.data[key];
         pairs.push({
           key: { status: "valid", value: key },
-          value: keyValidator._parse(new ParseInputLazyPath(ctx, value, ctx.path, key)),
-          alwaysSet: key in ctx.data
+          value: keyValidator._parse(
+            new ParseInputLazyPath(ctx, value, ctx.path, key),
+          ),
+          alwaysSet: key in ctx.data,
         });
       }
       if (this._def.catchall instanceof ZodNever) {
@@ -2352,20 +2555,22 @@ var DiscordSDKModule = (() => {
           for (const key of extraKeys) {
             pairs.push({
               key: { status: "valid", value: key },
-              value: { status: "valid", value: ctx.data[key] }
+              value: { status: "valid", value: ctx.data[key] },
             });
           }
         } else if (unknownKeys === "strict") {
           if (extraKeys.length > 0) {
             addIssueToContext(ctx, {
               code: ZodIssueCode.unrecognized_keys,
-              keys: extraKeys
+              keys: extraKeys,
             });
             status.dirty();
           }
-        } else if (unknownKeys === "strip") ;
+        } else if (unknownKeys === "strip");
         else {
-          throw new Error(`Internal ZodObject error: invalid unknownKeys value.`);
+          throw new Error(
+            `Internal ZodObject error: invalid unknownKeys value.`,
+          );
         }
       } else {
         const catchall = this._def.catchall;
@@ -2374,29 +2579,31 @@ var DiscordSDKModule = (() => {
           pairs.push({
             key: { status: "valid", value: key },
             value: catchall._parse(
-              new ParseInputLazyPath(ctx, value, ctx.path, key)
+              new ParseInputLazyPath(ctx, value, ctx.path, key),
               //, ctx.child(key), value, getParsedType(value)
             ),
-            alwaysSet: key in ctx.data
+            alwaysSet: key in ctx.data,
           });
         }
       }
       if (ctx.common.async) {
-        return Promise.resolve().then(async () => {
-          const syncPairs = [];
-          for (const pair of pairs) {
-            const key = await pair.key;
-            const value = await pair.value;
-            syncPairs.push({
-              key,
-              value,
-              alwaysSet: pair.alwaysSet
-            });
-          }
-          return syncPairs;
-        }).then((syncPairs) => {
-          return ParseStatus.mergeObjectSync(status, syncPairs);
-        });
+        return Promise.resolve()
+          .then(async () => {
+            const syncPairs = [];
+            for (const pair of pairs) {
+              const key = await pair.key;
+              const value = await pair.value;
+              syncPairs.push({
+                key,
+                value,
+                alwaysSet: pair.alwaysSet,
+              });
+            }
+            return syncPairs;
+          })
+          .then((syncPairs) => {
+            return ParseStatus.mergeObjectSync(status, syncPairs);
+          });
       } else {
         return ParseStatus.mergeObjectSync(status, pairs);
       }
@@ -2409,31 +2616,44 @@ var DiscordSDKModule = (() => {
       return new _ZodObject({
         ...this._def,
         unknownKeys: "strict",
-        ...message !== void 0 ? {
-          errorMap: (issue, ctx) => {
-            var _a, _b, _c, _d;
-            const defaultError = (_c = (_b = (_a = this._def).errorMap) === null || _b === void 0 ? void 0 : _b.call(_a, issue, ctx).message) !== null && _c !== void 0 ? _c : ctx.defaultError;
-            if (issue.code === "unrecognized_keys")
-              return {
-                message: (_d = errorUtil.errToObj(message).message) !== null && _d !== void 0 ? _d : defaultError
-              };
-            return {
-              message: defaultError
-            };
-          }
-        } : {}
+        ...(message !== void 0
+          ? {
+              errorMap: (issue, ctx) => {
+                var _a, _b, _c, _d;
+                const defaultError =
+                  (_c =
+                    (_b = (_a = this._def).errorMap) === null || _b === void 0
+                      ? void 0
+                      : _b.call(_a, issue, ctx).message) !== null &&
+                  _c !== void 0
+                    ? _c
+                    : ctx.defaultError;
+                if (issue.code === "unrecognized_keys")
+                  return {
+                    message:
+                      (_d = errorUtil.errToObj(message).message) !== null &&
+                      _d !== void 0
+                        ? _d
+                        : defaultError,
+                  };
+                return {
+                  message: defaultError,
+                };
+              },
+            }
+          : {}),
       });
     }
     strip() {
       return new _ZodObject({
         ...this._def,
-        unknownKeys: "strip"
+        unknownKeys: "strip",
       });
     }
     passthrough() {
       return new _ZodObject({
         ...this._def,
-        unknownKeys: "passthrough"
+        unknownKeys: "passthrough",
       });
     }
     // const AugmentFactory =
@@ -2458,8 +2678,8 @@ var DiscordSDKModule = (() => {
         ...this._def,
         shape: () => ({
           ...this._def.shape(),
-          ...augmentation
-        })
+          ...augmentation,
+        }),
       });
     }
     /**
@@ -2473,9 +2693,9 @@ var DiscordSDKModule = (() => {
         catchall: merging._def.catchall,
         shape: () => ({
           ...this._def.shape(),
-          ...merging._def.shape()
+          ...merging._def.shape(),
         }),
-        typeName: ZodFirstPartyTypeKind.ZodObject
+        typeName: ZodFirstPartyTypeKind.ZodObject,
       });
       return merged;
     }
@@ -2541,7 +2761,7 @@ var DiscordSDKModule = (() => {
     catchall(index) {
       return new _ZodObject({
         ...this._def,
-        catchall: index
+        catchall: index,
       });
     }
     pick(mask) {
@@ -2553,7 +2773,7 @@ var DiscordSDKModule = (() => {
       });
       return new _ZodObject({
         ...this._def,
-        shape: () => shape
+        shape: () => shape,
       });
     }
     omit(mask) {
@@ -2565,7 +2785,7 @@ var DiscordSDKModule = (() => {
       });
       return new _ZodObject({
         ...this._def,
-        shape: () => shape
+        shape: () => shape,
       });
     }
     /**
@@ -2586,7 +2806,7 @@ var DiscordSDKModule = (() => {
       });
       return new _ZodObject({
         ...this._def,
-        shape: () => newShape
+        shape: () => newShape,
       });
     }
     required(mask) {
@@ -2605,7 +2825,7 @@ var DiscordSDKModule = (() => {
       });
       return new _ZodObject({
         ...this._def,
-        shape: () => newShape
+        shape: () => newShape,
       });
     }
     keyof() {
@@ -2618,7 +2838,7 @@ var DiscordSDKModule = (() => {
       unknownKeys: "strip",
       catchall: ZodNever.create(),
       typeName: ZodFirstPartyTypeKind.ZodObject,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   ZodObject.strictCreate = (shape, params) => {
@@ -2627,7 +2847,7 @@ var DiscordSDKModule = (() => {
       unknownKeys: "strict",
       catchall: ZodNever.create(),
       typeName: ZodFirstPartyTypeKind.ZodObject,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   ZodObject.lazycreate = (shape, params) => {
@@ -2636,7 +2856,7 @@ var DiscordSDKModule = (() => {
       unknownKeys: "strip",
       catchall: ZodNever.create(),
       typeName: ZodFirstPartyTypeKind.ZodObject,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodUnion = class extends ZodType {
@@ -2655,32 +2875,36 @@ var DiscordSDKModule = (() => {
             return result.result;
           }
         }
-        const unionErrors = results.map((result) => new ZodError(result.ctx.common.issues));
+        const unionErrors = results.map(
+          (result) => new ZodError(result.ctx.common.issues),
+        );
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_union,
-          unionErrors
+          unionErrors,
         });
         return INVALID;
       }
       if (ctx.common.async) {
-        return Promise.all(options.map(async (option) => {
-          const childCtx = {
-            ...ctx,
-            common: {
-              ...ctx.common,
-              issues: []
-            },
-            parent: null
-          };
-          return {
-            result: await option._parseAsync({
-              data: ctx.data,
-              path: ctx.path,
-              parent: childCtx
-            }),
-            ctx: childCtx
-          };
-        })).then(handleResults);
+        return Promise.all(
+          options.map(async (option) => {
+            const childCtx = {
+              ...ctx,
+              common: {
+                ...ctx.common,
+                issues: [],
+              },
+              parent: null,
+            };
+            return {
+              result: await option._parseAsync({
+                data: ctx.data,
+                path: ctx.path,
+                parent: childCtx,
+              }),
+              ctx: childCtx,
+            };
+          }),
+        ).then(handleResults);
       } else {
         let dirty = void 0;
         const issues = [];
@@ -2689,14 +2913,14 @@ var DiscordSDKModule = (() => {
             ...ctx,
             common: {
               ...ctx.common,
-              issues: []
+              issues: [],
             },
-            parent: null
+            parent: null,
           };
           const result = option._parseSync({
             data: ctx.data,
             path: ctx.path,
-            parent: childCtx
+            parent: childCtx,
           });
           if (result.status === "valid") {
             return result;
@@ -2714,7 +2938,7 @@ var DiscordSDKModule = (() => {
         const unionErrors = issues.map((issues2) => new ZodError(issues2));
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_union,
-          unionErrors
+          unionErrors,
         });
         return INVALID;
       }
@@ -2727,7 +2951,7 @@ var DiscordSDKModule = (() => {
     return new ZodUnion({
       options: types,
       typeName: ZodFirstPartyTypeKind.ZodUnion,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var getDiscriminator = (type) => {
@@ -2768,7 +2992,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.object,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2779,7 +3003,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_union_discriminator,
           options: Array.from(this.optionsMap.keys()),
-          path: [discriminator]
+          path: [discriminator],
         });
         return INVALID;
       }
@@ -2787,13 +3011,13 @@ var DiscordSDKModule = (() => {
         return option._parseAsync({
           data: ctx.data,
           path: ctx.path,
-          parent: ctx
+          parent: ctx,
         });
       } else {
         return option._parseSync({
           data: ctx.data,
           path: ctx.path,
-          parent: ctx
+          parent: ctx,
         });
       }
     }
@@ -2819,11 +3043,15 @@ var DiscordSDKModule = (() => {
       for (const type of options) {
         const discriminatorValues = getDiscriminator(type.shape[discriminator]);
         if (!discriminatorValues.length) {
-          throw new Error(`A discriminator value for key \`${discriminator}\` could not be extracted from all schema options`);
+          throw new Error(
+            `A discriminator value for key \`${discriminator}\` could not be extracted from all schema options`,
+          );
         }
         for (const value of discriminatorValues) {
           if (optionsMap.has(value)) {
-            throw new Error(`Discriminator property ${String(discriminator)} has duplicate value ${String(value)}`);
+            throw new Error(
+              `Discriminator property ${String(discriminator)} has duplicate value ${String(value)}`,
+            );
           }
           optionsMap.set(value, type);
         }
@@ -2833,7 +3061,7 @@ var DiscordSDKModule = (() => {
         discriminator,
         options,
         optionsMap,
-        ...processCreateParams(params)
+        ...processCreateParams(params),
       });
     }
   };
@@ -2842,9 +3070,14 @@ var DiscordSDKModule = (() => {
     const bType = getParsedType(b);
     if (a === b) {
       return { valid: true, data: a };
-    } else if (aType === ZodParsedType.object && bType === ZodParsedType.object) {
+    } else if (
+      aType === ZodParsedType.object &&
+      bType === ZodParsedType.object
+    ) {
       const bKeys = util.objectKeys(b);
-      const sharedKeys = util.objectKeys(a).filter((key) => bKeys.indexOf(key) !== -1);
+      const sharedKeys = util
+        .objectKeys(a)
+        .filter((key) => bKeys.indexOf(key) !== -1);
       const newObj = { ...a, ...b };
       for (const key of sharedKeys) {
         const sharedValue = mergeValues(a[key], b[key]);
@@ -2869,7 +3102,11 @@ var DiscordSDKModule = (() => {
         newArray.push(sharedValue.data);
       }
       return { valid: true, data: newArray };
-    } else if (aType === ZodParsedType.date && bType === ZodParsedType.date && +a === +b) {
+    } else if (
+      aType === ZodParsedType.date &&
+      bType === ZodParsedType.date &&
+      +a === +b
+    ) {
       return { valid: true, data: a };
     } else {
       return { valid: false };
@@ -2885,7 +3122,7 @@ var DiscordSDKModule = (() => {
         const merged = mergeValues(parsedLeft.value, parsedRight.value);
         if (!merged.valid) {
           addIssueToContext(ctx, {
-            code: ZodIssueCode.invalid_intersection_types
+            code: ZodIssueCode.invalid_intersection_types,
           });
           return INVALID;
         }
@@ -2899,24 +3136,27 @@ var DiscordSDKModule = (() => {
           this._def.left._parseAsync({
             data: ctx.data,
             path: ctx.path,
-            parent: ctx
+            parent: ctx,
           }),
           this._def.right._parseAsync({
             data: ctx.data,
             path: ctx.path,
-            parent: ctx
-          })
+            parent: ctx,
+          }),
         ]).then(([left, right]) => handleParsed(left, right));
       } else {
-        return handleParsed(this._def.left._parseSync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        }), this._def.right._parseSync({
-          data: ctx.data,
-          path: ctx.path,
-          parent: ctx
-        }));
+        return handleParsed(
+          this._def.left._parseSync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx,
+          }),
+          this._def.right._parseSync({
+            data: ctx.data,
+            path: ctx.path,
+            parent: ctx,
+          }),
+        );
       }
     }
   };
@@ -2925,7 +3165,7 @@ var DiscordSDKModule = (() => {
       left,
       right,
       typeName: ZodFirstPartyTypeKind.ZodIntersection,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodTuple = class _ZodTuple extends ZodType {
@@ -2935,7 +3175,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.array,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -2945,7 +3185,7 @@ var DiscordSDKModule = (() => {
           minimum: this._def.items.length,
           inclusive: true,
           exact: false,
-          type: "array"
+          type: "array",
         });
         return INVALID;
       }
@@ -2956,16 +3196,19 @@ var DiscordSDKModule = (() => {
           maximum: this._def.items.length,
           inclusive: true,
           exact: false,
-          type: "array"
+          type: "array",
         });
         status.dirty();
       }
-      const items = [...ctx.data].map((item, itemIndex) => {
-        const schema = this._def.items[itemIndex] || this._def.rest;
-        if (!schema)
-          return null;
-        return schema._parse(new ParseInputLazyPath(ctx, item, ctx.path, itemIndex));
-      }).filter((x) => !!x);
+      const items = [...ctx.data]
+        .map((item, itemIndex) => {
+          const schema = this._def.items[itemIndex] || this._def.rest;
+          if (!schema) return null;
+          return schema._parse(
+            new ParseInputLazyPath(ctx, item, ctx.path, itemIndex),
+          );
+        })
+        .filter((x) => !!x);
       if (ctx.common.async) {
         return Promise.all(items).then((results) => {
           return ParseStatus.mergeArray(status, results);
@@ -2980,7 +3223,7 @@ var DiscordSDKModule = (() => {
     rest(rest) {
       return new _ZodTuple({
         ...this._def,
-        rest
+        rest,
       });
     }
   };
@@ -2992,7 +3235,7 @@ var DiscordSDKModule = (() => {
       items: schemas,
       typeName: ZodFirstPartyTypeKind.ZodTuple,
       rest: null,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodRecord = class _ZodRecord extends ZodType {
@@ -3008,7 +3251,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.object,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -3018,8 +3261,10 @@ var DiscordSDKModule = (() => {
       for (const key in ctx.data) {
         pairs.push({
           key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, key)),
-          value: valueType._parse(new ParseInputLazyPath(ctx, ctx.data[key], ctx.path, key)),
-          alwaysSet: key in ctx.data
+          value: valueType._parse(
+            new ParseInputLazyPath(ctx, ctx.data[key], ctx.path, key),
+          ),
+          alwaysSet: key in ctx.data,
         });
       }
       if (ctx.common.async) {
@@ -3037,14 +3282,14 @@ var DiscordSDKModule = (() => {
           keyType: first,
           valueType: second,
           typeName: ZodFirstPartyTypeKind.ZodRecord,
-          ...processCreateParams(third)
+          ...processCreateParams(third),
         });
       }
       return new _ZodRecord({
         keyType: ZodString.create(),
         valueType: first,
         typeName: ZodFirstPartyTypeKind.ZodRecord,
-        ...processCreateParams(second)
+        ...processCreateParams(second),
       });
     }
   };
@@ -3061,7 +3306,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.map,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -3069,8 +3314,12 @@ var DiscordSDKModule = (() => {
       const valueType = this._def.valueType;
       const pairs = [...ctx.data.entries()].map(([key, value], index) => {
         return {
-          key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, [index, "key"])),
-          value: valueType._parse(new ParseInputLazyPath(ctx, value, ctx.path, [index, "value"]))
+          key: keyType._parse(
+            new ParseInputLazyPath(ctx, key, ctx.path, [index, "key"]),
+          ),
+          value: valueType._parse(
+            new ParseInputLazyPath(ctx, value, ctx.path, [index, "value"]),
+          ),
         };
       });
       if (ctx.common.async) {
@@ -3111,7 +3360,7 @@ var DiscordSDKModule = (() => {
       valueType,
       keyType,
       typeName: ZodFirstPartyTypeKind.ZodMap,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodSet = class _ZodSet extends ZodType {
@@ -3121,7 +3370,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.set,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -3134,7 +3383,7 @@ var DiscordSDKModule = (() => {
             type: "set",
             inclusive: true,
             exact: false,
-            message: def.minSize.message
+            message: def.minSize.message,
           });
           status.dirty();
         }
@@ -3147,7 +3396,7 @@ var DiscordSDKModule = (() => {
             type: "set",
             inclusive: true,
             exact: false,
-            message: def.maxSize.message
+            message: def.maxSize.message,
           });
           status.dirty();
         }
@@ -3156,17 +3405,19 @@ var DiscordSDKModule = (() => {
       function finalizeSet(elements2) {
         const parsedSet = /* @__PURE__ */ new Set();
         for (const element of elements2) {
-          if (element.status === "aborted")
-            return INVALID;
-          if (element.status === "dirty")
-            status.dirty();
+          if (element.status === "aborted") return INVALID;
+          if (element.status === "dirty") status.dirty();
           parsedSet.add(element.value);
         }
         return { status: status.value, value: parsedSet };
       }
-      const elements = [...ctx.data.values()].map((item, i) => valueType._parse(new ParseInputLazyPath(ctx, item, ctx.path, i)));
+      const elements = [...ctx.data.values()].map((item, i) =>
+        valueType._parse(new ParseInputLazyPath(ctx, item, ctx.path, i)),
+      );
       if (ctx.common.async) {
-        return Promise.all(elements).then((elements2) => finalizeSet(elements2));
+        return Promise.all(elements).then((elements2) =>
+          finalizeSet(elements2),
+        );
       } else {
         return finalizeSet(elements);
       }
@@ -3174,13 +3425,13 @@ var DiscordSDKModule = (() => {
     min(minSize, message) {
       return new _ZodSet({
         ...this._def,
-        minSize: { value: minSize, message: errorUtil.toString(message) }
+        minSize: { value: minSize, message: errorUtil.toString(message) },
       });
     }
     max(maxSize, message) {
       return new _ZodSet({
         ...this._def,
-        maxSize: { value: maxSize, message: errorUtil.toString(message) }
+        maxSize: { value: maxSize, message: errorUtil.toString(message) },
       });
     }
     size(size, message) {
@@ -3196,7 +3447,7 @@ var DiscordSDKModule = (() => {
       minSize: null,
       maxSize: null,
       typeName: ZodFirstPartyTypeKind.ZodSet,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodFunction = class _ZodFunction extends ZodType {
@@ -3210,7 +3461,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.function,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -3222,12 +3473,12 @@ var DiscordSDKModule = (() => {
             ctx.common.contextualErrorMap,
             ctx.schemaErrorMap,
             getErrorMap(),
-            errorMap
+            errorMap,
           ].filter((x) => !!x),
           issueData: {
             code: ZodIssueCode.invalid_arguments,
-            argumentsError: error
-          }
+            argumentsError: error,
+          },
         });
       }
       function makeReturnsIssue(returns, error) {
@@ -3238,34 +3489,38 @@ var DiscordSDKModule = (() => {
             ctx.common.contextualErrorMap,
             ctx.schemaErrorMap,
             getErrorMap(),
-            errorMap
+            errorMap,
           ].filter((x) => !!x),
           issueData: {
             code: ZodIssueCode.invalid_return_type,
-            returnTypeError: error
-          }
+            returnTypeError: error,
+          },
         });
       }
       const params = { errorMap: ctx.common.contextualErrorMap };
       const fn = ctx.data;
       if (this._def.returns instanceof ZodPromise) {
         const me = this;
-        return OK(async function(...args) {
+        return OK(async function (...args) {
           const error = new ZodError([]);
-          const parsedArgs = await me._def.args.parseAsync(args, params).catch((e) => {
-            error.addIssue(makeArgsIssue(args, e));
-            throw error;
-          });
+          const parsedArgs = await me._def.args
+            .parseAsync(args, params)
+            .catch((e) => {
+              error.addIssue(makeArgsIssue(args, e));
+              throw error;
+            });
           const result = await Reflect.apply(fn, this, parsedArgs);
-          const parsedReturns = await me._def.returns._def.type.parseAsync(result, params).catch((e) => {
-            error.addIssue(makeReturnsIssue(result, e));
-            throw error;
-          });
+          const parsedReturns = await me._def.returns._def.type
+            .parseAsync(result, params)
+            .catch((e) => {
+              error.addIssue(makeReturnsIssue(result, e));
+              throw error;
+            });
           return parsedReturns;
         });
       } else {
         const me = this;
-        return OK(function(...args) {
+        return OK(function (...args) {
           const parsedArgs = me._def.args.safeParse(args, params);
           if (!parsedArgs.success) {
             throw new ZodError([makeArgsIssue(args, parsedArgs.error)]);
@@ -3288,13 +3543,13 @@ var DiscordSDKModule = (() => {
     args(...items) {
       return new _ZodFunction({
         ...this._def,
-        args: ZodTuple.create(items).rest(ZodUnknown.create())
+        args: ZodTuple.create(items).rest(ZodUnknown.create()),
       });
     }
     returns(returnType) {
       return new _ZodFunction({
         ...this._def,
-        returns: returnType
+        returns: returnType,
       });
     }
     implement(func) {
@@ -3310,7 +3565,7 @@ var DiscordSDKModule = (() => {
         args: args ? args : ZodTuple.create([]).rest(ZodUnknown.create()),
         returns: returns || ZodUnknown.create(),
         typeName: ZodFirstPartyTypeKind.ZodFunction,
-        ...processCreateParams(params)
+        ...processCreateParams(params),
       });
     }
   };
@@ -3328,7 +3583,7 @@ var DiscordSDKModule = (() => {
     return new ZodLazy({
       getter,
       typeName: ZodFirstPartyTypeKind.ZodLazy,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodLiteral = class extends ZodType {
@@ -3338,7 +3593,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           received: ctx.data,
           code: ZodIssueCode.invalid_literal,
-          expected: this._def.value
+          expected: this._def.value,
         });
         return INVALID;
       }
@@ -3352,14 +3607,14 @@ var DiscordSDKModule = (() => {
     return new ZodLiteral({
       value,
       typeName: ZodFirstPartyTypeKind.ZodLiteral,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   function createZodEnum(values, params) {
     return new ZodEnum({
       values,
       typeName: ZodFirstPartyTypeKind.ZodEnum,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   }
   var ZodEnum = class _ZodEnum extends ZodType {
@@ -3374,7 +3629,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           expected: util.joinValues(expectedValues),
           received: ctx.parsedType,
-          code: ZodIssueCode.invalid_type
+          code: ZodIssueCode.invalid_type,
         });
         return INVALID;
       }
@@ -3387,7 +3642,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           received: ctx.data,
           code: ZodIssueCode.invalid_enum_value,
-          options: expectedValues
+          options: expectedValues,
         });
         return INVALID;
       }
@@ -3420,14 +3675,17 @@ var DiscordSDKModule = (() => {
     extract(values, newDef = this._def) {
       return _ZodEnum.create(values, {
         ...this._def,
-        ...newDef
+        ...newDef,
       });
     }
     exclude(values, newDef = this._def) {
-      return _ZodEnum.create(this.options.filter((opt) => !values.includes(opt)), {
-        ...this._def,
-        ...newDef
-      });
+      return _ZodEnum.create(
+        this.options.filter((opt) => !values.includes(opt)),
+        {
+          ...this._def,
+          ...newDef,
+        },
+      );
     }
   };
   _ZodEnum_cache = /* @__PURE__ */ new WeakMap();
@@ -3440,24 +3698,31 @@ var DiscordSDKModule = (() => {
     _parse(input) {
       const nativeEnumValues = util.getValidEnumValues(this._def.values);
       const ctx = this._getOrReturnCtx(input);
-      if (ctx.parsedType !== ZodParsedType.string && ctx.parsedType !== ZodParsedType.number) {
+      if (
+        ctx.parsedType !== ZodParsedType.string &&
+        ctx.parsedType !== ZodParsedType.number
+      ) {
         const expectedValues = util.objectValues(nativeEnumValues);
         addIssueToContext(ctx, {
           expected: util.joinValues(expectedValues),
           received: ctx.parsedType,
-          code: ZodIssueCode.invalid_type
+          code: ZodIssueCode.invalid_type,
         });
         return INVALID;
       }
       if (!__classPrivateFieldGet(this, _ZodNativeEnum_cache)) {
-        __classPrivateFieldSet(this, _ZodNativeEnum_cache, new Set(util.getValidEnumValues(this._def.values)));
+        __classPrivateFieldSet(
+          this,
+          _ZodNativeEnum_cache,
+          new Set(util.getValidEnumValues(this._def.values)),
+        );
       }
       if (!__classPrivateFieldGet(this, _ZodNativeEnum_cache).has(input.data)) {
         const expectedValues = util.objectValues(nativeEnumValues);
         addIssueToContext(ctx, {
           received: ctx.data,
           code: ZodIssueCode.invalid_enum_value,
-          options: expectedValues
+          options: expectedValues,
         });
         return INVALID;
       }
@@ -3472,7 +3737,7 @@ var DiscordSDKModule = (() => {
     return new ZodNativeEnum({
       values,
       typeName: ZodFirstPartyTypeKind.ZodNativeEnum,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodPromise = class extends ZodType {
@@ -3481,28 +3746,36 @@ var DiscordSDKModule = (() => {
     }
     _parse(input) {
       const { ctx } = this._processInputParams(input);
-      if (ctx.parsedType !== ZodParsedType.promise && ctx.common.async === false) {
+      if (
+        ctx.parsedType !== ZodParsedType.promise &&
+        ctx.common.async === false
+      ) {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.promise,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
-      const promisified = ctx.parsedType === ZodParsedType.promise ? ctx.data : Promise.resolve(ctx.data);
-      return OK(promisified.then((data) => {
-        return this._def.type.parseAsync(data, {
-          path: ctx.path,
-          errorMap: ctx.common.contextualErrorMap
-        });
-      }));
+      const promisified =
+        ctx.parsedType === ZodParsedType.promise
+          ? ctx.data
+          : Promise.resolve(ctx.data);
+      return OK(
+        promisified.then((data) => {
+          return this._def.type.parseAsync(data, {
+            path: ctx.path,
+            errorMap: ctx.common.contextualErrorMap,
+          });
+        }),
+      );
     }
   };
   ZodPromise.create = (schema, params) => {
     return new ZodPromise({
       type: schema,
       typeName: ZodFirstPartyTypeKind.ZodPromise,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodEffects = class extends ZodType {
@@ -3510,7 +3783,9 @@ var DiscordSDKModule = (() => {
       return this._def.schema;
     }
     sourceType() {
-      return this._def.schema._def.typeName === ZodFirstPartyTypeKind.ZodEffects ? this._def.schema.sourceType() : this._def.schema;
+      return this._def.schema._def.typeName === ZodFirstPartyTypeKind.ZodEffects
+        ? this._def.schema.sourceType()
+        : this._def.schema;
     }
     _parse(input) {
       const { status, ctx } = this._processInputParams(input);
@@ -3526,42 +3801,34 @@ var DiscordSDKModule = (() => {
         },
         get path() {
           return ctx.path;
-        }
+        },
       };
       checkCtx.addIssue = checkCtx.addIssue.bind(checkCtx);
       if (effect.type === "preprocess") {
         const processed = effect.transform(ctx.data, checkCtx);
         if (ctx.common.async) {
           return Promise.resolve(processed).then(async (processed2) => {
-            if (status.value === "aborted")
-              return INVALID;
+            if (status.value === "aborted") return INVALID;
             const result = await this._def.schema._parseAsync({
               data: processed2,
               path: ctx.path,
-              parent: ctx
+              parent: ctx,
             });
-            if (result.status === "aborted")
-              return INVALID;
-            if (result.status === "dirty")
-              return DIRTY(result.value);
-            if (status.value === "dirty")
-              return DIRTY(result.value);
+            if (result.status === "aborted") return INVALID;
+            if (result.status === "dirty") return DIRTY(result.value);
+            if (status.value === "dirty") return DIRTY(result.value);
             return result;
           });
         } else {
-          if (status.value === "aborted")
-            return INVALID;
+          if (status.value === "aborted") return INVALID;
           const result = this._def.schema._parseSync({
             data: processed,
             path: ctx.path,
-            parent: ctx
+            parent: ctx,
           });
-          if (result.status === "aborted")
-            return INVALID;
-          if (result.status === "dirty")
-            return DIRTY(result.value);
-          if (status.value === "dirty")
-            return DIRTY(result.value);
+          if (result.status === "aborted") return INVALID;
+          if (result.status === "dirty") return DIRTY(result.value);
+          if (status.value === "dirty") return DIRTY(result.value);
           return result;
         }
       }
@@ -3572,7 +3839,9 @@ var DiscordSDKModule = (() => {
             return Promise.resolve(result);
           }
           if (result instanceof Promise) {
-            throw new Error("Async refinement encountered during synchronous parse operation. Use .parseAsync instead.");
+            throw new Error(
+              "Async refinement encountered during synchronous parse operation. Use .parseAsync instead.",
+            );
           }
           return acc;
         };
@@ -3580,24 +3849,22 @@ var DiscordSDKModule = (() => {
           const inner = this._def.schema._parseSync({
             data: ctx.data,
             path: ctx.path,
-            parent: ctx
+            parent: ctx,
           });
-          if (inner.status === "aborted")
-            return INVALID;
-          if (inner.status === "dirty")
-            status.dirty();
+          if (inner.status === "aborted") return INVALID;
+          if (inner.status === "dirty") status.dirty();
           executeRefinement(inner.value);
           return { status: status.value, value: inner.value };
         } else {
-          return this._def.schema._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx }).then((inner) => {
-            if (inner.status === "aborted")
-              return INVALID;
-            if (inner.status === "dirty")
-              status.dirty();
-            return executeRefinement(inner.value).then(() => {
-              return { status: status.value, value: inner.value };
+          return this._def.schema
+            ._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx })
+            .then((inner) => {
+              if (inner.status === "aborted") return INVALID;
+              if (inner.status === "dirty") status.dirty();
+              return executeRefinement(inner.value).then(() => {
+                return { status: status.value, value: inner.value };
+              });
             });
-          });
         }
       }
       if (effect.type === "transform") {
@@ -3605,21 +3872,25 @@ var DiscordSDKModule = (() => {
           const base = this._def.schema._parseSync({
             data: ctx.data,
             path: ctx.path,
-            parent: ctx
+            parent: ctx,
           });
-          if (!isValid(base))
-            return base;
+          if (!isValid(base)) return base;
           const result = effect.transform(base.value, checkCtx);
           if (result instanceof Promise) {
-            throw new Error(`Asynchronous transform encountered during synchronous parse operation. Use .parseAsync instead.`);
+            throw new Error(
+              `Asynchronous transform encountered during synchronous parse operation. Use .parseAsync instead.`,
+            );
           }
           return { status: status.value, value: result };
         } else {
-          return this._def.schema._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx }).then((base) => {
-            if (!isValid(base))
-              return base;
-            return Promise.resolve(effect.transform(base.value, checkCtx)).then((result) => ({ status: status.value, value: result }));
-          });
+          return this._def.schema
+            ._parseAsync({ data: ctx.data, path: ctx.path, parent: ctx })
+            .then((base) => {
+              if (!isValid(base)) return base;
+              return Promise.resolve(
+                effect.transform(base.value, checkCtx),
+              ).then((result) => ({ status: status.value, value: result }));
+            });
         }
       }
       util.assertNever(effect);
@@ -3630,7 +3901,7 @@ var DiscordSDKModule = (() => {
       schema,
       typeName: ZodFirstPartyTypeKind.ZodEffects,
       effect,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   ZodEffects.createWithPreprocess = (preprocess, schema, params) => {
@@ -3638,7 +3909,7 @@ var DiscordSDKModule = (() => {
       schema,
       effect: { type: "preprocess", transform: preprocess },
       typeName: ZodFirstPartyTypeKind.ZodEffects,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodOptional = class extends ZodType {
@@ -3657,7 +3928,7 @@ var DiscordSDKModule = (() => {
     return new ZodOptional({
       innerType: type,
       typeName: ZodFirstPartyTypeKind.ZodOptional,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodNullable = class extends ZodType {
@@ -3676,7 +3947,7 @@ var DiscordSDKModule = (() => {
     return new ZodNullable({
       innerType: type,
       typeName: ZodFirstPartyTypeKind.ZodNullable,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var ZodDefault = class extends ZodType {
@@ -3689,7 +3960,7 @@ var DiscordSDKModule = (() => {
       return this._def.innerType._parse({
         data,
         path: ctx.path,
-        parent: ctx
+        parent: ctx,
       });
     }
     removeDefault() {
@@ -3700,8 +3971,11 @@ var DiscordSDKModule = (() => {
     return new ZodDefault({
       innerType: type,
       typeName: ZodFirstPartyTypeKind.ZodDefault,
-      defaultValue: typeof params.default === "function" ? params.default : () => params.default,
-      ...processCreateParams(params)
+      defaultValue:
+        typeof params.default === "function"
+          ? params.default
+          : () => params.default,
+      ...processCreateParams(params),
     });
   };
   var ZodCatch = class extends ZodType {
@@ -3711,37 +3985,43 @@ var DiscordSDKModule = (() => {
         ...ctx,
         common: {
           ...ctx.common,
-          issues: []
-        }
+          issues: [],
+        },
       };
       const result = this._def.innerType._parse({
         data: newCtx.data,
         path: newCtx.path,
         parent: {
-          ...newCtx
-        }
+          ...newCtx,
+        },
       });
       if (isAsync(result)) {
         return result.then((result2) => {
           return {
             status: "valid",
-            value: result2.status === "valid" ? result2.value : this._def.catchValue({
-              get error() {
-                return new ZodError(newCtx.common.issues);
-              },
-              input: newCtx.data
-            })
+            value:
+              result2.status === "valid"
+                ? result2.value
+                : this._def.catchValue({
+                    get error() {
+                      return new ZodError(newCtx.common.issues);
+                    },
+                    input: newCtx.data,
+                  }),
           };
         });
       } else {
         return {
           status: "valid",
-          value: result.status === "valid" ? result.value : this._def.catchValue({
-            get error() {
-              return new ZodError(newCtx.common.issues);
-            },
-            input: newCtx.data
-          })
+          value:
+            result.status === "valid"
+              ? result.value
+              : this._def.catchValue({
+                  get error() {
+                    return new ZodError(newCtx.common.issues);
+                  },
+                  input: newCtx.data,
+                }),
         };
       }
     }
@@ -3753,8 +4033,9 @@ var DiscordSDKModule = (() => {
     return new ZodCatch({
       innerType: type,
       typeName: ZodFirstPartyTypeKind.ZodCatch,
-      catchValue: typeof params.catch === "function" ? params.catch : () => params.catch,
-      ...processCreateParams(params)
+      catchValue:
+        typeof params.catch === "function" ? params.catch : () => params.catch,
+      ...processCreateParams(params),
     });
   };
   var ZodNaN = class extends ZodType {
@@ -3765,7 +4046,7 @@ var DiscordSDKModule = (() => {
         addIssueToContext(ctx, {
           code: ZodIssueCode.invalid_type,
           expected: ZodParsedType.nan,
-          received: ctx.parsedType
+          received: ctx.parsedType,
         });
         return INVALID;
       }
@@ -3775,7 +4056,7 @@ var DiscordSDKModule = (() => {
   ZodNaN.create = (params) => {
     return new ZodNaN({
       typeName: ZodFirstPartyTypeKind.ZodNaN,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   var BRAND = /* @__PURE__ */ Symbol("zod_brand");
@@ -3786,7 +4067,7 @@ var DiscordSDKModule = (() => {
       return this._def.type._parse({
         data,
         path: ctx.path,
-        parent: ctx
+        parent: ctx,
       });
     }
     unwrap() {
@@ -3801,10 +4082,9 @@ var DiscordSDKModule = (() => {
           const inResult = await this._def.in._parseAsync({
             data: ctx.data,
             path: ctx.path,
-            parent: ctx
+            parent: ctx,
           });
-          if (inResult.status === "aborted")
-            return INVALID;
+          if (inResult.status === "aborted") return INVALID;
           if (inResult.status === "dirty") {
             status.dirty();
             return DIRTY(inResult.value);
@@ -3812,7 +4092,7 @@ var DiscordSDKModule = (() => {
             return this._def.out._parseAsync({
               data: inResult.value,
               path: ctx.path,
-              parent: ctx
+              parent: ctx,
             });
           }
         };
@@ -3821,21 +4101,20 @@ var DiscordSDKModule = (() => {
         const inResult = this._def.in._parseSync({
           data: ctx.data,
           path: ctx.path,
-          parent: ctx
+          parent: ctx,
         });
-        if (inResult.status === "aborted")
-          return INVALID;
+        if (inResult.status === "aborted") return INVALID;
         if (inResult.status === "dirty") {
           status.dirty();
           return {
             status: "dirty",
-            value: inResult.value
+            value: inResult.value,
           };
         } else {
           return this._def.out._parseSync({
             data: inResult.value,
             path: ctx.path,
-            parent: ctx
+            parent: ctx,
           });
         }
       }
@@ -3844,7 +4123,7 @@ var DiscordSDKModule = (() => {
       return new _ZodPipeline({
         in: a,
         out: b,
-        typeName: ZodFirstPartyTypeKind.ZodPipeline
+        typeName: ZodFirstPartyTypeKind.ZodPipeline,
       });
     }
   };
@@ -3857,7 +4136,9 @@ var DiscordSDKModule = (() => {
         }
         return data;
       };
-      return isAsync(result) ? result.then((data) => freeze(data)) : freeze(result);
+      return isAsync(result)
+        ? result.then((data) => freeze(data))
+        : freeze(result);
     }
     unwrap() {
       return this._def.innerType;
@@ -3867,7 +4148,7 @@ var DiscordSDKModule = (() => {
     return new ZodReadonly({
       innerType: type,
       typeName: ZodFirstPartyTypeKind.ZodReadonly,
-      ...processCreateParams(params)
+      ...processCreateParams(params),
     });
   };
   function custom(check, params = {}, fatal) {
@@ -3875,8 +4156,17 @@ var DiscordSDKModule = (() => {
       return ZodAny.create().superRefine((data, ctx) => {
         var _a, _b;
         if (!check(data)) {
-          const p = typeof params === "function" ? params(data) : typeof params === "string" ? { message: params } : params;
-          const _fatal = (_b = (_a = p.fatal) !== null && _a !== void 0 ? _a : fatal) !== null && _b !== void 0 ? _b : true;
+          const p =
+            typeof params === "function"
+              ? params(data)
+              : typeof params === "string"
+                ? { message: params }
+                : params;
+          const _fatal =
+            (_b = (_a = p.fatal) !== null && _a !== void 0 ? _a : fatal) !==
+              null && _b !== void 0
+              ? _b
+              : true;
           const p2 = typeof p === "string" ? { message: p } : p;
           ctx.addIssue({ code: "custom", ...p2, fatal: _fatal });
         }
@@ -3884,10 +4174,10 @@ var DiscordSDKModule = (() => {
     return ZodAny.create();
   }
   var late = {
-    object: ZodObject.lazycreate
+    object: ZodObject.lazycreate,
   };
   var ZodFirstPartyTypeKind;
-  (function(ZodFirstPartyTypeKind2) {
+  (function (ZodFirstPartyTypeKind2) {
     ZodFirstPartyTypeKind2["ZodString"] = "ZodString";
     ZodFirstPartyTypeKind2["ZodNumber"] = "ZodNumber";
     ZodFirstPartyTypeKind2["ZodNaN"] = "ZodNaN";
@@ -3925,9 +4215,12 @@ var DiscordSDKModule = (() => {
     ZodFirstPartyTypeKind2["ZodPipeline"] = "ZodPipeline";
     ZodFirstPartyTypeKind2["ZodReadonly"] = "ZodReadonly";
   })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
-  var instanceOfType = (cls, params = {
-    message: `Input not instance of ${cls.name}`
-  }) => custom((data) => data instanceof cls, params);
+  var instanceOfType = (
+    cls,
+    params = {
+      message: `Input not instance of ${cls.name}`,
+    },
+  ) => custom((data) => data instanceof cls, params);
   var stringType = ZodString.create;
   var numberType = ZodNumber.create;
   var nanType = ZodNaN.create;
@@ -3966,14 +4259,15 @@ var DiscordSDKModule = (() => {
   var onumber = () => numberType().optional();
   var oboolean = () => booleanType().optional();
   var coerce = {
-    string: ((arg) => ZodString.create({ ...arg, coerce: true })),
-    number: ((arg) => ZodNumber.create({ ...arg, coerce: true })),
-    boolean: ((arg) => ZodBoolean.create({
-      ...arg,
-      coerce: true
-    })),
-    bigint: ((arg) => ZodBigInt.create({ ...arg, coerce: true })),
-    date: ((arg) => ZodDate.create({ ...arg, coerce: true }))
+    string: (arg) => ZodString.create({ ...arg, coerce: true }),
+    number: (arg) => ZodNumber.create({ ...arg, coerce: true }),
+    boolean: (arg) =>
+      ZodBoolean.create({
+        ...arg,
+        coerce: true,
+      }),
+    bigint: (arg) => ZodBigInt.create({ ...arg, coerce: true }),
+    date: (arg) => ZodDate.create({ ...arg, coerce: true }),
   };
   var NEVER = INVALID;
   var z = /* @__PURE__ */ Object.freeze({
@@ -4055,9 +4349,9 @@ var DiscordSDKModule = (() => {
     date: dateType,
     discriminatedUnion: discriminatedUnionType,
     effect: effectsType,
-    "enum": enumType,
-    "function": functionType,
-    "instanceof": instanceOfType,
+    enum: enumType,
+    function: functionType,
+    instanceof: instanceOfType,
     intersection: intersectionType,
     lazy: lazyType,
     literal: literalType,
@@ -4065,7 +4359,7 @@ var DiscordSDKModule = (() => {
     nan: nanType,
     nativeEnum: nativeEnumType,
     never: neverType,
-    "null": nullType,
+    null: nullType,
     nullable: nullableType,
     number: numberType,
     object: objectType,
@@ -4083,14 +4377,14 @@ var DiscordSDKModule = (() => {
     symbol: symbolType,
     transformer: effectsType,
     tuple: tupleType,
-    "undefined": undefinedType,
+    undefined: undefinedType,
     union: unionType,
     unknown: unknownType,
-    "void": voidType,
+    void: voidType,
     NEVER,
     ZodIssueCode,
     quotelessJson,
-    ZodError
+    ZodError,
   });
 
   // node_modules/@discord/embedded-app-sdk/output/_virtual/BigInteger2.mjs
@@ -4101,13 +4395,20 @@ var DiscordSDKModule = (() => {
   function requireBigInteger() {
     if (hasRequiredBigInteger) return BigInteger.exports;
     hasRequiredBigInteger = 1;
-    (function(module) {
-      var bigInt2 = (function(undefined$1) {
-        var BASE2 = 1e7, LOG_BASE2 = 7, MAX_INT = 9007199254740992, MAX_INT_ARR = smallToArray(MAX_INT), DEFAULT_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
+    (function (module) {
+      var bigInt2 = (function (undefined$1) {
+        var BASE2 = 1e7,
+          LOG_BASE2 = 7,
+          MAX_INT = 9007199254740992,
+          MAX_INT_ARR = smallToArray(MAX_INT),
+          DEFAULT_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyz";
         var supportsNativeBigInt = typeof BigInt === "function";
         function Integer(v, radix, alphabet, caseSensitive) {
           if (typeof v === "undefined") return Integer[0];
-          if (typeof radix !== "undefined") return +radix === 10 && !alphabet ? parseValue(v) : parseBase(v, radix, alphabet, caseSensitive);
+          if (typeof radix !== "undefined")
+            return +radix === 10 && !alphabet
+              ? parseValue(v)
+              : parseBase(v, radix, alphabet, caseSensitive);
           return parseValue(v);
         }
         function BigInteger2(value, sign) {
@@ -4130,10 +4431,8 @@ var DiscordSDKModule = (() => {
           return -MAX_INT < n && n < MAX_INT;
         }
         function smallToArray(n) {
-          if (n < 1e7)
-            return [n];
-          if (n < 1e14)
-            return [n % 1e7, Math.floor(n / 1e7)];
+          if (n < 1e7) return [n];
+          if (n < 1e14) return [n % 1e7, Math.floor(n / 1e7)];
           return [n % 1e7, Math.floor(n / 1e7) % 1e7, Math.floor(n / 1e14)];
         }
         function arrayToSmall(arr) {
@@ -4155,7 +4454,7 @@ var DiscordSDKModule = (() => {
         }
         function trim(v) {
           var i2 = v.length;
-          while (v[--i2] === 0) ;
+          while (v[--i2] === 0);
           v.length = i2 + 1;
         }
         function createArray(length) {
@@ -4171,7 +4470,13 @@ var DiscordSDKModule = (() => {
           return Math.ceil(n);
         }
         function add2(a, b) {
-          var l_a = a.length, l_b = b.length, r = new Array(l_a), carry = 0, base = BASE2, sum, i2;
+          var l_a = a.length,
+            l_b = b.length,
+            r = new Array(l_a),
+            carry = 0,
+            base = BASE2,
+            sum,
+            i2;
           for (i2 = 0; i2 < l_b; i2++) {
             sum = a[i2] + b[i2] + carry;
             carry = sum >= base ? 1 : 0;
@@ -4190,7 +4495,11 @@ var DiscordSDKModule = (() => {
           return add2(b, a);
         }
         function addSmall(a, carry) {
-          var l = a.length, r = new Array(l), base = BASE2, sum, i2;
+          var l = a.length,
+            r = new Array(l),
+            base = BASE2,
+            sum,
+            i2;
           for (i2 = 0; i2 < l; i2++) {
             sum = a[i2] - base + carry;
             carry = Math.floor(sum / base);
@@ -4203,19 +4512,20 @@ var DiscordSDKModule = (() => {
           }
           return r;
         }
-        BigInteger2.prototype.add = function(v) {
+        BigInteger2.prototype.add = function (v) {
           var n = parseValue(v);
           if (this.sign !== n.sign) {
             return this.subtract(n.negate());
           }
-          var a = this.value, b = n.value;
+          var a = this.value,
+            b = n.value;
           if (n.isSmall) {
             return new BigInteger2(addSmall(a, Math.abs(b)), this.sign);
           }
           return new BigInteger2(addAny(a, b), this.sign);
         };
         BigInteger2.prototype.plus = BigInteger2.prototype.add;
-        SmallInteger.prototype.add = function(v) {
+        SmallInteger.prototype.add = function (v) {
           var n = parseValue(v);
           var a = this.value;
           if (a < 0 !== n.sign) {
@@ -4229,12 +4539,18 @@ var DiscordSDKModule = (() => {
           return new BigInteger2(addSmall(b, Math.abs(a)), a < 0);
         };
         SmallInteger.prototype.plus = SmallInteger.prototype.add;
-        NativeBigInt.prototype.add = function(v) {
+        NativeBigInt.prototype.add = function (v) {
           return new NativeBigInt(this.value + parseValue(v).value);
         };
         NativeBigInt.prototype.plus = NativeBigInt.prototype.add;
         function subtract2(a, b) {
-          var a_l = a.length, b_l = b.length, r = new Array(a_l), borrow = 0, base = BASE2, i2, difference;
+          var a_l = a.length,
+            b_l = b.length,
+            r = new Array(a_l),
+            borrow = 0,
+            base = BASE2,
+            i2,
+            difference;
           for (i2 = 0; i2 < b_l; i2++) {
             difference = a[i2] - borrow - b[i2];
             if (difference < 0) {
@@ -4274,7 +4590,12 @@ var DiscordSDKModule = (() => {
           return new BigInteger2(value, sign);
         }
         function subtractSmall(a, b, sign) {
-          var l = a.length, r = new Array(l), carry = -b, base = BASE2, i2, difference;
+          var l = a.length,
+            r = new Array(l),
+            carry = -b,
+            base = BASE2,
+            i2,
+            difference;
           for (i2 = 0; i2 < l; i2++) {
             difference = a[i2] + carry;
             carry = Math.floor(difference / base);
@@ -4288,18 +4609,18 @@ var DiscordSDKModule = (() => {
           }
           return new BigInteger2(r, sign);
         }
-        BigInteger2.prototype.subtract = function(v) {
+        BigInteger2.prototype.subtract = function (v) {
           var n = parseValue(v);
           if (this.sign !== n.sign) {
             return this.add(n.negate());
           }
-          var a = this.value, b = n.value;
-          if (n.isSmall)
-            return subtractSmall(a, Math.abs(b), this.sign);
+          var a = this.value,
+            b = n.value;
+          if (n.isSmall) return subtractSmall(a, Math.abs(b), this.sign);
           return subtractAny(a, b, this.sign);
         };
         BigInteger2.prototype.minus = BigInteger2.prototype.subtract;
-        SmallInteger.prototype.subtract = function(v) {
+        SmallInteger.prototype.subtract = function (v) {
           var n = parseValue(v);
           var a = this.value;
           if (a < 0 !== n.sign) {
@@ -4312,33 +4633,42 @@ var DiscordSDKModule = (() => {
           return subtractSmall(b, Math.abs(a), a >= 0);
         };
         SmallInteger.prototype.minus = SmallInteger.prototype.subtract;
-        NativeBigInt.prototype.subtract = function(v) {
+        NativeBigInt.prototype.subtract = function (v) {
           return new NativeBigInt(this.value - parseValue(v).value);
         };
         NativeBigInt.prototype.minus = NativeBigInt.prototype.subtract;
-        BigInteger2.prototype.negate = function() {
+        BigInteger2.prototype.negate = function () {
           return new BigInteger2(this.value, !this.sign);
         };
-        SmallInteger.prototype.negate = function() {
+        SmallInteger.prototype.negate = function () {
           var sign = this.sign;
           var small = new SmallInteger(-this.value);
           small.sign = !sign;
           return small;
         };
-        NativeBigInt.prototype.negate = function() {
+        NativeBigInt.prototype.negate = function () {
           return new NativeBigInt(-this.value);
         };
-        BigInteger2.prototype.abs = function() {
+        BigInteger2.prototype.abs = function () {
           return new BigInteger2(this.value, false);
         };
-        SmallInteger.prototype.abs = function() {
+        SmallInteger.prototype.abs = function () {
           return new SmallInteger(Math.abs(this.value));
         };
-        NativeBigInt.prototype.abs = function() {
+        NativeBigInt.prototype.abs = function () {
           return new NativeBigInt(this.value >= 0 ? this.value : -this.value);
         };
         function multiplyLong(a, b) {
-          var a_l = a.length, b_l = b.length, l = a_l + b_l, r = createArray(l), base = BASE2, product, carry, i2, a_i, b_j;
+          var a_l = a.length,
+            b_l = b.length,
+            l = a_l + b_l,
+            r = createArray(l),
+            base = BASE2,
+            product,
+            carry,
+            i2,
+            a_i,
+            b_j;
           for (i2 = 0; i2 < a_l; ++i2) {
             a_i = a[i2];
             for (var j = 0; j < b_l; ++j) {
@@ -4353,7 +4683,12 @@ var DiscordSDKModule = (() => {
           return r;
         }
         function multiplySmall(a, b) {
-          var l = a.length, r = new Array(l), base = BASE2, carry = 0, product, i2;
+          var l = a.length,
+            r = new Array(l),
+            base = BASE2,
+            carry = 0,
+            product,
+            i2;
           for (i2 = 0; i2 < l; i2++) {
             product = a[i2] * b + carry;
             carry = Math.floor(product / base);
@@ -4374,17 +4709,29 @@ var DiscordSDKModule = (() => {
           var n = Math.max(x.length, y.length);
           if (n <= 30) return multiplyLong(x, y);
           n = Math.ceil(n / 2);
-          var b = x.slice(n), a = x.slice(0, n), d = y.slice(n), c = y.slice(0, n);
-          var ac = multiplyKaratsuba(a, c), bd = multiplyKaratsuba(b, d), abcd = multiplyKaratsuba(addAny(a, b), addAny(c, d));
-          var product = addAny(addAny(ac, shiftLeft(subtract2(subtract2(abcd, ac), bd), n)), shiftLeft(bd, 2 * n));
+          var b = x.slice(n),
+            a = x.slice(0, n),
+            d = y.slice(n),
+            c = y.slice(0, n);
+          var ac = multiplyKaratsuba(a, c),
+            bd = multiplyKaratsuba(b, d),
+            abcd = multiplyKaratsuba(addAny(a, b), addAny(c, d));
+          var product = addAny(
+            addAny(ac, shiftLeft(subtract2(subtract2(abcd, ac), bd), n)),
+            shiftLeft(bd, 2 * n),
+          );
           trim(product);
           return product;
         }
         function useKaratsuba(l1, l2) {
           return -0.012 * l1 - 0.012 * l2 + 15e-6 * l1 * l2 > 0;
         }
-        BigInteger2.prototype.multiply = function(v) {
-          var n = parseValue(v), a = this.value, b = n.value, sign = this.sign !== n.sign, abs;
+        BigInteger2.prototype.multiply = function (v) {
+          var n = parseValue(v),
+            a = this.value,
+            b = n.value,
+            sign = this.sign !== n.sign,
+            abs;
           if (n.isSmall) {
             if (b === 0) return Integer[0];
             if (b === 1) return this;
@@ -4406,28 +4753,43 @@ var DiscordSDKModule = (() => {
           }
           return new BigInteger2(multiplyLong(b, smallToArray(a)), sign);
         }
-        SmallInteger.prototype._multiplyBySmall = function(a) {
+        SmallInteger.prototype._multiplyBySmall = function (a) {
           if (isPrecise(a.value * this.value)) {
             return new SmallInteger(a.value * this.value);
           }
-          return multiplySmallAndArray(Math.abs(a.value), smallToArray(Math.abs(this.value)), this.sign !== a.sign);
+          return multiplySmallAndArray(
+            Math.abs(a.value),
+            smallToArray(Math.abs(this.value)),
+            this.sign !== a.sign,
+          );
         };
-        BigInteger2.prototype._multiplyBySmall = function(a) {
+        BigInteger2.prototype._multiplyBySmall = function (a) {
           if (a.value === 0) return Integer[0];
           if (a.value === 1) return this;
           if (a.value === -1) return this.negate();
-          return multiplySmallAndArray(Math.abs(a.value), this.value, this.sign !== a.sign);
+          return multiplySmallAndArray(
+            Math.abs(a.value),
+            this.value,
+            this.sign !== a.sign,
+          );
         };
-        SmallInteger.prototype.multiply = function(v) {
+        SmallInteger.prototype.multiply = function (v) {
           return parseValue(v)._multiplyBySmall(this);
         };
         SmallInteger.prototype.times = SmallInteger.prototype.multiply;
-        NativeBigInt.prototype.multiply = function(v) {
+        NativeBigInt.prototype.multiply = function (v) {
           return new NativeBigInt(this.value * parseValue(v).value);
         };
         NativeBigInt.prototype.times = NativeBigInt.prototype.multiply;
         function square(a) {
-          var l = a.length, r = createArray(l + l), base = BASE2, product, carry, i2, a_i, a_j;
+          var l = a.length,
+            r = createArray(l + l),
+            base = BASE2,
+            product,
+            carry,
+            i2,
+            a_i,
+            a_j;
           for (i2 = 0; i2 < l; i2++) {
             a_i = a[i2];
             carry = 0 - a_i * a_i;
@@ -4442,26 +4804,46 @@ var DiscordSDKModule = (() => {
           trim(r);
           return r;
         }
-        BigInteger2.prototype.square = function() {
+        BigInteger2.prototype.square = function () {
           return new BigInteger2(square(this.value), false);
         };
-        SmallInteger.prototype.square = function() {
+        SmallInteger.prototype.square = function () {
           var value = this.value * this.value;
           if (isPrecise(value)) return new SmallInteger(value);
-          return new BigInteger2(square(smallToArray(Math.abs(this.value))), false);
+          return new BigInteger2(
+            square(smallToArray(Math.abs(this.value))),
+            false,
+          );
         };
-        NativeBigInt.prototype.square = function(v) {
+        NativeBigInt.prototype.square = function (v) {
           return new NativeBigInt(this.value * this.value);
         };
         function divMod1(a, b) {
-          var a_l = a.length, b_l = b.length, base = BASE2, result = createArray(b.length), divisorMostSignificantDigit = b[b_l - 1], lambda = Math.ceil(base / (2 * divisorMostSignificantDigit)), remainder = multiplySmall(a, lambda), divisor = multiplySmall(b, lambda), quotientDigit, shift, carry, borrow, i2, l, q;
+          var a_l = a.length,
+            b_l = b.length,
+            base = BASE2,
+            result = createArray(b.length),
+            divisorMostSignificantDigit = b[b_l - 1],
+            lambda = Math.ceil(base / (2 * divisorMostSignificantDigit)),
+            remainder = multiplySmall(a, lambda),
+            divisor = multiplySmall(b, lambda),
+            quotientDigit,
+            shift,
+            carry,
+            borrow,
+            i2,
+            l,
+            q;
           if (remainder.length <= a_l) remainder.push(0);
           divisor.push(0);
           divisorMostSignificantDigit = divisor[b_l - 1];
           for (shift = a_l - b_l; shift >= 0; shift--) {
             quotientDigit = base - 1;
             if (remainder[shift + b_l] !== divisorMostSignificantDigit) {
-              quotientDigit = Math.floor((remainder[shift + b_l] * base + remainder[shift + b_l - 1]) / divisorMostSignificantDigit);
+              quotientDigit = Math.floor(
+                (remainder[shift + b_l] * base + remainder[shift + b_l - 1]) /
+                  divisorMostSignificantDigit,
+              );
             }
             carry = 0;
             borrow = 0;
@@ -4500,7 +4882,16 @@ var DiscordSDKModule = (() => {
           return [arrayToSmall(result), arrayToSmall(remainder)];
         }
         function divMod2(a, b) {
-          var a_l = a.length, b_l = b.length, result = [], part = [], base = BASE2, guess, xlen, highx, highy, check;
+          var a_l = a.length,
+            b_l = b.length,
+            result = [],
+            part = [],
+            base = BASE2,
+            guess,
+            xlen,
+            highx,
+            highy,
+            check;
           while (a_l) {
             part.unshift(a[--a_l]);
             trim(part);
@@ -4527,7 +4918,13 @@ var DiscordSDKModule = (() => {
           return [arrayToSmall(result), arrayToSmall(part)];
         }
         function divModSmall(value, lambda) {
-          var length = value.length, quotient = createArray(length), base = BASE2, i2, q, remainder, divisor;
+          var length = value.length,
+            quotient = createArray(length),
+            base = BASE2,
+            i2,
+            q,
+            remainder,
+            divisor;
           remainder = 0;
           for (i2 = length - 1; i2 >= 0; --i2) {
             divisor = remainder * base + value[i2];
@@ -4538,16 +4935,24 @@ var DiscordSDKModule = (() => {
           return [quotient, remainder | 0];
         }
         function divModAny(self2, v) {
-          var value, n = parseValue(v);
+          var value,
+            n = parseValue(v);
           if (supportsNativeBigInt) {
-            return [new NativeBigInt(self2.value / n.value), new NativeBigInt(self2.value % n.value)];
+            return [
+              new NativeBigInt(self2.value / n.value),
+              new NativeBigInt(self2.value % n.value),
+            ];
           }
-          var a = self2.value, b = n.value;
+          var a = self2.value,
+            b = n.value;
           var quotient;
           if (b === 0) throw new Error("Cannot divide by zero");
           if (self2.isSmall) {
             if (n.isSmall) {
-              return [new SmallInteger(truncate2(a / b)), new SmallInteger(a % b)];
+              return [
+                new SmallInteger(truncate2(a / b)),
+                new SmallInteger(a % b),
+              ];
             }
             return [Integer[0], self2];
           }
@@ -4562,20 +4967,28 @@ var DiscordSDKModule = (() => {
               if (self2.sign) remainder = -remainder;
               if (typeof quotient === "number") {
                 if (self2.sign !== n.sign) quotient = -quotient;
-                return [new SmallInteger(quotient), new SmallInteger(remainder)];
+                return [
+                  new SmallInteger(quotient),
+                  new SmallInteger(remainder),
+                ];
               }
-              return [new BigInteger2(quotient, self2.sign !== n.sign), new SmallInteger(remainder)];
+              return [
+                new BigInteger2(quotient, self2.sign !== n.sign),
+                new SmallInteger(remainder),
+              ];
             }
             b = smallToArray(abs);
           }
           var comparison = compareAbs(a, b);
           if (comparison === -1) return [Integer[0], self2];
-          if (comparison === 0) return [Integer[self2.sign === n.sign ? 1 : -1], Integer[0]];
-          if (a.length + b.length <= 200)
-            value = divMod1(a, b);
+          if (comparison === 0)
+            return [Integer[self2.sign === n.sign ? 1 : -1], Integer[0]];
+          if (a.length + b.length <= 200) value = divMod1(a, b);
           else value = divMod2(a, b);
           quotient = value[0];
-          var qSign = self2.sign !== n.sign, mod = value[1], mSign = self2.sign;
+          var qSign = self2.sign !== n.sign,
+            mod = value[1],
+            mSign = self2.sign;
           if (typeof quotient === "number") {
             if (qSign) quotient = -quotient;
             quotient = new SmallInteger(quotient);
@@ -4586,30 +4999,45 @@ var DiscordSDKModule = (() => {
           } else mod = new BigInteger2(mod, mSign);
           return [quotient, mod];
         }
-        BigInteger2.prototype.divmod = function(v) {
+        BigInteger2.prototype.divmod = function (v) {
           var result = divModAny(this, v);
           return {
             quotient: result[0],
-            remainder: result[1]
+            remainder: result[1],
           };
         };
-        NativeBigInt.prototype.divmod = SmallInteger.prototype.divmod = BigInteger2.prototype.divmod;
-        BigInteger2.prototype.divide = function(v) {
+        NativeBigInt.prototype.divmod = SmallInteger.prototype.divmod =
+          BigInteger2.prototype.divmod;
+        BigInteger2.prototype.divide = function (v) {
           return divModAny(this, v)[0];
         };
-        NativeBigInt.prototype.over = NativeBigInt.prototype.divide = function(v) {
+        NativeBigInt.prototype.over = NativeBigInt.prototype.divide = function (
+          v,
+        ) {
           return new NativeBigInt(this.value / parseValue(v).value);
         };
-        SmallInteger.prototype.over = SmallInteger.prototype.divide = BigInteger2.prototype.over = BigInteger2.prototype.divide;
-        BigInteger2.prototype.mod = function(v) {
+        SmallInteger.prototype.over =
+          SmallInteger.prototype.divide =
+          BigInteger2.prototype.over =
+            BigInteger2.prototype.divide;
+        BigInteger2.prototype.mod = function (v) {
           return divModAny(this, v)[1];
         };
-        NativeBigInt.prototype.mod = NativeBigInt.prototype.remainder = function(v) {
-          return new NativeBigInt(this.value % parseValue(v).value);
-        };
-        SmallInteger.prototype.remainder = SmallInteger.prototype.mod = BigInteger2.prototype.remainder = BigInteger2.prototype.mod;
-        BigInteger2.prototype.pow = function(v) {
-          var n = parseValue(v), a = this.value, b = n.value, value, x, y;
+        NativeBigInt.prototype.mod = NativeBigInt.prototype.remainder =
+          function (v) {
+            return new NativeBigInt(this.value % parseValue(v).value);
+          };
+        SmallInteger.prototype.remainder =
+          SmallInteger.prototype.mod =
+          BigInteger2.prototype.remainder =
+            BigInteger2.prototype.mod;
+        BigInteger2.prototype.pow = function (v) {
+          var n = parseValue(v),
+            a = this.value,
+            b = n.value,
+            value,
+            x,
+            y;
           if (b === 0) return Integer[1];
           if (a === 0) return Integer[0];
           if (a === 1) return Integer[1];
@@ -4617,9 +5045,10 @@ var DiscordSDKModule = (() => {
           if (n.sign) {
             return Integer[0];
           }
-          if (!n.isSmall) throw new Error("The exponent " + n.toString() + " is too large.");
+          if (!n.isSmall)
+            throw new Error("The exponent " + n.toString() + " is too large.");
           if (this.isSmall) {
-            if (isPrecise(value = Math.pow(a, b)))
+            if (isPrecise((value = Math.pow(a, b))))
               return new SmallInteger(truncate2(value));
           }
           x = this;
@@ -4636,10 +5065,13 @@ var DiscordSDKModule = (() => {
           return y;
         };
         SmallInteger.prototype.pow = BigInteger2.prototype.pow;
-        NativeBigInt.prototype.pow = function(v) {
+        NativeBigInt.prototype.pow = function (v) {
           var n = parseValue(v);
-          var a = this.value, b = n.value;
-          var _0 = BigInt(0), _1 = BigInt(1), _2 = BigInt(2);
+          var a = this.value,
+            b = n.value;
+          var _0 = BigInt(0),
+            _1 = BigInt(1),
+            _2 = BigInt(2);
           if (b === _0) return Integer[1];
           if (a === _0) return Integer[0];
           if (a === _1) return Integer[1];
@@ -4658,11 +5090,13 @@ var DiscordSDKModule = (() => {
           }
           return y;
         };
-        BigInteger2.prototype.modPow = function(exp2, mod) {
+        BigInteger2.prototype.modPow = function (exp2, mod) {
           exp2 = parseValue(exp2);
           mod = parseValue(mod);
-          if (mod.isZero()) throw new Error("Cannot take modPow with modulus 0");
-          var r = Integer[1], base = this.mod(mod);
+          if (mod.isZero())
+            throw new Error("Cannot take modPow with modulus 0");
+          var r = Integer[1],
+            base = this.mod(mod);
           if (exp2.isNegative()) {
             exp2 = exp2.multiply(Integer[-1]);
             base = base.modInv(mod);
@@ -4675,7 +5109,8 @@ var DiscordSDKModule = (() => {
           }
           return r;
         };
-        NativeBigInt.prototype.modPow = SmallInteger.prototype.modPow = BigInteger2.prototype.modPow;
+        NativeBigInt.prototype.modPow = SmallInteger.prototype.modPow =
+          BigInteger2.prototype.modPow;
         function compareAbs(a, b) {
           if (a.length !== b.length) {
             return a.length > b.length ? 1 : -1;
@@ -4685,34 +5120,40 @@ var DiscordSDKModule = (() => {
           }
           return 0;
         }
-        BigInteger2.prototype.compareAbs = function(v) {
-          var n = parseValue(v), a = this.value, b = n.value;
+        BigInteger2.prototype.compareAbs = function (v) {
+          var n = parseValue(v),
+            a = this.value,
+            b = n.value;
           if (n.isSmall) return 1;
           return compareAbs(a, b);
         };
-        SmallInteger.prototype.compareAbs = function(v) {
-          var n = parseValue(v), a = Math.abs(this.value), b = n.value;
+        SmallInteger.prototype.compareAbs = function (v) {
+          var n = parseValue(v),
+            a = Math.abs(this.value),
+            b = n.value;
           if (n.isSmall) {
             b = Math.abs(b);
             return a === b ? 0 : a > b ? 1 : -1;
           }
           return -1;
         };
-        NativeBigInt.prototype.compareAbs = function(v) {
+        NativeBigInt.prototype.compareAbs = function (v) {
           var a = this.value;
           var b = parseValue(v).value;
           a = a >= 0 ? a : -a;
           b = b >= 0 ? b : -b;
           return a === b ? 0 : a > b ? 1 : -1;
         };
-        BigInteger2.prototype.compare = function(v) {
+        BigInteger2.prototype.compare = function (v) {
           if (v === Infinity) {
             return -1;
           }
           if (v === -Infinity) {
             return 1;
           }
-          var n = parseValue(v), a = this.value, b = n.value;
+          var n = parseValue(v),
+            a = this.value,
+            b = n.value;
           if (this.sign !== n.sign) {
             return n.sign ? 1 : -1;
           }
@@ -4722,14 +5163,16 @@ var DiscordSDKModule = (() => {
           return compareAbs(a, b) * (this.sign ? -1 : 1);
         };
         BigInteger2.prototype.compareTo = BigInteger2.prototype.compare;
-        SmallInteger.prototype.compare = function(v) {
+        SmallInteger.prototype.compare = function (v) {
           if (v === Infinity) {
             return -1;
           }
           if (v === -Infinity) {
             return 1;
           }
-          var n = parseValue(v), a = this.value, b = n.value;
+          var n = parseValue(v),
+            a = this.value,
+            b = n.value;
           if (n.isSmall) {
             return a == b ? 0 : a > b ? 1 : -1;
           }
@@ -4739,7 +5182,7 @@ var DiscordSDKModule = (() => {
           return a < 0 ? 1 : -1;
         };
         SmallInteger.prototype.compareTo = SmallInteger.prototype.compare;
-        NativeBigInt.prototype.compare = function(v) {
+        NativeBigInt.prototype.compare = function (v) {
           if (v === Infinity) {
             return -1;
           }
@@ -4751,98 +5194,136 @@ var DiscordSDKModule = (() => {
           return a === b ? 0 : a > b ? 1 : -1;
         };
         NativeBigInt.prototype.compareTo = NativeBigInt.prototype.compare;
-        BigInteger2.prototype.equals = function(v) {
+        BigInteger2.prototype.equals = function (v) {
           return this.compare(v) === 0;
         };
-        NativeBigInt.prototype.eq = NativeBigInt.prototype.equals = SmallInteger.prototype.eq = SmallInteger.prototype.equals = BigInteger2.prototype.eq = BigInteger2.prototype.equals;
-        BigInteger2.prototype.notEquals = function(v) {
+        NativeBigInt.prototype.eq =
+          NativeBigInt.prototype.equals =
+          SmallInteger.prototype.eq =
+          SmallInteger.prototype.equals =
+          BigInteger2.prototype.eq =
+            BigInteger2.prototype.equals;
+        BigInteger2.prototype.notEquals = function (v) {
           return this.compare(v) !== 0;
         };
-        NativeBigInt.prototype.neq = NativeBigInt.prototype.notEquals = SmallInteger.prototype.neq = SmallInteger.prototype.notEquals = BigInteger2.prototype.neq = BigInteger2.prototype.notEquals;
-        BigInteger2.prototype.greater = function(v) {
+        NativeBigInt.prototype.neq =
+          NativeBigInt.prototype.notEquals =
+          SmallInteger.prototype.neq =
+          SmallInteger.prototype.notEquals =
+          BigInteger2.prototype.neq =
+            BigInteger2.prototype.notEquals;
+        BigInteger2.prototype.greater = function (v) {
           return this.compare(v) > 0;
         };
-        NativeBigInt.prototype.gt = NativeBigInt.prototype.greater = SmallInteger.prototype.gt = SmallInteger.prototype.greater = BigInteger2.prototype.gt = BigInteger2.prototype.greater;
-        BigInteger2.prototype.lesser = function(v) {
+        NativeBigInt.prototype.gt =
+          NativeBigInt.prototype.greater =
+          SmallInteger.prototype.gt =
+          SmallInteger.prototype.greater =
+          BigInteger2.prototype.gt =
+            BigInteger2.prototype.greater;
+        BigInteger2.prototype.lesser = function (v) {
           return this.compare(v) < 0;
         };
-        NativeBigInt.prototype.lt = NativeBigInt.prototype.lesser = SmallInteger.prototype.lt = SmallInteger.prototype.lesser = BigInteger2.prototype.lt = BigInteger2.prototype.lesser;
-        BigInteger2.prototype.greaterOrEquals = function(v) {
+        NativeBigInt.prototype.lt =
+          NativeBigInt.prototype.lesser =
+          SmallInteger.prototype.lt =
+          SmallInteger.prototype.lesser =
+          BigInteger2.prototype.lt =
+            BigInteger2.prototype.lesser;
+        BigInteger2.prototype.greaterOrEquals = function (v) {
           return this.compare(v) >= 0;
         };
-        NativeBigInt.prototype.geq = NativeBigInt.prototype.greaterOrEquals = SmallInteger.prototype.geq = SmallInteger.prototype.greaterOrEquals = BigInteger2.prototype.geq = BigInteger2.prototype.greaterOrEquals;
-        BigInteger2.prototype.lesserOrEquals = function(v) {
+        NativeBigInt.prototype.geq =
+          NativeBigInt.prototype.greaterOrEquals =
+          SmallInteger.prototype.geq =
+          SmallInteger.prototype.greaterOrEquals =
+          BigInteger2.prototype.geq =
+            BigInteger2.prototype.greaterOrEquals;
+        BigInteger2.prototype.lesserOrEquals = function (v) {
           return this.compare(v) <= 0;
         };
-        NativeBigInt.prototype.leq = NativeBigInt.prototype.lesserOrEquals = SmallInteger.prototype.leq = SmallInteger.prototype.lesserOrEquals = BigInteger2.prototype.leq = BigInteger2.prototype.lesserOrEquals;
-        BigInteger2.prototype.isEven = function() {
+        NativeBigInt.prototype.leq =
+          NativeBigInt.prototype.lesserOrEquals =
+          SmallInteger.prototype.leq =
+          SmallInteger.prototype.lesserOrEquals =
+          BigInteger2.prototype.leq =
+            BigInteger2.prototype.lesserOrEquals;
+        BigInteger2.prototype.isEven = function () {
           return (this.value[0] & 1) === 0;
         };
-        SmallInteger.prototype.isEven = function() {
+        SmallInteger.prototype.isEven = function () {
           return (this.value & 1) === 0;
         };
-        NativeBigInt.prototype.isEven = function() {
+        NativeBigInt.prototype.isEven = function () {
           return (this.value & BigInt(1)) === BigInt(0);
         };
-        BigInteger2.prototype.isOdd = function() {
+        BigInteger2.prototype.isOdd = function () {
           return (this.value[0] & 1) === 1;
         };
-        SmallInteger.prototype.isOdd = function() {
+        SmallInteger.prototype.isOdd = function () {
           return (this.value & 1) === 1;
         };
-        NativeBigInt.prototype.isOdd = function() {
+        NativeBigInt.prototype.isOdd = function () {
           return (this.value & BigInt(1)) === BigInt(1);
         };
-        BigInteger2.prototype.isPositive = function() {
+        BigInteger2.prototype.isPositive = function () {
           return !this.sign;
         };
-        SmallInteger.prototype.isPositive = function() {
+        SmallInteger.prototype.isPositive = function () {
           return this.value > 0;
         };
         NativeBigInt.prototype.isPositive = SmallInteger.prototype.isPositive;
-        BigInteger2.prototype.isNegative = function() {
+        BigInteger2.prototype.isNegative = function () {
           return this.sign;
         };
-        SmallInteger.prototype.isNegative = function() {
+        SmallInteger.prototype.isNegative = function () {
           return this.value < 0;
         };
         NativeBigInt.prototype.isNegative = SmallInteger.prototype.isNegative;
-        BigInteger2.prototype.isUnit = function() {
+        BigInteger2.prototype.isUnit = function () {
           return false;
         };
-        SmallInteger.prototype.isUnit = function() {
+        SmallInteger.prototype.isUnit = function () {
           return Math.abs(this.value) === 1;
         };
-        NativeBigInt.prototype.isUnit = function() {
+        NativeBigInt.prototype.isUnit = function () {
           return this.abs().value === BigInt(1);
         };
-        BigInteger2.prototype.isZero = function() {
+        BigInteger2.prototype.isZero = function () {
           return false;
         };
-        SmallInteger.prototype.isZero = function() {
+        SmallInteger.prototype.isZero = function () {
           return this.value === 0;
         };
-        NativeBigInt.prototype.isZero = function() {
+        NativeBigInt.prototype.isZero = function () {
           return this.value === BigInt(0);
         };
-        BigInteger2.prototype.isDivisibleBy = function(v) {
+        BigInteger2.prototype.isDivisibleBy = function (v) {
           var n = parseValue(v);
           if (n.isZero()) return false;
           if (n.isUnit()) return true;
           if (n.compareAbs(2) === 0) return this.isEven();
           return this.mod(n).isZero();
         };
-        NativeBigInt.prototype.isDivisibleBy = SmallInteger.prototype.isDivisibleBy = BigInteger2.prototype.isDivisibleBy;
+        NativeBigInt.prototype.isDivisibleBy =
+          SmallInteger.prototype.isDivisibleBy =
+            BigInteger2.prototype.isDivisibleBy;
         function isBasicPrime(v) {
           var n = v.abs();
           if (n.isUnit()) return false;
           if (n.equals(2) || n.equals(3) || n.equals(5)) return true;
-          if (n.isEven() || n.isDivisibleBy(3) || n.isDivisibleBy(5)) return false;
+          if (n.isEven() || n.isDivisibleBy(3) || n.isDivisibleBy(5))
+            return false;
           if (n.lesser(49)) return true;
         }
         function millerRabinTest(n, a) {
-          var nPrev = n.prev(), b = nPrev, r = 0, d, i2, x;
-          while (b.isEven()) b = b.divide(2), r++;
+          var nPrev = n.prev(),
+            b = nPrev,
+            r = 0,
+            d,
+            i2,
+            x;
+          while (b.isEven()) ((b = b.divide(2)), r++);
           next: for (i2 = 0; i2 < a.length; i2++) {
             if (n.lesser(a[i2])) continue;
             x = bigInt2(a[i2]).modPow(b, n);
@@ -4856,13 +5337,16 @@ var DiscordSDKModule = (() => {
           }
           return true;
         }
-        BigInteger2.prototype.isPrime = function(strict) {
+        BigInteger2.prototype.isPrime = function (strict) {
           var isPrime = isBasicPrime(this);
           if (isPrime !== undefined$1) return isPrime;
           var n = this.abs();
           var bits = n.bitLength();
           if (bits <= 64)
-            return millerRabinTest(n, [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]);
+            return millerRabinTest(
+              n,
+              [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37],
+            );
           var logN = Math.log(2) * bits.toJSNumber();
           var t = Math.ceil(strict === true ? 2 * Math.pow(logN, 2) : logN);
           for (var a = [], i2 = 0; i2 < t; i2++) {
@@ -4870,8 +5354,9 @@ var DiscordSDKModule = (() => {
           }
           return millerRabinTest(n, a);
         };
-        NativeBigInt.prototype.isPrime = SmallInteger.prototype.isPrime = BigInteger2.prototype.isPrime;
-        BigInteger2.prototype.isProbablePrime = function(iterations, rng2) {
+        NativeBigInt.prototype.isPrime = SmallInteger.prototype.isPrime =
+          BigInteger2.prototype.isPrime;
+        BigInteger2.prototype.isProbablePrime = function (iterations, rng2) {
           var isPrime = isBasicPrime(this);
           if (isPrime !== undefined$1) return isPrime;
           var n = this.abs();
@@ -4881,9 +5366,17 @@ var DiscordSDKModule = (() => {
           }
           return millerRabinTest(n, a);
         };
-        NativeBigInt.prototype.isProbablePrime = SmallInteger.prototype.isProbablePrime = BigInteger2.prototype.isProbablePrime;
-        BigInteger2.prototype.modInv = function(n) {
-          var t = bigInt2.zero, newT = bigInt2.one, r = parseValue(n), newR = this.abs(), q, lastT, lastR;
+        NativeBigInt.prototype.isProbablePrime =
+          SmallInteger.prototype.isProbablePrime =
+            BigInteger2.prototype.isProbablePrime;
+        BigInteger2.prototype.modInv = function (n) {
+          var t = bigInt2.zero,
+            newT = bigInt2.one,
+            r = parseValue(n),
+            newR = this.abs(),
+            q,
+            lastT,
+            lastR;
           while (!newR.isZero()) {
             q = r.divide(newR);
             lastT = t;
@@ -4893,7 +5386,10 @@ var DiscordSDKModule = (() => {
             newT = lastT.subtract(q.multiply(newT));
             newR = lastR.subtract(q.multiply(newR));
           }
-          if (!r.isUnit()) throw new Error(this.toString() + " and " + n.toString() + " are not co-prime");
+          if (!r.isUnit())
+            throw new Error(
+              this.toString() + " and " + n.toString() + " are not co-prime",
+            );
           if (t.compare(0) === -1) {
             t = t.add(n);
           }
@@ -4902,44 +5398,47 @@ var DiscordSDKModule = (() => {
           }
           return t;
         };
-        NativeBigInt.prototype.modInv = SmallInteger.prototype.modInv = BigInteger2.prototype.modInv;
-        BigInteger2.prototype.next = function() {
+        NativeBigInt.prototype.modInv = SmallInteger.prototype.modInv =
+          BigInteger2.prototype.modInv;
+        BigInteger2.prototype.next = function () {
           var value = this.value;
           if (this.sign) {
             return subtractSmall(value, 1, this.sign);
           }
           return new BigInteger2(addSmall(value, 1), this.sign);
         };
-        SmallInteger.prototype.next = function() {
+        SmallInteger.prototype.next = function () {
           var value = this.value;
           if (value + 1 < MAX_INT) return new SmallInteger(value + 1);
           return new BigInteger2(MAX_INT_ARR, false);
         };
-        NativeBigInt.prototype.next = function() {
+        NativeBigInt.prototype.next = function () {
           return new NativeBigInt(this.value + BigInt(1));
         };
-        BigInteger2.prototype.prev = function() {
+        BigInteger2.prototype.prev = function () {
           var value = this.value;
           if (this.sign) {
             return new BigInteger2(addSmall(value, 1), true);
           }
           return subtractSmall(value, 1, this.sign);
         };
-        SmallInteger.prototype.prev = function() {
+        SmallInteger.prototype.prev = function () {
           var value = this.value;
           if (value - 1 > -MAX_INT) return new SmallInteger(value - 1);
           return new BigInteger2(MAX_INT_ARR, true);
         };
-        NativeBigInt.prototype.prev = function() {
+        NativeBigInt.prototype.prev = function () {
           return new NativeBigInt(this.value - BigInt(1));
         };
         var powersOfTwo = [1];
-        while (2 * powersOfTwo[powersOfTwo.length - 1] <= BASE2) powersOfTwo.push(2 * powersOfTwo[powersOfTwo.length - 1]);
-        var powers2Length = powersOfTwo.length, highestPower2 = powersOfTwo[powers2Length - 1];
+        while (2 * powersOfTwo[powersOfTwo.length - 1] <= BASE2)
+          powersOfTwo.push(2 * powersOfTwo[powersOfTwo.length - 1]);
+        var powers2Length = powersOfTwo.length,
+          highestPower2 = powersOfTwo[powers2Length - 1];
         function shift_isSmall(n) {
           return Math.abs(n) <= BASE2;
         }
-        BigInteger2.prototype.shiftLeft = function(v) {
+        BigInteger2.prototype.shiftLeft = function (v) {
           var n = parseValue(v).toJSNumber();
           if (!shift_isSmall(n)) {
             throw new Error(String(n) + " is too large for shifting.");
@@ -4953,8 +5452,9 @@ var DiscordSDKModule = (() => {
           }
           return result.multiply(powersOfTwo[n]);
         };
-        NativeBigInt.prototype.shiftLeft = SmallInteger.prototype.shiftLeft = BigInteger2.prototype.shiftLeft;
-        BigInteger2.prototype.shiftRight = function(v) {
+        NativeBigInt.prototype.shiftLeft = SmallInteger.prototype.shiftLeft =
+          BigInteger2.prototype.shiftLeft;
+        BigInteger2.prototype.shiftRight = function (v) {
           var remQuo;
           var n = parseValue(v).toJSNumber();
           if (!shift_isSmall(n)) {
@@ -4963,7 +5463,8 @@ var DiscordSDKModule = (() => {
           if (n < 0) return this.shiftLeft(-n);
           var result = this;
           while (n >= powers2Length) {
-            if (result.isZero() || result.isNegative() && result.isUnit()) return result;
+            if (result.isZero() || (result.isNegative() && result.isUnit()))
+              return result;
             remQuo = divModAny(result, highestPower2);
             result = remQuo[1].isNegative() ? remQuo[0].prev() : remQuo[0];
             n -= powers2Length - 1;
@@ -4971,13 +5472,18 @@ var DiscordSDKModule = (() => {
           remQuo = divModAny(result, powersOfTwo[n]);
           return remQuo[1].isNegative() ? remQuo[0].prev() : remQuo[0];
         };
-        NativeBigInt.prototype.shiftRight = SmallInteger.prototype.shiftRight = BigInteger2.prototype.shiftRight;
+        NativeBigInt.prototype.shiftRight = SmallInteger.prototype.shiftRight =
+          BigInteger2.prototype.shiftRight;
         function bitwise(x, y, fn) {
           y = parseValue(y);
-          var xSign = x.isNegative(), ySign = y.isNegative();
-          var xRem = xSign ? x.not() : x, yRem = ySign ? y.not() : y;
-          var xDigit = 0, yDigit = 0;
-          var xDivMod = null, yDivMod = null;
+          var xSign = x.isNegative(),
+            ySign = y.isNegative();
+          var xRem = xSign ? x.not() : x,
+            yRem = ySign ? y.not() : y;
+          var xDigit = 0,
+            yDigit = 0;
+          var xDivMod = null,
+            yDivMod = null;
           var result = [];
           while (!xRem.isZero() || !yRem.isZero()) {
             xDivMod = divModAny(xRem, highestPower2);
@@ -4994,37 +5500,49 @@ var DiscordSDKModule = (() => {
             yRem = yDivMod[0];
             result.push(fn(xDigit, yDigit));
           }
-          var sum = fn(xSign ? 1 : 0, ySign ? 1 : 0) !== 0 ? bigInt2(-1) : bigInt2(0);
+          var sum =
+            fn(xSign ? 1 : 0, ySign ? 1 : 0) !== 0 ? bigInt2(-1) : bigInt2(0);
           for (var i2 = result.length - 1; i2 >= 0; i2 -= 1) {
             sum = sum.multiply(highestPower2).add(bigInt2(result[i2]));
           }
           return sum;
         }
-        BigInteger2.prototype.not = function() {
+        BigInteger2.prototype.not = function () {
           return this.negate().prev();
         };
-        NativeBigInt.prototype.not = SmallInteger.prototype.not = BigInteger2.prototype.not;
-        BigInteger2.prototype.and = function(n) {
-          return bitwise(this, n, function(a, b) {
+        NativeBigInt.prototype.not = SmallInteger.prototype.not =
+          BigInteger2.prototype.not;
+        BigInteger2.prototype.and = function (n) {
+          return bitwise(this, n, function (a, b) {
             return a & b;
           });
         };
-        NativeBigInt.prototype.and = SmallInteger.prototype.and = BigInteger2.prototype.and;
-        BigInteger2.prototype.or = function(n) {
-          return bitwise(this, n, function(a, b) {
+        NativeBigInt.prototype.and = SmallInteger.prototype.and =
+          BigInteger2.prototype.and;
+        BigInteger2.prototype.or = function (n) {
+          return bitwise(this, n, function (a, b) {
             return a | b;
           });
         };
-        NativeBigInt.prototype.or = SmallInteger.prototype.or = BigInteger2.prototype.or;
-        BigInteger2.prototype.xor = function(n) {
-          return bitwise(this, n, function(a, b) {
+        NativeBigInt.prototype.or = SmallInteger.prototype.or =
+          BigInteger2.prototype.or;
+        BigInteger2.prototype.xor = function (n) {
+          return bitwise(this, n, function (a, b) {
             return a ^ b;
           });
         };
-        NativeBigInt.prototype.xor = SmallInteger.prototype.xor = BigInteger2.prototype.xor;
-        var LOBMASK_I = 1 << 30, LOBMASK_BI = (BASE2 & -BASE2) * (BASE2 & -BASE2) | LOBMASK_I;
+        NativeBigInt.prototype.xor = SmallInteger.prototype.xor =
+          BigInteger2.prototype.xor;
+        var LOBMASK_I = 1 << 30,
+          LOBMASK_BI = ((BASE2 & -BASE2) * (BASE2 & -BASE2)) | LOBMASK_I;
         function roughLOB(n) {
-          var v = n.value, x = typeof v === "number" ? v | LOBMASK_I : typeof v === "bigint" ? v | BigInt(LOBMASK_I) : v[0] + v[1] * BASE2 | LOBMASK_BI;
+          var v = n.value,
+            x =
+              typeof v === "number"
+                ? v | LOBMASK_I
+                : typeof v === "bigint"
+                  ? v | BigInt(LOBMASK_I)
+                  : (v[0] + v[1] * BASE2) | LOBMASK_BI;
           return x & -x;
         }
         function integerLogarithm(value, base) {
@@ -5033,11 +5551,13 @@ var DiscordSDKModule = (() => {
             var p = tmp.p;
             var e = tmp.e;
             var t = p.multiply(base);
-            return t.compareTo(value) <= 0 ? { p: t, e: e * 2 + 1 } : { p, e: e * 2 };
+            return t.compareTo(value) <= 0
+              ? { p: t, e: e * 2 + 1 }
+              : { p, e: e * 2 };
           }
           return { p: bigInt2(1), e: 0 };
         }
-        BigInteger2.prototype.bitLength = function() {
+        BigInteger2.prototype.bitLength = function () {
           var n = this;
           if (n.compareTo(bigInt2(0)) < 0) {
             n = n.negate().subtract(bigInt2(1));
@@ -5047,7 +5567,8 @@ var DiscordSDKModule = (() => {
           }
           return bigInt2(integerLogarithm(n, bigInt2(2)).e).add(bigInt2(1));
         };
-        NativeBigInt.prototype.bitLength = SmallInteger.prototype.bitLength = BigInteger2.prototype.bitLength;
+        NativeBigInt.prototype.bitLength = SmallInteger.prototype.bitLength =
+          BigInteger2.prototype.bitLength;
         function max(a, b) {
           a = parseValue(a);
           b = parseValue(b);
@@ -5064,7 +5585,9 @@ var DiscordSDKModule = (() => {
           if (a.equals(b)) return a;
           if (a.isZero()) return b;
           if (b.isZero()) return a;
-          var c = Integer[1], d, t;
+          var c = Integer[1],
+            d,
+            t;
           while (a.isEven() && b.isEven()) {
             d = min(roughLOB(a), roughLOB(b));
             a = a.divide(d);
@@ -5096,20 +5619,25 @@ var DiscordSDKModule = (() => {
           a = parseValue(a);
           b = parseValue(b);
           var usedRNG = rng2 || Math.random;
-          var low = min(a, b), high = max(a, b);
+          var low = min(a, b),
+            high = max(a, b);
           var range = high.subtract(low).add(1);
           if (range.isSmall) return low.add(Math.floor(usedRNG() * range));
           var digits = toBase(range, BASE2).value;
-          var result = [], restricted = true;
+          var result = [],
+            restricted = true;
           for (var i2 = 0; i2 < digits.length; i2++) {
-            var top = restricted ? digits[i2] + (i2 + 1 < digits.length ? digits[i2 + 1] / BASE2 : 0) : BASE2;
+            var top = restricted
+              ? digits[i2] +
+                (i2 + 1 < digits.length ? digits[i2 + 1] / BASE2 : 0)
+              : BASE2;
             var digit = truncate2(usedRNG() * top);
             result.push(digit);
             if (digit < digits[i2]) restricted = false;
           }
           return low.add(Integer.fromArray(result, BASE2, false));
         }
-        var parseBase = function(text, base, alphabet, caseSensitive) {
+        var parseBase = function (text, base, alphabet, caseSensitive) {
           alphabet = alphabet || DEFAULT_ALPHABET;
           text = String(text);
           if (!caseSensitive) {
@@ -5129,7 +5657,9 @@ var DiscordSDKModule = (() => {
             if (c in alphabetValues) {
               if (alphabetValues[c] >= absBase) {
                 if (c === "1" && absBase === 1) continue;
-                throw new Error(c + " is not a valid digit in base " + base + ".");
+                throw new Error(
+                  c + " is not a valid digit in base " + base + ".",
+                );
               }
             }
           }
@@ -5150,7 +5680,9 @@ var DiscordSDKModule = (() => {
           return parseBaseFromArray(digits, base, isNegative);
         };
         function parseBaseFromArray(digits, base, isNegative) {
-          var val = Integer[0], pow = Integer[1], i2;
+          var val = Integer[0],
+            pow = Integer[1],
+            i2;
           for (i2 = digits.length - 1; i2 >= 0; i2--) {
             val = val.add(digits[i2].times(pow));
             pow = pow.times(base);
@@ -5176,15 +5708,21 @@ var DiscordSDKModule = (() => {
               return {
                 value: [].concat.apply(
                   [],
-                  Array.apply(null, Array(-n.toJSNumber())).map(Array.prototype.valueOf, [1, 0])
+                  Array.apply(null, Array(-n.toJSNumber())).map(
+                    Array.prototype.valueOf,
+                    [1, 0],
+                  ),
                 ),
-                isNegative: false
+                isNegative: false,
               };
-            var arr = Array.apply(null, Array(n.toJSNumber() - 1)).map(Array.prototype.valueOf, [0, 1]);
+            var arr = Array.apply(null, Array(n.toJSNumber() - 1)).map(
+              Array.prototype.valueOf,
+              [0, 1],
+            );
             arr.unshift([1]);
             return {
               value: [].concat.apply([], arr),
-              isNegative: false
+              isNegative: false,
             };
           }
           var neg = false;
@@ -5195,12 +5733,16 @@ var DiscordSDKModule = (() => {
           if (base.isUnit()) {
             if (n.isZero()) return { value: [0], isNegative: false };
             return {
-              value: Array.apply(null, Array(n.toJSNumber())).map(Number.prototype.valueOf, 1),
-              isNegative: neg
+              value: Array.apply(null, Array(n.toJSNumber())).map(
+                Number.prototype.valueOf,
+                1,
+              ),
+              isNegative: neg,
             };
           }
           var out = [];
-          var left = n, divmod;
+          var left = n,
+            divmod;
           while (left.isNegative() || left.compareAbs(base) >= 0) {
             divmod = left.divmod(base);
             left = divmod.quotient;
@@ -5216,23 +5758,33 @@ var DiscordSDKModule = (() => {
         }
         function toBaseString(n, base, alphabet) {
           var arr = toBase(n, base);
-          return (arr.isNegative ? "-" : "") + arr.value.map(function(x) {
-            return stringify(x, alphabet);
-          }).join("");
+          return (
+            (arr.isNegative ? "-" : "") +
+            arr.value
+              .map(function (x) {
+                return stringify(x, alphabet);
+              })
+              .join("")
+          );
         }
-        BigInteger2.prototype.toArray = function(radix) {
+        BigInteger2.prototype.toArray = function (radix) {
           return toBase(this, radix);
         };
-        SmallInteger.prototype.toArray = function(radix) {
+        SmallInteger.prototype.toArray = function (radix) {
           return toBase(this, radix);
         };
-        NativeBigInt.prototype.toArray = function(radix) {
+        NativeBigInt.prototype.toArray = function (radix) {
           return toBase(this, radix);
         };
-        BigInteger2.prototype.toString = function(radix, alphabet) {
+        BigInteger2.prototype.toString = function (radix, alphabet) {
           if (radix === undefined$1) radix = 10;
-          if (radix !== 10 || alphabet) return toBaseString(this, radix, alphabet);
-          var v = this.value, l = v.length, str = String(v[--l]), zeros = "0000000", digit;
+          if (radix !== 10 || alphabet)
+            return toBaseString(this, radix, alphabet);
+          var v = this.value,
+            l = v.length,
+            str = String(v[--l]),
+            zeros = "0000000",
+            digit;
           while (--l >= 0) {
             digit = String(v[l]);
             str += zeros.slice(digit.length) + digit;
@@ -5240,49 +5792,63 @@ var DiscordSDKModule = (() => {
           var sign = this.sign ? "-" : "";
           return sign + str;
         };
-        SmallInteger.prototype.toString = function(radix, alphabet) {
+        SmallInteger.prototype.toString = function (radix, alphabet) {
           if (radix === undefined$1) radix = 10;
-          if (radix != 10 || alphabet) return toBaseString(this, radix, alphabet);
+          if (radix != 10 || alphabet)
+            return toBaseString(this, radix, alphabet);
           return String(this.value);
         };
         NativeBigInt.prototype.toString = SmallInteger.prototype.toString;
-        NativeBigInt.prototype.toJSON = BigInteger2.prototype.toJSON = SmallInteger.prototype.toJSON = function() {
-          return this.toString();
-        };
-        BigInteger2.prototype.valueOf = function() {
+        NativeBigInt.prototype.toJSON =
+          BigInteger2.prototype.toJSON =
+          SmallInteger.prototype.toJSON =
+            function () {
+              return this.toString();
+            };
+        BigInteger2.prototype.valueOf = function () {
           return parseInt(this.toString(), 10);
         };
         BigInteger2.prototype.toJSNumber = BigInteger2.prototype.valueOf;
-        SmallInteger.prototype.valueOf = function() {
+        SmallInteger.prototype.valueOf = function () {
           return this.value;
         };
         SmallInteger.prototype.toJSNumber = SmallInteger.prototype.valueOf;
-        NativeBigInt.prototype.valueOf = NativeBigInt.prototype.toJSNumber = function() {
-          return parseInt(this.toString(), 10);
-        };
+        NativeBigInt.prototype.valueOf = NativeBigInt.prototype.toJSNumber =
+          function () {
+            return parseInt(this.toString(), 10);
+          };
         function parseStringValue(v) {
           if (isPrecise(+v)) {
             var x = +v;
             if (x === truncate2(x))
-              return supportsNativeBigInt ? new NativeBigInt(BigInt(x)) : new SmallInteger(x);
+              return supportsNativeBigInt
+                ? new NativeBigInt(BigInt(x))
+                : new SmallInteger(x);
             throw new Error("Invalid integer: " + v);
           }
           var sign = v[0] === "-";
           if (sign) v = v.slice(1);
           var split = v.split(/e/i);
-          if (split.length > 2) throw new Error("Invalid integer: " + split.join("e"));
+          if (split.length > 2)
+            throw new Error("Invalid integer: " + split.join("e"));
           if (split.length === 2) {
             var exp2 = split[1];
             if (exp2[0] === "+") exp2 = exp2.slice(1);
             exp2 = +exp2;
-            if (exp2 !== truncate2(exp2) || !isPrecise(exp2)) throw new Error("Invalid integer: " + exp2 + " is not a valid exponent.");
+            if (exp2 !== truncate2(exp2) || !isPrecise(exp2))
+              throw new Error(
+                "Invalid integer: " + exp2 + " is not a valid exponent.",
+              );
             var text = split[0];
             var decimalPlace = text.indexOf(".");
             if (decimalPlace >= 0) {
               exp2 -= text.length - decimalPlace - 1;
               text = text.slice(0, decimalPlace) + text.slice(decimalPlace + 1);
             }
-            if (exp2 < 0) throw new Error("Cannot include negative exponent part for integers");
+            if (exp2 < 0)
+              throw new Error(
+                "Cannot include negative exponent part for integers",
+              );
             text += new Array(exp2 + 1).join("0");
             v = text;
           }
@@ -5291,7 +5857,10 @@ var DiscordSDKModule = (() => {
           if (supportsNativeBigInt) {
             return new NativeBigInt(BigInt(sign ? "-" + v : v));
           }
-          var r = [], max2 = v.length, l = LOG_BASE2, min2 = max2 - l;
+          var r = [],
+            max2 = v.length,
+            l = LOG_BASE2,
+            min2 = max2 - l;
           while (max2 > 0) {
             r.push(+v.slice(min2, max2));
             min2 -= l;
@@ -5334,12 +5903,20 @@ var DiscordSDKModule = (() => {
         Integer.min = min;
         Integer.gcd = gcd;
         Integer.lcm = lcm;
-        Integer.isInstance = function(x) {
-          return x instanceof BigInteger2 || x instanceof SmallInteger || x instanceof NativeBigInt;
+        Integer.isInstance = function (x) {
+          return (
+            x instanceof BigInteger2 ||
+            x instanceof SmallInteger ||
+            x instanceof NativeBigInt
+          );
         };
         Integer.randBetween = randBetween;
-        Integer.fromArray = function(digits, base, isNegative) {
-          return parseBaseFromArray(digits.map(parseValue), parseValue(base || 10), isNegative);
+        Integer.fromArray = function (digits, base, isNegative) {
+          return parseBaseFromArray(
+            digits.map(parseValue),
+            parseValue(base || 10),
+            isNegative,
+          );
         };
         return Integer;
       })();
@@ -5405,7 +5982,8 @@ var DiscordSDKModule = (() => {
       const parts = Array(PARTS);
       const offset = Math.floor(index / SMALL_INT);
       for (let i = 0; i < PARTS; i++) {
-        parts[PARTS - 1 - i] = i === offset ? 1 << index - offset * SMALL_INT : 0;
+        parts[PARTS - 1 - i] =
+          i === offset ? 1 << (index - offset * SMALL_INT) : 0;
       }
       return new _HighLow(parts);
     }
@@ -5444,7 +6022,7 @@ var DiscordSDKModule = (() => {
           array[i + offset * 4] = hex[4 - 1 - i] || 0;
         }
       });
-      return this.str = bigInt.fromArray(array, 16).toString();
+      return (this.str = bigInt.fromArray(array, 16).toString());
     }
     toJSON() {
       return this.toString();
@@ -5452,55 +6030,67 @@ var DiscordSDKModule = (() => {
   };
   var SUPPORTS_BIGINT = checkBrowserSupportsBigInt();
   if (SUPPORTS_BIGINT && BigInt.prototype.toJSON == null) {
-    BigInt.prototype.toJSON = function() {
+    BigInt.prototype.toJSON = function () {
       return this.toString();
     };
   }
   var HIGH_LOW_CACHE = {};
-  var convertToBigFlag = SUPPORTS_BIGINT ? function convertToBigFlagBigInt(value) {
-    return BigInt(value);
-  } : function convertToBigFlagHighLow(value) {
-    if (value instanceof HighLow) {
-      return value;
-    }
-    if (typeof value === "number") {
-      value = value.toString();
-    }
-    if (HIGH_LOW_CACHE[value] != null) {
-      return HIGH_LOW_CACHE[value];
-    }
-    HIGH_LOW_CACHE[value] = HighLow.fromString(value);
-    return HIGH_LOW_CACHE[value];
-  };
+  var convertToBigFlag = SUPPORTS_BIGINT
+    ? function convertToBigFlagBigInt(value) {
+        return BigInt(value);
+      }
+    : function convertToBigFlagHighLow(value) {
+        if (value instanceof HighLow) {
+          return value;
+        }
+        if (typeof value === "number") {
+          value = value.toString();
+        }
+        if (HIGH_LOW_CACHE[value] != null) {
+          return HIGH_LOW_CACHE[value];
+        }
+        HIGH_LOW_CACHE[value] = HighLow.fromString(value);
+        return HIGH_LOW_CACHE[value];
+      };
   var EMPTY_FLAG = convertToBigFlag(0);
-  var flagAnd = SUPPORTS_BIGINT ? function flagAndBigInt(first = EMPTY_FLAG, second = EMPTY_FLAG) {
-    return first & second;
-  } : function flagAndHighLow(first = EMPTY_FLAG, second = EMPTY_FLAG) {
-    return first.and(second);
-  };
-  var flagOr = SUPPORTS_BIGINT ? function flagOrBigInt(first = EMPTY_FLAG, second = EMPTY_FLAG) {
-    return first | second;
-  } : function flagOrHighLow(first = EMPTY_FLAG, second = EMPTY_FLAG) {
-    return first.or(second);
-  };
-  var flagXor = SUPPORTS_BIGINT ? function flagXorBigInt(first = EMPTY_FLAG, second = EMPTY_FLAG) {
-    return first ^ second;
-  } : function flagXorHighLow(first = EMPTY_FLAG, second = EMPTY_FLAG) {
-    return first.xor(second);
-  };
-  var flagNot = SUPPORTS_BIGINT ? function flagNotBigInt(first = EMPTY_FLAG) {
-    return ~first;
-  } : function flagNotHighLow(first = EMPTY_FLAG) {
-    return first.not();
-  };
-  var flagEquals = SUPPORTS_BIGINT ? function flagEqualsBigInt(first, second) {
-    return first === second;
-  } : function flagEqualsHighLow(first, second) {
-    if (first == null || second == null) {
-      return first == second;
-    }
-    return first.equals(second);
-  };
+  var flagAnd = SUPPORTS_BIGINT
+    ? function flagAndBigInt(first = EMPTY_FLAG, second = EMPTY_FLAG) {
+        return first & second;
+      }
+    : function flagAndHighLow(first = EMPTY_FLAG, second = EMPTY_FLAG) {
+        return first.and(second);
+      };
+  var flagOr = SUPPORTS_BIGINT
+    ? function flagOrBigInt(first = EMPTY_FLAG, second = EMPTY_FLAG) {
+        return first | second;
+      }
+    : function flagOrHighLow(first = EMPTY_FLAG, second = EMPTY_FLAG) {
+        return first.or(second);
+      };
+  var flagXor = SUPPORTS_BIGINT
+    ? function flagXorBigInt(first = EMPTY_FLAG, second = EMPTY_FLAG) {
+        return first ^ second;
+      }
+    : function flagXorHighLow(first = EMPTY_FLAG, second = EMPTY_FLAG) {
+        return first.xor(second);
+      };
+  var flagNot = SUPPORTS_BIGINT
+    ? function flagNotBigInt(first = EMPTY_FLAG) {
+        return ~first;
+      }
+    : function flagNotHighLow(first = EMPTY_FLAG) {
+        return first.not();
+      };
+  var flagEquals = SUPPORTS_BIGINT
+    ? function flagEqualsBigInt(first, second) {
+        return first === second;
+      }
+    : function flagEqualsHighLow(first, second) {
+        if (first == null || second == null) {
+          return first == second;
+        }
+        return first.equals(second);
+      };
   function flagOrMultiple(...flags) {
     let result = flags[0];
     for (let i = 1; i < flags.length; i++) {
@@ -5520,11 +6110,13 @@ var DiscordSDKModule = (() => {
   function flagRemove(base, flag) {
     return flag === EMPTY_FLAG ? base : flagXor(base, flagAnd(base, flag));
   }
-  var getFlag = SUPPORTS_BIGINT ? function getFlagBigInt(index) {
-    return BigInt(1) << BigInt(index);
-  } : function getFlagHighLow(index) {
-    return HighLow.fromBit(index);
-  };
+  var getFlag = SUPPORTS_BIGINT
+    ? function getFlagBigInt(index) {
+        return BigInt(1) << BigInt(index);
+      }
+    : function getFlagHighLow(index) {
+        return HighLow.fromBit(index);
+      };
   var BigFlagUtils = {
     combine: flagOrMultiple,
     add: flagAdd,
@@ -5535,42 +6127,54 @@ var DiscordSDKModule = (() => {
     hasAny: flagHasAny,
     equals: flagEquals,
     deserialize: convertToBigFlag,
-    getFlag
+    getFlag,
   };
 
   // node_modules/@discord/embedded-app-sdk/output/Constants.mjs
   var RPCCloseCodes;
-  (function(RPCCloseCodes2) {
-    RPCCloseCodes2[RPCCloseCodes2["CLOSE_NORMAL"] = 1e3] = "CLOSE_NORMAL";
-    RPCCloseCodes2[RPCCloseCodes2["CLOSE_UNSUPPORTED"] = 1003] = "CLOSE_UNSUPPORTED";
-    RPCCloseCodes2[RPCCloseCodes2["CLOSE_ABNORMAL"] = 1006] = "CLOSE_ABNORMAL";
-    RPCCloseCodes2[RPCCloseCodes2["INVALID_CLIENTID"] = 4e3] = "INVALID_CLIENTID";
-    RPCCloseCodes2[RPCCloseCodes2["INVALID_ORIGIN"] = 4001] = "INVALID_ORIGIN";
-    RPCCloseCodes2[RPCCloseCodes2["RATELIMITED"] = 4002] = "RATELIMITED";
-    RPCCloseCodes2[RPCCloseCodes2["TOKEN_REVOKED"] = 4003] = "TOKEN_REVOKED";
-    RPCCloseCodes2[RPCCloseCodes2["INVALID_VERSION"] = 4004] = "INVALID_VERSION";
-    RPCCloseCodes2[RPCCloseCodes2["INVALID_ENCODING"] = 4005] = "INVALID_ENCODING";
+  (function (RPCCloseCodes2) {
+    RPCCloseCodes2[(RPCCloseCodes2["CLOSE_NORMAL"] = 1e3)] = "CLOSE_NORMAL";
+    RPCCloseCodes2[(RPCCloseCodes2["CLOSE_UNSUPPORTED"] = 1003)] =
+      "CLOSE_UNSUPPORTED";
+    RPCCloseCodes2[(RPCCloseCodes2["CLOSE_ABNORMAL"] = 1006)] =
+      "CLOSE_ABNORMAL";
+    RPCCloseCodes2[(RPCCloseCodes2["INVALID_CLIENTID"] = 4e3)] =
+      "INVALID_CLIENTID";
+    RPCCloseCodes2[(RPCCloseCodes2["INVALID_ORIGIN"] = 4001)] =
+      "INVALID_ORIGIN";
+    RPCCloseCodes2[(RPCCloseCodes2["RATELIMITED"] = 4002)] = "RATELIMITED";
+    RPCCloseCodes2[(RPCCloseCodes2["TOKEN_REVOKED"] = 4003)] = "TOKEN_REVOKED";
+    RPCCloseCodes2[(RPCCloseCodes2["INVALID_VERSION"] = 4004)] =
+      "INVALID_VERSION";
+    RPCCloseCodes2[(RPCCloseCodes2["INVALID_ENCODING"] = 4005)] =
+      "INVALID_ENCODING";
   })(RPCCloseCodes || (RPCCloseCodes = {}));
   var RPCErrorCodes;
-  (function(RPCErrorCodes2) {
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_PAYLOAD"] = 4e3] = "INVALID_PAYLOAD";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_COMMAND"] = 4002] = "INVALID_COMMAND";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_GUILD"] = 4003] = "INVALID_GUILD";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_EVENT"] = 4004] = "INVALID_EVENT";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_CHANNEL"] = 4005] = "INVALID_CHANNEL";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_PERMISSIONS"] = 4006] = "INVALID_PERMISSIONS";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_CLIENTID"] = 4007] = "INVALID_CLIENTID";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_ORIGIN"] = 4008] = "INVALID_ORIGIN";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_TOKEN"] = 4009] = "INVALID_TOKEN";
-    RPCErrorCodes2[RPCErrorCodes2["INVALID_USER"] = 4010] = "INVALID_USER";
+  (function (RPCErrorCodes2) {
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_PAYLOAD"] = 4e3)] =
+      "INVALID_PAYLOAD";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_COMMAND"] = 4002)] =
+      "INVALID_COMMAND";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_GUILD"] = 4003)] = "INVALID_GUILD";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_EVENT"] = 4004)] = "INVALID_EVENT";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_CHANNEL"] = 4005)] =
+      "INVALID_CHANNEL";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_PERMISSIONS"] = 4006)] =
+      "INVALID_PERMISSIONS";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_CLIENTID"] = 4007)] =
+      "INVALID_CLIENTID";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_ORIGIN"] = 4008)] =
+      "INVALID_ORIGIN";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_TOKEN"] = 4009)] = "INVALID_TOKEN";
+    RPCErrorCodes2[(RPCErrorCodes2["INVALID_USER"] = 4010)] = "INVALID_USER";
   })(RPCErrorCodes || (RPCErrorCodes = {}));
   var Orientation;
-  (function(Orientation3) {
+  (function (Orientation3) {
     Orientation3["LANDSCAPE"] = "landscape";
     Orientation3["PORTRAIT"] = "portrait";
   })(Orientation || (Orientation = {}));
   var Platform;
-  (function(Platform2) {
+  (function (Platform2) {
     Platform2["MOBILE"] = "mobile";
     Platform2["DESKTOP"] = "desktop";
   })(Platform || (Platform = {}));
@@ -5623,7 +6227,7 @@ var DiscordSDKModule = (() => {
     USE_EXTERNAL_SOUNDS: BigFlagUtils.getFlag(45),
     SEND_VOICE_MESSAGES: BigFlagUtils.getFlag(46),
     SEND_POLLS: BigFlagUtils.getFlag(49),
-    USE_EXTERNAL_APPS: BigFlagUtils.getFlag(50)
+    USE_EXTERNAL_APPS: BigFlagUtils.getFlag(50),
   });
   var UNKNOWN_VERSION_NUMBER = -1;
   var HANDSHAKE_SDK_VERSION_MINIMUM_MOBILE_VERSION = 250;
@@ -5686,14 +6290,19 @@ var DiscordSDKModule = (() => {
     VoiceSettingModeTypeObject: () => VoiceSettingModeTypeObject,
     VoiceSettingsIO: () => VoiceSettingsIO,
     VoiceSettingsMode: () => VoiceSettingsMode,
-    VoiceState: () => VoiceState
+    VoiceState: () => VoiceState,
   });
 
   // node_modules/@discord/embedded-app-sdk/output/utils/zodUtils.mjs
   function zodCoerceUnhandledValue(inputObject) {
     return preprocessType((arg) => {
       var _a;
-      const [objectKey] = (_a = Object.entries(inputObject).find(([, value]) => value === arg)) !== null && _a !== void 0 ? _a : [];
+      const [objectKey] =
+        (_a = Object.entries(inputObject).find(
+          ([, value]) => value === arg,
+        )) !== null && _a !== void 0
+          ? _a
+          : [];
       if (arg != null && objectKey === void 0) {
         return inputObject.UNHANDLED;
       }
@@ -5713,189 +6322,284 @@ var DiscordSDKModule = (() => {
   }
 
   // node_modules/@discord/embedded-app-sdk/output/generated/schemas.mjs
-  var InitiateImageUploadResponseSchema = z.object({ image_url: z.string() }).describe('Response for "INITIATE_IMAGE_UPLOAD" Command');
-  var OpenShareMomentDialogRequestSchema = z.object({ mediaUrl: z.string().max(1024) }).describe('Request for "OPEN_SHARE_MOMENT_DIALOG" Command');
-  var AuthenticateRequestSchema = z.object({ access_token: z.union([z.string(), z.null()]).optional() }).describe('Request for "AUTHENTICATE" Command');
-  var AuthenticateResponseSchema = z.object({
-    access_token: z.string(),
-    user: z.object({
-      username: z.string(),
-      discriminator: z.string(),
-      id: z.string(),
-      avatar: z.union([z.string(), z.null()]).optional(),
-      public_flags: z.number(),
-      global_name: z.union([z.string(), z.null()]).optional()
-    }),
-    scopes: z.array(fallbackToDefault(z.enum([
-      "identify",
-      "email",
-      "connections",
-      "guilds",
-      "guilds.join",
-      "guilds.members.read",
-      "guilds.channels.read",
-      "gdm.join",
-      "bot",
-      "rpc",
-      "rpc.notifications.read",
-      "rpc.voice.read",
-      "rpc.voice.write",
-      "rpc.video.read",
-      "rpc.video.write",
-      "rpc.screenshare.read",
-      "rpc.screenshare.write",
-      "rpc.activities.write",
-      "webhook.incoming",
-      "messages.read",
-      "applications.builds.upload",
-      "applications.builds.read",
-      "applications.commands",
-      "applications.commands.permissions.update",
-      "applications.commands.update",
-      "applications.store.update",
-      "applications.entitlements",
-      "activities.read",
-      "activities.write",
-      "activities.invites.write",
-      "relationships.read",
-      "relationships.write",
-      "voice",
-      "dm_channels.read",
-      "role_connections.write",
-      "presences.read",
-      "presences.write",
-      "openid",
-      "dm_channels.messages.read",
-      "dm_channels.messages.write",
-      "gateway.connect",
-      "account.global_name.update",
-      "payment_sources.country_code",
-      "sdk.social_layer_presence",
-      "sdk.social_layer",
-      "lobbies.write",
-      "application_identities.write"
-    ]).or(z.literal(-1)).default(-1))),
-    expires: z.string(),
-    application: z.object({
-      description: z.string(),
-      icon: z.union([z.string(), z.null()]).optional(),
-      id: z.string(),
-      rpc_origins: z.array(z.string()).optional(),
-      name: z.string()
-    })
-  }).describe('Response for "AUTHENTICATE" Command');
-  var GetActivityInstanceConnectedParticipantsResponseSchema = z.object({
-    participants: z.array(z.object({
-      id: z.string(),
-      username: z.string(),
-      global_name: z.union([z.string(), z.null()]).optional(),
-      discriminator: z.string(),
-      avatar: z.union([z.string(), z.null()]).optional(),
-      flags: z.number(),
-      bot: z.boolean(),
-      avatar_decoration_data: z.union([
-        z.object({ asset: z.string(), skuId: z.string().optional(), expiresAt: z.number().optional() }),
-        z.null()
-      ]).optional(),
-      premium_type: z.union([z.number(), z.null()]).optional(),
-      nickname: z.string().optional()
-    }))
-  }).describe('Response for "GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS" Command');
-  var ShareInteractionRequestSchema = z.object({
-    command: z.string(),
-    options: z.array(z.object({ name: z.string(), value: z.string() })).optional(),
-    content: z.string().max(2e3).optional(),
-    require_launch_channel: z.boolean().optional(),
-    preview_image: z.object({ height: z.number(), url: z.string(), width: z.number() }).optional(),
-    components: z.array(z.object({
-      type: z.literal(1),
-      components: z.array(z.object({
-        type: z.literal(2),
-        style: z.number().gte(1).lte(5),
-        label: z.string().max(80).optional(),
-        custom_id: z.string().max(100).describe("Developer-defined identifier for the button; max 100 characters").optional()
-      })).max(5).optional()
-    })).optional(),
-    pid: z.number().optional()
-  }).describe('Request for "SHARE_INTERACTION" Command');
-  var ShareInteractionResponseSchema = z.object({ success: z.boolean() }).describe('Response for "SHARE_INTERACTION" Command');
-  var ShareLinkRequestSchema = z.object({
-    custom_id: z.string().max(64).optional(),
-    message: z.string().max(1e3),
-    link_id: z.string().max(64).optional()
-  }).describe('Request for "SHARE_LINK" Command');
-  var ShareLinkResponseSchema = z.object({ success: z.boolean(), didCopyLink: z.boolean(), didSendMessage: z.boolean() }).describe('Response for "SHARE_LINK" Command');
-  var GetRelationshipsResponseSchema = z.object({
-    relationships: z.array(z.object({
-      type: z.number(),
+  var InitiateImageUploadResponseSchema = z
+    .object({ image_url: z.string() })
+    .describe('Response for "INITIATE_IMAGE_UPLOAD" Command');
+  var OpenShareMomentDialogRequestSchema = z
+    .object({ mediaUrl: z.string().max(1024) })
+    .describe('Request for "OPEN_SHARE_MOMENT_DIALOG" Command');
+  var AuthenticateRequestSchema = z
+    .object({ access_token: z.union([z.string(), z.null()]).optional() })
+    .describe('Request for "AUTHENTICATE" Command');
+  var AuthenticateResponseSchema = z
+    .object({
+      access_token: z.string(),
       user: z.object({
-        id: z.string(),
         username: z.string(),
-        global_name: z.union([z.string(), z.null()]).optional(),
         discriminator: z.string(),
+        id: z.string(),
         avatar: z.union([z.string(), z.null()]).optional(),
-        flags: z.number(),
-        bot: z.boolean(),
-        avatar_decoration_data: z.union([
-          z.object({ asset: z.string(), skuId: z.string().optional(), expiresAt: z.number().optional() }),
-          z.null()
-        ]).optional(),
-        premium_type: z.union([z.number(), z.null()]).optional()
+        public_flags: z.number(),
+        global_name: z.union([z.string(), z.null()]).optional(),
       }),
-      presence: z.object({
-        status: z.string(),
-        activity: z.union([
-          z.object({
-            session_id: z.string().optional(),
-            type: z.number().optional(),
-            name: z.string(),
-            url: z.union([z.string(), z.null()]).optional(),
-            application_id: z.string().optional(),
-            status_display_type: z.number().optional(),
-            state: z.string().optional(),
-            state_url: z.string().optional(),
-            details: z.string().optional(),
-            details_url: z.string().optional(),
-            emoji: z.union([
+      scopes: z.array(
+        fallbackToDefault(
+          z
+            .enum([
+              "identify",
+              "email",
+              "connections",
+              "guilds",
+              "guilds.join",
+              "guilds.members.read",
+              "guilds.channels.read",
+              "gdm.join",
+              "bot",
+              "rpc",
+              "rpc.notifications.read",
+              "rpc.voice.read",
+              "rpc.voice.write",
+              "rpc.video.read",
+              "rpc.video.write",
+              "rpc.screenshare.read",
+              "rpc.screenshare.write",
+              "rpc.activities.write",
+              "webhook.incoming",
+              "messages.read",
+              "applications.builds.upload",
+              "applications.builds.read",
+              "applications.commands",
+              "applications.commands.permissions.update",
+              "applications.commands.update",
+              "applications.store.update",
+              "applications.entitlements",
+              "activities.read",
+              "activities.write",
+              "activities.invites.write",
+              "relationships.read",
+              "relationships.write",
+              "voice",
+              "dm_channels.read",
+              "role_connections.write",
+              "presences.read",
+              "presences.write",
+              "openid",
+              "dm_channels.messages.read",
+              "dm_channels.messages.write",
+              "gateway.connect",
+              "account.global_name.update",
+              "payment_sources.country_code",
+              "sdk.social_layer_presence",
+              "sdk.social_layer",
+              "lobbies.write",
+              "application_identities.write",
+            ])
+            .or(z.literal(-1))
+            .default(-1),
+        ),
+      ),
+      expires: z.string(),
+      application: z.object({
+        description: z.string(),
+        icon: z.union([z.string(), z.null()]).optional(),
+        id: z.string(),
+        rpc_origins: z.array(z.string()).optional(),
+        name: z.string(),
+      }),
+    })
+    .describe('Response for "AUTHENTICATE" Command');
+  var GetActivityInstanceConnectedParticipantsResponseSchema = z
+    .object({
+      participants: z.array(
+        z.object({
+          id: z.string(),
+          username: z.string(),
+          global_name: z.union([z.string(), z.null()]).optional(),
+          discriminator: z.string(),
+          avatar: z.union([z.string(), z.null()]).optional(),
+          flags: z.number(),
+          bot: z.boolean(),
+          avatar_decoration_data: z
+            .union([
               z.object({
-                name: z.string(),
-                id: z.union([z.string(), z.null()]).optional(),
-                animated: z.union([z.boolean(), z.null()]).optional()
+                asset: z.string(),
+                skuId: z.string().optional(),
+                expiresAt: z.number().optional(),
               }),
-              z.null()
-            ]).optional(),
-            assets: z.object({
-              large_image: z.string().optional(),
-              large_text: z.string().optional(),
-              large_url: z.string().optional(),
-              small_image: z.string().optional(),
-              small_text: z.string().optional(),
-              small_url: z.string().optional()
-            }).optional(),
-            timestamps: z.object({ start: z.number().optional(), end: z.number().optional() }).optional(),
-            party: z.object({
-              id: z.string().optional(),
-              size: z.array(z.number()).min(2).max(2).optional(),
-              privacy: z.number().optional()
-            }).optional(),
-            secrets: z.object({ match: z.string().optional(), join: z.string().optional() }).optional(),
-            sync_id: z.string().optional(),
-            created_at: z.number().optional(),
-            instance: z.boolean().optional(),
-            flags: z.number().optional(),
-            metadata: z.object({}).optional(),
-            platform: z.string().optional(),
-            supported_platforms: z.array(z.string()).optional(),
-            buttons: z.array(z.string()).optional(),
-            hangStatus: z.string().optional()
+              z.null(),
+            ])
+            .optional(),
+          premium_type: z.union([z.number(), z.null()]).optional(),
+          nickname: z.string().optional(),
+        }),
+      ),
+    })
+    .describe(
+      'Response for "GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS" Command',
+    );
+  var ShareInteractionRequestSchema = z
+    .object({
+      command: z.string(),
+      options: z
+        .array(z.object({ name: z.string(), value: z.string() }))
+        .optional(),
+      content: z.string().max(2e3).optional(),
+      require_launch_channel: z.boolean().optional(),
+      preview_image: z
+        .object({ height: z.number(), url: z.string(), width: z.number() })
+        .optional(),
+      components: z
+        .array(
+          z.object({
+            type: z.literal(1),
+            components: z
+              .array(
+                z.object({
+                  type: z.literal(2),
+                  style: z.number().gte(1).lte(5),
+                  label: z.string().max(80).optional(),
+                  custom_id: z
+                    .string()
+                    .max(100)
+                    .describe(
+                      "Developer-defined identifier for the button; max 100 characters",
+                    )
+                    .optional(),
+                }),
+              )
+              .max(5)
+              .optional(),
           }),
-          z.null()
-        ]).optional()
-      }).optional()
-    }))
-  }).describe('Response for "GET_RELATIONSHIPS" Command');
-  var InviteUserEmbeddedRequestSchema = z.object({ user_id: z.string(), content: z.string().min(0).max(1024).optional() }).describe('Request for "INVITE_USER_EMBEDDED" Command');
-  var GetUserRequestSchema = z.object({ id: z.string().max(64) }).describe('Request for "GET_USER" Command');
+        )
+        .optional(),
+      pid: z.number().optional(),
+    })
+    .describe('Request for "SHARE_INTERACTION" Command');
+  var ShareInteractionResponseSchema = z
+    .object({ success: z.boolean() })
+    .describe('Response for "SHARE_INTERACTION" Command');
+  var ShareLinkRequestSchema = z
+    .object({
+      custom_id: z.string().max(64).optional(),
+      message: z.string().max(1e3),
+      link_id: z.string().max(64).optional(),
+    })
+    .describe('Request for "SHARE_LINK" Command');
+  var ShareLinkResponseSchema = z
+    .object({
+      success: z.boolean(),
+      didCopyLink: z.boolean(),
+      didSendMessage: z.boolean(),
+    })
+    .describe('Response for "SHARE_LINK" Command');
+  var GetRelationshipsResponseSchema = z
+    .object({
+      relationships: z.array(
+        z.object({
+          type: z.number(),
+          user: z.object({
+            id: z.string(),
+            username: z.string(),
+            global_name: z.union([z.string(), z.null()]).optional(),
+            discriminator: z.string(),
+            avatar: z.union([z.string(), z.null()]).optional(),
+            flags: z.number(),
+            bot: z.boolean(),
+            avatar_decoration_data: z
+              .union([
+                z.object({
+                  asset: z.string(),
+                  skuId: z.string().optional(),
+                  expiresAt: z.number().optional(),
+                }),
+                z.null(),
+              ])
+              .optional(),
+            premium_type: z.union([z.number(), z.null()]).optional(),
+          }),
+          presence: z
+            .object({
+              status: z.string(),
+              activity: z
+                .union([
+                  z.object({
+                    session_id: z.string().optional(),
+                    type: z.number().optional(),
+                    name: z.string(),
+                    url: z.union([z.string(), z.null()]).optional(),
+                    application_id: z.string().optional(),
+                    status_display_type: z.number().optional(),
+                    state: z.string().optional(),
+                    state_url: z.string().optional(),
+                    details: z.string().optional(),
+                    details_url: z.string().optional(),
+                    emoji: z
+                      .union([
+                        z.object({
+                          name: z.string(),
+                          id: z.union([z.string(), z.null()]).optional(),
+                          animated: z.union([z.boolean(), z.null()]).optional(),
+                        }),
+                        z.null(),
+                      ])
+                      .optional(),
+                    assets: z
+                      .object({
+                        large_image: z.string().optional(),
+                        large_text: z.string().optional(),
+                        large_url: z.string().optional(),
+                        small_image: z.string().optional(),
+                        small_text: z.string().optional(),
+                        small_url: z.string().optional(),
+                      })
+                      .optional(),
+                    timestamps: z
+                      .object({
+                        start: z.number().optional(),
+                        end: z.number().optional(),
+                      })
+                      .optional(),
+                    party: z
+                      .object({
+                        id: z.string().optional(),
+                        size: z.array(z.number()).min(2).max(2).optional(),
+                        privacy: z.number().optional(),
+                      })
+                      .optional(),
+                    secrets: z
+                      .object({
+                        match: z.string().optional(),
+                        join: z.string().optional(),
+                      })
+                      .optional(),
+                    sync_id: z.string().optional(),
+                    created_at: z.number().optional(),
+                    instance: z.boolean().optional(),
+                    flags: z.number().optional(),
+                    metadata: z.object({}).optional(),
+                    platform: z.string().optional(),
+                    supported_platforms: z.array(z.string()).optional(),
+                    buttons: z.array(z.string()).optional(),
+                    hangStatus: z.string().optional(),
+                  }),
+                  z.null(),
+                ])
+                .optional(),
+            })
+            .optional(),
+        }),
+      ),
+    })
+    .describe('Response for "GET_RELATIONSHIPS" Command');
+  var InviteUserEmbeddedRequestSchema = z
+    .object({
+      user_id: z.string(),
+      content: z.string().min(0).max(1024).optional(),
+    })
+    .describe('Request for "INVITE_USER_EMBEDDED" Command');
+  var GetUserRequestSchema = z
+    .object({ id: z.string().max(64) })
+    .describe('Request for "GET_USER" Command');
   var GetUserResponseSchema = z.union([
     z.object({
       id: z.string(),
@@ -5905,21 +6609,43 @@ var DiscordSDKModule = (() => {
       avatar: z.union([z.string(), z.null()]).optional(),
       flags: z.number(),
       bot: z.boolean(),
-      avatar_decoration_data: z.union([z.object({ asset: z.string(), skuId: z.string().optional(), expiresAt: z.number().optional() }), z.null()]).optional(),
-      premium_type: z.union([z.number(), z.null()]).optional()
+      avatar_decoration_data: z
+        .union([
+          z.object({
+            asset: z.string(),
+            skuId: z.string().optional(),
+            expiresAt: z.number().optional(),
+          }),
+          z.null(),
+        ])
+        .optional(),
+      premium_type: z.union([z.number(), z.null()]).optional(),
     }),
-    z.null()
+    z.null(),
   ]);
-  var GetQuestEnrollmentStatusRequestSchema = z.object({ quest_id: z.string() }).describe('Request for "GET_QUEST_ENROLLMENT_STATUS" Command');
-  var GetQuestEnrollmentStatusResponseSchema = z.object({ quest_id: z.string(), is_enrolled: z.boolean(), enrolled_at: z.union([z.string(), z.null()]).optional() }).describe('Response for "GET_QUEST_ENROLLMENT_STATUS" Command');
-  var QuestStartTimerRequestSchema = z.object({ quest_id: z.string() }).describe('Request for "QUEST_START_TIMER" Command');
-  var QuestStartTimerResponseSchema = z.object({ success: z.boolean() }).describe('Response for "QUEST_START_TIMER" Command');
+  var GetQuestEnrollmentStatusRequestSchema = z
+    .object({ quest_id: z.string() })
+    .describe('Request for "GET_QUEST_ENROLLMENT_STATUS" Command');
+  var GetQuestEnrollmentStatusResponseSchema = z
+    .object({
+      quest_id: z.string(),
+      is_enrolled: z.boolean(),
+      enrolled_at: z.union([z.string(), z.null()]).optional(),
+    })
+    .describe('Response for "GET_QUEST_ENROLLMENT_STATUS" Command');
+  var QuestStartTimerRequestSchema = z
+    .object({ quest_id: z.string() })
+    .describe('Request for "QUEST_START_TIMER" Command');
+  var QuestStartTimerResponseSchema = z
+    .object({ success: z.boolean() })
+    .describe('Response for "QUEST_START_TIMER" Command');
   var Command;
-  (function(Command2) {
+  (function (Command2) {
     Command2["INITIATE_IMAGE_UPLOAD"] = "INITIATE_IMAGE_UPLOAD";
     Command2["OPEN_SHARE_MOMENT_DIALOG"] = "OPEN_SHARE_MOMENT_DIALOG";
     Command2["AUTHENTICATE"] = "AUTHENTICATE";
-    Command2["GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS"] = "GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS";
+    Command2["GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS"] =
+      "GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS";
     Command2["SHARE_INTERACTION"] = "SHARE_INTERACTION";
     Command2["SHARE_LINK"] = "SHARE_LINK";
     Command2["GET_RELATIONSHIPS"] = "GET_RELATIONSHIPS";
@@ -5933,54 +6659,54 @@ var DiscordSDKModule = (() => {
   var Schemas = {
     [Command.INITIATE_IMAGE_UPLOAD]: {
       request: emptyRequestSchema,
-      response: InitiateImageUploadResponseSchema
+      response: InitiateImageUploadResponseSchema,
     },
     [Command.OPEN_SHARE_MOMENT_DIALOG]: {
       request: OpenShareMomentDialogRequestSchema,
-      response: emptyResponseSchema
+      response: emptyResponseSchema,
     },
     [Command.AUTHENTICATE]: {
       request: AuthenticateRequestSchema,
-      response: AuthenticateResponseSchema
+      response: AuthenticateResponseSchema,
     },
     [Command.GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS]: {
       request: emptyRequestSchema,
-      response: GetActivityInstanceConnectedParticipantsResponseSchema
+      response: GetActivityInstanceConnectedParticipantsResponseSchema,
     },
     [Command.SHARE_INTERACTION]: {
       request: ShareInteractionRequestSchema,
-      response: ShareInteractionResponseSchema
+      response: ShareInteractionResponseSchema,
     },
     [Command.SHARE_LINK]: {
       request: ShareLinkRequestSchema,
-      response: ShareLinkResponseSchema
+      response: ShareLinkResponseSchema,
     },
     [Command.GET_RELATIONSHIPS]: {
       request: emptyRequestSchema,
-      response: GetRelationshipsResponseSchema
+      response: GetRelationshipsResponseSchema,
     },
     [Command.INVITE_USER_EMBEDDED]: {
       request: InviteUserEmbeddedRequestSchema,
-      response: emptyResponseSchema
+      response: emptyResponseSchema,
     },
     [Command.GET_USER]: {
       request: GetUserRequestSchema,
-      response: GetUserResponseSchema
+      response: GetUserResponseSchema,
     },
     [Command.GET_QUEST_ENROLLMENT_STATUS]: {
       request: GetQuestEnrollmentStatusRequestSchema,
-      response: GetQuestEnrollmentStatusResponseSchema
+      response: GetQuestEnrollmentStatusResponseSchema,
     },
     [Command.QUEST_START_TIMER]: {
       request: QuestStartTimerRequestSchema,
-      response: QuestStartTimerResponseSchema
-    }
+      response: QuestStartTimerResponseSchema,
+    },
   };
 
   // node_modules/@discord/embedded-app-sdk/output/schema/common.mjs
   var DISPATCH = "DISPATCH";
   var Commands;
-  (function(Commands3) {
+  (function (Commands3) {
     Commands3["AUTHORIZE"] = "AUTHORIZE";
     Commands3["GET_GUILDS"] = "GET_GUILDS";
     Commands3["GET_GUILD"] = "GET_GUILD";
@@ -6009,7 +6735,8 @@ var DiscordSDKModule = (() => {
     Commands3["GET_PLATFORM_BEHAVIORS"] = "GET_PLATFORM_BEHAVIORS";
     Commands3["GET_CHANNEL_PERMISSIONS"] = "GET_CHANNEL_PERMISSIONS";
     Commands3["AUTHENTICATE"] = "AUTHENTICATE";
-    Commands3["GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS"] = "GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS";
+    Commands3["GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS"] =
+      "GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS";
     Commands3["GET_QUEST_ENROLLMENT_STATUS"] = "GET_QUEST_ENROLLMENT_STATUS";
     Commands3["GET_RELATIONSHIPS"] = "GET_RELATIONSHIPS";
     Commands3["GET_USER"] = "GET_USER";
@@ -6024,9 +6751,16 @@ var DiscordSDKModule = (() => {
     cmd: stringType(),
     data: unknownType(),
     evt: nullType(),
-    nonce: stringType()
+    nonce: stringType(),
   }).passthrough();
-  var ScopesObject = Object.assign(Object.assign({}, AuthenticateResponseSchema.shape.scopes.element.overlayType._def.innerType.options[0].Values), { UNHANDLED: -1 });
+  var ScopesObject = Object.assign(
+    Object.assign(
+      {},
+      AuthenticateResponseSchema.shape.scopes.element.overlayType._def.innerType
+        .options[0].Values,
+    ),
+    { UNHANDLED: -1 },
+  );
   var Scopes = zodCoerceUnhandledValue(ScopesObject);
   var Relationship = GetRelationshipsResponseSchema.shape.relationships.element;
   var User = objectType({
@@ -6037,11 +6771,11 @@ var DiscordSDKModule = (() => {
     avatar: stringType().optional().nullable(),
     avatar_decoration_data: objectType({
       asset: stringType(),
-      sku_id: stringType().optional()
+      sku_id: stringType().optional(),
     }).nullable(),
     bot: booleanType(),
     flags: numberType().optional().nullable(),
-    premium_type: numberType().optional().nullable()
+    premium_type: numberType().optional().nullable(),
   });
   var GuildMember = objectType({
     user: User,
@@ -6049,7 +6783,7 @@ var DiscordSDKModule = (() => {
     roles: arrayType(stringType()),
     joined_at: stringType(),
     deaf: booleanType(),
-    mute: booleanType()
+    mute: booleanType(),
   });
   var GuildMemberRPC = objectType({
     user_id: stringType(),
@@ -6058,9 +6792,11 @@ var DiscordSDKModule = (() => {
     avatar: stringType().optional().nullable(),
     avatar_decoration_data: objectType({
       asset: stringType(),
-      sku_id: stringType().optional().nullable()
-    }).optional().nullable(),
-    color_string: stringType().optional().nullable()
+      sku_id: stringType().optional().nullable(),
+    })
+      .optional()
+      .nullable(),
+    color_string: stringType().optional().nullable(),
   });
   var Emoji = objectType({
     id: stringType(),
@@ -6070,28 +6806,28 @@ var DiscordSDKModule = (() => {
     require_colons: booleanType().optional().nullable(),
     managed: booleanType().optional().nullable(),
     animated: booleanType().optional().nullable(),
-    available: booleanType().optional().nullable()
+    available: booleanType().optional().nullable(),
   });
   var VoiceState = objectType({
     mute: booleanType(),
     deaf: booleanType(),
     self_mute: booleanType(),
     self_deaf: booleanType(),
-    suppress: booleanType()
+    suppress: booleanType(),
   });
   var UserVoiceState = objectType({
     mute: booleanType(),
     nick: stringType(),
     user: User,
     voice_state: VoiceState,
-    volume: numberType()
+    volume: numberType(),
   });
   var StatusObject = {
     UNHANDLED: -1,
     IDLE: "idle",
     DND: "dnd",
     ONLINE: "online",
-    OFFLINE: "offline"
+    OFFLINE: "offline",
   };
   var Status = zodCoerceUnhandledValue(StatusObject);
   var Activity = objectType({
@@ -6101,8 +6837,11 @@ var DiscordSDKModule = (() => {
     created_at: numberType().optional().nullable(),
     timestamps: objectType({
       start: numberType(),
-      end: numberType()
-    }).partial().optional().nullable(),
+      end: numberType(),
+    })
+      .partial()
+      .optional()
+      .nullable(),
     application_id: stringType().optional().nullable(),
     details: stringType().optional().nullable(),
     details_url: stringType().url().optional().nullable(),
@@ -6111,33 +6850,41 @@ var DiscordSDKModule = (() => {
     emoji: Emoji.optional().nullable(),
     party: objectType({
       id: stringType().optional().nullable(),
-      size: arrayType(numberType()).optional().nullable()
-    }).optional().nullable(),
+      size: arrayType(numberType()).optional().nullable(),
+    })
+      .optional()
+      .nullable(),
     assets: objectType({
       large_image: stringType().nullable(),
       large_text: stringType().nullable(),
       large_url: stringType().url().optional().nullable(),
       small_image: stringType().nullable(),
       small_text: stringType().nullable(),
-      small_url: stringType().url().optional().nullable()
-    }).partial().optional().nullable(),
+      small_url: stringType().url().optional().nullable(),
+    })
+      .partial()
+      .optional()
+      .nullable(),
     secrets: objectType({
       join: stringType(),
-      match: stringType()
-    }).partial().optional().nullable(),
+      match: stringType(),
+    })
+      .partial()
+      .optional()
+      .nullable(),
     instance: booleanType().optional().nullable(),
-    flags: numberType().optional().nullable()
+    flags: numberType().optional().nullable(),
   });
   var PermissionOverwriteTypeObject = {
     UNHANDLED: -1,
     ROLE: 0,
-    MEMBER: 1
+    MEMBER: 1,
   };
   var PermissionOverwrite = objectType({
     id: stringType(),
     type: zodCoerceUnhandledValue(PermissionOverwriteTypeObject),
     allow: stringType(),
-    deny: stringType()
+    deny: stringType(),
   });
   var ChannelTypesObject = {
     UNHANDLED: -1,
@@ -6153,7 +6900,7 @@ var DiscordSDKModule = (() => {
     PRIVATE_THREAD: 12,
     GUILD_STAGE_VOICE: 13,
     GUILD_DIRECTORY: 14,
-    GUILD_FORUM: 15
+    GUILD_FORUM: 15,
   };
   var Channel = objectType({
     id: stringType(),
@@ -6173,7 +6920,7 @@ var DiscordSDKModule = (() => {
     owner_id: stringType().optional().nullable(),
     application_id: stringType().optional().nullable(),
     parent_id: stringType().optional().nullable(),
-    last_pin_timestamp: stringType().optional().nullable()
+    last_pin_timestamp: stringType().optional().nullable(),
   });
   var PresenceUpdate = objectType({
     user: User,
@@ -6183,8 +6930,8 @@ var DiscordSDKModule = (() => {
     client_status: objectType({
       desktop: Status,
       mobile: Status,
-      web: Status
-    }).partial()
+      web: Status,
+    }).partial(),
   });
   var Role = objectType({
     id: stringType(),
@@ -6194,7 +6941,7 @@ var DiscordSDKModule = (() => {
     position: numberType(),
     permissions: stringType(),
     managed: booleanType(),
-    mentionable: booleanType()
+    mentionable: booleanType(),
   });
   var Guild = objectType({
     id: stringType(),
@@ -6241,13 +6988,13 @@ var DiscordSDKModule = (() => {
     public_updates_channel_id: stringType().nullable(),
     max_video_channel_users: numberType().optional().nullable(),
     approximate_member_count: numberType().optional().nullable(),
-    approximate_presence_count: numberType().optional().nullable()
+    approximate_presence_count: numberType().optional().nullable(),
   });
   var ChannelMention = objectType({
     id: stringType(),
     guild_id: stringType(),
     type: numberType(),
-    name: stringType()
+    name: stringType(),
   });
   var Attachment = objectType({
     id: stringType(),
@@ -6256,34 +7003,34 @@ var DiscordSDKModule = (() => {
     url: stringType(),
     proxy_url: stringType(),
     height: numberType().optional().nullable(),
-    width: numberType().optional().nullable()
+    width: numberType().optional().nullable(),
   });
   var EmbedFooter = objectType({
     text: stringType(),
     icon_url: stringType().optional().nullable(),
-    proxy_icon_url: stringType().optional().nullable()
+    proxy_icon_url: stringType().optional().nullable(),
   });
   var Image = objectType({
     url: stringType().optional().nullable(),
     proxy_url: stringType().optional().nullable(),
     height: numberType().optional().nullable(),
-    width: numberType().optional().nullable()
+    width: numberType().optional().nullable(),
   });
   var Video = Image.omit({ proxy_url: true });
   var EmbedProvider = objectType({
     name: stringType().optional().nullable(),
-    url: stringType().optional().nullable()
+    url: stringType().optional().nullable(),
   });
   var EmbedAuthor = objectType({
     name: stringType().optional().nullable(),
     url: stringType().optional().nullable(),
     icon_url: stringType().optional().nullable(),
-    proxy_icon_url: stringType().optional().nullable()
+    proxy_icon_url: stringType().optional().nullable(),
   });
   var EmbedField = objectType({
     name: stringType(),
     value: stringType(),
-    inline: booleanType()
+    inline: booleanType(),
   });
   var Embed = objectType({
     title: stringType().optional().nullable(),
@@ -6298,28 +7045,28 @@ var DiscordSDKModule = (() => {
     video: Video.optional().nullable(),
     provider: EmbedProvider.optional().nullable(),
     author: EmbedAuthor.optional().nullable(),
-    fields: arrayType(EmbedField).optional().nullable()
+    fields: arrayType(EmbedField).optional().nullable(),
   });
   var Reaction = objectType({
     count: numberType(),
     me: booleanType(),
-    emoji: Emoji
+    emoji: Emoji,
   });
   var MessageActivity = objectType({
     type: numberType(),
-    party_id: stringType().optional().nullable()
+    party_id: stringType().optional().nullable(),
   });
   var MessageApplication = objectType({
     id: stringType(),
     cover_image: stringType().optional().nullable(),
     description: stringType(),
     icon: stringType().optional().nullable(),
-    name: stringType()
+    name: stringType(),
   });
   var MessageReference = objectType({
     message_id: stringType().optional().nullable(),
     channel_id: stringType().optional().nullable(),
-    guild_id: stringType().optional().nullable()
+    guild_id: stringType().optional().nullable(),
   });
   var Message = objectType({
     id: stringType(),
@@ -6348,63 +7095,63 @@ var DiscordSDKModule = (() => {
     flags: numberType().optional().nullable(),
     stickers: arrayType(unknownType()).optional().nullable(),
     // Cannot self reference, but this is possibly a Message
-    referenced_message: unknownType().optional().nullable()
+    referenced_message: unknownType().optional().nullable(),
   });
   var VoiceDevice = objectType({
     id: stringType(),
-    name: stringType()
+    name: stringType(),
   });
   var KeyTypesObject = {
     UNHANDLED: -1,
     KEYBOARD_KEY: 0,
     MOUSE_BUTTON: 1,
     KEYBOARD_MODIFIER_KEY: 2,
-    GAMEPAD_BUTTON: 3
+    GAMEPAD_BUTTON: 3,
   };
   var ShortcutKey = objectType({
     type: zodCoerceUnhandledValue(KeyTypesObject),
     code: numberType(),
-    name: stringType()
+    name: stringType(),
   });
   var VoiceSettingModeTypeObject = {
     UNHANDLED: -1,
     PUSH_TO_TALK: "PUSH_TO_TALK",
-    VOICE_ACTIVITY: "VOICE_ACTIVITY"
+    VOICE_ACTIVITY: "VOICE_ACTIVITY",
   };
   var VoiceSettingsMode = objectType({
     type: zodCoerceUnhandledValue(VoiceSettingModeTypeObject),
     auto_threshold: booleanType(),
     threshold: numberType(),
     shortcut: arrayType(ShortcutKey),
-    delay: numberType()
+    delay: numberType(),
   });
   var VoiceSettingsIO = objectType({
     device_id: stringType(),
     volume: numberType(),
-    available_devices: arrayType(VoiceDevice)
+    available_devices: arrayType(VoiceDevice),
   });
   var CertifiedDeviceTypeObject = {
     UNHANDLED: -1,
     AUDIO_INPUT: "AUDIO_INPUT",
     AUDIO_OUTPUT: "AUDIO_OUTPUT",
-    VIDEO_INPUT: "VIDEO_INPUT"
+    VIDEO_INPUT: "VIDEO_INPUT",
   };
   var CertifiedDevice = objectType({
     type: zodCoerceUnhandledValue(CertifiedDeviceTypeObject),
     id: stringType(),
     vendor: objectType({
       name: stringType(),
-      url: stringType()
+      url: stringType(),
     }),
     model: objectType({
       name: stringType(),
-      url: stringType()
+      url: stringType(),
     }),
     related: arrayType(stringType()),
     echo_cancellation: booleanType().optional().nullable(),
     noise_suppression: booleanType().optional().nullable(),
     automatic_gain_control: booleanType().optional().nullable(),
-    hardware_mute: booleanType().optional().nullable()
+    hardware_mute: booleanType().optional().nullable(),
   });
   var SkuTypeObject = {
     UNHANDLED: -1,
@@ -6412,7 +7159,7 @@ var DiscordSDKModule = (() => {
     DLC: 2,
     CONSUMABLE: 3,
     BUNDLE: 4,
-    SUBSCRIPTION: 5
+    SUBSCRIPTION: 5,
   };
   var Sku = objectType({
     id: stringType(),
@@ -6420,11 +7167,11 @@ var DiscordSDKModule = (() => {
     type: zodCoerceUnhandledValue(SkuTypeObject),
     price: objectType({
       amount: numberType(),
-      currency: stringType()
+      currency: stringType(),
     }),
     application_id: stringType(),
     flags: numberType(),
-    release_date: stringType().nullable()
+    release_date: stringType().nullable(),
   });
   var EntitlementTypesObject = {
     UNHANDLED: -1,
@@ -6434,7 +7181,7 @@ var DiscordSDKModule = (() => {
     TEST_MODE_PURCHASE: 4,
     FREE_PURCHASE: 5,
     USER_GIFT: 6,
-    PREMIUM_PURCHASE: 7
+    PREMIUM_PURCHASE: 7,
   };
   var Entitlement = objectType({
     id: stringType(),
@@ -6452,41 +7199,43 @@ var DiscordSDKModule = (() => {
     parent_id: stringType().optional().nullable(),
     consumed: booleanType().optional().nullable(),
     deleted: booleanType().optional().nullable(),
-    gift_code_batch_id: stringType().optional().nullable()
+    gift_code_batch_id: stringType().optional().nullable(),
   });
   var OrientationLockStateTypeObject = {
     UNHANDLED: -1,
     UNLOCKED: 1,
     PORTRAIT: 2,
-    LANDSCAPE: 3
+    LANDSCAPE: 3,
   };
-  var OrientationLockState = zodCoerceUnhandledValue(OrientationLockStateTypeObject);
+  var OrientationLockState = zodCoerceUnhandledValue(
+    OrientationLockStateTypeObject,
+  );
   var ThermalStateTypeObject = {
     UNHANDLED: -1,
     NOMINAL: 0,
     FAIR: 1,
     SERIOUS: 2,
-    CRITICAL: 3
+    CRITICAL: 3,
   };
   var ThermalState = zodCoerceUnhandledValue(ThermalStateTypeObject);
   var OrientationTypeObject = {
     UNHANDLED: -1,
     PORTRAIT: 0,
-    LANDSCAPE: 1
+    LANDSCAPE: 1,
   };
   var Orientation2 = zodCoerceUnhandledValue(OrientationTypeObject);
   var LayoutModeTypeObject = {
     UNHANDLED: -1,
     FOCUSED: 0,
     PIP: 1,
-    GRID: 2
+    GRID: 2,
   };
   var LayoutMode = zodCoerceUnhandledValue(LayoutModeTypeObject);
 
   // node_modules/@discord/embedded-app-sdk/output/schema/events.mjs
   var ERROR = "ERROR";
   var Events;
-  (function(Events2) {
+  (function (Events2) {
     Events2["READY"] = "READY";
     Events2["VOICE_STATE_UPDATE"] = "VOICE_STATE_UPDATE";
     Events2["SPEAKING_START"] = "SPEAKING_START";
@@ -6497,28 +7246,30 @@ var DiscordSDKModule = (() => {
     Events2["CURRENT_GUILD_MEMBER_UPDATE"] = "CURRENT_GUILD_MEMBER_UPDATE";
     Events2["ENTITLEMENT_CREATE"] = "ENTITLEMENT_CREATE";
     Events2["THERMAL_STATE_UPDATE"] = "THERMAL_STATE_UPDATE";
-    Events2["ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE"] = "ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE";
+    Events2["ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE"] =
+      "ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE";
     Events2["RELATIONSHIP_UPDATE"] = "RELATIONSHIP_UPDATE";
     Events2["ACTIVITY_JOIN"] = "ACTIVITY_JOIN";
-    Events2["QUEST_ENROLLMENT_STATUS_UPDATE"] = "QUEST_ENROLLMENT_STATUS_UPDATE";
+    Events2["QUEST_ENROLLMENT_STATUS_UPDATE"] =
+      "QUEST_ENROLLMENT_STATUS_UPDATE";
   })(Events || (Events = {}));
   var DispatchEventFrame = ReceiveFramePayload.extend({
     evt: nativeEnumType(Events),
     nonce: stringType().nullable(),
     cmd: literalType(DISPATCH),
-    data: objectType({}).passthrough()
+    data: objectType({}).passthrough(),
   });
   var ErrorEvent = ReceiveFramePayload.extend({
     evt: literalType(ERROR),
     data: objectType({
       code: numberType(),
-      message: stringType().optional()
+      message: stringType().optional(),
     }).passthrough(),
     cmd: nativeEnumType(Commands),
-    nonce: stringType().nullable()
+    nonce: stringType().nullable(),
   });
   var OtherEvent = DispatchEventFrame.extend({
-    evt: stringType()
+    evt: stringType(),
   });
   var EventFrame = unionType([DispatchEventFrame, OtherEvent, ErrorEvent]);
   function parseEventPayload(data) {
@@ -6557,25 +7308,25 @@ var DiscordSDKModule = (() => {
           config: objectType({
             cdn_host: stringType().optional(),
             api_endpoint: stringType(),
-            environment: stringType()
+            environment: stringType(),
           }),
           user: objectType({
             id: stringType(),
             username: stringType(),
             discriminator: stringType(),
-            avatar: stringType().optional()
-          }).optional()
-        })
-      })
+            avatar: stringType().optional(),
+          }).optional(),
+        }),
+      }),
     },
     [Events.VOICE_STATE_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.VOICE_STATE_UPDATE),
-        data: UserVoiceState
+        data: UserVoiceState,
       }),
       subscribeArgs: objectType({
-        channel_id: stringType()
-      })
+        channel_id: stringType(),
+      }),
     },
     [Events.SPEAKING_START]: {
       payload: DispatchEventFrame.extend({
@@ -6583,13 +7334,13 @@ var DiscordSDKModule = (() => {
         data: objectType({
           lobby_id: stringType().optional(),
           channel_id: stringType().optional(),
-          user_id: stringType()
-        })
+          user_id: stringType(),
+        }),
       }),
       subscribeArgs: objectType({
         lobby_id: stringType().nullable().optional(),
-        channel_id: stringType().nullable().optional()
-      })
+        channel_id: stringType().nullable().optional(),
+      }),
     },
     [Events.SPEAKING_STOP]: {
       payload: DispatchEventFrame.extend({
@@ -6597,21 +7348,21 @@ var DiscordSDKModule = (() => {
         data: objectType({
           lobby_id: stringType().optional(),
           channel_id: stringType().optional(),
-          user_id: stringType()
-        })
+          user_id: stringType(),
+        }),
       }),
       subscribeArgs: objectType({
         lobby_id: stringType().nullable().optional(),
-        channel_id: stringType().nullable().optional()
-      })
+        channel_id: stringType().nullable().optional(),
+      }),
     },
     [Events.ACTIVITY_LAYOUT_MODE_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.ACTIVITY_LAYOUT_MODE_UPDATE),
         data: objectType({
-          layout_mode: zodCoerceUnhandledValue(LayoutModeTypeObject)
-        })
-      })
+          layout_mode: zodCoerceUnhandledValue(LayoutModeTypeObject),
+        }),
+      }),
     },
     [Events.ORIENTATION_UPDATE]: {
       payload: DispatchEventFrame.extend({
@@ -6621,59 +7372,61 @@ var DiscordSDKModule = (() => {
           /**
            * @deprecated use screen_orientation instead
            */
-          orientation: nativeEnumType(Orientation)
-        })
-      })
+          orientation: nativeEnumType(Orientation),
+        }),
+      }),
     },
     [Events.CURRENT_USER_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.CURRENT_USER_UPDATE),
-        data: User
-      })
+        data: User,
+      }),
     },
     [Events.CURRENT_GUILD_MEMBER_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.CURRENT_GUILD_MEMBER_UPDATE),
-        data: GuildMemberRPC
+        data: GuildMemberRPC,
       }),
       subscribeArgs: objectType({
-        guild_id: stringType()
-      })
+        guild_id: stringType(),
+      }),
     },
     [Events.ENTITLEMENT_CREATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.ENTITLEMENT_CREATE),
-        data: objectType({ entitlement: Entitlement })
-      })
+        data: objectType({ entitlement: Entitlement }),
+      }),
     },
     [Events.THERMAL_STATE_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.THERMAL_STATE_UPDATE),
-        data: objectType({ thermal_state: ThermalState })
-      })
+        data: objectType({ thermal_state: ThermalState }),
+      }),
     },
     [Events.ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE),
         data: objectType({
-          participants: GetActivityInstanceConnectedParticipantsResponseSchema.shape.participants
-        })
-      })
+          participants:
+            GetActivityInstanceConnectedParticipantsResponseSchema.shape
+              .participants,
+        }),
+      }),
     },
     [Events.RELATIONSHIP_UPDATE]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.RELATIONSHIP_UPDATE),
-        data: Relationship
-      })
+        data: Relationship,
+      }),
     },
     [Events.ACTIVITY_JOIN]: {
       payload: DispatchEventFrame.extend({
         evt: literalType(Events.ACTIVITY_JOIN),
         data: objectType({
           applicationId: stringType(),
-          secret: stringType()
-        })
-      })
+          secret: stringType(),
+        }),
+      }),
     },
     [Events.QUEST_ENROLLMENT_STATUS_UPDATE]: {
       payload: DispatchEventFrame.extend({
@@ -6681,10 +7434,10 @@ var DiscordSDKModule = (() => {
         data: objectType({
           quest_id: stringType(),
           is_enrolled: booleanType(),
-          enrolled_at: stringType().date()
-        })
-      })
-    }
+          enrolled_at: stringType().date(),
+        }),
+      }),
+    },
   };
 
   // node_modules/@discord/embedded-app-sdk/output/utils/assertUnreachable.mjs
@@ -6695,19 +7448,21 @@ var DiscordSDKModule = (() => {
   // node_modules/@discord/embedded-app-sdk/output/schema/responses.mjs
   var EmptyResponse = objectType({}).nullable();
   var AuthorizeResponse = objectType({
-    code: stringType()
+    code: stringType(),
   });
   var GetGuildsResponse = objectType({
-    guilds: arrayType(objectType({
-      id: stringType(),
-      name: stringType()
-    }))
+    guilds: arrayType(
+      objectType({
+        id: stringType(),
+        name: stringType(),
+      }),
+    ),
   });
   var GetGuildResponse = objectType({
     id: stringType(),
     name: stringType(),
     icon_url: stringType().optional(),
-    members: arrayType(GuildMember)
+    members: arrayType(GuildMember),
   });
   var GetChannelResponse = objectType({
     id: stringType(),
@@ -6719,10 +7474,10 @@ var DiscordSDKModule = (() => {
     user_limit: numberType().optional().nullable(),
     position: numberType().optional().nullable(),
     voice_states: arrayType(UserVoiceState),
-    messages: arrayType(Message)
+    messages: arrayType(Message),
   });
   var GetChannelsResponse = objectType({
-    channels: arrayType(Channel)
+    channels: arrayType(Channel),
   });
   var NullableChannelResponse = GetChannelResponse.nullable();
   var SelectVoiceChannelResponse = GetChannelResponse.nullable();
@@ -6737,35 +7492,41 @@ var DiscordSDKModule = (() => {
     qos: booleanType(),
     silence_warning: booleanType(),
     deaf: booleanType(),
-    mute: booleanType()
+    mute: booleanType(),
   });
   var SubscribeResponse = objectType({
-    evt: stringType()
+    evt: stringType(),
   });
   var CaptureShortcutResponse = objectType({ shortcut: ShortcutKey });
   var SetActivityResponse = Activity;
   var GetSkusResponse = objectType({ skus: arrayType(Sku) });
-  var GetEntitlementsResponse = objectType({ entitlements: arrayType(Entitlement) });
+  var GetEntitlementsResponse = objectType({
+    entitlements: arrayType(Entitlement),
+  });
   var StartPurchaseResponse = arrayType(Entitlement).nullable();
   var SetConfigResponse = objectType({
-    use_interactive_pip: booleanType()
+    use_interactive_pip: booleanType(),
   });
   var UserSettingsGetLocaleResponse = objectType({
-    locale: stringType()
+    locale: stringType(),
   });
   var EncourageHardwareAccelerationResponse = objectType({
-    enabled: booleanType()
+    enabled: booleanType(),
   });
   var GetChannelPermissionsResponse = objectType({
-    permissions: bigIntType().or(stringType())
+    permissions: bigIntType().or(stringType()),
   });
-  var OpenExternalLinkResponse = fallbackToDefault(objectType({ opened: booleanType().or(nullType()) }).default({ opened: null }));
+  var OpenExternalLinkResponse = fallbackToDefault(
+    objectType({ opened: booleanType().or(nullType()) }).default({
+      opened: null,
+    }),
+  );
   var GetPlatformBehaviorsResponse = objectType({
-    iosKeyboardResizesView: optionalType(booleanType())
+    iosKeyboardResizesView: optionalType(booleanType()),
   });
   var ResponseFrame = ReceiveFramePayload.extend({
     cmd: nativeEnumType(Commands),
-    evt: nullType()
+    evt: nullType(),
   });
   function parseResponseData({ cmd, data }) {
     switch (cmd) {
@@ -6838,29 +7599,31 @@ var DiscordSDKModule = (() => {
     }
   }
   function parseResponsePayload(payload) {
-    return Object.assign(Object.assign({}, payload), { data: parseResponseData(payload) });
+    return Object.assign(Object.assign({}, payload), {
+      data: parseResponseData(payload),
+    });
   }
 
   // node_modules/@discord/embedded-app-sdk/output/schema/index.mjs
   objectType({
     frame_id: stringType(),
-    platform: nativeEnumType(Platform).optional().nullable()
+    platform: nativeEnumType(Platform).optional().nullable(),
   });
   objectType({
     v: literalType(1),
     encoding: literalType("json").optional(),
     client_id: stringType(),
-    frame_id: stringType()
+    frame_id: stringType(),
   });
   var ClosePayload = objectType({
     code: numberType(),
-    message: stringType().optional()
+    message: stringType().optional(),
   });
   var IncomingPayload = objectType({
     evt: stringType().nullable(),
     nonce: stringType().nullable(),
     data: unknownType().nullable(),
-    cmd: stringType()
+    cmd: stringType(),
   }).passthrough();
   function parseIncomingPayload(payload) {
     const incoming = IncomingPayload.parse(payload);
@@ -6875,13 +7638,22 @@ var DiscordSDKModule = (() => {
   }
 
   // node_modules/@discord/embedded-app-sdk/output/utils/commandFactory.mjs
-  function commandFactory(sendCommand, cmd, response, transferTransform = () => void 0) {
+  function commandFactory(
+    sendCommand,
+    cmd,
+    response,
+    transferTransform = () => void 0,
+  ) {
     const payload = ReceiveFramePayload.extend({
       cmd: literalType(cmd),
-      data: response
+      data: response,
     });
     return async (args) => {
-      const reply = await sendCommand({ cmd, args, transfer: transferTransform(args) });
+      const reply = await sendCommand({
+        cmd,
+        args,
+        transfer: transferTransform(args),
+      });
       const parsed = payload.parse(reply);
       return parsed.data;
     };
@@ -6890,14 +7662,14 @@ var DiscordSDKModule = (() => {
     const response = Schemas[cmd].response;
     const payload = ReceiveFramePayload.extend({
       cmd: literalType(cmd),
-      data: response
+      data: response,
     });
     return (sendCommand) => async (args) => {
       const reply = await sendCommand({
         // @ts-expect-error - Merge commands
         cmd,
         args,
-        transfer: transferTransform(args)
+        transfer: transferTransform(args),
       });
       const parsed = payload.parse(reply);
       return parsed.data;
@@ -6905,34 +7677,64 @@ var DiscordSDKModule = (() => {
   }
 
   // node_modules/@discord/embedded-app-sdk/output/commands/authorize.mjs
-  var authorize = (sendCommand) => commandFactory(sendCommand, Commands.AUTHORIZE, AuthorizeResponse);
+  var authorize = (sendCommand) =>
+    commandFactory(sendCommand, Commands.AUTHORIZE, AuthorizeResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/captureLog.mjs
-  var captureLog = (sendCommand) => commandFactory(sendCommand, Commands.CAPTURE_LOG, EmptyResponse);
+  var captureLog = (sendCommand) =>
+    commandFactory(sendCommand, Commands.CAPTURE_LOG, EmptyResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/encourageHardwareAcceleration.mjs
-  var encourageHardwareAcceleration = (sendCommand) => commandFactory(sendCommand, Commands.ENCOURAGE_HW_ACCELERATION, EncourageHardwareAccelerationResponse);
+  var encourageHardwareAcceleration = (sendCommand) =>
+    commandFactory(
+      sendCommand,
+      Commands.ENCOURAGE_HW_ACCELERATION,
+      EncourageHardwareAccelerationResponse,
+    );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getChannel.mjs
-  var getChannel = (sendCommand) => commandFactory(sendCommand, Commands.GET_CHANNEL, GetChannelResponse);
+  var getChannel = (sendCommand) =>
+    commandFactory(sendCommand, Commands.GET_CHANNEL, GetChannelResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getEntitlements.mjs
-  var getEntitlements = (sendCommand) => commandFactory(sendCommand, Commands.GET_ENTITLEMENTS_EMBEDDED, GetEntitlementsResponse);
+  var getEntitlements = (sendCommand) =>
+    commandFactory(
+      sendCommand,
+      Commands.GET_ENTITLEMENTS_EMBEDDED,
+      GetEntitlementsResponse,
+    );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getSkus.mjs
-  var getSkus = (sendCommand) => commandFactory(sendCommand, Commands.GET_SKUS_EMBEDDED, GetSkusResponse);
+  var getSkus = (sendCommand) =>
+    commandFactory(sendCommand, Commands.GET_SKUS_EMBEDDED, GetSkusResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getChannelPermissions.mjs
-  var getChannelPermissions = (sendCommand) => commandFactory(sendCommand, Commands.GET_CHANNEL_PERMISSIONS, GetChannelPermissionsResponse);
+  var getChannelPermissions = (sendCommand) =>
+    commandFactory(
+      sendCommand,
+      Commands.GET_CHANNEL_PERMISSIONS,
+      GetChannelPermissionsResponse,
+    );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getPlatformBehaviors.mjs
-  var getPlatformBehaviors = (sendCommand) => commandFactory(sendCommand, Commands.GET_PLATFORM_BEHAVIORS, GetPlatformBehaviorsResponse);
+  var getPlatformBehaviors = (sendCommand) =>
+    commandFactory(
+      sendCommand,
+      Commands.GET_PLATFORM_BEHAVIORS,
+      GetPlatformBehaviorsResponse,
+    );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/openExternalLink.mjs
-  var openExternalLink = (sendCommand) => commandFactory(sendCommand, Commands.OPEN_EXTERNAL_LINK, OpenExternalLinkResponse);
+  var openExternalLink = (sendCommand) =>
+    commandFactory(
+      sendCommand,
+      Commands.OPEN_EXTERNAL_LINK,
+      OpenExternalLinkResponse,
+    );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/openInviteDialog.mjs
-  var openInviteDialog = (sendCommand) => commandFactory(sendCommand, Commands.OPEN_INVITE_DIALOG, EmptyResponse);
+  var openInviteDialog = (sendCommand) =>
+    commandFactory(sendCommand, Commands.OPEN_INVITE_DIALOG, EmptyResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/setActivity.mjs
   Activity.pick({
@@ -6945,31 +7747,49 @@ var DiscordSDKModule = (() => {
     party: true,
     secrets: true,
     instance: true,
-    type: true
-  }).extend({
-    type: Activity.shape.type.optional(),
-    instance: Activity.shape.instance.optional()
-  }).nullable();
-  var setActivity = (sendCommand) => commandFactory(sendCommand, Commands.SET_ACTIVITY, SetActivityResponse);
+    type: true,
+  })
+    .extend({
+      type: Activity.shape.type.optional(),
+      instance: Activity.shape.instance.optional(),
+    })
+    .nullable();
+  var setActivity = (sendCommand) =>
+    commandFactory(sendCommand, Commands.SET_ACTIVITY, SetActivityResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/setConfig.mjs
-  var setConfig = (sendCommand) => commandFactory(sendCommand, Commands.SET_CONFIG, SetConfigResponse);
+  var setConfig = (sendCommand) =>
+    commandFactory(sendCommand, Commands.SET_CONFIG, SetConfigResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/utils/compatCommandFactory.mjs
-  function compatCommandFactory({ sendCommand, cmd, response, fallbackTransform: fallbackTransform2, transferTransform = () => void 0 }) {
+  function compatCommandFactory({
+    sendCommand,
+    cmd,
+    response,
+    fallbackTransform: fallbackTransform2,
+    transferTransform = () => void 0,
+  }) {
     const payload = ReceiveFramePayload.extend({
       cmd: literalType(cmd),
-      data: response
+      data: response,
     });
     return async (args) => {
       try {
-        const reply = await sendCommand({ cmd, args, transfer: transferTransform(args) });
+        const reply = await sendCommand({
+          cmd,
+          args,
+          transfer: transferTransform(args),
+        });
         const parsed = payload.parse(reply);
         return parsed.data;
       } catch (error) {
         if (error.code === RPCErrorCodes.INVALID_PAYLOAD) {
           const fallbackArgs = fallbackTransform2(args);
-          const reply = await sendCommand({ cmd, args: fallbackArgs, transfer: transferTransform(fallbackArgs) });
+          const reply = await sendCommand({
+            cmd,
+            args: fallbackArgs,
+            transfer: transferTransform(fallbackArgs),
+          });
           const parsed = payload.parse(reply);
           return parsed.data;
         } else {
@@ -6983,30 +7803,41 @@ var DiscordSDKModule = (() => {
   var fallbackTransform = (args) => {
     return {
       lock_state: args.lock_state,
-      picture_in_picture_lock_state: args.picture_in_picture_lock_state
+      picture_in_picture_lock_state: args.picture_in_picture_lock_state,
     };
   };
-  var setOrientationLockState = (sendCommand) => compatCommandFactory({
-    sendCommand,
-    cmd: Commands.SET_ORIENTATION_LOCK_STATE,
-    response: EmptyResponse,
-    fallbackTransform
-  });
+  var setOrientationLockState = (sendCommand) =>
+    compatCommandFactory({
+      sendCommand,
+      cmd: Commands.SET_ORIENTATION_LOCK_STATE,
+      response: EmptyResponse,
+      fallbackTransform,
+    });
 
   // node_modules/@discord/embedded-app-sdk/output/commands/startPurchase.mjs
-  var startPurchase = (sendCommand) => commandFactory(sendCommand, Commands.START_PURCHASE, StartPurchaseResponse);
+  var startPurchase = (sendCommand) =>
+    commandFactory(sendCommand, Commands.START_PURCHASE, StartPurchaseResponse);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/userSettingsGetLocale.mjs
-  var userSettingsGetLocale = (sendCommand) => commandFactory(sendCommand, Commands.USER_SETTINGS_GET_LOCALE, UserSettingsGetLocaleResponse);
+  var userSettingsGetLocale = (sendCommand) =>
+    commandFactory(
+      sendCommand,
+      Commands.USER_SETTINGS_GET_LOCALE,
+      UserSettingsGetLocaleResponse,
+    );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/authenticate.mjs
   var authenticate = schemaCommandFactory(Command.AUTHENTICATE);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getActivityInstanceConnectedParticipants.mjs
-  var getActivityInstanceConnectedParticipants = schemaCommandFactory(Command.GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS);
+  var getActivityInstanceConnectedParticipants = schemaCommandFactory(
+    Command.GET_ACTIVITY_INSTANCE_CONNECTED_PARTICIPANTS,
+  );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getQuestEnrollmentStatus.mjs
-  var getQuestEnrollmentStatus = schemaCommandFactory(Command.GET_QUEST_ENROLLMENT_STATUS);
+  var getQuestEnrollmentStatus = schemaCommandFactory(
+    Command.GET_QUEST_ENROLLMENT_STATUS,
+  );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/getRelationships.mjs
   var getRelationships = schemaCommandFactory(Command.GET_RELATIONSHIPS);
@@ -7021,7 +7852,9 @@ var DiscordSDKModule = (() => {
   var inviteUserEmbedded = schemaCommandFactory(Command.INVITE_USER_EMBEDDED);
 
   // node_modules/@discord/embedded-app-sdk/output/commands/openShareMomentDialog.mjs
-  var openShareMomentDialog = schemaCommandFactory(Command.OPEN_SHARE_MOMENT_DIALOG);
+  var openShareMomentDialog = schemaCommandFactory(
+    Command.OPEN_SHARE_MOMENT_DIALOG,
+  );
 
   // node_modules/@discord/embedded-app-sdk/output/commands/questStartTimer.mjs
   var questStartTimer = schemaCommandFactory(Command.QUEST_START_TIMER);
@@ -7051,10 +7884,12 @@ var DiscordSDKModule = (() => {
       startPurchase: startPurchase(sendCommand),
       userSettingsGetLocale: userSettingsGetLocale(sendCommand),
       // Backward compatibility - getInstanceConnectedParticipants is an alias for getActivityInstanceConnectedParticipants
-      getInstanceConnectedParticipants: getActivityInstanceConnectedParticipants(sendCommand),
+      getInstanceConnectedParticipants:
+        getActivityInstanceConnectedParticipants(sendCommand),
       // START-GENERATED-SECTION
       authenticate: authenticate(sendCommand),
-      getActivityInstanceConnectedParticipants: getActivityInstanceConnectedParticipants(sendCommand),
+      getActivityInstanceConnectedParticipants:
+        getActivityInstanceConnectedParticipants(sendCommand),
       getQuestEnrollmentStatus: getQuestEnrollmentStatus(sendCommand),
       getRelationships: getRelationships(sendCommand),
       getUser: getUser(sendCommand),
@@ -7063,7 +7898,7 @@ var DiscordSDKModule = (() => {
       openShareMomentDialog: openShareMomentDialog(sendCommand),
       questStartTimer: questStartTimer(sendCommand),
       shareInteraction: shareInteraction(sendCommand),
-      shareLink: shareLink(sendCommand)
+      shareLink: shareLink(sendCommand),
       // END-GENERATED-SECTION
     };
   }
@@ -7081,7 +7916,7 @@ var DiscordSDKModule = (() => {
   // node_modules/@discord/embedded-app-sdk/output/utils/getDefaultSdkConfiguration.mjs
   function getDefaultSdkConfiguration() {
     return {
-      disableConsoleLogOverride: false
+      disableConsoleLogOverride: false,
     };
   }
 
@@ -7093,7 +7928,7 @@ var DiscordSDKModule = (() => {
     if (!_consoleMethod) {
       return;
     }
-    console2[level] = function() {
+    console2[level] = function () {
       const args = [].slice.call(arguments);
       const message = "" + args.join(" ");
       callback(level, message);
@@ -7105,7 +7940,10 @@ var DiscordSDKModule = (() => {
   var version = "2.4.0";
 
   // node_modules/@discord/embedded-app-sdk/output/lib/uuid/dist/esm-browser/native.mjs
-  var randomUUID = typeof crypto !== "undefined" && crypto.randomUUID && crypto.randomUUID.bind(crypto);
+  var randomUUID =
+    typeof crypto !== "undefined" &&
+    crypto.randomUUID &&
+    crypto.randomUUID.bind(crypto);
   var native = { randomUUID };
 
   // node_modules/@discord/embedded-app-sdk/output/lib/uuid/dist/esm-browser/rng.mjs
@@ -7114,7 +7952,9 @@ var DiscordSDKModule = (() => {
   function rng() {
     if (!getRandomValues) {
       if (typeof crypto === "undefined" || !crypto.getRandomValues) {
-        throw new Error("crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported");
+        throw new Error(
+          "crypto.getRandomValues() not supported. See https://github.com/uuidjs/uuid#getrandomvalues-not-supported",
+        );
       }
       getRandomValues = crypto.getRandomValues.bind(crypto);
     }
@@ -7127,7 +7967,28 @@ var DiscordSDKModule = (() => {
     byteToHex.push((i + 256).toString(16).slice(1));
   }
   function unsafeStringify(arr, offset = 0) {
-    return (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
+    return (
+      byteToHex[arr[offset + 0]] +
+      byteToHex[arr[offset + 1]] +
+      byteToHex[arr[offset + 2]] +
+      byteToHex[arr[offset + 3]] +
+      "-" +
+      byteToHex[arr[offset + 4]] +
+      byteToHex[arr[offset + 5]] +
+      "-" +
+      byteToHex[arr[offset + 6]] +
+      byteToHex[arr[offset + 7]] +
+      "-" +
+      byteToHex[arr[offset + 8]] +
+      byteToHex[arr[offset + 9]] +
+      "-" +
+      byteToHex[arr[offset + 10]] +
+      byteToHex[arr[offset + 11]] +
+      byteToHex[arr[offset + 12]] +
+      byteToHex[arr[offset + 13]] +
+      byteToHex[arr[offset + 14]] +
+      byteToHex[arr[offset + 15]]
+    ).toLowerCase();
   }
 
   // node_modules/@discord/embedded-app-sdk/output/lib/uuid/dist/esm-browser/v4.mjs
@@ -7140,23 +8001,22 @@ var DiscordSDKModule = (() => {
     if (rnds.length < 16) {
       throw new Error("Random bytes length must be >= 16");
     }
-    rnds[6] = rnds[6] & 15 | 64;
-    rnds[8] = rnds[8] & 63 | 128;
+    rnds[6] = (rnds[6] & 15) | 64;
+    rnds[8] = (rnds[8] & 63) | 128;
     return unsafeStringify(rnds);
   }
 
   // node_modules/@discord/embedded-app-sdk/output/Discord.mjs
   var Opcodes;
-  (function(Opcodes2) {
-    Opcodes2[Opcodes2["HANDSHAKE"] = 0] = "HANDSHAKE";
-    Opcodes2[Opcodes2["FRAME"] = 1] = "FRAME";
-    Opcodes2[Opcodes2["CLOSE"] = 2] = "CLOSE";
-    Opcodes2[Opcodes2["HELLO"] = 3] = "HELLO";
+  (function (Opcodes2) {
+    Opcodes2[(Opcodes2["HANDSHAKE"] = 0)] = "HANDSHAKE";
+    Opcodes2[(Opcodes2["FRAME"] = 1)] = "FRAME";
+    Opcodes2[(Opcodes2["CLOSE"] = 2)] = "CLOSE";
+    Opcodes2[(Opcodes2["HELLO"] = 3)] = "HELLO";
   })(Opcodes || (Opcodes = {}));
   var ALLOWED_ORIGINS = new Set(getAllowedOrigins());
   function getAllowedOrigins() {
-    if (typeof window === "undefined")
-      return [];
+    if (typeof window === "undefined") return [];
     return [
       window.location.origin,
       "https://discord.com",
@@ -7168,12 +8028,17 @@ var DiscordSDKModule = (() => {
       "https://staging.discord.co",
       "http://localhost:3333",
       "https://pax.discord.com",
-      "null"
+      "null",
     ];
   }
   function getRPCServerSource() {
     var _a;
-    return [(_a = window.parent.opener) !== null && _a !== void 0 ? _a : window.parent, !!document.referrer ? document.referrer : "*"];
+    return [
+      (_a = window.parent.opener) !== null && _a !== void 0
+        ? _a
+        : window.parent,
+      !!document.referrer ? document.referrer : "*",
+    ];
   }
   var DiscordSDK = class {
     getTransfer(payload) {
@@ -7183,7 +8048,9 @@ var DiscordSDKModule = (() => {
         case Commands.UNSUBSCRIBE:
           return void 0;
         default:
-          return (_a = payload.transfer) !== null && _a !== void 0 ? _a : void 0;
+          return (_a = payload.transfer) !== null && _a !== void 0
+            ? _a
+            : void 0;
       }
     }
     constructor(clientId, configuration) {
@@ -7198,7 +8065,16 @@ var DiscordSDKModule = (() => {
         if (this.source == null)
           throw new Error("Attempting to send message before initialization");
         const nonce = v4();
-        (_a = this.source) === null || _a === void 0 ? void 0 : _a.postMessage([Opcodes.FRAME, Object.assign(Object.assign({}, payload), { nonce })], this.sourceOrigin, this.getTransfer(payload));
+        (_a = this.source) === null || _a === void 0
+          ? void 0
+          : _a.postMessage(
+              [
+                Opcodes.FRAME,
+                Object.assign(Object.assign({}, payload), { nonce }),
+              ],
+              this.sourceOrigin,
+              this.getTransfer(payload),
+            );
         const promise = new Promise((resolve, reject) => {
           this.pendingCommands.set(nonce, { resolve, reject });
         });
@@ -7206,8 +8082,7 @@ var DiscordSDKModule = (() => {
       };
       this.commands = commands(this.sendCommand);
       this.handleMessage = (event) => {
-        if (!ALLOWED_ORIGINS.has(event.origin))
-          return;
+        if (!ALLOWED_ORIGINS.has(event.origin)) return;
         const tuple = event.data;
         if (!Array.isArray(tuple)) {
           return;
@@ -7228,7 +8103,10 @@ var DiscordSDKModule = (() => {
       };
       this.isReady = false;
       this.clientId = clientId;
-      this.configuration = configuration !== null && configuration !== void 0 ? configuration : getDefaultSdkConfiguration();
+      this.configuration =
+        configuration !== null && configuration !== void 0
+          ? configuration
+          : getDefaultSdkConfiguration();
       if (typeof window !== "undefined") {
         window.addEventListener("message", this.handleMessage);
       }
@@ -7257,8 +8135,13 @@ var DiscordSDKModule = (() => {
       const platform = urlParams.get("platform");
       if (!platform) {
         throw new Error("platform query param is not defined");
-      } else if (platform !== Platform.DESKTOP && platform !== Platform.MOBILE) {
-        throw new Error(`Invalid query param "platform" of "${platform}". Valid values are "${Platform.DESKTOP}" or "${Platform.MOBILE}"`);
+      } else if (
+        platform !== Platform.DESKTOP &&
+        platform !== Platform.MOBILE
+      ) {
+        throw new Error(
+          `Invalid query param "platform" of "${platform}". Valid values are "${Platform.DESKTOP}" or "${Platform.MOBILE}"`,
+        );
       }
       this.platform = platform;
       this.customId = urlParams.get("custom_id");
@@ -7275,17 +8158,26 @@ var DiscordSDKModule = (() => {
       var _a;
       window.removeEventListener("message", this.handleMessage);
       const nonce = v4();
-      (_a = this.source) === null || _a === void 0 ? void 0 : _a.postMessage([Opcodes.CLOSE, { code, message, nonce }], this.sourceOrigin);
+      (_a = this.source) === null || _a === void 0
+        ? void 0
+        : _a.postMessage(
+            [Opcodes.CLOSE, { code, message, nonce }],
+            this.sourceOrigin,
+          );
     }
     async subscribe(event, listener, ...rest) {
       const [subscribeArgs] = rest;
       const listenerCount = this.eventBus.listenerCount(event);
       const emitter = this.eventBus.on(event, listener);
-      if (Object.values(Events).includes(event) && event !== Events.READY && listenerCount === 0) {
+      if (
+        Object.values(Events).includes(event) &&
+        event !== Events.READY &&
+        listenerCount === 0
+      ) {
         await this.sendCommand({
           cmd: Commands.SUBSCRIBE,
           args: subscribeArgs,
-          evt: event
+          evt: event,
         });
       }
       return emitter;
@@ -7296,7 +8188,7 @@ var DiscordSDKModule = (() => {
         await this.sendCommand({
           cmd: Commands.UNSUBSCRIBE,
           evt: event,
-          args: unsubscribeArgs
+          args: unsubscribeArgs,
         });
       }
       return this.eventBus.off(event, listener);
@@ -7326,13 +8218,21 @@ var DiscordSDKModule = (() => {
         v: 1,
         encoding: "json",
         client_id: this.clientId,
-        frame_id: this.frameId
+        frame_id: this.frameId,
       };
       const majorMobileVersion = this.parseMajorMobileVersion();
-      if (this.platform === Platform.DESKTOP || majorMobileVersion >= HANDSHAKE_SDK_VERSION_MINIMUM_MOBILE_VERSION) {
+      if (
+        this.platform === Platform.DESKTOP ||
+        majorMobileVersion >= HANDSHAKE_SDK_VERSION_MINIMUM_MOBILE_VERSION
+      ) {
         handshakePayload["sdk_version"] = this.sdkVersion;
       }
-      (_a = this.source) === null || _a === void 0 ? void 0 : _a.postMessage([Opcodes.HANDSHAKE, handshakePayload], this.sourceOrigin);
+      (_a = this.source) === null || _a === void 0
+        ? void 0
+        : _a.postMessage(
+            [Opcodes.HANDSHAKE, handshakePayload],
+            this.sourceOrigin,
+          );
     }
     addOnReadyListener() {
       this.eventBus.once(Events.READY, () => {
@@ -7341,12 +8241,11 @@ var DiscordSDKModule = (() => {
       });
     }
     overrideConsoleLogging() {
-      if (this.configuration.disableConsoleLogOverride)
-        return;
+      if (this.configuration.disableConsoleLogOverride) return;
       const sendCaptureLogCommand = (level, message) => {
         this.commands.captureLog({
           level,
-          message
+          message,
         });
       };
       consoleLevels.forEach((level) => {
@@ -7356,8 +8255,7 @@ var DiscordSDKModule = (() => {
     handleClose(data) {
       ClosePayload.parse(data);
     }
-    handleHandshake() {
-    }
+    handleHandshake() {}
     handleFrame(payload) {
       var _a, _b;
       let parsed;
@@ -7373,17 +8271,25 @@ var DiscordSDKModule = (() => {
       } else {
         if (parsed.evt === ERROR) {
           if (parsed.nonce != null) {
-            (_a = this.pendingCommands.get(parsed.nonce)) === null || _a === void 0 ? void 0 : _a.reject(parsed.data);
+            (_a = this.pendingCommands.get(parsed.nonce)) === null ||
+            _a === void 0
+              ? void 0
+              : _a.reject(parsed.data);
             this.pendingCommands.delete(parsed.nonce);
             return;
           }
-          this.eventBus.emit("error", new SDKError(parsed.data.code, parsed.data.message));
+          this.eventBus.emit(
+            "error",
+            new SDKError(parsed.data.code, parsed.data.message),
+          );
         }
         if (parsed.nonce == null) {
           console.error("Missing nonce", payload);
           return;
         }
-        (_b = this.pendingCommands.get(parsed.nonce)) === null || _b === void 0 ? void 0 : _b.resolve(parsed);
+        (_b = this.pendingCommands.get(parsed.nonce)) === null || _b === void 0
+          ? void 0
+          : _b.resolve(parsed);
         this.pendingCommands.delete(parsed.nonce);
       }
     }
@@ -7429,7 +8335,7 @@ var DiscordSDKModule = (() => {
     // 0 to MAX_E
     // The natural logarithm of 10.
     // 115 digits
-    LN10: "2.302585092994045684017991454684364207601101488628772976033327900967572609677352480235997205089598298341967784042286"
+    LN10: "2.302585092994045684017991454684364207601101488628772976033327900967572609677352480235997205089598298341967784042286",
   };
   var Decimal;
   var external = true;
@@ -7445,68 +8351,79 @@ var DiscordSDKModule = (() => {
   var MAX_SAFE_INTEGER = 9007199254740991;
   var MAX_E = mathfloor(MAX_SAFE_INTEGER / LOG_BASE);
   var P = {};
-  P.absoluteValue = P.abs = function() {
+  P.absoluteValue = P.abs = function () {
     var x = new this.constructor(this);
     if (x.s) x.s = 1;
     return x;
   };
-  P.comparedTo = P.cmp = function(y) {
-    var i, j, xdL, ydL, x = this;
+  P.comparedTo = P.cmp = function (y) {
+    var i,
+      j,
+      xdL,
+      ydL,
+      x = this;
     y = new x.constructor(y);
     if (x.s !== y.s) return x.s || -y.s;
-    if (x.e !== y.e) return x.e > y.e ^ x.s < 0 ? 1 : -1;
+    if (x.e !== y.e) return (x.e > y.e) ^ (x.s < 0) ? 1 : -1;
     xdL = x.d.length;
     ydL = y.d.length;
     for (i = 0, j = xdL < ydL ? xdL : ydL; i < j; ++i) {
-      if (x.d[i] !== y.d[i]) return x.d[i] > y.d[i] ^ x.s < 0 ? 1 : -1;
+      if (x.d[i] !== y.d[i]) return (x.d[i] > y.d[i]) ^ (x.s < 0) ? 1 : -1;
     }
-    return xdL === ydL ? 0 : xdL > ydL ^ x.s < 0 ? 1 : -1;
+    return xdL === ydL ? 0 : (xdL > ydL) ^ (x.s < 0) ? 1 : -1;
   };
-  P.decimalPlaces = P.dp = function() {
-    var x = this, w = x.d.length - 1, dp = (w - x.e) * LOG_BASE;
+  P.decimalPlaces = P.dp = function () {
+    var x = this,
+      w = x.d.length - 1,
+      dp = (w - x.e) * LOG_BASE;
     w = x.d[w];
     if (w) for (; w % 10 == 0; w /= 10) dp--;
     return dp < 0 ? 0 : dp;
   };
-  P.dividedBy = P.div = function(y) {
+  P.dividedBy = P.div = function (y) {
     return divide(this, new this.constructor(y));
   };
-  P.dividedToIntegerBy = P.idiv = function(y) {
-    var x = this, Ctor = x.constructor;
+  P.dividedToIntegerBy = P.idiv = function (y) {
+    var x = this,
+      Ctor = x.constructor;
     return round(divide(x, new Ctor(y), 0, 1), Ctor.precision);
   };
-  P.equals = P.eq = function(y) {
+  P.equals = P.eq = function (y) {
     return !this.cmp(y);
   };
-  P.exponent = function() {
+  P.exponent = function () {
     return getBase10Exponent(this);
   };
-  P.greaterThan = P.gt = function(y) {
+  P.greaterThan = P.gt = function (y) {
     return this.cmp(y) > 0;
   };
-  P.greaterThanOrEqualTo = P.gte = function(y) {
+  P.greaterThanOrEqualTo = P.gte = function (y) {
     return this.cmp(y) >= 0;
   };
-  P.isInteger = P.isint = function() {
+  P.isInteger = P.isint = function () {
     return this.e > this.d.length - 2;
   };
-  P.isNegative = P.isneg = function() {
+  P.isNegative = P.isneg = function () {
     return this.s < 0;
   };
-  P.isPositive = P.ispos = function() {
+  P.isPositive = P.ispos = function () {
     return this.s > 0;
   };
-  P.isZero = function() {
+  P.isZero = function () {
     return this.s === 0;
   };
-  P.lessThan = P.lt = function(y) {
+  P.lessThan = P.lt = function (y) {
     return this.cmp(y) < 0;
   };
-  P.lessThanOrEqualTo = P.lte = function(y) {
+  P.lessThanOrEqualTo = P.lte = function (y) {
     return this.cmp(y) < 1;
   };
-  P.logarithm = P.log = function(base) {
-    var r, x = this, Ctor = x.constructor, pr = Ctor.precision, wpr = pr + 5;
+  P.logarithm = P.log = function (base) {
+    var r,
+      x = this,
+      Ctor = x.constructor,
+      pr = Ctor.precision,
+      wpr = pr + 5;
     if (base === void 0) {
       base = new Ctor(10);
     } else {
@@ -7520,13 +8437,16 @@ var DiscordSDKModule = (() => {
     external = true;
     return round(r, pr);
   };
-  P.minus = P.sub = function(y) {
+  P.minus = P.sub = function (y) {
     var x = this;
     y = new x.constructor(y);
-    return x.s == y.s ? subtract(x, y) : add(x, (y.s = -y.s, y));
+    return x.s == y.s ? subtract(x, y) : add(x, ((y.s = -y.s), y));
   };
-  P.modulo = P.mod = function(y) {
-    var q, x = this, Ctor = x.constructor, pr = Ctor.precision;
+  P.modulo = P.mod = function (y) {
+    var q,
+      x = this,
+      Ctor = x.constructor,
+      pr = Ctor.precision;
     y = new Ctor(y);
     if (!y.s) throw Error(decimalError + "NaN");
     if (!x.s) return round(new Ctor(x), pr);
@@ -7535,25 +8455,29 @@ var DiscordSDKModule = (() => {
     external = true;
     return x.minus(q);
   };
-  P.naturalExponential = P.exp = function() {
+  P.naturalExponential = P.exp = function () {
     return exp(this);
   };
-  P.naturalLogarithm = P.ln = function() {
+  P.naturalLogarithm = P.ln = function () {
     return ln(this);
   };
-  P.negated = P.neg = function() {
+  P.negated = P.neg = function () {
     var x = new this.constructor(this);
     x.s = -x.s || 0;
     return x;
   };
-  P.plus = P.add = function(y) {
+  P.plus = P.add = function (y) {
     var x = this;
     y = new x.constructor(y);
-    return x.s == y.s ? add(x, y) : subtract(x, (y.s = -y.s, y));
+    return x.s == y.s ? add(x, y) : subtract(x, ((y.s = -y.s), y));
   };
-  P.precision = P.sd = function(z2) {
-    var e, sd, w, x = this;
-    if (z2 !== void 0 && z2 !== !!z2 && z2 !== 1 && z2 !== 0) throw Error(invalidArgument + z2);
+  P.precision = P.sd = function (z2) {
+    var e,
+      sd,
+      w,
+      x = this;
+    if (z2 !== void 0 && z2 !== !!z2 && z2 !== 1 && z2 !== 0)
+      throw Error(invalidArgument + z2);
     e = getBase10Exponent(x) + 1;
     w = x.d.length - 1;
     sd = w * LOG_BASE + 1;
@@ -7564,8 +8488,16 @@ var DiscordSDKModule = (() => {
     }
     return z2 && e > sd ? e : sd;
   };
-  P.squareRoot = P.sqrt = function() {
-    var e, n, pr, r, s, t, wpr, x = this, Ctor = x.constructor;
+  P.squareRoot = P.sqrt = function () {
+    var e,
+      n,
+      pr,
+      r,
+      s,
+      t,
+      wpr,
+      x = this,
+      Ctor = x.constructor;
     if (x.s < 1) {
       if (!x.s) return new Ctor(0);
       throw Error(decimalError + "NaN");
@@ -7590,10 +8522,13 @@ var DiscordSDKModule = (() => {
     }
     pr = Ctor.precision;
     s = wpr = pr + 3;
-    for (; ; ) {
+    for (;;) {
       t = r;
       r = t.plus(divide(x, t, wpr + 2)).times(0.5);
-      if (digitsToString(t.d).slice(0, wpr) === (n = digitsToString(r.d)).slice(0, wpr)) {
+      if (
+        digitsToString(t.d).slice(0, wpr) ===
+        (n = digitsToString(r.d)).slice(0, wpr)
+      ) {
         n = n.slice(wpr - 3, wpr + 1);
         if (s == wpr && n == "4999") {
           round(t, pr + 1, 0);
@@ -7610,8 +8545,20 @@ var DiscordSDKModule = (() => {
     external = true;
     return round(r, pr);
   };
-  P.times = P.mul = function(y) {
-    var carry, e, i, k, r, rL, t, xdL, ydL, x = this, Ctor = x.constructor, xd = x.d, yd = (y = new Ctor(y)).d;
+  P.times = P.mul = function (y) {
+    var carry,
+      e,
+      i,
+      k,
+      r,
+      rL,
+      t,
+      xdL,
+      ydL,
+      x = this,
+      Ctor = x.constructor,
+      xd = x.d,
+      yd = (y = new Ctor(y)).d;
     if (!x.s || !y.s) return new Ctor(0);
     y.s *= x.s;
     e = x.e + y.e;
@@ -7632,10 +8579,10 @@ var DiscordSDKModule = (() => {
       carry = 0;
       for (k = xdL + i; k > i; ) {
         t = r[k] + yd[i] * xd[k - i - 1] + carry;
-        r[k--] = t % BASE | 0;
-        carry = t / BASE | 0;
+        r[k--] = (t % BASE) | 0;
+        carry = (t / BASE) | 0;
       }
-      r[k] = (r[k] + carry) % BASE | 0;
+      r[k] = ((r[k] + carry) % BASE) | 0;
     }
     for (; !r[--rL]; ) r.pop();
     if (carry) ++e;
@@ -7644,8 +8591,9 @@ var DiscordSDKModule = (() => {
     y.e = e;
     return external ? round(y, Ctor.precision) : y;
   };
-  P.toDecimalPlaces = P.todp = function(dp, rm) {
-    var x = this, Ctor = x.constructor;
+  P.toDecimalPlaces = P.todp = function (dp, rm) {
+    var x = this,
+      Ctor = x.constructor;
     x = new Ctor(x);
     if (dp === void 0) return x;
     checkInt32(dp, 0, MAX_DIGITS);
@@ -7653,8 +8601,10 @@ var DiscordSDKModule = (() => {
     else checkInt32(rm, 0, 8);
     return round(x, dp + getBase10Exponent(x) + 1, rm);
   };
-  P.toExponential = function(dp, rm) {
-    var str, x = this, Ctor = x.constructor;
+  P.toExponential = function (dp, rm) {
+    var str,
+      x = this,
+      Ctor = x.constructor;
     if (dp === void 0) {
       str = toString(x, true);
     } else {
@@ -7666,8 +8616,11 @@ var DiscordSDKModule = (() => {
     }
     return str;
   };
-  P.toFixed = function(dp, rm) {
-    var str, y, x = this, Ctor = x.constructor;
+  P.toFixed = function (dp, rm) {
+    var str,
+      y,
+      x = this,
+      Ctor = x.constructor;
     if (dp === void 0) return toString(x);
     checkInt32(dp, 0, MAX_DIGITS);
     if (rm === void 0) rm = Ctor.rounding;
@@ -7676,15 +8629,25 @@ var DiscordSDKModule = (() => {
     str = toString(y.abs(), false, dp + getBase10Exponent(y) + 1);
     return x.isneg() && !x.isZero() ? "-" + str : str;
   };
-  P.toInteger = P.toint = function() {
-    var x = this, Ctor = x.constructor;
+  P.toInteger = P.toint = function () {
+    var x = this,
+      Ctor = x.constructor;
     return round(new Ctor(x), getBase10Exponent(x) + 1, Ctor.rounding);
   };
-  P.toNumber = function() {
+  P.toNumber = function () {
     return +this;
   };
-  P.toPower = P.pow = function(y) {
-    var e, k, pr, r, sign, yIsInt, x = this, Ctor = x.constructor, guard = 12, yn = +(y = new Ctor(y));
+  P.toPower = P.pow = function (y) {
+    var e,
+      k,
+      pr,
+      r,
+      sign,
+      yIsInt,
+      x = this,
+      Ctor = x.constructor,
+      guard = 12,
+      yn = +(y = new Ctor(y));
     if (!y.s) return new Ctor(ONE);
     x = new Ctor(x);
     if (!x.s) {
@@ -7704,7 +8667,7 @@ var DiscordSDKModule = (() => {
       r = new Ctor(ONE);
       e = Math.ceil(pr / LOG_BASE + 4);
       external = false;
-      for (; ; ) {
+      for (;;) {
         if (k % 2) {
           r = r.times(x);
           truncate(r.d, e);
@@ -7726,8 +8689,11 @@ var DiscordSDKModule = (() => {
     r.s = sign;
     return r;
   };
-  P.toPrecision = function(sd, rm) {
-    var e, str, x = this, Ctor = x.constructor;
+  P.toPrecision = function (sd, rm) {
+    var e,
+      str,
+      x = this,
+      Ctor = x.constructor;
     if (sd === void 0) {
       e = getBase10Exponent(x);
       str = toString(x, e <= Ctor.toExpNeg || e >= Ctor.toExpPos);
@@ -7741,8 +8707,9 @@ var DiscordSDKModule = (() => {
     }
     return str;
   };
-  P.toSignificantDigits = P.tosd = function(sd, rm) {
-    var x = this, Ctor = x.constructor;
+  P.toSignificantDigits = P.tosd = function (sd, rm) {
+    var x = this,
+      Ctor = x.constructor;
     if (sd === void 0) {
       sd = Ctor.precision;
       rm = Ctor.rounding;
@@ -7753,12 +8720,28 @@ var DiscordSDKModule = (() => {
     }
     return round(new Ctor(x), sd, rm);
   };
-  P.toString = P.valueOf = P.val = P.toJSON = P[/* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom")] = function() {
-    var x = this, e = getBase10Exponent(x), Ctor = x.constructor;
-    return toString(x, e <= Ctor.toExpNeg || e >= Ctor.toExpPos);
-  };
+  P.toString =
+    P.valueOf =
+    P.val =
+    P.toJSON =
+    P[/* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom")] =
+      function () {
+        var x = this,
+          e = getBase10Exponent(x),
+          Ctor = x.constructor;
+        return toString(x, e <= Ctor.toExpNeg || e >= Ctor.toExpPos);
+      };
   function add(x, y) {
-    var carry, d, e, i, k, len, xd, yd, Ctor = x.constructor, pr = Ctor.precision;
+    var carry,
+      d,
+      e,
+      i,
+      k,
+      len,
+      xd,
+      yd,
+      Ctor = x.constructor,
+      pr = Ctor.precision;
     if (!x.s || !y.s) {
       if (!y.s) y = new Ctor(x);
       return external ? round(y, pr) : y;
@@ -7798,7 +8781,7 @@ var DiscordSDKModule = (() => {
       xd = d;
     }
     for (carry = 0; i; ) {
-      carry = (xd[--i] = xd[i] + yd[i] + carry) / BASE | 0;
+      carry = ((xd[--i] = xd[i] + yd[i] + carry) / BASE) | 0;
       xd[i] %= BASE;
     }
     if (carry) {
@@ -7816,7 +8799,12 @@ var DiscordSDKModule = (() => {
     }
   }
   function digitsToString(d) {
-    var i, k, ws, indexOfLastWord = d.length - 1, str = "", w = d[0];
+    var i,
+      k,
+      ws,
+      indexOfLastWord = d.length - 1,
+      str = "",
+      w = d[0];
     if (indexOfLastWord > 0) {
       str += w;
       for (i = 1; i < indexOfLastWord; i++) {
@@ -7835,13 +8823,15 @@ var DiscordSDKModule = (() => {
     for (; w % 10 === 0; ) w /= 10;
     return str + w;
   }
-  var divide = /* @__PURE__ */ (function() {
+  var divide = /* @__PURE__ */ (function () {
     function multiplyInteger(x, k) {
-      var temp, carry = 0, i = x.length;
+      var temp,
+        carry = 0,
+        i = x.length;
       for (x = x.slice(); i--; ) {
         temp = x[i] * k + carry;
-        x[i] = temp % BASE | 0;
-        carry = temp / BASE | 0;
+        x[i] = (temp % BASE) | 0;
+        carry = (temp / BASE) | 0;
       }
       if (carry) x.unshift(carry);
       return x;
@@ -7869,8 +8859,29 @@ var DiscordSDKModule = (() => {
       }
       for (; !a[0] && a.length > 1; ) a.shift();
     }
-    return function(x, y, pr, dp) {
-      var cmp, e, i, k, prod, prodL, q, qd, rem, remL, rem0, sd, t, xi, xL, yd0, yL, yz, Ctor = x.constructor, sign = x.s == y.s ? 1 : -1, xd = x.d, yd = y.d;
+    return function (x, y, pr, dp) {
+      var cmp,
+        e,
+        i,
+        k,
+        prod,
+        prodL,
+        q,
+        qd,
+        rem,
+        remL,
+        rem0,
+        sd,
+        t,
+        xi,
+        xL,
+        yd0,
+        yL,
+        yz,
+        Ctor = x.constructor,
+        sign = x.s == y.s ? 1 : -1,
+        xd = x.d,
+        yd = y.d;
       if (!x.s) return new Ctor(x);
       if (!y.s) throw Error(decimalError + "Division by zero");
       e = x.e - y.e;
@@ -7888,7 +8899,7 @@ var DiscordSDKModule = (() => {
         sd = pr;
       }
       if (sd < 0) return new Ctor(0);
-      sd = sd / LOG_BASE + 2 | 0;
+      sd = (sd / LOG_BASE + 2) | 0;
       i = 0;
       if (yL == 1) {
         k = 0;
@@ -7896,11 +8907,11 @@ var DiscordSDKModule = (() => {
         sd++;
         for (; (i < xL || k) && sd--; i++) {
           t = k * BASE + (xd[i] || 0);
-          qd[i] = t / yd | 0;
-          k = t % yd | 0;
+          qd[i] = (t / yd) | 0;
+          k = (t % yd) | 0;
         }
       } else {
-        k = BASE / (yd[0] + 1) | 0;
+        k = (BASE / (yd[0] + 1)) | 0;
         if (k > 1) {
           yd = multiplyInteger(yd, k);
           xd = multiplyInteger(xd, k);
@@ -7921,7 +8932,7 @@ var DiscordSDKModule = (() => {
           if (cmp < 0) {
             rem0 = rem[0];
             if (yL != remL) rem0 = rem0 * BASE + (rem[1] || 0);
-            k = rem0 / yd0 | 0;
+            k = (rem0 / yd0) | 0;
             if (k > 1) {
               if (k >= BASE) k = BASE - 1;
               prod = multiplyInteger(yd, k);
@@ -7967,8 +8978,18 @@ var DiscordSDKModule = (() => {
     };
   })();
   function exp(x, sd) {
-    var denominator, guard, pow, sum, t, wpr, i = 0, k = 0, Ctor = x.constructor, pr = Ctor.precision;
-    if (getBase10Exponent(x) > 16) throw Error(exponentOutOfRange + getBase10Exponent(x));
+    var denominator,
+      guard,
+      pow,
+      sum,
+      t,
+      wpr,
+      i = 0,
+      k = 0,
+      Ctor = x.constructor,
+      pr = Ctor.precision;
+    if (getBase10Exponent(x) > 16)
+      throw Error(exponentOutOfRange + getBase10Exponent(x));
     if (!x.s) return new Ctor(ONE);
     if (sd == null) {
       external = false;
@@ -7981,24 +9002,28 @@ var DiscordSDKModule = (() => {
       x = x.times(t);
       k += 5;
     }
-    guard = Math.log(mathpow(2, k)) / Math.LN10 * 2 + 5 | 0;
+    guard = ((Math.log(mathpow(2, k)) / Math.LN10) * 2 + 5) | 0;
     wpr += guard;
     denominator = pow = sum = new Ctor(ONE);
     Ctor.precision = wpr;
-    for (; ; ) {
+    for (;;) {
       pow = round(pow.times(x), wpr);
       denominator = denominator.times(++i);
       t = sum.plus(divide(pow, denominator, wpr));
-      if (digitsToString(t.d).slice(0, wpr) === digitsToString(sum.d).slice(0, wpr)) {
+      if (
+        digitsToString(t.d).slice(0, wpr) ===
+        digitsToString(sum.d).slice(0, wpr)
+      ) {
         while (k--) sum = round(sum.times(sum), wpr);
         Ctor.precision = pr;
-        return sd == null ? (external = true, round(sum, pr)) : sum;
+        return sd == null ? ((external = true), round(sum, pr)) : sum;
       }
       sum = t;
     }
   }
   function getBase10Exponent(x) {
-    var e = x.e * LOG_BASE, w = x.d[0];
+    var e = x.e * LOG_BASE,
+      w = x.d[0];
     for (; w >= 10; w /= 10) e++;
     return e;
   }
@@ -8016,7 +9041,21 @@ var DiscordSDKModule = (() => {
     return zs;
   }
   function ln(y, sd) {
-    var c, c0, denominator, e, numerator, sum, t, wpr, x2, n = 1, guard = 10, x = y, xd = x.d, Ctor = x.constructor, pr = Ctor.precision;
+    var c,
+      c0,
+      denominator,
+      e,
+      numerator,
+      sum,
+      t,
+      wpr,
+      x2,
+      n = 1,
+      guard = 10,
+      x = y,
+      xd = x.d,
+      Ctor = x.constructor,
+      pr = Ctor.precision;
     if (x.s < 1) throw Error(decimalError + (x.s ? "NaN" : "-Infinity"));
     if (x.eq(ONE)) return new Ctor(0);
     if (sd == null) {
@@ -8035,7 +9074,7 @@ var DiscordSDKModule = (() => {
     c0 = c.charAt(0);
     e = getBase10Exponent(x);
     if (Math.abs(e) < 15e14) {
-      while (c0 < 7 && c0 != 1 || c0 == 1 && c.charAt(1) > 3) {
+      while ((c0 < 7 && c0 != 1) || (c0 == 1 && c.charAt(1) > 3)) {
         x = x.times(y);
         c = digitsToString(x.d);
         c0 = c.charAt(0);
@@ -8052,20 +9091,23 @@ var DiscordSDKModule = (() => {
       t = getLn10(Ctor, wpr + 2, pr).times(e + "");
       x = ln(new Ctor(c0 + "." + c.slice(1)), wpr - guard).plus(t);
       Ctor.precision = pr;
-      return sd == null ? (external = true, round(x, pr)) : x;
+      return sd == null ? ((external = true), round(x, pr)) : x;
     }
     sum = numerator = x = divide(x.minus(ONE), x.plus(ONE), wpr);
     x2 = round(x.times(x), wpr);
     denominator = 3;
-    for (; ; ) {
+    for (;;) {
       numerator = round(numerator.times(x2), wpr);
       t = sum.plus(divide(numerator, new Ctor(denominator), wpr));
-      if (digitsToString(t.d).slice(0, wpr) === digitsToString(sum.d).slice(0, wpr)) {
+      if (
+        digitsToString(t.d).slice(0, wpr) ===
+        digitsToString(sum.d).slice(0, wpr)
+      ) {
         sum = sum.times(2);
         if (e !== 0) sum = sum.plus(getLn10(Ctor, wpr + 2, pr).times(e + ""));
         sum = divide(sum, new Ctor(n), wpr);
         Ctor.precision = pr;
-        return sd == null ? (external = true, round(sum, pr)) : sum;
+        return sd == null ? ((external = true), round(sum, pr)) : sum;
       }
       sum = t;
       denominator += 2;
@@ -8093,7 +9135,8 @@ var DiscordSDKModule = (() => {
       if (e < 0) i += LOG_BASE;
       if (i < len) {
         if (i) x.d.push(+str.slice(0, i));
-        for (len -= LOG_BASE; i < len; ) x.d.push(+str.slice(i, i += LOG_BASE));
+        for (len -= LOG_BASE; i < len; )
+          x.d.push(+str.slice(i, (i += LOG_BASE)));
         str = str.slice(i);
         i = LOG_BASE - str.length;
       } else {
@@ -8101,7 +9144,8 @@ var DiscordSDKModule = (() => {
       }
       for (; i--; ) str += "0";
       x.d.push(+str);
-      if (external && (x.e > MAX_E || x.e < -MAX_E)) throw Error(exponentOutOfRange + e);
+      if (external && (x.e > MAX_E || x.e < -MAX_E))
+        throw Error(exponentOutOfRange + e);
     } else {
       x.s = 0;
       x.e = 0;
@@ -8110,13 +9154,21 @@ var DiscordSDKModule = (() => {
     return x;
   }
   function round(x, sd, rm) {
-    var i, j, k, n, rd, doRound, w, xdi, xd = x.d;
+    var i,
+      j,
+      k,
+      n,
+      rd,
+      doRound,
+      w,
+      xdi,
+      xd = x.d;
     for (n = 1, k = xd[0]; k >= 10; k /= 10) n++;
     i = sd - n;
     if (i < 0) {
       i += LOG_BASE;
       j = sd;
-      w = xd[xdi = 0];
+      w = xd[(xdi = 0)];
     } else {
       xdi = Math.ceil((i + 1) / LOG_BASE);
       k = xd.length;
@@ -8128,17 +9180,31 @@ var DiscordSDKModule = (() => {
     }
     if (rm !== void 0) {
       k = mathpow(10, n - j - 1);
-      rd = w / k % 10 | 0;
+      rd = ((w / k) % 10) | 0;
       doRound = sd < 0 || xd[xdi + 1] !== void 0 || w % k;
-      doRound = rm < 4 ? (rd || doRound) && (rm == 0 || rm == (x.s < 0 ? 3 : 2)) : rd > 5 || rd == 5 && (rm == 4 || doRound || rm == 6 && // Check whether the digit to the left of the rounding digit is odd.
-      (i > 0 ? j > 0 ? w / mathpow(10, n - j) : 0 : xd[xdi - 1]) % 10 & 1 || rm == (x.s < 0 ? 8 : 7));
+      doRound =
+        rm < 4
+          ? (rd || doRound) && (rm == 0 || rm == (x.s < 0 ? 3 : 2))
+          : rd > 5 ||
+            (rd == 5 &&
+              (rm == 4 ||
+                doRound ||
+                (rm == 6 && // Check whether the digit to the left of the rounding digit is odd.
+                  ((i > 0
+                    ? j > 0
+                      ? w / mathpow(10, n - j)
+                      : 0
+                    : xd[xdi - 1]) %
+                    10) &
+                    1) ||
+                rm == (x.s < 0 ? 8 : 7)));
     }
     if (sd < 1 || !xd[0]) {
       if (doRound) {
         k = getBase10Exponent(x);
         xd.length = 1;
         sd = sd - k - 1;
-        xd[0] = mathpow(10, (LOG_BASE - sd % LOG_BASE) % LOG_BASE);
+        xd[0] = mathpow(10, (LOG_BASE - (sd % LOG_BASE)) % LOG_BASE);
         x.e = mathfloor(-sd / LOG_BASE) || 0;
       } else {
         xd.length = 1;
@@ -8153,10 +9219,11 @@ var DiscordSDKModule = (() => {
     } else {
       xd.length = xdi + 1;
       k = mathpow(10, LOG_BASE - i);
-      xd[xdi] = j > 0 ? (w / mathpow(10, n - j) % mathpow(10, j) | 0) * k : 0;
+      xd[xdi] =
+        j > 0 ? (((w / mathpow(10, n - j)) % mathpow(10, j)) | 0) * k : 0;
     }
     if (doRound) {
-      for (; ; ) {
+      for (;;) {
         if (xdi == 0) {
           if ((xd[0] += k) == BASE) {
             xd[0] = 1;
@@ -8178,7 +9245,18 @@ var DiscordSDKModule = (() => {
     return x;
   }
   function subtract(x, y) {
-    var d, e, i, j, k, len, xd, xe, xLTy, yd, Ctor = x.constructor, pr = Ctor.precision;
+    var d,
+      e,
+      i,
+      j,
+      k,
+      len,
+      xd,
+      xe,
+      xLTy,
+      yd,
+      Ctor = x.constructor,
+      pr = Ctor.precision;
     if (!x.s || !y.s) {
       if (y.s) y.s = -y.s;
       else y = new Ctor(x);
@@ -8246,7 +9324,10 @@ var DiscordSDKModule = (() => {
     return external ? round(y, pr) : y;
   }
   function toString(x, isExp, sd) {
-    var k, e = getBase10Exponent(x), str = digitsToString(x.d), len = str.length;
+    var k,
+      e = getBase10Exponent(x),
+      str = digitsToString(x.d),
+      len = str.length;
     if (isExp) {
       if (sd && (k = sd - len) > 0) {
         str = str.charAt(0) + "." + str.slice(1) + getZeroString(k);
@@ -8335,7 +9416,8 @@ var DiscordSDKModule = (() => {
     if (obj === void 0) obj = {};
     if (obj) {
       ps = ["precision", "rounding", "toExpNeg", "toExpPos", "LN10"];
-      for (i = 0; i < ps.length; ) if (!obj.hasOwnProperty(p = ps[i++])) obj[p] = this[p];
+      for (i = 0; i < ps.length; )
+        if (!obj.hasOwnProperty((p = ps[i++]))) obj[p] = this[p];
     }
     Decimal2.config(obj);
     return Decimal2;
@@ -8344,27 +9426,30 @@ var DiscordSDKModule = (() => {
     if (!obj || typeof obj !== "object") {
       throw Error(decimalError + "Object expected");
     }
-    var i, p, v, ps = [
-      "precision",
-      1,
-      MAX_DIGITS,
-      "rounding",
-      0,
-      8,
-      "toExpNeg",
-      -1 / 0,
-      0,
-      "toExpPos",
-      0,
-      1 / 0
-    ];
+    var i,
+      p,
+      v,
+      ps = [
+        "precision",
+        1,
+        MAX_DIGITS,
+        "rounding",
+        0,
+        8,
+        "toExpNeg",
+        -1 / 0,
+        0,
+        "toExpPos",
+        0,
+        1 / 0,
+      ];
     for (i = 0; i < ps.length; i += 3) {
-      if ((v = obj[p = ps[i]]) !== void 0) {
+      if ((v = obj[(p = ps[i])]) !== void 0) {
         if (mathfloor(v) === v && v >= ps[i + 1] && v <= ps[i + 2]) this[p] = v;
         else throw Error(invalidArgument + p + ": " + v);
       }
     }
-    if ((v = obj[p = "LN10"]) !== void 0) {
+    if ((v = obj[(p = "LN10")]) !== void 0) {
       if (v == Math.LN10) this[p] = new this(v);
       else throw Error(invalidArgument + p + ": " + v);
     }
@@ -8375,7 +9460,7 @@ var DiscordSDKModule = (() => {
 
   // node_modules/@discord/embedded-app-sdk/output/utils/PriceConstants.mjs
   var CurrencyCodes;
-  (function(CurrencyCodes2) {
+  (function (CurrencyCodes2) {
     CurrencyCodes2["AED"] = "aed";
     CurrencyCodes2["AFN"] = "afn";
     CurrencyCodes2["ALL"] = "all";
@@ -8741,7 +9826,7 @@ var DiscordSDKModule = (() => {
     [CurrencyCodes.YER]: 2,
     [CurrencyCodes.ZAR]: 2,
     [CurrencyCodes.ZMW]: 2,
-    [CurrencyCodes.ZWL]: 2
+    [CurrencyCodes.ZWL]: 2,
   };
 
   // node_modules/@discord/embedded-app-sdk/output/_virtual/index3.mjs
@@ -8753,38 +9838,99 @@ var DiscordSDKModule = (() => {
   function requireLodash_transform() {
     if (hasRequiredLodash_transform) return lodash_transform.exports;
     hasRequiredLodash_transform = 1;
-    (function(module, exports) {
+    (function (module, exports) {
       var LARGE_ARRAY_SIZE = 200;
       var FUNC_ERROR_TEXT = "Expected a function";
       var HASH_UNDEFINED = "__lodash_hash_undefined__";
-      var UNORDERED_COMPARE_FLAG = 1, PARTIAL_COMPARE_FLAG = 2;
-      var INFINITY = 1 / 0, MAX_SAFE_INTEGER2 = 9007199254740991;
-      var argsTag = "[object Arguments]", arrayTag = "[object Array]", boolTag = "[object Boolean]", dateTag = "[object Date]", errorTag = "[object Error]", funcTag = "[object Function]", genTag = "[object GeneratorFunction]", mapTag = "[object Map]", numberTag = "[object Number]", objectTag = "[object Object]", promiseTag = "[object Promise]", regexpTag = "[object RegExp]", setTag = "[object Set]", stringTag = "[object String]", symbolTag = "[object Symbol]", weakMapTag = "[object WeakMap]";
-      var arrayBufferTag = "[object ArrayBuffer]", dataViewTag = "[object DataView]", float32Tag = "[object Float32Array]", float64Tag = "[object Float64Array]", int8Tag = "[object Int8Array]", int16Tag = "[object Int16Array]", int32Tag = "[object Int32Array]", uint8Tag = "[object Uint8Array]", uint8ClampedTag = "[object Uint8ClampedArray]", uint16Tag = "[object Uint16Array]", uint32Tag = "[object Uint32Array]";
-      var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/, reIsPlainProp = /^\w*$/, reLeadingDot = /^\./, rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
+      var UNORDERED_COMPARE_FLAG = 1,
+        PARTIAL_COMPARE_FLAG = 2;
+      var INFINITY = 1 / 0,
+        MAX_SAFE_INTEGER2 = 9007199254740991;
+      var argsTag = "[object Arguments]",
+        arrayTag = "[object Array]",
+        boolTag = "[object Boolean]",
+        dateTag = "[object Date]",
+        errorTag = "[object Error]",
+        funcTag = "[object Function]",
+        genTag = "[object GeneratorFunction]",
+        mapTag = "[object Map]",
+        numberTag = "[object Number]",
+        objectTag = "[object Object]",
+        promiseTag = "[object Promise]",
+        regexpTag = "[object RegExp]",
+        setTag = "[object Set]",
+        stringTag = "[object String]",
+        symbolTag = "[object Symbol]",
+        weakMapTag = "[object WeakMap]";
+      var arrayBufferTag = "[object ArrayBuffer]",
+        dataViewTag = "[object DataView]",
+        float32Tag = "[object Float32Array]",
+        float64Tag = "[object Float64Array]",
+        int8Tag = "[object Int8Array]",
+        int16Tag = "[object Int16Array]",
+        int32Tag = "[object Int32Array]",
+        uint8Tag = "[object Uint8Array]",
+        uint8ClampedTag = "[object Uint8ClampedArray]",
+        uint16Tag = "[object Uint16Array]",
+        uint32Tag = "[object Uint32Array]";
+      var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/,
+        reIsPlainProp = /^\w*$/,
+        reLeadingDot = /^\./,
+        rePropName =
+          /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
       var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
       var reEscapeChar = /\\(\\)?/g;
       var reIsHostCtor = /^\[object .+?Constructor\]$/;
       var reIsUint = /^(?:0|[1-9]\d*)$/;
       var typedArrayTags = {};
-      typedArrayTags[float32Tag] = typedArrayTags[float64Tag] = typedArrayTags[int8Tag] = typedArrayTags[int16Tag] = typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] = typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] = typedArrayTags[uint32Tag] = true;
-      typedArrayTags[argsTag] = typedArrayTags[arrayTag] = typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] = typedArrayTags[dataViewTag] = typedArrayTags[dateTag] = typedArrayTags[errorTag] = typedArrayTags[funcTag] = typedArrayTags[mapTag] = typedArrayTags[numberTag] = typedArrayTags[objectTag] = typedArrayTags[regexpTag] = typedArrayTags[setTag] = typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
-      var freeGlobal = typeof commonjsGlobal == "object" && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
-      var freeSelf = typeof self == "object" && self && self.Object === Object && self;
+      typedArrayTags[float32Tag] =
+        typedArrayTags[float64Tag] =
+        typedArrayTags[int8Tag] =
+        typedArrayTags[int16Tag] =
+        typedArrayTags[int32Tag] =
+        typedArrayTags[uint8Tag] =
+        typedArrayTags[uint8ClampedTag] =
+        typedArrayTags[uint16Tag] =
+        typedArrayTags[uint32Tag] =
+          true;
+      typedArrayTags[argsTag] =
+        typedArrayTags[arrayTag] =
+        typedArrayTags[arrayBufferTag] =
+        typedArrayTags[boolTag] =
+        typedArrayTags[dataViewTag] =
+        typedArrayTags[dateTag] =
+        typedArrayTags[errorTag] =
+        typedArrayTags[funcTag] =
+        typedArrayTags[mapTag] =
+        typedArrayTags[numberTag] =
+        typedArrayTags[objectTag] =
+        typedArrayTags[regexpTag] =
+        typedArrayTags[setTag] =
+        typedArrayTags[stringTag] =
+        typedArrayTags[weakMapTag] =
+          false;
+      var freeGlobal =
+        typeof commonjsGlobal == "object" &&
+        commonjsGlobal &&
+        commonjsGlobal.Object === Object &&
+        commonjsGlobal;
+      var freeSelf =
+        typeof self == "object" && self && self.Object === Object && self;
       var root = freeGlobal || freeSelf || Function("return this")();
       var freeExports = exports && !exports.nodeType && exports;
-      var freeModule = freeExports && true && module && !module.nodeType && module;
+      var freeModule =
+        freeExports && true && module && !module.nodeType && module;
       var moduleExports = freeModule && freeModule.exports === freeExports;
       var freeProcess = moduleExports && freeGlobal.process;
-      var nodeUtil = (function() {
+      var nodeUtil = (function () {
         try {
           return freeProcess && freeProcess.binding("util");
-        } catch (e) {
-        }
+        } catch (e) {}
       })();
       var nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
       function arrayEach(array, iteratee) {
-        var index = -1, length = array ? array.length : 0;
+        var index = -1,
+          length = array ? array.length : 0;
         while (++index < length) {
           if (iteratee(array[index], index, array) === false) {
             break;
@@ -8793,7 +9939,8 @@ var DiscordSDKModule = (() => {
         return array;
       }
       function arraySome(array, predicate) {
-        var index = -1, length = array ? array.length : 0;
+        var index = -1,
+          length = array ? array.length : 0;
         while (++index < length) {
           if (predicate(array[index], index, array)) {
             return true;
@@ -8802,19 +9949,20 @@ var DiscordSDKModule = (() => {
         return false;
       }
       function baseProperty(key) {
-        return function(object) {
+        return function (object) {
           return object == null ? void 0 : object[key];
         };
       }
       function baseTimes(n, iteratee) {
-        var index = -1, result = Array(n);
+        var index = -1,
+          result = Array(n);
         while (++index < n) {
           result[index] = iteratee(index);
         }
         return result;
       }
       function baseUnary(func) {
-        return function(value) {
+        return function (value) {
           return func(value);
         };
       }
@@ -8826,49 +9974,79 @@ var DiscordSDKModule = (() => {
         if (value != null && typeof value.toString != "function") {
           try {
             result = !!(value + "");
-          } catch (e) {
-          }
+          } catch (e) {}
         }
         return result;
       }
       function mapToArray(map) {
-        var index = -1, result = Array(map.size);
-        map.forEach(function(value, key) {
+        var index = -1,
+          result = Array(map.size);
+        map.forEach(function (value, key) {
           result[++index] = [key, value];
         });
         return result;
       }
       function overArg(func, transform3) {
-        return function(arg) {
+        return function (arg) {
           return func(transform3(arg));
         };
       }
       function setToArray(set) {
-        var index = -1, result = Array(set.size);
-        set.forEach(function(value) {
+        var index = -1,
+          result = Array(set.size);
+        set.forEach(function (value) {
           result[++index] = value;
         });
         return result;
       }
-      var arrayProto = Array.prototype, funcProto = Function.prototype, objectProto = Object.prototype;
+      var arrayProto = Array.prototype,
+        funcProto = Function.prototype,
+        objectProto = Object.prototype;
       var coreJsData = root["__core-js_shared__"];
-      var maskSrcKey = (function() {
-        var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || "");
+      var maskSrcKey = (function () {
+        var uid = /[^.]+$/.exec(
+          (coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO) || "",
+        );
         return uid ? "Symbol(src)_1." + uid : "";
       })();
       var funcToString = funcProto.toString;
       var hasOwnProperty = objectProto.hasOwnProperty;
       var objectToString = objectProto.toString;
       var reIsNative = RegExp(
-        "^" + funcToString.call(hasOwnProperty).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"
+        "^" +
+          funcToString
+            .call(hasOwnProperty)
+            .replace(reRegExpChar, "\\$&")
+            .replace(
+              /hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g,
+              "$1.*?",
+            ) +
+          "$",
       );
-      var Symbol2 = root.Symbol, Uint8Array2 = root.Uint8Array, getPrototype = overArg(Object.getPrototypeOf, Object), objectCreate = Object.create, propertyIsEnumerable = objectProto.propertyIsEnumerable, splice = arrayProto.splice;
+      var Symbol2 = root.Symbol,
+        Uint8Array2 = root.Uint8Array,
+        getPrototype = overArg(Object.getPrototypeOf, Object),
+        objectCreate = Object.create,
+        propertyIsEnumerable = objectProto.propertyIsEnumerable,
+        splice = arrayProto.splice;
       var nativeKeys = overArg(Object.keys, Object);
-      var DataView = getNative(root, "DataView"), Map2 = getNative(root, "Map"), Promise2 = getNative(root, "Promise"), Set2 = getNative(root, "Set"), WeakMap2 = getNative(root, "WeakMap"), nativeCreate = getNative(Object, "create");
-      var dataViewCtorString = toSource(DataView), mapCtorString = toSource(Map2), promiseCtorString = toSource(Promise2), setCtorString = toSource(Set2), weakMapCtorString = toSource(WeakMap2);
-      var symbolProto = Symbol2 ? Symbol2.prototype : void 0, symbolValueOf = symbolProto ? symbolProto.valueOf : void 0, symbolToString = symbolProto ? symbolProto.toString : void 0;
+      var DataView = getNative(root, "DataView"),
+        Map2 = getNative(root, "Map"),
+        Promise2 = getNative(root, "Promise"),
+        Set2 = getNative(root, "Set"),
+        WeakMap2 = getNative(root, "WeakMap"),
+        nativeCreate = getNative(Object, "create");
+      var dataViewCtorString = toSource(DataView),
+        mapCtorString = toSource(Map2),
+        promiseCtorString = toSource(Promise2),
+        setCtorString = toSource(Set2),
+        weakMapCtorString = toSource(WeakMap2);
+      var symbolProto = Symbol2 ? Symbol2.prototype : void 0,
+        symbolValueOf = symbolProto ? symbolProto.valueOf : void 0,
+        symbolToString = symbolProto ? symbolProto.toString : void 0;
       function Hash(entries) {
-        var index = -1, length = entries ? entries.length : 0;
+        var index = -1,
+          length = entries ? entries.length : 0;
         this.clear();
         while (++index < length) {
           var entry = entries[index];
@@ -8891,7 +10069,9 @@ var DiscordSDKModule = (() => {
       }
       function hashHas(key) {
         var data = this.__data__;
-        return nativeCreate ? data[key] !== void 0 : hasOwnProperty.call(data, key);
+        return nativeCreate
+          ? data[key] !== void 0
+          : hasOwnProperty.call(data, key);
       }
       function hashSet(key, value) {
         var data = this.__data__;
@@ -8904,7 +10084,8 @@ var DiscordSDKModule = (() => {
       Hash.prototype.has = hashHas;
       Hash.prototype.set = hashSet;
       function ListCache(entries) {
-        var index = -1, length = entries ? entries.length : 0;
+        var index = -1,
+          length = entries ? entries.length : 0;
         this.clear();
         while (++index < length) {
           var entry = entries[index];
@@ -8915,7 +10096,8 @@ var DiscordSDKModule = (() => {
         this.__data__ = [];
       }
       function listCacheDelete(key) {
-        var data = this.__data__, index = assocIndexOf(data, key);
+        var data = this.__data__,
+          index = assocIndexOf(data, key);
         if (index < 0) {
           return false;
         }
@@ -8928,14 +10110,16 @@ var DiscordSDKModule = (() => {
         return true;
       }
       function listCacheGet(key) {
-        var data = this.__data__, index = assocIndexOf(data, key);
+        var data = this.__data__,
+          index = assocIndexOf(data, key);
         return index < 0 ? void 0 : data[index][1];
       }
       function listCacheHas(key) {
         return assocIndexOf(this.__data__, key) > -1;
       }
       function listCacheSet(key, value) {
-        var data = this.__data__, index = assocIndexOf(data, key);
+        var data = this.__data__,
+          index = assocIndexOf(data, key);
         if (index < 0) {
           data.push([key, value]);
         } else {
@@ -8949,7 +10133,8 @@ var DiscordSDKModule = (() => {
       ListCache.prototype.has = listCacheHas;
       ListCache.prototype.set = listCacheSet;
       function MapCache(entries) {
-        var index = -1, length = entries ? entries.length : 0;
+        var index = -1,
+          length = entries ? entries.length : 0;
         this.clear();
         while (++index < length) {
           var entry = entries[index];
@@ -8958,9 +10143,9 @@ var DiscordSDKModule = (() => {
       }
       function mapCacheClear() {
         this.__data__ = {
-          "hash": new Hash(),
-          "map": new (Map2 || ListCache)(),
-          "string": new Hash()
+          hash: new Hash(),
+          map: new (Map2 || ListCache)(),
+          string: new Hash(),
         };
       }
       function mapCacheDelete(key) {
@@ -8982,7 +10167,8 @@ var DiscordSDKModule = (() => {
       MapCache.prototype.has = mapCacheHas;
       MapCache.prototype.set = mapCacheSet;
       function SetCache(values) {
-        var index = -1, length = values ? values.length : 0;
+        var index = -1,
+          length = values ? values.length : 0;
         this.__data__ = new MapCache();
         while (++index < length) {
           this.add(values[index]);
@@ -9031,10 +10217,17 @@ var DiscordSDKModule = (() => {
       Stack.prototype.has = stackHas;
       Stack.prototype.set = stackSet;
       function arrayLikeKeys(value, inherited) {
-        var result = isArray(value) || isArguments(value) ? baseTimes(value.length, String) : [];
-        var length = result.length, skipIndexes = !!length;
+        var result =
+          isArray(value) || isArguments(value)
+            ? baseTimes(value.length, String)
+            : [];
+        var length = result.length,
+          skipIndexes = !!length;
         for (var key in value) {
-          if (hasOwnProperty.call(value, key) && !(skipIndexes && (key == "length" || isIndex(key, length)))) {
+          if (
+            hasOwnProperty.call(value, key) &&
+            !(skipIndexes && (key == "length" || isIndex(key, length)))
+          ) {
             result.push(key);
           }
         }
@@ -9058,7 +10251,8 @@ var DiscordSDKModule = (() => {
       }
       function baseGet(object, path) {
         path = isKey(path, object) ? [path] : castPath(path);
-        var index = 0, length = path.length;
+        var index = 0,
+          length = path.length;
         while (object != null && index < length) {
           object = object[toKey(path[index++])];
         }
@@ -9074,13 +10268,34 @@ var DiscordSDKModule = (() => {
         if (value === other) {
           return true;
         }
-        if (value == null || other == null || !isObject(value) && !isObjectLike(other)) {
+        if (
+          value == null ||
+          other == null ||
+          (!isObject(value) && !isObjectLike(other))
+        ) {
           return value !== value && other !== other;
         }
-        return baseIsEqualDeep(value, other, baseIsEqual, customizer, bitmask, stack);
+        return baseIsEqualDeep(
+          value,
+          other,
+          baseIsEqual,
+          customizer,
+          bitmask,
+          stack,
+        );
       }
-      function baseIsEqualDeep(object, other, equalFunc, customizer, bitmask, stack) {
-        var objIsArr = isArray(object), othIsArr = isArray(other), objTag = arrayTag, othTag = arrayTag;
+      function baseIsEqualDeep(
+        object,
+        other,
+        equalFunc,
+        customizer,
+        bitmask,
+        stack,
+      ) {
+        var objIsArr = isArray(object),
+          othIsArr = isArray(other),
+          objTag = arrayTag,
+          othTag = arrayTag;
         if (!objIsArr) {
           objTag = getTag(object);
           objTag = objTag == argsTag ? objectTag : objTag;
@@ -9089,27 +10304,57 @@ var DiscordSDKModule = (() => {
           othTag = getTag(other);
           othTag = othTag == argsTag ? objectTag : othTag;
         }
-        var objIsObj = objTag == objectTag && !isHostObject(object), othIsObj = othTag == objectTag && !isHostObject(other), isSameTag = objTag == othTag;
+        var objIsObj = objTag == objectTag && !isHostObject(object),
+          othIsObj = othTag == objectTag && !isHostObject(other),
+          isSameTag = objTag == othTag;
         if (isSameTag && !objIsObj) {
           stack || (stack = new Stack());
-          return objIsArr || isTypedArray(object) ? equalArrays(object, other, equalFunc, customizer, bitmask, stack) : equalByTag(object, other, objTag, equalFunc, customizer, bitmask, stack);
+          return objIsArr || isTypedArray(object)
+            ? equalArrays(object, other, equalFunc, customizer, bitmask, stack)
+            : equalByTag(
+                object,
+                other,
+                objTag,
+                equalFunc,
+                customizer,
+                bitmask,
+                stack,
+              );
         }
         if (!(bitmask & PARTIAL_COMPARE_FLAG)) {
-          var objIsWrapped = objIsObj && hasOwnProperty.call(object, "__wrapped__"), othIsWrapped = othIsObj && hasOwnProperty.call(other, "__wrapped__");
+          var objIsWrapped =
+              objIsObj && hasOwnProperty.call(object, "__wrapped__"),
+            othIsWrapped =
+              othIsObj && hasOwnProperty.call(other, "__wrapped__");
           if (objIsWrapped || othIsWrapped) {
-            var objUnwrapped = objIsWrapped ? object.value() : object, othUnwrapped = othIsWrapped ? other.value() : other;
+            var objUnwrapped = objIsWrapped ? object.value() : object,
+              othUnwrapped = othIsWrapped ? other.value() : other;
             stack || (stack = new Stack());
-            return equalFunc(objUnwrapped, othUnwrapped, customizer, bitmask, stack);
+            return equalFunc(
+              objUnwrapped,
+              othUnwrapped,
+              customizer,
+              bitmask,
+              stack,
+            );
           }
         }
         if (!isSameTag) {
           return false;
         }
         stack || (stack = new Stack());
-        return equalObjects(object, other, equalFunc, customizer, bitmask, stack);
+        return equalObjects(
+          object,
+          other,
+          equalFunc,
+          customizer,
+          bitmask,
+          stack,
+        );
       }
       function baseIsMatch(object, source, matchData, customizer) {
-        var index = matchData.length, length = index;
+        var index = matchData.length,
+          length = index;
         if (object == null) {
           return !length;
         }
@@ -9122,7 +10367,9 @@ var DiscordSDKModule = (() => {
         }
         while (++index < length) {
           data = matchData[index];
-          var key = data[0], objValue = object[key], srcValue = data[1];
+          var key = data[0],
+            objValue = object[key],
+            srcValue = data[1];
           if (data[2]) {
             if (objValue === void 0 && !(key in object)) {
               return false;
@@ -9130,7 +10377,17 @@ var DiscordSDKModule = (() => {
           } else {
             var stack = new Stack();
             var result;
-            if (!(result === void 0 ? baseIsEqual(srcValue, objValue, customizer, UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG, stack) : result)) {
+            if (
+              !(result === void 0
+                ? baseIsEqual(
+                    srcValue,
+                    objValue,
+                    customizer,
+                    UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG,
+                    stack,
+                  )
+                : result)
+            ) {
               return false;
             }
           }
@@ -9141,11 +10398,16 @@ var DiscordSDKModule = (() => {
         if (!isObject(value) || isMasked(value)) {
           return false;
         }
-        var pattern = isFunction(value) || isHostObject(value) ? reIsNative : reIsHostCtor;
+        var pattern =
+          isFunction(value) || isHostObject(value) ? reIsNative : reIsHostCtor;
         return pattern.test(toSource(value));
       }
       function baseIsTypedArray(value) {
-        return isObjectLike(value) && isLength(value.length) && !!typedArrayTags[objectToString.call(value)];
+        return (
+          isObjectLike(value) &&
+          isLength(value.length) &&
+          !!typedArrayTags[objectToString.call(value)]
+        );
       }
       function baseIteratee(value) {
         if (typeof value == "function") {
@@ -9155,7 +10417,9 @@ var DiscordSDKModule = (() => {
           return identity;
         }
         if (typeof value == "object") {
-          return isArray(value) ? baseMatchesProperty(value[0], value[1]) : baseMatches(value);
+          return isArray(value)
+            ? baseMatchesProperty(value[0], value[1])
+            : baseMatches(value);
         }
         return property(value);
       }
@@ -9176,7 +10440,7 @@ var DiscordSDKModule = (() => {
         if (matchData.length == 1 && matchData[0][2]) {
           return matchesStrictComparable(matchData[0][0], matchData[0][1]);
         }
-        return function(object) {
+        return function (object) {
           return object === source || baseIsMatch(object, source, matchData);
         };
       }
@@ -9184,13 +10448,20 @@ var DiscordSDKModule = (() => {
         if (isKey(path) && isStrictComparable(srcValue)) {
           return matchesStrictComparable(toKey(path), srcValue);
         }
-        return function(object) {
+        return function (object) {
           var objValue = get(object, path);
-          return objValue === void 0 && objValue === srcValue ? hasIn(object, path) : baseIsEqual(srcValue, objValue, void 0, UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG);
+          return objValue === void 0 && objValue === srcValue
+            ? hasIn(object, path)
+            : baseIsEqual(
+                srcValue,
+                objValue,
+                void 0,
+                UNORDERED_COMPARE_FLAG | PARTIAL_COMPARE_FLAG,
+              );
         };
       }
       function basePropertyDeep(path) {
-        return function(object) {
+        return function (object) {
           return baseGet(object, path);
         };
       }
@@ -9208,8 +10479,11 @@ var DiscordSDKModule = (() => {
         return isArray(value) ? value : stringToPath(value);
       }
       function createBaseFor(fromRight) {
-        return function(object, iteratee, keysFunc) {
-          var index = -1, iterable = Object(object), props = keysFunc(object), length = props.length;
+        return function (object, iteratee, keysFunc) {
+          var index = -1,
+            iterable = Object(object),
+            props = keysFunc(object),
+            length = props.length;
           while (length--) {
             var key = props[++index];
             if (iteratee(iterable[key], key, iterable) === false) {
@@ -9219,8 +10493,17 @@ var DiscordSDKModule = (() => {
           return object;
         };
       }
-      function equalArrays(array, other, equalFunc, customizer, bitmask, stack) {
-        var isPartial = bitmask & PARTIAL_COMPARE_FLAG, arrLength = array.length, othLength = other.length;
+      function equalArrays(
+        array,
+        other,
+        equalFunc,
+        customizer,
+        bitmask,
+        stack,
+      ) {
+        var isPartial = bitmask & PARTIAL_COMPARE_FLAG,
+          arrLength = array.length,
+          othLength = other.length;
         if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
           return false;
         }
@@ -9228,13 +10511,18 @@ var DiscordSDKModule = (() => {
         if (stacked && stack.get(other)) {
           return stacked == other;
         }
-        var index = -1, result = true, seen = bitmask & UNORDERED_COMPARE_FLAG ? new SetCache() : void 0;
+        var index = -1,
+          result = true,
+          seen = bitmask & UNORDERED_COMPARE_FLAG ? new SetCache() : void 0;
         stack.set(array, other);
         stack.set(other, array);
         while (++index < arrLength) {
-          var arrValue = array[index], othValue = other[index];
+          var arrValue = array[index],
+            othValue = other[index];
           if (customizer) {
-            var compared = isPartial ? customizer(othValue, arrValue, index, other, array, stack) : customizer(arrValue, othValue, index, array, other, stack);
+            var compared = isPartial
+              ? customizer(othValue, arrValue, index, other, array, stack)
+              : customizer(arrValue, othValue, index, array, other, stack);
           }
           if (compared !== void 0) {
             if (compared) {
@@ -9244,15 +10532,26 @@ var DiscordSDKModule = (() => {
             break;
           }
           if (seen) {
-            if (!arraySome(other, function(othValue2, othIndex) {
-              if (!seen.has(othIndex) && (arrValue === othValue2 || equalFunc(arrValue, othValue2, customizer, bitmask, stack))) {
-                return seen.add(othIndex);
-              }
-            })) {
+            if (
+              !arraySome(other, function (othValue2, othIndex) {
+                if (
+                  !seen.has(othIndex) &&
+                  (arrValue === othValue2 ||
+                    equalFunc(arrValue, othValue2, customizer, bitmask, stack))
+                ) {
+                  return seen.add(othIndex);
+                }
+              })
+            ) {
               result = false;
               break;
             }
-          } else if (!(arrValue === othValue || equalFunc(arrValue, othValue, customizer, bitmask, stack))) {
+          } else if (
+            !(
+              arrValue === othValue ||
+              equalFunc(arrValue, othValue, customizer, bitmask, stack)
+            )
+          ) {
             result = false;
             break;
           }
@@ -9261,16 +10560,30 @@ var DiscordSDKModule = (() => {
         stack["delete"](other);
         return result;
       }
-      function equalByTag(object, other, tag, equalFunc, customizer, bitmask, stack) {
+      function equalByTag(
+        object,
+        other,
+        tag,
+        equalFunc,
+        customizer,
+        bitmask,
+        stack,
+      ) {
         switch (tag) {
           case dataViewTag:
-            if (object.byteLength != other.byteLength || object.byteOffset != other.byteOffset) {
+            if (
+              object.byteLength != other.byteLength ||
+              object.byteOffset != other.byteOffset
+            ) {
               return false;
             }
             object = object.buffer;
             other = other.buffer;
           case arrayBufferTag:
-            if (object.byteLength != other.byteLength || !equalFunc(new Uint8Array2(object), new Uint8Array2(other))) {
+            if (
+              object.byteLength != other.byteLength ||
+              !equalFunc(new Uint8Array2(object), new Uint8Array2(other))
+            ) {
               return false;
             }
             return true;
@@ -9297,7 +10610,14 @@ var DiscordSDKModule = (() => {
             }
             bitmask |= UNORDERED_COMPARE_FLAG;
             stack.set(object, other);
-            var result = equalArrays(convert(object), convert(other), equalFunc, customizer, bitmask, stack);
+            var result = equalArrays(
+              convert(object),
+              convert(other),
+              equalFunc,
+              customizer,
+              bitmask,
+              stack,
+            );
             stack["delete"](object);
             return result;
           case symbolTag:
@@ -9307,8 +10627,19 @@ var DiscordSDKModule = (() => {
         }
         return false;
       }
-      function equalObjects(object, other, equalFunc, customizer, bitmask, stack) {
-        var isPartial = bitmask & PARTIAL_COMPARE_FLAG, objProps = keys(object), objLength = objProps.length, othProps = keys(other), othLength = othProps.length;
+      function equalObjects(
+        object,
+        other,
+        equalFunc,
+        customizer,
+        bitmask,
+        stack,
+      ) {
+        var isPartial = bitmask & PARTIAL_COMPARE_FLAG,
+          objProps = keys(object),
+          objLength = objProps.length,
+          othProps = keys(other),
+          othLength = othProps.length;
         if (objLength != othLength && !isPartial) {
           return false;
         }
@@ -9329,19 +10660,38 @@ var DiscordSDKModule = (() => {
         var skipCtor = isPartial;
         while (++index < objLength) {
           key = objProps[index];
-          var objValue = object[key], othValue = other[key];
+          var objValue = object[key],
+            othValue = other[key];
           if (customizer) {
-            var compared = isPartial ? customizer(othValue, objValue, key, other, object, stack) : customizer(objValue, othValue, key, object, other, stack);
+            var compared = isPartial
+              ? customizer(othValue, objValue, key, other, object, stack)
+              : customizer(objValue, othValue, key, object, other, stack);
           }
-          if (!(compared === void 0 ? objValue === othValue || equalFunc(objValue, othValue, customizer, bitmask, stack) : compared)) {
+          if (
+            !(compared === void 0
+              ? objValue === othValue ||
+                equalFunc(objValue, othValue, customizer, bitmask, stack)
+              : compared)
+          ) {
             result = false;
             break;
           }
           skipCtor || (skipCtor = key == "constructor");
         }
         if (result && !skipCtor) {
-          var objCtor = object.constructor, othCtor = other.constructor;
-          if (objCtor != othCtor && ("constructor" in object && "constructor" in other) && !(typeof objCtor == "function" && objCtor instanceof objCtor && typeof othCtor == "function" && othCtor instanceof othCtor)) {
+          var objCtor = object.constructor,
+            othCtor = other.constructor;
+          if (
+            objCtor != othCtor &&
+            "constructor" in object &&
+            "constructor" in other &&
+            !(
+              typeof objCtor == "function" &&
+              objCtor instanceof objCtor &&
+              typeof othCtor == "function" &&
+              othCtor instanceof othCtor
+            )
+          ) {
             result = false;
           }
         }
@@ -9351,12 +10701,16 @@ var DiscordSDKModule = (() => {
       }
       function getMapData(map, key) {
         var data = map.__data__;
-        return isKeyable(key) ? data[typeof key == "string" ? "string" : "hash"] : data.map;
+        return isKeyable(key)
+          ? data[typeof key == "string" ? "string" : "hash"]
+          : data.map;
       }
       function getMatchData(object) {
-        var result = keys(object), length = result.length;
+        var result = keys(object),
+          length = result.length;
         while (length--) {
-          var key = result[length], value = object[key];
+          var key = result[length],
+            value = object[key];
           result[length] = [key, value, isStrictComparable(value)];
         }
         return result;
@@ -9366,9 +10720,17 @@ var DiscordSDKModule = (() => {
         return baseIsNative(value) ? value : void 0;
       }
       var getTag = baseGetTag;
-      if (DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag || Map2 && getTag(new Map2()) != mapTag || Promise2 && getTag(Promise2.resolve()) != promiseTag || Set2 && getTag(new Set2()) != setTag || WeakMap2 && getTag(new WeakMap2()) != weakMapTag) {
-        getTag = function(value) {
-          var result = objectToString.call(value), Ctor = result == objectTag ? value.constructor : void 0, ctorString = Ctor ? toSource(Ctor) : void 0;
+      if (
+        (DataView && getTag(new DataView(new ArrayBuffer(1))) != dataViewTag) ||
+        (Map2 && getTag(new Map2()) != mapTag) ||
+        (Promise2 && getTag(Promise2.resolve()) != promiseTag) ||
+        (Set2 && getTag(new Set2()) != setTag) ||
+        (WeakMap2 && getTag(new WeakMap2()) != weakMapTag)
+      ) {
+        getTag = function (value) {
+          var result = objectToString.call(value),
+            Ctor = result == objectTag ? value.constructor : void 0,
+            ctorString = Ctor ? toSource(Ctor) : void 0;
           if (ctorString) {
             switch (ctorString) {
               case dataViewCtorString:
@@ -9388,7 +10750,9 @@ var DiscordSDKModule = (() => {
       }
       function hasPath(object, path, hasFunc) {
         path = isKey(path, object) ? [path] : castPath(path);
-        var result, index = -1, length = path.length;
+        var result,
+          index = -1,
+          length = path.length;
         while (++index < length) {
           var key = toKey(path[index]);
           if (!(result = object != null && hasFunc(object, key))) {
@@ -9400,52 +10764,84 @@ var DiscordSDKModule = (() => {
           return result;
         }
         var length = object ? object.length : 0;
-        return !!length && isLength(length) && isIndex(key, length) && (isArray(object) || isArguments(object));
+        return (
+          !!length &&
+          isLength(length) &&
+          isIndex(key, length) &&
+          (isArray(object) || isArguments(object))
+        );
       }
       function isIndex(value, length) {
         length = length == null ? MAX_SAFE_INTEGER2 : length;
-        return !!length && (typeof value == "number" || reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
+        return (
+          !!length &&
+          (typeof value == "number" || reIsUint.test(value)) &&
+          value > -1 &&
+          value % 1 == 0 &&
+          value < length
+        );
       }
       function isKey(value, object) {
         if (isArray(value)) {
           return false;
         }
         var type = typeof value;
-        if (type == "number" || type == "symbol" || type == "boolean" || value == null || isSymbol(value)) {
+        if (
+          type == "number" ||
+          type == "symbol" ||
+          type == "boolean" ||
+          value == null ||
+          isSymbol(value)
+        ) {
           return true;
         }
-        return reIsPlainProp.test(value) || !reIsDeepProp.test(value) || object != null && value in Object(object);
+        return (
+          reIsPlainProp.test(value) ||
+          !reIsDeepProp.test(value) ||
+          (object != null && value in Object(object))
+        );
       }
       function isKeyable(value) {
         var type = typeof value;
-        return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
+        return type == "string" ||
+          type == "number" ||
+          type == "symbol" ||
+          type == "boolean"
+          ? value !== "__proto__"
+          : value === null;
       }
       function isMasked(func) {
         return !!maskSrcKey && maskSrcKey in func;
       }
       function isPrototype(value) {
-        var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto;
+        var Ctor = value && value.constructor,
+          proto = (typeof Ctor == "function" && Ctor.prototype) || objectProto;
         return value === proto;
       }
       function isStrictComparable(value) {
         return value === value && !isObject(value);
       }
       function matchesStrictComparable(key, srcValue) {
-        return function(object) {
+        return function (object) {
           if (object == null) {
             return false;
           }
-          return object[key] === srcValue && (srcValue !== void 0 || key in Object(object));
+          return (
+            object[key] === srcValue &&
+            (srcValue !== void 0 || key in Object(object))
+          );
         };
       }
-      var stringToPath = memoize(function(string) {
+      var stringToPath = memoize(function (string) {
         string = toString2(string);
         var result = [];
         if (reLeadingDot.test(string)) {
           result.push("");
         }
-        string.replace(rePropName, function(match, number, quote, string2) {
-          result.push(quote ? string2.replace(reEscapeChar, "$1") : number || match);
+        string.replace(rePropName, function (match, number, quote, string2) {
+          result.push(
+            quote ? string2.replace(reEscapeChar, "$1") : number || match,
+          );
         });
         return result;
       });
@@ -9460,21 +10856,24 @@ var DiscordSDKModule = (() => {
         if (func != null) {
           try {
             return funcToString.call(func);
-          } catch (e) {
-          }
+          } catch (e) {}
           try {
             return func + "";
-          } catch (e) {
-          }
+          } catch (e) {}
         }
         return "";
       }
       function memoize(func, resolver) {
-        if (typeof func != "function" || resolver && typeof resolver != "function") {
+        if (
+          typeof func != "function" ||
+          (resolver && typeof resolver != "function")
+        ) {
           throw new TypeError(FUNC_ERROR_TEXT);
         }
-        var memoized = function() {
-          var args = arguments, key = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
+        var memoized = function () {
+          var args = arguments,
+            key = resolver ? resolver.apply(this, args) : args[0],
+            cache = memoized.cache;
           if (cache.has(key)) {
             return cache.get(key);
           }
@@ -9487,10 +10886,15 @@ var DiscordSDKModule = (() => {
       }
       memoize.Cache = MapCache;
       function eq(value, other) {
-        return value === other || value !== value && other !== other;
+        return value === other || (value !== value && other !== other);
       }
       function isArguments(value) {
-        return isArrayLikeObject(value) && hasOwnProperty.call(value, "callee") && (!propertyIsEnumerable.call(value, "callee") || objectToString.call(value) == argsTag);
+        return (
+          isArrayLikeObject(value) &&
+          hasOwnProperty.call(value, "callee") &&
+          (!propertyIsEnumerable.call(value, "callee") ||
+            objectToString.call(value) == argsTag)
+        );
       }
       var isArray = Array.isArray;
       function isArrayLike(value) {
@@ -9504,7 +10908,12 @@ var DiscordSDKModule = (() => {
         return tag == funcTag || tag == genTag;
       }
       function isLength(value) {
-        return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER2;
+        return (
+          typeof value == "number" &&
+          value > -1 &&
+          value % 1 == 0 &&
+          value <= MAX_SAFE_INTEGER2
+        );
       }
       function isObject(value) {
         var type = typeof value;
@@ -9514,9 +10923,14 @@ var DiscordSDKModule = (() => {
         return !!value && typeof value == "object";
       }
       function isSymbol(value) {
-        return typeof value == "symbol" || isObjectLike(value) && objectToString.call(value) == symbolTag;
+        return (
+          typeof value == "symbol" ||
+          (isObjectLike(value) && objectToString.call(value) == symbolTag)
+        );
       }
-      var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedArray;
+      var isTypedArray = nodeIsTypedArray
+        ? baseUnary(nodeIsTypedArray)
+        : baseIsTypedArray;
       function toString2(value) {
         return value == null ? "" : baseToString(value);
       }
@@ -9539,15 +10953,20 @@ var DiscordSDKModule = (() => {
             if (isArr) {
               accumulator = isArray(object) ? new Ctor() : [];
             } else {
-              accumulator = isFunction(Ctor) ? baseCreate(getPrototype(object)) : {};
+              accumulator = isFunction(Ctor)
+                ? baseCreate(getPrototype(object))
+                : {};
             }
           } else {
             accumulator = {};
           }
         }
-        (isArr ? arrayEach : baseForOwn)(object, function(value, index, object2) {
-          return iteratee(accumulator, value, index, object2);
-        });
+        (isArr ? arrayEach : baseForOwn)(
+          object,
+          function (value, index, object2) {
+            return iteratee(accumulator, value, index, object2);
+          },
+        );
         return accumulator;
       }
       function identity(value) {

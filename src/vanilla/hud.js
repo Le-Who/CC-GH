@@ -6,7 +6,14 @@
  * ═══════════════════════════════════════════════════ */
 import { GameStore } from "./store.js";
 import { getCropsCache, loadCropsFromStorage } from "./crops.js";
-import { HUB, api, apiBatched, goToScreen, showToast, safeShowModal } from "./shared.js";
+import {
+  HUB,
+  api,
+  apiBatched,
+  goToScreen,
+  showToast,
+  safeShowModal,
+} from "./shared.js";
 import { CROPS, MERGE_CHAINS } from "/game-logic.js";
 import { hudStore } from "../hooks/useHUDEngine.js";
 
@@ -38,8 +45,6 @@ function _formatReward(rw) {
 }
 
 let regenTimerId = null;
-
-
 
 /* ─── GameStore Slice Registration ─── */
 function registerSlice() {
@@ -345,7 +350,9 @@ async function _feedFromModal(cropId, btn) {
     }).then((data) => {
       // v8.3: Rollback on server rejection
       if (data?.error || data?.success === false) {
-        console.warn("[HUD] Pet feed rejected by server, rolling back optimistic state");
+        console.warn(
+          "[HUD] Pet feed rejected by server, rolling back optimistic state",
+        );
         if (_preRes) syncFromServer(_preRes);
         if (_prePet) GameStore.setState("pet", _prePet);
         if (_preHarvested) {
@@ -357,7 +364,6 @@ async function _feedFromModal(cropId, btn) {
       }
     });
   } finally {
-
     // v6.2.0: Guaranteed refresh — re-enables buttons even on network error
     _refreshModalItems();
     _checkEnergyPlayReady();

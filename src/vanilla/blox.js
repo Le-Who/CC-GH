@@ -12,7 +12,13 @@ import { HUD } from "./hud.js";
 import { perlinShake, debounce } from "./effects.js";
 
 import { GRID, PIECE_COUNT, PIECES } from "./blox/pieces.js";
-import { createEmptyBoard, canPlace, placePiece, canAnyPieceFit, getCenterOffset } from "./blox/engine.js";
+import {
+  createEmptyBoard,
+  canPlace,
+  placePiece,
+  canAnyPieceFit,
+  getCenterOffset,
+} from "./blox/engine.js";
 
 const BloxGameImpl = (() => {
   const STORAGE_KEY = "blox_state";
@@ -130,8 +136,6 @@ const BloxGameImpl = (() => {
     }
     selectedPiece = -1;
   }
-
-
 
   // ── Line clearing ──
   // v4.7: Board cells are cleared SYNCHRONOUSLY so canAnyPieceFit()
@@ -300,8 +304,6 @@ const BloxGameImpl = (() => {
       el.style.display = "none";
     }, 1000);
   }
-
-
 
   // ── Persistence (v4.16: debounced server sync — 3s throttle) ──
   function _buildSavePayload() {
@@ -627,7 +629,9 @@ const BloxGameImpl = (() => {
         gc = c + dc;
       if (gr < 0 || gr >= GRID || gc < 0 || gc >= GRID) continue;
       const ghost = document.createElement("div");
-      ghost.className = valid ? "blox-ghost-cell" : "blox-ghost-cell ghost-invalid";
+      ghost.className = valid
+        ? "blox-ghost-cell"
+        : "blox-ghost-cell ghost-invalid";
       ghost.style.gridRow = `${gr + 1}`;
       ghost.style.gridColumn = `${gc + 1}`;
       if (valid) ghost.style.setProperty("--ghost-color", piece.color);
@@ -669,28 +673,28 @@ const BloxGameImpl = (() => {
   // ── Unified Pointer Drag-and-Drop ──
   const TOUCH_LIFT_FACTOR = 2.125; // cells above finger (was 2.5, reduced 15%)
   let dragDragging = false;
-  
+
   function onTrayPointerDown(e, idx) {
     if (!gameActive || gamePaused) return;
     if (tray[idx]?.placed) return;
-    
+
     // Left-click only for mouse devices
     if (e.pointerType === "mouse" && e.button !== 0) return;
-    
+
     // Block native behaviors (like scroll)
     e.preventDefault();
-    
+
     _cacheBoardRect();
     dragPieceIdx = idx;
     selectedPiece = idx;
-    
+
     const wrapper = e.target.closest(".blox-piece-wrapper");
     if (wrapper) wrapper.classList.add("dragging");
-    
+
     // Disable pointer-events on tray wrappers to prevent stuck-piece stacking
     const trayEl = $("blox-tray");
     if (trayEl) trayEl.style.pointerEvents = "none";
-    
+
     const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
     if (isTouch) {
       HUB.swipeBlocked = true;
@@ -699,19 +703,19 @@ const BloxGameImpl = (() => {
     } else {
       dragDragging = false;
     }
-    
+
     const startX = e.clientX;
     const startY = e.clientY;
     const DRAG_THRESHOLD = 5;
-    
+
     const gridEl = $("blox-board");
     const cellPx = gridEl ? gridEl.getBoundingClientRect().width / GRID : 28;
     const liftY = isTouch ? cellPx * TOUCH_LIFT_FACTOR : 10;
-    
+
     const onMove = (ev) => {
       ev.preventDefault();
       if (dragPieceIdx < 0) return;
-      
+
       if (!dragDragging) {
         const dx = ev.clientX - startX;
         const dy = ev.clientY - startY;
@@ -721,37 +725,59 @@ const BloxGameImpl = (() => {
           document.body.style.cursor = "grabbing";
         }
       }
-      
+
       if (dragDragging) {
         moveDragPreview(ev, isTouch);
-        const target = getBoardTarget(ev.clientX, ev.clientY - liftY, tray[dragPieceIdx].piece);
-        const key = target ? `${dragPieceIdx},${target.targetR},${target.targetC}` : "";
+        const target = getBoardTarget(
+          ev.clientX,
+          ev.clientY - liftY,
+          tray[dragPieceIdx].piece,
+        );
+        const key = target
+          ? `${dragPieceIdx},${target.targetR},${target.targetC}`
+          : "";
         if (key !== _lastGhostKey) {
           clearGhost();
           if (target) {
-            showGhostAt(tray[dragPieceIdx].piece, target.targetR, target.targetC);
+            showGhostAt(
+              tray[dragPieceIdx].piece,
+              target.targetR,
+              target.targetC,
+            );
           }
           _lastGhostKey = key;
         }
       }
     };
-    
+
     const onUp = (ev) => {
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerup", onUp);
       document.removeEventListener("pointercancel", onUp);
       document.body.style.cursor = "";
-      
+
       // v7.3: Clean up AbortController for this drag session
       _dragAbortController = null;
-      
+
       if (trayEl) trayEl.style.pointerEvents = "";
       clearGhost();
-      
+
       if (dragDragging && dragPieceIdx >= 0) {
         let placed = false;
-        const target = getBoardTarget(ev.clientX, ev.clientY - liftY, tray[dragPieceIdx].piece);
-        if (target && canPlace(board, tray[dragPieceIdx].piece, target.targetR, target.targetC)) {
+        const target = getBoardTarget(
+          ev.clientX,
+          ev.clientY - liftY,
+          tray[dragPieceIdx].piece,
+        );
+        if (
+          target &&
+          canPlace(
+            board,
+            tray[dragPieceIdx].piece,
+            target.targetR,
+            target.targetC,
+          )
+        ) {
           placed = true;
           removeDragPreview();
           onCellClick(target.targetR, target.targetC);
@@ -762,26 +788,35 @@ const BloxGameImpl = (() => {
         if (wrapper) wrapper.classList.remove("dragging");
         removeDragPreview();
       }
-      
+
       dragPieceIdx = -1;
       dragDragging = false;
       _clearBoardRectCache();
       renderTray();
-      
+
       if (isTouch) {
         setTimeout(() => {
           if (!gameActive) HUB.swipeBlocked = false;
         }, 100);
       }
     };
-    
+
     // v7.3: Create AbortController for this drag session — allows route-leave to cancel
     _dragAbortController = new AbortController();
     const dragSignal = _dragAbortController.signal;
 
-    document.addEventListener("pointermove", onMove, { passive: false, signal: dragSignal });
-    document.addEventListener("pointerup", onUp, { passive: false, signal: dragSignal });
-    document.addEventListener("pointercancel", onUp, { passive: false, signal: dragSignal });
+    document.addEventListener("pointermove", onMove, {
+      passive: false,
+      signal: dragSignal,
+    });
+    document.addEventListener("pointerup", onUp, {
+      passive: false,
+      signal: dragSignal,
+    });
+    document.addEventListener("pointercancel", onUp, {
+      passive: false,
+      signal: dragSignal,
+    });
   }
 
   // ── Drag preview (shared by touch + mouse) ──
@@ -826,15 +861,19 @@ const BloxGameImpl = (() => {
 
     el.style.left = "0px";
     el.style.top = "0px";
-    
+
     // Juicy UI: prepare for translate3d positioning via CSS Custom Properties
-    const initialX = pointer ? pointer.clientX - (offset.dc + 0.5) * cellPx : -999;
-    const initialY = pointer ? pointer.clientY - (offset.dr + 0.5) * cellPx - liftY : -999;
+    const initialX = pointer
+      ? pointer.clientX - (offset.dc + 0.5) * cellPx
+      : -999;
+    const initialY = pointer
+      ? pointer.clientY - (offset.dr + 0.5) * cellPx - liftY
+      : -999;
     el.style.setProperty("--x", `${initialX}px`);
     el.style.setProperty("--y", `${initialY}px`);
     el.style.setProperty("--tilt", `0deg`);
     el.style.transform = `translate3d(var(--x), var(--y), 0) rotateZ(var(--tilt))`;
-    
+
     el._anchorDc = offset.dc;
     el._anchorDr = offset.dr;
     el._cellPx = cellPx;
@@ -879,7 +918,10 @@ const BloxGameImpl = (() => {
 
       dragPreviewEl.style.setProperty("--x", `${Math.round(x)}px`);
       dragPreviewEl.style.setProperty("--y", `${Math.round(y)}px`);
-      dragPreviewEl.style.setProperty("--tilt", `${_dragTiltAngle.toFixed(1)}deg`);
+      dragPreviewEl.style.setProperty(
+        "--tilt",
+        `${_dragTiltAngle.toFixed(1)}deg`,
+      );
       // Test regex checks for rotateZ keyword in the code
       // We are using rotateZ(var(--tilt)) in the initial transform setup
     }
@@ -1340,7 +1382,10 @@ const BloxGameImpl = (() => {
           username: HUB.username,
         });
         if (serverData?.savedState) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData.savedState));
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(serverData.savedState),
+          );
           const loaded = loadState();
           if (loaded && loaded.gameActive) {
             board = loaded.board;
@@ -1353,7 +1398,8 @@ const BloxGameImpl = (() => {
             updateStats();
           }
         }
-        if (serverData?.highScore) highScore = Math.max(highScore, serverData.highScore);
+        if (serverData?.highScore)
+          highScore = Math.max(highScore, serverData.highScore);
       } catch (e) {
         console.warn("[Blox] Desync re-fetch failed:", e.message);
       }
@@ -1375,8 +1421,20 @@ const BloxGameImpl = (() => {
       let _tiltRaf = 0;
       // Optimization: Cache the getBoundingClientRect to prevent layout thrashing
       let _cachedTiltRect = null;
-      window.addEventListener("resize", () => { _cachedTiltRect = null; }, { passive: true });
-      window.addEventListener("scroll", () => { _cachedTiltRect = null; }, { passive: true, capture: true });
+      window.addEventListener(
+        "resize",
+        () => {
+          _cachedTiltRect = null;
+        },
+        { passive: true },
+      );
+      window.addEventListener(
+        "scroll",
+        () => {
+          _cachedTiltRect = null;
+        },
+        { passive: true, capture: true },
+      );
 
       bloxBoardEl.addEventListener("pointermove", (e) => {
         if (_tiltRaf) return;

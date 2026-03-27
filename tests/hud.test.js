@@ -12,8 +12,8 @@ const hudPath = path.join(__dirname, "..", "src", "vanilla", "hud.js");
 function loadHudSandbox(apiMock) {
   const code = fs.readFileSync(hudPath, "utf-8");
 
-  // Remove imports
-  let safeCode = code.replace(/^import\s+.*$/gm, "");
+  // Remove imports safely handling multiline Prettier blocks
+  let safeCode = code.replace(/import\s+[\s\S]*?(?:from\s+)?['"][^'"]+['"];?/g, "");
 
   // Transform exports to local variables
   safeCode = safeCode.replace(/^export\s+const\s+/gm, "const ");

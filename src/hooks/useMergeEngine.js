@@ -46,7 +46,7 @@ export const mergeStore = create((set, get) => ({
   inventory: [],
   lastFreePull: 0,
   trashMode: false,
-  selectedFuel: {},   // chainId → cropId
+  selectedFuel: {}, // chainId → cropId
 
   // ─── Computed ───
   getItemInfo: (itemId) => ITEM_LOOKUP[itemId] || null,
@@ -68,7 +68,9 @@ export const mergeStore = create((set, get) => ({
 
   canFreePull: () => {
     const todayStr = new Date().toISOString().slice(0, 10);
-    const lastStr = new Date(get().lastFreePull || 0).toISOString().slice(0, 10);
+    const lastStr = new Date(get().lastFreePull || 0)
+      .toISOString()
+      .slice(0, 10);
     return lastStr !== todayStr;
   },
 
@@ -89,9 +91,10 @@ export const mergeStore = create((set, get) => ({
   setGeneratorState: (generatorState) => set({ generatorState }),
   setLastFreePull: (lastFreePull) => set({ lastFreePull }),
   toggleTrashMode: () => set((s) => ({ trashMode: !s.trashMode })),
-  setSelectedFuel: (chainId, cropId) => set((s) => ({
-    selectedFuel: { ...s.selectedFuel, [chainId]: cropId },
-  })),
+  setSelectedFuel: (chainId, cropId) =>
+    set((s) => ({
+      selectedFuel: { ...s.selectedFuel, [chainId]: cropId },
+    })),
 
   // Bulk sync from server response (merge state object)
   syncFromServer: (mergeData) => {
@@ -106,11 +109,12 @@ export const mergeStore = create((set, get) => ({
   },
 
   // Optimistic cell update
-  clearCell: (r, c) => set((s) => {
-    const newBoard = structuredClone(s.board);
-    newBoard[r][c] = null;
-    return { board: newBoard };
-  }),
+  clearCell: (r, c) =>
+    set((s) => {
+      const newBoard = structuredClone(s.board);
+      newBoard[r][c] = null;
+      return { board: newBoard };
+    }),
 
   // Optimistic merge
   mergeOptimistic: (fromR, fromC, toR, toC) => {
@@ -134,13 +138,14 @@ export const mergeStore = create((set, get) => ({
   },
 
   // Snapshot for rollback
-  snapshot: () => structuredClone({
-    board: get().board,
-    generators: get().generators,
-    generatorState: get().generatorState,
-    inventory: get().inventory,
-    lastFreePull: get().lastFreePull,
-  }),
+  snapshot: () =>
+    structuredClone({
+      board: get().board,
+      generators: get().generators,
+      generatorState: get().generatorState,
+      inventory: get().inventory,
+      lastFreePull: get().lastFreePull,
+    }),
 
   rollback: (snap) => set(snap),
 }));

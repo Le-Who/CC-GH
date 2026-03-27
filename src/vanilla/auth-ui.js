@@ -14,7 +14,9 @@ export function getStoredAuth() {
     if (token && user) {
       return { token, ...JSON.parse(user) };
     }
-  } catch { /* ignore corrupt storage */ }
+  } catch {
+    /* ignore corrupt storage */
+  }
   return null;
 }
 
@@ -28,9 +30,9 @@ export function storeAuth(token, userId, username) {
 export function clearAuth() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
-  localStorage.removeItem('gh_token');
-  localStorage.removeItem('gh_userId');
-  localStorage.removeItem('gh_username');
+  localStorage.removeItem("gh_token");
+  localStorage.removeItem("gh_userId");
+  localStorage.removeItem("gh_username");
 }
 
 /** Validate stored token against server */
@@ -47,7 +49,11 @@ export async function validateStoredToken() {
       return null;
     }
     const data = await res.json();
-    return { token: stored.token, userId: data.userId, username: data.username };
+    return {
+      token: stored.token,
+      userId: data.userId,
+      username: data.username,
+    };
   } catch {
     return null; // Network error — keep stored auth, don't clear
   }
@@ -118,7 +124,8 @@ export function showAuthDialog() {
       tab.addEventListener("click", () => {
         currentTab = tab.dataset.tab;
         tabs.forEach((t) => t.classList.toggle("active", t === tab));
-        submitBtn.textContent = currentTab === "login" ? "Sign In" : "Create Account";
+        submitBtn.textContent =
+          currentTab === "login" ? "Sign In" : "Create Account";
         passwordInput.setAttribute(
           "autocomplete",
           currentTab === "login" ? "current-password" : "new-password",
@@ -159,7 +166,11 @@ export function showAuthDialog() {
         storeAuth(data.token, data.userId, data.username);
         dialog.close();
         dialog.remove();
-        resolve({ token: data.token, userId: data.userId, username: data.username });
+        resolve({
+          token: data.token,
+          userId: data.userId,
+          username: data.username,
+        });
       } catch (e) {
         errorEl.textContent = "Network error — check your connection";
         submitBtn.disabled = false;
@@ -194,7 +205,9 @@ export async function logout() {
         method: "POST",
         headers: { Authorization: `Bearer ${stored.token}` },
       });
-    } catch { /* best-effort */ }
+    } catch {
+      /* best-effort */
+    }
   }
   clearAuth();
   // Reload to show login screen

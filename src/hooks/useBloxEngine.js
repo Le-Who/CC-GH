@@ -15,12 +15,16 @@
  */
 import { create } from "zustand";
 import { GRID, PIECES, PIECE_COUNT } from "../vanilla/blox/pieces.js";
-import { canPlace, canAnyPieceFit, placePiece } from "../vanilla/blox/engine.js";
+import {
+  canPlace,
+  canAnyPieceFit,
+  placePiece,
+} from "../vanilla/blox/engine.js";
 
 export const bloxStore = create((set, get) => ({
   // ─── State ───
-  board: [],              // GRID×GRID, null or color string
-  tray: [],               // [{ piece, placed }]
+  board: [], // GRID×GRID, null or color string
+  tray: [], // [{ piece, placed }]
   score: 0,
   linesCleared: 0,
   highScore: 0,
@@ -37,7 +41,7 @@ export const bloxStore = create((set, get) => ({
     return canAnyPieceFit(get().board, get().tray);
   },
 
-  allPlaced: () => get().tray.every(t => t.placed),
+  allPlaced: () => get().tray.every((t) => t.placed),
 
   // ─── Actions ───
   newGame: () => {
@@ -59,23 +63,24 @@ export const bloxStore = create((set, get) => ({
 
   selectPiece: (index) => set({ selectedPiece: index }),
 
-  placePieceAt: (pieceIdx, row, col) => set((s) => {
-    const t = s.tray[pieceIdx];
-    if (!t || t.placed) return s;
+  placePieceAt: (pieceIdx, row, col) =>
+    set((s) => {
+      const t = s.tray[pieceIdx];
+      if (!t || t.placed) return s;
 
-    const newBoard = s.board.map(r => [...r]);
-    placePiece(newBoard, t.piece, row, col);
+      const newBoard = s.board.map((r) => [...r]);
+      placePiece(newBoard, t.piece, row, col);
 
-    const newTray = s.tray.map((item, i) =>
-      i === pieceIdx ? { ...item, placed: true } : item
-    );
+      const newTray = s.tray.map((item, i) =>
+        i === pieceIdx ? { ...item, placed: true } : item,
+      );
 
-    return {
-      board: newBoard,
-      tray: newTray,
-      selectedPiece: -1,
-    };
-  }),
+      return {
+        board: newBoard,
+        tray: newTray,
+        selectedPiece: -1,
+      };
+    }),
 
   addScore: (pts) => set((s) => ({ score: s.score + pts })),
   addLines: (count) => set((s) => ({ linesCleared: s.linesCleared + count })),
@@ -84,19 +89,21 @@ export const bloxStore = create((set, get) => ({
   setGameActive: (active) => set({ gameActive: active }),
   setGamePaused: (paused) => set({ gamePaused: paused }),
 
-  clearBoardCell: (r, c) => set((s) => {
-    const newBoard = s.board.map(row => [...row]);
-    newBoard[r][c] = null;
-    return { board: newBoard };
-  }),
+  clearBoardCell: (r, c) =>
+    set((s) => {
+      const newBoard = s.board.map((row) => [...row]);
+      newBoard[r][c] = null;
+      return { board: newBoard };
+    }),
 
-  refillTray: () => set({
-    tray: Array.from({ length: PIECE_COUNT }, () => ({
-      piece: PIECES[Math.floor(Math.random() * PIECES.length)],
-      placed: false,
-    })),
-    selectedPiece: -1,
-  }),
+  refillTray: () =>
+    set({
+      tray: Array.from({ length: PIECE_COUNT }, () => ({
+        piece: PIECES[Math.floor(Math.random() * PIECES.length)],
+        placed: false,
+      })),
+      selectedPiece: -1,
+    }),
 
   // Bulk restore from server/localStorage save
   restoreState: (saved) => {
@@ -115,8 +122,8 @@ export const bloxStore = create((set, get) => ({
   snapshot: () => {
     const s = get();
     return {
-      board: s.board.map(r => [...r]),
-      tray: s.tray.map(t => ({ ...t, piece: { ...t.piece } })),
+      board: s.board.map((r) => [...r]),
+      tray: s.tray.map((t) => ({ ...t, piece: { ...t.piece } })),
       score: s.score,
       linesCleared: s.linesCleared,
       highScore: s.highScore,

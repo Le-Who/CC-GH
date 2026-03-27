@@ -37,7 +37,7 @@ export async function tapGenerator(chainId, cropId) {
   const newHarvested = { ...harvested };
   newHarvested[cropId] = (newHarvested[cropId] || 0) - 1;
   if (newHarvested[cropId] <= 0) delete newHarvested[cropId];
-  
+
   GameStore.setState("resources", {
     ...res,
     energy: { ...res.energy, current: res.energy.current - 1 },

@@ -6,9 +6,7 @@
 import { HUB, goToScreen } from "../shared.js";
 import { spawnCoinFly, spawnWaterDroplets } from "../effects.js";
 import { spawnDirtSplash, spawnFarmSparkle } from "./effects.js";
-import {
-  $, getLocalGrowth, formatTimeLeft,
-} from "./utils.js";
+import { $, getLocalGrowth, formatTimeLeft } from "./utils.js";
 
 // ── Module state ──
 let firstRenderDone = false;
@@ -168,9 +166,9 @@ function rebuildPlot(div, plot, i, pct, isReady, animate) {
     const cfg = _crops[plot.crop] || {};
     const isJustPlanted = justPlantedPlot === i;
     const displayPct = isJustPlanted ? 100 : Math.round(pct * 100);
-    
+
     div.innerHTML = `
-      <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? 'animate-grow' : ''}">${cfg.emoji || "🌱"}</div>
+      <div class="crop-emoji ${isJustPlanted || (pct > 0 && pct < 1) ? "animate-grow" : ""}">${cfg.emoji || "🌱"}</div>
       <div class="crop-name">${cfg.name || plot.crop}</div>
       <div class="growth-bar"><div class="growth-bar-fill${isReady ? " done" : ""}${isJustPlanted ? " plant-burst" : ""}" style="width:${displayPct}%"></div></div>
       ${!isReady ? `<div class="growth-time-label">${formatTimeLeft(plot, pct)}</div>` : ""}
@@ -193,12 +191,15 @@ function rebuildPlot(div, plot, i, pct, isReady, animate) {
     div.title = isReady ? "Click to harvest!" : "Growing...";
   } else {
     const selectedSeed = _actions?.getSelectedSeed?.() || _selectedSeed;
-    const hasSeeds = selectedSeed && (_state?.inventory?.[selectedSeed] || 0) > 0;
+    const hasSeeds =
+      selectedSeed && (_state?.inventory?.[selectedSeed] || 0) > 0;
     const ctaText = hasSeeds
       ? `Plant ${_crops[selectedSeed]?.emoji || "🌱"} ${_crops[selectedSeed]?.name || selectedSeed}`
       : "Tap to Plant 🌱";
     div.innerHTML = `<div class="plot-empty-label">${ctaText}</div>`;
-    div.title = hasSeeds ? `Plant ${_crops[selectedSeed]?.name || selectedSeed}` : "Select a seed from the shop";
+    div.title = hasSeeds
+      ? `Plant ${_crops[selectedSeed]?.name || selectedSeed}`
+      : "Select a seed from the shop";
   }
 }
 
@@ -227,7 +228,9 @@ function appendBuyPlotCard(grid) {
     <div class="plot-empty-label">Buy Plot</div>
     <div class="seed-price">🪙 ${cost}</div>
   `;
-  card.title = canAfford ? `Buy new plot for ${cost} gold` : `Need ${cost} gold`;
+  card.title = canAfford
+    ? `Buy new plot for ${cost} gold`
+    : `Need ${cost} gold`;
   if (canAfford) {
     card.onclick = () => _actions?.buyPlot?.();
   }
@@ -289,8 +292,14 @@ export function startLocalGrowthTick() {
 }
 
 export function stopLocalGrowthTick() {
-  if (growthTickId) { clearInterval(growthTickId); growthTickId = null; }
-  if (syncInterval) { clearInterval(syncInterval); syncInterval = null; }
+  if (growthTickId) {
+    clearInterval(growthTickId);
+    growthTickId = null;
+  }
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+  }
 }
 
 /** Animate a plot after planting (bounce + dirt splash) */

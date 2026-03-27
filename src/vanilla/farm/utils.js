@@ -5,7 +5,6 @@
  *  clock delta management, and DOM selectors.
  * ═══════════════════════════════════════════════════ */
 
-
 // ── Clock Desync Fix (v4.9) ──
 // Delta between server clock and client clock (ms). Positive = client is ahead.
 let clockDelta = 0;
@@ -28,7 +27,7 @@ export function getClockDelta() {
 export function getLocalGrowth(plot) {
   if (!plot.crop || !plot.plantedAt) return 0;
   const elapsed = getServerNow() - plot.plantedAt;
-  const mult = plot.watered ? (plot.wateringMultiplier || 0.7) : 1;
+  const mult = plot.watered ? plot.wateringMultiplier || 0.7 : 1;
   const gt = plot.growthTime || 15000;
   return Math.min(1, elapsed / (gt * mult));
 }
@@ -36,7 +35,7 @@ export function getLocalGrowth(plot) {
 /** Format remaining growth time as human-readable string */
 export function formatTimeLeft(plot, pct) {
   if (pct >= 1) return "Ready!";
-  const mult = plot.watered ? (plot.wateringMultiplier || 0.7) : 1;
+  const mult = plot.watered ? plot.wateringMultiplier || 0.7 : 1;
   const totalMs = (plot.growthTime || 15000) * mult;
   const remainMs = totalMs * (1 - pct);
   const secs = Math.ceil(remainMs / 1000);

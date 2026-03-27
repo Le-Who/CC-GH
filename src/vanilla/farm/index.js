@@ -9,9 +9,7 @@
 import { get, set } from "idb-keyval";
 import { GameStore } from "../store.js";
 import { HUB, api, apiBatched, showToast } from "../shared.js";
-import {
-  ACHIEVEMENTS,
-} from "/game-logic.js";
+import { ACHIEVEMENTS } from "/game-logic.js";
 import { HUD } from "../hud.js";
 import { PetCompanion } from "../pet.js";
 import { setCropsCache, getCropsData } from "../crops.js";
@@ -20,27 +18,55 @@ import { broadcastStateUpdate } from "../realtime.js";
 
 // ── Sub-modules ──
 import {
-  $, getLocalGrowth, getServerNow, updateClockDelta, formatGrowthTime,
+  $,
+  getLocalGrowth,
+  getServerNow,
+  updateClockDelta,
+  formatGrowthTime,
 } from "./utils.js";
 import {
-  render, showSkeleton, forceFullRebuild, setPlotGridDeps, syncPlotGridState,
-  startLocalGrowthTick, stopLocalGrowthTick, updateFarmBadge,
-  setJustPlantedPlot, animatePlant, animateHarvest, animateWater, getBuyPlotCost,
+  render,
+  showSkeleton,
+  forceFullRebuild,
+  setPlotGridDeps,
+  syncPlotGridState,
+  startLocalGrowthTick,
+  stopLocalGrowthTick,
+  updateFarmBadge,
+  setJustPlantedPlot,
+  animatePlant,
+  animateHarvest,
+  animateWater,
+  getBuyPlotCost,
 } from "./plotGrid.js";
 import {
-  renderShop, renderFeaturedShelf, renderBoosterButton, renderStreakBadge,
-  applyThemeClass, setSeedShopDeps, syncSeedShopState, showShopSkeleton,
-  selectSeed, buySeeds, getSelectedSeed, checkNewUnlocks, computeUnlocked,
+  renderShop,
+  renderFeaturedShelf,
+  renderBoosterButton,
+  renderStreakBadge,
+  applyThemeClass,
+  setSeedShopDeps,
+  syncSeedShopState,
+  showShopSkeleton,
+  selectSeed,
+  buySeeds,
+  getSelectedSeed,
+  checkNewUnlocks,
+  computeUnlocked,
 } from "./seedShop.js";
 import {
-  renderInventory, syncHarvestedToStore, setInventoryDeps, syncInventoryState,
-  sellCrop, feedPet,
+  renderInventory,
+  syncHarvestedToStore,
+  setInventoryDeps,
+  syncInventoryState,
+  sellCrop,
+  feedPet,
 } from "./inventory.js";
+import { switchFarmTab, setTabsDeps, syncTabsState } from "./tabs.js";
 import {
-  switchFarmTab, setTabsDeps, syncTabsState,
-} from "./tabs.js";
-import {
-  showQuickBuy, setQuickBuyDeps, syncQuickBuyState,
+  showQuickBuy,
+  setQuickBuyDeps,
+  syncQuickBuyState,
 } from "./quickBuy.js";
 
 // ── Coordinator state ──
@@ -68,7 +94,10 @@ function syncToStore(broadcast = true) {
 
 /* ─── Shared action interface injected into sub-modules ─── */
 const sharedActions = {
-  render: () => { _syncSubModules(); render(); },
+  render: () => {
+    _syncSubModules();
+    render();
+  },
   renderShop,
   renderInventory,
   syncToStore,
@@ -80,7 +109,9 @@ const sharedActions = {
   showQuickBuy,
   switchFarmTab,
   plant,
-  setSelectedSeed: (_id) => { /* noop here, delegated to seedShop */ },
+  setSelectedSeed: (_id) => {
+    /* noop here, delegated to seedShop */
+  },
   computeUnlocked,
 };
 
@@ -150,9 +181,14 @@ async function init() {
     crops = cropsData;
     setCropsCache(cropsData);
     try {
-      localStorage.setItem("hub_crops_cache", JSON.stringify({
-        data: cropsData, hash: cropsData.__hash || null, cachedAt: Date.now(),
-      }));
+      localStorage.setItem(
+        "hub_crops_cache",
+        JSON.stringify({
+          data: cropsData,
+          hash: cropsData.__hash || null,
+          cachedAt: Date.now(),
+        }),
+      );
     } catch (_) {}
   }
 
@@ -185,19 +221,29 @@ async function init() {
     if (_clockSyncTimer) return;
     _clockSyncTimer = setInterval(async () => {
       try {
-        const data = await api("/api/farm/state", { userId: HUB.userId, username: HUB.username });
+        const data = await api("/api/farm/state", {
+          userId: HUB.userId,
+          username: HUB.username,
+        });
         if (data?.serverTime) updateClockDelta(data.serverTime);
       } catch (_) {}
     }, CLOCK_SYNC_INTERVAL);
   }
   function _stopClockSync() {
-    if (_clockSyncTimer) { clearInterval(_clockSyncTimer); _clockSyncTimer = null; }
+    if (_clockSyncTimer) {
+      clearInterval(_clockSyncTimer);
+      _clockSyncTimer = null;
+    }
   }
   _startClockSync();
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { _stopClockSync(); } else {
+    if (document.hidden) {
+      _stopClockSync();
+    } else {
       api("/api/farm/state", { userId: HUB.userId, username: HUB.username })
-        .then((data) => { if (data?.serverTime) updateClockDelta(data.serverTime); })
+        .then((data) => {
+          if (data?.serverTime) updateClockDelta(data.serverTime);
+        })
         .catch(() => {});
       _startClockSync();
     }
@@ -216,7 +262,10 @@ async function init() {
         return;
       }
       const uprootBtn = e.target.closest(".farm-uproot-btn");
-      if (uprootBtn) { e.stopPropagation(); return; }
+      if (uprootBtn) {
+        e.stopPropagation();
+        return;
+      }
       const plot = e.target.closest(".farm-plot");
       if (!plot || plot.classList.contains("skeleton")) return;
       const idx = parseInt(plot.dataset.index, 10);
@@ -243,8 +292,14 @@ async function init() {
       }, 2500);
     });
     const cancelUproot = () => {
-      if (_uprootTimer) { clearTimeout(_uprootTimer); _uprootTimer = null; }
-      if (_uprootTarget) { _uprootTarget.classList.remove("farm-uproot-holding"); _uprootTarget = null; }
+      if (_uprootTimer) {
+        clearTimeout(_uprootTimer);
+        _uprootTimer = null;
+      }
+      if (_uprootTarget) {
+        _uprootTarget.classList.remove("farm-uproot-holding");
+        _uprootTarget = null;
+      }
     };
     grid.addEventListener("pointerup", cancelUproot);
     grid.addEventListener("pointercancel", cancelUproot);
@@ -276,11 +331,17 @@ async function loadState() {
     } catch (_) {}
     if (Object.keys(crops).length === 0) {
       const cropsData = await api("/api/content/crops");
-      if (cropsData && !cropsData.error) { crops = cropsData; setCropsCache(cropsData); }
+      if (cropsData && !cropsData.error) {
+        crops = cropsData;
+        setCropsCache(cropsData);
+      }
     }
   }
 
-  const data = await api("/api/farm/state", { userId: HUB.userId, username: HUB.username });
+  const data = await api("/api/farm/state", {
+    userId: HUB.userId,
+    username: HUB.username,
+  });
   if (data && !data.error) {
     state = data;
     updateClockDelta(data.serverTime);
@@ -308,15 +369,20 @@ async function loadState() {
     set("hub_farm_state_" + HUB.userId, data).catch(() => {});
 
     if (data.streakResult?.continued && data.streak?.current > 1) {
-      showToast(`🔥 ${data.streak.current}-day streak! (${data.streak.bonusMultiplier}× gold)`);
+      showToast(
+        `🔥 ${data.streak.current}-day streak! (${data.streak.bonusMultiplier}× gold)`,
+      );
     }
     if (data.streakResult?.bonusUnlocked) {
-      showToast(`🎉 Streak milestone: ${data.streakResult.bonusUnlocked.label}!`);
+      showToast(
+        `🎉 Streak milestone: ${data.streakResult.bonusUnlocked.label}!`,
+      );
     }
     if (data.newAchievements?.length > 0) {
       for (const id of data.newAchievements) {
         const badge = ACHIEVEMENTS[id];
-        if (badge) showToast(`🏆 Badge unlocked: ${badge.emoji} ${badge.name}!`);
+        if (badge)
+          showToast(`🏆 Badge unlocked: ${badge.emoji} ${badge.name}!`);
       }
     }
   }
@@ -324,44 +390,85 @@ async function loadState() {
 
 /* ─── Welcome Back Modal ─── */
 function showWelcomeBack(report) {
-  if (HUB.lastActiveTimestamp && Date.now() - HUB.lastActiveTimestamp < 30_000) return;
-  if (HUB.currentScreen !== 2) { showToast("🌱 Your farm grew while you were away!"); return; }
+  if (HUB.lastActiveTimestamp && Date.now() - HUB.lastActiveTimestamp < 30_000)
+    return;
+  if (HUB.currentScreen !== 2) {
+    showToast("🌱 Your farm grew while you were away!");
+    return;
+  }
 
   const lines = [];
   const petName = GameStore.getState("pet")?.name || "Your pet";
   const offlineMins = report.offlineMinutes || 0;
-  const offlineLabel = offlineMins >= 60
-    ? `${Math.floor(offlineMins / 60)}h ${offlineMins % 60}m` : `${offlineMins}m`;
-  lines.push(`<p class="text-dim" style="margin:0 0 8px;font-size:0.78rem">☀️ While you rested (${offlineLabel}), your world kept growing!</p>`);
+  const offlineLabel =
+    offlineMins >= 60
+      ? `${Math.floor(offlineMins / 60)}h ${offlineMins % 60}m`
+      : `${offlineMins}m`;
+  lines.push(
+    `<p class="text-dim" style="margin:0 0 8px;font-size:0.78rem">☀️ While you rested (${offlineLabel}), your world kept growing!</p>`,
+  );
 
   const harvestedEntries = Object.entries(report.harvested || {});
   if (harvestedEntries.length > 0) {
-    const items = harvestedEntries.map(([id, qty]) => { const c = crops[id]; return c ? `${c.emoji}×${qty}` : `${id}×${qty}`; }).join(", ");
-    lines.push(`<div style="margin:4px 0">🐾 <strong>${petName} harvested:</strong> ${items}</div>`);
+    const items = harvestedEntries
+      .map(([id, qty]) => {
+        const c = crops[id];
+        return c ? `${c.emoji}×${qty}` : `${id}×${qty}`;
+      })
+      .join(", ");
+    lines.push(
+      `<div style="margin:4px 0">🐾 <strong>${petName} harvested:</strong> ${items}</div>`,
+    );
   }
   const plantedEntries = Object.entries(report.planted || {});
   if (plantedEntries.length > 0) {
-    const items = plantedEntries.map(([id, qty]) => { const c = crops[id]; return c ? `${c.emoji}×${qty}` : `${id}×${qty}`; }).join(", ");
-    lines.push(`<div style="margin:4px 0">🌱 <strong>Sprouted while away:</strong> ${items}</div>`);
+    const items = plantedEntries
+      .map(([id, qty]) => {
+        const c = crops[id];
+        return c ? `${c.emoji}×${qty}` : `${id}×${qty}`;
+      })
+      .join(", ");
+    lines.push(
+      `<div style="margin:4px 0">🌱 <strong>Sprouted while away:</strong> ${items}</div>`,
+    );
   }
   if (report.autoWatered > 0) {
-    lines.push(`<div style="margin:4px 0">💧 <strong>Stayed hydrated:</strong> ${report.autoWatered} crop${report.autoWatered > 1 ? "s" : ""} watered</div>`);
+    lines.push(
+      `<div style="margin:4px 0">💧 <strong>Stayed hydrated:</strong> ${report.autoWatered} crop${report.autoWatered > 1 ? "s" : ""} watered</div>`,
+    );
   }
   const summaryParts = [];
   const foodEntries = Object.entries(report.foodEaten || {});
   if (foodEntries.length > 0) {
-    const foodItems = foodEntries.map(([id, qty]) => { const c = crops[id]; return c ? `${c.emoji}×${qty}` : `${id}×${qty}`; }).join(", ");
+    const foodItems = foodEntries
+      .map(([id, qty]) => {
+        const c = crops[id];
+        return c ? `${c.emoji}×${qty}` : `${id}×${qty}`;
+      })
+      .join(", ");
     summaryParts.push(`🍖 ${petName} snacked on: ${foodItems}`);
   }
-  if (report.xpGained > 0) summaryParts.push(`✨ +${report.xpGained} XP earned`);
-  if (summaryParts.length > 0) lines.push(`<div style="margin:6px 0;opacity:0.7;font-size:0.8rem">${summaryParts.join(" • ")}</div>`);
+  if (report.xpGained > 0)
+    summaryParts.push(`✨ +${report.xpGained} XP earned`);
+  if (summaryParts.length > 0)
+    lines.push(
+      `<div style="margin:6px 0;opacity:0.7;font-size:0.8rem">${summaryParts.join(" • ")}</div>`,
+    );
 
   if (report.openLoops?.length > 0) {
-    lines.push(`<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left;">`);
-    lines.push(`<h3 style="font-size: 0.9rem; color: var(--brand-accent); margin: 0 0 8px;">🌟 Almost Ready to Harvest:</h3>`);
+    lines.push(
+      `<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); text-align: left;">`,
+    );
+    lines.push(
+      `<h3 style="font-size: 0.9rem; color: var(--brand-accent); margin: 0 0 8px;">🌟 Almost Ready to Harvest:</h3>`,
+    );
     report.openLoops.forEach((ol) => {
-      lines.push(`<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; margin-top: 6px;"><span>${ol.name} is thriving!</span><span style="color: var(--ui-gold); font-weight: bold;">${ol.progress}%</span></div>`);
-      lines.push(`<div style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); width: 100%; overflow: hidden;"><div style="height: 100%; border-radius: 3px; width: ${ol.progress}%; background: var(--ui-gold);"></div></div>`);
+      lines.push(
+        `<div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; margin-top: 6px;"><span>${ol.name} is thriving!</span><span style="color: var(--ui-gold); font-weight: bold;">${ol.progress}%</span></div>`,
+      );
+      lines.push(
+        `<div style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); width: 100%; overflow: hidden;"><div style="height: 100%; border-radius: 3px; width: ${ol.progress}%; background: var(--ui-gold);"></div></div>`,
+      );
     });
     lines.push(`</div>`);
   }
@@ -375,10 +482,14 @@ function showWelcomeBack(report) {
       <button class="btn btn-primary" style="margin-top:14px;width:100%" id="wb-dismiss">🌱 Back to Farming</button>
     </div>`;
   dialog.addEventListener("close", () => dialog.remove());
-  dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
   document.body.appendChild(dialog);
   import("../shared.js").then(({ safeShowModal }) => safeShowModal(dialog));
-  document.getElementById("wb-dismiss")?.addEventListener("click", () => dialog.close());
+  document
+    .getElementById("wb-dismiss")
+    ?.addEventListener("click", () => dialog.close());
 }
 
 /* ─── Plot Click Dispatcher ─── */
@@ -387,10 +498,15 @@ function onPlotClick(i) {
   if (!plot) return;
   const pct = getLocalGrowth(plot);
   const isLocallyReady = plot.crop && pct >= 1;
-  if (isLocallyReady) { harvest(i); }
-  else if (plot.crop && !plot.watered && !isLocallyReady) { water(i); }
-  else if (plot.crop) { showToast("💧 Already watered! Growing..."); }
-  else { plant(i); }
+  if (isLocallyReady) {
+    harvest(i);
+  } else if (plot.crop && !plot.watered && !isLocallyReady) {
+    water(i);
+  } else if (plot.crop) {
+    showToast("💧 Already watered! Growing...");
+  } else {
+    plant(i);
+  }
 }
 
 /* ─── Actions (with per-plot optimistic rollback) ─── */
@@ -415,7 +531,10 @@ function plant(plotId) {
   const cropId = currentSeed;
 
   state.plots[plotId] = {
-    ...state.plots[plotId], crop: cropId, plantedAt: getServerNow(), watered: false,
+    ...state.plots[plotId],
+    crop: cropId,
+    plantedAt: getServerNow(),
+    watered: false,
     growthTime: crops[cropId]?.growthTime || 15000,
   };
   state.inventory[cropId] = Math.max(0, seedCount - 1);
@@ -439,7 +558,9 @@ function plant(plotId) {
         }
         if (data.inventory) {
           let anyNewer = false;
-          for (const [, pVer] of plotPlantVersions.entries()) { if (pVer > ver) anyNewer = true; }
+          for (const [, pVer] of plotPlantVersions.entries()) {
+            if (pVer > ver) anyNewer = true;
+          }
           if (!anyNewer) state.inventory = data.inventory;
         }
         syncToStore();
@@ -447,11 +568,19 @@ function plant(plotId) {
         // Granular rollback: only this plot + inventory
         state.plots[plotId] = plotSnap;
         state.inventory = prevInventory;
-        syncToStore(); _syncSubModules(); render(); renderShop();
-        showToast(data.error === "no seeds" ? "🌾 No seeds left!" : `❌ ${data.error}`);
+        syncToStore();
+        _syncSubModules();
+        render();
+        renderShop();
+        showToast(
+          data.error === "no seeds" ? "🌾 No seeds left!" : `❌ ${data.error}`,
+        );
       }
     })
-    .catch(() => { plantingInFlight.delete(plotId); if (plotPlantVersions.get(plotId) === ver) loadState(); });
+    .catch(() => {
+      plantingInFlight.delete(plotId);
+      if (plotPlantVersions.get(plotId) === ver) loadState();
+    });
 }
 
 function water(plotId) {
@@ -461,7 +590,9 @@ function water(plotId) {
   const plotSnap = { ...state.plots[plotId] };
   optimisticActionTimestamps.set(plotId, Date.now());
   state.plots[plotId] = { ...state.plots[plotId], watered: true };
-  syncToStore(); _syncSubModules(); render();
+  syncToStore();
+  _syncSubModules();
+  render();
   animateWater(plotId);
   showToast("💧 Watered! Growth ~30% faster");
 
@@ -474,17 +605,28 @@ function water(plotId) {
       if (waterVersion !== myVersion || data._optimistic) return;
       if (data.success) {
         if (data.plots?.[plotId] && waterVersion === myVersion) {
-          state.plots[plotId] = { ...state.plots[plotId], ...data.plots[plotId] };
+          state.plots[plotId] = {
+            ...state.plots[plotId],
+            ...data.plots[plotId],
+          };
         }
         syncToStore();
       } else {
         state.plots[plotId] = plotSnap;
-        syncToStore(); _syncSubModules(); render();
+        syncToStore();
+        _syncSubModules();
+        render();
       }
     })
     .catch(() => {
-      clearTimeout(fallbackTimer); wateringInFlight.delete(plotId);
-      if (waterVersion === myVersion) { state.plots[plotId] = plotSnap; syncToStore(); _syncSubModules(); render(); }
+      clearTimeout(fallbackTimer);
+      wateringInFlight.delete(plotId);
+      if (waterVersion === myVersion) {
+        state.plots[plotId] = plotSnap;
+        syncToStore();
+        _syncSubModules();
+        render();
+      }
     });
 }
 
@@ -507,9 +649,12 @@ function harvest(plotId) {
 
   checkNewUnlocks();
   optimisticActionTimestamps.set(plotId, Date.now());
-  syncToStore(); _syncSubModules();
+  syncToStore();
+  _syncSubModules();
   animateHarvest(plotId);
-  render(); renderShop(); renderInventory();
+  render();
+  renderShop();
+  renderInventory();
   showToast(`${cfg?.emoji || "🌱"} Harvested! +${estimatedXP}XP`);
   SoundEngine.harvest();
 
@@ -519,16 +664,23 @@ function harvest(plotId) {
       harvestingInFlight.delete(plotId);
       if (harvestVersion !== myVersion || data._optimistic) return;
       if (data.success) {
-        if (data.plots?.[plotId] && harvestVersion === myVersion) { state.plots[plotId] = data.plots[plotId]; }
+        if (data.plots?.[plotId] && harvestVersion === myVersion) {
+          state.plots[plotId] = data.plots[plotId];
+        }
         state.xp = data.xp;
         state.level = data.level;
         if (data.resources) HUD.syncFromServer(data.resources);
         if (data.harvested) syncHarvestedToStore(data.harvested);
-        syncToStore(); renderInventory();
+        syncToStore();
+        renderInventory();
         if (data.leveledUp) showToast(`🎉 Level Up! Lv${data.level}`);
       } else {
         // Granular rollback: restore plot + xp
-        if (data.error === "not ready" || data.error === "NOT_READY" || data.error === "crop not grown") {
+        if (
+          data.error === "not ready" ||
+          data.error === "NOT_READY" ||
+          data.error === "crop not grown"
+        ) {
           if (data.serverTime) updateClockDelta(data.serverTime);
           state.plots[plotId] = plotSnap;
           state.xp = prevXp;
@@ -538,15 +690,24 @@ function harvest(plotId) {
           h2[plotSnap.crop] = Math.max(0, (h2[plotSnap.crop] || 0) - 1);
           if (h2[plotSnap.crop] <= 0) delete h2[plotSnap.crop];
           GameStore.setState("resources", { ...res2, harvested: h2 });
-          syncToStore(); _syncSubModules(); render(); renderInventory();
-          const remainLabel = data.remainingMs > 0 ? formatGrowthTime(data.remainingMs) : "a moment";
+          syncToStore();
+          _syncSubModules();
+          render();
+          renderInventory();
+          const remainLabel =
+            data.remainingMs > 0
+              ? formatGrowthTime(data.remainingMs)
+              : "a moment";
           showToast(`⏳ Not quite ready — ${remainLabel} left`);
         } else {
           loadState();
         }
       }
     })
-    .catch(() => { harvestingInFlight.delete(plotId); if (harvestVersion === myVersion) loadState(); });
+    .catch(() => {
+      harvestingInFlight.delete(plotId);
+      if (harvestVersion === myVersion) loadState();
+    });
 }
 
 function harvestAll() {
@@ -555,9 +716,13 @@ function harvestAll() {
     .map((p, i) => ({ i, p }))
     .filter(({ p }) => p.crop && getLocalGrowth(p) >= 1)
     .map(({ i }) => i);
-  if (readyIndices.length === 0) { showToast("🌾 No crops ready!"); return; }
+  if (readyIndices.length === 0) {
+    showToast("🌾 No crops ready!");
+    return;
+  }
   for (const idx of readyIndices) {
-    if (state.plots[idx]?.crop && getLocalGrowth(state.plots[idx]) >= 1) harvest(idx);
+    if (state.plots[idx]?.crop && getLocalGrowth(state.plots[idx]) >= 1)
+      harvest(idx);
   }
   showToast(`🌾 Harvested ${readyIndices.length} crops!`);
 }
@@ -565,29 +730,43 @@ function harvestAll() {
 async function uproot(plotId) {
   const plot = state?.plots?.[plotId];
   if (!plot || !plot.crop) return;
-  if (getLocalGrowth(plot) >= 1) { showToast("🌾 Already ready — harvest it!"); return; }
+  if (getLocalGrowth(plot) >= 1) {
+    showToast("🌾 Already ready — harvest it!");
+    return;
+  }
 
   const oldPlot = { ...plot };
   optimisticActionTimestamps.set(plotId, Date.now());
   state.plots[plotId] = { crop: null, plantedAt: null, watered: false };
-  syncToStore(); _syncSubModules(); render();
+  syncToStore();
+  _syncSubModules();
+  render();
   showToast("💣 Uprooted! No refund.");
 
   try {
-    const data = await apiBatched("/api/farm/uproot", { userId: HUB.userId, plotId });
+    const data = await apiBatched("/api/farm/uproot", {
+      userId: HUB.userId,
+      plotId,
+    });
     if (data._optimistic) return;
     if (data?.success) {
       if (data.plots?.[plotId]) state.plots[plotId] = data.plots[plotId];
       if (data.resources) HUD.syncFromServer(data.resources);
-      syncToStore(); _syncSubModules(); render();
+      syncToStore();
+      _syncSubModules();
+      render();
     } else {
       state.plots[plotId] = oldPlot;
-      syncToStore(); _syncSubModules(); render();
+      syncToStore();
+      _syncSubModules();
+      render();
       showToast(data?.error || "Uproot failed", "error");
     }
   } catch {
     state.plots[plotId] = oldPlot;
-    syncToStore(); _syncSubModules(); render();
+    syncToStore();
+    _syncSubModules();
+    render();
     showToast("Network error", "error");
   }
 }
@@ -597,7 +776,10 @@ function buyPlot() {
   if (!state || state.plots.length >= MAX_PLOTS) return;
   const cost = getBuyPlotCost(state.plots.length);
   const gold = HUD.getGold();
-  if (gold < cost) { showToast("❌ Not enough gold!"); return; }
+  if (gold < cost) {
+    showToast("❌ Not enough gold!");
+    return;
+  }
 
   const prevPlots = [...state.plots];
   state.plots.push({ crop: null, plantedAt: null, watered: false });
@@ -616,7 +798,10 @@ function buyPlot() {
         syncToStore();
       } else {
         state.plots = prevPlots;
-        syncToStore(); forceFullRebuild(); _syncSubModules(); render();
+        syncToStore();
+        forceFullRebuild();
+        _syncSubModules();
+        render();
         showToast(`❌ ${data?.error || "Failed to buy plot"}`);
       }
     })

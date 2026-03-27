@@ -54,7 +54,8 @@ export const hudStore = create((set, get) => ({
     const { energy } = get();
     if (energy.current >= energy.max) return null;
     const elapsed = Date.now() - energy.lastRegenTimestamp;
-    const remaining = ENERGY_REGEN_INTERVAL_MS - (elapsed % ENERGY_REGEN_INTERVAL_MS);
+    const remaining =
+      ENERGY_REGEN_INTERVAL_MS - (elapsed % ENERGY_REGEN_INTERVAL_MS);
     return {
       totalMs: remaining,
       mins: Math.floor(remaining / 60000),
@@ -112,12 +113,13 @@ export const hudStore = create((set, get) => ({
 
   addGold: (amount) => set((s) => ({ gold: s.gold + amount })),
 
-  addEnergy: (amount) => set((s) => ({
-    energy: {
-      ...s.energy,
-      current: Math.min(s.energy.max, s.energy.current + amount),
-    },
-  })),
+  addEnergy: (amount) =>
+    set((s) => ({
+      energy: {
+        ...s.energy,
+        current: Math.min(s.energy.max, s.energy.current + amount),
+      },
+    })),
 
   tickRegen: () => {
     const { energy } = get();
@@ -127,9 +129,10 @@ export const hudStore = create((set, get) => ({
     const ticks = Math.floor(delta / ENERGY_REGEN_INTERVAL_MS);
     if (ticks > 0) {
       const newCurrent = Math.min(energy.max, energy.current + ticks);
-      const newTs = newCurrent < energy.max
-        ? now - (delta % ENERGY_REGEN_INTERVAL_MS)
-        : now;
+      const newTs =
+        newCurrent < energy.max
+          ? now - (delta % ENERGY_REGEN_INTERVAL_MS)
+          : now;
       set({
         energy: {
           ...energy,
@@ -140,12 +143,13 @@ export const hudStore = create((set, get) => ({
     }
   },
 
-  updateHarvested: (cropId, delta) => set((s) => {
-    const newHarvested = { ...s.harvested };
-    newHarvested[cropId] = Math.max(0, (newHarvested[cropId] || 0) + delta);
-    if (newHarvested[cropId] <= 0) delete newHarvested[cropId];
-    return { harvested: newHarvested };
-  }),
+  updateHarvested: (cropId, delta) =>
+    set((s) => {
+      const newHarvested = { ...s.harvested };
+      newHarvested[cropId] = Math.max(0, (newHarvested[cropId] || 0) + delta);
+      if (newHarvested[cropId] <= 0) delete newHarvested[cropId];
+      return { harvested: newHarvested };
+    }),
 
   setActiveQuests: (count) => set({ activeQuests: count }),
 
