@@ -194,7 +194,7 @@ process.on("SIGINT", gracefulShutdown);
  * strictly a migration pipeline used by withPlayerLock.
  */
 export function applyMigrations(p) {
-  const currentSchemaVersion = 7;
+  const currentSchemaVersion = 8;
   
   if (!p) return null;
 
@@ -306,6 +306,20 @@ export function applyMigrations(p) {
   if (!p.schemaVersion || p.schemaVersion < 7) {
     if (!p.room) p.room = { decorations: [], inventory: [], wallpaper: "default" };
     p.schemaVersion = 7;
+  }
+
+  if (!p.schemaVersion || p.schemaVersion < 8) {
+    if (!p.stats) {
+      let estHarvests = 0;
+      if (p.farm?.harvested) {
+        estHarvests = Object.values(p.farm.harvested).reduce((a, b) => a + (Number(b) || 0), 0);
+      }
+      p.stats = {
+        totalHarvests: estHarvests,
+        totalGoldEarned: p.resources?.gold || ECONOMY.GOLD_START,
+      };
+    }
+    p.schemaVersion = 8;
   }
 
   return p;

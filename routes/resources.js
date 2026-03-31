@@ -45,6 +45,7 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
       p.farm.harvested[cropId] -= qty;
       if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
       p.resources.gold += totalEarnings;
+      if (p.stats) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + totalEarnings;
 
       const sql = getDb();
       if (sql) {

@@ -1,3 +1,9 @@
+## [10.4.8] - 2026-03-31
+
+### Farm State Rollback Fix & Cumulative Badges
+- **The Rollback Loop (UI Flicker)**: Prevented a catastrophic UX bug where benign `400 Bad Request` responses (e.g. double-clicking to water a plant) were triggering full backend state desynchronizations inside `shared.js:flushApiBatch`. The batch orchestrator now delegates granular 400-error rollbacks (e.g., reverting a single plot) back to the UI context, instead of blindly fetching and resetting the entire board. Added `optimisticActionTimestamps` shielding within `loadState()` so background/tab-switch polling doesn't overwrite pending user actions.
+- **Lifetime Stats Schema**: Added a monotonic `stats` block to the PG `player` schema to decouple historical earnings from active inventory. Achievements like "Harvest 50 crops" and "Earn 1000 gold" were failing to trigger if the player immediately consumed their crops or bought items before reaching the concurrent threshold. 
+
 ## [10.4.7] - 2026-03-31
 
 ### Quest System & Seed Progression Sync (Complete Overhaul)

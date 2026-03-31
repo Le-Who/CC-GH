@@ -157,8 +157,7 @@ export const ACHIEVEMENTS = {
     emoji: "🧑‍🌾",
     desc: "Harvest 50 crops total",
     reward: { gold: 50 },
-    check: (p) =>
-      Object.values(p.farm?.harvested || {}).reduce((a, b) => a + b, 0) >= 50,
+    check: (p) => (p.stats?.totalHarvests || 0) >= 50,
   },
   rose_garden: {
     id: "rose_garden",
@@ -190,7 +189,7 @@ export const ACHIEVEMENTS = {
     emoji: "💰",
     desc: "Earn 1000 gold total",
     reward: { gold: 100 },
-    check: (p) => (p.resources?.gold || 0) >= 1000,
+    check: (p) => (p.stats?.totalGoldEarned || 0) >= 1000,
   },
   week_warrior: {
     id: "week_warrior",

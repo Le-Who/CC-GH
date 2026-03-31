@@ -52,6 +52,9 @@ import { getRoomBonuses } from "./pet-assets.js";
  * @property {Object} cosmetics
  * @property {Object} seasonPass
  * @property {Object} boosters
+ * @property {Object} stats
+ * @property {number} stats.totalHarvests
+ * @property {number} stats.totalGoldEarned
  */
 
 /**
@@ -140,6 +143,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
     cosmetics: { activePlotTheme: "default", ownedThemes: ["default"] },
     seasonPass: { season: 1, xp: 0, tier: 0, claimed: [] },
     boosters: { fertilizer: { active: false, expiresAt: 0 } },
+    stats: { totalHarvests: 0, totalGoldEarned: ECONOMY.GOLD_START },
   };
 }
 

@@ -359,7 +359,19 @@ async function loadState() {
     username: HUB.username,
   });
   if (data && !data.error) {
-    state = data;
+    if (!state) {
+      state = data;
+    } else {
+      const oldPlots = [...state.plots];
+      state = data;
+      state.plots = oldPlots;
+      data.plots?.forEach((p, i) => {
+        if (wateringInFlight.has(i)) return;
+        const lastOpt = optimisticActionTimestamps.get(i) || 0;
+        if (Date.now() - lastOpt < 5000) return;
+        state.plots[i] = p;
+      });
+    }
     updateClockDelta(data.serverTime);
     if (data.resources) HUD.syncFromServer(data.resources);
     if (data.pet) PetCompanion.syncFromServer(data.pet);

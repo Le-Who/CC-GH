@@ -208,6 +208,7 @@ export default function questRoutes(requireAuth, resolveUser) {
       // Grant rewards
       const rw = order.reward;
       p.resources.gold += rw.gold || 0;
+      if (p.stats && rw.gold) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + rw.gold;
       p.resources.gachaTokens =
         (p.resources.gachaTokens || 0) + (rw.gachaTokens || 0);
       p.pet.affectionXp = (p.pet.affectionXp || 0) + (rw.affectionXp || 0);

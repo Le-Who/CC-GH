@@ -56,9 +56,9 @@ export const farmStore = create((set, get) => ({
   },
 
   getUnlockedSeeds: () => {
-    const { harvested, plots, questsCompleted } = get();
-    let totalHarvests = 0;
-    if (harvested) {
+    const { harvested, plots, questsCompleted, stats } = get();
+    let totalHarvests = stats?.totalHarvests || 0;
+    if (totalHarvests === 0 && harvested) {
       for (const key in harvested) {
         if (Object.hasOwn(harvested, key)) {
           totalHarvests += harvested[key];
@@ -67,7 +67,7 @@ export const farmStore = create((set, get) => ({
     }
     return getUnlockedSeeds({
       totalHarvests,
-      goldEarned: 0,
+      goldEarned: stats?.totalGoldEarned || 0,
       questsCompleted: questsCompleted || 0,
       plotsBought: plots?.length || 6,
       daysActive: 1,
@@ -96,6 +96,7 @@ export const farmStore = create((set, get) => ({
       boosters: serverData.boosters || null,
       seasonPass: serverData.seasonPass || null,
       questsCompleted: serverData.questsCompleted || 0,
+      stats: serverData.stats || null,
     }),
 
   updateClockDelta: (serverTime) => {

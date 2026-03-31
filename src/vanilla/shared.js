@@ -243,11 +243,13 @@ function flushApiBatch() {
             result.data || { success: false, error: "empty response" },
           );
         }
-        // v10.3: Detect logical failures (4xx/5xx or error payload)
-        // Ignoring 409 Duplicate request so safe network retries don't freeze the UI
+        // v10.4: Detect logical failures (5xx or auth payload)
+        // Ignoring 400 Bad Request and 409 Conflict so benign errors (e.g. "already watered")
+        // do not trigger a massive UI state rollback.
         if (
-          (result.status >= 400 && result.status !== 409) ||
-          (result.data && result.data.error && result.status !== 409)
+          result.status >= 500 ||
+          result.status === 401 ||
+          result.status === 403
         ) {
           hasFailure = true;
         }

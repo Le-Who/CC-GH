@@ -72,6 +72,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         boosters: p.boosters,
         journal: p.journal,
         questsCompleted: p.questsCompleted || 0,
+        stats: p.stats || null,
         _onboarded: p._onboarded || false,
         serverTime: Date.now(),
       });
@@ -162,6 +163,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const cropId = plot.crop;
       // Produce crop item for pet feeding (no gold from harvest)
       p.farm.harvested[cropId] = (p.farm.harvested[cropId] || 0) + 1;
+      if (p.stats) p.stats.totalHarvests = (p.stats.totalHarvests || 0) + 1;
 
       // 2% chance to drop a gacha token on harvest
       let tokenDrop = false;
