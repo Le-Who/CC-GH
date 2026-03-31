@@ -2,7 +2,7 @@
 
 > A 5-in-1 social game hub built as a **Discord Embedded App Activity**. Cozy Farm, Brain Blitz trivia, Gem Crush match-3, Building Blox puzzle, and Gacha Merge — all in one app with a unified pet companion, resource economy, and offline simulation.
 
-**Current version: v10.3.0** (Supabase DB Hardening & Hybrid OCC Locks)
+**Current version: v10.4.7** (Quest System & Seed Progression Sync)
 
 ---
 

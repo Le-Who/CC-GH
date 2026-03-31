@@ -1,6 +1,11 @@
-## [10.4.6] - 2026-03-27
+## [10.4.7] - 2026-03-31
 
-### Gacha Merge Architecture & Render Optimization
+### Quest System & Seed Progression Sync (Complete Overhaul)
+- **Root Cause**: The backend failed to increment `questsCompleted` upon order fulfillment and omitted it from the `/api/farm/state` payload. This cascaded to the client, which relied on a hardcoded "0" in React (`useFarmEngine`) and an empty localStorage key in Vanilla (`seedShop.js`), completely severing seed unlocks (like the Golden Rose) and quest-based achievements.
+- **Backend Fixes** (`questRoutes.js`, `farm.js`): `questsCompleted` is now explicitly incremented and returned on quest submit, immediately alongside an execution of `checkAchievements(p)`. State polling explicitly includes the value.
+- **Frontend Sync** (`pet.js`, `useFarmEngine.js`, `seedShop.js`, `index.js`): Added a dynamic `quest-completed` custom DOM event. After returning from a quest, the client instantly writes fallback to localStorage, updates the React/Zustand store dynamically, displays achievement toasts, and triggers a live `checkNewUnlocks()` to magically unveil new seeds without a screen refresh.
+
+## [10.4.6] - 2026-03-27
 - **Atomization**: Split the massive 1002-line `merge.js` monolith into a scalable `src/vanilla/merge/` directory structure (`api.js`, `board.js`, `panel.js`, `engine.js`, `index.js`).
 - **DOM Rendering Performance (`board.js`)**: Implemented VDOM-style dirty-checking for the `_renderCell` loop. By storing a `_cachedState` key on the `.merge-cell` elements, the board drops the amount of synchronous DOM writes during a merge operation from 126 writes down to exactly 2.
 - **Tests**: Transferred `.setPointerCapture` drag-safety UI tests to the new `board.js` file (448/448 passing).

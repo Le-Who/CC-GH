@@ -56,10 +56,21 @@ function _getPlayerStats() {
   }
   const goldEarned = res.gold || 0;
   const plotsBought = _state?.plots?.length || 6;
-  const questsCompleted = parseInt(
+
+  // Authority order: server-synced state → localStorage fallback
+  // _state.questsCompleted is populated from /api/farm/state and
+  // from quest submit responses. localStorage is kept in sync.
+  const serverQuests = typeof _state?.questsCompleted === "number"
+    ? _state.questsCompleted
+    : null;
+  const lsQuests = parseInt(
     localStorage.getItem("hub_quests_completed") || "0",
     10,
   );
+  const questsCompleted = serverQuests !== null
+    ? Math.max(serverQuests, lsQuests)
+    : lsQuests;
+
   const daysActive = parseInt(
     localStorage.getItem("hub_days_active") || "1",
     10,

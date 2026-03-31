@@ -199,6 +199,13 @@ async function init() {
     if (stateData.pet) PetCompanion.syncFromServer(stateData.pet);
     syncHarvestedToStore(stateData.harvested);
     if (stateData.offlineReport) showWelcomeBack(stateData.offlineReport);
+    // Sync questsCompleted from server to state & localStorage
+    if (typeof stateData.questsCompleted === "number") {
+      state.questsCompleted = stateData.questsCompleted;
+      try {
+        localStorage.setItem("hub_quests_completed", String(stateData.questsCompleted));
+      } catch (_) {}
+    }
     syncToStore();
     _syncSubModules();
     render();
@@ -212,6 +219,15 @@ async function init() {
   document.addEventListener("hub:state-desync", () => {
     showToast("🔄 Syncing...");
     loadState();
+  });
+
+  // Handle immediate UI updates when a quest is completed
+  document.addEventListener("quest-completed", (e) => {
+    if (state && typeof e.detail?.questsCompleted === "number") {
+      state.questsCompleted = e.detail.questsCompleted;
+      checkNewUnlocks();
+      renderShop();
+    }
   });
 
   // Periodic clock re-sync
@@ -358,6 +374,13 @@ async function loadState() {
     if (data.cosmetics) state._cosmetics = data.cosmetics;
     if (data.boosters) state._boosters = data.boosters;
     if (data.journal) state._journal = data.journal;
+    // Sync questsCompleted from server into state & localStorage
+    if (typeof data.questsCompleted === "number") {
+      state.questsCompleted = data.questsCompleted;
+      try {
+        localStorage.setItem("hub_quests_completed", String(data.questsCompleted));
+      } catch (_) {}
+    }
 
     syncToStore();
     _syncSubModules();

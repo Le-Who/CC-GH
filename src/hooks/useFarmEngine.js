@@ -41,6 +41,7 @@ export const farmStore = create((set, get) => ({
   cosmetics: null,
   boosters: null,
   seasonPass: null,
+  questsCompleted: 0, // Synced from /api/farm/state & quest submit responses
 
   // ─── Computed ───
   getServerNow: () => Date.now() + get().clockDelta,
@@ -55,7 +56,7 @@ export const farmStore = create((set, get) => ({
   },
 
   getUnlockedSeeds: () => {
-    const { harvested, plots } = get();
+    const { harvested, plots, questsCompleted } = get();
     let totalHarvests = 0;
     if (harvested) {
       for (const key in harvested) {
@@ -67,7 +68,7 @@ export const farmStore = create((set, get) => ({
     return getUnlockedSeeds({
       totalHarvests,
       goldEarned: 0,
-      questsCompleted: 0,
+      questsCompleted: questsCompleted || 0,
       plotsBought: plots?.length || 6,
       daysActive: 1,
     });
@@ -94,6 +95,7 @@ export const farmStore = create((set, get) => ({
       cosmetics: serverData.cosmetics || null,
       boosters: serverData.boosters || null,
       seasonPass: serverData.seasonPass || null,
+      questsCompleted: serverData.questsCompleted || 0,
     }),
 
   updateClockDelta: (serverTime) => {

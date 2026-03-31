@@ -13,6 +13,7 @@ import {
   randInt,
   pick,
   hydrateMergeBoard,
+  checkAchievements,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 
@@ -228,6 +229,11 @@ export default function questRoutes(requireAuth, resolveUser) {
 
       // Remove fulfilled order
       p.pet.activeOrders.splice(orderIdx, 1);
+
+      // Track quest completions for seed unlocks & achievements
+      p.questsCompleted = (p.questsCompleted || 0) + 1;
+      const newAchievements = checkAchievements(p);
+
       res.json({
         success: true,
         reward: rw,
@@ -237,6 +243,8 @@ export default function questRoutes(requireAuth, resolveUser) {
         pet: p.pet,
         affectionLeveledUp: afLeveledUp,
         orders: p.pet.activeOrders,
+        questsCompleted: p.questsCompleted,
+        newAchievements,
       });
     });
   });

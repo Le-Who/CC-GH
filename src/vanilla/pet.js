@@ -912,6 +912,25 @@ const PetCompanionImpl = (function () {
         });
       }
       if (data.merge) GameStore.setState("merge", data.merge);
+
+      // Sync questsCompleted → localStorage so seedShop reads the updated value
+      if (typeof data.questsCompleted === "number") {
+        try {
+          localStorage.setItem("hub_quests_completed", String(data.questsCompleted));
+        } catch (_) {}
+        // Notify the farm module to re-check seed unlocks
+        document.dispatchEvent(
+          new CustomEvent("quest-completed", { detail: { questsCompleted: data.questsCompleted } })
+        );
+      }
+
+      // Show achievement toasts
+      if (Array.isArray(data.newAchievements) && data.newAchievements.length > 0) {
+        for (const _id of data.newAchievements) {
+          showToast(`🏆 Achievement unlocked!`, "success");
+        }
+      }
+
       const rw = data.reward || {};
       showToast(`✅ Quest complete! ${_formatReward(rw)}`, "success");
       if (data.affectionLeveledUp) {
