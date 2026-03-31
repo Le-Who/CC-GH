@@ -141,7 +141,10 @@ export const ACHIEVEMENTS = {
     emoji: "🌱",
     desc: "Plant your first crop",
     reward: { gold: 10 },
-    check: (p) => (p.farm?.xp || 0) > 0,
+    check: (p) =>
+      (p.farm?.xp || 0) > 0 ||
+      (p.stats?.totalHarvests || 0) > 0 ||
+      (p.farm?.plots?.some((plot) => plot.crop !== null) || false),
   },
   berry_picker: {
     id: "berry_picker",
