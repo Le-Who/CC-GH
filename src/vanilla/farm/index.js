@@ -81,6 +81,7 @@ const plantingInFlight = new Set();
 const harvestingInFlight = new Set();
 let harvestVersion = 0;
 let waterVersion = 0;
+let _lastLoadTime = 0; // for onEnter throttle
 
 /* ─── Push local state to GameStore ─── */
 function syncToStore(broadcast = true) {
@@ -367,8 +368,10 @@ async function loadState() {
       state.plots = oldPlots;
       data.plots?.forEach((p, i) => {
         if (wateringInFlight.has(i)) return;
+        if (plantingInFlight.has(i)) return;
+        if (harvestingInFlight.has(i)) return;
         const lastOpt = optimisticActionTimestamps.get(i) || 0;
-        if (Date.now() - lastOpt < 5000) return;
+        if (Date.now() - lastOpt < 12_000) return;
         state.plots[i] = p;
       });
     }
@@ -402,6 +405,7 @@ async function loadState() {
     renderBoosterButton(api);
     applyThemeClass();
     set("hub_farm_state_" + HUB.userId, data).catch(() => {});
+    _lastLoadTime = Date.now();
 
     if (data.streakResult?.continued && data.streak?.current > 1) {
       showToast(
@@ -845,7 +849,9 @@ function buyPlot() {
 
 /* ─── Screen Enter/Exit ─── */
 function onEnter() {
-  loadState();
+  if (Date.now() - _lastLoadTime > 30_000) {
+    loadState();
+  }
   startLocalGrowthTick();
 }
 function onLeave() {

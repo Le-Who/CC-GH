@@ -318,7 +318,7 @@ export function apiBatched(path, body) {
   if (apiBatchQueue.length >= 10) {
     flushApiBatch();
   } else {
-    apiBatchTimer = setTimeout(flushApiBatch, 3000);
+    apiBatchTimer = setTimeout(flushApiBatch, 800);
   }
 
   // Return a Promise that resolves with the real server response
