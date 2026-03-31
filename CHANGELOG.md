@@ -1,3 +1,11 @@
+## [10.4.9] - 2026-03-31
+
+### Farm State Optimization & Achievement Bugfix
+- **Immediate Achievement Unlock (First Sprout)**: Refactored the condition for the "First Sprout" badge in `meta.js`. Previously it checked for `xp > 0`, making it impossible to earn the badge immediately upon planting (since XP is only awarded on harvest). Now properly checks if the player has *any* active crops on the board or history of harvesting.
+- **Frontend Optimistic Rollback Immunity**: Rebuilt the synchronization shield in `src/vanilla/farm/index.js` to protect in-flight DOM states. Added deep protection for `plantingInFlight` and `harvestingInFlight` so that routine server-sync polls cannot overwrite a freshly animating plot.
+- **Smart Throttle**: Implemented a 30s throttle on `onEnter() -> loadState()` to eliminate destructive UI overrides when rapidly switching tabs while actions are propagating.
+- **Debouncer Optimization**: Halved the `flushApiBatch` latency from `3000ms` to `800ms`, dramatically reducing the vulnerability window for network collisions during fast-paced play.
+
 ## [10.4.8] - 2026-03-31
 
 ### Farm State Rollback Fix & Cumulative Badges

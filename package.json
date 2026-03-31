@@ -1,6 +1,6 @@
 {
   "name": "game-hub",
-  "version": "10.4.8",
+  "version": "10.4.9",
   "type": "module",
   "private": true,
   "packageManager": "pnpm@10.28.2",
