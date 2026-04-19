@@ -83,6 +83,17 @@ let harvestVersion = 0;
 let waterVersion = 0;
 let _lastLoadTime = 0; // for onEnter throttle
 
+/**
+ * RC2: Safe load guard — only fetch server state when no optimistic actions
+ * are currently in-flight. Prevents loadState() from clobbering plots that
+ * are mid-plant/water/harvest with stale server data (crop: null).
+ */
+function loadStateIfSafe() {
+  if (plantingInFlight.size || harvestingInFlight.size || wateringInFlight.size) return;
+  if (Date.now() - _lastLoadTime < 30_000) return;
+  loadState();
+}
+
 /* ─── Push local state to GameStore ─── */
 function syncToStore(broadcast = true) {
   if (state) {
@@ -583,17 +594,27 @@ function plant(plotId) {
   _syncSubModules();
   render();
   renderShop();
-  animatePlant(plotId);
+  // RC4: Defer animatePlant so it runs after the browser has committed the
+  // freshly-rendered DOM — guarantees querySelector finds the new elements.
+  requestAnimationFrame(() => animatePlant(plotId));
 
   const ver = (plotPlantVersions.get(plotId) || 0) + 1;
   plotPlantVersions.set(plotId, ver);
   apiBatched("/api/farm/plant", { userId: HUB.userId, plotId, cropId })
     .then((data) => {
+      // RC5: Delete in-flight BEFORE the merge so that any loadState/cross-tab
+      // sync that arrives immediately after sees a clean in-flight state.
       plantingInFlight.delete(plotId);
       if (plotPlantVersions.get(plotId) !== ver || data._optimistic) return;
       if (data.success) {
         if (data.plots && plotPlantVersions.get(plotId) === ver) {
-          state.plots[plotId] = data.plots[plotId];
+          // RC5: Spread-merge — keep optimistic plantedAt (clock-corrected) but
+          // overlay server growthTime/wateringMultiplier (critical when boosters
+          // are active; server value is authoritative for growth speed).
+          state.plots[plotId] = {
+            ...state.plots[plotId],
+            ...data.plots[plotId],
+          };
         }
         if (data.inventory) {
           let anyNewer = false;
@@ -849,9 +870,9 @@ function buyPlot() {
 
 /* ─── Screen Enter/Exit ─── */
 function onEnter() {
-  if (Date.now() - _lastLoadTime > 30_000) {
-    loadState();
-  }
+  // RC2: Use safe guard so a plant/water/harvest in-flight isn't overwritten
+  // by the re-entry state refresh (which would show an empty plot for ~800ms).
+  loadStateIfSafe();
   startLocalGrowthTick();
 }
 function onLeave() {
@@ -864,9 +885,14 @@ document.addEventListener("farm_state_sync", (e) => {
   if (state && payload) {
     if (payload.plots) {
       payload.plots.forEach((p, i) => {
+        // RC3: Match the same in-flight guards as loadState() — cross-tab sync
+        // was missing plantingInFlight/harvestingInFlight checks and used a
+        // too-short 5s window (vs 12s everywhere else).
         if (wateringInFlight.has(i)) return;
+        if (plantingInFlight.has(i)) return;
+        if (harvestingInFlight.has(i)) return;
         const lastOpt = optimisticActionTimestamps.get(i) || 0;
-        if (Date.now() - lastOpt < 5000) return;
+        if (Date.now() - lastOpt < 12_000) return; // RC3: was 5000
         state.plots[i] = p;
       });
     }

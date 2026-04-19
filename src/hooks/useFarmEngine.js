@@ -70,7 +70,7 @@ export const farmStore = create((set, get) => ({
       goldEarned: stats?.totalGoldEarned || 0,
       questsCompleted: questsCompleted || 0,
       plotsBought: plots?.length || 6,
-      daysActive: 1,
+      bestStreak: get().streak?.best || 1,
     });
   },
 

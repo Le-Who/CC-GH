@@ -71,16 +71,15 @@ function _getPlayerStats() {
     ? Math.max(serverQuests, lsQuests)
     : lsQuests;
 
-  const daysActive = parseInt(
-    localStorage.getItem("hub_days_active") || "1",
-    10,
-  );
+  // _state._streak is populated from /api/farm/state response in index.js
+  const bestStreak = _state?._streak?.best || 1;
+
   return {
     totalHarvests,
     goldEarned,
     questsCompleted,
     plotsBought,
-    daysActive,
+    bestStreak,
   };
 }
 

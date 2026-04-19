@@ -101,8 +101,8 @@ export const CROPS = {
     fullnessYield: 30,
     unlockCondition: {
       type: "plotsBought",
-      value: 3,
-      label: "Buy your 3rd farm plot",
+      value: 9,
+      label: "Buy 3 extra farm plots",
     },
     lore: "Sunflowers track the sun across the sky. Their massive heads are worth a fortune — if you can wait long enough.",
   },
@@ -133,7 +133,7 @@ export const CROPS = {
     xp: 80,
     energyYield: 15,
     fullnessYield: 40,
-    unlockCondition: { type: "daysActive", value: 7, label: "Play for 7 days" },
+    unlockCondition: { type: "bestStreak", value: 7, label: "Reach a 7-day login streak" },
     lore: "The king of all crops. Only the most dedicated farmers can coax a pumpkin to its enormous, glowing maturity.",
   },
 };
@@ -141,7 +141,7 @@ export const CROPS = {
 /**
  * v7.2: Progressive Seed Unlocking
  * Evaluates each crop's unlockCondition against player stats.
- * @param {object} playerStats - { totalHarvests, goldEarned, questsCompleted, plotsBought, daysActive }
+ * @param {object} playerStats - { totalHarvests, goldEarned, questsCompleted, plotsBought, bestStreak }
  * @returns {string[]} Array of unlocked crop IDs
  */
 export function getUnlockedSeeds(playerStats = {}) {

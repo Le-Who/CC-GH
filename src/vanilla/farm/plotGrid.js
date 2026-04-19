@@ -77,7 +77,8 @@ export function render() {
         rebuildPlot(div, plot, i, pct, isReady, false);
       } else if (plot.crop) {
         const fill = div.querySelector(".growth-bar-fill");
-        if (fill) {
+        // RC1: Don't let the growth tick clobber the plant-burst animation
+        if (fill && justPlantedPlot !== i) {
           fill.style.width = Math.round(pct * 100) + "%";
           fill.classList.toggle("done", isReady);
         }
@@ -177,15 +178,20 @@ function rebuildPlot(div, plot, i, pct, isReady, animate) {
       ${plot.watered ? '<button class="farm-water-btn watered" disabled>💧</button>' : ""}
     `;
     if (isJustPlanted) {
-      justPlantedPlot = -1;
+      // RC1: Clear AFTER the burst plays, not before — prevents growth tick from
+      // seeing justPlantedPlot===-1 during the 500ms animation window and zeroing
+      // the width back to the real (near-0%) value.
       const fill = div.querySelector(".growth-bar-fill");
       if (fill) {
         requestAnimationFrame(() => {
           setTimeout(() => {
+            justPlantedPlot = -1; // ← moved here from line above
             fill.classList.remove("plant-burst");
             fill.style.width = Math.round(pct * 100) + "%";
           }, 500);
         });
+      } else {
+        justPlantedPlot = -1; // no fill element (edge case), clear immediately
       }
     }
     div.title = isReady ? "Click to harvest!" : "Growing...";
