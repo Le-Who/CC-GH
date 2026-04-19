@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  app:
+    image: ghcr.io/${GHCR_REPO:-user/game-hub}:latest
+    container_name: gamehub-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-pgpass}@postgres:5432/${POSTGRES_DB:-gamehub}
+      - REDIS_URL=redis://redis:6379
+      - PORT=8080
+    ports:
+      - "127.0.0.1:8080:8080" # Expose only locally for Caddy to proxy
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: gamehub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pgpass}
+      POSTGRES_DB: ${POSTGRES_DB:-gamehub}
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-gamehub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: gamehub-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: gamehub-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CUSTOM_DOMAIN=${CUSTOM_DOMAIN}
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    command: caddy reverse-proxy --from https://${CUSTOM_DOMAIN} --to http://app:8080
+
+volumes:
+  pg-data:
+  redis-data:
+  caddy-data:
+  caddy-config:

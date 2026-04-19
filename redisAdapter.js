@@ -16,7 +16,7 @@
  * ═══════════════════════════════════════════════════════
  */
 
-import { Redis } from "@upstash/redis";
+import { Redis } from "ioredis";
 
 /* ─── Configuration ─── */
 const REDIS_KEY_PREFIX = "player:";
@@ -33,18 +33,26 @@ let redisEnabled = false;
  * @returns {boolean} Whether Redis was successfully initialized
  */
 export function initRedis() {
-  const url = process.env.UPSTASH_REDIS_URL;
-  const token = process.env.UPSTASH_REDIS_TOKEN;
+  const url = process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL;
 
-  if (!url || !token) {
-    console.log("  Redis: disabled (UPSTASH_REDIS_URL / UPSTASH_REDIS_TOKEN not set)");
+  if (!url) {
+    console.log("  Redis: disabled (REDIS_URL not set)");
     return false;
   }
 
   try {
-    redis = new Redis({ url, token });
+    redis = new Redis(url, {
+      maxRetriesPerRequest: 3,
+      retryStrategy(times) {
+        if (times > 3) return null; // stop retrying after 3 times
+        return Math.min(times * 50, 2000);
+      }
+    });
+    
+    redis.on('error', (e) => console.warn("Redis error:", e.message));
+    
     redisEnabled = true;
-    console.log("🔴 Redis: connected via Upstash REST");
+    console.log("🔴 Redis: connected via TCP (ioredis)");
     return true;
   } catch (e) {
     console.warn("⚠️ Redis init failed, falling back to in-memory:", e.message);
@@ -102,7 +110,7 @@ export async function redisSetPlayer(userId, playerData) {
   if (!redisEnabled) return;
   try {
     const key = `${REDIS_KEY_PREFIX}${userId}`;
-    await redis.set(key, JSON.stringify(playerData), { ex: REDIS_TTL_SECONDS });
+    await redis.set(key, JSON.stringify(playerData), "EX", REDIS_TTL_SECONDS);
   } catch (e) {
     console.warn(`Redis SET failed for ${userId}:`, e.message);
     // Non-fatal: Firestore will still persist
@@ -137,7 +145,7 @@ export async function redisBulkLoad(playersMap) {
       pipeline.set(
         `${REDIS_KEY_PREFIX}${userId}`,
         JSON.stringify(data),
-        { ex: REDIS_TTL_SECONDS },
+        "EX", REDIS_TTL_SECONDS,
       );
       count++;
     }
@@ -165,8 +173,8 @@ export async function isNonceSeenRedis(userId, nonce) {
   if (!redisEnabled || !nonce) return false;
   try {
     const key = `${NONCE_KEY_PREFIX}${userId}:${nonce}`;
-    // SET NX returns true if the key was set (new nonce), null if already exists (duplicate)
-    const wasSet = await redis.set(key, "1", { nx: true, ex: NONCE_TTL_SECONDS });
+    // SET NX returns "OK" if the key was set (new nonce), null if already exists (duplicate)
+    const wasSet = await redis.set(key, "1", "EX", NONCE_TTL_SECONDS, "NX");
     return wasSet === null; // null = key already existed = duplicate
   } catch (e) {
     console.warn(`Redis nonce check failed for ${userId}:${nonce}:`, e.message);
@@ -198,8 +206,8 @@ export async function redisLock(userId, lockValue) {
 
   for (let attempt = 0; attempt < LOCK_MAX_RETRIES; attempt++) {
     try {
-      const wasSet = await redis.set(key, val, { nx: true, ex: LOCK_TTL_SECONDS });
-      if (wasSet !== null) return val; // Lock acquired
+      const wasSet = await redis.set(key, val, "EX", LOCK_TTL_SECONDS, "NX");
+      if (wasSet === "OK") return val; // Lock acquired
     } catch (e) {
       console.warn(`Redis LOCK attempt ${attempt + 1} failed for ${userId}:`, e.message);
       if (attempt >= LOCK_MAX_RETRIES - 1) return null;
@@ -225,7 +233,7 @@ export async function redisUnlock(userId, lockValue) {
     const script = `if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end`;
     await redis.eval(script, [key], [lockValue]);
   } catch (e) {
-    // Fallback: simple DEL if Lua eval fails (Upstash REST may not support eval)
+    // Fallback: simple DEL if Lua eval fails
     try {
       const currentVal = await redis.get(key);
       if (currentVal === lockValue) {
@@ -297,9 +305,8 @@ export async function redisPublish(channel, message) {
 export async function redisShutdown() {
   if (!redisEnabled) return;
   try {
-    // Upstash REST doesn't maintain persistent connections, so no cleanup needed.
-    // Just log that we're shutting down.
-    console.log("🔴 Redis: shutdown complete (REST-based, no connections to close)");
+    redis.disconnect();
+    console.log("🔴 Redis: shutdown complete (TCP connection closed)");
     redisEnabled = false;
   } catch (e) {
     console.warn("Redis shutdown error:", e.message);
