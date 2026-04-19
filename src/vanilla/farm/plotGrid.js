@@ -10,7 +10,11 @@ import { $, getLocalGrowth, formatTimeLeft } from "./utils.js";
 
 // ── Module state ──
 let firstRenderDone = false;
-let justPlantedPlot = -1;
+// RC-A fix: Map<plotId, expiryTimestamp> — protects the plant-burst animation
+// window without races against the 500ms growth tick. Each entry expires after
+// PLANT_ANIM_TTL ms; render() checks Date.now() instead of relying on timers.
+const justPlantedExpiry = new Map();
+const PLANT_ANIM_TTL = 1500; // ms — covers 500ms CSS burst + 2 tick intervals
 let growthTickId = null;
 let syncInterval = null;
 let _lastReadyCount = -1;
@@ -77,11 +81,14 @@ export function render() {
         rebuildPlot(div, plot, i, pct, isReady, false);
       } else if (plot.crop) {
         const fill = div.querySelector(".growth-bar-fill");
-        // RC1: Don't let the growth tick clobber the plant-burst animation
-        if (fill && justPlantedPlot !== i) {
+        // RC-A: Don't let the growth tick clobber the plant-burst animation.
+        // justPlantedExpiry holds a wall-clock expiry — no timer races possible.
+        const burstActive = justPlantedExpiry.has(i) && Date.now() < justPlantedExpiry.get(i);
+        if (fill && !burstActive) {
           fill.style.width = Math.round(pct * 100) + "%";
           fill.classList.toggle("done", isReady);
         }
+        if (!burstActive) justPlantedExpiry.delete(i); // GC expired entries
         const timeLabel = div.querySelector(".growth-time-label");
         if (isReady) {
           if (timeLabel) timeLabel.remove();
@@ -165,7 +172,7 @@ function rebuildPlot(div, plot, i, pct, isReady, animate) {
 
   if (plot.crop) {
     const cfg = _crops[plot.crop] || {};
-    const isJustPlanted = justPlantedPlot === i;
+    const isJustPlanted = justPlantedExpiry.has(i) && Date.now() < justPlantedExpiry.get(i);
     const displayPct = isJustPlanted ? 100 : Math.round(pct * 100);
 
     div.innerHTML = `
@@ -177,23 +184,6 @@ function rebuildPlot(div, plot, i, pct, isReady, animate) {
       ${!plot.watered && !isReady ? '<button class="farm-water-btn" title="Water">💧</button>' : ""}
       ${plot.watered ? '<button class="farm-water-btn watered" disabled>💧</button>' : ""}
     `;
-    if (isJustPlanted) {
-      // RC1: Clear AFTER the burst plays, not before — prevents growth tick from
-      // seeing justPlantedPlot===-1 during the 500ms animation window and zeroing
-      // the width back to the real (near-0%) value.
-      const fill = div.querySelector(".growth-bar-fill");
-      if (fill) {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            justPlantedPlot = -1; // ← moved here from line above
-            fill.classList.remove("plant-burst");
-            fill.style.width = Math.round(pct * 100) + "%";
-          }, 500);
-        });
-      } else {
-        justPlantedPlot = -1; // no fill element (edge case), clear immediately
-      }
-    }
     div.title = isReady ? "Click to harvest!" : "Growing...";
   } else {
     const selectedSeed = _actions?.getSelectedSeed?.() || _selectedSeed;
@@ -209,8 +199,10 @@ function rebuildPlot(div, plot, i, pct, isReady, animate) {
   }
 }
 
+/** RC-A: Mark a plot as freshly planted; protects its bar from growth-tick zeroing
+ *  for PLANT_ANIM_TTL ms using wall-clock time (no timers, no races). */
 export function setJustPlantedPlot(plotId) {
-  justPlantedPlot = plotId;
+  justPlantedExpiry.set(plotId, Date.now() + PLANT_ANIM_TTL);
 }
 
 /* ─── Buy Plot Card ─── */

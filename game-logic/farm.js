@@ -33,14 +33,22 @@ export function getGrowthPct(plot, now = Date.now()) {
 export function farmPlotsWithGrowth(farm, now = Date.now()) {
   return farm.plots.map((pl) => {
     const cfg = pl.crop ? CROPS[pl.crop] : null;
+    // effectiveGrowthTime = dev-mode-scaled base growth time, WITHOUT the
+    // watering multiplier baked in. The client always applies wateringMultiplier
+    // itself based on the live plot.watered state — this avoids double-
+    // multiplication when a water-ack arrives and updates both watered + eff.
+    const baseMs = cfg ? getScaledTime(cfg.growthTime) : 0;
+    const waterMult = pl.crop ? getWateringMultiplier(pl.crop) : 1;
     return {
       ...pl,
       growth: getGrowthPct(pl, now),
       growthTime: cfg ? cfg.growthTime : 0,
-      wateringMultiplier: pl.crop ? getWateringMultiplier(pl.crop) : 1,
+      effectiveGrowthTime: baseMs, // only scale — no water mult
+      wateringMultiplier: waterMult,
     };
   });
 }
+
 
 /* ═══════════════════════════════════════════════════
  *  OFFLINE PROGRESS — Fullness-based simulation loop

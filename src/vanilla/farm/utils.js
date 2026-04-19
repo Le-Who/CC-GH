@@ -23,12 +23,20 @@ export function getClockDelta() {
   return clockDelta;
 }
 
-/** Compute local growth percentage for a plot (clock-corrected) */
+/** Compute local growth percentage for a plot (clock-corrected)
+ *  RC-D: Prefers `effectiveGrowthTime` (dev-mode-scaled base ms, NO water mult)
+ *  over raw `growthTime`. Water multiplier is always applied client-side from
+ *  the live `plot.watered` state — no double-multiplication risk.
+ */
 export function getLocalGrowth(plot) {
   if (!plot.crop || !plot.plantedAt) return 0;
   const elapsed = getServerNow() - plot.plantedAt;
   const mult = plot.watered ? plot.wateringMultiplier || 0.7 : 1;
-  const gt = plot.growthTime || 15000;
+  // effectiveGrowthTime = getScaledTime(growthTime), water mult NOT baked in.
+  // Use it when available (server ack arrived); fallback to raw growthTime.
+  const gt = plot.effectiveGrowthTime > 0
+    ? plot.effectiveGrowthTime
+    : plot.growthTime || 15000;
   return Math.min(1, elapsed / (gt * mult));
 }
 
@@ -36,8 +44,12 @@ export function getLocalGrowth(plot) {
 export function formatTimeLeft(plot, pct) {
   if (pct >= 1) return "Ready!";
   const mult = plot.watered ? plot.wateringMultiplier || 0.7 : 1;
-  const totalMs = (plot.growthTime || 15000) * mult;
-  const remainMs = totalMs * (1 - pct);
+  // RC-D: prefer effectiveGrowthTime (scale-only) when available,
+  // same pattern as getLocalGrowth — water mult applied separately.
+  const baseMs = plot.effectiveGrowthTime > 0
+    ? plot.effectiveGrowthTime
+    : plot.growthTime || 15000;
+  const remainMs = baseMs * mult * (1 - pct);
   const secs = Math.ceil(remainMs / 1000);
   if (secs <= 0) return "Ready!";
   if (secs < 60) return `~${secs}s left`;

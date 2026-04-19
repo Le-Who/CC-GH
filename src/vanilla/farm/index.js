@@ -94,6 +94,33 @@ function loadStateIfSafe() {
   loadState();
 }
 
+/**
+ * RC-E: Safe per-plot merge helper. Always used instead of `state = data`
+ * so in-flight guards are respected even on the very first loadState call.
+ * Server-authoritative fields (resources, meta) are always applied;
+ * only per-plot data is guarded by in-flight + optimistic TTL checks.
+ */
+function _safeMergePlots(data) {
+  if (!state) {
+    // First load: still apply per-plot merge to respect any in-flight actions
+    // that may have started before state was available.
+    state = { ...data };
+  } else {
+    const oldPlots = [...state.plots];
+    Object.assign(state, data);
+    state.plots = oldPlots;
+  }
+  // Always merge server plots, skipping in-flight / recently-optimistic ones
+  data.plots?.forEach((p, i) => {
+    if (wateringInFlight.has(i)) return;
+    if (plantingInFlight.has(i)) return;
+    if (harvestingInFlight.has(i)) return;
+    const lastOpt = optimisticActionTimestamps.get(i) || 0;
+    if (Date.now() - lastOpt < 12_000) return;
+    state.plots[i] = p;
+  });
+}
+
 /* ─── Push local state to GameStore ─── */
 function syncToStore(broadcast = true) {
   if (state) {
@@ -228,9 +255,11 @@ async function init() {
   }
 
   // Desync auto-heal listener
+  // RC-E: use loadStateIfSafe() — if a plant/water/harvest is in-flight,
+  // a desync event must not overwrite the optimistic plot with stale crop:null.
   document.addEventListener("hub:state-desync", () => {
     showToast("🔄 Syncing...");
-    loadState();
+    loadStateIfSafe();
   });
 
   // Handle immediate UI updates when a quest is completed
@@ -371,21 +400,9 @@ async function loadState() {
     username: HUB.username,
   });
   if (data && !data.error) {
-    if (!state) {
-      state = data;
-    } else {
-      const oldPlots = [...state.plots];
-      state = data;
-      state.plots = oldPlots;
-      data.plots?.forEach((p, i) => {
-        if (wateringInFlight.has(i)) return;
-        if (plantingInFlight.has(i)) return;
-        if (harvestingInFlight.has(i)) return;
-        const lastOpt = optimisticActionTimestamps.get(i) || 0;
-        if (Date.now() - lastOpt < 12_000) return;
-        state.plots[i] = p;
-      });
-    }
+    // RC-E: always use _safeMergePlots — respects in-flight guards on first
+    // load too (previously `state = data` skipped all guards on first call).
+    _safeMergePlots(data);
     updateClockDelta(data.serverTime);
     if (data.resources) HUD.syncFromServer(data.resources);
     if (data.pet) PetCompanion.syncFromServer(data.pet);
@@ -580,17 +597,22 @@ function plant(plotId) {
   const prevInventory = { ...state.inventory };
   const cropId = currentSeed;
 
+  // Optimistic update — use local growthTime as a placeholder; server response
+  // will overlay effectiveGrowthTime (authoritative, includes boosters + scale)
+  const optimisticPlantedAt = getServerNow();
   state.plots[plotId] = {
     ...state.plots[plotId],
     crop: cropId,
-    plantedAt: getServerNow(),
+    plantedAt: optimisticPlantedAt,
     watered: false,
     growthTime: crops[cropId]?.growthTime || 15000,
   };
   state.inventory[cropId] = Math.max(0, seedCount - 1);
   setJustPlantedPlot(plotId);
   optimisticActionTimestamps.set(plotId, Date.now());
-  syncToStore();
+  // RC-C: do NOT broadcast cross-tab yet — other tabs would see crop:null from
+  // their stale state. Broadcast only after server ack (below).
+  syncToStore(false);
   _syncSubModules();
   render();
   renderShop();
@@ -602,18 +624,30 @@ function plant(plotId) {
   plotPlantVersions.set(plotId, ver);
   apiBatched("/api/farm/plant", { userId: HUB.userId, plotId, cropId })
     .then((data) => {
-      // RC5: Delete in-flight BEFORE the merge so that any loadState/cross-tab
-      // sync that arrives immediately after sees a clean in-flight state.
-      plantingInFlight.delete(plotId);
-      if (plotPlantVersions.get(plotId) !== ver || data._optimistic) return;
+      if (plotPlantVersions.get(plotId) !== ver) {
+        // A newer plant() superseded this one — just clean up inflight.
+        plantingInFlight.delete(plotId);
+        return;
+      }
+      if (data._optimistic) {
+        // Batch timed out (15s safety) — optimistic state already visible;
+        // server will save eventually. Release inflight so future syncs work.
+        plantingInFlight.delete(plotId);
+        // RC-C: broadcast optimistic state now that we've given up waiting
+        broadcastStateUpdate({ plots: state.plots, inventory: state.inventory });
+        return;
+      }
       if (data.success) {
-        if (data.plots && plotPlantVersions.get(plotId) === ver) {
-          // RC5: Spread-merge — keep optimistic plantedAt (clock-corrected) but
-          // overlay server growthTime/wateringMultiplier (critical when boosters
-          // are active; server value is authoritative for growth speed).
+        if (data.plots) {
+          // RC-B: merge BEFORE releasing inflight — closes the race window
+          // where loadState() would see inflight=false and overwrite with null.
+          // RC-D: spread server's effectiveGrowthTime + wateringMultiplier for
+          // booster accuracy, but always keep our clock-corrected plantedAt.
+          const { plantedAt: _serverTs, ...serverPlot } = data.plots[plotId] || {};
           state.plots[plotId] = {
             ...state.plots[plotId],
-            ...data.plots[plotId],
+            ...serverPlot,
+            plantedAt: optimisticPlantedAt, // always use local clock-corrected ts
           };
         }
         if (data.inventory) {
@@ -623,12 +657,17 @@ function plant(plotId) {
           }
           if (!anyNewer) state.inventory = data.inventory;
         }
-        syncToStore();
+        // RC-B: release inflight AFTER merge is stable
+        plantingInFlight.delete(plotId);
+        // RC-C: now broadcast the confirmed, server-merged state to other tabs
+        syncToStore(true);
       } else {
         // Granular rollback: only this plot + inventory
+        // RC-B: release inflight AFTER rollback so no sync sneaks in between
         state.plots[plotId] = plotSnap;
         state.inventory = prevInventory;
-        syncToStore();
+        plantingInFlight.delete(plotId);
+        syncToStore(true);
         _syncSubModules();
         render();
         renderShop();
