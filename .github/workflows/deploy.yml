@@ -3,7 +3,7 @@ name: VPS Deploy
 on:
   push:
     branches:
-      - main
+      - feat/simple-auth
 
 env:
   REGISTRY: ghcr.io
@@ -60,12 +60,33 @@ jobs:
           
       - name: Execute Docker Compose on VPS
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'appuser' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'gamehub' }}
+          CUSTOM_DOMAIN: ${{ secrets.CUSTOM_DOMAIN }}
+          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
+          DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
+          DISCORD_REDIRECT_URI: ${{ secrets.DISCORD_REDIRECT_URI }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          envs: POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,CUSTOM_DOMAIN,DISCORD_CLIENT_ID,DISCORD_CLIENT_SECRET,DISCORD_REDIRECT_URI
           script: |
             cd /opt/game-hub
+            
+            # Securely generate .env file using variables passed via envs
+            cat << EOF > .env
+            POSTGRES_USER=$POSTGRES_USER
+            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            POSTGRES_DB=$POSTGRES_DB
+            CUSTOM_DOMAIN=$CUSTOM_DOMAIN
+            DISCORD_CLIENT_ID=$DISCORD_CLIENT_ID
+            DISCORD_CLIENT_SECRET=$DISCORD_CLIENT_SECRET
+            DISCORD_REDIRECT_URI=$DISCORD_REDIRECT_URI
+            EOF
+            
             # Pull latest image
             export GHCR_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
             docker compose pull app
