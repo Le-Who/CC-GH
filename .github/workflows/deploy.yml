@@ -55,6 +55,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
           source: "docker-compose.yml"
           target: "/opt/game-hub"
           
@@ -72,6 +73,7 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
           envs: POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,CUSTOM_DOMAIN,DISCORD_CLIENT_ID,DISCORD_CLIENT_SECRET,DISCORD_REDIRECT_URI
           script: |
             cd /opt/game-hub

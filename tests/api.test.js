@@ -1,4 +1,5 @@
-process.env.DISCORD_CLIENT_ID = ""; process.env.DISCORD_CLIENT_SECRET = "";
+process.env.DISCORD_CLIENT_ID = "";
+process.env.DISCORD_CLIENT_SECRET = "";
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — API Integration Tests
@@ -56,7 +57,7 @@ beforeEach(async () => {
   if (dbUrl.includes(PRODUCTION_PROJECT_REF)) {
     throw new Error(
       "🛑 REFUSING TO RUN TESTS AGAINST PRODUCTION DATABASE!\n" +
-      "DATABASE_URL points to Supabase production. Set it to a local/test database."
+        "DATABASE_URL points to Supabase production. Set it to a local/test database.",
     );
   }
 
@@ -170,14 +171,14 @@ describe("POST /api/farm/plant", () => {
 
   it("rejects invalid crop", async () => {
     await injectTestPlayer("farmer3", "F3");
-    
+
     // Act
     const { status } = await post("/api/farm/plant", {
       userId: "farmer3",
       plotId: 0,
       cropId: "nonexistent_crop",
     });
-    
+
     // Assert
     assert.equal(status, 400);
   });
@@ -202,7 +203,11 @@ describe("POST /api/farm/water", () => {
     });
 
     // Assert
-    assert.equal(status, 200, `Expected 200, got ${status}. ${JSON.stringify(data)}`);
+    assert.equal(
+      status,
+      200,
+      `Expected 200, got ${status}. ${JSON.stringify(data)}`,
+    );
     assert.ok(data.success);
     assert.equal(data.plots[0].watered, true);
   });
@@ -212,9 +217,9 @@ describe("POST /api/farm/water", () => {
     await injectTestPlayer("water2", "W2", (p) => {
       p.farm.plots[0].crop = "strawberry";
       p.farm.plots[0].plantedAt = Date.now() - 1000;
-      p.farm.plots[0].watered = true; 
+      p.farm.plots[0].watered = true;
     });
-    
+
     // Act
     const { status } = await post("/api/farm/water", {
       userId: "water2",
@@ -228,7 +233,7 @@ describe("POST /api/farm/water", () => {
   it("rejects watering empty plot", async () => {
     // Arrange
     await injectTestPlayer("water3", "W3", (p) => {
-      p.farm.plots[0].crop = null; 
+      p.farm.plots[0].crop = null;
     });
 
     // Act
@@ -272,7 +277,7 @@ describe("POST /api/farm/buy-seeds", () => {
     await injectTestPlayer("buyer2", "B2", (p) => {
       p.resources.gold = 0;
     });
-    
+
     // Act
     // Try to buy 100 golden roses (60 gold each = 6000 gold needed)
     const { status } = await post("/api/farm/buy-seeds", {
@@ -386,7 +391,7 @@ describe("POST /api/trivia/start", () => {
       userId: "trivia1",
       count: 5,
     });
-    
+
     // Assert
     assert.equal(status, 200);
     assert.ok(data.question);
@@ -406,9 +411,13 @@ describe("POST /api/trivia/start", () => {
     const { status, data } = await post("/api/trivia/start", {
       userId: "trivia2",
     });
-    
+
     // Assert
-    assert.equal(status, 400, `Expected 400, got ${status}. Body: ${JSON.stringify(data)}`);
+    assert.equal(
+      status,
+      400,
+      `Expected 400, got ${status}. Body: ${JSON.stringify(data)}`,
+    );
     assert.equal(data.error, "NOT_ENOUGH_ENERGY");
   });
 });
@@ -438,7 +447,7 @@ describe("POST /api/trivia/answer", () => {
       answer: correctAnswer,
       timeMs: 3000,
     });
-    
+
     // Assert
     assert.equal(status, 200);
     assert.equal(data.correct, true);
@@ -488,7 +497,7 @@ describe("POST /api/farm/harvest", () => {
       userId: "harvester1",
       plotId: 0,
     });
-    
+
     // Assert
     assert.equal(status, 200);
     assert.ok(data.reward);
@@ -503,14 +512,14 @@ describe("POST /api/farm/harvest", () => {
       p.farm.plots[0].plantedAt = Date.now();
       p.farm.plots[0].watered = false;
     });
-    
+
     // Act
     // Try to harvest immediately (not grown yet)
     const { status } = await post("/api/farm/harvest", {
       userId: "harvester2",
       plotId: 0,
     });
-    
+
     // Assert
     assert.equal(status, 400);
   });
@@ -643,6 +652,41 @@ describe("POST /api/quests/submit", () => {
     // requireAuth middleware may not enforce userId in test mode
     assert.ok(status === 400 || status === 200);
   });
+
+  it("increments questsCompleted and deducts requirements upon quest fulfillment", async () => {
+    await injectTestPlayer("quest_sub2", "QS2", (p) => {
+      p.questsCompleted = 0;
+      if (!p.farm) p.farm = {};
+      if (!p.farm.harvested) p.farm.harvested = {};
+      p.farm.harvested.strawberry = 10;
+      if (!p.pet) p.pet = {};
+      p.pet.activeOrders = [
+        {
+          id: "test-order-1",
+          requirements: [{ type: "crop", id: "strawberry", qty: 2 }],
+          reward: { xp: 10, gold: 50 },
+        },
+      ];
+    });
+
+    const { status, data } = await post("/api/quests/submit", {
+      userId: "quest_sub2",
+      orderId: "test-order-1",
+    });
+
+    assert.equal(status, 200, `Expected 200, got ${status}`);
+    assert.equal(data.success, true);
+    assert.equal(
+      data.questsCompleted,
+      1,
+      "questsCompleted should be incremented",
+    );
+    assert.equal(
+      data.harvested.strawberry,
+      8,
+      "Crop requirements should be deducted",
+    );
+  });
 });
 
 /* ─────────────────────────────────────────────────────
@@ -660,7 +704,11 @@ describe("POST /api/pet/feed — edge cases", () => {
       userId: "feed_edge1",
       cropId: "strawberry",
     });
-    assert.equal(status, 200, `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`);
+    assert.equal(
+      status,
+      200,
+      `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`,
+    );
     assert.ok(
       data.resources.energy.current <= ECONOMY.ENERGY_MAX,
       `Energy ${data.resources.energy.current} should not exceed max ${ECONOMY.ENERGY_MAX}`,
@@ -679,7 +727,11 @@ describe("POST /api/pet/feed — edge cases", () => {
       userId: "feed_edge2",
       cropId: "strawberry",
     });
-    assert.equal(status, 200, `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`);
+    assert.equal(
+      status,
+      200,
+      `Expected 200, got ${status}. Body: ${JSON.stringify(data)}`,
+    );
     assert.ok(
       data.pet.stats.fullness <= 100,
       `Pet fullness ${data.pet.stats.fullness} should not exceed 100`,

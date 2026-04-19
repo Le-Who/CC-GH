@@ -211,3 +211,14 @@ export const useHasFarmItems = () =>
     }
     return false;
   });
+
+// ─── Event Integration ───
+// Reactively sync quests completed from vanilla module events so
+// the React UI (like Golden Rose unlock) updates without a reload.
+if (typeof window !== "undefined") {
+  window.addEventListener("quest-completed", (e) => {
+    if (e.detail && typeof e.detail.questsCompleted === "number") {
+      farmStore.setState({ questsCompleted: e.detail.questsCompleted });
+    }
+  });
+}
