@@ -355,7 +355,21 @@ export async function api(path, body) {
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         console.error(`API ${path} → ${res.status}: ${text}`);
-        return { error: `Server error ${res.status}`, _httpStatus: res.status };
+        let parsed = null;
+        try {
+          parsed = text ? JSON.parse(text) : null;
+        } catch (_) {}
+        if (parsed && typeof parsed === "object") {
+          return {
+            ...parsed,
+            error: parsed.error || `Server error ${res.status}`,
+            _httpStatus: res.status,
+          };
+        }
+        return {
+          error: text || `Server error ${res.status}`,
+          _httpStatus: res.status,
+        };
       }
       return res.json();
     } catch (err) {

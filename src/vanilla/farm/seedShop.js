@@ -2,7 +2,7 @@
  *  Farm Module — Seed Shop
  *  Shop grid, featured shelf, seed selection, buy logic.
  * ═══════════════════════════════════════════════════ */
-import { HUB, showToast, apiBatched } from "../shared.js";
+import { HUB, showToast, api } from "../shared.js";
 import {
   CROPS as CROPS_CONFIG,
   getUnlockedSeeds,
@@ -147,13 +147,13 @@ export function buySeeds(cropId) {
   if (_selectedSeed) saveBuyQty(_selectedSeed, 1);
 
   const myVersion = ++_buySeedVersion;
-  apiBatched("/api/farm/buy-seeds", {
+  api("/api/farm/buy-seeds", {
     userId: HUB.userId,
     cropId,
     amount: savedQty,
   })
     .then((data) => {
-      if (_buySeedVersion !== myVersion || data._optimistic) return;
+      if (_buySeedVersion !== myVersion) return;
       if (data.success) {
         if (data.resources) HUD.syncFromServer(data.resources);
         if (_buySeedVersion === myVersion && data.inventory) {

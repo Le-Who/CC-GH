@@ -109,7 +109,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         // res.json() calls on attempt >= 2 are harmlessly ignored (headersSent).
         // Side-effects like player_events INSERTs use .catch() (fire-and-forget)
         // so a duplicate analytics row is acceptable vs silent data loss.
-        await asyncFn(player);
+        const handlerResult = await asyncFn(player);
 
         // Global safeguard: Verify all achievements automatically before DB freeze
         // even if the route neglected to evaluate or return them.
@@ -152,7 +152,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
             });
           }
           
-          return player;
+          return handlerResult === undefined ? player : handlerResult;
         }
 
         // OCC collision (multi-instance race) — retry with fresh state

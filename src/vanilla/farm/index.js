@@ -8,7 +8,7 @@
  * ═══════════════════════════════════════════════════ */
 import { get, set } from "idb-keyval";
 import { GameStore } from "../store.js";
-import { HUB, api, apiBatched, showToast } from "../shared.js";
+import { HUB, api, showToast } from "../shared.js";
 import { ACHIEVEMENTS } from "/game-logic.js";
 import { HUD } from "../hud.js";
 import { PetCompanion } from "../pet.js";
@@ -635,19 +635,11 @@ function plant(plotId) {
 
   const ver = (plotPlantVersions.get(plotId) || 0) + 1;
   plotPlantVersions.set(plotId, ver);
-  apiBatched("/api/farm/plant", { userId: HUB.userId, plotId, cropId })
+  api("/api/farm/plant", { userId: HUB.userId, plotId, cropId })
     .then((data) => {
       if (plotPlantVersions.get(plotId) !== ver) {
         // A newer plant() superseded this one — just clean up inflight.
         plantingInFlight.delete(plotId);
-        return;
-      }
-      if (data._optimistic) {
-        // Batch timed out (15s safety) — optimistic state already visible;
-        // server will save eventually. Release inflight so future syncs work.
-        plantingInFlight.delete(plotId);
-        // RC-C: broadcast optimistic state now that we've given up waiting
-        broadcastStateUpdate({ plots: state.plots, inventory: state.inventory });
         return;
       }
       if (data.success) {
@@ -711,13 +703,11 @@ function water(plotId) {
   animateWater(plotId);
   showToast("💧 Watered! Growth ~30% faster");
 
-  const fallbackTimer = setTimeout(() => wateringInFlight.delete(plotId), 3000);
   const myVersion = ++waterVersion;
-  apiBatched("/api/farm/water", { userId: HUB.userId, plotId })
+  api("/api/farm/water", { userId: HUB.userId, plotId })
     .then((data) => {
-      clearTimeout(fallbackTimer);
-      if (!data._optimistic) wateringInFlight.delete(plotId);
-      if (waterVersion !== myVersion || data._optimistic) return;
+      wateringInFlight.delete(plotId);
+      if (waterVersion !== myVersion) return;
       if (data.success) {
         if (data.plots?.[plotId] && waterVersion === myVersion) {
           state.plots[plotId] = {
@@ -735,7 +725,6 @@ function water(plotId) {
       }
     })
     .catch(() => {
-      clearTimeout(fallbackTimer);
       wateringInFlight.delete(plotId);
       if (waterVersion === myVersion) {
         state.plots[plotId] = plotSnap;
@@ -772,10 +761,10 @@ function harvest(plotId) {
   SoundEngine.harvest();
 
   const myVersion = ++harvestVersion;
-  apiBatched("/api/farm/harvest", { userId: HUB.userId, plotId })
+  api("/api/farm/harvest", { userId: HUB.userId, plotId })
     .then((data) => {
       harvestingInFlight.delete(plotId);
-      if (harvestVersion !== myVersion || data._optimistic) return;
+      if (harvestVersion !== myVersion) return;
       if (data.success) {
         if (data.plots?.[plotId] && harvestVersion === myVersion) {
           state.plots[plotId] = data.plots[plotId];
@@ -854,11 +843,10 @@ async function uproot(plotId) {
   showToast("💣 Uprooted! No refund.");
 
   try {
-    const data = await apiBatched("/api/farm/uproot", {
+    const data = await api("/api/farm/uproot", {
       userId: HUB.userId,
       plotId,
     });
-    if (data._optimistic) return;
     if (data?.success) {
       if (data.plots?.[plotId]) state.plots[plotId] = data.plots[plotId];
       if (data.resources) HUD.syncFromServer(data.resources);

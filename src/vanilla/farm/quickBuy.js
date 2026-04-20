@@ -2,9 +2,8 @@
  *  Farm Module — Quick Buy Bottom Sheet
  *  Contextual seed purchase + instant plant flow.
  * ═══════════════════════════════════════════════════ */
-import { HUB, showToast, apiBatched } from "../shared.js";
+import { HUB, showToast, api } from "../shared.js";
 import { CROPS as CROPS_CONFIG } from "/game-logic.js";
-import { GameStore } from "../store.js";
 import { HUD } from "../hud.js";
 import {
   getTopSeeds,
@@ -112,7 +111,7 @@ export function showQuickBuy(plotId) {
   import("../shared.js").then(({ safeShowModal }) => safeShowModal(dialog));
 }
 
-function quickBuyAndPlant(seedId, plotId) {
+async function quickBuyAndPlant(seedId, plotId) {
   const cfg = _crops[seedId];
   if (!cfg) return;
   const goldAvail = HUD.getGold();
@@ -124,43 +123,30 @@ function quickBuyAndPlant(seedId, plotId) {
 
   trackPurchase(seedId);
 
-  // Optimistic: deduct gold + add to inventory
-  const res = GameStore.getState("resources") || {};
-  GameStore.setState("resources", { ...res, gold: res.gold - price });
-  _state.inventory[seedId] = (_state.inventory[seedId] || 0) + 1;
-  _actions?.syncToStore?.();
-  HUD.animateGoldChange(-price);
-
-  // Plant using the seed
-  _actions?.setSelectedSeed?.(seedId);
-  _actions?.plant?.(plotId);
-
-  // Buy API call (fire-and-forget)
-  const prevGold = goldAvail;
   const myVersion = ++_buySeedVersion;
-  apiBatched("/api/farm/buy-seeds", {
+  const data = await api("/api/farm/buy-seeds", {
     userId: HUB.userId,
     cropId: seedId,
     amount: 1,
-  })
-    .then((data) => {
-      if (_buySeedVersion !== myVersion || data._optimistic) return;
-      if (data.success) {
-        if (data.resources) HUD.syncFromServer(data.resources);
-        if (_buySeedVersion === myVersion && data.inventory) {
-          _state.inventory = data.inventory;
-        }
-        _actions?.syncToStore?.();
-      } else {
-        const res = GameStore.getState("resources") || {};
-        GameStore.setState("resources", { ...res, gold: prevGold });
-        _actions?.syncToStore?.();
-        showToast(`❌ ${data.error}`);
-      }
-    })
-    .catch(() => {
-      if (_buySeedVersion === myVersion) _actions?.loadState?.();
-    });
+  }).catch(() => null);
 
-  showToast(`Planted ${cfg.emoji} ${cfg.name}!`);
+  if (_buySeedVersion !== myVersion) return;
+
+  if (data?.success) {
+    if (data.resources) HUD.syncFromServer(data.resources);
+    if (data.inventory) {
+      _state.inventory = data.inventory;
+    }
+    _actions?.syncToStore?.();
+    HUD.animateGoldChange(-price);
+    _actions?.setSelectedSeed?.(seedId);
+    _actions?.plant?.(plotId);
+    showToast(`Planted ${cfg.emoji} ${cfg.name}!`);
+    return;
+  }
+
+  if (_buySeedVersion === myVersion) {
+    _actions?.loadState?.();
+    showToast(`❌ ${data?.error || "Failed to buy seed"}`);
+  }
 }

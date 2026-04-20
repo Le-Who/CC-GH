@@ -83,7 +83,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.post("/api/farm/plant", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const response = await withPlayerLock(userId, async (p) => {
       const { plotId, cropId } = req.body;
       if (!CROPS[cropId]) return res.status(400).json({ error: "unknown crop" });
       const idx = Number(plotId);
@@ -107,21 +107,22 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
       const newAchievements = checkAchievements(p);
 
-      res.json({
+      return {
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         inventory: p.farm.inventory,
         newAchievements,
         achievements: p.achievements,
         serverTime: Date.now(),
-      });
+      };
     }, username);
+    if (!res.headersSent) res.json(response);
   });
 
   router.post("/api/farm/water", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const response = await withPlayerLock(userId, async (p) => {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -133,20 +134,21 @@ export default function farmRoutes(requireAuth, resolveUser) {
       
       const newAchievements = checkAchievements(p);
 
-      res.json({
+      return {
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         newAchievements,
         achievements: p.achievements,
         serverTime: Date.now(),
-      });
+      };
     }, username);
+    if (!res.headersSent) res.json(response);
   });
 
   router.post("/api/farm/harvest", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const response = await withPlayerLock(userId, async (p) => {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -209,7 +211,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
 
       const newAchievements = checkAchievements(p);
 
-      res.json({
+      return {
         success: true,
         reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
         plots: farmPlotsWithGrowth(p.farm),
@@ -222,15 +224,16 @@ export default function farmRoutes(requireAuth, resolveUser) {
         newAchievements,
         achievements: p.achievements,
         serverTime: Date.now(),
-      });
+      };
     }, username);
+    if (!res.headersSent) res.json(response);
   });
 
   /* ─── Uproot (💣 — no refund) ─── */
   router.post("/api/farm/uproot", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const response = await withPlayerLock(userId, async (p) => {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
@@ -244,19 +247,20 @@ export default function farmRoutes(requireAuth, resolveUser) {
       plot.crop = null;
       plot.plantedAt = null;
       plot.watered = false;
-      res.json({
+      return {
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         resources: p.resources,
         serverTime: Date.now(),
-      });
+      };
     }, username);
+    if (!res.headersSent) res.json(response);
   });
 
   router.post("/api/farm/buy-seeds", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const response = await withPlayerLock(userId, async (p) => {
       const { cropId, amount = 1 } = req.body;
       const cfg = CROPS[cropId];
       if (!cfg) return res.status(400).json({ error: "unknown crop" });
@@ -268,12 +272,13 @@ export default function farmRoutes(requireAuth, resolveUser) {
         return res.status(400).json({ error: "not enough gold" });
       p.resources.gold -= cost;
       p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
-      res.json({
+      return {
         success: true,
         resources: p.resources,
         inventory: p.farm.inventory,
-      });
+      };
     }, username);
+    if (!res.headersSent) res.json(response);
   });
 
   const BUY_PLOT_BASE_COST = 200;
