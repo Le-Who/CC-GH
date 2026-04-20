@@ -94,6 +94,8 @@ function commitMerge(merge) {
     mergeInventory: cloneList(resolveMergeInventory(normalized)),
     lastFreePull: normalized.lastFreePull ?? mergeStore.getState().lastFreePull,
     lastFreeTaps: normalized.lastFreeTaps ?? mergeStore.getState().lastFreeTaps,
+    freeTapCharges:
+      normalized.freeTapCharges ?? mergeStore.getState().freeTapCharges,
   });
   return normalized;
 }

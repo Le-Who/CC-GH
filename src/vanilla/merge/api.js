@@ -23,8 +23,9 @@ export async function tapGenerator(chainId, cropId) {
 
   const chain = MERGE_CHAINS[chainId];
   if (!chain) return { success: false, reason: "UNKNOWN_CHAIN" };
+  const usingFreeTap = (mergeState.freeTapCharges || 0) > 0;
 
-  if (!cropId || getHarvestedCropQty(cropId) <= 0) {
+  if (!usingFreeTap && (!cropId || getHarvestedCropQty(cropId) <= 0)) {
     showToast("🌱 No crops to fuel generator!", "error");
     return { success: false, reason: "NO_CROP" };
   }
@@ -37,8 +38,10 @@ export async function tapGenerator(chainId, cropId) {
 
   // Optimistic
   const oldRes = { ...res };
-  adjustHarvestedCrop(cropId, -1);
-  HUD.updateDisplay(getResourcesState());
+  if (!usingFreeTap) {
+    adjustHarvestedCrop(cropId, -1);
+    HUD.updateDisplay(getResourcesState());
+  }
 
   try {
     const data = await api("/api/merge/tap", {
@@ -47,8 +50,10 @@ export async function tapGenerator(chainId, cropId) {
       cropId,
     });
     if (!data?.success) {
-      syncResourcesState(oldRes);
-      HUD.updateDisplay(oldRes);
+      if (!usingFreeTap) {
+        syncResourcesState(oldRes);
+        HUD.updateDisplay(oldRes);
+      }
       syncMergeStateFallback();
       showToast(data?.error || "Tap failed", "error");
       return { success: false };
@@ -60,13 +65,17 @@ export async function tapGenerator(chainId, cropId) {
     
     const emoji = CROPS[cropId]?.emoji || "🌱";
     showToast(
-      `✨ Spawned ${data.spawned?.length || 0} items! (-1 ${emoji})`,
+      data.usedFreeTap
+        ? `✨ Spawned ${data.spawned?.length || 0} items! (🎁 Free Tap)`
+        : `✨ Spawned ${data.spawned?.length || 0} items! (-1 ${emoji})`,
       "success",
     );
     return { success: true, spawned: data.spawned };
   } catch (e) {
-    syncResourcesState(oldRes);
-    HUD.updateDisplay(oldRes);
+    if (!usingFreeTap) {
+      syncResourcesState(oldRes);
+      HUD.updateDisplay(oldRes);
+    }
     syncMergeStateFallback();
     showToast("Network error", "error");
     return { success: false };

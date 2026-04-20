@@ -46,6 +46,7 @@ export const mergeStore = create((set, get) => ({
   mergeInventory: [],
   lastFreePull: 0,
   lastFreeTaps: 0,
+  freeTapCharges: 0,
   trashMode: false,
   selectedFuel: {}, // chainId → cropId
 
@@ -92,6 +93,7 @@ export const mergeStore = create((set, get) => ({
   setGeneratorState: (generatorState) => set({ generatorState }),
   setLastFreePull: (lastFreePull) => set({ lastFreePull }),
   setLastFreeTaps: (lastFreeTaps) => set({ lastFreeTaps }),
+  setFreeTapCharges: (freeTapCharges) => set({ freeTapCharges }),
   setMergeInventory: (mergeInventory) => set({ mergeInventory }),
   toggleTrashMode: () => set((s) => ({ trashMode: !s.trashMode })),
   setSelectedFuel: (chainId, cropId) =>
@@ -110,6 +112,8 @@ export const mergeStore = create((set, get) => ({
         mergeData.mergeInventory || mergeData.inventory || get().mergeInventory,
       lastFreePull: mergeData.lastFreePull || get().lastFreePull,
       lastFreeTaps: mergeData.lastFreeTaps || get().lastFreeTaps,
+      freeTapCharges:
+        mergeData.freeTapCharges ?? get().freeTapCharges,
     });
   },
 
@@ -151,6 +155,7 @@ export const mergeStore = create((set, get) => ({
       mergeInventory: get().mergeInventory,
       lastFreePull: get().lastFreePull,
       lastFreeTaps: get().lastFreeTaps,
+      freeTapCharges: get().freeTapCharges,
     }),
 
   rollback: (snap) => set(snap),

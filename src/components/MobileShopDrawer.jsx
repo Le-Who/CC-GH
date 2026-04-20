@@ -9,6 +9,7 @@ import {
   syncHarvestedResources,
 } from "../services/inventoryService.js";
 import { broadcastStateUpdate } from "../vanilla/realtime.js";
+import { apiBatched, HUB, showToast } from "../vanilla/shared.js";
 
 /**
  * MobileShopDrawer — Bottom-sheet pattern for quick access to
@@ -73,60 +74,68 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
     .sort((a, b) => b[1] - a[1]);
 
   const handleSell = useCallback((cropId) => {
-    if (window.HUB?.apiBatched) {
-      // v8.3: Use apiBatched for desync detection + auto-healing
-      window.HUB.apiBatched("/api/farm/sell-crop", {
-        userId: window.HUB.userId,
-        cropId,
-        amount: 1,
-      }).then((res) => {
-        if (res?.success) {
-          const cropConfig = CROPS_CONFIG[cropId] || {};
-          const localSell = sellHarvestedCropLocally({
-            cropId,
-            amount: 1,
-            sellPrice: cropConfig.sellPrice || 0,
-          });
-          if (!localSell.success) {
-            window.HUB?.showToast?.("❌ No crops left to sell");
-            return;
-          }
-          window.HUB?.showToast?.(`Sold 1× ${cropId}`, "success");
-          syncHarvestedResources(res.resources, res.harvested);
-          broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
-        } else {
-          window.HUB?.showToast?.(`❌ ${res.error || "Failed to sell"}`);
-        }
-      });
+    if (!HUB.userId) {
+      showToast("❌ Inventory is not ready yet", "error");
+      return;
     }
+
+    apiBatched("/api/farm/sell-crop", {
+      userId: HUB.userId,
+      cropId,
+      amount: 1,
+    }).then((res) => {
+      if (res?.success) {
+        const cropConfig = CROPS_CONFIG[cropId] || {};
+        const localSell = sellHarvestedCropLocally({
+          cropId,
+          amount: 1,
+          sellPrice: cropConfig.sellPrice || 0,
+        });
+        if (!localSell.success) {
+          showToast("❌ No crops left to sell", "error");
+          return;
+        }
+        showToast(`Sold 1× ${cropId}`, "success");
+        syncHarvestedResources(res.resources, res.harvested);
+        broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
+      } else {
+        showToast(`❌ ${res.error || "Failed to sell"}`, "error");
+      }
+    }).catch(() => {
+      showToast("❌ Failed to sell", "error");
+    });
   }, []);
 
   const handleFeed = useCallback((cropId) => {
-    if (window.HUB?.apiBatched) {
-      // v8.3: Use apiBatched for desync detection + auto-healing
-      window.HUB.apiBatched("/api/pet/feed", {
-        userId: window.HUB.userId,
-        cropId,
-      }).then((res) => {
-        if (res?.success) {
-          const cropConfig = CROPS_CONFIG[cropId] || {};
-          const localFeed = feedPetWithHarvestedCropLocally({
-            cropId,
-            energyYield: cropConfig.energyYield || 1,
-            fullnessYield: cropConfig.fullnessYield || 5,
-          });
-          if (!localFeed.success) {
-            window.HUB?.showToast?.("❌ No crops left to feed");
-            return;
-          }
-          window.HUB?.showToast?.(`Fed pet 1× ${cropId}`, "success");
-          syncHarvestedResources(res.resources, res.harvested);
-          broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
-        } else {
-          window.HUB?.showToast?.(`❌ ${res.error || "Failed to feed pet"}`);
-        }
-      });
+    if (!HUB.userId) {
+      showToast("❌ Inventory is not ready yet", "error");
+      return;
     }
+
+    apiBatched("/api/pet/feed", {
+      userId: HUB.userId,
+      cropId,
+    }).then((res) => {
+      if (res?.success) {
+        const cropConfig = CROPS_CONFIG[cropId] || {};
+        const localFeed = feedPetWithHarvestedCropLocally({
+          cropId,
+          energyYield: cropConfig.energyYield || 1,
+          fullnessYield: cropConfig.fullnessYield || 5,
+        });
+        if (!localFeed.success) {
+          showToast("❌ No crops left to feed", "error");
+          return;
+        }
+        showToast(`Fed pet 1× ${cropId}`, "success");
+        syncHarvestedResources(res.resources, res.harvested);
+        broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
+      } else {
+        showToast(`❌ ${res.error || "Failed to feed pet"}`, "error");
+      }
+    }).catch(() => {
+      showToast("❌ Failed to feed pet", "error");
+    });
   }, []);
 
   return createPortal(

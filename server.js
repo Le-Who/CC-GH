@@ -109,7 +109,13 @@ const REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || "";
 app.use("/api/token", authLimiter);
 app.use("/api/auth", authLimiter);
 app.use("/api", (req, res, next) => {
-  if (req.path.startsWith("/auth") || req.path.startsWith("/token")) return next();
+  if (
+    req.path.startsWith("/auth") ||
+    req.path.startsWith("/token") ||
+    req.path.startsWith("/merge/")
+  ) {
+    return next();
+  }
   return defaultLimiter(req, res, next);
 });
 

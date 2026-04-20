@@ -23,6 +23,24 @@ import { withPlayerLock } from "../playerManager.js";
 export default function mergeRoutes(requireAuth, resolveUser) {
   const router = Router();
 
+  function ensureMergeState(p) {
+    hydrateMergeBoard(p);
+    if (!p.merge.generators) p.merge.generators = ["textile"];
+    if (!p.merge.generatorState) p.merge.generatorState = {};
+    if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
+    if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
+    if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;
+
+    for (const chainId of p.merge.generators) {
+      if (!p.merge.generatorState[chainId]) {
+        p.merge.generatorState[chainId] = {
+          tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+          cooldownEnd: 0,
+        };
+      }
+    }
+  }
+
   /** Helper: unlock chain generator if not already unlocked */
   function tryUnlockChain(p, chainId) {
     if (!p.merge.generators.includes(chainId)) {
@@ -41,7 +59,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      hydrateMergeBoard(p);
+      ensureMergeState(p);
       res.json({
         merge: p.merge,
         resources: p.resources,
@@ -58,11 +76,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       const chain = MERGE_CHAINS[chainId];
       if (!chain) return res.status(400).json({ error: "invalid chainId" });
 
-      if (!cropId || !CROPS[cropId]) {
-        return res.status(400).json({ error: "invalid crop for energy" });
-      }
-
-      hydrateMergeBoard(p);
+      ensureMergeState(p);
 
       // Check generator unlocked state
       if (!p.merge.generators.includes(chainId)) {
@@ -94,12 +108,23 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         return res.status(400).json({ error: "board full" });
       }
 
-      // Deduct the crop
-      if (!p.farm?.harvested || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
-         return res.status(400).json({ error: "not enough crops" });
+      const freeTapCharges = Math.max(0, Number(p.merge.freeTapCharges) || 0);
+      const usedFreeTap = freeTapCharges > 0;
+
+      if (!usedFreeTap) {
+        if (!cropId || !CROPS[cropId]) {
+          return res.status(400).json({ error: "invalid crop for energy" });
+        }
+
+        // Deduct the crop only when no free tap is available.
+        if (!p.farm?.harvested || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
+          return res.status(400).json({ error: "not enough crops" });
+        }
+        p.farm.harvested[cropId]--;
+        if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
+      } else {
+        p.merge.freeTapCharges = freeTapCharges - 1;
       }
-      p.farm.harvested[cropId]--;
-      if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
 
       // Decrement taps
       state.tapsLeft--;
@@ -143,6 +168,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         resources: p.resources,
         harvested: p.farm.harvested, // crucial for frontend sync
         spawned: spawnedItems,       // multispawn format compatible with frontend length check
+        usedFreeTap,
       });
     });
   });
@@ -239,7 +265,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      hydrateMergeBoard(p);
+      ensureMergeState(p);
       const now = Date.now();
 
       // Check if already used today (same UTC day)
@@ -283,7 +309,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       if (!validCoord(r, BOARD_ROWS) || !validCoord(c, BOARD_COLS)) {
         return res.status(400).json({ error: "invalid coordinates" });
       }
-      hydrateMergeBoard(p);
+      ensureMergeState(p);
 
       if (!p.merge.board[r]?.[c]) {
         return res.status(400).json({ error: "empty cell" });
@@ -300,6 +326,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
     await withPlayerLock(userId, async (p) => {
       const now = Date.now();
+      ensureMergeState(p);
       const lastClaimStr = p.merge.lastFreeTaps ? new Date(p.merge.lastFreeTaps).toISOString().slice(0, 10) : "";
       const todayStr = new Date().toISOString().slice(0, 10);
       
@@ -308,27 +335,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       }
 
       p.merge.lastFreeTaps = now;
-
-      // Ensure generators array and object are populated
-      if (!p.merge.generators) p.merge.generators = [];
-      if (!p.merge.generatorState) p.merge.generatorState = {};
-
-      // Add 30 taps to all unlocked generators
-      for (const chainId of p.merge.generators) {
-         const state = p.merge.generatorState[chainId] || {
-           tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
-           cooldownEnd: 0,
-         };
-         
-         // If already cooling down but expired
-         if (state.cooldownEnd > 0 && now >= state.cooldownEnd) {
-           state.tapsLeft = ECONOMY.GENERATOR_TAP_LIMIT;
-           state.cooldownEnd = 0;
-         }
-
-         state.tapsLeft += 30; // Grant 30 free taps on top of current balance
-         p.merge.generatorState[chainId] = state;
-      }
+      p.merge.freeTapCharges = (Number(p.merge.freeTapCharges) || 0) + 30;
 
       res.json({ success: true, merge: p.merge });
     });

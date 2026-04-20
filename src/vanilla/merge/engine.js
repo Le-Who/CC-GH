@@ -36,6 +36,7 @@ export function registerSlice() {
     mergeInventory: [],
     lastFreePull: 0,
     lastFreeTaps: 0,
+    freeTapCharges: 0,
     generatorState: {
       textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
     },

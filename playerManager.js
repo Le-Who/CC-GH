@@ -275,6 +275,8 @@ export function applyMigrations(p) {
       p.merge = {
         board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
         generators: ["textile"], inventory: [], lastFreePull: 0,
+        lastFreeTaps: 0,
+        freeTapCharges: 0,
         generatorState: { textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 } },
       };
     }
@@ -343,6 +345,34 @@ export function applyMigrations(p) {
       };
     }
     p.schemaVersion = 8;
+  }
+
+  if (!p.merge) {
+    const BOARD_ROWS = 7, BOARD_COLS = 9;
+    p.merge = {
+      board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
+      generators: ["textile"],
+      inventory: [],
+      lastFreePull: 0,
+      lastFreeTaps: 0,
+      freeTapCharges: 0,
+      generatorState: {
+        textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+      },
+    };
+  }
+  if (!p.merge.generators) p.merge.generators = ["textile"];
+  if (!p.merge.generatorState) p.merge.generatorState = {};
+  if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
+  if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
+  if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;
+  for (const chainId of p.merge.generators) {
+    if (!p.merge.generatorState[chainId]) {
+      p.merge.generatorState[chainId] = {
+        tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+        cooldownEnd: 0,
+      };
+    }
   }
 
   return p;

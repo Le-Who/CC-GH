@@ -18,6 +18,7 @@ export function renderGeneratorPanel() {
 
   _genPanel.textContent = "";
   const harvestedCrops = getHarvestedCrops();
+  const freeTapCharges = mergeState.freeTapCharges || 0;
 
   // ─── Primary Section: Generators ───
   const genSection = document.createElement("div");
@@ -49,8 +50,12 @@ export function renderGeneratorPanel() {
       btn.disabled = true;
       btn.classList.add("merge-gen-btn--cooldown");
     } else {
-      btn.textContent = `${chain.emoji[0]} Tap (${gs.tapsLeft}/${ECONOMY.GENERATOR_TAP_LIMIT})`;
-      btn.title = `Costs 1 crop → ${chain.name} items`;
+      btn.textContent = freeTapCharges > 0
+        ? `${chain.emoji[0]} Tap (${gs.tapsLeft}/${ECONOMY.GENERATOR_TAP_LIMIT}) 🎁${freeTapCharges}`
+        : `${chain.emoji[0]} Tap (${gs.tapsLeft}/${ECONOMY.GENERATOR_TAP_LIMIT})`;
+      btn.title = freeTapCharges > 0
+        ? `Uses 1 free tap → ${chain.name} items`
+        : `Costs 1 crop → ${chain.name} items`;
     }
 
     btn.addEventListener("click", () => _tapWithFuel(chainId));
@@ -119,8 +124,14 @@ export function renderGeneratorPanel() {
 
   const claimTapsBtn = document.createElement("button");
   claimTapsBtn.className = "merge-gen-btn merge-free-taps-btn";
-  claimTapsBtn.textContent = canClaimTaps ? "🎁 +30 Taps" : "🎁 30/30";
-  claimTapsBtn.title = canClaimTaps ? "Claim 30 free daily taps!" : "Already claimed today";
+  claimTapsBtn.textContent = canClaimTaps
+    ? "🎁 Claim 30 Free"
+    : freeTapCharges > 0
+      ? `🎁 ${freeTapCharges} Free Left`
+      : "🎁 Claimed";
+  claimTapsBtn.title = canClaimTaps
+    ? "Claim 30 free taps without spending crops"
+    : "Already claimed today";
   claimTapsBtn.disabled = !canClaimTaps;
   claimTapsBtn.addEventListener("click", async () => {
     const success = await claimFreeTaps();
@@ -189,6 +200,13 @@ function _showCropPicker(chainId) {
 }
 
 function _tapWithFuel(chainId) {
+  const mergeState = GameStore.getState("merge");
+  const freeTapCharges = mergeState?.freeTapCharges || 0;
+  if (freeTapCharges > 0) {
+    tapGenerator(chainId, _selectedFuel[chainId]);
+    return;
+  }
+
   const fuelCrop = _selectedFuel[chainId];
   const harvestedCrops = getHarvestedCrops();
 

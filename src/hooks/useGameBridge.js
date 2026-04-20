@@ -120,6 +120,8 @@ export function initGameBridge() {
       mergeInventory: sliceData.mergeInventory || sliceData.inventory || [],
       lastFreePull: sliceData.lastFreePull || 0,
       lastFreeTaps: sliceData.lastFreeTaps || 0,
+      freeTapCharges:
+        sliceData.freeTapCharges ?? mergeStore.getState().freeTapCharges,
     };
   });
 
@@ -131,6 +133,7 @@ export function initGameBridge() {
     mergeInventory: hookState.mergeInventory,
     lastFreePull: hookState.lastFreePull,
     lastFreeTaps: hookState.lastFreeTaps,
+    freeTapCharges: hookState.freeTapCharges,
   }));
 
   // ─── HUD Resources: GameStore('resources') ↔ hudStore ───

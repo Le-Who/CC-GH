@@ -115,6 +115,8 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       generators: ["textile"], // Unlocked generator chain IDs
       inventory: [], // Unplaced items from gacha
       lastFreePull: 0, // Timestamp of last daily free pull
+      lastFreeTaps: 0,
+      freeTapCharges: 0,
       generatorState: {
         // Per-chain cooldown tracking
         textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },

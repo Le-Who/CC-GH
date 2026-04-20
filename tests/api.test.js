@@ -590,6 +590,56 @@ describe("POST /api/merge/tap", () => {
     const { status } = await post("/api/merge/tap", {});
     assert.equal(status, 400);
   });
+
+  it("consumes a free tap without spending harvested crops", async () => {
+    await injectTestPlayer("merge_tap_free_1", "MTF1", (p) => {
+      p.merge.freeTapCharges = 2;
+      p.merge.generators = ["textile"];
+      p.merge.generatorState = {
+        textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+      };
+      p.farm.harvested = {};
+    });
+
+    const { status, data } = await post("/api/merge/tap", {
+      userId: "merge_tap_free_1",
+      chainId: "textile",
+    });
+
+    assert.equal(status, 200, JSON.stringify(data));
+    assert.equal(data.success, true);
+    assert.equal(data.usedFreeTap, true);
+    assert.equal(data.merge.freeTapCharges, 1);
+    assert.equal(
+      data.merge.generatorState.textile.tapsLeft,
+      ECONOMY.GENERATOR_TAP_LIMIT - 1,
+    );
+    assert.deepStrictEqual(data.harvested, {});
+    assert.ok((data.spawned?.length || 0) > 0);
+  });
+});
+
+describe("POST /api/merge/claim-free-taps", () => {
+  it("adds 30 free tap charges without inflating generator durability", async () => {
+    await injectTestPlayer("merge_claim_1", "MC1", (p) => {
+      p.merge.lastFreeTaps = 0;
+      p.merge.freeTapCharges = 4;
+      p.merge.generators = ["textile"];
+      p.merge.generatorState = {
+        textile: { tapsLeft: 5, cooldownEnd: 0 },
+      };
+    });
+
+    const { status, data } = await post("/api/merge/claim-free-taps", {
+      userId: "merge_claim_1",
+    });
+
+    assert.equal(status, 200, JSON.stringify(data));
+    assert.equal(data.success, true);
+    assert.equal(data.merge.freeTapCharges, 34);
+    assert.equal(data.merge.generatorState.textile.tapsLeft, 5);
+    assert.ok(data.merge.lastFreeTaps > 0);
+  });
 });
 
 /* ─────────────────────────────────────────────────────

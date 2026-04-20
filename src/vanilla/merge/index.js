@@ -41,6 +41,7 @@ function init() {
       gs: next?.generatorState || {},
       lp: next?.lastFreePull || 0,
       lft: next?.lastFreeTaps || 0,
+      ftc: next?.freeTapCharges || 0,
     });
     if (nextGenKey !== _prevGenState) {
       _prevGenState = nextGenKey;

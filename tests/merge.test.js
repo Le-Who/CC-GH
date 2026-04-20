@@ -13,6 +13,8 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       },
       mergeInventory: [],
       lastFreePull: 0,
+      lastFreeTaps: 0,
+      freeTapCharges: 0,
       trashMode: false,
       selectedFuel: {},
     });
@@ -62,6 +64,11 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const now = Date.now();
       mergeStore.getState().setLastFreePull(now);
       assert.strictEqual(mergeStore.getState().lastFreePull, now);
+    });
+
+    it("setFreeTapCharges updates remaining free taps", () => {
+      mergeStore.getState().setFreeTapCharges(12);
+      assert.strictEqual(mergeStore.getState().freeTapCharges, 12);
     });
 
     it("setSelectedFuel updates fuel selection for a chain", () => {
@@ -274,6 +281,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const serverData = {
         generators: ["textile", "wood"],
         lastFreePull: 123456789,
+        freeTapCharges: 7,
       };
 
       mergeStore.getState().syncFromServer(serverData);
@@ -281,6 +289,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
       assert.deepStrictEqual(state.generators, ["textile", "wood"]);
       assert.strictEqual(state.lastFreePull, 123456789);
+      assert.strictEqual(state.freeTapCharges, 7);
       // Ensure other fields are intact
       assert.strictEqual(state.trashMode, false);
       assert.strictEqual(state.boardItemCount(), 0);
