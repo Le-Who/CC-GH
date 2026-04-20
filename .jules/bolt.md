@@ -1,3 +1,6 @@
 ## 2024-05-19 - Fast API Batching with Keep-Alive
 **Learning:** `app.handle(mockReq, mockRes)` is too brittle for complex Express 5 setups because standard Express internal streams, parsed request properties, and middleware chains break down when they encounter simple POJO synthetic request/response objects.
 **Action:** For internal loopback `fetch` performance optimizations (e.g. batch requests to `127.0.0.1`), use `node-fetch` and instantiate a global `http.Agent({ keepAlive: true })` inside the module. This eliminates TCP handshake overhead on every call while perfectly preserving route parsing compatibility.
+## 2024-11-20 - O(N) Single-Pass Quest Board Verification
+**Learning:** Quest fulfillment routes previously validated requirements by doing a full nested loop to check items, and then a SECOND nested loop per requirement to deduct items. On a 7x9 board with multiple requirements, this leads to unnecessary overhead and complexity O(R * N * M). It also failed to correctly group duplicate merge requirements.
+**Action:** When validating multi-requirement sets against a game board, pre-calculate requirement totals into a Map/Object first. Then, iterate the board exactly once to validate and collect deduction coordinates (using an array of `{r, c}` objects) to execute atomic $O(1)$ deletions afterwards.

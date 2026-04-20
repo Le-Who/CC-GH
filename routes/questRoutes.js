@@ -149,8 +149,49 @@ export default function questRoutes(requireAuth, resolveUser) {
       }
       const order = p.pet.activeOrders[orderIdx];
 
-      // Validate all requirements
-      let mergeInventory = null;
+      // Pre-calculate merge requirements for O(N*M) single-pass validation and deduction
+      const mergeReqs = {};
+      for (const req of order.requirements) {
+        if (req.type === "merge") {
+          mergeReqs[req.id] = (mergeReqs[req.id] || 0) + req.qty;
+        }
+      }
+
+      const toDeductMerge = [];
+      let missingMergeItem = null;
+
+      // Single pass to check and record deduction coordinates
+      for (let r = 0; r < p.merge.board.length; r++) {
+        for (let c = 0; c < p.merge.board[r].length; c++) {
+          const cell = p.merge.board[r][c];
+          if (cell && mergeReqs[cell.id] > 0) {
+            mergeReqs[cell.id]--;
+            toDeductMerge.push({ r, c });
+          }
+        }
+      }
+
+      // Check if any merge requirements were not met
+      for (const id in mergeReqs) {
+        if (mergeReqs[id] > 0) {
+          missingMergeItem = {
+            id,
+            need: order.requirements
+              .filter((r) => r.id === id)
+              .reduce((sum, r) => sum + r.qty, 0),
+          };
+          break;
+        }
+      }
+
+      // Validate all requirements before mutating
+      if (missingMergeItem) {
+        return res.status(400).json({
+          error: `not enough ${missingMergeItem.id} on board`,
+          need: missingMergeItem.need,
+        });
+      }
+
       for (const requirement of order.requirements) {
         if (requirement.type === "crop") {
           if (
@@ -159,24 +200,6 @@ export default function questRoutes(requireAuth, resolveUser) {
           ) {
             return res.status(400).json({
               error: `not enough ${requirement.id}`,
-              need: requirement.qty,
-            });
-          }
-        } else if (requirement.type === "merge") {
-          if (!mergeInventory) {
-            mergeInventory = {};
-            for (const row of p.merge.board) {
-              for (const cell of row) {
-                if (cell) {
-                  mergeInventory[cell.id] = (mergeInventory[cell.id] || 0) + 1;
-                }
-              }
-            }
-          }
-          const found = mergeInventory[requirement.id] || 0;
-          if (found < requirement.qty) {
-            return res.status(400).json({
-              error: `not enough ${requirement.id} on board`,
               need: requirement.qty,
             });
           }
@@ -189,26 +212,19 @@ export default function questRoutes(requireAuth, resolveUser) {
           p.farm.harvested[requirement.id] -= requirement.qty;
           if (p.farm.harvested[requirement.id] <= 0)
             delete p.farm.harvested[requirement.id];
-        } else if (requirement.type === "merge") {
-          let remaining = requirement.qty;
-          for (let r = 0; r < p.merge.board.length && remaining > 0; r++) {
-            for (let c = 0; c < p.merge.board[r].length && remaining > 0; c++) {
-              if (
-                p.merge.board[r][c] &&
-                p.merge.board[r][c].id === requirement.id
-              ) {
-                p.merge.board[r][c] = null;
-                remaining--;
-              }
-            }
-          }
         }
+      }
+
+      // Execute merge deductions using pre-calculated coordinates
+      for (const pos of toDeductMerge) {
+        p.merge.board[pos.r][pos.c] = null;
       }
 
       // Grant rewards
       const rw = order.reward;
       p.resources.gold += rw.gold || 0;
-      if (p.stats && rw.gold) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + rw.gold;
+      if (p.stats && rw.gold)
+        p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + rw.gold;
       p.resources.gachaTokens =
         (p.resources.gachaTokens || 0) + (rw.gachaTokens || 0);
       p.pet.affectionXp = (p.pet.affectionXp || 0) + (rw.affectionXp || 0);
