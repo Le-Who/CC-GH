@@ -67,6 +67,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         streak: p.streak,
         streakResult,
         newAchievements,
+        achievements: p.achievements,
         seasonPass: p.seasonPass,
         cosmetics: p.cosmetics,
         boosters: p.boosters,
@@ -104,10 +105,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
             VALUES (${userId}, ${username}, 'plant', ${sql.json({ crop_id: cropId })})`.catch(console.error);
       }
 
+      const newAchievements = checkAchievements(p);
+
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         inventory: p.farm.inventory,
+        newAchievements,
+        achievements: p.achievements,
         serverTime: Date.now(),
       });
     }, username);
@@ -125,9 +130,14 @@ export default function farmRoutes(requireAuth, resolveUser) {
       if (!plot.crop || plot.watered)
         return res.status(400).json({ error: "cannot water" });
       plot.watered = true;
+      
+      const newAchievements = checkAchievements(p);
+
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
+        newAchievements,
+        achievements: p.achievements,
         serverTime: Date.now(),
       });
     }, username);
@@ -197,6 +207,8 @@ export default function farmRoutes(requireAuth, resolveUser) {
             VALUES (${userId}, ${username}, 'harvest', ${sql.json({ crop_id: cropId, xp_gained: cfg.xp, is_rare: !!cfg.isRare })})`.catch(console.error);
       }
 
+      const newAchievements = checkAchievements(p);
+
       res.json({
         success: true,
         reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
@@ -207,6 +219,8 @@ export default function farmRoutes(requireAuth, resolveUser) {
         xp: p.farm.xp,
         level: p.farm.level,
         leveledUp,
+        newAchievements,
+        achievements: p.achievements,
         serverTime: Date.now(),
       });
     }, username);
@@ -300,6 +314,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
         currentPlots + 1 < MAX_PLOTS
           ? BUY_PLOT_BASE_COST * Math.pow(2, currentPlots + 1 - 6)
           : null;
+          
+      const newAchievements = checkAchievements(p);
+
       res.json({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
@@ -307,6 +324,8 @@ export default function farmRoutes(requireAuth, resolveUser) {
         plotCount: p.farm.plots.length,
         nextCost,
         maxPlots: MAX_PLOTS,
+        newAchievements,
+        achievements: p.achievements,
       });
     }, username);
   });

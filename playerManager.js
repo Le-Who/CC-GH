@@ -12,7 +12,7 @@
  */
 
 import crypto from "crypto";
-import { ECONOMY, createDefaultPlayer } from "./game-logic.js";
+import { ECONOMY, createDefaultPlayer, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
 import {
   isRedisEnabled,
@@ -109,6 +109,10 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         // Side-effects like player_events INSERTs use .catch() (fire-and-forget)
         // so a duplicate analytics row is acceptable vs silent data loss.
         await asyncFn(player);
+
+        // Global safeguard: Verify all achievements automatically before DB freeze
+        // even if the route neglected to evaluate or return them.
+        checkAchievements(player);
 
         // 4. Generate next OCC version
         player._version = crypto.randomUUID();

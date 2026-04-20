@@ -48,34 +48,34 @@ export default function achievementRoutes(requireAuth, resolveUser) {
   router.post("/api/achievements/claim", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-    const { badgeId } = req.body;
+    await withPlayerLock(userId, async (p) => {
+      const { badgeId } = req.body;
 
-    if (!badgeId || !ACHIEVEMENTS[badgeId]) {
-      return res.status(400).json({ error: "invalid badge ID" });
-    }
-    if (!p.achievements[badgeId]) {
-      return res.status(400).json({ error: "badge not unlocked" });
-    }
-    if (p.achievements[badgeId].seen) {
-      return res.status(400).json({ error: "already claimed" });
-    }
+      if (!badgeId || !ACHIEVEMENTS[badgeId]) {
+        return res.status(400).json({ error: "invalid badge ID" });
+      }
+      if (!p.achievements[badgeId]) {
+        return res.status(400).json({ error: "badge not unlocked" });
+      }
+      if (p.achievements[badgeId].seen) {
+        return res.status(400).json({ error: "already claimed" });
+      }
 
-    // Grant reward
-    const reward = ACHIEVEMENTS[badgeId].reward;
-    if (reward.gold) p.resources.gold += reward.gold;
-    if (reward.gachaTokens)
-      p.resources.gachaTokens =
-        (p.resources.gachaTokens || 0) + reward.gachaTokens;
+      // Grant reward
+      const reward = ACHIEVEMENTS[badgeId].reward;
+      if (reward.gold) p.resources.gold += reward.gold;
+      if (reward.gachaTokens)
+        p.resources.gachaTokens = (p.resources.gachaTokens || 0) + reward.gachaTokens;
 
-    // Mark as claimed
-    p.achievements[badgeId].seen = true;
-    res.json({
-      success: true,
-      reward,
-      resources: p.resources,
-    });
+      // Mark as claimed
+      p.achievements[badgeId].seen = true;
+      res.json({
+        success: true,
+        reward,
+        resources: p.resources,
+        achievements: p.achievements,
       });
+    });
   });
 
   return router;

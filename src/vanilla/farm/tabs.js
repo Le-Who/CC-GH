@@ -58,18 +58,30 @@ export function renderBadges() {
       card
         .querySelector(".badge-claim-btn")
         .addEventListener("click", async () => {
+          if (!_state.achievements) _state.achievements = {};
+          if (!_state.achievements[id]) _state.achievements[id] = {};
+          
+          // Optimistic UI Update -> Make the button disappear instantly
+          _state.achievements[id].seen = true;
+          renderBadges();
+          
           const data = await api("/api/achievements/claim", {
             userId: HUB.userId,
             badgeId: id,
           });
+          
           if (data?.success) {
-            _state.achievements[id] = {
-              ..._state.achievements[id],
-              seen: true,
-            };
+            // Apply authoritative server state
+            _state.achievements = data.achievements;
             if (data.resources) HUD.syncFromServer(data.resources);
-            renderBadges();
+            if (_actions?.syncToStore) _actions.syncToStore(false);
+            
             showToast(`🏆 Claimed: ${badge.emoji} ${badge.name}!`);
+          } else {
+            // Rollback
+            _state.achievements[id].seen = false;
+            renderBadges();
+            showToast(`❌ Claim failed: ${data?.error || "Network error"}`);
           }
         });
     }

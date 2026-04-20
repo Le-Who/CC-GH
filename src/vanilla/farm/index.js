@@ -126,7 +126,23 @@ function syncToStore(broadcast = true) {
   if (state) {
     GameStore.setState("farm", { ...state });
     if (broadcast) {
-      broadcastStateUpdate({ plots: state.plots, inventory: state.inventory });
+      broadcastStateUpdate({ plots: state.plots, inventory: state.inventory, achievements: state.achievements });
+    }
+  }
+}
+
+/* ─── Achievements Global Sync ─── */
+function processAchievements(data) {
+  if (!state || !data) return;
+  if (data.achievements) {
+    state.achievements = { ...state.achievements, ...data.achievements };
+  }
+  if (data.newAchievements?.length > 0) {
+    if (!state._newAchievements) state._newAchievements = [];
+    state._newAchievements.push(...data.newAchievements);
+    for (const id of data.newAchievements) {
+      const badge = ACHIEVEMENTS[id];
+      if (badge) showToast(`🏆 Badge unlocked: ${badge.emoji} ${badge.name}!`);
     }
   }
 }
@@ -445,13 +461,7 @@ async function loadState() {
         `🎉 Streak milestone: ${data.streakResult.bonusUnlocked.label}!`,
       );
     }
-    if (data.newAchievements?.length > 0) {
-      for (const id of data.newAchievements) {
-        const badge = ACHIEVEMENTS[id];
-        if (badge)
-          showToast(`🏆 Badge unlocked: ${badge.emoji} ${badge.name}!`);
-      }
-    }
+    processAchievements(data);
   }
 }
 
@@ -659,6 +669,9 @@ function plant(plotId) {
         }
         // RC-B: release inflight AFTER merge is stable
         plantingInFlight.delete(plotId);
+        
+        processAchievements(data);
+
         // RC-C: now broadcast the confirmed, server-merged state to other tabs
         syncToStore(true);
       } else {
@@ -709,6 +722,7 @@ function water(plotId) {
             ...data.plots[plotId],
           };
         }
+        processAchievements(data);
         syncToStore();
       } else {
         state.plots[plotId] = plotSnap;
@@ -770,6 +784,7 @@ function harvest(plotId) {
         state.level = data.level;
         if (data.resources) HUD.syncFromServer(data.resources);
         if (data.harvested) syncHarvestedToStore(data.harvested);
+        processAchievements(data);
         syncToStore();
         renderInventory();
         if (data.leveledUp) showToast(`🎉 Level Up! Lv${data.level}`);
@@ -894,6 +909,7 @@ function buyPlot() {
       if (data?.success) {
         state.plots = data.plots;
         if (data.resources) HUD.syncFromServer(data.resources);
+        processAchievements(data);
         syncToStore();
       } else {
         state.plots = prevPlots;
