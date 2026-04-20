@@ -29,6 +29,7 @@ function loadSharedSandbox() {
     globalThis.api = api;
     globalThis.navigate = navigate;
     globalThis.goToScreen = goToScreen;
+    globalThis.bindTouchSwipe = bindTouchSwipe;
     globalThis.cacheNavDOM = cacheNavDOM;
     globalThis.applyInitialScreen = applyInitialScreen;
     globalThis.setupInterruptionSystem = setupInterruptionSystem;
@@ -36,6 +37,13 @@ function loadSharedSandbox() {
     globalThis.setTheme = setTheme;
     globalThis.getTheme = getTheme;
   `;
+
+  const viewport = {
+    listeners: {},
+    addEventListener(type, cb) {
+      this.listeners[type] = cb;
+    },
+  };
 
   const sandbox = {
     globalThis: {},
@@ -86,7 +94,7 @@ function loadSharedSandbox() {
       },
       querySelectorAll: (sel) => [],
       querySelector: (sel) => {
-        if (sel === ".viewport") return { addEventListener: () => {} };
+        if (sel === ".viewport") return viewport;
         return { addEventListener: () => {}, style: {} };
       },
       body: {
@@ -144,6 +152,7 @@ function loadSharedSandbox() {
 
   vm.createContext(sandbox);
   vm.runInContext(safeCode, sandbox);
+  sandbox.globalThis.__viewport = viewport;
 
   return sandbox.globalThis;
 }
@@ -246,6 +255,29 @@ describe("Shared Module Unit Tests", () => {
 
     it("applyInitialScreen does not throw", () => {
       assert.doesNotThrow(() => shared.applyInitialScreen());
+    });
+
+    it("bindTouchSwipe ignores gestures started on no-nav-swipe surfaces", () => {
+      shared.bindTouchSwipe();
+      shared.goToScreen(2);
+
+      const viewport = shared.__viewport;
+      viewport.listeners.touchstart({
+        target: {
+          closest: (selector) =>
+            selector === '[data-no-nav-swipe="true"]' ? {} : null,
+        },
+        touches: [{ clientX: 300, clientY: 200 }],
+      });
+      viewport.listeners.touchend({
+        changedTouches: [{ clientX: 120, clientY: 210 }],
+      });
+
+      assert.equal(
+        shared.HUB.currentScreen,
+        2,
+        "Gestures from interactive game surfaces must not trigger viewport navigation",
+      );
     });
   });
 });

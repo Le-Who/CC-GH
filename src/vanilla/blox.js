@@ -396,10 +396,12 @@ const BloxGameImpl = (() => {
 
   // ── Rendering (v4.16: DOM-cached diff-update — zero innerHTML rebuild) ──
   let _boardCells = []; // 2D cache: _boardCells[r][c] = DOM element
+  let _boardCellState = []; // 2D cache: serialized visual state per cell
 
   // [Phase 2] Global Event-Driven Garbage Collector
   document.addEventListener("hub:route-leave", () => {
     _boardCells = [];
+    _boardCellState = [];
     _cachedBoardRect = null;
     _ghostLayerEl = null;
     // v7.3: Abort dangling drag listeners to prevent zombie events
@@ -418,6 +420,7 @@ const BloxGameImpl = (() => {
   function renderBoard() {
     const gridEl = $("blox-board");
     if (!gridEl) return;
+    gridEl.dataset.noNavSwipe = "true";
 
     // v10.4.5: Clear ghost overlay (decoupled from board cells)
     clearGhost();
@@ -425,18 +428,22 @@ const BloxGameImpl = (() => {
     // First render: create cells once and cache them
     if (_boardCells.length === 0) {
       gridEl.innerHTML = "";
+      _boardCellState = [];
       for (let r = 0; r < GRID; r++) {
         _boardCells[r] = [];
+        _boardCellState[r] = [];
         for (let c = 0; c < GRID; c++) {
           const cell = document.createElement("div");
           cell.className = "blox-cell";
           cell.dataset.r = r;
           cell.dataset.c = c;
+          cell._cachedState = "__init__";
           // Fix for bug where appending laser overlays shifted the auto-placement grid
           cell.style.gridRow = `${r + 1}`;
           cell.style.gridColumn = `${c + 1}`;
           gridEl.appendChild(cell);
           _boardCells[r][c] = cell;
+          _boardCellState[r][c] = "__init__";
         }
       }
     }
@@ -455,35 +462,53 @@ const BloxGameImpl = (() => {
       }
     }
 
-    // v5.0.1: Suppress CSS transitions during batch update.
-    // Cached DOM nodes inherit the .blox-cell transition (background 0.12s),
-    // causing a visible cell-by-cell fill effect on programmatic updates.
-    gridEl.classList.add("batch-update");
-
-    // Diff-update: only change classes + background on existing cached nodes
-    // v10.4.5: No ghost cleanup needed here — ghost lives in separate overlay
+    const updates = [];
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
         const cell = _boardCells[r][c];
         const val = board[r][c];
-        if (val) {
-          cell.className = "blox-cell filled";
-          cell.style.background = val;
-        } else {
-          cell.className = "blox-cell";
-          cell.style.background = "";
+        const nextState = val ? `filled:${val}` : "empty";
+        if (
+          cell._cachedState === nextState &&
+          _boardCellState[r]?.[c] === nextState
+        ) {
+          continue;
         }
+        updates.push({ cell, val, r, c, nextState });
       }
     }
 
-    // Flush layout so transition suppression takes effect, then re-enable
-    void gridEl.offsetHeight;
-    gridEl.classList.remove("batch-update");
+    if (updates.length === 0) return;
+
+    const suppressTransitions = updates.length > 6;
+    if (suppressTransitions) {
+      gridEl.classList.add("batch-update");
+    }
+
+    // Diff-update: only mutate cells whose visual state actually changed
+    for (const { cell, val, r, c, nextState } of updates) {
+      cell._cachedState = nextState;
+      _boardCellState[r][c] = nextState;
+      if (val) {
+        cell.className = "blox-cell filled";
+        cell.style.background = val;
+      } else {
+        cell.className = "blox-cell";
+        cell.style.background = "";
+      }
+    }
+
+    if (suppressTransitions) {
+      // Only pay the forced-layout cost when enough cells changed that it improves UX.
+      void gridEl.offsetHeight;
+      gridEl.classList.remove("batch-update");
+    }
   }
 
   function renderTray() {
     const trayEl = $("blox-tray");
     if (!trayEl) return;
+    trayEl.dataset.noNavSwipe = "true";
     trayEl.innerHTML = "";
     tray.forEach((t, i) => {
       const wrapper = document.createElement("div");
@@ -1417,7 +1442,7 @@ const BloxGameImpl = (() => {
 
     // v5.1.0: Board tilt — micro-parallax via mousemove (rAF-gated, ±2.5°)
     const bloxBoardEl = $("blox-board");
-    if (bloxBoardEl) {
+    if (bloxBoardEl && !HUB.isTouchDevice) {
       let _tiltRaf = 0;
       // Optimization: Cache the getBoundingClientRect to prevent layout thrashing
       let _cachedTiltRect = null;

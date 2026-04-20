@@ -11,6 +11,8 @@ let _trashMode = false;
 let _cachedMatchTargets = [];
 let _idleHintTimer = null;
 let _dragSafetyTimer = null;
+let _dragMoveRaf = 0;
+let _queuedPointerMove = null;
 const IDLE_HINT_DELAY = 7000;
 const DRAG_SAFETY_TIMEOUT = 5000;
 
@@ -52,6 +54,7 @@ export function createBoardDOM() {
   if (!_boardEl) return;
 
   _boardEl.textContent = "";
+  _boardEl.dataset.noNavSwipe = "true";
   _cells = [];
 
   for (let r = 0; r < BOARD_ROWS; r++) {
@@ -195,7 +198,15 @@ function _forceCleanupDrag() {
     clearTimeout(_dragSafetyTimer);
     _dragSafetyTimer = null;
   }
+  if (_dragMoveRaf) {
+    cancelAnimationFrame(_dragMoveRaf);
+    _dragMoveRaf = 0;
+  }
+  _queuedPointerMove = null;
   document.querySelectorAll(".merge-drag-ghost").forEach((g) => g.remove());
+  if (_dragState?.captureEl?.hasPointerCapture?.(_dragState.pointerId)) {
+    _dragState.captureEl.releasePointerCapture(_dragState.pointerId);
+  }
   if (_dragState?.originCell)
     _dragState.originCell.classList.remove("merge-cell--dragging");
   _cachedMatchTargets = [];
@@ -251,6 +262,7 @@ function _onPointerDown(e) {
     fromR: r,
     fromC: c,
     ghost,
+    captureEl: _boardEl,
     originCell: cell,
     lastX: e.clientX,
     lastY: e.clientY,
@@ -262,6 +274,8 @@ function _onPointerDown(e) {
   _dragSafetyTimer = setTimeout(() => {
     if (_dragState) _forceCleanupDrag();
   }, DRAG_SAFETY_TIMEOUT);
+
+  _boardEl?.setPointerCapture?.(e.pointerId);
 
   const mergeState = GameStore.getState("merge");
   const src = mergeState?.board[r]?.[c];
@@ -291,14 +305,21 @@ function _onPointerDown(e) {
 
 function _onPointerMove(e) {
   if (!_dragState || e.pointerId !== _dragState.pointerId) return;
-  requestAnimationFrame(() => {
-    if (!_dragState) return;
-    let snapX = e.clientX - 24;
-    let snapY = e.clientY - 24;
+  _queuedPointerMove = {
+    clientX: e.clientX,
+    clientY: e.clientY,
+  };
+  if (_dragMoveRaf) return;
+  _dragMoveRaf = requestAnimationFrame(() => {
+    _dragMoveRaf = 0;
+    if (!_dragState || !_queuedPointerMove) return;
+    const move = _queuedPointerMove;
+    let snapX = move.clientX - 24;
+    let snapY = move.clientY - 24;
     const SNAP_RADIUS = 40;
 
     for (const t of _cachedMatchTargets) {
-      const dist = Math.hypot(e.clientX - t.cx, e.clientY - t.cy);
+      const dist = Math.hypot(move.clientX - t.cx, move.clientY - t.cy);
       if (dist < SNAP_RADIUS) {
         snapX = t.cx - 24;
         snapY = t.cy - 24;
@@ -308,8 +329,8 @@ function _onPointerMove(e) {
       }
     }
 
-    const dx = e.clientX - (_dragState.lastX || e.clientX);
-    _dragState.lastX = e.clientX;
+    const dx = move.clientX - (_dragState.lastX || move.clientX);
+    _dragState.lastX = move.clientX;
     const tilt = Math.max(-12, Math.min(12, dx * 0.7));
 
     if (

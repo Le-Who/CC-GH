@@ -831,10 +831,20 @@ export function bindTouchSwipe() {
   let startX = 0;
   let startY = 0;
   let swiping = false;
+  let gestureLockedToSurface = false;
+
+  function isNavSwipeLockedTarget(target) {
+    return !!target?.closest?.('[data-no-nav-swipe="true"]');
+  }
 
   viewport.addEventListener(
     "touchstart",
     (e) => {
+      gestureLockedToSurface = isNavSwipeLockedTarget(e.target);
+      if (gestureLockedToSurface) {
+        swiping = false;
+        return;
+      }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       swiping = true;
@@ -846,6 +856,11 @@ export function bindTouchSwipe() {
     "touchend",
     (e) => {
       if (!swiping) return;
+      if (gestureLockedToSurface) {
+        gestureLockedToSurface = false;
+        swiping = false;
+        return;
+      }
       if (HUB.swipeBlocked) {
         swiping = false;
         return;
@@ -863,6 +878,15 @@ export function bindTouchSwipe() {
           navigate(1); // swipe left → next
         else navigate(-1); // swipe right → prev
       }
+    },
+    { passive: true },
+  );
+
+  viewport.addEventListener(
+    "touchcancel",
+    () => {
+      gestureLockedToSurface = false;
+      swiping = false;
     },
     { passive: true },
   );

@@ -1,6 +1,12 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe("Merge Engine Hooks (useMergeEngine)", () => {
   beforeEach(() => {
@@ -310,6 +316,28 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const state = mergeStore.getState();
       assert.deepStrictEqual(state.mergeInventory, ["gold_item"]);
       assert.deepStrictEqual(state.generators, ["textile"]);
+    });
+  });
+
+  describe("Mobile Drag Regression Guards", () => {
+    it("merge board opts out of viewport swipe nav and captures the pointer during drag", () => {
+      const boardPath = path.join(
+        __dirname,
+        "..",
+        "src",
+        "vanilla",
+        "merge",
+        "board.js",
+      );
+      const source = fs.readFileSync(boardPath, "utf-8");
+      assert.ok(
+        source.includes('dataset.noNavSwipe = "true"'),
+        "Merge board should mark itself as a no-nav-swipe surface",
+      );
+      assert.ok(
+        source.includes("setPointerCapture"),
+        "Merge drag should explicitly capture the pointer to keep the gesture local",
+      );
     });
   });
 });

@@ -1871,6 +1871,30 @@ describe("v7.2 P2: Blox Place Bounce Keyframes", () => {
   });
 });
 
+describe("Blox Performance Regression Guards", () => {
+  it("blox.js uses per-cell render caching and disables touch tilt work", async () => {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const __dirname = path.dirname(
+      new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1"),
+    );
+    const jsPath = path.join(__dirname, "..", "src", "vanilla", "blox.js");
+    const js = fs.readFileSync(jsPath, "utf-8");
+    assert.ok(
+      js.includes("cell._cachedState"),
+      "Board renderer should cache per-cell visual state instead of mutating the whole board every render",
+    );
+    assert.ok(
+      js.includes('dataset.noNavSwipe = "true"'),
+      "Interactive Blox surfaces should opt out of viewport swipe navigation",
+    );
+    assert.ok(
+      js.includes("!HUB.isTouchDevice"),
+      "Board tilt should stay disabled on touch devices to protect mobile responsiveness",
+    );
+  });
+});
+
 /* ═══════════════════════════════════════════════════
  *  v7.2 P3: Themes + Trivia/Merge/Pet Juice
  * ═══════════════════════════════════════════════════ */
