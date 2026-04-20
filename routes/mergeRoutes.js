@@ -293,6 +293,46 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       res.json({ success: true, merge: p.merge });
     });
   });
+  /* ─── Claim 30 Free Daily Taps ─── */
+  router.post("/api/merge/claim-free-taps", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+
+    await withPlayerLock(userId, async (p) => {
+      const now = Date.now();
+      const lastClaimStr = p.merge.lastFreeTaps ? new Date(p.merge.lastFreeTaps).toISOString().slice(0, 10) : "";
+      const todayStr = new Date().toISOString().slice(0, 10);
+      
+      if (lastClaimStr === todayStr) {
+         return res.status(400).json({ error: "already claimed today" });
+      }
+
+      p.merge.lastFreeTaps = now;
+
+      // Ensure generators array and object are populated
+      if (!p.merge.generators) p.merge.generators = [];
+      if (!p.merge.generatorState) p.merge.generatorState = {};
+
+      // Add 30 taps to all unlocked generators
+      for (const chainId of p.merge.generators) {
+         const state = p.merge.generatorState[chainId] || {
+           tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+           cooldownEnd: 0,
+         };
+         
+         // If already cooling down but expired
+         if (state.cooldownEnd > 0 && now >= state.cooldownEnd) {
+           state.tapsLeft = ECONOMY.GENERATOR_TAP_LIMIT;
+           state.cooldownEnd = 0;
+         }
+
+         state.tapsLeft += 30; // Grant 30 free taps on top of current balance
+         p.merge.generatorState[chainId] = state;
+      }
+
+      res.json({ success: true, merge: p.merge });
+    });
+  });
 
   return router;
 }

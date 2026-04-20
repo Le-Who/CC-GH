@@ -220,3 +220,22 @@ export async function trashMergeItem(r, c) {
     return { success: false };
   }
 }
+
+/**
+ * Claim 30 Free taps daily.
+ */
+export async function claimFreeTaps() {
+  try {
+    const data = await api("/api/merge/claim-free-taps", { userId: HUB.userId });
+    if (!data?.success) {
+      showToast(data?.error || "Claim failed", "error");
+      return false;
+    }
+    GameStore.setState("merge", data.merge);
+    showToast("🎁 30 Free Taps Claimed!", "success");
+    return true;
+  } catch {
+    showToast("Network error", "error");
+    return false;
+  }
+}

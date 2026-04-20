@@ -1,36 +1,55 @@
-# Fix Merge Tap Bug & Implement Rarity-Based Rewards
+# Комплексный Анализ и План Внедрения Real-Time Синхронизации
 
-This plan addresses the critical issue where "Tap" in the Merge minigame wiped out the player's harvested crop inventory and reworks the Tap mechanics to exclusively consume berries while rewarding players with multiple drops corresponding to the crop's rarity.
+Здесь представлен разбор пяти архитектурных решений для перевода Game Hub в режим реального времени (Real-Time). Попутно мы интегрируем систему получения 30 бесплатных ежедневных Тапов для Merge и починим выпадения/рассинхроны инвентаря.
 
-## Root Cause Analysis
-1. **Frontend Inventory Wipe**: The `tapGenerator` API call optimistically deducts one crop from `harvested`, but the server's `POST /api/merge/tap` route currently omits `p.farm.harvested` in its response payload. When the frontend deep-merges the response, it overwrites the local `harvested` dictionary with `undefined` (defaulting to `{}`), clearing the player's inventory entirely.
-2. **Asymmetric Costs**: The frontend expects a crop deduction, while the backend blindly zeroes out `-1` Energy and ignores the passed `cropId`.
-3. **Missing Rarity System**: The `CROP_TIERS` and `TIER_YIELD` objects exist in `game-logic/crops.js` but the backend tap route completely ignores them, hardcoding a single item drop instead of the expected 2-5 items.
+---
 
-## Proposed Changes
+## 1. Исправление Рассинхрона Инвентаря в Merge
+**Проблема:** Во время Merge-тапов на фронтенде обновляется `resources.harvested`, но отсутствует вызов `broadcastStateUpdate`, из-за чего игра в других вкладках не знает об изменениях, пока не произойдет перерисовка экрана/опросы `loadState()`. Также в ванильном коде `GameStore.setState` никак не привязан к общему `HUD` без ручных вызовов.
+**Решение:** Временно (до внедрения глобального Real-time) прокинуть вызовы `broadcastStateUpdate(GameStore.getState('resources'))` внутри `tapGenerator`, `rollGacha`, и других API-вызовов Merge-модуля. Это заставит остальные вкладки (включая инвентарь) обновиться через событие `hub_sync_state`.
 
-### Backend (`routes/mergeRoutes.js`)
-- **[MODIFY] `/api/merge/tap`**
-  - **Remove** the energy cost check and deduction.
-  - **Add** a validation step for `req.body.cropId`. Ensure the player has at least 1 `p.farm.harvested[cropId]`.
-  - **Deduct** 1 unit of `p.farm.harvested[cropId]`.
-  - **Implement Rarity Drops**: Look up the crop within `CROP_TIERS` and fetch the min/max yield range from `TIER_YIELD`.
-  - **Spawn Loop**: Loop for the randomized yield count. During each iteration, check `getEmptyCells(p.merge.board)`. Stop spawning early only if the board runs out of spaces.
-  - **Collect Spawn Data**: Store all spawned coordinates into a `spawnedItems` array.
-  - **Update Payload**: Return `harvested: p.farm.harvested` and an array `spawned: spawnedItems` in the JSON response.
+## 2. Бесплатные 30 Тапов (Каждый День)
+**Легенда:** Пользователь должен получать 30 свободных Тапов раз в день, чтобы продолжить слияния.
+**Решение:** 
+1. Добавить бейджик "Получить 30 бесплатных Тапов 🎁" в UI `renderGeneratorPanel()`.
+2. В БД (`p.merge.lastFreeTaps`) хранить таймштамп получения.
+3. Бэкенд роут `/api/merge/claim-free-taps` проверяет `Date.now()`, сравнивает день и добавляет 30 к текущему объему `gs.tapsLeft` всех активных генераторов.
 
-### Frontend (`src/vanilla/merge/api.js`)
-- **[MODIFY] `tapGenerator`**
-  - **Remove** local optimistic deduction of Energy (`res.energy.current - 1`), keeping only the `newHarvested` deduction.
-  - **Remove** Energy requirements (`res.energy.current < 1`).
-  - **Update Toast UI**: Change the hardcoded success toast from `"✨ Spawned X items! (-1⚡)"` to dynamically reflect the crop spent: `"✨ Spawned X items! (-1 🍓)"` (using the appropriate `ITEM_LOOKUP` emoji if available).
+---
 
-## User Review Required
-> [!WARNING]
-> By shifting from Energy to Berries exclusively, players will burn their farm inventory to play the Merge game. Conversely, this will give Energy less utility. Make sure this is the intended economic balance. 
+## 3. Анализ 5 Решений для Real-Time Синхронизации (2026 год)
 
-## Verification Plan
-1. Send a `/api/merge/tap` request using a `tomato` (mid-tier).
-2. Validate that exactly 1 `tomato` is deducted via database inspection.
-3. Validate that 3 to 4 items are spawned on the board simultaneously.
-4. Verify the client-side `GameStore.resources.harvested` correctly persists and syncs non-used crops, solving the deletion bug.
+Для кардинального решения рассинхронизаций между окнами, вкладками и разными устройствами (телефон/ПК), необходимо серверное "проталкивание" данных. Ниже представлены 5 лучших подходов с их плюсами и минусами:
+
+### Вариант 1: Server-Sent Events (SSE) + Существующий REST
+* **Как работает:** Клиент открывает `text/event-stream` (/api/stream). Любая успешная транзакция в `withPlayerLock` триггерит отправку обновленного фрагмента стейта обратно в этот стрим.
+* **Положительные стороны:** Идеально ложится на уже готовую REST архитектуру. Самый легкий вес для сервера, строгая однонаправленность, работает из коробки поверх HTTP/2 без потерь пакетов, браузер автоматически переподключается при обрыве.
+* **Негативные стороны:** Нельзя отправлять сообщения с клиента на сервер по этому же каналу, ограничения HTTP/1.1 на количество соединений.
+
+### Вариант 2: Чистые WebSockets (пакет `ws`)
+* **Как работает:** Запуск голого WS сервера параллельно с Express. Полный двунаправленный поток данных.
+* **Положительные стороны:** Абсолютно минимальная нагрузка, никакого оверхеда, наименьшая задержка.
+* **Негативные стороны:** Нет встроенного Heartbeat (придется писать Ping/Pong систему вручную), нет встроенного переподключения на фронте, сложно управлять "комнатами/сессиями" пользователей. 
+
+### Вариант 3: Служба Socket.io (Надстройка над Engine.IO)
+* **Как работает:** Клиенты подключаются к Socket.io. Сервер распределяет их по комнатам (`room = userId`). При любых изменениях состояния сервер делает `io.to(userId).emit('state_sync', payload)`.
+* **Положительные стороны:** Роскошный UX (прощает моргание интернета), fallback для старых девайсов, мгновенная установка, изящная компрессия, встроенная буферизация событий пока клиент offline. Отличное решение для игр.
+* **Негативные стороны:** Увесистый бандл на фронтенде (~40кб), требует установки пакета и настройки CORS, создает небольшую дополнительную нагрузку на Node.js Event Loop.
+
+### Вариант 4: Redis Pub/Sub + API Polling + WebSocket (Распределенный)
+* **Как работает:** Изменения в БД публикуются в канал Redis `player:<ID>`. Все ноды подписаны на Redis, и если их локальный WebSocket соединен с клиентом, они шлют ему апдейт.
+* **Положительные стороны:** Максимальная стабильность, возможность шардирования, 100% cloud-native отказоустойчивость.
+* **Негативные стороны:** Тотальный оверинжиниринг. Усложняет разработку на VPS, требует мощного деплоя и настройки Redis очередей.
+
+### Вариант 5: Zustand BroadcastChannel + HTTP Long Polling
+* **Как работает:** Фронтенд синхронизируется между вкладками аппаратно с помощью API `BroadcastChannel`. Одна `Master`-вкладка держит соединение в Long-Polling с сервером (ждет пока данные изменятся) и транслирует остальным вкладкам.
+* **Положительные стороны:** Экономия трафика сервера в 10 раз, не нужно держать сотни WS-соединений.
+* **Негативные стороны:** Не решает проблему параллельной игры с ПК и Телефона. Ужасный UX при перебоях: если отвалилась Master-вкладка, выборы новой занимают время, возможна потеря данных.
+
+### 🏆 Синтез и Рекомендованное Финальное Решение
+С точки зрения приоритета на **плавность и UX**, а также учитывая наличие архитектуры `withPlayerLock` (которая гарантирует целостность БД), самым элегантным решением в краткосрочной перспективе станет **Socket.IO (Вариант 3)** в симбиозе с нашими REST API.
+Мы оставим все игровые действия в виде Express-ручек (POST-запросы остаются), но подключим `Socket.io`, чтобы он выступал исключительно в роли **канала оповещений реального времени**. 
+**Как это будет работать:** Игрок сажает растение (через обычный API) -> БД обновляется -> Сервер мгновенно делает `socket.to(userId).emit('player_sync', data)` -> Фронтенд ловит событие и обновляет Zustand state без запроса к API. Итог: идеальная мгновенная синхронизация, никаких таймеров поллинга, максимальный UX, независимость работы вкладок!
+
+> [!IMPORTANT]
+> Если Socket.io для вас звучит чрезмерным, мы можем реализовать Вариант 1 (SSE), который потребует буквально 30 строк кода без дополнительных библиотек. Дайте знать, внедряем ли мы прямо сейчас Вариант 3 (Socket.io) на весь проект, либо Вариант 1 (SSE), либо мы отложим эти реформы и сделаем только быстрый хотфикс инвентаря + 30 тапов?

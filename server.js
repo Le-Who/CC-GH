@@ -7,11 +7,13 @@
  */
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
 import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import compression from "compression";
+import { initSocket } from "./socketManager.js";
 import authRoutes from "./routes/auth.js";
 import batchRoutes from "./routes/batch.js";
 import { requireAuth, resolveUser, DISCORD_ENABLED } from "./middleware/auth.js";
@@ -339,6 +341,9 @@ import { initDb } from "./db.js";
 async function start() {
   initDb();
 
+  const httpServer = createServer(app);
+  initSocket(httpServer);
+
   // Feature 5 loop: Refresh materialized view every 5 minutes (concurrently so frontend is not blocked)
   setInterval(async () => {
     const sql = getDb();
@@ -351,13 +356,14 @@ async function start() {
     }
   }, 5 * 60 * 1000);
 
-  app.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
     console.log(`\n  🎮 Game Hub v${APP_VERSION} — http://localhost:${PORT}`);
     console.log(`     Farm 🌱 | Trivia 🧠 | Match-3 💎`);
     console.log(
       `     Discord: ${DISCORD_ENABLED ? "✅ enabled" : "⚠️  demo mode (no creds)"}`,
     );
     console.log(`     Database: PostgreSQL + Upstash Redis`);
+    console.log(`     Socket.io: ✅ Real-time enabled`);
     console.log(`     Duel system active | Leaderboard enabled\n`);
   });
 }

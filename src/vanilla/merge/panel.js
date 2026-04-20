@@ -1,7 +1,7 @@
 import { GameStore } from "../store.js";
 import { showToast, safeShowModal } from "../shared.js";
 import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "/game-logic.js";
-import { tapGenerator, rollGacha, freePull } from "./api.js";
+import { tapGenerator, rollGacha, freePull, claimFreeTaps } from "./api.js";
 import { isTrashMode, toggleTrashMode } from "./board.js";
 
 let _genPanel = null;
@@ -111,6 +111,21 @@ export function renderGeneratorPanel() {
     trashBtn.classList.toggle("active", state);
   });
   toolsRow.appendChild(trashBtn);
+
+  const lastFreeTaps = mergeState.lastFreeTaps || 0;
+  const lastFreeTapsStr = new Date(lastFreeTaps).toISOString().slice(0, 10);
+  const canClaimTaps = lastFreeTapsStr !== todayStr;
+
+  const claimTapsBtn = document.createElement("button");
+  claimTapsBtn.className = "merge-gen-btn merge-free-taps-btn";
+  claimTapsBtn.textContent = canClaimTaps ? "🎁 +30 Taps" : "🎁 30/30";
+  claimTapsBtn.title = canClaimTaps ? "Claim 30 free daily taps!" : "Already claimed today";
+  claimTapsBtn.disabled = !canClaimTaps;
+  claimTapsBtn.addEventListener("click", async () => {
+    const success = await claimFreeTaps();
+    if (success) renderGeneratorPanel();
+  });
+  toolsRow.appendChild(claimTapsBtn);
 
   _genPanel.appendChild(toolsRow);
 }

@@ -14,6 +14,7 @@
 import crypto from "crypto";
 import { ECONOMY, createDefaultPlayer, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
+import { getIO } from "./socketManager.js";
 import {
   isRedisEnabled,
   redisSetPlayer,
@@ -133,6 +134,24 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
               console.error("Redis write-through failed:", err.message)
             );
           }
+
+          // Emit WebSocket Real-Time sync
+          const io = getIO();
+          if (io) {
+            // Emitting parts of the state rather than entire payload saves bytes,
+            // but for simplicity we send what local sync expects.
+            io.to(userId).emit("player_sync", { 
+              payload: {
+                resources: player.resources,
+                harvested: player.farm.harvested,
+                plots: player.farm.plots,
+                merge: player.merge,
+                pet: player.pet,
+                achievements: player.achievements
+              } 
+            });
+          }
+          
           return player;
         }
 
