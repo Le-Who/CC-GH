@@ -1,0 +1,3 @@
+- [x] Update `/api/merge/tap` backend route to process crop costs instead of energy and execute rarity-based multi-spawning.
+- [x] Refactor frontend `tapGenerator` to align UI updates and remove energy constraints.
+- [x] Test the integration locally to ensure inventory no longer wipes and multiple items spawn securely.

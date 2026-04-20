@@ -14,6 +14,9 @@ import {
   validCoord,
   BOARD_ROWS,
   BOARD_COLS,
+  CROPS,
+  CROP_TIERS,
+  TIER_YIELD,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 
@@ -51,9 +54,13 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { chainId } = req.body;
+      const { chainId, cropId } = req.body;
       const chain = MERGE_CHAINS[chainId];
       if (!chain) return res.status(400).json({ error: "invalid chainId" });
+
+      if (!cropId || !CROPS[cropId]) {
+        return res.status(400).json({ error: "invalid crop for energy" });
+      }
 
       hydrateMergeBoard(p);
 
@@ -81,18 +88,18 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         });
       }
 
-      // Need 1 empty cell
+      // Need at least 1 empty cell
       const empty = getEmptyCells(p.merge.board);
       if (empty.length === 0) {
         return res.status(400).json({ error: "board full" });
       }
 
-      // Energy Cost
-      calcRegen(p, now);
-      if (p.resources.energy.current < ECONOMY.GENERATOR_TAP_COST) {
-        return res.status(400).json({ error: "not enough energy" });
+      // Deduct the crop
+      if (!p.farm?.harvested || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
+         return res.status(400).json({ error: "not enough crops" });
       }
-      p.resources.energy.current -= ECONOMY.GENERATOR_TAP_COST;
+      p.farm.harvested[cropId]--;
+      if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
 
       // Decrement taps
       state.tapsLeft--;
@@ -101,26 +108,41 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       }
       p.merge.generatorState[chainId] = state; // Save back if it was default generated
 
-      // Determine drop level based on configured rate (v6.2.2 tweak)
-      // Base: L0 (80%), Rare: L1 (15%), Epic: L2 (5%) if chain supports it
-      const rand = Math.random();
-      let dropLevel = 0;
-      if (rand > 0.95 && chain.items.length > 2) dropLevel = 2;
-      else if (rand > 0.8 && chain.items.length > 1) dropLevel = 1;
+      // Determine bundle size from crop
+      const tier = CROP_TIERS[cropId] || "cheap";
+      const yieldConfig = TIER_YIELD[tier];
+      const minYield = yieldConfig ? yieldConfig.min : 2;
+      const maxYield = yieldConfig ? yieldConfig.max : 3;
+      const spawnCount = Math.floor(Math.random() * (maxYield - minYield + 1)) + minYield;
 
-      // Spawn item
-      const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-      p.merge.board[r][c] = {
-        id: chain.items[dropLevel],
-        chainId,
-        level: dropLevel,
-      };
+      const spawnedItems = [];
+
+      for (let i = 0; i < spawnCount; i++) {
+        const availableCells = getEmptyCells(p.merge.board);
+        if (availableCells.length === 0) break; // board full, stop spawning additional item
+        
+        // Determine drop level based on configured rate (v6.2.2 tweak)
+        // Base: L0 (80%), Rare: L1 (15%), Epic: L2 (5%) if chain supports it
+        const rand = Math.random();
+        let dropLevel = 0;
+        if (rand > 0.95 && chain.items.length > 2) dropLevel = 2;
+        else if (rand > 0.8 && chain.items.length > 1) dropLevel = 1;
+
+        const [r, c] = availableCells[Math.floor(Math.random() * availableCells.length)];
+        p.merge.board[r][c] = {
+          id: chain.items[dropLevel],
+          chainId,
+          level: dropLevel,
+        };
+        spawnedItems.push({ r, c });
+      }
 
       res.json({
         success: true,
         merge: p.merge,
         resources: p.resources,
-        spawned: { r, c },
+        harvested: p.farm.harvested, // crucial for frontend sync
+        spawned: spawnedItems,       // multispawn format compatible with frontend length check
       });
     });
   });

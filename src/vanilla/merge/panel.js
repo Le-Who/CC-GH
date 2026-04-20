@@ -48,7 +48,7 @@ export function renderGeneratorPanel() {
       btn.classList.add("merge-gen-btn--cooldown");
     } else {
       btn.textContent = `${chain.emoji[0]} Tap (${gs.tapsLeft}/${ECONOMY.GENERATOR_TAP_LIMIT})`;
-      btn.title = `Costs 1⚡ + 1 crop → ${chain.name} items`;
+      btn.title = `Costs 1 crop → ${chain.name} items`;
     }
 
     btn.addEventListener("click", () => _tapWithFuel(chainId));

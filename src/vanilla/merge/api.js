@@ -1,6 +1,6 @@
 import { GameStore } from "../store.js";
 import { api, showToast, HUB } from "../shared.js";
-import { MERGE_CHAINS, ECONOMY } from "/game-logic.js";
+import { MERGE_CHAINS, ECONOMY, CROPS } from "/game-logic.js";
 import { HUD } from "../hud.js";
 import { SoundEngine } from "../effects.js";
 import { ITEM_LOOKUP, syncMergeStateFallback } from "./engine.js";
@@ -16,10 +16,6 @@ export async function tapGenerator(chainId, cropId) {
   const chain = MERGE_CHAINS[chainId];
   if (!chain) return { success: false, reason: "UNKNOWN_CHAIN" };
 
-  if (res.energy.current < 1) {
-    showToast("⚡ Not enough energy!", "error");
-    return { success: false, reason: "NO_ENERGY" };
-  }
   const harvested = res.harvested || {};
   if (!cropId || !harvested[cropId] || harvested[cropId] <= 0) {
     showToast("🌱 No crops to fuel generator!", "error");
@@ -40,7 +36,6 @@ export async function tapGenerator(chainId, cropId) {
 
   GameStore.setState("resources", {
     ...res,
-    energy: { ...res.energy, current: res.energy.current - 1 },
     harvested: newHarvested,
   });
   HUD.updateDisplay(GameStore.getState("resources"));
@@ -67,8 +62,10 @@ export async function tapGenerator(chainId, cropId) {
       });
       HUD.updateDisplay(data.resources);
     }
+    
+    const emoji = CROPS[cropId]?.emoji || "🌱";
     showToast(
-      `✨ Spawned ${data.spawned?.length || 0} items! (-1⚡)`,
+      `✨ Spawned ${data.spawned?.length || 0} items! (-1 ${emoji})`,
       "success",
     );
     return { success: true, spawned: data.spawned };
