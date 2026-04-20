@@ -37,6 +37,7 @@ COPY game-logic.js .
 COPY game-logic/ ./game-logic/
 COPY db.js .
 COPY playerManager.js .
+COPY socketManager.js .
 COPY redisAdapter.js .
 COPY routes/ ./routes/
 COPY middleware/ ./middleware/
