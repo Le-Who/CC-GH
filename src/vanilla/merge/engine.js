@@ -2,6 +2,10 @@ import { GameStore } from "../store.js";
 import { api, HUB } from "../shared.js";
 import { MERGE_CHAINS, ECONOMY } from "/game-logic.js";
 import { HUD } from "../hud.js";
+import {
+  syncMergeState,
+  syncResourcesState,
+} from "../../services/inventoryService.js";
 
 /* ─── Constants ─── */
 export const BOARD_ROWS = 7;
@@ -29,7 +33,9 @@ export function registerSlice() {
     ),
     generators: ["textile"],
     inventory: [],
+    mergeInventory: [],
     lastFreePull: 0,
+    lastFreeTaps: 0,
     generatorState: {
       textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
     },
@@ -43,9 +49,9 @@ export function registerSlice() {
 export async function syncMergeStateFallback() {
   try {
     const data = await api("/api/merge/state", { userId: HUB.userId });
-    if (data?.merge) GameStore.setState("merge", data.merge);
+    if (data?.merge) syncMergeState(data.merge);
     if (data?.resources) {
-      GameStore.setState("resources", data.resources);
+      syncResourcesState(data.resources);
       HUD.updateDisplay(data.resources);
     }
   } catch (e) {

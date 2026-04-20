@@ -15,6 +15,9 @@ import { PetCompanion } from "../pet.js";
 import { setCropsCache, getCropsData } from "../crops.js";
 import { SoundEngine } from "../effects.js";
 import { broadcastStateUpdate } from "../realtime.js";
+import {
+  adjustHarvestedCrop,
+} from "../../services/inventoryService.js";
 
 // ── Sub-modules ──
 import {
@@ -755,10 +758,7 @@ function harvest(plotId) {
   state.plots[plotId] = { crop: null, plantedAt: null, watered: false };
   state.xp += estimatedXP;
 
-  const res = GameStore.getState("resources") || {};
-  const harvested = { ...(res.harvested || {}) };
-  harvested[plotSnap.crop] = (harvested[plotSnap.crop] || 0) + 1;
-  GameStore.setState("resources", { ...res, harvested });
+  adjustHarvestedCrop(plotSnap.crop, 1);
 
   checkNewUnlocks();
   optimisticActionTimestamps.set(plotId, Date.now());
@@ -799,11 +799,7 @@ function harvest(plotId) {
           state.plots[plotId] = plotSnap;
           state.xp = prevXp;
           // Rollback harvested count
-          const res2 = GameStore.getState("resources") || {};
-          const h2 = { ...(res2.harvested || {}) };
-          h2[plotSnap.crop] = Math.max(0, (h2[plotSnap.crop] || 0) - 1);
-          if (h2[plotSnap.crop] <= 0) delete h2[plotSnap.crop];
-          GameStore.setState("resources", { ...res2, harvested: h2 });
+          adjustHarvestedCrop(plotSnap.crop, -1);
           syncToStore();
           _syncSubModules();
           render();

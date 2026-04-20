@@ -16,6 +16,13 @@ import {
 } from "./shared.js";
 import { CROPS, MERGE_CHAINS } from "/game-logic.js";
 import { hudStore } from "../hooks/useHUDEngine.js";
+import {
+  adjustHarvestedCrop,
+  getHarvestedCrops,
+  replaceHarvestedCrops,
+  syncHarvestedResources,
+  syncResourcesState,
+} from "../services/inventoryService.js";
 
 /* ─── Merge item display lookup (for quest requirement names) ─── */
 const _MERGE_DISPLAY = {};
@@ -51,6 +58,8 @@ function registerSlice() {
   GameStore.registerSlice("resources", {
     gold: 0,
     energy: { current: 0, max: 20, lastRegenTimestamp: Date.now() },
+    harvested: {},
+    harvestedCrops: {},
     gachaTokens: 0,
   });
 }
@@ -60,7 +69,7 @@ async function fetchResources() {
   try {
     const data = await api("/api/resources/state");
     if (data && data.resources) {
-      GameStore.setState("resources", data.resources);
+      syncResourcesState(data.resources);
       updateDisplay(data.resources);
       return data;
     }
@@ -107,7 +116,7 @@ function startRegenTimer() {
         } else {
           e.lastRegenTimestamp = now;
         }
-        GameStore.setState("resources", { ...res, energy: e });
+        syncResourcesState({ ...res, energy: e });
       }
       updateDisplay({ ...res, energy: e });
     }
@@ -155,7 +164,7 @@ function syncFromServer(resources) {
   if (local?.harvested && !merged.harvested) {
     merged.harvested = local.harvested;
   }
-  GameStore.setState("resources", merged);
+  syncResourcesState(merged);
   updateDisplay(resources);
 }
 
@@ -217,7 +226,7 @@ function showEnergyModal(requiredEnergy, onPlayCallback) {
   if (!modal || !itemsEl) return;
 
   // Get harvested crops from resources slice (unified source)
-  const harvested = GameStore.getState("resources")?.harvested || {};
+  const harvested = getHarvestedCrops();
 
   const res = GameStore.getState("resources");
   const currentEnergy = res ? res.energy.current : 0;
@@ -329,11 +338,8 @@ async function _feedFromModal(cropId, btn) {
 
   // Optimistic: decrement harvested count (unified resources slice)
   const resAfter = GameStore.getState("resources");
-  if (resAfter && resAfter.harvested && resAfter.harvested[cropId]) {
-    const updated = { ...resAfter, harvested: { ...resAfter.harvested } };
-    updated.harvested[cropId]--;
-    if (updated.harvested[cropId] <= 0) delete updated.harvested[cropId];
-    GameStore.setState("resources", updated);
+  if (resAfter && getHarvestedCrops()[cropId]) {
+    adjustHarvestedCrop(cropId, -1);
   }
 
   // v8.3: Capture pre-feed snapshots for rollback on failure
@@ -356,8 +362,7 @@ async function _feedFromModal(cropId, btn) {
         if (_preRes) syncFromServer(_preRes);
         if (_prePet) GameStore.setState("pet", _prePet);
         if (_preHarvested) {
-          const r = GameStore.getState("resources") || {};
-          GameStore.setState("resources", { ...r, harvested: _preHarvested });
+          replaceHarvestedCrops(_preHarvested);
         }
         _refreshModalItems();
         showToast(`❌ ${data?.error || "Feed failed"}`, "error");
@@ -374,7 +379,7 @@ function _refreshModalItems() {
   const itemsEl = document.getElementById("energy-modal-items");
   if (!itemsEl) return;
 
-  const harvested = GameStore.getState("resources")?.harvested || {};
+  const harvested = getHarvestedCrops();
 
   // Update quantities and disable empty ones
   itemsEl.querySelectorAll(".energy-feed-item").forEach((item) => {
@@ -434,8 +439,7 @@ function _updateQuestBadge() {
 }
 
 function _canFulfillOrder(order) {
-  const res = GameStore.getState("resources");
-  const harvested = res?.harvested || {};
+  const harvested = getHarvestedCrops();
   const mergeState = GameStore.getState("merge");
   for (const req of order.requirements) {
     if (req.type === "crop") {
@@ -458,8 +462,7 @@ function _canFulfillOrder(order) {
 /** Get the player's current quantity for a quest requirement */
 function _getPlayerQty(req) {
   if (req.type === "crop") {
-    const res = GameStore.getState("resources");
-    return (res?.harvested || {})[req.id] || 0;
+    return getHarvestedCrops()[req.id] || 0;
   } else if (req.type === "merge") {
     const mergeState = GameStore.getState("merge");
     const board = mergeState?.board;
@@ -538,11 +541,9 @@ async function _submitQuestOrder(orderId) {
       return;
     }
     if (data.pet) GameStore.setState("pet", data.pet);
-    if (data.resources)
-      GameStore.setState("resources", {
-        ...data.resources,
-        harvested: data.harvested || {},
-      });
+    if (data.resources || data.harvested) {
+      syncHarvestedResources(data.resources, data.harvested || {});
+    }
     if (data.merge) GameStore.setState("merge", data.merge);
     showToast(
       `✅ Quest complete! ${_formatReward(data.reward || {})}`,

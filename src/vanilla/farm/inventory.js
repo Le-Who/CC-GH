@@ -2,10 +2,16 @@
  *  Farm Module — Inventory
  *  Renders harvested crop inventory, sell/feed actions.
  * ═══════════════════════════════════════════════════ */
-import { GameStore } from "../store.js";
 import { HUB, showToast, apiBatched } from "../shared.js";
 import { CROPS as CROPS_CONFIG } from "/game-logic.js";
 import { HUD } from "../hud.js";
+import {
+  feedPetWithHarvestedCropLocally,
+  listHarvestedCrops,
+  replaceHarvestedCrops,
+  sellAllHarvestedCropsLocally,
+  sellHarvestedCropLocally,
+} from "../../services/inventoryService.js";
 import { $ } from "./utils.js";
 
 let _crops = {};
@@ -22,16 +28,14 @@ export function syncInventoryState(crops) {
 /** Sync server harvested → resources.harvested in GameStore */
 export function syncHarvestedToStore(harvested) {
   if (!harvested) return;
-  const res = GameStore.getState("resources") || {};
-  GameStore.setState("resources", { ...res, harvested: { ...harvested } });
+  replaceHarvestedCrops(harvested);
 }
 
 /* ─── Render Inventory ─── */
 export function renderInventory() {
   const grid = $("farm-inventory-grid");
   if (!grid) return;
-  const harvested = GameStore.getState("resources")?.harvested || {};
-  const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
+  const entries = listHarvestedCrops();
 
   if (entries.length === 0) {
     grid.innerHTML = '<div class="farm-inv-empty">No crops harvested yet</div>';
@@ -82,29 +86,23 @@ export function renderInventory() {
 
 /* ─── Sell All ─── */
 function sellAll() {
-  const res = GameStore.getState("resources") || {};
-  const harvested = { ...(res.harvested || {}) };
-  const entries = Object.entries(harvested).filter(([, qty]) => qty > 0);
-  if (entries.length === 0) {
+  const sellAllResult = sellAllHarvestedCropsLocally(
+    (cropId) => CROPS_CONFIG[cropId]?.sellPrice || 0,
+  );
+  if (!sellAllResult.success) {
     showToast("❌ Nothing to sell!");
     return;
   }
 
-  let totalGold = 0,
-    totalItems = 0;
-  for (const [cropId, qty] of entries) {
-    totalGold += (CROPS_CONFIG[cropId]?.sellPrice || 0) * qty;
-    totalItems += qty;
-  }
-  const newGold = (res.gold || 0) + totalGold;
-  GameStore.setState("resources", { ...res, gold: newGold, harvested: {} });
   renderInventory();
   _actions?.render?.();
-  showToast(`💰 Sold ${totalItems} crops for ${totalGold}🪙!`);
-  HUD.animateGoldChange(totalGold);
-  HUD.updateDisplay(GameStore.getState("resources"));
+  showToast(
+    `💰 Sold ${sellAllResult.totalItems} crops for ${sellAllResult.totalGold}🪙!`,
+  );
+  HUD.animateGoldChange(sellAllResult.totalGold);
+  HUD.updateDisplay(sellAllResult.resources);
 
-  for (const [cropId, qty] of entries) {
+  for (const [cropId, qty] of sellAllResult.entries) {
     apiBatched("/api/farm/sell-crop", {
       userId: HUB.userId,
       cropId,
@@ -123,21 +121,20 @@ function sellAll() {
 
 /* ─── Sell Single Crop ─── */
 export function sellCrop(cropId, sellPrice) {
-  const res = GameStore.getState("resources") || {};
-  const harvested = { ...(res.harvested || {}) };
-  if (!harvested[cropId] || harvested[cropId] <= 0) {
+  const sellResult = sellHarvestedCropLocally({
+    cropId,
+    amount: 1,
+    sellPrice,
+  });
+  if (!sellResult.success) {
     showToast("❌ No crops to sell!");
     return;
   }
-  harvested[cropId]--;
-  if (harvested[cropId] <= 0) delete harvested[cropId];
-  const newGold = (res.gold || 0) + sellPrice;
-  GameStore.setState("resources", { ...res, gold: newGold, harvested });
   renderInventory();
   _actions?.render?.();
   showToast(`💰 Sold! +${sellPrice}🪙`);
   HUD.animateGoldChange(sellPrice);
-  HUD.updateDisplay(GameStore.getState("resources"));
+  HUD.updateDisplay(sellResult.resources);
 
   apiBatched("/api/farm/sell-crop", { userId: HUB.userId, cropId, amount: 1 })
     .then((data) => {
@@ -153,44 +150,27 @@ export function sellCrop(cropId, sellPrice) {
 
 /* ─── Feed Pet ─── */
 export function feedPet(cropId) {
-  const res = GameStore.getState("resources") || {};
-  const e = res.energy || {};
   const cfg = CROPS_CONFIG[cropId];
   const energyYield = cfg ? cfg.energyYield : 1;
   const fullnessYield = cfg ? cfg.fullnessYield : 5;
-
-  if (e.current >= e.max) {
-    showToast("⚡ Energy full! Can't feed yet.");
+  const feedResult = feedPetWithHarvestedCropLocally({
+    cropId,
+    energyYield,
+    fullnessYield,
+  });
+  if (!feedResult.success) {
+    if (feedResult.reason === "ENERGY_FULL") {
+      showToast("⚡ Energy full! Can't feed yet.");
+    } else if (feedResult.reason === "PET_FULL") {
+      showToast("🤢 Pet is too full! Wait for digestion.");
+    } else {
+      showToast("❌ No crops to feed!");
+    }
     return;
-  }
-  const pet = GameStore.getState("pet");
-  if (pet && (pet.stats?.fullness ?? 0) >= 100) {
-    showToast("🤢 Pet is too full! Wait for digestion.");
-    return;
-  }
-
-  const harvested = { ...(res.harvested || {}) };
-  if (!harvested[cropId] || harvested[cropId] <= 0) {
-    showToast("❌ No crops to feed!");
-    return;
-  }
-  harvested[cropId]--;
-  if (harvested[cropId] <= 0) delete harvested[cropId];
-  const newEnergy = { ...e, current: Math.min(e.max, e.current + energyYield) };
-  GameStore.setState("resources", { ...res, energy: newEnergy, harvested });
-  if (pet) {
-    GameStore.setState("pet", {
-      ...pet,
-      stats: {
-        ...pet.stats,
-        fullness: Math.min(100, (pet.stats?.fullness ?? 0) + fullnessYield),
-      },
-      lastDigestionTimestamp: Date.now(),
-    });
   }
   renderInventory();
   showToast(`🍖 Fed pet! +${energyYield}⚡`);
-  HUD.updateDisplay(GameStore.getState("resources"));
+  HUD.updateDisplay(feedResult.resources);
 
   apiBatched("/api/pet/feed", { userId: HUB.userId, cropId })
     .then((data) => {

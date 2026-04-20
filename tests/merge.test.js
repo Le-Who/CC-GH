@@ -11,7 +11,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       generatorState: {
         textile: { tapsLeft: 30, cooldownEnd: 0 },
       },
-      inventory: [],
+      mergeInventory: [],
       lastFreePull: 0,
       trashMode: false,
       selectedFuel: {},
@@ -299,7 +299,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const partialData = { inventory: ["gold_item"] };
       mergeStore.getState().syncFromServer(partialData);
       const state = mergeStore.getState();
-      assert.deepStrictEqual(state.inventory, ["gold_item"]);
+      assert.deepStrictEqual(state.mergeInventory, ["gold_item"]);
       assert.deepStrictEqual(state.generators, ["textile"]);
     });
   });

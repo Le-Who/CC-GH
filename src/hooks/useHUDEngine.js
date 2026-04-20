@@ -3,7 +3,7 @@
  *  useHUDEngine — React/Zustand hook for HUD resources state
  *
  *  Owns: gold, energy (current/max/lastRegenTimestamp),
- *  harvested inventory, gachaTokens.
+ *  harvestedCrops, gachaTokens.
  *
  *  Eliminates the redundant 'shared' slice — React components
  *  subscribe directly to this store instead.
@@ -28,7 +28,7 @@ export const hudStore = create((set, get) => ({
     max: 20,
     lastRegenTimestamp: Date.now(),
   },
-  harvested: {},
+  harvestedCrops: {},
   gachaTokens: 0,
   activeQuests: 0,
 
@@ -72,22 +72,25 @@ export const hudStore = create((set, get) => ({
   // ─── Actions ───
   setResources: (resources) => {
     if (!resources) return;
+    const harvestedCrops = resources.harvestedCrops ?? resources.harvested;
     set({
       gold: resources.gold ?? get().gold,
       energy: resources.energy ?? get().energy,
-      harvested: resources.harvested ?? get().harvested,
+      harvestedCrops: harvestedCrops ?? get().harvestedCrops,
       gachaTokens: resources.gachaTokens ?? get().gachaTokens,
     });
   },
 
   /**
    * Smart merge from server — preserves local regen timestamp if newer,
-   * preserves local harvested if server doesn't include it.
+   * preserves local harvestedCrops if server doesn't include it.
    */
   syncFromServer: (resources) => {
     if (!resources) return;
     const local = get();
     const merged = { ...resources };
+    const serverHarvestedCrops =
+      resources.harvestedCrops ?? resources.harvested;
 
     // Don't jump regen bar backward
     if (local.energy?.lastRegenTimestamp && resources.energy) {
@@ -98,15 +101,20 @@ export const hudStore = create((set, get) => ({
       }
     }
 
-    // Preserve local harvested if server omits
-    if (Object.keys(local.harvested).length > 0 && !merged.harvested) {
-      merged.harvested = local.harvested;
+    // Preserve local harvestedCrops if server omits them
+    if (
+      Object.keys(local.harvestedCrops).length > 0 &&
+      serverHarvestedCrops === undefined
+    ) {
+      merged.harvested = local.harvestedCrops;
+      merged.harvestedCrops = local.harvestedCrops;
     }
 
     set({
       gold: merged.gold ?? local.gold,
       energy: merged.energy ?? local.energy,
-      harvested: merged.harvested ?? local.harvested,
+      harvestedCrops:
+        (merged.harvestedCrops ?? merged.harvested) ?? local.harvestedCrops,
       gachaTokens: merged.gachaTokens ?? local.gachaTokens,
     });
   },
@@ -143,13 +151,15 @@ export const hudStore = create((set, get) => ({
     }
   },
 
-  updateHarvested: (cropId, delta) =>
+  updateHarvestedCrops: (cropId, delta) =>
     set((s) => {
-      const newHarvested = { ...s.harvested };
+      const newHarvested = { ...s.harvestedCrops };
       newHarvested[cropId] = Math.max(0, (newHarvested[cropId] || 0) + delta);
       if (newHarvested[cropId] <= 0) delete newHarvested[cropId];
-      return { harvested: newHarvested };
+      return { harvestedCrops: newHarvested };
     }),
+  updateHarvested: (cropId, delta) =>
+    get().updateHarvestedCrops(cropId, delta),
 
   setActiveQuests: (count) => set({ activeQuests: count }),
 
@@ -158,7 +168,7 @@ export const hudStore = create((set, get) => ({
     return {
       gold: s.gold,
       energy: { ...s.energy },
-      harvested: { ...s.harvested },
+      harvestedCrops: { ...s.harvestedCrops },
       gachaTokens: s.gachaTokens,
     };
   },
@@ -172,6 +182,7 @@ export function useHUDEngine() {
 
 export const useGold = () => hudStore((s) => s.gold);
 export const useEnergy = () => hudStore((s) => s.energy);
-export const useHarvested = () => hudStore((s) => s.harvested);
+export const useHarvestedCrops = () => hudStore((s) => s.harvestedCrops);
+export const useHarvested = useHarvestedCrops;
 export const useGachaTokens = () => hudStore((s) => s.gachaTokens);
 export const useActiveQuests = () => hudStore((s) => s.activeQuests);

@@ -3,8 +3,11 @@ import { HUB } from "./shared.js";
 import { HUD } from "./hud.js";
 import { PetCompanion } from "./pet.js";
 import { farmStore } from "../hooks/useFarmEngine.js";
-import { hudStore } from "../hooks/useHUDEngine.js";
 import { GameStore } from "./store.js"; // Needed to sync Merge
+import {
+  syncHarvestedResources,
+  syncMergeState,
+} from "../services/inventoryService.js";
 
 let socket = null;
 
@@ -60,6 +63,14 @@ export function resumeRealtime() {
 function applySyncPayload(payload) {
   if (!payload) return;
 
+  const currentResources = GameStore.getState("resources");
+  const mergedResources = payload.resources
+    ? {
+        ...payload.resources,
+        ...(payload.harvested ? { harvested: payload.harvested } : {}),
+      }
+    : null;
+
   if (
     payload.entity === "plot" &&
     typeof payload.id === "number" &&
@@ -77,12 +88,11 @@ function applySyncPayload(payload) {
     return;
   }
 
-  if (payload.harvested) {
-    farmStore.setState({ harvested: payload.harvested });
+  if (payload.harvested && currentResources) {
+    syncHarvestedResources(currentResources, payload.harvested);
   }
-  if (payload.resources) {
-    HUD.syncFromServer(payload.resources);
-    hudStore.getState().syncFromServer(payload.resources);
+  if (mergedResources) {
+    HUD.syncFromServer(mergedResources);
   }
   if (payload.pet) {
     PetCompanion.syncFromServer(payload.pet);
@@ -94,7 +104,7 @@ function applySyncPayload(payload) {
     );
   }
   if (payload.merge) {
-    GameStore.setState("merge", payload.merge);
+    syncMergeState(payload.merge);
   }
 }
 

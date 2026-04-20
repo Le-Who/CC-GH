@@ -1,8 +1,13 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence, useMotionValue, useTransform, useDragControls } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { CROPS as CROPS_CONFIG } from "/game-logic.js";
 import { hudStore } from "../hooks/useHUDEngine";
-import { farmStore } from "../hooks/useFarmEngine";
+import {
+  feedPetWithHarvestedCropLocally,
+  sellHarvestedCropLocally,
+  syncHarvestedResources,
+} from "../services/inventoryService.js";
 import { broadcastStateUpdate } from "../vanilla/realtime.js";
 
 /**
@@ -34,7 +39,7 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
   }, []);
 
   // Get data from typed hook stores
-  const inventory = farmStore((s) => s.harvested) || {};
+  const harvestedCrops = hudStore((s) => s.harvestedCrops) || {};
   const gold = hudStore((s) => s.gold ?? 0);
   const energy = hudStore((s) => s.energy?.current ?? 0);
 
@@ -63,7 +68,7 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
   }, [viewportH, onClose]);
 
   // Build inventory item list
-  const items = Object.entries(inventory)
+  const items = Object.entries(harvestedCrops)
     .filter(([, qty]) => qty > 0)
     .sort((a, b) => b[1] - a[1]);
 
@@ -76,10 +81,18 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
         amount: 1,
       }).then((res) => {
         if (res?.success) {
+          const cropConfig = CROPS_CONFIG[cropId] || {};
+          const localSell = sellHarvestedCropLocally({
+            cropId,
+            amount: 1,
+            sellPrice: cropConfig.sellPrice || 0,
+          });
+          if (!localSell.success) {
+            window.HUB?.showToast?.("❌ No crops left to sell");
+            return;
+          }
           window.HUB?.showToast?.(`Sold 1× ${cropId}`, "success");
-          farmStore.getState().addHarvested(cropId, -1);
-          if (res.resources) hudStore.getState().syncFromServer(res.resources);
-          if (res.harvested) farmStore.setState({ harvested: res.harvested });
+          syncHarvestedResources(res.resources, res.harvested);
           broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
         } else {
           window.HUB?.showToast?.(`❌ ${res.error || "Failed to sell"}`);
@@ -96,10 +109,18 @@ export default function MobileShopDrawer({ isOpen, onClose, activeTab }) {
         cropId,
       }).then((res) => {
         if (res?.success) {
+          const cropConfig = CROPS_CONFIG[cropId] || {};
+          const localFeed = feedPetWithHarvestedCropLocally({
+            cropId,
+            energyYield: cropConfig.energyYield || 1,
+            fullnessYield: cropConfig.fullnessYield || 5,
+          });
+          if (!localFeed.success) {
+            window.HUB?.showToast?.("❌ No crops left to feed");
+            return;
+          }
           window.HUB?.showToast?.(`Fed pet 1× ${cropId}`, "success");
-          farmStore.getState().addHarvested(cropId, -1);
-          if (res.resources) hudStore.getState().syncFromServer(res.resources);
-          if (res.harvested) farmStore.setState({ harvested: res.harvested });
+          syncHarvestedResources(res.resources, res.harvested);
           broadcastStateUpdate({ harvested: res.harvested, resources: res.resources });
         } else {
           window.HUB?.showToast?.(`❌ ${res.error || "Failed to feed pet"}`);

@@ -3,6 +3,7 @@ import { showToast, safeShowModal } from "../shared.js";
 import { MERGE_CHAINS, ECONOMY, CROPS, CROP_TIERS } from "/game-logic.js";
 import { tapGenerator, rollGacha, freePull, claimFreeTaps } from "./api.js";
 import { isTrashMode, toggleTrashMode } from "./board.js";
+import { getHarvestedCrops } from "../../services/inventoryService.js";
 
 let _genPanel = null;
 let _selectedFuel = {}; // chainId → cropId
@@ -16,6 +17,7 @@ export function renderGeneratorPanel() {
   if (!mergeState) return;
 
   _genPanel.textContent = "";
+  const harvestedCrops = getHarvestedCrops();
 
   // ─── Primary Section: Generators ───
   const genSection = document.createElement("div");
@@ -57,8 +59,7 @@ export function renderGeneratorPanel() {
     const fuelCrop = _selectedFuel[chainId];
     if (fuelCrop && !onCooldown) {
       const cfg = CROPS[fuelCrop];
-      const harvested = res?.harvested || {};
-      const qty = harvested[fuelCrop] || 0;
+      const qty = harvestedCrops[fuelCrop] || 0;
       if (cfg && qty > 0) {
         const fuelBadge = document.createElement("button");
         fuelBadge.className = "merge-fuel-badge";
@@ -131,9 +132,10 @@ export function renderGeneratorPanel() {
 }
 
 function _showCropPicker(chainId) {
-  const res = GameStore.getState("resources");
-  const harvested = res?.harvested || {};
-  const cropIds = Object.keys(harvested).filter((id) => harvested[id] > 0);
+  const harvestedCrops = getHarvestedCrops();
+  const cropIds = Object.keys(harvestedCrops).filter(
+    (id) => harvestedCrops[id] > 0,
+  );
 
   if (cropIds.length === 0) {
     showToast("🌱 No harvested crops! Grow some on the farm first.", "error");
@@ -161,7 +163,7 @@ function _showCropPicker(chainId) {
     const tier = CROP_TIERS[cropId] || "cheap";
     const btn = document.createElement("button");
     btn.className = `merge-crop-btn merge-crop-btn--${tier}`;
-    btn.textContent = `${cfg.emoji} ${cfg.name} (×${harvested[cropId]}) [${tier}]`;
+    btn.textContent = `${cfg.emoji} ${cfg.name} (×${harvestedCrops[cropId]}) [${tier}]`;
     btn.addEventListener("click", () => {
       dialog.close();
       _selectedFuel[chainId] = cropId;
@@ -188,10 +190,9 @@ function _showCropPicker(chainId) {
 
 function _tapWithFuel(chainId) {
   const fuelCrop = _selectedFuel[chainId];
-  const res = GameStore.getState("resources");
-  const harvested = res?.harvested || {};
+  const harvestedCrops = getHarvestedCrops();
 
-  if (fuelCrop && harvested[fuelCrop] && harvested[fuelCrop] > 0) {
+  if (fuelCrop && harvestedCrops[fuelCrop] && harvestedCrops[fuelCrop] > 0) {
     tapGenerator(chainId, fuelCrop);
     return;
   }

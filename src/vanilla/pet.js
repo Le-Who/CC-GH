@@ -14,6 +14,11 @@ import {
   PET_ASSETS,
   PET_EXPRESSIONS,
 } from "/game-logic.js";
+import {
+  getHarvestedCrops,
+  syncHarvestedResources,
+  syncRoomState,
+} from "../services/inventoryService.js";
 
 /* ─── Merge item display lookup (for quest requirement names) ─── */
 const _MERGE_DISPLAY = {};
@@ -98,7 +103,12 @@ const PetCompanionImpl = (function () {
       affectionLevel: 1,
       abilities: { autoHarvest: false, autoWater: false },
     });
-    GameStore.registerSlice("room", { decorations: [], wallpaper: "default" });
+    GameStore.registerSlice("room", {
+      decorations: [],
+      wallpaper: "default",
+      inventory: [],
+      roomInventory: [],
+    });
   }
 
   /* ─── Init ─── */
@@ -114,7 +124,7 @@ const PetCompanionImpl = (function () {
       if (data && data.pet) {
         petData = data.pet;
         GameStore.setState("pet", data.pet);
-        if (data.room) GameStore.setState("room", data.room);
+        if (data.room) syncRoomState(data.room);
         _renderPetStack();
 
         // Nudge for new players to tap the pet
@@ -250,7 +260,7 @@ const PetCompanionImpl = (function () {
           GameStore.setState("pet", data.pet);
           _renderPetStack();
         }
-        if (data?.room) GameStore.setState("room", data.room);
+        if (data?.room) syncRoomState(data.room);
       } catch (_) {}
     });
 
@@ -855,7 +865,7 @@ const PetCompanionImpl = (function () {
     }
 
     // Pre-validate locally
-    const harvested = { ...(res.harvested || {}) };
+    const harvested = { ...getHarvestedCrops() };
     const mergeState = GameStore.getState("merge");
 
     for (const req of order.requirements) {
@@ -905,11 +915,8 @@ const PetCompanionImpl = (function () {
       }
       // Sync authoritative state
       if (data.pet) GameStore.setState("pet", data.pet);
-      if (data.resources) {
-        GameStore.setState("resources", {
-          ...data.resources,
-          harvested: data.harvested || {},
-        });
+      if (data.resources || data.harvested) {
+        syncHarvestedResources(data.resources, data.harvested || {});
       }
       if (data.merge) GameStore.setState("merge", data.merge);
 

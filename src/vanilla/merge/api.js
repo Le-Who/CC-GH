@@ -4,20 +4,27 @@ import { MERGE_CHAINS, ECONOMY, CROPS } from "/game-logic.js";
 import { HUD } from "../hud.js";
 import { SoundEngine } from "../effects.js";
 import { ITEM_LOOKUP, syncMergeStateFallback } from "./engine.js";
+import {
+  adjustHarvestedCrop,
+  getHarvestedCropQty,
+  getResourcesState,
+  syncHarvestedResources,
+  syncMergeState,
+  syncResourcesState,
+} from "../../services/inventoryService.js";
 
 /**
  * Tap generator: deducts 1 energy + 1 crop, spawns 2-5 items server-side.
  */
 export async function tapGenerator(chainId, cropId) {
-  const res = GameStore.getState("resources");
+  const res = getResourcesState();
   const mergeState = GameStore.getState("merge");
   if (!res || !mergeState) return { success: false };
 
   const chain = MERGE_CHAINS[chainId];
   if (!chain) return { success: false, reason: "UNKNOWN_CHAIN" };
 
-  const harvested = res.harvested || {};
-  if (!cropId || !harvested[cropId] || harvested[cropId] <= 0) {
+  if (!cropId || getHarvestedCropQty(cropId) <= 0) {
     showToast("🌱 No crops to fuel generator!", "error");
     return { success: false, reason: "NO_CROP" };
   }
@@ -30,15 +37,8 @@ export async function tapGenerator(chainId, cropId) {
 
   // Optimistic
   const oldRes = { ...res };
-  const newHarvested = { ...harvested };
-  newHarvested[cropId] = (newHarvested[cropId] || 0) - 1;
-  if (newHarvested[cropId] <= 0) delete newHarvested[cropId];
-
-  GameStore.setState("resources", {
-    ...res,
-    harvested: newHarvested,
-  });
-  HUD.updateDisplay(GameStore.getState("resources"));
+  adjustHarvestedCrop(cropId, -1);
+  HUD.updateDisplay(getResourcesState());
 
   try {
     const data = await api("/api/merge/tap", {
@@ -47,21 +47,16 @@ export async function tapGenerator(chainId, cropId) {
       cropId,
     });
     if (!data?.success) {
-      GameStore.setState("resources", oldRes);
+      syncResourcesState(oldRes);
       HUD.updateDisplay(oldRes);
       syncMergeStateFallback();
       showToast(data?.error || "Tap failed", "error");
       return { success: false };
     }
     // Sync
-    GameStore.setState("merge", data.merge);
-    if (data.resources) {
-      GameStore.setState("resources", {
-        ...data.resources,
-        harvested: data.harvested || {},
-      });
-      HUD.updateDisplay(data.resources);
-    }
+    syncMergeState(data.merge);
+    syncHarvestedResources(data.resources, data.harvested);
+    HUD.updateDisplay(getResourcesState());
     
     const emoji = CROPS[cropId]?.emoji || "🌱";
     showToast(
@@ -70,7 +65,7 @@ export async function tapGenerator(chainId, cropId) {
     );
     return { success: true, spawned: data.spawned };
   } catch (e) {
-    GameStore.setState("resources", oldRes);
+    syncResourcesState(oldRes);
     HUD.updateDisplay(oldRes);
     syncMergeStateFallback();
     showToast("Network error", "error");
@@ -124,7 +119,7 @@ export async function mergeItems(fromR, fromC, toR, toC) {
       syncMergeStateFallback();
       return { success: false };
     }
-    GameStore.setState("merge", data.merge);
+    syncMergeState(data.merge);
     SoundEngine.merge();
     return { success: true };
   } catch {
@@ -138,37 +133,37 @@ export async function mergeItems(fromR, fromC, toR, toC) {
  * Roll gacha: costs tokens, spawns L0 item + unlocks chain.
  */
 export async function rollGacha() {
-  const res = GameStore.getState("resources");
+  const res = getResourcesState();
   if (!res || (res.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) {
     showToast(`🎰 Need ${ECONOMY.GACHA_PULL_COST} Gacha Tokens!`, "error");
     return { success: false };
   }
 
   const oldTokens = res.gachaTokens;
-  GameStore.setState("resources", {
+  syncResourcesState({
     ...res,
     gachaTokens: res.gachaTokens - ECONOMY.GACHA_PULL_COST,
   });
-  HUD.updateDisplay(GameStore.getState("resources"));
+  HUD.updateDisplay(getResourcesState());
 
   try {
     const data = await api("/api/merge/gacha", { userId: HUB.userId });
     if (!data?.success) {
-      GameStore.setState("resources", { ...res, gachaTokens: oldTokens });
-      HUD.updateDisplay(GameStore.getState("resources"));
+      syncResourcesState({ ...res, gachaTokens: oldTokens });
+      HUD.updateDisplay(getResourcesState());
       syncMergeStateFallback();
       showToast(data?.error || "Gacha failed", "error");
       return { success: false };
     }
-    GameStore.setState("merge", data.merge);
-    GameStore.setState("resources", data.resources);
-    HUD.updateDisplay(data.resources);
+    syncMergeState(data.merge);
+    syncResourcesState(data.resources);
+    HUD.updateDisplay(getResourcesState());
     showToast("🎰 Gacha roll! New item spawned!", "success");
     document.dispatchEvent(new CustomEvent("merge:gacha-drop"));
     return { success: true };
   } catch {
-    GameStore.setState("resources", { ...res, gachaTokens: oldTokens });
-    HUD.updateDisplay(GameStore.getState("resources"));
+    syncResourcesState({ ...res, gachaTokens: oldTokens });
+    HUD.updateDisplay(getResourcesState());
     syncMergeStateFallback();
     return { success: false };
   }
@@ -184,7 +179,7 @@ export async function freePull() {
       showToast(data?.error || "Free pull unavailable", "error");
       return { success: false };
     }
-    GameStore.setState("merge", data.merge);
+    syncMergeState(data.merge);
     showToast("🎁 Daily free item!", "success");
     document.dispatchEvent(new CustomEvent("merge:gacha-drop"));
     return { success: true };
@@ -231,7 +226,7 @@ export async function claimFreeTaps() {
       showToast(data?.error || "Claim failed", "error");
       return false;
     }
-    GameStore.setState("merge", data.merge);
+    syncMergeState(data.merge);
     showToast("🎁 30 Free Taps Claimed!", "success");
     return true;
   } catch {

@@ -52,8 +52,7 @@ export function initGameBridge() {
     if (!sliceData) return;
     return {
       plots: sliceData.plots || [],
-      inventory: sliceData.inventory || {},
-      harvested: sliceData.harvested || {},
+      seedInventory: sliceData.seedInventory || sliceData.inventory || {},
       coins: sliceData.coins || 0,
       xp: sliceData.xp || 0,
       level: sliceData.level || 1,
@@ -63,8 +62,8 @@ export function initGameBridge() {
 
   _bridgeHookToSlice("farm", farmStore, (hookState) => ({
     plots: hookState.plots,
-    inventory: hookState.inventory,
-    harvested: hookState.harvested,
+    inventory: hookState.seedInventory,
+    seedInventory: hookState.seedInventory,
     coins: hookState.coins,
     xp: hookState.xp,
     level: hookState.level,
@@ -118,8 +117,9 @@ export function initGameBridge() {
       generators: sliceData.generators || mergeStore.getState().generators,
       generatorState:
         sliceData.generatorState || mergeStore.getState().generatorState,
-      inventory: sliceData.inventory || [],
+      mergeInventory: sliceData.mergeInventory || sliceData.inventory || [],
       lastFreePull: sliceData.lastFreePull || 0,
+      lastFreeTaps: sliceData.lastFreeTaps || 0,
     };
   });
 
@@ -127,8 +127,10 @@ export function initGameBridge() {
     board: hookState.board,
     generators: hookState.generators,
     generatorState: hookState.generatorState,
-    inventory: hookState.inventory,
+    inventory: hookState.mergeInventory,
+    mergeInventory: hookState.mergeInventory,
     lastFreePull: hookState.lastFreePull,
+    lastFreeTaps: hookState.lastFreeTaps,
   }));
 
   // ─── HUD Resources: GameStore('resources') ↔ hudStore ───
@@ -141,7 +143,7 @@ export function initGameBridge() {
         max: 20,
         lastRegenTimestamp: Date.now(),
       },
-      harvested: sliceData.harvested ?? {},
+      harvestedCrops: sliceData.harvestedCrops ?? sliceData.harvested ?? {},
       gachaTokens: sliceData.gachaTokens ?? 0,
     };
   });
@@ -149,40 +151,10 @@ export function initGameBridge() {
   _bridgeHookToSlice("resources", hudStore, (hookState) => ({
     gold: hookState.gold,
     energy: hookState.energy,
-    harvested: hookState.harvested,
+    harvested: hookState.harvestedCrops,
+    harvestedCrops: hookState.harvestedCrops,
     gachaTokens: hookState.gachaTokens,
   }));
-
-  // ─── Harvested crops: resources.harvested → farmStore.harvested ───
-  // Vanilla inventory.js writes harvested crops to GameStore("resources").harvested
-  // via syncHarvestedToStore(). MobileShopDrawer and BottomNav both read
-  // farmStore.harvested, which was always {} because the farm bridge only maps
-  // farm.harvested (seeds inventory parent), not resources.harvested.
-  // This unidirectional bridge closes that gap.
-  // Direction: resources slice change → farmStore (no reverse — MobileShopDrawer
-  // writes back directly via farmStore.setState + server ack).
-  GameStore.subscribe("resources", (newResources) => {
-    if (_syncing) return;
-    if (!newResources?.harvested) return;
-    const current = farmStore.getState().harvested;
-    // Shallow-compare to avoid ∞ update loop
-    if (current === newResources.harvested) return;
-    let same = true;
-    const nh = newResources.harvested;
-    for (const k in nh) {
-      if (nh[k] !== current[k]) { same = false; break; }
-    }
-    for (const k in current) {
-      if (!(k in nh)) { same = false; break; }
-    }
-    if (same) return;
-    _syncing = true;
-    try {
-      farmStore.setState({ harvested: { ...newResources.harvested } });
-    } finally {
-      _syncing = false;
-    }
-  });
 } // end initGameBridge
 
 /**

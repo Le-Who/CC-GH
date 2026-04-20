@@ -2,8 +2,8 @@
  * ═══════════════════════════════════════════════════════
  *  useMergeEngine — React/Zustand hook for Gacha Merge state
  *
- *  Owns: board (7×9), generators, generatorState, inventory,
- *  lastFreePull, trashMode.
+ *  Owns: board (7×9), generators, generatorState, mergeInventory,
+ *  lastFreePull, lastFreeTaps, trashMode.
  *
  *  Server-authoritative: all mutations go through API calls.
  *  Hook provides optimistic state + rollback.
@@ -43,8 +43,9 @@ export const mergeStore = create((set, get) => ({
   generatorState: {
     textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
   },
-  inventory: [],
+  mergeInventory: [],
   lastFreePull: 0,
+  lastFreeTaps: 0,
   trashMode: false,
   selectedFuel: {}, // chainId → cropId
 
@@ -90,6 +91,8 @@ export const mergeStore = create((set, get) => ({
   setGenerators: (generators) => set({ generators }),
   setGeneratorState: (generatorState) => set({ generatorState }),
   setLastFreePull: (lastFreePull) => set({ lastFreePull }),
+  setLastFreeTaps: (lastFreeTaps) => set({ lastFreeTaps }),
+  setMergeInventory: (mergeInventory) => set({ mergeInventory }),
   toggleTrashMode: () => set((s) => ({ trashMode: !s.trashMode })),
   setSelectedFuel: (chainId, cropId) =>
     set((s) => ({
@@ -103,8 +106,10 @@ export const mergeStore = create((set, get) => ({
       board: mergeData.board || get().board,
       generators: mergeData.generators || get().generators,
       generatorState: mergeData.generatorState || get().generatorState,
-      inventory: mergeData.inventory || get().inventory,
+      mergeInventory:
+        mergeData.mergeInventory || mergeData.inventory || get().mergeInventory,
       lastFreePull: mergeData.lastFreePull || get().lastFreePull,
+      lastFreeTaps: mergeData.lastFreeTaps || get().lastFreeTaps,
     });
   },
 
@@ -143,8 +148,9 @@ export const mergeStore = create((set, get) => ({
       board: get().board,
       generators: get().generators,
       generatorState: get().generatorState,
-      inventory: get().inventory,
+      mergeInventory: get().mergeInventory,
       lastFreePull: get().lastFreePull,
+      lastFreeTaps: get().lastFreeTaps,
     }),
 
   rollback: (snap) => set(snap),
@@ -156,5 +162,6 @@ export function useMergeEngine() {
 
 export const useMergeBoard = () => mergeStore((s) => s.board);
 export const useMergeGenerators = () => mergeStore((s) => s.generators);
+export const useMergeInventory = () => mergeStore((s) => s.mergeInventory);
 export const useMergeTrashMode = () => mergeStore((s) => s.trashMode);
 export { ITEM_LOOKUP };

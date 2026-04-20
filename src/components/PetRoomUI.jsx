@@ -7,12 +7,18 @@ import {
   PET_EXPRESSIONS,
 } from "../../game-logic.js";
 import { api, showToast } from "../vanilla/shared.js";
+import { syncRoomState } from "../services/inventoryService.js";
 
 // Basic 4x4 Grid for the room
 const GRID_SIZE = 4;
 const CELL_SIZE = 60;
 
-const EMPTY_ROOM = { decorations: [], inventory: [], wallpaper: "default" };
+const EMPTY_ROOM = {
+  decorations: [],
+  inventory: [],
+  roomInventory: [],
+  wallpaper: "default",
+};
 
 function PetRoomAvatar({ petData }) {
   if (!petData) return null;
@@ -102,7 +108,7 @@ export default function PetRoomUI({ active }) {
 
   if (!active) return null;
 
-  const inventory = roomData.inventory || [];
+  const roomInventory = roomData.roomInventory || roomData.inventory || [];
 
   const handleTileTap = async (index) => {
     // If we have an item selected, place it here
@@ -113,7 +119,7 @@ export default function PetRoomUI({ active }) {
       }
 
       // Optimistic Update
-      const newInventory = inventory.filter(
+      const nextRoomInventory = roomInventory.filter(
         (id) => id !== selectedInventoryItem,
       );
       const newDecorations = [
@@ -121,16 +127,12 @@ export default function PetRoomUI({ active }) {
         selectedInventoryItem,
       ];
 
-      useGameStore.setState((prev) => ({
-        slices: {
-          ...prev.slices,
-          room: {
-            ...prev.slices.room,
-            inventory: newInventory,
-            decorations: newDecorations,
-          },
-        },
-      }));
+      syncRoomState({
+        ...roomData,
+        inventory: nextRoomInventory,
+        roomInventory: nextRoomInventory,
+        decorations: newDecorations,
+      });
       setSelectedInventoryItem(null);
 
       // Tell Server (Mock implementation - assuming route exists or will be added)
@@ -147,18 +149,14 @@ export default function PetRoomUI({ active }) {
         const newDecorations = (roomData.decorations || []).filter(
           (id) => id !== item,
         );
-        const newInventory = [...inventory, item];
+        const nextRoomInventory = [...roomInventory, item];
 
-        useGameStore.setState((prev) => ({
-          slices: {
-            ...prev.slices,
-            room: {
-              ...prev.slices.room,
-              inventory: newInventory,
-              decorations: newDecorations,
-            },
-          },
-        }));
+        syncRoomState({
+          ...roomData,
+          inventory: nextRoomInventory,
+          roomInventory: nextRoomInventory,
+          decorations: newDecorations,
+        });
 
         try {
           await api("/api/pet/room/pickup", { decoId: item });
@@ -218,13 +216,13 @@ export default function PetRoomUI({ active }) {
       {/* Inventory */}
       <div className="mt-8 px-6 flex-1 overflow-hidden flex flex-col">
         <h3 className="text-lg font-bold text-white mb-3">Inventory</h3>
-        {inventory.length === 0 ? (
+        {roomInventory.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-textDim border-2 border-dashed border-border rounded-xl">
             No items. Play Merge to find decorations!
           </div>
         ) : (
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x">
-            {inventory.map((itemId, i) => {
+            {roomInventory.map((itemId, i) => {
               const deco = ROOM_DECORATIONS[itemId];
               if (!deco) return null;
               const isSelected = selectedInventoryItem === itemId;

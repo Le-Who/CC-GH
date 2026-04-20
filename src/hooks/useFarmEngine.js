@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════
  *  useFarmEngine — React/Zustand hook for Farm state
  *
- *  Owns all farm state: plots, inventory, harvested, crops config,
+ *  Owns all farm state: plots, seedInventory, crops config,
  *  selectedSeed, buyQty, clockDelta. Provides typed actions that
  *  vanilla farm.js can progressively migrate to.
  *
@@ -10,7 +10,7 @@
  *  + syncToStore()/syncFromStore() bridge pattern.
  *
  *  Usage in React:
- *    const { plots, inventory, plant, harvest } = useFarmEngine();
+ *    const { plots, seedInventory, plant, harvest } = useFarmEngine();
  *
  *  Usage in Vanilla JS (via store export):
  *    import { farmStore } from '@/hooks/useFarmEngine';
@@ -19,6 +19,7 @@
  */
 import { create } from "zustand";
 import { CROPS as CROPS_CONFIG, getUnlockedSeeds } from "/game-logic.js";
+import { hudStore } from "./useHUDEngine.js";
 
 /**
  * Zustand store — the single source of truth for farm state.
@@ -27,8 +28,7 @@ import { CROPS as CROPS_CONFIG, getUnlockedSeeds } from "/game-logic.js";
 export const farmStore = create((set, get) => ({
   // ─── State ───
   plots: [],
-  inventory: {},
-  harvested: {},
+  seedInventory: {},
   coins: 0,
   xp: 0,
   level: 1,
@@ -56,12 +56,13 @@ export const farmStore = create((set, get) => ({
   },
 
   getUnlockedSeeds: () => {
-    const { harvested, plots, questsCompleted, stats } = get();
+    const { plots, questsCompleted, stats } = get();
+    const harvestedCrops = hudStore.getState().harvestedCrops || {};
     let totalHarvests = stats?.totalHarvests || 0;
-    if (totalHarvests === 0 && harvested) {
-      for (const key in harvested) {
-        if (Object.hasOwn(harvested, key)) {
-          totalHarvests += harvested[key];
+    if (totalHarvests === 0 && harvestedCrops) {
+      for (const key in harvestedCrops) {
+        if (Object.hasOwn(harvestedCrops, key)) {
+          totalHarvests += harvestedCrops[key];
         }
       }
     }
@@ -85,8 +86,7 @@ export const farmStore = create((set, get) => ({
   setFarmState: (serverData) =>
     set({
       plots: serverData.plots || [],
-      inventory: serverData.inventory || {},
-      harvested: serverData.harvested || {},
+      seedInventory: serverData.inventory || {},
       coins: serverData.coins || 0,
       xp: serverData.xp || 0,
       level: serverData.level || 1,
@@ -121,23 +121,15 @@ export const farmStore = create((set, get) => ({
       plots: state.plots.map((p, i) => (i === index ? { ...p, ...update } : p)),
     })),
 
-  // Optimistic inventory update
-  updateInventory: (seedId, delta) =>
+  // Optimistic seed inventory update
+  updateSeedInventory: (seedId, delta) =>
     set((state) => ({
-      inventory: {
-        ...state.inventory,
-        [seedId]: Math.max(0, (state.inventory[seedId] || 0) + delta),
+      seedInventory: {
+        ...state.seedInventory,
+        [seedId]: Math.max(0, (state.seedInventory[seedId] || 0) + delta),
       },
     })),
-
-  // Optimistic harvested update
-  addHarvested: (cropId, qty = 1) =>
-    set((state) => ({
-      harvested: {
-        ...state.harvested,
-        [cropId]: (state.harvested[cropId] || 0) + qty,
-      },
-    })),
+  updateInventory: (seedId, delta) => get().updateSeedInventory(seedId, delta),
 
   // Optimistic gold update
   addGold: (amount) =>
@@ -171,11 +163,10 @@ export const farmStore = create((set, get) => ({
 
   // Full state snapshot for rollback
   snapshot: () => {
-    const { plots, inventory, harvested, coins, xp, level } = get();
+    const { plots, seedInventory, coins, xp, level } = get();
     return {
       plots: plots.map((p) => ({ ...p })),
-      inventory: { ...inventory },
-      harvested: { ...harvested },
+      seedInventory: { ...seedInventory },
       coins,
       xp,
       level,
@@ -197,17 +188,19 @@ export function useFarmEngine() {
  * Selector hooks for granular subscriptions.
  */
 export const useFarmPlots = () => farmStore((s) => s.plots);
-export const useFarmInventory = () => farmStore((s) => s.inventory);
-export const useFarmHarvested = () => farmStore((s) => s.harvested);
+export const useSeedInventory = () => farmStore((s) => s.seedInventory);
+export const useFarmInventory = useSeedInventory;
+export const useHarvestedCrops = () => hudStore((s) => s.harvestedCrops);
+export const useFarmHarvested = useHarvestedCrops;
 export const useFarmLoading = () => farmStore((s) => s.isLoading);
 export const useSelectedSeed = () => farmStore((s) => s.selectedSeed);
 
 export const useHasFarmItems = () =>
   farmStore((s) => {
-    const inv = s.inventory;
-    if (!inv) return false;
-    for (const key in inv) {
-      if (Object.hasOwn(inv, key) && inv[key] > 0) return true;
+    const seedInventory = s.seedInventory;
+    if (!seedInventory) return false;
+    for (const key in seedInventory) {
+      if (Object.hasOwn(seedInventory, key) && seedInventory[key] > 0) return true;
     }
     return false;
   });

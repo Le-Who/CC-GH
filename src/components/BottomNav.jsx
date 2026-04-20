@@ -21,14 +21,17 @@ const TABS = [
  *  - Includes bag icon for MobileShopDrawer access on farm tab
  */
 export default function BottomNav({ activeTab, onTabSelect, onOpenDrawer }) {
-  const roomInventory = useGameStore((state) => state.slices.room?.inventory);
+  const roomInventory = useGameStore(
+    (state) => state.slices.room?.roomInventory ?? state.slices.room?.inventory,
+  );
   const hasNewRoomItems = roomInventory ? roomInventory.length > 0 : false;
   // v8.2: using derived selector for performance instead of Object.values().some() inline
   const hasItems = useGameStore((s) => {
-    const inv = s.slices?.farm?.inventory;
-    if (!inv) return false;
-    for (const key in inv) {
-      if (Object.hasOwn(inv, key) && inv[key] > 0) return true;
+    const seedInventory =
+      s.slices?.farm?.seedInventory ?? s.slices?.farm?.inventory;
+    if (!seedInventory) return false;
+    for (const key in seedInventory) {
+      if (Object.hasOwn(seedInventory, key) && seedInventory[key] > 0) return true;
     }
     return false;
   });

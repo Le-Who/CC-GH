@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
+import { useHarvestedCrops } from '../hooks/useHUDEngine.js';
 import { CROPS } from '/game-logic.js';
 
 export default function QuestUI({ isOpen, onClose }) {
   const slices = useGameStore(state => state.slices);
+  const harvestedCrops = useHarvestedCrops();
   const pet = slices.pet || {};
   const orders = pet.activeOrders || [];
   
@@ -72,7 +74,8 @@ export default function QuestUI({ isOpen, onClose }) {
                   <QuestItem 
                     key={order.id} 
                     order={order} 
-                    slices={slices} 
+                    slices={slices}
+                    harvestedCrops={harvestedCrops}
                     onFulfill={() => handleFulfill(order.id)} 
                   />
                 ))
@@ -86,8 +89,7 @@ export default function QuestUI({ isOpen, onClose }) {
   );
 }
 
-function QuestItem({ order, slices, onFulfill }) {
-  const harvested = slices.resources?.harvested || {};
+function QuestItem({ order, slices, harvestedCrops, onFulfill }) {
   const mergeBoard = slices.merge?.board || [];
   
   // Calculate if CAN fulfill and build display list
@@ -102,7 +104,7 @@ function QuestItem({ order, slices, onFulfill }) {
       const c = CROPS[req.id];
       emoji = c?.emoji || '🌿';
       label = c?.name || req.id;
-      hasQty = harvested[req.id] || 0;
+      hasQty = harvestedCrops[req.id] || 0;
     } else if (req.type === 'merge') {
       emoji = '🧩';
       label = req.id;

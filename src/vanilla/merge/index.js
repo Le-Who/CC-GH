@@ -16,6 +16,10 @@ import {
   freePull,
   trashMergeItem,
 } from "./api.js";
+import {
+  syncMergeState,
+  syncResourcesState,
+} from "../../services/inventoryService.js";
 
 /* ═══════════════════════════════════════════════════
  *  Init & Lifecycle
@@ -28,15 +32,29 @@ function init() {
   // Subscribe to merge state changes
   // v6.2.1: split board vs panel subscription
   let _prevGenState = null;
-  GameStore.subscribe("merge", (prev, next) => {
+  let _prevResourceKey = null;
+
+  GameStore.subscribe("merge", (next) => {
     renderBoard();
     const nextGenKey = JSON.stringify({
-      g: next?.generators,
-      gs: next?.generatorState,
-      lp: next?.lastFreePull,
+      g: next?.generators || [],
+      gs: next?.generatorState || {},
+      lp: next?.lastFreePull || 0,
+      lft: next?.lastFreeTaps || 0,
     });
     if (nextGenKey !== _prevGenState) {
       _prevGenState = nextGenKey;
+      renderGeneratorPanel();
+    }
+  });
+
+  GameStore.subscribe("resources", (next) => {
+    const nextResourceKey = JSON.stringify({
+      harvested: next?.harvested || {},
+      gachaTokens: next?.gachaTokens || 0,
+    });
+    if (nextResourceKey !== _prevResourceKey) {
+      _prevResourceKey = nextResourceKey;
       renderGeneratorPanel();
     }
   });
@@ -49,9 +67,9 @@ async function onEnter() {
   // Fetch latest merge + resource state from server
   try {
     const data = await api("/api/merge/state", { userId: HUB.userId });
-    if (data?.merge) GameStore.setState("merge", data.merge);
+    if (data?.merge) syncMergeState(data.merge);
     if (data?.resources) {
-      GameStore.setState("resources", data.resources);
+      syncResourcesState(data.resources);
       HUD.updateDisplay(data.resources);
     }
   } catch {
