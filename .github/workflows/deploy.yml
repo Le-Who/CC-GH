@@ -236,6 +236,13 @@ jobs:
             fi
 
             compose -p ccgh pull app
+
+            STALE_APP_CONTAINERS="$(docker ps -a --format '{{.ID}} {{.Names}}' | awk '$2 ~ /_ccgh-app$/ { print $1 }')"
+            if [ -n "$STALE_APP_CONTAINERS" ]; then
+              echo "Removing stale failed app recreate containers: $STALE_APP_CONTAINERS"
+              docker rm -f $STALE_APP_CONTAINERS
+            fi
+
             compose -p ccgh up -d --remove-orphans
 
             for i in $(seq 1 30); do
