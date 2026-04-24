@@ -20,10 +20,11 @@ CC-GH is a five-game Telegram Mini App deployed as an isolated VPS Docker Compos
 ## Games
 
 - Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, and season progress.
-- Building Blox: Pixi board surface backed by shared pure puzzle logic.
-- Gem Crush: Pixi board surface with saved modes and score reward contracts.
-- Gacha Merge: server-validated board state, generators, inventory, gacha pulls, daily free pull, and separate daily free-tap allowance.
-- Brain Blitz: React-first trivia flow, solo sessions, and in-memory duel rooms.
+- Building Blox: Pixi board surface with tray selection, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
+- Gem Crush: Pixi board surface with Classic, Timed, and Star Drop mode selection, local cascade resolution, saved mode sync, and reward settlement.
+- Gacha Merge: server-validated board state, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
+- Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, and in-memory duel rooms.
+- Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, and persistent decoration placement.
 
 ## Architecture
 
@@ -53,9 +54,10 @@ Frontend flow:
 
 1. `src/main.jsx` mounts `src/App.jsx`.
 2. `App.jsx` initializes Telegram platform helpers and fetches `/api/config`.
-3. Authenticated state requests load Farm, Blox, Match-3, Merge, and shared resources.
-4. Pixi scenes are lazy-loaded for Farm, Blox, Match-3, and Merge through `PixiGameHost`.
-5. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`.
+4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
+5. Pixi scenes for Farm, Blox, Match-3, and Merge mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
+6. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
 
@@ -134,6 +136,8 @@ Public unauthenticated APIs:
 
 Authenticated gameplay APIs:
 
+- New-stack player snapshot/mutations: `GET /api/player/snapshot`, `POST /api/player/mutate`
+- Typed mutate actions include `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `pet.feed`, `pet.rename`, `quest.generate`, `quest.submit`, `room.place`, and `room.pickup`.
 - Farm and resource state/mutations: `/api/farm/*`, `/api/resources/state`, `/api/pet/*`
 - Merge: `/api/merge/*`
 - Match-3: `/api/game/*`
@@ -164,6 +168,8 @@ Copy `.env.example` and set:
 - `DEV_AUTH_ENABLED`
 
 The compose stack also uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to provision PostgreSQL. In production, GitHub Actions writes `/opt/game-hub/.env` from repository secrets; do not commit production `.env` files.
+
+Playwright web-server runs with `NODE_ENV=test`, `DEV_AUTH_ENABLED=true`, and an empty `DATABASE_URL`; in that mode only, `withPlayerLock()` uses a process-local player store so browser smoke tests can exercise authenticated mutations without a local Postgres tenant. Production and normal development still require PostgreSQL for durable player state.
 
 ## Development
 

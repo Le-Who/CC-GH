@@ -16,6 +16,7 @@ import { defaultLimiter } from "./middleware/rateLimit.js";
 import batchRoutes from "./routes/batch.js";
 import farmRoutes from "./routes/farm.js";
 import resourcesRoutes from "./routes/resources.js";
+import playerRoutes from "./routes/player.js";
 import triviaRoutes from "./routes/trivia.js";
 import match3Routes from "./routes/match3.js";
 import bloxRoutes from "./routes/blox.js";
@@ -84,6 +85,15 @@ app.use((_req, res, next) => {
 
 app.use("/api", (req, res, next) => {
   if (req.path.startsWith("/config") || req.path.startsWith("/health")) return next();
+  if (
+    req.path.startsWith("/player/") ||
+    req.path.startsWith("/farm/") ||
+    req.path.startsWith("/merge/") ||
+    req.path.startsWith("/game/") ||
+    req.path.startsWith("/blox/")
+  ) {
+    return next();
+  }
   return defaultLimiter(req, res, next);
 });
 
@@ -133,6 +143,7 @@ app.get("/api/admin/account-report", requireAuth, async (req, res) => {
 const triviaRouter = triviaRoutes(requireAuth, resolveUser);
 app.use(farmRoutes(requireAuth, resolveUser));
 app.use(resourcesRoutes(requireAuth, resolveUser));
+app.use(playerRoutes(requireAuth, resolveUser));
 app.use(triviaRouter);
 app.use(match3Routes(requireAuth, resolveUser));
 app.use(bloxRoutes(requireAuth, resolveUser));

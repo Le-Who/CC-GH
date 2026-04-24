@@ -4,17 +4,20 @@
 
 :root {
   color-scheme: dark;
-  --ink: #f8f1df;
-  --muted: #b9c0c7;
-  --panel: #13202a;
-  --panel-2: #1d2c35;
-  --field: #0d151c;
-  --line: rgba(248, 241, 223, 0.12);
-  --mint: #69e6a3;
-  --amber: #ffcd5b;
-  --coral: #ff7a66;
-  --sky: #74c7ff;
-  --berry: #d89cff;
+  --ink: #fff4d8;
+  --muted: #aeb8c4;
+  --panel: #101821;
+  --panel-2: #172331;
+  --panel-3: #203044;
+  --field: #0b1118;
+  --line: rgba(255, 244, 216, 0.13);
+  --line-strong: rgba(255, 244, 216, 0.24);
+  --mint: #70e5a0;
+  --amber: #ffcb61;
+  --coral: #ff7867;
+  --sky: #78c7ff;
+  --berry: #ca9cff;
+  --leaf: #9bda74;
   --safe-top: var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-bottom: var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   font-family: Nunito, Varela Round, system-ui, sans-serif;
@@ -39,12 +42,39 @@ body,
   color: var(--ink);
 }
 
-button {
+button,
+input,
+select {
   font: inherit;
 }
 
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  color: inherit;
+}
+
+input,
+select {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 11px;
+  background: var(--field);
+  color: var(--ink);
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--mint);
+}
+
 .telegram-app {
-  width: min(100vw, 560px);
+  width: min(100vw, 1180px);
   height: 100dvh;
   margin: 0 auto;
   padding: calc(12px + var(--safe-top)) 14px calc(88px + var(--safe-bottom));
@@ -59,6 +89,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
 .eyebrow {
@@ -73,7 +104,7 @@ button {
 h1 {
   margin: 0;
   font-family: Bungee, Nunito, sans-serif;
-  font-size: clamp(1.7rem, 6vw, 2.5rem);
+  font-size: clamp(1.7rem, 5vw, 3rem);
   line-height: 0.95;
 }
 
@@ -87,6 +118,7 @@ h1 {
   text-align: center;
   font-size: 0.76rem;
   font-weight: 900;
+  text-transform: capitalize;
 }
 
 .status-dot.ready {
@@ -100,8 +132,9 @@ h1 {
 .profile-strip,
 .stats-row,
 .notice,
-.game-surface,
-.trivia-panel {
+.loading-panel,
+.side-panel,
+.trivia-card {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: color-mix(in srgb, var(--panel) 88%, black);
@@ -154,6 +187,7 @@ h1 {
   align-content: center;
   column-gap: 7px;
   background: var(--panel-2);
+  min-width: 0;
 }
 
 .stat-chip svg {
@@ -169,21 +203,143 @@ h1 {
 .stat-chip strong {
   grid-column: 1 / -1;
   font-size: 1.05rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notice {
   padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--amber) 14%, var(--panel));
   color: var(--amber);
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.loading-panel {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.game-layout,
+.trivia-shell,
+.room-layout {
+  min-height: 0;
+  display: grid;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.game-layout,
+.room-layout {
+  grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
+}
+
+.trivia-shell {
+  grid-template-columns: minmax(360px, 1fr) minmax(280px, 380px);
+}
+
+.pixi-host,
+.room-stage,
+.side-panel,
+.trivia-card {
+  min-height: 0;
+}
+
+.side-panel,
+.trivia-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.panel-header.tight {
+  margin-top: 4px;
+}
+
+.panel-header > div {
+  min-width: 0;
+}
+
+.panel-header strong,
+.side-panel > strong,
+.trivia-card strong,
+.leaderboard > strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 1000;
+}
+
+.panel-header span,
+.generator-card small,
+.item-card small,
+.progress-card span,
+.question-panel small,
+.leaderboard span,
+.duel-box span,
+.results-box span,
+.empty-state {
+  color: var(--muted);
+  font-size: 0.8rem;
   font-weight: 800;
 }
 
-.game-surface,
-.trivia-panel {
-  min-height: 0;
+.callout {
+  border: 1px solid color-mix(in srgb, var(--mint) 35%, transparent);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--mint) 12%, var(--panel));
+  color: var(--mint);
+  font-weight: 900;
+}
+
+.section-tabs {
   display: grid;
-  grid-template-rows: minmax(260px, 1fr) auto;
-  gap: 12px;
-  padding: 12px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(88px, 1fr);
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.section-tabs button,
+.mode-grid button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 1000;
+}
+
+.section-tabs button.active,
+.mode-grid button.active {
+  border-color: color-mix(in srgb, var(--mint) 70%, transparent);
+  background: color-mix(in srgb, var(--mint) 18%, var(--field));
+  color: var(--ink);
+}
+
+.panel-scroll {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .pixi-host {
@@ -213,52 +369,286 @@ h1 {
   font-weight: 900;
 }
 
-.action-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.action-button,
-.bottom-tabs button,
-.answer-button {
+.panel-button,
+.answer-grid button {
   border: 0;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.action-button {
-  min-height: 46px;
+.panel-button {
+  min-height: 40px;
   border-radius: 8px;
   padding: 0 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
   background: var(--mint);
-  color: #071016;
+  color: #08110d;
   font-weight: 1000;
+  white-space: nowrap;
 }
 
-.action-button.secondary {
-  background: var(--amber);
+.panel-button.subtle {
+  border: 1px solid var(--line);
+  background: var(--panel-3);
+  color: var(--ink);
 }
 
-.action-button:disabled {
+.panel-button.danger,
+.panel-button.active {
+  background: var(--coral);
+  color: #1d0905;
+}
+
+.panel-button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
 
-.trivia-panel {
-  grid-template-rows: auto 1fr auto;
+.button-row,
+.join-row,
+.quantity-row,
+.metric-grid,
+.mode-grid {
+  display: grid;
+  gap: 8px;
 }
 
-.trivia-question {
-  padding: 14px;
+.button-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.join-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.quantity-row {
+  grid-template-columns: 1fr 92px;
+  align-items: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.metric-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mode-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mode-grid button {
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  padding: 8px;
+}
+
+.mode-grid small {
+  color: inherit;
+  opacity: 0.78;
+}
+
+.grid-list,
+.generator-list,
+.compact-list,
+.quest-list,
+.leaderboard,
+.form-grid,
+.ability-list,
+.badge-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.item-card,
+.generator-card,
+.progress-card,
+.order-card,
+.duel-box,
+.results-box,
+.leaderboard,
+.question-panel,
+.ability-list {
+  border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--field);
-  font-size: 1.1rem;
-  font-weight: 1000;
+}
+
+.item-card {
+  min-height: 68px;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+button.item-card {
+  cursor: pointer;
+}
+
+.item-card.selected {
+  border-color: var(--mint);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mint) 40%, transparent);
+}
+
+.item-card.locked {
+  opacity: 0.55;
+}
+
+.item-card > span:not(.item-emoji) {
+  min-width: 0;
+}
+
+.item-card strong,
+.item-card small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-emoji {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--panel-2);
+  font-size: 1.45rem;
+}
+
+.theme-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.theme-strip button {
+  min-height: 66px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.theme-strip button.active {
+  border-color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 16%, var(--field));
+}
+
+.theme-strip span,
+.theme-strip small {
+  display: block;
+}
+
+.badge-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.badge-card {
+  min-height: 102px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--field);
+  opacity: 0.5;
+}
+
+.badge-card.unlocked {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+.badge-card span {
+  font-size: 1.6rem;
+}
+
+.badge-card strong,
+.badge-card small {
+  display: block;
+}
+
+.progress-card {
+  padding: 12px;
+}
+
+.generator-card {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.generator-card strong,
+.generator-card small,
+.compact-list span {
+  display: block;
+}
+
+.compact-list span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--field);
+}
+
+.leaderboard {
+  padding: 10px;
+  align-content: start;
+}
+
+.leaderboard div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trivia-card {
+  justify-content: start;
+}
+
+.question-panel {
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.question-panel h2 {
+  margin: 0;
+  font-size: clamp(1.15rem, 3vw, 1.7rem);
+  line-height: 1.08;
+}
+
+.question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.question-meta span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
 }
 
 .answer-grid {
@@ -267,7 +657,7 @@ h1 {
   align-content: start;
 }
 
-.answer-button {
+.answer-grid button {
   min-height: 54px;
   border-radius: 8px;
   padding: 10px;
@@ -277,25 +667,124 @@ h1 {
   font-weight: 850;
 }
 
-.answer-button.correct {
-  background: color-mix(in srgb, var(--mint) 78%, black);
-  color: #06120b;
+.duel-box,
+.results-box {
+  padding: 14px;
+  display: grid;
+  gap: 10px;
 }
 
-.answer-button.wrong {
-  background: color-mix(in srgb, var(--coral) 82%, black);
-  color: #1a0704;
+.results-box {
+  place-items: center;
+  text-align: center;
+}
+
+.room-stage {
+  position: relative;
+  min-height: 460px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(120, 199, 255, 0.14), transparent 42%),
+    linear-gradient(0deg, rgba(112, 229, 160, 0.16), transparent 36%),
+    #101821;
+}
+
+.room-grid {
+  position: absolute;
+  inset: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.room-cell {
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: rgba(11, 17, 24, 0.48);
+  cursor: pointer;
+}
+
+.room-cell.target {
+  border-color: var(--mint);
+  background: rgba(112, 229, 160, 0.12);
+}
+
+.room-cell span {
+  font-size: clamp(1.8rem, 6vw, 3rem);
+}
+
+.pet-avatar {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  width: min(42%, 220px);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  animation: pet-idle 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.pet-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ability-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 9px;
+}
+
+.ability-list span {
+  border-radius: 7px;
+  padding: 7px;
+  background: var(--panel-2);
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.ability-list .unlocked {
+  color: var(--mint);
+}
+
+.order-card {
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.empty-state {
+  padding: 12px;
+  text-align: center;
+}
+
+@keyframes pet-idle {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-8px);
+  }
 }
 
 .bottom-tabs {
   position: fixed;
-  left: max(10px, calc((100vw - 560px) / 2 + 10px));
-  right: max(10px, calc((100vw - 560px) / 2 + 10px));
+  left: max(10px, calc((100vw - 1180px) / 2 + 10px));
+  right: max(10px, calc((100vw - 1180px) / 2 + 10px));
   bottom: calc(10px + var(--safe-bottom));
   z-index: 5;
   min-height: 64px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
   padding: 6px;
   border: 1px solid var(--line);
@@ -305,6 +794,8 @@ h1 {
 }
 
 .bottom-tabs button {
+  border: 0;
+  cursor: pointer;
   min-width: 0;
   border-radius: 7px;
   display: grid;
@@ -330,7 +821,100 @@ h1 {
     display: none;
   }
 
-  .game-surface {
-    grid-template-rows: minmax(220px, 1fr) auto;
+}
+
+@media (max-width: 780px) {
+  .telegram-app {
+    width: min(100vw, 560px);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  }
+
+  .game-layout,
+  .trivia-shell,
+  .room-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(260px, 0.95fr) minmax(220px, 1fr);
+  }
+
+  .pixi-host {
+    min-height: 280px;
+  }
+
+  .side-panel,
+  .trivia-card {
+    min-height: 0;
+  }
+
+  .button-row,
+  .mode-grid,
+  .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .item-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .item-card .panel-button {
+    grid-column: span 1;
+  }
+
+  .theme-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .room-stage {
+    min-height: 300px;
+  }
+
+  .bottom-tabs {
+    left: 10px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .telegram-app {
+    padding-inline: 10px;
+    gap: 9px;
+  }
+
+  .profile-strip {
+    min-height: 50px;
+  }
+
+  .stats-row,
+  .metric-grid,
+  .button-row,
+  .mode-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .panel-button {
+    min-height: 38px;
+    padding: 0 7px;
+    gap: 5px;
+    font-size: 0.78rem;
+  }
+
+  .panel-button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .panel-header {
+    align-items: stretch;
+  }
+
+  .panel-header .panel-button {
+    max-width: 128px;
+  }
+
+  .bottom-tabs button {
+    font-size: 0.66rem;
   }
 }

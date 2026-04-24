@@ -23,6 +23,8 @@ import {
   getScaledTime,
   forceGrowAll,
 } from "../game-logic.js";
+import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
+import { applyAction } from "../routes/player.js";
 
 /* ─────────────────────────────────────────────────────
  *  createDefaultPlayer
@@ -79,6 +81,73 @@ describe("createDefaultPlayer", () => {
   it("starts with 5 strawberry seeds", () => {
     const p = createDefaultPlayer("u5", "Test");
     assert.equal(p.farm.inventory.strawberry, 5);
+  });
+});
+
+describe("new-stack player snapshot and inventory contracts", () => {
+  it("normalizes harvested, merge, room, and reward inventory aliases", () => {
+    const snapshot = {
+      resources: {
+        gold: 125,
+        gachaTokens: 3,
+        harvested: { strawberry: 2 },
+        energy: { current: 4, max: 20 },
+      },
+      farm: {
+        inventory: { strawberry: 5 },
+        harvested: { blueberry: 1 },
+      },
+      merge: {
+        board: [
+          [{ id: "thread", chainId: "textile", level: 0 }, null],
+          [{ id: "thread", chainId: "textile", level: 0 }],
+        ],
+      },
+      room: {
+        inventory: ["deco_chair"],
+      },
+    };
+
+    const inventory = normalizeInventory(snapshot);
+
+    assert.deepEqual(inventory.seeds, { strawberry: 5 });
+    assert.deepEqual(inventory.harvested, { strawberry: 2 });
+    assert.deepEqual(inventory.harvestedCrops, { strawberry: 2 });
+    assert.deepEqual(inventory.mergeItems, { thread: 2 });
+    assert.deepEqual(inventory.roomInventory, ["deco_chair"]);
+    assert.equal(inventory.rewards.gold, 125);
+    assert.equal(inventory.rewards.gachaTokens, 3);
+  });
+
+  it("writes normalized aliases back into snapshot resources and room state", () => {
+    const normalized = withNormalizedSnapshot({
+      resources: { harvestedCrops: { carrot: 4 } },
+      room: { roomInventory: ["deco_lamp"] },
+    });
+
+    assert.deepEqual(normalized.resources.harvested, { carrot: 4 });
+    assert.deepEqual(normalized.resources.harvestedCrops, { carrot: 4 });
+    assert.deepEqual(normalized.room.inventory, ["deco_lamp"]);
+    assert.deepEqual(normalized.room.roomInventory, ["deco_lamp"]);
+  });
+
+  it("places and picks up room decorations through authoritative player actions", async () => {
+    const p = createDefaultPlayer("room-user", "Roomy");
+    p.room.inventory = ["deco_chair"];
+    p.room.roomInventory = ["deco_chair"];
+
+    const placed = await applyAction(p, "room.place", { decoId: "deco_chair" });
+    assert.equal(placed.status, 200);
+    assert.deepEqual(p.room.decorations, ["deco_chair"]);
+    assert.deepEqual(p.room.inventory, []);
+    assert.deepEqual(p.room.roomInventory, []);
+    assert.deepEqual(placed.body.snapshot.room.decorations, ["deco_chair"]);
+
+    const picked = await applyAction(p, "room.pickup", { decoId: "deco_chair" });
+    assert.equal(picked.status, 200);
+    assert.deepEqual(p.room.decorations, []);
+    assert.deepEqual(p.room.inventory, ["deco_chair"]);
+    assert.deepEqual(picked.body.snapshot.inventory.roomInventory, ["deco_chair"]);
   });
 });
 

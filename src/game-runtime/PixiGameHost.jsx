@@ -2,18 +2,21 @@ import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { setGameGestureActive } from "../platform/telegram.js";
 
-export default function PixiGameHost({ sceneKey, buildScene, className = "" }) {
+export default function PixiGameHost({ sceneKey, buildScene, sceneState, className = "" }) {
   const containerRef = useRef(null);
+  const appRef = useRef(null);
+  const sceneRef = useRef(null);
+  const stateRef = useRef(sceneState);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let app = null;
-    let cleanupScene = null;
     let cancelled = false;
 
     async function mount() {
       if (!containerRef.current) return;
       try {
+        setFailed(false);
         app = new Application();
         await app.init({
           resizeTo: containerRef.current,
@@ -24,11 +27,13 @@ export default function PixiGameHost({ sceneKey, buildScene, className = "" }) {
           powerPreference: "high-performance",
         });
         if (cancelled) {
-          app.destroy(true);
+          app.destroy({ removeView: true }, { children: true, texture: true, textureSource: true });
           return;
         }
+        appRef.current = app;
         containerRef.current.appendChild(app.canvas);
-        cleanupScene = buildScene(app);
+        sceneRef.current = buildScene(app, stateRef.current);
+        sceneRef.current?.update?.(stateRef.current);
       } catch (err) {
         console.error(`Pixi scene ${sceneKey} failed`, err);
         setFailed(true);
@@ -38,10 +43,18 @@ export default function PixiGameHost({ sceneKey, buildScene, className = "" }) {
     mount();
     return () => {
       cancelled = true;
-      cleanupScene?.();
-      app?.destroy(true, { children: true, texture: true });
+      sceneRef.current?.destroy?.();
+      sceneRef.current = null;
+      appRef.current = null;
+      app?.destroy({ removeView: true }, { children: true, texture: true, textureSource: true });
+      setGameGestureActive(false);
     };
   }, [sceneKey, buildScene]);
+
+  useEffect(() => {
+    stateRef.current = sceneState;
+    sceneRef.current?.update?.(sceneState);
+  }, [sceneState]);
 
   return (
     <div

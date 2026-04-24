@@ -26,6 +26,9 @@ export default defineConfig({
     env: {
       NODE_ENV: 'test',
       PORT: '3000',
+      DEV_AUTH_ENABLED: 'true',
+      DATABASE_URL: '',
+      REDIS_URL: '',
     }
   },
 });

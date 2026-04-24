@@ -35,6 +35,7 @@ import {
 
 /** @type {Map<string, Promise<any>>} */
 const _mutexChain = new Map();
+const _memoryPlayers = new Map();
 
 /**
  * Acquires an in-process mutex for the given account ID.
@@ -52,6 +53,27 @@ function _acquireMutex(userId, fn) {
     if (_mutexChain.get(userId) === next) _mutexChain.delete(userId);
   });
   return next;
+}
+
+function allowMemoryPlayerStore() {
+  return process.env.NODE_ENV === "test";
+}
+
+function emitPlayerSync(userId, player) {
+  const io = getIO();
+  if (!io) return;
+  io.to(userId).emit("player_sync", {
+    seq: player._syncSeq,
+    serverTime: Date.now(),
+    payload: {
+      resources: player.resources,
+      harvested: player.farm.harvested,
+      plots: player.farm.plots,
+      merge: player.merge,
+      pet: player.pet,
+      achievements: player.achievements,
+    },
+  });
 }
 
 /**
@@ -72,7 +94,28 @@ function _acquireMutex(userId, fn) {
 export async function withPlayerLock(userId, asyncFn, username = null) {
   const sql = getDb();
   if (!sql) {
-    throw new Error("DATABASE_URL must be configured for v10.0 Postgres migration.");
+    if (!allowMemoryPlayerStore()) {
+      throw new Error("DATABASE_URL must be configured for v10.0 Postgres migration.");
+    }
+    return _acquireMutex(userId, async () => {
+      const displayName = username || `Player_${userId.slice(-4)}`;
+      let player = _memoryPlayers.get(userId);
+      if (!player) {
+        player = createDefaultPlayer(userId, displayName);
+        player._version = crypto.randomUUID();
+      }
+      player = applyMigrations(player);
+      if (username && player.username !== username) player.username = username;
+      player._lastSeen = Date.now();
+
+      const handlerResult = await asyncFn(player);
+      checkAchievements(player);
+      player._syncSeq = Number(player._syncSeq || 0) + 1;
+      player._version = crypto.randomUUID();
+      _memoryPlayers.set(userId, player);
+      emitPlayerSync(userId, player);
+      return handlerResult === undefined ? player : handlerResult;
+    });
   }
 
   return _acquireMutex(userId, async () => {
@@ -137,21 +180,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
           }
 
           // Emit authenticated realtime sync.
-          const io = getIO();
-          if (io) {
-            io.to(userId).emit("player_sync", {
-              seq: player._syncSeq,
-              serverTime: Date.now(),
-              payload: {
-                resources: player.resources,
-                harvested: player.farm.harvested,
-                plots: player.farm.plots,
-                merge: player.merge,
-                pet: player.pet,
-                achievements: player.achievements,
-              },
-            });
-          }
+          emitPlayerSync(userId, player);
           
           return handlerResult === undefined ? player : handlerResult;
         }
@@ -191,7 +220,7 @@ export async function ensurePlayerLoaded(userId) {
  */
 async function _postgresLoadOnly(userId) {
   const sql = getDb();
-  if (!sql) return null;
+  if (!sql) return _memoryPlayers.get(userId) || null;
   try {
     const [row] = await sql`SELECT data FROM players WHERE id = ${userId}`;
     return row ? row.data : null;

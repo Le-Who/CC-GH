@@ -17,6 +17,15 @@
 - Replaced the runtime shell with typed React tabs, Telegram safe-area CSS variables, haptic helpers, authenticated API client, and realtime client.
 - Added reusable `PixiGameHost` and initial Pixi scenes for Farm, Blox, Match-3, and Merge.
 - Kept Trivia React-first while preserving the game hub navigation contract.
+- Rebuilt the game surface around a shared Zustand hub, normalized inventory, richer Pixi scenes, Farm Bag/shop/journal/season panels, Blox tray play, Match-3 mode play, Merge generators/trash/free taps, Trivia solo/duel controls, and the animated Pet Room.
+- Stabilized Pixi v8 lifecycle so active scenes receive state updates without full remounts and clean up ticker/listener/canvas state on tab changes.
+
+### API
+
+- Added `GET /api/player/snapshot` and `POST /api/player/mutate` as the new task-oriented player sync layer for Farm, Blox, Match-3, Merge, Pet, Room, and quest actions.
+- Added normalized inventory payloads covering seeds, harvested crops, merge board item counts, room inventory, and rewards, replacing the old `harvested`/`inventory` split on the React client.
+- Added durable room placement/pickup mutations plus compatibility `/api/pet/room/place` and `/api/pet/room/pickup` wrappers.
+- Added a test-only in-memory player store for Playwright web-server runs when `DATABASE_URL` is intentionally empty.
 
 ### Operations
 
