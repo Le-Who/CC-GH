@@ -40,11 +40,13 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
         await app.init({
           resizeTo: containerRef.current,
           backgroundAlpha: 0,
-          antialias: false,
+          antialias: true,
           autoDensity: true,
+          resolution: Math.min(window.devicePixelRatio || 1, 2),
           preference: "webgl",
           powerPreference: "high-performance",
         });
+        app.ticker.maxFPS = 60;
         if (cancelled) {
           destroyPixiApp(app);
           return;

@@ -1,6 +1,6 @@
 # Game Hub Telegram Mini App
 
-CC-GH is a five-game Telegram Mini App deployed as an isolated VPS Docker Compose stack. The client is a React/Vite shell with PixiJS game surfaces, authenticated REST APIs, and authenticated Socket.IO state sync. PostgreSQL is the durable source of player state; Redis is used for cache, nonce, and rate-limit acceleration.
+CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compose stack. The client is a React/Vite shell with PixiJS game surfaces, authenticated REST APIs, and authenticated Socket.IO state sync. PostgreSQL is the durable source of player state; Redis is used for cache, nonce, and rate-limit acceleration.
 
 ## Verified Stack
 
@@ -23,6 +23,7 @@ CC-GH is a five-game Telegram Mini App deployed as an isolated VPS Docker Compos
 - Building Blox: Pixi board surface with tap fallback, tray-to-board drag, ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
 - Gem Crush: Pixi board surface with Classic, Timed, and Star Drop mode selection, tap-pair fallback, swipe swapping, local cascade resolution, saved mode sync, and reward settlement.
 - Gacha Merge: server-validated board state, drag/tap merging, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
+- Bubbo Bubbo: Pixi bubble-shooter surface with wall-bank aiming, projectile motion, cluster popping, floating-bubble drops, server-backed run lifecycle, and reward settlement.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, and in-memory duel rooms.
 - Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, and persistent decoration placement.
 
@@ -56,7 +57,7 @@ Frontend flow:
 2. `App.jsx` initializes Telegram platform helpers and fetches `/api/config`.
 3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`.
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
-5. Pixi scenes for Farm, Blox, Match-3, and Merge mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
+5. Pixi scenes for Farm, Blox, Match-3, Merge, and Bubbo mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
 6. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use pointer drag/swipe interactions where the legacy games depended on touch movement.
 7. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
@@ -138,7 +139,7 @@ Public unauthenticated APIs:
 Authenticated gameplay APIs:
 
 - New-stack player snapshot/mutations: `GET /api/player/snapshot`, `POST /api/player/mutate`
-- Typed mutate actions include `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `pet.feed`, `pet.rename`, `quest.generate`, `quest.submit`, `room.place`, and `room.pickup`.
+- Typed mutate actions include `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `bubbo.start`, `bubbo.sync`, `bubbo.end`, `pet.feed`, `pet.rename`, `quest.generate`, `quest.submit`, `room.place`, and `room.pickup`.
 - Farm and resource state/mutations: `/api/farm/*`, `/api/resources/state`, `/api/pet/*`
 - Merge: `/api/merge/*`
 - Match-3: `/api/game/*`

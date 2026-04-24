@@ -75,13 +75,32 @@ select:focus {
 
 .telegram-app {
   width: min(100vw, 1180px);
-  height: 100dvh;
+  height: min(100dvh, var(--tg-viewport-stable-height, 100dvh));
   margin: 0 auto;
   padding: calc(12px + var(--safe-top)) 14px calc(88px + var(--safe-bottom));
   display: grid;
   grid-template-rows: auto auto auto auto 1fr;
   gap: 12px;
   overflow: hidden;
+}
+
+.telegram-app.play-mode {
+  padding: calc(8px + var(--safe-top)) 12px calc(78px + var(--safe-bottom));
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.telegram-app.play-mode .profile-strip {
+  display: none;
+}
+
+.telegram-app.play-mode .eyebrow {
+  display: none;
+}
+
+.telegram-app.play-mode h1 {
+  font-size: clamp(1.28rem, 3vw, 1.9rem);
+  line-height: 1;
 }
 
 .topbar {
@@ -260,6 +279,7 @@ h1 {
 .trivia-shell,
 .room-layout {
   min-height: 0;
+  height: 100%;
   display: grid;
   gap: 12px;
   overflow: hidden;
@@ -273,7 +293,7 @@ h1 {
 
 .game-layout,
 .room-layout {
-  grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
 }
 
 .trivia-shell {
@@ -390,6 +410,37 @@ h1 {
   overscroll-behavior: none;
 }
 
+.telegram-app.play-mode .stats-row {
+  min-height: 44px;
+}
+
+.telegram-app.play-mode .stat-chip {
+  min-height: 44px;
+  padding: 6px 8px;
+}
+
+.telegram-app.play-mode .stat-chip span {
+  font-size: 0.68rem;
+}
+
+.telegram-app.play-mode .stat-chip strong {
+  font-size: 0.92rem;
+}
+
+.telegram-app.play-mode .game-layout {
+  gap: 10px;
+}
+
+.telegram-app.play-mode .pixi-host {
+  height: 100%;
+  min-height: 0;
+}
+
+.telegram-app.play-mode .side-panel {
+  min-height: 0;
+  overflow: auto;
+}
+
 .pixi-host canvas {
   width: 100%;
   height: 100%;
@@ -411,6 +462,7 @@ h1 {
 }
 
 .panel-button {
+  min-width: 0;
   min-height: 44px;
   border-radius: 8px;
   padding: 0 10px;
@@ -424,6 +476,12 @@ h1 {
   white-space: nowrap;
   transform: translateZ(0);
   transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+}
+
+.panel-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .panel-button:active,
@@ -833,7 +891,7 @@ button.item-card {
   z-index: 5;
   min-height: 64px;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
   border: 1px solid var(--line);
@@ -901,6 +959,40 @@ button.item-card {
     display: none;
   }
 
+  .telegram-app.play-mode {
+    padding-top: calc(6px + var(--safe-top));
+    padding-bottom: calc(70px + var(--safe-bottom));
+  }
+
+  .telegram-app.play-mode .topbar {
+    min-height: 42px;
+  }
+
+  .telegram-app.play-mode .bottom-tabs {
+    min-height: 56px;
+  }
+
+  .telegram-app.play-mode .side-panel .leaderboard {
+    display: none;
+  }
+
+}
+
+@media (max-width: 980px) {
+  .telegram-app.play-mode .game-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(320px, 1fr) auto;
+  }
+
+  .telegram-app.play-mode .side-panel {
+    max-height: min(31dvh, 220px);
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .telegram-app.play-mode .pixi-host {
+    min-height: min(62dvh, 560px);
+  }
 }
 
 @media (max-width: 780px) {
@@ -914,6 +1006,14 @@ button.item-card {
   .room-layout {
     grid-template-columns: 1fr;
     grid-template-rows: minmax(260px, 0.95fr) minmax(220px, 1fr);
+  }
+
+  .telegram-app.play-mode {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .telegram-app.play-mode .game-layout {
+    grid-template-rows: minmax(320px, 1fr) auto;
   }
 
   .pixi-host {
@@ -995,6 +1095,15 @@ button.item-card {
   }
 
   .bottom-tabs button {
-    font-size: 0.66rem;
+    font-size: 0.58rem;
+  }
+
+  .bottom-tabs button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .telegram-app.play-mode .side-panel {
+    max-height: min(30dvh, 190px);
   }
 }

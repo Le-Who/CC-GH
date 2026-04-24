@@ -19,6 +19,9 @@
 - Kept Trivia React-first while preserving the game hub navigation contract.
 - Rebuilt the game surface around a shared Zustand hub, normalized inventory, richer Pixi scenes, Farm Bag/shop/journal/season panels, Blox tray play, Match-3 mode play, Merge generators/trash/free taps, Trivia solo/duel controls, and the animated Pet Room.
 - Stabilized Pixi v8 lifecycle so active scenes receive state updates without full remounts and clean up ticker/listener/canvas state on tab changes.
+- Added a Telegram play-mode layout that prioritizes canvas height in compact desktop and mobile webviews, hides nonessential profile chrome during board games, and keeps the game frame clear of the bottom nav.
+- Reworked Blox, Match-3, and Merge drag/aim feedback so pointer movement updates lightweight Pixi overlay layers instead of rebuilding the whole scene tree on every move.
+- Added Bubbo Bubbo as a new Pixi bubble-shooter tab with bank-shot aiming, projectile motion, cluster popping, drop scoring, and compact HUD integration.
 
 ### API
 
@@ -26,6 +29,7 @@
 - Added normalized inventory payloads covering seeds, harvested crops, merge board item counts, room inventory, and rewards, replacing the old `harvested`/`inventory` split on the React client.
 - Added durable room placement/pickup mutations plus compatibility `/api/pet/room/place` and `/api/pet/room/pickup` wrappers.
 - Added a test-only in-memory player store for Playwright web-server runs when `DATABASE_URL` is intentionally empty.
+- Added server-backed Bubbo run lifecycle actions (`bubbo.start`, `bubbo.sync`, `bubbo.end`), schema migration defaults, and bounded reward calculation.
 
 ### Operations
 
@@ -39,5 +43,6 @@
 - Removed the obsolete Compose `version` attribute and added cleanup for stale failed app-recreate containers named like `*_ccgh-app` before `docker compose up`.
 - Moved Blox pure engine and piece definitions into server-copied `game-logic/` modules so production containers no longer import missing `src/game-core/*` files at startup.
 - Added Pixi pointer drag/swipe interactions for Blox, Match-3, and Merge, with canvas gesture isolation, ghost previews, match highlights, and reduced-motion-aware React transitions.
+- Added desktop/mobile Playwright coverage for compact play-mode canvas sizing and Bubbo smoke rendering.
 - Added opt-in UI audio with `public/assets/manifest.json` fallbacks, plus `ASSET_REPLACEMENT_GUIDE.md` for replacing icons, pet art, scene graphics, and sound effects.
 - Reworked Playwright e2e startup to use a fresh test port/build, replaced stale legacy auth assertions, and added canvas drag/swipe smoke coverage.

@@ -34,7 +34,7 @@ describe("createDefaultPlayer", () => {
     const p = createDefaultPlayer("u1", "Alice");
     assert.equal(p.id, "u1");
     assert.equal(p.username, "Alice");
-    assert.equal(p.schemaVersion, 7);
+    assert.equal(p.schemaVersion, 9);
     assert.equal(p.resources.gold, ECONOMY.GOLD_START);
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_START);
     assert.equal(p.resources.energy.max, ECONOMY.ENERGY_MAX);
@@ -42,6 +42,7 @@ describe("createDefaultPlayer", () => {
     assert.ok(p.farm);
     assert.ok(p.trivia);
     assert.ok(p.match3);
+    assert.ok(p.bubbo);
     // v6.0: Economy fields
     assert.equal(p.pet.stats.fullness, 0);
     assert.ok(Array.isArray(p.pet.activeOrders));
@@ -53,6 +54,8 @@ describe("createDefaultPlayer", () => {
     assert.ok(Array.isArray(p.merge.generators));
     assert.equal(p.pet.affectionXp, 0);
     assert.equal(p.pet.affectionLevel, 1);
+    assert.equal(p.bubbo.highScore, 0);
+    assert.equal(p.bubbo.currentGame, null);
   });
 
   it("[FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp", () => {

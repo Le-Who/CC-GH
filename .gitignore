@@ -22,3 +22,6 @@ playwright/.cache/
 
 package-lock.json
 .pnpm-store
+skills-lock.json
+implementation_plan.md
+walkthrough.md

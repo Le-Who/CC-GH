@@ -30,6 +30,7 @@ import {
   createEmptyBoard,
   canAnyPieceFit,
   canPlace,
+  calcBubboReward,
   placePiece,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
@@ -183,6 +184,12 @@ export function buildSnapshot(p, extras = {}) {
       ...(p.blox || {}),
       savedState: bloxSaved,
       highScore: p.blox?.highScore || 0,
+    },
+    bubbo: {
+      ...(p.bubbo || {}),
+      currentGame: p.bubbo?.currentGame || null,
+      highScore: p.bubbo?.highScore || 0,
+      totalGames: p.bubbo?.totalGames || 0,
     },
     match3: {
       ...(p.match3 || {}),
@@ -799,6 +806,41 @@ export async function applyAction(p, action, payload = {}) {
         p.match3.highScore = Math.max(p.match3.highScore || 0, score);
       }
       p.match3.currentGame = null;
+      return ok(action, p, { score, goldReward, tokenReward });
+    }
+    case "bubbo.start": {
+      calcRegen(p);
+      if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+      if (p.resources.energy.current < ECONOMY.COST_BUBBO) return fail(400, "NOT_ENOUGH_ENERGY", { required: ECONOMY.COST_BUBBO, current: p.resources.energy.current });
+      p.resources.energy.current -= ECONOMY.COST_BUBBO;
+      p.bubbo.totalGames = (p.bubbo.totalGames || 0) + 1;
+      p.bubbo.currentGame = { score: 0, shotsLeft: 36 };
+      return ok(action, p, { game: p.bubbo.currentGame });
+    }
+    case "bubbo.sync": {
+      if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+      if (payload.game && typeof payload.game === "object") {
+        p.bubbo.currentGame = {
+          score: Math.max(0, Number(payload.game.score) || 0),
+          shotsLeft: Math.max(0, Number(payload.game.shotsLeft) || 0),
+        };
+      }
+      return ok(action, p);
+    }
+    case "bubbo.end": {
+      if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+      const score = Number(payload.score) || p.bubbo.currentGame?.score || 0;
+      if (!p.bubbo.currentGame && score > 0 && !payload.fromQuit) return fail(403, "Invalid Bubbo session");
+      let goldReward = 0;
+      let tokenReward = 0;
+      if (score > 0 && score <= 25000) {
+        goldReward = calcBubboReward(score);
+        tokenReward = calcTokenReward(score);
+        p.resources.gold += goldReward;
+        p.resources.gachaTokens = (p.resources.gachaTokens || 0) + tokenReward;
+        p.bubbo.highScore = Math.max(p.bubbo.highScore || 0, score);
+      }
+      p.bubbo.currentGame = null;
       return ok(action, p, { score, goldReward, tokenReward });
     }
     default:

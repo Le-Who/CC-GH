@@ -11,9 +11,12 @@ export const ECONOMY = {
   ENERGY_REGEN_INTERVAL_MS: 150 * 1000, // 2.5 minutes
   GOLD_START: 100,
   COST_MATCH3: 5,
+  COST_BUBBO: 4,
   COST_TRIVIA: 3,
   REWARD_MATCH3_WIN: 40,
   REWARD_MATCH3_LOSE: 5,
+  REWARD_BUBBO_WIN: 34,
+  REWARD_BUBBO_LOSE: 5,
   REWARD_TRIVIA_WIN: 25,
   REWARD_TRIVIA_LOSE: 5,
   FEED_PET_XP: 10,
@@ -99,6 +102,19 @@ export function calcBloxReward(score) {
   if (score >= 300)
     gold += Math.floor(((Math.min(score, 600) - 300) / 50) * 0.15 * BASE);
   if (score >= 600) gold += Math.floor(((score - 600) / 50) * 0.25 * BASE);
+  return Math.min(gold, 400);
+}
+
+export function calcBubboReward(score) {
+  const BASE = ECONOMY.REWARD_BUBBO_WIN;
+  if (typeof score !== "number" || score <= 0) return ECONOMY.REWARD_BUBBO_LOSE;
+  if (score < 300) {
+    return Math.max(ECONOMY.REWARD_BUBBO_LOSE, Math.floor(BASE * (score / 300)));
+  }
+  let gold = BASE;
+  if (score >= 300) gold += Math.floor(((Math.min(score, 900) - 300) / 100) * 0.09 * BASE);
+  if (score >= 900) gold += Math.floor(((Math.min(score, 1800) - 900) / 100) * 0.16 * BASE);
+  if (score >= 1800) gold += Math.floor(((score - 1800) / 100) * 0.28 * BASE);
   return Math.min(gold, 400);
 }
 

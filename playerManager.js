@@ -247,7 +247,7 @@ process.on("SIGINT", gracefulShutdown);
  * strictly a migration pipeline used by withPlayerLock.
  */
 export function applyMigrations(p) {
-  const currentSchemaVersion = 8;
+  const currentSchemaVersion = 9;
   
   if (!p) return null;
 
@@ -375,6 +375,20 @@ export function applyMigrations(p) {
       };
     }
     p.schemaVersion = 8;
+  }
+
+  if (!p.schemaVersion || p.schemaVersion < 9) {
+    if (!p.bubbo) {
+      p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+    }
+    p.schemaVersion = 9;
+  }
+
+  if (!p.bubbo) {
+    p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+  }
+  if (p.bubbo && !("currentGame" in p.bubbo)) {
+    p.bubbo.currentGame = null;
   }
 
   if (!p.merge) {

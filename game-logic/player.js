@@ -70,7 +70,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 7,
+    schemaVersion: 9,
     _lastSeen: now,
     _onboarded: false,
     resources: {
@@ -138,6 +138,11 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       highScore: 0,
       totalGames: 0,
       activeGame: false,
+    },
+    bubbo: {
+      highScore: 0,
+      totalGames: 0,
+      currentGame: null,
     },
     streak: { current: 0, best: 0, lastLoginDate: null, bonusMultiplier: 1 },
     achievements: {},

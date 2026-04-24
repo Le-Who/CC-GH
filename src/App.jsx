@@ -30,12 +30,21 @@ import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegr
 import PixiGameHost from "./game-runtime/PixiGameHost.jsx";
 import {
   buildBloxScene,
+  buildBubboScene,
   buildFarmScene,
   buildMatch3Scene,
   buildMergeScene,
 } from "./game-runtime/scenes.js";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { listPositive } from "./game-state/inventory.js";
+import {
+  BUBBO_SHOTS,
+  applyBubboShot,
+  createBubboBoard,
+  getBubboRemainingCount,
+  isBubboDanger,
+  randomBubboColor,
+} from "./game-core/bubbo/engine.js";
 import {
   BOARD_SIZE,
   cloneBoard,
@@ -51,9 +60,12 @@ const TABS = [
   { id: "blox", label: "Blox", icon: Blocks },
   { id: "match3", label: "Gems", icon: Gem },
   { id: "merge", label: "Merge", icon: PackageOpen },
+  { id: "bubbo", label: "Bubbo", icon: Sparkles },
   { id: "trivia", label: "Trivia", icon: Bot },
   { id: "room", label: "Room", icon: Home },
 ];
+
+const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
 
 const MATCH3_MODES = [
   { id: "classic", label: "Classic", hint: "30 moves" },
@@ -383,7 +395,7 @@ function BloxGame() {
   const onCell = useCallback(
     (row, col) => {
       if (selectedPiece < 0 || !state.gameActive) return;
-      performAction("blox.place", { pieceIdx: selectedPiece, row, col }, { key: "blox.place" }).then((result) => {
+      performAction("blox.place", { pieceIdx: selectedPiece, row, col }, { key: `blox.place.${selectedPiece}.${row}.${col}` }).then((result) => {
         if (!result.error) setSelectedPiece(-1);
       });
     },
@@ -393,7 +405,7 @@ function BloxGame() {
   const onDrop = useCallback(
     (pieceIdx, row, col) => {
       if (pieceIdx < 0 || !state.gameActive) return Promise.resolve({ error: "inactive" });
-      return performAction("blox.place", { pieceIdx, row, col }, { key: "blox.place" }).then((result) => {
+      return performAction("blox.place", { pieceIdx, row, col }, { key: `blox.place.${pieceIdx}.${row}.${col}` }).then((result) => {
         if (!result.error) {
           setSelectedPiece(-1);
           if (result.clear?.cleared) audioManager.play("clear");
@@ -582,6 +594,122 @@ function Match3Game() {
   );
 }
 
+function BubboGame() {
+  const snapshot = useSnapshot();
+  const performAction = useAction();
+  const [board, setBoard] = useState(() => createBubboBoard());
+  const [score, setScore] = useState(0);
+  const [shotsLeft, setShotsLeft] = useState(BUBBO_SHOTS);
+  const [gameActive, setGameActive] = useState(false);
+  const [currentBubble, setCurrentBubble] = useState(() => randomBubboColor());
+  const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
+  const [lastShot, setLastShot] = useState(null);
+  const highScore = snapshot?.bubbo?.highScore || 0;
+  const remainingBubbles = getBubboRemainingCount(board);
+
+  const start = useCallback(async () => {
+    const result = await performAction("bubbo.start", { shotsLeft: BUBBO_SHOTS }, { key: "bubbo.start" });
+    if (result.error) return;
+    const nextBoard = createBubboBoard();
+    setBoard(nextBoard);
+    setScore(0);
+    setShotsLeft(BUBBO_SHOTS);
+    setGameActive(true);
+    setCurrentBubble(randomBubboColor(nextBoard));
+    setNextBubble(randomBubboColor(nextBoard));
+    setLastShot(null);
+  }, [performAction]);
+
+  const finish = useCallback(
+    (finalScore = score, fromQuit = false) => {
+      setGameActive(false);
+      performAction("bubbo.end", { score: finalScore, fromQuit }, { key: "bubbo.end" });
+    },
+    [performAction, score],
+  );
+
+  const onFire = useCallback(
+    (row, col, path = []) => {
+      if (!gameActive) return;
+      const result = applyBubboShot(board, currentBubble, row, col);
+      if (result.error) return;
+      const nextScore = score + result.points;
+      const nextShots = Math.max(0, shotsLeft - 1);
+      const remaining = getBubboRemainingCount(result.board);
+      const shotRecord = {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        color: currentBubble,
+        path,
+        landed: result.landed,
+        popped: result.popped,
+        dropped: result.dropped,
+      };
+      setBoard(result.board);
+      setScore(nextScore);
+      setShotsLeft(nextShots);
+      setLastShot(shotRecord);
+      setCurrentBubble(nextBubble);
+      setNextBubble(randomBubboColor(result.board));
+      audioManager.play(result.popped.length ? "clear" : "tap");
+      performAction(
+        "bubbo.sync",
+        { game: { score: nextScore, shotsLeft: nextShots } },
+        { silent: true, key: `bubbo.sync.${shotRecord.id}` },
+      );
+      if (remaining === 0 || nextShots <= 0 || isBubboDanger(result.board)) {
+        finish(nextScore);
+      }
+    },
+    [board, currentBubble, finish, gameActive, nextBubble, performAction, score, shotsLeft],
+  );
+
+  const sceneState = useMemo(
+    () => ({
+      bubbo: {
+        board,
+        score,
+        shotsLeft,
+        gameActive,
+        current: currentBubble,
+        next: nextBubble,
+        lastShot,
+      },
+      onBubboFire: onFire,
+    }),
+    [board, currentBubble, gameActive, lastShot, nextBubble, onFire, score, shotsLeft],
+  );
+
+  return (
+    <div className="game-layout">
+      <PixiGameHost sceneKey="bubbo" buildScene={buildBubboScene} sceneState={sceneState} />
+      <aside className="side-panel">
+        <div className="panel-header">
+          <div>
+            <strong>Bubbo Bubbo</strong>
+            <span>Best {highScore} · {remainingBubbles} bubbles</span>
+          </div>
+          <PanelButton icon={gameActive ? RotateCcw : Play} onClick={start}>
+            {gameActive ? "Restart" : "Start"}
+          </PanelButton>
+        </div>
+        <div className="metric-grid">
+          <Stat icon={Trophy} label="Score" value={score} />
+          <Stat icon={Sparkles} label="Shots" value={shotsLeft} />
+          <Stat icon={Zap} label="Cost" value={ECONOMY.COST_BUBBO} />
+        </div>
+        <div className="button-row">
+          <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
+          <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => setBoard(createBubboBoard())}>New Field</PanelButton>
+        </div>
+        <div className="leaderboard">
+          <strong>Run Status</strong>
+          <span>{isBubboDanger(board) ? "Danger line" : "Field stable"} · high score {highScore}</span>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
 function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -597,7 +725,7 @@ function MergeGame() {
   const onMergeCell = useCallback(
     (r, c, item) => {
       if (trashMode) {
-        if (item) performAction("merge.trash", { r, c }, { key: "merge.trash" });
+        if (item) performAction("merge.trash", { r, c }, { key: `merge.trash.${r}.${c}` });
         return;
       }
       if (!item) {
@@ -612,7 +740,7 @@ function MergeGame() {
         setSelectedCell(null);
         return;
       }
-      performAction("merge.merge", { fromR: selectedCell.r, fromC: selectedCell.c, toR: r, toC: c }, { key: "merge.merge" }).then((result) => {
+      performAction("merge.merge", { fromR: selectedCell.r, fromC: selectedCell.c, toR: r, toC: c }, { key: `merge.merge.${selectedCell.r}.${selectedCell.c}.${r}.${c}` }).then((result) => {
         if (!result.error) setSelectedCell(null);
       });
     },
@@ -622,14 +750,14 @@ function MergeGame() {
   const onMergeDrop = useCallback(
     (fromR, fromC, toR, toC, item) => {
       if (trashMode) {
-        if (item) return performAction("merge.trash", { r: fromR, c: fromC }, { key: "merge.trash" });
+        if (item) return performAction("merge.trash", { r: fromR, c: fromC }, { key: `merge.trash.${fromR}.${fromC}` });
         return Promise.resolve({ error: "empty cell" });
       }
       if (fromR === toR && fromC === toC) {
         setSelectedCell({ r: fromR, c: fromC });
         return Promise.resolve({ error: "same cell" });
       }
-      return performAction("merge.merge", { fromR, fromC, toR, toC }, { key: "merge.merge" }).then((result) => {
+      return performAction("merge.merge", { fromR, fromC, toR, toC }, { key: `merge.merge.${fromR}.${fromC}.${toR}.${toC}` }).then((result) => {
         if (!result.error) {
           setSelectedCell(null);
           audioManager.play(result.roomDrop ? "gacha" : "merge");
@@ -1046,6 +1174,7 @@ function ActiveGame() {
   if (activeTab === "blox") return <BloxGame />;
   if (activeTab === "match3") return <Match3Game />;
   if (activeTab === "merge") return <MergeGame />;
+  if (activeTab === "bubbo") return <BubboGame />;
   if (activeTab === "trivia") return <TriviaGame />;
   return <RoomGame />;
 }
@@ -1109,7 +1238,7 @@ export default function App() {
   const energy = resources.energy || {};
 
   return (
-    <main className="telegram-app">
+    <main className={`telegram-app${PLAY_TABS.has(activeTab) ? " play-mode" : ""}`}>
       <header className="topbar">
         <div>
           <p className="eyebrow">Telegram Mini App</p>

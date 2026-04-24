@@ -73,7 +73,7 @@ export default defineConfig({
       manifest: {
         name: "Game Hub Ultra",
         short_name: "GameHub",
-        description: "5-in-1 Telegram Mini App game hub — Farm, Trivia, Match-3, Blox, Merge",
+        description: "Telegram Mini App game hub — Farm, Trivia, Match-3, Blox, Merge, Bubbo, and Pet Room",
         theme_color: "#1a1a2e",
         background_color: "#1a1a2e",
         display: "standalone",

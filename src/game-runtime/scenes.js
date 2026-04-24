@@ -1,5 +1,12 @@
 import { Container, Graphics, Text } from "pixi.js";
 import { CROPS, MERGE_CHAINS } from "../../game-logic.js";
+import {
+  BUBBO_COLORS,
+  BUBBO_COLS,
+  BUBBO_PALETTE,
+  BUBBO_ROWS,
+  getBubboNeighbors,
+} from "../game-core/bubbo/engine.js";
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js";
 import { GRID } from "../game-core/blox/pieces.js";
 
@@ -25,6 +32,17 @@ const MINT = 0x70e5a0;
 const AMBER = 0xffcc5f;
 const CORAL = 0xff7867;
 const SKY = 0x78c7ff;
+const BUBBO_NUMBERS = Object.fromEntries(
+  Object.entries(BUBBO_PALETTE).map(([name, value]) => [name, Number.parseInt(value.slice(1), 16)]),
+);
+
+function viewWidth(app) {
+  return app.screen?.width || app.renderer.width;
+}
+
+function viewHeight(app) {
+  return app.screen?.height || app.renderer.height;
+}
 
 function clear(container) {
   for (const child of container.removeChildren()) {
@@ -77,8 +95,8 @@ function makeInteractive(g, handlers = {}) {
 }
 
 function fit(app, cols, rows, margin = 18, extraBottom = 0) {
-  const width = app.renderer.width;
-  const height = app.renderer.height - extraBottom;
+  const width = viewWidth(app);
+  const height = viewHeight(app) - extraBottom;
   const size = Math.max(140, Math.min(width - margin * 2, height - margin * 2));
   return {
     size,
@@ -122,10 +140,24 @@ function tickParticles(container) {
     child._life -= 1;
     child.x += child._vx;
     child.y += child._vy;
+    if (child._gravity) child._vy += child._gravity;
+    if (child._spin) child.rotation += child._spin;
     child.alpha = Math.max(0, child._life / 26);
-    child.scale.set(0.96 + child.alpha * 0.35);
+    const baseScale = child._grow ? 1 + (1 - child.alpha) * child._grow : 0.96 + child.alpha * 0.35;
+    child.scale.set(baseScale);
     if (child._life <= 0) child.destroy();
   }
+}
+
+function makeRipple(root, x, y, color = SKY, radius = 28) {
+  const ripple = new Graphics().circle(0, 0, radius).stroke({ color, width: 3, alpha: 0.85 });
+  ripple.x = x;
+  ripple.y = y;
+  ripple._life = 20;
+  ripple._vx = 0;
+  ripple._vy = 0;
+  ripple._grow = 1.45;
+  root.addChild(ripple);
 }
 
 function setupStage(app, onMove, onUp) {
@@ -275,8 +307,9 @@ export function buildFarmScene(app, initial = {}) {
 
 export function buildBloxScene(app, initial = {}) {
   const root = new Container();
+  const dragLayer = new Container();
   const effects = new Container();
-  app.stage.addChild(root, effects);
+  app.stage.addChild(root, dragLayer, effects);
   let data = initial;
   let layout = null;
   let drag = null;
@@ -289,16 +322,18 @@ export function buildBloxScene(app, initial = {}) {
     return group;
   }
 
-  function drawGhost() {
+  function updateDragVisual() {
+    clear(dragLayer);
     if (!drag?.piece) return;
     const unit = Math.min(layout?.cell || 22, 28);
     const ghost = drawPiece(drag.piece, drag.x - unit * 0.8, drag.y - unit * 0.8, unit, 0.76);
     ghost.alpha = drag.overCell ? 0.98 : 0.66;
-    root.addChild(ghost);
+    ghost.scale.set(drag.overCell ? 1.08 : 1);
+    dragLayer.addChild(ghost);
     if (drag.overCell) {
       const x = layout.left + drag.overCell.col * layout.cell + 1;
       const y = layout.top + drag.overCell.row * layout.cell + 1;
-      root.addChild(strokedRect(x, y, layout.cell - 2, layout.cell - 2, AMBER, 6, 0x1f2a39, 0.55, 3));
+      dragLayer.addChild(strokedRect(x, y, layout.cell - 2, layout.cell - 2, AMBER, 6, 0x1f2a39, 0.55, 3));
     }
   }
 
@@ -308,9 +343,13 @@ export function buildBloxScene(app, initial = {}) {
     const target = cellFromPoint(layout, point.x, point.y);
     const current = drag;
     drag = null;
+    clear(dragLayer);
     if (target && data.blox?.gameActive) {
       data.onBloxDrop?.(current.pieceIdx, target.row, target.col)?.then?.((result) => {
-        if (!result?.error) makeSparkles(effects, point.x, point.y, result.clear?.cleared ? AMBER : MINT, 11);
+        if (!result?.error) {
+          makeSparkles(effects, point.x, point.y, result.clear?.cleared ? AMBER : MINT, 13);
+          makeRipple(effects, point.x, point.y, result.clear?.cleared ? AMBER : MINT, result.clear?.cleared ? 34 : 24);
+        }
       });
     } else if (current.moved) {
       makeSparkles(effects, current.startX, current.startY, CORAL, 5);
@@ -343,8 +382,8 @@ export function buildBloxScene(app, initial = {}) {
     }
 
     const trayTop = top + size + 16;
-    const trayUnit = Math.min(18, Math.max(10, (app.renderer.width - 70) / 18));
-    const slotW = (app.renderer.width - 36) / 3;
+    const trayUnit = Math.min(18, Math.max(10, (viewWidth(app) - 70) / 18));
+    const slotW = (viewWidth(app) - 36) / 3;
     for (let i = 0; i < 3; i++) {
       const t = tray[i];
       const x = 14 + i * slotW;
@@ -365,7 +404,7 @@ export function buildBloxScene(app, initial = {}) {
             moved: false,
             overCell: null,
           };
-          draw();
+          updateDragVisual();
         },
         pointertap: () => data.onBloxTray?.(i),
       });
@@ -373,8 +412,8 @@ export function buildBloxScene(app, initial = {}) {
       if (t?.piece && drag?.pieceIdx !== i) root.addChild(drawPiece(t.piece, x + 14, trayTop + 12, trayUnit, t.placed ? 0.35 : 1));
     }
 
-    drawGhost();
-    root.addChild(label(`Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, app.renderer.width / 2, trayTop + 76, 14, AMBER));
+    updateDragVisual();
+    root.addChild(label(`Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
   }
 
   const cleanup = setupStage(
@@ -385,7 +424,7 @@ export function buildBloxScene(app, initial = {}) {
       drag.y = event.global.y;
       drag.moved = drag.moved || Math.abs(drag.x - drag.startX) + Math.abs(drag.y - drag.startY) > 8;
       drag.overCell = cellFromPoint(layout, drag.x, drag.y);
-      draw();
+      updateDragVisual();
     },
     dropDrag,
   );
@@ -401,8 +440,10 @@ export function buildBloxScene(app, initial = {}) {
       cleanup();
       app.ticker.remove(ticker);
       clear(root);
+      clear(dragLayer);
       clear(effects);
       root.destroy({ children: true });
+      dragLayer.destroy({ children: true });
       effects.destroy({ children: true });
     },
   };
@@ -410,11 +451,29 @@ export function buildBloxScene(app, initial = {}) {
 
 export function buildMatch3Scene(app, initial = {}) {
   const root = new Container();
+  const dragLayer = new Container();
   const effects = new Container();
-  app.stage.addChild(root, effects);
+  app.stage.addChild(root, dragLayer, effects);
   let data = initial;
   let layout = null;
   let drag = null;
+
+  function updateDragVisual() {
+    clear(dragLayer);
+    if (!drag) return;
+    const state = data.match3 || {};
+    const board = state.board || state.savedModes?.[state.gameMode || "classic"]?.board || [];
+    const actual = board.length ? board : data.fallbackBoard || [];
+    const gem = actual[drag.from.y]?.[drag.from.x];
+    const color = GEM_COLORS[gem] || 0x5f6c7a;
+    const radius = Math.max(14, (layout?.cell || 44) * 0.33);
+    dragLayer.addChild(
+      new Graphics()
+        .circle(drag.x, drag.y, radius)
+        .fill({ color, alpha: 0.8 })
+        .stroke({ color: TEXT, width: 2, alpha: 0.7 }),
+    );
+  }
 
   function draw() {
     clear(root);
@@ -458,13 +517,8 @@ export function buildMatch3Scene(app, initial = {}) {
         if (icon) root.addChild(label(icon, left + x * cell + cell / 2, top + y * cell + cell / 2, Math.max(12, cell * 0.34)));
       }
     }
-    if (drag) {
-      const from = drag.from;
-      const gem = actual[from.y]?.[from.x];
-      const color = GEM_COLORS[gem] || 0x5f6c7a;
-      root.addChild(new Graphics().circle(drag.x, drag.y, cell * 0.31).fill({ color, alpha: 0.72 }).stroke({ color: TEXT, width: 2, alpha: 0.55 }));
-    }
-    root.addChild(label(`${state.gameMode || "classic"} · ${state.score || 0} pts · ${state.movesLeft ?? 30} moves`, app.renderer.width / 2, top + size + 24, 14, AMBER));
+    updateDragVisual();
+    root.addChild(label(`${state.gameMode || "classic"} · ${state.score || 0} pts · ${state.movesLeft ?? 30} moves`, viewWidth(app) / 2, top + size + 24, 14, AMBER));
   }
 
   const cleanup = setupStage(
@@ -473,16 +527,18 @@ export function buildMatch3Scene(app, initial = {}) {
       if (!drag) return;
       drag.x = event.global.x;
       drag.y = event.global.y;
-      draw();
+      updateDragVisual();
     },
     (event) => {
       if (!drag) return;
       const current = drag;
       drag = null;
+      clear(dragLayer);
       const target = cellFromPoint(layout, event.global.x, event.global.y);
       if (target && (target.row !== current.from.y || target.col !== current.from.x)) {
         data.onMatch3Swap?.(current.from, { x: target.col, y: target.row });
         makeSparkles(effects, event.global.x, event.global.y, SKY, 7);
+        makeRipple(effects, event.global.x, event.global.y, SKY, 24);
       } else if (Math.abs(event.global.x - current.startX) + Math.abs(event.global.y - current.startY) < 8) {
         data.onMatch3Cell?.(current.from.x, current.from.y);
       }
@@ -501,8 +557,300 @@ export function buildMatch3Scene(app, initial = {}) {
       cleanup();
       app.ticker.remove(ticker);
       clear(root);
+      clear(dragLayer);
       clear(effects);
       root.destroy({ children: true });
+      dragLayer.destroy({ children: true });
+      effects.destroy({ children: true });
+    },
+  };
+}
+
+export function buildBubboScene(app, initial = {}) {
+  const root = new Container();
+  const aimLayer = new Container();
+  const projectileLayer = new Container();
+  const effects = new Container();
+  app.stage.addChild(root, aimLayer, projectileLayer, effects);
+  let data = initial;
+  let layout = null;
+  let aimPoint = null;
+  let projectile = null;
+  let lastShotId = null;
+
+  function bubbleColor(value) {
+    return BUBBO_NUMBERS[value] || BUBBO_NUMBERS[BUBBO_COLORS[0]];
+  }
+
+  function buildLayout() {
+    const width = viewWidth(app);
+    const height = viewHeight(app);
+    const margin = 14;
+    const cell = Math.max(24, Math.min((width - margin * 2) / (BUBBO_COLS + 0.55), (height - 92) / (BUBBO_ROWS + 1.2)));
+    const boardWidth = cell * (BUBBO_COLS + 0.5);
+    const left = (width - boardWidth) / 2;
+    const top = Math.max(10, Math.min(18, (height - cell * (BUBBO_ROWS + 1.2) - 52) / 2));
+    return {
+      cell,
+      radius: cell * 0.42,
+      left,
+      top,
+      right: left + boardWidth,
+      bottom: top + cell * BUBBO_ROWS,
+      cannonX: width / 2,
+      cannonY: Math.min(height - 34, top + cell * (BUBBO_ROWS + 0.8)),
+    };
+  }
+
+  function bubblePosition(row, col) {
+    const offset = row % 2 ? layout.cell * 0.5 : 0;
+    return {
+      x: layout.left + offset + col * layout.cell + layout.cell / 2,
+      y: layout.top + row * layout.cell + layout.cell / 2,
+    };
+  }
+
+  function nearestCellFromPoint(board, x, y) {
+    let best = null;
+    let bestScore = Infinity;
+    for (let row = 0; row < BUBBO_ROWS; row++) {
+      for (let col = 0; col < BUBBO_COLS; col++) {
+        if (board[row]?.[col]) continue;
+        const touches = row === 0 || getBubboNeighbors(row, col).some(([nr, nc]) => board[nr]?.[nc]);
+        if (!touches) continue;
+        const pos = bubblePosition(row, col);
+        const distance = (pos.x - x) ** 2 + (pos.y - y) ** 2;
+        const score = distance + row * 10;
+        if (score < bestScore) {
+          bestScore = score;
+          best = { row, col, x: pos.x, y: pos.y };
+        }
+      }
+    }
+    if (best) return best;
+    for (let row = 0; row < BUBBO_ROWS; row++) {
+      for (let col = 0; col < BUBBO_COLS; col++) {
+        if (!board[row]?.[col]) {
+          const pos = bubblePosition(row, col);
+          return { row, col, x: pos.x, y: pos.y };
+        }
+      }
+    }
+    return null;
+  }
+
+  function calculateShot(target = aimPoint) {
+    const state = data.bubbo || {};
+    const board = state.board || [];
+    const cannonX = layout.cannonX;
+    const cannonY = layout.cannonY;
+    const targetX = target?.x ?? cannonX;
+    const targetY = Math.min(target?.y ?? layout.top, cannonY - layout.cell * 2);
+    let angle = Math.atan2(targetY - cannonY, targetX - cannonX);
+    angle = Math.max(-Math.PI + 0.18, Math.min(-0.18, angle));
+    let vx = Math.cos(angle);
+    let vy = Math.sin(angle);
+    let x = cannonX;
+    let y = cannonY;
+    const points = [{ x, y }];
+    const step = Math.max(5, layout.cell * 0.18);
+
+    for (let i = 0; i < 900; i++) {
+      x += vx * step;
+      y += vy * step;
+      if (x - layout.radius <= layout.left) {
+        x = layout.left + layout.radius;
+        vx = Math.abs(vx);
+        points.push({ x, y });
+      } else if (x + layout.radius >= layout.right) {
+        x = layout.right - layout.radius;
+        vx = -Math.abs(vx);
+        points.push({ x, y });
+      }
+
+      if (y <= layout.top + layout.radius) {
+        const targetCell = nearestCellFromPoint(board, x, layout.top);
+        if (!targetCell) return null;
+        points.push({ x: targetCell.x, y: targetCell.y });
+        return { ...targetCell, path: points };
+      }
+
+      for (let row = 0; row < BUBBO_ROWS; row++) {
+        for (let col = 0; col < BUBBO_COLS; col++) {
+          if (!board[row]?.[col]) continue;
+          const pos = bubblePosition(row, col);
+          const distance = Math.hypot(pos.x - x, pos.y - y);
+          if (distance < layout.radius * 1.8) {
+            const targetCell = nearestCellFromPoint(board, x, y);
+            if (!targetCell) return null;
+            points.push({ x: targetCell.x, y: targetCell.y });
+            return { ...targetCell, path: points };
+          }
+        }
+      }
+    }
+
+    const targetCell = nearestCellFromPoint(board, x, y);
+    if (!targetCell) return null;
+    points.push({ x: targetCell.x, y: targetCell.y });
+    return { ...targetCell, path: points };
+  }
+
+  function drawBubble(x, y, radius, colorName, alpha = 1) {
+    const color = bubbleColor(colorName);
+    const g = new Graphics()
+      .circle(0, 0, radius)
+      .fill({ color, alpha })
+      .stroke({ color: TEXT, width: Math.max(1.5, radius * 0.09), alpha: 0.24 });
+    g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
+    g.x = x;
+    g.y = y;
+    return g;
+  }
+
+  function updateAimVisual() {
+    clear(aimLayer);
+    if (!layout) return;
+    const state = data.bubbo || {};
+    if (!state.gameActive || projectile) return;
+    const shot = calculateShot();
+    if (!shot?.path?.length) return;
+    const line = new Graphics();
+    line.moveTo(shot.path[0].x, shot.path[0].y);
+    for (const point of shot.path.slice(1)) line.lineTo(point.x, point.y);
+    line.stroke({ color: SKY, width: 3, alpha: 0.42 });
+    aimLayer.addChild(line);
+    for (const point of shot.path.slice(1, -1)) {
+      aimLayer.addChild(new Graphics().circle(point.x, point.y, 4).fill({ color: SKY, alpha: 0.55 }));
+    }
+    aimLayer.addChild(drawBubble(shot.x, shot.y, layout.radius * 0.42, state.current || BUBBO_COLORS[0], 0.52));
+  }
+
+  function playShotEffects() {
+    const shot = data.bubbo?.lastShot;
+    if (!shot?.id || shot.id === lastShotId || !layout) return;
+    lastShotId = shot.id;
+    const targets = [...(shot.popped || []), ...(shot.dropped || [])];
+    if (shot.landed && !targets.length) {
+      const pos = bubblePosition(shot.landed.row, shot.landed.col);
+      makeRipple(effects, pos.x, pos.y, AMBER, 22);
+      return;
+    }
+    for (const cell of targets) {
+      const pos = bubblePosition(cell.row, cell.col);
+      makeSparkles(effects, pos.x, pos.y, shot.dropped?.some((drop) => drop.row === cell.row && drop.col === cell.col) ? SKY : AMBER, 9);
+      makeRipple(effects, pos.x, pos.y, AMBER, 24);
+    }
+  }
+
+  function draw() {
+    clear(root);
+    layout = buildLayout();
+    const state = data.bubbo || {};
+    const board = state.board || [];
+    root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + 20, PANEL, 16, 0.92));
+    for (let r = 0; r < BUBBO_ROWS; r++) {
+      for (let c = 0; c < BUBBO_COLS; c++) {
+        const value = board[r]?.[c];
+        const pos = bubblePosition(r, c);
+        if (value) {
+          const bubble = drawBubble(pos.x, pos.y, layout.radius, value);
+          bubble.scale.set(0.98 + Math.sin((r + c) * 0.9) * 0.015);
+          root.addChild(bubble);
+        } else {
+          root.addChild(new Graphics().circle(pos.x, pos.y, Math.max(1.5, layout.radius * 0.08)).fill({ color: 0xffffff, alpha: 0.08 }));
+        }
+      }
+    }
+
+    const cannonColor = state.current || BUBBO_COLORS[0];
+    root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: PANEL_2, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
+    root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
+    root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
+    root.addChild(label(`${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(viewHeight(app) - 12, layout.cannonY + 46), 14, AMBER));
+    updateAimVisual();
+    playShotEffects();
+  }
+
+  function fireShot() {
+    const state = data.bubbo || {};
+    if (!state.gameActive || projectile) return;
+    const shot = calculateShot();
+    if (!shot) return;
+    clear(aimLayer);
+    projectile = {
+      path: shot.path,
+      segment: 0,
+      progress: 0,
+      color: state.current || BUBBO_COLORS[0],
+      target: shot,
+      view: drawBubble(shot.path[0].x, shot.path[0].y, layout.radius * 0.9, state.current || BUBBO_COLORS[0]),
+    };
+    projectileLayer.addChild(projectile.view);
+  }
+
+  const move = (event) => {
+    aimPoint = { x: event.global.x, y: event.global.y };
+    updateAimVisual();
+  };
+  const down = (event) => {
+    aimPoint = { x: event.global.x, y: event.global.y };
+    updateAimVisual();
+  };
+  const up = (event) => {
+    aimPoint = { x: event.global.x, y: event.global.y };
+    fireShot();
+  };
+  app.stage.eventMode = "static";
+  app.stage.hitArea = app.screen;
+  app.stage.on("globalpointermove", move);
+  app.stage.on("pointerdown", down);
+  app.stage.on("pointerup", up);
+  app.stage.on("pointerupoutside", up);
+
+  const ticker = (tickerState) => {
+    tickParticles(effects);
+    if (!projectile) return;
+    const speed = Math.max(0.085, tickerState.deltaTime * 0.105);
+    projectile.progress += speed;
+    while (projectile.progress >= 1 && projectile.segment < projectile.path.length - 2) {
+      projectile.progress -= 1;
+      projectile.segment += 1;
+    }
+    const from = projectile.path[projectile.segment];
+    const to = projectile.path[Math.min(projectile.segment + 1, projectile.path.length - 1)];
+    const done = projectile.segment >= projectile.path.length - 2 && projectile.progress >= 1;
+    const t = Math.min(1, projectile.progress);
+    projectile.view.x = from.x + (to.x - from.x) * t;
+    projectile.view.y = from.y + (to.y - from.y) * t;
+    projectile.view.rotation += 0.08 * tickerState.deltaTime;
+    if (done) {
+      const current = projectile;
+      projectile = null;
+      clear(projectileLayer);
+      data.onBubboFire?.(current.target.row, current.target.col, current.path);
+    }
+  };
+  app.ticker.add(ticker);
+  draw();
+  return {
+    update(next) {
+      data = next || {};
+      draw();
+    },
+    destroy() {
+      app.stage.off("globalpointermove", move);
+      app.stage.off("pointerdown", down);
+      app.stage.off("pointerup", up);
+      app.stage.off("pointerupoutside", up);
+      app.ticker.remove(ticker);
+      clear(root);
+      clear(aimLayer);
+      clear(projectileLayer);
+      clear(effects);
+      root.destroy({ children: true });
+      aimLayer.destroy({ children: true });
+      projectileLayer.destroy({ children: true });
       effects.destroy({ children: true });
     },
   };
@@ -510,8 +858,9 @@ export function buildMatch3Scene(app, initial = {}) {
 
 export function buildMergeScene(app, initial = {}) {
   const root = new Container();
+  const dragLayer = new Container();
   const effects = new Container();
-  app.stage.addChild(root, effects);
+  app.stage.addChild(root, dragLayer, effects);
   let data = initial;
   let layout = null;
   let drag = null;
@@ -524,6 +873,23 @@ export function buildMergeScene(app, initial = {}) {
 
   function sameMergeTarget(item, other) {
     return item && other && item.chainId === other.chainId && item.level === other.level;
+  }
+
+  function updateDragVisual() {
+    clear(dragLayer);
+    if (!drag?.item) return;
+    const radius = Math.min(30, (layout?.cell || 58) * 0.4);
+    dragLayer.addChild(
+      new Graphics()
+        .circle(drag.x, drag.y, radius)
+        .fill({ color: AMBER, alpha: 0.84 })
+        .stroke({ color: TEXT, width: 2, alpha: 0.55 }),
+    );
+    dragLayer.addChild(label(itemText(drag.item), drag.x, drag.y - 1, Math.max(16, (layout?.cell || 58) * 0.34)));
+    const target = cellFromPoint(layout, drag.x, drag.y);
+    if (target) {
+      dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0x172432, 0.48, 3));
+    }
   }
 
   function draw() {
@@ -551,7 +917,7 @@ export function buildMergeScene(app, initial = {}) {
           pointerdown: (event) => {
             if (!item) return;
             drag = { fromR: r, fromC: c, item, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
-            draw();
+            updateDragVisual();
           },
           pointertap: () => data.onMergeCell?.(r, c, item),
         });
@@ -562,11 +928,8 @@ export function buildMergeScene(app, initial = {}) {
         }
       }
     }
-    if (drag?.item) {
-      root.addChild(new Graphics().circle(drag.x, drag.y, Math.min(26, cell * 0.38)).fill({ color: AMBER, alpha: 0.82 }).stroke({ color: TEXT, width: 2, alpha: 0.5 }));
-      root.addChild(label(itemText(drag.item), drag.x, drag.y - 1, Math.max(16, cell * 0.34)));
-    }
-    root.addChild(label(data.trashMode ? "Trash mode" : "Drag/tap merge pairs", app.renderer.width / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
+    updateDragVisual();
+    root.addChild(label(data.trashMode ? "Trash mode" : "Drag/tap merge pairs", viewWidth(app) / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
   }
 
   const cleanup = setupStage(
@@ -575,16 +938,18 @@ export function buildMergeScene(app, initial = {}) {
       if (!drag) return;
       drag.x = event.global.x;
       drag.y = event.global.y;
-      draw();
+      updateDragVisual();
     },
     (event) => {
       if (!drag) return;
       const current = drag;
       drag = null;
+      clear(dragLayer);
       const target = cellFromPoint(layout, event.global.x, event.global.y);
       if (target) {
         data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)?.then?.((result) => {
           makeSparkles(effects, event.global.x, event.global.y, result?.error ? CORAL : MINT, result?.error ? 5 : 10);
+          if (!result?.error) makeRipple(effects, event.global.x, event.global.y, MINT, 26);
         });
       }
       draw();
@@ -602,8 +967,10 @@ export function buildMergeScene(app, initial = {}) {
       cleanup();
       app.ticker.remove(ticker);
       clear(root);
+      clear(dragLayer);
       clear(effects);
       root.destroy({ children: true });
+      dragLayer.destroy({ children: true });
       effects.destroy({ children: true });
     },
   };
