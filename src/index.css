@@ -92,6 +92,12 @@ select:focus {
   min-width: 0;
 }
 
+.topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .eyebrow {
   margin: 0 0 2px;
   color: var(--mint);
@@ -110,6 +116,7 @@ h1 {
 
 .status-dot {
   min-width: 82px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 7px 10px;
@@ -127,6 +134,28 @@ h1 {
 
 .status-dot.offline {
   color: var(--coral);
+}
+
+.status-dot.pending {
+  color: var(--sky);
+}
+
+.audio-toggle {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.audio-toggle.enabled {
+  color: #08110d;
+  background: var(--amber);
+  box-shadow: 0 0 0 1px rgba(255, 203, 97, 0.22), 0 10px 28px rgba(255, 203, 97, 0.22);
 }
 
 .profile-strip,
@@ -236,6 +265,12 @@ h1 {
   overflow: hidden;
 }
 
+.active-game-frame {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+}
+
 .game-layout,
 .room-layout {
   grid-template-columns: minmax(320px, 1.1fr) minmax(320px, 0.9fr);
@@ -320,7 +355,7 @@ h1 {
 
 .section-tabs button,
 .mode-grid button {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--field);
@@ -376,7 +411,7 @@ h1 {
 }
 
 .panel-button {
-  min-height: 40px;
+  min-height: 44px;
   border-radius: 8px;
   padding: 0 10px;
   display: inline-flex;
@@ -387,6 +422,20 @@ h1 {
   color: #08110d;
   font-weight: 1000;
   white-space: nowrap;
+  transform: translateZ(0);
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+}
+
+.panel-button:active,
+.answer-grid button:active,
+.section-tabs button:active,
+.mode-grid button:active,
+.item-card:active,
+.room-cell:active,
+.audio-toggle:active,
+.status-dot:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(1.08);
 }
 
 .panel-button.subtle {
@@ -794,6 +843,7 @@ button.item-card {
 }
 
 .bottom-tabs button {
+  position: relative;
   border: 0;
   cursor: pointer;
   min-width: 0;
@@ -805,11 +855,41 @@ button.item-card {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 900;
+  overflow: hidden;
 }
 
 .bottom-tabs button.active {
-  background: var(--ink);
   color: #071016;
+}
+
+.bottom-tabs button > svg,
+.bottom-tabs button > span:not(.nav-pill) {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-pill {
+  position: absolute;
+  inset: 3px;
+  z-index: 0;
+  border-radius: 7px;
+  background: var(--ink);
+  box-shadow: 0 10px 24px rgba(255, 244, 216, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .bottom-tabs button.active {
+    background: var(--ink);
+  }
 }
 
 @media (max-height: 720px) {
@@ -895,7 +975,7 @@ button.item-card {
   }
 
   .panel-button {
-    min-height: 38px;
+    min-height: 44px;
     padding: 0 7px;
     gap: 5px;
     font-size: 0.78rem;

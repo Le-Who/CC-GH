@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
   BadgeCheck,
   Blocks,
@@ -19,9 +20,11 @@ import {
   Trash2,
   Trophy,
   Volume2,
+  VolumeX,
   Zap,
 } from "lucide-react";
 import { api, getPublicConfig } from "./services/apiClient.js";
+import { audioManager } from "./services/audioManager.js";
 import { connectRealtime } from "./services/realtimeClient.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
 import PixiGameHost from "./game-runtime/PixiGameHost.jsx";
@@ -67,9 +70,13 @@ function formatCount(value) {
 function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, subtle, active, title }) {
   return (
     <button
+      type="button"
       className={`panel-button${danger ? " danger" : ""}${subtle ? " subtle" : ""}${active ? " active" : ""}`}
       disabled={disabled}
-      onClick={onClick}
+      onClick={(event) => {
+        audioManager.play("tap");
+        onClick?.(event);
+      }}
       title={title}
     >
       <Icon size={17} />
@@ -148,9 +155,22 @@ function FarmGame() {
     [crops, performAction, selectedSeed],
   );
 
+  const onPlotLongPress = useCallback(
+    (plotId, plot) => {
+      if (!plot?.crop) return;
+      performAction("farm.uproot", { plotId }, { key: `farm.uproot.${plotId}` });
+    },
+    [performAction],
+  );
+
   const sceneState = useMemo(
-    () => ({ snapshot: { ...snapshot, serverTime: Date.now() + tick }, selectedSeed, onFarmPlot: onPlot }),
-    [snapshot, selectedSeed, onPlot, tick],
+    () => ({
+      snapshot: { ...snapshot, serverTime: Date.now() + tick },
+      selectedSeed,
+      onFarmPlot: onPlot,
+      onFarmLongPress: onPlotLongPress,
+    }),
+    [snapshot, selectedSeed, onPlot, onPlotLongPress, tick],
   );
 
   return (
@@ -370,9 +390,29 @@ function BloxGame() {
     [performAction, selectedPiece, state.gameActive],
   );
 
+  const onDrop = useCallback(
+    (pieceIdx, row, col) => {
+      if (pieceIdx < 0 || !state.gameActive) return Promise.resolve({ error: "inactive" });
+      return performAction("blox.place", { pieceIdx, row, col }, { key: "blox.place" }).then((result) => {
+        if (!result.error) {
+          setSelectedPiece(-1);
+          if (result.clear?.cleared) audioManager.play("clear");
+        }
+        return result;
+      });
+    },
+    [performAction, state.gameActive],
+  );
+
   const sceneState = useMemo(
-    () => ({ blox: state, selectedBloxPiece: selectedPiece, onBloxCell: onCell, onBloxTray: setSelectedPiece }),
-    [state, selectedPiece, onCell],
+    () => ({
+      blox: state,
+      selectedBloxPiece: selectedPiece,
+      onBloxCell: onCell,
+      onBloxDrop: onDrop,
+      onBloxTray: setSelectedPiece,
+    }),
+    [state, selectedPiece, onCell, onDrop],
   );
 
   return (
@@ -447,23 +487,20 @@ function Match3Game() {
     if (nextMoves <= 0 && mode !== "timed") finish(nextScore);
   }
 
-  const onCell = useCallback(
-    (x, y) => {
+  const attemptSwap = useCallback(
+    (from, to) => {
       if (!gameActive) return;
-      if (!selected) {
-        setSelected({ x, y });
-        return;
-      }
-      const adjacent = Math.abs(selected.x - x) + Math.abs(selected.y - y) === 1;
+      const adjacent = Math.abs(from.x - to.x) + Math.abs(from.y - to.y) === 1;
       if (!adjacent) {
-        setSelected({ x, y });
+        setSelected(to);
         return;
       }
       const nextBoard = cloneBoard(board);
-      [nextBoard[selected.y][selected.x], nextBoard[y][x]] = [nextBoard[y][x], nextBoard[selected.y][selected.x]];
+      [nextBoard[from.y][from.x], nextBoard[to.y][to.x]] = [nextBoard[to.y][to.x], nextBoard[from.y][from.x]];
       if (!findMatches(nextBoard).length) {
         setSelected(null);
         haptic("warning");
+        audioManager.play("warning");
         return;
       }
       const resolved = resolveBoard(nextBoard);
@@ -478,13 +515,26 @@ function Match3Game() {
       setCombo(Math.max(combo, resolved.combo));
       setMovesLeft(nextMoves);
       setSelected(null);
+      audioManager.play(resolved.combo > 1 ? "clear" : "merge");
       performAction("match3.syncMode", {
         game: { score: nextScore, movesLeft: nextMoves, combo: resolved.combo, mode },
         savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: resolved.combo } },
       }, { silent: true, key: "match3.sync" });
       maybeEnd(nextMoves, nextScore);
     },
-    [board, combo, gameActive, mode, movesLeft, performAction, score, selected, snapshot?.match3?.savedModes],
+    [board, combo, gameActive, mode, movesLeft, performAction, score, snapshot?.match3?.savedModes],
+  );
+
+  const onCell = useCallback(
+    (x, y) => {
+      if (!gameActive) return;
+      if (!selected) {
+        setSelected({ x, y });
+        return;
+      }
+      attemptSwap(selected, { x, y });
+    },
+    [attemptSwap, gameActive, selected],
   );
 
   const sceneState = useMemo(
@@ -492,9 +542,10 @@ function Match3Game() {
       match3: { board, score, movesLeft, combo, gameMode: mode, gameActive },
       selectedGem: selected,
       onMatch3Cell: onCell,
+      onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [board, combo, gameActive, mode, movesLeft, onCell, score, selected],
+    [attemptSwap, board, combo, gameActive, mode, movesLeft, onCell, score, selected],
   );
 
   return (
@@ -568,9 +619,30 @@ function MergeGame() {
     [performAction, selectedCell, trashMode],
   );
 
+  const onMergeDrop = useCallback(
+    (fromR, fromC, toR, toC, item) => {
+      if (trashMode) {
+        if (item) return performAction("merge.trash", { r: fromR, c: fromC }, { key: "merge.trash" });
+        return Promise.resolve({ error: "empty cell" });
+      }
+      if (fromR === toR && fromC === toC) {
+        setSelectedCell({ r: fromR, c: fromC });
+        return Promise.resolve({ error: "same cell" });
+      }
+      return performAction("merge.merge", { fromR, fromC, toR, toC }, { key: "merge.merge" }).then((result) => {
+        if (!result.error) {
+          setSelectedCell(null);
+          audioManager.play(result.roomDrop ? "gacha" : "merge");
+        }
+        return result;
+      });
+    },
+    [performAction, trashMode],
+  );
+
   const sceneState = useMemo(
-    () => ({ merge, mergeSelected: selectedCell, trashMode, onMergeCell }),
-    [merge, onMergeCell, selectedCell, trashMode],
+    () => ({ merge, mergeSelected: selectedCell, trashMode, onMergeCell, onMergeDrop }),
+    [merge, onMergeCell, onMergeDrop, selectedCell, trashMode],
   );
 
   return (
@@ -828,8 +900,20 @@ function RoomGame() {
   const inventory = snapshot?.inventory?.roomInventory || [];
   const [selectedDeco, setSelectedDeco] = useState("");
   const [rename, setRename] = useState(pet.name || "");
+  const renameInputRef = useRef(null);
+  const [optimisticName, setOptimisticName] = useOptimistic(pet.name || "Buddy");
+  const [, startRenameTransition] = useTransition();
 
   useEffect(() => setRename(pet.name || ""), [pet.name]);
+
+  const submitRename = useCallback(() => {
+    const newName = (renameInputRef.current?.value || rename).trim().slice(0, 16);
+    if (!newName) return;
+    startRenameTransition(() => {
+      setOptimisticName(newName);
+      performAction("pet.rename", { newName });
+    });
+  }, [performAction, rename, setOptimisticName, startRenameTransition]);
 
   return (
     <div className="room-layout">
@@ -861,7 +945,7 @@ function RoomGame() {
       <aside className="side-panel">
         <div className="panel-header">
           <div>
-            <strong>{pet.name || "Buddy"}</strong>
+            <strong>{optimisticName || "Buddy"}</strong>
             <span>Lv {pet.level || 1} · Affection {pet.affectionLevel || 1}</span>
           </div>
           <PawPrint />
@@ -872,8 +956,8 @@ function RoomGame() {
           <Stat icon={BadgeCheck} label="Orders" value={pet.activeOrders?.length || 0} />
         </div>
         <div className="join-row">
-          <input value={rename} onChange={(e) => setRename(e.target.value)} maxLength={16} />
-          <PanelButton icon={Check} onClick={() => performAction("pet.rename", { newName: rename })}>Rename</PanelButton>
+          <input ref={renameInputRef} value={rename} onChange={(e) => setRename(e.target.value)} maxLength={16} />
+          <PanelButton icon={Check} onClick={submitRename}>Rename</PanelButton>
         </div>
         <div className="ability-list">
           {["autoHarvest", "autoWater", "autoPlant"].map((id) => (
@@ -966,6 +1050,23 @@ function ActiveGame() {
   return <RoomGame />;
 }
 
+function AudioToggle() {
+  const [enabled, setEnabled] = useState(audioManager.isEnabled());
+  const Icon = enabled ? Volume2 : VolumeX;
+  return (
+    <button
+      type="button"
+      className={`audio-toggle${enabled ? " enabled" : ""}`}
+      aria-label={enabled ? "Mute sound" : "Enable sound"}
+      onClick={async () => {
+        setEnabled(await audioManager.toggle());
+      }}
+    >
+      <Icon size={17} />
+    </button>
+  );
+}
+
 export default function App() {
   const activeTab = useGameHub((state) => state.activeTab);
   const setActiveTab = useGameHub((state) => state.setActiveTab);
@@ -976,6 +1077,8 @@ export default function App() {
   const message = useGameHub((state) => state.message);
   const [platform, setPlatform] = useState(null);
   const [config, setConfig] = useState(null);
+  const [isPending, startTransition] = useTransition();
+  const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
 
   useEffect(() => {
@@ -1012,9 +1115,12 @@ export default function App() {
           <p className="eyebrow">Telegram Mini App</p>
           <h1>Game Hub</h1>
         </div>
-        <button className={`status-dot ${status}`} onClick={() => loadSnapshot()}>
-          {status}
-        </button>
+        <div className="topbar-actions">
+          <AudioToggle />
+          <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
+            {status}
+          </button>
+        </div>
       </header>
       <section className="profile-strip">
         <div className="avatar">{(user?.firstName || user?.first_name || user?.username || "G").slice(0, 1)}</div>
@@ -1029,22 +1135,48 @@ export default function App() {
         <Stat icon={PackageOpen} label="Tokens" value={resources.gachaTokens || 0} />
       </section>
       {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
-      {!snapshot ? <div className="loading-panel">Loading player snapshot</div> : <ActiveGame />}
-      <nav className="bottom-tabs">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            className={activeTab === id ? "active" : ""}
-            onClick={() => {
-              setActiveTab(id);
-              haptic("light");
-            }}
+      {!snapshot ? (
+        <div className="loading-panel">Loading player snapshot</div>
+      ) : (
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.section
+            key={activeTab}
+            className="active-game-frame"
+            initial={reduceMotion ? false : { opacity: 0, x: 32 }}
+            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -24 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
           >
-            <Icon size={19} />
-            <span>{label}</span>
-          </button>
-        ))}
-      </nav>
+            <ActiveGame />
+          </motion.section>
+        </AnimatePresence>
+      )}
+      <LayoutGroup>
+        <nav className="bottom-tabs">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              type="button"
+              key={id}
+              className={activeTab === id ? "active" : ""}
+              onClick={() => {
+                startTransition(() => setActiveTab(id));
+                haptic("light");
+                audioManager.play("tap");
+              }}
+            >
+              {activeTab === id && !reduceMotion && (
+                <motion.span
+                  className="nav-pill"
+                  layoutId="nav-pill"
+                  transition={{ type: "spring", stiffness: 500, damping: 31 }}
+                />
+              )}
+              <Icon size={19} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+      </LayoutGroup>
     </main>
   );
 }

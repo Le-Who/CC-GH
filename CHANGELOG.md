@@ -37,3 +37,7 @@
 - Hardened deployment safety checks so the CC-GH workflow refuses reserved bot/Caddy ports and avoids destructive global Docker pruning.
 - Required Docker Compose v2 for deployment and stopped falling back to legacy Python `docker-compose` v1, avoiding the `ContainerConfig` recreate failure on VPS deploys.
 - Removed the obsolete Compose `version` attribute and added cleanup for stale failed app-recreate containers named like `*_ccgh-app` before `docker compose up`.
+- Moved Blox pure engine and piece definitions into server-copied `game-logic/` modules so production containers no longer import missing `src/game-core/*` files at startup.
+- Added Pixi pointer drag/swipe interactions for Blox, Match-3, and Merge, with canvas gesture isolation, ghost previews, match highlights, and reduced-motion-aware React transitions.
+- Added opt-in UI audio with `public/assets/manifest.json` fallbacks, plus `ASSET_REPLACEMENT_GUIDE.md` for replacing icons, pet art, scene graphics, and sound effects.
+- Reworked Playwright e2e startup to use a fresh test port/build, replaced stale legacy auth assertions, and added canvas drag/swipe smoke coverage.

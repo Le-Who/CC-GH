@@ -13,6 +13,8 @@ import {
   ROOM_DECORATIONS,
   SEASON_PASS,
   TIER_YIELD,
+  PIECES,
+  PIECE_COUNT,
   calcBloxReward,
   calcGoldReward,
   calcRegen,
@@ -25,9 +27,11 @@ import {
   processOfflineActions,
   updateStreak,
   validCoord,
+  createEmptyBoard,
+  canAnyPieceFit,
+  canPlace,
+  placePiece,
 } from "../game-logic.js";
-import { createEmptyBoard, canAnyPieceFit, canPlace, placePiece } from "../src/game-core/blox/engine.js";
-import { PIECES, PIECE_COUNT } from "../src/game-core/blox/pieces.js";
 import { withPlayerLock } from "../playerManager.js";
 
 const MAX_PLOTS = 12;

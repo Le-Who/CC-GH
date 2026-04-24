@@ -42,9 +42,13 @@ test.describe("New-stack minigame smoke", () => {
 
     await page.getByRole("button", { name: /Room/ }).click();
     await expect(page.getByText("Room Inventory")).toBeVisible();
-    await page.locator(".join-row input").fill("Pixel");
+    const roomNameInput = page.locator(".room-layout .join-row input");
+    await expect(roomNameInput).toBeVisible();
+    await page.waitForTimeout(300);
+    await roomNameInput.fill("Pixel");
+    await expect(roomNameInput).toHaveValue("Pixel");
     await page.getByRole("button", { name: "Rename" }).click();
-    await expect(page.getByText("Pixel")).toBeVisible();
+    await expect(page.locator(".panel-header").filter({ hasText: "Pixel" })).toBeVisible({ timeout: 10000 });
 
     expect(pageErrors).toEqual([]);
   });

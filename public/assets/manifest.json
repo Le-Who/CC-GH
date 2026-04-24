@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "notes": "Replace paths with production assets as needed. Missing paths fall back to procedural Pixi shapes or synthesized SFX.",
+  "graphics": {
+    "icons": {
+      "app192": "/icons/icon-192.png",
+      "app512": "/icons/icon-512.png"
+    },
+    "pets": {
+      "basic_dog": "/pets/basic_dog_body.svg",
+      "basic_cat": "/pets/basic_cat_body.svg",
+      "basic_bunny": "/pets/basic_bunny_body.svg",
+      "expressions": {
+        "ecstatic": "/pets/expr_ecstatic.svg",
+        "happy": "/pets/expr_happy.svg",
+        "content": "/pets/expr_content.svg",
+        "neutral": "/pets/expr_neutral.svg",
+        "sad": "/pets/expr_sad.svg",
+        "miserable": "/pets/expr_miserable.svg"
+      }
+    },
+    "scenes": {
+      "farmBackground": "",
+      "bloxBackground": "",
+      "match3Background": "",
+      "mergeBackground": "",
+      "roomBackground": ""
+    }
+  },
+  "audio": {
+    "sfx": {
+      "tap": "",
+      "success": "",
+      "warning": "",
+      "error": "",
+      "merge": "",
+      "clear": "",
+      "harvest": "",
+      "gacha": ""
+    },
+    "music": {
+      "lobby": "",
+      "farm": "",
+      "puzzle": ""
+    }
+  }
+}

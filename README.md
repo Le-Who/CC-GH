@@ -20,9 +20,9 @@ CC-GH is a five-game Telegram Mini App deployed as an isolated VPS Docker Compos
 ## Games
 
 - Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, and season progress.
-- Building Blox: Pixi board surface with tray selection, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
-- Gem Crush: Pixi board surface with Classic, Timed, and Star Drop mode selection, local cascade resolution, saved mode sync, and reward settlement.
-- Gacha Merge: server-validated board state, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
+- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
+- Gem Crush: Pixi board surface with Classic, Timed, and Star Drop mode selection, tap-pair fallback, swipe swapping, local cascade resolution, saved mode sync, and reward settlement.
+- Gacha Merge: server-validated board state, drag/tap merging, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, and in-memory duel rooms.
 - Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, and persistent decoration placement.
 
@@ -57,7 +57,8 @@ Frontend flow:
 3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`.
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
 5. Pixi scenes for Farm, Blox, Match-3, and Merge mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
-6. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+6. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use pointer drag/swipe interactions where the legacy games depended on touch movement.
+7. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
 
@@ -195,6 +196,12 @@ docker build -t game-hub-ci .
 ```
 
 `pnpm test` runs the Node test suite listed in `package.json`. It does not run Playwright e2e specs.
+
+## Asset Replacement
+
+Replaceable app graphics and audio are registered through `public/assets/manifest.json`. Existing pet SVGs and PWA icons remain compatible, while missing custom scene art or SFX falls back to procedural Pixi graphics and synthesized UI tones.
+
+See `ASSET_REPLACEMENT_GUIDE.md` for exact file names, recommended formats, audio keys, rebuild steps, and validation commands.
 
 ## Account Migration
 

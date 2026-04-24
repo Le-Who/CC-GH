@@ -2,12 +2,31 @@ import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { setGameGestureActive } from "../platform/telegram.js";
 
+function destroyPixiApp(app) {
+  if (!app) return;
+  try {
+    app.destroy({ removeView: true }, { children: true, texture: true, textureSource: true });
+  } catch (err) {
+    console.warn("Pixi app destroy skipped", err);
+  }
+}
+
 export default function PixiGameHost({ sceneKey, buildScene, sceneState, className = "" }) {
   const containerRef = useRef(null);
   const appRef = useRef(null);
   const sceneRef = useRef(null);
   const stateRef = useRef(sceneState);
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const release = () => setGameGestureActive(false);
+    window.addEventListener("pointerup", release);
+    window.addEventListener("pointercancel", release);
+    return () => {
+      window.removeEventListener("pointerup", release);
+      window.removeEventListener("pointercancel", release);
+    };
+  }, []);
 
   useEffect(() => {
     let app = null;
@@ -27,7 +46,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
           powerPreference: "high-performance",
         });
         if (cancelled) {
-          app.destroy({ removeView: true }, { children: true, texture: true, textureSource: true });
+          destroyPixiApp(app);
           return;
         }
         appRef.current = app;
@@ -46,7 +65,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       sceneRef.current?.destroy?.();
       sceneRef.current = null;
       appRef.current = null;
-      app?.destroy({ removeView: true }, { children: true, texture: true, textureSource: true });
+      destroyPixiApp(app);
       setGameGestureActive(false);
     };
   }, [sceneKey, buildScene]);
@@ -64,7 +83,6 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       onPointerDown={() => setGameGestureActive(true)}
       onPointerUp={() => setGameGestureActive(false)}
       onPointerCancel={() => setGameGestureActive(false)}
-      onPointerLeave={() => setGameGestureActive(false)}
     >
       {failed && <div className="pixi-fallback">Renderer unavailable</div>}
     </div>

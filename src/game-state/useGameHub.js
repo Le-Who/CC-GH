@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { api } from "../services/apiClient.js";
+import { audioManager } from "../services/audioManager.js";
 import { haptic } from "../platform/telegram.js";
 import { withNormalizedSnapshot } from "./inventory.js";
 
@@ -61,6 +62,7 @@ export const useGameHub = create((set, get) => ({
       };
     });
     haptic(result.error ? "warning" : "success");
+    audioManager.play(result.error ? "warning" : "success");
     return result;
   },
 
