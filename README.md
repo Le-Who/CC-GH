@@ -1,26 +1,81 @@
 # Game Hub Telegram Mini App
 
-CC-GH is a five-game Telegram Mini App running on a VPS Docker stack. The client is a React/Vite shell with PixiJS game surfaces, authenticated REST APIs, and authenticated Socket.IO sync.
+CC-GH is a five-game Telegram Mini App deployed as an isolated VPS Docker Compose stack. The client is a React/Vite shell with PixiJS game surfaces, authenticated REST APIs, and authenticated Socket.IO state sync. PostgreSQL is the durable source of player state; Redis is used for cache, nonce, and rate-limit acceleration.
 
-## Stack
+## Verified Stack
 
 | Layer | Runtime |
 | --- | --- |
-| Client shell | React 19, Vite, Telegram Mini App SDK |
+| Client shell | React 19, Vite 7, Telegram Mini App SDK |
 | Game rendering | PixiJS 8 |
+| Client state helpers | Zustand, local browser storage for dev user id only |
 | API | Express 5 |
 | Realtime | Socket.IO |
-| Database | Self-hosted PostgreSQL |
-| Cache/nonce/rate limit | Self-hosted Redis |
+| Durable storage | Self-hosted PostgreSQL |
+| Cache / nonce / rate limit | Self-hosted Redis with in-memory fallbacks |
 | Edge proxy | Host-level Caddy on the VPS |
+| Package manager | pnpm 10.28.2 through Corepack |
+| Container runtime | Node 22 Alpine image |
 
 ## Games
 
-- Cozy Farm: server-authoritative economy, offline simulation, quests, achievements, and season progress.
+- Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, and season progress.
 - Building Blox: Pixi board surface backed by shared pure puzzle logic.
-- Gem Crush: Pixi board surface with preserved saved modes and scoring contracts.
-- Gacha Merge: server-validated board state, generators, inventory, and free-tap allowance.
-- Brain Blitz: React-first trivia flow with Telegram sharing/start-param friendly UX.
+- Gem Crush: Pixi board surface with saved modes and score reward contracts.
+- Gacha Merge: server-validated board state, generators, inventory, gacha pulls, daily free pull, and separate daily free-tap allowance.
+- Brain Blitz: React-first trivia flow, solo sessions, and in-memory duel rooms.
+
+## Architecture
+
+The production entry point is `server.js`.
+
+Startup order:
+
+1. Load environment through `dotenv/config`.
+2. Initialize PostgreSQL with `initDb()` and create the runtime schema through `ensureDbSchema()`.
+3. Initialize Redis if `REDIS_URL` exists.
+4. Attach Socket.IO to the same HTTP server.
+5. Refresh `player_stats_view` every 5 minutes.
+6. Serve Vite `dist/` assets when present and fall back to the root `index.html` template for app routes.
+
+Backend module boundaries:
+
+- `middleware/auth.js` validates Telegram Mini App init data, gates dev auth, and resolves every request to a canonical account id.
+- `accountManager.js` owns account and identity lookup/creation.
+- `playerManager.js` owns player mutation serialization, JSON state migration, optimistic concurrency control, Redis write-through, and realtime emission.
+- `db.js` owns the current runtime PostgreSQL schema creation.
+- `redisAdapter.js` owns player cache helpers, nonce checks, pub/sub helper, and Redis lifecycle.
+- `routes/*` expose game, economy, leaderboard, event, quest, achievement, season, and batch APIs.
+- `game-logic/` contains shared pure domain logic. The root `game-logic.js` is a compatibility barrel and should remain stable.
+- `src/platform/telegram.js`, `src/services/apiClient.js`, and `src/services/realtimeClient.js` form the client platform/auth/sync boundary.
+
+Frontend flow:
+
+1. `src/main.jsx` mounts `src/App.jsx`.
+2. `App.jsx` initializes Telegram platform helpers and fetches `/api/config`.
+3. Authenticated state requests load Farm, Blox, Match-3, Merge, and shared resources.
+4. Pixi scenes are lazy-loaded for Farm, Blox, Match-3, and Merge through `PixiGameHost`.
+5. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+
+## Data And Control Flow
+
+All production mutations should follow this shape:
+
+```text
+Telegram Mini App
+  -> Authorization: tma <Telegram initData>
+  -> Express route
+  -> requireAuth
+  -> resolveUser returns canonical account id
+  -> withPlayerLock(accountId, handler)
+  -> Postgres JSONB state update with _version OCC
+  -> optional Redis cache write-through
+  -> Socket.IO player_sync to the account room
+```
+
+`withPlayerLock()` is the mutation contract. It serializes mutations for a player inside one Node process with a promise-chain mutex, then uses `_version` optimistic concurrency control on `players.data` as the cross-instance safety net. Route handlers may be retried on OCC collision, so handler code must be safe when re-applied against fresh state. Fire-and-forget analytics inserts are currently accepted as duplicate-tolerant.
+
+Client REST calls are made through `api()`, which adds Telegram or dev auth and uses an 8 second timeout by default. `createBatcher()` can group client requests into `/api/batch`; the server dispatches sub-requests through the Express router stack without network loopback, limits sub-request concurrency to 3, and uses nonce dedupe through Redis or an in-memory fallback.
 
 ## Auth Contract
 
@@ -30,7 +85,9 @@ Production requests must send:
 Authorization: tma <Telegram initData>
 ```
 
-The server validates init data with `TELEGRAM_BOT_TOKEN`, resolves the Telegram user to a canonical account id (`acct:<uuid>`), and ignores caller-supplied user ids for authorization. Local development can use:
+The server validates init data with `TELEGRAM_BOT_TOKEN`, applies `TELEGRAM_INIT_DATA_TTL_SECONDS` when set, resolves the Telegram user to `acct:<uuid>`, and ignores caller-supplied user ids for authorization.
+
+Local development can use:
 
 ```http
 Authorization: dev <stable-dev-user-id>
@@ -38,10 +95,63 @@ Authorization: dev <stable-dev-user-id>
 
 That path only works when `DEV_AUTH_ENABLED=true` and `NODE_ENV` is not `production`.
 
-## Environment
+Socket.IO uses the same auth model through handshake data:
+
+- `{ initData }` for Telegram.
+- `{ devUserId }` for local development when dev auth is enabled.
+
+## Persistence And Schema
+
+PostgreSQL is the durable source of truth. Runtime schema creation currently lives in `db.js` and includes:
+
+- `players(id text primary key, data jsonb, updated_at timestamptz)`
+- `accounts`
+- `account_identities`
+- `player_events`
+- `player_stats_view` materialized view plus indexes
+
+`migrations/001_accounts_identity.sql` is an identity-table bootstrap migration, not a complete schema history. `scripts/migrate-accounts.mjs` migrates legacy player ids to canonical `acct:<uuid>` ids and supports `--dry-run`, `--apply`, and `--verify`.
+
+Player JSON schema migrations are applied in `playerManager.js::applyMigrations()` during player mutation/loading. This is separate from SQL schema creation. Keep both migration paths in mind when changing saved state.
+
+Redis is optional in local/test contexts but expected in the compose stack. It stores:
+
+- player cache entries with a 24 hour TTL;
+- batch nonce keys with a 5 minute TTL;
+- distributed fixed-window rate-limit counters.
+
+If Redis is unavailable, rate limits and nonce dedupe fall back to process-local memory. That fallback is acceptable for local and single-instance operation, but it is not distributed.
+
+## API Surface
+
+Public unauthenticated APIs:
+
+- `GET /api/config`
+- `GET /api/health`
+- `GET /api/health/ping`
+- `GET /api/content/crops`
+- leaderboard reads
+
+Authenticated gameplay APIs:
+
+- Farm and resource state/mutations: `/api/farm/*`, `/api/resources/state`, `/api/pet/*`
+- Merge: `/api/merge/*`
+- Match-3: `/api/game/*`
+- Blox: `/api/blox/*`
+- Trivia: `/api/trivia/*`
+- Quests, achievements, events, and season pass: `/api/quests/*`, `/api/achievements/*`, `/api/events/*`, `/api/season-pass/*`
+- Batched dispatch: `POST /api/batch`
+
+Operational/admin APIs:
+
+- `GET /api/admin/account-report` requires normal auth plus `X-Admin-Token`.
+- `GET /api/clear-cache` sends `Clear-Site-Data` for client recovery.
+
+## Configuration
 
 Copy `.env.example` and set:
 
+- `NODE_ENV`
 - `PORT`
 - `APP_HOST_PORT`
 - `CUSTOM_DOMAIN`
@@ -51,16 +161,23 @@ Copy `.env.example` and set:
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_BOT_USERNAME`
 - `ADMIN_TOKEN`
+- `DEV_AUTH_ENABLED`
 
-The compose stack also uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to provision the local database service. In production, GitHub Actions writes `/opt/game-hub/.env` from repository secrets; do not commit production `.env` files.
+The compose stack also uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to provision PostgreSQL. In production, GitHub Actions writes `/opt/game-hub/.env` from repository secrets; do not commit production `.env` files.
 
 ## Development
 
+Install and run:
+
 ```bash
+corepack enable
+corepack prepare pnpm@10.28.2 --activate
 pnpm install
 pnpm dev
 pnpm run dev:server
 ```
+
+Vite proxies `/api` to `http://localhost:8090`. For local browser auth, set `DEV_AUTH_ENABLED=true` and keep `NODE_ENV` outside `production`.
 
 Useful checks:
 
@@ -70,6 +187,8 @@ pnpm test
 pnpm run test:cleanup
 docker build -t game-hub-ci .
 ```
+
+`pnpm test` runs the Node test suite listed in `package.json`. It does not run Playwright e2e specs.
 
 ## Account Migration
 
@@ -81,7 +200,7 @@ pnpm run migrate:accounts -- --apply
 pnpm run migrate:accounts -- --verify
 ```
 
-The migration creates `accounts` and `account_identities`, maps every existing player row to a canonical `acct:<uuid>` id, preserves `players.data`, and stores the previous player id as a `legacy` identity for lookup.
+The migration creates `accounts` and `account_identities`, maps legacy player rows to canonical `acct:<uuid>` ids, preserves `players.data`, and stores the previous player id as a `legacy` identity for lookup.
 
 Rollback is operational: restore the PostgreSQL dump and Redis volume backup taken before `--apply`.
 
@@ -89,14 +208,14 @@ Rollback is operational: restore the PostgreSQL dump and Redis volume backup tak
 
 The deployment target is an isolated `ccgh` Docker Compose project on the same VPS as `gemaibotv2`. CC-GH does not run its own Caddy container. The app binds only to localhost (`127.0.0.1:${APP_HOST_PORT:-18080}`), while the host-level Caddy route proxies `https://games.tri.mom` to that local port.
 
-Required GitHub Actions secrets for this repository:
+Required GitHub Actions secrets:
 
 - `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY`, `VPS_PORT`
 - `CUSTOM_DOMAIN` (`games.tri.mom`)
 - `PUBLIC_APP_URL` (`https://games.tri.mom`)
 - `APP_HOST_PORT` (`18080`)
-- `TELEGRAM_BOT_TOKEN` (the same token as the Telegram bot that launches the Mini App)
-- `TELEGRAM_BOT_USERNAME` (`b0b_bot`)
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_BOT_USERNAME`
 - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
 - `ADMIN_TOKEN`
 
@@ -107,8 +226,64 @@ docker compose -p ccgh pull app
 docker compose -p ccgh up -d --remove-orphans
 ```
 
-GitHub Actions builds and pushes the GHCR image, copies `docker-compose.yml` to `/opt/game-hub`, writes only Telegram/VPS environment values, verifies that `APP_HOST_PORT` is not one of the reserved bot/Caddy ports, restarts only the `ccgh` compose project, and runs local plus public health checks.
+The deploy workflow builds and pushes a GHCR image, copies `docker-compose.yml` to `/opt/game-hub`, writes the production `.env`, verifies that `APP_HOST_PORT` is not reserved or owned by another process, restarts only the `ccgh` compose project, and runs local plus public health checks.
 
-## Cleanup Gate
+Current workflow trigger note: CI is configured for the `game-hub` branch, while deploy is configured for `codex/telegram-pixi-vps-migration`. Keep this intentional or align it before changing the release branch model.
 
-`pnpm run test:cleanup` scans active runtime, docs, workflow, and test files for retired platform names. Historical references belong only in archive files such as `legacy_changelog.md`.
+## Operations
+
+Health:
+
+- `/api/health` returns `ok` only when PostgreSQL responds to `SELECT 1`; otherwise it returns `degraded`.
+- `/api/health/ping` is a simple 200 `PONG`.
+
+Cache and sync:
+
+- Use `/api/clear-cache` if stale service-worker or browser storage state blocks a client.
+- The PWA config precaches built assets, uses NetworkFirst for navigation and API GET requests, and CacheFirst for fonts.
+- Socket clients disconnect while the document is hidden and reconnect on visibility return.
+
+Security-sensitive behavior:
+
+- Production auth must come from Telegram init data.
+- Dev auth must remain disabled in production.
+- CORS allows Telegram origins and configured app domains; development mode is intentionally permissive.
+- The admin account report requires both user auth and `X-Admin-Token`.
+
+Cleanup gate:
+
+- `pnpm run test:cleanup` scans active files for retired platform names.
+- Historical references belong only in archive files such as `legacy_changelog.md` and `legacy_readme.md`.
+
+## Known Limitations And Technical Debt
+
+Verified current limitations:
+
+- SQL schema evolution is split between runtime `CREATE IF NOT EXISTS` statements, one SQL migration file, and JSON-state migrations. A dedicated ordered migration runner would make deploys and rollback reasoning safer.
+- `withPlayerLock()` retries route handlers after OCC collisions. This protects state but makes duplicate-tolerant side effects an implicit requirement. Analytics inserts are currently fire-and-forget and can duplicate during retries.
+- Redis fallbacks for nonce dedupe and rate limiting are process-local. They are not safe as distributed guarantees if the app scales beyond one Node instance without Redis.
+- Playwright e2e specs under `tests/e2e` still target a legacy auth dialog (`#auth-dialog`, `#screen-farm`) that is not present in the current Telegram-first React shell. Treat them as stale until rewritten.
+- CI and deploy workflows target different branches. This may be intentional during migration, but it is a release-risk if the active production branch changes.
+- Brain Blitz duel rooms are held in process memory, so they are not durable across restarts and are not shared across instances.
+- `player_stats_view` refresh is timer-based and logs failures; there is no external scheduler or alerting in this repo.
+
+Improvement backlog:
+
+1. Add an explicit migration runner and make `db.js` schema creation a bootstrap fallback instead of the primary schema history.
+2. Refactor route handlers to return structured mutation results instead of writing to `res` inside `withPlayerLock()` callbacks.
+3. Move duplicate-sensitive side effects behind commit-success hooks so OCC retries cannot double-record them.
+4. Rebuild Playwright e2e around Telegram/dev-auth boot, visible tab navigation, and one smoke action per game.
+5. Align CI/deploy branch triggers with the current release model.
+6. Persist or explicitly scope trivia duel rooms depending on whether cross-instance play is required.
+7. Add operational checks for materialized-view refresh failures and Redis availability.
+
+## Must-Preserve Invariants
+
+- `Authorization: tma <initData>` is the production auth contract.
+- Caller-supplied `userId` must not authorize access to another account.
+- Canonical account ids use `acct:<uuid>` after identity migration.
+- `game-logic.js` remains a compatibility import surface.
+- PostgreSQL remains the source of truth for player saves.
+- Redis acceleration must not be required for correctness in local/test single-instance operation.
+- Socket.IO `player_sync.seq` must remain monotonic per player so clients can drop stale events.
+- The VPS app must remain bound to localhost behind host-level Caddy.

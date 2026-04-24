@@ -8,6 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   build-and-push:
@@ -161,6 +162,63 @@ jobs:
 
             echo "$GITHUB_TOKEN" | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
             export GHCR_REPO="$REPO_LOWER"
+
+            run_root() {
+              if [ "$(id -u)" -eq 0 ]; then
+                "$@"
+              else
+                sudo "$@"
+              fi
+            }
+
+            ensure_compose() {
+              if docker compose version >/dev/null 2>&1 || command -v docker-compose >/dev/null 2>&1; then
+                return 0
+              fi
+
+              echo "Docker Compose is not installed; attempting automated installation."
+              if command -v apt-get >/dev/null 2>&1; then
+                run_root apt-get update
+                run_root apt-get install -y docker-compose-plugin
+              fi
+
+              if docker compose version >/dev/null 2>&1 || command -v docker-compose >/dev/null 2>&1; then
+                return 0
+              fi
+
+              if ! command -v curl >/dev/null 2>&1; then
+                if command -v apt-get >/dev/null 2>&1; then
+                  run_root apt-get update
+                  run_root apt-get install -y curl
+                else
+                  echo "curl is required to install standalone Docker Compose."
+                  return 1
+                fi
+              fi
+
+              ARCH="$(uname -m)"
+              case "$ARCH" in
+                x86_64|amd64) COMPOSE_ARCH="x86_64" ;;
+                aarch64|arm64) COMPOSE_ARCH="aarch64" ;;
+                *)
+                  echo "Unsupported architecture for standalone Docker Compose: $ARCH"
+                  return 1
+                  ;;
+              esac
+
+              COMPOSE_VERSION="$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | sed -n 's/.*"tag_name": "\(v[^"]*\)".*/\1/p' | head -n 1)"
+              if [ -z "$COMPOSE_VERSION" ]; then
+                echo "Could not resolve latest Docker Compose release."
+                return 1
+              fi
+
+              TMP_COMPOSE="$(mktemp)"
+              curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" -o "$TMP_COMPOSE"
+              run_root install -m 0755 "$TMP_COMPOSE" /usr/local/bin/docker-compose
+              rm -f "$TMP_COMPOSE"
+            }
+
+            ensure_compose
 
             if docker compose version >/dev/null 2>&1; then
               compose() { docker compose "$@"; }
