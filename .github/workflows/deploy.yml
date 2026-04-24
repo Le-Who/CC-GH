@@ -162,8 +162,19 @@ jobs:
             echo "$GITHUB_TOKEN" | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
             export GHCR_REPO="$REPO_LOWER"
 
-            docker compose -p ccgh pull app
-            docker compose -p ccgh up -d --remove-orphans
+            if docker compose version >/dev/null 2>&1; then
+              compose() { docker compose "$@"; }
+              echo "Using Docker Compose v2 plugin"
+            elif command -v docker-compose >/dev/null 2>&1; then
+              compose() { docker-compose "$@"; }
+              echo "Using legacy docker-compose binary"
+            else
+              echo "Docker Compose is not installed. Install either the docker compose plugin or docker-compose."
+              exit 1
+            fi
+
+            compose -p ccgh pull app
+            compose -p ccgh up -d --remove-orphans
 
             for i in $(seq 1 30); do
               if curl -fsS "http://127.0.0.1:${APP_HOST_PORT}/api/health" >/dev/null; then
@@ -172,7 +183,7 @@ jobs:
               fi
               if [ "$i" -eq 30 ]; then
                 echo "CC-GH local health check failed"
-                docker compose -p ccgh logs --tail=120 app
+                compose -p ccgh logs --tail=120 app
                 exit 1
               fi
               sleep 2
