@@ -35,3 +35,4 @@
 - Isolated the production compose project as `ccgh` with unique app/PostgreSQL/Redis containers, localhost-only app publishing, and no bundled Caddy container.
 - Added a manual Caddy provisioning workflow for the shared VPS host proxy route `games.tri.mom -> 127.0.0.1:18080`.
 - Hardened deployment safety checks so the CC-GH workflow refuses reserved bot/Caddy ports and avoids destructive global Docker pruning.
+- Required Docker Compose v2 for deployment and stopped falling back to legacy Python `docker-compose` v1, avoiding the `ContainerConfig` recreate failure on VPS deploys.

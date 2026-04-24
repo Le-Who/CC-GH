@@ -172,17 +172,17 @@ jobs:
             }
 
             ensure_compose() {
-              if docker compose version >/dev/null 2>&1 || command -v docker-compose >/dev/null 2>&1; then
+              if docker compose version >/dev/null 2>&1; then
                 return 0
               fi
 
-              echo "Docker Compose is not installed; attempting automated installation."
+              echo "Docker Compose v2 plugin is not available; attempting automated installation."
               if command -v apt-get >/dev/null 2>&1; then
                 run_root apt-get update
                 run_root apt-get install -y docker-compose-plugin
               fi
 
-              if docker compose version >/dev/null 2>&1 || command -v docker-compose >/dev/null 2>&1; then
+              if docker compose version >/dev/null 2>&1; then
                 return 0
               fi
 
@@ -214,8 +214,11 @@ jobs:
 
               TMP_COMPOSE="$(mktemp)"
               curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" -o "$TMP_COMPOSE"
-              run_root install -m 0755 "$TMP_COMPOSE" /usr/local/bin/docker-compose
+              run_root install -d -m 0755 /usr/local/lib/docker/cli-plugins
+              run_root install -m 0755 "$TMP_COMPOSE" /usr/local/lib/docker/cli-plugins/docker-compose
               rm -f "$TMP_COMPOSE"
+
+              docker compose version >/dev/null 2>&1
             }
 
             ensure_compose
@@ -223,11 +226,12 @@ jobs:
             if docker compose version >/dev/null 2>&1; then
               compose() { docker compose "$@"; }
               echo "Using Docker Compose v2 plugin"
-            elif command -v docker-compose >/dev/null 2>&1; then
-              compose() { docker-compose "$@"; }
-              echo "Using legacy docker-compose binary"
             else
-              echo "Docker Compose is not installed. Install either the docker compose plugin or docker-compose."
+              if command -v docker-compose >/dev/null 2>&1; then
+                echo "Legacy docker-compose is installed, but Compose v2 is required."
+                docker-compose version || true
+              fi
+              echo "Install docker-compose-plugin or provide a Docker Compose v2 CLI plugin."
               exit 1
             fi
 

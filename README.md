@@ -232,7 +232,7 @@ docker compose -p ccgh pull app
 docker compose -p ccgh up -d --remove-orphans
 ```
 
-The deploy workflow builds and pushes a GHCR image, copies `docker-compose.yml` to `/opt/game-hub`, writes the production `.env`, verifies that `APP_HOST_PORT` is not reserved or owned by another process, restarts only the `ccgh` compose project, and runs local plus public health checks.
+The deploy workflow builds and pushes a GHCR image, copies `docker-compose.yml` to `/opt/game-hub`, writes the production `.env`, verifies that `APP_HOST_PORT` is not reserved or owned by another process, restarts only the `ccgh` compose project, and runs local plus public health checks. Deployment requires Docker Compose v2 through `docker compose`; legacy Python `docker-compose` v1.29.2 is intentionally rejected because it can fail with `KeyError: 'ContainerConfig'` when recreating app containers from modern image metadata.
 
 Current workflow trigger note: CI is configured for the `game-hub` branch, while deploy is configured for `codex/telegram-pixi-vps-migration`. Keep this intentional or align it before changing the release branch model.
 
