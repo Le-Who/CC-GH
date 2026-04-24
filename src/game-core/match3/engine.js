@@ -29,6 +29,20 @@ export const DROP_LABELS = {
   drop_energy: "Energy",
 };
 
+export const SPECIAL_TYPES = ["special_row", "special_column", "special_blast", "special_colour"];
+export const SPECIAL_ICONS = {
+  special_row: "↔",
+  special_column: "↕",
+  special_blast: "✦",
+  special_colour: "✹",
+};
+export const SPECIAL_LABELS = {
+  special_row: "Row Clear",
+  special_column: "Column Clear",
+  special_blast: "Blast",
+  special_colour: "Colour Clear",
+};
+
 // ─── Progressive gold reward (mirrors game-logic.js calcGoldReward) ───
 export const REWARD_BASE = 40;
 const REWARD_LOSE = 5;
@@ -85,6 +99,10 @@ const GEM_TO_CHAR = {
   drop_gold: "G",
   drop_seeds: "S",
   drop_energy: "N",
+  special_row: "R",
+  special_column: "C",
+  special_blast: "B",
+  special_colour: "Q",
   "": ".",
 };
 const CHAR_TO_GEM = Object.fromEntries(
@@ -162,6 +180,22 @@ export function randomGem() {
   return GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
 }
 
+export function randomDropToken() {
+  return DROP_TYPES[Math.floor(Math.random() * DROP_TYPES.length)];
+}
+
+export function isDropToken(type) {
+  return DROP_TYPES.includes(type);
+}
+
+export function isSpecialType(type) {
+  return SPECIAL_TYPES.includes(type);
+}
+
+function isMatchableGem(type) {
+  return !!type && !isDropToken(type) && !isSpecialType(type);
+}
+
 export function generateBoard() {
   const b = [];
   for (let y = 0; y < BOARD_SIZE; y++) {
@@ -188,7 +222,7 @@ export function hasAnyMatch(b) {
   for (let y = 0; y < BOARD_SIZE; y++) {
     for (let x = 0; x < BOARD_SIZE - 2; x++) {
       const type = b[y][x];
-      if (!type || DROP_TYPES.includes(type)) continue;
+      if (!isMatchableGem(type)) continue;
       if (type === b[y][x + 1] && type === b[y][x + 2]) return true;
     }
   }
@@ -196,7 +230,7 @@ export function hasAnyMatch(b) {
   for (let x = 0; x < BOARD_SIZE; x++) {
     for (let y = 0; y < BOARD_SIZE - 2; y++) {
       const type = b[y][x];
-      if (!type || DROP_TYPES.includes(type)) continue;
+      if (!isMatchableGem(type)) continue;
       if (type === b[y + 1][x] && type === b[y + 2][x]) return true;
     }
   }
@@ -210,52 +244,55 @@ const _matchBuffer = new Uint8Array(BOARD_SIZE * BOARD_SIZE);
 // but since we must return variable length arrays for the engine iterators,
 // we just recycle the buffer and return a standard flat array.
 
-export function findMatches(b, dirtyMask = null) {
-  _matchBuffer.fill(0);
-  let count = 0;
+export function findMatchGroups(b, dirtyMask = null) {
+  const groups = [];
 
-  // Horizontal
   for (let y = 0; y < BOARD_SIZE; y++) {
-    // OPT 9 Heuristic: Skip clean rows if mask is provided
     if (dirtyMask && !dirtyMask.rows[y]) continue;
 
     for (let x = 0; x < BOARD_SIZE - 2; x++) {
       const type = b[y][x];
-      if (!type || DROP_TYPES.includes(type)) continue;
+      if (!isMatchableGem(type)) continue;
       if (type === b[y][x + 1] && type === b[y][x + 2]) {
         let end = x + 3;
         while (end < BOARD_SIZE && b[y][end] === type) end++;
-        for (let k = x; k < end; k++) {
-          const idx = y * BOARD_SIZE + k;
-          if (_matchBuffer[idx] === 0) {
-            _matchBuffer[idx] = 1;
-            count++;
-          }
-        }
+        const group = [];
+        for (let k = x; k < end; k++) group.push(y * BOARD_SIZE + k);
+        groups.push(group);
         x = end - 1;
       }
     }
   }
 
-  // Vertical
   for (let x = 0; x < BOARD_SIZE; x++) {
-    // OPT 9 Heuristic: Skip clean columns if mask is provided
     if (dirtyMask && !dirtyMask.cols[x]) continue;
 
     for (let y = 0; y < BOARD_SIZE - 2; y++) {
       const type = b[y][x];
-      if (!type || DROP_TYPES.includes(type)) continue;
+      if (!isMatchableGem(type)) continue;
       if (type === b[y + 1][x] && type === b[y + 2][x]) {
         let end = y + 3;
         while (end < BOARD_SIZE && b[end][x] === type) end++;
-        for (let k = y; k < end; k++) {
-          const idx = k * BOARD_SIZE + x;
-          if (_matchBuffer[idx] === 0) {
-            _matchBuffer[idx] = 1;
-            count++;
-          }
-        }
+        const group = [];
+        for (let k = y; k < end; k++) group.push(k * BOARD_SIZE + x);
+        groups.push(group);
         y = end - 1;
+      }
+    }
+  }
+
+  return groups;
+}
+
+export function findMatches(b, dirtyMask = null) {
+  _matchBuffer.fill(0);
+  let count = 0;
+
+  for (const group of findMatchGroups(b, dirtyMask)) {
+    for (const idx of group) {
+      if (_matchBuffer[idx] === 0) {
+        _matchBuffer[idx] = 1;
+        count++;
       }
     }
   }
@@ -304,6 +341,60 @@ const _dirtyPoolB = {
   cols: new Uint8Array(BOARD_SIZE),
 };
 
+function groupSpecialType(group) {
+  if (!group || group.length < 4) return null;
+  const rows = new Set(group.map((idx) => Math.floor(idx / BOARD_SIZE)));
+  const cols = new Set(group.map((idx) => idx % BOARD_SIZE));
+  if (group.length >= 5) return "special_colour";
+  if (rows.size === 1) return "special_row";
+  if (cols.size === 1) return "special_column";
+  return "special_blast";
+}
+
+function collectSpecialClears(board, x, y) {
+  const type = board[y]?.[x];
+  if (!isSpecialType(type)) return [];
+  const cells = new Set();
+  const add = (cx, cy) => {
+    if (cx >= 0 && cx < BOARD_SIZE && cy >= 0 && cy < BOARD_SIZE) cells.add(cy * BOARD_SIZE + cx);
+  };
+
+  if (type === "special_row") {
+    for (let cx = 0; cx < BOARD_SIZE; cx++) add(cx, y);
+  } else if (type === "special_column") {
+    for (let cy = 0; cy < BOARD_SIZE; cy++) add(x, cy);
+  } else if (type === "special_blast") {
+    for (let cy = y - 1; cy <= y + 1; cy++) {
+      for (let cx = x - 1; cx <= x + 1; cx++) add(cx, cy);
+    }
+  } else if (type === "special_colour") {
+    const target = GEM_TYPES.find((gem) => board.some((row) => row.includes(gem))) || null;
+    if (target) {
+      for (let cy = 0; cy < BOARD_SIZE; cy++) {
+        for (let cx = 0; cx < BOARD_SIZE; cx++) {
+          if (board[cy][cx] === target) add(cx, cy);
+        }
+      }
+    }
+    add(x, y);
+  }
+
+  return [...cells];
+}
+
+function clearCells(board, indices) {
+  const cleared = [];
+  for (const idx of indices) {
+    const x = idx % BOARD_SIZE;
+    const y = Math.floor(idx / BOARD_SIZE);
+    const type = board[y]?.[x];
+    if (!type || isDropToken(type)) continue;
+    board[y][x] = null;
+    cleared.push({ x, y, type });
+  }
+  return cleared;
+}
+
 /** Run a full cascade: match → clear → gravity → fill → repeat.
  *  Returns { steps, totalPoints, combo } for animation.
  *  @param {Function} [onCascadeStep] — optional callback after each step (for star-drop checks)
@@ -325,20 +416,36 @@ export function resolveBoard(b, onCascadeStep) {
     nextDirtyMask.rows.fill(0);
     nextDirtyMask.cols.fill(0);
 
-    const cleared = matches.map((idx) => {
+    const groups = findMatchGroups(b, dirtyMask);
+    const protectedSpecials = new Map();
+    const clearSet = new Set(matches);
+    for (const group of groups) {
+      const special = groupSpecialType(group);
+      if (!special) continue;
+      const anchor = group[0];
+      protectedSpecials.set(anchor, special);
+      clearSet.delete(anchor);
+    }
+    const cleared = [];
+    for (const idx of clearSet) {
       const x = idx % BOARD_SIZE;
       const y = Math.floor(idx / BOARD_SIZE);
-      // Mark cleared cells as dirty
+      if (isDropToken(b[y][x])) continue;
+      cleared.push({ x, y, type: b[y][x] });
+      b[y][x] = null;
       nextDirtyMask.rows[y] = 1;
       nextDirtyMask.cols[x] = 1;
-      return { x, y, type: b[y][x] };
-    });
-    totalPoints += cleared.length * 10 * Math.min(cascadeCombo, 5);
-
-    // Clear matched cells (but NEVER clear drop tokens)
-    for (const { x, y } of cleared) {
-      if (!DROP_TYPES.includes(b[y][x])) b[y][x] = null;
     }
+    const specials = [];
+    for (const [idx, type] of protectedSpecials.entries()) {
+      const x = idx % BOARD_SIZE;
+      const y = Math.floor(idx / BOARD_SIZE);
+      b[y][x] = type;
+      nextDirtyMask.rows[y] = 1;
+      nextDirtyMask.cols[x] = 1;
+      specials.push({ x, y, type });
+    }
+    totalPoints += cleared.length * 10 * Math.min(cascadeCombo, 5);
 
     // Gravity + fill
     const fallen = [];
@@ -372,6 +479,7 @@ export function resolveBoard(b, onCascadeStep) {
 
     steps.push({
       cleared,
+      specials,
       fallen,
       filled,
       combo: cascadeCombo,
@@ -386,4 +494,73 @@ export function resolveBoard(b, onCascadeStep) {
   }
 
   return { steps, totalPoints, combo: cascadeCombo };
+}
+
+export function seedDropTokens(board, count = 3) {
+  const next = cloneBoard(board);
+  const emptyish = [];
+  for (let y = 0; y < BOARD_SIZE; y++) {
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      if (!isDropToken(next[y][x]) && !isSpecialType(next[y][x])) emptyish.push({ x, y });
+    }
+  }
+  for (let i = 0; i < count && emptyish.length; i++) {
+    const pick = Math.floor(Math.random() * emptyish.length);
+    const [{ x, y }] = emptyish.splice(pick, 1);
+    next[y][x] = randomDropToken();
+  }
+  return next;
+}
+
+export function attemptMatch3Move(board, from, to, options = {}) {
+  const original = cloneBoard(board);
+  const adjacent = Math.abs(from.x - to.x) + Math.abs(from.y - to.y) === 1;
+  if (!adjacent) {
+    return { valid: false, board: original, totalPoints: 0, combo: 0, steps: [], reason: "not adjacent" };
+  }
+
+  const next = cloneBoard(board);
+  const fromType = next[from.y]?.[from.x];
+  const toType = next[to.y]?.[to.x];
+  if (!fromType || !toType) {
+    return { valid: false, board: original, totalPoints: 0, combo: 0, steps: [], reason: "empty cell" };
+  }
+
+  [next[from.y][from.x], next[to.y][to.x]] = [next[to.y][to.x], next[from.y][from.x]];
+
+  const specialCells = [];
+  if (isSpecialType(fromType)) specialCells.push({ x: to.x, y: to.y });
+  if (isSpecialType(toType)) specialCells.push({ x: from.x, y: from.y });
+
+  if (specialCells.length) {
+    const clearSet = new Set();
+    for (const cell of specialCells) {
+      for (const idx of collectSpecialClears(next, cell.x, cell.y)) clearSet.add(idx);
+    }
+    const cleared = clearCells(next, clearSet);
+    const resolved = resolveBoard(next, options.onCascadeStep);
+    const specialPoints = cleared.length * 12;
+    return {
+      valid: true,
+      board: next,
+      totalPoints: specialPoints + resolved.totalPoints,
+      combo: Math.max(1, resolved.combo),
+      steps: [{ cleared, specials: [], fallen: [], filled: [], combo: 1, boardSnapshot: cloneBoard(next) }, ...resolved.steps],
+      special: true,
+    };
+  }
+
+  if (!findMatches(next).length) {
+    return { valid: false, board: original, totalPoints: 0, combo: 0, steps: [], reason: "no match" };
+  }
+
+  const resolved = resolveBoard(next, options.onCascadeStep);
+  return {
+    valid: true,
+    board: next,
+    totalPoints: resolved.totalPoints,
+    combo: resolved.combo,
+    steps: resolved.steps,
+    special: false,
+  };
 }

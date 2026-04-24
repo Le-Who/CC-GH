@@ -15,9 +15,12 @@
     "migrate:accounts": "node scripts/migrate-accounts.mjs"
   },
   "dependencies": {
+    "@esotericsoftware/spine-pixi-v8": "^4.2.112",
     "@fontsource/bungee": "^5.2.7",
     "@fontsource/nunito": "^5.2.7",
     "@fontsource/varela-round": "^5.2.8",
+    "@pixi/sound": "^6.0.1",
+    "@pixi/ui": "^2.3.2",
     "@telegram-apps/sdk": "3.11.8",
     "@telegram-apps/sdk-react": "3.3.9",
     "@tma.js/init-data-node": "2.0.7",
@@ -27,10 +30,12 @@
     "dotenv": "^16.3.1",
     "express": "5.2.1",
     "framer-motion": "^12.34.3",
+    "gsap": "^3.15.0",
     "idb-keyval": "^6.2.2",
     "ioredis": "^5.10.1",
     "lucide-react": "^0.575.0",
     "node-fetch": "^3.3.2",
+    "pixi-filters": "^6.1.5",
     "pixi.js": "8.18.1",
     "postgres": "^3.4.8",
     "react": "^19.2.4",
@@ -38,6 +43,7 @@
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^3.5.0",
+    "typed-signals": "^3.0.0",
     "zustand": "^5.0.12"
   },
   "devDependencies": {

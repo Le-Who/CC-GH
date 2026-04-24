@@ -25,6 +25,18 @@
       "match3Background": "",
       "mergeBackground": "",
       "roomBackground": ""
+    },
+    "games": {
+      "bubboBubbo": {
+        "source": "/games/bubbo-bubbo/raw-assets/",
+        "images": "/games/bubbo-bubbo/images/",
+        "license": "/games/bubbo-bubbo/LICENSE"
+      },
+      "puzzlingPotions": {
+        "source": "/games/puzzling-potions/raw-assets/",
+        "images": "/games/puzzling-potions/images/",
+        "license": "/games/puzzling-potions/LICENSE"
+      }
     }
   },
   "audio": {

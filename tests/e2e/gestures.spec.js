@@ -28,7 +28,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.getByText("Building Blox")).toBeVisible();
+    await expect(page.locator(".game-play-hud")).toContainText("Building Blox");
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
@@ -54,7 +54,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.getByText("Gem Crush")).toBeVisible();
+    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
@@ -68,7 +68,7 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.move(left + cell * 1.5, top + cell * 0.5, { steps: 6 });
     await page.mouse.up();
 
-    await expect(page.getByText(/Combo/)).toBeVisible();
+    await expect(page.locator(".game-play-hud")).toContainText(/Combo/);
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

@@ -441,6 +441,125 @@ h1 {
   overflow: auto;
 }
 
+.telegram-app.immersive-mode {
+  width: 100vw;
+  max-width: none;
+  height: min(100dvh, var(--tg-viewport-stable-height, 100dvh));
+  padding: calc(4px + var(--safe-top)) 6px calc(6px + var(--safe-bottom));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.telegram-app.immersive-mode .topbar,
+.telegram-app.immersive-mode .profile-strip,
+.telegram-app.immersive-mode .stats-row,
+.telegram-app.immersive-mode .notice,
+.telegram-app.immersive-mode .bottom-tabs {
+  display: none;
+}
+
+.telegram-app.immersive-mode .active-game-frame {
+  min-height: 0;
+  height: 100%;
+}
+
+.game-shell {
+  position: relative;
+}
+
+.game-shell.shell-playing {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.game-shell.shell-playing .pixi-host {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 8px;
+}
+
+.game-shell.shell-playing .side-panel {
+  display: none;
+}
+
+.game-play-hud {
+  position: absolute;
+  z-index: 4;
+  left: max(8px, env(safe-area-inset-left, 0px));
+  right: max(8px, env(safe-area-inset-right, 0px));
+  bottom: max(8px, calc(var(--safe-bottom) + 8px));
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(0, auto) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(7, 16, 22, 0.82);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.game-play-title,
+.game-play-stats,
+.game-play-actions {
+  min-width: 0;
+}
+
+.game-play-title strong,
+.game-play-title span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-play-title strong {
+  font-size: 0.95rem;
+  font-weight: 1000;
+}
+
+.game-play-title span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.game-play-stats {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(64px, auto);
+  gap: 6px;
+}
+
+.game-play-stats span {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: rgba(255, 244, 216, 0.08);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.game-play-stats strong {
+  color: var(--ink);
+  font-size: 0.94rem;
+}
+
+.game-play-actions {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 6px;
+}
+
 .pixi-host canvas {
   width: 100%;
   height: 100%;
@@ -524,6 +643,10 @@ h1 {
 
 .button-row {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.button-row.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .join-row {
@@ -1016,6 +1139,31 @@ button.item-card {
     grid-template-rows: minmax(320px, 1fr) auto;
   }
 
+  .telegram-app.immersive-mode .game-layout {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .game-play-hud {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "title actions"
+      "stats stats";
+    align-items: end;
+  }
+
+  .game-play-title {
+    grid-area: title;
+  }
+
+  .game-play-stats {
+    grid-area: stats;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+
+  .game-play-actions {
+    grid-area: actions;
+  }
+
   .pixi-host {
     min-height: 280px;
   }
@@ -1106,4 +1254,43 @@ button.item-card {
   .telegram-app.play-mode .side-panel {
     max-height: min(30dvh, 190px);
   }
+
+  .game-play-hud {
+    left: 6px;
+    right: 6px;
+    bottom: max(6px, calc(var(--safe-bottom) + 6px));
+    padding: 6px;
+  }
+
+  .game-play-actions .panel-button {
+    width: 44px;
+    padding: 0;
+  }
+
+  .game-play-actions .panel-button span {
+    display: none;
+  }
+}
+
+.telegram-app.immersive-mode .game-shell.shell-playing {
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.telegram-app.immersive-mode .game-shell.shell-playing .pixi-host {
+  height: 100%;
+  min-height: 0;
+}
+
+.telegram-app.play-mode.immersive-mode {
+  height: min(100dvh, var(--tg-viewport-stable-height, 100dvh));
+  padding: calc(4px + var(--safe-top)) 6px calc(6px + var(--safe-bottom));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.telegram-app.play-mode.immersive-mode .active-game-frame,
+.telegram-app.play-mode.immersive-mode .game-shell.shell-playing {
+  min-height: 0;
+  height: 100%;
 }

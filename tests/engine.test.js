@@ -5,6 +5,7 @@ import {
   GEM_ICONS,
   BOARD_SIZE,
   DROP_TYPES,
+  SPECIAL_TYPES,
   calcGoldReward,
   cloneBoard,
   cloneDropStars,
@@ -18,6 +19,9 @@ import {
   findMatches,
   hasValidMoves,
   resolveBoard,
+  attemptMatch3Move,
+  isSpecialType,
+  seedDropTokens,
 } from "../src/game-core/match3/engine.js";
 
 describe("Match-3 Engine Tests", () => {
@@ -37,6 +41,10 @@ describe("Match-3 Engine Tests", () => {
 
     it("exports correct DROP_TYPES", () => {
       assert.deepEqual(DROP_TYPES, ["drop_gold", "drop_seeds", "drop_energy"]);
+    });
+
+    it("exports upstream-style special piece types", () => {
+      assert.deepEqual(SPECIAL_TYPES, ["special_row", "special_column", "special_blast", "special_colour"]);
     });
   });
 
@@ -386,6 +394,55 @@ describe("Match-3 Engine Tests", () => {
              }
          }
          assert.ok(foundDrop, "Drop token should not be cleared");
+       });
+
+      it("spawns a special piece from longer matches", () => {
+        const board = generateBoard();
+        board[0][0] = "fire";
+        board[0][1] = "fire";
+        board[0][2] = "fire";
+        board[0][3] = "fire";
+
+        const result = resolveBoard(board);
+
+        assert.ok(result.steps.some((step) => step.specials?.length), "Expected at least one spawned special");
+        assert.ok(board.some((row) => row.some((cell) => isSpecialType(cell))), "Expected special piece to remain on board");
+      });
+
+      it("resolves a special-piece move without clearing drop tokens", () => {
+        const board = generateBoard();
+        board[2][2] = "special_row";
+        board[2][3] = "drop_gold";
+        board[2][4] = "water";
+
+        const result = attemptMatch3Move(board, { x: 2, y: 2 }, { x: 2, y: 3 });
+
+        assert.equal(result.valid, true);
+        assert.ok(result.totalPoints > 0);
+        assert.ok(result.board.some((row) => row.includes("drop_gold")), "Drop token should survive special clearing");
+      });
+
+      it("keeps invalid swaps from mutating or scoring", () => {
+        let candidate = null;
+        for (let i = 0; i < 30 && !candidate; i++) {
+          const board = generateBoard();
+          for (let y = 0; y < BOARD_SIZE && !candidate; y++) {
+            for (let x = 0; x < BOARD_SIZE - 1 && !candidate; x++) {
+              const result = attemptMatch3Move(board, { x, y }, { x: x + 1, y });
+              if (!result.valid) candidate = { board, result };
+            }
+          }
+        }
+
+        assert.ok(candidate, "Expected at least one invalid adjacent swap candidate");
+        assert.equal(candidate.result.totalPoints, 0);
+        assert.deepEqual(candidate.result.board, candidate.board);
+      });
+
+      it("seeds drop tokens for Star Drop mode", () => {
+        const board = seedDropTokens(generateBoard(), 4);
+        const count = board.flat().filter((cell) => DROP_TYPES.includes(cell)).length;
+        assert.equal(count, 4);
       });
     });
   });

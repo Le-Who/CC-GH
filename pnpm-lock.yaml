@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@esotericsoftware/spine-pixi-v8':
+        specifier: ^4.2.112
+        version: 4.2.112(pixi.js@8.18.1)
       '@fontsource/bungee':
         specifier: ^5.2.7
         version: 5.2.7
@@ -17,6 +20,12 @@ importers:
       '@fontsource/varela-round':
         specifier: ^5.2.8
         version: 5.2.8
+      '@pixi/sound':
+        specifier: ^6.0.1
+        version: 6.0.1(pixi.js@8.18.1)
+      '@pixi/ui':
+        specifier: ^2.3.2
+        version: 2.3.2(pixi.js@8.18.1)
       '@telegram-apps/sdk':
         specifier: 3.11.8
         version: 3.11.8
@@ -44,6 +53,9 @@ importers:
       framer-motion:
         specifier: ^12.34.3
         version: 12.37.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       idb-keyval:
         specifier: ^6.2.2
         version: 6.2.2
@@ -56,6 +68,9 @@ importers:
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
+      pixi-filters:
+        specifier: ^6.1.5
+        version: 6.1.5(pixi.js@8.18.1)
       pixi.js:
         specifier: 8.18.1
         version: 8.18.1
@@ -77,6 +92,9 @@ importers:
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
+      typed-signals:
+        specifier: ^3.0.0
+        version: 3.0.0
       zustand:
         specifier: ^5.0.12
         version: 5.0.12(react@19.2.4)
@@ -841,6 +859,17 @@ packages:
     resolution: {integrity: sha512-iH1B076HoAshH1mLpHMgwdGeTs0CYwL0SPMkGuSebZrwBp16v415e9NZXg2jtrqPVQjf6IANe2Vtlr5KswtcZQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
+  '@esotericsoftware/spine-canvas@4.2.112':
+    resolution: {integrity: sha512-hPLprSvwW0Y4dTolywiS/AsAJQJgNMsTEntOh5JP5HxJmAEnT8IMp2kn0KuRNM1+lIrc32q35b2xQDDMmkLyvA==}
+
+  '@esotericsoftware/spine-core@4.2.112':
+    resolution: {integrity: sha512-6MXHr1V5u1GkhhOmL4QFd3CerxsFHvKKiTs4AQAckau5Lp1Tw19TOBb2bUX7WSlXUPmmLRI6w/DMZSQUBDFPUA==}
+
+  '@esotericsoftware/spine-pixi-v8@4.2.112':
+    resolution: {integrity: sha512-VchSODKkjw3lWQsbtQSozEHtipBnxFqZYorDKRaPm7RlLQdfth+ngZoiGNaAx70B837XhL9cWCWI5TUMYmrUrw==}
+    peerDependencies:
+      pixi.js: ^8.16.0
+
   '@fontsource/bungee@5.2.7':
     resolution: {integrity: sha512-pzUlTXEFdiDM5p0inlWRM+1ovS3vTWG6NplJ65EpfBwZNQmM6wNS6z22tml07+NWKK+e8/FPPupBVbzd0th54w==}
 
@@ -906,6 +935,16 @@ packages:
 
   '@pixi/colord@2.9.6':
     resolution: {integrity: sha512-nezytU2pw587fQstUu1AsJZDVEynjskwOL+kibwcdxsMBFqPsFFNA7xl0ii/gXuDi6M0xj3mfRJj8pBSc2jCfA==}
+
+  '@pixi/sound@6.0.1':
+    resolution: {integrity: sha512-hpFlQSScAR2L/CsEoIvDi7s1oGsu8y9Zd742Vd3982N+q3IF2vFuIfV9HN4ryjlGnhCT8yBlEgs1gp4G9Rt9TA==}
+    peerDependencies:
+      pixi.js: ^8.0.0
+
+  '@pixi/ui@2.3.2':
+    resolution: {integrity: sha512-HHQtAHxzirfl6bg9HgzyGGLIHqM/q3i0R+raQ9Wmp3VxLJTUviF655Syf9PWYC690xbS9uo0mRkXykoJNkHKhA==}
+    peerDependencies:
+      pixi.js: ^8.6.2
 
   '@playwright/test@1.58.2':
     resolution: {integrity: sha512-akea+6bHYBBfA9uQqSYmlJXn61cTa+jbO87xVLCWbTqbWadRVmhxlXATaOjOgcBaWU4ePo0wB41KMFv3o35IXA==}
@@ -1271,6 +1310,9 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
+
+  '@types/gradient-parser@0.1.5':
+    resolution: {integrity: sha512-r7K3NkJz3A95WkVVmjs0NcchhHstC2C/VIYNX4JC6tieviUNo774FFeOHjThr3Vw/WCeMP9kAT77MKbIRlO/4w==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -1990,6 +2032,9 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
+
   has-bigints@1.1.0:
     resolution: {integrity: sha512-R3pbpkcIqv2Pm3dUwgjclDRVmWpTJW2DcMzcIhEXEx1oh/CEMObMm3KLmRJOdvhM7o4uQBnwr8pzRK2sJWIqfg==}
     engines: {node: '>= 0.4'}
@@ -2592,6 +2637,11 @@ packages:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
 
+  pixi-filters@6.1.5:
+    resolution: {integrity: sha512-Ewb/J+kxAbaNN+0/ATJbglAJG+skGJfh7BIDP3ILIDdD6wWk1p0pGa25pVf1T8hGBOQSUNVAmwwJBwkj+cyLLA==}
+    peerDependencies:
+      pixi.js: '>=8.0.0-0'
+
   pixi.js@8.18.1:
     resolution: {integrity: sha512-6LUPWYgulZhp/w4kam2XHXB0QedISZIqrJbRdHLLQ3csn5a38uzKxAp6B5j6s89QFYaIJbg95kvgTRcbgpO1ow==}
 
@@ -3022,6 +3072,9 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
+  tweedle.js@2.1.0:
+    resolution: {integrity: sha512-0ReQgVjepoZkE6t0upWNgCRbplHkQJQYk1LStXugwSR728GLFmGDRuaQJlxeC/iBlxud6+P1RdODjaO25vHAqw==}
+
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
@@ -3049,6 +3102,12 @@ packages:
   typed-array-length@1.0.7:
     resolution: {integrity: sha512-3KS2b+kL7fsuk/eJZ7EQdnEmQoaho/r6KUef7hxvltNA5DR8NAUM+8wJMbJyZ4G9/7i3v5zPBIMN5aybAh2/Jg==}
     engines: {node: '>= 0.4'}
+
+  typed-signals@2.5.0:
+    resolution: {integrity: sha512-m9lHc3eBCJerXYdx+G0uWZihyUXdqTzzgOdqiDDsoUo75WjhFJH6vP5/6w/xhyu04zoxHUqgYhf9FEt85dk/Ng==}
+
+  typed-signals@3.0.0:
+    resolution: {integrity: sha512-HpYkOenDGcyiNabkvJ7XC1FfTb4I/yx95GEblpXf1058C89eLBIJBlq4IMW2jFxju7NC2J5fTss2k2OPs27GiA==}
 
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
@@ -4096,6 +4155,17 @@ snapshots:
       '@eslint/core': 1.1.1
       levn: 0.4.1
 
+  '@esotericsoftware/spine-canvas@4.2.112':
+    dependencies:
+      '@esotericsoftware/spine-core': 4.2.112
+
+  '@esotericsoftware/spine-core@4.2.112': {}
+
+  '@esotericsoftware/spine-pixi-v8@4.2.112(pixi.js@8.18.1)':
+    dependencies:
+      '@esotericsoftware/spine-canvas': 4.2.112
+      pixi.js: 8.18.1
+
   '@fontsource/bungee@5.2.7': {}
 
   '@fontsource/nunito@5.2.7': {}
@@ -4154,6 +4224,16 @@ snapshots:
       fastq: 1.20.1
 
   '@pixi/colord@2.9.6': {}
+
+  '@pixi/sound@6.0.1(pixi.js@8.18.1)':
+    dependencies:
+      pixi.js: 8.18.1
+
+  '@pixi/ui@2.3.2(pixi.js@8.18.1)':
+    dependencies:
+      pixi.js: 8.18.1
+      tweedle.js: 2.1.0
+      typed-signals: 2.5.0
 
   '@playwright/test@1.58.2':
     dependencies:
@@ -4473,6 +4553,8 @@ snapshots:
   '@types/estree@0.0.39': {}
 
   '@types/estree@1.0.8': {}
+
+  '@types/gradient-parser@0.1.5': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -5390,6 +5472,8 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+  gsap@3.15.0: {}
+
   has-bigints@1.1.0: {}
 
   has-property-descriptors@1.0.2:
@@ -5923,6 +6007,11 @@ snapshots:
   pify@2.3.0: {}
 
   pirates@4.0.7: {}
+
+  pixi-filters@6.1.5(pixi.js@8.18.1):
+    dependencies:
+      '@types/gradient-parser': 0.1.5
+      pixi.js: 8.18.1
 
   pixi.js@8.18.1:
     dependencies:
@@ -6486,6 +6575,8 @@ snapshots:
 
   tslib@2.8.1: {}
 
+  tweedle.js@2.1.0: {}
+
   type-check@0.4.0:
     dependencies:
       prelude-ls: 1.2.1
@@ -6530,6 +6621,10 @@ snapshots:
       is-typed-array: 1.1.15
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
+
+  typed-signals@2.5.0: {}
+
+  typed-signals@3.0.0: {}
 
   unbox-primitive@1.1.0:
     dependencies:

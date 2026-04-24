@@ -1,4 +1,4 @@
-import { Container, Graphics, Text } from "pixi.js";
+import { Container, Graphics, Sprite, Text, TilingSprite, Texture } from "pixi.js";
 import { CROPS, MERGE_CHAINS } from "../../game-logic.js";
 import {
   BUBBO_COLORS,
@@ -20,6 +20,34 @@ const GEM_COLORS = {
   drop_gold: 0xffc247,
   drop_seeds: 0x8ee06a,
   drop_energy: 0x70d6ff,
+  special_row: 0xfacc15,
+  special_column: 0x78c7ff,
+  special_blast: 0xff7867,
+  special_colour: 0xca9cff,
+};
+
+const BUBBO_IMAGE_BASE = "/games/bubbo-bubbo/images";
+const POTIONS_IMAGE_BASE = "/games/puzzling-potions/images";
+
+const BUBBO_BUBBLE_ASSETS = {
+  mint: `${BUBBO_IMAGE_BASE}/bubble-green.png`,
+  amber: `${BUBBO_IMAGE_BASE}/bubble-yellow.png`,
+  coral: `${BUBBO_IMAGE_BASE}/bubble-red.png`,
+  sky: `${BUBBO_IMAGE_BASE}/bubble-blue.png`,
+  berry: `${BUBBO_IMAGE_BASE}/bubble-blue.png`,
+};
+
+const POTION_PIECE_ASSETS = {
+  fire: `${POTIONS_IMAGE_BASE}/piece-dragon.png`,
+  water: `${POTIONS_IMAGE_BASE}/piece-frog.png`,
+  earth: `${POTIONS_IMAGE_BASE}/piece-newt.png`,
+  air: `${POTIONS_IMAGE_BASE}/piece-snake.png`,
+  light: `${POTIONS_IMAGE_BASE}/piece-spider.png`,
+  dark: `${POTIONS_IMAGE_BASE}/piece-yeti.png`,
+  special_row: `${POTIONS_IMAGE_BASE}/special-row.png`,
+  special_column: `${POTIONS_IMAGE_BASE}/special-column.png`,
+  special_blast: `${POTIONS_IMAGE_BASE}/special-blast.png`,
+  special_colour: `${POTIONS_IMAGE_BASE}/special-colour.png`,
 };
 
 const FARM_SOIL = [0x7b4f2d, 0x8b5c34, 0x684022];
@@ -69,6 +97,29 @@ function label(text, x, y, size = 16, fill = TEXT, weight = "800") {
 
 function rect(x, y, w, h, color, radius = 8, alpha = 1) {
   return new Graphics().roundRect(x, y, w, h, radius).fill({ color, alpha });
+}
+
+function sprite(path, x, y, width, height, alpha = 1) {
+  const item = Sprite.from(path);
+  item.anchor.set(0.5);
+  item.x = x;
+  item.y = y;
+  item.width = width;
+  item.height = height;
+  item.alpha = alpha;
+  return item;
+}
+
+function tiledSprite(path, x, y, width, height, alpha = 1) {
+  const item = new TilingSprite({
+    texture: Texture.from(path),
+    width,
+    height,
+  });
+  item.x = x;
+  item.y = y;
+  item.alpha = alpha;
+  return item;
 }
 
 function strokedRect(x, y, w, h, color, radius = 8, fill = FIELD, alpha = 1, width = 2) {
@@ -160,20 +211,46 @@ function makeRipple(root, x, y, color = SKY, radius = 28) {
   root.addChild(ripple);
 }
 
+function makeRafScheduler(fn) {
+  let frame = 0;
+  return {
+    request() {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        fn();
+      });
+    },
+    cancel() {
+      if (!frame) return;
+      window.cancelAnimationFrame(frame);
+      frame = 0;
+    },
+  };
+}
+
 function setupStage(app, onMove, onUp) {
   app.stage.eventMode = "static";
   app.stage.hitArea = app.screen;
   const move = (event) => onMove?.(event);
   const up = (event) => onUp?.(event);
+  const cancel = () => onUp?.({ cancelled: true, global: null });
+  const visibility = () => {
+    if (document.visibilityState === "hidden") cancel();
+  };
   app.stage.on("globalpointermove", move);
   app.stage.on("pointerup", up);
   app.stage.on("pointerupoutside", up);
   app.stage.on("pointercancel", up);
+  window.addEventListener("blur", cancel);
+  document.addEventListener("visibilitychange", visibility);
   return () => {
     app.stage.off("globalpointermove", move);
     app.stage.off("pointerup", up);
     app.stage.off("pointerupoutside", up);
     app.stage.off("pointercancel", up);
+    window.removeEventListener("blur", cancel);
+    document.removeEventListener("visibilitychange", visibility);
   };
 }
 
@@ -313,6 +390,7 @@ export function buildBloxScene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
+  const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
   function drawPiece(piece, x, y, unit, alpha = 1) {
     const group = new Container();
@@ -322,7 +400,7 @@ export function buildBloxScene(app, initial = {}) {
     return group;
   }
 
-  function updateDragVisual() {
+  function updateDragVisualNow() {
     clear(dragLayer);
     if (!drag?.piece) return;
     const unit = Math.min(layout?.cell || 22, 28);
@@ -337,12 +415,18 @@ export function buildBloxScene(app, initial = {}) {
     }
   }
 
+  function updateDragVisual() {
+    dragVisual.request();
+  }
+
   function dropDrag(event) {
     if (!drag) return;
+    if (event?.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
     const point = event?.global || drag;
-    const target = cellFromPoint(layout, point.x, point.y);
+    const target = event?.cancelled ? null : cellFromPoint(layout, point.x, point.y);
     const current = drag;
     drag = null;
+    dragVisual.cancel();
     clear(dragLayer);
     if (target && data.blox?.gameActive) {
       data.onBloxDrop?.(current.pieceIdx, target.row, target.col)?.then?.((result) => {
@@ -397,6 +481,7 @@ export function buildBloxScene(app, initial = {}) {
           drag = {
             pieceIdx: i,
             piece: t.piece,
+            pointerId: event.pointerId,
             startX: event.global.x,
             startY: event.global.y,
             x: event.global.x,
@@ -420,6 +505,7 @@ export function buildBloxScene(app, initial = {}) {
     app,
     (event) => {
       if (!drag) return;
+      if (event.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
       drag.x = event.global.x;
       drag.y = event.global.y;
       drag.moved = drag.moved || Math.abs(drag.x - drag.startX) + Math.abs(drag.y - drag.startY) > 8;
@@ -434,11 +520,13 @@ export function buildBloxScene(app, initial = {}) {
   return {
     update(next) {
       data = next || {};
-      draw();
+      if (drag) updateDragVisual();
+      else draw();
     },
     destroy() {
       cleanup();
       app.ticker.remove(ticker);
+      dragVisual.cancel();
       clear(root);
       clear(dragLayer);
       clear(effects);
@@ -457,8 +545,9 @@ export function buildMatch3Scene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
+  const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
-  function updateDragVisual() {
+  function updateDragVisualNow() {
     clear(dragLayer);
     if (!drag) return;
     const state = data.match3 || {};
@@ -473,6 +562,12 @@ export function buildMatch3Scene(app, initial = {}) {
         .fill({ color, alpha: 0.8 })
         .stroke({ color: TEXT, width: 2, alpha: 0.7 }),
     );
+    const pieceAsset = POTION_PIECE_ASSETS[gem];
+    if (pieceAsset) dragLayer.addChild(sprite(pieceAsset, drag.x, drag.y, radius * 1.85, radius * 1.85, 0.92));
+  }
+
+  function updateDragVisual() {
+    dragVisual.request();
   }
 
   function draw() {
@@ -485,6 +580,7 @@ export function buildMatch3Scene(app, initial = {}) {
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
+    root.addChild(tiledSprite(`${POTIONS_IMAGE_BASE}/shelf-block.png`, left - 4, top - 4, size + 8, size + 8, 0.16));
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
         const gem = actual[y]?.[x];
@@ -497,7 +593,7 @@ export function buildMatch3Scene(app, initial = {}) {
         makeInteractive(tile, {
           pointerdown: (event) => {
             if (!state.gameActive) return;
-            drag = { from: { x, y }, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
+            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
           },
           pointertap: () => data.onMatch3Cell?.(x, y),
         });
@@ -508,11 +604,15 @@ export function buildMatch3Scene(app, initial = {}) {
         makeInteractive(orb, {
           pointerdown: (event) => {
             if (!state.gameActive) return;
-            drag = { from: { x, y }, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
+            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
           },
           pointertap: () => data.onMatch3Cell?.(x, y),
         });
         root.addChild(orb);
+        const pieceAsset = POTION_PIECE_ASSETS[gem];
+        if (pieceAsset && !dragging) {
+          root.addChild(sprite(pieceAsset, left + x * cell + cell / 2, top + y * cell + cell / 2, cell * 0.72, cell * 0.72, 0.96));
+        }
         const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
         if (icon) root.addChild(label(icon, left + x * cell + cell / 2, top + y * cell + cell / 2, Math.max(12, cell * 0.34)));
       }
@@ -525,15 +625,22 @@ export function buildMatch3Scene(app, initial = {}) {
     app,
     (event) => {
       if (!drag) return;
+      if (event.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
       drag.x = event.global.x;
       drag.y = event.global.y;
       updateDragVisual();
     },
     (event) => {
       if (!drag) return;
+      if (event?.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
       const current = drag;
       drag = null;
+      dragVisual.cancel();
       clear(dragLayer);
+      if (event?.cancelled || !event?.global) {
+        draw();
+        return;
+      }
       const target = cellFromPoint(layout, event.global.x, event.global.y);
       if (target && (target.row !== current.from.y || target.col !== current.from.x)) {
         data.onMatch3Swap?.(current.from, { x: target.col, y: target.row });
@@ -551,11 +658,13 @@ export function buildMatch3Scene(app, initial = {}) {
   return {
     update(next) {
       data = next || {};
-      draw();
+      if (drag) updateDragVisual();
+      else draw();
     },
     destroy() {
       cleanup();
       app.ticker.remove(ticker);
+      dragVisual.cancel();
       clear(root);
       clear(dragLayer);
       clear(effects);
@@ -577,6 +686,7 @@ export function buildBubboScene(app, initial = {}) {
   let aimPoint = null;
   let projectile = null;
   let lastShotId = null;
+  let activePointerId = null;
 
   function bubbleColor(value) {
     return BUBBO_NUMBERS[value] || BUBBO_NUMBERS[BUBBO_COLORS[0]];
@@ -698,14 +808,18 @@ export function buildBubboScene(app, initial = {}) {
 
   function drawBubble(x, y, radius, colorName, alpha = 1) {
     const color = bubbleColor(colorName);
+    const group = new Container();
     const g = new Graphics()
       .circle(0, 0, radius)
       .fill({ color, alpha })
       .stroke({ color: TEXT, width: Math.max(1.5, radius * 0.09), alpha: 0.24 });
     g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
-    g.x = x;
-    g.y = y;
-    return g;
+    group.addChild(g);
+    const asset = BUBBO_BUBBLE_ASSETS[colorName];
+    if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.2, radius * 2.2, alpha));
+    group.x = x;
+    group.y = y;
+    return group;
   }
 
   function updateAimVisual() {
@@ -749,6 +863,7 @@ export function buildBubboScene(app, initial = {}) {
     const state = data.bubbo || {};
     const board = state.board || [];
     root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + 20, PANEL, 16, 0.92));
+    root.addChild(tiledSprite(`${BUBBO_IMAGE_BASE}/background-tile.png`, layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + 16, 0.2));
     for (let r = 0; r < BUBBO_ROWS; r++) {
       for (let c = 0; c < BUBBO_COLS; c++) {
         const value = board[r]?.[c];
@@ -765,6 +880,7 @@ export function buildBubboScene(app, initial = {}) {
 
     const cannonColor = state.current || BUBBO_COLORS[0];
     root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: PANEL_2, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
+    root.addChild(sprite(`${BUBBO_IMAGE_BASE}/cannon-main.png`, layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
     root.addChild(label(`${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(viewHeight(app) - 12, layout.cannonY + 46), 14, AMBER));
@@ -790,16 +906,25 @@ export function buildBubboScene(app, initial = {}) {
   }
 
   const move = (event) => {
+    if (activePointerId != null && event.pointerId != null && event.pointerId !== activePointerId) return;
     aimPoint = { x: event.global.x, y: event.global.y };
     updateAimVisual();
   };
   const down = (event) => {
+    activePointerId = event.pointerId;
     aimPoint = { x: event.global.x, y: event.global.y };
     updateAimVisual();
   };
   const up = (event) => {
+    if (activePointerId != null && event.pointerId != null && event.pointerId !== activePointerId) return;
+    activePointerId = null;
     aimPoint = { x: event.global.x, y: event.global.y };
     fireShot();
+  };
+  const cancel = () => {
+    activePointerId = null;
+    aimPoint = null;
+    clear(aimLayer);
   };
   app.stage.eventMode = "static";
   app.stage.hitArea = app.screen;
@@ -807,6 +932,9 @@ export function buildBubboScene(app, initial = {}) {
   app.stage.on("pointerdown", down);
   app.stage.on("pointerup", up);
   app.stage.on("pointerupoutside", up);
+  app.stage.on("pointercancel", cancel);
+  window.addEventListener("blur", cancel);
+  document.addEventListener("visibilitychange", cancel);
 
   const ticker = (tickerState) => {
     tickParticles(effects);
@@ -843,6 +971,9 @@ export function buildBubboScene(app, initial = {}) {
       app.stage.off("pointerdown", down);
       app.stage.off("pointerup", up);
       app.stage.off("pointerupoutside", up);
+      app.stage.off("pointercancel", cancel);
+      window.removeEventListener("blur", cancel);
+      document.removeEventListener("visibilitychange", cancel);
       app.ticker.remove(ticker);
       clear(root);
       clear(aimLayer);
@@ -864,6 +995,7 @@ export function buildMergeScene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
+  const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
   function itemText(item) {
     if (!item) return "";
@@ -875,7 +1007,7 @@ export function buildMergeScene(app, initial = {}) {
     return item && other && item.chainId === other.chainId && item.level === other.level;
   }
 
-  function updateDragVisual() {
+  function updateDragVisualNow() {
     clear(dragLayer);
     if (!drag?.item) return;
     const radius = Math.min(30, (layout?.cell || 58) * 0.4);
@@ -890,6 +1022,10 @@ export function buildMergeScene(app, initial = {}) {
     if (target) {
       dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0x172432, 0.48, 3));
     }
+  }
+
+  function updateDragVisual() {
+    dragVisual.request();
   }
 
   function draw() {
@@ -915,11 +1051,15 @@ export function buildMergeScene(app, initial = {}) {
           : rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 6, item ? 1 : 0.82);
         makeInteractive(tile, {
           pointerdown: (event) => {
+            if (data.mergeLocked) return;
             if (!item) return;
-            drag = { fromR: r, fromC: c, item, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
+            drag = { fromR: r, fromC: c, item, pointerId: event.pointerId, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
             updateDragVisual();
           },
-          pointertap: () => data.onMergeCell?.(r, c, item),
+          pointertap: () => {
+            if (data.mergeLocked) return;
+            data.onMergeCell?.(r, c, item);
+          },
         });
         root.addChild(tile);
         if (item && !(drag?.fromR === r && drag?.fromC === c)) {
@@ -936,16 +1076,19 @@ export function buildMergeScene(app, initial = {}) {
     app,
     (event) => {
       if (!drag) return;
+      if (event.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
       drag.x = event.global.x;
       drag.y = event.global.y;
       updateDragVisual();
     },
     (event) => {
       if (!drag) return;
+      if (event?.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
       const current = drag;
       drag = null;
+      dragVisual.cancel();
       clear(dragLayer);
-      const target = cellFromPoint(layout, event.global.x, event.global.y);
+      const target = event?.cancelled || !event?.global ? null : cellFromPoint(layout, event.global.x, event.global.y);
       if (target) {
         data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)?.then?.((result) => {
           makeSparkles(effects, event.global.x, event.global.y, result?.error ? CORAL : MINT, result?.error ? 5 : 10);
@@ -961,11 +1104,13 @@ export function buildMergeScene(app, initial = {}) {
   return {
     update(next) {
       data = next || {};
-      draw();
+      if (drag) updateDragVisual();
+      else draw();
     },
     destroy() {
       cleanup();
       app.ticker.remove(ticker);
+      dragVisual.cancel();
       clear(root);
       clear(dragLayer);
       clear(effects);

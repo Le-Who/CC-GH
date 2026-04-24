@@ -15,8 +15,10 @@ export const useGameHub = create((set, get) => ({
   message: "",
   busy: {},
   lastResult: null,
+  activeGameShell: null,
 
-  setActiveTab: (activeTab) => set({ activeTab, message: "" }),
+  setActiveTab: (activeTab) => set({ activeTab, message: "", activeGameShell: null }),
+  setActiveGameShell: (activeGameShell) => set({ activeGameShell }),
 
   applySnapshot: (snapshot) => {
     if (!snapshot) return;

@@ -12,6 +12,7 @@ import {
   Home,
   Leaf,
   PackageOpen,
+  Pause,
   PawPrint,
   Play,
   RotateCcw,
@@ -46,12 +47,10 @@ import {
   randomBubboColor,
 } from "./game-core/bubbo/engine.js";
 import {
-  BOARD_SIZE,
-  cloneBoard,
-  findMatches,
   generateBoard,
   hasValidMoves,
-  resolveBoard,
+  attemptMatch3Move,
+  seedDropTokens,
 } from "./game-core/match3/engine.js";
 import { CROPS, ECONOMY, MERGE_CHAINS, ROOM_DECORATIONS } from "../game-logic.js";
 
@@ -85,6 +84,7 @@ function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled, dange
       type="button"
       className={`panel-button${danger ? " danger" : ""}${subtle ? " subtle" : ""}${active ? " active" : ""}`}
       disabled={disabled}
+      aria-label={title || (typeof children === "string" ? children : undefined)}
       onClick={(event) => {
         audioManager.play("tap");
         onClick?.(event);
@@ -103,6 +103,40 @@ function Stat({ icon: Icon, label, value }) {
       <Icon size={17} />
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  );
+}
+
+function useImmersiveGame(tabId, active) {
+  const setActiveGameShell = useGameHub((state) => state.setActiveGameShell);
+  useEffect(() => {
+    setActiveGameShell(active ? tabId : null);
+    return () => {
+      if (useGameHub.getState().activeGameShell === tabId) {
+        useGameHub.getState().setActiveGameShell(null);
+      }
+    };
+  }, [active, setActiveGameShell, tabId]);
+}
+
+function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = "Settle" }) {
+  return (
+    <div className="game-play-hud">
+      <div className="game-play-title">
+        <strong>{title}</strong>
+        <span>{subtitle}</span>
+      </div>
+      <div className="game-play-stats">
+        {stats.map((item) => (
+          <span key={item.label}>
+            {item.label} <strong>{item.value}</strong>
+          </span>
+        ))}
+      </div>
+      <div className="game-play-actions">
+        <PanelButton icon={Pause} subtle onClick={onPause}>Pause</PanelButton>
+        {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel}</PanelButton>}
+      </div>
     </div>
   );
 }
@@ -375,6 +409,7 @@ function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const [selectedPiece, setSelectedPiece] = useState(-1);
+  const [paused, setPaused] = useState(false);
   const saved = snapshot?.blox?.savedState || {};
   const state = {
     board: saved.board || [],
@@ -385,12 +420,18 @@ function BloxGame() {
     gameActive: saved.gameActive || snapshot?.blox?.activeGame || false,
   };
   const [leaders, setLeaders] = useState([]);
+  const isPlaying = state.gameActive && !paused;
+  useImmersiveGame("blox", isPlaying);
 
   useEffect(() => {
     api("/api/blox/leaderboard").then((data) => {
       if (Array.isArray(data)) setLeaders(data);
     });
   }, [state.highScore]);
+
+  useEffect(() => {
+    if (!state.gameActive) setPaused(false);
+  }, [state.gameActive]);
 
   const onCell = useCallback(
     (row, col) => {
@@ -418,28 +459,51 @@ function BloxGame() {
 
   const sceneState = useMemo(
     () => ({
-      blox: state,
+      blox: { ...state, gameActive: isPlaying },
       selectedBloxPiece: selectedPiece,
       onBloxCell: onCell,
       onBloxDrop: onDrop,
       onBloxTray: setSelectedPiece,
     }),
-    [state, selectedPiece, onCell, onDrop],
+    [state, isPlaying, selectedPiece, onCell, onDrop],
   );
 
   return (
-    <div className="game-layout">
+    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : state.gameActive ? "shell-paused" : "shell-menu"}`}>
       <PixiGameHost sceneKey="blox" buildScene={buildBloxScene} sceneState={sceneState} />
+      {isPlaying && (
+        <GamePlayHud
+          title="Building Blox"
+          subtitle={`Best ${state.highScore} · reward ${state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}`}
+          stats={[
+            { label: "Score", value: state.score || 0 },
+            { label: "Lines", value: state.linesCleared || 0 },
+            { label: "Cost", value: ECONOMY.COST_BLOX },
+          ]}
+          onPause={() => setPaused(true)}
+          onFinish={() => {
+            setPaused(true);
+            performAction("blox.end", { score: state.score });
+          }}
+          finishLabel="End"
+        />
+      )}
       <aside className="side-panel">
         <div className="panel-header">
           <div>
             <strong>Building Blox</strong>
             <span>Best {state.highScore} · Reward {state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}</span>
           </div>
-          <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start")}>
+          <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
             {state.gameActive ? "Restart" : "Start"}
           </PanelButton>
         </div>
+        {state.gameActive && paused && (
+          <div className="button-row two">
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton icon={Home} subtle onClick={() => setPaused(true)}>Menu</PanelButton>
+          </div>
+        )}
         <div className="metric-grid">
           <Stat icon={Trophy} label="Score" value={state.score || 0} />
           <Stat icon={Blocks} label="Lines" value={state.linesCleared || 0} />
@@ -465,7 +529,10 @@ function Match3Game() {
   const [movesLeft, setMovesLeft] = useState(30);
   const [combo, setCombo] = useState(0);
   const [gameActive, setGameActive] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [leaders, setLeaders] = useState([]);
+  const isPlaying = gameActive && !paused;
+  useImmersiveGame("match3", isPlaying);
 
   useEffect(() => {
     api("/api/leaderboard").then((data) => {
@@ -473,13 +540,19 @@ function Match3Game() {
     });
   }, [snapshot?.match3?.highScore]);
 
-  function start(nextMode = mode) {
+  function createModeBoard(nextMode = mode) {
     const nextBoard = generateBoard();
+    return nextMode === "drop" ? seedDropTokens(nextBoard, 3) : nextBoard;
+  }
+
+  function start(nextMode = mode) {
+    const nextBoard = createModeBoard(nextMode);
     setBoard(nextBoard);
     setScore(0);
     setCombo(0);
     setMovesLeft(nextMode === "timed" ? 90 : 30);
     setGameActive(true);
+    setPaused(false);
     setMode(nextMode);
     performAction("match3.start", { mode: nextMode }, { key: "match3.start" }).then(() => {
       performAction("match3.syncMode", {
@@ -491,6 +564,7 @@ function Match3Game() {
 
   function finish(finalScore = score, fromQuit = false) {
     setGameActive(false);
+    setPaused(false);
     setSelected(null);
     performAction("match3.end", { score: finalScore, fromQuit });
   }
@@ -498,6 +572,24 @@ function Match3Game() {
   function maybeEnd(nextMoves, nextScore) {
     if (nextMoves <= 0 && mode !== "timed") finish(nextScore);
   }
+
+  useEffect(() => {
+    if (!gameActive || paused || mode !== "timed") return undefined;
+    if (movesLeft <= 0) {
+      finish(score);
+      return undefined;
+    }
+    const id = window.setTimeout(() => {
+      setMovesLeft((value) => {
+        if (value <= 1) {
+          finish(score);
+          return 0;
+        }
+        return value - 1;
+      });
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [gameActive, mode, movesLeft, paused, score]);
 
   const attemptSwap = useCallback(
     (from, to) => {
@@ -507,30 +599,28 @@ function Match3Game() {
         setSelected(to);
         return;
       }
-      const nextBoard = cloneBoard(board);
-      [nextBoard[from.y][from.x], nextBoard[to.y][to.x]] = [nextBoard[to.y][to.x], nextBoard[from.y][from.x]];
-      if (!findMatches(nextBoard).length) {
+      const result = attemptMatch3Move(board, from, to);
+      if (!result.valid) {
         setSelected(null);
         haptic("warning");
         audioManager.play("warning");
         return;
       }
-      const resolved = resolveBoard(nextBoard);
-      const nextScore = score + resolved.totalPoints;
+      let nextBoard = result.board;
+      const nextScore = score + result.totalPoints;
       const nextMoves = mode === "timed" ? movesLeft : movesLeft - 1;
       if (!hasValidMoves(nextBoard)) {
-        setBoard(generateBoard());
-      } else {
-        setBoard(nextBoard);
+        nextBoard = createModeBoard(mode);
       }
+      setBoard(nextBoard);
       setScore(nextScore);
-      setCombo(Math.max(combo, resolved.combo));
+      setCombo(Math.max(combo, result.combo));
       setMovesLeft(nextMoves);
       setSelected(null);
-      audioManager.play(resolved.combo > 1 ? "clear" : "merge");
+      audioManager.play(result.combo > 1 || result.special ? "clear" : "merge");
       performAction("match3.syncMode", {
-        game: { score: nextScore, movesLeft: nextMoves, combo: resolved.combo, mode },
-        savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: resolved.combo } },
+        game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
+        savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: result.combo } },
       }, { silent: true, key: "match3.sync" });
       maybeEnd(nextMoves, nextScore);
     },
@@ -551,18 +641,31 @@ function Match3Game() {
 
   const sceneState = useMemo(
     () => ({
-      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive },
+      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying },
       selectedGem: selected,
       onMatch3Cell: onCell,
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [attemptSwap, board, combo, gameActive, mode, movesLeft, onCell, score, selected],
+    [attemptSwap, board, combo, isPlaying, mode, movesLeft, onCell, score, selected],
   );
 
   return (
-    <div className="game-layout">
+    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : gameActive ? "shell-paused" : "shell-menu"}`}>
       <PixiGameHost sceneKey="match3" buildScene={buildMatch3Scene} sceneState={sceneState} />
+      {isPlaying && (
+        <GamePlayHud
+          title="Gem Crush"
+          subtitle={`${MATCH3_MODES.find((item) => item.id === mode)?.label || mode} · best ${snapshot?.match3?.highScore || 0}`}
+          stats={[
+            { label: "Score", value: score },
+            { label: mode === "timed" ? "Time" : "Moves", value: movesLeft },
+            { label: "Combo", value: combo || "-" },
+          ]}
+          onPause={() => setPaused(true)}
+          onFinish={() => finish(score)}
+        />
+      )}
       <aside className="side-panel">
         <div className="panel-header">
           <div>
@@ -571,6 +674,12 @@ function Match3Game() {
           </div>
           <PanelButton icon={Play} onClick={() => start(mode)}>{gameActive ? "New" : "Start"}</PanelButton>
         </div>
+        {gameActive && paused && (
+          <div className="button-row two">
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton icon={Check} onClick={() => finish(score)}>Settle</PanelButton>
+          </div>
+        )}
         <div className="mode-grid">
           {MATCH3_MODES.map((item) => (
             <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
@@ -586,7 +695,7 @@ function Match3Game() {
         </div>
         <div className="button-row">
           <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
-          <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(generateBoard())}>Reshuffle</PanelButton>
+          <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>Reshuffle</PanelButton>
         </div>
         <Leaderboard entries={leaders} />
       </aside>
@@ -601,11 +710,14 @@ function BubboGame() {
   const [score, setScore] = useState(0);
   const [shotsLeft, setShotsLeft] = useState(BUBBO_SHOTS);
   const [gameActive, setGameActive] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [currentBubble, setCurrentBubble] = useState(() => randomBubboColor());
   const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
   const [lastShot, setLastShot] = useState(null);
   const highScore = snapshot?.bubbo?.highScore || 0;
   const remainingBubbles = getBubboRemainingCount(board);
+  const isPlaying = gameActive && !paused;
+  useImmersiveGame("bubbo", isPlaying);
 
   const start = useCallback(async () => {
     const result = await performAction("bubbo.start", { shotsLeft: BUBBO_SHOTS }, { key: "bubbo.start" });
@@ -615,6 +727,7 @@ function BubboGame() {
     setScore(0);
     setShotsLeft(BUBBO_SHOTS);
     setGameActive(true);
+    setPaused(false);
     setCurrentBubble(randomBubboColor(nextBoard));
     setNextBubble(randomBubboColor(nextBoard));
     setLastShot(null);
@@ -623,6 +736,7 @@ function BubboGame() {
   const finish = useCallback(
     (finalScore = score, fromQuit = false) => {
       setGameActive(false);
+      setPaused(false);
       performAction("bubbo.end", { score: finalScore, fromQuit }, { key: "bubbo.end" });
     },
     [performAction, score],
@@ -669,19 +783,32 @@ function BubboGame() {
         board,
         score,
         shotsLeft,
-        gameActive,
+        gameActive: isPlaying,
         current: currentBubble,
         next: nextBubble,
         lastShot,
       },
       onBubboFire: onFire,
     }),
-    [board, currentBubble, gameActive, lastShot, nextBubble, onFire, score, shotsLeft],
+    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, score, shotsLeft],
   );
 
   return (
-    <div className="game-layout">
+    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : gameActive ? "shell-paused" : "shell-menu"}`}>
       <PixiGameHost sceneKey="bubbo" buildScene={buildBubboScene} sceneState={sceneState} />
+      {isPlaying && (
+        <GamePlayHud
+          title="Bubbo Bubbo"
+          subtitle={`Best ${highScore} · ${remainingBubbles} bubbles`}
+          stats={[
+            { label: "Score", value: score },
+            { label: "Shots", value: shotsLeft },
+            { label: "Field", value: isBubboDanger(board) ? "Danger" : "Stable" },
+          ]}
+          onPause={() => setPaused(true)}
+          onFinish={() => finish(score)}
+        />
+      )}
       <aside className="side-panel">
         <div className="panel-header">
           <div>
@@ -692,6 +819,12 @@ function BubboGame() {
             {gameActive ? "Restart" : "Start"}
           </PanelButton>
         </div>
+        {gameActive && paused && (
+          <div className="button-row two">
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton icon={Check} onClick={() => finish(score)}>Settle</PanelButton>
+          </div>
+        )}
         <div className="metric-grid">
           <Stat icon={Trophy} label="Score" value={score} />
           <Stat icon={Sparkles} label="Shots" value={shotsLeft} />
@@ -718,12 +851,17 @@ function MergeGame() {
   const [selectedFuel, setSelectedFuel] = useState({});
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
+  const [mergePlaying, setMergePlaying] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const isPlaying = mergePlaying && !paused;
+  useImmersiveGame("merge", isPlaying);
 
   const harvestedEntries = listPositive(inventory.harvested || {});
   const firstFuel = harvestedEntries[0]?.[0];
 
   const onMergeCell = useCallback(
     (r, c, item) => {
+      if (!isPlaying) return;
       if (trashMode) {
         if (item) performAction("merge.trash", { r, c }, { key: `merge.trash.${r}.${c}` });
         return;
@@ -744,11 +882,12 @@ function MergeGame() {
         if (!result.error) setSelectedCell(null);
       });
     },
-    [performAction, selectedCell, trashMode],
+    [isPlaying, performAction, selectedCell, trashMode],
   );
 
   const onMergeDrop = useCallback(
     (fromR, fromC, toR, toC, item) => {
+      if (!isPlaying) return Promise.resolve({ error: "paused" });
       if (trashMode) {
         if (item) return performAction("merge.trash", { r: fromR, c: fromC }, { key: `merge.trash.${fromR}.${fromC}` });
         return Promise.resolve({ error: "empty cell" });
@@ -765,25 +904,52 @@ function MergeGame() {
         return result;
       });
     },
-    [performAction, trashMode],
+    [isPlaying, performAction, trashMode],
   );
 
   const sceneState = useMemo(
-    () => ({ merge, mergeSelected: selectedCell, trashMode, onMergeCell, onMergeDrop }),
-    [merge, onMergeCell, onMergeDrop, selectedCell, trashMode],
+    () => ({ merge, mergeSelected: selectedCell, trashMode, mergeLocked: !isPlaying, onMergeCell, onMergeDrop }),
+    [isPlaying, merge, onMergeCell, onMergeDrop, selectedCell, trashMode],
   );
 
   return (
-    <div className="game-layout">
+    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : mergePlaying ? "shell-paused" : "shell-menu"}`}>
       <PixiGameHost sceneKey="merge" buildScene={buildMergeScene} sceneState={sceneState} />
+      {isPlaying && (
+        <GamePlayHud
+          title="Gacha Merge"
+          subtitle={`${merge.freeTapCharges || 0} free taps · ${inventory.rewards?.gachaTokens || 0} tokens`}
+          stats={[
+            { label: "Free", value: merge.freeTapCharges || 0 },
+            { label: "Items", value: Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0) },
+            { label: "Mode", value: trashMode ? "Trash" : "Merge" },
+          ]}
+          onPause={() => setPaused(true)}
+        />
+      )}
       <aside className="side-panel">
         <div className="panel-header">
           <div>
             <strong>Gacha Merge</strong>
             <span>{merge.freeTapCharges || 0} free taps · {inventory.rewards?.gachaTokens || 0} tokens</span>
           </div>
-          <PanelButton icon={Trash2} danger={trashMode} active={trashMode} onClick={() => setTrashMode((value) => !value)}>Trash</PanelButton>
+          <PanelButton icon={mergePlaying ? Trash2 : Play} danger={mergePlaying && trashMode} active={mergePlaying && trashMode} onClick={() => {
+            if (!mergePlaying) {
+              setMergePlaying(true);
+              setPaused(false);
+            } else {
+              setTrashMode((value) => !value);
+            }
+          }}>
+            {mergePlaying ? "Trash" : "Play"}
+          </PanelButton>
         </div>
+        {mergePlaying && paused && (
+          <div className="button-row two">
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton icon={Home} subtle onClick={() => setMergePlaying(false)}>Menu</PanelButton>
+          </div>
+        )}
         <div className="generator-list">
           {(merge.generators || ["textile"]).map((chainId) => {
             const chain = MERGE_CHAINS[chainId] || {};
@@ -1199,6 +1365,7 @@ function AudioToggle() {
 export default function App() {
   const activeTab = useGameHub((state) => state.activeTab);
   const setActiveTab = useGameHub((state) => state.setActiveTab);
+  const activeGameShell = useGameHub((state) => state.activeGameShell);
   const snapshot = useSnapshot();
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
   const applyRealtimePayload = useGameHub((state) => state.applyRealtimePayload);
@@ -1238,7 +1405,7 @@ export default function App() {
   const energy = resources.energy || {};
 
   return (
-    <main className={`telegram-app${PLAY_TABS.has(activeTab) ? " play-mode" : ""}`}>
+    <main className={`telegram-app${PLAY_TABS.has(activeTab) ? " play-mode" : ""}${activeGameShell === activeTab ? " immersive-mode" : ""}`}>
       <header className="topbar">
         <div>
           <p className="eyebrow">Telegram Mini App</p>

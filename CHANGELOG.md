@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Client
+
+- Added tracked Bubbo Bubbo and Puzzling Potions asset bundles under `public/games/` and preloaded them through the Pixi game host before scene construction.
+- Reworked active Pixi gameplay into an immersive mobile shell that hides Hub chrome during live play, keeps Pause/Settle controls in an in-game HUD, and restores external navigation when paused.
+- Hardened Blox, Gem Crush, Merge, and Bubbo pointer gestures with pointer-id-bound sessions, DOM pointer capture, blur/visibility cleanup, and requestAnimationFrame-coalesced drag overlays.
+- Extended Gem Crush with Puzzling Potions art, special row/column/blast/colour pieces, Star Drop token preservation, timed countdown finishing, and non-mutating invalid swaps.
+- Added the Pixi helper dependencies needed for the tracked game asset/runtime path: GSAP, `@pixi/ui`, `@pixi/sound`, `pixi-filters`, `typed-signals`, and Spine Pixi v8 support.
+
+### Tests
+
+- Expanded Match-3 pure-engine coverage for specials, drop-token seeding, invalid swaps, and special-triggered moves.
+- Updated Playwright minigame and gesture coverage for immersive compact-webview sizing, Pause restoration, and pointer-drag HUD behavior.
+
 ## [11.0.0] - 2026-04-24
 
 ### Telegram Mini App and VPS Runtime
