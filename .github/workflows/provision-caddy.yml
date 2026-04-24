@@ -1,0 +1,92 @@
+name: Provision CC-GH Caddy Route
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: "Public domain for CC-GH"
+        required: true
+        default: "games.tri.mom"
+      app_host_port:
+        description: "Localhost port used by ccgh-app"
+        required: true
+        default: "18080"
+
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure host Caddy route
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOMAIN: ${{ inputs.domain }}
+          APP_HOST_PORT: ${{ inputs.app_host_port }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          envs: DOMAIN,APP_HOST_PORT
+          script: |
+            set -euo pipefail
+
+            case "$APP_HOST_PORT" in
+              ''|*[!0-9]*)
+                echo "APP_HOST_PORT must be numeric"
+                exit 1
+                ;;
+            esac
+
+            case "$DOMAIN" in
+              ''|*' '*|*'/'*|*':'*)
+                echo "DOMAIN must be a bare hostname, for example games.tri.mom"
+                exit 1
+                ;;
+            esac
+
+            case "$APP_HOST_PORT" in
+              80|443|10000)
+                echo "APP_HOST_PORT=$APP_HOST_PORT is reserved for Caddy or the Telegram bot"
+                exit 1
+                ;;
+            esac
+
+            command -v caddy >/dev/null
+            command -v systemctl >/dev/null
+
+            CADDYFILE=/etc/caddy/Caddyfile
+            SITES_DIR=/etc/caddy/sites-enabled
+            SITE_FILE="$SITES_DIR/ccgh.caddy"
+            IMPORT_LINE='import /etc/caddy/sites-enabled/*.caddy'
+            BACKUP="$CADDYFILE.bak.$(date +%Y%m%d-%H%M%S)"
+
+            sudo test -f "$CADDYFILE"
+            sudo install -d -m 0755 "$SITES_DIR"
+            sudo cp "$CADDYFILE" "$BACKUP"
+            echo "Backed up $CADDYFILE to $BACKUP"
+
+            if ! sudo grep -Fxq "$IMPORT_LINE" "$CADDYFILE"; then
+              printf '\n%s\n' "$IMPORT_LINE" | sudo tee -a "$CADDYFILE" >/dev/null
+              echo "Added Caddy import line for sites-enabled snippets"
+            else
+              echo "Caddy import line already present"
+            fi
+
+            TMP=$(mktemp)
+            cat > "$TMP" << EOF
+            $DOMAIN {
+              reverse_proxy 127.0.0.1:$APP_HOST_PORT
+            }
+            EOF
+
+            if sudo test -f "$SITE_FILE" && sudo cmp -s "$TMP" "$SITE_FILE"; then
+              echo "$SITE_FILE already matches desired config"
+            else
+              sudo install -m 0644 "$TMP" "$SITE_FILE"
+              echo "Installed $SITE_FILE"
+            fi
+            rm -f "$TMP"
+
+            sudo caddy validate --config "$CADDYFILE"
+            sudo systemctl reload caddy
+            echo "Caddy route provisioned: https://$DOMAIN -> 127.0.0.1:$APP_HOST_PORT"

@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     image: ghcr.io/${GHCR_REPO:-user/game-hub}:latest
-    container_name: gamehub-app
+    container_name: ccgh-app
     restart: unless-stopped
     depends_on:
       postgres:
@@ -22,49 +22,46 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
       - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - DEV_AUTH_ENABLED=false
     ports:
-      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:${APP_HOST_PORT:-18080}:8080"
+    networks:
+      - ccgh-internal
 
   postgres:
     image: postgres:15-alpine
-    container_name: gamehub-postgres
+    container_name: ccgh-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-appuser}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pgpass}
       POSTGRES_DB: ${POSTGRES_DB:-gamehub}
     volumes:
-      - pg-data:/var/lib/postgresql/data
+      - ccgh-pg-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser} -d ${POSTGRES_DB:-gamehub}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - ccgh-internal
 
   redis:
     image: redis:7-alpine
-    container_name: gamehub-redis
+    container_name: ccgh-redis
     restart: unless-stopped
-    volumes:
-      - redis-data:/data
     command: redis-server --appendonly yes
-
-  caddy:
-    image: caddy:2-alpine
-    container_name: gamehub-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - CUSTOM_DOMAIN=${CUSTOM_DOMAIN}
     volumes:
-      - caddy-data:/data
-      - caddy-config:/config
-    command: caddy reverse-proxy --from https://${CUSTOM_DOMAIN} --to http://app:8080
+      - ccgh-redis-data:/data
+    networks:
+      - ccgh-internal
+
+networks:
+  ccgh-internal:
+    name: ccgh-internal
 
 volumes:
-  pg-data:
-  redis-data:
-  caddy-data:
-  caddy-config:
+  ccgh-pg-data:
+    name: ccgh-pg-data
+  ccgh-redis-data:
+    name: ccgh-redis-data

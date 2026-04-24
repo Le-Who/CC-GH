@@ -3,11 +3,11 @@ name: VPS Deploy
 on:
   push:
     branches:
-      - feat/simple-auth
+      - codex/telegram-pixi-vps-migration
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -20,6 +20,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set lowercase repository name
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -27,12 +30,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
+      - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: type=raw,value=latest
+          images: ${{ env.REGISTRY }}/${{ env.REPO }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -48,7 +53,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
+      - name: Ensure deploy directory exists
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          script: |
+            set -euo pipefail
+            if [ "$(id -u)" -eq 0 ]; then
+              install -d -m 0750 /opt/game-hub
+            else
+              sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /opt/game-hub
+            fi
+
       - name: Copy docker-compose to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -58,13 +78,17 @@ jobs:
           port: ${{ secrets.VPS_PORT || '22' }}
           source: "docker-compose.yml"
           target: "/opt/game-hub"
-          
-      - name: Execute Docker Compose on VPS
+
+      - name: Deploy isolated CC-GH stack
         uses: appleboy/ssh-action@v1.0.3
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY: ${{ env.REGISTRY }}
+          REPO: ${{ github.repository }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'appuser' }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'gamehub' }}
+          APP_HOST_PORT: ${{ secrets.APP_HOST_PORT || '18080' }}
           CUSTOM_DOMAIN: ${{ secrets.CUSTOM_DOMAIN }}
           PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -75,12 +99,55 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || '22' }}
-          envs: POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,CUSTOM_DOMAIN,PUBLIC_APP_URL,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,ADMIN_TOKEN
+          envs: GITHUB_TOKEN,REGISTRY,REPO,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,APP_HOST_PORT,CUSTOM_DOMAIN,PUBLIC_APP_URL,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,ADMIN_TOKEN
           script: |
+            set -euo pipefail
+
+            REPO_LOWER=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
+            APP_HOST_PORT="${APP_HOST_PORT:-18080}"
+
+            for required_var in POSTGRES_PASSWORD CUSTOM_DOMAIN PUBLIC_APP_URL TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME ADMIN_TOKEN; do
+              if [ -z "${!required_var:-}" ]; then
+                echo "$required_var is required"
+                exit 1
+              fi
+            done
+
+            case "$APP_HOST_PORT" in
+              ''|*[!0-9]*)
+                echo "APP_HOST_PORT must be numeric"
+                exit 1
+                ;;
+            esac
+
+            case "$APP_HOST_PORT" in
+              80|443|10000)
+                echo "APP_HOST_PORT=$APP_HOST_PORT is reserved for Caddy or the Telegram bot"
+                exit 1
+                ;;
+            esac
+
+            if ss -ltn | awk '{print $4}' | grep -Eq "(:|\\])${APP_HOST_PORT}$"; then
+              if ! docker ps --filter "name=^/ccgh-app$" --format '{{.Ports}}' | grep -q "127.0.0.1:${APP_HOST_PORT}->8080"; then
+                echo "Port $APP_HOST_PORT is already used by a non-CC-GH process"
+                ss -ltnp | grep ":${APP_HOST_PORT}" || true
+                exit 1
+              fi
+            fi
+
+            if [ "$(id -u)" -eq 0 ]; then
+              install -d -m 0750 /opt/game-hub
+            else
+              sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /opt/game-hub
+            fi
             cd /opt/game-hub
-            
-            # Securely generate .env file using variables passed via envs.
-            cat << EOF > .env
+
+            umask 077
+            cat > .env << EOF
+            COMPOSE_PROJECT_NAME=ccgh
+            NODE_ENV=production
+            PORT=8080
+            APP_HOST_PORT=$APP_HOST_PORT
             POSTGRES_USER=$POSTGRES_USER
             POSTGRES_PASSWORD=$POSTGRES_PASSWORD
             POSTGRES_DB=$POSTGRES_DB
@@ -89,9 +156,40 @@ jobs:
             TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
             TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
             ADMIN_TOKEN=$ADMIN_TOKEN
+            DEV_AUTH_ENABLED=false
             EOF
-            
-            export GHCR_REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-            docker compose pull app
-            docker compose up -d --remove-orphans
-            docker image prune -a -f --filter "until=24h"
+
+            echo "$GITHUB_TOKEN" | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+            export GHCR_REPO="$REPO_LOWER"
+
+            docker compose -p ccgh pull app
+            docker compose -p ccgh up -d --remove-orphans
+
+            for i in $(seq 1 30); do
+              if curl -fsS "http://127.0.0.1:${APP_HOST_PORT}/api/health" >/dev/null; then
+                echo "CC-GH local health check passed"
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "CC-GH local health check failed"
+                docker compose -p ccgh logs --tail=120 app
+                exit 1
+              fi
+              sleep 2
+            done
+
+            if [ -n "${PUBLIC_APP_URL:-}" ]; then
+              for i in $(seq 1 15); do
+                if curl -fsS "${PUBLIC_APP_URL%/}/api/health" >/dev/null; then
+                  echo "CC-GH public health check passed"
+                  break
+                fi
+                if [ "$i" -eq 15 ]; then
+                  echo "CC-GH public health check failed; check DNS/Caddy for $PUBLIC_APP_URL"
+                  exit 1
+                fi
+                sleep 2
+              done
+            fi
+
+            docker image prune -f --filter "until=168h"
