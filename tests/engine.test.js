@@ -18,7 +18,7 @@ import {
   findMatches,
   hasValidMoves,
   resolveBoard,
-} from "../src/vanilla/match3/engine.js";
+} from "../src/game-core/match3/engine.js";
 
 describe("Match-3 Engine Tests", () => {
   describe("Constants", () => {
@@ -139,9 +139,9 @@ describe("Match-3 Engine Tests", () => {
         assert.equal(hydrated[0][0], "fire");
       });
 
-      it("hydrates from object format (Firestore)", () => {
-        const firestoreBoard = { "0": ["fire", "water"], "1": { "0": "earth", "1": "air" } };
-        const hydrated = hydrateBoard(firestoreBoard);
+      it("hydrates from object format", () => {
+        const persistedBoard = { "0": ["fire", "water"], "1": { "0": "earth", "1": "air" } };
+        const hydrated = hydrateBoard(persistedBoard);
         assert.deepEqual(hydrated, [["fire", "water"], ["earth", "air"]]);
       });
 
@@ -156,9 +156,9 @@ describe("Match-3 Engine Tests", () => {
     });
 
     describe("hydrateArray", () => {
-      it("hydrates from object format (Firestore)", () => {
-        const firestoreArray = { "0": "item1", "1": "item2" };
-        const hydrated = hydrateArray(firestoreArray);
+      it("hydrates from object format", () => {
+        const persistedArray = { "0": "item1", "1": "item2" };
+        const hydrated = hydrateArray(persistedArray);
         assert.deepEqual(hydrated, ["item1", "item2"]);
       });
 

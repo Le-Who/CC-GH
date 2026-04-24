@@ -2,17 +2,335 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    @apply bg-background text-text font-body;
-    scrollbar-width: none;
+:root {
+  color-scheme: dark;
+  --ink: #f8f1df;
+  --muted: #b9c0c7;
+  --panel: #13202a;
+  --panel-2: #1d2c35;
+  --field: #0d151c;
+  --line: rgba(248, 241, 223, 0.12);
+  --mint: #69e6a3;
+  --amber: #ffcd5b;
+  --coral: #ff7a66;
+  --sky: #74c7ff;
+  --berry: #d89cff;
+  --safe-top: var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  font-family: Nunito, Varela Round, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background:
+    linear-gradient(145deg, rgba(105, 230, 163, 0.08), transparent 30%),
+    linear-gradient(315deg, rgba(255, 122, 102, 0.08), transparent 34%),
+    #071016;
+  color: var(--ink);
+}
+
+button {
+  font: inherit;
+}
+
+.telegram-app {
+  width: min(100vw, 560px);
+  height: 100dvh;
+  margin: 0 auto;
+  padding: calc(12px + var(--safe-top)) 14px calc(88px + var(--safe-bottom));
+  display: grid;
+  grid-template-rows: auto auto auto auto 1fr;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  margin: 0 0 2px;
+  color: var(--mint);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+h1 {
+  margin: 0;
+  font-family: Bungee, Nunito, sans-serif;
+  font-size: clamp(1.7rem, 6vw, 2.5rem);
+  line-height: 0.95;
+}
+
+.status-dot {
+  min-width: 82px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: var(--panel);
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.status-dot.ready {
+  color: var(--mint);
+}
+
+.status-dot.offline {
+  color: var(--coral);
+}
+
+.profile-strip,
+.stats-row,
+.notice,
+.game-surface,
+.trivia-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--panel) 88%, black);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+}
+
+.profile-strip {
+  min-height: 58px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--amber), var(--coral));
+  color: #171009;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.profile-strip strong,
+.profile-strip span {
+  display: block;
+}
+
+.profile-strip span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+}
+
+.stat-chip {
+  min-height: 58px;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 7px;
+  background: var(--panel-2);
+}
+
+.stat-chip svg {
+  color: var(--amber);
+}
+
+.stat-chip span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.stat-chip strong {
+  grid-column: 1 / -1;
+  font-size: 1.05rem;
+}
+
+.notice {
+  padding: 9px 11px;
+  color: var(--amber);
+  font-weight: 800;
+}
+
+.game-surface,
+.trivia-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(260px, 1fr) auto;
+  gap: 12px;
+  padding: 12px;
+}
+
+.pixi-host {
+  min-height: 260px;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    var(--field);
+  background-size: 28px 28px;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+.pixi-host canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pixi-fallback {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--coral);
+  font-weight: 900;
+}
+
+.action-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.action-button,
+.bottom-tabs button,
+.answer-button {
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-button {
+  min-height: 46px;
+  border-radius: 8px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--mint);
+  color: #071016;
+  font-weight: 1000;
+}
+
+.action-button.secondary {
+  background: var(--amber);
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.trivia-panel {
+  grid-template-rows: auto 1fr auto;
+}
+
+.trivia-question {
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--field);
+  font-size: 1.1rem;
+  font-weight: 1000;
+}
+
+.answer-grid {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.answer-button {
+  min-height: 54px;
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--panel-2);
+  color: var(--ink);
+  text-align: left;
+  font-weight: 850;
+}
+
+.answer-button.correct {
+  background: color-mix(in srgb, var(--mint) 78%, black);
+  color: #06120b;
+}
+
+.answer-button.wrong {
+  background: color-mix(in srgb, var(--coral) 82%, black);
+  color: #1a0704;
+}
+
+.bottom-tabs {
+  position: fixed;
+  left: max(10px, calc((100vw - 560px) / 2 + 10px));
+  right: max(10px, calc((100vw - 560px) / 2 + 10px));
+  bottom: calc(10px + var(--safe-bottom));
+  z-index: 5;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(7, 16, 22, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.bottom-tabs button {
+  min-width: 0;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.bottom-tabs button.active {
+  background: var(--ink);
+  color: #071016;
+}
+
+@media (max-height: 720px) {
+  .telegram-app {
+    gap: 8px;
   }
-  body::-webkit-scrollbar {
+
+  .profile-strip {
     display: none;
   }
-  
-  /* v5.0 Opt 7: React Portal Modal Body Bypass */
-  body.modal-open {
-    overflow: hidden;
+
+  .game-surface {
+    grid-template-rows: minmax(220px, 1fr) auto;
   }
 }

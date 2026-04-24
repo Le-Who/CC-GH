@@ -10,7 +10,7 @@ import { describe, it, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import { app } from "../server.js";
-import { initDb, closeDb } from "../db.js";
+import { initDb, closeDb, ensureDbSchema } from "../db.js";
 import {
   ECONOMY,
   CROPS,
@@ -20,12 +20,18 @@ import {
 
 const PORT = 9878;
 let server;
+let dbAvailable = false;
+let dbUnavailableReason = "";
 const BASE = `http://localhost:${PORT}`;
 
 async function post(path, body = {}) {
+  const devUserId = body.userId || "db_test_user";
   const res = await fetch(`${BASE}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `dev ${devUserId}`,
+    },
     body: JSON.stringify(body),
   });
   const data = await res.json();
@@ -53,10 +59,18 @@ async function timedGet(path) {
 }
 
 before(async () => {
-  initDb();
-  await new Promise((resolve) => {
-    server = app.listen(PORT, resolve);
-  });
+  process.env.DEV_AUTH_ENABLED = "true";
+  process.env.NODE_ENV = "test";
+  try {
+    initDb();
+    await ensureDbSchema();
+    dbAvailable = true;
+    await new Promise((resolve) => {
+      server = app.listen(PORT, resolve);
+    });
+  } catch (err) {
+    dbUnavailableReason = err.message;
+  }
 });
 
 after(async () => {
@@ -73,7 +87,8 @@ describe("Postgres: Latency Tolerance", () => {
     // Realistic API latency
     const BUDGET_MS = 1500;
 
-  it("POST /api/farm/state responds within budget", async () => {
+  it("POST /api/farm/state responds within budget", async (t) => {
+    if (!dbAvailable) return t.skip(`PostgreSQL unavailable: ${dbUnavailableReason}`);
     const { latencyMs, status } = await timedPost("/api/farm/state", {
       userId: "latency_farm",
       username: "LF",
@@ -90,7 +105,8 @@ describe("Postgres: Latency Tolerance", () => {
  *  2. ACID CONCURRENCY SAFETY (FOR UPDATE Lock)
  * ═════════════════════════════════════════════════════ */
 describe("Postgres: ACID Concurrency Request Safety", () => {
-  it("20 parallel buy-seeds requests don't overspend gold", async () => {
+  it("20 parallel buy-seeds requests don't overspend gold", async (t) => {
+    if (!dbAvailable) return t.skip(`PostgreSQL unavailable: ${dbUnavailableReason}`);
     // Seed the user with enough state to perform 20 buys (since we wiped the players Map, this hits Postgres)
     const { data: stateData, status: stateStatus } = await post("/api/farm/state", { userId: "pg_conc_buy", username: "CB" });
     assert.equal(stateStatus, 200);

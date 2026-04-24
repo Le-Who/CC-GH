@@ -27,10 +27,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Discord SDK bundle
+      - name: Build Telegram Mini App client
         run: pnpm run build
 
-      - name: Run all tests (393)
+      - name: Run platform cleanup guard
+        run: pnpm run test:cleanup
+
+      - name: Run tests
         run: pnpm test
 
   docker:

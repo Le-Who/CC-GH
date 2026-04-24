@@ -8,18 +8,15 @@
  *  Usage in React:
  *    const { board, score, placePiece } = useBloxEngine();
  *
- *  Usage in Vanilla JS:
- *    import { bloxStore } from '@/hooks/useBloxEngine';
- *    bloxStore.getState().newGame();
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
-import { GRID, PIECES, PIECE_COUNT } from "../vanilla/blox/pieces.js";
+import { GRID, PIECES, PIECE_COUNT } from "../game-core/blox/pieces.js";
 import {
   canPlace,
   canAnyPieceFit,
   placePiece,
-} from "../vanilla/blox/engine.js";
+} from "../game-core/blox/engine.js";
 
 export const bloxStore = create((set, get) => ({
   // ─── State ───

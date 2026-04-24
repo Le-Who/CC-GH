@@ -8,9 +8,6 @@
  *  Usage in React:
  *    const { board, score, startGame } = useMatch3Engine();
  *
- *  Usage in Vanilla JS:
- *    import { match3Store } from '@/hooks/useMatch3Engine';
- *    match3Store.getState().startGame('classic');
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
@@ -19,7 +16,7 @@ import {
   cloneBoard,
   cloneDropStars,
   calcGoldReward,
-} from "../vanilla/match3/engine.js";
+} from "../game-core/match3/engine.js";
 
 export const match3Store = create((set, get) => ({
   // ─── State ───

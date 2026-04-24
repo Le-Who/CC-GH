@@ -1,11 +1,11 @@
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Player Manager (v10.0 — Postgres ACID)
- *  Relational database primary architecture using Postgres.
- *  Redis retained strictly as a read-through cache & rate-limiter.
+ *  Relational database primary architecture using PostgreSQL.
+ *  Redis retained strictly as a read-through cache and rate-limiter.
  *
- *  v10.0: Replaced Firestore & Redis SETNX with Postgres 
- *         row-level locking (SELECT ... FOR UPDATE).
+ *  v10.0: Replaced document-store persistence with PostgreSQL
+ *         optimistic concurrency control.
  *         Global `players` Map completely eliminated for true
  *         horizontal scaling.
  * ═══════════════════════════════════════════════════════
@@ -24,7 +24,7 @@ import {
 /* ═══════════════════════════════════════════════════
  *  HYBRID LOCKING: In-Process Mutex + OCC Safety Net
  *
- *  Layer 1: In-process Promise-chain mutex per userId
+ *  Layer 1: In-process Promise-chain mutex per accountId
  *           → serializes requests within a single Node instance
  *           → zero DB overhead, zero lock contention
  *
@@ -37,9 +37,9 @@ import {
 const _mutexChain = new Map();
 
 /**
- * Acquires an in-process mutex for the given player ID.
- * Concurrent calls for the same userId are queued and executed serially.
- * Different userIds proceed in parallel with no contention.
+ * Acquires an in-process mutex for the given account ID.
+ * Concurrent calls for the same account are queued and executed serially.
+ * Different accounts proceed in parallel with no contention.
  */
 function _acquireMutex(userId, fn) {
   const prev = _mutexChain.get(userId) || Promise.resolve();
@@ -115,7 +115,8 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         // even if the route neglected to evaluate or return them.
         checkAchievements(player);
 
-        // 4. Generate next OCC version
+        // 4. Generate next OCC version and realtime sequence.
+        player._syncSeq = Number(player._syncSeq || 0) + 1;
         player._version = crypto.randomUUID();
 
         // 5. Save back using OCC (Atomic Update)
@@ -135,20 +136,20 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
             );
           }
 
-          // Emit WebSocket Real-Time sync
+          // Emit authenticated realtime sync.
           const io = getIO();
           if (io) {
-            // Emitting parts of the state rather than entire payload saves bytes,
-            // but for simplicity we send what local sync expects.
-            io.to(userId).emit("player_sync", { 
+            io.to(userId).emit("player_sync", {
+              seq: player._syncSeq,
+              serverTime: Date.now(),
               payload: {
                 resources: player.resources,
                 harvested: player.farm.harvested,
                 plots: player.farm.plots,
                 merge: player.merge,
                 pet: player.pet,
-                achievements: player.achievements
-              } 
+                achievements: player.achievements,
+              },
             });
           }
           

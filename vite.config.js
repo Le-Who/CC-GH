@@ -37,18 +37,6 @@ export default defineConfig({
               },
             },
           },
-          // Discord SDK bundle — StaleWhileRevalidate (non-hashed, served dynamically)
-          {
-            urlPattern: /\/js\/discord-sdk\.js$/,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "discord-sdk-cache",
-              expiration: {
-                maxEntries: 2,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-              },
-            },
-          },
           // API GET requests — NetworkFirst with short cache (leaderboard, config, state)
           {
             urlPattern: /\/api\/.*$/,
@@ -85,7 +73,7 @@ export default defineConfig({
       manifest: {
         name: "Game Hub Ultra",
         short_name: "GameHub",
-        description: "5-in-1 Discord game hub — Farm, Trivia, Match-3, Blox, Merge",
+        description: "5-in-1 Telegram Mini App game hub — Farm, Trivia, Match-3, Blox, Merge",
         theme_color: "#1a1a2e",
         background_color: "#1a1a2e",
         display: "standalone",

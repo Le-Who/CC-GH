@@ -17,8 +17,13 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD:-pgpass}@postgres:5432/${POSTGRES_DB:-gamehub}
       - REDIS_URL=redis://redis:6379
       - PORT=8080
+      - CUSTOM_DOMAIN=${CUSTOM_DOMAIN}
+      - PUBLIC_APP_URL=${PUBLIC_APP_URL}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
     ports:
-      - "127.0.0.1:8080:8080" # Expose only locally for Caddy to proxy
+      - "127.0.0.1:8080:8080"
 
   postgres:
     image: postgres:15-alpine
@@ -58,23 +63,8 @@ services:
       - caddy-config:/config
     command: caddy reverse-proxy --from https://${CUSTOM_DOMAIN} --to http://app:8080
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - portainer-data:/data
-    ports:
-      - "8000:8000"
-      - "9443:9443"
-
 volumes:
   pg-data:
   redis-data:
   caddy-data:
   caddy-config:
-  portainer-data:

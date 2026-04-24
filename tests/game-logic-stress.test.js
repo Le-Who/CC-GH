@@ -34,8 +34,8 @@ import {
   DROP_TYPES,
   BOARD_SIZE,
   GEM_TYPES,
-} from "../src/vanilla/match3/engine.js";
-import { PIECES as BLOX_PIECES } from "../src/vanilla/blox/pieces.js";
+} from "../src/game-core/match3/engine.js";
+import { PIECES as BLOX_PIECES } from "../src/game-core/blox/pieces.js";
 
 /* ═══════════════════════════════════════════════════
  *  MATCH-3 — Board Generation Stress

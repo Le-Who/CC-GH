@@ -8,14 +8,19 @@ import { createDefaultPlayer } from "../game-logic.js";
  * ══════════════════════════════════════════════════════
  */
 const DB_URL = process.env.DATABASE_URL || "";
-const PRODUCTION_PROJECT_REF = "dhrsygifwgtezdijjtwx";
-const IS_PRODUCTION_DB = DB_URL.includes(PRODUCTION_PROJECT_REF);
+const PRODUCTION_DB_MARKERS = [
+  "prod",
+  "production",
+];
+const IS_PRODUCTION_DB = PRODUCTION_DB_MARKERS.some((marker) =>
+  DB_URL.toLowerCase().includes(marker),
+);
 
 function assertNotProduction(operation) {
   if (IS_PRODUCTION_DB) {
     throw new Error(
       `🛑 REFUSING TO ${operation} AGAINST PRODUCTION DATABASE!\n` +
-      `DATABASE_URL points to Supabase production (${DB_URL.split("@")[1]?.split("/")[0] || "unknown"}).\n` +
+      `DATABASE_URL appears to point at a production database (${DB_URL.split("@")[1]?.split("/")[0] || "unknown"}).\n` +
       `Set DATABASE_URL to a local/test database before running tests.`
     );
   }
@@ -25,7 +30,7 @@ function assertNotProduction(operation) {
  * Injects a player directly into the PostgreSQL database for testing.
  * This bypasses the API layer for arranging test data, making tests faster and less brittle.
  * 
- * @param {string} userId - The Discord user ID or custom test ID.
+ * @param {string} userId - The canonical account ID or custom test ID.
  * @param {string} username - The cleartext username.
  * @param {Function} stateModifier - Optional callback to modify the default state before insertion.
  * @returns {Object} The inserted player state.

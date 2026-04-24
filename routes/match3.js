@@ -44,9 +44,8 @@ export default function match3Routes(requireAuth, resolveUser) {
     }, username);
   });
 
-  // v4.15.1: Sync saved mode states — immediate Postgres write (critical state).
-  // The 2s debounce caused data loss when users closed tabs quickly or
-  // Cloud Run cold-started between requests.
+  // Sync saved mode states with an immediate durable write.
+  // The old client debounce could lose data when the app restarted between requests.
   router.post("/api/game/sync-modes", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });

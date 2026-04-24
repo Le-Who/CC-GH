@@ -1,7 +1,7 @@
 import test, { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
 import { bloxStore } from "../src/hooks/useBloxEngine.js";
-import { GRID, PIECES } from "../src/vanilla/blox/pieces.js";
+import { GRID, PIECES } from "../src/game-core/blox/pieces.js";
 
 describe("useBloxEngine (Zustand Store)", () => {
   beforeEach(() => {

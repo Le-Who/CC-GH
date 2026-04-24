@@ -10,9 +10,8 @@ export const BOARD_ROWS = 7;
 export const BOARD_COLS = 9;
 
 /**
- * Hydrate merge board from Postgres/Firestore storage.
- * sanitizeForFirestore() JSON-stringifies nested arrays (board is 7×9).
- * Postgres/Firestore may also convert arrays to objects with numeric keys.
+ * Hydrate merge board from persisted JSON storage.
+ * Some older payloads stored nested arrays as JSON strings or numeric-key objects.
  * This restores the board to a proper 2D array.
  */
 export function hydrateMergeBoard(p) {

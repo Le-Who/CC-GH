@@ -1,7 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Rate Limiter Middleware
- *  v9.0: Redis INCR + TTL when available, in-memory fallback
+ *  v11.0: Redis INCR + TTL when available, in-memory fallback
  *
  *  Uses Redis fixed-window counter for distributed rate limiting.
  *  Falls back to in-memory sliding window when Redis is disabled.
@@ -13,7 +13,7 @@ import { isRedisEnabled, getRedisClient } from "../redisAdapter.js";
 const RATE_KEY_PREFIX = "rate:";
 
 /* ─── In-memory fallback (original implementation) ─── */
-const windows = new Map(); // userId → [timestamps]
+const windows = new Map(); // accountId -> [timestamps]
 
 let _cleanupStarted = false;
 function ensureCleanup() {
@@ -47,10 +47,8 @@ export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
     // Skip rate limiting for internal batch dispatch (already rate-limited at /api/batch level)
     if (req._isBatchInternal) return next();
 
-    // Extract user ID from auth, body, or IP
-    const userId =
-      req.discordUser?.id || req.simpleUser?.userId || req.body?.userId || req.ip || "anonymous";
-    const bucketKey = `${userId}:${maxRequests}`;
+    const accountId = req.authenticatedUser?.accountId || req.ip || "anonymous";
+    const bucketKey = `${accountId}:${maxRequests}`;
 
     if (isRedisEnabled()) {
       // ─── Redis fixed-window counter ───
@@ -59,7 +57,7 @@ export function createRateLimiter(maxRequests = 60, windowMs = 60_000) {
         const redisKey = `${RATE_KEY_PREFIX}${bucketKey}:${Math.floor(Date.now() / windowMs)}`;
         const count = await redis.incr(redisKey);
         if (count === 1) {
-          // First request in this window — set TTL
+          // First request in this window: set TTL.
           await redis.expire(redisKey, windowSec + 1); // +1s safety margin
         }
 

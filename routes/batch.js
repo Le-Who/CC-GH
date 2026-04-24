@@ -19,9 +19,9 @@ import { isRedisEnabled, isNonceSeenRedis } from "../redisAdapter.js";
  *          → Return aggregated { results: [...] }
  */
 
-// Nonce deduplication: tracks last N nonces per user to reject replayed mutations
+// Nonce deduplication: tracks last N nonces per account to reject replayed mutations.
 const NONCE_CACHE_SIZE = 100;
-const nonceCache = new Map(); // userId → Set<nonce>
+const nonceCache = new Map(); // accountId -> Set<nonce>
 
 function isNonceSeen(userId, nonce) {
   if (!nonce) return false; // Legacy clients without nonces always pass
@@ -181,7 +181,7 @@ export default function batchRoutes(requireAuth, resolveUser, _PORT, app) {
       }
 
       const user = resolveUser(req);
-      const userId = req.body?.userId || req.discordUser?.id || req.simpleUser?.userId;
+      const accountId = user.userId;
 
       // v8.3: Concurrency-limited processing to prevent DB pool exhaustion.
       const BATCH_CONCURRENCY = 3;
@@ -193,9 +193,9 @@ export default function batchRoutes(requireAuth, resolveUser, _PORT, app) {
         if (nonce) {
           let isDuplicate;
           if (isRedisEnabled()) {
-            isDuplicate = await isNonceSeenRedis(userId, nonce);
+            isDuplicate = await isNonceSeenRedis(accountId, nonce);
           } else {
-            isDuplicate = isNonceSeen(userId, nonce);
+            isDuplicate = isNonceSeen(accountId, nonce);
           }
           if (isDuplicate) {
             return { id, status: 409, data: { error: "Duplicate request" } };
@@ -204,8 +204,8 @@ export default function batchRoutes(requireAuth, resolveUser, _PORT, app) {
 
         try {
           let subBody = body ? { ...body } : {};
-          if (userId) {
-            subBody.userId = userId;
+          if (accountId) {
+            subBody.userId = accountId;
             subBody.username = user.username;
           }
 

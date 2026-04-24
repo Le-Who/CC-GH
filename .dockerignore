@@ -9,7 +9,6 @@ tests/
 *.test.js
 README.md
 CHANGELOG.md
-public/js/discord-sdk-bundle.js
 .agents/
 dist/
 .vscode/
@@ -22,7 +21,6 @@ legacy_changelog.md
 eslint_output.txt
 eslint-errors.json
 concurrency_test.js
-scripts/
 
 package-lock.json
 .pnpm-store

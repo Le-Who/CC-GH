@@ -3,8 +3,7 @@
  *  useFarmEngine — React/Zustand hook for Farm state
  *
  *  Owns all farm state: plots, seedInventory, crops config,
- *  selectedSeed, buyQty, clockDelta. Provides typed actions that
- *  vanilla farm.js can progressively migrate to.
+ *  selectedSeed, buyQty, clockDelta. Provides typed actions for React UI.
  *
  *  This hook replaces the manual GameStore.registerSlice('farm')
  *  + syncToStore()/syncFromStore() bridge pattern.
@@ -12,9 +11,6 @@
  *  Usage in React:
  *    const { plots, seedInventory, plant, harvest } = useFarmEngine();
  *
- *  Usage in Vanilla JS (via store export):
- *    import { farmStore } from '@/hooks/useFarmEngine';
- *    farmStore.getState().plant(0, 'strawberry');
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
@@ -23,7 +19,7 @@ import { hudStore } from "./useHUDEngine.js";
 
 /**
  * Zustand store — the single source of truth for farm state.
- * Both React components and vanilla JS can read/write this store.
+ * React components and service adapters can read/write this store.
  */
 export const farmStore = create((set, get) => ({
   // ─── State ───
@@ -206,8 +202,7 @@ export const useHasFarmItems = () =>
   });
 
 // ─── Event Integration ───
-// Reactively sync quests completed from vanilla module events so
-// the React UI (like Golden Rose unlock) updates without a reload.
+// Reactively sync quest completion events so the UI updates without a reload.
 if (typeof window !== "undefined") {
   window.addEventListener("quest-completed", (e) => {
     if (e.detail && typeof e.detail.questsCompleted === "number") {

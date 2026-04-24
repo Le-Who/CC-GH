@@ -320,23 +320,18 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
   });
 
   describe("Mobile Drag Regression Guards", () => {
-    it("merge board opts out of viewport swipe nav and captures the pointer during drag", () => {
-      const boardPath = path.join(
-        __dirname,
-        "..",
-        "src",
-        "vanilla",
-        "merge",
-        "board.js",
-      );
-      const source = fs.readFileSync(boardPath, "utf-8");
+    it("game surfaces opt out of viewport swipe leakage during drag", () => {
+      const cssPath = path.join(__dirname, "..", "src", "index.css");
+      const platformPath = path.join(__dirname, "..", "src", "platform", "telegram.js");
+      const css = fs.readFileSync(cssPath, "utf-8");
+      const platform = fs.readFileSync(platformPath, "utf-8");
       assert.ok(
-        source.includes('dataset.noNavSwipe = "true"'),
-        "Merge board should mark itself as a no-nav-swipe surface",
+        css.includes("overscroll-behavior: none"),
+        "Game shell should prevent page swipe leakage",
       );
       assert.ok(
-        source.includes("setPointerCapture"),
-        "Merge drag should explicitly capture the pointer to keep the gesture local",
+        platform.includes("disableVerticalSwipes"),
+        "Telegram vertical swipes should be disabled while dragging a game surface",
       );
     });
   });

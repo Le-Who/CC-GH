@@ -11,9 +11,6 @@
  *  Usage in React:
  *    const { gold, energy, hasEnergy } = useHUDEngine();
  *
- *  Usage in Vanilla JS:
- *    import { hudStore } from '@/hooks/useHUDEngine';
- *    hudStore.getState().hasEnergy(5);
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";

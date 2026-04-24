@@ -14,7 +14,7 @@ import {
   processOfflineActions,
   pickQuestions,
 } from "../game-logic.js";
-import { generateBoard, findMatches } from "../src/vanilla/match3/engine.js";
+import { generateBoard, findMatches } from "../src/game-core/match3/engine.js";
 
 /**
  * Run a function N times, return p50/p95/max in ms.
