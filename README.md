@@ -21,8 +21,8 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 ## Games
 
 - Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, season progress, and rapid tap/long-press Pixi plot input.
-- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, pointer-session ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
-- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, pointer-session swipe swapping, special row/column/blast/colour pieces, local cascade resolution, saved mode sync, and reward settlement.
+- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
+- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, local cascade resolution, saved mode sync, and reward settlement.
 - Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
 - Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, seeded procedural waves, continuous descent, wall-bank aiming, projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, in-memory duel rooms, and the shared in-game pause/result overlay shell.
@@ -60,9 +60,10 @@ Frontend flow:
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
 5. Pixi scenes for Farm, Blox, Match-3, Merge, and Bubbo mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
 6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before the scene builds, then the scene keeps procedural fallbacks for missing optional art.
-7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals.
+7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
 8. Gameplay enters a shared immersive mobile shell across Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation.
-9. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+9. Blox and Gem Crush tune their Pixi board geometry for mobile thumb reach: the square playfields stay as large as the viewport allows, reserve room for the compact HUD/tray, and sit lower in fullscreen play instead of pinning to the top edge.
+10. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
 
@@ -199,7 +200,7 @@ pnpm run test:cleanup
 docker build -t game-hub-ci .
 ```
 
-`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage and pointer-session cleanup coverage. Playwright e2e specs are separate; the current focused gameplay checks are:
+`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage, pointer-session cleanup coverage, and Blox drag geometry coverage. Playwright e2e specs are separate; the current focused gameplay checks are:
 
 ```bash
 pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
