@@ -23,6 +23,26 @@ async function hostBox(page) {
 }
 
 test.describe("Pixi touch and drag interactions", () => {
+  test("Farm accepts repeated rapid plot taps without losing the pointer session", async ({ page }) => {
+    const pageErrors = await boot(page, "farm_taps");
+
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".game-play-hud")).toContainText("Cozy Farm");
+    await canvasIsNonBlank(page);
+
+    const box = await hostBox(page);
+    await page.mouse.click(box.x + box.width * 0.35, box.y + box.height * 0.44);
+    await page.mouse.click(box.x + box.width * 0.52, box.y + box.height * 0.48);
+    await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.52);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.55, { steps: 4 });
+    await page.mouse.up();
+
+    await expect(page.locator(".game-play-hud")).toContainText("Cozy Farm");
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
   test("Blox supports tray-to-board drag without viewport leakage", async ({ page }) => {
     const pageErrors = await boot(page, "blox_drag");
 
@@ -42,6 +62,10 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.move(box.x + 14 + slotW / 2, trayTop + 30);
     await page.mouse.down();
     await page.mouse.move(left + cell * 0.5, top + cell * 0.5, { steps: 8 });
+    await page.mouse.up();
+    await page.mouse.move(box.x + 14 + slotW * 1.5, trayTop + 30);
+    await page.mouse.down();
+    await page.mouse.move(left + cell * 1.5, top + cell * 0.5, { steps: 8 });
     await page.mouse.up();
 
     await expect(page.getByText(/Score/).first()).toBeVisible();
@@ -67,6 +91,8 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.down();
     await page.mouse.move(left + cell * 1.5, top + cell * 0.5, { steps: 6 });
     await page.mouse.up();
+    await page.mouse.click(left + cell * 2.5, top + cell * 0.5);
+    await page.mouse.click(left + cell * 2.5, top + cell * 1.5);
 
     await expect(page.locator(".game-play-hud")).toContainText(/Combo/);
     await canvasIsNonBlank(page);
@@ -87,6 +113,38 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: "30 Taps" }).click();
     await page.getByRole("button", { name: "Tap" }).first().click();
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    const box = await hostBox(page);
+    await page.mouse.move(box.x + box.width * 0.38, box.y + box.height * 0.35);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.52, box.y + box.height * 0.48, { steps: 8 });
+    await page.mouse.up();
+    await page.mouse.click(box.x + box.width * 0.44, box.y + box.height * 0.42);
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Bubbo accepts repeated aim drags and only locks during projectile flight", async ({ page }) => {
+    const pageErrors = await boot(page, "bubbo_fire");
+
+    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".game-play-hud")).toContainText("Bubbo Bubbo");
+    await canvasIsNonBlank(page);
+
+    const box = await hostBox(page);
+    const fire = async (offset) => {
+      await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.9);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width * offset, box.y + box.height * 0.45, { steps: 8 });
+      await page.mouse.up();
+    };
+
+    await fire(0.43);
+    await page.waitForTimeout(750);
+    await fire(0.57);
+
+    await expect(page.locator(".game-play-hud")).toContainText(/Pressure|Shots/);
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

@@ -1,5 +1,24 @@
 /**
- * @typedef {"menu" | "mode-select" | "playing" | "paused" | "result"} GameShellChromeState
+ * @typedef {"hub" | "menu" | "mode-select" | "playing" | "paused" | "settings" | "result"} GameShellChromeState
+ */
+
+/**
+ * @typedef {Object} BubboRunState
+ * @property {Array<Array<string|null>>} board
+ * @property {string} seed
+ * @property {number} waveIndex
+ * @property {number} pressure
+ * @property {number} pressureStep
+ * @property {number} shotsLeft
+ * @property {number} score
+ */
+
+/**
+ * @typedef {Object} PixiPointerSessionContract
+ * @property {(event: object, data?: unknown) => object|null} start
+ * @property {(event: object) => object|null} move
+ * @property {(event: object) => object|null} end
+ * @property {(reason?: string, event?: object) => object|null} cancel
  */
 
 /**

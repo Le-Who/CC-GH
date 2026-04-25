@@ -1,5 +1,6 @@
 import { Container, Graphics, Sprite, Text, TilingSprite, Texture } from "pixi.js";
 import { CROPS, MERGE_CHAINS } from "../../game-logic.js";
+import { createPointerSession } from "./pointerSession.js";
 import {
   BUBBO_COLORS,
   BUBBO_COLS,
@@ -193,7 +194,7 @@ function tickParticles(container) {
     child.y += child._vy;
     if (child._gravity) child._vy += child._gravity;
     if (child._spin) child.rotation += child._spin;
-    child.alpha = Math.max(0, child._life / 26);
+    child.alpha = Math.min(1, Math.max(0, child._life / 26));
     const baseScale = child._grow ? 1 + (1 - child.alpha) * child._grow : 0.96 + child.alpha * 0.35;
     child.scale.set(baseScale);
     if (child._life <= 0) child.destroy();
@@ -229,12 +230,15 @@ function makeRafScheduler(fn) {
   };
 }
 
-function setupStage(app, onMove, onUp) {
+function setupStage(app, onMove, onUp, onCancel = null) {
   app.stage.eventMode = "static";
   app.stage.hitArea = app.screen;
   const move = (event) => onMove?.(event);
   const up = (event) => onUp?.(event);
-  const cancel = () => onUp?.({ cancelled: true, global: null });
+  const cancel = (event = {}) => {
+    if (onCancel) onCancel(event);
+    else onUp?.({ cancelled: true, global: null });
+  };
   const visibility = () => {
     if (document.visibilityState === "hidden") cancel();
   };
@@ -271,6 +275,25 @@ export function buildFarmScene(app, initial = {}) {
     if (!cancelled && completed) data.onFarmLongPress?.(completed.index, completed.plot);
   }
 
+  const pointer = createPointerSession({
+    tapDistance: 12,
+    onMove: (next) => {
+      if (hold && next.distance > 14) finishHold(true);
+    },
+    onTap: (done) => {
+      if (suppressTap) {
+        suppressTap = false;
+        return;
+      }
+      const item = done.data || {};
+      data.onFarmPlot?.(item.index, item.plot);
+      makeSparkles(effects, item.x, item.y, item.ready ? AMBER : MINT, 6);
+      draw();
+    },
+    onDragEnd: () => finishHold(true),
+    onCancel: () => finishHold(true),
+  });
+
   function draw() {
     clear(root);
     const snapshot = data.snapshot || {};
@@ -299,7 +322,7 @@ export function buildFarmScene(app, initial = {}) {
         ? strokedRect(x, y, w, w, CORAL, 12, planted ? 0x234b2f : FARM_SOIL[i % FARM_SOIL.length])
         : rect(x, y, w, w, planted ? 0x234b2f : FARM_SOIL[i % FARM_SOIL.length], 12);
       makeInteractive(tile, {
-        pointerdown: () => {
+        pointerdown: (event) => {
           if (!plot) return;
           suppressTap = false;
           const timer = window.setTimeout(() => {
@@ -311,20 +334,8 @@ export function buildFarmScene(app, initial = {}) {
             draw();
           }, 1200);
           hold = { index: i, plot, timer, completed: null };
+          pointer.start(event, { kind: "farm-plot", index: i, plot, x: x + w / 2, y: y + w / 2, ready });
         },
-        pointerup: () => {
-          if (!hold || hold.index !== i) return;
-          window.clearTimeout(hold.timer);
-          hold = null;
-        },
-        pointertap: () => {
-          if (suppressTap) return;
-          data.onFarmPlot?.(i, plot);
-          makeSparkles(effects, x + w / 2, y + w / 2, ready ? AMBER : MINT, 6);
-          draw();
-        },
-        pointerupoutside: () => finishHold(true),
-        pointercancel: () => finishHold(true),
       });
       root.addChild(tile);
 
@@ -358,8 +369,7 @@ export function buildFarmScene(app, initial = {}) {
     draw();
   }
 
-  const cleanup = setupStage(app, null, () => finishHold(true));
-  app.stage.on("pointertap", handleStageTap);
+  const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   const ticker = () => tickParticles(effects);
   app.ticker.add(ticker);
   draw();
@@ -370,8 +380,8 @@ export function buildFarmScene(app, initial = {}) {
     },
     destroy() {
       cleanup();
-      app.stage.off("pointertap", handleStageTap);
       app.ticker.remove(ticker);
+      pointer.cancel("destroy");
       finishHold(true);
       clear(root);
       clear(effects);
@@ -419,11 +429,10 @@ export function buildBloxScene(app, initial = {}) {
     dragVisual.request();
   }
 
-  function dropDrag(event) {
+  function dropDrag(done) {
     if (!drag) return;
-    if (event?.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
-    const point = event?.global || drag;
-    const target = event?.cancelled ? null : cellFromPoint(layout, point.x, point.y);
+    const point = done || drag;
+    const target = done?.cancelled ? null : cellFromPoint(layout, point.x, point.y);
     const current = drag;
     drag = null;
     dragVisual.cancel();
@@ -435,13 +444,38 @@ export function buildBloxScene(app, initial = {}) {
           makeRipple(effects, point.x, point.y, result.clear?.cleared ? AMBER : MINT, result.clear?.cleared ? 34 : 24);
         }
       });
-    } else if (current.moved) {
+    } else if (current.moved || done?.moved) {
       makeSparkles(effects, current.startX, current.startY, CORAL, 5);
     } else {
       data.onBloxTray?.(current.pieceIdx);
     }
     draw();
   }
+
+  const pointer = createPointerSession({
+    onMove: (next) => {
+      if (!drag) return;
+      drag.x = next.x;
+      drag.y = next.y;
+      drag.moved = next.moved;
+      drag.overCell = cellFromPoint(layout, drag.x, drag.y);
+      updateDragVisual();
+    },
+    onTap: (done) => {
+      if (done.data?.kind === "blox-cell") {
+        data.onBloxCell?.(done.data.row, done.data.col);
+        return;
+      }
+      if (!drag) return;
+      data.onBloxTray?.(drag.pieceIdx);
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      draw();
+    },
+    onDragEnd: dropDrag,
+    onCancel: (done) => dropDrag(done),
+  });
 
   function draw() {
     clear(root);
@@ -459,7 +493,10 @@ export function buildBloxScene(app, initial = {}) {
         const color = value ? colorNumber(value) : 0x223042;
         const tile = rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 5, value ? 1 : 0.88);
         makeInteractive(tile, {
-          pointertap: () => data.onBloxCell?.(r, c),
+          pointerdown: (event) => {
+            if (!state.gameActive) return;
+            pointer.start(event, { kind: "blox-cell", row: r, col: c });
+          },
         });
         root.addChild(tile);
       }
@@ -481,7 +518,6 @@ export function buildBloxScene(app, initial = {}) {
           drag = {
             pieceIdx: i,
             piece: t.piece,
-            pointerId: event.pointerId,
             startX: event.global.x,
             startY: event.global.y,
             x: event.global.x,
@@ -489,9 +525,9 @@ export function buildBloxScene(app, initial = {}) {
             moved: false,
             overCell: null,
           };
+          pointer.start(event, { kind: "blox-tray", pieceIdx: i });
           updateDragVisual();
         },
-        pointertap: () => data.onBloxTray?.(i),
       });
       root.addChild(slot);
       if (t?.piece && drag?.pieceIdx !== i) root.addChild(drawPiece(t.piece, x + 14, trayTop + 12, trayUnit, t.placed ? 0.35 : 1));
@@ -501,19 +537,7 @@ export function buildBloxScene(app, initial = {}) {
     root.addChild(label(`Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
   }
 
-  const cleanup = setupStage(
-    app,
-    (event) => {
-      if (!drag) return;
-      if (event.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
-      drag.x = event.global.x;
-      drag.y = event.global.y;
-      drag.moved = drag.moved || Math.abs(drag.x - drag.startX) + Math.abs(drag.y - drag.startY) > 8;
-      drag.overCell = cellFromPoint(layout, drag.x, drag.y);
-      updateDragVisual();
-    },
-    dropDrag,
-  );
+  const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   const ticker = () => tickParticles(effects);
   app.ticker.add(ticker);
   draw();
@@ -527,6 +551,7 @@ export function buildBloxScene(app, initial = {}) {
       cleanup();
       app.ticker.remove(ticker);
       dragVisual.cancel();
+      pointer.cancel("destroy");
       clear(root);
       clear(dragLayer);
       clear(effects);
@@ -546,6 +571,45 @@ export function buildMatch3Scene(app, initial = {}) {
   let layout = null;
   let drag = null;
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
+
+  const pointer = createPointerSession({
+    onMove: (next) => {
+      if (!drag) return;
+      drag.x = next.x;
+      drag.y = next.y;
+      updateDragVisual();
+    },
+    onTap: (done) => {
+      const from = done.data?.from || drag?.from;
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      if (from) data.onMatch3Cell?.(from.x, from.y);
+      draw();
+    },
+    onDragEnd: (done) => {
+      if (!drag) return;
+      const current = drag;
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      const target = cellFromPoint(layout, done.x, done.y);
+      if (target && (target.row !== current.from.y || target.col !== current.from.x)) {
+        data.onMatch3Swap?.(current.from, { x: target.col, y: target.row });
+        makeSparkles(effects, done.x, done.y, SKY, 7);
+        makeRipple(effects, done.x, done.y, SKY, 24);
+      } else if (current.from) {
+        data.onMatch3Cell?.(current.from.x, current.from.y);
+      }
+      draw();
+    },
+    onCancel: () => {
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      draw();
+    },
+  });
 
   function updateDragVisualNow() {
     clear(dragLayer);
@@ -594,8 +658,8 @@ export function buildMatch3Scene(app, initial = {}) {
           pointerdown: (event) => {
             if (!state.gameActive) return;
             drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
+            pointer.start(event, { kind: "match3-cell", from: { x, y } });
           },
-          pointertap: () => data.onMatch3Cell?.(x, y),
         });
         root.addChild(tile);
         const orb = new Graphics()
@@ -605,8 +669,8 @@ export function buildMatch3Scene(app, initial = {}) {
           pointerdown: (event) => {
             if (!state.gameActive) return;
             drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
+            pointer.start(event, { kind: "match3-cell", from: { x, y } });
           },
-          pointertap: () => data.onMatch3Cell?.(x, y),
         });
         root.addChild(orb);
         const pieceAsset = POTION_PIECE_ASSETS[gem];
@@ -621,37 +685,7 @@ export function buildMatch3Scene(app, initial = {}) {
     root.addChild(label(`${state.gameMode || "classic"} · ${state.score || 0} pts · ${state.movesLeft ?? 30} moves`, viewWidth(app) / 2, top + size + 24, 14, AMBER));
   }
 
-  const cleanup = setupStage(
-    app,
-    (event) => {
-      if (!drag) return;
-      if (event.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
-      drag.x = event.global.x;
-      drag.y = event.global.y;
-      updateDragVisual();
-    },
-    (event) => {
-      if (!drag) return;
-      if (event?.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
-      const current = drag;
-      drag = null;
-      dragVisual.cancel();
-      clear(dragLayer);
-      if (event?.cancelled || !event?.global) {
-        draw();
-        return;
-      }
-      const target = cellFromPoint(layout, event.global.x, event.global.y);
-      if (target && (target.row !== current.from.y || target.col !== current.from.x)) {
-        data.onMatch3Swap?.(current.from, { x: target.col, y: target.row });
-        makeSparkles(effects, event.global.x, event.global.y, SKY, 7);
-        makeRipple(effects, event.global.x, event.global.y, SKY, 24);
-      } else if (Math.abs(event.global.x - current.startX) + Math.abs(event.global.y - current.startY) < 8) {
-        data.onMatch3Cell?.(current.from.x, current.from.y);
-      }
-      draw();
-    },
-  );
+  const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   const ticker = () => tickParticles(effects);
   app.ticker.add(ticker);
   draw();
@@ -665,6 +699,7 @@ export function buildMatch3Scene(app, initial = {}) {
       cleanup();
       app.ticker.remove(ticker);
       dragVisual.cancel();
+      pointer.cancel("destroy");
       clear(root);
       clear(dragLayer);
       clear(effects);
@@ -686,7 +721,24 @@ export function buildBubboScene(app, initial = {}) {
   let aimPoint = null;
   let projectile = null;
   let lastShotId = null;
-  let activePointerId = null;
+  const pointer = createPointerSession({
+    onMove: (next) => {
+      aimPoint = { x: next.x, y: next.y };
+      updateAimVisual();
+    },
+    onTap: (done) => {
+      aimPoint = { x: done.x, y: done.y };
+      fireShot();
+    },
+    onDragEnd: (done) => {
+      aimPoint = { x: done.x, y: done.y };
+      fireShot();
+    },
+    onCancel: () => {
+      aimPoint = null;
+      clear(aimLayer);
+    },
+  });
 
   function bubbleColor(value) {
     return BUBBO_NUMBERS[value] || BUBBO_NUMBERS[BUBBO_COLORS[0]];
@@ -707,6 +759,7 @@ export function buildBubboScene(app, initial = {}) {
       top,
       right: left + boardWidth,
       bottom: top + cell * BUBBO_ROWS,
+      pressureOffset: Math.max(0, Math.min(1, Number(data.bubbo?.pressureStep) || 0)) * cell,
       cannonX: width / 2,
       cannonY: Math.min(height - 34, top + cell * (BUBBO_ROWS + 0.8)),
     };
@@ -716,7 +769,7 @@ export function buildBubboScene(app, initial = {}) {
     const offset = row % 2 ? layout.cell * 0.5 : 0;
     return {
       x: layout.left + offset + col * layout.cell + layout.cell / 2,
-      y: layout.top + row * layout.cell + layout.cell / 2,
+      y: layout.top + layout.pressureOffset + row * layout.cell + layout.cell / 2,
     };
   }
 
@@ -852,7 +905,17 @@ export function buildBubboScene(app, initial = {}) {
     }
     for (const cell of targets) {
       const pos = bubblePosition(cell.row, cell.col);
-      makeSparkles(effects, pos.x, pos.y, shot.dropped?.some((drop) => drop.row === cell.row && drop.col === cell.col) ? SKY : AMBER, 9);
+      const dropped = shot.dropped?.find((drop) => drop.row === cell.row && drop.col === cell.col);
+      if (dropped) {
+        const falling = drawBubble(pos.x, pos.y, layout.radius * 0.82, dropped.color || cell.color || BUBBO_COLORS[0], 0.92);
+        falling._vx = (cell.col - BUBBO_COLS / 2) * 0.08;
+        falling._vy = 2.8 + (cell.row % 3) * 0.35;
+        falling._gravity = 0.22;
+        falling._spin = (cell.col % 2 ? 1 : -1) * 0.045;
+        falling._life = 40;
+        effects.addChild(falling);
+      }
+      makeSparkles(effects, pos.x, pos.y, dropped ? SKY : AMBER, 9);
       makeRipple(effects, pos.x, pos.y, AMBER, 24);
     }
   }
@@ -862,8 +925,9 @@ export function buildBubboScene(app, initial = {}) {
     layout = buildLayout();
     const state = data.bubbo || {};
     const board = state.board || [];
-    root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + 20, PANEL, 16, 0.92));
-    root.addChild(tiledSprite(`${BUBBO_IMAGE_BASE}/background-tile.png`, layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + 16, 0.2));
+    root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + layout.cell + 20, PANEL, 16, 0.92));
+    root.addChild(tiledSprite(`${BUBBO_IMAGE_BASE}/background-tile.png`, layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + layout.cell + 16, 0.2));
+    root.addChild(new Graphics().moveTo(layout.left, layout.bottom - layout.cell * 0.2).lineTo(layout.right, layout.bottom - layout.cell * 0.2).stroke({ color: CORAL, width: 3, alpha: 0.45 }));
     for (let r = 0; r < BUBBO_ROWS; r++) {
       for (let c = 0; c < BUBBO_COLS; c++) {
         const value = board[r]?.[c];
@@ -905,36 +969,13 @@ export function buildBubboScene(app, initial = {}) {
     projectileLayer.addChild(projectile.view);
   }
 
-  const move = (event) => {
-    if (activePointerId != null && event.pointerId != null && event.pointerId !== activePointerId) return;
-    aimPoint = { x: event.global.x, y: event.global.y };
-    updateAimVisual();
-  };
   const down = (event) => {
-    activePointerId = event.pointerId;
     aimPoint = { x: event.global.x, y: event.global.y };
+    pointer.start(event, { kind: "bubbo-aim" });
     updateAimVisual();
   };
-  const up = (event) => {
-    if (activePointerId != null && event.pointerId != null && event.pointerId !== activePointerId) return;
-    activePointerId = null;
-    aimPoint = { x: event.global.x, y: event.global.y };
-    fireShot();
-  };
-  const cancel = () => {
-    activePointerId = null;
-    aimPoint = null;
-    clear(aimLayer);
-  };
-  app.stage.eventMode = "static";
-  app.stage.hitArea = app.screen;
-  app.stage.on("globalpointermove", move);
+  const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   app.stage.on("pointerdown", down);
-  app.stage.on("pointerup", up);
-  app.stage.on("pointerupoutside", up);
-  app.stage.on("pointercancel", cancel);
-  window.addEventListener("blur", cancel);
-  document.addEventListener("visibilitychange", cancel);
 
   const ticker = (tickerState) => {
     tickParticles(effects);
@@ -967,13 +1008,9 @@ export function buildBubboScene(app, initial = {}) {
       draw();
     },
     destroy() {
-      app.stage.off("globalpointermove", move);
+      cleanup();
       app.stage.off("pointerdown", down);
-      app.stage.off("pointerup", up);
-      app.stage.off("pointerupoutside", up);
-      app.stage.off("pointercancel", cancel);
-      window.removeEventListener("blur", cancel);
-      document.removeEventListener("visibilitychange", cancel);
+      pointer.cancel("destroy");
       app.ticker.remove(ticker);
       clear(root);
       clear(aimLayer);
@@ -996,6 +1033,45 @@ export function buildMergeScene(app, initial = {}) {
   let layout = null;
   let drag = null;
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
+
+  const pointer = createPointerSession({
+    onMove: (next) => {
+      if (!drag) return;
+      drag.x = next.x;
+      drag.y = next.y;
+      updateDragVisual();
+    },
+    onTap: (done) => {
+      const cell = done.data?.cell;
+      const item = done.data?.item;
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      if (cell) data.onMergeCell?.(cell.r, cell.c, item);
+      draw();
+    },
+    onDragEnd: (done) => {
+      if (!drag) return;
+      const current = drag;
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      const target = cellFromPoint(layout, done.x, done.y);
+      if (target) {
+        data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)?.then?.((result) => {
+          makeSparkles(effects, done.x, done.y, result?.error ? CORAL : MINT, result?.error ? 5 : 10);
+          if (!result?.error) makeRipple(effects, done.x, done.y, MINT, 26);
+        });
+      }
+      draw();
+    },
+    onCancel: () => {
+      drag = null;
+      dragVisual.cancel();
+      clear(dragLayer);
+      draw();
+    },
+  });
 
   function itemText(item) {
     if (!item) return "";
@@ -1054,11 +1130,8 @@ export function buildMergeScene(app, initial = {}) {
             if (data.mergeLocked) return;
             if (!item) return;
             drag = { fromR: r, fromC: c, item, pointerId: event.pointerId, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
+            pointer.start(event, { kind: "merge-cell", cell: { r, c }, item });
             updateDragVisual();
-          },
-          pointertap: () => {
-            if (data.mergeLocked) return;
-            data.onMergeCell?.(r, c, item);
           },
         });
         root.addChild(tile);
@@ -1072,32 +1145,7 @@ export function buildMergeScene(app, initial = {}) {
     root.addChild(label(data.trashMode ? "Trash mode" : "Drag/tap merge pairs", viewWidth(app) / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
   }
 
-  const cleanup = setupStage(
-    app,
-    (event) => {
-      if (!drag) return;
-      if (event.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
-      drag.x = event.global.x;
-      drag.y = event.global.y;
-      updateDragVisual();
-    },
-    (event) => {
-      if (!drag) return;
-      if (event?.pointerId != null && drag.pointerId != null && event.pointerId !== drag.pointerId) return;
-      const current = drag;
-      drag = null;
-      dragVisual.cancel();
-      clear(dragLayer);
-      const target = event?.cancelled || !event?.global ? null : cellFromPoint(layout, event.global.x, event.global.y);
-      if (target) {
-        data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)?.then?.((result) => {
-          makeSparkles(effects, event.global.x, event.global.y, result?.error ? CORAL : MINT, result?.error ? 5 : 10);
-          if (!result?.error) makeRipple(effects, event.global.x, event.global.y, MINT, 26);
-        });
-      }
-      draw();
-    },
-  );
+  const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   const ticker = () => tickParticles(effects);
   app.ticker.add(ticker);
   draw();
@@ -1111,6 +1159,7 @@ export function buildMergeScene(app, initial = {}) {
       cleanup();
       app.ticker.remove(ticker);
       dragVisual.cancel();
+      pointer.cancel("destroy");
       clear(root);
       clear(dragLayer);
       clear(effects);

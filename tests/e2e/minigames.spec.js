@@ -9,10 +9,20 @@ test.describe("New-stack minigame smoke", () => {
 
   async function pauseActiveGame(page) {
     await page.getByRole("button", { name: /Pause/ }).click();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await expect(page.locator(".bottom-tabs")).toBeHidden();
+    await expect(page.locator(".game-menu-overlay")).toBeVisible();
+  }
+
+  async function exitToHub(page) {
+    await page.locator(".game-menu-overlay").getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
+    await page.waitForTimeout(260);
   }
 
   test("tabs render rich game surfaces and survive real actions", async ({ page }) => {
+    test.setTimeout(60_000);
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
@@ -21,39 +31,56 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
 
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await pauseActiveGame(page);
+    await exitToHub(page);
+
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.getByText("Building Blox")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.getByText(/Score/).first()).toBeVisible();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await pauseActiveGame(page);
+    await exitToHub(page);
 
     await page.getByRole("button", { name: /Gems/ }).click();
     await expect(page.getByText("Gem Crush")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".game-play-hud")).toContainText(/Combo/);
     await pauseActiveGame(page);
+    await exitToHub(page);
 
     await page.getByRole("button", { name: /Merge/ }).click();
     await expect(page.getByText("Gacha Merge")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await page.getByRole("button", { name: "30 Taps" }).click();
     await page.getByRole("button", { name: "Tap" }).first().click();
     await expect(page.getByText(/free taps/i)).toBeVisible();
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    await pauseActiveGame(page);
+    await exitToHub(page);
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await expect(page.getByText("Bubbo Bubbo")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".game-play-hud")).toContainText(/bubbles/i);
     await pauseActiveGame(page);
+    await exitToHub(page);
 
     await page.getByRole("button", { name: /Trivia/ }).click();
     await expect(page.getByText("Brain Blitz")).toBeVisible();
     await page.getByRole("button", { name: "Solo" }).click();
     await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await pauseActiveGame(page);
+    await exitToHub(page);
 
     await page.getByRole("button", { name: /Room/ }).click();
     await expect(page.getByText("Room Inventory")).toBeVisible();
@@ -64,6 +91,10 @@ test.describe("New-stack minigame smoke", () => {
     await expect(roomNameInput).toHaveValue("Pixel");
     await page.getByRole("button", { name: "Rename" }).click();
     await expect(page.locator(".panel-header").filter({ hasText: "Pixel" })).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await pauseActiveGame(page);
+    await exitToHub(page);
 
     expect(pageErrors).toEqual([]);
   });
@@ -77,13 +108,27 @@ test.describe("New-stack minigame smoke", () => {
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
 
-    for (const tab of [/Blox/, /Gems/, /Merge/, /Bubbo/]) {
-      await page.getByRole("button", { name: tab }).click();
-      if (String(tab).includes("Merge")) {
-        await page.getByRole("button", { name: /^Play$/ }).click();
-      } else {
-        await page.getByRole("button", { name: /^Start$/ }).click();
-      }
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    const farmHost = page.locator(".active-game-frame .pixi-host").last();
+    await expect(farmHost).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    const farmBox = await farmHost.boundingBox();
+    expect(farmBox).not.toBeNull();
+    expect(farmBox.height).toBeGreaterThanOrEqual(620);
+    expect(farmBox.width).toBeGreaterThanOrEqual(360);
+    await pauseActiveGame(page);
+    await exitToHub(page);
+
+    const pixiGames = [
+      { tab: /Blox/, start: /^Start$/ },
+      { tab: /Gems/, start: /^Start$/ },
+      { tab: /Merge/, start: /^Play$/ },
+      { tab: /Bubbo/, start: /^Start$/ },
+    ];
+
+    for (const game of pixiGames) {
+      await page.getByRole("button", { name: game.tab }).click();
+      await page.getByRole("button", { name: game.start }).click();
       const host = page.locator(".active-game-frame .pixi-host").last();
       await expect(host).toBeVisible();
       await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
@@ -93,6 +138,19 @@ test.describe("New-stack minigame smoke", () => {
       expect(hostBox.height).toBeGreaterThanOrEqual(620);
       expect(hostBox.width).toBeGreaterThanOrEqual(360);
       await pauseActiveGame(page);
+      await exitToHub(page);
     }
+
+    await page.getByRole("button", { name: /Room/ }).click();
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    const roomStage = page.locator(".active-game-frame .room-stage");
+    await expect(roomStage).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    const roomBox = await roomStage.boundingBox();
+    expect(roomBox).not.toBeNull();
+    expect(roomBox.height).toBeGreaterThanOrEqual(620);
+    expect(roomBox.width).toBeGreaterThanOrEqual(360);
+    await pauseActiveGame(page);
+    await exitToHub(page);
   });
 });

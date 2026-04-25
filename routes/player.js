@@ -814,7 +814,14 @@ export async function applyAction(p, action, payload = {}) {
       if (p.resources.energy.current < ECONOMY.COST_BUBBO) return fail(400, "NOT_ENOUGH_ENERGY", { required: ECONOMY.COST_BUBBO, current: p.resources.energy.current });
       p.resources.energy.current -= ECONOMY.COST_BUBBO;
       p.bubbo.totalGames = (p.bubbo.totalGames || 0) + 1;
-      p.bubbo.currentGame = { score: 0, shotsLeft: 36 };
+      p.bubbo.currentGame = {
+        score: 0,
+        shotsLeft: Math.max(0, Number(payload.shotsLeft) || 36),
+        board: Array.isArray(payload.board) ? payload.board : undefined,
+        seed: typeof payload.seed === "string" ? payload.seed.slice(0, 80) : undefined,
+        waveIndex: Math.max(0, Number(payload.waveIndex) || 0),
+        pressure: Math.max(0, Number(payload.pressure) || 0),
+      };
       return ok(action, p, { game: p.bubbo.currentGame });
     }
     case "bubbo.sync": {
@@ -823,6 +830,10 @@ export async function applyAction(p, action, payload = {}) {
         p.bubbo.currentGame = {
           score: Math.max(0, Number(payload.game.score) || 0),
           shotsLeft: Math.max(0, Number(payload.game.shotsLeft) || 0),
+          board: Array.isArray(payload.game.board) ? payload.game.board : p.bubbo.currentGame?.board,
+          seed: typeof payload.game.seed === "string" ? payload.game.seed.slice(0, 80) : p.bubbo.currentGame?.seed,
+          waveIndex: Math.max(0, Number(payload.game.waveIndex) || Number(p.bubbo.currentGame?.waveIndex) || 0),
+          pressure: Math.max(0, Number(payload.game.pressure) || 0),
         };
       }
       return ok(action, p);

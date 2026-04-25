@@ -40,8 +40,9 @@ import { useGameHub } from "./game-state/useGameHub.js";
 import { listPositive } from "./game-state/inventory.js";
 import {
   BUBBO_SHOTS,
+  advanceBubboPressure,
   applyBubboShot,
-  createBubboBoard,
+  createBubboRun,
   getBubboRemainingCount,
   isBubboDanger,
   randomBubboColor,
@@ -161,6 +162,13 @@ function useAction() {
   return useGameHub((state) => state.performAction);
 }
 
+function useExitToHub() {
+  const setActiveTab = useGameHub((state) => state.setActiveTab);
+  return useCallback(() => {
+    setActiveTab("farm");
+  }, [setActiveTab]);
+}
+
 function FarmGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -168,10 +176,14 @@ function FarmGame() {
   const [selectedSeed, setSelectedSeed] = useState("strawberry");
   const [buyQty, setBuyQty] = useState(1);
   const [tick, setTick] = useState(0);
+  const [inShell, setInShell] = useState(false);
+  const [paused, setPaused] = useState(false);
   const farm = snapshot?.farm || {};
   const inventory = snapshot?.inventory || {};
   const crops = snapshot?.meta?.crops || CROPS;
   const unlockedSeeds = farm.unlockedSeeds || ["strawberry", "blueberry"];
+  const isPlaying = inShell && !paused;
+  useImmersiveGame("farm", inShell);
 
   useEffect(() => {
     const id = setInterval(() => setTick((value) => value + 1), 1000);
@@ -220,16 +232,53 @@ function FarmGame() {
   );
 
   return (
-    <div className="game-layout farm-layout">
+    <div className={`game-layout farm-layout${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}>
       <PixiGameHost sceneKey="farm" buildScene={buildFarmScene} sceneState={sceneState} />
-      <aside className="side-panel">
+      {isPlaying && (
+        <GamePlayHud
+          title="Cozy Farm"
+          subtitle={`Lv ${farm.level || 1} · ${farm.xp || 0} XP · ${crops[selectedSeed]?.name || selectedSeed}`}
+          stats={[
+            { label: "Gold", value: formatCount(snapshot?.resources?.gold || 0) },
+            { label: "Plots", value: farm.plots?.length || 0 },
+            { label: "Seed", value: inventory.seeds?.[selectedSeed] || 0 },
+          ]}
+          onPause={() => setPaused(true)}
+          onFinish={() => performAction("farm.harvestAll")}
+          finishLabel="Harvest"
+        />
+      )}
+      <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
         <div className="panel-header">
           <div>
             <strong>Cozy Farm</strong>
             <span>Lv {farm.level || 1} · {farm.xp || 0} XP</span>
           </div>
-          <PanelButton icon={Check} onClick={() => performAction("farm.harvestAll")}>Harvest All</PanelButton>
+          <PanelButton
+            icon={Play}
+            onClick={() => {
+              setInShell(true);
+              setPaused(false);
+            }}
+          >
+            {inShell ? "Resume" : "Play"}
+          </PanelButton>
         </div>
+        {inShell && paused && (
+          <div className="button-row two">
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton
+              icon={Home}
+              danger
+              onClick={() => {
+                setPaused(false);
+                setInShell(false);
+              }}
+            >
+              Exit
+            </PanelButton>
+          </div>
+        )}
         {snapshot?.offlineReport && <div className="callout">Offline progress applied.</div>}
         <SectionTabs
           active={farmTab}
@@ -282,6 +331,7 @@ function FarmGame() {
               );
             })}
             <div className="button-row">
+              <PanelButton icon={Check} onClick={() => performAction("farm.harvestAll")}>Harvest All</PanelButton>
               <PanelButton icon={Hammer} onClick={() => performAction("farm.buyPlot")}>Buy Plot</PanelButton>
               <PanelButton icon={Zap} onClick={() => performAction("farm.activateBooster", { boosterId: "fertilizer" })}>Fertilizer</PanelButton>
             </div>
@@ -408,6 +458,7 @@ function SeasonPanel() {
 function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const exitToHub = useExitToHub();
   const [selectedPiece, setSelectedPiece] = useState(-1);
   const [paused, setPaused] = useState(false);
   const saved = snapshot?.blox?.savedState || {};
@@ -421,7 +472,7 @@ function BloxGame() {
   };
   const [leaders, setLeaders] = useState([]);
   const isPlaying = state.gameActive && !paused;
-  useImmersiveGame("blox", isPlaying);
+  useImmersiveGame("blox", true);
 
   useEffect(() => {
     api("/api/blox/leaderboard").then((data) => {
@@ -488,7 +539,7 @@ function BloxGame() {
           finishLabel="End"
         />
       )}
-      <aside className="side-panel">
+      <aside className="side-panel game-menu-overlay">
         <div className="panel-header">
           <div>
             <strong>Building Blox</strong>
@@ -512,6 +563,7 @@ function BloxGame() {
         <div className="button-row">
           <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
           <PanelButton icon={Volume2} subtle onClick={() => haptic("light")}>Sound</PanelButton>
+          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
         </div>
         <Leaderboard entries={leaders} />
       </aside>
@@ -522,6 +574,7 @@ function BloxGame() {
 function Match3Game() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const exitToHub = useExitToHub();
   const [mode, setMode] = useState("classic");
   const [board, setBoard] = useState(() => generateBoard());
   const [selected, setSelected] = useState(null);
@@ -532,7 +585,7 @@ function Match3Game() {
   const [paused, setPaused] = useState(false);
   const [leaders, setLeaders] = useState([]);
   const isPlaying = gameActive && !paused;
-  useImmersiveGame("match3", isPlaying);
+  useImmersiveGame("match3", true);
 
   useEffect(() => {
     api("/api/leaderboard").then((data) => {
@@ -666,7 +719,7 @@ function Match3Game() {
           onFinish={() => finish(score)}
         />
       )}
-      <aside className="side-panel">
+      <aside className="side-panel game-menu-overlay">
         <div className="panel-header">
           <div>
             <strong>Gem Crush</strong>
@@ -696,6 +749,7 @@ function Match3Game() {
         <div className="button-row">
           <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
           <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>Reshuffle</PanelButton>
+          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
         </div>
         <Leaderboard entries={leaders} />
       </aside>
@@ -706,7 +760,13 @@ function Match3Game() {
 function BubboGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
-  const [board, setBoard] = useState(() => createBubboBoard());
+  const exitToHub = useExitToHub();
+  const initialRun = useMemo(() => createBubboRun("local-preview"), []);
+  const [board, setBoard] = useState(() => initialRun.board);
+  const [seed, setSeed] = useState(initialRun.seed);
+  const [waveIndex, setWaveIndex] = useState(initialRun.waveIndex);
+  const [pressure, setPressure] = useState(initialRun.pressure);
+  const [pressureStep, setPressureStep] = useState(initialRun.pressureStep || 0);
   const [score, setScore] = useState(0);
   const [shotsLeft, setShotsLeft] = useState(BUBBO_SHOTS);
   const [gameActive, setGameActive] = useState(false);
@@ -714,22 +774,39 @@ function BubboGame() {
   const [currentBubble, setCurrentBubble] = useState(() => randomBubboColor());
   const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
   const [lastShot, setLastShot] = useState(null);
+  const pressureClockRef = useRef(Date.now());
+  const runRef = useRef({ board, seed, waveIndex, pressure, pressureStep, score, shotsLeft });
   const highScore = snapshot?.bubbo?.highScore || 0;
   const remainingBubbles = getBubboRemainingCount(board);
   const isPlaying = gameActive && !paused;
-  useImmersiveGame("bubbo", isPlaying);
+  useImmersiveGame("bubbo", true);
+
+  useEffect(() => {
+    runRef.current = { board, seed, waveIndex, pressure, pressureStep, score, shotsLeft };
+  }, [board, pressure, pressureStep, score, seed, shotsLeft, waveIndex]);
 
   const start = useCallback(async () => {
-    const result = await performAction("bubbo.start", { shotsLeft: BUBBO_SHOTS }, { key: "bubbo.start" });
+    const run = createBubboRun();
+    const result = await performAction("bubbo.start", {
+      shotsLeft: BUBBO_SHOTS,
+      board: run.board,
+      seed: run.seed,
+      waveIndex: run.waveIndex,
+      pressure: 0,
+    }, { key: "bubbo.start" });
     if (result.error) return;
-    const nextBoard = createBubboBoard();
-    setBoard(nextBoard);
+    setBoard(run.board);
+    setSeed(run.seed);
+    setWaveIndex(run.waveIndex);
+    setPressure(0);
+    setPressureStep(0);
     setScore(0);
     setShotsLeft(BUBBO_SHOTS);
     setGameActive(true);
     setPaused(false);
-    setCurrentBubble(randomBubboColor(nextBoard));
-    setNextBubble(randomBubboColor(nextBoard));
+    pressureClockRef.current = Date.now();
+    setCurrentBubble(randomBubboColor(run.board));
+    setNextBubble(randomBubboColor(run.board));
     setLastShot(null);
   }, [performAction]);
 
@@ -741,6 +818,46 @@ function BubboGame() {
     },
     [performAction, score],
   );
+
+  useEffect(() => {
+    if (!isPlaying) {
+      pressureClockRef.current = Date.now();
+      return undefined;
+    }
+    const id = window.setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - pressureClockRef.current;
+      pressureClockRef.current = now;
+      const current = runRef.current;
+      const advanced = advanceBubboPressure(current, elapsed);
+      setPressure(advanced.pressure);
+      setPressureStep(advanced.pressureStep || 0);
+      if (!advanced.shifts) return;
+      setBoard(advanced.board);
+      setWaveIndex(advanced.waveIndex);
+      const pressureRecord = {
+        id: `pressure_${now}_${advanced.waveIndex}`,
+        shifted: advanced.shifts,
+        popped: [],
+        dropped: [],
+      };
+      setLastShot(pressureRecord);
+      performAction("bubbo.sync", {
+        game: {
+          score: current.score,
+          shotsLeft: current.shotsLeft,
+          board: advanced.board,
+          seed: advanced.seed,
+          waveIndex: advanced.waveIndex,
+          pressure: advanced.pressure,
+        },
+      }, { silent: true, key: `bubbo.pressure.${now}` });
+      if (advanced.danger || advanced.overflow) {
+        finish(current.score);
+      }
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [finish, isPlaying, performAction]);
 
   const onFire = useCallback(
     (row, col, path = []) => {
@@ -764,17 +881,17 @@ function BubboGame() {
       setLastShot(shotRecord);
       setCurrentBubble(nextBubble);
       setNextBubble(randomBubboColor(result.board));
-      audioManager.play(result.popped.length ? "clear" : "tap");
+      audioManager.play(result.popped.length || result.dropped.length ? "clear" : "tap");
       performAction(
         "bubbo.sync",
-        { game: { score: nextScore, shotsLeft: nextShots } },
+        { game: { score: nextScore, shotsLeft: nextShots, board: result.board, seed, waveIndex, pressure } },
         { silent: true, key: `bubbo.sync.${shotRecord.id}` },
       );
       if (remaining === 0 || nextShots <= 0 || isBubboDanger(result.board)) {
         finish(nextScore);
       }
     },
-    [board, currentBubble, finish, gameActive, nextBubble, performAction, score, shotsLeft],
+    [board, currentBubble, finish, gameActive, nextBubble, performAction, pressure, score, seed, shotsLeft, waveIndex],
   );
 
   const sceneState = useMemo(
@@ -787,10 +904,11 @@ function BubboGame() {
         current: currentBubble,
         next: nextBubble,
         lastShot,
+        pressureStep,
       },
       onBubboFire: onFire,
     }),
-    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, score, shotsLeft],
+    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, score, shotsLeft],
   );
 
   return (
@@ -803,17 +921,17 @@ function BubboGame() {
           stats={[
             { label: "Score", value: score },
             { label: "Shots", value: shotsLeft },
-            { label: "Field", value: isBubboDanger(board) ? "Danger" : "Stable" },
+            { label: "Pressure", value: `${Math.round(pressureStep * 100)}%` },
           ]}
           onPause={() => setPaused(true)}
           onFinish={() => finish(score)}
         />
       )}
-      <aside className="side-panel">
+      <aside className="side-panel game-menu-overlay">
         <div className="panel-header">
           <div>
             <strong>Bubbo Bubbo</strong>
-            <span>Best {highScore} · {remainingBubbles} bubbles</span>
+            <span>Best {highScore} · {remainingBubbles} bubbles · pressure {Math.round(pressureStep * 100)}%</span>
           </div>
           <PanelButton icon={gameActive ? RotateCcw : Play} onClick={start}>
             {gameActive ? "Restart" : "Start"}
@@ -832,7 +950,15 @@ function BubboGame() {
         </div>
         <div className="button-row">
           <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
-          <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => setBoard(createBubboBoard())}>New Field</PanelButton>
+          <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
+            const run = createBubboRun("local-preview");
+            setBoard(run.board);
+            setSeed(run.seed);
+            setWaveIndex(run.waveIndex);
+            setPressure(0);
+            setPressureStep(0);
+          }}>New Field</PanelButton>
+          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
         </div>
         <div className="leaderboard">
           <strong>Run Status</strong>
@@ -846,6 +972,7 @@ function BubboGame() {
 function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const exitToHub = useExitToHub();
   const merge = snapshot?.merge || {};
   const inventory = snapshot?.inventory || {};
   const [selectedFuel, setSelectedFuel] = useState({});
@@ -854,7 +981,7 @@ function MergeGame() {
   const [mergePlaying, setMergePlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const isPlaying = mergePlaying && !paused;
-  useImmersiveGame("merge", isPlaying);
+  useImmersiveGame("merge", true);
 
   const harvestedEntries = listPositive(inventory.harvested || {});
   const firstFuel = harvestedEntries[0]?.[0];
@@ -927,7 +1054,7 @@ function MergeGame() {
           onPause={() => setPaused(true)}
         />
       )}
-      <aside className="side-panel">
+      <aside className="side-panel game-menu-overlay">
         <div className="panel-header">
           <div>
             <strong>Gacha Merge</strong>
@@ -983,6 +1110,7 @@ function MergeGame() {
           <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>Gacha</PanelButton>
           <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>Free Pull</PanelButton>
           <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>30 Taps</PanelButton>
+          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
         </div>
         <div className="panel-scroll compact-list">
           {Object.entries(merge.itemCounts || {}).map(([itemId, qty]) => (
@@ -997,6 +1125,7 @@ function MergeGame() {
 function TriviaGame() {
   const snapshot = useSnapshot();
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
+  const exitToHub = useExitToHub();
   const [view, setView] = useState("menu");
   const [question, setQuestion] = useState(null);
   const [sessionScore, setSessionScore] = useState(0);
@@ -1007,6 +1136,11 @@ function TriviaGame() {
   const [joinCode, setJoinCode] = useState("");
   const [duelStatus, setDuelStatus] = useState(null);
   const [history, setHistory] = useState([]);
+  const [paused, setPaused] = useState(false);
+  const inShell = view !== "menu";
+  const questionActive = (view === "solo" || view === "duel-play") && question;
+  const isPlaying = questionActive && !paused;
+  useImmersiveGame("trivia", inShell);
 
   useEffect(() => {
     api("/api/trivia/duel/history").then((data) => {
@@ -1024,6 +1158,7 @@ function TriviaGame() {
     setQuestion(data.question);
     setSessionScore(0);
     setStreak(0);
+    setPaused(false);
     setView("solo");
     await loadSnapshot();
   }
@@ -1041,6 +1176,7 @@ function TriviaGame() {
       setQuestion(data.nextQuestion);
     } else {
       setQuestion(null);
+      setPaused(false);
       setView(data.results ? "duel-results" : "results");
       setDuelStatus(data.results || data);
       await loadSnapshot();
@@ -1055,6 +1191,7 @@ function TriviaGame() {
     }
     setRoomId(data.roomId);
     setDuelStatus(data);
+    setPaused(false);
     setView("duel-room");
   }
 
@@ -1066,6 +1203,7 @@ function TriviaGame() {
     }
     setRoomId(data.roomId);
     setDuelStatus(data);
+    setPaused(false);
     setView(data.status === "active" ? "duel-play" : "duel-room");
   }
 
@@ -1085,6 +1223,7 @@ function TriviaGame() {
       return;
     }
     setQuestion(data.question);
+    setPaused(false);
     setView("duel-play");
   }
 
@@ -1096,7 +1235,7 @@ function TriviaGame() {
   }
 
   return (
-    <div className="trivia-shell">
+    <div className={`trivia-shell${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}>
       <aside className="trivia-card">
         <div className="panel-header">
           <div>
@@ -1104,6 +1243,18 @@ function TriviaGame() {
             <span>Total {snapshot?.trivia?.totalScore || 0} · Best streak {snapshot?.trivia?.bestStreak || 0}</span>
           </div>
         </div>
+        {isPlaying && (
+          <GamePlayHud
+            title="Brain Blitz"
+            subtitle={`${question.category || "Trivia"} · ${question.difficulty || difficulty}`}
+            stats={[
+              { label: "Score", value: sessionScore },
+              { label: "Streak", value: streak || 0 },
+              { label: "Q", value: `${(question.index ?? 0) + 1}/${question.total || "?"}` },
+            ]}
+            onPause={() => setPaused(true)}
+          />
+        )}
         {view === "menu" && (
           <>
             <div className="form-grid">
@@ -1149,11 +1300,55 @@ function TriviaGame() {
             <Trophy size={42} />
             <strong>Finished</strong>
             <span>Score {sessionScore}</span>
-            <PanelButton icon={RotateCcw} onClick={() => setView("menu")}>Back</PanelButton>
+            <PanelButton
+              icon={RotateCcw}
+              onClick={() => {
+                setPaused(false);
+                setView("menu");
+              }}
+            >
+              Back
+            </PanelButton>
           </div>
         )}
       </aside>
-      <aside className="side-panel">
+      <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
+        {inShell && (
+          <div className="panel-header">
+            <div>
+              <strong>{view === "results" || view === "duel-results" ? "Result" : "Pause"}</strong>
+              <span>Score {sessionScore} · Streak {streak || 0}</span>
+            </div>
+          </div>
+        )}
+        {inShell && (
+          <div className="button-row">
+            {questionActive && paused && <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>}
+            <PanelButton
+              icon={RotateCcw}
+              subtle
+              onClick={() => {
+                setPaused(false);
+                setQuestion(null);
+                setView("menu");
+              }}
+            >
+              Menu
+            </PanelButton>
+            <PanelButton
+              icon={Home}
+              danger
+              onClick={() => {
+                setPaused(false);
+                setQuestion(null);
+                setView("menu");
+                exitToHub();
+              }}
+            >
+              Exit
+            </PanelButton>
+          </div>
+        )}
         <strong>Recent Duels</strong>
         <div className="panel-scroll compact-list">
           {history.length ? history.map((item, index) => (
@@ -1189,14 +1384,19 @@ function QuestionPanel({ question, score, streak, submitAnswer }) {
 function RoomGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const exitToHub = useExitToHub();
   const room = snapshot?.room || {};
   const pet = snapshot?.pet || {};
   const inventory = snapshot?.inventory?.roomInventory || [];
   const [selectedDeco, setSelectedDeco] = useState("");
   const [rename, setRename] = useState(pet.name || "");
+  const [inShell, setInShell] = useState(false);
+  const [paused, setPaused] = useState(false);
   const renameInputRef = useRef(null);
   const [optimisticName, setOptimisticName] = useOptimistic(pet.name || "Buddy");
   const [, startRenameTransition] = useTransition();
+  const isPlaying = inShell && !paused;
+  useImmersiveGame("room", inShell);
 
   useEffect(() => setRename(pet.name || ""), [pet.name]);
 
@@ -1210,7 +1410,7 @@ function RoomGame() {
   }, [performAction, rename, setOptimisticName, startRenameTransition]);
 
   return (
-    <div className="room-layout">
+    <div className={`room-layout${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}>
       <section className="room-stage">
         <div className="room-grid">
           {Array.from({ length: 12 }, (_, index) => {
@@ -1236,14 +1436,60 @@ function RoomGame() {
         </div>
         <PetAvatar pet={pet} />
       </section>
-      <aside className="side-panel">
+      {isPlaying && (
+        <GamePlayHud
+          title={optimisticName || "Buddy"}
+          subtitle={`Lv ${pet.level || 1} · affection ${pet.affectionLevel || 1}`}
+          stats={[
+            { label: "Full", value: `${pet.stats?.fullness || 0}/100` },
+            { label: "Happy", value: `${pet.stats?.happiness || 0}/100` },
+            { label: "Orders", value: pet.activeOrders?.length || 0 },
+          ]}
+          onPause={() => setPaused(true)}
+        />
+      )}
+      <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
         <div className="panel-header">
           <div>
             <strong>{optimisticName || "Buddy"}</strong>
             <span>Lv {pet.level || 1} · Affection {pet.affectionLevel || 1}</span>
           </div>
-          <PawPrint />
+          <PanelButton
+            icon={Play}
+            onClick={() => {
+              setInShell(true);
+              setPaused(false);
+            }}
+          >
+            {inShell ? "Resume" : "Play"}
+          </PanelButton>
         </div>
+        {inShell && paused && (
+          <div className="button-row">
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton
+              icon={RotateCcw}
+              subtle
+              onClick={() => {
+                setPaused(false);
+                setInShell(false);
+              }}
+            >
+              Menu
+            </PanelButton>
+            <PanelButton
+              icon={Home}
+              danger
+              onClick={() => {
+                setPaused(false);
+                setInShell(false);
+                exitToHub();
+              }}
+            >
+              Exit
+            </PanelButton>
+          </div>
+        )}
         <div className="metric-grid">
           <Stat icon={PawPrint} label="Fullness" value={`${pet.stats?.fullness || 0}/100`} />
           <Stat icon={Sparkles} label="Happy" value={`${pet.stats?.happiness || 0}/100`} />
@@ -1403,9 +1649,10 @@ export default function App() {
 
   const resources = snapshot?.resources || {};
   const energy = resources.energy || {};
+  const shellActive = activeGameShell === activeTab;
 
   return (
-    <main className={`telegram-app${PLAY_TABS.has(activeTab) ? " play-mode" : ""}${activeGameShell === activeTab ? " immersive-mode" : ""}`}>
+    <main className={`telegram-app${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}>
       <header className="topbar">
         <div>
           <p className="eyebrow">Telegram Mini App</p>
