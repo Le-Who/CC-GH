@@ -21,10 +21,10 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 ## Games
 
 - Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, season progress, and rapid tap/long-press Pixi plot input.
-- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
-- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, local cascade resolution, saved mode sync, and reward settlement.
+- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored ghost placement preview, authoritative placement, row/column clear metadata, line-wipe feedback, tray refill settle cues, saved state, rewards, and leaderboard reads.
+- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, local cascade resolution with scene-local animation steps and input locking, saved mode sync, and reward settlement.
 - Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
-- Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, seeded procedural waves, continuous descent, wall-bank aiming, projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
+- Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, distinct five-color play, seeded procedural waves, smoothed continuous descent, wall-bank aiming, constant path-distance projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, in-memory duel rooms, and the shared in-game pause/result overlay shell.
 - Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, persistent decoration placement, and the shared in-game pause overlay shell.
 
@@ -55,15 +55,16 @@ Backend module boundaries:
 Frontend flow:
 
 1. `src/main.jsx` mounts `src/App.jsx`.
-2. `App.jsx` initializes Telegram platform helpers and fetches `/api/config`.
+2. `App.jsx` initializes Telegram platform helpers, installs the PWA update manager, and fetches `/api/config`.
 3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`.
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
 5. Pixi scenes for Farm, Blox, Match-3, Merge, and Bubbo mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
-6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before the scene builds, then the scene keeps procedural fallbacks for missing optional art.
+6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before the scene builds, appends the current build id to `/games/*` asset URLs, then the scene keeps procedural fallbacks for missing optional art.
 7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
 8. Gameplay enters a shared immersive mobile shell across Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation.
 9. Blox and Gem Crush tune their Pixi board geometry for mobile thumb reach: the square playfields stay as large as the viewport allows, reserve room for the compact HUD/tray, and sit lower in fullscreen play instead of pinning to the top edge.
-10. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+10. `src/services/updateManager.js` manually registers the PWA service worker, polls uncached `/api/config`, compares the server `buildId` with the injected client build id, and clears service workers/caches once before reloading with a cache-busting query when a stale build is detected.
+11. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
 
@@ -134,8 +135,8 @@ If Redis is unavailable, rate limits and nonce dedupe fall back to process-local
 
 Public unauthenticated APIs:
 
-- `GET /api/config`
-- `GET /api/health`
+- `GET /api/config` returns uncached client config plus `appVersion` and `buildId`.
+- `GET /api/health` returns app liveness plus `version` and `buildId`.
 - `GET /api/health/ping`
 - `GET /api/content/crops`
 - leaderboard reads
@@ -172,8 +173,10 @@ Copy `.env.example` and set:
 - `TELEGRAM_BOT_USERNAME`
 - `ADMIN_TOKEN`
 - `DEV_AUTH_ENABLED`
+- `APP_BUILD_ID`
 
 The compose stack also uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to provision PostgreSQL. In production, GitHub Actions writes `/opt/game-hub/.env` from repository secrets; do not commit production `.env` files.
+`APP_BUILD_ID` is written from the GitHub commit SHA during deployment and mirrored into the Docker build as `VITE_BUILD_ID` so HTML, `/api/config`, the update manager, and versioned `/games/*` assets agree on cache freshness.
 
 Playwright web-server runs with `NODE_ENV=test`, `DEV_AUTH_ENABLED=true`, and an empty `DATABASE_URL`; in that mode only, `withPlayerLock()` uses a process-local player store so browser smoke tests can exercise authenticated mutations without a local Postgres tenant. Production and normal development still require PostgreSQL for durable player state.
 
@@ -264,7 +267,9 @@ Health:
 Cache and sync:
 
 - Use `/api/clear-cache` if stale service-worker or browser storage state blocks a client.
-- The PWA config precaches built assets, uses NetworkFirst for navigation and API GET requests, and CacheFirst for fonts.
+- The app also performs build-id freshness checks through `/api/config`; when the server build differs from the injected client build, it unregisters service workers, deletes caches, and reloads once with `?build=<id>`.
+- The PWA config precaches hashed built assets, keeps HTML navigation network-only, excludes `/api/config` from runtime API caching, uses short NetworkFirst caching for other API GET requests, and keeps CacheFirst for fonts.
+- Runtime `/games/*` asset URLs include the client build id as a query parameter so Pixi art refreshes with each deployed build.
 - Socket clients disconnect while the document is hidden and reconnect on visibility return.
 
 Security-sensitive behavior:
@@ -277,7 +282,7 @@ Security-sensitive behavior:
 Cleanup gate:
 
 - `pnpm run test:cleanup` scans active files for retired platform names.
-- Historical references belong only in archive files such as `legacy_changelog.md` and `legacy_readme.md`.
+- Retired migration scratch files and legacy archive stubs are removed from the active tree; add new archive material only as an intentional documented artifact.
 
 ## Known Limitations And Technical Debt
 

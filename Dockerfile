@@ -4,6 +4,8 @@
 # ── Stage 1: Build ──
 FROM node:22-alpine AS build
 WORKDIR /app
+ARG BUILD_ID=local
+ENV VITE_BUILD_ID=$BUILD_ID
 
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 COPY package.json pnpm-lock.yaml ./
@@ -17,6 +19,8 @@ RUN pnpm run build
 # ── Stage 2: Production ──
 FROM node:22-alpine
 WORKDIR /app
+ARG BUILD_ID=local
+ENV APP_BUILD_ID=$BUILD_ID
 
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 COPY package.json pnpm-lock.yaml ./

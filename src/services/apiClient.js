@@ -20,7 +20,7 @@ function getOrCreateDevUserId() {
 
 export async function getPublicConfig() {
   if (!configPromise) {
-    configPromise = fetch("/api/config").then((res) => res.json());
+    configPromise = fetch("/api/config", { cache: "no-store" }).then((res) => res.json());
   }
   return configPromise;
 }

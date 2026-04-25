@@ -4,6 +4,11 @@
 
 ### Client
 
+- Added a manual PWA update manager that compares injected client build ids with uncached `/api/config`, unregisters stale service workers, clears runtime caches, and reloads once with a cache-busting build query.
+- Versioned Pixi `/games/*` asset URLs with the current build id so tracked Bubbo Bubbo and Puzzling Potions art refreshes cleanly after deploys.
+- Added scene-local Gem Crush animation queues from `attemptMatch3Move().steps`, including swap ghosts, cascade pulses, fall/fill tweens, invalid-swap nudges, and input locking while cascades resolve.
+- Added Building Blox line-wipe effects from authoritative `clear.rows` and `clear.cols`, stronger clear ripples, sparkle feedback, and tray refill settle cues.
+- Refined Bubbo Bubbo with distinct sky/berry colors, constant path-distance projectile travel, smoothed pressure descent in the Pixi ticker, and a lower-glare cozy pink/green play palette.
 - Added tracked Bubbo Bubbo and Puzzling Potions asset bundles under `public/games/` and preloaded them through the Pixi game host before scene construction.
 - Completed Bubbo Bubbo as a pressure shooter with seeded procedural waves, continuous descent, pressure row shifts, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, and pressure-aware danger/overflow finishing.
 - Reworked Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room into one immersive game shell that hides Hub chrome during play, keeps only compact in-game HUD controls visible, and opens pause/menu/result surfaces as overlays over the playfield with explicit Exit-to-Hub navigation.
@@ -16,10 +21,20 @@
 
 ### API
 
+- Added `buildId` to `/api/config` and `/api/health`, with no-store headers on `/api/config`, while preserving existing public endpoint names and player mutate contracts.
 - Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
+
+### Operations
+
+- Propagated the GitHub commit SHA as `BUILD_ID`, `VITE_BUILD_ID`, and `APP_BUILD_ID` through Docker build, Compose runtime, and the deploy workflow.
+- Removed obsolete benchmark/check scratch scripts, legacy README/changelog stubs, and stale eslint report artifacts from the active tree, then tightened the cleanup allowlist.
 
 ### Tests
 
+- Added update-manager core tests for build-id comparison, reload guarding, corrupt guard recovery, and cache-busting URL generation.
+- Added Bubbo coverage for sky/berry color separation and sky-cluster popping without adjacent berry false positives.
+- Added Blox mutate coverage proving `blox.place` returns authoritative cleared row/column indices and clears the saved board synchronously.
+- Added Match-3 coverage that cascade animation step snapshots end at the final board and invalid swaps expose no animation steps.
 - Added Bubbo unit coverage for deterministic seeded waves, pressure row shifts, overflow/danger handling, continuous pressure progression, and disconnected multi-color island drops.
 - Added pointer-session unit coverage for tap derivation, mismatched pointer ids, drag classification, and cancellation cleanup.
 - Added Blox scene geometry coverage for capture-point anchored dragging, centered fallback pickup, and ghost-anchor board targeting.

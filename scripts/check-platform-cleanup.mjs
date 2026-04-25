@@ -30,12 +30,8 @@ const excludedDirs = new Set([
 
 const allowedFiles = new Set([
   "CHANGELOG.md",
-  "legacy_changelog.md",
-  "legacy_readme.md",
   ".env",
   ".env.production",
-  "eslint-errors.json",
-  "eslint_output.txt",
   "scripts/check-platform-cleanup.mjs",
 ]);
 

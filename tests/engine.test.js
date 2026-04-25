@@ -436,7 +436,29 @@ describe("Match-3 Engine Tests", () => {
 
         assert.ok(candidate, "Expected at least one invalid adjacent swap candidate");
         assert.equal(candidate.result.totalPoints, 0);
+        assert.deepEqual(candidate.result.steps, []);
         assert.deepEqual(candidate.result.board, candidate.board);
+      });
+
+      it("returns cascade step snapshots that end at the final board", () => {
+        const board = generateBoard();
+        let result = null;
+        for (let y = 0; y < BOARD_SIZE && !result; y++) {
+          for (let x = 0; x < BOARD_SIZE - 1 && !result; x++) {
+            const candidate = attemptMatch3Move(board, { x, y }, { x: x + 1, y });
+            if (candidate.valid) result = candidate;
+          }
+        }
+
+        assert.ok(result, "Expected at least one valid adjacent swap candidate");
+        assert.ok(result.steps.length >= 1);
+        for (const step of result.steps) {
+          assert.ok(Array.isArray(step.cleared));
+          assert.ok(Array.isArray(step.fallen));
+          assert.ok(Array.isArray(step.filled));
+          assert.ok(Array.isArray(step.boardSnapshot));
+        }
+        assert.deepEqual(result.steps.at(-1).boardSnapshot, result.board);
       });
 
       it("seeds drop tokens for Star Drop mode", () => {

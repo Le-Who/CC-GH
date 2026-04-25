@@ -11,6 +11,7 @@ import {
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js";
 import { GRID } from "../game-core/blox/pieces.js";
 import { canPlace as canPlaceBloxPiece } from "../game-core/blox/engine.js";
+import { assetUrl } from "./assetBundles.js";
 
 const GEM_COLORS = {
   fire: 0xffa986,
@@ -32,36 +33,35 @@ const BUBBO_IMAGE_BASE = "/games/bubbo-bubbo/images";
 const POTIONS_IMAGE_BASE = "/games/puzzling-potions/images";
 
 const BUBBO_BUBBLE_ASSETS = {
-  mint: `${BUBBO_IMAGE_BASE}/bubble-green.png`,
-  amber: `${BUBBO_IMAGE_BASE}/bubble-yellow.png`,
-  coral: `${BUBBO_IMAGE_BASE}/bubble-red.png`,
-  sky: `${BUBBO_IMAGE_BASE}/bubble-blue.png`,
-  berry: `${BUBBO_IMAGE_BASE}/bubble-blue.png`,
+  mint: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-green.png`),
+  amber: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-yellow.png`),
+  coral: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-red.png`),
+  sky: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-blue.png`),
 };
 
 const POTION_PIECE_ASSETS = {
-  fire: `${POTIONS_IMAGE_BASE}/piece-dragon.png`,
-  water: `${POTIONS_IMAGE_BASE}/piece-frog.png`,
-  earth: `${POTIONS_IMAGE_BASE}/piece-newt.png`,
-  air: `${POTIONS_IMAGE_BASE}/piece-snake.png`,
-  light: `${POTIONS_IMAGE_BASE}/piece-spider.png`,
-  dark: `${POTIONS_IMAGE_BASE}/piece-yeti.png`,
-  special_row: `${POTIONS_IMAGE_BASE}/special-row.png`,
-  special_column: `${POTIONS_IMAGE_BASE}/special-column.png`,
-  special_blast: `${POTIONS_IMAGE_BASE}/special-blast.png`,
-  special_colour: `${POTIONS_IMAGE_BASE}/special-colour.png`,
+  fire: assetUrl(`${POTIONS_IMAGE_BASE}/piece-dragon.png`),
+  water: assetUrl(`${POTIONS_IMAGE_BASE}/piece-frog.png`),
+  earth: assetUrl(`${POTIONS_IMAGE_BASE}/piece-newt.png`),
+  air: assetUrl(`${POTIONS_IMAGE_BASE}/piece-snake.png`),
+  light: assetUrl(`${POTIONS_IMAGE_BASE}/piece-spider.png`),
+  dark: assetUrl(`${POTIONS_IMAGE_BASE}/piece-yeti.png`),
+  special_row: assetUrl(`${POTIONS_IMAGE_BASE}/special-row.png`),
+  special_column: assetUrl(`${POTIONS_IMAGE_BASE}/special-column.png`),
+  special_blast: assetUrl(`${POTIONS_IMAGE_BASE}/special-blast.png`),
+  special_colour: assetUrl(`${POTIONS_IMAGE_BASE}/special-colour.png`),
 };
 
 const FARM_SOIL = [0x7b4f2d, 0x8b5c34, 0x684022];
-const PANEL = 0xfff8ea;
-const PANEL_2 = 0xeaf3df;
-const FIELD = 0xf6ead7;
-const TEXT = 0x213049;
-const MUTED = 0x66725f;
-const MINT = 0x9ed8b4;
-const AMBER = 0xf6c86d;
-const CORAL = 0xf29485;
-const SKY = 0x8fc5e8;
+const PANEL = 0xfff1f4;
+const PANEL_2 = 0xeef5e5;
+const FIELD = 0xf8e5ea;
+const TEXT = 0x243044;
+const MUTED = 0x687463;
+const MINT = 0x8fcf9d;
+const AMBER = 0xe7bd69;
+const CORAL = 0xdc7a85;
+const SKY = 0x8bbfd9;
 const BUBBO_NUMBERS = Object.fromEntries(
   Object.entries(BUBBO_PALETTE).map(([name, value]) => [name, Number.parseInt(value.slice(1), 16)]),
 );
@@ -76,7 +76,18 @@ function viewHeight(app) {
 
 function clear(container) {
   for (const child of container.removeChildren()) {
-    child.destroy({ children: true });
+    destroyLater(child);
+  }
+}
+
+function destroyLater(child) {
+  const run = () => {
+    if (!child?.destroyed) child.destroy({ children: true });
+  };
+  if (typeof globalThis.requestAnimationFrame === "function") {
+    globalThis.requestAnimationFrame(() => globalThis.requestAnimationFrame(run));
+  } else {
+    setTimeout(run, 0);
   }
 }
 
@@ -112,6 +123,10 @@ function sprite(path, x, y, width, height, alpha = 1) {
   item.alpha = alpha;
   item.eventMode = "none";
   return item;
+}
+
+function gameAsset(path) {
+  return assetUrl(path);
 }
 
 function tiledSprite(path, x, y, width, height, alpha = 1) {
@@ -291,6 +306,29 @@ function makeSparkles(root, x, y, color = AMBER, count = 9) {
 
 function tickParticles(container) {
   for (const child of [...container.children]) {
+    if (child._delay) {
+      child._delay -= 1;
+      continue;
+    }
+    if (child._tween) {
+      child._tween.age = (child._tween.age || 0) + 1;
+      const duration = Math.max(1, child._tween.duration || 1);
+      const raw = Math.min(1, child._tween.age / duration);
+      const eased = 1 - (1 - raw) ** 3;
+      child.x = child._tween.fromX + (child._tween.toX - child._tween.fromX) * eased;
+      child.y = child._tween.fromY + (child._tween.toY - child._tween.fromY) * eased;
+      if (child._tween.scaleFrom != null || child._tween.scaleTo != null) {
+        const from = child._tween.scaleFrom ?? 1;
+        const to = child._tween.scaleTo ?? from;
+        child.scale.set(from + (to - from) * eased);
+      }
+      if (child._tween.fade) child.alpha = Math.max(0, 1 - raw);
+      if (raw >= 1 && child._tween.destroy !== false) {
+        child.parent?.removeChild(child);
+        destroyLater(child);
+        continue;
+      }
+    }
     if (!child._life) continue;
     child._life -= 1;
     child.x += child._vx;
@@ -300,8 +338,36 @@ function tickParticles(container) {
     child.alpha = Math.min(1, Math.max(0, child._life / 26));
     const baseScale = child._grow ? 1 + (1 - child.alpha) * child._grow : 0.96 + child.alpha * 0.35;
     child.scale.set(baseScale);
-    if (child._life <= 0) child.destroy();
+    if (child._life <= 0) {
+      child.parent?.removeChild(child);
+      destroyLater(child);
+    }
   }
+}
+
+function cellCenter(layout, x, y) {
+  return {
+    x: layout.left + x * layout.cell + layout.cell / 2,
+    y: layout.top + y * layout.cell + layout.cell / 2,
+  };
+}
+
+function makeTween(view, from, to, duration = 18, options = {}) {
+  view.x = from.x;
+  view.y = from.y;
+  view._delay = options.delay || 0;
+  view._tween = {
+    fromX: from.x,
+    fromY: from.y,
+    toX: to.x,
+    toY: to.y,
+    duration,
+    fade: !!options.fade,
+    scaleFrom: options.scaleFrom,
+    scaleTo: options.scaleTo,
+    destroy: options.destroy,
+  };
+  return view;
 }
 
 function makeRipple(root, x, y, color = SKY, radius = 28) {
@@ -503,6 +569,7 @@ export function buildBloxScene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
+  let lastTraySignature = "";
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
   function drawPiece(piece, x, y, unit, alpha = 1) {
@@ -546,6 +613,42 @@ export function buildBloxScene(app, initial = {}) {
     dragVisual.request();
   }
 
+  function playBloxClearEffects(clearInfo = {}) {
+    if (!layout) return;
+    const rows = Array.isArray(clearInfo.rows) ? clearInfo.rows : [];
+    const cols = Array.isArray(clearInfo.cols) ? clearInfo.cols : [];
+    for (const row of rows) {
+      const y = layout.top + row * layout.cell + layout.cell / 2;
+      const wipe = new Graphics()
+        .roundRect(-layout.size / 2 - 4, -layout.cell * 0.26, layout.size + 8, layout.cell * 0.52, 8)
+        .fill({ color: AMBER, alpha: 0.74 });
+      wipe.x = layout.left + layout.size / 2;
+      wipe.y = y;
+      wipe.scale.x = 0.08;
+      wipe._delay = row % 3;
+      wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
+      effects.addChild(wipe);
+      for (let col = 0; col < GRID; col += 2) {
+        makeSparkles(effects, layout.left + (col + 0.5) * layout.cell, y, AMBER, 3);
+      }
+    }
+    for (const col of cols) {
+      const x = layout.left + col * layout.cell + layout.cell / 2;
+      const wipe = new Graphics()
+        .roundRect(-layout.cell * 0.26, -layout.size / 2 - 4, layout.cell * 0.52, layout.size + 8, 8)
+        .fill({ color: MINT, alpha: 0.7 });
+      wipe.x = x;
+      wipe.y = layout.top + layout.size / 2;
+      wipe.scale.y = 0.08;
+      wipe._delay = col % 3;
+      wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
+      effects.addChild(wipe);
+      for (let row = 0; row < GRID; row += 2) {
+        makeSparkles(effects, x, layout.top + (row + 0.5) * layout.cell, MINT, 3);
+      }
+    }
+  }
+
   function dropDrag(done) {
     if (!drag) return;
     const point = done || drag;
@@ -557,8 +660,10 @@ export function buildBloxScene(app, initial = {}) {
     if (target && data.blox?.gameActive) {
       data.onBloxDrop?.(current.pieceIdx, target.row, target.col)?.then?.((result) => {
         if (!result?.error) {
-          makeSparkles(effects, point.x, point.y, result.clear?.cleared ? AMBER : MINT, 13);
-          makeRipple(effects, point.x, point.y, result.clear?.cleared ? AMBER : MINT, result.clear?.cleared ? 34 : 24);
+          const clearColor = result.clear?.cleared ? AMBER : MINT;
+          makeSparkles(effects, point.x, point.y, clearColor, result.clear?.cleared ? 18 : 13);
+          makeRipple(effects, point.x, point.y, clearColor, result.clear?.cleared ? 42 : 24);
+          if (result.clear?.cleared) playBloxClearEffects(result.clear);
         }
       });
     } else if (current.moved || done?.moved) {
@@ -622,6 +727,9 @@ export function buildBloxScene(app, initial = {}) {
     const trayTop = top + size + 16;
     const trayUnit = Math.min(18, Math.max(10, (viewWidth(app) - 70) / 18));
     const slotW = (viewWidth(app) - 36) / 3;
+    const traySignature = tray.map((item) => `${item?.piece?.id || "empty"}:${item?.placed ? 1 : 0}`).join("|");
+    const trayChanged = lastTraySignature && lastTraySignature !== traySignature;
+    lastTraySignature = traySignature;
     for (let i = 0; i < 3; i++) {
       const t = tray[i];
       const x = 14 + i * slotW;
@@ -650,6 +758,9 @@ export function buildBloxScene(app, initial = {}) {
       });
       root.addChild(slot);
       if (t?.piece && drag?.pieceIdx !== i) root.addChild(drawPiece(t.piece, pieceOrigin.x, pieceOrigin.y, trayUnit, t.placed ? 0.35 : 1));
+      if (trayChanged && t?.piece && !t.placed) {
+        makeRipple(effects, x + slotWidth / 2, trayTop + slotHeight / 2, MINT, 18);
+      }
     }
 
     updateDragVisual();
@@ -689,6 +800,7 @@ export function buildMatch3Scene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
+  let lastAnimationId = null;
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
   const pointer = createPointerSession({
@@ -767,6 +879,103 @@ export function buildMatch3Scene(app, initial = {}) {
     dragVisual.request();
   }
 
+  function matchInputLocked() {
+    return !!data.match3?.inputLocked;
+  }
+
+  function makeGemView(gem, radius, alpha = 1) {
+    const color = GEM_COLORS[gem] || 0xa4af9a;
+    const group = new Container();
+    group.eventMode = "none";
+    group.interactiveChildren = false;
+    group.alpha = alpha;
+    group.addChild(
+      new Graphics()
+        .circle(0, 0, radius)
+        .fill({ color, alpha: Math.min(0.95, alpha) })
+        .stroke({ color: TEXT, width: 2, alpha: 0.36 }),
+    );
+    return group;
+  }
+
+  function queueMatch3Animation(animation = {}) {
+    if (!layout || !animation?.id || animation.id === lastAnimationId) return;
+    lastAnimationId = animation.id;
+    const radius = Math.max(14, layout.cell * 0.3);
+    const from = animation.from ? cellCenter(layout, animation.from.x, animation.from.y) : null;
+    const to = animation.to ? cellCenter(layout, animation.to.x, animation.to.y) : null;
+
+    if (animation.type === "invalid" && from && to) {
+      const nudge = {
+        x: from.x + (to.x - from.x) * 0.24,
+        y: from.y + (to.y - from.y) * 0.24,
+      };
+      const ghost = makeGemView(animation.fromGem, radius, 0.86);
+      ghost._tween = {
+        fromX: from.x,
+        fromY: from.y,
+        toX: nudge.x,
+        toY: nudge.y,
+        duration: 9,
+        fade: true,
+        scaleFrom: 1,
+        scaleTo: 0.84,
+      };
+      ghost.x = from.x;
+      ghost.y = from.y;
+      effects.addChild(ghost);
+      makeRipple(effects, from.x, from.y, CORAL, radius * 1.1);
+      makeSparkles(effects, from.x, from.y, CORAL, 5);
+      return;
+    }
+
+    if (from && to) {
+      effects.addChild(makeTween(makeGemView(animation.fromGem, radius, 0.9), from, to, 13, { fade: true }));
+      effects.addChild(makeTween(makeGemView(animation.toGem, radius, 0.72), to, from, 13, { fade: true }));
+      makeRipple(effects, (from.x + to.x) / 2, (from.y + to.y) / 2, SKY, radius * 1.2);
+    }
+
+    const steps = Array.isArray(animation.steps) ? animation.steps : [];
+    steps.forEach((step, stepIndex) => {
+      const stepDelay = 10 + stepIndex * 18;
+      for (const cell of step.cleared || []) {
+        const pos = cellCenter(layout, cell.x, cell.y);
+        const pulse = new Graphics().circle(0, 0, radius * (1 + Math.min(0.55, step.combo * 0.08))).stroke({ color: AMBER, width: 3, alpha: 0.86 });
+        pulse.x = pos.x;
+        pulse.y = pos.y;
+        pulse._delay = stepDelay + ((cell.x + cell.y) % 3);
+        pulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 16, fade: true, scaleFrom: 0.5, scaleTo: 1.35 };
+        effects.addChild(pulse);
+        makeSparkles(effects, pos.x, pos.y, step.combo > 1 ? CORAL : AMBER, Math.min(12, 5 + step.combo));
+        effects.children.at(-1)._delay = stepDelay;
+      }
+      for (const special of step.specials || []) {
+        const pos = cellCenter(layout, special.x, special.y);
+        const color = GEM_COLORS[special.type] || SKY;
+        const specialPulse = new Graphics()
+          .circle(0, 0, radius * 1.05)
+          .fill({ color, alpha: 0.38 })
+          .stroke({ color, width: 4, alpha: 0.78 });
+        specialPulse.x = pos.x;
+        specialPulse.y = pos.y;
+        specialPulse._delay = stepDelay + 4;
+        specialPulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 20, fade: true, scaleFrom: 0.4, scaleTo: 1.25 };
+        effects.addChild(specialPulse);
+      }
+      for (const fall of step.fallen || []) {
+        const type = step.boardSnapshot?.[fall.toY]?.[fall.x];
+        const fromPos = cellCenter(layout, fall.x, fall.fromY);
+        const toPos = cellCenter(layout, fall.x, fall.toY);
+        effects.addChild(makeTween(makeGemView(type, radius * 0.86, 0.58), fromPos, toPos, 16, { delay: stepDelay + 6, fade: true }));
+      }
+      for (const fill of step.filled || []) {
+        const fromPos = { ...cellCenter(layout, fill.x, fill.y), y: layout.top - layout.cell * (1.2 + (fill.y % 2) * 0.2) };
+        const toPos = cellCenter(layout, fill.x, fill.y);
+        effects.addChild(makeTween(makeGemView(fill.type, radius * 0.84, 0.7), fromPos, toPos, 18, { delay: stepDelay + 9, fade: true, scaleFrom: 0.78, scaleTo: 1 }));
+      }
+    });
+  }
+
   function draw() {
     clear(root);
     const state = data.match3 || {};
@@ -777,7 +986,8 @@ export function buildMatch3Scene(app, initial = {}) {
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
-    root.addChild(tiledSprite(`${POTIONS_IMAGE_BASE}/shelf-block.png`, left - 4, top - 4, size + 8, size + 8, 0.16));
+    root.addChild(tiledSprite(gameAsset(`${POTIONS_IMAGE_BASE}/shelf-block.png`), left - 4, top - 4, size + 8, size + 8, 0.16));
+    queueMatch3Animation(data.match3Animation);
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
         const gem = actual[y]?.[x];
@@ -789,7 +999,7 @@ export function buildMatch3Scene(app, initial = {}) {
           : rect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, 0xe8efdc, 10);
         makeInteractive(tile, {
           pointerdown: (event) => {
-            if (!state.gameActive) return;
+            if (!state.gameActive || matchInputLocked()) return;
             drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y, target: null };
             pointer.start(event, { kind: "match3-cell", from: { x, y } });
           },
@@ -800,7 +1010,7 @@ export function buildMatch3Scene(app, initial = {}) {
           .fill({ color, alpha: dragging ? 0.38 : 1 });
         makeInteractive(orb, {
           pointerdown: (event) => {
-            if (!state.gameActive) return;
+            if (!state.gameActive || matchInputLocked()) return;
             drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y, target: null };
             pointer.start(event, { kind: "match3-cell", from: { x, y } });
           },
@@ -854,6 +1064,8 @@ export function buildBubboScene(app, initial = {}) {
   let aimPoint = null;
   let projectile = null;
   let lastShotId = null;
+  let pressureDisplayStep = Math.max(0, Math.min(1, Number(initial.bubbo?.pressureStep) || 0));
+  let pressureTargetStep = pressureDisplayStep;
   const pointer = createPointerSession({
     onMove: (next) => {
       aimPoint = { x: next.x, y: next.y };
@@ -892,7 +1104,7 @@ export function buildBubboScene(app, initial = {}) {
       top,
       right: left + boardWidth,
       bottom: top + cell * BUBBO_ROWS,
-      pressureOffset: Math.max(0, Math.min(1, Number(data.bubbo?.pressureStep) || 0)) * cell,
+      pressureOffset: pressureDisplayStep * cell,
       cannonX: width / 2,
       cannonY: Math.min(height - 34, top + cell * (BUBBO_ROWS + 0.8)),
     };
@@ -1059,7 +1271,7 @@ export function buildBubboScene(app, initial = {}) {
     const state = data.bubbo || {};
     const board = state.board || [];
     root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + layout.cell + 20, PANEL, 16, 0.92));
-    root.addChild(tiledSprite(`${BUBBO_IMAGE_BASE}/background-tile.png`, layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + layout.cell + 16, 0.2));
+    root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + layout.cell + 16, 0.2));
     root.addChild(new Graphics().moveTo(layout.left, layout.bottom - layout.cell * 0.2).lineTo(layout.right, layout.bottom - layout.cell * 0.2).stroke({ color: CORAL, width: 3, alpha: 0.45 }));
     for (let r = 0; r < BUBBO_ROWS; r++) {
       for (let c = 0; c < BUBBO_COLS; c++) {
@@ -1077,7 +1289,7 @@ export function buildBubboScene(app, initial = {}) {
 
     const cannonColor = state.current || BUBBO_COLORS[0];
     root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: PANEL_2, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
-    root.addChild(sprite(`${BUBBO_IMAGE_BASE}/cannon-main.png`, layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
+    root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/cannon-main.png`), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
     root.addChild(label(`${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(viewHeight(app) - 12, layout.cannonY + 46), 14, AMBER));
@@ -1093,8 +1305,8 @@ export function buildBubboScene(app, initial = {}) {
     clear(aimLayer);
     projectile = {
       path: shot.path,
-      segment: 0,
-      progress: 0,
+      segments: shotPathSegments(shot.path),
+      distance: 0,
       color: state.current || BUBBO_COLORS[0],
       target: shot,
       view: drawBubble(shot.path[0].x, shot.path[0].y, layout.radius * 0.9, state.current || BUBBO_COLORS[0]),
@@ -1110,21 +1322,49 @@ export function buildBubboScene(app, initial = {}) {
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   app.stage.on("pointerdown", down);
 
+  function shotPathSegments(path = []) {
+    const segments = [];
+    let total = 0;
+    for (let i = 0; i < path.length - 1; i++) {
+      const from = path[i];
+      const to = path[i + 1];
+      const length = Math.max(0.001, Math.hypot(to.x - from.x, to.y - from.y));
+      segments.push({ from, to, start: total, end: total + length, length });
+      total += length;
+    }
+    return { segments, total };
+  }
+
+  function pointAtDistance(metrics, distance) {
+    if (!metrics?.segments?.length) return null;
+    const segment = metrics.segments.find((item) => distance <= item.end) || metrics.segments.at(-1);
+    const t = Math.max(0, Math.min(1, (distance - segment.start) / segment.length));
+    return {
+      x: segment.from.x + (segment.to.x - segment.from.x) * t,
+      y: segment.from.y + (segment.to.y - segment.from.y) * t,
+    };
+  }
+
   const ticker = (tickerState) => {
     tickParticles(effects);
-    if (!projectile) return;
-    const speed = Math.max(0.085, tickerState.deltaTime * 0.105);
-    projectile.progress += speed;
-    while (projectile.progress >= 1 && projectile.segment < projectile.path.length - 2) {
-      projectile.progress -= 1;
-      projectile.segment += 1;
+    const pressureDelta = pressureTargetStep - pressureDisplayStep;
+    if (Math.abs(pressureDelta) > 0.002) {
+      const blend = Math.min(0.42, Math.max(0.12, (tickerState.deltaTime || 1) * 0.16));
+      pressureDisplayStep += pressureDelta * blend;
+      draw();
+    } else if (pressureDisplayStep !== pressureTargetStep) {
+      pressureDisplayStep = pressureTargetStep;
+      draw();
     }
-    const from = projectile.path[projectile.segment];
-    const to = projectile.path[Math.min(projectile.segment + 1, projectile.path.length - 1)];
-    const done = projectile.segment >= projectile.path.length - 2 && projectile.progress >= 1;
-    const t = Math.min(1, projectile.progress);
-    projectile.view.x = from.x + (to.x - from.x) * t;
-    projectile.view.y = from.y + (to.y - from.y) * t;
+    if (!projectile) return;
+    const pxPerFrame = Math.max(8, (layout?.cell || 32) * 0.34);
+    projectile.distance += pxPerFrame * Math.max(0.5, tickerState.deltaTime || 1);
+    const done = projectile.distance >= projectile.segments.total;
+    const point = pointAtDistance(projectile.segments, Math.min(projectile.distance, projectile.segments.total));
+    if (point) {
+      projectile.view.x = point.x;
+      projectile.view.y = point.y;
+    }
     projectile.view.rotation += 0.08 * tickerState.deltaTime;
     if (done) {
       const current = projectile;
@@ -1138,6 +1378,7 @@ export function buildBubboScene(app, initial = {}) {
   return {
     update(next) {
       data = next || {};
+      pressureTargetStep = Math.max(0, Math.min(1, Number(data.bubbo?.pressureStep) || 0));
       draw();
     },
     destroy() {

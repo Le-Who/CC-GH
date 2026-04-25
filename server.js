@@ -31,6 +31,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "package.json"), "utf-8"));
 
 const APP_VERSION = pkg.version;
+const APP_BUILD_ID = process.env.APP_BUILD_ID || process.env.BUILD_ID || process.env.GITHUB_SHA?.slice(0, 12) || `${APP_VERSION}-local`;
 const PORT = process.env.PORT || 8090;
 const CUSTOM_DOMAIN = process.env.CUSTOM_DOMAIN || "";
 const PUBLIC_APP_URL = process.env.PUBLIC_APP_URL || (CUSTOM_DOMAIN ? `https://${CUSTOM_DOMAIN}` : "");
@@ -98,8 +99,11 @@ app.use("/api", (req, res, next) => {
 });
 
 app.get("/api/config", (_req, res) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.set("Pragma", "no-cache");
   res.json({
     appVersion: APP_VERSION,
+    buildId: APP_BUILD_ID,
     publicAppUrl: PUBLIC_APP_URL || null,
     telegramBotUsername: TELEGRAM_BOT_USERNAME || null,
     telegramAuthRequired: process.env.NODE_ENV === "production",
@@ -123,6 +127,7 @@ app.get("/api/health", async (_req, res) => {
     status: postgres ? "ok" : "degraded",
     uptime: Math.floor(process.uptime()),
     version: APP_VERSION,
+    buildId: APP_BUILD_ID,
     postgres,
     redis: !!process.env.REDIS_URL,
   });
@@ -171,7 +176,7 @@ function getIndexHtml() {
     );
   }
   return indexHtmlTemplate
-    .replace("<!--APP_VERSION_INJECT-->", `<script>window.__APP_VERSION__="${APP_VERSION}"</script>`)
+    .replace("<!--APP_VERSION_INJECT-->", `<script>window.__APP_VERSION__=${JSON.stringify(APP_VERSION)};window.__APP_BUILD_ID__=${JSON.stringify(APP_BUILD_ID)}</script>`)
     .replace("{{APP_VERSION}}", `v${APP_VERSION}`);
 }
 

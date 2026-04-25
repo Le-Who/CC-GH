@@ -2,6 +2,8 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   BUBBO_COLS,
+  BUBBO_COLORS,
+  BUBBO_PALETTE,
   BUBBO_ROWS,
   advanceBubboPressure,
   applyBubboShot,
@@ -76,6 +78,27 @@ describe("Bubbo engine", () => {
     assert.ok(result.dropped.some((cell) => cell.row === 3 && cell.col === 0));
     assert.ok(result.points > 0);
     assert.equal(result.board[3][0], null);
+  });
+
+  it("keeps sky and berry as distinct playable colors", () => {
+    assert.ok(BUBBO_COLORS.includes("sky"));
+    assert.ok(BUBBO_COLORS.includes("berry"));
+    assert.notEqual(BUBBO_PALETTE.sky, BUBBO_PALETTE.berry);
+  });
+
+  it("pops sky clusters without treating adjacent berry bubbles as sky", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[0][0] = "sky";
+    board[0][1] = "sky";
+    board[0][2] = "berry";
+
+    const result = applyBubboShot(board, "sky", 1, 0);
+
+    assert.equal(result.error, null);
+    assert.ok(result.popped.some((cell) => cell.row === 0 && cell.col === 0));
+    assert.ok(result.popped.some((cell) => cell.row === 0 && cell.col === 1));
+    assert.equal(result.popped.some((cell) => cell.row === 0 && cell.col === 2), false);
+    assert.equal(result.board[0][2], "berry");
   });
 
   it("drops disconnected multi-color islands after support is removed", () => {

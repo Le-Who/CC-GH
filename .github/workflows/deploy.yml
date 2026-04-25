@@ -45,6 +45,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            BUILD_ID=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -92,6 +94,7 @@ jobs:
           APP_HOST_PORT: ${{ secrets.APP_HOST_PORT || '18080' }}
           CUSTOM_DOMAIN: ${{ secrets.CUSTOM_DOMAIN }}
           PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          APP_BUILD_ID: ${{ github.sha }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
           ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
@@ -100,7 +103,7 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || '22' }}
-          envs: GITHUB_TOKEN,REGISTRY,REPO,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,APP_HOST_PORT,CUSTOM_DOMAIN,PUBLIC_APP_URL,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,ADMIN_TOKEN
+          envs: GITHUB_TOKEN,REGISTRY,REPO,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,APP_HOST_PORT,CUSTOM_DOMAIN,PUBLIC_APP_URL,APP_BUILD_ID,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,ADMIN_TOKEN
           script: |
             set -euo pipefail
 
@@ -154,6 +157,7 @@ jobs:
             POSTGRES_DB=$POSTGRES_DB
             CUSTOM_DOMAIN=$CUSTOM_DOMAIN
             PUBLIC_APP_URL=$PUBLIC_APP_URL
+            APP_BUILD_ID=$APP_BUILD_ID
             TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
             TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
             ADMIN_TOKEN=$ADMIN_TOKEN

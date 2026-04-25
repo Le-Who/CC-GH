@@ -8,13 +8,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",  // Auto-updates SW on new deploy
-      injectRegister: "auto",       // Auto-injects SW registration in index.html
+      injectRegister: null,         // Registered by src/services/updateManager.js
 
       // Workbox configuration
       workbox: {
         // Precache all Vite-built assets (hashed filenames)
         globPatterns: [
-          "**/*.{js,css,html,woff,woff2,svg}",
+          "**/*.{js,css,woff,woff2,svg}",
         ],
         // Skip waiting + claim clients = instant activation on deploy
         skipWaiting: true,
@@ -27,19 +27,11 @@ export default defineConfig({
           // HTML navigation — NetworkFirst (always get fresh HTML from server)
           {
             urlPattern: ({ request }) => request.mode === "navigate",
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "html-cache",
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24, // 24h
-              },
-            },
+            handler: "NetworkOnly",
           },
           // API GET requests — NetworkFirst with short cache (leaderboard, config, state)
           {
-            urlPattern: /\/api\/.*$/,
+            urlPattern: ({ url, request }) => request.method === "GET" && url.pathname.startsWith("/api/") && url.pathname !== "/api/config",
             handler: "NetworkFirst",
             method: "GET",
             options: {

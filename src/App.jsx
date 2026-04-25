@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { api, getPublicConfig } from "./services/apiClient.js";
+import { installUpdateManager } from "./services/updateManager.js";
 import { audioManager } from "./services/audioManager.js";
 import { connectRealtime } from "./services/realtimeClient.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
@@ -583,7 +584,10 @@ function Match3Game() {
   const [combo, setCombo] = useState(0);
   const [gameActive, setGameActive] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [inputLocked, setInputLocked] = useState(false);
+  const [matchAnimation, setMatchAnimation] = useState(null);
   const [leaders, setLeaders] = useState([]);
+  const animationTimerRef = useRef(null);
   const isPlaying = gameActive && !paused;
   useImmersiveGame("match3", true);
 
@@ -598,6 +602,20 @@ function Match3Game() {
     return nextMode === "drop" ? seedDropTokens(nextBoard, 3) : nextBoard;
   }
 
+  const queueMatchAnimation = useCallback((animation, durationMs = 420) => {
+    window.clearTimeout(animationTimerRef.current);
+    setInputLocked(true);
+    setMatchAnimation({
+      ...animation,
+      id: `${animation.type}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    });
+    animationTimerRef.current = window.setTimeout(() => {
+      setInputLocked(false);
+    }, durationMs);
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(animationTimerRef.current), []);
+
   function start(nextMode = mode) {
     const nextBoard = createModeBoard(nextMode);
     setBoard(nextBoard);
@@ -606,6 +624,8 @@ function Match3Game() {
     setMovesLeft(nextMode === "timed" ? 90 : 30);
     setGameActive(true);
     setPaused(false);
+    setInputLocked(false);
+    setMatchAnimation(null);
     setMode(nextMode);
     performAction("match3.start", { mode: nextMode }, { key: "match3.start" }).then(() => {
       performAction("match3.syncMode", {
@@ -619,6 +639,7 @@ function Match3Game() {
     setGameActive(false);
     setPaused(false);
     setSelected(null);
+    setInputLocked(false);
     performAction("match3.end", { score: finalScore, fromQuit });
   }
 
@@ -646,15 +667,18 @@ function Match3Game() {
 
   const attemptSwap = useCallback(
     (from, to) => {
-      if (!gameActive) return;
+      if (!gameActive || inputLocked) return;
       const adjacent = Math.abs(from.x - to.x) + Math.abs(from.y - to.y) === 1;
       if (!adjacent) {
         setSelected(to);
         return;
       }
+      const fromGem = board[from.y]?.[from.x];
+      const toGem = board[to.y]?.[to.x];
       const result = attemptMatch3Move(board, from, to);
       if (!result.valid) {
         setSelected(null);
+        queueMatchAnimation({ type: "invalid", from, to, fromGem, toGem }, 240);
         haptic("warning");
         audioManager.play("warning");
         return;
@@ -670,6 +694,10 @@ function Match3Game() {
       setCombo(Math.max(combo, result.combo));
       setMovesLeft(nextMoves);
       setSelected(null);
+      queueMatchAnimation(
+        { type: "cascade", from, to, fromGem, toGem, steps: result.steps },
+        Math.min(1500, 360 + (result.steps?.length || 1) * 240),
+      );
       audioManager.play(result.combo > 1 || result.special ? "clear" : "merge");
       performAction("match3.syncMode", {
         game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
@@ -677,30 +705,31 @@ function Match3Game() {
       }, { silent: true, key: "match3.sync" });
       maybeEnd(nextMoves, nextScore);
     },
-    [board, combo, gameActive, mode, movesLeft, performAction, score, snapshot?.match3?.savedModes],
+    [board, combo, gameActive, inputLocked, mode, movesLeft, performAction, queueMatchAnimation, score, snapshot?.match3?.savedModes],
   );
 
   const onCell = useCallback(
     (x, y) => {
-      if (!gameActive) return;
+      if (!gameActive || inputLocked) return;
       if (!selected) {
         setSelected({ x, y });
         return;
       }
       attemptSwap(selected, { x, y });
     },
-    [attemptSwap, gameActive, selected],
+    [attemptSwap, gameActive, inputLocked, selected],
   );
 
   const sceneState = useMemo(
     () => ({
-      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying },
+      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked },
       selectedGem: selected,
+      match3Animation: matchAnimation,
       onMatch3Cell: onCell,
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [attemptSwap, board, combo, isPlaying, mode, movesLeft, onCell, score, selected],
+    [attemptSwap, board, combo, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected],
   );
 
   return (
@@ -1624,6 +1653,7 @@ export default function App() {
   const user = useMemo(() => getTelegramUser(), [platform]);
 
   useEffect(() => {
+    const cleanupUpdates = installUpdateManager();
     let cleanupRealtime = () => {};
     let cancelled = false;
     async function boot() {
@@ -1644,6 +1674,7 @@ export default function App() {
     return () => {
       cancelled = true;
       cleanupRealtime();
+      cleanupUpdates();
     };
   }, [applyRealtimePayload, loadSnapshot]);
 

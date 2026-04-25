@@ -7,8 +7,9 @@
  */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { ECONOMY, calcBloxReward } from "../game-logic.js";
+import { ECONOMY, calcBloxReward, createDefaultPlayer, createEmptyBoard } from "../game-logic.js";
 import { PIECES as BLOX_PIECES } from "../src/game-core/blox/pieces.js";
+import { applyAction } from "../routes/player.js";
 
 /* ═══ Piece Shape Validation ═══ */
 describe("Building Blox — Piece Shapes", () => {
@@ -190,6 +191,36 @@ describe("Building Blox — Line Clearing", () => {
     for (let c = 0; c < GRID - 1; c++) board[3][c] = "#color";
     const { rows } = detectClears(board);
     assert.deepEqual(rows, []);
+  });
+
+  it("returns cleared row and column indices from blox.place", async () => {
+    const p = createDefaultPlayer("blox-clear-metadata", "Blox");
+    const board = createEmptyBoard();
+    for (let c = 0; c < GRID - 1; c++) board[0][c] = "#row";
+    for (let r = 1; r < GRID; r++) board[r][9] = "#col";
+    const dot = BLOX_PIECES.find((piece) => piece.id === "dot");
+    p.blox.activeGame = true;
+    p.blox.savedState = JSON.stringify({
+      board,
+      tray: [
+        { piece: dot, placed: false },
+        { piece: BLOX_PIECES.find((piece) => piece.id === "h2"), placed: false },
+        { piece: BLOX_PIECES.find((piece) => piece.id === "v2"), placed: false },
+      ],
+      score: 0,
+      linesCleared: 0,
+      highScore: 0,
+      gameActive: true,
+    });
+
+    const result = await applyAction(p, "blox.place", { pieceIdx: 0, row: 0, col: 9 });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.clear.rows, [0]);
+    assert.deepEqual(result.body.clear.cols, [9]);
+    assert.equal(result.body.clear.cleared, 2);
+    assert.equal(result.body.savedState.board[0].every((cell) => cell === null), true);
+    assert.equal(result.body.savedState.board.every((row) => row[9] === null), true);
   });
 });
 
