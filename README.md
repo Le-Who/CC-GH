@@ -20,13 +20,13 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 
 ## Games
 
-- Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, and season progress.
-- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, pointer-captured ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
-- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, pointer-captured swipe swapping, special row/column/blast/colour pieces, local cascade resolution, saved mode sync, and reward settlement.
-- Gacha Merge: server-validated board state, drag/tap merging, pointer-captured drag feedback, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
-- Bubbo Bubbo: Pixi bubble-shooter surface using tracked Bubbo Bubbo art, wall-bank aiming, projectile motion, cluster popping, floating-bubble drops, server-backed run lifecycle, and reward settlement.
-- Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, and in-memory duel rooms.
-- Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, and persistent decoration placement.
+- Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, season progress, and rapid tap/long-press Pixi plot input.
+- Building Blox: Pixi board surface with tap fallback, tray-to-board drag, pointer-session ghost placement preview, authoritative placement, line clear scoring, saved state, rewards, and leaderboard reads.
+- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, pointer-session swipe swapping, special row/column/blast/colour pieces, local cascade resolution, saved mode sync, and reward settlement.
+- Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
+- Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, seeded procedural waves, continuous descent, wall-bank aiming, projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
+- Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, in-memory duel rooms, and the shared in-game pause/result overlay shell.
+- Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, persistent decoration placement, and the shared in-game pause overlay shell.
 
 ## Architecture
 
@@ -60,8 +60,8 @@ Frontend flow:
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
 5. Pixi scenes for Farm, Blox, Match-3, Merge, and Bubbo mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
 6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before the scene builds, then the scene keeps procedural fallbacks for missing optional art.
-7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use pointer-id-bound drag/swipe interactions where the legacy games depended on touch movement.
-8. Active Pixi gameplay enters an immersive mobile shell that hides Hub chrome and exposes a compact in-game HUD; paused/menu states restore the external Hub navigation.
+7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals.
+8. Gameplay enters a shared immersive mobile shell across Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation.
 9. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
@@ -199,7 +199,11 @@ pnpm run test:cleanup
 docker build -t game-hub-ci .
 ```
 
-`pnpm test` runs the Node test suite listed in `package.json`. It does not run Playwright e2e specs.
+`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage and pointer-session cleanup coverage. Playwright e2e specs are separate; the current focused gameplay checks are:
+
+```bash
+pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
+```
 
 ## Asset Replacement
 
@@ -281,7 +285,6 @@ Verified current limitations:
 - SQL schema evolution is split between runtime `CREATE IF NOT EXISTS` statements, one SQL migration file, and JSON-state migrations. A dedicated ordered migration runner would make deploys and rollback reasoning safer.
 - `withPlayerLock()` retries route handlers after OCC collisions. This protects state but makes duplicate-tolerant side effects an implicit requirement. Analytics inserts are currently fire-and-forget and can duplicate during retries.
 - Redis fallbacks for nonce dedupe and rate limiting are process-local. They are not safe as distributed guarantees if the app scales beyond one Node instance without Redis.
-- Playwright e2e specs under `tests/e2e` still target a legacy auth dialog (`#auth-dialog`, `#screen-farm`) that is not present in the current Telegram-first React shell. Treat them as stale until rewritten.
 - CI and deploy workflows target different branches. This may be intentional during migration, but it is a release-risk if the active production branch changes.
 - Brain Blitz duel rooms are held in process memory, so they are not durable across restarts and are not shared across instances.
 - `player_stats_view` refresh is timer-based and logs failures; there is no external scheduler or alerting in this repo.
@@ -291,7 +294,7 @@ Improvement backlog:
 1. Add an explicit migration runner and make `db.js` schema creation a bootstrap fallback instead of the primary schema history.
 2. Refactor route handlers to return structured mutation results instead of writing to `res` inside `withPlayerLock()` callbacks.
 3. Move duplicate-sensitive side effects behind commit-success hooks so OCC retries cannot double-record them.
-4. Rebuild Playwright e2e around Telegram/dev-auth boot, visible tab navigation, and one smoke action per game.
+4. Broaden Playwright e2e beyond the focused minigame/gesture specs to cover full economy loops, trivia duel edge cases, and room decoration flows.
 5. Align CI/deploy branch triggers with the current release model.
 6. Persist or explicitly scope trivia duel rooms depending on whether cross-instance play is required.
 7. Add operational checks for materialized-view refresh failures and Redis availability.

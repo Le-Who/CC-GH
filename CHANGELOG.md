@@ -5,15 +5,22 @@
 ### Client
 
 - Added tracked Bubbo Bubbo and Puzzling Potions asset bundles under `public/games/` and preloaded them through the Pixi game host before scene construction.
-- Reworked active Pixi gameplay into an immersive mobile shell that hides Hub chrome during live play, keeps Pause/Settle controls in an in-game HUD, and restores external navigation when paused.
-- Hardened Blox, Gem Crush, Merge, and Bubbo pointer gestures with pointer-id-bound sessions, DOM pointer capture, blur/visibility cleanup, and requestAnimationFrame-coalesced drag overlays.
+- Completed Bubbo Bubbo as a pressure shooter with seeded procedural waves, continuous descent, pressure row shifts, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, and pressure-aware danger/overflow finishing.
+- Reworked Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room into one immersive game shell that hides Hub chrome during play, keeps only compact in-game HUD controls visible, and opens pause/menu/result surfaces as overlays over the playfield with explicit Exit-to-Hub navigation.
+- Hardened Farm, Blox, Gem Crush, Merge, and Bubbo pointer gestures with a shared pointer-session state machine covering pointer ids, derived taps, drag thresholds, blur/visibility cleanup, and requestAnimationFrame-coalesced drag overlays.
 - Extended Gem Crush with Puzzling Potions art, special row/column/blast/colour pieces, Star Drop token preservation, timed countdown finishing, and non-mutating invalid swaps.
 - Added the Pixi helper dependencies needed for the tracked game asset/runtime path: GSAP, `@pixi/ui`, `@pixi/sound`, `pixi-filters`, `typed-signals`, and Spine Pixi v8 support.
 
+### API
+
+- Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
+
 ### Tests
 
+- Added Bubbo unit coverage for deterministic seeded waves, pressure row shifts, overflow/danger handling, continuous pressure progression, and disconnected multi-color island drops.
+- Added pointer-session unit coverage for tap derivation, mismatched pointer ids, drag classification, and cancellation cleanup.
 - Expanded Match-3 pure-engine coverage for specials, drop-token seeding, invalid swaps, and special-triggered moves.
-- Updated Playwright minigame and gesture coverage for immersive compact-webview sizing, Pause restoration, and pointer-drag HUD behavior.
+- Updated Playwright minigame and gesture coverage for rapid Farm/Blox/Gem/Merge/Bubbo taps and drags, immersive compact-webview sizing across desktop and mobile Chromium, pause overlays without Hub chrome, Exit-to-Hub restoration, and playfield geometry dominance.
 
 ## [11.0.0] - 2026-04-24
 
