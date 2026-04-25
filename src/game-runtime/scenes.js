@@ -10,21 +10,22 @@ import {
 } from "../game-core/bubbo/engine.js";
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js";
 import { GRID } from "../game-core/blox/pieces.js";
+import { canPlace as canPlaceBloxPiece } from "../game-core/blox/engine.js";
 
 const GEM_COLORS = {
-  fire: 0xff5a5f,
-  water: 0x49a6ff,
-  earth: 0x58d68d,
-  air: 0xd7e4f2,
-  light: 0xffd45e,
-  dark: 0xa678ff,
-  drop_gold: 0xffc247,
-  drop_seeds: 0x8ee06a,
-  drop_energy: 0x70d6ff,
-  special_row: 0xfacc15,
-  special_column: 0x78c7ff,
-  special_blast: 0xff7867,
-  special_colour: 0xca9cff,
+  fire: 0xffa986,
+  water: 0x93c8f4,
+  earth: 0x9ed8b4,
+  air: 0xd7e9ef,
+  light: 0xf8d781,
+  dark: 0xcdb7e9,
+  drop_gold: 0xf6c86d,
+  drop_seeds: 0xa8d97a,
+  drop_energy: 0x8fd6ee,
+  special_row: 0xf6c86d,
+  special_column: 0x8fc5e8,
+  special_blast: 0xf29485,
+  special_colour: 0xcdb7e9,
 };
 
 const BUBBO_IMAGE_BASE = "/games/bubbo-bubbo/images";
@@ -52,15 +53,15 @@ const POTION_PIECE_ASSETS = {
 };
 
 const FARM_SOIL = [0x7b4f2d, 0x8b5c34, 0x684022];
-const PANEL = 0x101722;
-const PANEL_2 = 0x172432;
-const FIELD = 0x0b1118;
-const TEXT = 0xfff4d8;
-const MUTED = 0xa9b5c4;
-const MINT = 0x70e5a0;
-const AMBER = 0xffcc5f;
-const CORAL = 0xff7867;
-const SKY = 0x78c7ff;
+const PANEL = 0xfff8ea;
+const PANEL_2 = 0xeaf3df;
+const FIELD = 0xf6ead7;
+const TEXT = 0x213049;
+const MUTED = 0x66725f;
+const MINT = 0x9ed8b4;
+const AMBER = 0xf6c86d;
+const CORAL = 0xf29485;
+const SKY = 0x8fc5e8;
 const BUBBO_NUMBERS = Object.fromEntries(
   Object.entries(BUBBO_PALETTE).map(([name, value]) => [name, Number.parseInt(value.slice(1), 16)]),
 );
@@ -93,6 +94,7 @@ function label(text, x, y, size = 16, fill = TEXT, weight = "800") {
   item.anchor.set(0.5);
   item.x = x;
   item.y = y;
+  item.eventMode = "none";
   return item;
 }
 
@@ -108,6 +110,7 @@ function sprite(path, x, y, width, height, alpha = 1) {
   item.width = width;
   item.height = height;
   item.alpha = alpha;
+  item.eventMode = "none";
   return item;
 }
 
@@ -120,6 +123,7 @@ function tiledSprite(path, x, y, width, height, alpha = 1) {
   item.x = x;
   item.y = y;
   item.alpha = alpha;
+  item.eventMode = "none";
   return item;
 }
 
@@ -146,15 +150,17 @@ function makeInteractive(g, handlers = {}) {
   return g;
 }
 
-function fit(app, cols, rows, margin = 18, extraBottom = 0) {
+function fit(app, cols, rows, margin = 18, extraBottom = 0, options = {}) {
   const width = viewWidth(app);
-  const height = viewHeight(app) - extraBottom;
+  const height = Math.max(180, viewHeight(app) - extraBottom);
   const size = Math.max(140, Math.min(width - margin * 2, height - margin * 2));
+  const verticalAnchor = Math.max(0, Math.min(1, options.verticalAnchor ?? 0));
+  const spareY = Math.max(0, height - size - margin * 2);
   return {
     size,
     cell: size / Math.max(cols, rows),
     left: (width - size) / 2,
-    top: margin,
+    top: margin + spareY * verticalAnchor,
   };
 }
 
@@ -164,6 +170,103 @@ function cellFromPoint(layout, x, y) {
   const row = Math.floor((y - layout.top) / layout.cell);
   if (row < 0 || row >= layout.rows || col < 0 || col >= layout.cols) return null;
   return { row, col };
+}
+
+export function bloxPieceBounds(piece = {}) {
+  const cells = piece.cells?.length ? piece.cells : [[0, 0]];
+  const rows = cells.map(([row]) => row);
+  const cols = cells.map(([, col]) => col);
+  const minRow = Math.min(...rows);
+  const maxRow = Math.max(...rows);
+  const minCol = Math.min(...cols);
+  const maxCol = Math.max(...cols);
+  return {
+    minRow,
+    maxRow,
+    minCol,
+    maxCol,
+    width: maxCol - minCol + 1,
+    height: maxRow - minRow + 1,
+  };
+}
+
+function centeredPieceOrigin(piece, x, y, width, height, unit) {
+  const bounds = bloxPieceBounds(piece);
+  return {
+    x: x + (width - bounds.width * unit) / 2 - bounds.minCol * unit,
+    y: y + (height - bounds.height * unit) / 2 - bounds.minRow * unit,
+  };
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+export function createBloxDragState({ pieceIdx, piece, event, originX, originY, unit }) {
+  const bounds = bloxPieceBounds(piece);
+  const source = event?.global || event || {};
+  const point = {
+    x: Number(source.x ?? event?.clientX ?? event?.pageX ?? 0),
+    y: Number(source.y ?? event?.clientY ?? event?.pageY ?? 0),
+  };
+  const localX = (point.x - originX) / unit;
+  const localY = (point.y - originY) / unit;
+  const inside =
+    localX >= bounds.minCol &&
+    localX <= bounds.maxCol + 1 &&
+    localY >= bounds.minRow &&
+    localY <= bounds.maxRow + 1;
+  return {
+    pieceIdx,
+    piece,
+    startX: point.x,
+    startY: point.y,
+    x: point.x,
+    y: point.y,
+    grabX: inside ? clamp(localX, bounds.minCol, bounds.maxCol + 1) : bounds.minCol + bounds.width / 2,
+    grabY: inside ? clamp(localY, bounds.minRow, bounds.maxRow + 1) : bounds.minRow + bounds.height / 2,
+    moved: false,
+    overCell: null,
+  };
+}
+
+export function bloxGhostOrigin(drag, unit) {
+  return {
+    x: drag.x - drag.grabX * unit,
+    y: drag.y - drag.grabY * unit,
+  };
+}
+
+export function bloxAnchorCellFromDrag(layout, drag) {
+  if (!layout || !drag?.piece) return null;
+  const origin = bloxGhostOrigin(drag, layout.cell);
+  const col = Math.round((origin.x - layout.left) / layout.cell);
+  const row = Math.round((origin.y - layout.top) / layout.cell);
+  if (row < -1 || row >= layout.rows || col < -1 || col >= layout.cols) return null;
+  return { row, col };
+}
+
+function isAdjacentMatch3Cell(from, to) {
+  return !!from && !!to && Math.abs(from.x - to.x) + Math.abs(from.y - to.y) === 1;
+}
+
+function match3TargetFromGesture(layout, current, done) {
+  if (!layout || !current?.from || !done) return null;
+  const dx = done.x - current.startX;
+  const dy = done.y - current.startY;
+  const threshold = Math.max(10, Math.min(30, layout.cell * 0.32));
+  let target = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) >= threshold) {
+    target = Math.abs(dx) >= Math.abs(dy)
+      ? { x: current.from.x + Math.sign(dx), y: current.from.y }
+      : { x: current.from.x, y: current.from.y + Math.sign(dy) };
+  } else {
+    const cell = cellFromPoint(layout, done.x, done.y);
+    if (cell) target = { x: cell.col, y: cell.row };
+  }
+  if (!target || target.x < 0 || target.x >= layout.cols || target.y < 0 || target.y >= layout.rows) return null;
+  if (target.x === current.from.x && target.y === current.from.y) return null;
+  return target;
 }
 
 function cropProgress(plot, now) {
@@ -404,8 +507,12 @@ export function buildBloxScene(app, initial = {}) {
 
   function drawPiece(piece, x, y, unit, alpha = 1) {
     const group = new Container();
+    group.eventMode = "none";
+    group.interactiveChildren = false;
     for (const [r, c] of piece.cells || []) {
-      group.addChild(rect(x + c * unit, y + r * unit, unit - 2, unit - 2, colorNumber(piece.color), 4, alpha));
+      const cell = rect(x + c * unit, y + r * unit, unit - 2, unit - 2, colorNumber(piece.color), 4, alpha);
+      cell.eventMode = "none";
+      group.addChild(cell);
     }
     return group;
   }
@@ -413,15 +520,25 @@ export function buildBloxScene(app, initial = {}) {
   function updateDragVisualNow() {
     clear(dragLayer);
     if (!drag?.piece) return;
-    const unit = Math.min(layout?.cell || 22, 28);
-    const ghost = drawPiece(drag.piece, drag.x - unit * 0.8, drag.y - unit * 0.8, unit, 0.76);
-    ghost.alpha = drag.overCell ? 0.98 : 0.66;
-    ghost.scale.set(drag.overCell ? 1.08 : 1);
+    const state = data.blox || {};
+    const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
+    const unit = drag.overCell ? layout.cell : Math.min(layout?.cell || 22, 28);
+    const origin = drag.overCell
+      ? { x: layout.left + drag.overCell.col * layout.cell, y: layout.top + drag.overCell.row * layout.cell }
+      : bloxGhostOrigin(drag, unit);
+    const ghost = drawPiece(drag.piece, origin.x, origin.y, unit, 0.76);
+    const valid = drag.overCell && canPlaceBloxPiece(board, drag.piece, drag.overCell.row, drag.overCell.col);
+    ghost.alpha = drag.overCell ? 0.96 : 0.66;
     dragLayer.addChild(ghost);
     if (drag.overCell) {
-      const x = layout.left + drag.overCell.col * layout.cell + 1;
-      const y = layout.top + drag.overCell.row * layout.cell + 1;
-      dragLayer.addChild(strokedRect(x, y, layout.cell - 2, layout.cell - 2, AMBER, 6, 0x1f2a39, 0.55, 3));
+      for (const [dr, dc] of drag.piece.cells || []) {
+        const row = drag.overCell.row + dr;
+        const col = drag.overCell.col + dc;
+        if (row < 0 || row >= GRID || col < 0 || col >= GRID) continue;
+        const x = layout.left + col * layout.cell + 1;
+        const y = layout.top + row * layout.cell + 1;
+        dragLayer.addChild(strokedRect(x, y, layout.cell - 2, layout.cell - 2, valid ? MINT : CORAL, 6, 0xf7efe0, 0.58, 3));
+      }
     }
   }
 
@@ -432,8 +549,8 @@ export function buildBloxScene(app, initial = {}) {
   function dropDrag(done) {
     if (!drag) return;
     const point = done || drag;
-    const target = done?.cancelled ? null : cellFromPoint(layout, point.x, point.y);
     const current = drag;
+    const target = done?.cancelled ? null : current.overCell || bloxAnchorCellFromDrag(layout, current);
     drag = null;
     dragVisual.cancel();
     clear(dragLayer);
@@ -458,7 +575,7 @@ export function buildBloxScene(app, initial = {}) {
       drag.x = next.x;
       drag.y = next.y;
       drag.moved = next.moved;
-      drag.overCell = cellFromPoint(layout, drag.x, drag.y);
+      drag.overCell = bloxAnchorCellFromDrag(layout, drag);
       updateDragVisual();
     },
     onTap: (done) => {
@@ -482,7 +599,7 @@ export function buildBloxScene(app, initial = {}) {
     const state = data.blox || {};
     const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
     const tray = state.tray || state.savedState?.tray || [];
-    const fitted = fit(app, GRID, GRID, 14, 88);
+    const fitted = fit(app, GRID, GRID, 14, 180, { verticalAnchor: 0.45 });
     layout = { ...fitted, cols: GRID, rows: GRID };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 8, top - 8, size + 16, size + 16, PANEL, 14));
@@ -490,7 +607,7 @@ export function buildBloxScene(app, initial = {}) {
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
         const value = board[r]?.[c];
-        const color = value ? colorNumber(value) : 0x223042;
+        const color = value ? colorNumber(value) : 0xe4ebd7;
         const tile = rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 5, value ? 1 : 0.88);
         makeInteractive(tile, {
           pointerdown: (event) => {
@@ -508,29 +625,31 @@ export function buildBloxScene(app, initial = {}) {
     for (let i = 0; i < 3; i++) {
       const t = tray[i];
       const x = 14 + i * slotW;
-      const slot = rect(x, trayTop, slotW - 8, 58, i === data.selectedBloxPiece ? 0x31445b : PANEL_2, 10, t?.placed ? 0.45 : 1);
+      const slotWidth = slotW - 8;
+      const slotHeight = 58;
+      const pieceOrigin = centeredPieceOrigin(t?.piece, x, trayTop, slotWidth, slotHeight, trayUnit);
+      const slot = rect(x, trayTop, slotWidth, slotHeight, i === data.selectedBloxPiece ? 0xdbeccf : PANEL_2, 10, t?.placed ? 0.45 : 1);
       makeInteractive(slot, {
         pointerdown: (event) => {
           if (!t?.piece || t.placed || !state.gameActive) {
             data.onBloxTray?.(i);
             return;
           }
-          drag = {
+          drag = createBloxDragState({
             pieceIdx: i,
             piece: t.piece,
-            startX: event.global.x,
-            startY: event.global.y,
-            x: event.global.x,
-            y: event.global.y,
-            moved: false,
-            overCell: null,
-          };
+            event,
+            originX: pieceOrigin.x,
+            originY: pieceOrigin.y,
+            unit: trayUnit,
+          });
+          drag.overCell = bloxAnchorCellFromDrag(layout, drag);
           pointer.start(event, { kind: "blox-tray", pieceIdx: i });
           updateDragVisual();
         },
       });
       root.addChild(slot);
-      if (t?.piece && drag?.pieceIdx !== i) root.addChild(drawPiece(t.piece, x + 14, trayTop + 12, trayUnit, t.placed ? 0.35 : 1));
+      if (t?.piece && drag?.pieceIdx !== i) root.addChild(drawPiece(t.piece, pieceOrigin.x, pieceOrigin.y, trayUnit, t.placed ? 0.35 : 1));
     }
 
     updateDragVisual();
@@ -577,6 +696,7 @@ export function buildMatch3Scene(app, initial = {}) {
       if (!drag) return;
       drag.x = next.x;
       drag.y = next.y;
+      drag.target = match3TargetFromGesture(layout, drag, next);
       updateDragVisual();
     },
     onTap: (done) => {
@@ -593,9 +713,9 @@ export function buildMatch3Scene(app, initial = {}) {
       drag = null;
       dragVisual.cancel();
       clear(dragLayer);
-      const target = cellFromPoint(layout, done.x, done.y);
-      if (target && (target.row !== current.from.y || target.col !== current.from.x)) {
-        data.onMatch3Swap?.(current.from, { x: target.col, y: target.row });
+      const target = current.target || match3TargetFromGesture(layout, current, done);
+      if (isAdjacentMatch3Cell(current.from, target)) {
+        data.onMatch3Swap?.(current.from, target);
         makeSparkles(effects, done.x, done.y, SKY, 7);
         makeRipple(effects, done.x, done.y, SKY, 24);
       } else if (current.from) {
@@ -618,8 +738,21 @@ export function buildMatch3Scene(app, initial = {}) {
     const board = state.board || state.savedModes?.[state.gameMode || "classic"]?.board || [];
     const actual = board.length ? board : data.fallbackBoard || [];
     const gem = actual[drag.from.y]?.[drag.from.x];
-    const color = GEM_COLORS[gem] || 0x5f6c7a;
+    const color = GEM_COLORS[gem] || 0xa4af9a;
     const radius = Math.max(14, (layout?.cell || 44) * 0.33);
+    if (drag.target) {
+      dragLayer.addChild(strokedRect(
+        layout.left + drag.target.x * layout.cell + 3,
+        layout.top + drag.target.y * layout.cell + 3,
+        layout.cell - 6,
+        layout.cell - 6,
+        SKY,
+        10,
+        0xf7efe0,
+        0.7,
+        3,
+      ));
+    }
     dragLayer.addChild(
       new Graphics()
         .circle(drag.x, drag.y, radius)
@@ -640,7 +773,7 @@ export function buildMatch3Scene(app, initial = {}) {
     const board = state.board || state.savedModes?.[state.gameMode || "classic"]?.board || [];
     const fallback = data.fallbackBoard || [];
     const actual = board.length ? board : fallback;
-    const fitted = fit(app, BOARD_SIZE, BOARD_SIZE, 14, 8);
+    const fitted = fit(app, BOARD_SIZE, BOARD_SIZE, 14, 116, { verticalAnchor: 0.52 });
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
@@ -648,16 +781,16 @@ export function buildMatch3Scene(app, initial = {}) {
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
         const gem = actual[y]?.[x];
-        const color = GEM_COLORS[gem] || 0x5f6c7a;
+        const color = GEM_COLORS[gem] || 0xa4af9a;
         const selected = data.selectedGem?.x === x && data.selectedGem?.y === y;
         const dragging = drag?.from?.x === x && drag?.from?.y === y;
         const tile = selected
-          ? strokedRect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, AMBER, 10, 0x26364a, 1, 3)
-          : rect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, 0x1c2837, 10);
+          ? strokedRect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, AMBER, 10, 0xf7efe0, 1, 3)
+          : rect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, 0xe8efdc, 10);
         makeInteractive(tile, {
           pointerdown: (event) => {
             if (!state.gameActive) return;
-            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
+            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y, target: null };
             pointer.start(event, { kind: "match3-cell", from: { x, y } });
           },
         });
@@ -668,7 +801,7 @@ export function buildMatch3Scene(app, initial = {}) {
         makeInteractive(orb, {
           pointerdown: (event) => {
             if (!state.gameActive) return;
-            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y };
+            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y, target: null };
             pointer.start(event, { kind: "match3-cell", from: { x, y } });
           },
         });
@@ -1096,7 +1229,7 @@ export function buildMergeScene(app, initial = {}) {
     dragLayer.addChild(label(itemText(drag.item), drag.x, drag.y - 1, Math.max(16, (layout?.cell || 58) * 0.34)));
     const target = cellFromPoint(layout, drag.x, drag.y);
     if (target) {
-      dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0x172432, 0.48, 3));
+      dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0xf7efe0, 0.58, 3));
     }
   }
 
@@ -1121,7 +1254,7 @@ export function buildMergeScene(app, initial = {}) {
         const item = board[r]?.[c];
         const selected = data.mergeSelected?.r === r && data.mergeSelected?.c === c;
         const matching = drag?.item && sameMergeTarget(drag.item, item) && !(drag.fromR === r && drag.fromC === c);
-        const color = item ? [0x6ee7b7, 0xfcd34d, 0xfb7185, 0x93c5fd, 0xc4b5fd, 0xf9a8d4, 0xfdba74, 0xfff1a8][item.level || 0] : 0x223024;
+        const color = item ? [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][item.level || 0] : 0xe3eddc;
         const tile = matching || selected
           ? strokedRect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, selected ? AMBER : MINT, 6, color, item ? 0.95 : 0.82, 3)
           : rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 6, item ? 1 : 0.82);

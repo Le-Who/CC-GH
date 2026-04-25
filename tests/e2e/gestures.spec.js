@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { attemptMatch3Move } from "../../src/game-core/match3/engine.js";
 
 async function boot(page, prefix = "gesture") {
   await page.addInitScript((value) => {
@@ -20,6 +21,54 @@ async function hostBox(page) {
   const box = await page.locator(".pixi-host").boundingBox();
   expect(box).not.toBeNull();
   return box;
+}
+
+function findValidMatch3Move(board) {
+  for (let y = 0; y < board.length; y += 1) {
+    for (let x = 0; x < board[y].length; x += 1) {
+      for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
+        const tx = x + dx;
+        const ty = y + dy;
+        if (!board[ty]?.[tx]) continue;
+        if (attemptMatch3Move(board, { x, y }, { x: tx, y: ty }).valid) {
+          return { from: { x, y }, to: { x: tx, y: ty } };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function parsePlayerActionRequest(request) {
+  if (!request.url().includes("/api/player/mutate")) return null;
+  try {
+    return JSON.parse(request.postData() || "{}");
+  } catch {
+    return null;
+  }
+}
+
+async function waitForMatch3Sync(page, timeout = 3000) {
+  const request = await page.waitForRequest((candidate) => {
+    const body = parsePlayerActionRequest(candidate);
+    return body?.action === "match3.syncMode";
+  }, { timeout });
+  return parsePlayerActionRequest(request);
+}
+
+async function touchDrag(page, from, to, steps = 8) {
+  const client = await page.context().newCDPSession(page);
+  const point = (x, y) => ({ x, y, id: 1, radiusX: 7, radiusY: 7, force: 1 });
+  await client.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [point(from.x, from.y)] });
+  for (let step = 1; step <= steps; step += 1) {
+    const t = step / steps;
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [point(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t)],
+    });
+  }
+  await client.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await client.detach();
 }
 
 test.describe("Pixi touch and drag interactions", () => {
@@ -52,9 +101,9 @@ test.describe("Pixi touch and drag interactions", () => {
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 102));
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 180 - 28));
     const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14;
+    const top = box.y + 14 + Math.max(0, box.height - 180 - size - 28) * 0.45;
     const cell = size / 10;
     const trayTop = top + size + 16;
     const slotW = (box.width - 36) / 3;
@@ -82,9 +131,9 @@ test.describe("Pixi touch and drag interactions", () => {
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 28));
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 116));
     const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14;
+    const top = box.y + 14 + Math.max(0, box.height - 116 - size - 28) * 0.52;
     const cell = size / 8;
 
     await page.mouse.move(left + cell * 0.5, top + cell * 0.5);
@@ -95,6 +144,44 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.click(left + cell * 2.5, top + cell * 1.5);
 
     await expect(page.locator(".game-play-hud")).toContainText(/Combo/);
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Match-3 treats a long touch swipe as an adjacent directional swap", async ({ page }) => {
+    const pageErrors = await boot(page, "match3_long_touch_swipe");
+
+    await page.getByRole("button", { name: /Gems/ }).click();
+    const initialSync = waitForMatch3Sync(page, 8000);
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    const startBody = await initialSync;
+    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+
+    const board = startBody?.payload?.savedModes?.classic?.board;
+    const move = findValidMatch3Move(board);
+    expect(move).toBeTruthy();
+
+    const box = await hostBox(page);
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 116));
+    const left = box.x + (box.width - size) / 2;
+    const top = box.y + 14 + Math.max(0, box.height - 116 - size - 28) * 0.52;
+    const cell = size / 8;
+    const start = {
+      x: left + cell * (move.from.x + 0.5),
+      y: top + cell * (move.from.y + 0.5),
+    };
+    const direction = {
+      x: Math.sign(move.to.x - move.from.x),
+      y: Math.sign(move.to.y - move.from.y),
+    };
+    const end = {
+      x: start.x + direction.x * cell * 2.35,
+      y: start.y + direction.y * cell * 2.35,
+    };
+
+    const swapSync = waitForMatch3Sync(page, 8000);
+    await touchDrag(page, start, end);
+    await expect(swapSync).resolves.toMatchObject({ action: "match3.syncMode" });
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

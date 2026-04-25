@@ -18,11 +18,13 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
   const sceneRef = useRef(null);
   const stateRef = useRef(sceneState);
   const activePointerRef = useRef(null);
+  const captureTargetRef = useRef(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const release = () => {
       activePointerRef.current = null;
+      captureTargetRef.current = null;
       setGameGestureActive(false);
     };
     window.addEventListener("pointerup", release);
@@ -39,8 +41,10 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
 
   const beginGesture = (event) => {
     activePointerRef.current = event.pointerId;
+    const target = typeof event.target?.setPointerCapture === "function" ? event.target : event.currentTarget;
+    captureTargetRef.current = target;
     try {
-      event.currentTarget.setPointerCapture?.(event.pointerId);
+      target.setPointerCapture?.(event.pointerId);
     } catch {
       // Pointer capture is best effort in older embedded browsers.
     }
@@ -50,8 +54,10 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
   const endGesture = (event) => {
     if (activePointerRef.current !== null && activePointerRef.current !== event.pointerId) return;
     activePointerRef.current = null;
+    const target = captureTargetRef.current || event.currentTarget;
+    captureTargetRef.current = null;
     try {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
+      target.releasePointerCapture?.(event.pointerId);
     } catch {
       // Releasing an already released pointer is harmless.
     }
