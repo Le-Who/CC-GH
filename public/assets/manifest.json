@@ -36,6 +36,27 @@
         "source": "/games/puzzling-potions/raw-assets/",
         "images": "/games/puzzling-potions/images/",
         "license": "/games/puzzling-potions/LICENSE"
+      },
+      "gachaMerge": {
+        "items": {
+          "thread": "",
+          "yarn": "",
+          "fabric": "",
+          "shirt": "",
+          "jacket": "",
+          "sweater": "",
+          "coat": "",
+          "tapestry": "",
+          "twig": "",
+          "branch": "",
+          "log": "",
+          "plank": "",
+          "chair": "",
+          "table": "",
+          "wardrobe": "",
+          "throne": ""
+        },
+        "notes": "Set item paths to PNG/WebP/SVG files under /assets/merge-items/ to replace procedural Gacha Merge icons."
       }
     }
   },

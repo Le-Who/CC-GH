@@ -422,6 +422,38 @@ describe("Match-3 Engine Tests", () => {
         assert.ok(result.board.some((row) => row.includes("drop_gold")), "Drop token should survive special clearing");
       });
 
+      it("fills cells cleared by special-piece moves even when no cascade follows", () => {
+        const board = [
+          ["fire", "water", "earth", "air", "light", "dark", "fire", "water"],
+          ["water", "earth", "air", "light", "dark", "fire", "water", "earth"],
+          ["earth", "air", "special_row", "light", "dark", "fire", "water", "earth"],
+          ["air", "light", "dark", "fire", "water", "earth", "air", "light"],
+          ["light", "dark", "fire", "water", "earth", "air", "light", "dark"],
+          ["dark", "fire", "water", "earth", "air", "light", "dark", "fire"],
+          ["fire", "water", "earth", "air", "light", "dark", "fire", "water"],
+          ["water", "earth", "air", "light", "dark", "fire", "water", "earth"],
+        ];
+
+        const result = attemptMatch3Move(board, { x: 2, y: 2 }, { x: 3, y: 2 });
+
+        assert.equal(result.valid, true);
+        assert.equal(result.board.flat().every(Boolean), true, "Special clear should not leave empty cells");
+        assert.ok(result.steps[0].filled.length > 0, "Special clear should report fill animation cells");
+      });
+
+      it("collects Star Drop tokens that settle on the bottom row", () => {
+        const board = generateBoard();
+        board[6][0] = "drop_gold";
+        board[7][0] = "special_row";
+        board[7][1] = "water";
+
+        const result = attemptMatch3Move(board, { x: 0, y: 7 }, { x: 1, y: 7 }, { collectDrops: true });
+
+        assert.equal(result.valid, true);
+        assert.ok(result.dropCollected?.some((drop) => drop.type === "drop_gold"));
+        assert.equal(result.board.flat().every(Boolean), true, "Collected drops should be backfilled");
+      });
+
       it("keeps invalid swaps from mutating or scoring", () => {
         let candidate = null;
         for (let i = 0; i < 30 && !candidate; i++) {

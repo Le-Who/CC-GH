@@ -7,8 +7,11 @@
 - Added a manual PWA update manager that compares injected client build ids with uncached `/api/config`, unregisters stale service workers, clears runtime caches, and reloads once with a cache-busting build query.
 - Versioned Pixi `/games/*` asset URLs with the current build id so tracked Bubbo Bubbo and Puzzling Potions art refreshes cleanly after deploys.
 - Added scene-local Gem Crush animation queues from `attemptMatch3Move().steps`, including swap ghosts, cascade pulses, fall/fill tweens, invalid-swap nudges, and input locking while cascades resolve.
+- Extended Gem Crush cascade presentation with staged board snapshots, textured fall/fill pieces, special-clear backfill, and automatic Star Drop bottom-token collection.
 - Added Building Blox line-wipe effects from authoritative `clear.rows` and `clear.cols`, stronger clear ripples, sparkle feedback, and tray refill settle cues.
-- Refined Bubbo Bubbo with distinct sky/berry colors, constant path-distance projectile travel, smoothed pressure descent in the Pixi ticker, and a lower-glare cozy pink/green play palette.
+- Refined Bubbo Bubbo with distinct sky/berry colors, constant path-distance projectile travel, smoothed pressure descent in the Pixi ticker, pressure-row insertion without board snap-back, and a lower-glare cozy pink/green play palette.
+- Reworked Gacha Merge into a compact touch-first menu, lower thumb-reachable live board, larger readable item tokens, and manifest-ready item icon slots for future production assets.
+- Removed generic in-game `Menu` labels and the duplicate Blox `Sound` button in favor of explicit setup, end-run, stop-play, trash, pause, and exit actions.
 - Added tracked Bubbo Bubbo and Puzzling Potions asset bundles under `public/games/` and preloaded them through the Pixi game host before scene construction.
 - Completed Bubbo Bubbo as a pressure shooter with seeded procedural waves, continuous descent, pressure row shifts, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, and pressure-aware danger/overflow finishing.
 - Reworked Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room into one immersive game shell that hides Hub chrome during play, keeps only compact in-game HUD controls visible, and opens pause/menu/result surfaces as overlays over the playfield with explicit Exit-to-Hub navigation.

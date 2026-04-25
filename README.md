@@ -22,9 +22,9 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 
 - Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, season progress, and rapid tap/long-press Pixi plot input.
 - Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored ghost placement preview, authoritative placement, row/column clear metadata, line-wipe feedback, tray refill settle cues, saved state, rewards, and leaderboard reads.
-- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, local cascade resolution with scene-local animation steps and input locking, saved mode sync, and reward settlement.
-- Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
-- Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, distinct five-color play, seeded procedural waves, smoothed continuous descent, wall-bank aiming, constant path-distance projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
+- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, special-clear backfill, Star Drop bottom-token collection, staged cascade animation steps with textured fall/fill pieces, input locking, saved mode sync, and reward settlement.
+- Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, compact touch-first generator menus, lower thumb-reachable rectangular board placement, larger manifest-replaceable item tokens, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
+- Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, distinct five-color play, seeded procedural waves, smoothed continuous descent, stabilized pressure-row insertion, wall-bank aiming, constant path-distance projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, in-memory duel rooms, and the shared in-game pause/result overlay shell.
 - Pet Room: animated companion view, normalized Bag feeding, rename, active orders, room inventory, persistent decoration placement, and the shared in-game pause overlay shell.
 
@@ -62,9 +62,10 @@ Frontend flow:
 6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before the scene builds, appends the current build id to `/games/*` asset URLs, then the scene keeps procedural fallbacks for missing optional art.
 7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
 8. Gameplay enters a shared immersive mobile shell across Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation.
-9. Blox and Gem Crush tune their Pixi board geometry for mobile thumb reach: the square playfields stay as large as the viewport allows, reserve room for the compact HUD/tray, and sit lower in fullscreen play instead of pinning to the top edge.
-10. `src/services/updateManager.js` manually registers the PWA service worker, polls uncached `/api/config`, compares the server `buildId` with the injected client build id, and clears service workers/caches once before reloading with a cache-busting query when a stale build is detected.
-11. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+9. Blox, Gem Crush, and Gacha Merge tune their Pixi board geometry for mobile thumb reach: playfields stay as large as the viewport allows, reserve room for compact HUD/tray controls, and sit lower in fullscreen play instead of pinning to the top edge.
+10. Shared in-game menus use explicit action labels for pause, setup, end-run, trash, and exit controls; redundant generic `Menu` and duplicate `Sound` buttons are intentionally avoided.
+11. `src/services/updateManager.js` manually registers the PWA service worker, polls uncached `/api/config`, compares the server `buildId` with the injected client build id, and clears service workers/caches once before reloading with a cache-busting query when a stale build is detected.
+12. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
 
@@ -214,6 +215,8 @@ pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
 Replaceable app graphics and audio are registered through `public/assets/manifest.json`. Existing pet SVGs and PWA icons remain compatible, while missing custom scene art or SFX falls back to procedural Pixi graphics and synthesized UI tones.
 
 Tracked game source art lives under `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/`. The normalized `images/` folders contain the runtime-ready assets loaded by `src/game-runtime/assetBundles.js`; `raw-assets/` and `dist-source/` preserve the upstream asset context and licenses for future upgrades.
+
+Gacha Merge item icons can be replaced through `graphics.games.gachaMerge.items` in `public/assets/manifest.json`; empty keys keep the larger procedural token fallback until production art is added.
 
 See `ASSET_REPLACEMENT_GUIDE.md` for exact file names, recommended formats, audio keys, rebuild steps, and validation commands.
 

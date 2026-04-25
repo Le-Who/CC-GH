@@ -107,6 +107,39 @@ Recommended image formats:
 
 Keep large backgrounds under roughly 500 KB each for Telegram mobile startup speed.
 
+## Gacha Merge Item Icons
+
+Gacha Merge supports per-item icon paths through:
+
+```text
+public/assets/manifest.json -> graphics.games.gachaMerge.items
+```
+
+Place files under:
+
+```text
+public/assets/merge-items/
+```
+
+Then set the matching item key, for example:
+
+```json
+{
+  "graphics": {
+    "games": {
+      "gachaMerge": {
+        "items": {
+          "thread": "/assets/merge-items/thread.png",
+          "yarn": "/assets/merge-items/yarn.webp"
+        }
+      }
+    }
+  }
+}
+```
+
+If a path is empty, the Pixi scene uses the larger procedural icon fallback with a level badge. Keep item icons square, transparent, and readable at `48x48`.
+
 ## Audio
 
 Audio is opt-in and muted by default. Missing audio files fall back to short synthesized UI tones.

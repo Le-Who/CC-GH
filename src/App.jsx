@@ -553,7 +553,7 @@ function BloxGame() {
         {state.gameActive && paused && (
           <div className="button-row two">
             <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-            <PanelButton icon={Home} subtle onClick={() => setPaused(true)}>Menu</PanelButton>
+            <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
           </div>
         )}
         <div className="metric-grid">
@@ -563,7 +563,6 @@ function BloxGame() {
         </div>
         <div className="button-row">
           <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
-          <PanelButton icon={Volume2} subtle onClick={() => haptic("light")}>Sound</PanelButton>
           <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
         </div>
         <Leaderboard entries={leaders} />
@@ -675,7 +674,7 @@ function Match3Game() {
       }
       const fromGem = board[from.y]?.[from.x];
       const toGem = board[to.y]?.[to.x];
-      const result = attemptMatch3Move(board, from, to);
+      const result = attemptMatch3Move(board, from, to, { collectDrops: mode === "drop" });
       if (!result.valid) {
         setSelected(null);
         queueMatchAnimation({ type: "invalid", from, to, fromGem, toGem }, 240);
@@ -695,10 +694,10 @@ function Match3Game() {
       setMovesLeft(nextMoves);
       setSelected(null);
       queueMatchAnimation(
-        { type: "cascade", from, to, fromGem, toGem, steps: result.steps },
-        Math.min(1500, 360 + (result.steps?.length || 1) * 240),
+        { type: "cascade", from, to, fromGem, toGem, startBoard: board, steps: result.steps },
+        Math.min(2600, 620 + (result.steps?.length || 1) * 420),
       );
-      audioManager.play(result.combo > 1 || result.special ? "clear" : "merge");
+      audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
       performAction("match3.syncMode", {
         game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
         savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: result.combo } },
@@ -1083,7 +1082,7 @@ function MergeGame() {
           onPause={() => setPaused(true)}
         />
       )}
-      <aside className="side-panel game-menu-overlay">
+      <aside className="side-panel game-menu-overlay merge-menu-overlay">
         <div className="panel-header">
           <div>
             <strong>Gacha Merge</strong>
@@ -1097,13 +1096,13 @@ function MergeGame() {
               setTrashMode((value) => !value);
             }
           }}>
-            {mergePlaying ? "Trash" : "Play"}
+            {mergePlaying ? (trashMode ? "Trash On" : "Trash Off") : "Play"}
           </PanelButton>
         </div>
         {mergePlaying && paused && (
           <div className="button-row two">
             <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-            <PanelButton icon={Home} subtle onClick={() => setMergePlaying(false)}>Menu</PanelButton>
+            <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>Stop Play</PanelButton>
           </div>
         )}
         <div className="generator-list">
@@ -1135,9 +1134,9 @@ function MergeGame() {
             );
           })}
         </div>
-        <div className="button-row">
+        <div className="button-row merge-actions">
           <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>Gacha</PanelButton>
-          <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>Free Pull</PanelButton>
+          <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>Free</PanelButton>
           <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>30 Taps</PanelButton>
           <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
         </div>
@@ -1362,7 +1361,7 @@ function TriviaGame() {
                 setView("menu");
               }}
             >
-              Menu
+              Setup
             </PanelButton>
             <PanelButton
               icon={Home}
@@ -1504,7 +1503,7 @@ function RoomGame() {
                 setInShell(false);
               }}
             >
-              Menu
+              Decor
             </PanelButton>
             <PanelButton
               icon={Home}

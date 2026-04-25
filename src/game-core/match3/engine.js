@@ -28,6 +28,11 @@ export const DROP_LABELS = {
   drop_seeds: "Seed Pack",
   drop_energy: "Energy",
 };
+const DROP_TOKEN_POINTS = {
+  drop_gold: 120,
+  drop_seeds: 90,
+  drop_energy: 90,
+};
 
 export const SPECIAL_TYPES = ["special_row", "special_column", "special_blast", "special_colour"];
 export const SPECIAL_ICONS = {
@@ -395,11 +400,74 @@ function clearCells(board, indices) {
   return cleared;
 }
 
+function applyGravityAndFill(board, dirtyMask = null) {
+  const fallen = [];
+  const filled = [];
+  for (let x = 0; x < BOARD_SIZE; x++) {
+    let wy = BOARD_SIZE - 1;
+    for (let y = BOARD_SIZE - 1; y >= 0; y--) {
+      if (board[y][x]) {
+        if (wy !== y) {
+          board[wy][x] = board[y][x];
+          board[y][x] = null;
+          fallen.push({ x, fromY: y, toY: wy });
+          if (dirtyMask) {
+            dirtyMask.rows[wy] = 1;
+            dirtyMask.rows[y] = 1;
+            dirtyMask.cols[x] = 1;
+          }
+        }
+        wy--;
+      }
+    }
+    for (let y = wy; y >= 0; y--) {
+      board[y][x] = randomGem();
+      filled.push({ x, y, type: board[y][x] });
+      if (dirtyMask) {
+        dirtyMask.rows[y] = 1;
+        dirtyMask.cols[x] = 1;
+      }
+    }
+  }
+  return { fallen, filled };
+}
+
+function collectBottomDropTokens(board, dirtyMask = null) {
+  const y = BOARD_SIZE - 1;
+  const dropCollected = [];
+  for (let x = 0; x < BOARD_SIZE; x++) {
+    const type = board[y]?.[x];
+    if (!isDropToken(type)) continue;
+    board[y][x] = null;
+    dropCollected.push({ x, y, type, points: DROP_TOKEN_POINTS[type] || 80 });
+    if (dirtyMask) {
+      dirtyMask.rows[y] = 1;
+      dirtyMask.cols[x] = 1;
+    }
+  }
+  return dropCollected;
+}
+
+function collectAndBackfillDrops(board, dirtyMask = null) {
+  const dropCollected = collectBottomDropTokens(board, dirtyMask);
+  if (!dropCollected.length) return { dropCollected, fallen: [], filled: [], points: 0 };
+  const refill = applyGravityAndFill(board, dirtyMask);
+  return {
+    dropCollected,
+    fallen: refill.fallen,
+    filled: refill.filled,
+    points: dropCollected.reduce((sum, item) => sum + item.points, 0),
+  };
+}
+
 /** Run a full cascade: match → clear → gravity → fill → repeat.
  *  Returns { steps, totalPoints, combo } for animation.
  *  @param {Function} [onCascadeStep] — optional callback after each step (for star-drop checks)
  */
-export function resolveBoard(b, onCascadeStep) {
+export function resolveBoard(b, optionsOrCallback) {
+  const options = typeof optionsOrCallback === "function"
+    ? { onCascadeStep: optionsOrCallback }
+    : optionsOrCallback || {};
   const steps = [];
   let totalPoints = 0;
   let cascadeCombo = 0;
@@ -447,47 +515,24 @@ export function resolveBoard(b, onCascadeStep) {
     }
     totalPoints += cleared.length * 10 * Math.min(cascadeCombo, 5);
 
-    // Gravity + fill
-    const fallen = [];
-    const filled = [];
-    for (let x = 0; x < BOARD_SIZE; x++) {
-      // If this column had no matches and no items above matches, it skips gravity
-      // but gravity logic is fast enough.
-      let wy = BOARD_SIZE - 1;
-      for (let y = BOARD_SIZE - 1; y >= 0; y--) {
-        if (b[y][x]) {
-          if (wy !== y) {
-            b[wy][x] = b[y][x];
-            b[y][x] = null;
-            fallen.push({ x, fromY: y, toY: wy });
-            // Mark fallen destinations and origins as dirty
-            nextDirtyMask.rows[wy] = 1;
-            nextDirtyMask.rows[y] = 1;
-            nextDirtyMask.cols[x] = 1;
-          }
-          wy--;
-        }
-      }
-      for (let y = wy; y >= 0; y--) {
-        b[y][x] = randomGem();
-        filled.push({ x, y, type: b[y][x] });
-        // Mark filled cells as dirty
-        nextDirtyMask.rows[y] = 1;
-        nextDirtyMask.cols[x] = 1;
-      }
-    }
+    const gravity = applyGravityAndFill(b, nextDirtyMask);
+    const dropResult = options.collectDrops ? collectAndBackfillDrops(b, nextDirtyMask) : null;
+    const fallen = [...gravity.fallen, ...(dropResult?.fallen || [])];
+    const filled = [...gravity.filled, ...(dropResult?.filled || [])];
+    if (dropResult?.points) totalPoints += dropResult.points;
 
     steps.push({
       cleared,
       specials,
       fallen,
       filled,
+      dropCollected: dropResult?.dropCollected || [],
       combo: cascadeCombo,
       boardSnapshot: cloneBoard(b),
     });
 
     // Callback for star-drop mode checks
-    if (onCascadeStep) onCascadeStep();
+    if (options.onCascadeStep) options.onCascadeStep();
 
     dirtyMask = nextDirtyMask;
     matches = findMatches(b, dirtyMask);
@@ -538,15 +583,35 @@ export function attemptMatch3Move(board, from, to, options = {}) {
       for (const idx of collectSpecialClears(next, cell.x, cell.y)) clearSet.add(idx);
     }
     const cleared = clearCells(next, clearSet);
-    const resolved = resolveBoard(next, options.onCascadeStep);
+    const dirtyMask = {
+      rows: new Uint8Array(BOARD_SIZE),
+      cols: new Uint8Array(BOARD_SIZE),
+    };
+    for (const { x, y } of cleared) {
+      dirtyMask.rows[y] = 1;
+      dirtyMask.cols[x] = 1;
+    }
+    const gravity = applyGravityAndFill(next, dirtyMask);
+    const dropResult = options.collectDrops ? collectAndBackfillDrops(next, dirtyMask) : null;
+    const resolved = resolveBoard(next, options);
     const specialPoints = cleared.length * 12;
+    const firstStep = {
+      cleared,
+      specials: [],
+      fallen: [...gravity.fallen, ...(dropResult?.fallen || [])],
+      filled: [...gravity.filled, ...(dropResult?.filled || [])],
+      dropCollected: dropResult?.dropCollected || [],
+      combo: 1,
+      boardSnapshot: cloneBoard(next),
+    };
     return {
       valid: true,
       board: next,
-      totalPoints: specialPoints + resolved.totalPoints,
+      totalPoints: specialPoints + (dropResult?.points || 0) + resolved.totalPoints,
       combo: Math.max(1, resolved.combo),
-      steps: [{ cleared, specials: [], fallen: [], filled: [], combo: 1, boardSnapshot: cloneBoard(next) }, ...resolved.steps],
+      steps: [firstStep, ...resolved.steps],
       special: true,
+      dropCollected: [...(dropResult?.dropCollected || []), ...resolved.steps.flatMap((step) => step.dropCollected || [])],
     };
   }
 
@@ -554,7 +619,7 @@ export function attemptMatch3Move(board, from, to, options = {}) {
     return { valid: false, board: original, totalPoints: 0, combo: 0, steps: [], reason: "no match" };
   }
 
-  const resolved = resolveBoard(next, options.onCascadeStep);
+  const resolved = resolveBoard(next, options);
   return {
     valid: true,
     board: next,
@@ -562,5 +627,6 @@ export function attemptMatch3Move(board, from, to, options = {}) {
     combo: resolved.combo,
     steps: resolved.steps,
     special: false,
+    dropCollected: resolved.steps.flatMap((step) => step.dropCollected || []),
   };
 }

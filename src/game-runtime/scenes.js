@@ -52,6 +52,9 @@ const POTION_PIECE_ASSETS = {
   special_colour: assetUrl(`${POTIONS_IMAGE_BASE}/special-colour.png`),
 };
 
+let graphicsManifest = null;
+let graphicsManifestPromise = null;
+
 const FARM_SOIL = [0x7b4f2d, 0x8b5c34, 0x684022];
 const PANEL = 0xfff1f4;
 const PANEL_2 = 0xeef5e5;
@@ -129,6 +132,20 @@ function gameAsset(path) {
   return assetUrl(path);
 }
 
+function loadGraphicsManifest(onReady) {
+  if (graphicsManifest || typeof fetch !== "function") return;
+  if (!graphicsManifestPromise) {
+    graphicsManifestPromise = fetch("/assets/manifest.json", { cache: "no-cache" })
+      .then((response) => (response.ok ? response.json() : null))
+      .catch(() => null);
+  }
+  graphicsManifestPromise.then((manifest) => {
+    if (!manifest) return;
+    graphicsManifest = manifest;
+    onReady?.();
+  });
+}
+
 function tiledSprite(path, x, y, width, height, alpha = 1) {
   const item = new TilingSprite({
     texture: Texture.from(path),
@@ -175,6 +192,29 @@ function fit(app, cols, rows, margin = 18, extraBottom = 0, options = {}) {
     size,
     cell: size / Math.max(cols, rows),
     left: (width - size) / 2,
+    top: margin + spareY * verticalAnchor,
+  };
+}
+
+function fitGrid(app, cols, rows, margin = 18, extraBottom = 0, options = {}) {
+  const width = viewWidth(app);
+  const availableHeight = Math.max(180, viewHeight(app) - extraBottom);
+  const maxCell = options.maxCell ?? Infinity;
+  const minCell = options.minCell ?? 20;
+  const cell = Math.max(
+    minCell,
+    Math.min(maxCell, (width - margin * 2) / cols, (availableHeight - margin * 2) / rows),
+  );
+  const gridWidth = cell * cols;
+  const gridHeight = cell * rows;
+  const verticalAnchor = Math.max(0, Math.min(1, options.verticalAnchor ?? 0));
+  const spareY = Math.max(0, availableHeight - gridHeight - margin * 2);
+  return {
+    size: Math.max(gridWidth, gridHeight),
+    width: gridWidth,
+    height: gridHeight,
+    cell,
+    left: (width - gridWidth) / 2,
     top: margin + spareY * verticalAnchor,
   };
 }
@@ -801,6 +841,9 @@ export function buildMatch3Scene(app, initial = {}) {
   let layout = null;
   let drag = null;
   let lastAnimationId = null;
+  let animationFrames = [];
+  let animationFrameIndex = 0;
+  let animationFrameAge = 0;
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
   const pointer = createPointerSession({
@@ -895,12 +938,43 @@ export function buildMatch3Scene(app, initial = {}) {
         .fill({ color, alpha: Math.min(0.95, alpha) })
         .stroke({ color: TEXT, width: 2, alpha: 0.36 }),
     );
+    const pieceAsset = POTION_PIECE_ASSETS[gem];
+    if (pieceAsset) {
+      group.addChild(sprite(pieceAsset, 0, 0, radius * 1.9, radius * 1.9, Math.min(0.98, alpha + 0.08)));
+    }
+    const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
+    if (icon && !pieceAsset) group.addChild(label(icon, 0, 0, Math.max(13, radius * 0.88), TEXT));
     return group;
+  }
+
+  function activeAnimationBoard(fallback) {
+    if (!animationFrames.length) return fallback;
+    return animationFrames[Math.min(animationFrameIndex, animationFrames.length - 1)] || fallback;
+  }
+
+  function advanceAnimationFrame() {
+    if (!animationFrames.length) return;
+    animationFrameAge += 1;
+    const holdFrames = animationFrameIndex === 0 ? 18 : 26;
+    if (animationFrameAge < holdFrames) return;
+    animationFrameAge = 0;
+    if (animationFrameIndex < animationFrames.length - 1) {
+      animationFrameIndex += 1;
+      draw();
+      return;
+    }
+    animationFrames = [];
+    draw();
   }
 
   function queueMatch3Animation(animation = {}) {
     if (!layout || !animation?.id || animation.id === lastAnimationId) return;
     lastAnimationId = animation.id;
+    if (animation.type !== "cascade") {
+      animationFrames = [];
+      animationFrameIndex = 0;
+      animationFrameAge = 0;
+    }
     const radius = Math.max(14, layout.cell * 0.3);
     const from = animation.from ? cellCenter(layout, animation.from.x, animation.from.y) : null;
     const to = animation.to ? cellCenter(layout, animation.to.x, animation.to.y) : null;
@@ -936,8 +1010,16 @@ export function buildMatch3Scene(app, initial = {}) {
     }
 
     const steps = Array.isArray(animation.steps) ? animation.steps : [];
+    if (animation.type === "cascade" && steps.length) {
+      animationFrames = [
+        animation.startBoard,
+        ...steps.map((step) => step.boardSnapshot),
+      ].filter((board) => Array.isArray(board) && board.length);
+      animationFrameIndex = 0;
+      animationFrameAge = 0;
+    }
     steps.forEach((step, stepIndex) => {
-      const stepDelay = 10 + stepIndex * 18;
+      const stepDelay = 18 + stepIndex * 34;
       for (const cell of step.cleared || []) {
         const pos = cellCenter(layout, cell.x, cell.y);
         const pulse = new Graphics().circle(0, 0, radius * (1 + Math.min(0.55, step.combo * 0.08))).stroke({ color: AMBER, width: 3, alpha: 0.86 });
@@ -966,12 +1048,23 @@ export function buildMatch3Scene(app, initial = {}) {
         const type = step.boardSnapshot?.[fall.toY]?.[fall.x];
         const fromPos = cellCenter(layout, fall.x, fall.fromY);
         const toPos = cellCenter(layout, fall.x, fall.toY);
-        effects.addChild(makeTween(makeGemView(type, radius * 0.86, 0.58), fromPos, toPos, 16, { delay: stepDelay + 6, fade: true }));
+        effects.addChild(makeTween(makeGemView(type, radius * 0.92, 0.86), fromPos, toPos, 26, { delay: stepDelay + 8, fade: true, scaleFrom: 0.96, scaleTo: 1.02 }));
       }
       for (const fill of step.filled || []) {
         const fromPos = { ...cellCenter(layout, fill.x, fill.y), y: layout.top - layout.cell * (1.2 + (fill.y % 2) * 0.2) };
         const toPos = cellCenter(layout, fill.x, fill.y);
-        effects.addChild(makeTween(makeGemView(fill.type, radius * 0.84, 0.7), fromPos, toPos, 18, { delay: stepDelay + 9, fade: true, scaleFrom: 0.78, scaleTo: 1 }));
+        effects.addChild(makeTween(makeGemView(fill.type, radius * 0.9, 0.88), fromPos, toPos, 30, { delay: stepDelay + 14, fade: true, scaleFrom: 0.72, scaleTo: 1 }));
+      }
+      for (const drop of step.dropCollected || []) {
+        const pos = cellCenter(layout, drop.x, drop.y);
+        const collect = makeGemView(drop.type, radius * 1.02, 0.98);
+        collect._delay = stepDelay + 12;
+        collect._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - layout.cell * 0.72, duration: 22, fade: true, scaleFrom: 1, scaleTo: 1.35 };
+        effects.addChild(collect);
+        const points = label(`+${drop.points || 80}`, pos.x, pos.y - radius * 1.5, Math.max(12, radius * 0.72), AMBER);
+        points._delay = stepDelay + 14;
+        points._tween = { fromX: points.x, fromY: points.y, toX: points.x, toY: points.y - layout.cell * 0.44, duration: 24, fade: true, scaleFrom: 0.8, scaleTo: 1.12 };
+        effects.addChild(points);
       }
     });
   }
@@ -988,9 +1081,10 @@ export function buildMatch3Scene(app, initial = {}) {
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
     root.addChild(tiledSprite(gameAsset(`${POTIONS_IMAGE_BASE}/shelf-block.png`), left - 4, top - 4, size + 8, size + 8, 0.16));
     queueMatch3Animation(data.match3Animation);
+    const renderBoard = activeAnimationBoard(actual);
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
-        const gem = actual[y]?.[x];
+        const gem = renderBoard[y]?.[x];
         const color = GEM_COLORS[gem] || 0xa4af9a;
         const selected = data.selectedGem?.x === x && data.selectedGem?.y === y;
         const dragging = drag?.from?.x === x && drag?.from?.y === y;
@@ -1029,7 +1123,10 @@ export function buildMatch3Scene(app, initial = {}) {
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
-  const ticker = () => tickParticles(effects);
+  const ticker = () => {
+    advanceAnimationFrame();
+    tickParticles(effects);
+  };
   app.ticker.add(ticker);
   draw();
   return {
@@ -1379,6 +1476,9 @@ export function buildBubboScene(app, initial = {}) {
     update(next) {
       data = next || {};
       pressureTargetStep = Math.max(0, Math.min(1, Number(data.bubbo?.pressureStep) || 0));
+      if (pressureTargetStep + 0.18 < pressureDisplayStep) {
+        pressureDisplayStep = pressureTargetStep;
+      }
       draw();
     },
     destroy() {
@@ -1406,7 +1506,11 @@ export function buildMergeScene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
+  let destroyed = false;
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
+  loadGraphicsManifest(() => {
+    if (!destroyed) draw();
+  });
 
   const pointer = createPointerSession({
     onMove: (next) => {
@@ -1453,21 +1557,49 @@ export function buildMergeScene(app, initial = {}) {
     return chain?.emoji?.[item.level] || String((item.level || 0) + 1);
   }
 
+  function itemAsset(item) {
+    if (!item) return "";
+    return item.asset || graphicsManifest?.graphics?.games?.gachaMerge?.items?.[item.id] || "";
+  }
+
   function sameMergeTarget(item, other) {
     return item && other && item.chainId === other.chainId && item.level === other.level;
+  }
+
+  function drawMergeItem(item, x, y, cell, alpha = 1) {
+    const level = item?.level || 0;
+    const radius = Math.min(cell * 0.42, 27);
+    const fill = [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][level] || AMBER;
+    const group = new Container();
+    group.eventMode = "none";
+    group.alpha = alpha;
+    group.x = x;
+    group.y = y;
+    group.addChild(
+      new Graphics()
+        .circle(0, 0, radius)
+        .fill({ color: fill, alpha: 0.96 })
+        .stroke({ color: TEXT, width: 2, alpha: 0.3 }),
+    );
+    const asset = itemAsset(item);
+    if (asset) {
+      group.addChild(sprite(asset, 0, 0, radius * 1.8, radius * 1.8, 0.98));
+    } else {
+      group.addChild(label(itemText(item), 0, -1, Math.max(20, cell * 0.46), TEXT));
+    }
+    const badge = new Graphics()
+      .roundRect(radius * 0.18, radius * 0.18, radius * 1.05, radius * 0.68, 5)
+      .fill({ color: PANEL, alpha: 0.92 })
+      .stroke({ color: fill, width: 1.5, alpha: 0.75 });
+    group.addChild(badge);
+    group.addChild(label(`L${level + 1}`, radius * 0.7, radius * 0.53, Math.max(8, cell * 0.13), TEXT));
+    return group;
   }
 
   function updateDragVisualNow() {
     clear(dragLayer);
     if (!drag?.item) return;
-    const radius = Math.min(30, (layout?.cell || 58) * 0.4);
-    dragLayer.addChild(
-      new Graphics()
-        .circle(drag.x, drag.y, radius)
-        .fill({ color: AMBER, alpha: 0.84 })
-        .stroke({ color: TEXT, width: 2, alpha: 0.55 }),
-    );
-    dragLayer.addChild(label(itemText(drag.item), drag.x, drag.y - 1, Math.max(16, (layout?.cell || 58) * 0.34)));
+    dragLayer.addChild(drawMergeItem(drag.item, drag.x, drag.y, layout?.cell || 58, 0.94));
     const target = cellFromPoint(layout, drag.x, drag.y);
     if (target) {
       dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0xf7efe0, 0.58, 3));
@@ -1484,11 +1616,9 @@ export function buildMergeScene(app, initial = {}) {
     const board = merge.board || Array.from({ length: 7 }, () => Array(9).fill(null));
     const cols = 9;
     const rows = 7;
-    const fitted = fit(app, cols, rows, 14, 8);
+    const fitted = fitGrid(app, cols, rows, 14, 104, { verticalAnchor: 0.58, minCell: 32, maxCell: 58 });
     layout = { ...fitted, cols, rows };
-    const { cell, left, top } = fitted;
-    const width = cell * cols;
-    const height = cell * rows;
+    const { cell, left, top, width, height } = fitted;
     root.addChild(rect(left - 8, top - 8, width + 16, height + 16, PANEL, 14));
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -1510,8 +1640,7 @@ export function buildMergeScene(app, initial = {}) {
         });
         root.addChild(tile);
         if (item && !(drag?.fromR === r && drag?.fromC === c)) {
-          root.addChild(label(itemText(item), left + c * cell + cell / 2, top + r * cell + cell * 0.46, Math.max(15, cell * 0.34)));
-          root.addChild(label(`L${(item.level || 0) + 1}`, left + c * cell + cell / 2, top + r * cell + cell * 0.78, Math.max(8, cell * 0.12), PANEL));
+          root.addChild(drawMergeItem(item, left + c * cell + cell / 2, top + r * cell + cell / 2, cell));
         }
       }
     }
@@ -1530,6 +1659,7 @@ export function buildMergeScene(app, initial = {}) {
       else draw();
     },
     destroy() {
+      destroyed = true;
       cleanup();
       app.ticker.remove(ticker);
       dragVisual.cancel();
