@@ -126,6 +126,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       onPointerDown={beginGesture}
       onPointerUp={endGesture}
       onPointerCancel={endGesture}
+      onLostPointerCapture={endGesture}
     >
       {failed && <div className="pixi-fallback">Renderer unavailable</div>}
     </div>

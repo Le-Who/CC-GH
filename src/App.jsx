@@ -122,8 +122,14 @@ function useImmersiveGame(tabId, active) {
 }
 
 function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = "Settle" }) {
+  const reduceMotion = useReducedMotion();
   return (
-    <div className="game-play-hud">
+    <motion.div
+      className="game-play-hud"
+      initial={reduceMotion ? false : { opacity: 0, y: -14 }}
+      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      transition={{ duration: reduceMotion ? 0.01 : 0.2, ease: "easeOut" }}
+    >
       <div className="game-play-title">
         <strong>{title}</strong>
         <span>{subtitle}</span>
@@ -139,6 +145,33 @@ function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLab
         <PanelButton icon={Pause} subtle onClick={onPause}>Pause</PanelButton>
         {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel}</PanelButton>}
       </div>
+    </motion.div>
+  );
+}
+
+function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "" }) {
+  const reduceMotion = useReducedMotion();
+  return (
+    <div
+      className={`game-layout game-shell shell-${phase} shell-skin-${skin}`}
+      data-game-shell={gameId}
+    >
+      {children}
+      {phase === "playing" && hud}
+      <AnimatePresence initial={false}>
+        {phase !== "playing" && (
+          <motion.aside
+            key={`${gameId}-${phase}`}
+            className={`side-panel game-menu-overlay ${overlayClassName}`}
+            initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.98 }}
+            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.98 }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
+          >
+            {overlay}
+          </motion.aside>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -521,9 +554,11 @@ function BloxGame() {
   );
 
   return (
-    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : state.gameActive ? "shell-paused" : "shell-menu"}`}>
-      <PixiGameHost sceneKey="blox" buildScene={buildBloxScene} sceneState={sceneState} />
-      {isPlaying && (
+    <GameShell
+      gameId="blox"
+      phase={isPlaying ? "playing" : state.gameActive ? "paused" : "menu"}
+      skin="meditation"
+      hud={(
         <GamePlayHud
           title="Building Blox"
           subtitle={`Best ${state.highScore} · reward ${state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}`}
@@ -540,34 +575,38 @@ function BloxGame() {
           finishLabel="End"
         />
       )}
-      <aside className="side-panel game-menu-overlay">
-        <div className="panel-header">
-          <div>
-            <strong>Building Blox</strong>
-            <span>Best {state.highScore} · Reward {state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}</span>
+      overlay={(
+        <>
+          <div className="panel-header">
+            <div>
+              <strong>Building Blox</strong>
+              <span>Best {state.highScore} · Reward {state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}</span>
+            </div>
+            <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
+              {state.gameActive ? "Restart" : "Start"}
+            </PanelButton>
           </div>
-          <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
-            {state.gameActive ? "Restart" : "Start"}
-          </PanelButton>
-        </div>
-        {state.gameActive && paused && (
-          <div className="button-row two">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-            <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
+          {state.gameActive && paused && (
+            <div className="button-row two">
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+              <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
+            </div>
+          )}
+          <div className="metric-grid">
+            <Stat icon={Trophy} label="Score" value={state.score || 0} />
+            <Stat icon={Blocks} label="Lines" value={state.linesCleared || 0} />
+            <Stat icon={Zap} label="Cost" value={ECONOMY.COST_BLOX} />
           </div>
-        )}
-        <div className="metric-grid">
-          <Stat icon={Trophy} label="Score" value={state.score || 0} />
-          <Stat icon={Blocks} label="Lines" value={state.linesCleared || 0} />
-          <Stat icon={Zap} label="Cost" value={ECONOMY.COST_BLOX} />
-        </div>
-        <div className="button-row">
-          <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
-          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
-        </div>
-        <Leaderboard entries={leaders} />
-      </aside>
-    </div>
+          <div className="button-row">
+            <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+          </div>
+          <Leaderboard entries={leaders} />
+        </>
+      )}
+    >
+      <PixiGameHost sceneKey="blox" buildScene={buildBloxScene} sceneState={sceneState} />
+    </GameShell>
   );
 }
 
@@ -601,16 +640,16 @@ function Match3Game() {
     return nextMode === "drop" ? seedDropTokens(nextBoard, 3) : nextBoard;
   }
 
-  const queueMatchAnimation = useCallback((animation, durationMs = 420) => {
+  const queueMatchAnimation = useCallback((animation, lockMs = 96) => {
     window.clearTimeout(animationTimerRef.current);
-    setInputLocked(true);
+    if (lockMs > 0) setInputLocked(true);
     setMatchAnimation({
       ...animation,
       id: `${animation.type}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
     });
     animationTimerRef.current = window.setTimeout(() => {
       setInputLocked(false);
-    }, durationMs);
+    }, Math.max(0, lockMs));
   }, []);
 
   useEffect(() => () => window.clearTimeout(animationTimerRef.current), []);
@@ -677,7 +716,7 @@ function Match3Game() {
       const result = attemptMatch3Move(board, from, to, { collectDrops: mode === "drop" });
       if (!result.valid) {
         setSelected(null);
-        queueMatchAnimation({ type: "invalid", from, to, fromGem, toGem }, 240);
+        queueMatchAnimation({ type: "invalid", from, to, fromGem, toGem }, 90);
         haptic("warning");
         audioManager.play("warning");
         return;
@@ -695,8 +734,9 @@ function Match3Game() {
       setSelected(null);
       queueMatchAnimation(
         { type: "cascade", from, to, fromGem, toGem, startBoard: board, steps: result.steps },
-        Math.min(2600, 620 + (result.steps?.length || 1) * 420),
+        120,
       );
+      haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
       performAction("match3.syncMode", {
         game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
@@ -732,9 +772,11 @@ function Match3Game() {
   );
 
   return (
-    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : gameActive ? "shell-paused" : "shell-menu"}`}>
-      <PixiGameHost sceneKey="match3" buildScene={buildMatch3Scene} sceneState={sceneState} />
-      {isPlaying && (
+    <GameShell
+      gameId="match3"
+      phase={isPlaying ? "playing" : gameActive ? "paused" : "menu"}
+      skin="cycle"
+      hud={(
         <GamePlayHud
           title="Gem Crush"
           subtitle={`${MATCH3_MODES.find((item) => item.id === mode)?.label || mode} · best ${snapshot?.match3?.highScore || 0}`}
@@ -747,41 +789,45 @@ function Match3Game() {
           onFinish={() => finish(score)}
         />
       )}
-      <aside className="side-panel game-menu-overlay">
-        <div className="panel-header">
-          <div>
-            <strong>Gem Crush</strong>
-            <span>Best {snapshot?.match3?.highScore || 0} · Combo {combo || "-"}</span>
+      overlay={(
+        <>
+          <div className="panel-header">
+            <div>
+              <strong>Gem Crush</strong>
+              <span>Best {snapshot?.match3?.highScore || 0} · Combo {combo || "-"}</span>
+            </div>
+            <PanelButton icon={Play} onClick={() => start(mode)}>{gameActive ? "New" : "Start"}</PanelButton>
           </div>
-          <PanelButton icon={Play} onClick={() => start(mode)}>{gameActive ? "New" : "Start"}</PanelButton>
-        </div>
-        {gameActive && paused && (
-          <div className="button-row two">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-            <PanelButton icon={Check} onClick={() => finish(score)}>Settle</PanelButton>
+          {gameActive && paused && (
+            <div className="button-row two">
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+              <PanelButton icon={Check} onClick={() => finish(score)}>Settle</PanelButton>
+            </div>
+          )}
+          <div className="mode-grid">
+            {MATCH3_MODES.map((item) => (
+              <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
+                <strong>{item.label}</strong>
+                <small>{item.hint}</small>
+              </button>
+            ))}
           </div>
-        )}
-        <div className="mode-grid">
-          {MATCH3_MODES.map((item) => (
-            <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
-              <strong>{item.label}</strong>
-              <small>{item.hint}</small>
-            </button>
-          ))}
-        </div>
-        <div className="metric-grid">
-          <Stat icon={Trophy} label="Score" value={score} />
-          <Stat icon={Clock} label={mode === "timed" ? "Time" : "Moves"} value={movesLeft} />
-          <Stat icon={Gem} label="Reward" value={score > 0 ? Math.max(5, Math.floor(score / 25)) : 0} />
-        </div>
-        <div className="button-row">
-          <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
-          <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>Reshuffle</PanelButton>
-          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
-        </div>
-        <Leaderboard entries={leaders} />
-      </aside>
-    </div>
+          <div className="metric-grid">
+            <Stat icon={Trophy} label="Score" value={score} />
+            <Stat icon={Clock} label={mode === "timed" ? "Time" : "Moves"} value={movesLeft} />
+            <Stat icon={Gem} label="Reward" value={score > 0 ? Math.max(5, Math.floor(score / 25)) : 0} />
+          </div>
+          <div className="button-row">
+            <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
+            <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>Reshuffle</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+          </div>
+          <Leaderboard entries={leaders} />
+        </>
+      )}
+    >
+      <PixiGameHost sceneKey="match3" buildScene={buildMatch3Scene} sceneState={sceneState} />
+    </GameShell>
   );
 }
 
@@ -1068,9 +1114,12 @@ function MergeGame() {
   );
 
   return (
-    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : mergePlaying ? "shell-paused" : "shell-menu"}`}>
-      <PixiGameHost sceneKey="merge" buildScene={buildMergeScene} sceneState={sceneState} />
-      {isPlaying && (
+    <GameShell
+      gameId="merge"
+      phase={isPlaying ? "playing" : mergePlaying ? "paused" : "menu"}
+      skin="meditation"
+      overlayClassName="merge-menu-overlay"
+      hud={(
         <GamePlayHud
           title="Gacha Merge"
           subtitle={`${merge.freeTapCharges || 0} free taps · ${inventory.rewards?.gachaTokens || 0} tokens`}
@@ -1082,71 +1131,75 @@ function MergeGame() {
           onPause={() => setPaused(true)}
         />
       )}
-      <aside className="side-panel game-menu-overlay merge-menu-overlay">
-        <div className="panel-header">
-          <div>
-            <strong>Gacha Merge</strong>
-            <span>{merge.freeTapCharges || 0} free taps · {inventory.rewards?.gachaTokens || 0} tokens</span>
+      overlay={(
+        <>
+          <div className="panel-header">
+            <div>
+              <strong>Gacha Merge</strong>
+              <span>{merge.freeTapCharges || 0} free taps · {inventory.rewards?.gachaTokens || 0} tokens</span>
+            </div>
+            <PanelButton icon={mergePlaying ? Trash2 : Play} danger={mergePlaying && trashMode} active={mergePlaying && trashMode} onClick={() => {
+              if (!mergePlaying) {
+                setMergePlaying(true);
+                setPaused(false);
+              } else {
+                setTrashMode((value) => !value);
+              }
+            }}>
+              {mergePlaying ? (trashMode ? "Trash On" : "Trash Off") : "Play"}
+            </PanelButton>
           </div>
-          <PanelButton icon={mergePlaying ? Trash2 : Play} danger={mergePlaying && trashMode} active={mergePlaying && trashMode} onClick={() => {
-            if (!mergePlaying) {
-              setMergePlaying(true);
-              setPaused(false);
-            } else {
-              setTrashMode((value) => !value);
-            }
-          }}>
-            {mergePlaying ? (trashMode ? "Trash On" : "Trash Off") : "Play"}
-          </PanelButton>
-        </div>
-        {mergePlaying && paused && (
-          <div className="button-row two">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-            <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>Stop Play</PanelButton>
-          </div>
-        )}
-        <div className="generator-list">
-          {(merge.generators || ["textile"]).map((chainId) => {
-            const chain = MERGE_CHAINS[chainId] || {};
-            const gs = merge.generatorState?.[chainId] || {};
-            const fuel = selectedFuel[chainId] || firstFuel;
-            const cooldown = gs.cooldownEnd > Date.now();
-            return (
-              <div key={chainId} className="generator-card">
-                <div>
-                  <strong>{chain.emoji?.[0]} {chain.name || chainId}</strong>
-                  <small>{cooldown ? "Cooling down" : `${gs.tapsLeft ?? ECONOMY.GENERATOR_TAP_LIMIT}/${ECONOMY.GENERATOR_TAP_LIMIT} taps`}</small>
+          {mergePlaying && paused && (
+            <div className="button-row two">
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+              <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>Stop Play</PanelButton>
+            </div>
+          )}
+          <div className="generator-list">
+            {(merge.generators || ["textile"]).map((chainId) => {
+              const chain = MERGE_CHAINS[chainId] || {};
+              const gs = merge.generatorState?.[chainId] || {};
+              const fuel = selectedFuel[chainId] || firstFuel;
+              const cooldown = gs.cooldownEnd > Date.now();
+              return (
+                <div key={chainId} className="generator-card">
+                  <div>
+                    <strong>{chain.emoji?.[0]} {chain.name || chainId}</strong>
+                    <small>{cooldown ? "Cooling down" : `${gs.tapsLeft ?? ECONOMY.GENERATOR_TAP_LIMIT}/${ECONOMY.GENERATOR_TAP_LIMIT} taps`}</small>
+                  </div>
+                  <select value={fuel || ""} onChange={(event) => setSelectedFuel((prev) => ({ ...prev, [chainId]: event.target.value }))}>
+                    <option value="">Free/choose fuel</option>
+                    {harvestedEntries.map(([cropId, qty]) => (
+                      <option key={cropId} value={cropId}>{CROPS[cropId]?.emoji || ""} {cropId} x{qty}</option>
+                    ))}
+                  </select>
+                  <PanelButton
+                    icon={Zap}
+                    disabled={cooldown || (!fuel && !(merge.freeTapCharges > 0))}
+                    onClick={() => performAction("merge.tap", { chainId, cropId: fuel }, { key: `merge.tap.${chainId}` })}
+                  >
+                    Tap
+                  </PanelButton>
                 </div>
-                <select value={fuel || ""} onChange={(event) => setSelectedFuel((prev) => ({ ...prev, [chainId]: event.target.value }))}>
-                  <option value="">Free/choose fuel</option>
-                  {harvestedEntries.map(([cropId, qty]) => (
-                    <option key={cropId} value={cropId}>{CROPS[cropId]?.emoji || ""} {cropId} x{qty}</option>
-                  ))}
-                </select>
-                <PanelButton
-                  icon={Zap}
-                  disabled={cooldown || (!fuel && !(merge.freeTapCharges > 0))}
-                  onClick={() => performAction("merge.tap", { chainId, cropId: fuel }, { key: `merge.tap.${chainId}` })}
-                >
-                  Tap
-                </PanelButton>
-              </div>
-            );
-          })}
-        </div>
-        <div className="button-row merge-actions">
-          <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>Gacha</PanelButton>
-          <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>Free</PanelButton>
-          <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>30 Taps</PanelButton>
-          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
-        </div>
-        <div className="panel-scroll compact-list">
-          {Object.entries(merge.itemCounts || {}).map(([itemId, qty]) => (
-            <span key={itemId}>{itemId} x{qty}</span>
-          ))}
-        </div>
-      </aside>
-    </div>
+              );
+            })}
+          </div>
+          <div className="button-row merge-actions">
+            <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>Gacha</PanelButton>
+            <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>Free</PanelButton>
+            <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>30 Taps</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+          </div>
+          <div className="panel-scroll compact-list">
+            {Object.entries(merge.itemCounts || {}).map(([itemId, qty]) => (
+              <span key={itemId}>{itemId} x{qty}</span>
+            ))}
+          </div>
+        </>
+      )}
+    >
+      <PixiGameHost sceneKey="merge" buildScene={buildMergeScene} sceneState={sceneState} />
+    </GameShell>
   );
 }
 

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd4cf"/>
+      <stop offset="0.48" stop-color="#ffdeda"/>
+      <stop offset="1" stop-color="#f5bfc7"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#638dbf"/>
+      <stop offset="1" stop-color="#273f73"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1600" fill="url(#bg)"/>
+  <path d="M-30 408c130-150 254-174 374-74 119 98 242 118 586-80v340c-180 100-354 112-520 38-173-78-296-62-440 62Z" fill="#fff8f4" opacity="0.72"/>
+  <path d="M-40 936c132-72 260-74 382-8 178 97 357 98 598 2v260c-254 80-435 78-596-4-130-66-260-62-384 12Z" fill="#7994cf" opacity="0.48"/>
+  <g opacity="0.84">
+    <path d="M676 760c78-100 156-92 238-8-56 56-116 84-180 84-42 0-62-26-58-76Z" fill="#c65491"/>
+    <path d="M708 820c92-56 166-40 222 48-74 34-142 36-204 6-36-18-42-42-18-54Z" fill="#a93d7a"/>
+    <path d="M120 1124c60-114 120-118 180-12-56 60-108 94-158 102-40 6-48-24-22-90Z" fill="#f199aa"/>
+    <path d="M58 1258c96-84 172-68 228 48-86 36-158 42-216 18-36-16-40-38-12-66Z" fill="url(#leaf)"/>
+    <path d="M650 1168c48-98 108-100 180-8-50 58-100 92-150 102-38 8-48-22-30-94Z" fill="#f199aa"/>
+  </g>
+  <g stroke="#fff7f4" stroke-width="5" opacity="0.62" fill="none">
+    <path d="M156 1130l40 76"/>
+    <path d="M156 1130l-20 44"/>
+    <path d="M156 1130l48 24"/>
+    <path d="M724 1184l-18 76"/>
+    <path d="M724 1184l-44 36"/>
+    <path d="M724 1184l48 38"/>
+  </g>
+</svg>

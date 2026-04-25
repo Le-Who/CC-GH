@@ -101,9 +101,9 @@ test.describe("Pixi touch and drag interactions", () => {
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 180 - 28));
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 116 - 28));
     const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 180 - size - 28) * 0.45;
+    const top = box.y + 14 + Math.max(0, box.height - 116 - size - 28) * 0.62;
     const cell = size / 10;
     const trayTop = top + size + 16;
     const slotW = (box.width - 36) / 3;
@@ -131,9 +131,9 @@ test.describe("Pixi touch and drag interactions", () => {
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 116));
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 44));
     const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 116 - size - 28) * 0.52;
+    const top = box.y + 14 + Math.max(0, box.height - 44 - size - 28) * 0.66;
     const cell = size / 8;
 
     await page.mouse.move(left + cell * 0.5, top + cell * 0.5);
@@ -148,7 +148,8 @@ test.describe("Pixi touch and drag interactions", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("Match-3 treats a long touch swipe as an adjacent directional swap", async ({ page }) => {
+  test("Match-3 treats a long touch swipe as an adjacent directional swap", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.use?.hasTouch, "CDP touch dispatch is only meaningful on touch-capable browser projects");
     const pageErrors = await boot(page, "match3_long_touch_swipe");
 
     await page.getByRole("button", { name: /Gems/ }).click();
@@ -162,9 +163,9 @@ test.describe("Pixi touch and drag interactions", () => {
     expect(move).toBeTruthy();
 
     const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 116));
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 44));
     const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 116 - size - 28) * 0.52;
+    const top = box.y + 14 + Math.max(0, box.height - 44 - size - 28) * 0.66;
     const cell = size / 8;
     const start = {
       x: left + cell * (move.from.x + 0.5),

@@ -454,14 +454,14 @@ function setupStage(app, onMove, onUp, onCancel = null) {
   app.stage.on("globalpointermove", move);
   app.stage.on("pointerup", up);
   app.stage.on("pointerupoutside", up);
-  app.stage.on("pointercancel", up);
+  app.stage.on("pointercancel", cancel);
   window.addEventListener("blur", cancel);
   document.addEventListener("visibilitychange", visibility);
   return () => {
     app.stage.off("globalpointermove", move);
     app.stage.off("pointerup", up);
     app.stage.off("pointerupoutside", up);
-    app.stage.off("pointercancel", up);
+    app.stage.off("pointercancel", cancel);
     window.removeEventListener("blur", cancel);
     document.removeEventListener("visibilitychange", visibility);
   };
@@ -744,7 +744,7 @@ export function buildBloxScene(app, initial = {}) {
     const state = data.blox || {};
     const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
     const tray = state.tray || state.savedState?.tray || [];
-    const fitted = fit(app, GRID, GRID, 14, 180, { verticalAnchor: 0.45 });
+    const fitted = fit(app, GRID, GRID, 14, 116, { verticalAnchor: 0.62 });
     layout = { ...fitted, cols: GRID, rows: GRID };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 8, top - 8, size + 16, size + 16, PANEL, 14));
@@ -1010,11 +1010,8 @@ export function buildMatch3Scene(app, initial = {}) {
     }
 
     const steps = Array.isArray(animation.steps) ? animation.steps : [];
-    if (animation.type === "cascade" && steps.length) {
-      animationFrames = [
-        animation.startBoard,
-        ...steps.map((step) => step.boardSnapshot),
-      ].filter((board) => Array.isArray(board) && board.length);
+    if (animation.type === "cascade") {
+      animationFrames = [];
       animationFrameIndex = 0;
       animationFrameAge = 0;
     }
@@ -1075,7 +1072,7 @@ export function buildMatch3Scene(app, initial = {}) {
     const board = state.board || state.savedModes?.[state.gameMode || "classic"]?.board || [];
     const fallback = data.fallbackBoard || [];
     const actual = board.length ? board : fallback;
-    const fitted = fit(app, BOARD_SIZE, BOARD_SIZE, 14, 116, { verticalAnchor: 0.52 });
+    const fitted = fit(app, BOARD_SIZE, BOARD_SIZE, 14, 44, { verticalAnchor: 0.66 });
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
@@ -1537,8 +1534,7 @@ export function buildMergeScene(app, initial = {}) {
       const target = cellFromPoint(layout, done.x, done.y);
       if (target) {
         data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)?.then?.((result) => {
-          makeSparkles(effects, done.x, done.y, result?.error ? CORAL : MINT, result?.error ? 5 : 10);
-          if (!result?.error) makeRipple(effects, done.x, done.y, MINT, 26);
+          playMergeDropFeedback(done, result, current.item);
         });
       }
       draw();
@@ -1596,10 +1592,48 @@ export function buildMergeScene(app, initial = {}) {
     return group;
   }
 
+  function playMergeDropFeedback(point, result = {}, item = null) {
+    const success = !result?.error;
+    const color = success ? MINT : CORAL;
+    makeSparkles(effects, point.x, point.y, color, success ? 14 : 6);
+    makeRipple(effects, point.x, point.y, color, success ? 32 : 20);
+    if (!success) {
+      const reject = label("miss", point.x, point.y - 22, 13, CORAL);
+      reject._tween = { fromX: reject.x, fromY: reject.y, toX: reject.x + 12, toY: reject.y - 18, duration: 18, fade: true, scaleFrom: 0.9, scaleTo: 1.05 };
+      effects.addChild(reject);
+      return;
+    }
+    const level = Number(item?.level || 0) + 1;
+    const pop = label(`L${level + 1}`, point.x, point.y - 26, 15, AMBER);
+    pop._tween = { fromX: pop.x, fromY: pop.y, toX: pop.x, toY: pop.y - 34, duration: 24, fade: true, scaleFrom: 0.7, scaleTo: 1.22 };
+    effects.addChild(pop);
+    for (let i = 0; i < 6; i += 1) {
+      const angle = -Math.PI / 2 + (i - 2.5) * 0.28;
+      const shard = new Graphics()
+        .roundRect(-3, -9, 6, 18, 4)
+        .fill({ color: [MINT, AMBER, SKY, 0xcdb7e9][i % 4], alpha: 0.88 });
+      shard.x = point.x;
+      shard.y = point.y;
+      shard.rotation = angle;
+      shard._vx = Math.cos(angle) * (1.5 + i * 0.1);
+      shard._vy = Math.sin(angle) * (2 + i * 0.12);
+      shard._gravity = 0.09;
+      shard._spin = 0.08 * (i % 2 ? 1 : -1);
+      shard._life = 25 + i;
+      effects.addChild(shard);
+    }
+  }
+
   function updateDragVisualNow() {
     clear(dragLayer);
     if (!drag?.item) return;
-    dragLayer.addChild(drawMergeItem(drag.item, drag.x, drag.y, layout?.cell || 58, 0.94));
+    const lift = Math.min(layout?.cell || 58, 52) * 0.38;
+    dragLayer.addChild(drawMergeItem(drag.item, drag.x, drag.y - lift, layout?.cell || 58, 0.94));
+    dragLayer.addChild(
+      new Graphics()
+        .circle(drag.x, drag.y, Math.max(5, (layout?.cell || 48) * 0.12))
+        .fill({ color: TEXT, alpha: 0.18 }),
+    );
     const target = cellFromPoint(layout, drag.x, drag.y);
     if (target) {
       dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0xf7efe0, 0.58, 3));
@@ -1616,7 +1650,7 @@ export function buildMergeScene(app, initial = {}) {
     const board = merge.board || Array.from({ length: 7 }, () => Array(9).fill(null));
     const cols = 9;
     const rows = 7;
-    const fitted = fitGrid(app, cols, rows, 14, 104, { verticalAnchor: 0.58, minCell: 32, maxCell: 58 });
+    const fitted = fitGrid(app, cols, rows, 14, 52, { verticalAnchor: 0.68, minCell: 32, maxCell: 58 });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;
     root.addChild(rect(left - 8, top - 8, width + 16, height + 16, PANEL, 14));

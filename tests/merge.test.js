@@ -334,5 +334,26 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
         "Telegram vertical swipes should be disabled while dragging a game surface",
       );
     });
+
+    it("keeps migrated game menus in the shared overlay shell instead of external panels", () => {
+      const appPath = path.join(__dirname, "..", "src", "App.jsx");
+      const cssPath = path.join(__dirname, "..", "src", "index.css");
+      const scenesPath = path.join(__dirname, "..", "src", "game-runtime", "scenes.js");
+      const hostPath = path.join(__dirname, "..", "src", "game-runtime", "PixiGameHost.jsx");
+      const app = fs.readFileSync(appPath, "utf-8");
+      const css = fs.readFileSync(cssPath, "utf-8");
+      const scenes = fs.readFileSync(scenesPath, "utf-8");
+      const host = fs.readFileSync(hostPath, "utf-8");
+
+      assert.ok(app.includes("function GameShell"), "GameShell should centralize play/menu/pause states");
+      assert.ok(app.includes('gameId="match3"'), "Match-3 should use the shared shell");
+      assert.ok(app.includes('gameId="blox"'), "Blox should use the shared shell");
+      assert.ok(app.includes('gameId="merge"'), "Merge should use the shared shell");
+      assert.ok(css.includes("top: max(8px, calc(var(--safe-top) + 8px))"), "HUD should stay off the lower thumb zone");
+      assert.ok(css.includes("game-shell-cycle.svg"), "Cycle-inspired shell art should be wired");
+      assert.ok(css.includes("game-shell-meditation.svg"), "Meditation-inspired shell art should be wired");
+      assert.ok(scenes.includes('app.stage.on("pointercancel", cancel)'), "Pixi pointer cancellations must clear sessions");
+      assert.ok(host.includes("onLostPointerCapture"), "DOM pointer capture loss should release Telegram swipe suppression");
+    });
   });
 });
