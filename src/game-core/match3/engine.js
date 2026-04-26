@@ -449,14 +449,28 @@ function collectBottomDropTokens(board, dirtyMask = null) {
 }
 
 function collectAndBackfillDrops(board, dirtyMask = null) {
-  const dropCollected = collectBottomDropTokens(board, dirtyMask);
-  if (!dropCollected.length) return { dropCollected, fallen: [], filled: [], points: 0 };
-  const refill = applyGravityAndFill(board, dirtyMask);
+  const dropCollected = [];
+  const fallen = [];
+  const filled = [];
+  let points = 0;
+  let guard = 0;
+
+  while (guard < BOARD_SIZE) {
+    guard++;
+    const collected = collectBottomDropTokens(board, dirtyMask);
+    if (!collected.length) break;
+    dropCollected.push(...collected);
+    points += collected.reduce((sum, item) => sum + item.points, 0);
+    const refill = applyGravityAndFill(board, dirtyMask);
+    fallen.push(...refill.fallen);
+    filled.push(...refill.filled);
+  }
+
   return {
     dropCollected,
-    fallen: refill.fallen,
-    filled: refill.filled,
-    points: dropCollected.reduce((sum, item) => sum + item.points, 0),
+    fallen,
+    filled,
+    points,
   };
 }
 

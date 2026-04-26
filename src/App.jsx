@@ -44,6 +44,7 @@ import {
   advanceBubboPressure,
   applyBubboShot,
   createBubboRun,
+  generateBubboWave,
   getBubboRemainingCount,
   isBubboDanger,
   randomBubboColor,
@@ -121,7 +122,7 @@ function useImmersiveGame(tabId, active) {
   }, [active, setActiveGameShell, tabId]);
 }
 
-function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = "Settle" }) {
+function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = "Settle", extraActions = null }) {
   const reduceMotion = useReducedMotion();
   return (
     <motion.div
@@ -142,6 +143,7 @@ function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLab
         ))}
       </div>
       <div className="game-play-actions">
+        {extraActions}
         <PanelButton icon={Pause} subtle onClick={onPause}>Pause</PanelButton>
         {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel}</PanelButton>}
       </div>
@@ -979,10 +981,13 @@ function BubboGame() {
         next: nextBubble,
         lastShot,
         pressureStep,
+        seed,
+        waveIndex,
+        nextPressureWave: generateBubboWave(seed, waveIndex),
       },
       onBubboFire: onFire,
     }),
-    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, score, shotsLeft],
+    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, score, seed, shotsLeft, waveIndex],
   );
 
   return (
@@ -1129,6 +1134,17 @@ function MergeGame() {
             { label: "Mode", value: trashMode ? "Trash" : "Merge" },
           ]}
           onPause={() => setPaused(true)}
+          extraActions={(
+            <PanelButton
+              icon={Trash2}
+              danger={trashMode}
+              active={trashMode}
+              onClick={() => setTrashMode((value) => !value)}
+              title={trashMode ? "Disable trash mode" : "Enable trash mode"}
+            >
+              Trash
+            </PanelButton>
+          )}
         />
       )}
       overlay={(

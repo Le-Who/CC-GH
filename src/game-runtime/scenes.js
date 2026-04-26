@@ -6,6 +6,7 @@ import {
   BUBBO_COLS,
   BUBBO_PALETTE,
   BUBBO_ROWS,
+  generateBubboWave,
   getBubboNeighbors,
 } from "../game-core/bubbo/engine.js";
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js";
@@ -629,15 +630,24 @@ export function buildBloxScene(app, initial = {}) {
     if (!drag?.piece) return;
     const state = data.blox || {};
     const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
-    const unit = drag.overCell ? layout.cell : Math.min(layout?.cell || 22, 28);
-    const origin = drag.overCell
-      ? { x: layout.left + drag.overCell.col * layout.cell, y: layout.top + drag.overCell.row * layout.cell }
-      : bloxGhostOrigin(drag, unit);
-    const ghost = drawPiece(drag.piece, origin.x, origin.y, unit, 0.76);
+    const boardUnit = layout?.cell || 22;
+    const trayUnit = Math.min(boardUnit, 28);
+    const unit = drag.overCell ? boardUnit : trayUnit;
+    const origin = bloxGhostOrigin(drag, unit);
+    const ghost = drawPiece(drag.piece, origin.x, origin.y, unit, drag.overCell ? 0.72 : 0.76);
     const valid = drag.overCell && canPlaceBloxPiece(board, drag.piece, drag.overCell.row, drag.overCell.col);
-    ghost.alpha = drag.overCell ? 0.96 : 0.66;
+    ghost.alpha = drag.overCell ? 0.78 : 0.66;
     dragLayer.addChild(ghost);
     if (drag.overCell) {
+      const snap = drawPiece(
+        drag.piece,
+        layout.left + drag.overCell.col * layout.cell,
+        layout.top + drag.overCell.row * layout.cell,
+        layout.cell,
+        valid ? 0.34 : 0.24,
+      );
+      snap.alpha = valid ? 0.74 : 0.52;
+      dragLayer.addChild(snap);
       for (const [dr, dc] of drag.piece.cells || []) {
         const row = drag.overCell.row + dr;
         const col = drag.overCell.col + dc;
@@ -657,6 +667,31 @@ export function buildBloxScene(app, initial = {}) {
     if (!layout) return;
     const rows = Array.isArray(clearInfo.rows) ? clearInfo.rows : [];
     const cols = Array.isArray(clearInfo.cols) ? clearInfo.cols : [];
+    const clearedCells = new Set();
+    for (const row of rows) {
+      for (let col = 0; col < GRID; col += 1) clearedCells.add(`${row}:${col}`);
+    }
+    for (const col of cols) {
+      for (let row = 0; row < GRID; row += 1) clearedCells.add(`${row}:${col}`);
+    }
+    for (const key of clearedCells) {
+      const [row, col] = key.split(":").map(Number);
+      const x = layout.left + col * layout.cell + 2;
+      const y = layout.top + row * layout.cell + 2;
+      const flash = strokedRect(x, y, layout.cell - 4, layout.cell - 4, AMBER, 6, 0xfff4c7, 0.78, 2);
+      flash._delay = Math.min(10, (row + col) % 5);
+      flash._tween = {
+        fromX: x,
+        fromY: y,
+        toX: x,
+        toY: y,
+        duration: 18,
+        fade: true,
+        scaleFrom: 0.9,
+        scaleTo: 1.08,
+      };
+      effects.addChild(flash);
+    }
     for (const row of rows) {
       const y = layout.top + row * layout.cell + layout.cell / 2;
       const wipe = new Graphics()
@@ -669,7 +704,9 @@ export function buildBloxScene(app, initial = {}) {
       wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
       effects.addChild(wipe);
       for (let col = 0; col < GRID; col += 2) {
+        const before = effects.children.length;
         makeSparkles(effects, layout.left + (col + 0.5) * layout.cell, y, AMBER, 3);
+        for (const child of effects.children.slice(before)) child._delay = 4 + row % 3;
       }
     }
     for (const col of cols) {
@@ -684,8 +721,24 @@ export function buildBloxScene(app, initial = {}) {
       wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
       effects.addChild(wipe);
       for (let row = 0; row < GRID; row += 2) {
+        const before = effects.children.length;
         makeSparkles(effects, x, layout.top + (row + 0.5) * layout.cell, MINT, 3);
+        for (const child of effects.children.slice(before)) child._delay = 6 + col % 3;
       }
+    }
+    if (clearedCells.size) {
+      const text = label("CLEAR", layout.left + layout.size / 2, layout.top + layout.size / 2, Math.max(18, layout.cell * 0.48), AMBER, "1000");
+      text._tween = {
+        fromX: text.x,
+        fromY: text.y,
+        toX: text.x,
+        toY: text.y - layout.cell * 0.7,
+        duration: 30,
+        fade: true,
+        scaleFrom: 0.82,
+        scaleTo: 1.18,
+      };
+      effects.addChild(text);
     }
   }
 
@@ -1011,7 +1064,11 @@ export function buildMatch3Scene(app, initial = {}) {
 
     const steps = Array.isArray(animation.steps) ? animation.steps : [];
     if (animation.type === "cascade") {
-      animationFrames = [];
+      const stepBoards = steps.map((step) => step.boardSnapshot).filter(Boolean);
+      animationFrames = [
+        animation.startBoard,
+        ...stepBoards,
+      ].filter((board) => Array.isArray(board) && board.length);
       animationFrameIndex = 0;
       animationFrameAge = 0;
     }
@@ -1158,6 +1215,7 @@ export function buildBubboScene(app, initial = {}) {
   let aimPoint = null;
   let projectile = null;
   let lastShotId = null;
+  let lastPressureShiftId = null;
   let pressureDisplayStep = Math.max(0, Math.min(1, Number(initial.bubbo?.pressureStep) || 0));
   let pressureTargetStep = pressureDisplayStep;
   const pointer = createPointerSession({
@@ -1186,11 +1244,11 @@ export function buildBubboScene(app, initial = {}) {
   function buildLayout() {
     const width = viewWidth(app);
     const height = viewHeight(app);
-    const margin = 14;
-    const cell = Math.max(24, Math.min((width - margin * 2) / (BUBBO_COLS + 0.55), (height - 92) / (BUBBO_ROWS + 1.2)));
+    const margin = 8;
+    const cell = Math.max(26, Math.min((width - margin * 2) / (BUBBO_COLS + 0.2), (height - 64) / (BUBBO_ROWS + 0.95)));
     const boardWidth = cell * (BUBBO_COLS + 0.5);
     const left = (width - boardWidth) / 2;
-    const top = Math.max(10, Math.min(18, (height - cell * (BUBBO_ROWS + 1.2) - 52) / 2));
+    const top = Math.max(4, Math.min(14, (height - cell * (BUBBO_ROWS + 0.95) - 24) / 2));
     return {
       cell,
       radius: cell * 0.42,
@@ -1200,7 +1258,7 @@ export function buildBubboScene(app, initial = {}) {
       bottom: top + cell * BUBBO_ROWS,
       pressureOffset: pressureDisplayStep * cell,
       cannonX: width / 2,
-      cannonY: Math.min(height - 34, top + cell * (BUBBO_ROWS + 0.8)),
+      cannonY: Math.min(height - 26, top + cell * (BUBBO_ROWS + 0.62)),
     };
   }
 
@@ -1367,6 +1425,17 @@ export function buildBubboScene(app, initial = {}) {
     root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + layout.cell + 20, PANEL, 16, 0.92));
     root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + layout.cell + 16, 0.2));
     root.addChild(new Graphics().moveTo(layout.left, layout.bottom - layout.cell * 0.2).lineTo(layout.right, layout.bottom - layout.cell * 0.2).stroke({ color: CORAL, width: 3, alpha: 0.45 }));
+    if (state.gameActive) {
+      const nextWave = Array.isArray(state.nextPressureWave) && state.nextPressureWave.length
+        ? state.nextPressureWave
+        : generateBubboWave(state.seed || "bubbo", Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : 0);
+      const previewAlpha = Math.max(0.18, Math.min(0.82, pressureDisplayStep + 0.18));
+      for (let c = 0; c < BUBBO_COLS; c++) {
+        const x = layout.left + c * layout.cell + layout.cell / 2;
+        const y = layout.top + layout.pressureOffset - layout.cell * 0.5;
+        root.addChild(drawBubble(x, y, layout.radius * 0.92, nextWave[c], previewAlpha));
+      }
+    }
     for (let r = 0; r < BUBBO_ROWS; r++) {
       for (let c = 0; c < BUBBO_COLS; c++) {
         const value = board[r]?.[c];
@@ -1471,9 +1540,14 @@ export function buildBubboScene(app, initial = {}) {
   draw();
   return {
     update(next) {
+      const previousShotId = data?.bubbo?.lastShot?.id;
       data = next || {};
       pressureTargetStep = Math.max(0, Math.min(1, Number(data.bubbo?.pressureStep) || 0));
-      if (pressureTargetStep + 0.18 < pressureDisplayStep) {
+      const shot = data.bubbo?.lastShot;
+      if (shot?.shifted && shot.id && shot.id !== previousShotId && shot.id !== lastPressureShiftId) {
+        lastPressureShiftId = shot.id;
+        pressureDisplayStep = Math.max(-1, pressureDisplayStep - Number(shot.shifted || 1));
+      } else if (pressureTargetStep + 0.24 < pressureDisplayStep && pressureDisplayStep > 0.92) {
         pressureDisplayStep = pressureTargetStep;
       }
       draw();

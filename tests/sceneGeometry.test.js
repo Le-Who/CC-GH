@@ -61,4 +61,24 @@ describe("Pixi scene geometry helpers", () => {
 
     assert.deepEqual(bloxAnchorCellFromDrag(layout, drag), { row: 5, col: 4 });
   });
+
+  it("keeps Blox board-scale ghosts under the original touch capture point", () => {
+    const layout = { left: 18, top: 52, cell: 34, rows: 10, cols: 10 };
+    const drag = createBloxDragState({
+      pieceIdx: 0,
+      piece: line3,
+      event: { pointerId: 1, global: { x: 76, y: 38 } },
+      originX: 28,
+      originY: 26,
+      unit: 16,
+    });
+
+    drag.x = layout.left + 3 * layout.cell + drag.grabX * layout.cell + 7;
+    drag.y = layout.top + 4 * layout.cell + drag.grabY * layout.cell + 6;
+
+    const origin = bloxGhostOrigin(drag, layout.cell);
+    assert.equal(origin.x + drag.grabX * layout.cell, drag.x);
+    assert.equal(origin.y + drag.grabY * layout.cell, drag.y);
+    assert.deepEqual(bloxAnchorCellFromDrag(layout, drag), { row: 4, col: 3 });
+  });
 });

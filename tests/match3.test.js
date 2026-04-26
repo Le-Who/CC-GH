@@ -7,6 +7,11 @@
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import {
+  BOARD_SIZE as ENGINE_BOARD_SIZE,
+  attemptMatch3Move,
+  resolveBoard as resolveEngineBoard,
+} from "../src/game-core/match3/engine.js";
 
 const BOARD_SIZE = 8;
 const GEM_TYPES = ["fire", "water", "earth", "air", "light", "dark"];
@@ -307,5 +312,66 @@ describe("drop type exclusion", () => {
     b[1][2] = "drop_gold";
     const m = findMatches(b);
     assert.equal(m.size, 0, "Drop gems must never be matched");
+  });
+});
+
+describe("current Match-3 engine resolution", () => {
+  function stableEngineBoard() {
+    const types = ["fire", "water", "earth", "air", "light", "dark"];
+    return Array.from({ length: ENGINE_BOARD_SIZE }, (_, y) =>
+      Array.from({ length: ENGINE_BOARD_SIZE }, (_, x) => types[(x * 2 + y * 3 + (y % 2)) % types.length]),
+    );
+  }
+
+  function assertFullyPopulated(board) {
+    for (let y = 0; y < ENGINE_BOARD_SIZE; y += 1) {
+      for (let x = 0; x < ENGINE_BOARD_SIZE; x += 1) {
+        assert.ok(board[y][x], `Engine cell [${x},${y}] should not be empty`);
+      }
+    }
+  }
+
+  it("keeps bonus-block resolution fully backfilled", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_row";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 }, { collectDrops: true });
+
+    assert.equal(result.valid, true);
+    assert.equal(result.special, true);
+    assertFullyPopulated(result.board);
+    assert.ok(result.steps[0].filled.length > 0, "Special clear should report filled cells for animation");
+  });
+
+  it("auto-credits Star Drop tokens that fall into the bottom during backfill", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_row";
+    board[6][0] = "drop_energy";
+    board[7][0] = "drop_gold";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 }, { collectDrops: true });
+
+    assert.equal(result.valid, true);
+    assert.equal(result.dropCollected.length, 2);
+    assert.equal(result.board[7][0].startsWith("drop_"), false);
+    assertFullyPopulated(result.board);
+  });
+
+  it("returns readable cascade step snapshots ending at the final board", () => {
+    const board = stableEngineBoard();
+    board[7][0] = "fire";
+    board[7][1] = "fire";
+    board[7][2] = "fire";
+
+    const result = resolveEngineBoard(board, { collectDrops: true });
+
+    assert.ok(result.steps.length >= 1);
+    for (const step of result.steps) {
+      assertFullyPopulated(step.boardSnapshot);
+      assert.ok(Array.isArray(step.cleared));
+      assert.ok(Array.isArray(step.fallen));
+      assert.ok(Array.isArray(step.filled));
+    }
+    assert.deepEqual(result.steps.at(-1).boardSnapshot, board);
   });
 });
