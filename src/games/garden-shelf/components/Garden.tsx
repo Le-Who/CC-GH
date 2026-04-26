@@ -6,8 +6,7 @@ import { Coins } from 'lucide-react';
 import { PlantData } from '../types';
 import { cn } from '../lib/utils';
 import { Lock } from 'lucide-react';
-import { spriteData } from '../lib/sprites';
-import { GARDEN_SHEET_PATH } from '../lib/sprites';
+import { GARDEN_SHEET_PATH, getGardenSpriteStyle } from '../lib/sprites';
 
 interface GardenProps {
   onSelectSpot: (shelfIndex: number, spotIndex: number, plantId?: string) => void;
@@ -204,46 +203,14 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
 
   const phase = isPlant ? plant.phase : 0; 
   const spriteIndex = def.spriteIndex || 0;
-  const col = (spriteIndex % 2) * 4 + phase;
-  const row = Math.floor(spriteIndex / 2);
-  
   const duration = phase < 3 ? PHASE_DURATIONS_MS[phase] : 1;
   const remaining = isPlant ? Math.max(0, duration - plant.phaseProgress) : 0;
   const m = Math.floor(remaining / 60000);
   const s = Math.floor((remaining % 60000) / 1000);
   const timeStr = phase < 3 ? `${m}:${s.toString().padStart(2, '0')}` : '';
 
-  const sprite = spriteData.sprites.find(s => s && s.col === col && s.row === row);
-  
-  let bgStyle: React.CSSProperties = {};
-  if (sprite) {
-    const pX = (sprite.x / (spriteData.fullWidth - sprite.width)) * 100;
-    const pY = (sprite.y / (spriteData.fullHeight - sprite.height)) * 100;
-    
-    const phaseScales = [0.45, 0.50, 0.55, 0.6];
-    const fixedScale = phaseScales[phase] || 0.6; // Scale down phase 0 significantly 
-    
-    bgStyle = {
-      backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
-      backgroundSize: `${(spriteData.fullWidth / sprite.width) * 100}% ${(spriteData.fullHeight / sprite.height) * 100}%`,
-      backgroundPosition: `${pX}% ${pY}%`,
-      width: `${sprite.width * fixedScale}px`,
-      height: `${sprite.height * fixedScale}px`,
-      transformOrigin: 'bottom center',
-    };
-  } else {
-    const posX = (col / 7) * 100;
-    const posY = (row / 3) * 100;
-    bgStyle = {
-       backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
-       backgroundSize: '800% 400%',
-       backgroundPosition: `${posX}% ${posY}%`,
-       width: '96px',
-       height: '96px',
-       transformOrigin: 'bottom center',
-       transform: `scale(${1 + phase * 0.1})`
-    };
-  }
+  const phaseScales = [0.45, 0.50, 0.55, 0.6];
+  const bgStyle = getGardenSpriteStyle(spriteIndex, phase, phaseScales[phase] || 0.6);
 
   return (
     <AnimatePresence mode="wait">

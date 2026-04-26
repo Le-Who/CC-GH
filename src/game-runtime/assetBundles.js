@@ -18,6 +18,7 @@ export const GAME_ASSET_BUNDLES = {
     assetUrl("/games/bubbo-bubbo/images/bubble-green.png"),
     assetUrl("/games/bubbo-bubbo/images/bubble-red.png"),
     assetUrl("/games/bubbo-bubbo/images/bubble-yellow.png"),
+    assetUrl("/games/bubbo-bubbo/images/bottom-tray.png"),
     assetUrl("/games/bubbo-bubbo/images/cannon-main.png"),
   ],
   match3: [

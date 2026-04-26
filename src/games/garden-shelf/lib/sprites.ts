@@ -262,3 +262,36 @@ export const spriteData = {
     }
   ]
 }
+
+export function getGardenSpriteFrame(spriteIndex = 0, phase = 0) {
+  const safePhase = Math.max(0, Math.min(3, Number(phase) || 0));
+  const col = (spriteIndex % 2) * 4 + safePhase;
+  const row = Math.floor(spriteIndex / 2);
+  return spriteData.sprites.find((sprite) => sprite && sprite.col === col && sprite.row === row);
+}
+
+export function getGardenSpriteStyle(spriteIndex = 0, phase = 0, scale = 1) {
+  const safePhase = Math.max(0, Math.min(3, Number(phase) || 0));
+  const sprite = getGardenSpriteFrame(spriteIndex, safePhase);
+  if (!sprite) {
+    return {
+      backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
+      backgroundSize: "800% 400%",
+      backgroundPosition: `${(((spriteIndex % 2) * 4 + safePhase) / 7) * 100}% ${(Math.floor(spriteIndex / 2) / 3) * 100}%`,
+      width: `${96 * scale}px`,
+      height: `${96 * scale}px`,
+      transformOrigin: "bottom center",
+    };
+  }
+
+  const pX = (sprite.x / (spriteData.fullWidth - sprite.width)) * 100;
+  const pY = (sprite.y / (spriteData.fullHeight - sprite.height)) * 100;
+  return {
+    backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
+    backgroundSize: `${(spriteData.fullWidth / sprite.width) * 100}% ${(spriteData.fullHeight / sprite.height) * 100}%`,
+    backgroundPosition: `${pX}% ${pY}%`,
+    width: `${sprite.width * scale}px`,
+    height: `${sprite.height * scale}px`,
+    transformOrigin: "bottom center",
+  };
+}

@@ -906,7 +906,7 @@ function BubboGame() {
     }
     const id = window.setInterval(() => {
       const now = Date.now();
-      const elapsed = now - pressureClockRef.current;
+      const elapsed = Math.min(1000, Math.max(0, now - pressureClockRef.current));
       pressureClockRef.current = now;
       const current = runRef.current;
       const advanced = advanceBubboPressure(current, elapsed);
@@ -937,7 +937,7 @@ function BubboGame() {
       if (advanced.danger || advanced.overflow) {
         finish(current.score);
       }
-    }, 250);
+    }, 500);
     return () => window.clearInterval(id);
   }, [finish, isPlaying, performAction]);
 

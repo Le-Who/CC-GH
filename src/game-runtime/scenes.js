@@ -1207,10 +1207,11 @@ export function buildMatch3Scene(app, initial = {}) {
 
 export function buildBubboScene(app, initial = {}) {
   const root = new Container();
+  const boardLayer = new Container();
   const aimLayer = new Container();
   const projectileLayer = new Container();
   const effects = new Container();
-  app.stage.addChild(root, aimLayer, projectileLayer, effects);
+  app.stage.addChild(root, boardLayer, aimLayer, projectileLayer, effects);
   let data = initial;
   let layout = null;
   let aimPoint = null;
@@ -1250,6 +1251,7 @@ export function buildBubboScene(app, initial = {}) {
     const boardWidth = cell * (BUBBO_COLS + 0.5);
     const left = (width - boardWidth) / 2;
     const top = Math.max(4, Math.min(14, (height - cell * (BUBBO_ROWS + 0.95) - 24) / 2));
+    const cannonY = Math.max(top + cell * (BUBBO_ROWS + 0.62), height - Math.max(34, Math.min(72, cell * 0.9)));
     return {
       cell,
       radius: cell * 0.42,
@@ -1259,7 +1261,7 @@ export function buildBubboScene(app, initial = {}) {
       bottom: top + cell * BUBBO_ROWS,
       pressureOffset: pressureDisplayStep * cell,
       cannonX: width / 2,
-      cannonY: Math.min(height - 26, top + cell * (BUBBO_ROWS + 0.62)),
+      cannonY,
     };
   }
 
@@ -1267,12 +1269,26 @@ export function buildBubboScene(app, initial = {}) {
     return Number.isFinite(Number(data.bubbo?.rowOffset)) ? Number(data.bubbo.rowOffset) : 0;
   }
 
-  function bubblePosition(row, col) {
+  function baseBubblePosition(row, col) {
     const offset = getBubboRowVisualOffset(row, currentRowOffset()) * layout.cell;
     return {
       x: layout.left + offset + col * layout.cell + layout.cell / 2,
-      y: layout.top + layout.pressureOffset + row * layout.cell + layout.cell / 2,
+      y: layout.top + row * layout.cell + layout.cell / 2,
     };
+  }
+
+  function bubblePosition(row, col) {
+    const pos = baseBubblePosition(row, col);
+    return {
+      x: pos.x,
+      y: pos.y + pressureDisplayStep * layout.cell,
+    };
+  }
+
+  function applyPressureVisual(refreshAim = false) {
+    if (!layout) return;
+    boardLayer.y = pressureDisplayStep * layout.cell;
+    if (refreshAim && aimPoint) updateAimVisual();
   }
 
   function nearestCellFromPoint(board, x, y) {
@@ -1424,11 +1440,13 @@ export function buildBubboScene(app, initial = {}) {
 
   function draw() {
     clear(root);
+    clear(boardLayer);
     layout = buildLayout();
     const state = data.bubbo || {};
     const board = state.board || [];
-    root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, layout.bottom - layout.top + layout.cell + 20, PANEL, 16, 0.92));
-    root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, layout.bottom - layout.top + layout.cell + 16, 0.2));
+    const frameBottom = Math.max(layout.bottom + layout.cell + 20, layout.cannonY + layout.cell * 1.2);
+    root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, PANEL, 16, 0.92));
+    root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, 0.2));
     root.addChild(new Graphics().moveTo(layout.left, layout.bottom - layout.cell * 0.2).lineTo(layout.right, layout.bottom - layout.cell * 0.2).stroke({ color: CORAL, width: 3, alpha: 0.45 }));
     if (state.gameActive) {
       const nextWave = Array.isArray(state.nextPressureWave) && state.nextPressureWave.length
@@ -1438,30 +1456,32 @@ export function buildBubboScene(app, initial = {}) {
       const previewOffset = getBubboRowVisualOffset(0, currentRowOffset() + 1) * layout.cell;
       for (let c = 0; c < BUBBO_COLS; c++) {
         const x = layout.left + previewOffset + c * layout.cell + layout.cell / 2;
-        const y = layout.top + layout.pressureOffset - layout.cell * 0.5;
-        root.addChild(drawBubble(x, y, layout.radius * 0.92, nextWave[c], previewAlpha));
+        const y = layout.top - layout.cell * 0.5;
+        boardLayer.addChild(drawBubble(x, y, layout.radius * 0.92, nextWave[c], previewAlpha));
       }
     }
     for (let r = 0; r < BUBBO_ROWS; r++) {
       for (let c = 0; c < BUBBO_COLS; c++) {
         const value = board[r]?.[c];
-        const pos = bubblePosition(r, c);
+        const pos = baseBubblePosition(r, c);
         if (value) {
           const bubble = drawBubble(pos.x, pos.y, layout.radius, value);
           bubble.scale.set(0.98 + Math.sin((r + c) * 0.9) * 0.015);
-          root.addChild(bubble);
+          boardLayer.addChild(bubble);
         } else {
-          root.addChild(new Graphics().circle(pos.x, pos.y, Math.max(1.5, layout.radius * 0.08)).fill({ color: 0xffffff, alpha: 0.08 }));
+          boardLayer.addChild(new Graphics().circle(pos.x, pos.y, Math.max(1.5, layout.radius * 0.08)).fill({ color: 0xffffff, alpha: 0.08 }));
         }
       }
     }
 
     const cannonColor = state.current || BUBBO_COLORS[0];
+    root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/bottom-tray.png`), layout.cannonX, Math.min(viewHeight(app) - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
     root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: PANEL_2, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
     root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/cannon-main.png`), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
     root.addChild(label(`${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(viewHeight(app) - 12, layout.cannonY + 46), 14, AMBER));
+    applyPressureVisual();
     updateAimVisual();
     playShotEffects();
   }
@@ -1520,10 +1540,10 @@ export function buildBubboScene(app, initial = {}) {
     if (Math.abs(pressureDelta) > 0.002) {
       const blend = Math.min(0.42, Math.max(0.12, (tickerState.deltaTime || 1) * 0.16));
       pressureDisplayStep += pressureDelta * blend;
-      draw();
+      applyPressureVisual(true);
     } else if (pressureDisplayStep !== pressureTargetStep) {
       pressureDisplayStep = pressureTargetStep;
-      draw();
+      applyPressureVisual(true);
     }
     if (!projectile) return;
     const pxPerFrame = Math.max(8, (layout?.cell || 32) * 0.34);
@@ -1564,10 +1584,12 @@ export function buildBubboScene(app, initial = {}) {
       pointer.cancel("destroy");
       app.ticker.remove(ticker);
       clear(root);
+      clear(boardLayer);
       clear(aimLayer);
       clear(projectileLayer);
       clear(effects);
       root.destroy({ children: true });
+      boardLayer.destroy({ children: true });
       aimLayer.destroy({ children: true });
       projectileLayer.destroy({ children: true });
       effects.destroy({ children: true });

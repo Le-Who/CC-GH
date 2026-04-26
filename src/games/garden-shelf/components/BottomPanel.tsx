@@ -5,7 +5,7 @@ import { useGame } from '../lib/GameContext';
 import { PLANT_TYPES, getUpgradeCost, getProduction, PHASE_DURATIONS_MS } from '../constants';
 import { Coins, X, ArrowUpCircle, Trash2, Droplets, Archive } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { GARDEN_SHEET_PATH, spriteData } from '../lib/sprites';
+import { GARDEN_SHEET_PATH, getGardenSpriteStyle } from '../lib/sprites';
 
 interface BottomPanelProps {
   spot: { shelfIndex: number, spotIndex: number, plantId?: string } | null;
@@ -50,6 +50,14 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
   );
 }
 
+function PlantThumb({ spriteIndex, phase = 3 }: { spriteIndex: number, phase?: number }) {
+  return (
+    <div className="w-12 h-12 flex items-end justify-center bg-black/35 rounded-lg border border-white/5 overflow-hidden">
+      <div style={getGardenSpriteStyle(spriteIndex, phase, 0.24)} />
+    </div>
+  );
+}
+
 function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotIndex: number, onClose: () => void }) {
   const { state, buyPlant, unlockedPlants, movePlantToShelf } = useGame();
   const [tab, setTab] = useState<'shop' | 'inventory'>('shop');
@@ -77,15 +85,12 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
       
       <div className="overflow-y-auto w-full space-y-3 pb-8 pr-2 -mr-2">
         {tab === 'shop' && availablePlants.map((plant) => {
-          const Icon = plant.icon;
           const canAfford = state.gold >= plant.baseCost;
 
           return (
             <div key={plant.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
               <div className="flex items-center gap-4">
-                <div className={cn("w-12 h-12 flex items-center justify-center bg-black/40 rounded-lg border border-white/5", plant.color)}>
-                  <Icon size={24} strokeWidth={1.5} />
-                </div>
+                <PlantThumb spriteIndex={plant.spriteIndex} />
                 <div>
                   <h3 className="font-medium text-slate-200 text-sm">{plant.name}</h3>
                   <p className="text-[10px] text-amber-500/70 font-mono">Yields {plant.baseProduction} <small>G/s</small></p>
@@ -120,14 +125,11 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
 
         {tab === 'inventory' && inventoryPlants.map((p) => {
            const def = PLANT_TYPES[p.type] || PLANT_TYPES.daisy;
-           const Icon = def.icon;
            
            return (
             <div key={p.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
               <div className="flex items-center gap-4">
-                <div className={cn("w-12 h-12 flex items-center justify-center bg-black/40 rounded-lg border border-white/5", def.color)}>
-                  <Icon size={24} strokeWidth={1.5} />
-                </div>
+                <PlantThumb spriteIndex={def.spriteIndex} phase={p.phase} />
                 <div>
                   <h3 className="font-medium text-slate-200 text-sm">{def.name}</h3>
                   <p className="text-[10px] text-zinc-500 font-mono">Phase {p.phase} • Lv {p.level}</p>
@@ -173,9 +175,6 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
   
   const phase = plant.phase; // 0,1,2,3
   const spriteIndex = def.spriteIndex || 0;
-  const col = (spriteIndex % 2) * 4 + phase;
-  const row = Math.floor(spriteIndex / 2);
-  
   const duration = phase < 3 ? PHASE_DURATIONS_MS[phase] : 1;
   const progressPercent = phase < 3 ? (plant.phaseProgress / duration) * 100 : 100;
   
@@ -184,39 +183,8 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
   const s = Math.floor((remaining % 60000) / 1000);
   const timeStr = `${m}:${s.toString().padStart(2, '0')}`;
 
-  const sprite = spriteData.sprites.find(s => s && s.col === col && s.row === row);
-  
-  let bgStyle: React.CSSProperties = {};
-  if (sprite) {
-    const pX = (sprite.x / (spriteData.fullWidth - sprite.width)) * 100;
-    const pY = (sprite.y / (spriteData.fullHeight - sprite.height)) * 100;
-    
-    // Fixed scale so plants grow proportionally
-    const phaseScales = [0.55, 0.65, 0.75, 0.8]; // Slightly larger than Garden
-    const baseFixedScale = phaseScales[phase] || 0.8;
-    const fixedScale = baseFixedScale * (isUpgrading ? 1.15 : 1);
-    
-    bgStyle = {
-      backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
-      backgroundSize: `${(spriteData.fullWidth / sprite.width) * 100}% ${(spriteData.fullHeight / sprite.height) * 100}%`,
-      backgroundPosition: `${pX}% ${pY}%`,
-      width: `${sprite.width * fixedScale}px`,
-      height: `${sprite.height * fixedScale}px`,
-      transformOrigin: 'bottom center',
-    };
-  } else {
-    const posX = (col / 7) * 100;
-    const posY = (row / 3) * 100;
-    bgStyle = {
-       backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
-       backgroundSize: '800% 400%',
-       backgroundPosition: `${posX}% ${posY}%`,
-       width: '160px',
-       height: '160px',
-       transformOrigin: 'bottom center',
-       transform: isUpgrading ? 'scale(1.15)' : `scale(${1 + phase * 0.05})`
-    };
-  }
+  const phaseScales = [0.55, 0.65, 0.75, 0.8];
+  const bgStyle = getGardenSpriteStyle(spriteIndex, phase, (phaseScales[phase] || 0.8) * (isUpgrading ? 1.15 : 1));
 
   const handleMash = (e: React.PointerEvent) => {
     tapPlant(plantId);
