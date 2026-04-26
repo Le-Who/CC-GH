@@ -4,6 +4,9 @@
 
 ### Client
 
+- Replaced the visible Farm game tab with a Garden Shelf port, including the original shelf/terrarium React UI, sprite-sheet plant rendering, plant shop, stash/inventory flow, watering, upgrades, offline earnings, and Garden Shelf assets under `public/games/garden-shelf/`.
+- Removed the duplicate Garden Shelf in-game `Gold Balance` / `Current Phase` header, adapted the shared Hub resource strip for Garden-specific `Gold`, `Garden Lv`, and `Plants`, and made Garden Shelf purchases, sales, taps, passive income, and offline income use the same shared Hub gold balance as the other games.
+- Fixed Bubbo pressure-row descent by carrying an explicit row-offset phase through pressure shifts, shot targeting, clusters, and scene rendering so newly inserted rows move the field down without horizontally rearranging existing bubbles.
 - Added a manual PWA update manager that compares injected client build ids with uncached `/api/config`, unregisters stale service workers, clears runtime caches, and reloads once with a cache-busting build query.
 - Versioned Pixi `/games/*` asset URLs with the current build id so tracked Bubbo Bubbo and Puzzling Potions art refreshes cleanly after deploys.
 - Added scene-local Gem Crush animation queues from `attemptMatch3Move().steps`, including swap ghosts, cascade pulses, fall/fill tweens, invalid-swap nudges, and input locking while cascades resolve.
@@ -25,7 +28,8 @@
 ### API
 
 - Added `buildId` to `/api/config` and `/api/health`, with no-store headers on `/api/config`, while preserving existing public endpoint names and player mutate contracts.
-- Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
+- Added `garden.goldDelta` to the player mutate API so Garden Shelf gold changes update shared player resources with the same insufficient-gold guard as the other Hub games.
+- Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, `rowOffset`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
 
 ### Operations
 
@@ -35,6 +39,8 @@
 ### Tests
 
 - Added update-manager core tests for build-id comparison, reload guarding, corrupt guard recovery, and cache-busting URL generation.
+- Added unit/e2e coverage for Garden Shelf shared-gold spending and the removal of the duplicate in-game gold header.
+- Added Garden Shelf Playwright smoke coverage and replaced old Farm UI e2e expectations with the new visible game list.
 - Added Bubbo coverage for sky/berry color separation and sky-cluster popping without adjacent berry false positives.
 - Added Blox mutate coverage proving `blox.place` returns authoritative cleared row/column indices and clears the saved board synchronously.
 - Added Match-3 coverage that cascade animation step snapshots end at the final board and invalid swaps expose no animation steps.

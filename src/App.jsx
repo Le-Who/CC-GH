@@ -29,6 +29,7 @@ import { installUpdateManager } from "./services/updateManager.js";
 import { audioManager } from "./services/audioManager.js";
 import { connectRealtime } from "./services/realtimeClient.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
+import GardenShelfGame from "./games/garden-shelf/GardenShelfGame";
 import PixiGameHost from "./game-runtime/PixiGameHost.jsx";
 import {
   buildBloxScene,
@@ -58,7 +59,7 @@ import {
 import { CROPS, ECONOMY, MERGE_CHAINS, ROOM_DECORATIONS } from "../game-logic.js";
 
 const TABS = [
-  { id: "farm", label: "Farm", icon: Leaf },
+  { id: "garden", label: "Garden", icon: Leaf },
   { id: "blox", label: "Blox", icon: Blocks },
   { id: "match3", label: "Gems", icon: Gem },
   { id: "merge", label: "Merge", icon: PackageOpen },
@@ -201,7 +202,7 @@ function useAction() {
 function useExitToHub() {
   const setActiveTab = useGameHub((state) => state.setActiveTab);
   return useCallback(() => {
-    setActiveTab("farm");
+    setActiveTab("garden");
   }, [setActiveTab]);
 }
 
@@ -841,6 +842,7 @@ function BubboGame() {
   const [board, setBoard] = useState(() => initialRun.board);
   const [seed, setSeed] = useState(initialRun.seed);
   const [waveIndex, setWaveIndex] = useState(initialRun.waveIndex);
+  const [rowOffset, setRowOffset] = useState(initialRun.rowOffset || 0);
   const [pressure, setPressure] = useState(initialRun.pressure);
   const [pressureStep, setPressureStep] = useState(initialRun.pressureStep || 0);
   const [score, setScore] = useState(0);
@@ -851,15 +853,15 @@ function BubboGame() {
   const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
   const [lastShot, setLastShot] = useState(null);
   const pressureClockRef = useRef(Date.now());
-  const runRef = useRef({ board, seed, waveIndex, pressure, pressureStep, score, shotsLeft });
+  const runRef = useRef({ board, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft });
   const highScore = snapshot?.bubbo?.highScore || 0;
   const remainingBubbles = getBubboRemainingCount(board);
   const isPlaying = gameActive && !paused;
   useImmersiveGame("bubbo", true);
 
   useEffect(() => {
-    runRef.current = { board, seed, waveIndex, pressure, pressureStep, score, shotsLeft };
-  }, [board, pressure, pressureStep, score, seed, shotsLeft, waveIndex]);
+    runRef.current = { board, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft };
+  }, [board, pressure, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex]);
 
   const start = useCallback(async () => {
     const run = createBubboRun();
@@ -868,12 +870,14 @@ function BubboGame() {
       board: run.board,
       seed: run.seed,
       waveIndex: run.waveIndex,
+      rowOffset: run.rowOffset,
       pressure: 0,
     }, { key: "bubbo.start" });
     if (result.error) return;
     setBoard(run.board);
     setSeed(run.seed);
     setWaveIndex(run.waveIndex);
+    setRowOffset(run.rowOffset || 0);
     setPressure(0);
     setPressureStep(0);
     setScore(0);
@@ -911,6 +915,7 @@ function BubboGame() {
       if (!advanced.shifts) return;
       setBoard(advanced.board);
       setWaveIndex(advanced.waveIndex);
+      setRowOffset(advanced.rowOffset || 0);
       const pressureRecord = {
         id: `pressure_${now}_${advanced.waveIndex}`,
         shifted: advanced.shifts,
@@ -925,6 +930,7 @@ function BubboGame() {
           board: advanced.board,
           seed: advanced.seed,
           waveIndex: advanced.waveIndex,
+          rowOffset: advanced.rowOffset || 0,
           pressure: advanced.pressure,
         },
       }, { silent: true, key: `bubbo.pressure.${now}` });
@@ -938,7 +944,7 @@ function BubboGame() {
   const onFire = useCallback(
     (row, col, path = []) => {
       if (!gameActive) return;
-      const result = applyBubboShot(board, currentBubble, row, col);
+      const result = applyBubboShot(board, currentBubble, row, col, { rowOffset });
       if (result.error) return;
       const nextScore = score + result.points;
       const nextShots = Math.max(0, shotsLeft - 1);
@@ -960,14 +966,14 @@ function BubboGame() {
       audioManager.play(result.popped.length || result.dropped.length ? "clear" : "tap");
       performAction(
         "bubbo.sync",
-        { game: { score: nextScore, shotsLeft: nextShots, board: result.board, seed, waveIndex, pressure } },
+        { game: { score: nextScore, shotsLeft: nextShots, board: result.board, seed, waveIndex, rowOffset, pressure } },
         { silent: true, key: `bubbo.sync.${shotRecord.id}` },
       );
       if (remaining === 0 || nextShots <= 0 || isBubboDanger(result.board)) {
         finish(nextScore);
       }
     },
-    [board, currentBubble, finish, gameActive, nextBubble, performAction, pressure, score, seed, shotsLeft, waveIndex],
+    [board, currentBubble, finish, gameActive, nextBubble, performAction, pressure, rowOffset, score, seed, shotsLeft, waveIndex],
   );
 
   const sceneState = useMemo(
@@ -983,11 +989,12 @@ function BubboGame() {
         pressureStep,
         seed,
         waveIndex,
+        rowOffset,
         nextPressureWave: generateBubboWave(seed, waveIndex),
       },
       onBubboFire: onFire,
     }),
-    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, score, seed, shotsLeft, waveIndex],
+    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex],
   );
 
   return (
@@ -1034,6 +1041,7 @@ function BubboGame() {
             setBoard(run.board);
             setSeed(run.seed);
             setWaveIndex(run.waveIndex);
+            setRowOffset(run.rowOffset || 0);
             setPressure(0);
             setPressureStep(0);
           }}>New Field</PanelButton>
@@ -1679,7 +1687,7 @@ function Leaderboard({ entries }) {
 
 function ActiveGame() {
   const activeTab = useGameHub((state) => state.activeTab);
-  if (activeTab === "farm") return <FarmGame />;
+  if (activeTab === "garden") return <GardenShelfGame />;
   if (activeTab === "blox") return <BloxGame />;
   if (activeTab === "match3") return <Match3Game />;
   if (activeTab === "merge") return <MergeGame />;
@@ -1714,6 +1722,7 @@ export default function App() {
   const applyRealtimePayload = useGameHub((state) => state.applyRealtimePayload);
   const status = useGameHub((state) => state.status);
   const message = useGameHub((state) => state.message);
+  const gardenHud = useGameHub((state) => state.gardenHud);
   const [platform, setPlatform] = useState(null);
   const [config, setConfig] = useState(null);
   const [isPending, startTransition] = useTransition();
@@ -1749,6 +1758,17 @@ export default function App() {
   const resources = snapshot?.resources || {};
   const energy = resources.energy || {};
   const shellActive = activeGameShell === activeTab;
+  const stats = activeTab === "garden"
+    ? [
+        { icon: Sparkles, label: "Gold", value: formatCount(Math.floor(Number(resources.gold) || 0)) },
+        { icon: Leaf, label: "Garden Lv", value: gardenHud?.level || 1 },
+        { icon: PackageOpen, label: "Plants", value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
+      ]
+    : [
+        { icon: Sparkles, label: "Gold", value: formatCount(resources.gold || 0) },
+        { icon: Zap, label: "Energy", value: `${energy.current ?? 0}/${energy.max ?? 0}` },
+        { icon: PackageOpen, label: "Tokens", value: resources.gachaTokens || 0 },
+      ];
 
   return (
     <main className={`telegram-app${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}>
@@ -1772,9 +1792,9 @@ export default function App() {
         </div>
       </section>
       <section className="stats-row">
-        <Stat icon={Sparkles} label="Gold" value={formatCount(resources.gold || 0)} />
-        <Stat icon={Zap} label="Energy" value={`${energy.current ?? 0}/${energy.max ?? 0}`} />
-        <Stat icon={PackageOpen} label="Tokens" value={resources.gachaTokens || 0} />
+        {stats.map((item) => (
+          <Stat key={item.label} icon={item.icon} label={item.label} value={item.value} />
+        ))}
       </section>
       {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
       {!snapshot ? (

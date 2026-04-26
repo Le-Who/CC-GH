@@ -4,6 +4,7 @@ import { attemptMatch3Move } from "../../src/game-core/match3/engine.js";
 async function boot(page, prefix = "gesture") {
   await page.addInitScript((value) => {
     window.localStorage.setItem("gh_dev_user_id", `${value}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    window.localStorage.removeItem("terrarium_save");
   }, prefix);
   const pageErrors = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
@@ -72,23 +73,17 @@ async function touchDrag(page, from, to, steps = 8) {
 }
 
 test.describe("Pixi touch and drag interactions", () => {
-  test("Farm accepts repeated rapid plot taps without losing the pointer session", async ({ page }) => {
-    const pageErrors = await boot(page, "farm_taps");
+  test("Garden Shelf accepts shelf taps without viewport leakage", async ({ page }) => {
+    const pageErrors = await boot(page, "garden_taps");
 
-    await page.getByRole("button", { name: /^Play$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Cozy Farm");
-    await canvasIsNonBlank(page);
+    await expect(page.getByText("My Garden")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
+    await page.getByRole("button", { name: "+" }).first().click();
+    const panel = page.locator(".fixed.bottom-0").last();
+    await expect(panel).toContainText("Seed Shop");
+    await panel.locator("button").filter({ hasText: "10" }).click();
+    await expect(page.getByText(/PH 0|LV 1/).first()).toBeVisible({ timeout: 10000 });
 
-    const box = await hostBox(page);
-    await page.mouse.click(box.x + box.width * 0.35, box.y + box.height * 0.44);
-    await page.mouse.click(box.x + box.width * 0.52, box.y + box.height * 0.48);
-    await page.mouse.move(box.x + box.width * 0.42, box.y + box.height * 0.52);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.55, { steps: 4 });
-    await page.mouse.up();
-
-    await expect(page.locator(".game-play-hud")).toContainText("Cozy Farm");
-    await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
 

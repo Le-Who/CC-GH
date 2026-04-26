@@ -8,6 +8,7 @@ import {
   BUBBO_ROWS,
   generateBubboWave,
   getBubboNeighbors,
+  getBubboRowVisualOffset,
 } from "../game-core/bubbo/engine.js";
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js";
 import { GRID } from "../game-core/blox/pieces.js";
@@ -1262,8 +1263,12 @@ export function buildBubboScene(app, initial = {}) {
     };
   }
 
+  function currentRowOffset() {
+    return Number.isFinite(Number(data.bubbo?.rowOffset)) ? Number(data.bubbo.rowOffset) : 0;
+  }
+
   function bubblePosition(row, col) {
-    const offset = row % 2 ? layout.cell * 0.5 : 0;
+    const offset = getBubboRowVisualOffset(row, currentRowOffset()) * layout.cell;
     return {
       x: layout.left + offset + col * layout.cell + layout.cell / 2,
       y: layout.top + layout.pressureOffset + row * layout.cell + layout.cell / 2,
@@ -1276,7 +1281,7 @@ export function buildBubboScene(app, initial = {}) {
     for (let row = 0; row < BUBBO_ROWS; row++) {
       for (let col = 0; col < BUBBO_COLS; col++) {
         if (board[row]?.[col]) continue;
-        const touches = row === 0 || getBubboNeighbors(row, col).some(([nr, nc]) => board[nr]?.[nc]);
+        const touches = row === 0 || getBubboNeighbors(row, col, currentRowOffset()).some(([nr, nc]) => board[nr]?.[nc]);
         if (!touches) continue;
         const pos = bubblePosition(row, col);
         const distance = (pos.x - x) ** 2 + (pos.y - y) ** 2;
@@ -1430,8 +1435,9 @@ export function buildBubboScene(app, initial = {}) {
         ? state.nextPressureWave
         : generateBubboWave(state.seed || "bubbo", Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : 0);
       const previewAlpha = Math.max(0.18, Math.min(0.82, pressureDisplayStep + 0.18));
+      const previewOffset = getBubboRowVisualOffset(0, currentRowOffset() + 1) * layout.cell;
       for (let c = 0; c < BUBBO_COLS; c++) {
-        const x = layout.left + c * layout.cell + layout.cell / 2;
+        const x = layout.left + previewOffset + c * layout.cell + layout.cell / 2;
         const y = layout.top + layout.pressureOffset - layout.cell * 0.5;
         root.addChild(drawBubble(x, y, layout.radius * 0.92, nextWave[c], previewAlpha));
       }

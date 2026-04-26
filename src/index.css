@@ -1122,6 +1122,24 @@ button.item-card {
   text-align: center;
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.pt-safe {
+  padding-top: calc(var(--safe-top) + 1rem);
+}
+
+.pb-safe-offset-4 {
+  padding-bottom: calc(var(--safe-bottom) + 1rem);
+}
+
 @keyframes pet-idle {
   0%,
   100% {

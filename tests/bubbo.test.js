@@ -10,6 +10,7 @@ import {
   createBubboBoard,
   generateBubboWave,
   getBubboRemainingCount,
+  getBubboRowVisualOffset,
   isBubboDanger,
   normalizeBubboBoard,
   settleFloatingBubbo,
@@ -46,6 +47,8 @@ describe("Bubbo engine", () => {
     assert.equal(shifted.board[1][0], "mint");
     assert.equal(shifted.board[0].every(Boolean), true);
     assert.equal(shifted.waveIndex, 8);
+    assert.equal(shifted.rowOffset, 1);
+    assert.equal(getBubboRowVisualOffset(0, 0), getBubboRowVisualOffset(1, shifted.rowOffset));
 
     const dangerBoard = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
     dangerBoard[BUBBO_ROWS - 1][0] = "sky";
@@ -54,12 +57,25 @@ describe("Bubbo engine", () => {
     assert.equal(danger.danger, true);
   });
 
+  it("keeps existing rows in the same visual columns after pressure descent", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[2][4] = "sky";
+    const shifted = shiftBubboPressure(board, "visual-stability", 3, 0);
+
+    assert.equal(shifted.board[3][4], "sky");
+    assert.equal(
+      4 + getBubboRowVisualOffset(2, 0),
+      4 + getBubboRowVisualOffset(3, shifted.rowOffset),
+    );
+  });
+
   it("advances continuous pressure by elapsed time", () => {
     const board = createBubboBoard({ seed: "clocked", startRows: 1 });
     const advanced = advanceBubboPressure({ board, seed: "clocked", waveIndex: 1, pressure: 9000 }, 700);
 
     assert.equal(advanced.shifts, 1);
     assert.equal(advanced.waveIndex, 2);
+    assert.equal(advanced.rowOffset, 1);
     assert.ok(advanced.pressure < 9500);
     assert.equal(advanced.board[1].some(Boolean), true);
   });

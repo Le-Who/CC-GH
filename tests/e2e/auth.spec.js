@@ -14,7 +14,7 @@ test.describe("Telegram-first auth shell", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Game Hub" })).toBeVisible();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Cozy Farm")).toBeVisible();
+    await expect(page.getByText("My Garden")).toBeVisible();
     await expect(page.locator("#auth-dialog")).toHaveCount(0);
     await expect(page.locator("#screen-farm")).toHaveCount(0);
     expect(pageErrors).toEqual([]);

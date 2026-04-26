@@ -7,6 +7,7 @@
  * @property {Array<Array<string|null>>} board
  * @property {string} seed
  * @property {number} waveIndex
+ * @property {number} rowOffset
  * @property {number} pressure
  * @property {number} pressureStep
  * @property {number} shotsLeft

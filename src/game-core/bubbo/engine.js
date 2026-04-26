@@ -33,6 +33,10 @@ const ODD_NEIGHBORS = [
   [1, 1],
 ];
 
+function normalizeRowOffset(value = 0) {
+  return Math.abs(Math.floor(Number(value) || 0)) % 2;
+}
+
 export function cloneBubboBoard(board = []) {
   return board.map((row) => [...row]);
 }
@@ -106,8 +110,12 @@ export function randomBubboColor(board = null) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function getBubboNeighbors(row, col) {
-  const offsets = row % 2 === 0 ? EVEN_NEIGHBORS : ODD_NEIGHBORS;
+export function getBubboRowVisualOffset(row, rowOffset = 0) {
+  return (row + normalizeRowOffset(rowOffset)) % 2 ? 0.5 : 0;
+}
+
+export function getBubboNeighbors(row, col, rowOffset = 0) {
+  const offsets = getBubboRowVisualOffset(row, rowOffset) ? ODD_NEIGHBORS : EVEN_NEIGHBORS;
   return offsets
     .map(([dr, dc]) => [row + dr, col + dc])
     .filter(([r, c]) => r >= 0 && r < BUBBO_ROWS && c >= 0 && c < BUBBO_COLS);
@@ -121,7 +129,7 @@ function parseKey(key) {
   return key.split(":").map(Number);
 }
 
-function nearestEmptyCell(board, row, col) {
+function nearestEmptyCell(board, row, col, rowOffset = 0) {
   const startRow = Math.max(0, Math.min(BUBBO_ROWS - 1, Math.round(row)));
   const startCol = Math.max(0, Math.min(BUBBO_COLS - 1, Math.round(col)));
   if (!board[startRow][startCol]) return [startRow, startCol];
@@ -130,7 +138,7 @@ function nearestEmptyCell(board, row, col) {
   const seen = new Set([cellKey(startRow, startCol)]);
   while (queue.length) {
     const [r, c] = queue.shift();
-    for (const [nr, nc] of getBubboNeighbors(r, c)) {
+    for (const [nr, nc] of getBubboNeighbors(r, c, rowOffset)) {
       const key = cellKey(nr, nc);
       if (seen.has(key)) continue;
       if (!board[nr][nc]) return [nr, nc];
@@ -141,14 +149,14 @@ function nearestEmptyCell(board, row, col) {
   return null;
 }
 
-function sameColorCluster(board, row, col) {
+function sameColorCluster(board, row, col, rowOffset = 0) {
   const color = board[row]?.[col];
   if (!color) return [];
   const queue = [[row, col]];
   const seen = new Set([cellKey(row, col)]);
   for (let i = 0; i < queue.length; i++) {
     const [r, c] = queue[i];
-    for (const [nr, nc] of getBubboNeighbors(r, c)) {
+    for (const [nr, nc] of getBubboNeighbors(r, c, rowOffset)) {
       const key = cellKey(nr, nc);
       if (seen.has(key) || board[nr][nc] !== color) continue;
       seen.add(key);
@@ -158,7 +166,7 @@ function sameColorCluster(board, row, col) {
   return [...seen].map(parseKey);
 }
 
-export function settleFloatingBubbo(board) {
+export function settleFloatingBubbo(board, rowOffset = 0) {
   const anchored = new Set();
   const queue = [];
   for (let c = 0; c < BUBBO_COLS; c++) {
@@ -169,7 +177,7 @@ export function settleFloatingBubbo(board) {
   }
   for (let i = 0; i < queue.length; i++) {
     const [r, c] = queue[i];
-    for (const [nr, nc] of getBubboNeighbors(r, c)) {
+    for (const [nr, nc] of getBubboNeighbors(r, c, rowOffset)) {
       const key = cellKey(nr, nc);
       if (anchored.has(key) || !board[nr][nc]) continue;
       anchored.add(key);
@@ -209,14 +217,16 @@ export function createBubboRun(seed = null) {
     waveIndex: BUBBO_START_ROWS,
     pressure: 0,
     pressureStep: 0,
+    rowOffset: 0,
     shotsLeft: BUBBO_SHOTS,
     score: 0,
   };
 }
 
-export function shiftBubboPressure(board, seed = "bubbo", waveIndex = 0) {
+export function shiftBubboPressure(board, seed = "bubbo", waveIndex = 0, rowOffset = 0) {
   const current = normalizeBubboBoard(board);
   const overflow = current[BUBBO_ROWS - 1].some(Boolean);
+  const nextRowOffset = (normalizeRowOffset(rowOffset) + 1) % 2;
   const shifted = [
     generateBubboWave(seed, waveIndex),
     ...current.slice(0, BUBBO_ROWS - 1),
@@ -225,6 +235,7 @@ export function shiftBubboPressure(board, seed = "bubbo", waveIndex = 0) {
     board: shifted,
     seed,
     waveIndex: waveIndex + 1,
+    rowOffset: nextRowOffset,
     overflow,
     danger: overflow || isBubboDanger(shifted),
   };
@@ -235,6 +246,7 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
   let pressure = Math.max(0, Number(state.pressure) || 0) + Math.max(0, elapsedMs);
   let board = normalizeBubboBoard(state.board);
   let waveIndex = Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : BUBBO_START_ROWS;
+  let rowOffset = normalizeRowOffset(state.rowOffset);
   const seed = state.seed || "bubbo";
   let shifts = 0;
   let danger = false;
@@ -242,9 +254,10 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
 
   while (pressure >= interval) {
     pressure -= interval;
-    const shifted = shiftBubboPressure(board, seed, waveIndex);
+    const shifted = shiftBubboPressure(board, seed, waveIndex, rowOffset);
     board = shifted.board;
     waveIndex = shifted.waveIndex;
+    rowOffset = shifted.rowOffset;
     danger = danger || shifted.danger;
     overflow = overflow || shifted.overflow;
     shifts += 1;
@@ -255,6 +268,7 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
     board,
     seed,
     waveIndex,
+    rowOffset,
     pressure,
     pressureStep: Math.floor((pressure / interval) * 1000) / 1000,
     shifts,
@@ -263,9 +277,10 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
   };
 }
 
-export function applyBubboShot(board, color, row, col) {
+export function applyBubboShot(board, color, row, col, options = {}) {
   const next = normalizeBubboBoard(board);
-  const target = nearestEmptyCell(next, row, col);
+  const rowOffset = normalizeRowOffset(typeof options === "number" ? options : options.rowOffset);
+  const target = nearestEmptyCell(next, row, col, rowOffset);
   if (!target) {
     return {
       board: next,
@@ -280,11 +295,11 @@ export function applyBubboShot(board, color, row, col) {
   const [landedRow, landedCol] = target;
   next[landedRow][landedCol] = BUBBO_COLORS.includes(color) ? color : BUBBO_COLORS[0];
 
-  const cluster = sameColorCluster(next, landedRow, landedCol);
+  const cluster = sameColorCluster(next, landedRow, landedCol, rowOffset);
   const popped = cluster.length >= 3 ? cluster : [];
   for (const [r, c] of popped) next[r][c] = null;
 
-  const dropped = popped.length ? settleFloatingBubbo(next) : [];
+  const dropped = popped.length ? settleFloatingBubbo(next, rowOffset) : [];
   const droppedCells = dropped.map(([r, c]) => ({ row: r, col: c, color: next[r][c] }));
   for (const [r, c] of dropped) next[r][c] = null;
 

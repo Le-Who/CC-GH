@@ -346,6 +346,21 @@ function normalizeBloxSaved(savedState, p) {
 
 export async function applyAction(p, action, payload = {}) {
   switch (action) {
+    case "garden.goldDelta": {
+      const amount = Math.trunc(Number(payload.amount) || 0);
+      if (!Number.isFinite(amount) || amount === 0) return fail(400, "invalid gold delta");
+      if (Math.abs(amount) > 1_000_000_000) return fail(400, "gold delta too large");
+      if (!p.resources) p.resources = {};
+      p.resources.gold = Math.max(0, Math.trunc(Number(p.resources.gold) || 0));
+      if (amount < 0 && p.resources.gold < Math.abs(amount)) {
+        return fail(400, "not enough gold", { cost: Math.abs(amount) });
+      }
+      p.resources.gold += amount;
+      if (amount > 0 && p.stats) {
+        p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + amount;
+      }
+      return ok(action, p, { goldDelta: amount, reason: payload.reason || "garden" });
+    }
     case "farm.refresh": {
       const offlineReport = processOfflineActions(p);
       const streakResult = updateStreak(p);
@@ -820,6 +835,7 @@ export async function applyAction(p, action, payload = {}) {
         board: Array.isArray(payload.board) ? payload.board : undefined,
         seed: typeof payload.seed === "string" ? payload.seed.slice(0, 80) : undefined,
         waveIndex: Math.max(0, Number(payload.waveIndex) || 0),
+        rowOffset: Math.abs(Math.floor(Number(payload.rowOffset) || 0)) % 2,
         pressure: Math.max(0, Number(payload.pressure) || 0),
       };
       return ok(action, p, { game: p.bubbo.currentGame });
@@ -833,6 +849,7 @@ export async function applyAction(p, action, payload = {}) {
           board: Array.isArray(payload.game.board) ? payload.game.board : p.bubbo.currentGame?.board,
           seed: typeof payload.game.seed === "string" ? payload.game.seed.slice(0, 80) : p.bubbo.currentGame?.seed,
           waveIndex: Math.max(0, Number(payload.game.waveIndex) || Number(p.bubbo.currentGame?.waveIndex) || 0),
+          rowOffset: Math.abs(Math.floor(Number(payload.game.rowOffset ?? p.bubbo.currentGame?.rowOffset) || 0)) % 2,
           pressure: Math.max(0, Number(payload.game.pressure) || 0),
         };
       }

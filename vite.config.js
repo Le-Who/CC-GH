@@ -65,7 +65,7 @@ export default defineConfig({
       manifest: {
         name: "Game Hub Ultra",
         short_name: "GameHub",
-        description: "Telegram Mini App game hub — Farm, Trivia, Match-3, Blox, Merge, Bubbo, and Pet Room",
+        description: "Telegram Mini App game hub — Garden Shelf, Trivia, Match-3, Blox, Merge, Bubbo, and Pet Room",
         theme_color: "#1a1a2e",
         background_color: "#1a1a2e",
         display: "standalone",
@@ -102,6 +102,11 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://localhost:8090",
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: "http://localhost:8090",
+        ws: true,
         changeOrigin: true,
       },
     },

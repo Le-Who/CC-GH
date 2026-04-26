@@ -9,16 +9,18 @@ function actionLabel(action) {
 }
 
 export const useGameHub = create((set, get) => ({
-  activeTab: "farm",
+  activeTab: "garden",
   snapshot: null,
   status: "booting",
   message: "",
   busy: {},
   lastResult: null,
   activeGameShell: null,
+  gardenHud: null,
 
   setActiveTab: (activeTab) => set({ activeTab, message: "", activeGameShell: null }),
   setActiveGameShell: (activeGameShell) => set({ activeGameShell }),
+  setGardenHud: (gardenHud) => set({ gardenHud }),
 
   applySnapshot: (snapshot) => {
     if (!snapshot) return;
@@ -63,8 +65,10 @@ export const useGameHub = create((set, get) => ({
         status: "ready",
       };
     });
-    haptic(result.error ? "warning" : "success");
-    audioManager.play(result.error ? "warning" : "success");
+    if (options.feedback !== false) {
+      haptic(result.error ? "warning" : "success");
+      audioManager.play(result.error ? "warning" : "success");
+    }
     return result;
   },
 

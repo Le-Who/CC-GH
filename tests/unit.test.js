@@ -87,6 +87,33 @@ describe("createDefaultPlayer", () => {
   });
 });
 
+describe("Garden Shelf shared gold actions", () => {
+  it("spends and earns through the shared player gold balance", async () => {
+    const p = createDefaultPlayer("garden-gold", "Garden");
+    const startGold = p.resources.gold;
+    const startGoldEarned = p.stats.totalGoldEarned || 0;
+
+    const spent = await applyAction(p, "garden.goldDelta", { amount: -10, reason: "buyPlant" });
+    assert.equal(spent.status, 200);
+    assert.equal(p.resources.gold, startGold - 10);
+
+    const earned = await applyAction(p, "garden.goldDelta", { amount: 7, reason: "tapPlant" });
+    assert.equal(earned.status, 200);
+    assert.equal(p.resources.gold, startGold - 3);
+    assert.equal(p.stats.totalGoldEarned, startGoldEarned + 7);
+  });
+
+  it("rejects Garden Shelf spending when the shared balance is too low", async () => {
+    const p = createDefaultPlayer("garden-low-gold", "Garden");
+    p.resources.gold = 4;
+
+    const result = await applyAction(p, "garden.goldDelta", { amount: -10, reason: "buyPlant" });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error, "not enough gold");
+    assert.equal(p.resources.gold, 4);
+  });
+});
+
 describe("new-stack player snapshot and inventory contracts", () => {
   it("normalizes harvested, merge, room, and reward inventory aliases", () => {
     const snapshot = {

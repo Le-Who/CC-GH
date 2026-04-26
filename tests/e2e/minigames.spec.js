@@ -8,7 +8,9 @@ test.describe("New-stack minigame smoke", () => {
   });
 
   async function pauseActiveGame(page) {
-    await page.getByRole("button", { name: /Pause/ }).click();
+    const pauseButton = page.getByRole("button", { name: /Pause/ });
+    await expect(pauseButton).toBeVisible();
+    await pauseButton.click({ force: true });
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
     await expect(page.locator(".game-menu-overlay")).toBeVisible();
@@ -29,12 +31,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Game Hub" })).toBeVisible();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
-
-    await page.getByRole("button", { name: /^Play$/ }).click();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await pauseActiveGame(page);
-    await exitToHub(page);
+    await expect(page.getByText("My Garden")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
 
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.getByText("Building Blox")).toBeVisible();
@@ -107,17 +105,7 @@ test.describe("New-stack minigame smoke", () => {
 
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-
-    await page.getByRole("button", { name: /^Play$/ }).click();
-    const farmHost = page.locator(".active-game-frame .pixi-host").last();
-    await expect(farmHost).toBeVisible();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    const farmBox = await farmHost.boundingBox();
-    expect(farmBox).not.toBeNull();
-    expect(farmBox.height).toBeGreaterThanOrEqual(620);
-    expect(farmBox.width).toBeGreaterThanOrEqual(360);
-    await pauseActiveGame(page);
-    await exitToHub(page);
+    await expect(page.getByText("My Garden")).toBeVisible();
 
     const pixiGames = [
       { tab: /Blox/, start: /^Start$/ },

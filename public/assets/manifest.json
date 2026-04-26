@@ -37,6 +37,11 @@
         "images": "/games/puzzling-potions/images/",
         "license": "/games/puzzling-potions/LICENSE"
       },
+      "gardenShelf": {
+        "source": "/games/garden-shelf/",
+        "images": "/games/garden-shelf/",
+        "sheet": "/games/garden-shelf/plants_sheet_clean.png"
+      },
       "gachaMerge": {
         "items": {
           "thread": "",

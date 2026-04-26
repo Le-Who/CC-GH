@@ -8,7 +8,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 | --- | --- |
 | Client shell | React 19, Vite 7, Telegram Mini App SDK |
 | Game rendering | PixiJS 8 |
-| Client state helpers | Zustand, local browser storage for dev user id only |
+| Client state helpers | Zustand, local browser storage for dev user id and Garden Shelf idle save; Garden Shelf spendable gold is the shared Hub player resource |
 | API | Express 5 |
 | Realtime | Socket.IO |
 | Durable storage | Self-hosted PostgreSQL |
@@ -20,7 +20,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 
 ## Games
 
-- Cozy Farm: server-authoritative economy, crop growth, offline simulation, quests, achievements, boosters, cosmetics, season progress, and rapid tap/long-press Pixi plot input.
+- Garden Shelf: ported React/Tailwind idle terrarium with shelf expansion, plant growth phases, sprite-sheet plants, tap acceleration, mature plant gold collection, stash/inventory placement, watering, evolution, offline earnings, local garden-state persistence, and shared Hub gold for all spend/earn flows.
 - Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored carried pieces, separate snapped placement footprint previews, authoritative placement, row/column clear metadata, cell-flash plus line-wipe feedback, tray refill settle cues, saved state, rewards, and leaderboard reads.
 - Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, special-clear backfill, repeated Star Drop bottom-token auto-crediting, staged cascade board snapshots with textured fall/fill pieces, short input locks, saved mode sync, and reward settlement.
 - Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, compact touch-first generator menus, lower thumb-reachable rectangular board placement, live trash/pause HUD controls, larger manifest-replaceable item tokens, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
@@ -57,12 +57,12 @@ Frontend flow:
 1. `src/main.jsx` mounts `src/App.jsx`.
 2. `App.jsx` initializes Telegram platform helpers, installs the PWA update manager, and fetches `/api/config`.
 3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`.
-4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so Farm, Merge, Bag, and Pet use one inventory shape.
-5. Pixi scenes for Farm, Blox, Match-3, Merge, and Bubbo mount through `PixiGameHost`; the host keeps one Pixi v8 `Application` per active scene and calls scene `update(state)` instead of remounting on every refresh.
-6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before the scene builds, appends the current build id to `/games/*` asset URLs, then the scene keeps procedural fallbacks for missing optional art.
+4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, room inventory, and rewards so legacy Farm resources, Merge, Bag, and Pet use one inventory shape.
+5. Garden Shelf mounts as a React game under `src/games/garden-shelf/` with sprite-sheet assets in `public/games/garden-shelf/`; Blox, Match-3, Merge, and Bubbo Pixi scenes mount through `PixiGameHost`.
+6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before Pixi scene builds, appends the current build id to `/games/*` asset URLs, then the scenes keep procedural fallbacks for missing optional art.
 7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
-8. Gameplay enters a shared immersive mobile shell across Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation.
-9. Blox, Gem Crush, Gacha Merge, and Bubbo tune their Pixi board geometry for mobile thumb reach: playfields stay as large as the viewport allows, reserve room for compact HUD/tray controls, and sit lower in fullscreen play instead of pinning to the top edge. Bubbo also renders the next pressure row just above the field before it enters play so row insertion does not visually shove the existing cluster.
+8. Gameplay enters a shared immersive mobile shell across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation. Garden Shelf keeps its own idle-game shelf UI inside the hub tab.
+9. Blox, Gem Crush, Gacha Merge, and Bubbo tune their Pixi board geometry for mobile thumb reach: playfields stay as large as the viewport allows, reserve room for compact HUD/tray controls, and sit lower in fullscreen play instead of pinning to the top edge. Bubbo renders the next pressure row just above the field and carries a row-offset phase through pressure shifts so row insertion descends existing bubbles without visual reordering.
 10. Shared in-game menus use explicit action labels for pause, setup, end-run, trash, and exit controls; redundant generic `Menu` and duplicate `Sound` buttons are intentionally avoided.
 11. `src/services/updateManager.js` manually registers the PWA service worker, polls uncached `/api/config`, compares the server `buildId` with the injected client build id, and clears service workers/caches once before reloading with a cache-busting query when a stale build is detected.
 12. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
@@ -146,7 +146,7 @@ Authenticated gameplay APIs:
 
 - New-stack player snapshot/mutations: `GET /api/player/snapshot`, `POST /api/player/mutate`
 - Typed mutate actions include `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `bubbo.start`, `bubbo.sync`, `bubbo.end`, `pet.feed`, `pet.rename`, `quest.generate`, `quest.submit`, `room.place`, and `room.pickup`.
-- Farm and resource state/mutations: `/api/farm/*`, `/api/resources/state`, `/api/pet/*`
+- Legacy Farm/resource state and Pet support APIs retained for economy compatibility: `/api/farm/*`, `/api/resources/state`, `/api/pet/*`
 - Merge: `/api/merge/*`
 - Match-3: `/api/game/*`
 - Blox: `/api/blox/*`
