@@ -30,6 +30,11 @@ import { audioManager } from "./services/audioManager.js";
 import { connectRealtime } from "./services/realtimeClient.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
 import GardenShelfGame from "./games/garden-shelf/GardenShelfGame";
+import {
+  GARDEN_LANGUAGE_EVENT,
+  gardenTranslate,
+  getStoredGardenLanguage,
+} from "./games/garden-shelf/lib/i18n";
 import PixiGameHost from "./game-runtime/PixiGameHost.jsx";
 import {
   buildBloxScene,
@@ -75,6 +80,19 @@ const MATCH3_MODES = [
   { id: "timed", label: "Timed", hint: "90 seconds" },
   { id: "drop", label: "Star Drop", hint: "drop tokens" },
 ];
+
+function createSwappedMatch3Board(board, from, to) {
+  const next = board.map((row) => [...row]);
+  if (next[from.y]?.[from.x] && next[to.y]?.[to.x]) {
+    [next[from.y][from.x], next[to.y][to.x]] = [next[to.y][to.x], next[from.y][from.x]];
+  }
+  return next;
+}
+
+function estimateMatch3CascadeLockMs(stepCount = 1) {
+  const frames = 12 + 5 + Math.max(1, stepCount) * (10 + 28 + 7) + 6;
+  return Math.min(2600, Math.round((frames * 1000) / 60));
+}
 
 function formatCount(value) {
   if (value == null) return "0";
@@ -161,7 +179,7 @@ function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, over
     >
       {children}
       {phase === "playing" && hud}
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="wait">
         {phase !== "playing" && (
           <motion.aside
             key={`${gameId}-${phase}`}
@@ -730,14 +748,15 @@ function Match3Game() {
       if (!hasValidMoves(nextBoard)) {
         nextBoard = createModeBoard(mode);
       }
+      const swapBoard = createSwappedMatch3Board(board, from, to);
       setBoard(nextBoard);
       setScore(nextScore);
       setCombo(Math.max(combo, result.combo));
       setMovesLeft(nextMoves);
       setSelected(null);
       queueMatchAnimation(
-        { type: "cascade", from, to, fromGem, toGem, startBoard: board, steps: result.steps },
-        120,
+        { type: "cascade", from, to, fromGem, toGem, startBoard: board, swapBoard, steps: result.steps },
+        estimateMatch3CascadeLockMs(result.steps.length),
       );
       haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
@@ -1725,6 +1744,7 @@ export default function App() {
   const gardenHud = useGameHub((state) => state.gardenHud);
   const [platform, setPlatform] = useState(null);
   const [config, setConfig] = useState(null);
+  const [gardenLanguage, setGardenLanguage] = useState(() => getStoredGardenLanguage());
   const [isPending, startTransition] = useTransition();
   const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
@@ -1755,14 +1775,24 @@ export default function App() {
     };
   }, [applyRealtimePayload, loadSnapshot]);
 
+  useEffect(() => {
+    const onGardenLanguageChange = () => setGardenLanguage(getStoredGardenLanguage());
+    window.addEventListener(GARDEN_LANGUAGE_EVENT, onGardenLanguageChange);
+    window.addEventListener("storage", onGardenLanguageChange);
+    return () => {
+      window.removeEventListener(GARDEN_LANGUAGE_EVENT, onGardenLanguageChange);
+      window.removeEventListener("storage", onGardenLanguageChange);
+    };
+  }, []);
+
   const resources = snapshot?.resources || {};
   const energy = resources.energy || {};
   const shellActive = activeGameShell === activeTab;
   const stats = activeTab === "garden"
     ? [
-        { icon: Sparkles, label: "Gold", value: formatCount(Math.floor(Number(resources.gold) || 0)) },
-        { icon: Leaf, label: "Garden Lv", value: gardenHud?.level || 1 },
-        { icon: PackageOpen, label: "Plants", value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
+        { icon: Sparkles, label: gardenTranslate(gardenLanguage, "hud.gold"), value: formatCount(Math.floor(Number(resources.gold) || 0)) },
+        { icon: Leaf, label: gardenTranslate(gardenLanguage, "hud.level"), value: gardenHud?.level || 1 },
+        { icon: PackageOpen, label: gardenTranslate(gardenLanguage, "hud.plants"), value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
       ]
     : [
         { icon: Sparkles, label: "Gold", value: formatCount(resources.gold || 0) },
@@ -1778,7 +1808,7 @@ export default function App() {
           <h1>Game Hub</h1>
         </div>
         <div className="topbar-actions">
-          <AudioToggle />
+          {activeTab !== "garden" && <AudioToggle />}
           <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
             {status}
           </button>

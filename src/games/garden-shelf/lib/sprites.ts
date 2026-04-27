@@ -1,4 +1,8 @@
-export const GARDEN_SHEET_PATH = "/games/garden-shelf/plants_sheet_clean.png";
+export const GARDEN_SHEET_PATH = "/games/garden-shelf/assets_transparent.png";
+export const GARDEN_SHELF_PATH = "/games/garden-shelf/assets_shelf.png";
+export const GARDEN_SIGN_PATH = "/games/garden-shelf/assets_garden_sign.png";
+export const GARDEN_COG_PATH = "/games/garden-shelf/assets_garden_cog.png";
+export const GARDEN_BOTTOM_PLANK_PATH = "/games/garden-shelf/assets_garden_bottom_plank.png";
 
 export const spriteData = {
   "fullWidth": 1672,

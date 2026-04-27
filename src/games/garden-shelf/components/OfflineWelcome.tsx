@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../lib/GameContext';
-import { Coins, X } from 'lucide-react';
+import { Coins } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useGardenI18n } from '../lib/i18n';
 
 export function OfflineWelcome() {
   const { state, clearOfflineEarnings } = useGame();
+  const { t } = useGardenI18n();
 
   const handleCollect = () => {
     // Pop confetti before closing
@@ -44,8 +46,8 @@ export function OfflineWelcome() {
                 <Coins className="w-8 h-8 text-amber-400" strokeWidth={1.5} />
               </div>
               
-              <h2 className="text-xl tracking-[0.1em] font-light text-amber-100 uppercase mb-2 relative z-10">Welcome Back!</h2>
-              <p className="text-sm text-slate-400 mb-8 relative z-10">While you were away, your garden yielded:</p>
+              <h2 className="text-xl tracking-[0.1em] font-light text-amber-100 uppercase mb-2 relative z-10">{t('offline.title')}</h2>
+              <p className="text-sm text-slate-400 mb-8 relative z-10">{t('offline.body')}</p>
               
               <div className="flex items-center gap-2 mb-8 relative z-10 bg-black/40 px-6 py-3 rounded-2xl border border-white/5">
                 <Coins className="w-6 h-6 text-amber-400 fill-amber-500/50" />
@@ -56,7 +58,7 @@ export function OfflineWelcome() {
                 onClick={handleCollect}
                 className="w-full py-4 bg-amber-500 text-amber-50 rounded-xl font-mono uppercase tracking-widest text-sm hover:bg-amber-400 transition-colors shadow-[0_0_20px_rgba(245,158,11,0.4)] relative z-10 mix-blend-screen"
               >
-                Collect Gold
+                {t('offline.collect')}
               </button>
             </motion.div>
           </motion.div>

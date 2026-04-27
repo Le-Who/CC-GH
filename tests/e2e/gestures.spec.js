@@ -5,6 +5,8 @@ async function boot(page, prefix = "gesture") {
   await page.addInitScript((value) => {
     window.localStorage.setItem("gh_dev_user_id", `${value}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     window.localStorage.removeItem("terrarium_save");
+    window.localStorage.removeItem("garden_shelf_language");
+    window.localStorage.removeItem("garden_shelf_name");
   }, prefix);
   const pageErrors = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
@@ -81,8 +83,9 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.getByRole("button", { name: "+" }).first().click();
     const panel = page.locator(".fixed.bottom-0").last();
     await expect(panel).toContainText("Seed Shop");
-    await panel.locator("button").filter({ hasText: "10" }).click();
-    await expect(page.getByText(/PH 0|LV 1/).first()).toBeVisible({ timeout: 10000 });
+    await panel.locator("button").filter({ hasText: "25" }).click();
+    await expect(page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId("garden-phase-badge")).toHaveCount(0);
 
     expect(pageErrors).toEqual([]);
   });

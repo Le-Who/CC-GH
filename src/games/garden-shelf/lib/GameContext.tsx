@@ -1,6 +1,18 @@
 import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
 import { GameState, PlantData } from '../types';
-import { PLANT_TYPES, LEVELS, getUpgradeCost, getProduction, SHELF_UNLOCK_COSTS, PHASE_DURATIONS_MS } from '../constants';
+import {
+  PLANT_TYPES,
+  LEVELS,
+  getUpgradeCost,
+  getProduction,
+  getClickReward,
+  getUnlockedPlantIds,
+  SHELF_UNLOCK_COSTS,
+  PHASE_DURATIONS_MS,
+  TAP_GROWTH_ACCELERATION_MS,
+  WATER_COOLDOWN_MS,
+  WATER_GROWTH_ACCELERATION_RATIO,
+} from '../constants';
 import { useInterval } from './useInterval';
 
 interface GardenHudState {
@@ -238,6 +250,7 @@ export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: Ga
 
   const buyPlant = async (type: keyof typeof PLANT_TYPES, shelfIndex: number, spotIndex: number) => {
     const def = PLANT_TYPES[type];
+    if (!getUnlockedPlantIds(state.level).includes(type)) return;
     if (state.gold >= def.baseCost) {
       const result = await commitGoldDelta(-def.baseCost, 'buyPlant');
       if (result.error) return;
@@ -312,13 +325,12 @@ export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: Ga
         if (plant.phase === 3) {
             // It's fully grown. Tap generates gold directly.
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
-            const amount = def.baseClick * plant.level;
+            const amount = getClickReward(def.baseClick, plant.level);
             return applyGardenProgress(prev, amount);
         } else {
-            // Not grown. Tap accelerates growth by a fixed amount (e.g. 5 seconds)
+            // Not grown. Tap accelerates growth by a fixed amount.
             const duration = PHASE_DURATIONS_MS[plant.phase];
-            const accAmount = 5000; 
-            let newProgress = plant.phaseProgress + accAmount;
+            let newProgress = plant.phaseProgress + TAP_GROWTH_ACCELERATION_MS;
             let newPhase = plant.phase;
             if (newProgress >= duration) {
                newPhase++;
@@ -339,14 +351,12 @@ export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: Ga
         if (!plant || plant.phase === 3) return prev; // Cannot water fully grown plant, or maybe you can? Let's say it just works for growth.
 
         const now = Date.now();
-        // Cooldown: can apply water once every 5 minutes
-        if (plant.lastWatered && now - plant.lastWatered < 5 * 60 * 1000) {
+        if (plant.lastWatered && now - plant.lastWatered < WATER_COOLDOWN_MS) {
             return prev;
         }
 
         const duration = PHASE_DURATIONS_MS[plant.phase];
-        // Reduce phase time by 5%
-        const accAmount = duration * 0.05;
+        const accAmount = duration * WATER_GROWTH_ACCELERATION_RATIO;
         let newProgress = plant.phaseProgress + accAmount;
         let newPhase = plant.phase;
         if (newProgress >= duration) {
@@ -375,8 +385,7 @@ export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: Ga
      }));
   };
 
-  const unlockedPlants = LEVELS.filter(l => l.level <= state.level)
-    .flatMap(l => l.unlocks);
+  const unlockedPlants = getUnlockedPlantIds(state.level);
 
   return (
     <GameContext.Provider

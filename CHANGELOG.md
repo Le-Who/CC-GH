@@ -4,6 +4,7 @@
 
 ### Client
 
+- Refreshed Garden Shelf with the new transparent plant sheet, shelf/sign/bottom-plank/cog art, an in-game settings panel for sound and English/Russian language switching, visible locked plant previews, watering-ready droplet indicators, and slower growth/economy pacing for a longer idle progression curve.
 - Replaced the visible Farm game tab with a Garden Shelf port, including the original shelf/terrarium React UI, sprite-sheet plant rendering, plant shop, stash/inventory flow, watering, upgrades, offline earnings, and Garden Shelf assets under `public/games/garden-shelf/`.
 - Removed the duplicate Garden Shelf in-game `Gold Balance` / `Current Phase` header, adapted the shared Hub resource strip for Garden-specific `Gold`, `Garden Lv`, and `Plants`, and made Garden Shelf purchases, sales, taps, passive income, and offline income use the same shared Hub gold balance as the other games.
 - Fixed Bubbo pressure-row descent by carrying an explicit row-offset phase through pressure shifts, shot targeting, clusters, and scene rendering so newly inserted rows move the field down without horizontally rearranging existing bubbles.
@@ -38,6 +39,7 @@
 
 ### Tests
 
+- Extended Garden Shelf Playwright coverage for the new responsive asset art, locked plant previews, watering indicator, and Russian language switch on desktop and mobile Chromium.
 - Added update-manager core tests for build-id comparison, reload guarding, corrupt guard recovery, and cache-busting URL generation.
 - Added unit/e2e coverage for Garden Shelf shared-gold spending and the removal of the duplicate in-game gold header.
 - Added Garden Shelf Playwright smoke coverage and replaced old Farm UI e2e expectations with the new visible game list.

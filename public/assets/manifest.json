@@ -40,7 +40,11 @@
       "gardenShelf": {
         "source": "/games/garden-shelf/",
         "images": "/games/garden-shelf/",
-        "sheet": "/games/garden-shelf/plants_sheet_clean.png"
+        "sheet": "/games/garden-shelf/assets_transparent.png",
+        "shelf": "/games/garden-shelf/assets_shelf.png",
+        "sign": "/games/garden-shelf/assets_garden_sign.png",
+        "bottomPlank": "/games/garden-shelf/assets_garden_bottom_plank.png",
+        "settingsCog": "/games/garden-shelf/assets_garden_cog.png"
       },
       "gachaMerge": {
         "items": {

@@ -1,12 +1,22 @@
 import React, { useRef, useEffect } from 'react';
 import { useGame } from '../lib/GameContext';
-import { MAX_SHELVES, SPOTS_PER_SHELF, PLANT_TYPES, SHELF_UNLOCK_COSTS, PHASE_DURATIONS_MS } from '../constants';
+import {
+  MAX_SHELVES,
+  SPOTS_PER_SHELF,
+  PLANT_TYPES,
+  SHELF_UNLOCK_COSTS,
+  PHASE_DURATIONS_MS,
+  TAP_GROWTH_ACCELERATION_MS,
+  WATER_COOLDOWN_MS,
+  getClickReward,
+} from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coins } from 'lucide-react';
+import { Coins, Droplets } from 'lucide-react';
 import { PlantData } from '../types';
 import { cn } from '../lib/utils';
 import { Lock } from 'lucide-react';
-import { GARDEN_SHEET_PATH, getGardenSpriteStyle } from '../lib/sprites';
+import { GARDEN_SHEET_PATH, GARDEN_SHELF_PATH, getGardenSpriteStyle } from '../lib/sprites';
+import { useGardenI18n } from '../lib/i18n';
 
 interface GardenProps {
   onSelectSpot: (shelfIndex: number, spotIndex: number, plantId?: string) => void;
@@ -14,12 +24,13 @@ interface GardenProps {
 
 export function Garden({ onSelectSpot }: GardenProps) {
   const { state, unlockShelf } = useGame();
+  const { t } = useGardenI18n();
 
   const shelves = Array.from({ length: MAX_SHELVES }, (_, i) => i);
   const spots = Array.from({ length: SPOTS_PER_SHELF }, (_, i) => i);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto overflow-x-hidden p-6 space-y-20 pb-32 pt-28 no-scrollbar">
+    <div className="flex-1 h-full overflow-y-auto overflow-x-hidden p-6 space-y-20 pb-32 pt-36 no-scrollbar">
       {shelves.map((shelfIndex) => {
         const isUnlocked = shelfIndex < state.shelvesUnlocked;
 
@@ -34,7 +45,7 @@ export function Garden({ onSelectSpot }: GardenProps) {
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center justify-center p-6 bg-[#1b1416]/80 backdrop-blur-md rounded-xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.8)] ring-1 ring-black/5 w-64 text-center">
                    <Lock className="w-8 h-8 text-rose-500/50 mb-2" strokeWidth={1.5} />
                    <p className="text-slate-400 text-xs tracking-widest uppercase mb-4">
-                     Expand Biosphere
+                     {t('garden.expand')}
                    </p>
                    <motion.button 
                      whileTap={canAfford ? { scale: 0.95 } : {}}
@@ -63,7 +74,7 @@ export function Garden({ onSelectSpot }: GardenProps) {
 
         return (
           <div key={shelfIndex} className="relative mt-8">
-            <div className="flex justify-evenly items-end h-24 px-2 translate-y-1">
+            <div className="relative z-30 flex justify-evenly items-end h-24 px-2 translate-y-1">
               {spots.map((spotIndex) => {
                 const plant = state.plants.find(
                   (p) => p.shelfIndex === shelfIndex && p.spotIndex === spotIndex
@@ -88,15 +99,19 @@ export function Garden({ onSelectSpot }: GardenProps) {
 
 function Shelf({ visualsOnly = false }: { visualsOnly?: boolean }) {
   return (
-    <div className={cn("relative w-[96%] mx-auto h-8 mt-1", visualsOnly && "opacity-40 pointer-events-none")}>
-      {/* Top surface of the wood */}
-      <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-[#8B5A2B] to-[#6b4521] rounded-[50%_50%_0_0] shadow-inner border-t border-[#a67c52]"></div>
-      {/* Front edge of the wood */}
-      <div className="absolute inset-x-0 top-4 h-4 bg-gradient-to-b from-[#5c3a1c] to-[#3e2712] rounded-[0_0_12px_12px] shadow-[0_15px_20px_rgba(0,0,0,0.6)] border-b border-[#2a1a0b]"></div>
-      
-      {/* Hanging vines decoration (just a few simple shapes) */}
-      <div className="absolute left-4 top-4 w-2 h-16 bg-gradient-to-b from-green-800 to-transparent rounded-full opacity-60 mix-blend-overlay rotate-[5deg]"></div>
-      <div className="absolute right-6 top-4 w-3 h-12 bg-gradient-to-b from-green-700 to-transparent rounded-full opacity-50 mix-blend-overlay -rotate-[10deg]"></div>
+    <div
+      className={cn(
+        "relative z-10 w-[98%] max-w-[385px] mx-auto -mt-3 pointer-events-none",
+        visualsOnly && "opacity-40",
+      )}
+      style={{ aspectRatio: '385 / 77' }}
+    >
+      <img
+        src={GARDEN_SHELF_PATH}
+        alt=""
+        draggable={false}
+        className="absolute inset-0 h-full w-full object-fill drop-shadow-[0_18px_18px_rgba(0,0,0,0.45)]"
+      />
     </div>
   );
 }
@@ -181,10 +196,10 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
 
         if (plant.phase === 3) {
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
-            const amount = def.baseClick * plant.level;
+            const amount = getClickReward(def.baseClick, plant.level);
             setFloatingTexts(prev => [...prev, { id, text: `+${amount} G`, type: 'gold' }]);
         } else {
-            setFloatingTexts(prev => [...prev, { id, text: `-5s`, type: 'time' }]);
+            setFloatingTexts(prev => [...prev, { id, text: `-${tapAccelerationSeconds}s`, type: 'time' }]);
         }
         
         setTimeout(() => {
@@ -208,6 +223,10 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
   const m = Math.floor(remaining / 60000);
   const s = Math.floor((remaining % 60000) / 1000);
   const timeStr = phase < 3 ? `${m}:${s.toString().padStart(2, '0')}` : '';
+  const tapAccelerationSeconds = Math.round(TAP_GROWTH_ACCELERATION_MS / 1000);
+  const canWater = !!plant
+    && phase < 3
+    && (!plant.lastWatered || Date.now() - plant.lastWatered >= WATER_COOLDOWN_MS);
 
   const phaseScales = [0.45, 0.50, 0.55, 0.6];
   const bgStyle = getGardenSpriteStyle(spriteIndex, phase, phaseScales[phase] || 0.6);
@@ -268,6 +287,18 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
           )}
         </AnimatePresence>
 
+        {canWater && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="absolute right-2 top-16 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-sky-200/40 bg-sky-500/25 text-sky-100 shadow-[0_0_14px_rgba(56,189,248,0.35)]"
+            aria-hidden="true"
+            data-testid="garden-water-ready"
+          >
+            <Droplets size={15} strokeWidth={1.8} />
+          </motion.div>
+        )}
+
         {/* Hidden img to catch load error */}
         {!imgError && (
           <img 
@@ -311,16 +342,20 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
         )}
       </div>
       
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-30">
-        <div className="bg-[#1a1315]/90 backdrop-blur text-zinc-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-white/10 flex items-center gap-1 shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-          {(plant?.phase || 0) < 3 ? `PH ${plant?.phase || 0}` : `LV ${plant?.level || 0}`}
-        </div>
-        {(plant?.phase || 0) < 3 && (
-          <div className="mt-1 bg-black/60 backdrop-blur-md px-1.5 py-0.5 rounded border border-emerald-900/50 text-[9px] font-mono text-emerald-400">
+      {(plant?.phase || 0) < 3 && (
+        <div
+          data-testid="garden-growth-timer"
+          className="absolute left-[calc(50%-6px)] top-[calc(100%-8px)] z-40 -translate-x-1/2 pointer-events-none"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: -2, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="rounded-full border border-emerald-300/35 bg-[#101715]/80 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-emerald-300 shadow-[0_4px_10px_rgba(0,0,0,0.45)] backdrop-blur-sm"
+          >
             {timeStr}
-          </div>
-        )}
-      </div>
+          </motion.div>
+        </div>
+      )}
       
       {/* Floating text effects */}
       <AnimatePresence>

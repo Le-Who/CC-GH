@@ -54,6 +54,11 @@ const POTION_PIECE_ASSETS = {
   special_colour: assetUrl(`${POTIONS_IMAGE_BASE}/special-colour.png`),
 };
 
+const MATCH3_SWAP_FRAMES = 12;
+const MATCH3_CLEAR_FRAMES = 10;
+const MATCH3_MOTION_FRAMES = 28;
+const MATCH3_SETTLE_FRAMES = 7;
+
 let graphicsManifest = null;
 let graphicsManifestPromise = null;
 
@@ -1001,15 +1006,78 @@ export function buildMatch3Scene(app, initial = {}) {
     return group;
   }
 
-  function activeAnimationBoard(fallback) {
-    if (!animationFrames.length) return fallback;
-    return animationFrames[Math.min(animationFrameIndex, animationFrames.length - 1)] || fallback;
+  function cloneMatch3Board(board = []) {
+    return Array.from({ length: BOARD_SIZE }, (_, y) =>
+      Array.from({ length: BOARD_SIZE }, (_, x) => board[y]?.[x] || null),
+    );
   }
 
-  function advanceAnimationFrame() {
+  function swappedMatch3Board(animation = {}) {
+    const next = cloneMatch3Board(animation.startBoard || []);
+    const { from, to } = animation;
+    if (!from || !to || !next[from.y]?.[from.x] || !next[to.y]?.[to.x]) return next;
+    [next[from.y][from.x], next[to.y][to.x]] = [next[to.y][to.x], next[from.y][from.x]];
+    return next;
+  }
+
+  function match3MotionBoard(sourceBoard, step = {}) {
+    const next = cloneMatch3Board(sourceBoard);
+    for (const cell of step.cleared || []) {
+      if (next[cell.y]) next[cell.y][cell.x] = null;
+    }
+    for (const special of step.specials || []) {
+      if (next[special.y]) next[special.y][special.x] = special.type;
+    }
+    for (const fall of step.fallen || []) {
+      if (next[fall.fromY]) next[fall.fromY][fall.x] = null;
+      if (next[fall.toY]) next[fall.toY][fall.x] = null;
+    }
+    for (const fill of step.filled || []) {
+      if (next[fill.y]) next[fill.y][fill.x] = null;
+    }
+    for (const drop of step.dropCollected || []) {
+      if (next[drop.y]) next[drop.y][drop.x] = null;
+    }
+    return next;
+  }
+
+  function buildMatch3Frames(animation = {}) {
+    if (animation.type !== "cascade") return [];
+    const steps = Array.isArray(animation.steps) ? animation.steps : [];
+    const frames = [];
+    const hasStart = Array.isArray(animation.startBoard) && animation.startBoard.length;
+    const swapBoard = Array.isArray(animation.swapBoard) && animation.swapBoard.length
+      ? cloneMatch3Board(animation.swapBoard)
+      : swappedMatch3Board(animation);
+    let previousBoard = swapBoard;
+
+    if (hasStart) {
+      frames.push({ board: cloneMatch3Board(animation.startBoard), holdFrames: MATCH3_SWAP_FRAMES });
+    }
+    frames.push({ board: cloneMatch3Board(swapBoard), holdFrames: 5 });
+
+    for (const step of steps) {
+      const matchBoard = cloneMatch3Board(previousBoard);
+      frames.push({ board: matchBoard, holdFrames: MATCH3_CLEAR_FRAMES });
+      frames.push({ board: match3MotionBoard(matchBoard, step), holdFrames: MATCH3_MOTION_FRAMES });
+      const settledBoard = cloneMatch3Board(step.boardSnapshot);
+      frames.push({ board: settledBoard, holdFrames: MATCH3_SETTLE_FRAMES });
+      previousBoard = settledBoard;
+    }
+
+    return frames.filter((frame) => frame.board?.length);
+  }
+
+  function activeAnimationBoard(fallback) {
+    if (!animationFrames.length) return fallback;
+    const frame = animationFrames[Math.min(animationFrameIndex, animationFrames.length - 1)];
+    return frame?.board || fallback;
+  }
+
+  function advanceAnimationFrame(tickerState = {}) {
     if (!animationFrames.length) return;
-    animationFrameAge += 1;
-    const holdFrames = animationFrameIndex === 0 ? 18 : 26;
+    animationFrameAge += Math.max(0.5, tickerState.deltaTime || 1);
+    const holdFrames = animationFrames[animationFrameIndex]?.holdFrames || 1;
     if (animationFrameAge < holdFrames) return;
     animationFrameAge = 0;
     if (animationFrameIndex < animationFrames.length - 1) {
@@ -1065,26 +1133,34 @@ export function buildMatch3Scene(app, initial = {}) {
 
     const steps = Array.isArray(animation.steps) ? animation.steps : [];
     if (animation.type === "cascade") {
-      const stepBoards = steps.map((step) => step.boardSnapshot).filter(Boolean);
-      animationFrames = [
-        animation.startBoard,
-        ...stepBoards,
-      ].filter((board) => Array.isArray(board) && board.length);
+      animationFrames = buildMatch3Frames(animation);
       animationFrameIndex = 0;
       animationFrameAge = 0;
     }
+    let previousBoard = Array.isArray(animation.swapBoard) && animation.swapBoard.length
+      ? cloneMatch3Board(animation.swapBoard)
+      : swappedMatch3Board(animation);
+    let stepDelay = MATCH3_SWAP_FRAMES + 5;
     steps.forEach((step, stepIndex) => {
-      const stepDelay = 18 + stepIndex * 34;
+      const clearDelay = stepDelay;
+      const motionDelay = clearDelay + MATCH3_CLEAR_FRAMES;
       for (const cell of step.cleared || []) {
         const pos = cellCenter(layout, cell.x, cell.y);
         const pulse = new Graphics().circle(0, 0, radius * (1 + Math.min(0.55, step.combo * 0.08))).stroke({ color: AMBER, width: 3, alpha: 0.86 });
         pulse.x = pos.x;
         pulse.y = pos.y;
-        pulse._delay = stepDelay + ((cell.x + cell.y) % 3);
+        pulse._delay = clearDelay + ((cell.x + cell.y) % 3);
         pulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 16, fade: true, scaleFrom: 0.5, scaleTo: 1.35 };
         effects.addChild(pulse);
+        const burst = makeGemView(cell.type, radius * 0.95, 0.96);
+        burst.x = pos.x;
+        burst.y = pos.y;
+        burst._delay = clearDelay + 2 + ((cell.x + cell.y) % 2);
+        burst._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - radius * 0.18, duration: 14, fade: true, scaleFrom: 1, scaleTo: 0.45 };
+        effects.addChild(burst);
+        const beforeSparkles = effects.children.length;
         makeSparkles(effects, pos.x, pos.y, step.combo > 1 ? CORAL : AMBER, Math.min(12, 5 + step.combo));
-        effects.children.at(-1)._delay = stepDelay;
+        for (const child of effects.children.slice(beforeSparkles)) child._delay = clearDelay + 3;
       }
       for (const special of step.specials || []) {
         const pos = cellCenter(layout, special.x, special.y);
@@ -1095,32 +1171,48 @@ export function buildMatch3Scene(app, initial = {}) {
           .stroke({ color, width: 4, alpha: 0.78 });
         specialPulse.x = pos.x;
         specialPulse.y = pos.y;
-        specialPulse._delay = stepDelay + 4;
+        specialPulse._delay = clearDelay + 4;
         specialPulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 20, fade: true, scaleFrom: 0.4, scaleTo: 1.25 };
         effects.addChild(specialPulse);
       }
       for (const fall of step.fallen || []) {
-        const type = step.boardSnapshot?.[fall.toY]?.[fall.x];
+        const type = previousBoard?.[fall.fromY]?.[fall.x] || step.boardSnapshot?.[fall.toY]?.[fall.x];
+        if (!type) continue;
         const fromPos = cellCenter(layout, fall.x, fall.fromY);
         const toPos = cellCenter(layout, fall.x, fall.toY);
-        effects.addChild(makeTween(makeGemView(type, radius * 0.92, 0.86), fromPos, toPos, 26, { delay: stepDelay + 8, fade: true, scaleFrom: 0.96, scaleTo: 1.02 }));
+        const fallDistance = Math.max(1, Math.abs(fall.toY - fall.fromY));
+        effects.addChild(makeTween(
+          makeGemView(type, radius * 0.92, 0.9),
+          fromPos,
+          toPos,
+          18 + fallDistance * 3,
+          { delay: motionDelay + Math.min(5, fallDistance), fade: true, scaleFrom: 0.96, scaleTo: 1.02 },
+        ));
       }
       for (const fill of step.filled || []) {
         const fromPos = { ...cellCenter(layout, fill.x, fill.y), y: layout.top - layout.cell * (1.2 + (fill.y % 2) * 0.2) };
         const toPos = cellCenter(layout, fill.x, fill.y);
-        effects.addChild(makeTween(makeGemView(fill.type, radius * 0.9, 0.88), fromPos, toPos, 30, { delay: stepDelay + 14, fade: true, scaleFrom: 0.72, scaleTo: 1 }));
+        effects.addChild(makeTween(
+          makeGemView(fill.type, radius * 0.9, 0.9),
+          fromPos,
+          toPos,
+          26 + Math.min(8, fill.y),
+          { delay: motionDelay + 6 + Math.min(6, fill.y), fade: true, scaleFrom: 0.72, scaleTo: 1 },
+        ));
       }
       for (const drop of step.dropCollected || []) {
         const pos = cellCenter(layout, drop.x, drop.y);
         const collect = makeGemView(drop.type, radius * 1.02, 0.98);
-        collect._delay = stepDelay + 12;
+        collect._delay = motionDelay + 10;
         collect._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - layout.cell * 0.72, duration: 22, fade: true, scaleFrom: 1, scaleTo: 1.35 };
         effects.addChild(collect);
         const points = label(`+${drop.points || 80}`, pos.x, pos.y - radius * 1.5, Math.max(12, radius * 0.72), AMBER);
-        points._delay = stepDelay + 14;
+        points._delay = motionDelay + 12;
         points._tween = { fromX: points.x, fromY: points.y, toX: points.x, toY: points.y - layout.cell * 0.44, duration: 24, fade: true, scaleFrom: 0.8, scaleTo: 1.12 };
         effects.addChild(points);
       }
+      previousBoard = cloneMatch3Board(step.boardSnapshot);
+      stepDelay += MATCH3_CLEAR_FRAMES + MATCH3_MOTION_FRAMES + MATCH3_SETTLE_FRAMES;
     });
   }
 
@@ -1140,7 +1232,6 @@ export function buildMatch3Scene(app, initial = {}) {
     for (let y = 0; y < BOARD_SIZE; y++) {
       for (let x = 0; x < BOARD_SIZE; x++) {
         const gem = renderBoard[y]?.[x];
-        const color = GEM_COLORS[gem] || 0xa4af9a;
         const selected = data.selectedGem?.x === x && data.selectedGem?.y === y;
         const dragging = drag?.from?.x === x && drag?.from?.y === y;
         const tile = selected
@@ -1154,6 +1245,8 @@ export function buildMatch3Scene(app, initial = {}) {
           },
         });
         root.addChild(tile);
+        if (!gem) continue;
+        const color = GEM_COLORS[gem] || 0xa4af9a;
         const orb = new Graphics()
           .circle(left + x * cell + cell / 2, top + y * cell + cell / 2, cell * (selected ? 0.34 : 0.29))
           .fill({ color, alpha: dragging ? 0.38 : 1 });
@@ -1178,8 +1271,8 @@ export function buildMatch3Scene(app, initial = {}) {
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
-  const ticker = () => {
-    advanceAnimationFrame();
+  const ticker = (tickerState) => {
+    advanceAnimationFrame(tickerState);
     tickParticles(effects);
   };
   app.ticker.add(ticker);
