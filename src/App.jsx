@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
   BadgeCheck,
@@ -64,22 +64,374 @@ import {
 import { CROPS, ECONOMY, MERGE_CHAINS, ROOM_DECORATIONS } from "../game-logic.js";
 
 const TABS = [
-  { id: "garden", label: "Garden", icon: Leaf },
-  { id: "blox", label: "Blox", icon: Blocks },
-  { id: "match3", label: "Gems", icon: Gem },
-  { id: "merge", label: "Merge", icon: PackageOpen },
-  { id: "bubbo", label: "Bubbo", icon: Sparkles },
-  { id: "trivia", label: "Trivia", icon: Bot },
-  { id: "room", label: "Room", icon: Home },
+  { id: "garden", labelKey: "tabs.garden", icon: Leaf },
+  { id: "blox", labelKey: "tabs.blox", icon: Blocks },
+  { id: "match3", labelKey: "tabs.gems", icon: Gem },
+  { id: "merge", labelKey: "tabs.merge", icon: PackageOpen },
+  { id: "bubbo", labelKey: "tabs.bubbo", icon: Sparkles },
+  { id: "trivia", labelKey: "tabs.trivia", icon: Bot },
+  { id: "room", labelKey: "tabs.room", icon: Home },
 ];
 
 const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
 
 const MATCH3_MODES = [
-  { id: "classic", label: "Classic", hint: "30 moves" },
-  { id: "timed", label: "Timed", hint: "90 seconds" },
-  { id: "drop", label: "Star Drop", hint: "drop tokens" },
+  { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
+  { id: "timed", labelKey: "match3.mode.timed", hintKey: "match3.mode.timedHint" },
+  { id: "drop", labelKey: "match3.mode.drop", hintKey: "match3.mode.dropHint" },
 ];
+
+const APP_TRANSLATIONS = {
+  en: {
+    "app.eyebrow": "Telegram Mini App",
+    "app.title": "Game Hub",
+    "app.loading": "Loading player snapshot",
+    "app.player": "Player",
+    "app.runtime": "VPS runtime",
+    "audio.mute": "Mute sound",
+    "audio.enable": "Enable sound",
+    "tabs.garden": "Garden",
+    "tabs.blox": "Blox",
+    "tabs.gems": "Gems",
+    "tabs.merge": "Merge",
+    "tabs.bubbo": "Bubbo",
+    "tabs.trivia": "Trivia",
+    "tabs.room": "Room",
+    "common.gold": "Gold",
+    "common.energy": "Energy",
+    "common.tokens": "Tokens",
+    "common.score": "Score",
+    "common.lines": "Lines",
+    "common.cost": "Cost",
+    "common.reward": "Reward",
+    "common.moves": "Moves",
+    "common.time": "Time",
+    "common.combo": "Combo",
+    "common.shots": "Shots",
+    "common.pressure": "Pressure",
+    "common.pause": "Pause",
+    "common.resume": "Resume",
+    "common.start": "Start",
+    "common.restart": "Restart",
+    "common.new": "New",
+    "common.play": "Play",
+    "common.exit": "Exit",
+    "common.settle": "Settle",
+    "common.end": "End",
+    "common.endRun": "End Run",
+    "common.back": "Back",
+    "common.refresh": "Refresh",
+    "common.ready": "Ready",
+    "common.setup": "Setup",
+    "common.leaderboard": "Leaderboard",
+    "common.noScores": "No scores yet.",
+    "common.best": "Best",
+    "common.tap": "Tap",
+    "common.questionShort": "Q",
+    "farm.title": "Cozy Farm",
+    "farm.levelShort": "Lv",
+    "farm.xp": "XP",
+    "farm.plots": "Plots",
+    "farm.seed": "Seed",
+    "farm.harvest": "Harvest",
+    "farm.harvestAll": "Harvest All",
+    "farm.offlineApplied": "Offline progress applied.",
+    "farm.shop": "Shop",
+    "farm.bag": "Bag",
+    "farm.badges": "Badges",
+    "farm.journal": "Journal",
+    "farm.season": "Season",
+    "farm.buyQuantity": "Buy quantity",
+    "farm.seeds": "Seeds",
+    "farm.buy": "Buy",
+    "farm.buyPlot": "Buy Plot",
+    "farm.fertilizer": "Fertilizer",
+    "farm.setTheme": "Set theme",
+    "farm.buyFor": "Buy for {cost}",
+    "farm.emptyBag": "Harvest crops to fill the Bag.",
+    "farm.sell": "Sell",
+    "farm.feed": "Feed",
+    "farm.soil": "soil",
+    "farm.seedLabel": "seed",
+    "farm.ready": "READY",
+    "farm.uproot": "UPROOT",
+    "farm.watered": "watered",
+    "farm.undiscovered": "Undiscovered",
+    "farm.keepFarming": "Keep farming",
+    "farm.tier": "Tier",
+    "farm.claimed": "claimed",
+    "farm.unlocked": "unlocked",
+    "farm.locked": "locked",
+    "blox.title": "Building Blox",
+    "blox.rewardLine": "Best {best} · reward {reward}",
+    "blox.bestReward": "Best {best} · Reward {reward}",
+    "blox.status": "Score {score} · Lines {lines}",
+    "blox.clear": "CLEAR",
+    "match3.title": "Gem Crush",
+    "match3.mode.classic": "Classic",
+    "match3.mode.classicHint": "30 moves",
+    "match3.mode.timed": "Timed",
+    "match3.mode.timedHint": "90 seconds",
+    "match3.mode.drop": "Star Drop",
+    "match3.mode.dropHint": "drop tokens",
+    "match3.reshuffle": "Reshuffle",
+    "bubbo.title": "Bubbo Bubbo",
+    "bubbo.bubbles": "bubbles",
+    "bubbo.newField": "New Field",
+    "bubbo.runStatus": "Run Status",
+    "bubbo.dangerLine": "Danger line",
+    "bubbo.fieldStable": "Field stable",
+    "bubbo.highScore": "high score {score}",
+    "merge.title": "Gacha Merge",
+    "merge.free": "Free",
+    "merge.items": "Items",
+    "merge.mode": "Mode",
+    "merge.modeTrash": "Trash",
+    "merge.modeMerge": "Merge",
+    "merge.disableTrash": "Disable trash mode",
+    "merge.enableTrash": "Enable trash mode",
+    "merge.trash": "Trash",
+    "merge.trashOn": "Trash On",
+    "merge.trashOff": "Trash Off",
+    "merge.stopPlay": "Stop Play",
+    "merge.statusTrash": "Trash mode",
+    "merge.statusMerge": "Drag/tap merge pairs",
+    "merge.miss": "miss",
+    "merge.coolingDown": "Cooling down",
+    "merge.taps": "{count} taps",
+    "merge.freeChooseFuel": "Free/choose fuel",
+    "merge.gacha": "Gacha",
+    "merge.thirtyTaps": "30 Taps",
+    "merge.freeTaps": "free taps",
+    "trivia.title": "Brain Blitz",
+    "trivia.total": "Total {score} · Best streak {streak}",
+    "trivia.category": "Category",
+    "trivia.any": "Any",
+    "trivia.difficulty": "Difficulty",
+    "trivia.easy": "Easy",
+    "trivia.medium": "Medium",
+    "trivia.hard": "Hard",
+    "trivia.all": "All",
+    "trivia.solo": "Solo",
+    "trivia.createDuel": "Create Duel",
+    "trivia.inviteCode": "Invite code",
+    "trivia.join": "Join",
+    "trivia.invite": "Invite {code}",
+    "trivia.status": "Status: {status}",
+    "trivia.waiting": "waiting",
+    "trivia.finished": "Finished",
+    "trivia.result": "Result",
+    "trivia.recentDuels": "Recent Duels",
+    "trivia.noDuels": "No duels yet.",
+    "trivia.question": "Question {current}/{total}",
+    "trivia.streak": "Streak {streak}",
+    "trivia.noStreak": "No streak",
+    "trivia.streakLabel": "Streak",
+    "trivia.fallbackCategory": "Trivia",
+    "trivia.duel": "duel",
+    "trivia.played": "played",
+    "room.full": "Full",
+    "room.happy": "Happy",
+    "room.orders": "Orders",
+    "room.fullness": "Fullness",
+    "room.affection": "Affection",
+    "room.decor": "Decor",
+    "room.rename": "Rename",
+    "room.inventory": "Room Inventory",
+    "room.emptyInventory": "Find decorations from Merge gacha and high merges.",
+    "room.ordersTitle": "Pet Orders",
+    "room.generate": "Generate",
+    "room.order": "{tier} order",
+    "room.complete": "Complete",
+    "room.decoration": "Decoration",
+    "room.defaultName": "Buddy",
+  },
+  ru: {
+    "app.eyebrow": "Telegram Mini App",
+    "app.title": "Game Hub",
+    "app.loading": "Загрузка игрока",
+    "app.player": "Игрок",
+    "app.runtime": "VPS runtime",
+    "audio.mute": "Выключить звук",
+    "audio.enable": "Включить звук",
+    "tabs.garden": "Сад",
+    "tabs.blox": "Блоки",
+    "tabs.gems": "Камни",
+    "tabs.merge": "Слияние",
+    "tabs.bubbo": "Bubbo",
+    "tabs.trivia": "Викторина",
+    "tabs.room": "Комната",
+    "common.gold": "Золото",
+    "common.energy": "Энергия",
+    "common.tokens": "Токены",
+    "common.score": "Счет",
+    "common.lines": "Линии",
+    "common.cost": "Цена",
+    "common.reward": "Награда",
+    "common.moves": "Ходы",
+    "common.time": "Время",
+    "common.combo": "Комбо",
+    "common.shots": "Выстрелы",
+    "common.pressure": "Давление",
+    "common.pause": "Пауза",
+    "common.resume": "Продолжить",
+    "common.start": "Старт",
+    "common.restart": "Заново",
+    "common.new": "Новая",
+    "common.play": "Играть",
+    "common.exit": "Выход",
+    "common.settle": "Завершить",
+    "common.end": "Конец",
+    "common.endRun": "Закончить",
+    "common.back": "Назад",
+    "common.refresh": "Обновить",
+    "common.ready": "Готов",
+    "common.setup": "Настройка",
+    "common.leaderboard": "Лидеры",
+    "common.noScores": "Пока нет результатов.",
+    "common.best": "Рекорд",
+    "common.tap": "Тап",
+    "common.questionShort": "В",
+    "farm.title": "Уютная ферма",
+    "farm.levelShort": "Ур.",
+    "farm.xp": "XP",
+    "farm.plots": "Грядки",
+    "farm.seed": "Семена",
+    "farm.harvest": "Собрать",
+    "farm.harvestAll": "Собрать все",
+    "farm.offlineApplied": "Офлайн-прогресс применен.",
+    "farm.shop": "Магазин",
+    "farm.bag": "Сумка",
+    "farm.badges": "Значки",
+    "farm.journal": "Журнал",
+    "farm.season": "Сезон",
+    "farm.buyQuantity": "Количество",
+    "farm.seeds": "Семян",
+    "farm.buy": "Купить",
+    "farm.buyPlot": "Купить грядку",
+    "farm.fertilizer": "Удобрение",
+    "farm.setTheme": "Выбрать тему",
+    "farm.buyFor": "Купить за {cost}",
+    "farm.emptyBag": "Собирайте урожай, чтобы наполнить сумку.",
+    "farm.sell": "Продать",
+    "farm.feed": "Кормить",
+    "farm.soil": "почва",
+    "farm.seedLabel": "семя",
+    "farm.ready": "ГОТОВО",
+    "farm.uproot": "УБРАТЬ",
+    "farm.watered": "полито",
+    "farm.undiscovered": "Не открыто",
+    "farm.keepFarming": "Продолжайте ферму",
+    "farm.tier": "Уровень",
+    "farm.claimed": "получено",
+    "farm.unlocked": "открыто",
+    "farm.locked": "закрыто",
+    "blox.title": "Building Blox",
+    "blox.rewardLine": "Рекорд {best} · награда {reward}",
+    "blox.bestReward": "Рекорд {best} · Награда {reward}",
+    "blox.status": "Счет {score} · Линии {lines}",
+    "blox.clear": "ЧИСТО",
+    "match3.title": "Gem Crush",
+    "match3.mode.classic": "Классика",
+    "match3.mode.classicHint": "30 ходов",
+    "match3.mode.timed": "На время",
+    "match3.mode.timedHint": "90 секунд",
+    "match3.mode.drop": "Star Drop",
+    "match3.mode.dropHint": "роняйте токены",
+    "match3.reshuffle": "Перемешать",
+    "bubbo.title": "Bubbo Bubbo",
+    "bubbo.bubbles": "шаров",
+    "bubbo.newField": "Новое поле",
+    "bubbo.runStatus": "Статус рана",
+    "bubbo.dangerLine": "Опасная линия",
+    "bubbo.fieldStable": "Поле стабильно",
+    "bubbo.highScore": "рекорд {score}",
+    "merge.title": "Gacha Merge",
+    "merge.free": "Бесплатно",
+    "merge.items": "Предметы",
+    "merge.mode": "Режим",
+    "merge.modeTrash": "Удаление",
+    "merge.modeMerge": "Слияние",
+    "merge.disableTrash": "Выключить удаление",
+    "merge.enableTrash": "Включить удаление",
+    "merge.trash": "Удалить",
+    "merge.trashOn": "Удаление вкл.",
+    "merge.trashOff": "Удаление выкл.",
+    "merge.stopPlay": "Остановить",
+    "merge.statusTrash": "Режим удаления",
+    "merge.statusMerge": "Тяните или тапайте пары",
+    "merge.miss": "мимо",
+    "merge.coolingDown": "Остывает",
+    "merge.taps": "{count} тапов",
+    "merge.freeChooseFuel": "Бесплатно/выберите ресурс",
+    "merge.gacha": "Гача",
+    "merge.thirtyTaps": "30 тапов",
+    "merge.freeTaps": "бесплатных тапов",
+    "trivia.title": "Brain Blitz",
+    "trivia.total": "Всего {score} · лучшая серия {streak}",
+    "trivia.category": "Категория",
+    "trivia.any": "Любая",
+    "trivia.difficulty": "Сложность",
+    "trivia.easy": "Легко",
+    "trivia.medium": "Средне",
+    "trivia.hard": "Сложно",
+    "trivia.all": "Все",
+    "trivia.solo": "Соло",
+    "trivia.createDuel": "Создать дуэль",
+    "trivia.inviteCode": "Код приглашения",
+    "trivia.join": "Войти",
+    "trivia.invite": "Инвайт {code}",
+    "trivia.status": "Статус: {status}",
+    "trivia.waiting": "ожидание",
+    "trivia.finished": "Готово",
+    "trivia.result": "Результат",
+    "trivia.recentDuels": "Недавние дуэли",
+    "trivia.noDuels": "Дуэлей пока нет.",
+    "trivia.question": "Вопрос {current}/{total}",
+    "trivia.streak": "Серия {streak}",
+    "trivia.noStreak": "Без серии",
+    "trivia.streakLabel": "Серия",
+    "trivia.fallbackCategory": "Викторина",
+    "trivia.duel": "дуэль",
+    "trivia.played": "сыграно",
+    "room.full": "Сытость",
+    "room.happy": "Радость",
+    "room.orders": "Заказы",
+    "room.fullness": "Сытость",
+    "room.affection": "Привязанность",
+    "room.decor": "Декор",
+    "room.rename": "Переименовать",
+    "room.inventory": "Инвентарь комнаты",
+    "room.emptyInventory": "Украшения выпадают из Merge gacha и высоких слияний.",
+    "room.ordersTitle": "Заказы питомца",
+    "room.generate": "Создать",
+    "room.order": "заказ: {tier}",
+    "room.complete": "Выполнить",
+    "room.decoration": "Украшение",
+    "room.defaultName": "Бадди",
+  },
+};
+
+function interpolateText(template, vars) {
+  if (!vars) return template;
+  return template.replace(/\{(\w+)\}/g, (_match, key) => String(vars[key] ?? ""));
+}
+
+function appTranslate(language, key, vars) {
+  const gardenValue = gardenTranslate(language, key, vars);
+  if (gardenValue !== key) return gardenValue;
+  const template = APP_TRANSLATIONS[language]?.[key] || APP_TRANSLATIONS.en[key] || key;
+  return interpolateText(template, vars);
+}
+
+const AppI18nContext = createContext({
+  language: "en",
+  t: (key, vars) => appTranslate("en", key, vars),
+});
+
+function useAppI18n() {
+  return useContext(AppI18nContext);
+}
 
 function createSwappedMatch3Board(board, from, to) {
   const next = board.map((row) => [...row]);
@@ -90,7 +442,7 @@ function createSwappedMatch3Board(board, from, to) {
 }
 
 function estimateMatch3CascadeLockMs(stepCount = 1) {
-  const frames = 12 + 5 + Math.max(1, stepCount) * (10 + 28 + 7) + 6;
+  const frames = 14 + 5 + Math.max(1, stepCount) * (12 + 46 + 10) + 8;
   return Math.min(2600, Math.round((frames * 1000) / 60));
 }
 
@@ -141,11 +493,12 @@ function useImmersiveGame(tabId, active) {
   }, [active, setActiveGameShell, tabId]);
 }
 
-function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = "Settle", extraActions = null }) {
+function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = null, extraActions = null, className = "" }) {
   const reduceMotion = useReducedMotion();
+  const { t } = useAppI18n();
   return (
     <motion.div
-      className="game-play-hud"
+      className={`game-play-hud ${className}`.trim()}
       initial={reduceMotion ? false : { opacity: 0, y: -14 }}
       animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0.01 : 0.2, ease: "easeOut" }}
@@ -163,8 +516,8 @@ function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLab
       </div>
       <div className="game-play-actions">
         {extraActions}
-        <PanelButton icon={Pause} subtle onClick={onPause}>Pause</PanelButton>
-        {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel}</PanelButton>}
+        <PanelButton icon={Pause} subtle onClick={onPause}>{t("common.pause")}</PanelButton>
+        {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel || t("common.settle")}</PanelButton>}
       </div>
     </motion.div>
   );
@@ -227,6 +580,7 @@ function useExitToHub() {
 function FarmGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const { t } = useAppI18n();
   const [farmTab, setFarmTab] = useState("shop");
   const [selectedSeed, setSelectedSeed] = useState("strawberry");
   const [buyQty, setBuyQty] = useState(1);
@@ -280,10 +634,17 @@ function FarmGame() {
     () => ({
       snapshot: { ...snapshot, serverTime: Date.now() + tick },
       selectedSeed,
+      farmLabels: {
+        soil: t("farm.soil"),
+        seed: t("farm.seedLabel"),
+        ready: t("farm.ready"),
+        uproot: t("farm.uproot"),
+        watered: t("farm.watered"),
+      },
       onFarmPlot: onPlot,
       onFarmLongPress: onPlotLongPress,
     }),
-    [snapshot, selectedSeed, onPlot, onPlotLongPress, tick],
+    [snapshot, selectedSeed, onPlot, onPlotLongPress, tick, t],
   );
 
   return (
@@ -291,23 +652,23 @@ function FarmGame() {
       <PixiGameHost sceneKey="farm" buildScene={buildFarmScene} sceneState={sceneState} />
       {isPlaying && (
         <GamePlayHud
-          title="Cozy Farm"
-          subtitle={`Lv ${farm.level || 1} · ${farm.xp || 0} XP · ${crops[selectedSeed]?.name || selectedSeed}`}
+          title={t("farm.title")}
+          subtitle={`${t("farm.levelShort")} ${farm.level || 1} · ${farm.xp || 0} ${t("farm.xp")} · ${crops[selectedSeed]?.name || selectedSeed}`}
           stats={[
-            { label: "Gold", value: formatCount(snapshot?.resources?.gold || 0) },
-            { label: "Plots", value: farm.plots?.length || 0 },
-            { label: "Seed", value: inventory.seeds?.[selectedSeed] || 0 },
+            { label: t("common.gold"), value: formatCount(snapshot?.resources?.gold || 0) },
+            { label: t("farm.plots"), value: farm.plots?.length || 0 },
+            { label: t("farm.seed"), value: inventory.seeds?.[selectedSeed] || 0 },
           ]}
           onPause={() => setPaused(true)}
           onFinish={() => performAction("farm.harvestAll")}
-          finishLabel="Harvest"
+          finishLabel={t("farm.harvest")}
         />
       )}
       <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
         <div className="panel-header">
           <div>
-            <strong>Cozy Farm</strong>
-            <span>Lv {farm.level || 1} · {farm.xp || 0} XP</span>
+            <strong>{t("farm.title")}</strong>
+            <span>{t("farm.levelShort")} {farm.level || 1} · {farm.xp || 0} {t("farm.xp")}</span>
           </div>
           <PanelButton
             icon={Play}
@@ -316,12 +677,12 @@ function FarmGame() {
               setPaused(false);
             }}
           >
-            {inShell ? "Resume" : "Play"}
+            {inShell ? t("common.resume") : t("common.play")}
           </PanelButton>
         </div>
         {inShell && paused && (
           <div className="button-row two">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
             <PanelButton
               icon={Home}
               danger
@@ -330,26 +691,26 @@ function FarmGame() {
                 setInShell(false);
               }}
             >
-              Exit
+              {t("common.exit")}
             </PanelButton>
           </div>
         )}
-        {snapshot?.offlineReport && <div className="callout">Offline progress applied.</div>}
+        {snapshot?.offlineReport && <div className="callout">{t("farm.offlineApplied")}</div>}
         <SectionTabs
           active={farmTab}
           onChange={setFarmTab}
           tabs={[
-            { id: "shop", label: "Shop" },
-            { id: "bag", label: "Bag" },
-            { id: "badges", label: "Badges" },
-            { id: "journal", label: "Journal" },
-            { id: "season", label: "Season" },
+            { id: "shop", label: t("farm.shop") },
+            { id: "bag", label: t("farm.bag") },
+            { id: "badges", label: t("farm.badges") },
+            { id: "journal", label: t("farm.journal") },
+            { id: "season", label: t("farm.season") },
           ]}
         />
         {farmTab === "shop" && (
           <div className="panel-scroll grid-list">
             <div className="quantity-row">
-              <span>Buy quantity</span>
+              <span>{t("farm.buyQuantity")}</span>
               <input type="number" min="1" max="99" value={buyQty} onChange={(e) => setBuyQty(Math.max(1, Number(e.target.value) || 1))} />
             </div>
             {unlockedSeeds.map((cropId) => {
@@ -371,7 +732,7 @@ function FarmGame() {
                   <span className="item-emoji">{crop.emoji || "🌱"}</span>
                   <span>
                     <strong>{crop.name || cropId}</strong>
-                    <small>Seeds {inventory.seeds?.[cropId] || 0} · {crop.seedPrice || 0}g</small>
+                    <small>{t("farm.seeds")} {inventory.seeds?.[cropId] || 0} · {crop.seedPrice || 0}g</small>
                   </span>
                   <PanelButton
                     icon={ShoppingBag}
@@ -380,15 +741,15 @@ function FarmGame() {
                       performAction("farm.buySeeds", { cropId, amount: buyQty });
                     }}
                   >
-                    Buy
+                    {t("farm.buy")}
                   </PanelButton>
                 </div>
               );
             })}
             <div className="button-row">
-              <PanelButton icon={Check} onClick={() => performAction("farm.harvestAll")}>Harvest All</PanelButton>
-              <PanelButton icon={Hammer} onClick={() => performAction("farm.buyPlot")}>Buy Plot</PanelButton>
-              <PanelButton icon={Zap} onClick={() => performAction("farm.activateBooster", { boosterId: "fertilizer" })}>Fertilizer</PanelButton>
+              <PanelButton icon={Check} onClick={() => performAction("farm.harvestAll")}>{t("farm.harvestAll")}</PanelButton>
+              <PanelButton icon={Hammer} onClick={() => performAction("farm.buyPlot")}>{t("farm.buyPlot")}</PanelButton>
+              <PanelButton icon={Zap} onClick={() => performAction("farm.activateBooster", { boosterId: "fertilizer" })}>{t("farm.fertilizer")}</PanelButton>
             </div>
             <ThemePicker />
           </div>
@@ -405,6 +766,7 @@ function FarmGame() {
 function ThemePicker() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const { t } = useAppI18n();
   const themes = snapshot?.meta?.plotThemes || {};
   const cosmetics = snapshot?.farm?.cosmetics || {};
   return (
@@ -416,7 +778,7 @@ function ThemePicker() {
             key={theme.id}
             className={cosmetics.activePlotTheme === theme.id ? "active" : ""}
             onClick={() => performAction(owned ? "farm.setTheme" : "farm.buyTheme", { themeId: theme.id })}
-            title={owned ? "Set theme" : `Buy for ${theme.cost}`}
+            title={owned ? t("farm.setTheme") : t("farm.buyFor", { cost: theme.cost })}
           >
             <span>{theme.emoji}</span>
             <small>{theme.name}</small>
@@ -430,12 +792,13 @@ function ThemePicker() {
 function BagPanel() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const { t } = useAppI18n();
   const harvested = snapshot?.inventory?.harvested || {};
   const crops = snapshot?.meta?.crops || CROPS;
   const entries = listPositive(harvested);
   return (
     <div className="panel-scroll grid-list">
-      {!entries.length && <div className="empty-state">Harvest crops to fill the Bag.</div>}
+      {!entries.length && <div className="empty-state">{t("farm.emptyBag")}</div>}
       {entries.map(([cropId, qty]) => {
         const crop = crops[cropId] || {};
         return (
@@ -445,8 +808,8 @@ function BagPanel() {
               <strong>{crop.name || cropId}</strong>
               <small>x{qty} · sell {crop.sellPrice || 0}g · feed +{crop.fullnessYield || 0}</small>
             </span>
-            <PanelButton icon={Sparkles} onClick={() => performAction("farm.sellCrop", { cropId, amount: 1 })}>Sell</PanelButton>
-            <PanelButton icon={PawPrint} onClick={() => performAction("pet.feed", { cropId })}>Feed</PanelButton>
+            <PanelButton icon={Sparkles} onClick={() => performAction("farm.sellCrop", { cropId, amount: 1 })}>{t("farm.sell")}</PanelButton>
+            <PanelButton icon={PawPrint} onClick={() => performAction("pet.feed", { cropId })}>{t("farm.feed")}</PanelButton>
           </div>
         );
       })}
@@ -472,6 +835,7 @@ function AchievementsPanel() {
 
 function JournalPanel({ crops }) {
   const snapshot = useSnapshot();
+  const { t } = useAppI18n();
   const discovered = new Set(snapshot?.farm?.journal?.discovered || []);
   return (
     <div className="panel-scroll grid-list">
@@ -479,8 +843,8 @@ function JournalPanel({ crops }) {
         <div className={`item-card ${discovered.has(crop.id) ? "" : "locked"}`} key={crop.id}>
           <span className="item-emoji">{discovered.has(crop.id) ? crop.emoji : "?"}</span>
           <span>
-            <strong>{discovered.has(crop.id) ? crop.name : "Undiscovered"}</strong>
-            <small>{discovered.has(crop.id) ? crop.lore : crop.unlockCondition?.label || "Keep farming"}</small>
+            <strong>{discovered.has(crop.id) ? crop.name : t("farm.undiscovered")}</strong>
+            <small>{discovered.has(crop.id) ? crop.lore : crop.unlockCondition?.label || t("farm.keepFarming")}</small>
           </span>
         </div>
       ))}
@@ -490,19 +854,20 @@ function JournalPanel({ crops }) {
 
 function SeasonPanel() {
   const snapshot = useSnapshot();
+  const { t } = useAppI18n();
   const season = snapshot?.farm?.seasonPass || {};
   return (
     <div className="panel-scroll grid-list">
       <div className="progress-card">
-        <strong>{season.name || "Season"}</strong>
-        <span>{season.xp || 0} XP · Tier {(season.currentTier || 0) + 1}</span>
+        <strong>{season.name || t("farm.season")}</strong>
+        <span>{season.xp || 0} {t("farm.xp")} · {t("farm.tier")} {(season.currentTier || 0) + 1}</span>
       </div>
       {(season.tiers || []).map((tier, index) => (
         <div key={index} className={`item-card ${tier.unlocked ? "" : "locked"}`}>
           <span className="item-emoji">{tier.unlocked ? "★" : "·"}</span>
           <span>
             <strong>{tier.label}</strong>
-            <small>{tier.xp} XP · {tier.claimed ? "claimed" : tier.unlocked ? "unlocked" : "locked"}</small>
+            <small>{tier.xp} {t("farm.xp")} · {tier.claimed ? t("farm.claimed") : tier.unlocked ? t("farm.unlocked") : t("farm.locked")}</small>
           </span>
         </div>
       ))}
@@ -514,6 +879,7 @@ function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const { t } = useAppI18n();
   const [selectedPiece, setSelectedPiece] = useState(-1);
   const [paused, setPaused] = useState(false);
   const saved = snapshot?.blox?.savedState || {};
@@ -566,12 +932,14 @@ function BloxGame() {
   const sceneState = useMemo(
     () => ({
       blox: { ...state, gameActive: isPlaying },
+      bloxStatusText: t("blox.status", { score: state.score || 0, lines: state.linesCleared || 0 }),
+      bloxClearText: t("blox.clear"),
       selectedBloxPiece: selectedPiece,
       onBloxCell: onCell,
       onBloxDrop: onDrop,
       onBloxTray: setSelectedPiece,
     }),
-    [state, isPlaying, selectedPiece, onCell, onDrop],
+    [state, isPlaying, selectedPiece, onCell, onDrop, t],
   );
 
   return (
@@ -581,46 +949,46 @@ function BloxGame() {
       skin="meditation"
       hud={(
         <GamePlayHud
-          title="Building Blox"
-          subtitle={`Best ${state.highScore} · reward ${state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}`}
+          title={t("blox.title")}
+          subtitle={t("blox.rewardLine", { best: state.highScore, reward: state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0 })}
           stats={[
-            { label: "Score", value: state.score || 0 },
-            { label: "Lines", value: state.linesCleared || 0 },
-            { label: "Cost", value: ECONOMY.COST_BLOX },
+            { label: t("common.score"), value: state.score || 0 },
+            { label: t("common.lines"), value: state.linesCleared || 0 },
+            { label: t("common.cost"), value: ECONOMY.COST_BLOX },
           ]}
           onPause={() => setPaused(true)}
           onFinish={() => {
             setPaused(true);
             performAction("blox.end", { score: state.score });
           }}
-          finishLabel="End"
+          finishLabel={t("common.end")}
         />
       )}
       overlay={(
         <>
           <div className="panel-header">
             <div>
-              <strong>Building Blox</strong>
-              <span>Best {state.highScore} · Reward {state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0}</span>
+              <strong>{t("blox.title")}</strong>
+              <span>{t("blox.bestReward", { best: state.highScore, reward: state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0 })}</span>
             </div>
             <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
-              {state.gameActive ? "Restart" : "Start"}
+              {state.gameActive ? t("common.restart") : t("common.start")}
             </PanelButton>
           </div>
           {state.gameActive && paused && (
             <div className="button-row two">
-              <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-              <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.endRun")}</PanelButton>
             </div>
           )}
           <div className="metric-grid">
-            <Stat icon={Trophy} label="Score" value={state.score || 0} />
-            <Stat icon={Blocks} label="Lines" value={state.linesCleared || 0} />
-            <Stat icon={Zap} label="Cost" value={ECONOMY.COST_BLOX} />
+            <Stat icon={Trophy} label={t("common.score")} value={state.score || 0} />
+            <Stat icon={Blocks} label={t("common.lines")} value={state.linesCleared || 0} />
+            <Stat icon={Zap} label={t("common.cost")} value={ECONOMY.COST_BLOX} />
           </div>
           <div className="button-row">
-            <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>End Run</PanelButton>
-            <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+            <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.endRun")}</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
           </div>
           <Leaderboard entries={leaders} />
         </>
@@ -635,6 +1003,7 @@ function Match3Game() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const { t } = useAppI18n();
   const [mode, setMode] = useState("classic");
   const [board, setBoard] = useState(() => generateBoard());
   const [selected, setSelected] = useState(null);
@@ -784,13 +1153,14 @@ function Match3Game() {
   const sceneState = useMemo(
     () => ({
       match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked },
+      match3StatusText: `${t(MATCH3_MODES.find((item) => item.id === mode)?.labelKey || "match3.mode.classic")} · ${score} ${t("common.score").toLowerCase()} · ${movesLeft} ${(mode === "timed" ? t("common.time") : t("common.moves")).toLowerCase()}`,
       selectedGem: selected,
       match3Animation: matchAnimation,
       onMatch3Cell: onCell,
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [attemptSwap, board, combo, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected],
+    [attemptSwap, board, combo, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected, t],
   );
 
   return (
@@ -800,12 +1170,12 @@ function Match3Game() {
       skin="cycle"
       hud={(
         <GamePlayHud
-          title="Gem Crush"
-          subtitle={`${MATCH3_MODES.find((item) => item.id === mode)?.label || mode} · best ${snapshot?.match3?.highScore || 0}`}
+          title={t("match3.title")}
+          subtitle={`${t(MATCH3_MODES.find((item) => item.id === mode)?.labelKey || "match3.mode.classic")} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
           stats={[
-            { label: "Score", value: score },
-            { label: mode === "timed" ? "Time" : "Moves", value: movesLeft },
-            { label: "Combo", value: combo || "-" },
+            { label: t("common.score"), value: score },
+            { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
+            { label: t("common.combo"), value: combo || "-" },
           ]}
           onPause={() => setPaused(true)}
           onFinish={() => finish(score)}
@@ -815,34 +1185,34 @@ function Match3Game() {
         <>
           <div className="panel-header">
             <div>
-              <strong>Gem Crush</strong>
-              <span>Best {snapshot?.match3?.highScore || 0} · Combo {combo || "-"}</span>
+              <strong>{t("match3.title")}</strong>
+              <span>{t("common.best")} {snapshot?.match3?.highScore || 0} · {t("common.combo")} {combo || "-"}</span>
             </div>
-            <PanelButton icon={Play} onClick={() => start(mode)}>{gameActive ? "New" : "Start"}</PanelButton>
+            <PanelButton icon={Play} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>
           </div>
           {gameActive && paused && (
             <div className="button-row two">
-              <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-              <PanelButton icon={Check} onClick={() => finish(score)}>Settle</PanelButton>
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
             </div>
           )}
           <div className="mode-grid">
             {MATCH3_MODES.map((item) => (
               <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
-                <strong>{item.label}</strong>
-                <small>{item.hint}</small>
+                <strong>{t(item.labelKey)}</strong>
+                <small>{t(item.hintKey)}</small>
               </button>
             ))}
           </div>
           <div className="metric-grid">
-            <Stat icon={Trophy} label="Score" value={score} />
-            <Stat icon={Clock} label={mode === "timed" ? "Time" : "Moves"} value={movesLeft} />
-            <Stat icon={Gem} label="Reward" value={score > 0 ? Math.max(5, Math.floor(score / 25)) : 0} />
+            <Stat icon={Trophy} label={t("common.score")} value={score} />
+            <Stat icon={Clock} label={mode === "timed" ? t("common.time") : t("common.moves")} value={movesLeft} />
+            <Stat icon={Gem} label={t("common.reward")} value={score > 0 ? Math.max(5, Math.floor(score / 25)) : 0} />
           </div>
           <div className="button-row">
-            <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
-            <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>Reshuffle</PanelButton>
-            <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+            <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+            <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
           </div>
           <Leaderboard entries={leaders} />
         </>
@@ -857,6 +1227,7 @@ function BubboGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const { t } = useAppI18n();
   const initialRun = useMemo(() => createBubboRun("local-preview"), []);
   const [board, setBoard] = useState(() => initialRun.board);
   const [seed, setSeed] = useState(initialRun.seed);
@@ -1010,51 +1381,53 @@ function BubboGame() {
         waveIndex,
         rowOffset,
         nextPressureWave: generateBubboWave(seed, waveIndex),
+        statusText: `${score} ${t("common.score").toLowerCase()} · ${shotsLeft} ${t("common.shots").toLowerCase()}`,
       },
       onBubboFire: onFire,
     }),
-    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex],
+    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex, t],
   );
 
   return (
-    <div className={`game-layout game-shell ${isPlaying ? "shell-playing" : gameActive ? "shell-paused" : "shell-menu"}`}>
+    <div className={`game-layout game-shell bubbo-shell ${isPlaying ? "shell-playing" : gameActive ? "shell-paused" : "shell-menu"}`} data-game-shell="bubbo">
       <PixiGameHost sceneKey="bubbo" buildScene={buildBubboScene} sceneState={sceneState} />
       {isPlaying && (
         <GamePlayHud
-          title="Bubbo Bubbo"
-          subtitle={`Best ${highScore} · ${remainingBubbles} bubbles`}
+          title={t("bubbo.title")}
+          subtitle={`${t("common.best")} ${highScore} · ${remainingBubbles} ${t("bubbo.bubbles")}`}
           stats={[
-            { label: "Score", value: score },
-            { label: "Shots", value: shotsLeft },
-            { label: "Pressure", value: `${Math.round(pressureStep * 100)}%` },
+            { label: t("common.score"), value: score },
+            { label: t("common.shots"), value: shotsLeft },
+            { label: t("common.pressure"), value: `${Math.round(pressureStep * 100)}%` },
           ]}
           onPause={() => setPaused(true)}
           onFinish={() => finish(score)}
+          className="game-play-hud-bottom bubbo-play-hud"
         />
       )}
       <aside className="side-panel game-menu-overlay">
         <div className="panel-header">
           <div>
-            <strong>Bubbo Bubbo</strong>
-            <span>Best {highScore} · {remainingBubbles} bubbles · pressure {Math.round(pressureStep * 100)}%</span>
+            <strong>{t("bubbo.title")}</strong>
+            <span>{t("common.best")} {highScore} · {remainingBubbles} {t("bubbo.bubbles")} · {t("common.pressure").toLowerCase()} {Math.round(pressureStep * 100)}%</span>
           </div>
           <PanelButton icon={gameActive ? RotateCcw : Play} onClick={start}>
-            {gameActive ? "Restart" : "Start"}
+            {gameActive ? t("common.restart") : t("common.start")}
           </PanelButton>
         </div>
         {gameActive && paused && (
           <div className="button-row two">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-            <PanelButton icon={Check} onClick={() => finish(score)}>Settle</PanelButton>
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+            <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
           </div>
         )}
         <div className="metric-grid">
-          <Stat icon={Trophy} label="Score" value={score} />
-          <Stat icon={Sparkles} label="Shots" value={shotsLeft} />
-          <Stat icon={Zap} label="Cost" value={ECONOMY.COST_BUBBO} />
+          <Stat icon={Trophy} label={t("common.score")} value={score} />
+          <Stat icon={Sparkles} label={t("common.shots")} value={shotsLeft} />
+          <Stat icon={Zap} label={t("common.cost")} value={ECONOMY.COST_BUBBO} />
         </div>
         <div className="button-row">
-          <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>Settle</PanelButton>
+          <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
           <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
             const run = createBubboRun("local-preview");
             setBoard(run.board);
@@ -1063,12 +1436,12 @@ function BubboGame() {
             setRowOffset(run.rowOffset || 0);
             setPressure(0);
             setPressureStep(0);
-          }}>New Field</PanelButton>
-          <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+          }}>{t("bubbo.newField")}</PanelButton>
+          <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
         </div>
         <div className="leaderboard">
-          <strong>Run Status</strong>
-          <span>{isBubboDanger(board) ? "Danger line" : "Field stable"} · high score {highScore}</span>
+          <strong>{t("bubbo.runStatus")}</strong>
+          <span>{isBubboDanger(board) ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
         </div>
       </aside>
     </div>
@@ -1079,6 +1452,7 @@ function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const { t } = useAppI18n();
   const merge = snapshot?.merge || {};
   const inventory = snapshot?.inventory || {};
   const [selectedFuel, setSelectedFuel] = useState({});
@@ -1141,8 +1515,18 @@ function MergeGame() {
   );
 
   const sceneState = useMemo(
-    () => ({ merge, mergeSelected: selectedCell, trashMode, mergeLocked: !isPlaying, onMergeCell, onMergeDrop }),
-    [isPlaying, merge, onMergeCell, onMergeDrop, selectedCell, trashMode],
+    () => ({
+      merge,
+      mergeSelected: selectedCell,
+      trashMode,
+      mergeLocked: !isPlaying,
+      mergeStatusText: trashMode ? t("merge.statusTrash") : t("merge.statusMerge"),
+      mergeMissText: t("merge.miss"),
+      mergeLevelPrefix: t("farm.levelShort"),
+      onMergeCell,
+      onMergeDrop,
+    }),
+    [isPlaying, merge, onMergeCell, onMergeDrop, selectedCell, trashMode, t],
   );
 
   return (
@@ -1153,12 +1537,12 @@ function MergeGame() {
       overlayClassName="merge-menu-overlay"
       hud={(
         <GamePlayHud
-          title="Gacha Merge"
-          subtitle={`${merge.freeTapCharges || 0} free taps · ${inventory.rewards?.gachaTokens || 0} tokens`}
+          title={t("merge.title")}
+          subtitle={`${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${inventory.rewards?.gachaTokens || 0} ${t("common.tokens").toLowerCase()}`}
           stats={[
-            { label: "Free", value: merge.freeTapCharges || 0 },
-            { label: "Items", value: Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0) },
-            { label: "Mode", value: trashMode ? "Trash" : "Merge" },
+            { label: t("merge.free"), value: merge.freeTapCharges || 0 },
+            { label: t("merge.items"), value: Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0) },
+            { label: t("merge.mode"), value: trashMode ? t("merge.modeTrash") : t("merge.modeMerge") },
           ]}
           onPause={() => setPaused(true)}
           extraActions={(
@@ -1167,9 +1551,9 @@ function MergeGame() {
               danger={trashMode}
               active={trashMode}
               onClick={() => setTrashMode((value) => !value)}
-              title={trashMode ? "Disable trash mode" : "Enable trash mode"}
+              title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
             >
-              Trash
+              {t("merge.trash")}
             </PanelButton>
           )}
         />
@@ -1178,8 +1562,8 @@ function MergeGame() {
         <>
           <div className="panel-header">
             <div>
-              <strong>Gacha Merge</strong>
-              <span>{merge.freeTapCharges || 0} free taps · {inventory.rewards?.gachaTokens || 0} tokens</span>
+              <strong>{t("merge.title")}</strong>
+              <span>{merge.freeTapCharges || 0} {t("merge.freeTaps")} · {inventory.rewards?.gachaTokens || 0} {t("common.tokens").toLowerCase()}</span>
             </div>
             <PanelButton icon={mergePlaying ? Trash2 : Play} danger={mergePlaying && trashMode} active={mergePlaying && trashMode} onClick={() => {
               if (!mergePlaying) {
@@ -1189,13 +1573,13 @@ function MergeGame() {
                 setTrashMode((value) => !value);
               }
             }}>
-              {mergePlaying ? (trashMode ? "Trash On" : "Trash Off") : "Play"}
+              {mergePlaying ? (trashMode ? t("merge.trashOn") : t("merge.trashOff")) : t("common.play")}
             </PanelButton>
           </div>
           {mergePlaying && paused && (
             <div className="button-row two">
-              <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
-              <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>Stop Play</PanelButton>
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>{t("merge.stopPlay")}</PanelButton>
             </div>
           )}
           <div className="generator-list">
@@ -1208,10 +1592,10 @@ function MergeGame() {
                 <div key={chainId} className="generator-card">
                   <div>
                     <strong>{chain.emoji?.[0]} {chain.name || chainId}</strong>
-                    <small>{cooldown ? "Cooling down" : `${gs.tapsLeft ?? ECONOMY.GENERATOR_TAP_LIMIT}/${ECONOMY.GENERATOR_TAP_LIMIT} taps`}</small>
+                    <small>{cooldown ? t("merge.coolingDown") : t("merge.taps", { count: `${gs.tapsLeft ?? ECONOMY.GENERATOR_TAP_LIMIT}/${ECONOMY.GENERATOR_TAP_LIMIT}` })}</small>
                   </div>
                   <select value={fuel || ""} onChange={(event) => setSelectedFuel((prev) => ({ ...prev, [chainId]: event.target.value }))}>
-                    <option value="">Free/choose fuel</option>
+                    <option value="">{t("merge.freeChooseFuel")}</option>
                     {harvestedEntries.map(([cropId, qty]) => (
                       <option key={cropId} value={cropId}>{CROPS[cropId]?.emoji || ""} {cropId} x{qty}</option>
                     ))}
@@ -1221,17 +1605,17 @@ function MergeGame() {
                     disabled={cooldown || (!fuel && !(merge.freeTapCharges > 0))}
                     onClick={() => performAction("merge.tap", { chainId, cropId: fuel }, { key: `merge.tap.${chainId}` })}
                   >
-                    Tap
+                    {t("common.tap")}
                   </PanelButton>
                 </div>
               );
             })}
           </div>
           <div className="button-row merge-actions">
-            <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>Gacha</PanelButton>
-            <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>Free</PanelButton>
-            <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>30 Taps</PanelButton>
-            <PanelButton icon={Home} danger onClick={exitToHub}>Exit</PanelButton>
+            <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>{t("merge.gacha")}</PanelButton>
+            <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>{t("merge.free")}</PanelButton>
+            <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>{t("merge.thirtyTaps")}</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
           </div>
           <div className="panel-scroll compact-list">
             {Object.entries(merge.itemCounts || {}).map(([itemId, qty]) => (
@@ -1250,6 +1634,7 @@ function TriviaGame() {
   const snapshot = useSnapshot();
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
   const exitToHub = useExitToHub();
+  const { t } = useAppI18n();
   const [view, setView] = useState("menu");
   const [question, setQuestion] = useState(null);
   const [sessionScore, setSessionScore] = useState(0);
@@ -1363,18 +1748,18 @@ function TriviaGame() {
       <aside className="trivia-card">
         <div className="panel-header">
           <div>
-            <strong>Brain Blitz</strong>
-            <span>Total {snapshot?.trivia?.totalScore || 0} · Best streak {snapshot?.trivia?.bestStreak || 0}</span>
+            <strong>{t("trivia.title")}</strong>
+            <span>{t("trivia.total", { score: snapshot?.trivia?.totalScore || 0, streak: snapshot?.trivia?.bestStreak || 0 })}</span>
           </div>
         </div>
         {isPlaying && (
           <GamePlayHud
-            title="Brain Blitz"
-            subtitle={`${question.category || "Trivia"} · ${question.difficulty || difficulty}`}
+            title={t("trivia.title")}
+            subtitle={`${question.category || t("trivia.fallbackCategory")} · ${question.difficulty || difficulty}`}
             stats={[
-              { label: "Score", value: sessionScore },
-              { label: "Streak", value: streak || 0 },
-              { label: "Q", value: `${(question.index ?? 0) + 1}/${question.total || "?"}` },
+              { label: t("common.score"), value: sessionScore },
+              { label: t("trivia.streakLabel"), value: streak || 0 },
+              { label: t("common.questionShort"), value: `${(question.index ?? 0) + 1}/${question.total || "?"}` },
             ]}
             onPause={() => setPaused(true)}
           />
@@ -1383,26 +1768,26 @@ function TriviaGame() {
           <>
             <div className="form-grid">
               <label>
-                Category
-                <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Any" />
+                {t("trivia.category")}
+                <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t("trivia.any")} />
               </label>
               <label>
-                Difficulty
+                {t("trivia.difficulty")}
                 <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                  <option value="all">All</option>
+                  <option value="easy">{t("trivia.easy")}</option>
+                  <option value="medium">{t("trivia.medium")}</option>
+                  <option value="hard">{t("trivia.hard")}</option>
+                  <option value="all">{t("trivia.all")}</option>
                 </select>
               </label>
             </div>
             <div className="button-row">
-              <PanelButton icon={Play} onClick={startSolo}>Solo</PanelButton>
-              <PanelButton icon={Trophy} onClick={createDuel}>Create Duel</PanelButton>
+              <PanelButton icon={Play} onClick={startSolo}>{t("trivia.solo")}</PanelButton>
+              <PanelButton icon={Trophy} onClick={createDuel}>{t("trivia.createDuel")}</PanelButton>
             </div>
             <div className="join-row">
-              <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="Invite code" />
-              <PanelButton icon={ChevronRight} onClick={joinDuel}>Join</PanelButton>
+              <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={t("trivia.inviteCode")} />
+              <PanelButton icon={ChevronRight} onClick={joinDuel}>{t("trivia.join")}</PanelButton>
             </div>
           </>
         )}
@@ -1411,19 +1796,19 @@ function TriviaGame() {
         )}
         {view === "duel-room" && (
           <div className="duel-box">
-            <strong>Invite {duelStatus?.inviteCode || roomId}</strong>
-            <span>Status: {duelStatus?.status || "waiting"}</span>
+            <strong>{t("trivia.invite", { code: duelStatus?.inviteCode || roomId })}</strong>
+            <span>{t("trivia.status", { status: duelStatus?.status || t("trivia.waiting") })}</span>
             <div className="button-row">
-              <PanelButton icon={Check} onClick={readyDuel}>Ready</PanelButton>
-              <PanelButton icon={RotateCcw} onClick={() => pollDuelStatus()}>Refresh</PanelButton>
+              <PanelButton icon={Check} onClick={readyDuel}>{t("common.ready")}</PanelButton>
+              <PanelButton icon={RotateCcw} onClick={() => pollDuelStatus()}>{t("common.refresh")}</PanelButton>
             </div>
           </div>
         )}
         {(view === "results" || view === "duel-results") && (
           <div className="results-box">
             <Trophy size={42} />
-            <strong>Finished</strong>
-            <span>Score {sessionScore}</span>
+            <strong>{t("trivia.finished")}</strong>
+            <span>{t("common.score")} {sessionScore}</span>
             <PanelButton
               icon={RotateCcw}
               onClick={() => {
@@ -1431,7 +1816,7 @@ function TriviaGame() {
                 setView("menu");
               }}
             >
-              Back
+              {t("common.back")}
             </PanelButton>
           </div>
         )}
@@ -1440,14 +1825,14 @@ function TriviaGame() {
         {inShell && (
           <div className="panel-header">
             <div>
-              <strong>{view === "results" || view === "duel-results" ? "Result" : "Pause"}</strong>
-              <span>Score {sessionScore} · Streak {streak || 0}</span>
+              <strong>{view === "results" || view === "duel-results" ? t("trivia.result") : t("common.pause")}</strong>
+              <span>{t("common.score")} {sessionScore} · {t("trivia.streak", { streak: streak || 0 })}</span>
             </div>
           </div>
         )}
         {inShell && (
           <div className="button-row">
-            {questionActive && paused && <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>}
+            {questionActive && paused && <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
             <PanelButton
               icon={RotateCcw}
               subtle
@@ -1457,7 +1842,7 @@ function TriviaGame() {
                 setView("menu");
               }}
             >
-              Setup
+              {t("common.setup")}
             </PanelButton>
             <PanelButton
               icon={Home}
@@ -1469,15 +1854,15 @@ function TriviaGame() {
                 exitToHub();
               }}
             >
-              Exit
+              {t("common.exit")}
             </PanelButton>
           </div>
         )}
-        <strong>Recent Duels</strong>
+        <strong>{t("trivia.recentDuels")}</strong>
         <div className="panel-scroll compact-list">
           {history.length ? history.map((item, index) => (
-            <span key={item.roomId || index}>{item.roomId || "duel"} · {item.status || item.result || "played"}</span>
-          )) : <span>No duels yet.</span>}
+            <span key={item.roomId || index}>{item.roomId || t("trivia.duel")} · {item.status || item.result || t("trivia.played")}</span>
+          )) : <span>{t("trivia.noDuels")}</span>}
         </div>
       </aside>
     </div>
@@ -1485,12 +1870,13 @@ function TriviaGame() {
 }
 
 function QuestionPanel({ question, score, streak, submitAnswer }) {
+  const { t } = useAppI18n();
   return (
     <div className="question-panel">
       <div className="question-meta">
-        <span>Question {(question.index ?? 0) + 1}/{question.total || "?"}</span>
-        <span>Score {score}</span>
-        <span>{streak ? `Streak ${streak}` : "No streak"}</span>
+        <span>{t("trivia.question", { current: (question.index ?? 0) + 1, total: question.total || "?" })}</span>
+        <span>{t("common.score")} {score}</span>
+        <span>{streak ? t("trivia.streak", { streak }) : t("trivia.noStreak")}</span>
       </div>
       <h2>{question.question}</h2>
       <small>{question.category} · {question.difficulty} · {question.timeLimit || 15}s</small>
@@ -1509,6 +1895,7 @@ function RoomGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const { t } = useAppI18n();
   const room = snapshot?.room || {};
   const pet = snapshot?.pet || {};
   const inventory = snapshot?.inventory?.roomInventory || [];
@@ -1517,7 +1904,7 @@ function RoomGame() {
   const [inShell, setInShell] = useState(false);
   const [paused, setPaused] = useState(false);
   const renameInputRef = useRef(null);
-  const [optimisticName, setOptimisticName] = useOptimistic(pet.name || "Buddy");
+  const [optimisticName, setOptimisticName] = useOptimistic(pet.name || t("room.defaultName"));
   const [, startRenameTransition] = useTransition();
   const isPlaying = inShell && !paused;
   useImmersiveGame("room", inShell);
@@ -1562,12 +1949,12 @@ function RoomGame() {
       </section>
       {isPlaying && (
         <GamePlayHud
-          title={optimisticName || "Buddy"}
-          subtitle={`Lv ${pet.level || 1} · affection ${pet.affectionLevel || 1}`}
+          title={optimisticName || t("room.defaultName")}
+          subtitle={`${t("farm.levelShort")} ${pet.level || 1} · ${t("room.affection").toLowerCase()} ${pet.affectionLevel || 1}`}
           stats={[
-            { label: "Full", value: `${pet.stats?.fullness || 0}/100` },
-            { label: "Happy", value: `${pet.stats?.happiness || 0}/100` },
-            { label: "Orders", value: pet.activeOrders?.length || 0 },
+            { label: t("room.full"), value: `${pet.stats?.fullness || 0}/100` },
+            { label: t("room.happy"), value: `${pet.stats?.happiness || 0}/100` },
+            { label: t("room.orders"), value: pet.activeOrders?.length || 0 },
           ]}
           onPause={() => setPaused(true)}
         />
@@ -1575,8 +1962,8 @@ function RoomGame() {
       <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
         <div className="panel-header">
           <div>
-            <strong>{optimisticName || "Buddy"}</strong>
-            <span>Lv {pet.level || 1} · Affection {pet.affectionLevel || 1}</span>
+            <strong>{optimisticName || t("room.defaultName")}</strong>
+            <span>{t("farm.levelShort")} {pet.level || 1} · {t("room.affection")} {pet.affectionLevel || 1}</span>
           </div>
           <PanelButton
             icon={Play}
@@ -1585,12 +1972,12 @@ function RoomGame() {
               setPaused(false);
             }}
           >
-            {inShell ? "Resume" : "Play"}
+            {inShell ? t("common.resume") : t("common.play")}
           </PanelButton>
         </div>
         {inShell && paused && (
           <div className="button-row">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>Resume</PanelButton>
+            <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
             <PanelButton
               icon={RotateCcw}
               subtle
@@ -1599,7 +1986,7 @@ function RoomGame() {
                 setInShell(false);
               }}
             >
-              Decor
+              {t("room.decor")}
             </PanelButton>
             <PanelButton
               icon={Home}
@@ -1610,27 +1997,27 @@ function RoomGame() {
                 exitToHub();
               }}
             >
-              Exit
+              {t("common.exit")}
             </PanelButton>
           </div>
         )}
         <div className="metric-grid">
-          <Stat icon={PawPrint} label="Fullness" value={`${pet.stats?.fullness || 0}/100`} />
-          <Stat icon={Sparkles} label="Happy" value={`${pet.stats?.happiness || 0}/100`} />
-          <Stat icon={BadgeCheck} label="Orders" value={pet.activeOrders?.length || 0} />
+          <Stat icon={PawPrint} label={t("room.fullness")} value={`${pet.stats?.fullness || 0}/100`} />
+          <Stat icon={Sparkles} label={t("room.happy")} value={`${pet.stats?.happiness || 0}/100`} />
+          <Stat icon={BadgeCheck} label={t("room.orders")} value={pet.activeOrders?.length || 0} />
         </div>
         <div className="join-row">
           <input ref={renameInputRef} value={rename} onChange={(e) => setRename(e.target.value)} maxLength={16} />
-          <PanelButton icon={Check} onClick={submitRename}>Rename</PanelButton>
+          <PanelButton icon={Check} onClick={submitRename}>{t("room.rename")}</PanelButton>
         </div>
         <div className="ability-list">
           {["autoHarvest", "autoWater", "autoPlant"].map((id) => (
             <span key={id} className={pet.abilities?.[id] ? "unlocked" : ""}>{pet.abilities?.[id] ? "✓" : "•"} {id}</span>
           ))}
         </div>
-        <strong>Room Inventory</strong>
+        <strong>{t("room.inventory")}</strong>
         <div className="panel-scroll grid-list">
-          {!inventory.length && <div className="empty-state">Find decorations from Merge gacha and high merges.</div>}
+          {!inventory.length && <div className="empty-state">{t("room.emptyInventory")}</div>}
           {inventory.map((decoId) => {
             const deco = ROOM_DECORATIONS[decoId] || {};
             return (
@@ -1638,7 +2025,7 @@ function RoomGame() {
                 <span className="item-emoji">{deco.emoji || "?"}</span>
                 <span>
                   <strong>{deco.name || decoId}</strong>
-                  <small>{deco.bonus?.desc || "Decoration"}</small>
+                  <small>{deco.bonus?.desc || t("room.decoration")}</small>
                 </span>
               </button>
             );
@@ -1665,24 +2052,25 @@ function PetAvatar({ pet }) {
 function QuestOrders() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const { t } = useAppI18n();
   const orders = snapshot?.pet?.activeOrders || [];
   const harvested = snapshot?.inventory?.harvested || {};
   const mergeItems = snapshot?.inventory?.mergeItems || {};
   return (
     <div className="quest-list">
       <div className="panel-header tight">
-        <strong>Pet Orders</strong>
-        <PanelButton icon={RotateCcw} onClick={() => performAction("quest.generate")}>Generate</PanelButton>
+        <strong>{t("room.ordersTitle")}</strong>
+        <PanelButton icon={RotateCcw} onClick={() => performAction("quest.generate")}>{t("room.generate")}</PanelButton>
       </div>
       {orders.map((order) => (
         <div className="order-card" key={order.id}>
-          <strong>{order.tier} order</strong>
+          <strong>{t("room.order", { tier: order.tier })}</strong>
           {(order.requirements || []).map((req, index) => {
             const have = req.type === "crop" ? harvested[req.id] || 0 : mergeItems[req.id] || 0;
             return <small key={index}>{req.id}: {have}/{req.qty}</small>;
           })}
           <PanelButton icon={Check} onClick={() => performAction("quest.submit", { orderId: order.id })}>
-            Complete
+            {t("room.complete")}
           </PanelButton>
         </div>
       ))}
@@ -1691,15 +2079,16 @@ function QuestOrders() {
 }
 
 function Leaderboard({ entries }) {
+  const { t } = useAppI18n();
   return (
     <div className="leaderboard">
-      <strong>Leaderboard</strong>
+      <strong>{t("common.leaderboard")}</strong>
       {entries?.length ? entries.slice(0, 8).map((entry) => (
         <div key={`${entry.rank}-${entry.username}`}>
           <span>#{entry.rank} {entry.username}</span>
           <strong>{entry.highScore}</strong>
         </div>
-      )) : <span className="empty-state">No scores yet.</span>}
+      )) : <span className="empty-state">{t("common.noScores")}</span>}
     </div>
   );
 }
@@ -1717,12 +2106,13 @@ function ActiveGame() {
 
 function AudioToggle() {
   const [enabled, setEnabled] = useState(audioManager.isEnabled());
+  const { t } = useAppI18n();
   const Icon = enabled ? Volume2 : VolumeX;
   return (
     <button
       type="button"
       className={`audio-toggle${enabled ? " enabled" : ""}`}
-      aria-label={enabled ? "Mute sound" : "Enable sound"}
+      aria-label={enabled ? t("audio.mute") : t("audio.enable")}
       onClick={async () => {
         setEnabled(await audioManager.toggle());
       }}
@@ -1748,6 +2138,8 @@ export default function App() {
   const [isPending, startTransition] = useTransition();
   const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
+  const t = useCallback((key, vars) => appTranslate(gardenLanguage, key, vars), [gardenLanguage]);
+  const i18nValue = useMemo(() => ({ language: gardenLanguage, t }), [gardenLanguage, t]);
 
   useEffect(() => {
     const cleanupUpdates = installUpdateManager();
@@ -1795,80 +2187,82 @@ export default function App() {
         { icon: PackageOpen, label: gardenTranslate(gardenLanguage, "hud.plants"), value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
       ]
     : [
-        { icon: Sparkles, label: "Gold", value: formatCount(resources.gold || 0) },
-        { icon: Zap, label: "Energy", value: `${energy.current ?? 0}/${energy.max ?? 0}` },
-        { icon: PackageOpen, label: "Tokens", value: resources.gachaTokens || 0 },
+        { icon: Sparkles, label: t("common.gold"), value: formatCount(resources.gold || 0) },
+        { icon: Zap, label: t("common.energy"), value: `${energy.current ?? 0}/${energy.max ?? 0}` },
+        { icon: PackageOpen, label: t("common.tokens"), value: resources.gachaTokens || 0 },
       ];
 
   return (
-    <main className={`telegram-app${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}>
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">Telegram Mini App</p>
-          <h1>Game Hub</h1>
-        </div>
-        <div className="topbar-actions">
-          {activeTab !== "garden" && <AudioToggle />}
-          <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
-            {status}
-          </button>
-        </div>
-      </header>
-      <section className="profile-strip">
-        <div className="avatar">{(user?.firstName || user?.first_name || user?.username || "G").slice(0, 1)}</div>
-        <div>
-          <strong>{user?.username || user?.firstName || user?.first_name || "Player"}</strong>
-          <span>{config?.telegramBotUsername ? `@${config.telegramBotUsername}` : "VPS runtime"}</span>
-        </div>
-      </section>
-      <section className="stats-row">
-        {stats.map((item) => (
-          <Stat key={item.label} icon={item.icon} label={item.label} value={item.value} />
-        ))}
-      </section>
-      {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
-      {!snapshot ? (
-        <div className="loading-panel">Loading player snapshot</div>
-      ) : (
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.section
-            key={activeTab}
-            className="active-game-frame"
-            initial={reduceMotion ? false : { opacity: 0, x: 32 }}
-            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -24 }}
-            transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
-          >
-            <ActiveGame />
-          </motion.section>
-        </AnimatePresence>
-      )}
-      <LayoutGroup>
-        <nav className="bottom-tabs">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <button
-              type="button"
-              key={id}
-              className={activeTab === id ? "active" : ""}
-              onClick={() => {
-                startTransition(() => setActiveTab(id));
-                haptic("light");
-                audioManager.play("tap");
-              }}
-            >
-              {activeTab === id && !reduceMotion && (
-                <motion.span
-                  className="nav-pill"
-                  layoutId="nav-pill"
-                  transition={{ type: "spring", stiffness: 500, damping: 31 }}
-                />
-              )}
-              <Icon size={19} />
-              <span>{label}</span>
+    <AppI18nContext.Provider value={i18nValue}>
+      <main className={`telegram-app${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}>
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">{t("app.eyebrow")}</p>
+            <h1>{t("app.title")}</h1>
+          </div>
+          <div className="topbar-actions">
+            {activeTab !== "garden" && <AudioToggle />}
+            <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
+              {status}
             </button>
+          </div>
+        </header>
+        <section className="profile-strip">
+          <div className="avatar">{(user?.firstName || user?.first_name || user?.username || "G").slice(0, 1)}</div>
+          <div>
+            <strong>{user?.username || user?.firstName || user?.first_name || t("app.player")}</strong>
+            <span>{config?.telegramBotUsername ? `@${config.telegramBotUsername}` : t("app.runtime")}</span>
+          </div>
+        </section>
+        <section className="stats-row">
+          {stats.map((item) => (
+            <Stat key={item.label} icon={item.icon} label={item.label} value={item.value} />
           ))}
-        </nav>
-      </LayoutGroup>
-    </main>
+        </section>
+        {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
+        {!snapshot ? (
+          <div className="loading-panel">{t("app.loading")}</div>
+        ) : (
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.section
+              key={activeTab}
+              className="active-game-frame"
+              initial={reduceMotion ? false : { opacity: 0, x: 32 }}
+              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -24 }}
+              transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
+            >
+              <ActiveGame />
+            </motion.section>
+          </AnimatePresence>
+        )}
+        <LayoutGroup>
+          <nav className="bottom-tabs">
+            {TABS.map(({ id, labelKey, icon: Icon }) => (
+              <button
+                type="button"
+                key={id}
+                className={activeTab === id ? "active" : ""}
+                onClick={() => {
+                  startTransition(() => setActiveTab(id));
+                  haptic("light");
+                  audioManager.play("tap");
+                }}
+              >
+                {activeTab === id && !reduceMotion && (
+                  <motion.span
+                    className="nav-pill"
+                    layoutId="nav-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 31 }}
+                  />
+                )}
+                <Icon size={19} />
+                <span>{t(labelKey)}</span>
+              </button>
+            ))}
+          </nav>
+        </LayoutGroup>
+      </main>
+    </AppI18nContext.Provider>
   );
 }

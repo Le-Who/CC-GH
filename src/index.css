@@ -323,6 +323,7 @@ h1 {
   background:
     linear-gradient(180deg, var(--menu-glass-soft), rgba(255, 255, 255, 0.1)),
     var(--menu-glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
   backdrop-filter: blur(14px) saturate(1.08);
   box-shadow: 0 18px 50px rgba(78, 68, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.52);
 }
@@ -552,6 +553,7 @@ h1 {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.16)),
     var(--shell-soft);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
   backdrop-filter: blur(18px) saturate(1.12);
   box-shadow: 0 24px 72px rgba(78, 68, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.58);
   scrollbar-width: thin;
@@ -601,9 +603,23 @@ h1 {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.14)),
     rgba(255, 241, 244, 0.84);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
   backdrop-filter: blur(14px) saturate(1.08);
   box-shadow: 0 12px 34px rgba(68, 54, 91, 0.14);
   pointer-events: auto;
+}
+
+.game-play-hud-bottom {
+  top: auto;
+  bottom: max(8px, calc(var(--safe-bottom) + 8px));
+  grid-template-columns: minmax(108px, 0.78fr) minmax(0, 1.35fr) auto;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.18)),
+    rgba(255, 241, 244, 0.88);
+}
+
+.bubbo-play-hud {
+  --shell-accent: var(--mint);
 }
 
 .game-play-title,
@@ -1175,7 +1191,26 @@ button.item-card {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 241, 244, 0.92);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
   backdrop-filter: blur(14px);
+}
+
+.garden-glass-menu,
+.garden-glass-sheet,
+.garden-glass-card {
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
+    rgba(47, 30, 35, 0.76) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  backdrop-filter: blur(18px) saturate(1.12);
+  box-shadow: 0 24px 72px rgba(24, 17, 18, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+}
+
+.garden-glass-sheet {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+    rgba(34, 30, 31, 0.82) !important;
 }
 
 .bottom-tabs button {
@@ -1479,5 +1514,28 @@ button.item-card {
     width: min(360px, calc(100% - 12px));
     max-height: min(88dvh, calc(100% - 12px));
     padding: 10px;
+  }
+}
+
+.game-play-hud-bottom {
+  top: auto;
+  bottom: max(8px, calc(var(--safe-bottom) + 8px));
+}
+
+.bubbo-shell.shell-playing {
+  --bubbo-bottom-hud-space: clamp(126px, 18dvh, 164px);
+}
+
+.bubbo-shell.shell-playing .pixi-host,
+.telegram-app.play-mode .bubbo-shell.shell-playing .pixi-host,
+.telegram-app.play-mode.immersive-mode .bubbo-shell.shell-playing .pixi-host {
+  align-self: start;
+  height: calc(100% - var(--bubbo-bottom-hud-space));
+}
+
+@media (max-width: 420px) {
+  .game-play-hud-bottom {
+    top: auto;
+    bottom: max(6px, calc(var(--safe-bottom) + 6px));
   }
 }

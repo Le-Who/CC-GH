@@ -68,7 +68,13 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText(/bubbles/i);
+    const bubboHud = page.locator(".bubbo-play-hud");
+    await expect(bubboHud).toContainText(/bubbles/i);
+    const bubboHostBox = await page.locator(".active-game-frame .pixi-host").boundingBox();
+    const bubboHudBox = await bubboHud.boundingBox();
+    expect(bubboHostBox).not.toBeNull();
+    expect(bubboHudBox).not.toBeNull();
+    expect(bubboHudBox.y).toBeGreaterThan(bubboHostBox.y + bubboHostBox.height * 0.66);
     await pauseActiveGame(page);
     await exitToHub(page);
 
@@ -111,7 +117,7 @@ test.describe("New-stack minigame smoke", () => {
       { tab: /Blox/, start: /^Start$/ },
       { tab: /Gems/, start: /^Start$/ },
       { tab: /Merge/, start: /^Play$/ },
-      { tab: /Bubbo/, start: /^Start$/ },
+      { tab: /Bubbo/, start: /^Start$/, id: "bubbo", minHostHeight: 500 },
     ];
 
     for (const game of pixiGames) {
@@ -123,8 +129,16 @@ test.describe("New-stack minigame smoke", () => {
       await expect(page.locator(".bottom-tabs")).toBeHidden();
       const hostBox = await host.boundingBox();
       expect(hostBox).not.toBeNull();
-      expect(hostBox.height).toBeGreaterThanOrEqual(620);
+      expect(hostBox.height).toBeGreaterThanOrEqual(game.minHostHeight || 620);
       expect(hostBox.width).toBeGreaterThanOrEqual(360);
+      if (game.id === "bubbo") {
+        const shellBox = await page.locator('[data-game-shell="bubbo"]').boundingBox();
+        const hudBox = await page.locator(".bubbo-play-hud").boundingBox();
+        expect(shellBox).not.toBeNull();
+        expect(hudBox).not.toBeNull();
+        expect(shellBox.height).toBeGreaterThanOrEqual(620);
+        expect(hudBox.y).toBeGreaterThanOrEqual(hostBox.y + hostBox.height);
+      }
       await pauseActiveGame(page);
       await exitToHub(page);
     }

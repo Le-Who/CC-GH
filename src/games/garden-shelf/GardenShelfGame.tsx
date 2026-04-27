@@ -56,7 +56,7 @@ function GardenSign() {
         />
         {editing ? (
           <form
-            className="absolute inset-x-[17%] top-[43%] -translate-y-1/2"
+            className="absolute inset-x-[17%] top-[52%] -translate-y-1/2"
             onSubmit={(event) => {
               event.preventDefault();
               commitName();
@@ -76,7 +76,7 @@ function GardenSign() {
             type="button"
             onClick={startEditing}
             aria-label={t('garden.rename')}
-            className="absolute inset-x-[15%] top-[43%] min-h-[44px] -translate-y-1/2 truncate text-center font-serif text-[clamp(0.85rem,3.6vw,1.18rem)] font-bold tracking-widest text-amber-50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]"
+            className="absolute inset-x-[15%] top-[52%] min-h-[44px] -translate-y-1/2 truncate text-center font-serif text-[clamp(0.85rem,3.6vw,1.18rem)] font-bold tracking-widest text-amber-50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]"
           >
             {displayName}
           </button>
@@ -123,7 +123,7 @@ function GardenSettingsButton() {
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className="absolute right-3 top-16 z-[190] w-[min(92%,320px)] rounded-2xl border border-amber-200/20 bg-[#231719]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]"
+              className="garden-glass-menu absolute right-3 top-16 z-[190] w-[min(92%,320px)] rounded-2xl border border-amber-200/20 bg-[#231719]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]"
               initial={{ opacity: 0, y: -10, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.96 }}

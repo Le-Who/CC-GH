@@ -40,7 +40,7 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, bounce: 0 }}
-        className="fixed bottom-0 left-0 right-0 bg-[#22221d]/95 backdrop-blur-xl border-t border-[#c73838] shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-t-[32px] z-40 max-h-[85vh] flex flex-col items-center pb-safe-offset-4"
+        className="garden-glass-sheet fixed bottom-0 left-0 right-0 bg-[#22221d]/95 backdrop-blur-xl border-t border-[#c73838] shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-t-[32px] z-40 max-h-[85vh] flex flex-col items-center pb-safe-offset-4"
       >
         <div className="w-12 h-1 bg-white/10 rounded-full my-4" />
         

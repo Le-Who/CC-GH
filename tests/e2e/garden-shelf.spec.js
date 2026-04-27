@@ -29,6 +29,7 @@ test.describe("Garden Shelf flow", () => {
 
     await page.getByRole("button", { name: "+" }).first().click();
     const panel = page.locator(".fixed.bottom-0").last();
+    await expect(panel).toHaveClass(/garden-glass-sheet/);
     await expect(panel).toContainText("Seed Shop");
     await expect(panel).toContainText("Daisy");
     await expect(panel).toContainText("Lavender");
@@ -41,10 +42,13 @@ test.describe("Garden Shelf flow", () => {
     await expect(goldStat).toContainText("75");
 
     await page.getByRole("button", { name: "Garden settings" }).click();
+    await expect(page.locator(".garden-glass-menu")).toBeVisible();
     await expect(page.getByText("Settings")).toBeVisible();
     await page.getByRole("button", { name: "Russian" }).click();
     await expect(page.getByText("Мой сад")).toBeVisible();
     await expect(page.locator(".stats-row")).toContainText("Ур. сада");
+    await expect(page.getByRole("button", { name: /Блоки/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Камни/ })).toBeVisible();
     await expect(page.getByText("Настройки")).toBeVisible();
     expect(pageErrors).toEqual([]);
   });

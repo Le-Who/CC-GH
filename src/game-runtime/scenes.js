@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Text, TilingSprite, Texture } from "pixi.js";
+import { Container, Graphics, Rectangle, Sprite, Text, TilingSprite, Texture } from "pixi.js";
 import { CROPS, MERGE_CHAINS } from "../../game-logic.js";
 import { createPointerSession } from "./pointerSession.js";
 import {
@@ -33,6 +33,19 @@ const GEM_COLORS = {
 
 const BUBBO_IMAGE_BASE = "/games/bubbo-bubbo/images";
 const POTIONS_IMAGE_BASE = "/games/puzzling-potions/images";
+const BUBBO_BALL_SHEET = assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png");
+const BUBBO_BALL_SHEET_WIDTH = 1672;
+const BUBBO_BALL_SHEET_HEIGHT = 941;
+const BUBBO_BALL_FRAME_COLS = 5;
+const BUBBO_BALL_FRAME_ROWS = 5;
+const BUBBO_BALL_ROWS = {
+  coral: 0,
+  sky: 1,
+  mint: 2,
+  amber: 3,
+  berry: 4,
+};
+const bubboBallTextureCache = new Map();
 
 const BUBBO_BUBBLE_ASSETS = {
   mint: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-green.png`),
@@ -54,10 +67,10 @@ const POTION_PIECE_ASSETS = {
   special_colour: assetUrl(`${POTIONS_IMAGE_BASE}/special-colour.png`),
 };
 
-const MATCH3_SWAP_FRAMES = 12;
-const MATCH3_CLEAR_FRAMES = 10;
-const MATCH3_MOTION_FRAMES = 28;
-const MATCH3_SETTLE_FRAMES = 7;
+const MATCH3_SWAP_FRAMES = 14;
+const MATCH3_CLEAR_FRAMES = 12;
+const MATCH3_MOTION_FRAMES = 46;
+const MATCH3_SETTLE_FRAMES = 10;
 
 let graphicsManifest = null;
 let graphicsManifestPromise = null;
@@ -133,6 +146,42 @@ function sprite(path, x, y, width, height, alpha = 1) {
   item.alpha = alpha;
   item.eventMode = "none";
   return item;
+}
+
+function bubboBallTexture(colorName, frameIndex = 0) {
+  const row = BUBBO_BALL_ROWS[colorName];
+  if (row == null) return null;
+  const frame = Math.max(0, Math.min(BUBBO_BALL_FRAME_COLS - 1, Math.floor(frameIndex)));
+  const cacheKey = `${colorName}:${frame}`;
+  if (bubboBallTextureCache.has(cacheKey)) return bubboBallTextureCache.get(cacheKey);
+
+  const base = Texture.from(BUBBO_BALL_SHEET);
+  const cellWidth = BUBBO_BALL_SHEET_WIDTH / BUBBO_BALL_FRAME_COLS;
+  const cellHeight = BUBBO_BALL_SHEET_HEIGHT / BUBBO_BALL_FRAME_ROWS;
+  const x = Math.round(frame * cellWidth);
+  const y = Math.round(row * cellHeight);
+  const right = Math.round((frame + 1) * cellWidth);
+  const bottom = Math.round((row + 1) * cellHeight);
+  const frameRect = new Rectangle(x, y, right - x, bottom - y);
+  const texture = new Texture({
+    source: base.source,
+    frame: frameRect,
+    orig: new Rectangle(0, 0, frameRect.width, frameRect.height),
+  });
+  bubboBallTextureCache.set(cacheKey, texture);
+  return texture;
+}
+
+function makeSpriteFrameSequence(view, textures, duration = 24, options = {}) {
+  view._sequence = {
+    textures: textures.filter(Boolean),
+    age: 0,
+    duration: Math.max(1, duration),
+    scaleFrom: options.scaleFrom ?? 1,
+    scaleTo: options.scaleTo ?? 1,
+    fade: options.fade !== false,
+  };
+  return view;
 }
 
 function gameAsset(path) {
@@ -357,11 +406,27 @@ function tickParticles(container) {
       child._delay -= 1;
       continue;
     }
+    if (child._sequence) {
+      child._sequence.age += 1;
+      const raw = Math.min(1, child._sequence.age / child._sequence.duration);
+      const textures = child._sequence.textures || [];
+      if (textures.length && child.texture) {
+        child.texture = textures[Math.min(textures.length - 1, Math.floor(raw * textures.length))];
+      }
+      const eased = raw * raw * (3 - 2 * raw);
+      child.scale.set(child._sequence.scaleFrom + (child._sequence.scaleTo - child._sequence.scaleFrom) * eased);
+      if (child._sequence.fade) child.alpha = Math.max(0, 1 - Math.max(0, raw - 0.68) / 0.32);
+      if (raw >= 1) {
+        child.parent?.removeChild(child);
+        destroyLater(child);
+      }
+      continue;
+    }
     if (child._tween) {
       child._tween.age = (child._tween.age || 0) + 1;
       const duration = Math.max(1, child._tween.duration || 1);
       const raw = Math.min(1, child._tween.age / duration);
-      const eased = 1 - (1 - raw) ** 3;
+      const eased = child._tween.ease === "smooth" ? raw * raw * (3 - 2 * raw) : 1 - (1 - raw) ** 3;
       child.x = child._tween.fromX + (child._tween.toX - child._tween.fromX) * eased;
       child.y = child._tween.fromY + (child._tween.toY - child._tween.fromY) * eased;
       if (child._tween.scaleFrom != null || child._tween.scaleTo != null) {
@@ -410,6 +475,7 @@ function makeTween(view, from, to, duration = 18, options = {}) {
     toY: to.y,
     duration,
     fade: !!options.fade,
+    ease: options.ease,
     scaleFrom: options.scaleFrom,
     scaleTo: options.scaleTo,
     destroy: options.destroy,
@@ -515,6 +581,7 @@ export function buildFarmScene(app, initial = {}) {
     const snapshot = data.snapshot || {};
     const farm = snapshot.farm || {};
     const plots = farm.plots || [];
+    const labels = data.farmLabels || {};
     const now = Date.now();
     const cols = 4;
     const rows = Math.max(2, Math.ceil(Math.max(plots.length, 6) / cols));
@@ -560,16 +627,16 @@ export function buildFarmScene(app, initial = {}) {
         continue;
       }
       if (!planted) {
-        root.addChild(label("soil", x + w / 2, y + w / 2, Math.max(10, cell * 0.13), 0xc69b61));
+        root.addChild(label(labels.soil || "soil", x + w / 2, y + w / 2, Math.max(10, cell * 0.13), 0xc69b61));
         continue;
       }
 
       const cfg = CROPS[plot.crop] || {};
       root.addChild(new Graphics().roundRect(x + w * 0.42, y + w * 0.38, w * 0.16, w * 0.34, 4).fill(0x61bd62));
-      root.addChild(label(cfg.emoji || "seed", x + w / 2, y + w * 0.34, Math.max(18, cell * 0.28)));
+      root.addChild(label(cfg.emoji || labels.seed || "seed", x + w / 2, y + w * 0.34, Math.max(18, cell * 0.28)));
       root.addChild(rect(x + w * 0.15, y + w * 0.78, w * 0.7, 6, 0x17231d, 6));
       root.addChild(rect(x + w * 0.15, y + w * 0.78, w * 0.7 * progress, 6, ready ? AMBER : MINT, 6));
-      root.addChild(label(ready ? "READY" : isHolding ? "UPROOT" : plot.watered ? "watered" : `${Math.round(progress * 100)}%`, x + w / 2, y + w * 0.9, Math.max(8, cell * 0.1), ready ? AMBER : isHolding ? CORAL : MUTED));
+      root.addChild(label(ready ? labels.ready || "READY" : isHolding ? labels.uproot || "UPROOT" : plot.watered ? labels.watered || "watered" : `${Math.round(progress * 100)}%`, x + w / 2, y + w * 0.9, Math.max(8, cell * 0.1), ready ? AMBER : isHolding ? CORAL : MUTED));
     }
   }
 
@@ -733,7 +800,7 @@ export function buildBloxScene(app, initial = {}) {
       }
     }
     if (clearedCells.size) {
-      const text = label("CLEAR", layout.left + layout.size / 2, layout.top + layout.size / 2, Math.max(18, layout.cell * 0.48), AMBER, "1000");
+      const text = label(data.bloxClearText || "CLEAR", layout.left + layout.size / 2, layout.top + layout.size / 2, Math.max(18, layout.cell * 0.48), AMBER, "1000");
       text._tween = {
         fromX: text.x,
         fromY: text.y,
@@ -863,7 +930,7 @@ export function buildBloxScene(app, initial = {}) {
     }
 
     updateDragVisual();
-    root.addChild(label(`Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
+    root.addChild(label(data.bloxStatusText || `Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
@@ -1181,23 +1248,27 @@ export function buildMatch3Scene(app, initial = {}) {
         const fromPos = cellCenter(layout, fall.x, fall.fromY);
         const toPos = cellCenter(layout, fall.x, fall.toY);
         const fallDistance = Math.max(1, Math.abs(fall.toY - fall.fromY));
+        const fallDelay = motionDelay + Math.min(4, fallDistance);
+        const fallDuration = Math.min(MATCH3_MOTION_FRAMES - 6, 22 + fallDistance * 4);
         effects.addChild(makeTween(
-          makeGemView(type, radius * 0.92, 0.9),
+          makeGemView(type, radius * 0.92, 0.96),
           fromPos,
           toPos,
-          18 + fallDistance * 3,
-          { delay: motionDelay + Math.min(5, fallDistance), fade: true, scaleFrom: 0.96, scaleTo: 1.02 },
+          fallDuration,
+          { delay: fallDelay, fade: false, scaleFrom: 0.96, scaleTo: 1, ease: "smooth" },
         ));
       }
       for (const fill of step.filled || []) {
         const fromPos = { ...cellCenter(layout, fill.x, fill.y), y: layout.top - layout.cell * (1.2 + (fill.y % 2) * 0.2) };
         const toPos = cellCenter(layout, fill.x, fill.y);
+        const fillDelay = motionDelay + 5 + Math.min(5, fill.y);
+        const fillDuration = Math.min(MATCH3_MOTION_FRAMES - 10, 24 + fill.y * 2);
         effects.addChild(makeTween(
-          makeGemView(fill.type, radius * 0.9, 0.9),
+          makeGemView(fill.type, radius * 0.9, 0.96),
           fromPos,
           toPos,
-          26 + Math.min(8, fill.y),
-          { delay: motionDelay + 6 + Math.min(6, fill.y), fade: true, scaleFrom: 0.72, scaleTo: 1 },
+          fillDuration,
+          { delay: fillDelay, fade: false, scaleFrom: 0.78, scaleTo: 1, ease: "smooth" },
         ));
       }
       for (const drop of step.dropCollected || []) {
@@ -1267,7 +1338,7 @@ export function buildMatch3Scene(app, initial = {}) {
       }
     }
     updateDragVisual();
-    root.addChild(label(`${state.gameMode || "classic"} · ${state.score || 0} pts · ${state.movesLeft ?? 30} moves`, viewWidth(app) / 2, top + size + 24, 14, AMBER));
+    root.addChild(label(data.match3StatusText || `${state.gameMode || "classic"} · ${state.score || 0} pts · ${state.movesLeft ?? 30} moves`, viewWidth(app) / 2, top + size + 24, 14, AMBER));
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
@@ -1340,11 +1411,16 @@ export function buildBubboScene(app, initial = {}) {
     const width = viewWidth(app);
     const height = viewHeight(app);
     const margin = 8;
-    const cell = Math.max(26, Math.min((width - margin * 2) / (BUBBO_COLS + 0.2), (height - 64) / (BUBBO_ROWS + 0.95)));
+    const bottomReserve = data.bubbo?.bottomHudReserve ? Math.max(84, Math.min(118, height * 0.15)) : 0;
+    const playHeight = Math.max(260, height - bottomReserve);
+    const cell = Math.max(26, Math.min((width - margin * 2) / (BUBBO_COLS + 0.2), (playHeight - 64) / (BUBBO_ROWS + 0.95)));
     const boardWidth = cell * (BUBBO_COLS + 0.5);
     const left = (width - boardWidth) / 2;
-    const top = Math.max(4, Math.min(14, (height - cell * (BUBBO_ROWS + 0.95) - 24) / 2));
-    const cannonY = Math.max(top + cell * (BUBBO_ROWS + 0.62), height - Math.max(34, Math.min(72, cell * 0.9)));
+    const top = Math.max(4, Math.min(14, (playHeight - cell * (BUBBO_ROWS + 0.95) - 24) / 2));
+    const cannonY = Math.max(
+      top + cell * (BUBBO_ROWS + 0.62),
+      playHeight - Math.max(34, Math.min(72, cell * 0.9)),
+    );
     return {
       cell,
       radius: cell * 0.42,
@@ -1355,6 +1431,8 @@ export function buildBubboScene(app, initial = {}) {
       pressureOffset: pressureDisplayStep * cell,
       cannonX: width / 2,
       cannonY,
+      bottomReserve,
+      playHeight,
     };
   }
 
@@ -1473,17 +1551,31 @@ export function buildBubboScene(app, initial = {}) {
   function drawBubble(x, y, radius, colorName, alpha = 1) {
     const color = bubbleColor(colorName);
     const group = new Container();
-    const g = new Graphics()
-      .circle(0, 0, radius)
-      .fill({ color, alpha })
-      .stroke({ color: TEXT, width: Math.max(1.5, radius * 0.09), alpha: 0.24 });
-    g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
-    group.addChild(g);
-    const asset = BUBBO_BUBBLE_ASSETS[colorName];
-    if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.2, radius * 2.2, alpha));
+    const sheetTexture = bubboBallTexture(colorName, 0);
+    if (sheetTexture) {
+      group.addChild(new Graphics().circle(0, radius * 0.18, radius * 0.74).fill({ color: 0x1f2937, alpha: 0.08 * alpha }));
+      group.addChild(sprite(sheetTexture, 0, 0, radius * 4.04, radius * 2.28, alpha));
+    } else {
+      const g = new Graphics()
+        .circle(0, 0, radius)
+        .fill({ color, alpha: alpha * 0.35 })
+        .stroke({ color: TEXT, width: Math.max(1.5, radius * 0.09), alpha: 0.24 });
+      g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
+      group.addChild(g);
+      const asset = BUBBO_BUBBLE_ASSETS[colorName];
+      if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.2, radius * 2.2, alpha));
+    }
     group.x = x;
     group.y = y;
     return group;
+  }
+
+  function drawBubboBurst(x, y, radius, colorName, duration = 26) {
+    const frames = [1, 2, 3, 4].map((frame) => bubboBallTexture(colorName, frame));
+    const first = frames.find(Boolean);
+    if (!first) return null;
+    const view = sprite(first, x, y, radius * 4.42, radius * 2.5, 0.98);
+    return makeSpriteFrameSequence(view, frames, duration, { scaleFrom: 0.88, scaleTo: 1.24, fade: true });
   }
 
   function updateAimVisual() {
@@ -1511,6 +1603,8 @@ export function buildBubboScene(app, initial = {}) {
     const targets = [...(shot.popped || []), ...(shot.dropped || [])];
     if (shot.landed && !targets.length) {
       const pos = bubblePosition(shot.landed.row, shot.landed.col);
+      const touch = drawBubboBurst(pos.x, pos.y, layout.radius * 0.72, shot.color || BUBBO_COLORS[0], 18);
+      if (touch) effects.addChild(touch);
       makeRipple(effects, pos.x, pos.y, AMBER, 22);
       return;
     }
@@ -1525,6 +1619,9 @@ export function buildBubboScene(app, initial = {}) {
         falling._spin = (cell.col % 2 ? 1 : -1) * 0.045;
         falling._life = 40;
         effects.addChild(falling);
+      } else {
+        const burst = drawBubboBurst(pos.x, pos.y, layout.radius * 0.9, shot.color || cell.color || BUBBO_COLORS[0]);
+        if (burst) effects.addChild(burst);
       }
       makeSparkles(effects, pos.x, pos.y, dropped ? SKY : AMBER, 9);
       makeRipple(effects, pos.x, pos.y, AMBER, 24);
@@ -1568,12 +1665,12 @@ export function buildBubboScene(app, initial = {}) {
     }
 
     const cannonColor = state.current || BUBBO_COLORS[0];
-    root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/bottom-tray.png`), layout.cannonX, Math.min(viewHeight(app) - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
+    root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/bottom-tray.png`), layout.cannonX, Math.min(layout.playHeight - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
     root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: PANEL_2, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
     root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/cannon-main.png`), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
-    root.addChild(label(`${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(viewHeight(app) - 12, layout.cannonY + 46), 14, AMBER));
+    root.addChild(label(state.statusText || `${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(layout.playHeight - 12, layout.cannonY + 46), 14, AMBER));
     applyPressureVisual();
     updateAimVisual();
     playShotEffects();
@@ -1783,7 +1880,7 @@ export function buildMergeScene(app, initial = {}) {
       .fill({ color: PANEL, alpha: 0.92 })
       .stroke({ color: fill, width: 1.5, alpha: 0.75 });
     group.addChild(badge);
-    group.addChild(label(`L${level + 1}`, radius * 0.7, radius * 0.53, Math.max(8, cell * 0.13), TEXT));
+    group.addChild(label(`${data.mergeLevelPrefix || "L"}${level + 1}`, radius * 0.7, radius * 0.53, Math.max(8, cell * 0.13), TEXT));
     return group;
   }
 
@@ -1793,13 +1890,13 @@ export function buildMergeScene(app, initial = {}) {
     makeSparkles(effects, point.x, point.y, color, success ? 14 : 6);
     makeRipple(effects, point.x, point.y, color, success ? 32 : 20);
     if (!success) {
-      const reject = label("miss", point.x, point.y - 22, 13, CORAL);
+      const reject = label(data.mergeMissText || "miss", point.x, point.y - 22, 13, CORAL);
       reject._tween = { fromX: reject.x, fromY: reject.y, toX: reject.x + 12, toY: reject.y - 18, duration: 18, fade: true, scaleFrom: 0.9, scaleTo: 1.05 };
       effects.addChild(reject);
       return;
     }
     const level = Number(item?.level || 0) + 1;
-    const pop = label(`L${level + 1}`, point.x, point.y - 26, 15, AMBER);
+    const pop = label(`${data.mergeLevelPrefix || "L"}${level + 1}`, point.x, point.y - 26, 15, AMBER);
     pop._tween = { fromX: pop.x, fromY: pop.y, toX: pop.x, toY: pop.y - 34, duration: 24, fade: true, scaleFrom: 0.7, scaleTo: 1.22 };
     effects.addChild(pop);
     for (let i = 0; i < 6; i += 1) {
@@ -1874,7 +1971,7 @@ export function buildMergeScene(app, initial = {}) {
       }
     }
     updateDragVisual();
-    root.addChild(label(data.trashMode ? "Trash mode" : "Drag/tap merge pairs", viewWidth(app) / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
+    root.addChild(label(data.mergeStatusText || (data.trashMode ? "Trash mode" : "Drag/tap merge pairs"), viewWidth(app) / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
