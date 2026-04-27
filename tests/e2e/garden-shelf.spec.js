@@ -134,4 +134,54 @@ test.describe("Garden Shelf flow", () => {
     await expect(page.getByText("Collect Gold")).toHaveCount(0);
     await expect(page.locator(".stats-row")).toContainText("Garden Lv");
   });
+
+  test("keeps generated offline reward visible until the player collects it", async ({ page }) => {
+    const stableUserId = `garden_offline_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    await page.addInitScript((value) => {
+      window.localStorage.setItem("gh_dev_user_id", value);
+    }, stableUserId);
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.evaluate(async (value) => {
+      const response = await fetch("/api/player/mutate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `dev ${value}`,
+        },
+        body: JSON.stringify({
+          action: "garden.sync",
+          payload: {
+            state: {
+              totalGoldEarned: 100,
+              level: 13,
+              xp: 100,
+              shelvesUnlocked: 1,
+              plants: [{
+                id: "offline-daisy",
+                type: "daisy",
+                level: 13,
+                shelfIndex: 0,
+                spotIndex: 0,
+                phase: 3,
+                phaseProgress: 0,
+              }],
+              lastTick: Date.now() - 120_000,
+              offlineEarnings: null,
+            },
+          },
+        }),
+      });
+      if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
+    }, stableUserId);
+
+    await page.reload();
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Welcome Back!")).toBeVisible({ timeout: 8000 });
+    await expect(page.getByRole("button", { name: "Collect Gold" })).toBeVisible();
+    await page.waitForTimeout(4200);
+    await expect(page.getByText("Welcome Back!")).toBeVisible();
+    await page.getByRole("button", { name: "Collect Gold" }).click();
+    await expect(page.getByText("Welcome Back!")).toHaveCount(0);
+  });
 });

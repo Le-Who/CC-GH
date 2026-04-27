@@ -229,6 +229,11 @@ test.describe("Pixi touch and drag interactions", () => {
     const secondSync = waitForMatch3Sync(page, 8000);
     await dragMove(secondMove);
     await expect(secondSync).resolves.toMatchObject({ action: "match3.syncMode" });
+    await page.waitForTimeout(1700);
+    await page.screenshot({
+      path: testInfo.outputPath("match3-after-consecutive-swaps.png"),
+      fullPage: false,
+    });
 
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);

@@ -20,12 +20,80 @@
   --leaf: #79aa68;
   --navy: #28384f;
   --cream: #fff5f1;
-  --menu-glass: rgba(255, 241, 244, 0.76);
-  --menu-glass-soft: rgba(255, 255, 255, 0.34);
-  --menu-glass-line: rgba(255, 255, 255, 0.58);
+  --app-background:
+    linear-gradient(135deg, rgba(143, 207, 157, 0.34), transparent 34%),
+    linear-gradient(315deg, rgba(220, 122, 133, 0.18), transparent 38%),
+    linear-gradient(180deg, #fff5f1 0%, #f4e6e7 48%, #eaf2e5 100%);
+  --glass-surface: rgba(255, 241, 244, 0.78);
+  --glass-surface-strong: rgba(255, 248, 249, 0.9);
+  --glass-highlight: rgba(255, 255, 255, 0.46);
+  --glass-highlight-soft: rgba(255, 255, 255, 0.18);
+  --glass-card: rgba(255, 255, 255, 0.28);
+  --glass-card-strong: rgba(255, 255, 255, 0.42);
+  --glass-border: rgba(255, 255, 255, 0.58);
+  --glass-border-soft: rgba(255, 255, 255, 0.34);
+  --glass-scrim: rgba(44, 58, 37, 0.24);
+  --glass-shadow: 0 18px 50px rgba(78, 68, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.52);
+  --glass-shadow-strong: 0 24px 72px rgba(78, 68, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  --glass-filter: blur(12px) saturate(1.08);
+  --glass-filter-strong: blur(18px) saturate(1.12);
+  --glass-filter-soft: blur(8px) saturate(1.04);
+  --menu-glass: var(--glass-surface);
+  --menu-glass-soft: var(--glass-highlight);
+  --menu-glass-line: var(--glass-border);
+  --shell-field-shine: rgba(255, 246, 248, 0.38);
+  --shell-grid-line: rgba(255, 255, 255, 0.16);
+  --sky-ink: #245d77;
+  --garden-timer-ink: #29664c;
   --safe-top: var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-bottom: var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   font-family: Nunito, Varela Round, system-ui, sans-serif;
+}
+
+:root[data-ui-theme="dark"] {
+  color-scheme: dark;
+  --ink: #f6e6d3;
+  --muted: #b9a6a7;
+  --panel: #231719;
+  --panel-2: #2f2328;
+  --panel-3: #3a2b2f;
+  --field: #2e1d22;
+  --line: rgba(255, 238, 187, 0.12);
+  --line-strong: rgba(255, 238, 187, 0.24);
+  --mint: #73d2a0;
+  --amber: #f0b64d;
+  --coral: #e07484;
+  --sky: #88c7df;
+  --berry: #c7a2cf;
+  --leaf: #8dc081;
+  --navy: #21181b;
+  --cream: #2e1d22;
+  --app-background:
+    radial-gradient(ellipse at top, rgba(255, 238, 187, 0.08), transparent 58%),
+    radial-gradient(circle at 0% 18%, rgba(92, 42, 56, 0.32), transparent 34%),
+    radial-gradient(circle at 100% 82%, rgba(64, 35, 42, 0.68), transparent 42%),
+    linear-gradient(180deg, #21181b 0%, #2e1d22 48%, #21181b 100%);
+  --glass-surface: rgba(35, 23, 25, 0.94);
+  --glass-surface-strong: rgba(47, 35, 39, 0.96);
+  --glass-highlight: rgba(255, 238, 187, 0.08);
+  --glass-highlight-soft: rgba(255, 255, 255, 0.035);
+  --glass-card: rgba(255, 255, 255, 0.055);
+  --glass-card-strong: rgba(255, 238, 187, 0.08);
+  --glass-border: rgba(255, 238, 187, 0.2);
+  --glass-border-soft: rgba(255, 255, 255, 0.11);
+  --glass-scrim: rgba(22, 18, 19, 0.66);
+  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --glass-shadow-strong: 0 28px 74px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-filter: blur(4px) saturate(1.02);
+  --glass-filter-strong: blur(6px) saturate(1.03);
+  --glass-filter-soft: blur(2px) saturate(1.01);
+  --menu-glass: var(--glass-surface);
+  --menu-glass-soft: var(--glass-highlight);
+  --menu-glass-line: var(--glass-border);
+  --shell-field-shine: rgba(255, 238, 187, 0.055);
+  --shell-grid-line: rgba(255, 238, 187, 0.08);
+  --sky-ink: #c9edf8;
+  --garden-timer-ink: #a8f0c3;
 }
 
 * {
@@ -40,10 +108,7 @@ body,
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
-  background:
-    linear-gradient(135deg, rgba(143, 207, 157, 0.34), transparent 34%),
-    linear-gradient(315deg, rgba(220, 122, 133, 0.18), transparent 38%),
-    linear-gradient(180deg, #fff5f1 0%, #f4e6e7 48%, #eaf2e5 100%);
+  background: var(--app-background);
   color: var(--ink);
 }
 
@@ -141,10 +206,14 @@ h1 {
 .status-dot {
   min-width: 82px;
   min-height: 44px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border);
   border-radius: 999px;
   padding: 7px 10px;
-  background: var(--panel);
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-filter-soft);
+  backdrop-filter: var(--glass-filter-soft);
   color: var(--muted);
   text-align: center;
   font-size: 0.76rem;
@@ -164,16 +233,25 @@ h1 {
   color: var(--sky);
 }
 
-.audio-toggle {
+.audio-toggle,
+.theme-toggle {
   width: 44px;
   height: 44px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: var(--panel);
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-filter-soft);
+  backdrop-filter: var(--glass-filter-soft);
   color: var(--muted);
   cursor: pointer;
+}
+
+.theme-toggle.dark {
+  color: var(--amber);
 }
 
 .audio-toggle.enabled {
@@ -188,10 +266,15 @@ h1 {
 .loading-panel,
 .side-panel,
 .trivia-card {
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--panel) 90%, white);
-  box-shadow: 0 18px 44px rgba(78, 68, 42, 0.14);
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
+  color: var(--ink);
 }
 
 .profile-strip {
@@ -239,7 +322,7 @@ h1 {
   grid-template-rows: auto auto;
   align-content: center;
   column-gap: 7px;
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
   min-width: 0;
 }
 
@@ -265,7 +348,9 @@ h1 {
   padding: 9px 11px;
   border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--amber) 22%, var(--panel));
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    color-mix(in srgb, var(--amber) 22%, var(--glass-surface-strong));
   color: #72531c;
   font-weight: 800;
   text-align: left;
@@ -319,13 +404,14 @@ h1 {
   gap: 12px;
   padding: 12px;
   overflow: hidden;
-  border-color: var(--menu-glass-line);
+  border-color: var(--glass-border);
   background:
-    linear-gradient(180deg, var(--menu-glass-soft), rgba(255, 255, 255, 0.1)),
-    var(--menu-glass);
-  -webkit-backdrop-filter: blur(14px) saturate(1.08);
-  backdrop-filter: blur(14px) saturate(1.08);
-  box-shadow: 0 18px 50px rgba(78, 68, 42, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.52);
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
+  contain: paint;
 }
 
 .panel-header {
@@ -371,7 +457,9 @@ h1 {
   border: 1px solid color-mix(in srgb, var(--mint) 35%, transparent);
   border-radius: 8px;
   padding: 9px 10px;
-  background: color-mix(in srgb, var(--mint) 12%, var(--panel));
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    color-mix(in srgb, var(--mint) 12%, var(--glass-surface));
   color: var(--mint);
   font-weight: 900;
 }
@@ -388,9 +476,11 @@ h1 {
 .section-tabs button,
 .mode-grid button {
   min-height: 44px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
-  background: var(--field);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    color-mix(in srgb, var(--glass-card) 62%, var(--field));
   color: var(--muted);
   cursor: pointer;
   font-weight: 1000;
@@ -487,7 +577,7 @@ h1 {
   isolation: isolate;
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 246, 248, 0.38), rgba(255, 246, 248, 0)),
+    linear-gradient(180deg, var(--shell-field-shine), transparent),
     var(--field);
   overflow: hidden;
 }
@@ -517,6 +607,16 @@ h1 {
   --shell-soft: rgba(255, 222, 218, 0.64);
 }
 
+:root[data-ui-theme="dark"] .shell-skin-cycle {
+  --shell-accent: #c7a2cf;
+  --shell-soft: rgba(47, 35, 39, 0.92);
+}
+
+:root[data-ui-theme="dark"] .shell-skin-meditation {
+  --shell-accent: #e07484;
+  --shell-soft: rgba(52, 35, 39, 0.92);
+}
+
 .game-shell .pixi-host {
   grid-area: 1 / 1;
   width: 100%;
@@ -524,8 +624,8 @@ h1 {
   min-height: 0;
   border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, var(--shell-grid-line) 1px, transparent 1px),
+    linear-gradient(0deg, var(--shell-grid-line) 1px, transparent 1px),
     transparent;
   background-size: 30px 30px;
 }
@@ -549,14 +649,15 @@ h1 {
   max-height: min(84dvh, calc(100% - 24px));
   transform: translate(-50%, -50%);
   overflow: auto;
-  border: 1px solid var(--menu-glass-line);
-  border-color: var(--menu-glass-line);
+  border: 1px solid var(--glass-border);
+  border-color: var(--glass-border);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.18)),
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
     var(--shell-soft);
-  -webkit-backdrop-filter: blur(24px) saturate(1.18);
-  backdrop-filter: blur(24px) saturate(1.18);
-  box-shadow: 0 24px 72px rgba(78, 68, 42, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: var(--glass-filter-strong);
+  backdrop-filter: var(--glass-filter-strong);
+  box-shadow: var(--glass-shadow-strong);
+  contain: paint;
   scrollbar-width: thin;
 }
 
@@ -566,7 +667,7 @@ h1 {
   position: absolute;
   inset: 0;
   z-index: 3;
-  background: rgba(44, 58, 37, 0.2);
+  background: var(--glass-scrim);
   pointer-events: none;
 }
 
@@ -599,14 +700,16 @@ h1 {
   align-items: center;
   gap: 8px;
   padding: 7px;
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.14)),
-    rgba(255, 241, 244, 0.84);
-  -webkit-backdrop-filter: blur(14px) saturate(1.08);
-  backdrop-filter: blur(14px) saturate(1.08);
-  box-shadow: 0 12px 34px rgba(68, 54, 91, 0.14);
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 12px 34px rgba(68, 54, 91, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  contain: paint;
+  will-change: transform, opacity;
   pointer-events: auto;
 }
 
@@ -615,8 +718,8 @@ h1 {
   bottom: max(8px, calc(var(--safe-bottom) + 8px));
   grid-template-columns: minmax(108px, 0.78fr) minmax(0, 1.35fr) auto;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 255, 255, 0.18)),
-    rgba(255, 241, 244, 0.88);
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong);
 }
 
 .bubbo-play-hud {
@@ -662,10 +765,8 @@ h1 {
   place-items: center;
   padding: 5px 8px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.34);
+  border: 1px solid var(--glass-border-soft);
   background: color-mix(in srgb, var(--shell-accent, var(--mint)) 14%, rgba(255, 255, 255, 0.34));
-  -webkit-backdrop-filter: blur(10px) saturate(1.06);
-  backdrop-filter: blur(10px) saturate(1.06);
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 900;
@@ -733,6 +834,7 @@ h1 {
 .item-card:active,
 .room-cell:active,
 .audio-toggle:active,
+.theme-toggle:active,
 .status-dot:active {
   transform: translateY(1px) scale(0.98);
   filter: brightness(1.08);
@@ -840,9 +942,12 @@ h1 {
 .leaderboard,
 .question-panel,
 .ability-list {
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--field) 88%, white);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+    color-mix(in srgb, var(--glass-card-strong) 70%, var(--field));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .game-menu-overlay .metric-grid > *,
@@ -851,12 +956,11 @@ h1 {
 .game-menu-overlay .generator-card,
 .game-menu-overlay .progress-card,
 .game-menu-overlay .item-card {
-  border-color: rgba(255, 255, 255, 0.34);
+  border-color: var(--glass-border-soft);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
     rgba(255, 255, 255, 0.22);
-  -webkit-backdrop-filter: blur(12px) saturate(1.08);
-  backdrop-filter: blur(12px) saturate(1.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
 }
 
 .item-card {
@@ -900,7 +1004,7 @@ button.item-card {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
   font-size: 1.45rem;
 }
 
@@ -914,7 +1018,9 @@ button.item-card {
   min-height: 66px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--field);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    color-mix(in srgb, var(--glass-card) 60%, var(--field));
   color: var(--ink);
   cursor: pointer;
 }
@@ -1004,10 +1110,10 @@ button.item-card {
 }
 
 .compact-list span {
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
   padding: 8px 10px;
-  background: var(--field);
+  background: color-mix(in srgb, var(--glass-card-strong) 66%, var(--field));
 }
 
 .leaderboard {
@@ -1046,7 +1152,7 @@ button.item-card {
 .question-meta span {
   border-radius: 999px;
   padding: 5px 8px;
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--glass-card-strong) 76%, var(--panel-2));
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 900;
@@ -1062,7 +1168,9 @@ button.item-card {
   min-height: 54px;
   border-radius: 8px;
   padding: 10px;
-  background: var(--panel-2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04)),
+    color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
   color: var(--ink);
   text-align: left;
   font-weight: 850;
@@ -1144,7 +1252,7 @@ button.item-card {
 .ability-list span {
   border-radius: 7px;
   padding: 7px;
-  background: var(--panel-2);
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
   color: var(--muted);
   text-align: center;
   font-size: 0.78rem;
@@ -1206,29 +1314,180 @@ button.item-card {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border);
   border-radius: 8px;
-  background: rgba(255, 241, 244, 0.92);
-  -webkit-backdrop-filter: blur(14px) saturate(1.08);
-  backdrop-filter: blur(14px);
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    rgba(255, 241, 244, 0.92);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow);
+  contain: paint;
 }
 
 .garden-glass-menu,
 .garden-glass-sheet,
-.garden-glass-card {
-  border-color: rgba(255, 255, 255, 0.28) !important;
+.garden-glass-card,
+.garden-modal-card,
+.garden-card-row,
+.garden-floating-lock,
+.garden-timer-chip {
+  color: var(--ink);
+  border-color: var(--glass-border) !important;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
-    rgba(47, 30, 35, 0.76) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
-  backdrop-filter: blur(18px) saturate(1.12);
-  box-shadow: 0 24px 72px rgba(24, 17, 18, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong) !important;
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow-strong) !important;
 }
 
 .garden-glass-sheet {
+  border-radius: 8px 8px 0 0 !important;
+  max-width: min(560px, 100vw);
+  margin-inline: auto;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
-    rgba(34, 30, 31, 0.82) !important;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
+    rgba(255, 241, 244, 0.92) !important;
+}
+
+.garden-glass-menu,
+.garden-modal-card {
+  border-radius: 8px !important;
+}
+
+.garden-card-row,
+.garden-floating-lock,
+.garden-timer-chip {
+  border: 1px solid var(--glass-border-soft) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06)),
+    var(--glass-card) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+.garden-floating-lock {
+  width: min(16rem, calc(100vw - 48px));
+}
+
+.glass-scrim {
+  background: var(--glass-scrim) !important;
+  -webkit-backdrop-filter: var(--glass-filter-soft);
+  backdrop-filter: var(--glass-filter-soft);
+}
+
+.garden-icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--glass-card);
+  color: var(--muted);
+}
+
+.garden-segmented-control {
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass-card) 72%, var(--panel-2));
+}
+
+.garden-segmented-button,
+.garden-choice-button,
+.garden-action-button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 900;
+}
+
+.garden-choice-button {
+  width: 100%;
+  padding: 0 12px;
+  text-align: left;
+}
+
+.garden-segmented-button.active,
+.garden-choice-button.active,
+.garden-action-button.primary {
+  border-color: color-mix(in srgb, var(--mint) 62%, transparent);
+  background: color-mix(in srgb, var(--mint) 18%, var(--glass-card-strong));
+  color: var(--ink);
+}
+
+.garden-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.garden-action-button.secondary {
+  border-color: color-mix(in srgb, var(--amber) 58%, transparent);
+  background: color-mix(in srgb, var(--amber) 18%, var(--glass-card-strong));
+  color: #6c4b14;
+}
+
+.garden-action-button.danger {
+  border-color: color-mix(in srgb, var(--coral) 58%, transparent);
+  background: color-mix(in srgb, var(--coral) 18%, var(--glass-card-strong));
+  color: #6f2930;
+}
+
+.garden-action-button.info {
+  border-color: color-mix(in srgb, var(--sky) 58%, transparent);
+  background: color-mix(in srgb, var(--sky) 18%, var(--glass-card-strong));
+  color: #22516b;
+}
+
+.garden-action-button:disabled,
+.garden-action-button.disabled {
+  border-color: var(--glass-border-soft);
+  background: color-mix(in srgb, var(--glass-card) 50%, transparent);
+  color: color-mix(in srgb, var(--muted) 72%, white);
+  cursor: not-allowed;
+}
+
+.garden-spot-empty {
+  border: 1px dashed var(--glass-border-soft);
+  background: color-mix(in srgb, var(--glass-card) 68%, transparent);
+  color: var(--muted);
+}
+
+.garden-status-badge {
+  border: 1px solid color-mix(in srgb, var(--sky) 55%, transparent);
+  background: color-mix(in srgb, var(--sky) 24%, var(--glass-card-strong));
+  color: var(--sky-ink);
+  box-shadow: 0 8px 18px rgba(56, 189, 248, 0.18);
+}
+
+.garden-timer-chip {
+  color: var(--garden-timer-ink);
+  font-weight: 1000;
+}
+
+.garden-glass-menu h2,
+.garden-modal-card h2,
+.garden-glass-sheet h2,
+.garden-glass-sheet h3,
+.garden-card-row h3 {
+  color: var(--ink);
+}
+
+.garden-glass-menu p,
+.garden-modal-card p,
+.garden-glass-sheet p,
+.garden-card-row p,
+.garden-glass-sheet small,
+.garden-card-row small {
+  color: var(--muted);
 }
 
 .bottom-tabs button {
@@ -1278,6 +1537,40 @@ button.item-card {
 
   .bottom-tabs button.active {
     background: var(--ink);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-surface: #fff1f4;
+    --glass-surface-strong: #fff8f9;
+    --glass-card: rgba(255, 255, 255, 0.72);
+    --glass-filter: none;
+    --glass-filter-strong: none;
+    --glass-filter-soft: none;
+  }
+
+  :root[data-ui-theme="dark"] {
+    --glass-surface: #231719;
+    --glass-surface-strong: #2f2328;
+    --glass-card: rgba(255, 255, 255, 0.06);
+    --glass-filter: none;
+    --glass-filter-strong: none;
+    --glass-filter-soft: none;
+  }
+}
+
+@media (max-width: 780px) {
+  :root {
+    --glass-filter: blur(10px) saturate(1.05);
+    --glass-filter-strong: blur(14px) saturate(1.08);
+    --glass-filter-soft: blur(6px) saturate(1.03);
+  }
+
+  :root[data-ui-theme="dark"] {
+    --glass-filter: blur(3px) saturate(1.01);
+    --glass-filter-strong: blur(5px) saturate(1.02);
+    --glass-filter-soft: blur(2px) saturate(1.01);
   }
 }
 
@@ -1432,6 +1725,10 @@ button.item-card {
   .button-row,
   .mode-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .button-row.merge-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .panel-button {

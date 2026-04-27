@@ -349,7 +349,12 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(app.includes('gameId="match3"'), "Match-3 should use the shared shell");
       assert.ok(app.includes('gameId="blox"'), "Blox should use the shared shell");
       assert.ok(app.includes('gameId="merge"'), "Merge should use the shared shell");
+      assert.ok(app.includes('gameId="bubbo"'), "Bubbo should use the shared shell");
       assert.ok(css.includes("top: max(8px, calc(var(--safe-top) + 8px))"), "HUD should stay off the lower thumb zone");
+      assert.ok(css.includes("--glass-surface"), "Shared glass tokens should own menu and HUD styling");
+      assert.ok(css.includes(':root[data-ui-theme="dark"]'), "The Garden Shelf matte palette should exist as a global dark UI theme");
+      assert.ok(app.includes("ThemeToggle"), "Players should be able to switch the global UI theme");
+      assert.ok(css.includes("garden-glass-sheet"), "Garden Shelf sheets should stay on the shared glass surface");
       assert.ok(css.includes("game-shell-cycle.svg"), "Cycle-inspired shell art should be wired");
       assert.ok(css.includes("game-shell-meditation.svg"), "Meditation-inspired shell art should be wired");
       assert.ok(scenes.includes('app.stage.on("pointercancel", cancel)'), "Pixi pointer cancellations must clear sessions");

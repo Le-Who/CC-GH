@@ -7,6 +7,7 @@ import {
   bloxAnchorCellFromDrag,
   bloxGhostOrigin,
   createBloxDragState,
+  tickParticles,
 } from "../src/game-runtime/scenes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -99,5 +100,30 @@ describe("Pixi scene geometry helpers", () => {
     assert.ok(scenes.includes("boardLayer.enableRenderGroup"), "Bubbo board pressure motion should use a render group");
     assert.ok(app.includes("bottomHudReserve: true"), "Bubbo scene should reserve launcher space above the bottom HUD");
     assert.ok(assetBundles.includes("assets_bubbo_balls"), "Bubbo should preload the corrected sheet artwork");
+  });
+
+  it("starts delayed Match-3 effect tweens instead of leaving them stuck above the board", () => {
+    const effect = {
+      x: 0,
+      y: -24,
+      alpha: 1,
+      scale: { set(value) { this.value = value; } },
+      _delay: 0.5,
+      _tween: {
+        age: 0,
+        fromX: 0,
+        fromY: -24,
+        toX: 0,
+        toY: 24,
+        duration: 10,
+        destroy: false,
+      },
+    };
+
+    tickParticles({ children: [effect] }, 1);
+
+    assert.equal(effect._delay, 0);
+    assert.ok(effect._tween.age > 0);
+    assert.ok(effect.y > -24);
   });
 });

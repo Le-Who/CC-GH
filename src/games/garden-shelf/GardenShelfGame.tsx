@@ -116,24 +116,24 @@ function GardenSettingsButton() {
             <motion.button
               type="button"
               aria-label={t('settings.close')}
-              className="absolute inset-0 z-[180] bg-[#161213]/55 backdrop-blur-[2px]"
+              className="glass-scrim absolute inset-0 z-[180]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className="garden-glass-menu absolute right-3 top-16 z-[190] w-[min(92%,320px)] rounded-2xl border border-amber-200/20 bg-[#231719]/95 p-4 shadow-[0_20px_50px_rgba(0,0,0,0.55)]"
+              className="garden-glass-menu absolute right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
               initial={{ opacity: 0, y: -10, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.96 }}
               transition={{ duration: 0.16 }}
             >
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-100">{t('settings.title')}</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">{t('settings.title')}</h2>
                 <button
                   type="button"
-                  className="min-h-[44px] min-w-[44px] rounded-lg border border-white/10 bg-white/5 text-sm text-zinc-300"
+                  className="garden-icon-button text-sm"
                   onClick={() => setOpen(false)}
                   aria-label={t('settings.close')}
                 >
@@ -143,15 +143,13 @@ function GardenSettingsButton() {
 
               <div className="space-y-4">
                 <div>
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">{t('settings.sound')}</div>
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('settings.sound')}</div>
                   <button
                     type="button"
                     onClick={toggleSound}
                     className={cn(
-                      "min-h-[48px] w-full rounded-xl border px-4 text-left text-sm font-semibold transition-colors",
-                      soundEnabled
-                        ? "border-amber-400/35 bg-amber-500/15 text-amber-100"
-                        : "border-white/10 bg-black/30 text-zinc-400",
+                      "garden-choice-button",
+                      soundEnabled && "active",
                     )}
                   >
                     {soundEnabled ? t('settings.soundOn') : t('settings.soundOff')}
@@ -159,7 +157,7 @@ function GardenSettingsButton() {
                 </div>
 
                 <div>
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-zinc-500">{t('settings.language')}</div>
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('settings.language')}</div>
                   <div className="grid grid-cols-2 gap-2">
                     {(['en', 'ru'] as GardenLanguage[]).map((option) => (
                       <button
@@ -167,10 +165,8 @@ function GardenSettingsButton() {
                         key={option}
                         onClick={() => selectLanguage(option)}
                         className={cn(
-                          "min-h-[48px] rounded-xl border px-3 text-sm font-semibold transition-colors",
-                          language === option
-                            ? "border-emerald-300/45 bg-emerald-500/15 text-emerald-100"
-                            : "border-white/10 bg-black/30 text-zinc-400",
+                          "garden-choice-button text-center",
+                          language === option && "active",
                         )}
                       >
                         {option === 'en' ? t('settings.english') : t('settings.russian')}

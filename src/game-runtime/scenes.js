@@ -428,12 +428,12 @@ function easeMotion(raw, mode) {
   return 1 - (1 - t) ** 3;
 }
 
-function tickParticles(container, deltaTime = 1) {
+export function tickParticles(container, deltaTime = 1) {
   const delta = Math.max(0.25, Math.min(2.5, Number(deltaTime) || 1));
   for (const child of [...container.children]) {
-    if (child._delay) {
-      child._delay -= delta;
-      continue;
+    if (child._delay > 0) {
+      child._delay = Math.max(0, child._delay - delta);
+      if (child._delay > 0) continue;
     }
     if (child._sequence) {
       child._sequence.age += delta;
@@ -1373,7 +1373,9 @@ export function buildMatch3Scene(app, initial = {}) {
           root.addChild(sprite(pieceAsset, left + x * cell + cell / 2, top + y * cell + cell / 2, cell * 0.72, cell * 0.72, 0.96));
         }
         const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
-        if (icon) root.addChild(label(icon, left + x * cell + cell / 2, top + y * cell + cell / 2, Math.max(12, cell * 0.34)));
+        if (icon && !pieceAsset) {
+          root.addChild(label(icon, left + x * cell + cell / 2, top + y * cell + cell / 2, Math.max(12, cell * 0.34)));
+        }
       }
     }
     updateDragVisual();

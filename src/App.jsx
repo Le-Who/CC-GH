@@ -11,6 +11,7 @@ import {
   Hammer,
   Home,
   Leaf,
+  Moon,
   PackageOpen,
   Pause,
   PawPrint,
@@ -18,6 +19,7 @@ import {
   RotateCcw,
   ShoppingBag,
   Sparkles,
+  Sun,
   Trash2,
   Trophy,
   Volume2,
@@ -75,6 +77,7 @@ const TABS = [
 ];
 
 const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
+const UI_THEME_KEY = "game_hub_ui_theme";
 
 const MATCH3_MODES = [
   { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
@@ -91,6 +94,10 @@ const APP_TRANSLATIONS = {
     "app.runtime": "VPS runtime",
     "audio.mute": "Mute sound",
     "audio.enable": "Enable sound",
+    "theme.light": "Light theme",
+    "theme.dark": "Dark theme",
+    "theme.toggleToLight": "Switch to light theme",
+    "theme.toggleToDark": "Switch to dark theme",
     "tabs.garden": "Garden",
     "tabs.blox": "Blox",
     "tabs.gems": "Gems",
@@ -255,6 +262,10 @@ const APP_TRANSLATIONS = {
     "app.runtime": "VPS runtime",
     "audio.mute": "Выключить звук",
     "audio.enable": "Включить звук",
+    "theme.light": "Светлая тема",
+    "theme.dark": "Темная тема",
+    "theme.toggleToLight": "Переключить на светлую тему",
+    "theme.toggleToDark": "Переключить на темную тему",
     "tabs.garden": "Сад",
     "tabs.blox": "Блоки",
     "tabs.gems": "Камни",
@@ -519,11 +530,11 @@ function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLab
   );
 }
 
-function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "" }) {
+function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "" }) {
   const reduceMotion = useReducedMotion();
   return (
     <div
-      className={`game-layout game-shell shell-${phase} shell-skin-${skin}`}
+      className={`game-layout game-shell shell-${phase} shell-skin-${skin}${className ? ` ${className}` : ""}`}
       data-game-shell={gameId}
     >
       {children}
@@ -571,6 +582,16 @@ function useExitToHub() {
   return useCallback(() => {
     setActiveTab("garden");
   }, [setActiveTab]);
+}
+
+function readStoredUiTheme() {
+  if (typeof window === "undefined") return "light";
+  try {
+    const value = window.localStorage.getItem(UI_THEME_KEY);
+    return value === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
+  }
 }
 
 function FarmGame() {
@@ -1418,9 +1439,12 @@ function BubboGame() {
   );
 
   return (
-    <div className={`game-layout game-shell bubbo-shell ${isPlaying ? "shell-playing" : gameActive ? "shell-paused" : "shell-menu"}`} data-game-shell="bubbo">
-      <PixiGameHost sceneKey="bubbo" buildScene={buildBubboScene} sceneState={sceneState} />
-      {isPlaying && (
+    <GameShell
+      gameId="bubbo"
+      phase={isPlaying ? "playing" : gameActive ? "paused" : "menu"}
+      skin="cycle"
+      className="bubbo-shell"
+      hud={(
         <GamePlayHud
           title={t("bubbo.title")}
           subtitle={`${t("common.best")} ${highScore} · ${remainingBubbles} ${t("bubbo.bubbles")}`}
@@ -1434,46 +1458,50 @@ function BubboGame() {
           className="game-play-hud-bottom bubbo-play-hud"
         />
       )}
-      <aside className="side-panel game-menu-overlay">
-        <div className="panel-header">
-          <div>
-            <strong>{t("bubbo.title")}</strong>
-            <span>{t("common.best")} {highScore} · {remainingBubbles} {t("bubbo.bubbles")} · {t("common.pressure").toLowerCase()} {Math.round(pressureStep * 100)}%</span>
+      overlay={(
+        <>
+          <div className="panel-header">
+            <div>
+              <strong>{t("bubbo.title")}</strong>
+              <span>{t("common.best")} {highScore} · {remainingBubbles} {t("bubbo.bubbles")} · {t("common.pressure").toLowerCase()} {Math.round(pressureStep * 100)}%</span>
+            </div>
+            <PanelButton icon={gameActive ? RotateCcw : Play} onClick={start}>
+              {gameActive ? t("common.restart") : t("common.start")}
+            </PanelButton>
           </div>
-          <PanelButton icon={gameActive ? RotateCcw : Play} onClick={start}>
-            {gameActive ? t("common.restart") : t("common.start")}
-          </PanelButton>
-        </div>
-        {gameActive && paused && (
-          <div className="button-row two">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-            <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+          {gameActive && paused && (
+            <div className="button-row two">
+              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+            </div>
+          )}
+          <div className="metric-grid">
+            <Stat icon={Trophy} label={t("common.score")} value={score} />
+            <Stat icon={Sparkles} label={t("common.shots")} value={shotsLeft} />
+            <Stat icon={Zap} label={t("common.cost")} value={ECONOMY.COST_BUBBO} />
           </div>
-        )}
-        <div className="metric-grid">
-          <Stat icon={Trophy} label={t("common.score")} value={score} />
-          <Stat icon={Sparkles} label={t("common.shots")} value={shotsLeft} />
-          <Stat icon={Zap} label={t("common.cost")} value={ECONOMY.COST_BUBBO} />
-        </div>
-        <div className="button-row">
-          <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
-          <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
-            const run = createBubboRun("local-preview");
-            setBoard(run.board);
-            setSeed(run.seed);
-            setWaveIndex(run.waveIndex);
-            setRowOffset(run.rowOffset || 0);
-            setPressure(0);
-            setPressureStep(0);
-          }}>{t("bubbo.newField")}</PanelButton>
-          <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
-        </div>
-        <div className="leaderboard">
-          <strong>{t("bubbo.runStatus")}</strong>
-          <span>{isBubboDanger(board) ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
-        </div>
-      </aside>
-    </div>
+          <div className="button-row">
+            <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+            <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
+              const run = createBubboRun("local-preview");
+              setBoard(run.board);
+              setSeed(run.seed);
+              setWaveIndex(run.waveIndex);
+              setRowOffset(run.rowOffset || 0);
+              setPressure(0);
+              setPressureStep(0);
+            }}>{t("bubbo.newField")}</PanelButton>
+            <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
+          </div>
+          <div className="leaderboard">
+            <strong>{t("bubbo.runStatus")}</strong>
+            <span>{isBubboDanger(board) ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
+          </div>
+        </>
+      )}
+    >
+      <PixiGameHost sceneKey="bubbo" buildScene={buildBubboScene} sceneState={sceneState} />
+    </GameShell>
   );
 }
 
@@ -2151,6 +2179,23 @@ function AudioToggle() {
   );
 }
 
+function ThemeToggle({ theme, onToggle }) {
+  const { t } = useAppI18n();
+  const isDark = theme === "dark";
+  const Icon = isDark ? Sun : Moon;
+  return (
+    <button
+      type="button"
+      className={`theme-toggle ${isDark ? "dark" : "light"}`}
+      aria-label={isDark ? t("theme.toggleToLight") : t("theme.toggleToDark")}
+      title={isDark ? t("theme.dark") : t("theme.light")}
+      onClick={onToggle}
+    >
+      <Icon size={17} />
+    </button>
+  );
+}
+
 export default function App() {
   const activeTab = useGameHub((state) => state.activeTab);
   const setActiveTab = useGameHub((state) => state.setActiveTab);
@@ -2164,11 +2209,25 @@ export default function App() {
   const [platform, setPlatform] = useState(null);
   const [config, setConfig] = useState(null);
   const [gardenLanguage, setGardenLanguage] = useState(() => getStoredGardenLanguage());
+  const [uiTheme, setUiTheme] = useState(() => readStoredUiTheme());
   const [isPending, startTransition] = useTransition();
   const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
   const t = useCallback((key, vars) => appTranslate(gardenLanguage, key, vars), [gardenLanguage]);
   const i18nValue = useMemo(() => ({ language: gardenLanguage, t }), [gardenLanguage, t]);
+  const toggleUiTheme = useCallback(() => {
+    setUiTheme((value) => (value === "dark" ? "light" : "dark"));
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.uiTheme = uiTheme;
+    document.documentElement.style.colorScheme = uiTheme;
+    try {
+      window.localStorage.setItem(UI_THEME_KEY, uiTheme);
+    } catch {
+      // Best effort only; the toggle still works for the current session.
+    }
+  }, [uiTheme]);
 
   useEffect(() => {
     const cleanupUpdates = installUpdateManager();
@@ -2223,13 +2282,17 @@ export default function App() {
 
   return (
     <AppI18nContext.Provider value={i18nValue}>
-      <main className={`telegram-app${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}>
+      <main
+        className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}
+        data-ui-theme={uiTheme}
+      >
         <header className="topbar">
           <div>
             <p className="eyebrow">{t("app.eyebrow")}</p>
             <h1>{t("app.title")}</h1>
           </div>
           <div className="topbar-actions">
+            <ThemeToggle theme={uiTheme} onToggle={toggleUiTheme} />
             {activeTab !== "garden" && <AudioToggle />}
             <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
               {status}

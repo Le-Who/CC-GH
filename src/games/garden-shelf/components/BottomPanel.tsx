@@ -32,7 +32,7 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-[#161213]/60 backdrop-blur-sm z-30"
+        className="glass-scrim fixed inset-0 z-30"
       />
       
       <motion.div
@@ -40,11 +40,11 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, bounce: 0 }}
-        className="garden-glass-sheet fixed bottom-0 left-0 right-0 bg-[#22221d]/95 backdrop-blur-xl border-t border-[#c73838] shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-t-[32px] z-40 max-h-[85vh] flex flex-col items-center pb-safe-offset-4"
+        className="garden-glass-sheet fixed bottom-0 left-0 right-0 z-40 max-h-[85vh] flex flex-col items-center pb-safe-offset-4 border-t"
       >
-        <div className="w-12 h-1 bg-white/10 rounded-full my-4" />
+        <div className="my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />
         
-        <button onClick={onClose} className="absolute right-4 top-4 p-2 bg-white/5 text-slate-400 border border-white/10 rounded-full hover:bg-white/10 hover:text-slate-200 transition">
+        <button onClick={onClose} className="garden-icon-button absolute right-4 top-4 transition">
           <X size={16} />
         </button>
 
@@ -62,7 +62,7 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
 
 function PlantThumb({ spriteIndex, phase = 3 }: { spriteIndex: number, phase?: number }) {
   return (
-    <div className="w-12 h-12 flex items-end justify-center bg-black/35 rounded-lg border border-white/5 overflow-hidden">
+    <div className="garden-card-row flex h-12 w-12 items-end justify-center overflow-hidden rounded-lg">
       <div style={getGardenSpriteStyle(spriteIndex, phase, 0.24)} />
     </div>
   );
@@ -78,16 +78,16 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
 
   return (
     <div className="flex flex-col w-full h-full max-h-[60vh]">
-      <div className="flex w-full bg-black/20 rounded-xl p-1 mb-6 border border-white/5">
+      <div className="garden-segmented-control mb-6 flex w-full p-1">
         <button 
           onClick={() => setTab('shop')} 
-          className={cn("flex-1 py-2 text-xs tracking-widest uppercase rounded-lg transition-colors", tab === 'shop' ? 'bg-amber-500/20 text-amber-400 font-medium' : 'text-slate-500 hover:text-slate-300')}
+          className={cn("garden-segmented-button flex-1 px-2 py-2 text-xs uppercase tracking-[0.12em] transition-colors", tab === 'shop' && 'active')}
         >
           {t('shop.seedShop')}
         </button>
         <button 
           onClick={() => setTab('inventory')} 
-          className={cn("flex-1 py-2 text-xs tracking-widest uppercase rounded-lg transition-colors flex items-center justify-center gap-2", tab === 'inventory' ? 'bg-amber-500/20 text-amber-400 font-medium' : 'text-slate-500 hover:text-slate-300')}
+          className={cn("garden-segmented-button flex flex-1 items-center justify-center gap-2 px-2 py-2 text-xs uppercase tracking-[0.12em] transition-colors", tab === 'inventory' && 'active')}
         >
           <Archive size={14} /> 
           {t('shop.inventory', { count: inventoryPlants.length })}
@@ -103,18 +103,18 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
 
           return (
             <div key={plant.id} className={cn(
-              "flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md",
-              !isUnlocked && "bg-black/25 border-white/5",
+              "garden-card-row flex items-center justify-between gap-3 rounded-lg p-4",
+              !isUnlocked && "opacity-70",
             )}>
               <div className="flex items-center gap-4">
                 <div className={cn(!isUnlocked && "grayscale opacity-55")}>
                   <PlantThumb spriteIndex={plant.spriteIndex} />
                 </div>
                 <div>
-                  <h3 className={cn("font-medium text-sm", isUnlocked ? "text-slate-200" : "text-slate-500")}>
+                  <h3 className="text-sm font-black">
                     {t(`plant.${plant.id}`)}
                   </h3>
-                  <p className={cn("text-[10px] font-mono", isUnlocked ? "text-amber-500/70" : "text-slate-500")}>
+                  <p className="font-mono text-[10px]">
                     {isUnlocked
                       ? t('shop.yields', { amount: plant.baseProduction })
                       : t('shop.unlockAt', { level: unlockLevel })}
@@ -131,10 +131,8 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
                   onClose();
                 }}
                 className={cn(
-                  "min-h-[44px] flex items-center gap-1.5 px-4 py-2 rounded font-mono text-xs transition-all border",
-                  canBuy 
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]" 
-                    : "bg-black/40 border-white/5 text-slate-600 cursor-not-allowed"
+                  "garden-action-button font-mono text-xs transition-all",
+                  canBuy ? "secondary" : "disabled",
                 )}
               >
                 {isUnlocked ? (
@@ -152,7 +150,7 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
         })}
 
         {tab === 'inventory' && inventoryPlants.length === 0 && (
-           <div className="text-center text-slate-500 py-10 text-sm tracking-wide font-light">
+           <div className="py-10 text-center text-sm font-light tracking-wide text-[color:var(--muted)]">
              {t('shop.emptyInventory')}
            </div>
         )}
@@ -161,12 +159,12 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
            const def = PLANT_TYPES[p.type] || PLANT_TYPES.daisy;
            
            return (
-            <div key={p.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
+            <div key={p.id} className="garden-card-row flex items-center justify-between gap-3 rounded-lg p-4">
               <div className="flex items-center gap-4">
                 <PlantThumb spriteIndex={def.spriteIndex} phase={p.phase} />
                 <div>
-                  <h3 className="font-medium text-slate-200 text-sm">{t(`plant.${def.id}`)}</h3>
-                  <p className="text-[10px] text-zinc-500 font-mono">{t('shop.phaseLevel', { phase: p.phase, level: p.level })}</p>
+                  <h3 className="text-sm font-black">{t(`plant.${def.id}`)}</h3>
+                  <p className="font-mono text-[10px]">{t('shop.phaseLevel', { phase: p.phase, level: p.level })}</p>
                 </div>
               </div>
               
@@ -176,7 +174,7 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
                   movePlantToShelf(p.id, shelfIndex, spotIndex);
                   onClose();
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded font-mono text-xs transition-all border bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                className="garden-action-button primary font-mono text-xs transition-all"
               >
                 {t('shop.place')}
               </motion.button>
@@ -291,8 +289,8 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
     <div className="flex flex-col items-center w-full">
       <div className="flex w-full items-center justify-between mb-4">
         <div>
-          <h2 className="text-sm tracking-[0.2em] font-light text-slate-200 uppercase">{t(`plant.${def.id}`)}</h2>
-          <div className="text-[10px] tracking-widest text-amber-500 uppercase mt-1">
+          <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
+          <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
              {isFullyGrown
                ? t('plantDetail.mature', { level: plant.level })
                : t('plantDetail.growing', { phase })}
@@ -302,15 +300,15 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
         <div className="flex flex-col items-end">
           {isFullyGrown ? (
             <>
-              <span className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">{t('plantDetail.production')}</span>
-              <span className="font-mono text-amber-200 flex items-center gap-1">
-                {production} <small className="text-[10px] opacity-50">G/s</small>
+              <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
+              <span className="flex items-center gap-1 font-mono text-[color:var(--ink)]">
+                {production} <small className="text-[10px] opacity-60">G/s</small>
               </span>
             </>
           ) : (
             <>
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1 items-center flex gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"/> {t('plantDetail.timeLeft')}</span>
-              <span className="font-mono tracking-widest text-emerald-300">
+              <span className="mb-1 flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]"><div className="h-1.5 w-1.5 rounded-full bg-[color:var(--mint)] animate-pulse"/> {t('plantDetail.timeLeft')}</span>
+              <span className="font-mono tracking-widest text-[color:var(--leaf)]">
                 {timeStr}
               </span>
             </>
@@ -383,7 +381,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
         </motion.button>
       </div>
 
-      <p className="text-[10px] text-amber-500/50 uppercase tracking-widest mb-4">
+      <p className="mb-4 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
         {isFullyGrown ? t('plantDetail.tapGold') : t('plantDetail.tapGrowth')}
       </p>
 
@@ -394,7 +392,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
             sellPlant(plantId);
             onClose();
           }}
-          className="p-4 rounded-xl bg-rose-950/20 text-rose-500/70 border border-rose-900/30 flex items-center justify-center hover:bg-rose-950/40 hover:text-rose-400 transition-colors"
+          className="garden-action-button danger min-w-[54px] p-4 transition-colors"
         >
           <Trash2 size={20} strokeWidth={1.5} />
         </motion.button>
@@ -405,7 +403,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
              movePlantToInventory(plantId);
              onClose();
           }}
-          className="flex-1 flex items-center justify-center gap-2 p-4 rounded-xl font-mono text-xs uppercase tracking-widest transition-all border bg-[#633f18] border-white/10 text-orange-200 hover:bg-[#7a4f21]"
+          className="garden-action-button secondary flex-1 p-4 font-mono text-xs uppercase tracking-[0.12em] transition-all"
         >
           <Archive size={16} /> {t('plantDetail.stash')}
         </motion.button>
@@ -416,10 +414,8 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
             disabled={!canWater}
             onClick={handleWater}
             className={cn(
-              "flex flex-col items-center justify-center px-6 py-2 rounded-xl font-mono text-xs uppercase tracking-widest transition-all border",
-              canWater
-                ? "bg-sky-500/10 border-sky-500/30 text-sky-400 hover:bg-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.1)]"
-                : "bg-black/40 border-white/5 text-slate-600"
+              "garden-action-button flex-col px-6 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-all",
+              canWater ? "info" : "disabled",
             )}
           >
             <Droplets size={16} strokeWidth={1.5} className="mb-1" />
@@ -434,10 +430,8 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
             disabled={!canAfford}
             onClick={handleUpgrade}
             className={cn(
-              "w-full flex items-center justify-center gap-3 p-4 rounded-xl font-mono text-xs uppercase tracking-widest transition-all border",
-              canAfford
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]"
-                : "bg-black/40 border-white/5 text-slate-600"
+              "garden-action-button w-full gap-3 p-4 font-mono text-xs uppercase tracking-[0.12em] transition-all",
+              canAfford ? "secondary" : "disabled",
             )}
           >
             <ArrowUpCircle size={16} strokeWidth={1.5} className={isUpgrading ? "animate-bounce" : ""} />

@@ -200,7 +200,11 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     if (nextKey === externalStateKeyRef.current) return;
     externalStateKeyRef.current = nextKey;
     syncedEarnedRef.current = next.totalGoldEarned;
-    setState((prev) => ({ ...next, gold: prev.gold }));
+    setState((prev) => ({
+      ...next,
+      gold: prev.gold,
+      offlineEarnings: prev.offlineEarnings,
+    }));
   }, [persistedState, persistedStateKey, state.gold]);
 
   useEffect(() => {

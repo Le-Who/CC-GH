@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { useGame } from '../lib/GameContext';
 import {
   MAX_SHELVES,
@@ -22,16 +22,23 @@ interface GardenProps {
   onSelectSpot: (shelfIndex: number, spotIndex: number, plantId?: string) => void;
 }
 
+const GARDEN_SHELVES = Array.from({ length: MAX_SHELVES }, (_, i) => i);
+const GARDEN_SPOTS = Array.from({ length: SPOTS_PER_SHELF }, (_, i) => i);
+
 export function Garden({ onSelectSpot }: GardenProps) {
   const { state, unlockShelf } = useGame();
   const { t } = useGardenI18n();
-
-  const shelves = Array.from({ length: MAX_SHELVES }, (_, i) => i);
-  const spots = Array.from({ length: SPOTS_PER_SHELF }, (_, i) => i);
+  const plantsBySpot = useMemo(() => {
+    const map = new Map<string, PlantData>();
+    for (const plant of state.plants) {
+      map.set(`${plant.shelfIndex}:${plant.spotIndex}`, plant);
+    }
+    return map;
+  }, [state.plants]);
 
   return (
     <div className="flex-1 h-full overflow-y-auto overflow-x-hidden p-6 space-y-20 pb-32 pt-36 no-scrollbar">
-      {shelves.map((shelfIndex) => {
+      {GARDEN_SHELVES.map((shelfIndex) => {
         const isUnlocked = shelfIndex < state.shelvesUnlocked;
 
         if (!isUnlocked) {
@@ -42,9 +49,9 @@ export function Garden({ onSelectSpot }: GardenProps) {
 
              return (
                <div key={shelfIndex} className="relative mt-8">
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center justify-center p-6 bg-[#1b1416]/80 backdrop-blur-md rounded-xl border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.8)] ring-1 ring-black/5 w-64 text-center">
-                   <Lock className="w-8 h-8 text-rose-500/50 mb-2" strokeWidth={1.5} />
-                   <p className="text-slate-400 text-xs tracking-widest uppercase mb-4">
+                 <div className="garden-floating-lock absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-lg p-6 text-center">
+                   <Lock className="mb-2 h-8 w-8 text-[color:var(--coral)]" strokeWidth={1.5} />
+                   <p className="mb-4 text-xs uppercase tracking-[0.14em] text-[color:var(--muted)]">
                      {t('garden.expand')}
                    </p>
                    <motion.button 
@@ -56,10 +63,8 @@ export function Garden({ onSelectSpot }: GardenProps) {
                         }
                      }}
                      className={cn(
-                       "flex items-center gap-1.5 px-4 py-2 rounded-full font-mono text-sm transition-all shadow-[0_0_15px_rgba(251,113,133,0.2)] border w-full justify-center",
-                       canAfford 
-                         ? "bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20" 
-                         : "bg-white/5 border-white/10 text-slate-500 cursor-not-allowed"
+                       "garden-action-button w-full font-mono text-sm transition-all",
+                       canAfford ? "danger" : "disabled",
                      )}
                    >
                      {unlockCost} <Coins size={14} className={canAfford ? "text-rose-400" : "text-slate-500"} />
@@ -75,10 +80,8 @@ export function Garden({ onSelectSpot }: GardenProps) {
         return (
           <div key={shelfIndex} className="relative mt-8">
             <div className="relative z-30 flex justify-evenly items-end h-24 px-2 translate-y-1">
-              {spots.map((spotIndex) => {
-                const plant = state.plants.find(
-                  (p) => p.shelfIndex === shelfIndex && p.spotIndex === spotIndex
-                );
+              {GARDEN_SPOTS.map((spotIndex) => {
+                const plant = plantsBySpot.get(`${shelfIndex}:${spotIndex}`);
 
                 return (
                   <Spot 
@@ -243,7 +246,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
           onClick={onClick}
           className="w-20 h-24 flex flex-col items-center justify-end group z-10 relative"
         >
-          <div className="w-12 h-12 rounded-full border border-dashed border-zinc-700/50 bg-black/20 flex items-center justify-center text-zinc-500/50 group-hover:bg-zinc-800/50 transition-colors mb-2">
+          <div className="garden-spot-empty mb-2 flex h-12 w-12 items-center justify-center rounded-full transition-colors">
             <div className="text-2xl font-light opacity-50">+</div>
           </div>
         </motion.button>
@@ -291,7 +294,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
           <motion.div
             initial={{ opacity: 0, y: 4, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="absolute right-2 top-16 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-sky-200/40 bg-sky-500/25 text-sky-100 shadow-[0_0_14px_rgba(56,189,248,0.35)]"
+            className="garden-status-badge absolute right-2 top-16 z-30 flex h-7 w-7 items-center justify-center rounded-full"
             aria-hidden="true"
             data-testid="garden-water-ready"
           >
@@ -350,7 +353,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
           <motion.div
             initial={{ opacity: 0, y: -2, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="rounded-full border border-emerald-300/35 bg-[#101715]/80 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-emerald-300 shadow-[0_4px_10px_rgba(0,0,0,0.45)] backdrop-blur-sm"
+            className="garden-timer-chip rounded-full px-2 py-0.5 font-mono text-[9px] tracking-wider"
           >
             {timeStr}
           </motion.div>
