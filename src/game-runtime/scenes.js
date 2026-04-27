@@ -105,6 +105,28 @@ const SKY = 0x8bbfd9;
 const BUBBO_NUMBERS = Object.fromEntries(
   Object.entries(BUBBO_PALETTE).map(([name, value]) => [name, Number.parseInt(value.slice(1), 16)]),
 );
+const BUBBO_BACKGROUND_THEMES = {
+  light: {
+    outer: 0xf6eee6,
+    panel: 0xeaf4df,
+    stroke: 0xb8c89d,
+    pattern: 0x6f9d78,
+    finish: 0xc97884,
+    cannonPanel: 0xf2eadb,
+    tileAlpha: 0.055,
+    lineAlpha: 0.085,
+  },
+  dark: {
+    outer: 0x101416,
+    panel: 0x162024,
+    stroke: 0x36595d,
+    pattern: 0x92c8af,
+    finish: 0xe08b93,
+    cannonPanel: 0x223036,
+    tileAlpha: 0.035,
+    lineAlpha: 0.09,
+  },
+};
 
 function viewWidth(app) {
   return app.screen?.width || app.renderer.width;
@@ -112,6 +134,11 @@ function viewWidth(app) {
 
 function viewHeight(app) {
   return app.screen?.height || app.renderer.height;
+}
+
+function currentUiTheme() {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.getAttribute("data-ui-theme") === "dark" ? "dark" : "light";
 }
 
 function clear(container) {
@@ -264,6 +291,20 @@ function fit(app, cols, rows, margin = 18, extraBottom = 0, options = {}) {
     cell: size / Math.max(cols, rows),
     left: (width - size) / 2,
     top: margin + spareY * verticalAnchor,
+  };
+}
+
+function fitWithTopReserve(app, cols, rows, margin = 18, reservedTop = 0, extraBottom = 0, options = {}) {
+  const width = viewWidth(app);
+  const height = Math.max(180, viewHeight(app) - reservedTop - extraBottom);
+  const size = Math.max(140, Math.min(width - margin * 2, height - margin * 2));
+  const verticalAnchor = Math.max(0, Math.min(1, options.verticalAnchor ?? 0));
+  const spareY = Math.max(0, height - size - margin * 2);
+  return {
+    size,
+    cell: size / Math.max(cols, rows),
+    left: (width - size) / 2,
+    top: reservedTop + margin + spareY * verticalAnchor,
   };
 }
 
@@ -510,6 +551,33 @@ function makeTween(view, from, to, duration = 18, options = {}) {
     destroy: options.destroy,
   };
   return view;
+}
+
+function drawBubboBackground(root, app, layout, frameBottom) {
+  const palette = BUBBO_BACKGROUND_THEMES[currentUiTheme()] || BUBBO_BACKGROUND_THEMES.light;
+  root.addChild(rect(0, 0, viewWidth(app), viewHeight(app), palette.outer, 0, 1));
+  root.addChild(strokedRect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, palette.stroke, 16, palette.panel, 0.96, 2));
+  const stripes = new Graphics();
+  const x0 = layout.left - 2;
+  const y0 = layout.top - 2;
+  const width = layout.right - layout.left + 4;
+  const height = frameBottom - layout.top + 4;
+  for (let x = x0 - height; x < x0 + width; x += Math.max(24, layout.cell * 0.86)) {
+    stripes.moveTo(x, y0 + height);
+    stripes.lineTo(x + height, y0);
+  }
+  stripes.stroke({ color: palette.pattern, width: 1.4, alpha: palette.lineAlpha });
+  root.addChild(stripes);
+  const curves = new Graphics();
+  for (let row = 0; row < 4; row += 1) {
+    const y = y0 + height * (0.18 + row * 0.2);
+    curves.moveTo(x0 + 10, y);
+    curves.bezierCurveTo(x0 + width * 0.3, y - 12, x0 + width * 0.58, y + 10, x0 + width - 10, y - 4);
+  }
+  curves.stroke({ color: palette.pattern, width: 2, alpha: palette.lineAlpha * 0.7 });
+  root.addChild(curves);
+  root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, palette.tileAlpha));
+  return palette;
 }
 
 function makeRipple(root, x, y, color = SKY, radius = 28) {
@@ -899,7 +967,7 @@ export function buildBloxScene(app, initial = {}) {
     const state = data.blox || {};
     const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
     const tray = state.tray || state.savedState?.tray || [];
-    const fitted = fit(app, GRID, GRID, 14, 116, { verticalAnchor: 0.62 });
+    const fitted = fitWithTopReserve(app, GRID, GRID, 14, data.bloxHudReserve || 132, 112, { verticalAnchor: 0.1 });
     layout = { ...fitted, cols: GRID, rows: GRID };
     const { size, cell, left, top } = fitted;
     root.addChild(rect(left - 8, top - 8, size + 16, size + 16, PANEL, 14));
@@ -959,7 +1027,9 @@ export function buildBloxScene(app, initial = {}) {
     }
 
     updateDragVisual();
-    root.addChild(label(data.bloxStatusText || `Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
+    if (!data.bloxHideStatusText) {
+      root.addChild(label(data.bloxStatusText || `Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
+    }
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
@@ -1159,6 +1229,9 @@ export function buildMatch3Scene(app, initial = {}) {
       const settledBoard = cloneMatch3Board(step.boardSnapshot);
       frames.push({ board: settledBoard, holdFrames: MATCH3_TIMING.settleFrames });
       previousBoard = settledBoard;
+    }
+    if (frames.length && MATCH3_TIMING.tailFrames > 0) {
+      frames.push({ board: cloneMatch3Board(previousBoard), holdFrames: MATCH3_TIMING.tailFrames });
     }
 
     return frames.filter((frame) => frame.board?.length);
@@ -1385,7 +1458,7 @@ export function buildMatch3Scene(app, initial = {}) {
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
   const ticker = (tickerState) => {
     advanceAnimationFrame(tickerState);
-    tickParticles(effects);
+    tickParticles(effects, tickerState.deltaTime);
   };
   app.ticker.add(ticker);
   draw();
@@ -1745,9 +1818,8 @@ export function buildBubboScene(app, initial = {}) {
     const state = data.bubbo || {};
     const board = state.board || [];
     const frameBottom = Math.max(layout.bottom + layout.cell + 20, layout.cannonY + layout.cell * 1.2);
-    root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, PANEL, 16, 0.92));
-    root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, 0.2));
-    root.addChild(new Graphics().moveTo(layout.left, layout.finishLineY).lineTo(layout.right, layout.finishLineY).stroke({ color: CORAL, width: 3, alpha: 0.42 }));
+    const background = drawBubboBackground(root, app, layout, frameBottom);
+    root.addChild(new Graphics().moveTo(layout.left, layout.finishLineY).lineTo(layout.right, layout.finishLineY).stroke({ color: background.finish, width: 3, alpha: 0.48 }));
     if (state.gameActive) {
       const nextWave = Array.isArray(state.nextPressureWave) && state.nextPressureWave.length
         ? state.nextPressureWave
@@ -1787,7 +1859,7 @@ export function buildBubboScene(app, initial = {}) {
 
     const cannonColor = state.current || BUBBO_COLORS[0];
     root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/bottom-tray.png`), layout.cannonX, Math.min(layout.playHeight - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
-    root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: PANEL_2, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
+    root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: background.cannonPanel, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
     root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/cannon-main.png`), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));

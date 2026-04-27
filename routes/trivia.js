@@ -44,16 +44,6 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       const { count = 5, difficulty } = req.body;
       calcRegen(p);
 
-      // Energy check
-      if (p.resources.energy.current < ECONOMY.COST_TRIVIA) {
-        return res.status(400).json({
-          error: "NOT_ENOUGH_ENERGY",
-          required: ECONOMY.COST_TRIVIA,
-          current: p.resources.energy.current,
-        });
-      }
-      p.resources.energy.current -= ECONOMY.COST_TRIVIA;
-
       const questions = _pickQuestions(count, difficulty);
       p.trivia.session = {
         questions,
@@ -246,16 +236,6 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         }
       }
       calcRegen(p);
-
-      // Energy check
-      if (p.resources.energy.current < ECONOMY.COST_TRIVIA) {
-        return res.status(400).json({
-          error: "NOT_ENOUGH_ENERGY",
-          required: ECONOMY.COST_TRIVIA,
-          current: p.resources.energy.current,
-        });
-      }
-      p.resources.energy.current -= ECONOMY.COST_TRIVIA;
 
       const roomId = generateCode();
       const inviteCode = roomId; // Same for simplicity in demo

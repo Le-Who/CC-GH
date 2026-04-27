@@ -788,8 +788,6 @@ export async function applyAction(p, action, payload = {}) {
     }
     case "blox.start": {
       calcRegen(p);
-      if (p.resources.energy.current < ECONOMY.COST_BLOX) return fail(400, "NOT_ENOUGH_ENERGY", { required: ECONOMY.COST_BLOX, current: p.resources.energy.current });
-      p.resources.energy.current -= ECONOMY.COST_BLOX;
       p.blox.totalGames = (p.blox.totalGames || 0) + 1;
       p.blox.activeGame = true;
       const savedState = { board: createEmptyBoard(), tray: makeBloxTray(), score: 0, linesCleared: 0, highScore: p.blox.highScore || 0, gameActive: true };
@@ -847,8 +845,6 @@ export async function applyAction(p, action, payload = {}) {
       const mode = payload.mode || "classic";
       calcRegen(p);
       if (!payload.isResume) {
-        if (p.resources.energy.current < ECONOMY.COST_MATCH3) return fail(400, "NOT_ENOUGH_ENERGY", { required: ECONOMY.COST_MATCH3, current: p.resources.energy.current });
-        p.resources.energy.current -= ECONOMY.COST_MATCH3;
         p.match3.totalGames = (p.match3.totalGames || 0) + 1;
       }
       p.match3.currentGame = { score: 0, movesLeft: mode === "timed" ? 999 : 30, combo: 0, mode };
@@ -877,8 +873,6 @@ export async function applyAction(p, action, payload = {}) {
     case "bubbo.start": {
       calcRegen(p);
       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
-      if (p.resources.energy.current < ECONOMY.COST_BUBBO) return fail(400, "NOT_ENOUGH_ENERGY", { required: ECONOMY.COST_BUBBO, current: p.resources.energy.current });
-      p.resources.energy.current -= ECONOMY.COST_BUBBO;
       p.bubbo.totalGames = (p.bubbo.totalGames || 0) + 1;
       p.bubbo.currentGame = {
         score: 0,

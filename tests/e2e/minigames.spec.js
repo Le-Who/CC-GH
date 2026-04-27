@@ -11,10 +11,11 @@ test.describe("New-stack minigame smoke", () => {
     const pauseButton = page.getByRole("button", { name: /Pause/ });
     await expect(pauseButton).toBeVisible();
     await pauseButton.click({ force: true });
+    const overlay = page.locator(".game-menu-overlay:visible").first();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
-    await expect(page.locator(".game-menu-overlay")).toBeVisible();
-    const overlayBox = await page.locator(".game-menu-overlay").boundingBox();
+    await expect(overlay).toBeVisible();
+    const overlayBox = await overlay.boundingBox();
     const viewport = page.viewportSize();
     expect(overlayBox).not.toBeNull();
     expect(viewport).not.toBeNull();
@@ -23,7 +24,7 @@ test.describe("New-stack minigame smoke", () => {
   }
 
   async function exitToHub(page) {
-    await page.locator(".game-menu-overlay").getByRole("button", { name: /^Exit$/ }).click();
+    await page.locator(".game-menu-overlay:visible").first().getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
     await page.waitForTimeout(260);

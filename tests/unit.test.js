@@ -191,6 +191,29 @@ describe("Garden Shelf shared gold actions", () => {
   });
 });
 
+describe("temporary energy-free game starts", () => {
+  it("starts Blox, Match-3, and Bubbo without requiring or spending energy", async () => {
+    const p = createDefaultPlayer("energy-free-games", "Energy");
+    p.resources.energy.current = 0;
+    p.resources.energy.lastRegenTimestamp = Date.now();
+
+    const blox = await applyAction(p, "blox.start");
+    assert.equal(blox.status, 200);
+    assert.equal(p.resources.energy.current, 0);
+    assert.equal(p.blox.activeGame, true);
+
+    const match3 = await applyAction(p, "match3.start", { mode: "classic" });
+    assert.equal(match3.status, 200);
+    assert.equal(p.resources.energy.current, 0);
+    assert.equal(p.match3.currentGame.mode, "classic");
+
+    const bubbo = await applyAction(p, "bubbo.start", { shotsLeft: 36, board: [] });
+    assert.equal(bubbo.status, 200);
+    assert.equal(p.resources.energy.current, 0);
+    assert.equal(p.bubbo.currentGame.shotsLeft, 36);
+  });
+});
+
 describe("new-stack player snapshot and inventory contracts", () => {
   it("normalizes harvested, merge, room, and reward inventory aliases", () => {
     const snapshot = {

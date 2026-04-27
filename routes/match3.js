@@ -6,7 +6,6 @@
  */
 import { Router } from "express";
 import {
-  ECONOMY,
   calcRegen,
   calcGoldReward,
   calcTokenReward,
@@ -86,16 +85,6 @@ export default function match3Routes(requireAuth, resolveUser) {
       }
 
       calcRegen(p);
-
-      // Energy check
-      if (p.resources.energy.current < ECONOMY.COST_MATCH3) {
-        return res.status(400).json({
-          error: "NOT_ENOUGH_ENERGY",
-          required: ECONOMY.COST_MATCH3,
-          current: p.resources.energy.current,
-        });
-      }
-      p.resources.energy.current -= ECONOMY.COST_MATCH3;
 
       const game = { score: 0, movesLeft: 30, combo: 0, mode };
       p.match3.currentGame = game;

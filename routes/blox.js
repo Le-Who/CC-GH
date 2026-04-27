@@ -1,12 +1,11 @@
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Building Blox Routes
- *  Start game (energy gate), end game (gold reward)
+ *  Start game, end game (gold reward)
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
 import {
-  ECONOMY,
   calcRegen,
   calcBloxReward,
   calcTokenReward,
@@ -21,15 +20,6 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
       calcRegen(p);
-
-      if (p.resources.energy.current < ECONOMY.COST_BLOX) {
-        return res.status(400).json({
-          error: "NOT_ENOUGH_ENERGY",
-          required: ECONOMY.COST_BLOX,
-          current: p.resources.energy.current,
-        });
-      }
-      p.resources.energy.current -= ECONOMY.COST_BLOX;
       p.blox.totalGames++;
       p.blox.activeGame = true;
       res.json({

@@ -20,9 +20,9 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 
 ## Games
 
-- Garden Shelf: ported React/Tailwind idle terrarium with responsive shelf/sign/bottom-plank art, transparent sprite-sheet plants, visible locked plant previews, slower growth/economy pacing, tap acceleration, watering-ready indicators, mature plant gold collection, stash/inventory placement, watering, evolution, offline earnings, server-backed garden-state sync with local offline fallback, English/Russian Garden UI settings, and shared Hub gold for all spend/earn flows.
+- Garden Shelf: ported React/Tailwind idle terrarium with responsive shelf/sign/bottom-plank art, transparent sprite-sheet plants, visible locked plant previews, slower growth/economy pacing, tap acceleration, watering-ready indicators, mature plant gold collection, stash/inventory placement, watering, evolution, offline earnings that stay visible until explicit collection, server-backed garden-state sync with local offline fallback, English/Russian Garden UI settings, and shared Hub gold for all spend/earn flows.
 - Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored carried pieces, separate snapped placement footprint previews, authoritative placement, row/column clear metadata, cell-flash plus line-wipe feedback, tray refill settle cues, saved state, rewards, and leaderboard reads.
-- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, special-clear backfill, repeated Star Drop bottom-token auto-crediting, staged cascade board snapshots with textured fall/fill pieces, short input locks, saved mode sync, and reward settlement.
+- Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, special-clear backfill, repeated Star Drop bottom-token auto-crediting, staged cascade board snapshots with textured fall/fill pieces, delayed tween cleanup that prevents stuck overlay pieces after cascades, short input locks, saved mode sync, and reward settlement.
 - Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, compact touch-first generator menus, lower thumb-reachable rectangular board placement, live trash/pause HUD controls, larger manifest-replaceable item tokens, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
 - Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, distinct five-color play, seeded procedural waves, larger mobile playfield, pre-spawned pressure waves above the visible field, smoothed continuous descent, stabilized pressure-row insertion, wall-bank aiming, constant path-distance projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, in-memory duel rooms, and the shared in-game pause/result overlay shell.
@@ -63,9 +63,10 @@ Frontend flow:
 7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
 8. Gameplay enters a shared immersive mobile shell across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation. Garden Shelf keeps its own idle-game shelf UI inside the hub tab.
 9. Blox, Gem Crush, Gacha Merge, and Bubbo tune their Pixi board geometry for mobile thumb reach: playfields stay as large as the viewport allows, reserve room for compact HUD/tray controls, and sit lower in fullscreen play instead of pinning to the top edge. Bubbo renders the next pressure row just above the field and carries a row-offset phase through pressure shifts so row insertion descends existing bubbles without visual reordering.
-10. Shared in-game menus use explicit action labels for pause, setup, end-run, trash, and exit controls; redundant generic `Menu` and duplicate `Sound` buttons are intentionally avoided.
-11. `src/services/updateManager.js` manually registers the PWA service worker, polls uncached `/api/config`, compares the server `buildId` with the injected client build id, and clears service workers/caches once before reloading with a cache-busting query when a stale build is detected.
-12. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
+10. Shared UI theme tokens in `src/index.css` drive Hub chrome, glass menus, Garden Shelf sheets/modals, and in-game HUD surfaces. The default light theme remains active, while the optional dark theme reuses the older matte Garden Shelf material language with lower mobile blur and a persisted topbar toggle.
+11. Shared in-game menus use explicit action labels for pause, setup, end-run, trash, and exit controls; redundant generic `Menu` and duplicate `Sound` buttons are intentionally avoided.
+12. `src/services/updateManager.js` manually registers the PWA service worker, polls uncached `/api/config`, compares the server `buildId` with the injected client build id, and clears service workers/caches once before reloading with a cache-busting query when a stale build is detected.
+13. Socket.IO listens for `player_sync` events and ignores stale sequence numbers.
 
 ## Data And Control Flow
 
@@ -204,10 +205,11 @@ pnpm run test:cleanup
 docker build -t game-hub-ci .
 ```
 
-`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage, pointer-session cleanup coverage, Blox drag geometry coverage, and Match-3 resolution checks for bonus-block backfill, cascade snapshots, and Star Drop bottom-token auto-crediting. Playwright e2e specs are separate; the current focused gameplay checks are:
+`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage, pointer-session cleanup coverage, Blox drag geometry coverage, shared theme/shell guards, and Match-3 resolution plus animation-delay checks for bonus-block backfill, cascade snapshots, stuck overlay prevention, and Star Drop bottom-token auto-crediting. Playwright e2e specs are separate; the current focused gameplay checks are:
 
 ```bash
 pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
+pnpm exec playwright test tests/e2e/garden-shelf.spec.js tests/e2e/glass-ui.spec.js --project=mobile-chrome --workers=1
 ```
 
 ## Asset Replacement

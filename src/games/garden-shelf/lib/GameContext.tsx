@@ -63,6 +63,7 @@ const defaultState: GameState = {
 };
 
 const GameContext = createContext<GameContextType | null>(null);
+const OFFLINE_EARNINGS_MIN_AWAY_MS = 30 * 60 * 1000;
 
 function normalizeHubGold(value: number | undefined) {
   return Math.max(0, Math.floor(Number(value) || 0));
@@ -166,11 +167,13 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     normalizePersistedGardenState(persistedState, normalizeHubGold(hubGold)),
   ));
   const externalStateKeyRef = React.useRef(initialServerStateKey);
+  const currentStateKeyRef = React.useRef(initialServerStateKey);
   const syncedEarnedRef = React.useRef(state.totalGoldEarned);
   const syncRef = React.useRef<{
     timer: number | null;
     lastAt: number;
     lastSent: string;
+    inFlightKey: string;
     pending: Omit<GameState, 'gold'> | null;
     pendingKey: string;
     inFlight: boolean;
@@ -178,6 +181,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     timer: null,
     lastAt: 0,
     lastSent: initialServerStateKey,
+    inFlightKey: '',
     pending: null,
     pendingKey: '',
     inFlight: false,
@@ -193,11 +197,22 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     if (!persistedState) return;
     const next = normalizePersistedGardenState(persistedState, state.gold);
     const nextKey = JSON.stringify(withoutSharedGold(next));
-    if (nextKey === syncRef.current.lastSent) {
+    const sync = syncRef.current;
+    const isAckEcho = nextKey === sync.lastSent || nextKey === sync.inFlightKey || nextKey === sync.pendingKey;
+    if (isAckEcho) {
       externalStateKeyRef.current = nextKey;
       return;
     }
     if (nextKey === externalStateKeyRef.current) return;
+    const hasLocalUnsyncedState =
+      currentStateKeyRef.current !== sync.lastSent ||
+      !!sync.pending ||
+      !!sync.inFlight ||
+      !!sync.inFlightKey;
+    if (hasLocalUnsyncedState) {
+      externalStateKeyRef.current = nextKey;
+      return;
+    }
     externalStateKeyRef.current = nextKey;
     syncedEarnedRef.current = next.totalGoldEarned;
     setState((prev) => ({
@@ -210,6 +225,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   useEffect(() => {
     const nextPersisted = withoutSharedGold(state);
     const nextKey = JSON.stringify(nextPersisted);
+    currentStateKeyRef.current = nextKey;
     try {
       localStorage.setItem('terrarium_save', nextKey);
     } catch {
@@ -231,12 +247,17 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       syncRef.current.pending = null;
       syncRef.current.pendingKey = '';
       syncRef.current.inFlight = true;
+      syncRef.current.inFlightKey = outgoingKey;
       syncRef.current.lastAt = Date.now();
       const result = await onStateSync(outgoing);
       syncRef.current.inFlight = false;
+      syncRef.current.inFlightKey = '';
       if (!result?.error) {
         syncRef.current.lastSent = outgoingKey;
         externalStateKeyRef.current = outgoingKey;
+      } else if (!syncRef.current.pending) {
+        syncRef.current.pending = outgoing;
+        syncRef.current.pendingKey = outgoingKey;
       }
       if (syncRef.current.pending) {
         syncRef.current.timer = window.setTimeout(flush, 2500);
@@ -353,7 +374,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       const generated = Math.floor(totalProd * dtSeconds);
 
       let newOfflineEarnings = s.offlineEarnings;
-      if (dtSeconds > 60 && generated > 0 && s.lastTick !== defaultState.lastTick) {
+      if (dtMs >= OFFLINE_EARNINGS_MIN_AWAY_MS && generated > 0 && s.lastTick !== defaultState.lastTick) {
          newOfflineEarnings = (s.offlineEarnings || 0) + generated;
       }
 

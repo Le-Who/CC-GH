@@ -4,6 +4,11 @@
 
 ### Client
 
+- Added a persisted light/dark UI theme toggle. The light theme remains the default, while the dark theme reuses the older matte Garden Shelf surface treatment across Hub chrome, Garden Shelf modals/sheets, shared glass menus, and in-game HUD overlays.
+- Centralized the shared glass UI tokens for Hub stats, game menu overlays, HUDs, Garden Shelf panels, and bottom navigation, with reduced mobile blur and reduced-transparency fallbacks to keep the Telegram webview readable and cheaper to composite.
+- Fixed Garden Shelf offline rewards disappearing after a brief flash by preserving locally generated `offlineEarnings` through authoritative `garden.sync` payload refreshes until the player explicitly collects the reward.
+- Fixed Gem Crush post-move visual desync by starting delayed Pixi effect tweens when their delay reaches zero and by avoiding fallback emoji/icon drawing on top of textured Puzzling Potions pieces.
+- Moved Bubbo onto the shared `GameShell` overlay/HUD path instead of its one-off shell wrapper so start, live, and pause states use the same glass menu implementation as Blox, Gem Crush, and Merge.
 - Refreshed Garden Shelf with the new transparent plant sheet, shelf/sign/bottom-plank/cog art, an in-game settings panel for sound and English/Russian language switching, visible locked plant previews, watering-ready droplet indicators, and slower growth/economy pacing for a longer idle progression curve.
 - Moved Garden Shelf level, plant, shelf, growth, and offline-earnings state into the shared player snapshot with a throttled `garden.sync` mutation and realtime propagation, leaving local storage as a fallback instead of the cross-device source of truth.
 - Replaced the visible Farm game tab with a Garden Shelf port, including the original shelf/terrarium React UI, sprite-sheet plant rendering, plant shop, stash/inventory flow, watering, upgrades, offline earnings, and Garden Shelf assets under `public/games/garden-shelf/`.
@@ -41,6 +46,10 @@
 
 ### Tests
 
+- Added mobile Playwright glass UI smoke coverage for the light and dark Hub surfaces plus Garden settings, Garden seed shop, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room start/live/pause menus.
+- Added Garden Shelf Playwright coverage proving generated offline rewards stay visible until the player clicks `Collect Gold`.
+- Added Match-3 scene coverage for delayed effect tween startup and a mobile consecutive-swap screenshot after real cascades to guard against stuck top-row overlay pieces.
+- Added shell/theme regression guards proving the matte Garden Shelf palette exists as a global dark theme and that players can switch it from the shared topbar.
 - Extended Garden Shelf Playwright coverage for the new responsive asset art, locked plant previews, watering indicator, and Russian language switch on desktop and mobile Chromium.
 - Added update-manager core tests for build-id comparison, reload guarding, corrupt guard recovery, and cache-busting URL generation.
 - Added unit/e2e coverage for Garden Shelf shared-gold spending and the removal of the duplicate in-game gold header.

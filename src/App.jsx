@@ -910,6 +910,7 @@ function BloxGame() {
   };
   const [leaders, setLeaders] = useState([]);
   const isPlaying = state.gameActive && !paused;
+  const currentReward = state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0;
   useImmersiveGame("blox", true);
 
   useEffect(() => {
@@ -951,6 +952,8 @@ function BloxGame() {
       blox: { ...state, gameActive: isPlaying },
       bloxStatusText: t("blox.status", { score: state.score || 0, lines: state.linesCleared || 0 }),
       bloxClearText: t("blox.clear"),
+      bloxHudReserve: 132,
+      bloxHideStatusText: true,
       selectedBloxPiece: selectedPiece,
       onBloxCell: onCell,
       onBloxDrop: onDrop,
@@ -967,11 +970,11 @@ function BloxGame() {
       hud={(
         <GamePlayHud
           title={t("blox.title")}
-          subtitle={t("blox.rewardLine", { best: state.highScore, reward: state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0 })}
+          subtitle={t("blox.rewardLine", { best: state.highScore, reward: currentReward })}
           stats={[
             { label: t("common.score"), value: state.score || 0 },
             { label: t("common.lines"), value: state.linesCleared || 0 },
-            { label: t("common.cost"), value: ECONOMY.COST_BLOX },
+            { label: t("common.reward"), value: currentReward },
           ]}
           onPause={() => setPaused(true)}
           onFinish={() => {
@@ -986,7 +989,7 @@ function BloxGame() {
           <div className="panel-header">
             <div>
               <strong>{t("blox.title")}</strong>
-              <span>{t("blox.bestReward", { best: state.highScore, reward: state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0 })}</span>
+              <span>{t("blox.bestReward", { best: state.highScore, reward: currentReward })}</span>
             </div>
             <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
               {state.gameActive ? t("common.restart") : t("common.start")}
@@ -1001,7 +1004,7 @@ function BloxGame() {
           <div className="metric-grid">
             <Stat icon={Trophy} label={t("common.score")} value={state.score || 0} />
             <Stat icon={Blocks} label={t("common.lines")} value={state.linesCleared || 0} />
-            <Stat icon={Zap} label={t("common.cost")} value={ECONOMY.COST_BLOX} />
+            <Stat icon={Sparkles} label={t("common.reward")} value={currentReward} />
           </div>
           <div className="button-row">
             <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.endRun")}</PanelButton>
@@ -1478,7 +1481,7 @@ function BubboGame() {
           <div className="metric-grid">
             <Stat icon={Trophy} label={t("common.score")} value={score} />
             <Stat icon={Sparkles} label={t("common.shots")} value={shotsLeft} />
-            <Stat icon={Zap} label={t("common.cost")} value={ECONOMY.COST_BUBBO} />
+            <Stat icon={Gem} label={t("bubbo.bubbles")} value={remainingBubbles} />
           </div>
           <div className="button-row">
             <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>

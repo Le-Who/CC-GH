@@ -41,6 +41,12 @@
   --menu-glass: var(--glass-surface);
   --menu-glass-soft: var(--glass-highlight);
   --menu-glass-line: var(--glass-border);
+  --garden-sheet-surface: rgba(255, 241, 244, 0.92);
+  --garden-sheet-highlight: rgba(255, 255, 255, 0.54);
+  --garden-sheet-highlight-soft: rgba(255, 255, 255, 0.18);
+  --garden-action-secondary-ink: #6c4b14;
+  --garden-action-danger-ink: #6f2930;
+  --garden-action-info-ink: #22516b;
   --shell-field-shine: rgba(255, 246, 248, 0.38);
   --shell-grid-line: rgba(255, 255, 255, 0.16);
   --sky-ink: #245d77;
@@ -90,6 +96,12 @@
   --menu-glass: var(--glass-surface);
   --menu-glass-soft: var(--glass-highlight);
   --menu-glass-line: var(--glass-border);
+  --garden-sheet-surface: rgba(35, 23, 25, 0.97);
+  --garden-sheet-highlight: rgba(255, 238, 187, 0.08);
+  --garden-sheet-highlight-soft: rgba(255, 255, 255, 0.03);
+  --garden-action-secondary-ink: #f3d9a6;
+  --garden-action-danger-ink: #ffc1c8;
+  --garden-action-info-ink: #bfe9fb;
   --shell-field-shine: rgba(255, 238, 187, 0.055);
   --shell-grid-line: rgba(255, 238, 187, 0.08);
   --sky-ink: #c9edf8;
@@ -726,6 +738,22 @@ h1 {
   --shell-accent: var(--mint);
 }
 
+.bubbo-shell {
+  --shell-art:
+    linear-gradient(135deg, rgba(143, 207, 157, 0.18), transparent 42%),
+    linear-gradient(315deg, rgba(139, 191, 217, 0.14), transparent 46%);
+  --shell-accent: #76b98d;
+  --shell-soft: rgba(239, 247, 229, 0.72);
+}
+
+:root[data-ui-theme="dark"] .bubbo-shell {
+  --shell-art:
+    linear-gradient(135deg, rgba(115, 210, 160, 0.08), transparent 44%),
+    linear-gradient(315deg, rgba(136, 199, 223, 0.07), transparent 48%);
+  --shell-accent: #8ed7b0;
+  --shell-soft: rgba(30, 42, 45, 0.94);
+}
+
 .game-play-title,
 .game-play-stats,
 .game-play-actions {
@@ -1318,7 +1346,7 @@ button.item-card {
   border-radius: 8px;
   background:
     linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
-    rgba(255, 241, 244, 0.92);
+    var(--glass-surface-strong);
   -webkit-backdrop-filter: var(--glass-filter);
   backdrop-filter: var(--glass-filter);
   box-shadow: var(--glass-shadow);
@@ -1347,8 +1375,13 @@ button.item-card {
   max-width: min(560px, 100vw);
   margin-inline: auto;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.18)),
-    rgba(255, 241, 244, 0.92) !important;
+    linear-gradient(180deg, var(--garden-sheet-highlight), var(--garden-sheet-highlight-soft)),
+    var(--garden-sheet-surface) !important;
+  -webkit-backdrop-filter: var(--glass-filter-soft);
+  backdrop-filter: var(--glass-filter-soft);
+  contain: layout paint;
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }
 
 .garden-glass-menu,
@@ -1432,19 +1465,19 @@ button.item-card {
 .garden-action-button.secondary {
   border-color: color-mix(in srgb, var(--amber) 58%, transparent);
   background: color-mix(in srgb, var(--amber) 18%, var(--glass-card-strong));
-  color: #6c4b14;
+  color: var(--garden-action-secondary-ink);
 }
 
 .garden-action-button.danger {
   border-color: color-mix(in srgb, var(--coral) 58%, transparent);
   background: color-mix(in srgb, var(--coral) 18%, var(--glass-card-strong));
-  color: #6f2930;
+  color: var(--garden-action-danger-ink);
 }
 
 .garden-action-button.info {
   border-color: color-mix(in srgb, var(--sky) 58%, transparent);
   background: color-mix(in srgb, var(--sky) 18%, var(--glass-card-strong));
-  color: #22516b;
+  color: var(--garden-action-info-ink);
 }
 
 .garden-action-button:disabled,
