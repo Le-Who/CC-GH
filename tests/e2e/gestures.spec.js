@@ -27,6 +27,7 @@ async function hostBox(page) {
 }
 
 function findValidMatch3Move(board) {
+  if (!Array.isArray(board)) return null;
   for (let y = 0; y < board.length; y += 1) {
     for (let x = 0; x < board[y].length; x += 1) {
       for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
@@ -181,6 +182,54 @@ test.describe("Pixi touch and drag interactions", () => {
     const swapSync = waitForMatch3Sync(page, 8000);
     await touchDrag(page, start, end);
     await expect(swapSync).resolves.toMatchObject({ action: "match3.syncMode" });
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Match-3 accepts consecutive valid swaps after cascade animation", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.use?.hasTouch, "Consecutive board-derived swaps are verified through touch dispatch");
+    const pageErrors = await boot(page, "match3_consecutive_swaps");
+
+    await page.getByRole("button", { name: /Gems/ }).click();
+    const initialSync = waitForMatch3Sync(page, 8000);
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    const startBody = await initialSync;
+    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+
+    const box = await hostBox(page);
+    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 44));
+    const left = box.x + (box.width - size) / 2;
+    const top = box.y + 14 + Math.max(0, box.height - 44 - size - 28) * 0.66;
+    const cell = size / 8;
+    const dragMove = async (move) => {
+      const start = {
+        x: left + cell * (move.from.x + 0.5),
+        y: top + cell * (move.from.y + 0.5),
+      };
+      const direction = {
+        x: Math.sign(move.to.x - move.from.x),
+        y: Math.sign(move.to.y - move.from.y),
+      };
+      await touchDrag(page, start, {
+        x: start.x + direction.x * cell * 2.35,
+        y: start.y + direction.y * cell * 2.35,
+      });
+    };
+
+    const firstMove = findValidMatch3Move(startBody?.payload?.savedModes?.classic?.board);
+    expect(firstMove).toBeTruthy();
+    const firstSync = waitForMatch3Sync(page, 8000);
+    await dragMove(firstMove);
+    const firstBody = await firstSync;
+    await page.waitForTimeout(1700);
+
+    const nextBoard = firstBody?.payload?.savedModes?.classic?.board;
+    const secondMove = findValidMatch3Move(nextBoard);
+    expect(secondMove).toBeTruthy();
+    const secondSync = waitForMatch3Sync(page, 8000);
+    await dragMove(secondMove);
+    await expect(secondSync).resolves.toMatchObject({ action: "match3.syncMode" });
+
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

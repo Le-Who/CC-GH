@@ -1240,6 +1240,8 @@ function BubboGame() {
   const [lastShot, setLastShot] = useState(null);
   const pressureClockRef = useRef(Date.now());
   const runRef = useRef({ board, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft });
+  const bubbleRef = useRef({ current: currentBubble, next: nextBubble });
+  const shotAdvanceRef = useRef(null);
   const highScore = snapshot?.bubbo?.highScore || 0;
   const remainingBubbles = getBubboRemainingCount(board);
   const isPlaying = gameActive && !paused;
@@ -1248,6 +1250,10 @@ function BubboGame() {
   useEffect(() => {
     runRef.current = { board, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft };
   }, [board, pressure, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex]);
+
+  useEffect(() => {
+    bubbleRef.current = { current: currentBubble, next: nextBubble };
+  }, [currentBubble, nextBubble]);
 
   const start = useCallback(async () => {
     const run = createBubboRun();
@@ -1271,8 +1277,12 @@ function BubboGame() {
     setGameActive(true);
     setPaused(false);
     pressureClockRef.current = Date.now();
-    setCurrentBubble(randomBubboColor(run.board));
-    setNextBubble(randomBubboColor(run.board));
+    const firstBubble = randomBubboColor(run.board);
+    const queuedBubble = randomBubboColor(run.board);
+    bubbleRef.current = { current: firstBubble, next: queuedBubble };
+    shotAdvanceRef.current = null;
+    setCurrentBubble(firstBubble);
+    setNextBubble(queuedBubble);
     setLastShot(null);
   }, [performAction]);
 
@@ -1327,28 +1337,49 @@ function BubboGame() {
     return () => window.clearInterval(id);
   }, [finish, isPlaying, performAction]);
 
+  const onShotStart = useCallback((shotColor) => {
+    if (!gameActive) return;
+    const queuedCurrent = bubbleRef.current.next || randomBubboColor(runRef.current.board);
+    const queuedNext = randomBubboColor(runRef.current.board);
+    shotAdvanceRef.current = { color: shotColor || bubbleRef.current.current };
+    bubbleRef.current = { current: queuedCurrent, next: queuedNext };
+    setCurrentBubble(queuedCurrent);
+    setNextBubble(queuedNext);
+  }, [gameActive]);
+
   const onFire = useCallback(
-    (row, col, path = []) => {
+    (row, col, path = [], shotColor = currentBubble) => {
       if (!gameActive) return;
-      const result = applyBubboShot(board, currentBubble, row, col, { rowOffset });
-      if (result.error) return;
+      const firedColor = shotColor || currentBubble;
+      const result = applyBubboShot(board, firedColor, row, col, { rowOffset });
+      if (result.error) {
+        shotAdvanceRef.current = null;
+        return;
+      }
       const nextScore = score + result.points;
       const nextShots = Math.max(0, shotsLeft - 1);
       const remaining = getBubboRemainingCount(result.board);
       const shotRecord = {
         id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        color: currentBubble,
+        color: firedColor,
         path,
         landed: result.landed,
         popped: result.popped,
         dropped: result.dropped,
       };
+      const preAdvanced = shotAdvanceRef.current?.color === firedColor;
+      shotAdvanceRef.current = null;
       setBoard(result.board);
       setScore(nextScore);
       setShotsLeft(nextShots);
       setLastShot(shotRecord);
-      setCurrentBubble(nextBubble);
-      setNextBubble(randomBubboColor(result.board));
+      if (!preAdvanced) {
+        const fallbackCurrent = nextBubble;
+        const fallbackNext = randomBubboColor(result.board);
+        bubbleRef.current = { current: fallbackCurrent, next: fallbackNext };
+        setCurrentBubble(fallbackCurrent);
+        setNextBubble(fallbackNext);
+      }
       audioManager.play(result.popped.length || result.dropped.length ? "clear" : "tap");
       performAction(
         "bubbo.sync",
@@ -1381,8 +1412,9 @@ function BubboGame() {
         statusText: `${score} ${t("common.score").toLowerCase()} · ${shotsLeft} ${t("common.shots").toLowerCase()}`,
       },
       onBubboFire: onFire,
+      onBubboShotStart: onShotStart,
     }),
-    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex, t],
+    [board, currentBubble, isPlaying, lastShot, nextBubble, onFire, onShotStart, pressureStep, rowOffset, score, seed, shotsLeft, waveIndex, t],
   );
 
   return (

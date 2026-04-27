@@ -1186,7 +1186,16 @@ export function buildMatch3Scene(app, initial = {}) {
   }
 
   function queueMatch3Animation(animation = {}) {
-    if (!layout || !animation?.id || animation.id === lastAnimationId) return;
+    if (!animation?.id) {
+      if (animationFrames.length || lastAnimationId) {
+        animationFrames = [];
+        animationFrameIndex = 0;
+        animationFrameAge = 0;
+        lastAnimationId = null;
+      }
+      return;
+    }
+    if (!layout || animation.id === lastAnimationId) return;
     lastAnimationId = animation.id;
     if (animation.type !== "cascade") {
       animationFrames = [];
@@ -1415,6 +1424,7 @@ export function buildBubboScene(app, initial = {}) {
   let lastShotId = null;
   let lastPressureShiftId = null;
   let renderSignature = "";
+  let breathClock = 0;
   let pressureDisplayStep = Math.max(0, Math.min(1, Number(initial.bubbo?.pressureStep) || 0));
   let pressureTargetStep = pressureDisplayStep;
   const pointer = createPointerSession({
@@ -1438,6 +1448,11 @@ export function buildBubboScene(app, initial = {}) {
 
   function bubbleColor(value) {
     return BUBBO_NUMBERS[value] || BUBBO_NUMBERS[BUBBO_COLORS[0]];
+  }
+
+  function bubbleBreathSeed(row, col) {
+    const raw = Math.sin((row + 1) * 12.9898 + (col + 1) * 78.233) * 43758.5453;
+    return raw - Math.floor(raw);
   }
 
   function nextRenderSignature(next = data) {
@@ -1598,9 +1613,18 @@ export function buildBubboScene(app, initial = {}) {
     return { ...targetCell, path: points };
   }
 
-  function drawBubble(x, y, radius, colorName, alpha = 1) {
+  function drawBubble(x, y, radius, colorName, alpha = 1, options = {}) {
     const color = bubbleColor(colorName);
     const group = new Container();
+    if (options.glow) {
+      const glow = new Graphics()
+        .circle(0, 0, radius * 1.1)
+        .fill({ color, alpha: 0.08 })
+        .stroke({ color, width: Math.max(2, radius * 0.1), alpha: 0.34 });
+      glow.alpha = 0.18 * alpha;
+      group._bubboGlow = glow;
+      group.addChild(glow);
+    }
     const sheetTexture = bubboBallTexture(colorName, "idle");
     if (sheetTexture) {
       group.addChild(new Graphics().ellipse(0, radius * 0.48, radius * 0.78, radius * 0.22).fill({ color: 0x1f2937, alpha: 0.1 * alpha }));
@@ -1618,6 +1642,22 @@ export function buildBubboScene(app, initial = {}) {
     group.x = x;
     group.y = y;
     return group;
+  }
+
+  function tickBubboBreathing(deltaTime = 1) {
+    const delta = Math.max(0.25, Math.min(2.5, Number(deltaTime) || 1));
+    breathClock += delta;
+    for (const child of boardLayer.children) {
+      const breath = child._bubboBreath;
+      if (!breath) continue;
+      const raw = (Math.sin(breathClock * breath.speed + breath.phase) + 1) / 2;
+      const pulse = raw * raw * (3 - 2 * raw);
+      const scale = breath.baseScale + breath.amount * pulse;
+      child.scale.set(scale);
+      if (child._bubboGlow) {
+        child._bubboGlow.alpha = 0.14 + pulse * 0.28;
+      }
+    }
   }
 
   function drawBubboBurst(x, y, radius, colorName, duration = 26) {
@@ -1723,8 +1763,19 @@ export function buildBubboScene(app, initial = {}) {
         const value = board[r]?.[c];
         const pos = baseBubblePosition(r, c);
         if (value) {
-          const bubble = drawBubble(pos.x, pos.y, layout.radius, value);
-          bubble.scale.set(0.98 + Math.sin((r + c) * 0.9) * 0.015);
+          const seed = bubbleBreathSeed(r, c);
+          const breathEnabled = seed > 0.42;
+          const bubble = drawBubble(pos.x, pos.y, layout.radius, value, 1, { glow: breathEnabled });
+          const baseScale = 0.98 + Math.sin((r + c) * 0.9) * 0.015;
+          bubble.scale.set(baseScale);
+          if (breathEnabled) {
+            bubble._bubboBreath = {
+              baseScale,
+              phase: seed * Math.PI * 2,
+              speed: 0.026 + seed * 0.018,
+              amount: 0.012 + seed * 0.014,
+            };
+          }
           boardLayer.addChild(bubble);
         } else {
           boardLayer.addChild(new Graphics().circle(pos.x, pos.y, Math.max(1.5, layout.radius * 0.08)).fill({ color: 0xffffff, alpha: 0.08 }));
@@ -1753,15 +1804,17 @@ export function buildBubboScene(app, initial = {}) {
     const shot = calculateShot();
     if (!shot) return;
     clear(aimLayer);
+    const firedColor = state.current || BUBBO_COLORS[0];
     projectile = {
       path: shot.path,
       segments: shotPathSegments(shot.path),
       distance: 0,
-      color: state.current || BUBBO_COLORS[0],
+      color: firedColor,
       target: shot,
-      view: drawBubble(shot.path[0].x, shot.path[0].y, layout.radius * 0.9, state.current || BUBBO_COLORS[0]),
+      view: drawBubble(shot.path[0].x, shot.path[0].y, layout.radius * 0.9, firedColor),
     };
     projectileLayer.addChild(projectile.view);
+    data.onBubboShotStart?.(firedColor);
   }
 
   const down = (event) => {
@@ -1797,6 +1850,7 @@ export function buildBubboScene(app, initial = {}) {
 
   const ticker = (tickerState) => {
     tickParticles(effects, tickerState.deltaTime);
+    tickBubboBreathing(tickerState.deltaTime);
     const pressureDelta = pressureTargetStep - pressureDisplayStep;
     if (Math.abs(pressureDelta) > 0.002) {
       const blend = Math.min(0.42, Math.max(0.12, (tickerState.deltaTime || 1) * 0.16));
@@ -1807,7 +1861,7 @@ export function buildBubboScene(app, initial = {}) {
       applyPressureVisual(true);
     }
     if (!projectile) return;
-    const pxPerFrame = Math.max(8, (layout?.cell || 32) * 0.34);
+    const pxPerFrame = Math.max(9, (layout?.cell || 32) * 0.42);
     projectile.distance += pxPerFrame * Math.max(0.5, tickerState.deltaTime || 1);
     const done = projectile.distance >= projectile.segments.total;
     const point = pointAtDistance(projectile.segments, Math.min(projectile.distance, projectile.segments.total));
@@ -1820,7 +1874,7 @@ export function buildBubboScene(app, initial = {}) {
       const current = projectile;
       projectile = null;
       clear(projectileLayer);
-      data.onBubboFire?.(current.target.row, current.target.col, current.path);
+      data.onBubboFire?.(current.target.row, current.target.col, current.path, current.color);
     }
   };
   app.ticker.add(ticker);

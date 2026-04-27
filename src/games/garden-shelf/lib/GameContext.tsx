@@ -69,8 +69,8 @@ function normalizeHubGold(value: number | undefined) {
 }
 
 function withoutSharedGold(state: GameState): Omit<GameState, 'gold'> {
-  const { gold: _gold, ...persistedState } = state;
-  return persistedState;
+  const { gold: _gold, offlineEarnings: _offlineEarnings, ...persistedState } = state;
+  return { ...persistedState, offlineEarnings: null };
 }
 
 function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
@@ -102,7 +102,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
     xp: Math.max(0, Math.floor(Number(source.xp) || 0)),
     shelvesUnlocked: Math.max(1, Math.floor(Number(source.shelvesUnlocked) || 1)),
     lastTick: Math.max(0, Math.floor(Number(source.lastTick) || Date.now())),
-    offlineEarnings: source.offlineEarnings == null ? null : Math.max(0, Math.floor(Number(source.offlineEarnings) || 0)),
+    offlineEarnings: null,
     gold: hubGold,
   };
 }

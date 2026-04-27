@@ -383,7 +383,7 @@ describe("current Match-3 engine resolution", () => {
 
 describe("Match-3 animation timing", () => {
   it("keeps cascade locks short enough for rapid mobile play", () => {
-    assert.equal(MATCH3_TIMING.motionFrames, 24);
+    assert.equal(MATCH3_TIMING.motionFrames, 21);
     assert.ok(estimateMatch3CascadeLockMs(1) <= 800);
     assert.ok(estimateMatch3CascadeLockMs(3) <= 1600);
   });

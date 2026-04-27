@@ -1,5 +1,13 @@
 import { test, expect } from "@playwright/test";
 
+function parsePlayerActionRequest(request) {
+  try {
+    return JSON.parse(request.postData() || "{}");
+  } catch {
+    return null;
+  }
+}
+
 test.describe("Garden Shelf flow", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -75,8 +83,8 @@ test.describe("Garden Shelf flow", () => {
     await expect(panel).toContainText("Seed Shop");
     const syncAfterPlant = first.page.waitForResponse((response) => {
       if (!response.url().includes("/api/player/mutate")) return false;
-      const postData = response.request().postData() || "";
-      return postData.includes('"action":"garden.sync"') && postData.includes('"plants"');
+      const body = parsePlayerActionRequest(response.request());
+      return body?.action === "garden.sync" && body?.payload?.state?.plants?.length > 0;
     }, { timeout: 10000 });
     await panel.locator("button").filter({ hasText: "25" }).click();
     await expect(first.page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
@@ -89,5 +97,41 @@ test.describe("Garden Shelf flow", () => {
     const goldStat = second.page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
     await expect(goldStat).toContainText("75");
     await second.context.close();
+  });
+
+  test("does not replay collected offline earnings from the shared player state", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    const userId = await page.evaluate(() => window.localStorage.getItem("gh_dev_user_id"));
+    await page.evaluate(async (value) => {
+      const response = await fetch("/api/player/mutate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `dev ${value}`,
+        },
+        body: JSON.stringify({
+          action: "garden.sync",
+          payload: {
+            state: {
+              totalGoldEarned: 80,
+              level: 2,
+              xp: 80,
+              shelvesUnlocked: 1,
+              plants: [],
+              lastTick: Date.now(),
+              offlineEarnings: 50,
+            },
+          },
+        }),
+      });
+      if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
+    }, userId);
+
+    await page.reload();
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Welcome Back!")).toHaveCount(0);
+    await expect(page.getByText("Collect Gold")).toHaveCount(0);
+    await expect(page.locator(".stats-row")).toContainText("Garden Lv");
   });
 });

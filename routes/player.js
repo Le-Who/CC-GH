@@ -111,9 +111,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
     shelvesUnlocked: Math.max(1, Math.min(GARDEN_MAX_SHELVES, Math.floor(finiteNumber(source.shelvesUnlocked, fallback.shelvesUnlocked)))),
     plants,
     lastTick: Math.max(0, Math.floor(finiteNumber(source.lastTick, now))),
-    offlineEarnings: source.offlineEarnings == null
-      ? null
-      : Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.offlineEarnings, 0)))),
+    offlineEarnings: null,
   };
 }
 

@@ -147,7 +147,9 @@ describe("Garden Shelf shared gold actions", () => {
     assert.deepEqual(result.body.snapshot.garden.plants, gardenState.plants);
     assert.equal(result.body.snapshot.garden.level, 4);
     assert.equal(result.body.snapshot.garden.shelvesUnlocked, 2);
+    assert.equal(result.body.snapshot.garden.offlineEarnings, null);
     assert.equal(buildSnapshot(p).garden.xp, 1300);
+    assert.equal(buildSnapshot(p).garden.offlineEarnings, null);
   });
 
   it("sanitizes malformed Garden Shelf sync payloads", async () => {
@@ -185,6 +187,7 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(garden.plants[0].spotIndex, 2);
     assert.equal(garden.plants[0].phase, 3);
     assert.equal(garden.plants[0].phaseProgress, 86400000);
+    assert.equal(garden.offlineEarnings, null);
   });
 });
 
