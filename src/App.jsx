@@ -537,9 +537,9 @@ function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, over
           <motion.aside
             key={`${gameId}-${phase}`}
             className={`side-panel game-menu-overlay ${overlayClassName}`}
-            initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.98 }}
-            animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.98 }}
+            initial={reduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
           >
             {overlay}
@@ -1380,6 +1380,7 @@ function BubboGame() {
         seed,
         waveIndex,
         rowOffset,
+        bottomHudReserve: true,
         nextPressureWave: generateBubboWave(seed, waveIndex),
         statusText: `${score} ${t("common.score").toLowerCase()} · ${shotsLeft} ${t("common.shots").toLowerCase()}`,
       },

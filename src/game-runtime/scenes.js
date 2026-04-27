@@ -36,8 +36,6 @@ const POTIONS_IMAGE_BASE = "/games/puzzling-potions/images";
 const BUBBO_BALL_SHEET = assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png");
 const BUBBO_BALL_SHEET_WIDTH = 1672;
 const BUBBO_BALL_SHEET_HEIGHT = 941;
-const BUBBO_BALL_FRAME_COLS = 5;
-const BUBBO_BALL_FRAME_ROWS = 5;
 const BUBBO_BALL_ROWS = {
   coral: 0,
   sky: 1,
@@ -45,8 +43,31 @@ const BUBBO_BALL_ROWS = {
   amber: 3,
   berry: 4,
 };
+const BUBBO_BALL_FRAMES = {
+  idle: [
+    { x: 174, y: 36, w: 161, h: 162 },
+    { x: 174, y: 224, w: 161, h: 162 },
+    { x: 174, y: 406, w: 161, h: 162 },
+    { x: 174, y: 585, w: 160, h: 159 },
+    { x: 174, y: 759, w: 161, h: 159 },
+  ],
+  glow: [
+    { x: 952, y: 14, w: 215, h: 194 },
+    { x: 960, y: 208, w: 205, h: 186 },
+    { x: 950, y: 394, w: 221, h: 182 },
+    { x: 952, y: 576, w: 221, h: 172 },
+    { x: 950, y: 748, w: 226, h: 172 },
+  ],
+  burst: [
+    { x: 1240, y: 24, w: 255, h: 177 },
+    { x: 1242, y: 221, w: 254, h: 170 },
+    { x: 1231, y: 407, w: 270, h: 164 },
+    { x: 1239, y: 583, w: 256, h: 163 },
+    { x: 1235, y: 758, w: 263, h: 163 },
+  ],
+};
+const BUBBO_BALL_DRAW_SCALE = 2.42;
 const bubboBallTextureCache = new Map();
-
 const BUBBO_BUBBLE_ASSETS = {
   mint: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-green.png`),
   amber: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-yellow.png`),
@@ -148,21 +169,31 @@ function sprite(path, x, y, width, height, alpha = 1) {
   return item;
 }
 
-function bubboBallTexture(colorName, frameIndex = 0) {
+function bubboBallFrame(bounds, { padding = 8, square = false } = {}) {
+  const frameWidth = bounds.w + padding * 2;
+  const frameHeight = bounds.h + padding * 2;
+  const size = square ? Math.max(frameWidth, frameHeight) : null;
+  const width = size || frameWidth;
+  const height = size || frameHeight;
+  const centerX = bounds.x + bounds.w / 2;
+  const centerY = bounds.y + bounds.h / 2;
+  const x = Math.max(0, Math.min(BUBBO_BALL_SHEET_WIDTH - width, Math.round(centerX - width / 2)));
+  const y = Math.max(0, Math.min(BUBBO_BALL_SHEET_HEIGHT - height, Math.round(centerY - height / 2)));
+  return new Rectangle(x, y, width, height);
+}
+
+function bubboBallTexture(colorName, variant = "idle") {
   const row = BUBBO_BALL_ROWS[colorName];
-  if (row == null) return null;
-  const frame = Math.max(0, Math.min(BUBBO_BALL_FRAME_COLS - 1, Math.floor(frameIndex)));
-  const cacheKey = `${colorName}:${frame}`;
+  const bounds = BUBBO_BALL_FRAMES[variant]?.[row];
+  if (row == null || !bounds) return null;
+  const cacheKey = `${colorName}:${variant}`;
   if (bubboBallTextureCache.has(cacheKey)) return bubboBallTextureCache.get(cacheKey);
 
+  const frameRect = bubboBallFrame(bounds, {
+    padding: variant === "idle" ? 12 : 5,
+    square: variant === "idle",
+  });
   const base = Texture.from(BUBBO_BALL_SHEET);
-  const cellWidth = BUBBO_BALL_SHEET_WIDTH / BUBBO_BALL_FRAME_COLS;
-  const cellHeight = BUBBO_BALL_SHEET_HEIGHT / BUBBO_BALL_FRAME_ROWS;
-  const x = Math.round(frame * cellWidth);
-  const y = Math.round(row * cellHeight);
-  const right = Math.round((frame + 1) * cellWidth);
-  const bottom = Math.round((row + 1) * cellHeight);
-  const frameRect = new Rectangle(x, y, right - x, bottom - y);
   const texture = new Texture({
     source: base.source,
     frame: frameRect,
@@ -170,18 +201,6 @@ function bubboBallTexture(colorName, frameIndex = 0) {
   });
   bubboBallTextureCache.set(cacheKey, texture);
   return texture;
-}
-
-function makeSpriteFrameSequence(view, textures, duration = 24, options = {}) {
-  view._sequence = {
-    textures: textures.filter(Boolean),
-    age: 0,
-    duration: Math.max(1, duration),
-    scaleFrom: options.scaleFrom ?? 1,
-    scaleTo: options.scaleTo ?? 1,
-    fade: options.fade !== false,
-  };
-  return view;
 }
 
 function gameAsset(path) {
@@ -400,14 +419,15 @@ function makeSparkles(root, x, y, color = AMBER, count = 9) {
   }
 }
 
-function tickParticles(container) {
+function tickParticles(container, deltaTime = 1) {
+  const delta = Math.max(0.25, Math.min(2.5, Number(deltaTime) || 1));
   for (const child of [...container.children]) {
     if (child._delay) {
-      child._delay -= 1;
+      child._delay -= delta;
       continue;
     }
     if (child._sequence) {
-      child._sequence.age += 1;
+      child._sequence.age += delta;
       const raw = Math.min(1, child._sequence.age / child._sequence.duration);
       const textures = child._sequence.textures || [];
       if (textures.length && child.texture) {
@@ -423,7 +443,7 @@ function tickParticles(container) {
       continue;
     }
     if (child._tween) {
-      child._tween.age = (child._tween.age || 0) + 1;
+      child._tween.age = (child._tween.age || 0) + delta;
       const duration = Math.max(1, child._tween.duration || 1);
       const raw = Math.min(1, child._tween.age / duration);
       const eased = child._tween.ease === "smooth" ? raw * raw * (3 - 2 * raw) : 1 - (1 - raw) ** 3;
@@ -442,11 +462,11 @@ function tickParticles(container) {
       }
     }
     if (!child._life) continue;
-    child._life -= 1;
-    child.x += child._vx;
-    child.y += child._vy;
-    if (child._gravity) child._vy += child._gravity;
-    if (child._spin) child.rotation += child._spin;
+    child._life -= delta;
+    child.x += child._vx * delta;
+    child.y += child._vy * delta;
+    if (child._gravity) child._vy += child._gravity * delta;
+    if (child._spin) child.rotation += child._spin * delta;
     child.alpha = Math.min(1, Math.max(0, child._life / 26));
     const baseScale = child._grow ? 1 + (1 - child.alpha) * child._grow : 0.96 + child.alpha * 0.35;
     child.scale.set(baseScale);
@@ -1375,6 +1395,8 @@ export function buildBubboScene(app, initial = {}) {
   const aimLayer = new Container();
   const projectileLayer = new Container();
   const effects = new Container();
+  boardLayer.enableRenderGroup?.();
+  projectileLayer.enableRenderGroup?.();
   app.stage.addChild(root, boardLayer, aimLayer, projectileLayer, effects);
   let data = initial;
   let layout = null;
@@ -1382,6 +1404,7 @@ export function buildBubboScene(app, initial = {}) {
   let projectile = null;
   let lastShotId = null;
   let lastPressureShiftId = null;
+  let renderSignature = "";
   let pressureDisplayStep = Math.max(0, Math.min(1, Number(initial.bubbo?.pressureStep) || 0));
   let pressureTargetStep = pressureDisplayStep;
   const pointer = createPointerSession({
@@ -1407,13 +1430,29 @@ export function buildBubboScene(app, initial = {}) {
     return BUBBO_NUMBERS[value] || BUBBO_NUMBERS[BUBBO_COLORS[0]];
   }
 
+  function nextRenderSignature(next = data) {
+    const state = next?.bubbo || {};
+    return JSON.stringify({
+      board: state.board || [],
+      current: state.current || "",
+      next: state.next || "",
+      gameActive: !!state.gameActive,
+      lastShot: state.lastShot?.id || "",
+      rowOffset: Number(state.rowOffset) || 0,
+      seed: state.seed || "",
+      waveIndex: Number(state.waveIndex) || 0,
+      statusText: state.statusText || "",
+      bottomHudReserve: !!state.bottomHudReserve,
+    });
+  }
+
   function buildLayout() {
     const width = viewWidth(app);
     const height = viewHeight(app);
     const margin = 8;
-    const bottomReserve = data.bubbo?.bottomHudReserve ? Math.max(84, Math.min(118, height * 0.15)) : 0;
+    const bottomReserve = data.bubbo?.bottomHudReserve ? Math.max(112, Math.min(154, height * 0.19)) : 0;
     const playHeight = Math.max(260, height - bottomReserve);
-    const cell = Math.max(26, Math.min((width - margin * 2) / (BUBBO_COLS + 0.2), (playHeight - 64) / (BUBBO_ROWS + 0.95)));
+    const cell = Math.max(28, Math.min((width - margin * 2) / (BUBBO_COLS + 0.08), (playHeight - 48) / (BUBBO_ROWS + 0.72)));
     const boardWidth = cell * (BUBBO_COLS + 0.5);
     const left = (width - boardWidth) / 2;
     const top = Math.max(4, Math.min(14, (playHeight - cell * (BUBBO_ROWS + 0.95) - 24) / 2));
@@ -1423,11 +1462,12 @@ export function buildBubboScene(app, initial = {}) {
     );
     return {
       cell,
-      radius: cell * 0.42,
+      radius: cell * 0.485,
       left,
       top,
       right: left + boardWidth,
       bottom: top + cell * BUBBO_ROWS,
+      finishLineY: top + cell * (BUBBO_ROWS + 0.22),
       pressureOffset: pressureDisplayStep * cell,
       cannonX: width / 2,
       cannonY,
@@ -1551,10 +1591,10 @@ export function buildBubboScene(app, initial = {}) {
   function drawBubble(x, y, radius, colorName, alpha = 1) {
     const color = bubbleColor(colorName);
     const group = new Container();
-    const sheetTexture = bubboBallTexture(colorName, 0);
+    const sheetTexture = bubboBallTexture(colorName, "idle");
     if (sheetTexture) {
-      group.addChild(new Graphics().circle(0, radius * 0.18, radius * 0.74).fill({ color: 0x1f2937, alpha: 0.08 * alpha }));
-      group.addChild(sprite(sheetTexture, 0, 0, radius * 4.04, radius * 2.28, alpha));
+      group.addChild(new Graphics().ellipse(0, radius * 0.48, radius * 0.78, radius * 0.22).fill({ color: 0x1f2937, alpha: 0.1 * alpha }));
+      group.addChild(sprite(sheetTexture, 0, 0, radius * BUBBO_BALL_DRAW_SCALE, radius * BUBBO_BALL_DRAW_SCALE, alpha));
     } else {
       const g = new Graphics()
         .circle(0, 0, radius)
@@ -1563,7 +1603,7 @@ export function buildBubboScene(app, initial = {}) {
       g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
       group.addChild(g);
       const asset = BUBBO_BUBBLE_ASSETS[colorName];
-      if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.2, radius * 2.2, alpha));
+      if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.12, radius * 2.12, alpha));
     }
     group.x = x;
     group.y = y;
@@ -1571,11 +1611,29 @@ export function buildBubboScene(app, initial = {}) {
   }
 
   function drawBubboBurst(x, y, radius, colorName, duration = 26) {
-    const frames = [1, 2, 3, 4].map((frame) => bubboBallTexture(colorName, frame));
-    const first = frames.find(Boolean);
-    if (!first) return null;
-    const view = sprite(first, x, y, radius * 4.42, radius * 2.5, 0.98);
-    return makeSpriteFrameSequence(view, frames, duration, { scaleFrom: 0.88, scaleTo: 1.24, fade: true });
+    const color = bubbleColor(colorName);
+    const view = new Container();
+    view.x = x;
+    view.y = y;
+    const glowTexture = bubboBallTexture(colorName, "glow");
+    if (glowTexture) view.addChild(sprite(glowTexture, 0, 0, radius * 2.2, radius * 2.02, 0.62));
+    const burstTexture = bubboBallTexture(colorName, "burst");
+    if (burstTexture) view.addChild(sprite(burstTexture, 0, radius * 0.03, radius * 3.12, radius * 2.02, 0.9));
+    view.addChild(new Graphics().circle(0, 0, radius * 0.88).fill({ color, alpha: 0.16 }).stroke({ color, width: Math.max(2, radius * 0.11), alpha: 0.68 }));
+    view.addChild(new Graphics().circle(-radius * 0.22, -radius * 0.28, radius * 0.2).fill({ color: 0xffffff, alpha: 0.3 }));
+    view._tween = {
+      age: 0,
+      duration: Math.max(10, duration),
+      fromX: x,
+      toX: x,
+      fromY: y,
+      toY: y,
+      scaleFrom: 0.74,
+      scaleTo: 1.36,
+      fade: true,
+      ease: "smooth",
+    };
+    return view;
   }
 
   function updateAimVisual() {
@@ -1637,7 +1695,7 @@ export function buildBubboScene(app, initial = {}) {
     const frameBottom = Math.max(layout.bottom + layout.cell + 20, layout.cannonY + layout.cell * 1.2);
     root.addChild(rect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, PANEL, 16, 0.92));
     root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, 0.2));
-    root.addChild(new Graphics().moveTo(layout.left, layout.bottom - layout.cell * 0.2).lineTo(layout.right, layout.bottom - layout.cell * 0.2).stroke({ color: CORAL, width: 3, alpha: 0.45 }));
+    root.addChild(new Graphics().moveTo(layout.left, layout.finishLineY).lineTo(layout.right, layout.finishLineY).stroke({ color: CORAL, width: 3, alpha: 0.42 }));
     if (state.gameActive) {
       const nextWave = Array.isArray(state.nextPressureWave) && state.nextPressureWave.length
         ? state.nextPressureWave
@@ -1670,7 +1728,10 @@ export function buildBubboScene(app, initial = {}) {
     root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/cannon-main.png`), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
-    root.addChild(label(state.statusText || `${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(layout.playHeight - 12, layout.cannonY + 46), 14, AMBER));
+    if (!state.bottomHudReserve) {
+      root.addChild(label(state.statusText || `${state.score || 0} pts · ${state.shotsLeft ?? 0} shots`, viewWidth(app) / 2, Math.min(layout.playHeight - 12, layout.cannonY + 46), 14, AMBER));
+    }
+    renderSignature = nextRenderSignature();
     applyPressureVisual();
     updateAimVisual();
     playShotEffects();
@@ -1725,7 +1786,7 @@ export function buildBubboScene(app, initial = {}) {
   }
 
   const ticker = (tickerState) => {
-    tickParticles(effects);
+    tickParticles(effects, tickerState.deltaTime);
     const pressureDelta = pressureTargetStep - pressureDisplayStep;
     if (Math.abs(pressureDelta) > 0.002) {
       const blend = Math.min(0.42, Math.max(0.12, (tickerState.deltaTime || 1) * 0.16));
@@ -1766,7 +1827,13 @@ export function buildBubboScene(app, initial = {}) {
       } else if (pressureTargetStep + 0.24 < pressureDisplayStep && pressureDisplayStep > 0.92) {
         pressureDisplayStep = pressureTargetStep;
       }
-      draw();
+      if (nextRenderSignature(data) !== renderSignature) {
+        draw();
+      } else {
+        applyPressureVisual(true);
+        updateAimVisual();
+        playShotEffects();
+      }
     },
     destroy() {
       cleanup();

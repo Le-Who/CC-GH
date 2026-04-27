@@ -1,10 +1,15 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   bloxAnchorCellFromDrag,
   bloxGhostOrigin,
   createBloxDragState,
 } from "../src/game-runtime/scenes.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const line3 = {
   id: "h3",
@@ -80,5 +85,19 @@ describe("Pixi scene geometry helpers", () => {
     assert.equal(origin.x + drag.grabX * layout.cell, drag.x);
     assert.equal(origin.y + drag.grabY * layout.cell, drag.y);
     assert.deepEqual(bloxAnchorCellFromDrag(layout, drag), { row: 4, col: 3 });
+  });
+
+  it("keeps Bubbo using corrected sheet frames and internal HUD reserve", () => {
+    const scenes = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "scenes.js"), "utf-8");
+    const assetBundles = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "assetBundles.js"), "utf-8");
+    const app = fs.readFileSync(path.join(__dirname, "..", "src", "App.jsx"), "utf-8");
+
+    assert.ok(scenes.includes("BUBBO_BALL_FRAMES"), "Bubbo should crop the new ball sheet from measured transparent bounds");
+    assert.ok(scenes.includes("BUBBO_BALL_DRAW_SCALE"), "Bubbo should size the corrected sheet artwork to fill the hex grid");
+    assert.ok(scenes.includes("assets_bubbo_balls"), "Bubbo runtime should use the new ball artwork");
+    assert.ok(scenes.includes("finishLineY"), "Bubbo danger/finish line should be independently positioned below the last row");
+    assert.ok(scenes.includes("boardLayer.enableRenderGroup"), "Bubbo board pressure motion should use a render group");
+    assert.ok(app.includes("bottomHudReserve: true"), "Bubbo scene should reserve launcher space above the bottom HUD");
+    assert.ok(assetBundles.includes("assets_bubbo_balls"), "Bubbo should preload the corrected sheet artwork");
   });
 });

@@ -14,6 +14,12 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
     await expect(page.locator(".game-menu-overlay")).toBeVisible();
+    const overlayBox = await page.locator(".game-menu-overlay").boundingBox();
+    const viewport = page.viewportSize();
+    expect(overlayBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(overlayBox.x).toBeGreaterThanOrEqual(0);
+    expect(overlayBox.x + overlayBox.width).toBeLessThanOrEqual(viewport.width);
   }
 
   async function exitToHub(page) {
@@ -74,7 +80,7 @@ test.describe("New-stack minigame smoke", () => {
     const bubboHudBox = await bubboHud.boundingBox();
     expect(bubboHostBox).not.toBeNull();
     expect(bubboHudBox).not.toBeNull();
-    expect(bubboHudBox.y).toBeGreaterThan(bubboHostBox.y + bubboHostBox.height * 0.66);
+    expect(bubboHudBox.y).toBeGreaterThan(bubboHostBox.y + bubboHostBox.height * 0.72);
     await pauseActiveGame(page);
     await exitToHub(page);
 
@@ -117,7 +123,7 @@ test.describe("New-stack minigame smoke", () => {
       { tab: /Blox/, start: /^Start$/ },
       { tab: /Gems/, start: /^Start$/ },
       { tab: /Merge/, start: /^Play$/ },
-      { tab: /Bubbo/, start: /^Start$/, id: "bubbo", minHostHeight: 500 },
+      { tab: /Bubbo/, start: /^Start$/, id: "bubbo", minHostHeight: 620 },
     ];
 
     for (const game of pixiGames) {
@@ -137,7 +143,7 @@ test.describe("New-stack minigame smoke", () => {
         expect(shellBox).not.toBeNull();
         expect(hudBox).not.toBeNull();
         expect(shellBox.height).toBeGreaterThanOrEqual(620);
-        expect(hudBox.y).toBeGreaterThanOrEqual(hostBox.y + hostBox.height);
+        expect(hudBox.y).toBeGreaterThan(hostBox.y + hostBox.height * 0.72);
       }
       await pauseActiveGame(page);
       await exitToHub(page);
