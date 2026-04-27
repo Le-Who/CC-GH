@@ -1,6 +1,7 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { GameStore, useGameStore } from "../src/store/gameStore.js";
+import { useGameHub } from "../src/game-state/useGameHub.js";
 
 /* ═══════════════════════════════════════════════════
  *  GameStore Unit Tests
@@ -88,5 +89,35 @@ describe("GameStore.subscribe", () => {
     assert.strictEqual(callCount, 0, "Callback should not be called when slice object reference hasn't changed");
 
     unsubscribe();
+  });
+});
+
+describe("useGameHub.applyRealtimePayload", () => {
+  beforeEach(() => {
+    useGameHub.setState({
+      snapshot: {
+        resources: { gold: 100 },
+        farm: { harvested: {}, plots: [] },
+        garden: { level: 1, plants: [], shelvesUnlocked: 1 },
+        merge: {},
+        pet: {},
+      },
+    });
+  });
+
+  it("merges Garden Shelf state from realtime sync payloads", () => {
+    const garden = {
+      level: 5,
+      xp: 2700,
+      shelvesUnlocked: 2,
+      totalGoldEarned: 120,
+      plants: [{ id: "p1", type: "daisy", level: 2, shelfIndex: 0, spotIndex: 1, phase: 3, phaseProgress: 0 }],
+    };
+
+    useGameHub.getState().applyRealtimePayload({ garden });
+
+    assert.equal(useGameHub.getState().snapshot.garden.level, 5);
+    assert.equal(useGameHub.getState().snapshot.garden.plants[0].id, "p1");
+    assert.equal(useGameHub.getState().snapshot.resources.gold, 100);
   });
 });

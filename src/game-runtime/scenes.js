@@ -11,6 +11,7 @@ import {
   getBubboRowVisualOffset,
 } from "../game-core/bubbo/engine.js";
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js";
+import { MATCH3_TIMING, match3StepStartFrame } from "../game-core/match3/animation.js";
 import { GRID } from "../game-core/blox/pieces.js";
 import { canPlace as canPlaceBloxPiece } from "../game-core/blox/engine.js";
 import { assetUrl } from "./assetBundles.js";
@@ -87,11 +88,6 @@ const POTION_PIECE_ASSETS = {
   special_blast: assetUrl(`${POTIONS_IMAGE_BASE}/special-blast.png`),
   special_colour: assetUrl(`${POTIONS_IMAGE_BASE}/special-colour.png`),
 };
-
-const MATCH3_SWAP_FRAMES = 14;
-const MATCH3_CLEAR_FRAMES = 12;
-const MATCH3_MOTION_FRAMES = 46;
-const MATCH3_SETTLE_FRAMES = 10;
 
 let graphicsManifest = null;
 let graphicsManifestPromise = null;
@@ -419,6 +415,19 @@ function makeSparkles(root, x, y, color = AMBER, count = 9) {
   }
 }
 
+function easeMotion(raw, mode) {
+  const t = Math.max(0, Math.min(1, Number(raw) || 0));
+  if (mode === "smooth") return t * t * (3 - 2 * t);
+  if (mode === "snap") return 1 - (1 - t) ** 4;
+  if (mode === "pop") {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * (t - 1) ** 3 + c1 * (t - 1) ** 2;
+  }
+  if (mode === "drop") return t < 0.72 ? 1 - (1 - t / 0.72) ** 3 : 1 - 0.045 * Math.sin(((t - 0.72) / 0.28) * Math.PI);
+  return 1 - (1 - t) ** 3;
+}
+
 function tickParticles(container, deltaTime = 1) {
   const delta = Math.max(0.25, Math.min(2.5, Number(deltaTime) || 1));
   for (const child of [...container.children]) {
@@ -446,7 +455,7 @@ function tickParticles(container, deltaTime = 1) {
       child._tween.age = (child._tween.age || 0) + delta;
       const duration = Math.max(1, child._tween.duration || 1);
       const raw = Math.min(1, child._tween.age / duration);
-      const eased = child._tween.ease === "smooth" ? raw * raw * (3 - 2 * raw) : 1 - (1 - raw) ** 3;
+      const eased = easeMotion(raw, child._tween.ease);
       child.x = child._tween.fromX + (child._tween.toX - child._tween.fromX) * eased;
       child.y = child._tween.fromY + (child._tween.toY - child._tween.fromY) * eased;
       if (child._tween.scaleFrom != null || child._tween.scaleTo != null) {
@@ -1139,16 +1148,16 @@ export function buildMatch3Scene(app, initial = {}) {
     let previousBoard = swapBoard;
 
     if (hasStart) {
-      frames.push({ board: cloneMatch3Board(animation.startBoard), holdFrames: MATCH3_SWAP_FRAMES });
+      frames.push({ board: cloneMatch3Board(animation.startBoard), holdFrames: MATCH3_TIMING.swapFrames });
     }
-    frames.push({ board: cloneMatch3Board(swapBoard), holdFrames: 5 });
+    frames.push({ board: cloneMatch3Board(swapBoard), holdFrames: MATCH3_TIMING.swapSettleFrames });
 
     for (const step of steps) {
       const matchBoard = cloneMatch3Board(previousBoard);
-      frames.push({ board: matchBoard, holdFrames: MATCH3_CLEAR_FRAMES });
-      frames.push({ board: match3MotionBoard(matchBoard, step), holdFrames: MATCH3_MOTION_FRAMES });
+      frames.push({ board: matchBoard, holdFrames: MATCH3_TIMING.clearFrames });
+      frames.push({ board: match3MotionBoard(matchBoard, step), holdFrames: MATCH3_TIMING.motionFrames });
       const settledBoard = cloneMatch3Board(step.boardSnapshot);
-      frames.push({ board: settledBoard, holdFrames: MATCH3_SETTLE_FRAMES });
+      frames.push({ board: settledBoard, holdFrames: MATCH3_TIMING.settleFrames });
       previousBoard = settledBoard;
     }
 
@@ -1199,10 +1208,11 @@ export function buildMatch3Scene(app, initial = {}) {
         fromY: from.y,
         toX: nudge.x,
         toY: nudge.y,
-        duration: 9,
+        duration: 7,
         fade: true,
         scaleFrom: 1,
-        scaleTo: 0.84,
+        scaleTo: 0.9,
+        ease: "snap",
       };
       ghost.x = from.x;
       ghost.y = from.y;
@@ -1213,8 +1223,8 @@ export function buildMatch3Scene(app, initial = {}) {
     }
 
     if (from && to) {
-      effects.addChild(makeTween(makeGemView(animation.fromGem, radius, 0.9), from, to, 13, { fade: true }));
-      effects.addChild(makeTween(makeGemView(animation.toGem, radius, 0.72), to, from, 13, { fade: true }));
+      effects.addChild(makeTween(makeGemView(animation.fromGem, radius, 0.94), from, to, MATCH3_TIMING.swapFrames, { fade: true, scaleFrom: 0.98, scaleTo: 1.04, ease: "snap" }));
+      effects.addChild(makeTween(makeGemView(animation.toGem, radius, 0.82), to, from, MATCH3_TIMING.swapFrames, { fade: true, scaleFrom: 0.96, scaleTo: 1.02, ease: "snap" }));
       makeRipple(effects, (from.x + to.x) / 2, (from.y + to.y) / 2, SKY, radius * 1.2);
     }
 
@@ -1227,27 +1237,27 @@ export function buildMatch3Scene(app, initial = {}) {
     let previousBoard = Array.isArray(animation.swapBoard) && animation.swapBoard.length
       ? cloneMatch3Board(animation.swapBoard)
       : swappedMatch3Board(animation);
-    let stepDelay = MATCH3_SWAP_FRAMES + 5;
+    let stepDelay = match3StepStartFrame(0);
     steps.forEach((step, stepIndex) => {
       const clearDelay = stepDelay;
-      const motionDelay = clearDelay + MATCH3_CLEAR_FRAMES;
+      const motionDelay = clearDelay + MATCH3_TIMING.clearFrames;
       for (const cell of step.cleared || []) {
         const pos = cellCenter(layout, cell.x, cell.y);
         const pulse = new Graphics().circle(0, 0, radius * (1 + Math.min(0.55, step.combo * 0.08))).stroke({ color: AMBER, width: 3, alpha: 0.86 });
         pulse.x = pos.x;
         pulse.y = pos.y;
-        pulse._delay = clearDelay + ((cell.x + cell.y) % 3);
-        pulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 16, fade: true, scaleFrom: 0.5, scaleTo: 1.35 };
+        pulse._delay = clearDelay + Math.min(1.5, ((cell.x + cell.y) % 3) * 0.5);
+        pulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 11, fade: true, scaleFrom: 0.62, scaleTo: 1.3, ease: "snap" };
         effects.addChild(pulse);
         const burst = makeGemView(cell.type, radius * 0.95, 0.96);
         burst.x = pos.x;
         burst.y = pos.y;
-        burst._delay = clearDelay + 2 + ((cell.x + cell.y) % 2);
-        burst._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - radius * 0.18, duration: 14, fade: true, scaleFrom: 1, scaleTo: 0.45 };
+        burst._delay = clearDelay + 1 + ((cell.x + cell.y) % 2) * 0.5;
+        burst._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - radius * 0.16, duration: 10, fade: true, scaleFrom: 1.05, scaleTo: 0.5, ease: "pop" };
         effects.addChild(burst);
         const beforeSparkles = effects.children.length;
         makeSparkles(effects, pos.x, pos.y, step.combo > 1 ? CORAL : AMBER, Math.min(12, 5 + step.combo));
-        for (const child of effects.children.slice(beforeSparkles)) child._delay = clearDelay + 3;
+        for (const child of effects.children.slice(beforeSparkles)) child._delay = clearDelay + 1.5;
       }
       for (const special of step.specials || []) {
         const pos = cellCenter(layout, special.x, special.y);
@@ -1258,8 +1268,8 @@ export function buildMatch3Scene(app, initial = {}) {
           .stroke({ color, width: 4, alpha: 0.78 });
         specialPulse.x = pos.x;
         specialPulse.y = pos.y;
-        specialPulse._delay = clearDelay + 4;
-        specialPulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 20, fade: true, scaleFrom: 0.4, scaleTo: 1.25 };
+        specialPulse._delay = clearDelay + 2;
+        specialPulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 14, fade: true, scaleFrom: 0.45, scaleTo: 1.25, ease: "snap" };
         effects.addChild(specialPulse);
       }
       for (const fall of step.fallen || []) {
@@ -1268,42 +1278,42 @@ export function buildMatch3Scene(app, initial = {}) {
         const fromPos = cellCenter(layout, fall.x, fall.fromY);
         const toPos = cellCenter(layout, fall.x, fall.toY);
         const fallDistance = Math.max(1, Math.abs(fall.toY - fall.fromY));
-        const fallDelay = motionDelay + Math.min(4, fallDistance);
-        const fallDuration = Math.min(MATCH3_MOTION_FRAMES - 6, 22 + fallDistance * 4);
+        const fallDelay = motionDelay + Math.min(2.5, fallDistance * 0.45);
+        const fallDuration = Math.min(MATCH3_TIMING.motionFrames - 3, 12 + fallDistance * 2.8);
         effects.addChild(makeTween(
           makeGemView(type, radius * 0.92, 0.96),
           fromPos,
           toPos,
           fallDuration,
-          { delay: fallDelay, fade: false, scaleFrom: 0.96, scaleTo: 1, ease: "smooth" },
+          { delay: fallDelay, fade: false, scaleFrom: 0.97, scaleTo: 1.02, ease: "drop" },
         ));
       }
       for (const fill of step.filled || []) {
         const fromPos = { ...cellCenter(layout, fill.x, fill.y), y: layout.top - layout.cell * (1.2 + (fill.y % 2) * 0.2) };
         const toPos = cellCenter(layout, fill.x, fill.y);
-        const fillDelay = motionDelay + 5 + Math.min(5, fill.y);
-        const fillDuration = Math.min(MATCH3_MOTION_FRAMES - 10, 24 + fill.y * 2);
+        const fillDelay = motionDelay + 3 + Math.min(2.5, fill.y * 0.35);
+        const fillDuration = Math.min(MATCH3_TIMING.motionFrames - 4, 12 + fill.y * 0.9);
         effects.addChild(makeTween(
           makeGemView(fill.type, radius * 0.9, 0.96),
           fromPos,
           toPos,
           fillDuration,
-          { delay: fillDelay, fade: false, scaleFrom: 0.78, scaleTo: 1, ease: "smooth" },
+          { delay: fillDelay, fade: false, scaleFrom: 0.82, scaleTo: 1.03, ease: "drop" },
         ));
       }
       for (const drop of step.dropCollected || []) {
         const pos = cellCenter(layout, drop.x, drop.y);
         const collect = makeGemView(drop.type, radius * 1.02, 0.98);
-        collect._delay = motionDelay + 10;
-        collect._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - layout.cell * 0.72, duration: 22, fade: true, scaleFrom: 1, scaleTo: 1.35 };
+        collect._delay = motionDelay + 5;
+        collect._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y - layout.cell * 0.72, duration: 16, fade: true, scaleFrom: 1, scaleTo: 1.35, ease: "pop" };
         effects.addChild(collect);
         const points = label(`+${drop.points || 80}`, pos.x, pos.y - radius * 1.5, Math.max(12, radius * 0.72), AMBER);
-        points._delay = motionDelay + 12;
-        points._tween = { fromX: points.x, fromY: points.y, toX: points.x, toY: points.y - layout.cell * 0.44, duration: 24, fade: true, scaleFrom: 0.8, scaleTo: 1.12 };
+        points._delay = motionDelay + 7;
+        points._tween = { fromX: points.x, fromY: points.y, toX: points.x, toY: points.y - layout.cell * 0.44, duration: 18, fade: true, scaleFrom: 0.8, scaleTo: 1.12, ease: "pop" };
         effects.addChild(points);
       }
       previousBoard = cloneMatch3Board(step.boardSnapshot);
-      stepDelay += MATCH3_CLEAR_FRAMES + MATCH3_MOTION_FRAMES + MATCH3_SETTLE_FRAMES;
+      stepDelay = match3StepStartFrame(stepIndex + 1);
     });
   }
 

@@ -24,7 +24,7 @@ import {
   forceGrowAll,
 } from "../game-logic.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
-import { applyAction } from "../routes/player.js";
+import { applyAction, buildSnapshot } from "../routes/player.js";
 
 /* ─────────────────────────────────────────────────────
  *  createDefaultPlayer
@@ -34,7 +34,7 @@ describe("createDefaultPlayer", () => {
     const p = createDefaultPlayer("u1", "Alice");
     assert.equal(p.id, "u1");
     assert.equal(p.username, "Alice");
-    assert.equal(p.schemaVersion, 9);
+    assert.equal(p.schemaVersion, 10);
     assert.equal(p.resources.gold, ECONOMY.GOLD_START);
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_START);
     assert.equal(p.resources.energy.max, ECONOMY.ENERGY_MAX);
@@ -43,6 +43,7 @@ describe("createDefaultPlayer", () => {
     assert.ok(p.trivia);
     assert.ok(p.match3);
     assert.ok(p.bubbo);
+    assert.ok(p.garden);
     // v6.0: Economy fields
     assert.equal(p.pet.stats.fullness, 0);
     assert.ok(Array.isArray(p.pet.activeOrders));
@@ -56,6 +57,8 @@ describe("createDefaultPlayer", () => {
     assert.equal(p.pet.affectionLevel, 1);
     assert.equal(p.bubbo.highScore, 0);
     assert.equal(p.bubbo.currentGame, null);
+    assert.equal(p.garden.level, 1);
+    assert.deepEqual(p.garden.plants, []);
   });
 
   it("[FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp", () => {
@@ -111,6 +114,77 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(result.status, 400);
     assert.equal(result.body.error, "not enough gold");
     assert.equal(p.resources.gold, 4);
+  });
+
+  it("persists Garden Shelf level and plants in the shared player snapshot", async () => {
+    const p = createDefaultPlayer("garden-sync", "Garden");
+    const startGold = p.resources.gold;
+    const gardenState = {
+      totalGoldEarned: 42,
+      level: 4,
+      xp: 1300,
+      shelvesUnlocked: 2,
+      lastTick: 123456,
+      offlineEarnings: 12,
+      plants: [
+        {
+          id: "plant-1",
+          type: "lavender",
+          level: 3,
+          shelfIndex: 1,
+          spotIndex: 2,
+          phase: 3,
+          phaseProgress: 0,
+          lastWatered: 111,
+        },
+      ],
+    };
+
+    const result = await applyAction(p, "garden.sync", { state: gardenState });
+
+    assert.equal(result.status, 200);
+    assert.equal(p.resources.gold, startGold, "garden.sync must not alter shared gold");
+    assert.deepEqual(result.body.snapshot.garden.plants, gardenState.plants);
+    assert.equal(result.body.snapshot.garden.level, 4);
+    assert.equal(result.body.snapshot.garden.shelvesUnlocked, 2);
+    assert.equal(buildSnapshot(p).garden.xp, 1300);
+  });
+
+  it("sanitizes malformed Garden Shelf sync payloads", async () => {
+    const p = createDefaultPlayer("garden-sanitize", "Garden");
+
+    const result = await applyAction(p, "garden.sync", {
+      state: {
+        totalGoldEarned: -5,
+        level: 999,
+        xp: -10,
+        shelvesUnlocked: 99,
+        plants: [
+          {
+            id: "bad",
+            type: "unknown",
+            level: -1,
+            shelfIndex: 99,
+            spotIndex: 99,
+            phase: 99,
+            phaseProgress: 999999999999,
+          },
+        ],
+      },
+    });
+
+    const garden = result.body.snapshot.garden;
+    assert.equal(result.status, 200);
+    assert.equal(garden.totalGoldEarned, 0);
+    assert.equal(garden.level, 24);
+    assert.equal(garden.xp, 0);
+    assert.equal(garden.shelvesUnlocked, 5);
+    assert.equal(garden.plants[0].type, "daisy");
+    assert.equal(garden.plants[0].level, 1);
+    assert.equal(garden.plants[0].shelfIndex, 4);
+    assert.equal(garden.plants[0].spotIndex, 2);
+    assert.equal(garden.plants[0].phase, 3);
+    assert.equal(garden.plants[0].phaseProgress, 86400000);
   });
 });
 

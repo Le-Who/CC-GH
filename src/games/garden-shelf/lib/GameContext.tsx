@@ -30,7 +30,9 @@ interface GoldDeltaResult {
 interface GameProviderProps {
   children: ReactNode;
   hubGold?: number;
+  persistedState?: Partial<GameState> | null;
   onGoldDelta?: (amount: number, reason?: string) => Promise<GoldDeltaResult | void>;
+  onStateSync?: (state: Omit<GameState, 'gold'>) => Promise<GoldDeltaResult | void>;
   onHudChange?: (hud: GardenHudState | null) => void;
 }
 
@@ -66,6 +68,64 @@ function normalizeHubGold(value: number | undefined) {
   return Math.max(0, Math.floor(Number(value) || 0));
 }
 
+function withoutSharedGold(state: GameState): Omit<GameState, 'gold'> {
+  const { gold: _gold, ...persistedState } = state;
+  return persistedState;
+}
+
+function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
+  const source = raw && typeof raw === 'object' ? { ...raw } : {};
+  if (source.oxygen !== undefined) {
+    source.totalGoldEarned = source.totalOxygenEarned;
+    delete source.oxygen;
+    delete source.totalOxygenEarned;
+  }
+  delete source.gold;
+  const plants = Array.isArray(source.plants)
+    ? source.plants.map((p: any) => ({
+        ...p,
+        type: p.type || 'daisy',
+        level: Math.max(1, Math.floor(Number(p.level) || 1)),
+        shelfIndex: Number.isFinite(Number(p.shelfIndex)) ? Math.floor(Number(p.shelfIndex)) : -1,
+        spotIndex: Number.isFinite(Number(p.spotIndex)) ? Math.floor(Number(p.spotIndex)) : -1,
+        phase: Math.max(0, Math.min(3, Math.floor(Number(p.phase ?? Math.min(3, Math.floor(((p.level || 1) - 1) / 3))) || 0))),
+        phaseProgress: Math.max(0, Math.floor(Number(p.phaseProgress) || 0)),
+      }))
+    : [];
+
+  return {
+    ...defaultState,
+    ...source,
+    plants,
+    totalGoldEarned: Math.max(0, Math.floor(Number(source.totalGoldEarned) || 0)),
+    level: Math.max(1, Math.floor(Number(source.level) || 1)),
+    xp: Math.max(0, Math.floor(Number(source.xp) || 0)),
+    shelvesUnlocked: Math.max(1, Math.floor(Number(source.shelvesUnlocked) || 1)),
+    lastTick: Math.max(0, Math.floor(Number(source.lastTick) || Date.now())),
+    offlineEarnings: source.offlineEarnings == null ? null : Math.max(0, Math.floor(Number(source.offlineEarnings) || 0)),
+    gold: hubGold,
+  };
+}
+
+function readLocalGardenState(hubGold: number): GameState | null {
+  try {
+    const saved = localStorage.getItem('terrarium_save');
+    return saved ? normalizePersistedGardenState(JSON.parse(saved), hubGold) : null;
+  } catch {
+    return null;
+  }
+}
+
+function hasGardenProgress(state: GameState | null) {
+  return !!state && (
+    state.plants.length > 0 ||
+    state.level > 1 ||
+    state.xp > 0 ||
+    state.shelvesUnlocked > 1 ||
+    state.totalGoldEarned > 0
+  );
+}
+
 function applyGardenProgress(prev: GameState, amount: number) {
   const earned = Math.max(0, Math.floor(Number(amount) || 0));
   if (!earned) return prev;
@@ -95,34 +155,34 @@ function getGardenIncomePerSecond(plants: PlantData[]) {
   }, 0);
 }
 
-export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: GameProviderProps) {
+export function GameProvider({ children, hubGold, persistedState, onGoldDelta, onStateSync, onHudChange }: GameProviderProps) {
   const [state, setState] = useState<GameState>(() => {
-    const saved = localStorage.getItem('terrarium_save');
     const gold = normalizeHubGold(hubGold);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Rename legacy fields if needed
-        if (parsed.oxygen !== undefined) {
-          parsed.gold = parsed.oxygen;
-          parsed.totalGoldEarned = parsed.totalOxygenEarned;
-          delete parsed.oxygen;
-          delete parsed.totalOxygenEarned;
-        }
-        delete parsed.gold;
-        // Init missing properties on old plants
-        parsed.plants = (parsed.plants || []).map((p: any) => ({
-          ...p,
-          phase: p.phase ?? Math.min(3, Math.floor(((p.level || 1) - 1) / 3)),
-          phaseProgress: p.phaseProgress ?? 0
-        }));
-        return { ...defaultState, ...parsed, gold };
-      } catch (e) {
-        return { ...defaultState, gold };
-      }
-    }
-    return { ...defaultState, gold };
+    const serverState = normalizePersistedGardenState(persistedState, gold);
+    const localState = readLocalGardenState(gold);
+    return hasGardenProgress(serverState) || !hasGardenProgress(localState) ? serverState : localState!;
   });
+  const initialServerStateKey = JSON.stringify(withoutSharedGold(
+    normalizePersistedGardenState(persistedState, normalizeHubGold(hubGold)),
+  ));
+  const externalStateKeyRef = React.useRef(initialServerStateKey);
+  const syncedEarnedRef = React.useRef(state.totalGoldEarned);
+  const syncRef = React.useRef<{
+    timer: number | null;
+    lastAt: number;
+    lastSent: string;
+    pending: Omit<GameState, 'gold'> | null;
+    pendingKey: string;
+    inFlight: boolean;
+  }>({
+    timer: null,
+    lastAt: 0,
+    lastSent: initialServerStateKey,
+    pending: null,
+    pendingKey: '',
+    inFlight: false,
+  });
+  const persistedStateKey = React.useMemo(() => JSON.stringify(persistedState || null), [persistedState]);
 
   useEffect(() => {
     const gold = normalizeHubGold(hubGold);
@@ -130,9 +190,72 @@ export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: Ga
   }, [hubGold]);
 
   useEffect(() => {
-    const { gold: _gold, ...persistedState } = state;
-    localStorage.setItem('terrarium_save', JSON.stringify(persistedState));
-  }, [state]);
+    if (!persistedState) return;
+    const next = normalizePersistedGardenState(persistedState, state.gold);
+    const nextKey = JSON.stringify(withoutSharedGold(next));
+    if (nextKey === syncRef.current.lastSent) {
+      externalStateKeyRef.current = nextKey;
+      return;
+    }
+    if (nextKey === externalStateKeyRef.current) return;
+    externalStateKeyRef.current = nextKey;
+    syncedEarnedRef.current = next.totalGoldEarned;
+    setState((prev) => ({ ...next, gold: prev.gold }));
+  }, [persistedState, persistedStateKey, state.gold]);
+
+  useEffect(() => {
+    const nextPersisted = withoutSharedGold(state);
+    const nextKey = JSON.stringify(nextPersisted);
+    try {
+      localStorage.setItem('terrarium_save', nextKey);
+    } catch {
+      // Local persistence is a best-effort fallback; server state remains authoritative.
+    }
+    if (!onStateSync || nextKey === syncRef.current.lastSent) return;
+
+    syncRef.current.pending = nextPersisted;
+    syncRef.current.pendingKey = nextKey;
+
+    const flush = async () => {
+      if (syncRef.current.timer) {
+        window.clearTimeout(syncRef.current.timer);
+        syncRef.current.timer = null;
+      }
+      if (!syncRef.current.pending || syncRef.current.inFlight) return;
+      const outgoing = syncRef.current.pending;
+      const outgoingKey = syncRef.current.pendingKey;
+      syncRef.current.pending = null;
+      syncRef.current.pendingKey = '';
+      syncRef.current.inFlight = true;
+      syncRef.current.lastAt = Date.now();
+      const result = await onStateSync(outgoing);
+      syncRef.current.inFlight = false;
+      if (!result?.error) {
+        syncRef.current.lastSent = outgoingKey;
+        externalStateKeyRef.current = outgoingKey;
+      }
+      if (syncRef.current.pending) {
+        syncRef.current.timer = window.setTimeout(flush, 2500);
+      }
+    };
+
+    const delay = Math.max(0, 2500 - (Date.now() - syncRef.current.lastAt));
+    if (delay === 0) {
+      void flush();
+    } else if (!syncRef.current.timer) {
+      syncRef.current.timer = window.setTimeout(flush, delay);
+    }
+  }, [state, onStateSync]);
+
+  useEffect(() => () => {
+    if (syncRef.current.timer) {
+      window.clearTimeout(syncRef.current.timer);
+      syncRef.current.timer = null;
+    }
+    if (syncRef.current.pending && onStateSync) {
+      void onStateSync(syncRef.current.pending);
+    }
+  }, [onStateSync]);
 
   useEffect(() => {
     onHudChange?.({
@@ -162,7 +285,6 @@ export function GameProvider({ children, hubGold, onGoldDelta, onHudChange }: Ga
     setState((prev) => applyGardenProgress(prev, earned));
   };
 
-  const syncedEarnedRef = React.useRef(state.totalGoldEarned);
   useEffect(() => {
     const earnedDelta = Math.floor(state.totalGoldEarned - syncedEarnedRef.current);
     if (earnedDelta > 0) {

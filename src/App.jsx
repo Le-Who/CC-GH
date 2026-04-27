@@ -61,6 +61,7 @@ import {
   attemptMatch3Move,
   seedDropTokens,
 } from "./game-core/match3/engine.js";
+import { estimateMatch3CascadeLockMs } from "./game-core/match3/animation.js";
 import { CROPS, ECONOMY, MERGE_CHAINS, ROOM_DECORATIONS } from "../game-logic.js";
 
 const TABS = [
@@ -439,11 +440,6 @@ function createSwappedMatch3Board(board, from, to) {
     [next[from.y][from.x], next[to.y][to.x]] = [next[to.y][to.x], next[from.y][from.x]];
   }
   return next;
-}
-
-function estimateMatch3CascadeLockMs(stepCount = 1) {
-  const frames = 14 + 5 + Math.max(1, stepCount) * (12 + 46 + 10) + 8;
-  return Math.min(2600, Math.round((frames * 1000) / 60));
 }
 
 function formatCount(value) {

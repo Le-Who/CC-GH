@@ -46,6 +46,7 @@ import { getRoomBonuses } from "./pet-assets.js";
  * @property {Object} trivia
  * @property {Object} match3
  * @property {Object} blox
+ * @property {Object} garden
  * @property {Object} streak
  * @property {Object} achievements
  * @property {Object} journal
@@ -56,6 +57,22 @@ import { getRoomBonuses } from "./pet-assets.js";
  * @property {number} stats.totalHarvests
  * @property {number} stats.totalGoldEarned
  */
+
+/**
+ * Creates the Garden Shelf state stored in the shared player document.
+ * Garden gold itself remains the top-level shared resource.
+ */
+export function createDefaultGardenState(now = Date.now()) {
+  return {
+    totalGoldEarned: 0,
+    level: 1,
+    xp: 0,
+    shelvesUnlocked: 1,
+    plants: [],
+    lastTick: now,
+    offlineEarnings: null,
+  };
+}
 
 /**
  * Creates a default player state object.
@@ -70,7 +87,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 9,
+    schemaVersion: 10,
     _lastSeen: now,
     _onboarded: false,
     resources: {
@@ -139,6 +156,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       totalGames: 0,
       activeGame: false,
     },
+    garden: createDefaultGardenState(now),
     bubbo: {
       highScore: 0,
       totalGames: 0,

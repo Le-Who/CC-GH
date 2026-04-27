@@ -8,7 +8,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 | --- | --- |
 | Client shell | React 19, Vite 7, Telegram Mini App SDK |
 | Game rendering | PixiJS 8 |
-| Client state helpers | Zustand, local browser storage for dev user id and Garden Shelf idle save; Garden Shelf spendable gold is the shared Hub player resource |
+| Client state helpers | Zustand, local browser storage for dev user id and Garden Shelf idle fallback; Garden Shelf progress and spendable gold are shared Hub player state |
 | API | Express 5 |
 | Realtime | Socket.IO |
 | Durable storage | Self-hosted PostgreSQL |
@@ -20,7 +20,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 
 ## Games
 
-- Garden Shelf: ported React/Tailwind idle terrarium with responsive shelf/sign/bottom-plank art, transparent sprite-sheet plants, visible locked plant previews, slower growth/economy pacing, tap acceleration, watering-ready indicators, mature plant gold collection, stash/inventory placement, watering, evolution, offline earnings, local garden-state persistence, English/Russian Garden UI settings, and shared Hub gold for all spend/earn flows.
+- Garden Shelf: ported React/Tailwind idle terrarium with responsive shelf/sign/bottom-plank art, transparent sprite-sheet plants, visible locked plant previews, slower growth/economy pacing, tap acceleration, watering-ready indicators, mature plant gold collection, stash/inventory placement, watering, evolution, offline earnings, server-backed garden-state sync with local offline fallback, English/Russian Garden UI settings, and shared Hub gold for all spend/earn flows.
 - Building Blox: Pixi board surface with tap fallback, tray-to-board drag, capture-point anchored carried pieces, separate snapped placement footprint previews, authoritative placement, row/column clear metadata, cell-flash plus line-wipe feedback, tray refill settle cues, saved state, rewards, and leaderboard reads.
 - Gem Crush: Pixi board surface using tracked Puzzling Potions art, Classic, Timed, and Star Drop mode selection, tap-pair fallback, directional pointer-session swipe swapping, special row/column/blast/colour pieces, special-clear backfill, repeated Star Drop bottom-token auto-crediting, staged cascade board snapshots with textured fall/fill pieces, short input locks, saved mode sync, and reward settlement.
 - Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, compact touch-first generator menus, lower thumb-reachable rectangular board placement, live trash/pause HUD controls, larger manifest-replaceable item tokens, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and room decoration drops.
@@ -145,7 +145,7 @@ Public unauthenticated APIs:
 Authenticated gameplay APIs:
 
 - New-stack player snapshot/mutations: `GET /api/player/snapshot`, `POST /api/player/mutate`
-- Typed mutate actions include `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `bubbo.start`, `bubbo.sync`, `bubbo.end`, `pet.feed`, `pet.rename`, `quest.generate`, `quest.submit`, `room.place`, and `room.pickup`.
+- Typed mutate actions include `garden.goldDelta`, `garden.sync`, `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `bubbo.start`, `bubbo.sync`, `bubbo.end`, `pet.feed`, `pet.rename`, `quest.generate`, `quest.submit`, `room.place`, and `room.pickup`.
 - Legacy Farm/resource state and Pet support APIs retained for economy compatibility: `/api/farm/*`, `/api/resources/state`, `/api/pet/*`
 - Merge: `/api/merge/*`
 - Match-3: `/api/game/*`

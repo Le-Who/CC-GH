@@ -248,6 +248,7 @@ function GameContent() {
 
 export default function App() {
   const hubGold = useGameHub((state) => state.snapshot?.resources?.gold || 0);
+  const hubGarden = useGameHub((state) => state.snapshot?.garden || null);
   const performAction = useGameHub((state) => state.performAction);
   const setGardenHud = useGameHub((state) => state.setGardenHud);
   const onGoldDelta = useCallback(
@@ -262,9 +263,28 @@ export default function App() {
     ),
     [performAction],
   );
+  const onStateSync = useCallback(
+    (gardenState) => performAction(
+      'garden.sync',
+      { state: gardenState },
+      {
+        silent: true,
+        feedback: false,
+        key: 'garden.sync',
+        timeoutMs: 12000,
+      },
+    ),
+    [performAction],
+  );
 
   return (
-    <GameProvider hubGold={hubGold} onGoldDelta={onGoldDelta} onHudChange={setGardenHud}>
+    <GameProvider
+      hubGold={hubGold}
+      persistedState={hubGarden}
+      onGoldDelta={onGoldDelta}
+      onStateSync={onStateSync}
+      onHudChange={setGardenHud}
+    >
       <GardenI18nProvider>
         <GameContent />
         <OfflineWelcome />

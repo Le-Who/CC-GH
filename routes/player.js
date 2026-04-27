@@ -32,6 +32,7 @@ import {
   canPlace,
   calcBubboReward,
   placePiece,
+  createDefaultGardenState,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 
@@ -66,6 +67,53 @@ function normalizeResources(p) {
     ...(p.resources || {}),
     harvested: { ...(p.farm?.harvested || {}) },
     harvestedCrops: { ...(p.farm?.harvested || {}) },
+  };
+}
+
+const GARDEN_MAX_LEVEL = 24;
+const GARDEN_MAX_SHELVES = 5;
+const GARDEN_MAX_PLANTS = 48;
+const GARDEN_PLANT_IDS = new Set(["daisy", "lavender", "basil", "rosemary", "monstera", "succulent", "pothos", "strawberry"]);
+
+function finiteNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeGardenPlant(raw = {}) {
+  const id = String(raw.id || randomUUID()).slice(0, 80);
+  const rawType = String(raw.type || "daisy").slice(0, 40);
+  const type = GARDEN_PLANT_IDS.has(rawType) ? rawType : "daisy";
+  return {
+    id,
+    type,
+    level: Math.max(1, Math.min(30, Math.floor(finiteNumber(raw.level, 1)))),
+    shelfIndex: Math.max(-1, Math.min(GARDEN_MAX_SHELVES - 1, Math.floor(finiteNumber(raw.shelfIndex, -1)))),
+    spotIndex: Math.max(-1, Math.min(2, Math.floor(finiteNumber(raw.spotIndex, -1)))),
+    phase: Math.max(0, Math.min(3, Math.floor(finiteNumber(raw.phase, 0)))),
+    phaseProgress: Math.max(0, Math.min(86_400_000, Math.floor(finiteNumber(raw.phaseProgress, 0)))),
+    ...(raw.lastWatered ? { lastWatered: Math.max(0, Math.floor(finiteNumber(raw.lastWatered, 0))) } : {}),
+  };
+}
+
+function normalizeGardenState(raw = {}, now = Date.now()) {
+  const fallback = createDefaultGardenState(now);
+  const source = raw && typeof raw === "object" ? raw : {};
+  const plants = Array.isArray(source.plants)
+    ? source.plants.slice(0, GARDEN_MAX_PLANTS).map(normalizeGardenPlant)
+    : [];
+
+  return {
+    ...fallback,
+    totalGoldEarned: Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.totalGoldEarned, fallback.totalGoldEarned)))),
+    level: Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(finiteNumber(source.level, fallback.level)))),
+    xp: Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.xp, fallback.xp)))),
+    shelvesUnlocked: Math.max(1, Math.min(GARDEN_MAX_SHELVES, Math.floor(finiteNumber(source.shelvesUnlocked, fallback.shelvesUnlocked)))),
+    plants,
+    lastTick: Math.max(0, Math.floor(finiteNumber(source.lastTick, now))),
+    offlineEarnings: source.offlineEarnings == null
+      ? null
+      : Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.offlineEarnings, 0)))),
   };
 }
 
@@ -198,6 +246,7 @@ export function buildSnapshot(p, extras = {}) {
       highScore: p.match3?.highScore || 0,
       savedModes,
     },
+    garden: normalizeGardenState(p.garden, Date.now()),
     merge: {
       ...(p.merge || {}),
       itemCounts: countMergeItems(p.merge?.board || []),
@@ -360,6 +409,10 @@ export async function applyAction(p, action, payload = {}) {
         p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + amount;
       }
       return ok(action, p, { goldDelta: amount, reason: payload.reason || "garden" });
+    }
+    case "garden.sync": {
+      p.garden = normalizeGardenState(payload.state, Date.now());
+      return ok(action, p, { garden: p.garden });
     }
     case "farm.refresh": {
       const offlineReport = processOfflineActions(p);

@@ -12,7 +12,7 @@
  */
 
 import crypto from "crypto";
-import { ECONOMY, createDefaultPlayer, checkAchievements } from "./game-logic.js";
+import { ECONOMY, createDefaultPlayer, createDefaultGardenState, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
 import { getIO } from "./socketManager.js";
 import {
@@ -70,6 +70,7 @@ function emitPlayerSync(userId, player) {
       harvested: player.farm.harvested,
       plots: player.farm.plots,
       merge: player.merge,
+      garden: player.garden,
       pet: player.pet,
       achievements: player.achievements,
     },
@@ -247,9 +248,11 @@ process.on("SIGINT", gracefulShutdown);
  * strictly a migration pipeline used by withPlayerLock.
  */
 export function applyMigrations(p) {
-  const currentSchemaVersion = 9;
+  const currentSchemaVersion = 10;
   
   if (!p) return null;
+
+  if (!p.garden) p.garden = createDefaultGardenState(Date.now());
 
   // v8.1: Early-return
   if (p.schemaVersion >= currentSchemaVersion) {
@@ -382,6 +385,11 @@ export function applyMigrations(p) {
       p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
     }
     p.schemaVersion = 9;
+  }
+
+  if (!p.schemaVersion || p.schemaVersion < 10) {
+    if (!p.garden) p.garden = createDefaultGardenState(Date.now());
+    p.schemaVersion = 10;
   }
 
   if (!p.bubbo) {

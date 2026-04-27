@@ -12,6 +12,11 @@ import {
   attemptMatch3Move,
   resolveBoard as resolveEngineBoard,
 } from "../src/game-core/match3/engine.js";
+import {
+  MATCH3_TIMING,
+  estimateMatch3CascadeLockMs,
+  match3StepStartFrame,
+} from "../src/game-core/match3/animation.js";
 
 const BOARD_SIZE = 8;
 const GEM_TYPES = ["fire", "water", "earth", "air", "light", "dark"];
@@ -373,5 +378,20 @@ describe("current Match-3 engine resolution", () => {
       assert.ok(Array.isArray(step.filled));
     }
     assert.deepEqual(result.steps.at(-1).boardSnapshot, board);
+  });
+});
+
+describe("Match-3 animation timing", () => {
+  it("keeps cascade locks short enough for rapid mobile play", () => {
+    assert.equal(MATCH3_TIMING.motionFrames, 24);
+    assert.ok(estimateMatch3CascadeLockMs(1) <= 800);
+    assert.ok(estimateMatch3CascadeLockMs(3) <= 1600);
+  });
+
+  it("starts each cascade stage from the shared timing plan", () => {
+    const stageFrames = MATCH3_TIMING.clearFrames + MATCH3_TIMING.motionFrames + MATCH3_TIMING.settleFrames;
+
+    assert.equal(match3StepStartFrame(0), MATCH3_TIMING.swapFrames + MATCH3_TIMING.swapSettleFrames);
+    assert.equal(match3StepStartFrame(2), MATCH3_TIMING.swapFrames + MATCH3_TIMING.swapSettleFrames + stageFrames * 2);
   });
 });
