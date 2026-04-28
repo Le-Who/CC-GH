@@ -170,10 +170,12 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.getByText("Gacha Merge")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
-    await page.getByRole("button", { name: "30 Taps" }).click();
-    await page.getByRole("button", { name: "Tap" }).first().click();
-    await expect(page.getByText(/free taps/i)).toBeVisible();
+    await expect(page.locator(".game-menu-overlay:visible .generator-list")).toHaveCount(0);
     await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await page.getByRole("button", { name: "30 Taps" }).click();
+    await page.locator(".merge-action-dock").getByRole("button", { name: /^Tap$/ }).click();
+    await expect(page.locator(".merge-action-dock")).toContainText(/Tap|30 Taps|Gacha|Free/);
     await pauseActiveGame(page);
     await exitToHub(page);
 

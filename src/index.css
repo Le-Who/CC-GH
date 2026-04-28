@@ -1235,6 +1235,85 @@ button.item-card {
   overflow: auto;
 }
 
+.merge-play-status {
+  grid-template-columns: minmax(118px, 1fr) minmax(0, auto);
+}
+
+.merge-play-status .game-play-stats {
+  grid-auto-columns: minmax(58px, auto);
+}
+
+.merge-action-dock {
+  position: absolute;
+  z-index: 4;
+  left: max(8px, env(safe-area-inset-left, 0px));
+  right: max(8px, env(safe-area-inset-right, 0px));
+  bottom: max(8px, calc(var(--safe-bottom) + 8px));
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 12px 34px rgba(68, 54, 91, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  pointer-events: auto;
+  contain: paint;
+}
+
+.merge-generator-dock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(86px, auto);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.merge-fuel-field {
+  min-width: 0;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--field));
+}
+
+.merge-fuel-field span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 1000;
+}
+
+.merge-fuel-field select {
+  min-height: 34px;
+  padding: 5px 8px;
+  border-color: var(--glass-border-soft);
+  background: color-mix(in srgb, var(--field) 84%, white);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.merge-action-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.merge-action-grid .panel-button {
+  min-height: 44px;
+  padding-inline: 6px;
+}
+
+.merge-start-actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .generator-card strong,
 .generator-card small,
 .compact-list span {
@@ -2448,6 +2527,62 @@ button.item-card {
   }
 
   .game-play-actions .panel-button span {
+    display: none;
+  }
+
+  .merge-play-status {
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  }
+
+  .merge-play-status .game-play-stats {
+    grid-auto-columns: minmax(48px, auto);
+    gap: 4px;
+  }
+
+  .merge-play-status .game-play-stats span {
+    min-height: 34px;
+    padding: 4px 5px;
+    font-size: 0.6rem;
+  }
+
+  .merge-action-dock {
+    left: 6px;
+    right: 6px;
+    bottom: max(6px, calc(var(--safe-bottom) + 6px));
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .merge-generator-dock {
+    grid-template-columns: minmax(0, 1fr) 54px;
+    gap: 6px;
+  }
+
+  .merge-fuel-field {
+    min-height: 40px;
+    padding: 4px 5px 4px 8px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .merge-fuel-field span {
+    font-size: 0.62rem;
+  }
+
+  .merge-fuel-field select {
+    min-height: 32px;
+    font-size: 0.72rem;
+  }
+
+  .merge-action-grid {
+    gap: 5px;
+  }
+
+  .merge-action-grid .panel-button {
+    min-height: 40px;
+    padding: 0;
+  }
+
+  .merge-action-grid .panel-button span {
     display: none;
   }
 }

@@ -17,7 +17,7 @@
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
-import { MERGE_CHAINS, ECONOMY } from "../../game-logic.js";
+import { MERGE_CHAINS, ECONOMY, MERGE_WILD_GENERATOR_ID, getMergePairResult } from "../../game-logic.js";
 
 const BOARD_ROWS = 7;
 const BOARD_COLS = 9;
@@ -42,6 +42,7 @@ export const mergeStore = create((set, get) => ({
   generators: ["textile"],
   generatorState: {
     textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+    [MERGE_WILD_GENERATOR_ID]: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
   },
   mergeInventory: [],
   lastFreePull: 0,
@@ -58,9 +59,7 @@ export const mergeStore = create((set, get) => ({
     const src = board[fromR]?.[fromC];
     const dst = board[toR]?.[toC];
     if (!src || !dst) return false;
-    if (src.chainId !== dst.chainId || src.level !== dst.level) return false;
-    const info = ITEM_LOOKUP[src.id];
-    return info?.nextId != null;
+    return !!getMergePairResult(src, dst);
   },
 
   isOnCooldown: (chainId) => {
@@ -129,17 +128,16 @@ export const mergeStore = create((set, get) => ({
   mergeOptimistic: (fromR, fromC, toR, toC) => {
     const s = get();
     const src = s.board[fromR]?.[fromC];
-    if (!src) return null;
-    const info = ITEM_LOOKUP[src.id];
-    if (!info?.nextId) return null;
+    const dst = s.board[toR]?.[toC];
+    const result = getMergePairResult(src, dst);
+    if (!result) return null;
 
     const oldBoard = structuredClone(s.board);
     const newBoard = structuredClone(s.board);
-    const nextInfo = ITEM_LOOKUP[info.nextId];
     newBoard[toR][toC] = {
-      id: info.nextId,
-      chainId: src.chainId,
-      level: nextInfo.level,
+      id: result.id,
+      chainId: result.chainId,
+      level: result.level,
     };
     newBoard[fromR][fromC] = null;
     set({ board: newBoard });

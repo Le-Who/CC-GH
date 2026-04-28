@@ -265,9 +265,10 @@ test.describe("Pixi touch and drag interactions", () => {
     const touchAction = await host.evaluate((node) => getComputedStyle(node).touchAction);
     expect(touchAction).toBe("none");
 
-    await page.getByRole("button", { name: "30 Taps" }).click();
-    await page.getByRole("button", { name: "Tap" }).first().click();
     await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await page.getByRole("button", { name: "30 Taps" }).click();
+    await page.locator(".merge-action-dock").getByRole("button", { name: /^Tap$/ }).click();
     const box = await hostBox(page);
     await page.mouse.move(box.x + box.width * 0.38, box.y + box.height * 0.35);
     await page.mouse.down();

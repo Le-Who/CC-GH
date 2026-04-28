@@ -139,7 +139,7 @@ Then set the matching item key, for example:
 }
 ```
 
-If a path is empty, the Pixi scene uses the larger procedural icon fallback with a level badge. Keep item icons square, transparent, and readable at `48x48`.
+If a path is empty, the Pixi scene uses the larger procedural icon fallback with a level badge. Keep item icons square, transparent, and readable at `48x48`. The manifest lists all live chains, including Textile, Wood, Earth, Storm, and Craft recipe results.
 
 ## Cozy Yard Assets
 

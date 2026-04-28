@@ -16,6 +16,9 @@ import {
   BOARD_COLS,
   CROPS,
   CROP_TIERS,
+  getMergePairResult,
+  MERGE_WILD_GENERATOR_ID,
+  pickMergeDropChainId,
   TIER_YIELD,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
@@ -38,6 +41,12 @@ export default function mergeRoutes(requireAuth, resolveUser) {
           cooldownEnd: 0,
         };
       }
+    }
+    if (!p.merge.generatorState[MERGE_WILD_GENERATOR_ID]) {
+      p.merge.generatorState[MERGE_WILD_GENERATOR_ID] = {
+        tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+        cooldownEnd: 0,
+      };
     }
   }
 
@@ -72,18 +81,21 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     await withPlayerLock(userId, async (p) => {
-      const { chainId, cropId } = req.body;
-      const chain = MERGE_CHAINS[chainId];
-      if (!chain) return res.status(400).json({ error: "invalid chainId" });
+      const { chainId = MERGE_WILD_GENERATOR_ID, cropId } = req.body;
 
       ensureMergeState(p);
+      const wildTap = !chainId || chainId === MERGE_WILD_GENERATOR_ID;
 
       // Check generator unlocked state
-      if (!p.merge.generators.includes(chainId)) {
+      if (!wildTap && !MERGE_CHAINS[chainId]) {
+        return res.status(400).json({ error: "invalid chainId" });
+      }
+      if (!wildTap && !p.merge.generators.includes(chainId)) {
         return res.status(400).json({ error: "generator locked" });
       }
 
-      const state = p.merge.generatorState[chainId] || {
+      const generatorId = wildTap ? MERGE_WILD_GENERATOR_ID : chainId;
+      const state = p.merge.generatorState[generatorId] || {
         tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
         cooldownEnd: 0,
       };
@@ -131,20 +143,22 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       if (state.tapsLeft <= 0) {
         state.cooldownEnd = now + ECONOMY.GENERATOR_COOLDOWN_MS;
       }
-      p.merge.generatorState[chainId] = state; // Save back if it was default generated
+      p.merge.generatorState[generatorId] = state; // Save back if it was default generated
 
       // Determine bundle size from crop
       const tier = CROP_TIERS[cropId] || "cheap";
       const yieldConfig = TIER_YIELD[tier];
       const minYield = yieldConfig ? yieldConfig.min : 2;
       const maxYield = yieldConfig ? yieldConfig.max : 3;
-      const spawnCount = Math.floor(Math.random() * (maxYield - minYield + 1)) + minYield;
+      const spawnCount = usedFreeTap ? 1 : Math.floor(Math.random() * (maxYield - minYield + 1)) + minYield;
 
       const spawnedItems = [];
 
       for (let i = 0; i < spawnCount; i++) {
         const availableCells = getEmptyCells(p.merge.board);
         if (availableCells.length === 0) break; // board full, stop spawning additional item
+        const dropChainId = wildTap ? pickMergeDropChainId(p.merge.board) : chainId;
+        const chain = MERGE_CHAINS[dropChainId];
         
         // Determine drop level based on configured rate (v6.2.2 tweak)
         // Base: L0 (80%), Rare: L1 (15%), Epic: L2 (5%) if chain supports it
@@ -156,9 +170,10 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         const [r, c] = availableCells[Math.floor(Math.random() * availableCells.length)];
         p.merge.board[r][c] = {
           id: chain.items[dropLevel],
-          chainId,
+          chainId: dropChainId,
           level: dropLevel,
         };
+        if (wildTap) tryUnlockChain(p, dropChainId);
         spawnedItems.push({ r, c });
       }
 
@@ -168,6 +183,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         resources: p.resources,
         harvested: p.farm.harvested, // crucial for frontend sync
         spawned: spawnedItems,       // multispawn format compatible with frontend length check
+        chainId: generatorId,
         usedFreeTap,
       });
     });
@@ -195,27 +211,22 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       if (!src || !dst) {
         return res.status(400).json({ error: "empty cell" });
       }
-      if (src.chainId !== dst.chainId || src.level !== dst.level) {
-        return res.status(400).json({ error: "chain/level mismatch" });
-      }
-
-      const chain = MERGE_CHAINS[src.chainId];
-      if (!chain || src.level >= chain.items.length - 1) {
-        return res.status(400).json({ error: "max level reached" });
-      }
+      const resultItem = getMergePairResult(src, dst);
+      if (!resultItem) return res.status(400).json({ error: "chain/level mismatch" });
 
       // Upgrade target, clear source
-      const newLevel = src.level + 1;
       board[toR][toC] = {
-        id: chain.items[newLevel],
-        chainId: src.chainId,
-        level: newLevel,
+        id: resultItem.id,
+        chainId: resultItem.chainId,
+        level: resultItem.level,
       };
       board[fromR][fromC] = null;
+      tryUnlockChain(p, resultItem.chainId);
       res.json({
         success: true,
         merge: p.merge,
         newItem: board[toR][toC],
+        recipeId: resultItem.recipeId || null,
       });
     });
   });

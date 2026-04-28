@@ -1,5 +1,5 @@
 import { Container, Graphics, Rectangle, Sprite, Text, TilingSprite, Texture } from "pixi.js";
-import { CROPS, MERGE_CHAINS } from "../../game-logic.js";
+import { CROPS, MERGE_CHAINS, getMergePairResult } from "../../game-logic.js";
 import { createPointerSession } from "./pointerSession.js";
 import {
   BUBBO_COLORS,
@@ -146,6 +146,14 @@ function reserveFromShellChrome(app, selector, fallback = 0) {
   const chromeRect = shellElement(app)?.querySelector?.(selector)?.getBoundingClientRect?.();
   if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
   const reserve = chromeRect.bottom - canvasRect.top + 8;
+  return Math.max(fallback, Math.ceil(reserve));
+}
+
+function reserveBottomFromShellChrome(app, selector, fallback = 0) {
+  const canvasRect = app.canvas?.getBoundingClientRect?.();
+  const chromeRect = shellElement(app)?.querySelector?.(selector)?.getBoundingClientRect?.();
+  if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
+  const reserve = canvasRect.bottom - chromeRect.top + 8;
   return Math.max(fallback, Math.ceil(reserve));
 }
 
@@ -332,7 +340,8 @@ function fitWithTopReserve(app, cols, rows, margin = 18, reservedTop = 0, extraB
 
 function fitGrid(app, cols, rows, margin = 18, extraBottom = 0, options = {}) {
   const width = viewWidth(app);
-  const availableHeight = Math.max(180, viewHeight(app) - extraBottom);
+  const reservedTop = Math.max(0, options.reservedTop ?? 0);
+  const availableHeight = Math.max(180, viewHeight(app) - reservedTop - extraBottom);
   const maxCell = options.maxCell ?? Infinity;
   const minCell = options.minCell ?? 20;
   const cell = Math.max(
@@ -349,7 +358,7 @@ function fitGrid(app, cols, rows, margin = 18, extraBottom = 0, options = {}) {
     height: gridHeight,
     cell,
     left: (width - gridWidth) / 2,
-    top: margin + spareY * verticalAnchor,
+    top: reservedTop + margin + spareY * verticalAnchor,
   };
 }
 
@@ -2085,7 +2094,7 @@ export function buildMergeScene(app, initial = {}) {
   }
 
   function sameMergeTarget(item, other) {
-    return item && other && item.chainId === other.chainId && item.level === other.level;
+    return !!getMergePairResult(item, other);
   }
 
   function drawMergeItem(item, x, y, cell, alpha = 1) {
@@ -2129,7 +2138,7 @@ export function buildMergeScene(app, initial = {}) {
       effects.addChild(reject);
       return;
     }
-    const level = Number(item?.level || 0) + 1;
+    const level = Number(result?.newItem?.level ?? item?.level ?? 0) + 1;
     const pop = label(`${data.mergeLevelPrefix || "L"}${level + 1}`, point.x, point.y - 26, 15, AMBER);
     pop._tween = { fromX: pop.x, fromY: pop.y, toX: pop.x, toY: pop.y - 34, duration: 24, fade: true, scaleFrom: 0.7, scaleTo: 1.22 };
     effects.addChild(pop);
@@ -2176,7 +2185,14 @@ export function buildMergeScene(app, initial = {}) {
     const board = merge.board || Array.from({ length: 7 }, () => Array(9).fill(null));
     const cols = 9;
     const rows = 7;
-    const fitted = fitGrid(app, cols, rows, 14, 52, { verticalAnchor: 0.68, minCell: 32, maxCell: 58 });
+    const reservedTop = reserveFromShellChrome(app, ".merge-play-status", 66);
+    const reservedBottom = reserveBottomFromShellChrome(app, ".merge-action-dock", data.mergeBottomReserve || 146);
+    const fitted = fitGrid(app, cols, rows, 14, reservedBottom + 32, {
+      reservedTop,
+      verticalAnchor: 0.5,
+      minCell: 30,
+      maxCell: 58,
+    });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;
     root.addChild(rect(left - 8, top - 8, width + 16, height + 16, PANEL, 14));

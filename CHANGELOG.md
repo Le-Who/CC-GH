@@ -21,6 +21,8 @@
 - Replaced the visible Farm game tab with a Garden Shelf port, including the original shelf/terrarium React UI, sprite-sheet plant rendering, plant shop, stash/inventory flow, watering, upgrades, offline earnings, and Garden Shelf assets under `public/games/garden-shelf/`.
 - Removed the duplicate Garden Shelf in-game `Gold Balance` / `Current Phase` header, adapted the shared Hub resource strip for Garden-specific `Gold`, `Garden Lv`, and `Plants`, and made Garden Shelf purchases, sales, taps, passive income, and offline income use the same shared Hub gold balance as the other games.
 - Fixed Bubbo pressure-row descent by carrying an explicit row-offset phase through pressure shifts, shot targeting, clusters, and scene rendering so newly inserted rows move the field down without horizontally rearranging existing bubbles.
+- Reworked Gacha Merge live play around a bottom control dock: generator tap, gacha, free pull, daily free taps, trash, and pause are available after start without covering the board.
+- Replaced category-specific Gacha Merge generator cards with one random generator and added alchemy-style recipe merges such as `sand + lightning -> glass`.
 - Added a manual PWA update manager that compares injected client build ids with uncached `/api/config`, unregisters stale service workers, clears runtime caches, and reloads once with a cache-busting build query.
 - Versioned Pixi `/games/*` asset URLs with the current build id so tracked Bubbo Bubbo and Puzzling Potions art refreshes cleanly after deploys.
 - Added scene-local Gem Crush animation queues from `attemptMatch3Move().steps`, including swap ghosts, cascade pulses, fall/fill tweens, invalid-swap nudges, and input locking while cascades resolve.

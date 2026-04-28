@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
-import { Home, PackageOpen, Play, RotateCcw, Sparkles, Trash2, Zap } from "lucide-react";
-import { CROPS, ECONOMY, MERGE_CHAINS } from "../../../game-logic.js";
+import { Home, PackageOpen, Pause, Play, RotateCcw, Sparkles, Trash2, Zap } from "lucide-react";
+import { CROPS, ECONOMY, MERGE_RECIPES, MERGE_WILD_GENERATOR_ID } from "../../../game-logic.js";
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GamePlayHud, GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
+import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 export default function MergeGame() {
@@ -14,7 +14,7 @@ export default function MergeGame() {
   const { t } = useAppI18n();
   const merge = snapshot?.merge || {};
   const inventory = snapshot?.inventory || {};
-  const [selectedFuel, setSelectedFuel] = useState({});
+  const [selectedFuel, setSelectedFuel] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
   const [mergePlaying, setMergePlaying] = useState(false);
@@ -25,7 +25,16 @@ export default function MergeGame() {
 
   const harvestedEntries = listPositive(inventory.harvested || {});
   const firstFuel = harvestedEntries[0]?.[0];
+  const selectedFuelAvailable = harvestedEntries.some(([cropId]) => cropId === selectedFuel);
+  const activeFuel = selectedFuelAvailable ? selectedFuel : firstFuel;
   const itemTotal = Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0);
+  const wildGenerator = merge.generatorState?.[MERGE_WILD_GENERATOR_ID] || {};
+  const generatorCoolingDown = wildGenerator.cooldownEnd > Date.now();
+  const tokenCount = inventory.rewards?.gachaTokens || 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const canFreePull = new Date(merge.lastFreePull || 0).toISOString().slice(0, 10) !== today;
+  const canClaimFreeTaps = new Date(merge.lastFreeTaps || 0).toISOString().slice(0, 10) !== today;
+  const canTapGenerator = !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
 
   const onMergeCell = useCallback(
     (r, c, item) => {
@@ -84,6 +93,7 @@ export default function MergeGame() {
       mergeStatusText: trashMode ? t("merge.statusTrash") : t("merge.statusMerge"),
       mergeMissText: t("merge.miss"),
       mergeLevelPrefix: t("farm.levelShort"),
+      mergeBottomReserve: 154,
       onMergeCell,
       onMergeDrop,
     }),
@@ -97,27 +107,78 @@ export default function MergeGame() {
       skin="meditation"
       overlayClassName="merge-menu-overlay"
       hud={(
-        <GamePlayHud
-          title={t("merge.title")}
-          subtitle={`${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${inventory.rewards?.gachaTokens || 0} ${t("common.tokens").toLowerCase()}`}
-          stats={[
-            { label: t("merge.free"), value: merge.freeTapCharges || 0 },
-            { label: t("merge.items"), value: itemTotal },
-            { label: t("merge.mode"), value: trashMode ? t("merge.modeTrash") : t("merge.modeMerge") },
-          ]}
-          onPause={() => setPaused(true)}
-          extraActions={(
-            <PanelButton
-              icon={Trash2}
-              danger={trashMode}
-              active={trashMode}
-              onClick={() => setTrashMode((value) => !value)}
-              title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
-            >
-              {t("merge.trash")}
-            </PanelButton>
-          )}
-        />
+        <>
+          <div className="game-play-hud merge-play-status">
+            <div className="game-play-title">
+              <strong>{t("merge.title")}</strong>
+              <span>{`${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${tokenCount} ${t("common.tokens").toLowerCase()}`}</span>
+            </div>
+            <div className="game-play-stats">
+              <span>{t("merge.items")} <strong>{itemTotal}</strong></span>
+              <span>{t("merge.mode")} <strong>{trashMode ? t("merge.modeTrash") : t("merge.modeMerge")}</strong></span>
+              <span>{t("merge.recipes")} <strong>{MERGE_RECIPES.length}</strong></span>
+            </div>
+          </div>
+          <div className="merge-action-dock" data-no-nav-swipe="true">
+            <div className="merge-generator-dock">
+              <label className="merge-fuel-field">
+                <span>{t("merge.fuel")}</span>
+                <select value={activeFuel || ""} onChange={(event) => setSelectedFuel(event.target.value)}>
+                  <option value="">{t("merge.noFuel")}</option>
+                  {harvestedEntries.map(([cropId, qty]) => (
+                    <option key={cropId} value={cropId}>{CROPS[cropId]?.emoji || ""} {cropId} x{qty}</option>
+                  ))}
+                </select>
+              </label>
+              <PanelButton
+                icon={Zap}
+                disabled={!canTapGenerator}
+                onClick={() => performAction("merge.tap", { chainId: MERGE_WILD_GENERATOR_ID, cropId: activeFuel }, { key: "merge.tap.wild" })}
+                title={generatorCoolingDown ? t("merge.coolingDown") : undefined}
+              >
+                {t("common.tap")}
+              </PanelButton>
+            </div>
+            <div className="merge-action-grid">
+              <PanelButton
+                icon={Sparkles}
+                disabled={tokenCount < ECONOMY.GACHA_PULL_COST}
+                onClick={() => performAction("merge.gacha")}
+                title={t("merge.gacha")}
+              >
+                {t("merge.gacha")}
+              </PanelButton>
+              <PanelButton
+                icon={PackageOpen}
+                disabled={!canFreePull}
+                onClick={() => performAction("merge.freePull")}
+                title={t("merge.free")}
+              >
+                {t("merge.free")}
+              </PanelButton>
+              <PanelButton
+                icon={Zap}
+                disabled={!canClaimFreeTaps}
+                onClick={() => performAction("merge.claimFreeTaps")}
+                title={t("merge.thirtyTaps")}
+              >
+                {t("merge.thirtyTaps")}
+              </PanelButton>
+              <PanelButton
+                icon={Trash2}
+                danger={trashMode}
+                active={trashMode}
+                onClick={() => setTrashMode((value) => !value)}
+                title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
+              >
+                {trashMode ? t("merge.trashOn") : t("merge.trash")}
+              </PanelButton>
+              <PanelButton icon={Pause} subtle onClick={() => setPaused(true)} title={t("common.pause")}>
+                {t("common.pause")}
+              </PanelButton>
+            </div>
+          </div>
+        </>
       )}
       overlay={(
         <>
@@ -170,39 +231,7 @@ export default function MergeGame() {
           )}
           {!activePause && (
             <>
-              <div className="generator-list">
-                {(merge.generators || ["textile"]).map((chainId) => {
-                  const chain = MERGE_CHAINS[chainId] || {};
-                  const gs = merge.generatorState?.[chainId] || {};
-                  const fuel = selectedFuel[chainId] || firstFuel;
-                  const cooldown = gs.cooldownEnd > Date.now();
-                  return (
-                    <div key={chainId} className="generator-card">
-                      <div>
-                        <strong>{chain.emoji?.[0]} {chain.name || chainId}</strong>
-                        <small>{cooldown ? t("merge.coolingDown") : t("merge.taps", { count: `${gs.tapsLeft ?? ECONOMY.GENERATOR_TAP_LIMIT}/${ECONOMY.GENERATOR_TAP_LIMIT}` })}</small>
-                      </div>
-                      <select value={fuel || ""} onChange={(event) => setSelectedFuel((prev) => ({ ...prev, [chainId]: event.target.value }))}>
-                        <option value="">{t("merge.freeChooseFuel")}</option>
-                        {harvestedEntries.map(([cropId, qty]) => (
-                          <option key={cropId} value={cropId}>{CROPS[cropId]?.emoji || ""} {cropId} x{qty}</option>
-                        ))}
-                      </select>
-                      <PanelButton
-                        icon={Zap}
-                        disabled={cooldown || (!fuel && !(merge.freeTapCharges > 0))}
-                        onClick={() => performAction("merge.tap", { chainId, cropId: fuel }, { key: `merge.tap.${chainId}` })}
-                      >
-                        {t("common.tap")}
-                      </PanelButton>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="button-row merge-actions">
-                <PanelButton icon={Sparkles} onClick={() => performAction("merge.gacha")}>{t("merge.gacha")}</PanelButton>
-                <PanelButton icon={PackageOpen} onClick={() => performAction("merge.freePull")}>{t("merge.free")}</PanelButton>
-                <PanelButton icon={Zap} onClick={() => performAction("merge.claimFreeTaps")}>{t("merge.thirtyTaps")}</PanelButton>
+              <div className="button-row merge-start-actions">
                 <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
               <div className="panel-scroll compact-list">

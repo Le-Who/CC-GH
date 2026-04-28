@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { MERGE_WILD_GENERATOR_ID } from "../game-logic.js";
 import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -16,6 +17,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       generators: ["textile"],
       generatorState: {
         textile: { tapsLeft: 30, cooldownEnd: 0 },
+        [MERGE_WILD_GENERATOR_ID]: { tapsLeft: 30, cooldownEnd: 0 },
       },
       mergeInventory: [],
       lastFreePull: 0,
@@ -193,6 +195,16 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       }
     });
 
+    it("returns true for alchemy recipe pairs", () => {
+      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      newBoard[0][0] = { id: "sand", chainId: "earth", level: 1 };
+      newBoard[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+      mergeStore.getState().setBoard(newBoard);
+
+      const { canMerge } = mergeStore.getState();
+      assert.strictEqual(canMerge(0, 0, 0, 1), true);
+    });
+
     it("returns false for out-of-bounds coordinates", () => {
       const { canMerge } = mergeStore.getState();
       assert.strictEqual(canMerge(-1, 0, 0, 0), false);
@@ -259,6 +271,23 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const stateAfterRollback = mergeStore.getState();
       assert.deepStrictEqual(stateAfterRollback.board[0][0], { id: mergeableItemId, chainId: info.chainId, level: info.level });
       assert.deepStrictEqual(stateAfterRollback.board[0][1], { id: mergeableItemId, chainId: info.chainId, level: info.level });
+    });
+
+    it("performs optimistic recipe merges", () => {
+      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      newBoard[0][0] = { id: "sand", chainId: "earth", level: 1 };
+      newBoard[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+      mergeStore.getState().setBoard(newBoard);
+
+      const oldBoard = mergeStore.getState().mergeOptimistic(0, 0, 0, 1);
+
+      assert.ok(oldBoard);
+      assert.strictEqual(mergeStore.getState().board[0][0], null);
+      assert.deepStrictEqual(mergeStore.getState().board[0][1], {
+        id: "glass",
+        chainId: "earth",
+        level: 5,
+      });
     });
   });
 

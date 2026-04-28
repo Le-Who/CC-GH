@@ -25,6 +25,8 @@ import {
   normalizeYardState,
   simulateYardState,
   YARD_GOODIES,
+  MERGE_CHAINS,
+  MERGE_WILD_GENERATOR_ID,
 } from "../game-logic.js";
 import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
@@ -196,6 +198,34 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(garden.plants[0].phase, 3);
     assert.equal(garden.plants[0].phaseProgress, 86400000);
     assert.equal(garden.offlineEarnings, null);
+  });
+});
+
+describe("Gacha Merge shared generator and recipes", () => {
+  it("wild generator consumes a free tap and spawns a random configured chain", async () => {
+    const p = createDefaultPlayer("merge-wild", "Merge");
+    p.merge.freeTapCharges = 1;
+
+    const result = await applyAction(p, "merge.tap", { chainId: MERGE_WILD_GENERATOR_ID });
+
+    assert.equal(result.status, 200);
+    assert.equal(p.merge.freeTapCharges, 0);
+    assert.equal(p.merge.generatorState[MERGE_WILD_GENERATOR_ID].tapsLeft, ECONOMY.GENERATOR_TAP_LIMIT - 1);
+    assert.equal(result.body.spawned.length, 1);
+    assert.ok(MERGE_CHAINS[result.body.spawned[0].item.chainId]);
+  });
+
+  it("combines alchemy recipes such as sand plus lightning into glass", async () => {
+    const p = createDefaultPlayer("merge-recipe", "Merge");
+    p.merge.board[0][0] = { id: "sand", chainId: "earth", level: 1 };
+    p.merge.board[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+
+    const result = await applyAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(p.merge.board[0][0], null);
+    assert.deepEqual(p.merge.board[0][1], { id: "glass", chainId: "earth", level: 5 });
+    assert.equal(result.body.recipeId, "sand_lightning_glass");
   });
 });
 

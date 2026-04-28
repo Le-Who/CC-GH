@@ -24,9 +24,12 @@ import {
   farmPlotsWithGrowth,
   getYardCatalogSnapshot,
   getGrowthPct,
+  getMergePairResult,
   getUnlockedSeeds,
   hydrateMergeBoard,
+  MERGE_WILD_GENERATOR_ID,
   normalizeYardState,
+  pickMergeDropChainId,
   processOfflineActions,
   simulateYardState,
   updateStreak,
@@ -369,6 +372,12 @@ function ensureMergeState(p) {
       };
     }
   }
+  if (!p.merge.generatorState[MERGE_WILD_GENERATOR_ID]) {
+    p.merge.generatorState[MERGE_WILD_GENERATOR_ID] = {
+      tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+      cooldownEnd: 0,
+    };
+  }
 }
 
 function emptyMergeCells(board) {
@@ -647,12 +656,19 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, result.extras || {});
     }
     case "merge.tap": {
-      const { chainId = "textile", cropId } = payload;
+      const { chainId = MERGE_WILD_GENERATOR_ID, cropId } = payload;
       ensureMergeState(p);
-      const chain = MERGE_CHAINS[chainId];
-      if (!chain) return fail(400, "invalid chainId");
-      if (!p.merge.generators.includes(chainId)) return fail(400, "generator locked");
-      const state = p.merge.generatorState[chainId];
+      const wildTap = !chainId || chainId === MERGE_WILD_GENERATOR_ID;
+      if (!wildTap) {
+        const chain = MERGE_CHAINS[chainId];
+        if (!chain) return fail(400, "invalid chainId");
+        if (!p.merge.generators.includes(chainId)) return fail(400, "generator locked");
+      }
+      const generatorId = wildTap ? MERGE_WILD_GENERATOR_ID : chainId;
+      const state = p.merge.generatorState[generatorId] || {
+        tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+        cooldownEnd: 0,
+      };
       const now = Date.now();
       if (now >= state.cooldownEnd) {
         state.tapsLeft = ECONOMY.GENERATOR_TAP_LIMIT;
@@ -681,14 +697,18 @@ export async function applyAction(p, action, payload = {}, options = {}) {
         const cells = emptyMergeCells(p.merge.board);
         if (!cells.length) break;
         const [r, c] = cells[Math.floor(Math.random() * cells.length)];
+        const dropChainId = wildTap ? pickMergeDropChainId(p.merge.board) : chainId;
+        const chain = MERGE_CHAINS[dropChainId];
         const rand = Math.random();
         let level = 0;
         if (rand > 0.95 && chain.items.length > 2) level = 2;
         else if (rand > 0.8 && chain.items.length > 1) level = 1;
-        p.merge.board[r][c] = { id: chain.items[level], chainId, level };
+        p.merge.board[r][c] = { id: chain.items[level], chainId: dropChainId, level };
+        if (wildTap) unlockMergeChain(p, dropChainId);
         spawned.push({ r, c, item: p.merge.board[r][c] });
       }
-      return ok(action, p, { chainId, spawned, usedFreeTap });
+      p.merge.generatorState[generatorId] = state;
+      return ok(action, p, { chainId: generatorId, spawned, usedFreeTap });
     }
     case "merge.merge": {
       const { fromR, fromC, toR, toC } = payload;
@@ -697,14 +717,13 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       const src = p.merge.board[fromR][fromC];
       const dst = p.merge.board[toR][toC];
       if (!src || !dst) return fail(400, "empty cell");
-      if (src.chainId !== dst.chainId || src.level !== dst.level) return fail(400, "chain/level mismatch");
-      const chain = MERGE_CHAINS[src.chainId];
-      if (!chain || src.level >= chain.items.length - 1) return fail(400, "max level reached");
-      const level = src.level + 1;
-      p.merge.board[toR][toC] = { id: chain.items[level], chainId: src.chainId, level };
+      const resultItem = getMergePairResult(src, dst);
+      if (!resultItem) return fail(400, "chain/level mismatch");
+      p.merge.board[toR][toC] = { id: resultItem.id, chainId: resultItem.chainId, level: resultItem.level };
       p.merge.board[fromR][fromC] = null;
-      const yardDrop = level >= 4 ? randomYardGoodie(p, 0.18) : null;
-      return ok(action, p, { newItem: p.merge.board[toR][toC], yardDrop, newAchievements: checkAchievements(p) });
+      unlockMergeChain(p, resultItem.chainId);
+      const yardDrop = resultItem.level >= 4 ? randomYardGoodie(p, 0.18) : null;
+      return ok(action, p, { newItem: p.merge.board[toR][toC], recipeId: resultItem.recipeId || null, yardDrop, newAchievements: checkAchievements(p) });
     }
     case "merge.gacha":
     case "merge.freePull": {

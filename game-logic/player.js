@@ -6,6 +6,7 @@
  */
 
 import { ECONOMY } from "./economy.js";
+import { MERGE_WILD_GENERATOR_ID } from "./merge-config.js";
 import { createDefaultYardState } from "./yard.js";
 
 /* ═══════════════════════════════════════════════════
@@ -145,6 +146,10 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       generatorState: {
         // Per-chain cooldown tracking
         textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+        [MERGE_WILD_GENERATOR_ID]: {
+          tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
+          cooldownEnd: 0,
+        },
       },
     },
     trivia: {
