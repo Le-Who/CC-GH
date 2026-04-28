@@ -24,6 +24,7 @@ export default function MergeGame() {
 
   const harvestedEntries = listPositive(inventory.harvested || {});
   const firstFuel = harvestedEntries[0]?.[0];
+  const itemTotal = Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0);
 
   const onMergeCell = useCallback(
     (r, c, item) => {
@@ -100,7 +101,7 @@ export default function MergeGame() {
           subtitle={`${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${inventory.rewards?.gachaTokens || 0} ${t("common.tokens").toLowerCase()}`}
           stats={[
             { label: t("merge.free"), value: merge.freeTapCharges || 0 },
-            { label: t("merge.items"), value: Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0) },
+            { label: t("merge.items"), value: itemTotal },
             { label: t("merge.mode"), value: trashMode ? t("merge.modeTrash") : t("merge.modeMerge") },
           ]}
           onPause={() => setPaused(true)}
@@ -119,26 +120,49 @@ export default function MergeGame() {
       )}
       overlay={(
         <>
-          <div className="panel-header">
+          <div className="panel-header pause-panel-header">
             <div>
               <strong>{t("merge.title")}</strong>
               <span>{merge.freeTapCharges || 0} {t("merge.freeTaps")} · {inventory.rewards?.gachaTokens || 0} {t("common.tokens").toLowerCase()}</span>
             </div>
-            <PanelButton icon={mergePlaying ? Trash2 : Play} danger={mergePlaying && trashMode} active={mergePlaying && trashMode} onClick={() => {
-              if (!mergePlaying) {
-                setMergePlaying(true);
-                setPaused(false);
-              } else {
-                setTrashMode((value) => !value);
-              }
-            }}>
-              {mergePlaying ? (trashMode ? t("merge.trashOn") : t("merge.trashOff")) : t("common.play")}
-            </PanelButton>
+            {!(mergePlaying && paused) && (
+              <PanelButton icon={Play} className="pause-primary" onClick={() => {
+                if (!mergePlaying) {
+                  setMergePlaying(true);
+                  setPaused(false);
+                } else {
+                  setPaused(false);
+                }
+              }}>
+                {mergePlaying ? t("common.resume") : t("common.play")}
+              </PanelButton>
+            )}
+          </div>
+          <div className="pause-menu-frame pause-menu-merge" data-pause-menu="merge">
+            <span className="pause-menu-kicker">{mergePlaying ? t("pause.paused") : t("pause.ready")}</span>
+            <strong>{mergePlaying ? t("pause.mergeFrozen") : t("pause.mergeReady")}</strong>
+            <small>{t("pause.mergePlan")}</small>
+            <div className="pause-menu-context">
+              <span>{t("merge.mode")} <b>{trashMode ? t("merge.modeTrash") : t("merge.modeMerge")}</b></span>
+              <span>{t("merge.free")} <b>{merge.freeTapCharges || 0}</b></span>
+              <span>{t("merge.items")} <b>{itemTotal}</b></span>
+            </div>
           </div>
           {mergePlaying && paused && (
-            <div className="button-row two">
-              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-              <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>{t("merge.stopPlay")}</PanelButton>
+            <div className="pause-action-stack">
+              <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <div className="button-row two">
+                <PanelButton
+                  icon={Trash2}
+                  danger={trashMode}
+                  active={trashMode}
+                  onClick={() => setTrashMode((value) => !value)}
+                  title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
+                >
+                  {trashMode ? t("merge.trashOn") : t("merge.trashOff")}
+                </PanelButton>
+                <PanelButton icon={RotateCcw} subtle onClick={() => setMergePlaying(false)}>{t("merge.stopPlay")}</PanelButton>
+              </div>
             </div>
           )}
           <div className="generator-list">
@@ -188,4 +212,3 @@ export default function MergeGame() {
     </GameShell>
   );
 }
-

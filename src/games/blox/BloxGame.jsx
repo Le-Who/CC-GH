@@ -26,6 +26,10 @@ export default function BloxGame() {
   const [leaders, setLeaders] = useState([]);
   const isPlaying = state.gameActive && !paused;
   const currentReward = state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0;
+  const boardCells = (state.board?.length || 10) * (state.board?.[0]?.length || 10);
+  const filledCells = state.board.flat?.().filter(Boolean).length || 0;
+  const openCells = Math.max(0, boardCells - filledCells);
+  const trayPieces = state.tray.filter((piece) => piece && !piece.placed).length;
   useImmersiveGame("blox", true);
 
   useEffect(() => {
@@ -101,19 +105,32 @@ export default function BloxGame() {
       )}
       overlay={(
         <>
-          <div className="panel-header">
+          <div className="panel-header pause-panel-header">
             <div>
               <strong>{t("blox.title")}</strong>
               <span>{t("blox.bestReward", { best: state.highScore, reward: currentReward })}</span>
             </div>
-            <PanelButton icon={state.gameActive ? RotateCcw : Play} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
+            <PanelButton icon={state.gameActive ? RotateCcw : Play} className={!state.gameActive ? "pause-primary" : ""} onClick={() => performAction("blox.start").then(() => setPaused(false))}>
               {state.gameActive ? t("common.restart") : t("common.start")}
             </PanelButton>
           </div>
+          <div className="pause-menu-frame pause-menu-blox" data-pause-menu="blox">
+            <span className="pause-menu-kicker">{state.gameActive ? t("pause.paused") : t("pause.ready")}</span>
+            <strong>{state.gameActive ? t("pause.bloxFrozen") : t("pause.bloxReady")}</strong>
+            <small>{t("pause.bloxPlan")}</small>
+            <div className="pause-menu-context">
+              <span>{t("pause.bloxOpen")} <b>{openCells}</b></span>
+              <span>{t("pause.bloxTray")} <b>{trayPieces}/3</b></span>
+              <span>{t("common.reward")} <b>{currentReward}</b></span>
+            </div>
+          </div>
           {state.gameActive && paused && (
-            <div className="button-row two">
-              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-              <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.endRun")}</PanelButton>
+            <div className="pause-action-stack">
+              <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <div className="button-row two">
+                <PanelButton icon={RotateCcw} subtle onClick={() => performAction("blox.start").then(() => setPaused(false))}>{t("common.restart")}</PanelButton>
+                <PanelButton icon={Check} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.endRun")}</PanelButton>
+              </div>
             </div>
           )}
           <div className="metric-grid">
@@ -121,8 +138,8 @@ export default function BloxGame() {
             <Stat icon={Blocks} label={t("common.lines")} value={state.linesCleared || 0} />
             <Stat icon={Sparkles} label={t("common.reward")} value={currentReward} />
           </div>
-          <div className="button-row">
-            <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.endRun")}</PanelButton>
+          <div className="button-row two">
+            <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.settle")}</PanelButton>
             <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
           </div>
           <Leaderboard entries={leaders} />
@@ -133,4 +150,3 @@ export default function BloxGame() {
     </GameShell>
   );
 }
-

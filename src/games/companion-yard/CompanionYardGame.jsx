@@ -136,11 +136,11 @@ function getVisitorMotion(visit, slot, activity, renderNow) {
   };
 }
 
-function YardButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, active, subtle, title }) {
+function YardButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, active, subtle, title, className = "" }) {
   return (
     <button
       type="button"
-      className={`yard-button${danger ? " danger" : ""}${active ? " active" : ""}${subtle ? " subtle" : ""}`}
+      className={`yard-button${danger ? " danger" : ""}${active ? " active" : ""}${subtle ? " subtle" : ""}${className ? ` ${className}` : ""}`}
       disabled={disabled}
       onClick={(event) => {
         audioManager.play("tap");
@@ -207,7 +207,9 @@ export default function CompanionYardGame() {
   const [assetManifest, setAssetManifest] = useState(null);
   const [renderNow, setRenderNow] = useState(snapshot?.serverTime || Date.now());
   const isPlaying = inShell && !paused;
+  const shouldAnimateStage = !inShell || !paused;
   const nameInputRef = useRef(null);
+  const panelRef = useRef(null);
   const pendingByKey = useMemo(() => {
     const map = new Map();
     for (const item of pendingActions || []) {
@@ -234,12 +236,13 @@ export default function CompanionYardGame() {
   ), [assetManifest]);
 
   useEffect(() => {
+    if (!shouldAnimateStage) return undefined;
     const updateNow = () => setRenderNow(Date.now());
     updateNow();
     if (!inShell && !(yard.activeVisitors || []).length) return undefined;
     const interval = window.setInterval(updateNow, 900);
     return () => window.clearInterval(interval);
-  }, [inShell, yard.activeVisitors]);
+  }, [inShell, shouldAnimateStage, yard.activeVisitors]);
 
   useEffect(() => {
     setCompanionName(yard.companion?.name || "Buddy");
@@ -292,6 +295,15 @@ export default function CompanionYardGame() {
   useEffect(() => {
     if (selectedVisitId && !selectedVisit) setSelectedVisitId(null);
   }, [selectedVisit, selectedVisitId]);
+
+  useEffect(() => {
+    if (!inShell || !paused) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const target = panelRef.current?.querySelector("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])");
+      target?.focus?.({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [inShell, paused]);
 
   const visitorCount = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
   const activeVisitorCount = yard.activeVisitors?.length || 0;
@@ -440,22 +452,47 @@ export default function CompanionYardGame() {
         </div>
       )}
 
-      <aside className={`side-panel companion-yard-panel${inShell ? " game-menu-overlay" : ""}`}>
+      <aside
+        ref={panelRef}
+        className={`side-panel companion-yard-panel${inShell ? " game-menu-overlay" : ""}`}
+        role={inShell ? "dialog" : undefined}
+        aria-modal={inShell ? "true" : undefined}
+        aria-label={inShell ? "Cozy Yard pause menu" : undefined}
+        data-menu-phase={inShell ? (paused ? "paused" : "menu") : undefined}
+        tabIndex={inShell ? -1 : undefined}
+      >
         <div className="panel-header">
           <div>
             <strong>Cozy Yard</strong>
             <span>{selectedRemodel.name || "Morning Meadow"} · {yard.expansion?.level >= 2 ? "Wide yard" : "Small yard"}</span>
           </div>
-          <YardButton icon={Play} onClick={() => { setInShell(true); setPaused(false); }}>
-            {inShell ? "Resume" : "Play"}
-          </YardButton>
+          {!(inShell && paused) && (
+            <YardButton icon={Play} className="pause-primary" onClick={() => { setInShell(true); setPaused(false); }}>
+              {inShell ? "Resume" : "Play"}
+            </YardButton>
+          )}
         </div>
 
         {inShell && paused && (
-          <div className="button-row">
-            <YardButton icon={Play} onClick={() => setPaused(false)}>Resume</YardButton>
-            <YardButton icon={RotateCcw} subtle onClick={() => { setPaused(false); setInShell(false); }}>Setup</YardButton>
-            <YardButton icon={Home} danger onClick={() => { setPaused(false); setInShell(false); setActiveTab("garden"); }}>Exit</YardButton>
+          <div className="pause-menu-frame pause-menu-yard" data-pause-menu="yard">
+            <span className="pause-menu-kicker">Paused</span>
+            <strong>Yard view is frozen</strong>
+            <small>Visitors and gifts remain server-timed; the stage stops moving while this menu is open.</small>
+            <div className="pause-menu-context">
+              <span>Treats <b>{formatCount(yard.currencies?.treats || 0)}</b></span>
+              <span>Visitors <b>{activeVisitorCount}</b></span>
+              <span>Gifts <b>{pendingGiftCount}</b></span>
+            </div>
+          </div>
+        )}
+
+        {inShell && paused && (
+          <div className="pause-action-stack">
+            <YardButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>Resume</YardButton>
+            <div className="button-row two">
+              <YardButton icon={RotateCcw} subtle onClick={() => { setPaused(false); setInShell(false); }}>Setup</YardButton>
+              <YardButton icon={Home} danger onClick={() => { setPaused(false); setInShell(false); setActiveTab("garden"); }}>Exit</YardButton>
+            </div>
           </div>
         )}
 

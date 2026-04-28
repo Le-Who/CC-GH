@@ -136,6 +136,28 @@ function viewHeight(app) {
   return app.screen?.height || app.renderer.height;
 }
 
+function shellElement(app) {
+  if (typeof document === "undefined") return null;
+  return app.canvas?.closest?.(".game-shell") || null;
+}
+
+function reserveFromShellChrome(app, selector, fallback = 0) {
+  const canvasRect = app.canvas?.getBoundingClientRect?.();
+  const chromeRect = shellElement(app)?.querySelector?.(selector)?.getBoundingClientRect?.();
+  if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
+  const reserve = chromeRect.bottom - canvasRect.top + 8;
+  return Math.max(fallback, Math.ceil(reserve));
+}
+
+function publishCanvasLayout(app, name, layout) {
+  const dataset = app.canvas?.dataset;
+  if (!dataset || !layout) return;
+  const prefix = name === "match3" ? "match3" : name;
+  dataset[`${prefix}BoardTop`] = String(Math.round(layout.top * 100) / 100);
+  dataset[`${prefix}BoardLeft`] = String(Math.round(layout.left * 100) / 100);
+  dataset[`${prefix}BoardSize`] = String(Math.round(layout.size * 100) / 100);
+}
+
 function currentUiTheme() {
   if (typeof document === "undefined") return "light";
   return document.documentElement.getAttribute("data-ui-theme") === "dark" ? "dark" : "light";
@@ -1405,9 +1427,11 @@ export function buildMatch3Scene(app, initial = {}) {
     const board = state.board || state.savedModes?.[state.gameMode || "classic"]?.board || [];
     const fallback = data.fallbackBoard || [];
     const actual = board.length ? board : fallback;
-    const fitted = fit(app, BOARD_SIZE, BOARD_SIZE, 14, 44, { verticalAnchor: 0.66 });
+    const hudReserve = state.gameActive ? reserveFromShellChrome(app, ".game-play-hud", data.match3HudReserve || 0) : 0;
+    const fitted = fitWithTopReserve(app, BOARD_SIZE, BOARD_SIZE, 14, hudReserve, 44, { verticalAnchor: 0.66 });
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
+    publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
     root.addChild(tiledSprite(gameAsset(`${POTIONS_IMAGE_BASE}/shelf-block.png`), left - 4, top - 4, size + 8, size + 8, 0.16));
     queueMatch3Animation(data.match3Animation);
@@ -1467,6 +1491,11 @@ export function buildMatch3Scene(app, initial = {}) {
       data = next || {};
       if (drag) updateDragVisual();
       else draw();
+    },
+    resize(next = data) {
+      data = next || {};
+      clear(effects);
+      draw();
     },
     destroy() {
       cleanup();

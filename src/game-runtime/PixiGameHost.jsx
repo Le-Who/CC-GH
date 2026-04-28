@@ -39,6 +39,44 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
     };
   }, []);
 
+  useEffect(() => {
+    let resizeFrame = 0;
+    let lastWidth = 0;
+    let lastHeight = 0;
+    const syncSize = () => {
+      window.cancelAnimationFrame(resizeFrame);
+      resizeFrame = window.requestAnimationFrame(() => {
+        const app = appRef.current;
+        const container = containerRef.current;
+        if (!app || !container) return;
+        const rect = container.getBoundingClientRect();
+        const width = Math.max(1, Math.round(rect.width));
+        const height = Math.max(1, Math.round(rect.height));
+        if (width === lastWidth && height === lastHeight) return;
+        lastWidth = width;
+        lastHeight = height;
+        app.renderer?.resize?.(width, height);
+        if (typeof sceneRef.current?.resize === "function") {
+          sceneRef.current.resize(stateRef.current);
+        } else {
+          sceneRef.current?.update?.(stateRef.current);
+        }
+        app.render?.();
+      });
+    };
+
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(syncSize) : null;
+    if (observer && containerRef.current) observer.observe(containerRef.current);
+    window.addEventListener("resize", syncSize);
+    window.visualViewport?.addEventListener?.("resize", syncSize);
+    return () => {
+      window.cancelAnimationFrame(resizeFrame);
+      observer?.disconnect();
+      window.removeEventListener("resize", syncSize);
+      window.visualViewport?.removeEventListener?.("resize", syncSize);
+    };
+  }, []);
+
   const beginGesture = (event) => {
     activePointerRef.current = event.pointerId;
     const target = typeof event.target?.setPointerCapture === "function" ? event.target : event.currentTarget;

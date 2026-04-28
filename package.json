@@ -9,8 +9,9 @@
     "start": "node server.js",
     "dev:server": "node server.js",
     "dev": "vite",
-    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js",
-    "test:perf": "node --test tests/perf.test.js",
+    "test": "node --test --test-concurrency=1 tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js",
+    "test:perf": "node --test tests/perf.test.js tests/perf-guard.test.js",
+    "perf:guard": "node scripts/perf-guard.mjs",
     "test:cleanup": "node scripts/check-platform-cleanup.mjs",
     "migrate:accounts": "node scripts/migrate-accounts.mjs"
   },

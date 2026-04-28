@@ -196,9 +196,9 @@ export default function TriviaGame() {
           </div>
         )}
       </aside>
-      <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
+      <aside className={`side-panel${inShell ? " game-menu-overlay trivia-pause-overlay" : ""}`}>
         {inShell && (
-          <div className="panel-header">
+          <div className="panel-header pause-panel-header">
             <div>
               <strong>{view === "results" || view === "duel-results" ? t("trivia.result") : t("common.pause")}</strong>
               <span>{t("common.score")} {sessionScore} · {t("trivia.streak", { streak: streak || 0 })}</span>
@@ -206,31 +206,45 @@ export default function TriviaGame() {
           </div>
         )}
         {inShell && (
-          <div className="button-row">
-            {questionActive && paused && <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
-            <PanelButton
-              icon={RotateCcw}
-              subtle
-              onClick={() => {
-                setPaused(false);
-                setQuestion(null);
-                setView("menu");
-              }}
-            >
-              {t("common.setup")}
-            </PanelButton>
-            <PanelButton
-              icon={Home}
-              danger
-              onClick={() => {
-                setPaused(false);
-                setQuestion(null);
-                setView("menu");
-                exitToHub();
-              }}
-            >
-              {t("common.exit")}
-            </PanelButton>
+          <div className="pause-menu-frame pause-menu-trivia" data-pause-menu="trivia">
+            <span className="pause-menu-kicker">{paused ? t("pause.paused") : t("trivia.result")}</span>
+            <strong>{questionActive ? t("pause.triviaFrozen") : t("pause.triviaReady")}</strong>
+            <small>{questionActive ? t("pause.triviaPlan") : t("pause.triviaResults")}</small>
+            <div className="pause-menu-context">
+              <span>{t("common.score")} <b>{sessionScore}</b></span>
+              <span>{t("trivia.streakLabel")} <b>{streak || 0}</b></span>
+              <span>{t("common.questionShort")} <b>{question ? `${(question.index ?? 0) + 1}/${question.total || "?"}` : "-"}</b></span>
+            </div>
+          </div>
+        )}
+        {inShell && (
+          <div className="pause-action-stack">
+            {questionActive && paused && <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
+            <div className="button-row two">
+              <PanelButton
+                icon={RotateCcw}
+                subtle
+                onClick={() => {
+                  setPaused(false);
+                  setQuestion(null);
+                  setView("menu");
+                }}
+              >
+                {t("common.setup")}
+              </PanelButton>
+              <PanelButton
+                icon={Home}
+                danger
+                onClick={() => {
+                  setPaused(false);
+                  setQuestion(null);
+                  setView("menu");
+                  exitToHub();
+                }}
+              >
+                {t("common.exit")}
+              </PanelButton>
+            </div>
           </div>
         )}
         <strong>{t("trivia.recentDuels")}</strong>
@@ -265,4 +279,3 @@ function QuestionPanel({ question, score, streak, submitAnswer }) {
     </div>
   );
 }
-

@@ -11,6 +11,8 @@
 - Replaced the old Pet Room tab with Cozy Yard, an original mixed-pet idle collector with food bowls, placeable goodies, classic-hour server visits, gifts, petbook, album metadata, mementos, worn/fixable goodies, expansion, remodels, and helper companion configuration.
 - Added a persisted light/dark UI theme toggle. The light theme remains the default, while the dark theme reuses the older matte Garden Shelf surface treatment across Hub chrome, Garden Shelf modals/sheets, shared glass menus, and in-game HUD overlays.
 - Centralized the shared glass UI tokens for Hub stats, game menu overlays, HUDs, Garden Shelf panels, and bottom navigation, with reduced mobile blur and reduced-transparency fallbacks to keep the Telegram webview readable and cheaper to composite.
+- Reworked pause overlays with accessible dialog focus, 44px-plus touch targets, game-specific recovery context, and light/dark theme-safe pause cards: Blox now summarizes board/tray recovery, Gem Crush locks mode/reshuffle changes during active runs, Merge makes Resume primary and Trash explicit, Bubbo exposes frozen pressure/queue state, Brain Blitz preserves the answer grid, and Cozy Yard freezes stage motion while server-timed visits continue.
+- Fixed Gem Crush live layout so the Pixi board reserves the measured HUD height, stays clear of the stats strip on wide/short webviews, and redraws on container or Telegram viewport resize without requiring pause/resume.
 - Fixed Garden Shelf offline rewards disappearing after a brief flash by preserving locally generated `offlineEarnings` through authoritative `garden.sync` payload refreshes until the player explicitly collects the reward.
 - Fixed Gem Crush post-move visual desync by starting delayed Pixi effect tweens when their delay reaches zero and by avoiding fallback emoji/icon drawing on top of textured Puzzling Potions pieces.
 - Moved Bubbo onto the shared `GameShell` overlay/HUD path instead of its one-off shell wrapper so start, live, and pause states use the same glass menu implementation as Blox, Gem Crush, and Merge.
@@ -50,11 +52,14 @@
 
 ### Operations
 
+- Added `pnpm run perf:guard`, a gameplay hot-path performance budget runner with p50/p95/max timings and an ignored JSON report under `artifacts/perf/`.
 - Propagated the GitHub commit SHA as `BUILD_ID`, `VITE_BUILD_ID`, and `APP_BUILD_ID` through Docker build, Compose runtime, and the deploy workflow.
 - Removed obsolete benchmark/check scratch scripts, legacy README/changelog stubs, and stale eslint report artifacts from the active tree, then tightened the cleanup allowlist.
 
 ### Tests
 
+- Added `tests/perf-guard.test.js` to keep Blox, Gem Crush, Merge, Bubbo, Garden Shelf, Brain Blitz, and Cozy Yard hot-path budgets explicit in the Node suite.
+- Added Playwright coverage proving per-game pause menus preserve active gameplay context, hide active Gem Crush mode changes, keep Resume as the primary recovery action, and work across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard.
 - Added unit/store coverage for HTTP Yard time authority, idempotent Yard purchases/gift collection/daily letters, terminal client-action conflicts, outbox timeout/network persistence, success removal, storage restore, and companion-config coalescing.
 - Verified production builds keep Pixi out of the startup HTML and initial app chunk, moving the runtime to async chunks while keeping the initial app chunk below the previous Vite large-chunk warning threshold.
 - Added unit and Playwright coverage for Cozy Yard activity anchors, old active-visitor snapshot normalization, broken-goodie visitor attraction, multi-visitor large-goodie anchors, manifest background overrides, layered visitor rendering, and selected-visitor photo capture.
@@ -62,6 +67,7 @@
 - Added mobile Playwright glass UI smoke coverage for the light and dark Hub surfaces plus Garden settings, Garden seed shop, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard start/live/pause menus.
 - Added Garden Shelf Playwright coverage proving generated offline rewards stay visible until the player clicks `Collect Gold`.
 - Added Match-3 scene coverage for delayed effect tween startup and a mobile consecutive-swap screenshot after real cascades to guard against stuck top-row overlay pieces.
+- Added Gem Crush Playwright coverage for live HUD overlap and immediate Pixi board recentering after viewport resize on desktop and mobile Chromium, with gesture tests now using the scene's actual board geometry.
 - Added shell/theme regression guards proving the matte Garden Shelf palette exists as a global dark theme and that players can switch it from the shared topbar.
 - Extended Garden Shelf Playwright coverage for the new responsive asset art, locked plant previews, watering indicator, and Russian language switch on desktop and mobile Chromium.
 - Added update-manager core tests for build-id comparison, reload guarding, corrupt guard recovery, and cache-busting URL generation.

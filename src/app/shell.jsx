@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Pause, Sparkles } from "lucide-react";
 import { audioManager } from "../services/audioManager.js";
@@ -8,11 +9,11 @@ export function formatCount(value) {
   return String(value);
 }
 
-export function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, subtle, active, title }) {
+export function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, subtle, active, title, className = "" }) {
   return (
     <button
       type="button"
-      className={`panel-button${danger ? " danger" : ""}${subtle ? " subtle" : ""}${active ? " active" : ""}`}
+      className={`panel-button${danger ? " danger" : ""}${subtle ? " subtle" : ""}${active ? " active" : ""}${className ? ` ${className}` : ""}`}
       disabled={disabled}
       aria-label={title || (typeof children === "string" ? children : undefined)}
       onClick={(event) => {
@@ -69,6 +70,17 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
 
 export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "" }) {
   const reduceMotion = useReducedMotion();
+  const overlayRef = useRef(null);
+
+  useEffect(() => {
+    if (phase === "playing") return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const target = overlayRef.current?.querySelector("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])");
+      target?.focus?.({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [gameId, phase]);
+
   return (
     <div
       className={`game-layout game-shell shell-${phase} shell-skin-${skin}${className ? ` ${className}` : ""}`}
@@ -80,7 +92,13 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
         {phase !== "playing" && (
           <motion.aside
             key={`${gameId}-${phase}`}
+            ref={overlayRef}
             className={`side-panel game-menu-overlay ${overlayClassName}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${gameId} ${phase} menu`}
+            data-menu-phase={phase}
+            tabIndex={-1}
             initial={reduceMotion ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

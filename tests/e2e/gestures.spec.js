@@ -26,6 +26,32 @@ async function hostBox(page) {
   return box;
 }
 
+async function match3BoardLayout(page) {
+  const canvas = page.locator('[data-game-shell="match3"] .pixi-host canvas');
+  await expect(canvas).toBeVisible();
+  let layout = null;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    layout = await canvas.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const boardLeft = Number(node.dataset.match3BoardLeft);
+      const boardTop = Number(node.dataset.match3BoardTop);
+      const boardSize = Number(node.dataset.match3BoardSize);
+      if (!Number.isFinite(boardLeft) || !Number.isFinite(boardTop) || !Number.isFinite(boardSize)) return null;
+      const gridSize = boardSize - 20;
+      return {
+        left: rect.x + boardLeft + 10,
+        top: rect.y + boardTop + 10,
+        size: gridSize,
+        cell: gridSize / 8,
+      };
+    });
+    if (layout?.size > 140) return layout;
+    await page.waitForTimeout(100);
+  }
+  expect(layout?.size || 0).toBeGreaterThan(140);
+  return layout;
+}
+
 function findValidMatch3Move(board) {
   if (!Array.isArray(board)) return null;
   for (let y = 0; y < board.length; y += 1) {
@@ -129,11 +155,7 @@ test.describe("Pixi touch and drag interactions", () => {
     await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
     await canvasIsNonBlank(page);
 
-    const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 44));
-    const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 44 - size - 28) * 0.66;
-    const cell = size / 8;
+    const { left, top, cell } = await match3BoardLayout(page);
 
     await page.mouse.move(left + cell * 0.5, top + cell * 0.5);
     await page.mouse.down();
@@ -161,11 +183,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const move = findValidMatch3Move(board);
     expect(move).toBeTruthy();
 
-    const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 44));
-    const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 44 - size - 28) * 0.66;
-    const cell = size / 8;
+    const { left, top, cell } = await match3BoardLayout(page);
     const start = {
       x: left + cell * (move.from.x + 0.5),
       y: top + cell * (move.from.y + 0.5),
@@ -196,11 +214,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const startBody = await initialSync;
     await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
 
-    const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 28 - 44));
-    const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 44 - size - 28) * 0.66;
-    const cell = size / 8;
+    const { left, top, cell } = await match3BoardLayout(page);
     const dragMove = async (move) => {
       const start = {
         x: left + cell * (move.from.x + 0.5),

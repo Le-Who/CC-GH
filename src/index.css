@@ -671,6 +671,7 @@ h1 {
   box-shadow: var(--glass-shadow-strong);
   contain: paint;
   scrollbar-width: thin;
+  outline: none;
 }
 
 .game-shell.shell-paused::after,
@@ -883,6 +884,104 @@ h1 {
 .panel-button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+.panel-button.pause-primary,
+.yard-button.pause-primary {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06)),
+    color-mix(in srgb, var(--mint) 82%, var(--amber));
+  color: var(--navy);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--mint) 24%, transparent);
+}
+
+.panel-button:focus-visible,
+.yard-button:focus-visible,
+.answer-grid button:focus-visible,
+.mode-grid button:focus-visible,
+.section-tabs button:focus-visible,
+.theme-toggle:focus-visible,
+.audio-toggle:focus-visible,
+.status-dot:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--amber) 72%, white);
+  outline-offset: 2px;
+}
+
+.pause-panel-header {
+  align-items: stretch;
+}
+
+.pause-menu-frame,
+.pause-menu-callout {
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    color-mix(in srgb, var(--glass-card-strong) 74%, var(--field));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 22%, transparent);
+}
+
+.pause-menu-frame {
+  display: grid;
+  gap: 8px;
+  padding: 11px;
+  overflow: hidden;
+}
+
+.pause-menu-kicker {
+  color: color-mix(in srgb, var(--shell-accent, var(--mint)) 72%, var(--muted));
+  font-size: 0.68rem;
+  font-weight: 1000;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.pause-menu-frame > strong {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 1000;
+}
+
+.pause-menu-frame > small,
+.pause-menu-callout {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+.pause-menu-context {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pause-menu-context span {
+  min-height: 44px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  background: color-mix(in srgb, var(--shell-accent, var(--mint)) 12%, var(--glass-card-strong));
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.pause-menu-context b {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.pause-menu-callout {
+  padding: 9px 10px;
+}
+
+.pause-action-stack {
+  display: grid;
+  gap: 8px;
 }
 
 .button-row,
@@ -1698,7 +1797,7 @@ button.item-card {
 }
 
 .yard-button {
-  min-height: 38px;
+  min-height: 44px;
   border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
   display: inline-flex;

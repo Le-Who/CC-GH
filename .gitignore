@@ -19,6 +19,7 @@ concurrency_test.js
 playwright-report/
 test-results/
 playwright/.cache/
+artifacts/perf/
 
 package-lock.json
 .pnpm-store

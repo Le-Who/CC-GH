@@ -30,6 +30,7 @@ test.describe("New-stack minigame smoke", () => {
     expect(viewport).not.toBeNull();
     expect(overlayBox.x).toBeGreaterThanOrEqual(0);
     expect(overlayBox.x + overlayBox.width).toBeLessThanOrEqual(viewport.width);
+    return overlay;
   }
 
   async function exitToHub(page) {
@@ -37,6 +38,96 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".bottom-tabs")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
     await page.waitForTimeout(260);
+  }
+
+  async function boot(page) {
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("My Garden")).toBeVisible();
+  }
+
+  async function match3CanvasBounds(page) {
+    const shell = page.locator('[data-game-shell="match3"]');
+    const hud = shell.locator(".game-play-hud");
+    const canvas = shell.locator(".pixi-host canvas");
+    await expect(hud).toBeVisible();
+    await expect(canvas).toBeVisible();
+
+    const hudBox = await hud.boundingBox();
+    let board = null;
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      board = await canvas.evaluate(async (node) => {
+        const rect = node.getBoundingClientRect();
+        const layoutTop = Number(node.dataset.match3BoardTop);
+        const layoutLeft = Number(node.dataset.match3BoardLeft);
+        const layoutSize = Number(node.dataset.match3BoardSize);
+        if (Number.isFinite(layoutTop) && Number.isFinite(layoutLeft) && Number.isFinite(layoutSize)) {
+          return {
+            canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+            x: rect.x + layoutLeft,
+            y: rect.y + layoutTop,
+            width: layoutSize,
+            height: layoutSize,
+          };
+        }
+        const image = new Image();
+        image.src = node.toDataURL("image/png");
+        await image.decode();
+        const probe = document.createElement("canvas");
+        probe.width = image.naturalWidth;
+        probe.height = image.naturalHeight;
+        const context = probe.getContext("2d", { willReadFrequently: true });
+        context.drawImage(image, 0, 0);
+        const { data, width, height } = context.getImageData(0, 0, probe.width, probe.height);
+        const minRowPixels = Math.max(24, Math.floor(width * 0.08));
+        const minColPixels = Math.max(24, Math.floor(height * 0.08));
+        const isVisiblePixel = (offset) => data[offset + 3] > 24 || data[offset] + data[offset + 1] + data[offset + 2] > 30;
+        const rowHasBoard = (y) => {
+          let opaque = 0;
+          for (let x = 0; x < width; x += 1) {
+            if (isVisiblePixel((y * width + x) * 4)) opaque += 1;
+          }
+          return opaque >= minRowPixels;
+        };
+        const colHasBoard = (x) => {
+          let opaque = 0;
+          for (let y = 0; y < height; y += 1) {
+            if (isVisiblePixel((y * width + x) * 4)) opaque += 1;
+          }
+          return opaque >= minColPixels;
+        };
+        let top = 0;
+        let bottom = height - 1;
+        let left = 0;
+        let right = width - 1;
+        while (top < height && !rowHasBoard(top)) top += 1;
+        while (bottom > top && !rowHasBoard(bottom)) bottom -= 1;
+        while (left < width && !colHasBoard(left)) left += 1;
+        while (right > left && !colHasBoard(right)) right -= 1;
+        return {
+          canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+          x: rect.x + (left / width) * rect.width,
+          y: rect.y + (top / height) * rect.height,
+          width: ((right - left + 1) / width) * rect.width,
+          height: ((bottom - top + 1) / height) * rect.height,
+        };
+      });
+      if (board.width > 160 && board.height > 160) break;
+      await page.waitForTimeout(100);
+    }
+
+    expect(hudBox).not.toBeNull();
+    expect(board.width).toBeGreaterThan(160);
+    expect(board.height).toBeGreaterThan(160);
+    return { hud: hudBox, board };
+  }
+
+  async function expectMatch3BoardClearOfHud(page) {
+    const { hud, board } = await match3CanvasBounds(page);
+    expect(board.y).toBeGreaterThanOrEqual(hud.y + hud.height + 6);
+    expect(board.x + board.width / 2).toBeGreaterThanOrEqual(board.canvas.x + board.canvas.width * 0.42);
+    expect(board.x + board.width / 2).toBeLessThanOrEqual(board.canvas.x + board.canvas.width * 0.58);
+    return { hud, board };
   }
 
   test("tabs render rich game surfaces and survive real actions", async ({ page }) => {
@@ -167,5 +258,105 @@ test.describe("New-stack minigame smoke", () => {
     expect(roomBox.width).toBeGreaterThanOrEqual(360);
     await pauseActiveGame(page);
     await exitToHub(page);
+  });
+
+  test("pause menus preserve per-game mechanics and expose game-specific recovery state", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 420, height: 680 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `pause_menu_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await boot(page);
+
+    await page.getByRole("button", { name: /Blox/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    let overlay = await pauseActiveGame(page);
+    await expect(overlay.locator('[data-pause-menu="blox"]')).toContainText("Board and tray are preserved");
+    await overlay.getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await overlay.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+
+    await page.getByRole("button", { name: /Gems/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    overlay = await pauseActiveGame(page);
+    await expect(overlay.locator('[data-pause-menu="match3"]')).toContainText("mode locked");
+    await expect(overlay.locator('[data-mode-selector="match3"]')).toHaveCount(0);
+    await overlay.getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await overlay.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+
+    await page.getByRole("button", { name: /Merge/ }).click();
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    overlay = await pauseActiveGame(page);
+    await expect(overlay.locator('[data-pause-menu="merge"]')).toContainText("Board input is paused");
+    await expect(overlay.getByRole("button", { name: /^Resume$/ }).first()).toBeVisible();
+    await overlay.getByRole("button", { name: /^Resume$/ }).first().click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await overlay.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+
+    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    overlay = await pauseActiveGame(page);
+    await expect(overlay.locator('[data-pause-menu="bubbo"]')).toContainText("Pressure and bubble queue are frozen");
+    await overlay.getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await overlay.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+
+    await page.getByRole("button", { name: /Trivia/ }).click();
+    await page.getByRole("button", { name: "Solo" }).click();
+    await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
+    overlay = await pauseActiveGame(page);
+    await expect(overlay.locator('[data-pause-menu="trivia"]')).toContainText("Question is waiting");
+    await expect(page.locator(".answer-grid")).toBeVisible();
+    await overlay.getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await overlay.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+
+    await page.getByRole("button", { name: /Yard/ }).click();
+    await page.getByRole("button", { name: /^Play$/ }).click();
+    overlay = await pauseActiveGame(page);
+    await expect(overlay.locator('[data-pause-menu="yard"]')).toContainText("Yard view is frozen");
+    await overlay.getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await overlay.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+  });
+
+  test("Gem Crush live HUD stays clear and canvas redraws on viewport resize", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.setViewportSize({ width: 980, height: 620 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `match3_resize_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Gems/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+
+    const before = await expectMatch3BoardClearOfHud(page);
+    await page.setViewportSize({ width: 420, height: 700 });
+    await expect(page.locator('[data-game-shell="match3"] .pixi-host canvas')).toBeVisible();
+    await page.waitForFunction(() => {
+      const canvas = document.querySelector('[data-game-shell="match3"] .pixi-host canvas');
+      return canvas && canvas.getBoundingClientRect().width < 520;
+    });
+    const after = await expectMatch3BoardClearOfHud(page);
+
+    expect(after.board.width).toBeLessThan(before.board.width);
+    expect(after.board.width).toBeGreaterThan(after.board.canvas.width * 0.72);
   });
 });

@@ -42,6 +42,8 @@ export default function Match3Game() {
   const [leaders, setLeaders] = useState([]);
   const animationTimerRef = useRef(null);
   const isPlaying = gameActive && !paused;
+  const currentMode = MATCH3_MODES.find((item) => item.id === mode) || MATCH3_MODES[0];
+  const currentReward = score > 0 ? Math.max(5, Math.floor(score / 25)) : 0;
   useImmersiveGame("match3", true);
 
   useEffect(() => {
@@ -178,14 +180,14 @@ export default function Match3Game() {
   const sceneState = useMemo(
     () => ({
       match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked },
-      match3StatusText: `${t(MATCH3_MODES.find((item) => item.id === mode)?.labelKey || "match3.mode.classic")} · ${score} ${t("common.score").toLowerCase()} · ${movesLeft} ${(mode === "timed" ? t("common.time") : t("common.moves")).toLowerCase()}`,
+      match3StatusText: `${t(currentMode.labelKey)} · ${score} ${t("common.score").toLowerCase()} · ${movesLeft} ${(mode === "timed" ? t("common.time") : t("common.moves")).toLowerCase()}`,
       selectedGem: selected,
       match3Animation: matchAnimation,
       onMatch3Cell: onCell,
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [attemptSwap, board, combo, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected, t],
+    [attemptSwap, board, combo, currentMode.labelKey, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected, t],
   );
 
   return (
@@ -196,7 +198,7 @@ export default function Match3Game() {
       hud={(
         <GamePlayHud
           title={t("match3.title")}
-          subtitle={`${t(MATCH3_MODES.find((item) => item.id === mode)?.labelKey || "match3.mode.classic")} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
+          subtitle={`${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
           stats={[
             { label: t("common.score"), value: score },
             { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
@@ -208,35 +210,52 @@ export default function Match3Game() {
       )}
       overlay={(
         <>
-          <div className="panel-header">
+          <div className="panel-header pause-panel-header">
             <div>
               <strong>{t("match3.title")}</strong>
               <span>{t("common.best")} {snapshot?.match3?.highScore || 0} · {t("common.combo")} {combo || "-"}</span>
             </div>
-            <PanelButton icon={Play} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>
+            <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>
+          </div>
+          <div className="pause-menu-frame pause-menu-match3" data-pause-menu="match3">
+            <span className="pause-menu-kicker">{gameActive ? t("pause.paused") : t("pause.ready")}</span>
+            <strong>{gameActive ? t("pause.match3Frozen") : t("pause.match3Ready")}</strong>
+            <small>{gameActive ? t("pause.match3Locked") : t("pause.match3Choose")}</small>
+            <div className="pause-menu-context">
+              <span>{t(currentMode.labelKey)} <b>{mode === "timed" ? t("common.time") : t("common.moves")}</b></span>
+              <span>{t("common.combo")} <b>{combo || "-"}</b></span>
+              <span>{t("common.reward")} <b>{currentReward}</b></span>
+            </div>
           </div>
           {gameActive && paused && (
-            <div className="button-row two">
-              <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-              <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+            <div className="pause-action-stack">
+              <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+              <div className="button-row two">
+                <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+                <PanelButton icon={RotateCcw} subtle onClick={() => start(mode)}>{t("common.new")}</PanelButton>
+              </div>
             </div>
           )}
-          <div className="mode-grid">
-            {MATCH3_MODES.map((item) => (
-              <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
-                <strong>{t(item.labelKey)}</strong>
-                <small>{t(item.hintKey)}</small>
-              </button>
-            ))}
-          </div>
+          {!gameActive ? (
+            <div className="mode-grid" data-mode-selector="match3">
+              {MATCH3_MODES.map((item) => (
+                <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
+                  <strong>{t(item.labelKey)}</strong>
+                  <small>{t(item.hintKey)}</small>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="pause-menu-callout">{t("pause.match3NoModeChange")}</div>
+          )}
           <div className="metric-grid">
             <Stat icon={Trophy} label={t("common.score")} value={score} />
             <Stat icon={Clock} label={mode === "timed" ? t("common.time") : t("common.moves")} value={movesLeft} />
-            <Stat icon={Gem} label={t("common.reward")} value={score > 0 ? Math.max(5, Math.floor(score / 25)) : 0} />
+            <Stat icon={Gem} label={t("common.reward")} value={currentReward} />
           </div>
           <div className="button-row">
             <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
-            <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
+            <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
             <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
           </div>
           <Leaderboard entries={leaders} />
@@ -247,4 +266,3 @@ export default function Match3Game() {
     </GameShell>
   );
 }
-
