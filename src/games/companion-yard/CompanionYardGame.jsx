@@ -24,6 +24,7 @@ import {
   getUnlockedYardSlots,
 } from "../../../game-logic.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
+import { PauseBrief } from "../../app/shell.jsx";
 import { audioManager } from "../../services/audioManager.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset } from "./assets.js";
 
@@ -207,6 +208,7 @@ export default function CompanionYardGame() {
   const [assetManifest, setAssetManifest] = useState(null);
   const [renderNow, setRenderNow] = useState(snapshot?.serverTime || Date.now());
   const isPlaying = inShell && !paused;
+  const activePause = inShell && paused;
   const shouldAnimateStage = !inShell || !paused;
   const nameInputRef = useRef(null);
   const panelRef = useRef(null);
@@ -464,7 +466,7 @@ export default function CompanionYardGame() {
         <div className="panel-header">
           <div>
             <strong>Cozy Yard</strong>
-            <span>{selectedRemodel.name || "Morning Meadow"} · {yard.expansion?.level >= 2 ? "Wide yard" : "Small yard"}</span>
+            <span>{activePause ? "Paused" : `${selectedRemodel.name || "Morning Meadow"} · ${yard.expansion?.level >= 2 ? "Wide yard" : "Small yard"}`}</span>
           </div>
           {!(inShell && paused) && (
             <YardButton icon={Play} className="pause-primary" onClick={() => { setInShell(true); setPaused(false); }}>
@@ -473,20 +475,21 @@ export default function CompanionYardGame() {
           )}
         </div>
 
-        {inShell && paused && (
-          <div className="pause-menu-frame pause-menu-yard" data-pause-menu="yard">
-            <span className="pause-menu-kicker">Paused</span>
-            <strong>Yard view is frozen</strong>
-            <small>Visitors and gifts remain server-timed; the stage stops moving while this menu is open.</small>
-            <div className="pause-menu-context">
-              <span>Treats <b>{formatCount(yard.currencies?.treats || 0)}</b></span>
-              <span>Visitors <b>{activeVisitorCount}</b></span>
-              <span>Gifts <b>{pendingGiftCount}</b></span>
-            </div>
-          </div>
+        {activePause && (
+          <PauseBrief
+            gameId="yard"
+            kicker="Paused"
+            title="Yard view is frozen"
+            body="Watch visitors, collect gifts, and arrange the yard. Visit timers keep running even while the animation is paused."
+            status={[
+              { label: "Visitors", value: activeVisitorCount },
+              { label: "Gifts", value: pendingGiftCount },
+              { label: "Treats", value: formatCount(yard.currencies?.treats || 0) },
+            ]}
+          />
         )}
 
-        {inShell && paused && (
+        {activePause && (
           <div className="pause-action-stack">
             <YardButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>Resume</YardButton>
             <div className="button-row two">
@@ -496,21 +499,23 @@ export default function CompanionYardGame() {
           </div>
         )}
 
-        <div className="yard-currency-row">
-          <YardStat label="Treats" value={formatCount(yard.currencies?.treats || 0)} />
-          <YardStat label="Shiny" value={formatCount(yard.currencies?.shinyTreats || 0)} />
-          <YardStat label="Gifts" value={pendingGiftCount} />
-        </div>
+        {!activePause && (
+          <>
+            <div className="yard-currency-row">
+              <YardStat label="Treats" value={formatCount(yard.currencies?.treats || 0)} />
+              <YardStat label="Shiny" value={formatCount(yard.currencies?.shinyTreats || 0)} />
+              <YardStat label="Gifts" value={pendingGiftCount} />
+            </div>
 
-        <div className="section-tabs companion-yard-tabs" role="tablist">
-          {PANEL_TABS.map((tab) => (
-            <button key={tab.id} className={panelTab === tab.id ? "active" : ""} onClick={() => setPanelTab(tab.id)}>
-              {tab.label}
-            </button>
-          ))}
-        </div>
+            <div className="section-tabs companion-yard-tabs" role="tablist">
+              {PANEL_TABS.map((tab) => (
+                <button key={tab.id} className={panelTab === tab.id ? "active" : ""} onClick={() => setPanelTab(tab.id)}>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-        {panelTab === "setup" && (
+            {panelTab === "setup" && (
           <div className="panel-scroll companion-yard-scroll">
             <div className="yard-card">
               <strong>Food bowls</strong>
@@ -562,9 +567,9 @@ export default function CompanionYardGame() {
               })}
             </div>
           </div>
-        )}
+            )}
 
-        {panelTab === "shop" && (
+            {panelTab === "shop" && (
           <div className="panel-scroll companion-yard-scroll">
             <div className="yard-card">
               <strong>Food shop</strong>
@@ -591,9 +596,9 @@ export default function CompanionYardGame() {
               ))}
             </div>
           </div>
-        )}
+            )}
 
-        {panelTab === "petbook" && (
+            {panelTab === "petbook" && (
           <div className="panel-scroll companion-yard-scroll yard-petbook">
             {Object.values(visitors).map((visitor) => {
               const entry = yard.petbook?.[visitor.id];
@@ -610,9 +615,9 @@ export default function CompanionYardGame() {
               );
             })}
           </div>
-        )}
+            )}
 
-        {panelTab === "album" && (
+            {panelTab === "album" && (
           <div className="panel-scroll companion-yard-scroll yard-album">
             {!(yard.album?.photos || []).length && <div className="empty-state">Take photos of active visitors from the live HUD.</div>}
             {(yard.album?.photos || []).map((photo) => {
@@ -626,9 +631,9 @@ export default function CompanionYardGame() {
               );
             })}
           </div>
-        )}
+            )}
 
-        {panelTab === "remodel" && (
+            {panelTab === "remodel" && (
           <div className="panel-scroll companion-yard-scroll">
             <div className="yard-card">
               <strong>Companion</strong>
@@ -683,6 +688,8 @@ export default function CompanionYardGame() {
               ))}
             </div>
           </div>
+            )}
+          </>
         )}
       </aside>
     </div>

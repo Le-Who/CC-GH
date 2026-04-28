@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Check, ChevronRight, Home, Play, RotateCcw, Trophy } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
-import { GamePlayHud, PanelButton } from "../../app/shell.jsx";
+import { GamePlayHud, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 export default function TriviaGame() {
@@ -24,6 +24,7 @@ export default function TriviaGame() {
   const inShell = view !== "menu";
   const questionActive = (view === "solo" || view === "duel-play") && question;
   const isPlaying = questionActive && !paused;
+  const activePause = questionActive && paused;
   useImmersiveGame("trivia", inShell);
 
   useEffect(() => {
@@ -201,25 +202,26 @@ export default function TriviaGame() {
           <div className="panel-header pause-panel-header">
             <div>
               <strong>{view === "results" || view === "duel-results" ? t("trivia.result") : t("common.pause")}</strong>
-              <span>{t("common.score")} {sessionScore} · {t("trivia.streak", { streak: streak || 0 })}</span>
+              <span>{activePause ? t("pause.paused") : `${t("common.score")} ${sessionScore} · ${t("trivia.streak", { streak: streak || 0 })}`}</span>
             </div>
           </div>
         )}
         {inShell && (
-          <div className="pause-menu-frame pause-menu-trivia" data-pause-menu="trivia">
-            <span className="pause-menu-kicker">{paused ? t("pause.paused") : t("trivia.result")}</span>
-            <strong>{questionActive ? t("pause.triviaFrozen") : t("pause.triviaReady")}</strong>
-            <small>{questionActive ? t("pause.triviaPlan") : t("pause.triviaResults")}</small>
-            <div className="pause-menu-context">
-              <span>{t("common.score")} <b>{sessionScore}</b></span>
-              <span>{t("trivia.streakLabel")} <b>{streak || 0}</b></span>
-              <span>{t("common.questionShort")} <b>{question ? `${(question.index ?? 0) + 1}/${question.total || "?"}` : "-"}</b></span>
-            </div>
-          </div>
+          <PauseBrief
+            gameId="trivia"
+            kicker={paused ? t("pause.paused") : t("trivia.result")}
+            title={questionActive ? t("pause.triviaFrozen") : t("pause.triviaReady")}
+            body={questionActive ? t("pause.triviaIntro") : t("pause.triviaResults")}
+            status={questionActive ? [
+              { label: t("common.score"), value: sessionScore },
+              { label: t("trivia.streakLabel"), value: streak || 0 },
+              { label: t("common.questionShort"), value: question ? `${(question.index ?? 0) + 1}/${question.total || "?"}` : "-" },
+            ] : []}
+          />
         )}
         {inShell && (
           <div className="pause-action-stack">
-            {questionActive && paused && <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
+            {activePause && <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
             <div className="button-row two">
               <PanelButton
                 icon={RotateCcw}
@@ -247,12 +249,16 @@ export default function TriviaGame() {
             </div>
           </div>
         )}
-        <strong>{t("trivia.recentDuels")}</strong>
-        <div className="panel-scroll compact-list">
-          {history.length ? history.map((item, index) => (
-            <span key={item.roomId || index}>{item.roomId || t("trivia.duel")} · {item.status || item.result || t("trivia.played")}</span>
-          )) : <span>{t("trivia.noDuels")}</span>}
-        </div>
+        {!activePause && (
+          <>
+            <strong>{t("trivia.recentDuels")}</strong>
+            <div className="panel-scroll compact-list">
+              {history.length ? history.map((item, index) => (
+                <span key={item.roomId || index}>{item.roomId || t("trivia.duel")} · {item.status || item.result || t("trivia.played")}</span>
+              )) : <span>{t("trivia.noDuels")}</span>}
+            </div>
+          </>
+        )}
       </aside>
     </div>
   );

@@ -3,7 +3,7 @@ import { Check, Gem, Home, Play, RotateCcw, Sparkles, Trophy } from "lucide-reac
 import { audioManager } from "../../services/audioManager.js";
 import { BUBBO_SHOTS, advanceBubboPressure, applyBubboShot, createBubboRun, generateBubboWave, getBubboRemainingCount, isBubboDanger, randomBubboColor } from "../../game-core/bubbo/engine.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GamePlayHud, GameShell, PanelButton, Stat } from "../../app/shell.jsx";
+import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 export default function BubboGame() {
@@ -32,6 +32,7 @@ export default function BubboGame() {
   const highScore = snapshot?.bubbo?.highScore || 0;
   const remainingBubbles = getBubboRemainingCount(board);
   const isPlaying = gameActive && !paused;
+  const activePause = gameActive && paused;
   const danger = isBubboDanger(board);
   useImmersiveGame("bubbo", true);
 
@@ -230,53 +231,61 @@ export default function BubboGame() {
           <div className="panel-header pause-panel-header">
             <div>
               <strong>{t("bubbo.title")}</strong>
-              <span>{t("common.best")} {highScore} · {remainingBubbles} {t("bubbo.bubbles")} · {t("common.pressure").toLowerCase()} {Math.round(pressureStep * 100)}%</span>
+              <span>{activePause ? t("pause.paused") : `${t("common.best")} ${highScore} · ${remainingBubbles} ${t("bubbo.bubbles")} · ${t("common.pressure").toLowerCase()} ${Math.round(pressureStep * 100)}%`}</span>
             </div>
-            <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={start}>
-              {gameActive ? t("common.restart") : t("common.start")}
-            </PanelButton>
+            {!activePause && (
+              <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={start}>
+                {gameActive ? t("common.restart") : t("common.start")}
+              </PanelButton>
+            )}
           </div>
-          <div className="pause-menu-frame pause-menu-bubbo" data-pause-menu="bubbo">
-            <span className="pause-menu-kicker">{gameActive ? t("pause.paused") : t("pause.ready")}</span>
-            <strong>{gameActive ? t("pause.bubboFrozen") : t("pause.bubboReady")}</strong>
-            <small>{t("pause.bubboPlan")}</small>
-            <div className="pause-menu-context">
-              <span>{t("common.pressure")} <b>{Math.round(pressureStep * 100)}%</b></span>
-              <span>{t("common.shots")} <b>{shotsLeft}</b></span>
-              <span>{t("bubbo.bubbles")} <b>{remainingBubbles}</b></span>
-            </div>
-          </div>
-          {gameActive && paused && (
+          <PauseBrief
+            gameId="bubbo"
+            kicker={gameActive ? t("pause.paused") : t("pause.ready")}
+            title={gameActive ? t("pause.bubboFrozen") : t("pause.bubboReady")}
+            body={gameActive ? t("pause.bubboIntro") : t("pause.bubboPlan")}
+            status={gameActive ? [
+              { label: t("common.shots"), value: shotsLeft },
+              { label: t("bubbo.bubbles"), value: remainingBubbles },
+              { label: t("common.pressure"), value: `${Math.round(pressureStep * 100)}%` },
+            ] : []}
+          />
+          {activePause && (
             <div className="pause-action-stack">
               <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-              <div className="button-row two">
-                <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+              <div className="button-row">
+                <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.endRun")}</PanelButton>
                 <PanelButton icon={RotateCcw} subtle onClick={start}>{t("common.restart")}</PanelButton>
+                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
             </div>
           )}
-          <div className="metric-grid">
-            <Stat icon={Trophy} label={t("common.score")} value={score} />
-            <Stat icon={Sparkles} label={t("common.shots")} value={shotsLeft} />
-            <Stat icon={Gem} label={t("bubbo.bubbles")} value={remainingBubbles} />
-          </div>
-          <div className="button-row">
-            <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
-            <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
-              const run = createBubboRun("local-preview");
-              setBoard(run.board);
-              setSeed(run.seed);
-              setWaveIndex(run.waveIndex);
-              setRowOffset(run.rowOffset || 0);
-              setPressure(0);
-              setPressureStep(0);
-            }}>{t("bubbo.newField")}</PanelButton>
-            <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
-          </div>
-          <div className="leaderboard">
-            <strong>{t("bubbo.runStatus")}</strong>
-            <span>{danger ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
-          </div>
+          {!activePause && (
+            <>
+              <div className="metric-grid">
+                <Stat icon={Trophy} label={t("common.score")} value={score} />
+                <Stat icon={Sparkles} label={t("common.shots")} value={shotsLeft} />
+                <Stat icon={Gem} label={t("bubbo.bubbles")} value={remainingBubbles} />
+              </div>
+              <div className="button-row">
+                <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+                <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
+                  const run = createBubboRun("local-preview");
+                  setBoard(run.board);
+                  setSeed(run.seed);
+                  setWaveIndex(run.waveIndex);
+                  setRowOffset(run.rowOffset || 0);
+                  setPressure(0);
+                  setPressureStep(0);
+                }}>{t("bubbo.newField")}</PanelButton>
+                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
+              </div>
+              <div className="leaderboard">
+                <strong>{t("bubbo.runStatus")}</strong>
+                <span>{danger ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
+              </div>
+            </>
+          )}
         </>
       )}
     >

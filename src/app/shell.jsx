@@ -38,6 +38,25 @@ export function Stat({ icon: Icon, label, value }) {
   );
 }
 
+export function PauseBrief({ gameId, kicker, title, body, status = [] }) {
+  return (
+    <div className="pause-menu-frame pause-menu-brief" data-pause-menu={gameId}>
+      <span className="pause-menu-kicker">{kicker}</span>
+      <strong>{title}</strong>
+      <small>{body}</small>
+      {status.length > 0 && (
+        <div className="pause-status-line">
+          {status.map((item) => (
+            <span key={item.label}>
+              {item.label} <b>{item.value}</b>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = null, extraActions = null, className = "" }) {
   const reduceMotion = useReducedMotion();
   const { t } = useAppI18n();

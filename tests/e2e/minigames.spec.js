@@ -33,6 +33,13 @@ test.describe("New-stack minigame smoke", () => {
     return overlay;
   }
 
+  async function expectCompactPauseMenu(overlay, buttonCount) {
+    await expect(overlay.locator(".metric-grid")).toHaveCount(0);
+    await expect(overlay.locator(".generator-list")).toHaveCount(0);
+    await expect(overlay.locator(".leaderboard")).toHaveCount(0);
+    await expect(overlay.getByRole("button")).toHaveCount(buttonCount);
+  }
+
   async function exitToHub(page) {
     await page.locator(".game-menu-overlay:visible").first().getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
@@ -272,7 +279,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     let overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="blox"]')).toContainText("Board and tray are preserved");
+    await expect(overlay.locator('[data-pause-menu="blox"]')).toContainText("Place blocks from the tray");
+    await expectCompactPauseMenu(overlay, 4);
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
@@ -282,8 +290,9 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="match3"]')).toContainText("mode locked");
+    await expect(overlay.locator('[data-pause-menu="match3"]')).toContainText("Swap neighboring gems");
     await expect(overlay.locator('[data-mode-selector="match3"]')).toHaveCount(0);
+    await expectCompactPauseMenu(overlay, 4);
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
@@ -293,7 +302,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Merge/ }).click();
     await page.getByRole("button", { name: /^Play$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="merge"]')).toContainText("Board input is paused");
+    await expect(overlay.locator('[data-pause-menu="merge"]')).toContainText("Merge matching items");
+    await expectCompactPauseMenu(overlay, 4);
     await expect(overlay.getByRole("button", { name: /^Resume$/ }).first()).toBeVisible();
     await overlay.getByRole("button", { name: /^Resume$/ }).first().click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
@@ -304,7 +314,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="bubbo"]')).toContainText("Pressure and bubble queue are frozen");
+    await expect(overlay.locator('[data-pause-menu="bubbo"]')).toContainText("Aim a bubble");
+    await expectCompactPauseMenu(overlay, 4);
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
@@ -315,7 +326,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: "Solo" }).click();
     await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="trivia"]')).toContainText("Question is waiting");
+    await expect(overlay.locator('[data-pause-menu="trivia"]')).toContainText("Choose one answer");
+    await expectCompactPauseMenu(overlay, 3);
     await expect(page.locator(".answer-grid")).toBeVisible();
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
@@ -326,7 +338,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Yard/ }).click();
     await page.getByRole("button", { name: /^Play$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="yard"]')).toContainText("Yard view is frozen");
+    await expect(overlay.locator('[data-pause-menu="yard"]')).toContainText("Watch visitors");
+    await expectCompactPauseMenu(overlay, 3);
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);

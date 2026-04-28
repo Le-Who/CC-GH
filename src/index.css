@@ -928,6 +928,11 @@ h1 {
   overflow: hidden;
 }
 
+.pause-menu-brief {
+  gap: 7px;
+  padding: 12px;
+}
+
 .pause-menu-kicker {
   color: color-mix(in srgb, var(--shell-accent, var(--mint)) 72%, var(--muted));
   font-size: 0.68rem;
@@ -950,29 +955,25 @@ h1 {
   line-height: 1.3;
 }
 
-.pause-menu-context {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-}
-
-.pause-menu-context span {
-  min-height: 44px;
-  border: 1px solid var(--glass-border-soft);
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  padding: 6px;
-  background: color-mix(in srgb, var(--shell-accent, var(--mint)) 12%, var(--glass-card-strong));
+.pause-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding-top: 3px;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   font-weight: 900;
-  text-align: center;
 }
 
-.pause-menu-context b {
+.pause-status-line span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.pause-status-line b {
   color: var(--ink);
-  font-size: 0.92rem;
+  font-size: 0.86rem;
 }
 
 .pause-menu-callout {
@@ -982,6 +983,10 @@ h1 {
 .pause-action-stack {
   display: grid;
   gap: 8px;
+}
+
+.pause-action-stack .button-row {
+  align-items: stretch;
 }
 
 .button-row,

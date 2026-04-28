@@ -6,7 +6,7 @@ import { haptic } from "../../platform/telegram.js";
 import { generateBoard, hasValidMoves, attemptMatch3Move, seedDropTokens } from "../../game-core/match3/engine.js";
 import { estimateMatch3CascadeLockMs } from "../../game-core/match3/animation.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GamePlayHud, GameShell, PanelButton, Stat } from "../../app/shell.jsx";
+import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
@@ -42,6 +42,7 @@ export default function Match3Game() {
   const [leaders, setLeaders] = useState([]);
   const animationTimerRef = useRef(null);
   const isPlaying = gameActive && !paused;
+  const activePause = gameActive && paused;
   const currentMode = MATCH3_MODES.find((item) => item.id === mode) || MATCH3_MODES[0];
   const currentReward = score > 0 ? Math.max(5, Math.floor(score / 25)) : 0;
   useImmersiveGame("match3", true);
@@ -213,26 +214,28 @@ export default function Match3Game() {
           <div className="panel-header pause-panel-header">
             <div>
               <strong>{t("match3.title")}</strong>
-              <span>{t("common.best")} {snapshot?.match3?.highScore || 0} · {t("common.combo")} {combo || "-"}</span>
+              <span>{activePause ? t("pause.paused") : `${t("common.best")} ${snapshot?.match3?.highScore || 0} · ${t("common.combo")} ${combo || "-"}`}</span>
             </div>
-            <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>
+            {!activePause && <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>}
           </div>
-          <div className="pause-menu-frame pause-menu-match3" data-pause-menu="match3">
-            <span className="pause-menu-kicker">{gameActive ? t("pause.paused") : t("pause.ready")}</span>
-            <strong>{gameActive ? t("pause.match3Frozen") : t("pause.match3Ready")}</strong>
-            <small>{gameActive ? t("pause.match3Locked") : t("pause.match3Choose")}</small>
-            <div className="pause-menu-context">
-              <span>{t(currentMode.labelKey)} <b>{mode === "timed" ? t("common.time") : t("common.moves")}</b></span>
-              <span>{t("common.combo")} <b>{combo || "-"}</b></span>
-              <span>{t("common.reward")} <b>{currentReward}</b></span>
-            </div>
-          </div>
-          {gameActive && paused && (
+          <PauseBrief
+            gameId="match3"
+            kicker={gameActive ? t("pause.paused") : t("pause.ready")}
+            title={gameActive ? t("pause.match3Frozen") : t("pause.match3Ready")}
+            body={gameActive ? t("pause.match3Intro") : t("pause.match3Choose")}
+            status={gameActive ? [
+              { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.moves") },
+              { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
+              { label: t("common.score"), value: score },
+            ] : []}
+          />
+          {activePause && (
             <div className="pause-action-stack">
               <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-              <div className="button-row two">
-                <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+              <div className="button-row">
+                <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.endRun")}</PanelButton>
                 <PanelButton icon={RotateCcw} subtle onClick={() => start(mode)}>{t("common.new")}</PanelButton>
+                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
             </div>
           )}
@@ -245,20 +248,24 @@ export default function Match3Game() {
                 </button>
               ))}
             </div>
-          ) : (
+          ) : !activePause && (
             <div className="pause-menu-callout">{t("pause.match3NoModeChange")}</div>
           )}
-          <div className="metric-grid">
-            <Stat icon={Trophy} label={t("common.score")} value={score} />
-            <Stat icon={Clock} label={mode === "timed" ? t("common.time") : t("common.moves")} value={movesLeft} />
-            <Stat icon={Gem} label={t("common.reward")} value={currentReward} />
-          </div>
-          <div className="button-row">
-            <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
-            <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
-            <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
-          </div>
-          <Leaderboard entries={leaders} />
+          {!activePause && (
+            <>
+              <div className="metric-grid">
+                <Stat icon={Trophy} label={t("common.score")} value={score} />
+                <Stat icon={Clock} label={mode === "timed" ? t("common.time") : t("common.moves")} value={movesLeft} />
+                <Stat icon={Gem} label={t("common.reward")} value={currentReward} />
+              </div>
+              <div className="button-row">
+                <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+                <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
+                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
+              </div>
+              <Leaderboard entries={leaders} />
+            </>
+          )}
         </>
       )}
     >
