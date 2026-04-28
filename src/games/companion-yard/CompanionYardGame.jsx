@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Camera,
   Check,
@@ -20,10 +20,12 @@ import {
   YARD_GOODIES,
   YARD_REMODELS,
   YARD_VISITORS,
+  getYardGoodieActivities,
   getUnlockedYardSlots,
 } from "../../../game-logic.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { audioManager } from "../../services/audioManager.js";
+import { loadCompanionYardManifest, resolveCompanionYardAsset } from "./assets.js";
 
 const PANEL_TABS = [
   { id: "setup", label: "Setup" },
@@ -55,8 +57,83 @@ function costLabel(cost = {}) {
   return parts.length ? parts.join(" + ") : "Free";
 }
 
-function assetPath(type, id) {
-  return `/games/companion-yard/${type}/${id}.png`;
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function mix(start, end, progress) {
+  return start + (end - start) * progress;
+}
+
+function seedNumber(seed = "") {
+  let hash = 2166136261;
+  const text = String(seed);
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function getEntryPoint(edge, anchorX, anchorY) {
+  if (edge === "right") return { x: 108, y: anchorY };
+  if (edge === "top") return { x: anchorX, y: -8 };
+  if (edge === "bottom") return { x: anchorX, y: 108 };
+  return { x: -8, y: anchorY };
+}
+
+function getVisitActivity(goodie, visit, placed) {
+  const activities = getYardGoodieActivities(goodie, placed?.condition || "new");
+  return activities.find((activity) => activity.id === visit.activityId) || activities[0] || {
+    id: "rest",
+    pose: "sit",
+    x: 0,
+    y: -8,
+    layer: "front",
+    roam: 2,
+  };
+}
+
+function getVisitorMotion(visit, slot, activity, renderNow) {
+  const arrivedAt = Number(visit.arrivedAt) || renderNow;
+  const leavesAt = Math.max(arrivedAt + 60_000, Number(visit.leavesAt) || arrivedAt + 60_000);
+  const progress = clamp((renderNow - arrivedAt) / (leavesAt - arrivedAt), 0, 1);
+  const anchorX = clamp((slot?.x || 50) + (activity?.x || 0), 4, 96);
+  const anchorY = clamp((slot?.y || 70) + (activity?.y || 0), 6, 96);
+  const edgePoint = getEntryPoint(visit.entryEdge, anchorX, anchorY);
+  const exitPoint = getEntryPoint(visit.exitEdge || visit.entryEdge, anchorX, anchorY);
+  const seed = seedNumber(visit.motionSeed || visit.visitId);
+  const roam = Number(activity?.roam || 0);
+
+  if (progress < 0.18) {
+    const local = progress / 0.18;
+    return {
+      x: mix(edgePoint.x, anchorX, local),
+      y: mix(edgePoint.y, anchorY, local),
+      pose: "walk",
+      phase: "entering",
+    };
+  }
+
+  if (progress > 0.84) {
+    const local = (progress - 0.84) / 0.16;
+    return {
+      x: mix(anchorX, exitPoint.x, local),
+      y: mix(anchorY, exitPoint.y, local),
+      pose: "walk",
+      phase: "leaving",
+    };
+  }
+
+  const rhythm = renderNow / (2300 + (seed % 900)) + seed;
+  const roamX = Math.sin(rhythm) * roam;
+  const roamY = Math.cos(rhythm * 0.7) * Math.min(3, roam);
+  return {
+    x: clamp(anchorX + roamX, 3, 97),
+    y: clamp(anchorY + roamY, 5, 98),
+    pose: visit.pose || activity?.pose || "sit",
+    phase: "active",
+  };
 }
 
 function YardButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, active, subtle, title }) {
@@ -109,10 +186,6 @@ function getFirstOpenSlot(yard, goodieId) {
   })?.id || null;
 }
 
-function currentVisitorForSlot(yard, slotId) {
-  return (yard.activeVisitors || []).find((visit) => visit.slotId === slotId);
-}
-
 export default function CompanionYardGame() {
   const snapshot = useGameHub((state) => state.snapshot);
   const performAction = useGameHub((state) => state.performAction);
@@ -128,11 +201,36 @@ export default function CompanionYardGame() {
   const [paused, setPaused] = useState(false);
   const [panelTab, setPanelTab] = useState("setup");
   const [selectedGoodie, setSelectedGoodie] = useState(null);
+  const [selectedVisitId, setSelectedVisitId] = useState(null);
   const [companionName, setCompanionName] = useState(yard.companion?.name || "Buddy");
+  const [assetManifest, setAssetManifest] = useState(null);
+  const [renderNow, setRenderNow] = useState(snapshot?.serverTime || Date.now());
   const isPlaying = inShell && !paused;
   const nameInputRef = useRef(null);
 
   useCompanionYardShell(inShell);
+
+  useEffect(() => {
+    let active = true;
+    loadCompanionYardManifest().then((manifest) => {
+      if (active) setAssetManifest(manifest);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const assetPath = useCallback((type, id) => (
+    resolveCompanionYardAsset(assetManifest, type, id)
+  ), [assetManifest]);
+
+  useEffect(() => {
+    const updateNow = () => setRenderNow(Date.now());
+    updateNow();
+    if (!inShell && !(yard.activeVisitors || []).length) return undefined;
+    const interval = window.setInterval(updateNow, 900);
+    return () => window.clearInterval(interval);
+  }, [inShell, yard.activeVisitors]);
 
   useEffect(() => {
     setCompanionName(yard.companion?.name || "Buddy");
@@ -143,6 +241,48 @@ export default function CompanionYardGame() {
     for (const placed of yard.placedGoodies || []) map.set(placed.slotId, placed);
     return map;
   }, [yard.placedGoodies]);
+
+  const visitorsBySlot = useMemo(() => {
+    const map = new Map();
+    for (const visit of yard.activeVisitors || []) {
+      const visits = map.get(visit.slotId) || [];
+      visits.push(visit);
+      map.set(visit.slotId, visits);
+    }
+    return map;
+  }, [yard.activeVisitors]);
+
+  const activeVisitorItems = useMemo(() => {
+    const slotMap = new Map(slots.map((slot) => [slot.id, slot]));
+    return (yard.activeVisitors || [])
+      .map((visit) => {
+        const placed = placedBySlot.get(visit.slotId);
+        const goodie = goodies[placed?.goodieId || visit.goodieId];
+        const visitorInfo = visitors[visit.visitorId];
+        const slot = slotMap.get(visit.slotId);
+        if (!placed || !goodie || !visitorInfo || !slot) return null;
+        const activity = getVisitActivity(goodie, visit, placed);
+        const motion = getVisitorMotion(visit, slot, activity, renderNow);
+        return {
+          visit,
+          visitorInfo,
+          activity,
+          motion,
+          layer: activity.layer || visit.activityLayer || "front",
+          zIndex: Math.round(motion.y * 10),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.motion.y - b.motion.y);
+  }, [yard.activeVisitors, placedBySlot, slots, goodies, visitors, renderNow]);
+
+  const selectedVisit = useMemo(() => (
+    (yard.activeVisitors || []).find((visit) => visit.visitId === selectedVisitId) || null
+  ), [yard.activeVisitors, selectedVisitId]);
+
+  useEffect(() => {
+    if (selectedVisitId && !selectedVisit) setSelectedVisitId(null);
+  }, [selectedVisit, selectedVisitId]);
 
   const visitorCount = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
   const activeVisitorCount = yard.activeVisitors?.length || 0;
@@ -158,9 +298,10 @@ export default function CompanionYardGame() {
   };
 
   const captureFirstVisitor = () => {
-    const visit = yard.activeVisitors?.[0];
+    const visit = selectedVisit || yard.activeVisitors?.[0];
     if (!visit) return;
-    performAction("yard.capturePhoto", { visitId: visit.visitId, caption: "Yard visit" });
+    const visitorInfo = visitors[visit.visitorId];
+    performAction("yard.capturePhoto", { visitId: visit.visitId, caption: visitorInfo?.name ? `${visitorInfo.name} visit` : "Yard visit" });
     setPanelTab("album");
   };
 
@@ -172,6 +313,34 @@ export default function CompanionYardGame() {
       helperAutoRefill: !!yard.helper?.autoRefill,
     });
   };
+
+  const renderPetLayer = (layer) => (
+    <div className={`yard-pet-layer yard-pet-layer-${layer}`}>
+      {activeVisitorItems.filter((item) => (layer === "back" ? item.layer === "back" : item.layer !== "back")).map((item) => (
+        <button
+          type="button"
+          key={item.visit.visitId}
+          className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
+          style={{
+            left: `${item.motion.x}%`,
+            top: `${item.motion.y}%`,
+            zIndex: item.zIndex,
+            "--visitor-facing": item.visit.facing === "left" ? -1 : 1,
+          }}
+          onClick={(event) => {
+            event.stopPropagation();
+            audioManager.play("tap");
+            setSelectedVisitId(item.visit.visitId);
+          }}
+          title={`${item.visitorInfo.name} · ${item.activity.pose}`}
+          aria-label={`${item.visitorInfo.name} visitor`}
+        >
+          <img src={assetPath("visitors", item.visitorInfo.id)} alt="" />
+          <b>{item.visitorInfo.name}</b>
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <div className={`room-layout companion-yard-layout game-shell shell-skin-meditation ${inShell ? (isPlaying ? "shell-playing" : "shell-paused") : "shell-menu"}`}>
@@ -193,12 +362,12 @@ export default function CompanionYardGame() {
             );
           })}
         </div>
+        {renderPetLayer("back")}
         <div className="yard-slot-layer">
           {slots.map((slot) => {
             const placed = placedBySlot.get(slot.id);
             const goodie = goodies[placed?.goodieId];
-            const visitor = currentVisitorForSlot(yard, slot.id);
-            const visitorInfo = visitors[visitor?.visitorId];
+            const slotVisitors = visitorsBySlot.get(slot.id) || [];
             return (
               <button
                 key={slot.id}
@@ -206,25 +375,24 @@ export default function CompanionYardGame() {
                 style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
                 onClick={() => {
                   if (selectedGoodie && !placed) placeGoodie(selectedGoodie, slot.id);
-                  else if (placed && !visitor) performAction("yard.pickupGoodie", { slotId: slot.id });
+                  else if (slotVisitors.length) setSelectedVisitId(slotVisitors[0].visitId);
+                  else if (placed) performAction("yard.pickupGoodie", { slotId: slot.id });
                 }}
-                title={placed ? `${goodie?.name || placed.goodieId} (${placed.condition})` : `${slot.size} slot`}
+                title={placed ? `${goodie?.name || placed.goodieId} (${placed.condition})${slotVisitors.length ? ` · ${slotVisitors.length} visiting` : ""}` : `${slot.size} slot`}
               >
                 {placed ? (
                   <img src={assetPath("goodies", placed.condition === "new" ? placed.goodieId : `${placed.goodieId}_${placed.condition}`)} alt="" />
                 ) : (
                   <span>{slot.size}</span>
                 )}
-                {visitor && visitorInfo && (
-                  <span className={`yard-visitor yard-visitor-${visitorInfo.rarity}`}>
-                    <img src={assetPath("visitors", visitorInfo.id)} alt="" />
-                    <b>{visitorInfo.name}</b>
-                  </span>
+                {placed && goodie?.frontAssetKey && (
+                  <img className="yard-goodie-front" src={assetPath("goodies", goodie.frontAssetKey)} alt="" />
                 )}
               </button>
             );
           })}
         </div>
+        {renderPetLayer("front")}
         <div className="yard-companion">
           <img src={assetPath("companions", yard.companion?.species || "dog")} alt="" />
           <span>{yard.companion?.name || "Buddy"}</span>
@@ -235,7 +403,7 @@ export default function CompanionYardGame() {
         <div className="game-play-hud companion-yard-hud">
           <div className="game-play-title">
             <strong>Cozy Yard</strong>
-            <span>{activeVisitorCount ? `${activeVisitorCount} visiting now` : "Set food and let the yard work while you are away"}</span>
+            <span>{selectedVisit ? `${visitors[selectedVisit.visitorId]?.name || "Visitor"} selected` : activeVisitorCount ? `${activeVisitorCount} visiting now` : "Set food and let the yard work while you are away"}</span>
           </div>
           <div className="game-play-stats">
             <span>Treats <strong>{formatCount(yard.currencies?.treats || 0)}</strong></span>

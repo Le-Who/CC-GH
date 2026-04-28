@@ -22,7 +22,11 @@ import {
   calculateSatietyDelta,
   getScaledTime,
   forceGrowAll,
+  normalizeYardState,
+  simulateYardState,
+  YARD_GOODIES,
 } from "../game-logic.js";
+import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
 import { applyAction, buildSnapshot } from "../routes/player.js";
 
@@ -284,6 +288,124 @@ describe("new-stack player snapshot and inventory contracts", () => {
 });
 
 describe("Cozy Yard player contracts", () => {
+  it("defines multi-anchor goodie activities for interior interactions", () => {
+    const cottage = YARD_GOODIES.cardboard_cottage;
+
+    assert.equal(cottage.capacity, 2);
+    assert.ok(cottage.activities.length >= 2);
+    assert.ok(cottage.activities.some((activity) => activity.layer === "back"));
+    assert.ok(cottage.activities.some((activity) => activity.layer === "front"));
+  });
+
+  it("normalizes old active visitor snapshots with stable motion fields", () => {
+    const now = 1_800_000_000_000;
+    const normalized = normalizeYardState({
+      placedGoodies: [{
+        slotId: "small-1",
+        goodieId: "yarn_mouse",
+        condition: "new",
+        uses: 0,
+        placedAt: now,
+      }],
+      activeVisitors: [{
+        visitId: "legacy-visit",
+        visitorId: "mika_cat",
+        goodieId: "yarn_mouse",
+        slotId: "small-1",
+        pose: "sit",
+        arrivedAt: now - 60_000,
+        leavesAt: now + 60_000,
+      }],
+      expansion: { level: 1 },
+      remodel: "meadow",
+      ownedRemodels: ["meadow"],
+      lastSimulatedAt: now,
+    }, {}, now);
+
+    const visit = normalized.activeVisitors[0];
+    assert.ok(visit.activityId);
+    assert.ok(visit.motionSeed);
+    assert.ok(["left", "right", "top", "bottom"].includes(visit.entryEdge));
+    assert.ok(["left", "right"].includes(visit.facing));
+  });
+
+  it("keeps broken goodies usable during offline visits", () => {
+    const start = 1_800_000_000_000;
+    const result = simulateYardState({
+      currencies: { treats: 0, shinyTreats: 0 },
+      foodInventory: {},
+      goodieInventory: {},
+      placedGoodies: [{
+        slotId: "small-1",
+        goodieId: "moon_lamp",
+        condition: "broken",
+        uses: 99,
+        placedAt: start,
+      }],
+      bowls: [{
+        id: "bowl-1",
+        foodId: "bonito_bowl",
+        servings: 99,
+        placedAt: start,
+        expiresAt: start + 72 * 60 * 60 * 1000,
+      }],
+      activeVisitors: [],
+      pendingGifts: [],
+      petbook: {},
+      album: { photos: [], favoritePhotoId: null },
+      mementos: {},
+      expansion: { level: 1 },
+      remodel: "meadow",
+      ownedRemodels: ["meadow"],
+      helper: { unlocked: false, autoRefill: false, preferredFoodId: "kibble" },
+      companion: { name: "Buddy", species: "dog", skinId: "dog", mood: "curious" },
+      dailyLetter: { lastClaimedDate: null, stamps: 0 },
+      lastSimulatedAt: start,
+    }, start + 72 * 60 * 60 * 1000, {}, "broken-goodie-strict");
+
+    assert.ok(Object.keys(result.petbook).length > 0);
+    assert.equal(result.placedGoodies[0].condition, "broken");
+  });
+
+  it("can host multiple active visitors on a large goodie through separate activity anchors", () => {
+    const start = 1_800_000_000_000;
+    const result = simulateYardState({
+      currencies: { treats: 0, shinyTreats: 0 },
+      foodInventory: {},
+      goodieInventory: {},
+      placedGoodies: [{
+        slotId: "large-1",
+        goodieId: "fountain_bowl",
+        condition: "new",
+        uses: 0,
+        placedAt: start,
+      }],
+      bowls: [{
+        id: "bowl-1",
+        foodId: "berry_plate",
+        servings: 99,
+        placedAt: start,
+        expiresAt: start + 3 * 60 * 60 * 1000,
+      }],
+      activeVisitors: [],
+      pendingGifts: [],
+      petbook: {},
+      album: { photos: [], favoritePhotoId: null },
+      mementos: {},
+      expansion: { level: 1 },
+      remodel: "meadow",
+      ownedRemodels: ["meadow"],
+      helper: { unlocked: false, autoRefill: false, preferredFoodId: "kibble" },
+      companion: { name: "Buddy", species: "dog", skinId: "dog", mood: "curious" },
+      dailyLetter: { lastClaimedDate: null, stamps: 0 },
+      lastSimulatedAt: start,
+    }, start + 60 * 60 * 1000, {}, "large-goodie-anchors");
+
+    const largeSlotVisitors = result.activeVisitors.filter((visit) => visit.slotId === "large-1");
+    assert.ok(largeSlotVisitors.length >= 2);
+    assert.equal(new Set(largeSlotVisitors.map((visit) => visit.activityId)).size, largeSlotVisitors.length);
+  });
+
   it("buys, places, and picks up goodies through yard actions", async () => {
     const p = createDefaultPlayer("yard-place", "Yard");
     p.yard.currencies.treats = 500;
@@ -417,6 +539,36 @@ describe("Cozy Yard player contracts", () => {
     const favorite = await applyAction(p, "yard.favoritePhoto", { photoId: p.yard.album.photos[0].id });
     assert.equal(favorite.status, 200);
     assert.equal(p.yard.album.favoritePhotoId, p.yard.album.photos[0].id);
+  });
+});
+
+describe("Cozy Yard asset resolver", () => {
+  it("uses manifest overrides for backgrounds and falls back to stable runtime paths", () => {
+    const manifest = {
+      graphics: {
+        games: {
+          companionYard: {
+            backgrounds: {
+              meadow: "/custom-yard/backgrounds/meadow.webp",
+            },
+            goodies: "/custom-yard/goodies/",
+          },
+        },
+      },
+    };
+
+    assert.equal(
+      resolveCompanionYardAsset(manifest, "backgrounds", "meadow"),
+      "/custom-yard/backgrounds/meadow.webp",
+    );
+    assert.equal(
+      resolveCompanionYardAsset(manifest, "backgrounds", "tea_house"),
+      "/games/companion-yard/backgrounds/tea_house.png",
+    );
+    assert.equal(
+      resolveCompanionYardAsset(manifest, "goodies", "yarn_mouse_worn"),
+      "/custom-yard/goodies/yarn_mouse_worn.png",
+    );
   });
 });
 

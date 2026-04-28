@@ -37,6 +37,83 @@ export const YARD_FOODS = {
   },
 };
 
+export const YARD_CONDITION_VARIANTS = {
+  new: {
+    attraction: 1,
+    activities: [],
+  },
+  worn: {
+    attraction: 0.72,
+    activities: ["sniff", "peek", "rest", "watch", "stretch"],
+  },
+  broken: {
+    attraction: 0.45,
+    activities: ["peek", "sniff", "rest", "watch"],
+  },
+};
+
+const DEFAULT_SMALL_ACTIVITIES = [
+  { id: "rest", pose: "sit", x: 0, y: -9, layer: "front", roam: 2 },
+  { id: "sniff", pose: "sniff", x: 5, y: -5, layer: "front", roam: 2 },
+];
+
+const DEFAULT_LARGE_ACTIVITIES = [
+  { id: "left-rest", pose: "rest", x: -10, y: -7, layer: "front", roam: 2 },
+  { id: "right-peek", pose: "peek", x: 11, y: -11, layer: "back", roam: 2 },
+];
+
+function activityListForGoodie(goodie = {}) {
+  return Array.isArray(goodie.activities) && goodie.activities.length
+    ? goodie.activities
+    : goodie.size === "large"
+      ? DEFAULT_LARGE_ACTIVITIES
+      : DEFAULT_SMALL_ACTIVITIES;
+}
+
+function normalizeActivity(activity = {}, index = 0) {
+  const id = String(activity.id || activity.pose || `activity-${index}`).slice(0, 40);
+  const layer = activity.layer === "back" ? "back" : "front";
+  return {
+    id,
+    pose: String(activity.pose || id || "sit").slice(0, 40),
+    x: Number.isFinite(Number(activity.x)) ? Number(activity.x) : 0,
+    y: Number.isFinite(Number(activity.y)) ? Number(activity.y) : -8,
+    layer,
+    facing: activity.facing === "left" || activity.facing === "right" ? activity.facing : null,
+    roam: Math.max(0, Math.min(8, Number.isFinite(Number(activity.roam)) ? Number(activity.roam) : 2)),
+  };
+}
+
+export function getYardGoodieCapacity(goodie = {}) {
+  const fallback = goodie.size === "large" ? 2 : 1;
+  const capacity = Math.floor(Number(goodie.capacity ?? fallback));
+  return Math.max(1, Math.min(6, Number.isFinite(capacity) ? capacity : fallback));
+}
+
+export function getYardConditionProfile(goodie = {}, condition = "new") {
+  const globalProfile = YARD_CONDITION_VARIANTS[condition] || YARD_CONDITION_VARIANTS.new;
+  const localProfile = goodie.conditionVariants?.[condition] || {};
+  return {
+    ...globalProfile,
+    ...localProfile,
+    attraction: Math.max(0.05, Math.min(2, Number(localProfile.attraction ?? globalProfile.attraction ?? 1))),
+    activities: Array.isArray(localProfile.activities)
+      ? localProfile.activities
+      : Array.isArray(globalProfile.activities)
+        ? globalProfile.activities
+        : [],
+  };
+}
+
+export function getYardGoodieActivities(goodie = {}, condition = "new") {
+  const activities = activityListForGoodie(goodie).map(normalizeActivity);
+  const profile = getYardConditionProfile(goodie, condition);
+  const preferred = new Set((profile.activities || []).map(String));
+  if (!preferred.size) return activities;
+  const preferredActivities = activities.filter((activity) => preferred.has(activity.id) || preferred.has(activity.pose));
+  return preferredActivities.length ? preferredActivities : activities;
+}
+
 export const YARD_GOODIES = {
   yarn_mouse: {
     id: "yarn_mouse",
@@ -49,6 +126,14 @@ export const YARD_GOODIES = {
     durability: 7,
     assetKey: "goodies.yarnMouse",
     wornAssetKey: "goodies.yarnMouseWorn",
+    capacity: 1,
+    anchor: { x: 0, y: -7 },
+    layer: "front",
+    activities: [
+      { id: "chase", pose: "pounce", x: 0, y: -9, layer: "front", roam: 5 },
+      { id: "sniff", pose: "sniff", x: 7, y: -4, layer: "front", roam: 2 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   sun_cushion: {
     id: "sun_cushion",
@@ -61,6 +146,14 @@ export const YARD_GOODIES = {
     durability: 8,
     assetKey: "goodies.sunCushion",
     wornAssetKey: "goodies.sunCushionWorn",
+    capacity: 1,
+    anchor: { x: 0, y: -8 },
+    layer: "front",
+    activities: [
+      { id: "nap", pose: "nap", x: 0, y: -8, layer: "front", roam: 1 },
+      { id: "stretch", pose: "stretch", x: 6, y: -5, layer: "front", roam: 2 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   cardboard_cottage: {
     id: "cardboard_cottage",
@@ -73,6 +166,15 @@ export const YARD_GOODIES = {
     durability: 10,
     assetKey: "goodies.cardboardCottage",
     wornAssetKey: "goodies.cardboardCottageWorn",
+    capacity: 2,
+    anchor: { x: 0, y: -9 },
+    layer: "front",
+    activities: [
+      { id: "window-peek", pose: "peek", x: -12, y: -14, layer: "back", facing: "right", roam: 1 },
+      { id: "door-lounge", pose: "rest", x: 13, y: -5, layer: "front", facing: "left", roam: 2 },
+      { id: "sniff", pose: "sniff", x: -4, y: -2, layer: "front", roam: 2 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   fountain_bowl: {
     id: "fountain_bowl",
@@ -85,6 +187,14 @@ export const YARD_GOODIES = {
     durability: 12,
     assetKey: "goodies.fountainBowl",
     wornAssetKey: "goodies.fountainBowlWorn",
+    capacity: 2,
+    anchor: { x: 0, y: -8 },
+    layer: "front",
+    activities: [
+      { id: "soak-left", pose: "soak", x: -12, y: -6, layer: "front", facing: "right", roam: 1 },
+      { id: "watch-right", pose: "watch", x: 13, y: -13, layer: "back", facing: "left", roam: 1 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   cozy_chair: {
     id: "cozy_chair",
@@ -97,6 +207,14 @@ export const YARD_GOODIES = {
     durability: 9,
     assetKey: "goodies.cozyChair",
     wornAssetKey: "goodies.cozyChairWorn",
+    capacity: 1,
+    anchor: { x: 1, y: -16 },
+    layer: "front",
+    activities: [
+      { id: "perch", pose: "sit", x: 1, y: -16, layer: "front", roam: 1 },
+      { id: "rest", pose: "rest", x: 0, y: -12, layer: "front", roam: 1 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   snack_table: {
     id: "snack_table",
@@ -109,6 +227,14 @@ export const YARD_GOODIES = {
     durability: 9,
     assetKey: "goodies.snackTable",
     wornAssetKey: "goodies.snackTableWorn",
+    capacity: 1,
+    anchor: { x: 0, y: -8 },
+    layer: "front",
+    activities: [
+      { id: "nibble", pose: "nibble", x: -2, y: -7, layer: "front", roam: 2 },
+      { id: "sniff", pose: "sniff", x: 7, y: -5, layer: "front", roam: 2 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   leaf_pot: {
     id: "leaf_pot",
@@ -121,6 +247,14 @@ export const YARD_GOODIES = {
     durability: 8,
     assetKey: "goodies.leafPot",
     wornAssetKey: "goodies.leafPotWorn",
+    capacity: 1,
+    anchor: { x: 0, y: -10 },
+    layer: "front",
+    activities: [
+      { id: "sniff", pose: "sniff", x: -2, y: -9, layer: "front", roam: 2 },
+      { id: "peek", pose: "peek", x: 6, y: -13, layer: "back", roam: 1 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   moss_rug: {
     id: "moss_rug",
@@ -133,6 +267,14 @@ export const YARD_GOODIES = {
     durability: 10,
     assetKey: "goodies.mossRug",
     wornAssetKey: "goodies.mossRugWorn",
+    capacity: 2,
+    anchor: { x: 0, y: -5 },
+    layer: "front",
+    activities: [
+      { id: "roll-left", pose: "roll", x: -12, y: -5, layer: "front", facing: "right", roam: 4 },
+      { id: "stretch-right", pose: "stretch", x: 12, y: -6, layer: "front", facing: "left", roam: 3 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   cloud_bed: {
     id: "cloud_bed",
@@ -145,6 +287,14 @@ export const YARD_GOODIES = {
     durability: 12,
     assetKey: "goodies.cloudBed",
     wornAssetKey: "goodies.cloudBedWorn",
+    capacity: 2,
+    anchor: { x: 0, y: -10 },
+    layer: "front",
+    activities: [
+      { id: "nap-left", pose: "nap", x: -10, y: -9, layer: "front", facing: "right", roam: 1 },
+      { id: "rest-right", pose: "rest", x: 11, y: -11, layer: "front", facing: "left", roam: 1 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   moon_lamp: {
     id: "moon_lamp",
@@ -157,6 +307,15 @@ export const YARD_GOODIES = {
     durability: 11,
     assetKey: "goodies.moonLamp",
     wornAssetKey: "goodies.moonLampWorn",
+    capacity: 1,
+    anchor: { x: 0, y: -12 },
+    layer: "back",
+    activities: [
+      { id: "watch", pose: "watch", x: -3, y: -13, layer: "back", roam: 1 },
+      { id: "glow", pose: "glow", x: 4, y: -13, layer: "front", roam: 1 },
+      { id: "peek", pose: "peek", x: 7, y: -9, layer: "front", roam: 1 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
   book_nook: {
     id: "book_nook",
@@ -169,6 +328,14 @@ export const YARD_GOODIES = {
     durability: 11,
     assetKey: "goodies.bookNook",
     wornAssetKey: "goodies.bookNookWorn",
+    capacity: 2,
+    anchor: { x: 0, y: -11 },
+    layer: "front",
+    activities: [
+      { id: "quiet-left", pose: "sit", x: -11, y: -11, layer: "front", facing: "right", roam: 1 },
+      { id: "peek-right", pose: "peek", x: 12, y: -15, layer: "back", facing: "left", roam: 1 },
+    ],
+    conditionVariants: YARD_CONDITION_VARIANTS,
   },
 };
 

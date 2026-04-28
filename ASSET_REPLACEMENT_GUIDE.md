@@ -169,11 +169,47 @@ Register replacement paths in:
 public/assets/manifest.json -> graphics.games.companionYard
 ```
 
+Backgrounds can be changed in either of two supported ways:
+
+```text
+public/games/companion-yard/backgrounds/<remodel_id>.png
+```
+
+or with a manifest override:
+
+```json
+{
+  "graphics": {
+    "games": {
+      "companionYard": {
+        "backgrounds": {
+          "meadow": "/assets/yard-backgrounds/my-meadow.webp",
+          "tea_house": "/assets/yard-backgrounds/my-tea-house.png"
+        }
+      }
+    }
+  }
+}
+```
+
+Manifest values win when present; missing keys fall back to the committed `public/games/companion-yard/**` paths.
+
 Recommended formats:
 
 - PNG for transparent visitors, companions, foods, and goodies.
 - WebP or PNG for full-scene remodel backgrounds.
 - SVG only for source sketches or simple marks; runtime scene and sprite paths should stay PNG/WebP.
+
+Goodie interaction placement is data-driven. Each `YARD_GOODIES` entry can define:
+
+```text
+capacity          maximum simultaneous visitors for the goodie
+activities        per-goodie anchor points with pose, x/y offset, layer, facing, and roam amount
+conditionVariants attraction/activity changes for worn and broken states
+frontAssetKey     optional future overlay sprite for objects that should cover part of a pet
+```
+
+Use `layer: "back"` when the pet should appear behind the object and `layer: "front"` when it should appear in front. Keep x/y offsets small and verify the result on mobile so pets do not cover bowls or HUD controls.
 
 To add a new visitor:
 
@@ -184,10 +220,10 @@ To add a new visitor:
 
 To add a new goodie:
 
-1. Add the goodie id, slot size, tags, cost, durability, fix cost, activities, and asset key to `YARD_GOODIES`.
+1. Add the goodie id, slot size, tags, cost, durability, fix cost, capacity, activity anchors, condition variants, and asset key to `YARD_GOODIES`.
 2. Add the three runtime sprites: `<goodie_id>.png`, `<goodie_id>_worn.png`, and `<goodie_id>_broken.png`.
 3. Add the id to a starter inventory, shop-only catalog entry, or reward drop path if it should be obtainable.
-4. Validate placement, pickup, worn/fix, and visitor attraction.
+4. Validate placement, pickup, worn/fix, visitor attraction, activity layering, selected-visitor photo capture, and mobile layout.
 
 To add food:
 

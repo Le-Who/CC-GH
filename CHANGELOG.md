@@ -4,6 +4,8 @@
 
 ### Client
 
+- Added Neko-like hybrid Cozy Yard visitor presentation: pets now move in from yard edges, settle onto goodie activity anchors, perform item-specific poses, lightly roam around the selected object, and leave through the yard instead of appearing as static badges inside a slot.
+- Added manifest-backed Cozy Yard asset resolution so `graphics.games.companionYard.backgrounds.<remodel_id>` can override remodel backgrounds while direct replacement of `public/games/companion-yard/backgrounds/<remodel_id>.png` remains supported.
 - Replaced the old Pet Room tab with Cozy Yard, an original mixed-pet idle collector with food bowls, placeable goodies, classic-hour server visits, gifts, petbook, album metadata, mementos, worn/fixable goodies, expansion, remodels, and helper companion configuration.
 - Added a persisted light/dark UI theme toggle. The light theme remains the default, while the dark theme reuses the older matte Garden Shelf surface treatment across Hub chrome, Garden Shelf modals/sheets, shared glass menus, and in-game HUD overlays.
 - Centralized the shared glass UI tokens for Hub stats, game menu overlays, HUDs, Garden Shelf panels, and bottom navigation, with reduced mobile blur and reduced-transparency fallbacks to keep the Telegram webview readable and cheaper to composite.
@@ -36,6 +38,7 @@
 
 ### API
 
+- Extended Cozy Yard goodie catalog data with activity anchors, capacity, layering, condition variants, and backward-compatible visitor motion fields while preserving the existing `yard.*` mutate action names.
 - Added server-owned `yard` player state, schema migration from old Pet/Room starter data, deterministic offline visitor simulation, `meta.yardCatalog`, realtime yard sync, and the new `yard.*` mutate action family. Old `/api/player/mutate` `pet.*`, `quest.*`, and `room.*` gameplay actions were replaced, while legacy room placement wrapper endpoints now return 410 replacement errors.
 - Added `buildId` to `/api/config` and `/api/health`, with no-store headers on `/api/config`, while preserving existing public endpoint names and player mutate contracts.
 - Added `garden.goldDelta` to the player mutate API so Garden Shelf gold changes update shared player resources with the same insufficient-gold guard as the other Hub games.
@@ -48,6 +51,7 @@
 
 ### Tests
 
+- Added unit and Playwright coverage for Cozy Yard activity anchors, old active-visitor snapshot normalization, broken-goodie visitor attraction, multi-visitor large-goodie anchors, manifest background overrides, layered visitor rendering, and selected-visitor photo capture.
 - Added unit and Playwright coverage for Cozy Yard default creation, Pet/Room starter migration, deterministic visits, rare visitor conditions, gifts/mementos, durability/fix, expansion/remodel validation, invalid `yard.*` payload rejection, and Room-tab replacement UI smoke checks.
 - Added mobile Playwright glass UI smoke coverage for the light and dark Hub surfaces plus Garden settings, Garden seed shop, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard start/live/pause menus.
 - Added Garden Shelf Playwright coverage proving generated offline rewards stay visible until the player clicks `Collect Gold`.

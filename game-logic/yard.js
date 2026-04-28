@@ -9,6 +9,9 @@ import {
   YARD_SLOT_LAYOUTS,
   YARD_SPECIES,
   YARD_VISITORS,
+  getYardConditionProfile,
+  getYardGoodieActivities,
+  getYardGoodieCapacity,
 } from "./yard-catalog.js";
 
 const MAX_PENDING_GIFTS = 100;
@@ -73,6 +76,9 @@ function randomUnit(seed) {
 function randomInt(seed, min, max) {
   return min + (hashString(seed) % (max - min + 1));
 }
+
+const ENTRY_EDGES = ["left", "right", "top", "bottom"];
+const FACING_VALUES = ["left", "right"];
 
 function makeYardId(prefix, now, seed) {
   return `${prefix}_${Math.max(0, Math.floor(finiteNumber(now, 0))).toString(36)}_${hashString(seed).toString(36)}`;
@@ -186,20 +192,62 @@ function normalizeBowls(rawBowls = [], expansionLevel = 1, now = Date.now()) {
   });
 }
 
+function activityForVisit(visit = {}, goodie = {}) {
+  const conditions = ["new", "worn", "broken"];
+  const activities = conditions.flatMap((condition) => getYardGoodieActivities(goodie, condition));
+  const unique = [];
+  const seen = new Set();
+  for (const activity of activities) {
+    if (seen.has(activity.id)) continue;
+    seen.add(activity.id);
+    unique.push(activity);
+  }
+  const requested = String(visit.activityId || "");
+  const byId = unique.find((activity) => activity.id === requested);
+  if (byId) return byId;
+  const byPose = unique.find((activity) => activity.pose === visit.pose);
+  if (byPose) return byPose;
+  return unique[hashString(`${visit.visitId || visit.visitorId || "visit"}:activity`) % Math.max(1, unique.length)] ||
+    { id: "rest", pose: "sit", x: 0, y: -8, layer: "front", roam: 2 };
+}
+
+function normalizeEntryEdge(value, seed) {
+  const edge = String(value || "");
+  if (ENTRY_EDGES.includes(edge)) return edge;
+  return ENTRY_EDGES[hashString(`${seed}:entry`) % ENTRY_EDGES.length];
+}
+
+function normalizeFacing(value, entryEdge, activity = {}) {
+  if (FACING_VALUES.includes(value)) return value;
+  if (activity.facing) return activity.facing;
+  return entryEdge === "right" ? "left" : "right";
+}
+
 function normalizeVisitors(rawVisitors = [], now = Date.now()) {
   if (!Array.isArray(rawVisitors)) return [];
   return rawVisitors
     .filter((visit) => YARD_VISITORS[visit?.visitorId] && YARD_GOODIES[visit?.goodieId])
-    .map((visit) => ({
-      visitId: String(visit.visitId || makeYardId("visit", now, `${visit.visitorId}:${visit.slotId}`)).slice(0, 80),
-      visitorId: String(visit.visitorId),
-      goodieId: String(visit.goodieId),
-      slotId: String(visit.slotId || ""),
-      bowlId: String(visit.bowlId || "bowl-1"),
-      pose: String(visit.pose || "sit").slice(0, 40),
-      arrivedAt: Math.max(0, Math.floor(finiteNumber(visit.arrivedAt, now))),
-      leavesAt: Math.max(0, Math.floor(finiteNumber(visit.leavesAt, now + YARD_HOUR_MS))),
-    }))
+    .map((visit) => {
+      const visitId = String(visit.visitId || makeYardId("visit", now, `${visit.visitorId}:${visit.slotId}`)).slice(0, 80);
+      const activity = activityForVisit(visit, YARD_GOODIES[visit.goodieId]);
+      const entryEdge = normalizeEntryEdge(visit.entryEdge, visitId);
+      const motionSeed = String(visit.motionSeed || hashString(`${visitId}:${visit.visitorId}:${activity.id}`).toString(36)).slice(0, 80);
+      return {
+        visitId,
+        visitorId: String(visit.visitorId),
+        goodieId: String(visit.goodieId),
+        slotId: String(visit.slotId || ""),
+        bowlId: String(visit.bowlId || "bowl-1"),
+        pose: String(visit.pose || activity.pose || "sit").slice(0, 40),
+        activityId: activity.id,
+        activityLayer: activity.layer || "front",
+        entryEdge,
+        facing: normalizeFacing(visit.facing, entryEdge, activity),
+        motionSeed,
+        arrivedAt: Math.max(0, Math.floor(finiteNumber(visit.arrivedAt, now))),
+        leavesAt: Math.max(0, Math.floor(finiteNumber(visit.leavesAt, now + YARD_HOUR_MS))),
+      };
+    })
     .filter((visit) => visit.leavesAt > now);
 }
 
@@ -336,8 +384,16 @@ function updateGoodieCondition(placed) {
   else placed.condition = "new";
 }
 
-function activeSlotIds(yard) {
-  return new Set((yard.activeVisitors || []).map((visit) => visit.slotId));
+function activeAnchorIds(yard) {
+  return new Set((yard.activeVisitors || []).map((visit) => `${visit.slotId}:${visit.activityId || "rest"}`));
+}
+
+function activeSlotCounts(yard) {
+  const counts = new Map();
+  for (const visit of yard.activeVisitors || []) {
+    counts.set(visit.slotId, (counts.get(visit.slotId) || 0) + 1);
+  }
+  return counts;
 }
 
 function expireBowls(yard, now) {
@@ -377,10 +433,11 @@ function setBowlFood(yard, bowlId, foodId, now) {
   return true;
 }
 
-function matchingVisitorCandidates(goodie, bowl) {
+function matchingVisitorCandidates(goodie, bowl, condition = "new") {
   const food = YARD_FOODS[bowl.foodId];
   if (!food) return [];
   const tags = new Set([...(goodie.tags || []), ...(food.tags || [])]);
+  const conditionProfile = getYardConditionProfile(goodie, condition);
   const candidates = [];
   for (const visitor of Object.values(YARD_VISITORS)) {
     if (visitor.requires) {
@@ -391,7 +448,7 @@ function matchingVisitorCandidates(goodie, bowl) {
     const strictBoost = visitor.requires ? 18 : 1;
     candidates.push({
       visitor,
-      weight: Math.max(1, visitor.baseWeight * strictBoost + matches * 4) * (food.attraction || 1),
+      weight: Math.max(1, visitor.baseWeight * strictBoost + matches * 4) * (food.attraction || 1) * conditionProfile.attraction,
       strict: !!visitor.requires,
     });
   }
@@ -413,9 +470,18 @@ function pickVisitor(candidates, seed) {
   return candidates[candidates.length - 1]?.visitor || null;
 }
 
-function registerArrival(yard, visitor, placed, bowl, now, seed) {
-  const pose = visitor.poses[hashString(`${seed}:pose`) % visitor.poses.length] || "sit";
+function pickActivityForVisitor(goodie, placed, visitor, availableActivities, seed) {
+  const visitorTags = new Set(visitor.tags || []);
+  const visitorPoses = new Set(visitor.poses || []);
+  const matching = availableActivities.filter((activity) => visitorPoses.has(activity.pose) || visitorTags.has(activity.id));
+  const pool = matching.length ? matching : availableActivities;
+  return pool[hashString(`${seed}:activity`) % pool.length] || availableActivities[0];
+}
+
+function registerArrival(yard, visitor, placed, bowl, activity, now, seed) {
+  const pose = activity?.pose || visitor.poses[hashString(`${seed}:pose`) % visitor.poses.length] || "sit";
   const duration = randomInt(`${seed}:duration`, 45, 110) * 60 * 1000;
+  const entryEdge = ENTRY_EDGES[hashString(`${seed}:entry`) % ENTRY_EDGES.length];
   const visit = {
     visitId: makeYardId("visit", now, `${seed}:${visitor.id}:${placed.slotId}`),
     visitorId: visitor.id,
@@ -423,6 +489,11 @@ function registerArrival(yard, visitor, placed, bowl, now, seed) {
     slotId: placed.slotId,
     bowlId: bowl.id,
     pose,
+    activityId: activity?.id || "rest",
+    activityLayer: activity?.layer || "front",
+    entryEdge,
+    facing: normalizeFacing(activity?.facing, entryEdge, activity),
+    motionSeed: hashString(`${seed}:${visitor.id}:${activity?.id || "rest"}:motion`).toString(36),
     arrivedAt: now,
     leavesAt: now + duration,
   };
@@ -499,23 +570,41 @@ function simulateStep(yard, now, seedBase) {
   helperRefill(yard, now);
   const bowlsWithFood = yard.bowls.filter((bowl) => bowl.foodId && bowl.servings > 0);
   if (!bowlsWithFood.length) return;
-  const occupied = activeSlotIds(yard);
+  const occupied = activeAnchorIds(yard);
+  const slotCounts = activeSlotCounts(yard);
   for (const placed of yard.placedGoodies) {
-    if (occupied.has(placed.slotId) || placed.condition === "broken") continue;
     const goodie = YARD_GOODIES[placed.goodieId];
     if (!goodie) continue;
-    const bowl = bowlsWithFood[hashString(`${seedBase}:${placed.slotId}:bowl`) % bowlsWithFood.length];
-    if (!bowl?.foodId) continue;
-    const candidates = matchingVisitorCandidates(goodie, bowl);
-    if (!candidates.length) continue;
-    const hasStrict = candidates.some((entry) => entry.strict);
-    const chance = hasStrict ? 0.92 : placed.condition === "worn" ? 0.26 : 0.42;
-    const totalVisits = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
-    if (!hasStrict && totalVisits > 0 && randomUnit(`${seedBase}:${placed.slotId}:chance`) > chance) continue;
-    const visitor = pickVisitor(candidates, `${seedBase}:${placed.slotId}:visitor`);
-    if (!visitor) continue;
-    registerArrival(yard, visitor, placed, bowl, now, `${seedBase}:${placed.slotId}`);
-    occupied.add(placed.slotId);
+    const capacity = getYardGoodieCapacity(goodie);
+    const activeCount = slotCounts.get(placed.slotId) || 0;
+    if (activeCount >= capacity) continue;
+    const availableActivities = getYardGoodieActivities(goodie, placed.condition)
+      .filter((activity) => !occupied.has(`${placed.slotId}:${activity.id}`));
+    if (!availableActivities.length) continue;
+
+    const openCount = Math.min(capacity - activeCount, availableActivities.length);
+    for (let activityIndex = 0; activityIndex < openCount; activityIndex += 1) {
+      const activitySeed = `${seedBase}:${placed.slotId}:${activityIndex}`;
+      const bowl = bowlsWithFood[hashString(`${activitySeed}:bowl`) % bowlsWithFood.length];
+      if (!bowl?.foodId) continue;
+      const candidates = matchingVisitorCandidates(goodie, bowl, placed.condition);
+      if (!candidates.length) continue;
+      const hasStrict = candidates.some((entry) => entry.strict);
+      const conditionProfile = getYardConditionProfile(goodie, placed.condition);
+      const chance = Math.max(0.08, Math.min(0.96, (hasStrict ? 0.92 : 0.42) * conditionProfile.attraction));
+      const totalVisits = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
+      if (!hasStrict && totalVisits > 0 && randomUnit(`${activitySeed}:chance`) > chance) continue;
+      const visitor = pickVisitor(candidates, `${activitySeed}:visitor`);
+      if (!visitor) continue;
+      const activity = pickActivityForVisitor(goodie, placed, visitor, availableActivities, activitySeed);
+      if (!activity || occupied.has(`${placed.slotId}:${activity.id}`)) continue;
+      registerArrival(yard, visitor, placed, bowl, activity, now, `${activitySeed}:${activity.id}`);
+      occupied.add(`${placed.slotId}:${activity.id}`);
+      slotCounts.set(placed.slotId, (slotCounts.get(placed.slotId) || 0) + 1);
+      const index = availableActivities.findIndex((candidate) => candidate.id === activity.id);
+      if (index >= 0) availableActivities.splice(index, 1);
+      if (!availableActivities.length) break;
+    }
   }
 }
 

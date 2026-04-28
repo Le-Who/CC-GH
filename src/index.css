@@ -1358,6 +1358,20 @@ button.item-card {
   z-index: 2;
 }
 
+.yard-pet-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.yard-pet-layer-back {
+  z-index: 1;
+}
+
+.yard-pet-layer-front {
+  z-index: 3;
+}
+
 .yard-slot {
   position: absolute;
   width: 82px;
@@ -1391,24 +1405,50 @@ button.item-card {
   filter: drop-shadow(0 8px 10px rgba(65, 55, 42, 0.18));
 }
 
+.yard-goodie-front {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
 .yard-visitor {
   position: absolute;
-  left: 50%;
-  bottom: 50%;
-  width: 82px;
-  min-height: 84px;
-  transform: translate(-50%, 8px);
+  width: 86px;
+  min-height: 90px;
+  transform: translate(-50%, -92%);
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   display: grid;
   place-items: center;
-  pointer-events: none;
+  pointer-events: auto;
   animation: pet-idle 2.9s ease-in-out infinite;
+  transition:
+    left 820ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 820ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 160ms ease,
+    transform 160ms ease;
 }
 
 .yard-visitor img {
-  width: 72px;
-  height: 72px;
+  width: 82px;
+  height: 82px;
   object-fit: contain;
   filter: drop-shadow(0 10px 10px rgba(45, 38, 30, 0.2));
+  transform: scaleX(var(--visitor-facing, 1));
+}
+
+.yard-visitor:hover,
+.yard-visitor.selected {
+  filter: drop-shadow(0 0 12px rgba(255, 241, 166, 0.72));
+}
+
+.yard-visitor.selected {
+  transform: translate(-50%, -92%) scale(1.06);
 }
 
 .yard-visitor b {
@@ -1419,10 +1459,76 @@ button.item-card {
   color: #5a4531;
   font-size: 0.68rem;
   font-weight: 1000;
+  box-shadow: 0 5px 12px rgba(72, 56, 40, 0.14);
 }
 
 .yard-visitor-rare b {
   color: #5a3c85;
+}
+
+.yard-pose-walk img {
+  animation: pet-walk 520ms ease-in-out infinite;
+}
+
+.yard-pose-nap img,
+.yard-pose-rest img {
+  animation: pet-breathe 2.8s ease-in-out infinite;
+}
+
+.yard-pose-pounce img,
+.yard-pose-roll img {
+  animation: pet-play 950ms ease-in-out infinite;
+}
+
+.yard-pose-peek img,
+.yard-pose-sniff img,
+.yard-pose-watch img,
+.yard-pose-nibble img,
+.yard-pose-scratch img,
+.yard-pose-stretch img,
+.yard-pose-soak img,
+.yard-pose-glow img {
+  animation: pet-curious 1.7s ease-in-out infinite;
+}
+
+@keyframes pet-walk {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg) scaleX(var(--visitor-facing, 1));
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg) scaleX(var(--visitor-facing, 1));
+  }
+}
+
+@keyframes pet-breathe {
+  0%,
+  100% {
+    transform: scaleX(var(--visitor-facing, 1)) scaleY(1);
+  }
+  50% {
+    transform: scaleX(var(--visitor-facing, 1)) scaleY(0.96);
+  }
+}
+
+@keyframes pet-play {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg) scaleX(var(--visitor-facing, 1));
+  }
+  45% {
+    transform: translateY(-9px) rotate(6deg) scaleX(var(--visitor-facing, 1));
+  }
+}
+
+@keyframes pet-curious {
+  0%,
+  100% {
+    transform: translateX(0) scaleX(var(--visitor-facing, 1));
+  }
+  50% {
+    transform: translateX(3px) scaleX(var(--visitor-facing, 1));
+  }
 }
 
 .yard-companion {
@@ -2099,8 +2205,12 @@ button.item-card {
   }
 
   .yard-visitor {
-    transform: translate(-50%, 8px) scale(0.86);
+    transform: translate(-50%, -92%) scale(0.86);
     transform-origin: center bottom;
+  }
+
+  .yard-visitor.selected {
+    transform: translate(-50%, -92%) scale(0.94);
   }
 
   .yard-companion {
