@@ -34,7 +34,7 @@ describe("createDefaultPlayer", () => {
     const p = createDefaultPlayer("u1", "Alice");
     assert.equal(p.id, "u1");
     assert.equal(p.username, "Alice");
-    assert.equal(p.schemaVersion, 10);
+    assert.equal(p.schemaVersion, 11);
     assert.equal(p.resources.gold, ECONOMY.GOLD_START);
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_START);
     assert.equal(p.resources.energy.max, ECONOMY.ENERGY_MAX);
@@ -44,6 +44,7 @@ describe("createDefaultPlayer", () => {
     assert.ok(p.match3);
     assert.ok(p.bubbo);
     assert.ok(p.garden);
+    assert.ok(p.yard);
     // v6.0: Economy fields
     assert.equal(p.pet.stats.fullness, 0);
     assert.ok(Array.isArray(p.pet.activeOrders));
@@ -59,6 +60,9 @@ describe("createDefaultPlayer", () => {
     assert.equal(p.bubbo.currentGame, null);
     assert.equal(p.garden.level, 1);
     assert.deepEqual(p.garden.plants, []);
+    assert.equal(p.yard.currencies.treats, 80);
+    assert.equal(p.yard.bowls.length, 1);
+    assert.equal(p.yard.companion.name, "Buddy");
   });
 
   it("[FIX 1 REGRESSION] initializes _lastSeen to a valid timestamp", () => {
@@ -215,7 +219,7 @@ describe("temporary energy-free game starts", () => {
 });
 
 describe("new-stack player snapshot and inventory contracts", () => {
-  it("normalizes harvested, merge, room, and reward inventory aliases", () => {
+  it("normalizes harvested, merge, yard, and reward inventory aliases", () => {
     const snapshot = {
       resources: {
         gold: 125,
@@ -233,8 +237,8 @@ describe("new-stack player snapshot and inventory contracts", () => {
           [{ id: "thread", chainId: "textile", level: 0 }],
         ],
       },
-      room: {
-        inventory: ["deco_chair"],
+      yard: {
+        goodieInventory: { cozy_chair: 1 },
       },
     };
 
@@ -244,40 +248,175 @@ describe("new-stack player snapshot and inventory contracts", () => {
     assert.deepEqual(inventory.harvested, { strawberry: 2 });
     assert.deepEqual(inventory.harvestedCrops, { strawberry: 2 });
     assert.deepEqual(inventory.mergeItems, { thread: 2 });
-    assert.deepEqual(inventory.roomInventory, ["deco_chair"]);
+    assert.deepEqual(inventory.yardGoodies, { cozy_chair: 1 });
     assert.equal(inventory.rewards.gold, 125);
     assert.equal(inventory.rewards.gachaTokens, 3);
   });
 
-  it("writes normalized aliases back into snapshot resources and room state", () => {
+  it("writes normalized aliases back into snapshot resources and yard state", () => {
     const normalized = withNormalizedSnapshot({
       resources: { harvestedCrops: { carrot: 4 } },
-      room: { roomInventory: ["deco_lamp"] },
+      yard: { goodieInventory: { moon_lamp: 1 } },
     });
 
     assert.deepEqual(normalized.resources.harvested, { carrot: 4 });
     assert.deepEqual(normalized.resources.harvestedCrops, { carrot: 4 });
-    assert.deepEqual(normalized.room.inventory, ["deco_lamp"]);
-    assert.deepEqual(normalized.room.roomInventory, ["deco_lamp"]);
+    assert.deepEqual(normalized.yard.goodieInventory, { moon_lamp: 1 });
   });
 
-  it("places and picks up room decorations through authoritative player actions", async () => {
-    const p = createDefaultPlayer("room-user", "Roomy");
+  it("migrates old Room/Pet data into the Cozy Yard snapshot", () => {
+    const p = createDefaultPlayer("legacy-room-user", "Roomy");
+    delete p.yard;
+    p.pet.name = "Pixel";
+    p.pet.skinId = "basic_bunny";
     p.room.inventory = ["deco_chair"];
     p.room.roomInventory = ["deco_chair"];
+    p.room.decorations = ["deco_lamp"];
 
-    const placed = await applyAction(p, "room.place", { decoId: "deco_chair" });
+    const snapshot = buildSnapshot(p);
+
+    assert.equal(snapshot.yard.companion.name, "Pixel");
+    assert.equal(snapshot.yard.companion.species, "bunny");
+    assert.equal(snapshot.yard.goodieInventory.cozy_chair, 1);
+    assert.equal(snapshot.yard.placedGoodies[0].goodieId, "moon_lamp");
+    assert.equal(snapshot.inventory.yardGoodies.cozy_chair, 1);
+  });
+});
+
+describe("Cozy Yard player contracts", () => {
+  it("buys, places, and picks up goodies through yard actions", async () => {
+    const p = createDefaultPlayer("yard-place", "Yard");
+    p.yard.currencies.treats = 500;
+
+    const bought = await applyAction(p, "yard.buyGoodie", { goodieId: "cardboard_cottage" });
+    assert.equal(bought.status, 200);
+    assert.equal(p.yard.goodieInventory.cardboard_cottage, 1);
+
+    const placed = await applyAction(p, "yard.placeGoodie", { goodieId: "cardboard_cottage", slotId: "large-1" });
     assert.equal(placed.status, 200);
-    assert.deepEqual(p.room.decorations, ["deco_chair"]);
-    assert.deepEqual(p.room.inventory, []);
-    assert.deepEqual(p.room.roomInventory, []);
-    assert.deepEqual(placed.body.snapshot.room.decorations, ["deco_chair"]);
+    assert.equal(p.yard.goodieInventory.cardboard_cottage || 0, 0);
+    assert.equal(p.yard.placedGoodies[0].goodieId, "cardboard_cottage");
 
-    const picked = await applyAction(p, "room.pickup", { decoId: "deco_chair" });
+    const picked = await applyAction(p, "yard.pickupGoodie", { slotId: "large-1" });
     assert.equal(picked.status, 200);
-    assert.deepEqual(p.room.decorations, []);
-    assert.deepEqual(p.room.inventory, ["deco_chair"]);
-    assert.deepEqual(picked.body.snapshot.inventory.roomInventory, ["deco_chair"]);
+    assert.equal(p.yard.placedGoodies.length, 0);
+    assert.equal(p.yard.goodieInventory.cardboard_cottage, 1);
+  });
+
+  it("does not respawn starter or legacy goodies after they are placed or picked up", async () => {
+    const p = createDefaultPlayer("yard-no-respawn", "Yard");
+
+    const starterPlaced = await applyAction(p, "yard.placeGoodie", { goodieId: "yarn_mouse", slotId: "small-1" });
+    assert.equal(starterPlaced.status, 200);
+    assert.equal(buildSnapshot(p).yard.goodieInventory.yarn_mouse || 0, 0);
+
+    const legacy = createDefaultPlayer("yard-legacy-no-respawn", "Yard");
+    delete legacy.yard;
+    legacy.room.decorations = ["deco_lamp"];
+    buildSnapshot(legacy);
+
+    const picked = await applyAction(legacy, "yard.pickupGoodie", { slotId: "small-1" });
+    assert.equal(picked.status, 200);
+    assert.equal(buildSnapshot(legacy).yard.placedGoodies.some((placed) => placed.goodieId === "moon_lamp"), false);
+  });
+
+  it("simulates classic-hour visits and collects pending gifts", async () => {
+    const start = 1_800_000_000_000;
+    const p = createDefaultPlayer("yard-visits", "Yard", start);
+    p.yard.lastSimulatedAt = start;
+    await applyAction(p, "yard.setFood", { foodId: "kibble", bowlId: "bowl-1", now: start });
+    await applyAction(p, "yard.placeGoodie", { goodieId: "yarn_mouse", slotId: "small-1", now: start });
+
+    const result = await applyAction(p, "yard.collectGifts", { now: start + 12 * 60 * 60 * 1000 });
+
+    assert.equal(result.status, 200);
+    assert.ok(result.body.collected.treats > 0);
+    assert.ok(Object.keys(result.body.snapshot.yard.petbook).length > 0);
+    assert.equal(result.body.snapshot.yard.pendingGifts.length, 0);
+  });
+
+  it("attracts rare visitors from specific food and goodie conditions", async () => {
+    const start = 1_800_000_000_000;
+    const p = createDefaultPlayer("yard-rare", "Yard", start);
+    p.yard.currencies.treats = 2000;
+    p.yard.currencies.shinyTreats = 20;
+    p.yard.lastSimulatedAt = start;
+
+    await applyAction(p, "yard.buyGoodie", { goodieId: "moon_lamp", now: start });
+    await applyAction(p, "yard.placeGoodie", { goodieId: "moon_lamp", slotId: "small-2", now: start });
+    await applyAction(p, "yard.buyFood", { foodId: "bonito_bowl", qty: 1, now: start });
+    await applyAction(p, "yard.setFood", { foodId: "bonito_bowl", bowlId: "bowl-1", now: start });
+
+    const result = await applyAction(p, "yard.collectGifts", { now: start + 48 * 60 * 60 * 1000 });
+
+    assert.equal(result.status, 200);
+    assert.ok(result.body.snapshot.yard.petbook.starlit_fox.visits > 0);
+    assert.ok(result.body.snapshot.yard.mementos.starlit_fox);
+  });
+
+  it("fixes worn goodies and rejects unknown yard payloads", async () => {
+    const p = createDefaultPlayer("yard-fix", "Yard");
+    p.yard.currencies.treats = 500;
+    p.yard.placedGoodies = [{
+      slotId: "small-1",
+      goodieId: "yarn_mouse",
+      condition: "worn",
+      uses: 9,
+      placedAt: 1,
+    }];
+
+    const fixed = await applyAction(p, "yard.fixGoodie", { slotId: "small-1" });
+    assert.equal(fixed.status, 200);
+    assert.equal(p.yard.placedGoodies[0].condition, "new");
+    assert.equal(p.yard.placedGoodies[0].uses, 0);
+
+    const rejected = await applyAction(p, "yard.buyFood", { foodId: "missing_food" });
+    assert.equal(rejected.status, 400);
+    assert.equal(rejected.body.error, "unknown food");
+  });
+
+  it("unlocks expansion, remodels, helper refill, and album photos", async () => {
+    const start = 1_800_000_000_000;
+    const p = createDefaultPlayer("yard-meta", "Yard", start);
+    p.yard.currencies.treats = 3000;
+    p.yard.currencies.shinyTreats = 20;
+
+    const expansion = await applyAction(p, "yard.buyExpansion", { now: start });
+    assert.equal(expansion.status, 200);
+    assert.equal(p.yard.expansion.level, 2);
+    assert.ok(p.yard.bowls.some((bowl) => bowl.id === "bowl-2"));
+    assert.equal(p.yard.helper.unlocked, true);
+
+    const remodel = await applyAction(p, "yard.setRemodel", { remodelId: "moon_garden", now: start });
+    assert.equal(remodel.status, 200);
+    assert.equal(p.yard.remodel, "moon_garden");
+
+    const companion = await applyAction(p, "yard.configureCompanion", {
+      name: "Mochi",
+      species: "bunny",
+      helperAutoRefill: true,
+      now: start,
+    });
+    assert.equal(companion.status, 200);
+    assert.equal(p.yard.companion.name, "Mochi");
+    assert.equal(p.yard.helper.autoRefill, true);
+
+    p.yard.activeVisitors = [{
+      visitId: "visit-1",
+      visitorId: "mochi_bunny",
+      goodieId: "sun_cushion",
+      slotId: "small-1",
+      pose: "nap",
+      arrivedAt: start,
+      leavesAt: start + 60_000,
+    }];
+    const photo = await applyAction(p, "yard.capturePhoto", { visitId: "visit-1", caption: "soft nap", now: start });
+    assert.equal(photo.status, 200);
+    assert.equal(p.yard.album.photos[0].visitorId, "mochi_bunny");
+
+    const favorite = await applyAction(p, "yard.favoritePhoto", { photoId: p.yard.album.photos[0].id });
+    assert.equal(favorite.status, 200);
+    assert.equal(p.yard.album.favoritePhotoId, p.yard.album.photos[0].id);
   });
 });
 
@@ -339,6 +478,18 @@ describe("calcRegen", () => {
     calcRegen(p, future);
 
     // Assert
+    assert.equal(p.resources.energy.current, ECONOMY.ENERGY_MAX);
+  });
+
+  it("does not keep old Room decoration bonuses after Cozy Yard migration", () => {
+    const now = Date.now();
+    const p = createDefaultPlayer("legacy-room-energy", "Test", now);
+    p.room.decorations = ["deco_bed"];
+    p.resources.energy.current = ECONOMY.ENERGY_MAX;
+    p.resources.energy.lastRegenTimestamp = now - ECONOMY.ENERGY_REGEN_INTERVAL_MS;
+
+    calcRegen(p, now);
+
     assert.equal(p.resources.energy.current, ECONOMY.ENERGY_MAX);
   });
 

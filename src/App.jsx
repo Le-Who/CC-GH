@@ -1,7 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useOptimistic, useRef, useState, useTransition } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
-  BadgeCheck,
   Blocks,
   Bot,
   Check,
@@ -14,7 +13,6 @@ import {
   Moon,
   PackageOpen,
   Pause,
-  PawPrint,
   Play,
   RotateCcw,
   ShoppingBag,
@@ -32,6 +30,7 @@ import { audioManager } from "./services/audioManager.js";
 import { connectRealtime } from "./services/realtimeClient.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
 import GardenShelfGame from "./games/garden-shelf/GardenShelfGame";
+import CompanionYardGame from "./games/companion-yard/CompanionYardGame.jsx";
 import {
   GARDEN_LANGUAGE_EVENT,
   gardenTranslate,
@@ -64,7 +63,7 @@ import {
   seedDropTokens,
 } from "./game-core/match3/engine.js";
 import { estimateMatch3CascadeLockMs } from "./game-core/match3/animation.js";
-import { CROPS, ECONOMY, MERGE_CHAINS, ROOM_DECORATIONS } from "../game-logic.js";
+import { CROPS, ECONOMY, MERGE_CHAINS } from "../game-logic.js";
 
 const TABS = [
   { id: "garden", labelKey: "tabs.garden", icon: Leaf },
@@ -104,7 +103,7 @@ const APP_TRANSLATIONS = {
     "tabs.merge": "Merge",
     "tabs.bubbo": "Bubbo",
     "tabs.trivia": "Trivia",
-    "tabs.room": "Room",
+    "tabs.room": "Yard",
     "common.gold": "Gold",
     "common.energy": "Energy",
     "common.tokens": "Tokens",
@@ -238,21 +237,6 @@ const APP_TRANSLATIONS = {
     "trivia.fallbackCategory": "Trivia",
     "trivia.duel": "duel",
     "trivia.played": "played",
-    "room.full": "Full",
-    "room.happy": "Happy",
-    "room.orders": "Orders",
-    "room.fullness": "Fullness",
-    "room.affection": "Affection",
-    "room.decor": "Decor",
-    "room.rename": "Rename",
-    "room.inventory": "Room Inventory",
-    "room.emptyInventory": "Find decorations from Merge gacha and high merges.",
-    "room.ordersTitle": "Pet Orders",
-    "room.generate": "Generate",
-    "room.order": "{tier} order",
-    "room.complete": "Complete",
-    "room.decoration": "Decoration",
-    "room.defaultName": "Buddy",
   },
   ru: {
     "app.eyebrow": "Telegram Mini App",
@@ -272,7 +256,7 @@ const APP_TRANSLATIONS = {
     "tabs.merge": "Слияние",
     "tabs.bubbo": "Bubbo",
     "tabs.trivia": "Викторина",
-    "tabs.room": "Комната",
+    "tabs.room": "Двор",
     "common.gold": "Золото",
     "common.energy": "Энергия",
     "common.tokens": "Токены",
@@ -406,21 +390,6 @@ const APP_TRANSLATIONS = {
     "trivia.fallbackCategory": "Викторина",
     "trivia.duel": "дуэль",
     "trivia.played": "сыграно",
-    "room.full": "Сытость",
-    "room.happy": "Радость",
-    "room.orders": "Заказы",
-    "room.fullness": "Сытость",
-    "room.affection": "Привязанность",
-    "room.decor": "Декор",
-    "room.rename": "Переименовать",
-    "room.inventory": "Инвентарь комнаты",
-    "room.emptyInventory": "Украшения выпадают из Merge gacha и высоких слияний.",
-    "room.ordersTitle": "Заказы питомца",
-    "room.generate": "Создать",
-    "room.order": "заказ: {tier}",
-    "room.complete": "Выполнить",
-    "room.decoration": "Украшение",
-    "room.defaultName": "Бадди",
   },
 };
 
@@ -823,10 +792,9 @@ function BagPanel() {
             <span className="item-emoji">{crop.emoji || "🌱"}</span>
             <span>
               <strong>{crop.name || cropId}</strong>
-              <small>x{qty} · sell {crop.sellPrice || 0}g · feed +{crop.fullnessYield || 0}</small>
+              <small>x{qty} · sell {crop.sellPrice || 0}g</small>
             </span>
             <PanelButton icon={Sparkles} onClick={() => performAction("farm.sellCrop", { cropId, amount: 1 })}>{t("farm.sell")}</PanelButton>
-            <PanelButton icon={PawPrint} onClick={() => performAction("pet.feed", { cropId })}>{t("farm.feed")}</PanelButton>
           </div>
         );
       })}
@@ -1952,190 +1920,7 @@ function QuestionPanel({ question, score, streak, submitAnswer }) {
 }
 
 function RoomGame() {
-  const snapshot = useSnapshot();
-  const performAction = useAction();
-  const exitToHub = useExitToHub();
-  const { t } = useAppI18n();
-  const room = snapshot?.room || {};
-  const pet = snapshot?.pet || {};
-  const inventory = snapshot?.inventory?.roomInventory || [];
-  const [selectedDeco, setSelectedDeco] = useState("");
-  const [rename, setRename] = useState(pet.name || "");
-  const [inShell, setInShell] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const renameInputRef = useRef(null);
-  const [optimisticName, setOptimisticName] = useOptimistic(pet.name || t("room.defaultName"));
-  const [, startRenameTransition] = useTransition();
-  const isPlaying = inShell && !paused;
-  useImmersiveGame("room", inShell);
-
-  useEffect(() => setRename(pet.name || ""), [pet.name]);
-
-  const submitRename = useCallback(() => {
-    const newName = (renameInputRef.current?.value || rename).trim().slice(0, 16);
-    if (!newName) return;
-    startRenameTransition(() => {
-      setOptimisticName(newName);
-      performAction("pet.rename", { newName });
-    });
-  }, [performAction, rename, setOptimisticName, startRenameTransition]);
-
-  return (
-    <div className={`room-layout${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}>
-      <section className="room-stage">
-        <div className="room-grid">
-          {Array.from({ length: 12 }, (_, index) => {
-            const decoId = room.decorations?.[index];
-            const deco = ROOM_DECORATIONS[decoId];
-            return (
-              <button
-                key={index}
-                className={`room-cell ${selectedDeco && !decoId ? "target" : ""}`}
-                onClick={() => {
-                  if (decoId) performAction("room.pickup", { decoId });
-                  else if (selectedDeco) {
-                    performAction("room.place", { decoId: selectedDeco }).then((result) => {
-                      if (!result.error) setSelectedDeco("");
-                    });
-                  }
-                }}
-              >
-                {deco ? <span>{deco.emoji}</span> : null}
-              </button>
-            );
-          })}
-        </div>
-        <PetAvatar pet={pet} />
-      </section>
-      {isPlaying && (
-        <GamePlayHud
-          title={optimisticName || t("room.defaultName")}
-          subtitle={`${t("farm.levelShort")} ${pet.level || 1} · ${t("room.affection").toLowerCase()} ${pet.affectionLevel || 1}`}
-          stats={[
-            { label: t("room.full"), value: `${pet.stats?.fullness || 0}/100` },
-            { label: t("room.happy"), value: `${pet.stats?.happiness || 0}/100` },
-            { label: t("room.orders"), value: pet.activeOrders?.length || 0 },
-          ]}
-          onPause={() => setPaused(true)}
-        />
-      )}
-      <aside className={`side-panel${inShell ? " game-menu-overlay" : ""}`}>
-        <div className="panel-header">
-          <div>
-            <strong>{optimisticName || t("room.defaultName")}</strong>
-            <span>{t("farm.levelShort")} {pet.level || 1} · {t("room.affection")} {pet.affectionLevel || 1}</span>
-          </div>
-          <PanelButton
-            icon={Play}
-            onClick={() => {
-              setInShell(true);
-              setPaused(false);
-            }}
-          >
-            {inShell ? t("common.resume") : t("common.play")}
-          </PanelButton>
-        </div>
-        {inShell && paused && (
-          <div className="button-row">
-            <PanelButton icon={Play} onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-            <PanelButton
-              icon={RotateCcw}
-              subtle
-              onClick={() => {
-                setPaused(false);
-                setInShell(false);
-              }}
-            >
-              {t("room.decor")}
-            </PanelButton>
-            <PanelButton
-              icon={Home}
-              danger
-              onClick={() => {
-                setPaused(false);
-                setInShell(false);
-                exitToHub();
-              }}
-            >
-              {t("common.exit")}
-            </PanelButton>
-          </div>
-        )}
-        <div className="metric-grid">
-          <Stat icon={PawPrint} label={t("room.fullness")} value={`${pet.stats?.fullness || 0}/100`} />
-          <Stat icon={Sparkles} label={t("room.happy")} value={`${pet.stats?.happiness || 0}/100`} />
-          <Stat icon={BadgeCheck} label={t("room.orders")} value={pet.activeOrders?.length || 0} />
-        </div>
-        <div className="join-row">
-          <input ref={renameInputRef} value={rename} onChange={(e) => setRename(e.target.value)} maxLength={16} />
-          <PanelButton icon={Check} onClick={submitRename}>{t("room.rename")}</PanelButton>
-        </div>
-        <div className="ability-list">
-          {["autoHarvest", "autoWater", "autoPlant"].map((id) => (
-            <span key={id} className={pet.abilities?.[id] ? "unlocked" : ""}>{pet.abilities?.[id] ? "✓" : "•"} {id}</span>
-          ))}
-        </div>
-        <strong>{t("room.inventory")}</strong>
-        <div className="panel-scroll grid-list">
-          {!inventory.length && <div className="empty-state">{t("room.emptyInventory")}</div>}
-          {inventory.map((decoId) => {
-            const deco = ROOM_DECORATIONS[decoId] || {};
-            return (
-              <button key={decoId} className={`item-card ${selectedDeco === decoId ? "selected" : ""}`} onClick={() => setSelectedDeco(decoId)}>
-                <span className="item-emoji">{deco.emoji || "?"}</span>
-                <span>
-                  <strong>{deco.name || decoId}</strong>
-                  <small>{deco.bonus?.desc || t("room.decoration")}</small>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <QuestOrders />
-      </aside>
-    </div>
-  );
-}
-
-function PetAvatar({ pet }) {
-  const skin = pet.skinId || "basic_dog";
-  const fullness = pet.stats?.fullness || 0;
-  const expression = fullness >= 80 ? "ecstatic" : fullness >= 50 ? "happy" : fullness >= 20 ? "neutral" : "sad";
-  return (
-    <div className="pet-avatar">
-      <img src={`/pets/${skin}_body.svg`} alt="" />
-      <img src={`/pets/expr_${expression}.svg`} alt="" />
-    </div>
-  );
-}
-
-function QuestOrders() {
-  const snapshot = useSnapshot();
-  const performAction = useAction();
-  const { t } = useAppI18n();
-  const orders = snapshot?.pet?.activeOrders || [];
-  const harvested = snapshot?.inventory?.harvested || {};
-  const mergeItems = snapshot?.inventory?.mergeItems || {};
-  return (
-    <div className="quest-list">
-      <div className="panel-header tight">
-        <strong>{t("room.ordersTitle")}</strong>
-        <PanelButton icon={RotateCcw} onClick={() => performAction("quest.generate")}>{t("room.generate")}</PanelButton>
-      </div>
-      {orders.map((order) => (
-        <div className="order-card" key={order.id}>
-          <strong>{t("room.order", { tier: order.tier })}</strong>
-          {(order.requirements || []).map((req, index) => {
-            const have = req.type === "crop" ? harvested[req.id] || 0 : mergeItems[req.id] || 0;
-            return <small key={index}>{req.id}: {have}/{req.qty}</small>;
-          })}
-          <PanelButton icon={Check} onClick={() => performAction("quest.submit", { orderId: order.id })}>
-            {t("room.complete")}
-          </PanelButton>
-        </div>
-      ))}
-    </div>
-  );
+  return <CompanionYardGame />;
 }
 
 function Leaderboard({ entries }) {

@@ -12,7 +12,7 @@
  */
 
 import crypto from "crypto";
-import { ECONOMY, createDefaultPlayer, createDefaultGardenState, checkAchievements } from "./game-logic.js";
+import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
 import { getIO } from "./socketManager.js";
 import {
@@ -71,6 +71,7 @@ function emitPlayerSync(userId, player) {
       plots: player.farm.plots,
       merge: player.merge,
       garden: player.garden,
+      yard: player.yard,
       pet: player.pet,
       achievements: player.achievements,
     },
@@ -248,11 +249,12 @@ process.on("SIGINT", gracefulShutdown);
  * strictly a migration pipeline used by withPlayerLock.
  */
 export function applyMigrations(p) {
-  const currentSchemaVersion = 10;
+  const currentSchemaVersion = 11;
   
   if (!p) return null;
 
   if (!p.garden) p.garden = createDefaultGardenState(Date.now());
+  if (!p.yard) p.yard = createDefaultYardState(Date.now(), { pet: p.pet, room: p.room });
 
   // v8.1: Early-return
   if (p.schemaVersion >= currentSchemaVersion) {
@@ -390,6 +392,11 @@ export function applyMigrations(p) {
   if (!p.schemaVersion || p.schemaVersion < 10) {
     if (!p.garden) p.garden = createDefaultGardenState(Date.now());
     p.schemaVersion = 10;
+  }
+
+  if (!p.schemaVersion || p.schemaVersion < 11) {
+    if (!p.yard) p.yard = createDefaultYardState(Date.now(), { pet: p.pet, room: p.room });
+    p.schemaVersion = 11;
   }
 
   if (!p.bubbo) {

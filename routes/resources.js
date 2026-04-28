@@ -1,7 +1,7 @@
 /**
  * ═══════════════════════════════════════════════════════
  *  Game Hub — Resources & Items Routes
- *  Unified inventory, crop selling, pet feeding
+ *  Unified inventory and crop selling
  * ═══════════════════════════════════════════════════════
  */
 import { Router } from "express";
@@ -62,63 +62,16 @@ export default function resourcesRoutes(requireAuth, resolveUser) {
     }, username);
   });
 
-  /* ─── Feed Pet (Aligned with game-logic.js satiety) ─── */
   router.post("/api/pet/feed", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      const { cropId } = req.body;
-      calcRegen(p);
-
-      if (!cropId || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
-        return res.status(400).json({ error: "no harvested crop to feed" });
-      }
-      const cfg = CROPS[cropId];
-      if (!cfg) return res.status(400).json({ error: "unknown crop" });
-
-      // v6.2.0: Pet uses fullness stats instead of legacy hunger
-      if (!p.pet.stats) p.pet.stats = { happiness: 100, fullness: 0 };
-      if (p.pet.stats.fullness >= 100) {
-        return res.status(400).json({ error: "pet is full" });
-      }
-
-      p.farm.harvested[cropId]--;
-      if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
-      
-      const fullnessYield = cfg.fullnessYield || 10;
-      const energyYield = cfg.energyYield || 2;
-
-      p.pet.stats.fullness = Math.min(100, p.pet.stats.fullness + fullnessYield);
-      p.resources.energy.current = Math.min(p.resources.energy.max, p.resources.energy.current + energyYield);
-      
-      const sql = getDb();
-      if (sql) {
-        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
-            VALUES (${userId}, ${username}, 'feed_pet', ${sql.json({ crop_id: cropId })})`.catch(console.error);
-      }
-
-      res.json({
-        success: true,
-        pet: p.pet,
-        resources: p.resources,
-        harvested: p.farm.harvested
-      });
-    }, username);
+    return res.status(410).json({ error: "Pet feeding was replaced by Cozy Yard food bowls. Use yard.setFood." });
   });
 
-  /* ─── Rename Pet ─── */
   router.post("/api/pet/rename", requireAuth, async (req, res) => {
-    const { userId, username } = resolveUser(req);
+    const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      const { newName } = req.body;
-      if (!newName || typeof newName !== "string") {
-        return res.status(400).json({ error: "invalid name" });
-      }
-      p.pet.name = newName.trim().slice(0, 16);
-      p._onboarded = true;
-      res.json({ success: true, pet: p.pet });
-    }, username);
+    return res.status(410).json({ error: "Pet rename was replaced by yard.configureCompanion." });
   });
 
   return router;

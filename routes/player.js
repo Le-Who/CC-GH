@@ -10,21 +10,25 @@ import {
   ECONOMY,
   MERGE_CHAINS,
   PLOT_THEMES,
-  ROOM_DECORATIONS,
   SEASON_PASS,
   TIER_YIELD,
   PIECES,
   PIECE_COUNT,
+  YARD_GOODIES,
+  applyYardActionToState,
   calcBloxReward,
   calcGoldReward,
   calcRegen,
   calcTokenReward,
   checkAchievements,
   farmPlotsWithGrowth,
+  getYardCatalogSnapshot,
   getGrowthPct,
   getUnlockedSeeds,
   hydrateMergeBoard,
+  normalizeYardState,
   processOfflineActions,
+  simulateYardState,
   updateStreak,
   validCoord,
   createEmptyBoard,
@@ -115,6 +119,14 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
   };
 }
 
+function ensurePlayerYard(p, now = Date.now(), simulate = false) {
+  const legacy = { pet: p.pet, room: p.room };
+  p.yard = simulate
+    ? simulateYardState(p.yard, now, legacy, p.id || p.username || "yard")
+    : normalizeYardState(p.yard, legacy, now);
+  return p.yard;
+}
+
 function getFarmStats(p) {
   let totalHarvests = p.stats?.totalHarvests || 0;
   if (totalHarvests === 0 && p.farm?.harvested) {
@@ -131,6 +143,7 @@ function getFarmStats(p) {
 
 function buildInventory(p) {
   hydrateMergeBoard(p);
+  const yard = ensurePlayerYard(p);
   const roomInventory = Array.isArray(p.room?.roomInventory)
     ? p.room.roomInventory
     : Array.isArray(p.room?.inventory)
@@ -143,6 +156,8 @@ function buildInventory(p) {
     mergeItems: countMergeItems(p.merge?.board || []),
     mergeInventory: Array.isArray(p.merge?.inventory) ? [...p.merge.inventory] : [],
     roomInventory: [...roomInventory],
+    yardFood: { ...(yard.foodInventory || {}) },
+    yardGoodies: { ...(yard.goodieInventory || {}) },
     rewards: {
       gachaTokens: p.resources?.gachaTokens || 0,
       gold: p.resources?.gold || 0,
@@ -195,6 +210,7 @@ function buildSeasonPass(p) {
 export function buildSnapshot(p, extras = {}) {
   hydrateMergeBoard(p);
   calcRegen(p);
+  const yard = ensurePlayerYard(p);
   const farmStats = getFarmStats(p);
   const bloxSaved = parseJsonValue(p.blox?.savedState, null);
   const savedModes = parseJsonValue(p.match3?.savedModes, {});
@@ -256,6 +272,7 @@ export function buildSnapshot(p, extras = {}) {
       inventory: roomInventory,
       roomInventory,
     },
+    yard,
     achievements: {
       badges: buildAchievements(p),
       raw: p.achievements || {},
@@ -265,7 +282,7 @@ export function buildSnapshot(p, extras = {}) {
     meta: {
       crops: CROPS,
       mergeChains: MERGE_CHAINS,
-      roomDecorations: ROOM_DECORATIONS,
+      yardCatalog: getYardCatalogSnapshot(),
       plotThemes: PLOT_THEMES,
       boosters: BOOSTER_CONFIG,
       seasonPass: SEASON_PASS,
@@ -330,17 +347,18 @@ function unlockMergeChain(p, chainId) {
   }
 }
 
-function randomRoomDecoration(p, chance = 0.08) {
+function randomYardGoodie(p, chance = 0.08) {
   if (Math.random() > chance) return null;
-  if (!p.room) p.room = { decorations: [], inventory: [], wallpaper: "default" };
-  const ids = Object.keys(ROOM_DECORATIONS);
-  const owned = new Set([...(p.room.decorations || []), ...(p.room.inventory || []), ...(p.room.roomInventory || [])]);
+  const yard = ensurePlayerYard(p);
+  const ids = Object.keys(YARD_GOODIES);
+  const owned = new Set([
+    ...Object.keys(yard.goodieInventory || {}),
+    ...(yard.placedGoodies || []).map((placed) => placed.goodieId),
+  ]);
   const candidates = ids.filter((id) => !owned.has(id));
   if (!candidates.length) return null;
   const id = candidates[Math.floor(Math.random() * candidates.length)];
-  if (!Array.isArray(p.room.inventory)) p.room.inventory = [];
-  p.room.inventory.push(id);
-  p.room.roomInventory = [...p.room.inventory];
+  yard.goodieInventory[id] = (yard.goodieInventory[id] || 0) + 1;
   return id;
 }
 
@@ -562,130 +580,24 @@ export async function applyAction(p, action, payload = {}) {
       p.cosmetics.activePlotTheme = themeId;
       return ok(action, p, { themeId });
     }
-    case "pet.feed": {
-      const { cropId } = payload;
-      const cfg = CROPS[cropId];
-      if (!cfg) return fail(400, "unknown crop");
-      if ((p.farm.harvested[cropId] || 0) <= 0) return fail(400, "no harvested crop to feed");
-      if (!p.pet.stats) p.pet.stats = { happiness: 100, fullness: 0 };
-      if (p.pet.stats.fullness >= 100) return fail(400, "pet is full");
-      p.farm.harvested[cropId] -= 1;
-      if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
-      p.pet.stats.fullness = Math.min(100, (p.pet.stats.fullness || 0) + (cfg.fullnessYield || 10));
-      p.pet.stats.happiness = Math.min(100, (p.pet.stats.happiness || 80) + 3);
-      p.pet.xp = (p.pet.xp || 0) + ECONOMY.FEED_PET_XP;
-      p.resources.energy.current = Math.min(p.resources.energy.max, p.resources.energy.current + (cfg.energyYield || 1));
-      while (p.pet.xp >= p.pet.xpToNextLevel) {
-        p.pet.xp -= p.pet.xpToNextLevel;
-        p.pet.level += 1;
-        p.pet.xpToNextLevel = Math.floor(p.pet.xpToNextLevel * 1.25);
-        if (p.pet.level >= 3) p.pet.abilities.autoHarvest = true;
-        if (p.pet.level >= 5) p.pet.abilities.autoWater = true;
-        if (p.pet.level >= 7) p.pet.abilities.autoPlant = true;
-      }
-      return ok(action, p, { cropId, newAchievements: checkAchievements(p) });
-    }
-    case "pet.rename": {
-      const newName = String(payload.newName || "").trim().slice(0, 16);
-      if (!newName) return fail(400, "invalid name");
-      p.pet.name = newName;
+    case "yard.buyFood":
+    case "yard.setFood":
+    case "yard.buyGoodie":
+    case "yard.placeGoodie":
+    case "yard.pickupGoodie":
+    case "yard.fixGoodie":
+    case "yard.collectGifts":
+    case "yard.capturePhoto":
+    case "yard.favoritePhoto":
+    case "yard.setRemodel":
+    case "yard.buyExpansion":
+    case "yard.claimDailyLetter":
+    case "yard.configureCompanion": {
+      const result = applyYardActionToState(p.yard, action, payload, { pet: p.pet, room: p.room }, p.id || p.username || "yard");
+      p.yard = result.yard;
+      if (result.status !== 200) return fail(result.status, result.error);
       p._onboarded = true;
-      return ok(action, p, { pet: p.pet });
-    }
-    case "quest.generate": {
-      const tiers = ["easy", "medium", "hard"];
-      if (!p.pet.activeOrders) p.pet.activeOrders = [];
-      if (p.pet.activeOrders.length >= 3) return fail(400, "max active orders reached (3)");
-      const slots = 3 - p.pet.activeOrders.length;
-      const cropIds = Object.keys(CROPS);
-      const generated = [];
-      for (let i = 0; i < slots; i++) {
-        const lvl = p.pet.affectionLevel || 1;
-        const tier = lvl < 3 ? "easy" : lvl < 6 ? tiers[Math.floor(Math.random() * 2)] : tiers[Math.floor(Math.random() * tiers.length)];
-        const cropId = cropIds[Math.floor(Math.random() * cropIds.length)];
-        const qty = tier === "easy" ? 1 + Math.floor(Math.random() * 3) : tier === "medium" ? 2 + Math.floor(Math.random() * 4) : 3 + Math.floor(Math.random() * 6);
-        const order = {
-          id: randomUUID(),
-          tier,
-          requirements: [{ type: "crop", id: cropId, qty }],
-          reward: {
-            gold: tier === "easy" ? 50 : tier === "medium" ? 140 : 320,
-            affectionXp: tier === "easy" ? 14 : tier === "medium" ? 32 : 64,
-            gachaTokens: tier === "hard" ? 2 : tier === "medium" ? 1 : 0,
-            energyMaxBoost: 0,
-          },
-        };
-        generated.push(order);
-      }
-      p.pet.activeOrders.push(...generated);
-      return ok(action, p, { newOrders: generated, orders: p.pet.activeOrders });
-    }
-    case "quest.submit": {
-      hydrateMergeBoard(p);
-      const { orderId } = payload;
-      const idx = (p.pet.activeOrders || []).findIndex((order) => order.id === orderId);
-      if (idx < 0) return fail(400, "order not found");
-      const order = p.pet.activeOrders[idx];
-      const mergeCounts = countMergeItems(p.merge.board);
-      for (const req of order.requirements || []) {
-        if (req.type === "crop" && (p.farm.harvested[req.id] || 0) < req.qty) return fail(400, `not enough ${req.id}`, { need: req.qty });
-        if (req.type === "merge" && (mergeCounts[req.id] || 0) < req.qty) return fail(400, `not enough ${req.id} on board`, { need: req.qty });
-      }
-      for (const req of order.requirements || []) {
-        if (req.type === "crop") {
-          p.farm.harvested[req.id] -= req.qty;
-          if (p.farm.harvested[req.id] <= 0) delete p.farm.harvested[req.id];
-        } else if (req.type === "merge") {
-          let remaining = req.qty;
-          for (const row of p.merge.board) {
-            for (let c = 0; c < row.length && remaining > 0; c++) {
-              if (row[c]?.id === req.id) {
-                row[c] = null;
-                remaining--;
-              }
-            }
-          }
-        }
-      }
-      const reward = order.reward || {};
-      p.resources.gold += reward.gold || 0;
-      p.resources.gachaTokens = (p.resources.gachaTokens || 0) + (reward.gachaTokens || 0);
-      if (reward.energyMaxBoost) p.resources.energy.max += reward.energyMaxBoost;
-      p.pet.affectionXp = (p.pet.affectionXp || 0) + (reward.affectionXp || 0);
-      let affectionLeveledUp = false;
-      let xpNeeded = (p.pet.affectionLevel || 1) * 100;
-      while (p.pet.affectionXp >= xpNeeded) {
-        p.pet.affectionXp -= xpNeeded;
-        p.pet.affectionLevel = (p.pet.affectionLevel || 1) + 1;
-        xpNeeded = p.pet.affectionLevel * 100;
-        affectionLeveledUp = true;
-      }
-      p.pet.activeOrders.splice(idx, 1);
-      p.questsCompleted = (p.questsCompleted || 0) + 1;
-      return ok(action, p, { reward, affectionLeveledUp, newAchievements: checkAchievements(p) });
-    }
-    case "room.place": {
-      const { decoId } = payload;
-      if (!ROOM_DECORATIONS[decoId]) return fail(400, "unknown decoration");
-      if (!p.room) p.room = { decorations: [], inventory: [], wallpaper: "default" };
-      const inv = p.room.roomInventory || p.room.inventory || [];
-      const idx = inv.indexOf(decoId);
-      if (idx < 0) return fail(400, "decoration not owned");
-      inv.splice(idx, 1);
-      p.room.inventory = [...inv];
-      p.room.roomInventory = [...inv];
-      p.room.decorations = [...(p.room.decorations || []), decoId];
-      return ok(action, p, { decoId });
-    }
-    case "room.pickup": {
-      const { decoId } = payload;
-      if (!p.room?.decorations?.includes(decoId)) return fail(400, "decoration not placed");
-      p.room.decorations = p.room.decorations.filter((id) => id !== decoId);
-      const inv = p.room.roomInventory || p.room.inventory || [];
-      inv.push(decoId);
-      p.room.inventory = [...inv];
-      p.room.roomInventory = [...inv];
-      return ok(action, p, { decoId });
+      return ok(action, p, result.extras || {});
     }
     case "merge.tap": {
       const { chainId = "textile", cropId } = payload;
@@ -744,8 +656,8 @@ export async function applyAction(p, action, payload = {}) {
       const level = src.level + 1;
       p.merge.board[toR][toC] = { id: chain.items[level], chainId: src.chainId, level };
       p.merge.board[fromR][fromC] = null;
-      const roomDrop = level >= 4 ? randomRoomDecoration(p, 0.18) : null;
-      return ok(action, p, { newItem: p.merge.board[toR][toC], roomDrop, newAchievements: checkAchievements(p) });
+      const yardDrop = level >= 4 ? randomYardGoodie(p, 0.18) : null;
+      return ok(action, p, { newItem: p.merge.board[toR][toC], yardDrop, newAchievements: checkAchievements(p) });
     }
     case "merge.gacha":
     case "merge.freePull": {
@@ -767,8 +679,8 @@ export async function applyAction(p, action, payload = {}) {
       const [r, c] = cells[Math.floor(Math.random() * cells.length)];
       p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
       unlockMergeChain(p, chainId);
-      const roomDrop = randomRoomDecoration(p, free ? 0.04 : 0.12);
-      return ok(action, p, { spawned: { r, c, item: p.merge.board[r][c] }, chainId, roomDrop });
+      const yardDrop = randomYardGoodie(p, free ? 0.04 : 0.12);
+      return ok(action, p, { spawned: { r, c, item: p.merge.board[r][c] }, chainId, yardDrop });
     }
     case "merge.claimFreeTaps": {
       ensureMergeState(p);
@@ -930,6 +842,7 @@ export default function playerRoutes(requireAuth, resolveUser) {
       if (!userId) return res.status(400).json({ error: "userId required" });
       const snapshot = await withPlayerLock(userId, async (p) => {
         const offlineReport = processOfflineActions(p);
+        ensurePlayerYard(p, Date.now(), true);
         const streakResult = updateStreak(p);
         const newAchievements = checkAchievements(p);
         return buildSnapshot(p, { offlineReport, streakResult, newAchievements });
@@ -954,9 +867,8 @@ export default function playerRoutes(requireAuth, resolveUser) {
 
   router.post("/api/pet/room/place", requireAuth, async (req, res, next) => {
     try {
-      const { userId, username } = resolveUser(req);
-      const result = await withPlayerLock(userId, async (p) => applyAction(p, "room.place", req.body), username);
-      res.status(result.status || 200).json(result.body || result);
+      resolveUser(req);
+      res.status(410).json({ error: "Pet Room placement was replaced by yard.placeGoodie" });
     } catch (err) {
       next(err);
     }
@@ -964,9 +876,8 @@ export default function playerRoutes(requireAuth, resolveUser) {
 
   router.post("/api/pet/room/pickup", requireAuth, async (req, res, next) => {
     try {
-      const { userId, username } = resolveUser(req);
-      const result = await withPlayerLock(userId, async (p) => applyAction(p, "room.pickup", req.body), username);
-      res.status(result.status || 200).json(result.body || result);
+      resolveUser(req);
+      res.status(410).json({ error: "Pet Room pickup was replaced by yard.pickupGoodie" });
     } catch (err) {
       next(err);
     }

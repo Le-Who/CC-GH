@@ -110,12 +110,12 @@ test.describe("Glass UI rollout smoke", () => {
     await pauseAndCheck(page, "Trivia", testInfo);
     await exitToHub(page);
 
-    await page.getByRole("button", { name: /Room/ }).click();
+    await page.getByRole("button", { name: /Yard/ }).click();
     await page.waitForTimeout(260);
-    await expectReadableGlass(page, page.locator(".room-layout .side-panel"), "Room decor menu", testInfo);
+    await expectReadableGlass(page, page.locator(".companion-yard-panel"), "Cozy Yard menu", testInfo);
     await page.getByRole("button", { name: /^Play$/ }).click();
-    await expectReadableGlass(page, page.locator(".game-play-hud").last(), "Room live HUD", testInfo);
-    await pauseAndCheck(page, "Room", testInfo);
+    await expectReadableGlass(page, page.locator(".game-play-hud").last(), "Yard live HUD", testInfo);
+    await pauseAndCheck(page, "Yard", testInfo);
     await exitToHub(page);
   });
 });

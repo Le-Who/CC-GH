@@ -14,6 +14,8 @@ export * from "./economy.js";
 export * from "./crops.js";
 export * from "./merge-config.js";
 export * from "./pet-assets.js";
+export * from "./yard-catalog.js";
+export * from "./yard.js";
 export * from "./meta.js";
 export * from "./player.js";
 export * from "./farm.js";

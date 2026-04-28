@@ -98,6 +98,7 @@ export const useGameHub = create((set, get) => ({
           : prev.farm,
         merge: payload.merge ? { ...prev.merge, ...payload.merge } : prev.merge,
         garden: payload.garden ? { ...prev.garden, ...payload.garden } : prev.garden,
+        yard: payload.yard ? { ...prev.yard, ...payload.yard } : prev.yard,
         pet: payload.pet || prev.pet,
         achievements: payload.achievements
           ? { ...prev.achievements, raw: payload.achievements }

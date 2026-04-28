@@ -6,6 +6,7 @@ This guide covers replaceable visual and audio assets for the CC-GH Telegram Min
 
 - App icons: `public/icons/icon-192.png`, `public/icons/icon-512.png`
 - Pet bodies and expressions: `public/pets/*.svg`
+- Cozy Yard runtime art: `public/games/companion-yard/**`
 - Asset manifest: `public/assets/manifest.json`
 - Built production output: `dist/` after `pnpm run build`
 
@@ -93,7 +94,7 @@ public/assets/backgrounds/farm.webp
 public/assets/backgrounds/blox.webp
 public/assets/backgrounds/match3.webp
 public/assets/backgrounds/merge.webp
-public/assets/backgrounds/room.webp
+public/games/companion-yard/backgrounds/meadow.png
 public/assets/sprites/crops.webp
 public/assets/sprites/gems.webp
 public/assets/sprites/merge-items.webp
@@ -139,6 +140,69 @@ Then set the matching item key, for example:
 ```
 
 If a path is empty, the Pixi scene uses the larger procedural icon fallback with a level badge. Keep item icons square, transparent, and readable at `48x48`.
+
+## Cozy Yard Assets
+
+Cozy Yard is catalog-driven. The authoritative ids and balance data live in:
+
+```text
+game-logic/yard-catalog.js
+```
+
+Runtime art lives in:
+
+```text
+public/games/companion-yard/backgrounds/<remodel_id>.png
+public/games/companion-yard/foods/<food_id>.png
+public/games/companion-yard/goodies/<goodie_id>.png
+public/games/companion-yard/goodies/<goodie_id>_worn.png
+public/games/companion-yard/goodies/<goodie_id>_broken.png
+public/games/companion-yard/visitors/<visitor_id>.png
+public/games/companion-yard/companions/<species>.png
+```
+
+The checked-in `public/games/companion-yard/source-svg/` files are editable starter sources only. The app loads the PNG/WebP runtime paths above.
+
+Register replacement paths in:
+
+```text
+public/assets/manifest.json -> graphics.games.companionYard
+```
+
+Recommended formats:
+
+- PNG for transparent visitors, companions, foods, and goodies.
+- WebP or PNG for full-scene remodel backgrounds.
+- SVG only for source sketches or simple marks; runtime scene and sprite paths should stay PNG/WebP.
+
+To add a new visitor:
+
+1. Add the visitor id, species, rarity, preferred food/goodie tags, pose variants, gift table, and memento threshold to `YARD_VISITORS`.
+2. Add `public/games/companion-yard/visitors/<visitor_id>.png`.
+3. Add or reuse attraction tags on foods/goodies so the visitor has reachable conditions.
+4. Run `pnpm test` and a Room/Yard Playwright smoke test.
+
+To add a new goodie:
+
+1. Add the goodie id, slot size, tags, cost, durability, fix cost, activities, and asset key to `YARD_GOODIES`.
+2. Add the three runtime sprites: `<goodie_id>.png`, `<goodie_id>_worn.png`, and `<goodie_id>_broken.png`.
+3. Add the id to a starter inventory, shop-only catalog entry, or reward drop path if it should be obtainable.
+4. Validate placement, pickup, worn/fix, and visitor attraction.
+
+To add food:
+
+1. Add the food id, cost, duration, servings, attraction tags, and rarity/gift modifiers to `YARD_FOODS`.
+2. Add `public/games/companion-yard/foods/<food_id>.png`.
+3. Verify `yard.buyFood`, `yard.setFood`, and visitor generation with that food.
+
+To add a remodel or expansion layout:
+
+1. Add the remodel id, display metadata, cost, unlock level, theme class, and asset key to `YARD_REMODELS`.
+2. Add `public/games/companion-yard/backgrounds/<remodel_id>.png`.
+3. If the remodel changes placement geometry, update `YARD_SLOT_LAYOUTS` without changing existing slot ids.
+4. Verify mobile layout so the yard remains visible behind the setup panel and in live shell mode.
+
+Album photos store compact render metadata only. Do not save binary screenshots or base64 art in player JSON.
 
 ## Audio
 

@@ -99,6 +99,7 @@ describe("useGameHub.applyRealtimePayload", () => {
         resources: { gold: 100 },
         farm: { harvested: {}, plots: [] },
         garden: { level: 1, plants: [], shelvesUnlocked: 1 },
+        yard: { currencies: { treats: 0, shinyTreats: 0 }, pendingGifts: [] },
         merge: {},
         pet: {},
       },
@@ -118,6 +119,20 @@ describe("useGameHub.applyRealtimePayload", () => {
 
     assert.equal(useGameHub.getState().snapshot.garden.level, 5);
     assert.equal(useGameHub.getState().snapshot.garden.plants[0].id, "p1");
+    assert.equal(useGameHub.getState().snapshot.resources.gold, 100);
+  });
+
+  it("merges Cozy Yard state from realtime sync payloads", () => {
+    const yard = {
+      currencies: { treats: 145, shinyTreats: 4 },
+      pendingGifts: [{ id: "gift-1", visitorId: "mika_cat", treats: 12 }],
+      petbook: { mika_cat: { visits: 2 } },
+    };
+
+    useGameHub.getState().applyRealtimePayload({ yard });
+
+    assert.equal(useGameHub.getState().snapshot.yard.currencies.treats, 145);
+    assert.equal(useGameHub.getState().snapshot.yard.pendingGifts[0].id, "gift-1");
     assert.equal(useGameHub.getState().snapshot.resources.gold, 100);
   });
 });

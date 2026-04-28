@@ -4,6 +4,7 @@
 
 ### Client
 
+- Replaced the old Pet Room tab with Cozy Yard, an original mixed-pet idle collector with food bowls, placeable goodies, classic-hour server visits, gifts, petbook, album metadata, mementos, worn/fixable goodies, expansion, remodels, and helper companion configuration.
 - Added a persisted light/dark UI theme toggle. The light theme remains the default, while the dark theme reuses the older matte Garden Shelf surface treatment across Hub chrome, Garden Shelf modals/sheets, shared glass menus, and in-game HUD overlays.
 - Centralized the shared glass UI tokens for Hub stats, game menu overlays, HUDs, Garden Shelf panels, and bottom navigation, with reduced mobile blur and reduced-transparency fallbacks to keep the Telegram webview readable and cheaper to composite.
 - Fixed Garden Shelf offline rewards disappearing after a brief flash by preserving locally generated `offlineEarnings` through authoritative `garden.sync` payload refreshes until the player explicitly collects the reward.
@@ -25,7 +26,7 @@
 - Removed generic in-game `Menu` labels and the duplicate Blox `Sound` button in favor of explicit setup, end-run, stop-play, trash, pause, and exit actions.
 - Added tracked Bubbo Bubbo and Puzzling Potions asset bundles under `public/games/` and preloaded them through the Pixi game host before scene construction.
 - Completed Bubbo Bubbo as a pressure shooter with seeded procedural waves, continuous descent, pressure row shifts, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, and pressure-aware danger/overflow finishing.
-- Reworked Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room into one immersive game shell that hides Hub chrome during play, keeps only compact in-game HUD controls visible, and opens pause/menu/result surfaces as overlays over the playfield with explicit Exit-to-Hub navigation.
+- Reworked Farm, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard into one immersive game shell that hides Hub chrome during play, keeps only compact in-game HUD controls visible, and opens pause/menu/result surfaces as overlays over the playfield with explicit Exit-to-Hub navigation.
 - Hardened Farm, Blox, Gem Crush, Merge, and Bubbo pointer gestures with a shared pointer-session state machine covering pointer ids, derived taps, drag thresholds, blur/visibility cleanup, and requestAnimationFrame-coalesced drag overlays.
 - Fixed Gem Crush touch reliability by capturing pointer gestures on the Pixi canvas target, disabling hit capture on decorative Pixi layers, and resolving long mobile swipes by direction instead of the final release cell.
 - Reworked Building Blox drag-and-drop so tray pieces are centered, the carried piece stays aligned to the original grab point even after scaling to board cells, board placement uses the ghost anchor, and the snapped footprint preview remains separate from the finger-following piece.
@@ -35,6 +36,7 @@
 
 ### API
 
+- Added server-owned `yard` player state, schema migration from old Pet/Room starter data, deterministic offline visitor simulation, `meta.yardCatalog`, realtime yard sync, and the new `yard.*` mutate action family. Old `/api/player/mutate` `pet.*`, `quest.*`, and `room.*` gameplay actions were replaced, while legacy room placement wrapper endpoints now return 410 replacement errors.
 - Added `buildId` to `/api/config` and `/api/health`, with no-store headers on `/api/config`, while preserving existing public endpoint names and player mutate contracts.
 - Added `garden.goldDelta` to the player mutate API so Garden Shelf gold changes update shared player resources with the same insufficient-gold guard as the other Hub games.
 - Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, `rowOffset`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
@@ -46,7 +48,8 @@
 
 ### Tests
 
-- Added mobile Playwright glass UI smoke coverage for the light and dark Hub surfaces plus Garden settings, Garden seed shop, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Pet Room start/live/pause menus.
+- Added unit and Playwright coverage for Cozy Yard default creation, Pet/Room starter migration, deterministic visits, rare visitor conditions, gifts/mementos, durability/fix, expansion/remodel validation, invalid `yard.*` payload rejection, and Room-tab replacement UI smoke checks.
+- Added mobile Playwright glass UI smoke coverage for the light and dark Hub surfaces plus Garden settings, Garden seed shop, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard start/live/pause menus.
 - Added Garden Shelf Playwright coverage proving generated offline rewards stay visible until the player clicks `Collect Gold`.
 - Added Match-3 scene coverage for delayed effect tween startup and a mobile consecutive-swap screenshot after real cascades to guard against stuck top-row overlay pieces.
 - Added shell/theme regression guards proving the matte Garden Shelf palette exists as a global dark theme and that players can switch it from the shared topbar.

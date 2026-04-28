@@ -1,12 +1,12 @@
 /**
  * ═══════════════════════════════════════════════════
  *  Game Hub — Player Factory & Energy System
- *  Default player creation, energy regen, pet satiety.
+ *  Default player creation and energy regen.
  * ═══════════════════════════════════════════════════
  */
 
 import { ECONOMY } from "./economy.js";
-import { getRoomBonuses } from "./pet-assets.js";
+import { createDefaultYardState } from "./yard.js";
 
 /* ═══════════════════════════════════════════════════
  *  PLAYER FACTORY & TYPES
@@ -36,6 +36,7 @@ import { getRoomBonuses } from "./pet-assets.js";
  * @property {number} resources.gachaTokens
  * @property {Object} pet
  * @property {Object} room
+ * @property {Object} yard
  * @property {Object} farm
  * @property {number} farm.xp
  * @property {number} farm.level
@@ -87,7 +88,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
   return {
     id: userId,
     username: username || "Player",
-    schemaVersion: 10,
+    schemaVersion: 11,
     _lastSeen: now,
     _onboarded: false,
     resources: {
@@ -113,6 +114,13 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       abilities: { autoHarvest: false, autoWater: false, autoPlant: false },
     },
     room: { decorations: [], inventory: [], wallpaper: "default" },
+    yard: createDefaultYardState(now, {
+      pet: {
+        name: "Buddy",
+        skinId: "basic_dog",
+      },
+      room: { decorations: [], inventory: [], wallpaper: "default" },
+    }),
     farm: {
       xp: 0,
       level: 1,
@@ -177,8 +185,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
  * ═══════════════════════════════════════════════════ */
 export function calcRegen(player, now = Date.now()) {
   const e = player.resources.energy;
-  const bonuses = getRoomBonuses(player);
-  const maxEnergy = e.max + bonuses.energyMax;
+  const maxEnergy = e.max;
 
   if (e.current >= maxEnergy) {
     e.lastRegenTimestamp = now;

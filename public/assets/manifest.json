@@ -24,7 +24,7 @@
       "bloxBackground": "",
       "match3Background": "",
       "mergeBackground": "",
-      "roomBackground": ""
+      "yardBackground": "/games/companion-yard/backgrounds/meadow.png"
     },
     "games": {
       "bubboBubbo": {
@@ -45,6 +45,24 @@
         "sign": "/games/garden-shelf/assets_garden_sign.png",
         "bottomPlank": "/games/garden-shelf/assets_garden_bottom_plank.png",
         "settingsCog": "/games/garden-shelf/assets_garden_cog.png"
+      },
+      "companionYard": {
+        "source": "/games/companion-yard/",
+        "backgrounds": {
+          "meadow": "/games/companion-yard/backgrounds/meadow.png",
+          "tea_house": "/games/companion-yard/backgrounds/tea_house.png",
+          "moon_garden": "/games/companion-yard/backgrounds/moon_garden.png"
+        },
+        "foods": {
+          "empty_bowl": "/games/companion-yard/foods/empty_bowl.png",
+          "kibble": "/games/companion-yard/foods/kibble.png",
+          "berry_plate": "/games/companion-yard/foods/berry_plate.png",
+          "bonito_bowl": "/games/companion-yard/foods/bonito_bowl.png"
+        },
+        "goodies": "/games/companion-yard/goodies/",
+        "visitors": "/games/companion-yard/visitors/",
+        "companions": "/games/companion-yard/companions/",
+        "notes": "Goodies support base, _worn, and _broken PNG variants; visitors and companions use stable catalog ids."
       },
       "gachaMerge": {
         "items": {

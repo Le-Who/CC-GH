@@ -93,15 +93,12 @@ test.describe("New-stack minigame smoke", () => {
     await pauseActiveGame(page);
     await exitToHub(page);
 
-    await page.getByRole("button", { name: /Room/ }).click();
-    await expect(page.getByText("Room Inventory")).toBeVisible();
-    const roomNameInput = page.locator(".room-layout .join-row input");
-    await expect(roomNameInput).toBeVisible();
-    await page.waitForTimeout(300);
-    await roomNameInput.fill("Pixel");
-    await expect(roomNameInput).toHaveValue("Pixel");
-    await page.getByRole("button", { name: "Rename" }).click();
-    await expect(page.locator(".panel-header").filter({ hasText: "Pixel" })).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: /Yard/ }).click();
+    await expect(page.getByText("Cozy Yard")).toBeVisible();
+    await expect(page.getByText("Room Inventory")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Petbook" })).toBeVisible();
+    await page.getByRole("button", { name: "Daily letter" }).click();
+    await expect(page.locator(".companion-yard-panel")).toContainText("Treats");
     await page.getByRole("button", { name: /^Play$/ }).click();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await pauseActiveGame(page);
@@ -150,7 +147,7 @@ test.describe("New-stack minigame smoke", () => {
       await exitToHub(page);
     }
 
-    await page.getByRole("button", { name: /Room/ }).click();
+    await page.getByRole("button", { name: /Yard/ }).click();
     await page.getByRole("button", { name: /^Play$/ }).click();
     const roomStage = page.locator(".active-game-frame .room-stage");
     await expect(roomStage).toBeVisible();
