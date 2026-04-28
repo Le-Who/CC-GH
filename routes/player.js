@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   ACHIEVEMENTS,
   BOOSTER_CONFIG,
@@ -42,6 +42,8 @@ import { withPlayerLock } from "../playerManager.js";
 
 const MAX_PLOTS = 12;
 const BUY_PLOT_BASE_COST = 200;
+const ACTION_RECEIPT_LIMIT = 200;
+const ACTION_RECEIPT_TTL_MS = 72 * 60 * 60 * 1000;
 
 function parseJsonValue(raw, fallback) {
   if (!raw) return fallback;
@@ -53,6 +55,50 @@ function parseJsonValue(raw, fallback) {
     }
   }
   return raw && typeof raw === "object" ? raw : fallback;
+}
+
+function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function normalizeClientActionId(value) {
+  if (value == null) return null;
+  const text = String(value).trim();
+  if (!/^[a-zA-Z0-9_.:-]{8,120}$/.test(text)) return null;
+  return text;
+}
+
+function hashActionPayload(action, payload) {
+  return createHash("sha256")
+    .update(stableStringify({ action: String(action || ""), payload: payload || {} }))
+    .digest("base64url");
+}
+
+function pruneActionReceipts(p, now = Date.now()) {
+  const source = p._actionReceipts && typeof p._actionReceipts === "object" ? p._actionReceipts : {};
+  const rawItems = Array.isArray(source.items) ? source.items : [];
+  const cutoff = now - ACTION_RECEIPT_TTL_MS;
+  const items = rawItems
+    .filter((item) => item?.clientActionId && item.payloadHash && Number(item.createdAt) >= cutoff)
+    .slice(-ACTION_RECEIPT_LIMIT);
+  p._actionReceipts = { items };
+  return items;
+}
+
+function rememberActionReceipt(p, receipt, now = Date.now()) {
+  const items = pruneActionReceipts(p, now).filter((item) => item.clientActionId !== receipt.clientActionId);
+  items.push({ ...receipt, createdAt: now });
+  p._actionReceipts = { items: items.slice(-ACTION_RECEIPT_LIMIT) };
+}
+
+function actionExtrasFromResult(result) {
+  const body = result?.body || {};
+  const { success, action, snapshot, ...extras } = body;
+  return extras;
 }
 
 function countMergeItems(board = []) {
@@ -409,7 +455,7 @@ function normalizeBloxSaved(savedState, p) {
   };
 }
 
-export async function applyAction(p, action, payload = {}) {
+export async function applyAction(p, action, payload = {}, options = {}) {
   switch (action) {
     case "garden.goldDelta": {
       const amount = Math.trunc(Number(payload.amount) || 0);
@@ -593,7 +639,8 @@ export async function applyAction(p, action, payload = {}) {
     case "yard.buyExpansion":
     case "yard.claimDailyLetter":
     case "yard.configureCompanion": {
-      const result = applyYardActionToState(p.yard, action, payload, { pet: p.pet, room: p.room }, p.id || p.username || "yard");
+      const yardOptions = Number.isFinite(Number(options.yardNow)) ? { now: options.yardNow } : {};
+      const result = applyYardActionToState(p.yard, action, payload, { pet: p.pet, room: p.room }, p.id || p.username || "yard", yardOptions);
       p.yard = result.yard;
       if (result.status !== 200) return fail(result.status, result.error);
       p._onboarded = true;
@@ -833,6 +880,39 @@ export async function applyAction(p, action, payload = {}) {
   }
 }
 
+export async function applyActionWithReceipt(p, action, payload = {}, meta = {}) {
+  const clientActionId = normalizeClientActionId(meta.clientActionId);
+  const serverNow = Number.isFinite(Number(meta.serverNow)) ? Number(meta.serverNow) : Date.now();
+  const actionOptions = { yardNow: serverNow };
+
+  if (!clientActionId) return applyAction(p, action, payload, actionOptions);
+
+  const payloadHash = hashActionPayload(action, payload);
+  const receipts = pruneActionReceipts(p, serverNow);
+  const existing = receipts.find((item) => item.clientActionId === clientActionId);
+  if (existing) {
+    if (existing.payloadHash !== payloadHash) {
+      return fail(409, "client action conflict", { clientActionId });
+    }
+    return ok(action, p, {
+      ...(existing.extras || {}),
+      clientActionId,
+      duplicate: true,
+    });
+  }
+
+  const result = await applyAction(p, action, payload, actionOptions);
+  if ((result.status || 200) === 200) {
+    rememberActionReceipt(p, {
+      clientActionId,
+      payloadHash,
+      action: String(action || ""),
+      extras: actionExtrasFromResult(result),
+    }, serverNow);
+  }
+  return result;
+}
+
 export default function playerRoutes(requireAuth, resolveUser) {
   const router = Router();
 
@@ -857,8 +937,13 @@ export default function playerRoutes(requireAuth, resolveUser) {
     try {
       const { userId, username } = resolveUser(req);
       if (!userId) return res.status(400).json({ error: "userId required" });
-      const { action, payload = {} } = req.body || {};
-      const result = await withPlayerLock(userId, async (p) => applyAction(p, action, payload), username);
+      const { action, payload = {}, clientActionId = null, intentServerTime = null } = req.body || {};
+      const serverNow = Date.now();
+      const result = await withPlayerLock(userId, async (p) => applyActionWithReceipt(p, action, payload, {
+        clientActionId,
+        intentServerTime,
+        serverNow,
+      }), username);
       res.status(result.status || 200).json(result.body || result);
     } catch (err) {
       next(err);

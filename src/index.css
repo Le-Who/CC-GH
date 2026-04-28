@@ -1341,6 +1341,23 @@ button.item-card {
   text-align: left;
 }
 
+.yard-bowl.pending,
+.yard-slot.pending {
+  opacity: 0.72;
+  cursor: progress;
+}
+
+.yard-bowl.pending {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0)),
+    rgba(255, 249, 231, 0.82);
+}
+
+.yard-bowl:disabled,
+.yard-slot:disabled {
+  pointer-events: none;
+}
+
 .yard-bowl img,
 .yard-shop-row img,
 .yard-inventory-item img,
@@ -1403,6 +1420,26 @@ button.item-card {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 8px 10px rgba(65, 55, 42, 0.18));
+}
+
+.yard-slot.ghost-goodie > img {
+  opacity: 0.64;
+  filter: grayscale(0.15) drop-shadow(0 8px 10px rgba(65, 55, 42, 0.16));
+}
+
+.yard-pending-label {
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(66, 81, 61, 0.84);
+  color: #fff9e9;
+  font-size: 0.58rem;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 5px 12px rgba(65, 55, 42, 0.14);
 }
 
 .yard-goodie-front {

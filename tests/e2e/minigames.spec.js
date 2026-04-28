@@ -15,7 +15,16 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
     await expect(overlay).toBeVisible();
-    const overlayBox = await overlay.boundingBox();
+    const overlayBox = await page.waitForFunction(() => {
+      const visibleOverlay = [...document.querySelectorAll(".game-menu-overlay")].find((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      });
+      if (!visibleOverlay) return null;
+      const rect = visibleOverlay.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    }).then((handle) => handle.jsonValue());
     const viewport = page.viewportSize();
     expect(overlayBox).not.toBeNull();
     expect(viewport).not.toBeNull();

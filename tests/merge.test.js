@@ -337,19 +337,29 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
     it("keeps migrated game menus in the shared overlay shell instead of external panels", () => {
       const appPath = path.join(__dirname, "..", "src", "App.jsx");
+      const shellPath = path.join(__dirname, "..", "src", "app", "shell.jsx");
+      const bloxPath = path.join(__dirname, "..", "src", "games", "blox", "BloxGame.jsx");
+      const match3Path = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
+      const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
+      const bubboPath = path.join(__dirname, "..", "src", "games", "bubbo", "BubboGame.jsx");
       const cssPath = path.join(__dirname, "..", "src", "index.css");
       const scenesPath = path.join(__dirname, "..", "src", "game-runtime", "scenes.js");
       const hostPath = path.join(__dirname, "..", "src", "game-runtime", "PixiGameHost.jsx");
       const app = fs.readFileSync(appPath, "utf-8");
+      const shell = fs.readFileSync(shellPath, "utf-8");
+      const bloxGame = fs.readFileSync(bloxPath, "utf-8");
+      const match3Game = fs.readFileSync(match3Path, "utf-8");
+      const mergeGame = fs.readFileSync(mergePath, "utf-8");
+      const bubboGame = fs.readFileSync(bubboPath, "utf-8");
       const css = fs.readFileSync(cssPath, "utf-8");
       const scenes = fs.readFileSync(scenesPath, "utf-8");
       const host = fs.readFileSync(hostPath, "utf-8");
 
-      assert.ok(app.includes("function GameShell"), "GameShell should centralize play/menu/pause states");
-      assert.ok(app.includes('gameId="match3"'), "Match-3 should use the shared shell");
-      assert.ok(app.includes('gameId="blox"'), "Blox should use the shared shell");
-      assert.ok(app.includes('gameId="merge"'), "Merge should use the shared shell");
-      assert.ok(app.includes('gameId="bubbo"'), "Bubbo should use the shared shell");
+      assert.ok(shell.includes("export function GameShell"), "GameShell should centralize play/menu/pause states");
+      assert.ok(match3Game.includes('gameId="match3"'), "Match-3 should use the shared shell");
+      assert.ok(bloxGame.includes('gameId="blox"'), "Blox should use the shared shell");
+      assert.ok(mergeGame.includes('gameId="merge"'), "Merge should use the shared shell");
+      assert.ok(bubboGame.includes('gameId="bubbo"'), "Bubbo should use the shared shell");
       assert.ok(css.includes("top: max(8px, calc(var(--safe-top) + 8px))"), "HUD should stay off the lower thumb zone");
       assert.ok(css.includes("--glass-surface"), "Shared glass tokens should own menu and HUD styling");
       assert.ok(css.includes(':root[data-ui-theme="dark"]'), "The Garden Shelf matte palette should exist as a global dark UI theme");

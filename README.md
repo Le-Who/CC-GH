@@ -8,7 +8,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 | --- | --- |
 | Client shell | React 19, Vite 7, Telegram Mini App SDK |
 | Game rendering | PixiJS 8 |
-| Client state helpers | Zustand, local browser storage for dev user id and Garden Shelf idle fallback; Garden Shelf progress and spendable gold are shared Hub player state |
+| Client state helpers | Zustand, IndexedDB/localStorage Yard outbox, local browser storage for dev user id and Garden Shelf idle fallback; Garden Shelf progress and spendable gold are shared Hub player state |
 | API | Express 5 |
 | Realtime | Socket.IO |
 | Durable storage | Self-hosted PostgreSQL |
@@ -26,7 +26,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 - Gacha Merge: server-validated board state, drag/tap merging, pointer-session drag feedback, match highlights, compact touch-first generator menus, lower thumb-reachable rectangular board placement, live trash/pause HUD controls, larger manifest-replaceable item tokens, generators, crop fuel, gacha pulls, daily free pull, separate daily free-tap allowance, trash mode, and Cozy Yard goodie drops.
 - Bubbo Bubbo: Pixi pressure shooter using tracked Bubbo Bubbo art, distinct five-color play, seeded procedural waves, larger mobile playfield, pre-spawned pressure waves above the visible field, smoothed continuous descent, stabilized pressure-row insertion, wall-bank aiming, constant path-distance projectile motion, same-color cluster popping, multi-color support-cut island drops, visible falling clusters, server-backed run lifecycle, and reward settlement.
 - Brain Blitz: React-first trivia flow, category/difficulty selection, solo sessions, in-memory duel rooms, and the shared in-game pause/result overlay shell.
-- Cozy Yard: mixed-pet idle collector replacing the old Pet Room tab. Players place food and goodies, wait server-simulated classic-hour visitor windows, watch pets enter the yard and interact with item-specific activity anchors, collect gifts and mementos, build a petbook, store compact album-photo metadata, repair worn goodies, expand/remodel the yard, and configure a helper home companion with no real-money paths.
+- Cozy Yard: mixed-pet idle collector replacing the old Pet Room tab. Players place food and goodies, wait server-simulated classic-hour visitor windows, watch pets enter the yard and interact with item-specific activity anchors, collect gifts and mementos, build a petbook, store compact album-photo metadata, repair worn goodies, expand/remodel the yard, and configure a helper home companion with no real-money paths. Yard actions use a durable client outbox with entity-level pending visuals so weak connections retry silently instead of showing tap-then-rollback behavior.
 
 ## Architecture
 
@@ -56,10 +56,10 @@ Frontend flow:
 
 1. `src/main.jsx` mounts `src/App.jsx`.
 2. `App.jsx` initializes Telegram platform helpers, installs the PWA update manager, and fetches `/api/config`.
-3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`.
+3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`. Yard actions first enter a durable outbox with `clientActionId`, `entityKey`, retry timing, reconnect/focus/visibility drains, and IndexedDB storage with localStorage fallback.
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, yard food/goodie inventories, and rewards so legacy Farm resources, Merge, Bag, and Cozy Yard use one inventory shape.
-5. Garden Shelf mounts as a React game under `src/games/garden-shelf/` with sprite-sheet assets in `public/games/garden-shelf/`; Cozy Yard mounts as a React game under `src/games/companion-yard/` with starter assets in `public/games/companion-yard/`, manifest-backed background overrides, and DOM-rendered visitor movement layers; Blox, Match-3, Merge, and Bubbo Pixi scenes mount through `PixiGameHost`.
-6. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before Pixi scene builds, appends the current build id to `/games/*` asset URLs, then the scenes keep procedural fallbacks for missing optional art.
+5. Garden Shelf mounts as a React game under `src/games/garden-shelf/` with sprite-sheet assets in `public/games/garden-shelf/`; Cozy Yard mounts as a React game under `src/games/companion-yard/` with starter assets in `public/games/companion-yard/`, manifest-backed background overrides, and DOM-rendered visitor movement layers; Blox, Match-3, Merge, and Bubbo lazy-load the Pixi runtime only when the player shows intent to open a Pixi tab.
+6. `src/game-runtime/LazyPixiSceneHost.jsx` imports `PixiGameHost` and the Pixi scene builders behind a dynamic import. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before Pixi scene builds, appends the current build id to `/games/*` asset URLs, then the scenes keep procedural fallbacks for missing optional art.
 7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
 8. Gameplay enters a shared immersive mobile shell across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as overlays over the playfield and expose explicit Exit-to-Hub navigation. Garden Shelf keeps its own idle-game shelf UI inside the hub tab.
 9. Blox, Gem Crush, Gacha Merge, and Bubbo tune their Pixi board geometry for mobile thumb reach: playfields stay as large as the viewport allows, reserve room for compact HUD/tray controls, and sit lower in fullscreen play instead of pinning to the top edge. Bubbo renders the next pressure row just above the field and carries a row-offset phase through pressure shifts so row insertion descends existing bubbles without visual reordering.
@@ -87,6 +87,8 @@ Telegram Mini App
 `withPlayerLock()` is the mutation contract. It serializes mutations for a player inside one Node process with a promise-chain mutex, then uses `_version` optimistic concurrency control on `players.data` as the cross-instance safety net. Route handlers may be retried on OCC collision, so handler code must be safe when re-applied against fresh state. Fire-and-forget analytics inserts are currently accepted as duplicate-tolerant.
 
 Client REST calls are made through `api()`, which adds Telegram or dev auth and uses an 8 second timeout by default. `createBatcher()` can group client requests into `/api/batch`; the server dispatches sub-requests through the Express router stack without network loopback, limits sub-request concurrency to 3, and uses nonce dedupe through Redis or an in-memory fallback.
+
+`POST /api/player/mutate` accepts optional `clientActionId` and `intentServerTime` metadata. Receipt-backed actions are deduplicated inside `withPlayerLock()` by `clientActionId + action + payloadHash`; replaying the same id and payload returns the saved result metadata without repeating side effects, while reusing the same id with a different payload returns a terminal conflict. Receipts are kept on the player document for the most recent 200 successful actions or 72 hours. Yard economy time remains server-authoritative in the HTTP route: request `payload.now` is ignored for rewards, visits, gifts, and daily letters, while direct test/helper calls can still inject a clock through function options.
 
 ## Auth Contract
 
@@ -146,6 +148,7 @@ Public unauthenticated APIs:
 Authenticated gameplay APIs:
 
 - New-stack player snapshot/mutations: `GET /api/player/snapshot`, `POST /api/player/mutate`
+- `POST /api/player/mutate` body shape is `{ action, payload, clientActionId?, intentServerTime? }`. The optional metadata is currently used by the Yard outbox and idempotency layer; existing callers that only send `{ action, payload }` remain supported.
 - Typed mutate actions include `garden.goldDelta`, `garden.sync`, `farm.plant`, `farm.harvest`, `farm.harvestAll`, `farm.buySeeds`, `farm.sellCrop`, `farm.buyPlot`, `farm.activateBooster`, `farm.buyTheme`, `farm.setTheme`, `merge.tap`, `merge.merge`, `merge.gacha`, `merge.freePull`, `merge.claimFreeTaps`, `merge.trash`, `blox.start`, `blox.place`, `blox.sync`, `blox.end`, `match3.start`, `match3.syncMode`, `match3.end`, `bubbo.start`, `bubbo.sync`, `bubbo.end`, `yard.buyFood`, `yard.setFood`, `yard.buyGoodie`, `yard.placeGoodie`, `yard.pickupGoodie`, `yard.fixGoodie`, `yard.collectGifts`, `yard.capturePhoto`, `yard.favoritePhoto`, `yard.setRemodel`, `yard.buyExpansion`, `yard.claimDailyLetter`, and `yard.configureCompanion`.
 - Legacy Farm/resource state APIs retained where still mounted for economy compatibility: `/api/farm/*`, `/api/resources/state`. The old `/api/player/mutate` Pet, quest, and Room gameplay actions are not preserved; legacy Pet/Room/quest route wrappers now return 410 replacement errors.
 - Merge: `/api/merge/*`
@@ -210,6 +213,7 @@ docker build -t game-hub-ci .
 ```bash
 pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
 pnpm exec playwright test tests/e2e/garden-shelf.spec.js tests/e2e/glass-ui.spec.js --project=mobile-chrome --workers=1
+pnpm exec playwright test tests/e2e/companion-yard.spec.js --project=mobile-chrome --workers=1
 ```
 
 ## Asset Replacement
@@ -277,6 +281,7 @@ Cache and sync:
 - The app also performs build-id freshness checks through `/api/config`; when the server build differs from the injected client build, it unregisters service workers, deletes caches, and reloads once with `?build=<id>`.
 - The PWA config precaches hashed built assets, keeps HTML navigation network-only, excludes `/api/config` from runtime API caching, uses short NetworkFirst caching for other API GET requests, and keeps CacheFirst for fonts.
 - Runtime `/games/*` asset URLs include the client build id as a query parameter so Pixi art refreshes with each deployed build.
+- The initial app chunk must not eagerly import or preload Pixi runtime modules. Pixi scene code loads through the async `LazyPixiSceneHost` path, with tab hover/focus/pointerdown preloading to hide latency when the player intends to open a Pixi game.
 - Socket clients disconnect while the document is hidden and reconnect on visibility return.
 
 Security-sensitive behavior:

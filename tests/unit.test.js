@@ -28,7 +28,7 @@ import {
 } from "../game-logic.js";
 import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
-import { applyAction, buildSnapshot } from "../routes/player.js";
+import { applyAction, applyActionWithReceipt, buildSnapshot } from "../routes/player.js";
 
 /* ─────────────────────────────────────────────────────
  *  createDefaultPlayer
@@ -539,6 +539,120 @@ describe("Cozy Yard player contracts", () => {
     const favorite = await applyAction(p, "yard.favoritePhoto", { photoId: p.yard.album.photos[0].id });
     assert.equal(favorite.status, 200);
     assert.equal(p.yard.album.favoritePhotoId, p.yard.album.photos[0].id);
+  });
+
+  it("ignores future payload.now through receipt-backed HTTP mutate flow", async () => {
+    const start = 1_800_000_000_000;
+    const future = start + 72 * 60 * 60 * 1000;
+    const p = createDefaultPlayer("yard-server-time", "Yard", start);
+    p.yard.lastSimulatedAt = start;
+
+    const daily = await applyActionWithReceipt(p, "yard.claimDailyLetter", { now: future }, {
+      clientActionId: "yard:test:daily-time",
+      serverNow: start,
+    });
+    assert.equal(daily.status, 200);
+    assert.equal(p.yard.dailyLetter.lastClaimedDate, new Date(start).toISOString().slice(0, 10));
+
+    await applyActionWithReceipt(p, "yard.setFood", { foodId: "kibble", bowlId: "bowl-1", now: future }, {
+      clientActionId: "yard:test:setfood-time",
+      serverNow: start,
+    });
+    await applyActionWithReceipt(p, "yard.placeGoodie", { goodieId: "yarn_mouse", slotId: "small-1", now: future }, {
+      clientActionId: "yard:test:place-time",
+      serverNow: start,
+    });
+    const collected = await applyActionWithReceipt(p, "yard.collectGifts", { now: future }, {
+      clientActionId: "yard:test:collect-time",
+      serverNow: start + 60_000,
+    });
+
+    assert.equal(collected.status, 200);
+    assert.equal(collected.body.collected.gifts, 0);
+    assert.ok(p.yard.lastSimulatedAt <= start + 60_000);
+  });
+
+  it("deduplicates Yard purchases, gifts, and daily letters by client action id", async () => {
+    const start = 1_800_000_000_000;
+    const p = createDefaultPlayer("yard-idempotent", "Yard", start);
+    p.yard.currencies.treats = 1200;
+    p.yard.currencies.shinyTreats = 5;
+
+    const buyFood = await applyActionWithReceipt(p, "yard.buyFood", { foodId: "kibble", qty: 1 }, {
+      clientActionId: "yard:test:buy-food",
+      serverNow: start,
+    });
+    const foodAfterBuy = p.yard.foodInventory.kibble;
+    const duplicateFood = await applyActionWithReceipt(p, "yard.buyFood", { foodId: "kibble", qty: 1 }, {
+      clientActionId: "yard:test:buy-food",
+      serverNow: start + 1000,
+    });
+    assert.equal(buyFood.status, 200);
+    assert.equal(duplicateFood.status, 200);
+    assert.equal(duplicateFood.body.duplicate, true);
+    assert.equal(p.yard.foodInventory.kibble, foodAfterBuy);
+
+    const buyGoodie = await applyActionWithReceipt(p, "yard.buyGoodie", { goodieId: "moon_lamp" }, {
+      clientActionId: "yard:test:buy-goodie",
+      serverNow: start,
+    });
+    const goodieAfterBuy = p.yard.goodieInventory.moon_lamp;
+    const duplicateGoodie = await applyActionWithReceipt(p, "yard.buyGoodie", { goodieId: "moon_lamp" }, {
+      clientActionId: "yard:test:buy-goodie",
+      serverNow: start + 1000,
+    });
+    assert.equal(buyGoodie.status, 200);
+    assert.equal(duplicateGoodie.status, 200);
+    assert.equal(p.yard.goodieInventory.moon_lamp, goodieAfterBuy);
+
+    p.yard.pendingGifts = [{ id: "gift-1", visitorId: "mika_cat", treats: 25, shinyTreats: 1 }];
+    const treatsBeforeCollect = p.yard.currencies.treats;
+    const collect = await applyActionWithReceipt(p, "yard.collectGifts", {}, {
+      clientActionId: "yard:test:collect",
+      serverNow: start + 2000,
+    });
+    const duplicateCollect = await applyActionWithReceipt(p, "yard.collectGifts", {}, {
+      clientActionId: "yard:test:collect",
+      serverNow: start + 3000,
+    });
+    assert.equal(collect.status, 200);
+    assert.equal(duplicateCollect.status, 200);
+    assert.equal(duplicateCollect.body.duplicate, true);
+    assert.equal(p.yard.currencies.treats, treatsBeforeCollect + 25);
+    assert.equal(p.yard.pendingGifts.length, 0);
+
+    const daily = await applyActionWithReceipt(p, "yard.claimDailyLetter", {}, {
+      clientActionId: "yard:test:daily",
+      serverNow: start,
+    });
+    const stampsAfterDaily = p.yard.dailyLetter.stamps;
+    const duplicateDaily = await applyActionWithReceipt(p, "yard.claimDailyLetter", {}, {
+      clientActionId: "yard:test:daily",
+      serverNow: start + 1000,
+    });
+    assert.equal(daily.status, 200);
+    assert.equal(duplicateDaily.status, 200);
+    assert.equal(duplicateDaily.body.duplicate, true);
+    assert.equal(p.yard.dailyLetter.stamps, stampsAfterDaily);
+  });
+
+  it("treats a reused Yard client action id with different payload as terminal conflict", async () => {
+    const start = 1_800_000_000_000;
+    const p = createDefaultPlayer("yard-id-conflict", "Yard", start);
+    p.yard.currencies.treats = 300;
+
+    const first = await applyActionWithReceipt(p, "yard.buyFood", { foodId: "kibble", qty: 1 }, {
+      clientActionId: "yard:test:conflict",
+      serverNow: start,
+    });
+    const conflict = await applyActionWithReceipt(p, "yard.buyFood", { foodId: "berry_plate", qty: 1 }, {
+      clientActionId: "yard:test:conflict",
+      serverNow: start + 1000,
+    });
+
+    assert.equal(first.status, 200);
+    assert.equal(conflict.status, 409);
+    assert.equal(conflict.body.error, "client action conflict");
   });
 });
 

@@ -1,11 +1,93 @@
 import { create } from "zustand";
+import { get as idbGet, set as idbSet } from "idb-keyval";
 import { api } from "../services/apiClient.js";
 import { audioManager } from "../services/audioManager.js";
 import { haptic } from "../platform/telegram.js";
 import { withNormalizedSnapshot } from "./inventory.js";
 
+const YARD_OUTBOX_KEY = "game_hub_yard_outbox_v1";
+const RETRY_DELAYS_MS = [0, 2000, 5000, 15000, 30000, 60000];
+let outboxDrainPromise = null;
+let outboxDrainTimer = null;
+
 function actionLabel(action) {
   return action?.replace(".", " ") || "action";
+}
+
+function isYardAction(action) {
+  return typeof action === "string" && action.startsWith("yard.");
+}
+
+function createClientActionId() {
+  const random = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
+  return `yard:${Date.now().toString(36)}:${random}`;
+}
+
+function yardEntityKey(action, payload = {}) {
+  if (action === "yard.setFood") return `bowl:${payload.bowlId || "bowl-1"}`;
+  if (action === "yard.placeGoodie" || action === "yard.pickupGoodie" || action === "yard.fixGoodie") return `slot:${payload.slotId || payload.goodieId || "unknown"}`;
+  if (action === "yard.collectGifts") return "gifts";
+  if (action === "yard.claimDailyLetter") return "dailyLetter";
+  if (action === "yard.configureCompanion") return "companion";
+  if (action === "yard.setRemodel") return "remodel";
+  if (action === "yard.buyExpansion") return "expansion";
+  if (action === "yard.buyFood") return `shop:food:${payload.foodId || "unknown"}`;
+  if (action === "yard.buyGoodie") return `shop:goodie:${payload.goodieId || "unknown"}`;
+  if (action === "yard.capturePhoto" || action === "yard.favoritePhoto") return `album:${payload.visitId || payload.photoId || payload.visitorId || "photo"}`;
+  return action;
+}
+
+function retryDelay(attempts = 0) {
+  return RETRY_DELAYS_MS[Math.min(Math.max(0, attempts), RETRY_DELAYS_MS.length - 1)];
+}
+
+function normalizeOutboxItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items.filter((item) => item?.clientActionId && isYardAction(item.action)).map((item) => ({
+    clientActionId: String(item.clientActionId),
+    action: String(item.action),
+    payload: item.payload && typeof item.payload === "object" ? item.payload : {},
+    entityKey: String(item.entityKey || yardEntityKey(item.action, item.payload)),
+    intentServerTime: Number(item.intentServerTime) || Date.now(),
+    createdAt: Number(item.createdAt) || Date.now(),
+    attempts: Math.max(0, Math.floor(Number(item.attempts) || 0)),
+    status: item.status === "sending" ? "pending" : String(item.status || "pending"),
+    nextAttemptAt: Math.max(0, Number(item.nextAttemptAt) || 0),
+  }));
+}
+
+async function readOutboxStorage() {
+  try {
+    return normalizeOutboxItems(await idbGet(YARD_OUTBOX_KEY));
+  } catch {
+    try {
+      return normalizeOutboxItems(JSON.parse(localStorage.getItem(YARD_OUTBOX_KEY) || "[]"));
+    } catch {
+      return [];
+    }
+  }
+}
+
+async function writeOutboxStorage(items) {
+  const normalized = normalizeOutboxItems(items);
+  try {
+    await idbSet(YARD_OUTBOX_KEY, normalized);
+  } catch {
+    try {
+      localStorage.setItem(YARD_OUTBOX_KEY, JSON.stringify(normalized));
+    } catch {
+      // Storage is best-effort; in-memory pending state still protects this session.
+    }
+  }
+}
+
+function scheduleOutboxDrain(get, delayMs = 0) {
+  if (outboxDrainTimer) globalThis.clearTimeout(outboxDrainTimer);
+  outboxDrainTimer = globalThis.setTimeout(() => {
+    outboxDrainTimer = null;
+    get().drainOutbox();
+  }, Math.max(0, delayMs));
+  outboxDrainTimer?.unref?.();
 }
 
 export const useGameHub = create((set, get) => ({
@@ -14,6 +96,8 @@ export const useGameHub = create((set, get) => ({
   status: "booting",
   message: "",
   busy: {},
+  pendingActions: [],
+  outboxLoaded: false,
   lastResult: null,
   activeGameShell: null,
   gardenHud: null,
@@ -36,10 +120,14 @@ export const useGameHub = create((set, get) => ({
     }
     const snapshot = withNormalizedSnapshot(result);
     set({ snapshot, status: "ready", message: "" });
+    scheduleOutboxDrain(get, 0);
     return snapshot;
   },
 
   performAction: async (action, payload = {}, options = {}) => {
+    if (isYardAction(action) && options.outbox !== false) {
+      return get().enqueueYardAction(action, payload, options);
+    }
     const key = options.key || action;
     if (get().busy[key]) return { error: "busy" };
     set((state) => ({ busy: { ...state.busy, [key]: true }, message: "" }));
@@ -70,6 +158,182 @@ export const useGameHub = create((set, get) => ({
       audioManager.play(result.error ? "warning" : "success");
     }
     return result;
+  },
+
+  hydrateOutbox: async () => {
+    const pendingActions = await readOutboxStorage();
+    set({ pendingActions, outboxLoaded: true });
+    scheduleOutboxDrain(get, 0);
+    return pendingActions;
+  },
+
+  enqueueYardAction: async (action, payload = {}, options = {}) => {
+    if (!get().outboxLoaded) {
+      await get().hydrateOutbox();
+    }
+    const entityKey = options.entityKey || yardEntityKey(action, payload);
+    let queuedItem = null;
+    set((state) => {
+      let pendingActions = normalizeOutboxItems(state.pendingActions);
+      const existingIndex = pendingActions.findIndex((item) => item.entityKey === entityKey && item.status !== "failed");
+      if (action === "yard.configureCompanion" && existingIndex >= 0) {
+        queuedItem = {
+          ...pendingActions[existingIndex],
+          payload,
+          attempts: 0,
+          status: "pending",
+          nextAttemptAt: 0,
+          intentServerTime: Date.now(),
+        };
+        pendingActions = [
+          ...pendingActions.slice(0, existingIndex),
+          queuedItem,
+          ...pendingActions.slice(existingIndex + 1),
+        ];
+      } else if (existingIndex >= 0) {
+        queuedItem = pendingActions[existingIndex];
+      } else {
+        queuedItem = {
+          clientActionId: createClientActionId(),
+          action,
+          payload,
+          entityKey,
+          intentServerTime: Date.now(),
+          createdAt: Date.now(),
+          attempts: 0,
+          status: "pending",
+          nextAttemptAt: 0,
+        };
+        pendingActions = [...pendingActions, queuedItem];
+      }
+      return {
+        pendingActions,
+        busy: { ...state.busy, [entityKey]: true },
+        message: "",
+      };
+    });
+    await writeOutboxStorage(get().pendingActions);
+    scheduleOutboxDrain(get, 0);
+    if (options.feedback !== false) {
+      haptic("light");
+      audioManager.play("tap");
+    }
+    return { success: true, pending: true, clientActionId: queuedItem.clientActionId, entityKey };
+  },
+
+  drainOutbox: async () => {
+    if (outboxDrainPromise) return outboxDrainPromise;
+    outboxDrainPromise = (async () => {
+      if (!get().outboxLoaded) {
+        await get().hydrateOutbox();
+      }
+      const now = Date.now();
+      const pending = normalizeOutboxItems(get().pendingActions)
+        .filter((item) => item.status !== "failed")
+        .sort((a, b) => a.createdAt - b.createdAt);
+      const nextReady = pending
+        .filter((item) => item.nextAttemptAt > now)
+        .sort((a, b) => a.nextAttemptAt - b.nextAttemptAt)[0];
+      const item = pending.find((candidate) => (candidate.nextAttemptAt || 0) <= now);
+      if (!item) {
+        if (nextReady) scheduleOutboxDrain(get, nextReady.nextAttemptAt - now);
+        return null;
+      }
+
+      set((state) => ({
+        pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
+          candidate.clientActionId === item.clientActionId
+            ? { ...candidate, status: "sending", attempts: candidate.attempts + 1 }
+            : candidate
+        )),
+        status: "syncing",
+      }));
+      await writeOutboxStorage(get().pendingActions);
+
+      const sending = get().pendingActions.find((candidate) => candidate.clientActionId === item.clientActionId) || item;
+      const result = await api("/api/player/mutate", {
+        action: sending.action,
+        payload: sending.payload,
+        clientActionId: sending.clientActionId,
+        intentServerTime: sending.intentServerTime,
+      }, { timeoutMs: 9000 });
+
+      if (!result.error) {
+        set((state) => {
+          const pendingActions = normalizeOutboxItems(state.pendingActions)
+            .filter((candidate) => candidate.clientActionId !== sending.clientActionId);
+          const busy = { ...state.busy };
+          delete busy[sending.entityKey];
+          return {
+            pendingActions,
+            busy,
+            snapshot: result.snapshot ? withNormalizedSnapshot(result.snapshot) : state.snapshot,
+            lastResult: result,
+            status: "ready",
+            message: "",
+          };
+        });
+        await writeOutboxStorage(get().pendingActions);
+        haptic("success");
+        audioManager.play("success");
+        scheduleOutboxDrain(get, 0);
+        return result;
+      }
+
+      const transient = result.error === "TIMEOUT" || result.error === "NETWORK_ERROR" || Number(result._httpStatus || 0) >= 500;
+      if (transient) {
+        set((state) => ({
+          pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
+            candidate.clientActionId === sending.clientActionId
+              ? {
+                  ...candidate,
+                  status: "pending",
+                  nextAttemptAt: Date.now() + retryDelay(candidate.attempts),
+                }
+              : candidate
+          )),
+          lastResult: result,
+          status: "offline",
+          message: "",
+        }));
+        await writeOutboxStorage(get().pendingActions);
+        const retryAt = get().pendingActions.find((candidate) => candidate.clientActionId === sending.clientActionId)?.nextAttemptAt;
+        if (retryAt) scheduleOutboxDrain(get, retryAt - Date.now());
+        return result;
+      }
+
+      const fresh = await get().loadSnapshot();
+      if (!fresh?.error) {
+        set((state) => {
+          const pendingActions = normalizeOutboxItems(state.pendingActions)
+            .filter((candidate) => candidate.clientActionId !== sending.clientActionId);
+          const busy = { ...state.busy };
+          delete busy[sending.entityKey];
+          return {
+            pendingActions,
+            busy,
+            message: result.error,
+            lastResult: result,
+          };
+        });
+        await writeOutboxStorage(get().pendingActions);
+      } else {
+        set((state) => ({
+          pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
+            candidate.clientActionId === sending.clientActionId
+              ? { ...candidate, status: "pending", nextAttemptAt: Date.now() + 60000 }
+              : candidate
+          )),
+          lastResult: result,
+        }));
+        await writeOutboxStorage(get().pendingActions);
+        scheduleOutboxDrain(get, 60000);
+      }
+      return result;
+    })().finally(() => {
+      outboxDrainPromise = null;
+    });
+    return outboxDrainPromise;
   },
 
   isBusy: (key) => !!get().busy[key],

@@ -189,6 +189,7 @@ function getFirstOpenSlot(yard, goodieId) {
 export default function CompanionYardGame() {
   const snapshot = useGameHub((state) => state.snapshot);
   const performAction = useGameHub((state) => state.performAction);
+  const pendingActions = useGameHub((state) => state.pendingActions);
   const setActiveTab = useGameHub((state) => state.setActiveTab);
   const yard = snapshot?.yard || {};
   const catalog = snapshot?.meta?.yardCatalog || {};
@@ -207,6 +208,14 @@ export default function CompanionYardGame() {
   const [renderNow, setRenderNow] = useState(snapshot?.serverTime || Date.now());
   const isPlaying = inShell && !paused;
   const nameInputRef = useRef(null);
+  const pendingByKey = useMemo(() => {
+    const map = new Map();
+    for (const item of pendingActions || []) {
+      if (item?.entityKey && item.status !== "failed") map.set(item.entityKey, item);
+    }
+    return map;
+  }, [pendingActions]);
+  const hasPending = useCallback((key) => pendingByKey.has(key), [pendingByKey]);
 
   useCompanionYardShell(inShell);
 
@@ -287,11 +296,15 @@ export default function CompanionYardGame() {
   const visitorCount = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
   const activeVisitorCount = yard.activeVisitors?.length || 0;
   const pendingGiftCount = yard.pendingGifts?.length || 0;
+  const giftsPending = hasPending("gifts");
+  const dailyLetterPending = hasPending("dailyLetter");
+  const companionPending = hasPending("companion");
+  const expansionPending = hasPending("expansion");
   const selectedRemodel = remodels[yard.remodel] || remodels.meadow || {};
 
   const placeGoodie = (goodieId, slotId = null) => {
     const targetSlot = slotId || getFirstOpenSlot(yard, goodieId);
-    if (!targetSlot) return;
+    if (!targetSlot || hasPending(`slot:${targetSlot}`)) return;
     performAction("yard.placeGoodie", { goodieId, slotId: targetSlot }).then((result) => {
       if (!result.error) setSelectedGoodie(null);
     });
@@ -349,15 +362,18 @@ export default function CompanionYardGame() {
         <div className="yard-bowls">
           {(yard.bowls || []).map((bowl) => {
             const food = foods[bowl.foodId];
+            const bowlPending = pendingByKey.get(`bowl:${bowl.id}`);
+            const pendingFood = bowlPending?.payload?.foodId ? foods[bowlPending.payload.foodId] : null;
             return (
               <button
                 key={bowl.id}
-                className={`yard-bowl${food ? " filled" : ""}`}
+                className={`yard-bowl${food || pendingFood ? " filled" : ""}${bowlPending ? " pending" : ""}`}
+                disabled={!!bowlPending}
                 onClick={() => !food && performAction("yard.setFood", { bowlId: bowl.id, foodId: "kibble" })}
-                title={food ? food.name : "Set kibble"}
+                title={bowlPending ? "Syncing food" : food ? food.name : "Set kibble"}
               >
-                <img src={assetPath("foods", food?.id || "empty_bowl")} alt="" />
-                <span>{food ? `${food.name} (${bowl.servings})` : "Empty bowl"}</span>
+                <img src={assetPath("foods", pendingFood?.id || food?.id || "empty_bowl")} alt="" />
+                <span>{bowlPending ? "Syncing food" : food ? `${food.name} (${bowl.servings})` : "Empty bowl"}</span>
               </button>
             );
           })}
@@ -367,27 +383,33 @@ export default function CompanionYardGame() {
           {slots.map((slot) => {
             const placed = placedBySlot.get(slot.id);
             const goodie = goodies[placed?.goodieId];
+            const slotPending = pendingByKey.get(`slot:${slot.id}`);
+            const ghostGoodie = slotPending?.action === "yard.placeGoodie" ? goodies[slotPending.payload?.goodieId] : null;
             const slotVisitors = visitorsBySlot.get(slot.id) || [];
             return (
               <button
                 key={slot.id}
-                className={`yard-slot yard-slot-${slot.size}${selectedGoodie && !placed ? " target" : ""}`}
+                className={`yard-slot yard-slot-${slot.size}${selectedGoodie && !placed && !slotPending ? " target" : ""}${slotPending ? " pending" : ""}${ghostGoodie ? " ghost-goodie" : ""}`}
                 style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
+                disabled={!!slotPending}
                 onClick={() => {
                   if (selectedGoodie && !placed) placeGoodie(selectedGoodie, slot.id);
                   else if (slotVisitors.length) setSelectedVisitId(slotVisitors[0].visitId);
                   else if (placed) performAction("yard.pickupGoodie", { slotId: slot.id });
                 }}
-                title={placed ? `${goodie?.name || placed.goodieId} (${placed.condition})${slotVisitors.length ? ` · ${slotVisitors.length} visiting` : ""}` : `${slot.size} slot`}
+                title={slotPending ? "Syncing slot" : placed ? `${goodie?.name || placed.goodieId} (${placed.condition})${slotVisitors.length ? ` · ${slotVisitors.length} visiting` : ""}` : `${slot.size} slot`}
               >
                 {placed ? (
                   <img src={assetPath("goodies", placed.condition === "new" ? placed.goodieId : `${placed.goodieId}_${placed.condition}`)} alt="" />
+                ) : ghostGoodie ? (
+                  <img src={assetPath("goodies", ghostGoodie.id)} alt="" />
                 ) : (
                   <span>{slot.size}</span>
                 )}
                 {placed && goodie?.frontAssetKey && (
                   <img className="yard-goodie-front" src={assetPath("goodies", goodie.frontAssetKey)} alt="" />
                 )}
+                {slotPending && <b className="yard-pending-label">Syncing</b>}
               </button>
             );
           })}
@@ -412,7 +434,7 @@ export default function CompanionYardGame() {
           </div>
           <div className="game-play-actions">
             {activeVisitorCount > 0 && <YardButton icon={Camera} subtle onClick={captureFirstVisitor}>Photo</YardButton>}
-            <YardButton icon={Gift} subtle disabled={!pendingGiftCount} onClick={() => performAction("yard.collectGifts")}>Collect</YardButton>
+            <YardButton icon={Gift} subtle disabled={!pendingGiftCount || giftsPending} onClick={() => performAction("yard.collectGifts")}>{giftsPending ? "Syncing" : "Collect"}</YardButton>
             <YardButton icon={Pause} subtle onClick={() => setPaused(true)}>Pause</YardButton>
           </div>
         </div>
@@ -458,13 +480,17 @@ export default function CompanionYardGame() {
               {(yard.bowls || []).map((bowl) => (
                 <div className="yard-row" key={bowl.id}>
                   <span>{bowl.id}: {foods[bowl.foodId]?.name || "empty"}</span>
-                  <YardButton icon={Check} subtle disabled={(yard.foodInventory?.kibble || 0) <= 0} onClick={() => performAction("yard.setFood", { bowlId: bowl.id, foodId: "kibble" })}>Kibble</YardButton>
+                  <YardButton icon={Check} subtle disabled={(yard.foodInventory?.kibble || 0) <= 0 || hasPending(`bowl:${bowl.id}`)} onClick={() => performAction("yard.setFood", { bowlId: bowl.id, foodId: "kibble" })}>
+                    {hasPending(`bowl:${bowl.id}`) ? "Syncing" : "Kibble"}
+                  </YardButton>
                 </div>
               ))}
-              <YardButton icon={Gift} disabled={!pendingGiftCount} onClick={() => performAction("yard.collectGifts")}>
-                Collect {pendingGiftCount} gifts
+              <YardButton icon={Gift} disabled={!pendingGiftCount || giftsPending} onClick={() => performAction("yard.collectGifts")}>
+                {giftsPending ? "Syncing gifts" : `Collect ${pendingGiftCount} gifts`}
               </YardButton>
-              <YardButton icon={Sparkles} subtle onClick={() => performAction("yard.claimDailyLetter")}>Daily letter</YardButton>
+              <YardButton icon={Sparkles} subtle disabled={dailyLetterPending} onClick={() => performAction("yard.claimDailyLetter")}>
+                {dailyLetterPending ? "Syncing letter" : "Daily letter"}
+              </YardButton>
             </div>
 
             <div className="yard-card">
@@ -490,9 +516,9 @@ export default function CompanionYardGame() {
                   <div className="yard-row" key={placed.slotId}>
                     <span>{goodie?.name || placed.goodieId} · {placed.condition}</span>
                     {placed.condition !== "new" ? (
-                      <YardButton icon={Wrench} subtle onClick={() => performAction("yard.fixGoodie", { slotId: placed.slotId })}>Fix</YardButton>
+                      <YardButton icon={Wrench} subtle disabled={hasPending(`slot:${placed.slotId}`)} onClick={() => performAction("yard.fixGoodie", { slotId: placed.slotId })}>Fix</YardButton>
                     ) : (
-                      <YardButton icon={Home} subtle onClick={() => performAction("yard.pickupGoodie", { slotId: placed.slotId })}>Pick up</YardButton>
+                      <YardButton icon={Home} subtle disabled={hasPending(`slot:${placed.slotId}`)} onClick={() => performAction("yard.pickupGoodie", { slotId: placed.slotId })}>Pick up</YardButton>
                     )}
                   </div>
                 );
@@ -509,7 +535,9 @@ export default function CompanionYardGame() {
                 <div className="yard-shop-row" key={food.id}>
                   <img src={assetPath("foods", food.id)} alt="" />
                   <span><strong>{food.name}</strong><small>{food.desc} · {costLabel(food.cost)}</small></span>
-                  <YardButton icon={ShoppingBag} onClick={() => performAction("yard.buyFood", { foodId: food.id, qty: 1 })}>Buy</YardButton>
+                  <YardButton icon={ShoppingBag} disabled={hasPending(`shop:food:${food.id}`)} onClick={() => performAction("yard.buyFood", { foodId: food.id, qty: 1 })}>
+                    {hasPending(`shop:food:${food.id}`) ? "Syncing" : "Buy"}
+                  </YardButton>
                 </div>
               ))}
             </div>
@@ -519,7 +547,9 @@ export default function CompanionYardGame() {
                 <div className="yard-shop-row" key={goodie.id}>
                   <img src={assetPath("goodies", goodie.id)} alt="" />
                   <span><strong>{goodie.name}</strong><small>{goodie.desc} · {costLabel(goodie.cost)}</small></span>
-                  <YardButton icon={ShoppingBag} onClick={() => performAction("yard.buyGoodie", { goodieId: goodie.id })}>Buy</YardButton>
+                  <YardButton icon={ShoppingBag} disabled={hasPending(`shop:goodie:${goodie.id}`)} onClick={() => performAction("yard.buyGoodie", { goodieId: goodie.id })}>
+                    {hasPending(`shop:goodie:${goodie.id}`) ? "Syncing" : "Buy"}
+                  </YardButton>
                 </div>
               ))}
             </div>
@@ -567,7 +597,7 @@ export default function CompanionYardGame() {
               <strong>Companion</strong>
               <div className="join-row">
                 <input ref={nameInputRef} value={companionName} maxLength={16} onChange={(event) => setCompanionName(event.target.value)} />
-                <YardButton icon={Check} onClick={configureCompanion}>Save</YardButton>
+                <YardButton icon={Check} onClick={configureCompanion}>{companionPending ? "Syncing" : "Save"}</YardButton>
               </div>
               <div className="yard-species-grid">
                 {Object.keys(SPECIES_LABELS).map((species) => (
@@ -598,8 +628,8 @@ export default function CompanionYardGame() {
 
             <div className="yard-card">
               <strong>Expansion</strong>
-              <YardButton icon={Sparkles} disabled={yard.expansion?.level >= 2} onClick={() => performAction("yard.buyExpansion")}>
-                {yard.expansion?.level >= 2 ? "Wide yard unlocked" : "Buy wide yard"}
+              <YardButton icon={Sparkles} disabled={yard.expansion?.level >= 2 || expansionPending} onClick={() => performAction("yard.buyExpansion")}>
+                {expansionPending ? "Syncing expansion" : yard.expansion?.level >= 2 ? "Wide yard unlocked" : "Buy wide yard"}
               </YardButton>
             </div>
 
@@ -609,7 +639,9 @@ export default function CompanionYardGame() {
                 <div className="yard-shop-row" key={remodel.id}>
                   <img src={assetPath("backgrounds", remodel.id)} alt="" />
                   <span><strong>{remodel.name}</strong><small>{remodel.desc} · {yard.ownedRemodels?.includes(remodel.id) ? "Owned" : costLabel(remodel.cost)}</small></span>
-                  <YardButton icon={Hammer} active={yard.remodel === remodel.id} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>Set</YardButton>
+                  <YardButton icon={Hammer} active={yard.remodel === remodel.id} disabled={hasPending("remodel")} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>
+                    {hasPending("remodel") ? "Syncing" : "Set"}
+                  </YardButton>
                 </div>
               ))}
             </div>

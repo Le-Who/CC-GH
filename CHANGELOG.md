@@ -4,6 +4,8 @@
 
 ### Client
 
+- Added a durable Cozy Yard outbox for `yard.*` actions using IndexedDB with localStorage fallback, entity-level conflict locks, retry on timeout/network errors, reconnect/focus/visibility drains, and pending bowl/slot/shop/gift visuals instead of tap-then-rollback UX.
+- Split the Pixi runtime and scene builders out of the initial React app chunk through a lazy `LazyPixiSceneHost`, with tab hover/focus/pointerdown preloading and a recoverable load-error panel for failed dynamic imports.
 - Added Neko-like hybrid Cozy Yard visitor presentation: pets now move in from yard edges, settle onto goodie activity anchors, perform item-specific poses, lightly roam around the selected object, and leave through the yard instead of appearing as static badges inside a slot.
 - Added manifest-backed Cozy Yard asset resolution so `graphics.games.companionYard.backgrounds.<remodel_id>` can override remodel backgrounds while direct replacement of `public/games/companion-yard/backgrounds/<remodel_id>.png` remains supported.
 - Replaced the old Pet Room tab with Cozy Yard, an original mixed-pet idle collector with food bowls, placeable goodies, classic-hour server visits, gifts, petbook, album metadata, mementos, worn/fixable goodies, expansion, remodels, and helper companion configuration.
@@ -38,6 +40,8 @@
 
 ### API
 
+- Added optional `clientActionId` and `intentServerTime` metadata to `POST /api/player/mutate`, plus per-player idempotency receipts capped at 200 entries or 72 hours. Duplicate `clientActionId + action + payloadHash` requests replay the saved result metadata without repeating side effects, while the same id with a different payload returns a terminal conflict.
+- Made the HTTP Yard mutation path server-time-authoritative so request `payload.now` cannot advance visits, gifts, rewards, or daily letters; direct test/helper calls can still inject a clock through function options.
 - Extended Cozy Yard goodie catalog data with activity anchors, capacity, layering, condition variants, and backward-compatible visitor motion fields while preserving the existing `yard.*` mutate action names.
 - Added server-owned `yard` player state, schema migration from old Pet/Room starter data, deterministic offline visitor simulation, `meta.yardCatalog`, realtime yard sync, and the new `yard.*` mutate action family. Old `/api/player/mutate` `pet.*`, `quest.*`, and `room.*` gameplay actions were replaced, while legacy room placement wrapper endpoints now return 410 replacement errors.
 - Added `buildId` to `/api/config` and `/api/health`, with no-store headers on `/api/config`, while preserving existing public endpoint names and player mutate contracts.
@@ -51,6 +55,8 @@
 
 ### Tests
 
+- Added unit/store coverage for HTTP Yard time authority, idempotent Yard purchases/gift collection/daily letters, terminal client-action conflicts, outbox timeout/network persistence, success removal, storage restore, and companion-config coalescing.
+- Verified production builds keep Pixi out of the startup HTML and initial app chunk, moving the runtime to async chunks while keeping the initial app chunk below the previous Vite large-chunk warning threshold.
 - Added unit and Playwright coverage for Cozy Yard activity anchors, old active-visitor snapshot normalization, broken-goodie visitor attraction, multi-visitor large-goodie anchors, manifest background overrides, layered visitor rendering, and selected-visitor photo capture.
 - Added unit and Playwright coverage for Cozy Yard default creation, Pet/Room starter migration, deterministic visits, rare visitor conditions, gifts/mementos, durability/fix, expansion/remodel validation, invalid `yard.*` payload rejection, and Room-tab replacement UI smoke checks.
 - Added mobile Playwright glass UI smoke coverage for the light and dark Hub surfaces plus Garden settings, Garden seed shop, Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard start/live/pause menus.

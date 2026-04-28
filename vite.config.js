@@ -90,6 +90,24 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    modulePreload: {
+      resolveDependencies(_filename, deps) {
+        return deps.filter((dep) => !dep.includes("pixi-vendor"));
+      },
+    },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("pixi.js") || id.includes("@pixi")) return undefined;
+          if (id.includes("framer-motion")) return "motion-vendor";
+          if (id.includes("lucide-react")) return "icon-vendor";
+          if (id.includes("@telegram-apps")) return "telegram-vendor";
+          if (id.includes("react") || id.includes("scheduler")) return "react-vendor";
+          return "vendor";
+        },
+      },
+    },
   },
   resolve: {
     alias: {

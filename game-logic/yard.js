@@ -637,8 +637,9 @@ function ok(extras = {}) {
   return { status: 200, extras };
 }
 
-function actionNow(payload = {}) {
-  return Math.max(0, Math.floor(finiteNumber(payload.now, Date.now())));
+function actionNow(payload = {}, options = {}) {
+  const value = Number.isFinite(Number(options.now)) ? options.now : payload.now;
+  return Math.max(0, Math.floor(finiteNumber(value, Date.now())));
 }
 
 function validSlotForGoodie(yard, slotId, goodie) {
@@ -658,8 +659,8 @@ function returnInvalidPlacedGoodies(yard) {
   yard.placedGoodies = remaining;
 }
 
-export function applyYardActionToState(rawYard, action, payload = {}, legacy = {}, seed = "") {
-  const now = actionNow(payload);
+export function applyYardActionToState(rawYard, action, payload = {}, legacy = {}, seed = "", options = {}) {
+  const now = actionNow(payload, options);
   const yard = simulateYardState(rawYard, now, legacy, seed);
 
   switch (action) {
