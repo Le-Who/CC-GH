@@ -75,7 +75,7 @@
 - Added Merge regression coverage for random generator output, recipe Yard goodie rewards, server-time free pull/free-tap resets, full-board spend guards, trash receipts, and live HUD reward text.
 - Added Cozy Yard long-idle regression coverage for capped offline returns, reload replay prevention, and future timestamp clamping on reconnect.
 - Added `tests/perf-guard.test.js` to keep Blox, Gem Crush, Merge, Bubbo, Garden Shelf, Brain Blitz, and Cozy Yard hot-path budgets explicit in the Node suite.
-- Extended perf guard tests to require unique suite ids, valid p95/max budgets, focused-run support, summary metadata, and Player JSON current/legacy migration plus snapshot suites.
+- Extended perf guard tests to require unique suite ids, valid p95/p99-tail budgets, focused-run support, summary metadata, raw max spike diagnostics, and Player JSON current/legacy migration plus snapshot suites.
 - Added build-budget tests and a Chromium runtime perf smoke for startup Pixi laziness, Gacha Merge live-frame cadence, long tasks, and long animation frames when supported.
 - Added Playwright coverage proving per-game pause menus preserve active gameplay context, stay compact, hide active Gem Crush mode changes, keep Resume as the primary recovery action, and work across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard.
 - Added unit/store coverage for HTTP Yard time authority, idempotent Yard purchases/gift collection/daily letters, terminal client-action conflicts, outbox timeout/network persistence, success removal, storage restore, and companion-config coalescing.

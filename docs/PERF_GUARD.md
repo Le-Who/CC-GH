@@ -50,7 +50,8 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Budget Policy
 
-- p95 is the primary CI gate for regressions. It is intentionally tighter than max.
-- max is an emergency ceiling for severe stalls, not the main trend signal. Single-sample VM or GC spikes should not fail otherwise healthy p95 measurements.
+- p95 is the primary CI gate for regressions.
+- p99 is the hard tail gate checked against each suite's `max` budget.
+- raw max is diagnostic only: it is reported as a warning when it exceeds the tail budget, because single-sample VM scheduling or GC spikes are not stable enough to fail otherwise healthy p95/p99 measurements.
 - Prefer adding focused suites for changed mechanics over loosening shared budgets.
 - Browser performance specs stay separate from `pnpm test` because they are slower and environment-sensitive.

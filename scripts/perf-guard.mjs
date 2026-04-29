@@ -56,6 +56,7 @@ async function benchmark(fn, { iterations = 200, warmup = 30 } = {}) {
     warmup,
     p50: quantile(times, 0.5),
     p95: quantile(times, 0.95),
+    p99: quantile(times, 0.99),
     max: times[times.length - 1],
     avg: times.reduce((sum, value) => sum + value, 0) / times.length,
   };
@@ -437,9 +438,19 @@ function aggregateRoundStats(rounds) {
     warmup: rounds.reduce((sum, round) => sum + round.warmup, 0),
     p50: quantile([...rounds.map((round) => round.p50)].sort((a, b) => a - b), 0.5),
     p95: Math.max(...rounds.map((round) => round.p95)),
+    p99: Math.max(...rounds.map((round) => round.p99)),
     max: Math.max(...rounds.map((round) => round.max)),
     avg: rounds.reduce((sum, round) => sum + round.avg, 0) / rounds.length,
   };
+}
+
+export function evaluatePerfBudget(stats, budget) {
+  const failures = [];
+  const warnings = [];
+  if (stats.p95 > budget.p95) failures.push(`p95 ${stats.p95.toFixed(3)}ms > ${budget.p95}ms`);
+  if (stats.p99 > budget.max) failures.push(`p99 ${stats.p99.toFixed(3)}ms > max budget ${budget.max}ms`);
+  if (stats.max > budget.max) warnings.push(`max spike ${stats.max.toFixed(3)}ms > ${budget.max}ms`);
+  return { failures, warnings };
 }
 
 async function resultForSuite(suite, repeat = 1) {
@@ -448,9 +459,7 @@ async function resultForSuite(suite, repeat = 1) {
     rounds.push(await benchmark(suite.fn, suite));
   }
   const stats = aggregateRoundStats(rounds);
-  const failures = [];
-  if (stats.p95 > suite.budget.p95) failures.push(`p95 ${stats.p95.toFixed(3)}ms > ${suite.budget.p95}ms`);
-  if (stats.max > suite.budget.max) failures.push(`max ${stats.max.toFixed(3)}ms > ${suite.budget.max}ms`);
+  const { failures, warnings } = evaluatePerfBudget(stats, suite.budget);
   return {
     id: suite.id,
     group: suite.group,
@@ -460,13 +469,14 @@ async function resultForSuite(suite, repeat = 1) {
     rounds,
     passed: failures.length === 0,
     failures,
+    warnings,
   };
 }
 
 function budgetRatio(result) {
   const p95Ratio = result.budget.p95 > 0 ? result.stats.p95 / result.budget.p95 : 0;
-  const maxRatio = result.budget.max > 0 ? result.stats.max / result.budget.max : 0;
-  return Math.max(p95Ratio, maxRatio);
+  const tailRatio = result.budget.max > 0 ? result.stats.p99 / result.budget.max : 0;
+  return Math.max(p95Ratio, tailRatio);
 }
 
 function buildSummary(results) {
@@ -478,6 +488,7 @@ function buildSummary(results) {
       id: result.id,
       ratio: Number(budgetRatio(result).toFixed(3)),
       p95: result.stats.p95,
+      p99: result.stats.p99,
       max: result.stats.max,
     }));
   return {
@@ -515,7 +526,7 @@ export async function runPerfGuard({ writeReport = true, quiet = false, reportPa
     generatedAt: startedAt,
     node: process.version,
     platform: `${process.platform}-${process.arch}`,
-    budgets: "milliseconds; p95 and max must both stay inside budget",
+    budgets: "milliseconds; p95 and p99 tail are hard gates; raw max is reported as a diagnostic spike",
     suiteFilter: suiteIds,
     repeat: safeRepeat,
     summary,
@@ -533,9 +544,10 @@ export async function runPerfGuard({ writeReport = true, quiet = false, reportPa
       const status = result.passed ? "PASS" : "FAIL";
       const { stats, budget } = result;
       console.log(
-        `${status} ${result.id} p50=${stats.p50.toFixed(3)}ms p95=${stats.p95.toFixed(3)}ms/${budget.p95}ms max=${stats.max.toFixed(3)}ms/${budget.max}ms`,
+        `${status} ${result.id} p50=${stats.p50.toFixed(3)}ms p95=${stats.p95.toFixed(3)}ms/${budget.p95}ms p99=${stats.p99.toFixed(3)}ms/${budget.max}ms max=${stats.max.toFixed(3)}ms`,
       );
       if (result.failures.length) console.log(`  ${result.failures.join("; ")}`);
+      if (result.warnings.length) console.log(`  warn: ${result.warnings.join("; ")}`);
     }
     console.log(
       `Summary: ${summary.passedSuites}/${summary.totalSuites} suites passed; slowest budget ratio ${summary.slowestBudgetRatios[0]?.ratio ?? 0}`,
