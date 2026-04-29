@@ -47,6 +47,11 @@ const MAX_PLOTS = 12;
 const BUY_PLOT_BASE_COST = 200;
 const ACTION_RECEIPT_LIMIT = 200;
 const ACTION_RECEIPT_TTL_MS = 72 * 60 * 60 * 1000;
+const BUBBO_COLS = 9;
+const BUBBO_START_ROWS = 5;
+const BUBBO_SHOTS = 36;
+const BUBBO_TIMED_SECONDS = 90;
+const BUBBO_COLORS = ["mint", "amber", "coral", "sky", "berry"];
 
 function parseJsonValue(raw, fallback) {
   if (!raw) return fallback;
@@ -66,6 +71,78 @@ function stableStringify(value) {
     return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
   }
   return JSON.stringify(value);
+}
+
+function hashSeed(value = "") {
+  const text = String(value || "bubbo");
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededRandom(seed, salt = 0) {
+  let state = (hashSeed(seed) + Math.imul(salt + 1, 0x9e3779b9)) >>> 0;
+  return () => {
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function generateBubboWave(seed = "bubbo", waveIndex = 0) {
+  const rand = seededRandom(seed, waveIndex);
+  const phase = Math.floor(rand() * BUBBO_COLORS.length);
+  const pivotA = Math.floor(rand() * BUBBO_COLS);
+  const pivotB = Math.floor(rand() * BUBBO_COLS);
+  return Array.from({ length: BUBBO_COLS }, (_, col) => {
+    const noise = Math.floor(rand() * BUBBO_COLORS.length);
+    const ridge = Math.abs(col - pivotA) <= 1 ? 1 : 0;
+    const pocket = Math.abs(col - pivotB) === 2 ? 2 : 0;
+    return BUBBO_COLORS[(phase + noise + ridge + pocket + col) % BUBBO_COLORS.length];
+  });
+}
+
+function normalizeBubboMode(mode = "classic") {
+  return mode === "timed" ? "timed" : "classic";
+}
+
+function normalizeBubboPendingRow(row, seed = "bubbo", waveIndex = BUBBO_START_ROWS) {
+  const fallback = generateBubboWave(seed, Number.isFinite(Number(waveIndex)) ? Number(waveIndex) : BUBBO_START_ROWS);
+  const source = Array.isArray(row) && row.length ? row : fallback;
+  return Array.from({ length: BUBBO_COLS }, (_, col) => {
+    const value = source[col] || null;
+    return BUBBO_COLORS.includes(value) ? value : null;
+  });
+}
+
+function normalizeBubboCurrentGame(raw = {}, previous = {}) {
+  const mode = normalizeBubboMode(raw.mode ?? previous.mode);
+  const seed = typeof raw.seed === "string"
+    ? raw.seed.slice(0, 80)
+    : typeof previous.seed === "string"
+      ? previous.seed
+      : "bubbo";
+  const waveIndex = Math.max(0, Number(raw.waveIndex) || Number(previous.waveIndex) || BUBBO_START_ROWS);
+  return {
+    score: Math.max(0, Number(raw.score ?? previous.score) || 0),
+    shotsLeft: Math.max(0, finiteNumber(raw.shotsLeft ?? previous.shotsLeft, BUBBO_SHOTS)),
+    shotsFired: Math.max(0, Math.floor(Number(raw.shotsFired ?? previous.shotsFired) || 0)),
+    mode,
+    timeLeft: mode === "timed"
+      ? Math.max(0, Math.min(BUBBO_TIMED_SECONDS, finiteNumber(raw.timeLeft ?? previous.timeLeft, BUBBO_TIMED_SECONDS)))
+      : null,
+    board: Array.isArray(raw.board) ? raw.board : previous.board,
+    pendingRow: normalizeBubboPendingRow(raw.pendingRow ?? previous.pendingRow, seed, waveIndex),
+    seed,
+    waveIndex,
+    rowOffset: Math.abs(Math.floor(Number(raw.rowOffset ?? previous.rowOffset) || 0)) % 2,
+    pressure: Math.max(0, Number(raw.pressure ?? previous.pressure) || 0),
+  };
 }
 
 function normalizeClientActionId(value) {
@@ -872,29 +949,13 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       calcRegen(p);
       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
       p.bubbo.totalGames = (p.bubbo.totalGames || 0) + 1;
-      p.bubbo.currentGame = {
-        score: 0,
-        shotsLeft: Math.max(0, Number(payload.shotsLeft) || 36),
-        board: Array.isArray(payload.board) ? payload.board : undefined,
-        seed: typeof payload.seed === "string" ? payload.seed.slice(0, 80) : undefined,
-        waveIndex: Math.max(0, Number(payload.waveIndex) || 0),
-        rowOffset: Math.abs(Math.floor(Number(payload.rowOffset) || 0)) % 2,
-        pressure: Math.max(0, Number(payload.pressure) || 0),
-      };
+      p.bubbo.currentGame = normalizeBubboCurrentGame({ ...payload, score: 0 });
       return ok(action, p, { game: p.bubbo.currentGame });
     }
     case "bubbo.sync": {
       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
       if (payload.game && typeof payload.game === "object") {
-        p.bubbo.currentGame = {
-          score: Math.max(0, Number(payload.game.score) || 0),
-          shotsLeft: Math.max(0, Number(payload.game.shotsLeft) || 0),
-          board: Array.isArray(payload.game.board) ? payload.game.board : p.bubbo.currentGame?.board,
-          seed: typeof payload.game.seed === "string" ? payload.game.seed.slice(0, 80) : p.bubbo.currentGame?.seed,
-          waveIndex: Math.max(0, Number(payload.game.waveIndex) || Number(p.bubbo.currentGame?.waveIndex) || 0),
-          rowOffset: Math.abs(Math.floor(Number(payload.game.rowOffset ?? p.bubbo.currentGame?.rowOffset) || 0)) % 2,
-          pressure: Math.max(0, Number(payload.game.pressure) || 0),
-        };
+        p.bubbo.currentGame = normalizeBubboCurrentGame(payload.game, p.bubbo.currentGame || {});
       }
       return ok(action, p);
     }

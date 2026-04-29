@@ -331,6 +331,46 @@ describe("temporary energy-free game starts", () => {
     assert.equal(bubbo.status, 200);
     assert.equal(p.resources.energy.current, 0);
     assert.equal(p.bubbo.currentGame.shotsLeft, 36);
+    assert.equal(p.bubbo.currentGame.mode, "classic");
+    assert.equal(p.bubbo.currentGame.pendingRow.length, 9);
+  });
+
+  it("stores Bubbo timed runs and preserves internal sync fields", async () => {
+    const p = createDefaultPlayer("bubbo-timed", "Timed");
+    const pendingRow = ["mint", "amber", "coral", "sky", "berry", "mint", "amber", "coral", "sky"];
+
+    const started = await applyAction(p, "bubbo.start", {
+      mode: "timed",
+      timeLeft: 90,
+      shotsFired: 0,
+      pendingRow,
+      seed: "timed-seed",
+      waveIndex: 5,
+    });
+
+    assert.equal(started.status, 200);
+    assert.equal(p.bubbo.currentGame.mode, "timed");
+    assert.equal(p.bubbo.currentGame.timeLeft, 90);
+    assert.equal(p.bubbo.currentGame.shotsFired, 0);
+    assert.deepEqual(p.bubbo.currentGame.pendingRow, pendingRow);
+
+    const reversedPending = pendingRow.toReversed();
+    const synced = await applyAction(p, "bubbo.sync", {
+      game: {
+        score: 120,
+        mode: "timed",
+        timeLeft: 73,
+        shotsFired: 8,
+        pendingRow: reversedPending,
+      },
+    });
+
+    assert.equal(synced.status, 200);
+    assert.equal(p.bubbo.currentGame.mode, "timed");
+    assert.equal(p.bubbo.currentGame.timeLeft, 73);
+    assert.equal(p.bubbo.currentGame.shotsFired, 8);
+    assert.deepEqual(p.bubbo.currentGame.pendingRow, reversedPending);
+    assert.equal(p.bubbo.currentGame.shotsLeft, 36);
   });
 });
 

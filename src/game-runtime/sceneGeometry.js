@@ -135,10 +135,18 @@ export function tickParticles(container, deltaTime = 1) {
     child.x += child._vx * delta;
     child.y += child._vy * delta;
     if (child._gravity) child._vy += child._gravity * delta;
+    if (child._sway) {
+      child._sway.age = (child._sway.age || 0) + delta;
+      child.x += Math.sin(child._sway.phase + child._sway.age * child._sway.speed) * child._sway.amount * delta;
+      child.y += Math.cos(child._sway.phase * 0.7 + child._sway.age * child._sway.speed * 0.74) * child._sway.lift * delta;
+    }
     if (child._spin) child.rotation += child._spin * delta;
     child.alpha = Math.min(1, Math.max(0, child._life / 26));
     const baseScale = child._grow ? 1 + (1 - child.alpha) * child._grow : 0.96 + child.alpha * 0.35;
-    child.scale.set(baseScale);
+    const wobble = child._wobble
+      ? 1 + Math.sin((child._sway?.age || 0) * child._wobble.speed + child._wobble.phase) * child._wobble.amount
+      : 1;
+    child.scale.set(baseScale * wobble, baseScale / wobble);
     if (child._life <= 0) {
       child.parent?.removeChild(child);
       destroyLater(child);

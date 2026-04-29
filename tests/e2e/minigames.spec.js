@@ -183,14 +183,25 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.getByText("Bubbo Bubbo")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
+    await expect(page.locator('[data-mode-selector="bubbo"]')).toContainText("Classic");
+    await expect(page.locator('[data-mode-selector="bubbo"]')).toContainText("Timed");
     await page.getByRole("button", { name: /^Start$/ }).click();
     const bubboHud = page.locator(".bubbo-play-hud");
     await expect(bubboHud).toContainText(/bubbles/i);
+    await expect(bubboHud).toContainText(/Shots/);
     const bubboHostBox = await page.locator(".active-game-frame .pixi-host").boundingBox();
     const bubboHudBox = await bubboHud.boundingBox();
     expect(bubboHostBox).not.toBeNull();
     expect(bubboHudBox).not.toBeNull();
     expect(bubboHudBox.y).toBeGreaterThan(bubboHostBox.y + bubboHostBox.height * 0.72);
+    await pauseActiveGame(page);
+    await exitToHub(page);
+
+    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await page.locator('[data-mode-selector="bubbo"]').getByRole("button", { name: /Timed/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".bubbo-play-hud")).toContainText(/Time/);
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await pauseActiveGame(page);
     await exitToHub(page);
 

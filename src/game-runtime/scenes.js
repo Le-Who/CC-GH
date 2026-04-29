@@ -1453,6 +1453,7 @@ export function buildBubboScene(app, initial = {}) {
       next: state.next || "",
       gameActive: !!state.gameActive,
       lastShot: state.lastShot?.id || "",
+      pendingRow: state.pendingRow || [],
       rowOffset: Number(state.rowOffset) || 0,
       seed: state.seed || "",
       waveIndex: Number(state.waveIndex) || 0,
@@ -1495,6 +1496,17 @@ export function buildBubboScene(app, initial = {}) {
     return Number.isFinite(Number(data.bubbo?.rowOffset)) ? Number(data.bubbo.rowOffset) : 0;
   }
 
+  function currentPendingRow() {
+    const state = data.bubbo || {};
+    if (Array.isArray(state.pendingRow) && state.pendingRow.length) return state.pendingRow;
+    if (Array.isArray(state.nextPressureWave) && state.nextPressureWave.length) return state.nextPressureWave;
+    return generateBubboWave(state.seed || "bubbo", Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : 0);
+  }
+
+  function hasPendingRow() {
+    return currentPendingRow().some(Boolean);
+  }
+
   function baseBubblePosition(row, col) {
     const offset = getBubboRowVisualOffset(row, currentRowOffset()) * layout.cell;
     return {
@@ -1518,16 +1530,21 @@ export function buildBubboScene(app, initial = {}) {
   }
 
   function nearestCellFromPoint(board, x, y) {
+    const pendingRow = currentPendingRow();
+    const includePendingRow = pendingRow.some(Boolean);
     let best = null;
     let bestScore = Infinity;
-    for (let row = 0; row < BUBBO_ROWS; row++) {
+    for (let row = includePendingRow ? -1 : 0; row < BUBBO_ROWS; row++) {
       for (let col = 0; col < BUBBO_COLS; col++) {
-        if (board[row]?.[col]) continue;
-        const touches = row === 0 || getBubboNeighbors(row, col, currentRowOffset()).some(([nr, nc]) => board[nr]?.[nc]);
+        const occupied = row === -1 ? pendingRow[col] : board[row]?.[col];
+        if (occupied) continue;
+        const touches = row === -1
+          || row === 0
+          || getBubboNeighbors(row, col, currentRowOffset(), { includePendingRow }).some(([nr, nc]) => (nr === -1 ? pendingRow[nc] : board[nr]?.[nc]));
         if (!touches) continue;
         const pos = bubblePosition(row, col);
         const distance = (pos.x - x) ** 2 + (pos.y - y) ** 2;
-        const score = distance + row * 10;
+        const score = distance + Math.max(0, row) * 10;
         if (score < bestScore) {
           bestScore = score;
           best = { row, col, x: pos.x, y: pos.y };
@@ -1535,9 +1552,10 @@ export function buildBubboScene(app, initial = {}) {
       }
     }
     if (best) return best;
-    for (let row = 0; row < BUBBO_ROWS; row++) {
+    for (let row = includePendingRow ? -1 : 0; row < BUBBO_ROWS; row++) {
       for (let col = 0; col < BUBBO_COLS; col++) {
-        if (!board[row]?.[col]) {
+        const occupied = row === -1 ? pendingRow[col] : board[row]?.[col];
+        if (!occupied) {
           const pos = bubblePosition(row, col);
           return { row, col, x: pos.x, y: pos.y };
         }
@@ -1549,6 +1567,8 @@ export function buildBubboScene(app, initial = {}) {
   function calculateShot(target = aimPoint) {
     const state = data.bubbo || {};
     const board = state.board || [];
+    const pendingRow = currentPendingRow();
+    const includePendingRow = hasPendingRow();
     const cannonX = layout.cannonX;
     const cannonY = layout.cannonY;
     const targetX = target?.x ?? cannonX;
@@ -1575,16 +1595,18 @@ export function buildBubboScene(app, initial = {}) {
         points.push({ x, y });
       }
 
-      if (y <= layout.top + layout.radius) {
-        const targetCell = nearestCellFromPoint(board, x, layout.top);
+      const topTargetY = includePendingRow ? layout.top - layout.cell * 0.5 : layout.top;
+      if (y <= topTargetY + layout.radius) {
+        const targetCell = nearestCellFromPoint(board, x, topTargetY);
         if (!targetCell) return null;
         points.push({ x: targetCell.x, y: targetCell.y });
         return { ...targetCell, path: points };
       }
 
-      for (let row = 0; row < BUBBO_ROWS; row++) {
+      for (let row = includePendingRow ? -1 : 0; row < BUBBO_ROWS; row++) {
         for (let col = 0; col < BUBBO_COLS; col++) {
-          if (!board[row]?.[col]) continue;
+          const occupied = row === -1 ? pendingRow[col] : board[row]?.[col];
+          if (!occupied) continue;
           const pos = bubblePosition(row, col);
           const distance = Math.hypot(pos.x - x, pos.y - y);
           if (distance < layout.radius * 1.8) {
@@ -1694,11 +1716,18 @@ export function buildBubboScene(app, initial = {}) {
     aimLayer.addChild(drawBubble(shot.x, shot.y, layout.radius * 0.42, state.current || BUBBO_COLORS[0], 0.52));
   }
 
+  function reducedMotion() {
+    return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  }
+
   function playShotEffects() {
     const shot = data.bubbo?.lastShot;
     if (!shot?.id || shot.id === lastShotId || !layout) return;
     lastShotId = shot.id;
-    const targets = [...(shot.popped || []), ...(shot.dropped || [])];
+    const reduce = reducedMotion();
+    const droppedSet = new Set((shot.dropped || []).map((cell) => `${cell.row}:${cell.col}`));
+    const targets = [...(shot.popped || []), ...(shot.dropped || [])]
+      .filter((cell, index, all) => all.findIndex((item) => item.row === cell.row && item.col === cell.col) === index);
     if (shot.landed && !targets.length) {
       const pos = bubblePosition(shot.landed.row, shot.landed.col);
       const touch = drawBubboBurst(pos.x, pos.y, layout.radius * 0.72, shot.color || BUBBO_COLORS[0], 18);
@@ -1706,22 +1735,37 @@ export function buildBubboScene(app, initial = {}) {
       makeRipple(effects, pos.x, pos.y, AMBER, 22);
       return;
     }
-    for (const cell of targets) {
+    for (const cell of targets.slice(0, reduce ? 14 : 28)) {
       const pos = bubblePosition(cell.row, cell.col);
-      const dropped = shot.dropped?.find((drop) => drop.row === cell.row && drop.col === cell.col);
+      const dropped = droppedSet.has(`${cell.row}:${cell.col}`)
+        ? shot.dropped?.find((drop) => drop.row === cell.row && drop.col === cell.col)
+        : null;
       if (dropped) {
         const falling = drawBubble(pos.x, pos.y, layout.radius * 0.82, dropped.color || cell.color || BUBBO_COLORS[0], 0.92);
-        falling._vx = (cell.col - BUBBO_COLS / 2) * 0.08;
-        falling._vy = 2.8 + (cell.row % 3) * 0.35;
-        falling._gravity = 0.22;
-        falling._spin = (cell.col % 2 ? 1 : -1) * 0.045;
-        falling._life = 40;
+        const seed = bubbleBreathSeed(cell.row, cell.col);
+        falling._delay = reduce ? 0 : Math.min(5, (cell.row + cell.col) % 6);
+        falling._vx = reduce ? 0 : (cell.col - BUBBO_COLS / 2) * (0.05 + seed * 0.05);
+        falling._vy = reduce ? 3.2 : 2.55 + (cell.row % 3) * 0.28 + seed * 0.42;
+        falling._gravity = reduce ? 0.3 : 0.18 + seed * 0.08;
+        falling._spin = reduce ? 0 : (cell.col % 2 ? 1 : -1) * (0.03 + seed * 0.035);
+        falling._sway = reduce ? null : {
+          amount: 0.08 + seed * 0.08,
+          lift: 0.018 + seed * 0.02,
+          phase: seed * Math.PI * 2,
+          speed: 0.12 + seed * 0.08,
+        };
+        falling._wobble = reduce ? null : {
+          amount: 0.018 + seed * 0.016,
+          phase: seed * Math.PI,
+          speed: 0.3 + seed * 0.18,
+        };
+        falling._life = reduce ? 24 : 38 + (cell.col % 4);
         effects.addChild(falling);
       } else {
         const burst = drawBubboBurst(pos.x, pos.y, layout.radius * 0.9, shot.color || cell.color || BUBBO_COLORS[0]);
         if (burst) effects.addChild(burst);
       }
-      makeSparkles(effects, pos.x, pos.y, dropped ? SKY : AMBER, 9);
+      makeSparkles(effects, pos.x, pos.y, dropped ? SKY : AMBER, reduce ? 4 : 9);
       makeRipple(effects, pos.x, pos.y, AMBER, 24);
     }
   }
@@ -1736,15 +1780,22 @@ export function buildBubboScene(app, initial = {}) {
     const background = drawBubboBackground(root, app, layout, frameBottom);
     root.addChild(new Graphics().moveTo(layout.left, layout.finishLineY).lineTo(layout.right, layout.finishLineY).stroke({ color: background.finish, width: 3, alpha: 0.48 }));
     if (state.gameActive) {
-      const nextWave = Array.isArray(state.nextPressureWave) && state.nextPressureWave.length
-        ? state.nextPressureWave
-        : generateBubboWave(state.seed || "bubbo", Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : 0);
-      const previewAlpha = Math.max(0.18, Math.min(0.82, pressureDisplayStep + 0.18));
-      const previewOffset = getBubboRowVisualOffset(0, currentRowOffset() + 1) * layout.cell;
+      const pendingRow = currentPendingRow();
       for (let c = 0; c < BUBBO_COLS; c++) {
-        const x = layout.left + previewOffset + c * layout.cell + layout.cell / 2;
-        const y = layout.top - layout.cell * 0.5;
-        boardLayer.addChild(drawBubble(x, y, layout.radius * 0.92, nextWave[c], previewAlpha));
+        const value = pendingRow[c];
+        const pos = baseBubblePosition(-1, c);
+        if (value) {
+          const bubble = drawBubble(pos.x, pos.y, layout.radius * 0.96, value, 0.96, { glow: true });
+          bubble._bubboBreath = {
+            baseScale: 0.99,
+            phase: bubbleBreathSeed(-1, c) * Math.PI * 2,
+            speed: 0.022,
+            amount: 0.01,
+          };
+          boardLayer.addChild(bubble);
+        } else {
+          boardLayer.addChild(new Graphics().circle(pos.x, pos.y, Math.max(1.5, layout.radius * 0.08)).fill({ color: 0xffffff, alpha: 0.07 }));
+        }
       }
     }
     for (let r = 0; r < BUBBO_ROWS; r++) {

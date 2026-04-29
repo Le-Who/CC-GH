@@ -303,4 +303,31 @@ test.describe("Pixi touch and drag interactions", () => {
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
+
+  test("Bubbo timed mode accepts repeated shots toward the pending top row", async ({ page }) => {
+    const pageErrors = await boot(page, "bubbo_timed_pending");
+
+    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await page.locator('[data-mode-selector="bubbo"]').getByRole("button", { name: /Timed/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".game-play-hud")).toContainText(/Time/);
+    await canvasIsNonBlank(page);
+
+    const box = await hostBox(page);
+    const fireTop = async (offset) => {
+      await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.9);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width * offset, box.y + box.height * 0.16, { steps: 10 });
+      await page.mouse.up();
+      await page.waitForTimeout(700);
+    };
+
+    await fireTop(0.42);
+    await fireTop(0.58);
+    await fireTop(0.5);
+
+    await expect(page.locator(".game-play-hud")).toContainText(/Time/);
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
 });

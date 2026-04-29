@@ -4,6 +4,8 @@
 
 ### Client
 
+- Repaired Bubbo as a single gameplay layer: pending pressure rows are stored as playable state, rendered and targeted as virtual row `-1`, pressure shifts consume the pending row before generating the next one, sparse boards refill back to at least three playable rows without pressure penalty, and the menu now offers Classic 36-shot and Timed 90-second unlimited-shot runs.
+- Added capped lightweight Bubbo falling motion with deterministic stagger, sway, spin, wobble, and reduced-motion fallback while keeping effects on the existing Pixi ticker/particle path.
 - Added a durable Cozy Yard outbox for `yard.*` actions using IndexedDB with localStorage fallback, entity-level conflict locks, retry on timeout/network errors, reconnect/focus/visibility drains, and pending bowl/slot/shop/gift visuals instead of tap-then-rollback UX.
 - Split the Pixi runtime and scene builders out of the initial React app chunk through a lazy `LazyPixiSceneHost`, with tab hover/focus/pointerdown preloading and a recoverable load-error panel for failed dynamic imports.
 - Added Neko-like hybrid Cozy Yard visitor presentation: pets now move in from yard edges, settle onto goodie activity anchors, perform item-specific poses, lightly roam around the selected object, and leave through the yard instead of appearing as static badges inside a slot.
@@ -55,7 +57,7 @@
 - Refactored legacy locked route handlers so `withPlayerLock()` callbacks return structured mutation results and HTTP responses are sent only after the lock resolves.
 - Tightened Gacha Merge mutations around server-time daily free pull/free-tap resets, full-board pull rejection before spend/stamp, explicit Yard goodie rewards, and trash receipts.
 - Added `garden.goldDelta` to the player mutate API so Garden Shelf gold changes update shared player resources with the same insufficient-gold guard as the other Hub games.
-- Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, `rowOffset`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
+- Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `pendingRow`, `seed`, `waveIndex`, `rowOffset`, `pressure`, `mode`, `timeLeft`, and `shotsFired` fields while keeping the existing mutate action names and older snapshot fallbacks.
 
 ### Operations
 
