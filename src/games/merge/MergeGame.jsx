@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import { Home, PackageOpen, Pause, Play, RotateCcw, Sparkles, Trash2, Zap } from "lucide-react";
-import { CROPS, ECONOMY, MERGE_RECIPES, MERGE_WILD_GENERATOR_ID } from "../../../game-logic.js";
+import { BookOpen, Home, PackageOpen, Pause, Play, RotateCcw, Sparkles, Trash2, Zap } from "lucide-react";
+import { CROPS, ECONOMY, MERGE_CHAINS, MERGE_RECIPES, MERGE_WILD_GENERATOR_ID } from "../../../game-logic.js";
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
@@ -8,6 +8,15 @@ import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameHub } from "../../game-state/useGameHub.js";
+
+function mergeItemLabel(itemId) {
+  for (const chain of Object.values(MERGE_CHAINS)) {
+    const level = chain.items.indexOf(itemId);
+    if (level >= 0) return `${chain.emoji[level]} ${chain.names[level]}`;
+  }
+  return itemId;
+}
+
 export default function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -19,6 +28,7 @@ export default function MergeGame() {
   const [selectedFuel, setSelectedFuel] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
+  const [showRecipes, setShowRecipes] = useState(false);
   const [mergePlaying, setMergePlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const isPlaying = mergePlaying && !paused;
@@ -218,6 +228,29 @@ export default function MergeGame() {
               lastMergeReward ? { label: t("merge.reward"), value: lastMergeReward } : null,
             ].filter(Boolean) : []}
           />
+          <div className="merge-recipe-book">
+            <PanelButton
+              icon={BookOpen}
+              subtle
+              active={showRecipes}
+              onClick={() => setShowRecipes((value) => !value)}
+              title={t("merge.recipeBook")}
+            >
+              {t("merge.recipeBook")}
+            </PanelButton>
+            {showRecipes && (
+              <div className="panel-scroll compact-list merge-recipe-list">
+                {MERGE_RECIPES.map((recipe) => (
+                  <span key={recipe.id} title={recipe.hint}>
+                    <strong>{recipe.name}</strong>
+                    {recipe.ingredients.map(mergeItemLabel).join(" + ")}
+                    {" -> "}
+                    {mergeItemLabel(MERGE_CHAINS[recipe.result.chainId]?.items[recipe.result.level])}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
           {activePause && (
             <div className="pause-action-stack">
               <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>

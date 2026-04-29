@@ -27,7 +27,9 @@ import {
   getMergePairResult,
   getUnlockedSeeds,
   hydrateMergeBoard,
+  MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
+  normalizeMergeChainId,
   normalizeYardState,
   pickMergeDropChainId,
   processOfflineActions,
@@ -40,6 +42,13 @@ import {
   calcBubboReward,
   placePiece,
   createDefaultGardenState,
+  createGardenEconomyState,
+  GARDEN_ECONOMY_VERSION,
+  GARDEN_MAX_LEVEL,
+  GARDEN_STARTER_GOLD,
+  getGardenLevelReward,
+  getGardenXpRequired,
+  hasLegacyGardenProgress,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 
@@ -200,7 +209,6 @@ function normalizeResources(p) {
   };
 }
 
-const GARDEN_MAX_LEVEL = 24;
 const GARDEN_MAX_SHELVES = 5;
 const GARDEN_MAX_PLANTS = 48;
 const GARDEN_PLANT_IDS = new Set(["daisy", "lavender", "basil", "rosemary", "monstera", "succulent", "pothos", "strawberry"]);
@@ -223,6 +231,7 @@ function normalizeGardenPlant(raw = {}) {
     phase: Math.max(0, Math.min(3, Math.floor(finiteNumber(raw.phase, 0)))),
     phaseProgress: Math.max(0, Math.min(86_400_000, Math.floor(finiteNumber(raw.phaseProgress, 0)))),
     ...(raw.lastWatered ? { lastWatered: Math.max(0, Math.floor(finiteNumber(raw.lastWatered, 0))) } : {}),
+    lastTapped: Math.max(0, Math.floor(finiteNumber(raw.lastTapped, 0))),
   };
 }
 
@@ -232,16 +241,28 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
   const plants = Array.isArray(source.plants)
     ? source.plants.slice(0, GARDEN_MAX_PLANTS).map(normalizeGardenPlant)
     : [];
+  const level = Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(finiteNumber(source.level, fallback.level))));
+  const xpRequired = getGardenXpRequired(level);
+  const xp = Math.max(0, Math.min(xpRequired, Math.floor(finiteNumber(source.xp, fallback.xp))));
 
   return {
     ...fallback,
+    economyVersion: Math.max(1, Math.min(GARDEN_ECONOMY_VERSION, Math.floor(finiteNumber(
+      source.economyVersion,
+      hasLegacyGardenProgress(source) ? 1 : (fallback.economyVersion || GARDEN_ECONOMY_VERSION),
+    )))),
     totalGoldEarned: Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.totalGoldEarned, fallback.totalGoldEarned)))),
-    level: Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(finiteNumber(source.level, fallback.level)))),
-    xp: Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.xp, fallback.xp)))),
+    level,
+    xp,
+    xpRequired,
+    levelReady: level < GARDEN_MAX_LEVEL && xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.min(GARDEN_MAX_SHELVES, Math.floor(finiteNumber(source.shelvesUnlocked, fallback.shelvesUnlocked)))),
     plants,
+    passiveGoldBuffer: Math.max(0, Math.min(1, finiteNumber(source.passiveGoldBuffer, 0))),
+    passiveXpBuffer: Math.max(0, Math.min(1, finiteNumber(source.passiveXpBuffer, 0))),
     lastTick: Math.max(0, Math.floor(finiteNumber(source.lastTick, now))),
     offlineEarnings: null,
+    offlineXp: null,
   };
 }
 
@@ -437,8 +458,18 @@ function fail(status, error, extras = {}) {
 
 function ensureMergeState(p) {
   hydrateMergeBoard(p);
-  if (!p.merge.generators) p.merge.generators = ["textile"];
+  const sourceGenerators = Array.isArray(p.merge.generators) && p.merge.generators.length
+    ? p.merge.generators
+    : [MERGE_START_CHAIN_ID];
+  p.merge.generators = [...new Set(sourceGenerators.map(normalizeMergeChainId).filter(Boolean))];
+  if (!p.merge.generators.length) p.merge.generators = [MERGE_START_CHAIN_ID];
   if (!p.merge.generatorState) p.merge.generatorState = {};
+  const migratedState = {};
+  for (const [chainId, state] of Object.entries(p.merge.generatorState)) {
+    const normalized = normalizeMergeChainId(chainId);
+    if (normalized && !migratedState[normalized]) migratedState[normalized] = state;
+  }
+  p.merge.generatorState = migratedState;
   if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
   if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
   if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;
@@ -567,6 +598,48 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     case "garden.sync": {
       p.garden = normalizeGardenState(payload.state, Date.now());
       return ok(action, p, { garden: p.garden });
+    }
+    case "garden.resetEconomy": {
+      const previous = normalizeGardenState(p.garden, Date.now());
+      const debit = Math.min(
+        Math.max(0, Math.floor(Number(p.resources?.gold) || 0)),
+        Math.max(0, Math.floor(Number(previous.totalGoldEarned) || 0)),
+      );
+      if (!p.resources) p.resources = {};
+      p.resources.gold = Math.max(0, Math.floor(Number(p.resources.gold) || 0) - debit);
+      p.garden = createGardenEconomyState(Date.now(), { starter: true });
+      p.resources.gold += GARDEN_STARTER_GOLD;
+      if (p.stats) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + GARDEN_STARTER_GOLD;
+      return ok(action, p, {
+        garden: p.garden,
+        debit,
+        grant: GARDEN_STARTER_GOLD,
+        goldDelta: GARDEN_STARTER_GOLD - debit,
+      });
+    }
+    case "garden.levelUp": {
+      p.garden = normalizeGardenState(p.garden, Date.now());
+      const level = Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(Number(p.garden.level) || 1)));
+      const xpRequired = getGardenXpRequired(level);
+      if (level >= GARDEN_MAX_LEVEL) return fail(400, "max garden level");
+      if (!p.garden.levelReady && Math.floor(Number(p.garden.xp) || 0) < xpRequired) {
+        return fail(400, "garden level not ready", { xpRequired });
+      }
+      const reward = getGardenLevelReward(level);
+      const nextLevel = level + 1;
+      p.garden = {
+        ...p.garden,
+        economyVersion: GARDEN_ECONOMY_VERSION,
+        level: nextLevel,
+        xp: 0,
+        xpRequired: getGardenXpRequired(nextLevel),
+        levelReady: false,
+        totalGoldEarned: Math.max(0, Math.floor(Number(p.garden.totalGoldEarned) || 0)) + reward,
+      };
+      if (!p.resources) p.resources = {};
+      p.resources.gold = Math.max(0, Math.floor(Number(p.resources.gold) || 0)) + reward;
+      if (p.stats) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + reward;
+      return ok(action, p, { garden: p.garden, reward, goldDelta: reward });
     }
     case "farm.refresh": {
       const offlineReport = processOfflineActions(p);

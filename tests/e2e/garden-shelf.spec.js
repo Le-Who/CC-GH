@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { GARDEN_ECONOMY_VERSION, getGardenXpRequired } from "../../game-logic.js";
 
 function parsePlayerActionRequest(request) {
   try {
@@ -103,7 +104,7 @@ test.describe("Garden Shelf flow", () => {
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     const userId = await page.evaluate(() => window.localStorage.getItem("gh_dev_user_id"));
-    await page.evaluate(async (value) => {
+    await page.evaluate(async ({ value, economyVersion, xpRequired }) => {
       const response = await fetch("/api/player/mutate", {
         method: "POST",
         headers: {
@@ -114,19 +115,23 @@ test.describe("Garden Shelf flow", () => {
           action: "garden.sync",
           payload: {
             state: {
+              economyVersion,
               totalGoldEarned: 80,
               level: 2,
               xp: 80,
+              xpRequired,
+              levelReady: false,
               shelvesUnlocked: 1,
               plants: [],
               lastTick: Date.now(),
               offlineEarnings: 50,
+              offlineXp: 10,
             },
           },
         }),
       });
       if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
-    }, userId);
+    }, { value: userId, economyVersion: GARDEN_ECONOMY_VERSION, xpRequired: getGardenXpRequired(2) });
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
@@ -142,7 +147,7 @@ test.describe("Garden Shelf flow", () => {
     }, stableUserId);
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await page.evaluate(async (value) => {
+    await page.evaluate(async ({ value, economyVersion, xpRequired }) => {
       const response = await fetch("/api/player/mutate", {
         method: "POST",
         headers: {
@@ -153,9 +158,12 @@ test.describe("Garden Shelf flow", () => {
           action: "garden.sync",
           payload: {
             state: {
+              economyVersion,
               totalGoldEarned: 100,
               level: 13,
               xp: 100,
+              xpRequired,
+              levelReady: false,
               shelvesUnlocked: 1,
               plants: [{
                 id: "offline-daisy",
@@ -165,15 +173,17 @@ test.describe("Garden Shelf flow", () => {
                 spotIndex: 0,
                 phase: 3,
                 phaseProgress: 0,
+                lastTapped: 0,
               }],
               lastTick: Date.now() - 31 * 60_000,
               offlineEarnings: null,
+              offlineXp: null,
             },
           },
         }),
       });
       if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
-    }, stableUserId);
+    }, { value: stableUserId, economyVersion: GARDEN_ECONOMY_VERSION, xpRequired: getGardenXpRequired(13) });
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
@@ -192,7 +202,7 @@ test.describe("Garden Shelf flow", () => {
     }, stableUserId);
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await page.evaluate(async (value) => {
+    await page.evaluate(async ({ value, economyVersion, xpRequired }) => {
       const response = await fetch("/api/player/mutate", {
         method: "POST",
         headers: {
@@ -203,9 +213,12 @@ test.describe("Garden Shelf flow", () => {
           action: "garden.sync",
           payload: {
             state: {
+              economyVersion,
               totalGoldEarned: 100,
               level: 13,
               xp: 100,
+              xpRequired,
+              levelReady: false,
               shelvesUnlocked: 1,
               plants: [{
                 id: "short-pause-daisy",
@@ -215,15 +228,17 @@ test.describe("Garden Shelf flow", () => {
                 spotIndex: 0,
                 phase: 3,
                 phaseProgress: 0,
+                lastTapped: 0,
               }],
               lastTick: Date.now() - 2 * 60_000,
               offlineEarnings: null,
+              offlineXp: null,
             },
           },
         }),
       });
       if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
-    }, stableUserId);
+    }, { value: stableUserId, economyVersion: GARDEN_ECONOMY_VERSION, xpRequired: getGardenXpRequired(13) });
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });

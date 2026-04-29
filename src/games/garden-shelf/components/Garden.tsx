@@ -9,6 +9,8 @@ import {
   TAP_GROWTH_ACCELERATION_MS,
   WATER_COOLDOWN_MS,
   getClickReward,
+  getClickXpReward,
+  GARDEN_TAP_REWARD_COOLDOWN_MS,
 } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Coins, Droplets } from 'lucide-react';
@@ -200,7 +202,11 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
         if (plant.phase === 3) {
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
             const amount = getClickReward(def.baseClick, plant.level);
-            setFloatingTexts(prev => [...prev, { id, text: `+${amount} G`, type: 'gold' }]);
+            const canReward = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
+            if (canReward) {
+              const xp = getClickXpReward(def.baseXp, plant.level);
+              setFloatingTexts(prev => [...prev, { id, text: `+${amount} G · +${xp} XP`, type: 'gold' }]);
+            }
         } else {
             setFloatingTexts(prev => [...prev, { id, text: `-${tapAccelerationSeconds}s`, type: 'time' }]);
         }

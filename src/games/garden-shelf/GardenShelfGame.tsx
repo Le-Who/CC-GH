@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useCallback, useState } from 'react';
-import { GameProvider } from './lib/GameContext';
+import { GameProvider, useGame } from './lib/GameContext';
 import { Garden } from './components/Garden';
 import { BottomPanel } from './components/BottomPanel';
 import { OfflineWelcome } from './components/OfflineWelcome';
@@ -14,6 +14,7 @@ import { cn } from './lib/utils';
 import { GardenI18nProvider, useGardenI18n } from './lib/i18n';
 import type { GardenLanguage } from './lib/i18n';
 import { GARDEN_BOTTOM_PLANK_PATH, GARDEN_COG_PATH, GARDEN_SIGN_PATH } from './lib/sprites';
+import { ArrowUpCircle, Coins } from 'lucide-react';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
 
@@ -183,6 +184,45 @@ function GardenSettingsButton() {
   );
 }
 
+function GardenProgress() {
+  const { state, levelUp } = useGame();
+  const { t } = useGardenI18n();
+  const xpRequired = Math.max(1, state.xpRequired || 1);
+  const progress = Math.max(0, Math.min(100, (state.xp / xpRequired) * 100));
+
+  return (
+    <div className="garden-level-panel absolute left-1/2 top-[105px] z-[130] w-[min(88%,360px)] -translate-x-1/2 px-4 py-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--muted)]">
+            {t('level.progress')}
+          </div>
+          <div className="font-mono text-xs text-[color:var(--ink)]">
+            {Math.floor(state.xp)}/{xpRequired} XP
+          </div>
+        </div>
+        {state.levelReady && (
+          <button
+            type="button"
+            onClick={levelUp}
+            className="garden-action-button secondary min-h-[38px] shrink-0 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]"
+          >
+            <ArrowUpCircle size={14} />
+            {t('level.up')}
+            <Coins size={12} />
+          </button>
+        )}
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-[color:var(--line-soft)]">
+        <div
+          className="h-full rounded-full bg-[linear-gradient(90deg,var(--mint),var(--leaf),var(--amber))] transition-[width] duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function GameContent() {
   const [selectedSpot, setSelectedSpot] = useState<{ shelfIndex: number, spotIndex: number, plantId?: string } | null>(null);
 
@@ -212,6 +252,7 @@ function GameContent() {
       <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
         <GardenSign />
         <GardenSettingsButton />
+        <GardenProgress />
 
         {/* The Glass Dome Container */}
         <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">
@@ -272,6 +313,32 @@ export default function App() {
     ),
     [performAction],
   );
+  const onGardenReset = useCallback(
+    () => performAction(
+      'garden.resetEconomy',
+      {},
+      {
+        silent: true,
+        feedback: false,
+        key: 'garden.resetEconomy',
+        timeoutMs: 12000,
+      },
+    ),
+    [performAction],
+  );
+  const onGardenLevelUp = useCallback(
+    () => performAction(
+      'garden.levelUp',
+      {},
+      {
+        silent: true,
+        feedback: false,
+        key: `garden.levelUp.${Date.now()}`,
+        timeoutMs: 12000,
+      },
+    ),
+    [performAction],
+  );
 
   return (
     <GameProvider
@@ -279,6 +346,8 @@ export default function App() {
       persistedState={hubGarden}
       onGoldDelta={onGoldDelta}
       onStateSync={onStateSync}
+      onGardenReset={onGardenReset}
+      onGardenLevelUp={onGardenLevelUp}
       onHudChange={setGardenHud}
     >
       <GardenI18nProvider>

@@ -1262,6 +1262,18 @@ export function buildMatch3Scene(app, initial = {}) {
         specialPulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 14, fade: true, scaleFrom: 0.45, scaleTo: 1.25, ease: "snap" };
         effects.addChild(specialPulse);
       }
+      for (const special of step.triggeredSpecials || []) {
+        const pos = cellCenter(layout, special.x, special.y);
+        const color = GEM_COLORS[special.type] || SKY;
+        const triggerPulse = new Graphics()
+          .circle(0, 0, radius * 1.18)
+          .stroke({ color, width: 5, alpha: 0.9 });
+        triggerPulse.x = pos.x;
+        triggerPulse.y = pos.y;
+        triggerPulse._delay = clearDelay + 1;
+        triggerPulse._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 16, fade: true, scaleFrom: 0.55, scaleTo: 1.55, ease: "snap" };
+        effects.addChild(triggerPulse);
+      }
       for (const fall of step.fallen || []) {
         const type = previousBoard?.[fall.fromY]?.[fall.x] || step.boardSnapshot?.[fall.toY]?.[fall.x];
         if (!type) continue;
@@ -1743,11 +1755,11 @@ export function buildBubboScene(app, initial = {}) {
       if (dropped) {
         const falling = drawBubble(pos.x, pos.y, layout.radius * 0.82, dropped.color || cell.color || BUBBO_COLORS[0], 0.92);
         const seed = bubbleBreathSeed(cell.row, cell.col);
-        falling._delay = reduce ? 0 : Math.min(5, (cell.row + cell.col) % 6);
-        falling._vx = reduce ? 0 : (cell.col - BUBBO_COLS / 2) * (0.05 + seed * 0.05);
-        falling._vy = reduce ? 3.2 : 2.55 + (cell.row % 3) * 0.28 + seed * 0.42;
-        falling._gravity = reduce ? 0.3 : 0.18 + seed * 0.08;
-        falling._spin = reduce ? 0 : (cell.col % 2 ? 1 : -1) * (0.03 + seed * 0.035);
+        falling._delay = reduce ? 0 : Math.min(14, ((cell.row * 2 + cell.col) % 8) * 1.75);
+        falling._vx = reduce ? 0 : (cell.col - BUBBO_COLS / 2) * (0.035 + seed * 0.035);
+        falling._vy = reduce ? 2.4 : 1.35 + (cell.row % 3) * 0.18 + seed * 0.28;
+        falling._gravity = reduce ? 0.18 : 0.07 + seed * 0.045;
+        falling._spin = reduce ? 0 : (cell.col % 2 ? 1 : -1) * (0.018 + seed * 0.026);
         falling._sway = reduce ? null : {
           amount: 0.08 + seed * 0.08,
           lift: 0.018 + seed * 0.02,
@@ -1759,7 +1771,7 @@ export function buildBubboScene(app, initial = {}) {
           phase: seed * Math.PI,
           speed: 0.3 + seed * 0.18,
         };
-        falling._life = reduce ? 24 : 38 + (cell.col % 4);
+        falling._life = reduce ? 42 : 78 + (cell.col % 6) * 3;
         effects.addChild(falling);
       } else {
         const burst = drawBubboBurst(pos.x, pos.y, layout.radius * 0.9, shot.color || cell.color || BUBBO_COLORS[0]);

@@ -7,10 +7,12 @@ import {
   getUpgradeCost,
   getProduction,
   getClickReward,
+  getClickXpReward,
   getPlantUnlockLevel,
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
   WATER_COOLDOWN_MS,
+  GARDEN_TAP_REWARD_COOLDOWN_MS,
 } from '../constants';
 import { Coins, X, ArrowUpCircle, Trash2, Droplets, Archive, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -228,8 +230,11 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
     let color = "";
     
     if (phase === 3) {
+       const canReward = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
+       if (!canReward) return;
        const value = getClickReward(def.baseClick, plant.level);
-       text = `+${value}`;
+       const xp = getClickXpReward(def.baseXp, plant.level);
+       text = `+${value} · +${xp} XP`;
        color = "text-amber-400";
     } else {
        text = `+${tapAccelerationSeconds}s`;

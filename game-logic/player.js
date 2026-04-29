@@ -6,7 +6,8 @@
  */
 
 import { ECONOMY } from "./economy.js";
-import { MERGE_WILD_GENERATOR_ID } from "./merge-config.js";
+import { createGardenEconomyState } from "./garden-economy.js";
+import { MERGE_START_CHAIN_ID, MERGE_WILD_GENERATOR_ID } from "./merge-config.js";
 import { createDefaultYardState } from "./yard.js";
 
 /* ═══════════════════════════════════════════════════
@@ -65,15 +66,7 @@ import { createDefaultYardState } from "./yard.js";
  * Garden gold itself remains the top-level shared resource.
  */
 export function createDefaultGardenState(now = Date.now()) {
-  return {
-    totalGoldEarned: 0,
-    level: 1,
-    xp: 0,
-    shelvesUnlocked: 1,
-    plants: [],
-    lastTick: now,
-    offlineEarnings: null,
-  };
+  return createGardenEconomyState(now);
 }
 
 /**
@@ -138,14 +131,14 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       board: Array.from({ length: BOARD_ROWS }, () =>
         Array(BOARD_COLS).fill(null),
       ),
-      generators: ["textile"], // Unlocked generator chain IDs
+      generators: [MERGE_START_CHAIN_ID], // Unlocked generator chain IDs
       inventory: [], // Unplaced items from gacha
       lastFreePull: 0, // Timestamp of last daily free pull
       lastFreeTaps: 0,
       freeTapCharges: 0,
       generatorState: {
         // Per-chain cooldown tracking
-        textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+        [MERGE_START_CHAIN_ID]: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
         [MERGE_WILD_GENERATOR_ID]: {
           tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
           cooldownEnd: 0,

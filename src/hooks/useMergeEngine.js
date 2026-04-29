@@ -17,7 +17,7 @@
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
-import { MERGE_CHAINS, ECONOMY, MERGE_WILD_GENERATOR_ID, getMergePairResult } from "../../game-logic.js";
+import { MERGE_CHAINS, ECONOMY, MERGE_START_CHAIN_ID, MERGE_WILD_GENERATOR_ID, getMergePairResult } from "../../game-logic.js";
 
 const BOARD_ROWS = 7;
 const BOARD_COLS = 9;
@@ -39,9 +39,9 @@ for (const chain of Object.values(MERGE_CHAINS)) {
 export const mergeStore = create((set, get) => ({
   // ─── State ───
   board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
-  generators: ["textile"],
+  generators: [MERGE_START_CHAIN_ID],
   generatorState: {
-    textile: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
+    [MERGE_START_CHAIN_ID]: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
     [MERGE_WILD_GENERATOR_ID]: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },
   },
   mergeInventory: [],

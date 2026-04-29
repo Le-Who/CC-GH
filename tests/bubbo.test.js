@@ -11,6 +11,7 @@ import {
   applyBubboShot,
   createBubboBoard,
   createBubboRun,
+  dropFloatingBubbo,
   generateBubboWave,
   getBubboOccupiedPlayableRows,
   getBubboRemainingCount,
@@ -26,6 +27,10 @@ import {
 import { calcBubboReward } from "../game-logic.js";
 
 describe("Bubbo engine", () => {
+  function assertNoFloatingCells(board, rowOffset = 0, message = "board should not contain unsupported islands") {
+    assert.deepEqual(settleFloatingBubbo(board, rowOffset), [], message);
+  }
+
   it("creates a normalized staggered field with playable empty rows", () => {
     const board = createBubboBoard({ seed: "shape" });
 
@@ -58,10 +63,11 @@ describe("Bubbo engine", () => {
     assert.equal(getBubboRowVisualOffset(0, 0), getBubboRowVisualOffset(1, shifted.rowOffset));
 
     const dangerBoard = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
-    dangerBoard[BUBBO_ROWS - 1][0] = "sky";
+    for (let row = 0; row < BUBBO_ROWS; row += 1) dangerBoard[row][0] = "sky";
     const danger = shiftBubboPressure(dangerBoard, "pressure", 8);
     assert.equal(danger.overflow, true);
     assert.equal(danger.danger, true);
+    assertNoFloatingCells(danger.board, danger.rowOffset);
   });
 
   it("creates and consumes a deterministic playable pending pressure row", () => {
@@ -78,6 +84,8 @@ describe("Bubbo engine", () => {
 
   it("keeps existing rows in the same visual columns after pressure descent", () => {
     const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[0][4] = "sky";
+    board[1][4] = "sky";
     board[2][4] = "sky";
     const shifted = shiftBubboPressure(board, "visual-stability", 3, 0);
 
@@ -86,6 +94,18 @@ describe("Bubbo engine", () => {
       4 + getBubboRowVisualOffset(2, 0),
       4 + getBubboRowVisualOffset(3, shifted.rowOffset),
     );
+    assertNoFloatingCells(shifted.board, shifted.rowOffset);
+  });
+
+  it("drops pre-existing unsupported islands during pressure shifts before checking overflow", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[BUBBO_ROWS - 1][4] = "mint";
+
+    const shifted = shiftBubboPressure(board, "orphan-bottom", 2, 0);
+
+    assert.equal(shifted.overflow, false);
+    assert.ok(shifted.dropped.some((cell) => cell.row === BUBBO_ROWS - 1 && cell.col === 4 && cell.color === "mint"));
+    assertNoFloatingCells(shifted.board, shifted.rowOffset);
   });
 
   it("advances continuous pressure by elapsed time", () => {
@@ -97,6 +117,23 @@ describe("Bubbo engine", () => {
     assert.equal(advanced.rowOffset, 1);
     assert.ok(advanced.pressure < 9500);
     assert.equal(advanced.board[1].some(Boolean), true);
+    assertNoFloatingCells(advanced.board, advanced.rowOffset);
+  });
+
+  it("returns dropped cells when pressure advance settles islands", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[6][2] = "amber";
+    const advanced = advanceBubboPressure({
+      board,
+      seed: "pressure-orphan",
+      waveIndex: BUBBO_START_ROWS,
+      pendingRow: generateBubboWave("pressure-orphan", BUBBO_START_ROWS),
+      pressure: 9500,
+    }, 100);
+
+    assert.equal(advanced.shifts, 1);
+    assert.ok(advanced.dropped.some((cell) => cell.row === 6 && cell.col === 2 && cell.color === "amber"));
+    assertNoFloatingCells(advanced.board, advanced.rowOffset);
   });
 
   it("pops same-color clusters and drops unanchored bubbles", () => {
@@ -154,7 +191,7 @@ describe("Bubbo engine", () => {
 
   it("refills a one-row sparse field without pressure penalty", () => {
     const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
-    board[7][3] = "coral";
+    board[0][3] = "coral";
     const recovered = recoverSparseBubboField({
       board,
       seed: "one-row-refill",
@@ -170,6 +207,26 @@ describe("Bubbo engine", () => {
     assert.equal(recovered.board[0][3], "coral");
     assert.ok(getBubboOccupiedPlayableRows(recovered.board) >= 3);
     assert.equal(isBubboDanger(recovered.board), false);
+    assertNoFloatingCells(recovered.board, recovered.rowOffset);
+  });
+
+  it("drops unsupported sparse islands before recovery refill", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[7][3] = "coral";
+
+    const recovered = recoverSparseBubboField({
+      board,
+      seed: "sparse-orphan",
+      waveIndex: BUBBO_START_ROWS,
+      pendingRow: generateBubboWave("sparse-orphan", BUBBO_START_ROWS),
+      pressure: 8000,
+      pressureStep: 0.84,
+    });
+
+    assert.equal(recovered.recovered, true);
+    assert.ok(recovered.dropped.some((cell) => cell.row === 7 && cell.col === 3 && cell.color === "coral"));
+    assert.notEqual(recovered.board[0][3], "coral");
+    assertNoFloatingCells(recovered.board, recovered.rowOffset);
   });
 
   it("normalizes timed mode state without relying on shots left", () => {
@@ -214,6 +271,18 @@ describe("Bubbo engine", () => {
       dropped.map(([row, col]) => `${row}:${col}`).sort(),
       ["3:3", "3:4", "4:4"],
     );
+  });
+
+  it("clears unsupported cells and returns their colors for animation", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[4][2] = "berry";
+    board[4][3] = "sky";
+
+    const dropped = dropFloatingBubbo(board);
+
+    assert.deepEqual(dropped.map((cell) => `${cell.row}:${cell.col}:${cell.color}`).sort(), ["4:2:berry", "4:3:sky"]);
+    assert.equal(board[4][2], null);
+    assert.equal(board[4][3], null);
   });
 
   it("normalizes malformed boards and keeps reward bounded", () => {

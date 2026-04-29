@@ -47,6 +47,11 @@ export function OfflineWelcome() {
               <div className="garden-card-row relative z-10 mb-8 flex items-center gap-2 rounded-lg px-6 py-3">
                 <Coins className="w-6 h-6 text-amber-400 fill-amber-500/50" />
                 <span className="font-mono text-3xl text-[color:var(--ink)]">{Math.floor(state.offlineEarnings).toLocaleString()}</span>
+                {state.offlineXp && state.offlineXp > 0 && (
+                  <span className="ml-2 font-mono text-sm text-[color:var(--leaf)]">
+                    {t('offline.xp', { amount: Math.floor(state.offlineXp) })}
+                  </span>
+                )}
               </div>
 
               <button

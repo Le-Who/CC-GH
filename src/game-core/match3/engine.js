@@ -356,7 +356,27 @@ function groupSpecialType(group) {
   return "special_blast";
 }
 
-function collectSpecialClears(board, x, y) {
+function mostCommonNormalGem(board) {
+  const counts = new Map();
+  for (const row of board) {
+    for (const type of row || []) {
+      if (!isMatchableGem(type)) continue;
+      counts.set(type, (counts.get(type) || 0) + 1);
+    }
+  }
+  let best = null;
+  let bestCount = -1;
+  for (const gem of GEM_TYPES) {
+    const count = counts.get(gem) || 0;
+    if (count > bestCount) {
+      best = gem;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+function collectSpecialClears(board, x, y, options = {}) {
   const type = board[y]?.[x];
   if (!isSpecialType(type)) return [];
   const cells = new Set();
@@ -373,7 +393,7 @@ function collectSpecialClears(board, x, y) {
       for (let cx = x - 1; cx <= x + 1; cx++) add(cx, cy);
     }
   } else if (type === "special_colour") {
-    const target = GEM_TYPES.find((gem) => board.some((row) => row.includes(gem))) || null;
+    const target = isMatchableGem(options.targetType) ? options.targetType : mostCommonNormalGem(board);
     if (target) {
       for (let cy = 0; cy < BOARD_SIZE; cy++) {
         for (let cx = 0; cx < BOARD_SIZE; cx++) {
@@ -385,6 +405,42 @@ function collectSpecialClears(board, x, y) {
   }
 
   return [...cells];
+}
+
+function collectSpecialChainClears(board, specialCells = []) {
+  const clearSet = new Set();
+  const triggered = new Map();
+  const queue = [];
+
+  for (const cell of specialCells) {
+    const x = Math.max(0, Math.min(BOARD_SIZE - 1, Math.floor(Number(cell.x) || 0)));
+    const y = Math.max(0, Math.min(BOARD_SIZE - 1, Math.floor(Number(cell.y) || 0)));
+    if (!isSpecialType(board[y]?.[x])) continue;
+    queue.push({ x, y, targetType: cell.targetType });
+  }
+
+  for (let i = 0; i < queue.length; i++) {
+    const cell = queue[i];
+    const idx = cell.y * BOARD_SIZE + cell.x;
+    const type = board[cell.y]?.[cell.x];
+    if (!isSpecialType(type) || triggered.has(idx)) continue;
+    triggered.set(idx, { x: cell.x, y: cell.y, type });
+
+    for (const clearIdx of collectSpecialClears(board, cell.x, cell.y, { targetType: cell.targetType })) {
+      clearSet.add(clearIdx);
+      const cx = clearIdx % BOARD_SIZE;
+      const cy = Math.floor(clearIdx / BOARD_SIZE);
+      const clearType = board[cy]?.[cx];
+      if (isSpecialType(clearType) && !triggered.has(clearIdx)) {
+        queue.push({ x: cx, y: cy });
+      }
+    }
+  }
+
+  return {
+    indices: [...clearSet],
+    triggeredSpecials: [...triggered.values()],
+  };
 }
 
 function clearCells(board, indices) {
@@ -588,15 +644,24 @@ export function attemptMatch3Move(board, from, to, options = {}) {
   [next[from.y][from.x], next[to.y][to.x]] = [next[to.y][to.x], next[from.y][from.x]];
 
   const specialCells = [];
-  if (isSpecialType(fromType)) specialCells.push({ x: to.x, y: to.y });
-  if (isSpecialType(toType)) specialCells.push({ x: from.x, y: from.y });
+  if (isSpecialType(fromType)) {
+    specialCells.push({
+      x: to.x,
+      y: to.y,
+      targetType: fromType === "special_colour" && isMatchableGem(toType) ? toType : null,
+    });
+  }
+  if (isSpecialType(toType)) {
+    specialCells.push({
+      x: from.x,
+      y: from.y,
+      targetType: toType === "special_colour" && isMatchableGem(fromType) ? fromType : null,
+    });
+  }
 
   if (specialCells.length) {
-    const clearSet = new Set();
-    for (const cell of specialCells) {
-      for (const idx of collectSpecialClears(next, cell.x, cell.y)) clearSet.add(idx);
-    }
-    const cleared = clearCells(next, clearSet);
+    const specialChain = collectSpecialChainClears(next, specialCells);
+    const cleared = clearCells(next, specialChain.indices);
     const dirtyMask = {
       rows: new Uint8Array(BOARD_SIZE),
       cols: new Uint8Array(BOARD_SIZE),
@@ -615,6 +680,7 @@ export function attemptMatch3Move(board, from, to, options = {}) {
       fallen: [...gravity.fallen, ...(dropResult?.fallen || [])],
       filled: [...gravity.filled, ...(dropResult?.filled || [])],
       dropCollected: dropResult?.dropCollected || [],
+      triggeredSpecials: specialChain.triggeredSpecials,
       combo: 1,
       boardSnapshot: cloneBoard(next),
     };

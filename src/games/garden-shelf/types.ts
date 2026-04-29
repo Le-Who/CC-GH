@@ -11,16 +11,22 @@ export interface PlantData {
   phase: number; // 0, 1, 2, 3
   phaseProgress: number; // Time accumulated in current phase (ms)
   lastWatered?: number; // timestamp
+  lastTapped?: number; // timestamp for mature reward cooldown
 }
 
 export interface GameState {
+  economyVersion: number;
   gold: number;
   totalGoldEarned: number;
   level: number;
   xp: number;
+  xpRequired: number;
+  levelReady: boolean;
   shelvesUnlocked: number;
   plants: PlantData[];
+  passiveGoldBuffer: number;
+  passiveXpBuffer: number;
   lastTick: number;
   offlineEarnings: number | null;
+  offlineXp: number | null;
 }
-

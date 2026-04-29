@@ -27,10 +27,19 @@ import {
   YARD_GOODIES,
   YARD_HOUR_MS,
   YARD_SIMULATION_CAP_MS,
+  GARDEN_ECONOMY_VERSION,
+  GARDEN_OFFLINE_CAP_MS,
+  GARDEN_OFFLINE_GOLD_RATIO,
+  GARDEN_OFFLINE_XP_RATIO,
+  GARDEN_STARTER_GOLD,
+  createGardenEconomyState,
+  getGardenLevelReward,
+  getGardenXpRequired,
   MERGE_CHAINS,
   MERGE_WILD_GENERATOR_ID,
 } from "../game-logic.js";
 import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
+import { PLANT_TYPES, getProduction, getPassiveXpRate } from "../src/games/garden-shelf/constants.ts";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
 import { applyAction, applyActionWithReceipt, buildSnapshot } from "../routes/player.js";
 
@@ -132,12 +141,18 @@ describe("Garden Shelf shared gold actions", () => {
     const p = createDefaultPlayer("garden-sync", "Garden");
     const startGold = p.resources.gold;
     const gardenState = {
+      economyVersion: GARDEN_ECONOMY_VERSION,
       totalGoldEarned: 42,
       level: 4,
-      xp: 1300,
+      xp: 120,
+      xpRequired: getGardenXpRequired(4),
+      levelReady: false,
       shelvesUnlocked: 2,
       lastTick: 123456,
       offlineEarnings: 12,
+      offlineXp: 3,
+      passiveGoldBuffer: 0.4,
+      passiveXpBuffer: 0.2,
       plants: [
         {
           id: "plant-1",
@@ -148,6 +163,7 @@ describe("Garden Shelf shared gold actions", () => {
           phase: 3,
           phaseProgress: 0,
           lastWatered: 111,
+          lastTapped: 0,
         },
       ],
     };
@@ -158,9 +174,13 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(p.resources.gold, startGold, "garden.sync must not alter shared gold");
     assert.deepEqual(result.body.snapshot.garden.plants, gardenState.plants);
     assert.equal(result.body.snapshot.garden.level, 4);
+    assert.equal(result.body.snapshot.garden.economyVersion, GARDEN_ECONOMY_VERSION);
+    assert.equal(result.body.snapshot.garden.xpRequired, getGardenXpRequired(4));
+    assert.equal(result.body.snapshot.garden.levelReady, false);
     assert.equal(result.body.snapshot.garden.shelvesUnlocked, 2);
     assert.equal(result.body.snapshot.garden.offlineEarnings, null);
-    assert.equal(buildSnapshot(p).garden.xp, 1300);
+    assert.equal(result.body.snapshot.garden.offlineXp, null);
+    assert.equal(buildSnapshot(p).garden.xp, 120);
     assert.equal(buildSnapshot(p).garden.offlineEarnings, null);
   });
 
@@ -169,6 +189,7 @@ describe("Garden Shelf shared gold actions", () => {
 
     const result = await applyAction(p, "garden.sync", {
       state: {
+        economyVersion: GARDEN_ECONOMY_VERSION,
         totalGoldEarned: -5,
         level: 999,
         xp: -10,
@@ -190,8 +211,11 @@ describe("Garden Shelf shared gold actions", () => {
     const garden = result.body.snapshot.garden;
     assert.equal(result.status, 200);
     assert.equal(garden.totalGoldEarned, 0);
+    assert.equal(garden.economyVersion, GARDEN_ECONOMY_VERSION);
     assert.equal(garden.level, 24);
     assert.equal(garden.xp, 0);
+    assert.equal(garden.xpRequired, getGardenXpRequired(24));
+    assert.equal(garden.levelReady, false);
     assert.equal(garden.shelvesUnlocked, 5);
     assert.equal(garden.plants[0].type, "daisy");
     assert.equal(garden.plants[0].level, 1);
@@ -200,6 +224,101 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(garden.plants[0].phase, 3);
     assert.equal(garden.plants[0].phaseProgress, 86400000);
     assert.equal(garden.offlineEarnings, null);
+    assert.equal(garden.offlineXp, null);
+  });
+
+  it("marks legacy Garden progress for explicit economy reset", () => {
+    const p = createDefaultPlayer("garden-legacy-marker", "Garden");
+    p.garden = {
+      totalGoldEarned: 600,
+      level: 12,
+      xp: 220,
+      shelvesUnlocked: 3,
+      plants: [{ id: "legacy", type: "daisy", level: 8, shelfIndex: 0, spotIndex: 0, phase: 3, phaseProgress: 0 }],
+      lastTick: 123,
+    };
+
+    const garden = buildSnapshot(p).garden;
+
+    assert.equal(garden.economyVersion, 1);
+    assert.equal(garden.level, 12);
+    assert.equal(garden.totalGoldEarned, 600);
+  });
+
+  it("resets legacy Garden economy by debiting old Garden gold and granting a starter pack", async () => {
+    const p = createDefaultPlayer("garden-reset", "Garden");
+    p.resources.gold = 1_000;
+    p.garden = {
+      totalGoldEarned: 600,
+      level: 18,
+      xp: 1_200,
+      shelvesUnlocked: 4,
+      plants: [{ id: "legacy", type: "lavender", level: 12, shelfIndex: 1, spotIndex: 0, phase: 3, phaseProgress: 0 }],
+      lastTick: 123,
+    };
+
+    const result = await applyAction(p, "garden.resetEconomy", {}, { now: 1_800_000_000_000 });
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.debit, 600);
+    assert.equal(result.body.grant, GARDEN_STARTER_GOLD);
+    assert.equal(p.resources.gold, 1_000 - 600 + GARDEN_STARTER_GOLD);
+    assert.equal(p.garden.economyVersion, GARDEN_ECONOMY_VERSION);
+    assert.equal(p.garden.level, 1);
+    assert.equal(p.garden.xp, 0);
+    assert.equal(p.garden.xpRequired, getGardenXpRequired(1));
+    assert.equal(p.garden.plants.length, 1);
+    assert.equal(p.garden.plants[0].type, "daisy");
+    assert.equal(p.garden.plants[0].phase, 3);
+  });
+
+  it("keeps Garden XP frozen at 100% until Level Up is pressed", async () => {
+    const p = createDefaultPlayer("garden-level-freeze", "Garden");
+    p.garden = createGardenEconomyState(1_800_000_000_000);
+    p.garden.xp = getGardenXpRequired(1);
+    p.garden.levelReady = true;
+    const startGold = p.resources.gold;
+
+    const result = await applyAction(p, "garden.levelUp");
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.reward, getGardenLevelReward(1));
+    assert.equal(p.resources.gold, startGold + getGardenLevelReward(1));
+    assert.equal(p.garden.level, 2);
+    assert.equal(p.garden.xp, 0);
+    assert.equal(p.garden.xpRequired, getGardenXpRequired(2));
+    assert.equal(p.garden.levelReady, false);
+  });
+
+  it("rejects Garden Level Up before the XP bar is ready", async () => {
+    const p = createDefaultPlayer("garden-level-not-ready", "Garden");
+    p.garden = createGardenEconomyState(1_800_000_000_000);
+    p.garden.xp = getGardenXpRequired(1) - 1;
+    p.garden.levelReady = false;
+
+    const result = await applyAction(p, "garden.levelUp");
+
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error, "garden level not ready");
+    assert.equal(p.garden.level, 1);
+  });
+
+  it("keeps two mostly-idle days of early Garden plants below runaway gold scale", () => {
+    const starterPlantIds = ["daisy", "lavender", "basil", "rosemary"];
+    const matureLevel = 8;
+    const passiveGoldPerSecond = starterPlantIds.reduce((sum, plantId) => {
+      const plant = PLANT_TYPES[plantId];
+      return sum + getProduction(plant.baseProduction, matureLevel);
+    }, 0);
+    const passiveXpPerSecond = starterPlantIds.reduce((sum, plantId) => {
+      const plant = PLANT_TYPES[plantId];
+      return sum + getPassiveXpRate(plant.basePassiveXp, matureLevel);
+    }, 0);
+    const twoIdleReturnsGold = Math.floor(passiveGoldPerSecond * (GARDEN_OFFLINE_CAP_MS / 1000) * GARDEN_OFFLINE_GOLD_RATIO * 2);
+    const twoIdleReturnsXp = Math.floor(passiveXpPerSecond * (GARDEN_OFFLINE_CAP_MS / 1000) * GARDEN_OFFLINE_XP_RATIO * 2);
+
+    assert.ok(twoIdleReturnsGold < 25_000, `early idle gold should stay bounded, got ${twoIdleReturnsGold}`);
+    assert.ok(twoIdleReturnsXp < getGardenXpRequired(13), `early idle XP should not skip deep unlocks, got ${twoIdleReturnsXp}`);
   });
 });
 
@@ -228,24 +347,24 @@ describe("Gacha Merge shared generator and recipes", () => {
     assert.ok(MERGE_CHAINS[result.body.spawned[0].item.chainId]);
   });
 
-  it("combines alchemy recipes such as sand plus lightning into glass", async () => {
+  it("combines alchemy recipes such as sand plus flame into glass", async () => {
     const p = createDefaultPlayer("merge-recipe", "Merge");
-    p.merge.board[0][0] = { id: "sand", chainId: "earth", level: 1 };
-    p.merge.board[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+    p.merge.board[0][0] = { id: "sand", chainId: "earth", level: 2 };
+    p.merge.board[0][1] = { id: "flame", chainId: "fire", level: 1 };
 
     const result = await applyAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
 
     assert.equal(result.status, 200);
     assert.deepEqual(p.merge.board[0][0], null);
-    assert.deepEqual(p.merge.board[0][1], { id: "glass", chainId: "earth", level: 5 });
-    assert.equal(result.body.recipeId, "sand_lightning_glass");
+    assert.deepEqual(p.merge.board[0][1], { id: "glass", chainId: "alchemy", level: 2 });
+    assert.equal(result.body.recipeId, "sand_flame_glass");
   });
 
   it("does not spend gacha tokens or burn daily free pulls when the board is full", async () => {
     const p = createDefaultPlayer("merge-full-board", "Merge");
     p.resources.gachaTokens = ECONOMY.GACHA_PULL_COST;
     p.merge.board = p.merge.board.map((row) =>
-      row.map(() => ({ id: "thread", chainId: "textile", level: 0 })),
+      row.map(() => ({ id: "seed", chainId: "flora", level: 0 })),
     );
 
     const paid = await applyAction(p, "merge.gacha");
@@ -283,13 +402,13 @@ describe("Gacha Merge shared generator and recipes", () => {
   it("surfaces high-tier Merge recipe Yard drops as explicit rewards", async () => {
     await withRandomSequence([0.01, 0.01], async () => {
       const p = createDefaultPlayer("merge-yard-drop", "Merge");
-      p.merge.board[0][0] = { id: "sand", chainId: "earth", level: 1 };
-      p.merge.board[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+      p.merge.board[0][0] = { id: "crystal", chainId: "earth", level: 5 };
+      p.merge.board[0][1] = { id: "elixir", chainId: "alchemy", level: 4 };
 
       const result = await applyAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
 
       assert.equal(result.status, 200);
-      assert.equal(result.body.recipeId, "sand_lightning_glass");
+      assert.equal(result.body.recipeId, "crystal_elixir_philosopher_stone");
       assert.equal(result.body.reward?.type, "yardGoodie");
       assert.equal(result.body.reward.goodieId, result.body.yardDrop);
       assert.equal(result.body.snapshot.yard.goodieInventory[result.body.yardDrop], 1);
@@ -299,12 +418,12 @@ describe("Gacha Merge shared generator and recipes", () => {
   it("returns the trashed item without changing free taps or rewards", async () => {
     const p = createDefaultPlayer("merge-trash", "Merge");
     p.merge.freeTapCharges = 4;
-    p.merge.board[2][3] = { id: "thread", chainId: "textile", level: 0 };
+    p.merge.board[2][3] = { id: "seed", chainId: "flora", level: 0 };
 
     const result = await applyAction(p, "merge.trash", { r: 2, c: 3 });
 
     assert.equal(result.status, 200);
-    assert.deepEqual(result.body.trashedItem, { id: "thread", chainId: "textile", level: 0 });
+    assert.deepEqual(result.body.trashedItem, { id: "seed", chainId: "flora", level: 0 });
     assert.equal(p.merge.board[2][3], null);
     assert.equal(p.merge.freeTapCharges, 4);
     assert.equal(result.body.reward, undefined);
@@ -389,8 +508,8 @@ describe("new-stack player snapshot and inventory contracts", () => {
       },
       merge: {
         board: [
-          [{ id: "thread", chainId: "textile", level: 0 }, null],
-          [{ id: "thread", chainId: "textile", level: 0 }],
+          [{ id: "seed", chainId: "flora", level: 0 }, null],
+          [{ id: "seed", chainId: "flora", level: 0 }],
         ],
       },
       yard: {
@@ -403,7 +522,7 @@ describe("new-stack player snapshot and inventory contracts", () => {
     assert.deepEqual(inventory.seeds, { strawberry: 5 });
     assert.deepEqual(inventory.harvested, { strawberry: 2 });
     assert.deepEqual(inventory.harvestedCrops, { strawberry: 2 });
-    assert.deepEqual(inventory.mergeItems, { thread: 2 });
+    assert.deepEqual(inventory.mergeItems, { seed: 2 });
     assert.deepEqual(inventory.yardGoodies, { cozy_chair: 1 });
     assert.equal(inventory.rewards.gold, 125);
     assert.equal(inventory.rewards.gachaTokens, 3);

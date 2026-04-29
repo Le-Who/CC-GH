@@ -239,6 +239,14 @@ export function settleFloatingBubbo(board, rowOffset = 0, options = {}) {
   return dropped;
 }
 
+export function dropFloatingBubbo(board, rowOffset = 0, options = {}) {
+  const pendingRow = Array.isArray(options.pendingRow) ? options.pendingRow : null;
+  const dropped = settleFloatingBubbo(board, rowOffset, { pendingRow });
+  const droppedCells = dropped.map(([r, c]) => ({ row: r, col: c, color: getBubboCell(board, pendingRow, r, c) }));
+  for (const [r, c] of dropped) setBubboCell(board, pendingRow, r, c, null);
+  return droppedCells;
+}
+
 export function getBubboRemainingCount(board = []) {
   let count = 0;
   for (const row of board) {
@@ -282,14 +290,17 @@ export function createBubboRun(seed = null, options = {}) {
 export function shiftBubboPressure(board, seed = "bubbo", waveIndex = 0, rowOffset = 0, pendingRow = null) {
   const current = normalizeBubboBoard(board);
   const currentWaveIndex = Number.isFinite(Number(waveIndex)) ? Number(waveIndex) : BUBBO_START_ROWS;
+  const currentRowOffset = normalizeRowOffset(rowOffset);
+  const preDropped = dropFloatingBubbo(current, currentRowOffset);
   const consumedRow = normalizeBubboPendingRow(pendingRow, seed, currentWaveIndex);
   const overflow = current[BUBBO_ROWS - 1].some(Boolean);
-  const nextRowOffset = (normalizeRowOffset(rowOffset) + 1) % 2;
+  const nextRowOffset = (currentRowOffset + 1) % 2;
   const nextWaveIndex = currentWaveIndex + 1;
   const shifted = [
     consumedRow,
     ...current.slice(0, BUBBO_ROWS - 1),
   ];
+  const dropped = dropFloatingBubbo(shifted, nextRowOffset);
   return {
     board: shifted,
     pendingRow: normalizeBubboPendingRow(null, seed, nextWaveIndex),
@@ -297,6 +308,7 @@ export function shiftBubboPressure(board, seed = "bubbo", waveIndex = 0, rowOffs
     waveIndex: nextWaveIndex,
     rowOffset: nextRowOffset,
     overflow,
+    dropped: preDropped.concat(dropped),
     danger: overflow || isBubboDanger(shifted),
   };
 }
@@ -312,6 +324,7 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
   let shifts = 0;
   let danger = false;
   let overflow = false;
+  let dropped = [];
 
   while (pressure >= interval) {
     pressure -= interval;
@@ -322,7 +335,29 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
     rowOffset = shifted.rowOffset;
     danger = danger || shifted.danger;
     overflow = overflow || shifted.overflow;
+    dropped = dropped.concat(shifted.dropped || []);
     shifts += 1;
+  }
+
+  if (shifts) {
+    const recovered = recoverSparseBubboField({
+      ...state,
+      board,
+      pendingRow,
+      seed,
+      waveIndex,
+      rowOffset,
+      pressure,
+      pressureStep: Math.floor((pressure / interval) * 1000) / 1000,
+    });
+    board = recovered.board;
+    pendingRow = recovered.pendingRow;
+    waveIndex = recovered.waveIndex;
+    pressure = recovered.pressure;
+    rowOffset = recovered.rowOffset ?? rowOffset;
+    dropped = dropped.concat(recovered.dropped || []);
+    danger = danger || recovered.danger;
+    overflow = overflow || recovered.overflow;
   }
 
   return {
@@ -335,6 +370,7 @@ export function advanceBubboPressure(state = {}, elapsedMs = 0) {
     pressure,
     pressureStep: Math.floor((pressure / interval) * 1000) / 1000,
     shifts,
+    dropped,
     danger: danger || isBubboDanger(board),
     overflow,
   };
@@ -367,9 +403,7 @@ export function applyBubboShot(board, color, row, col, options = {}) {
   const popped = cluster.length >= 3 ? cluster : [];
   for (const [r, c] of popped) setBubboCell(next, pendingRow, r, c, null);
 
-  const dropped = popped.length ? settleFloatingBubbo(next, rowOffset, { pendingRow }) : [];
-  const droppedCells = dropped.map(([r, c]) => ({ row: r, col: c, color: getBubboCell(next, pendingRow, r, c) }));
-  for (const [r, c] of dropped) setBubboCell(next, pendingRow, r, c, null);
+  const droppedCells = popped.length ? dropFloatingBubbo(next, rowOffset, { pendingRow }) : [];
 
   return {
     board: next,
@@ -377,7 +411,7 @@ export function applyBubboShot(board, color, row, col, options = {}) {
     landed: { row: landedRow, col: landedCol },
     popped: popped.map(([r, c]) => ({ row: r, col: c })),
     dropped: droppedCells,
-    points: popped.length * 20 + dropped.length * 35,
+    points: popped.length * 20 + droppedCells.length * 35,
     error: null,
   };
 }
@@ -386,8 +420,10 @@ export function recoverSparseBubboField(state = {}, options = {}) {
   const minimumRows = Math.max(1, Number(options.minimumRows) || 3);
   const seed = state.seed || "bubbo";
   let waveIndex = Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : BUBBO_START_ROWS;
+  const rowOffset = normalizeRowOffset(state.rowOffset);
   let pendingRow = normalizeBubboPendingRow(state.pendingRow, seed, waveIndex);
   const board = normalizeBubboBoard(state.board);
+  const dropped = dropFloatingBubbo(board, rowOffset);
   const occupiedRows = board.filter((row) => row.some(Boolean)).map((row) => [...row]);
 
   if (occupiedRows.length > 1) {
@@ -396,8 +432,10 @@ export function recoverSparseBubboField(state = {}, options = {}) {
       board,
       pendingRow,
       waveIndex,
+      rowOffset,
       pressure: Math.max(0, Number(state.pressure) || 0),
       pressureStep: Math.max(0, Number(state.pressureStep) || 0),
+      dropped,
       recovered: false,
     };
   }
@@ -415,8 +453,10 @@ export function recoverSparseBubboField(state = {}, options = {}) {
     board: Array.from({ length: BUBBO_ROWS }, (_, row) => restoredRows[row] ? [...restoredRows[row]] : Array(BUBBO_COLS).fill(null)),
     pendingRow,
     waveIndex,
+    rowOffset,
     pressure: 0,
     pressureStep: 0,
+    dropped,
     recovered: true,
     danger: false,
     overflow: false,
@@ -461,6 +501,7 @@ export function resolveBubboShot(state = {}, color, row, col) {
     rowOffset,
     pressure: recovered.pressure,
     pressureStep: recovered.pressureStep,
+    dropped: [...(result.dropped || []), ...(recovered.dropped || [])],
     recovered: recovered.recovered,
     danger: recovered.danger || isBubboDanger(recovered.board),
     overflow: !!recovered.overflow,

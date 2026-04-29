@@ -1331,6 +1331,28 @@ button.item-card {
   background: color-mix(in srgb, var(--glass-card-strong) 66%, var(--field));
 }
 
+.merge-recipe-book {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.merge-recipe-list {
+  max-height: min(36vh, 280px);
+}
+
+.merge-recipe-list span {
+  display: grid;
+  gap: 0.18rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.merge-recipe-list strong {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .leaderboard {
   padding: 10px;
   align-content: start;
@@ -2035,6 +2057,7 @@ button.item-card {
 .garden-glass-card,
 .garden-modal-card,
 .garden-card-row,
+.garden-level-panel,
 .garden-floating-lock,
 .garden-timer-chip {
   color: var(--ink);
@@ -2067,6 +2090,7 @@ button.item-card {
 }
 
 .garden-card-row,
+.garden-level-panel,
 .garden-floating-lock,
 .garden-timer-chip {
   border: 1px solid var(--glass-border-soft) !important;
@@ -2080,6 +2104,10 @@ button.item-card {
 
 .garden-floating-lock {
   width: min(16rem, calc(100vw - 48px));
+}
+
+.garden-level-panel {
+  border-radius: 8px;
 }
 
 .glass-scrim {

@@ -125,7 +125,7 @@ export default function BubboGame() {
         id: `pressure_${now}_${advanced.waveIndex}`,
         shifted: advanced.shifts,
         popped: [],
-        dropped: [],
+        dropped: advanced.dropped || [],
       };
       setLastShot(pressureRecord);
       performAction("bubbo.sync", {

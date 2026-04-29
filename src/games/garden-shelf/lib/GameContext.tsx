@@ -6,14 +6,24 @@ import {
   getUpgradeCost,
   getProduction,
   getClickReward,
+  getClickXpReward,
+  getPassiveXpRate,
   getUnlockedPlantIds,
   SHELF_UNLOCK_COSTS,
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
   WATER_COOLDOWN_MS,
   WATER_GROWTH_ACCELERATION_RATIO,
+  GARDEN_ECONOMY_VERSION,
+  GARDEN_OFFLINE_CAP_MS,
+  GARDEN_OFFLINE_GOLD_RATIO,
+  GARDEN_OFFLINE_XP_RATIO,
+  GARDEN_TAP_REWARD_COOLDOWN_MS,
+  getGardenLevelReward,
+  getGardenXpRequired,
 } from '../constants';
 import { useInterval } from './useInterval';
+import { createGardenEconomyState, shouldResetGardenEconomy } from '../../../../game-logic/garden-economy.js';
 
 interface GardenHudState {
   level: number;
@@ -21,10 +31,19 @@ interface GardenHudState {
   slots: number;
   shelvesUnlocked: number;
   incomePerSecond: number;
+  xp: number;
+  xpRequired: number;
+  levelReady: boolean;
 }
 
 interface GoldDeltaResult {
   error?: string;
+  garden?: Partial<GameState>;
+}
+
+interface GardenResetResult extends GoldDeltaResult {
+  debit?: number;
+  grant?: number;
 }
 
 interface GameProviderProps {
@@ -33,6 +52,8 @@ interface GameProviderProps {
   persistedState?: Partial<GameState> | null;
   onGoldDelta?: (amount: number, reason?: string) => Promise<GoldDeltaResult | void>;
   onStateSync?: (state: Omit<GameState, 'gold'>) => Promise<GoldDeltaResult | void>;
+  onGardenReset?: () => Promise<GardenResetResult | void>;
+  onGardenLevelUp?: () => Promise<GoldDeltaResult | void>;
   onHudChange?: (hud: GardenHudState | null) => void;
 }
 
@@ -47,19 +68,14 @@ interface GameContextType {
   clearOfflineEarnings: () => void;
   waterPlant: (plantId: string) => void;
   tapPlant: (plantId: string) => void;
+  levelUp: () => void;
   movePlantToInventory: (plantId: string) => void;
   movePlantToShelf: (plantId: string, shelfIndex: number, spotIndex: number) => void;
 }
 
 const defaultState: GameState = {
+  ...(createGardenEconomyState(Date.now()) as Omit<GameState, 'gold'>),
   gold: 0,
-  totalGoldEarned: 0,
-  level: 1,
-  xp: 0,
-  shelvesUnlocked: 1,
-  plants: [],
-  lastTick: Date.now(),
-  offlineEarnings: null
 };
 
 const GameContext = createContext<GameContextType | null>(null);
@@ -70,12 +86,19 @@ function normalizeHubGold(value: number | undefined) {
 }
 
 function withoutSharedGold(state: GameState): Omit<GameState, 'gold'> {
-  const { gold: _gold, offlineEarnings: _offlineEarnings, ...persistedState } = state;
-  return { ...persistedState, offlineEarnings: null };
+  const { gold: _gold, offlineEarnings: _offlineEarnings, offlineXp: _offlineXp, ...persistedState } = state;
+  return { ...persistedState, offlineEarnings: null, offlineXp: null };
 }
 
 function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
   const source = raw && typeof raw === 'object' ? { ...raw } : {};
+  if (shouldResetGardenEconomy(source)) {
+    return {
+      ...defaultState,
+      ...(createGardenEconomyState(Date.now(), { starter: true }) as Omit<GameState, 'gold'>),
+      gold: hubGold,
+    };
+  }
   if (source.oxygen !== undefined) {
     source.totalGoldEarned = source.totalOxygenEarned;
     delete source.oxygen;
@@ -91,19 +114,29 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
         spotIndex: Number.isFinite(Number(p.spotIndex)) ? Math.floor(Number(p.spotIndex)) : -1,
         phase: Math.max(0, Math.min(3, Math.floor(Number(p.phase ?? Math.min(3, Math.floor(((p.level || 1) - 1) / 3))) || 0))),
         phaseProgress: Math.max(0, Math.floor(Number(p.phaseProgress) || 0)),
+        lastTapped: Math.max(0, Math.floor(Number(p.lastTapped) || 0)),
       }))
     : [];
+  const level = Math.max(1, Math.min(LEVELS[LEVELS.length - 1].level, Math.floor(Number(source.level) || 1)));
+  const xpRequired = getGardenXpRequired(level);
+  const xp = Math.max(0, Math.min(xpRequired, Math.floor(Number(source.xp) || 0)));
 
   return {
     ...defaultState,
     ...source,
+    economyVersion: GARDEN_ECONOMY_VERSION,
     plants,
     totalGoldEarned: Math.max(0, Math.floor(Number(source.totalGoldEarned) || 0)),
-    level: Math.max(1, Math.floor(Number(source.level) || 1)),
-    xp: Math.max(0, Math.floor(Number(source.xp) || 0)),
+    level,
+    xp,
+    xpRequired,
+    levelReady: level < LEVELS[LEVELS.length - 1].level && xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.floor(Number(source.shelvesUnlocked) || 1)),
+    passiveGoldBuffer: Math.max(0, Math.min(1, Number(source.passiveGoldBuffer) || 0)),
+    passiveXpBuffer: Math.max(0, Math.min(1, Number(source.passiveXpBuffer) || 0)),
     lastTick: Math.max(0, Math.floor(Number(source.lastTick) || Date.now())),
     offlineEarnings: null,
+    offlineXp: null,
     gold: hubGold,
   };
 }
@@ -127,24 +160,23 @@ function hasGardenProgress(state: GameState | null) {
   );
 }
 
-function applyGardenProgress(prev: GameState, amount: number) {
-  const earned = Math.max(0, Math.floor(Number(amount) || 0));
-  if (!earned) return prev;
+function applyGardenRewards(prev: GameState, rewards: { gold?: number; xp?: number }) {
+  const earnedGold = Math.max(0, Math.floor(Number(rewards.gold) || 0));
+  const earnedXp = Math.max(0, Math.floor(Number(rewards.xp) || 0));
+  if (!earnedGold && !earnedXp) return prev;
 
-  let newXp = prev.xp + earned;
-  let newLevel = prev.level;
-  let targetXp = LEVELS.find((l) => l.level === newLevel + 1)?.xpRequired;
-
-  while (targetXp && newXp >= targetXp) {
-    newLevel++;
-    targetXp = LEVELS.find((l) => l.level === newLevel + 1)?.xpRequired;
-  }
-
+  const maxLevel = LEVELS[LEVELS.length - 1].level;
+  const xpRequired = getGardenXpRequired(prev.level);
+  const canAdvance = prev.level < maxLevel;
+  const newXp = canAdvance && !prev.levelReady
+    ? Math.min(xpRequired, prev.xp + earnedXp)
+    : prev.xp;
   return {
     ...prev,
-    totalGoldEarned: prev.totalGoldEarned + earned,
+    totalGoldEarned: prev.totalGoldEarned + earnedGold,
     xp: newXp,
-    level: Math.min(newLevel, LEVELS[LEVELS.length - 1].level),
+    xpRequired,
+    levelReady: canAdvance && (prev.levelReady || newXp >= xpRequired),
   };
 }
 
@@ -156,7 +188,16 @@ function getGardenIncomePerSecond(plants: PlantData[]) {
   }, 0);
 }
 
-export function GameProvider({ children, hubGold, persistedState, onGoldDelta, onStateSync, onHudChange }: GameProviderProps) {
+function getGardenXpPerSecond(plants: PlantData[]) {
+  return plants.reduce((total, plant) => {
+    if (plant.phase !== 3 || plant.spotIndex < 0 || plant.shelfIndex < 0) return total;
+    const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
+    return total + getPassiveXpRate(def.basePassiveXp, plant.level);
+  }, 0);
+}
+
+export function GameProvider({ children, hubGold, persistedState, onGoldDelta, onStateSync, onGardenReset, onGardenLevelUp, onHudChange }: GameProviderProps) {
+  const initialResetNeeded = shouldResetGardenEconomy(persistedState || {});
   const [state, setState] = useState<GameState>(() => {
     const gold = normalizeHubGold(hubGold);
     const serverState = normalizePersistedGardenState(persistedState, gold);
@@ -169,6 +210,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   const externalStateKeyRef = React.useRef(initialServerStateKey);
   const currentStateKeyRef = React.useRef(initialServerStateKey);
   const syncedEarnedRef = React.useRef(state.totalGoldEarned);
+  const resetPendingRef = React.useRef(initialResetNeeded);
   const syncRef = React.useRef<{
     timer: number | null;
     lastAt: number;
@@ -194,6 +236,12 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   }, [hubGold]);
 
   useEffect(() => {
+    if (shouldResetGardenEconomy(persistedState || {})) {
+      resetPendingRef.current = true;
+      const resetState = normalizePersistedGardenState(persistedState, state.gold);
+      setState((prev) => ({ ...resetState, gold: prev.gold }));
+      return;
+    }
     if (!persistedState) return;
     const next = normalizePersistedGardenState(persistedState, state.gold);
     const nextKey = JSON.stringify(withoutSharedGold(next));
@@ -223,6 +271,25 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   }, [persistedState, persistedStateKey, state.gold]);
 
   useEffect(() => {
+    if (!resetPendingRef.current || !onGardenReset) return;
+    let cancelled = false;
+    const runReset = async () => {
+      const result = await onGardenReset();
+      if (cancelled) return;
+      resetPendingRef.current = false;
+      if (result && !result.error && result.garden) {
+        const next = normalizePersistedGardenState(result.garden, state.gold);
+        syncedEarnedRef.current = next.totalGoldEarned;
+        setState((prev) => ({ ...next, gold: prev.gold }));
+      }
+    };
+    void runReset();
+    return () => {
+      cancelled = true;
+    };
+  }, [onGardenReset, persistedStateKey, state.gold]);
+
+  useEffect(() => {
     const nextPersisted = withoutSharedGold(state);
     const nextKey = JSON.stringify(nextPersisted);
     currentStateKeyRef.current = nextKey;
@@ -231,6 +298,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     } catch {
       // Local persistence is a best-effort fallback; server state remains authoritative.
     }
+    if (resetPendingRef.current) return;
     if (!onStateSync || nextKey === syncRef.current.lastSent) return;
 
     syncRef.current.pending = nextPersisted;
@@ -289,8 +357,11 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       slots: state.shelvesUnlocked * 3,
       shelvesUnlocked: state.shelvesUnlocked,
       incomePerSecond: getGardenIncomePerSecond(state.plants),
+      xp: state.xp,
+      xpRequired: state.xpRequired,
+      levelReady: state.levelReady,
     });
-  }, [onHudChange, state.level, state.plants, state.shelvesUnlocked]);
+  }, [onHudChange, state.level, state.levelReady, state.plants, state.shelvesUnlocked, state.xp, state.xpRequired]);
 
   useEffect(() => () => onHudChange?.(null), [onHudChange]);
 
@@ -307,7 +378,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   const addGold = (amount: number) => {
     const earned = Math.floor(Number(amount) || 0);
     if (!earned) return;
-    setState((prev) => applyGardenProgress(prev, earned));
+    setState((prev) => applyGardenRewards(prev, { gold: earned }));
   };
 
   useEffect(() => {
@@ -327,6 +398,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       if (dtSeconds < 1 && s.lastTick !== defaultState.lastTick) return s;
 
       let totalProd = 0;
+      let totalXpRate = 0;
       let newPlants = [...s.plants];
       let needsPlantUpdate = false;
 
@@ -350,6 +422,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
          if (newPlants[i].phase === 3 && newPlants[i].spotIndex >= 0 && newPlants[i].shelfIndex >= 0) {
              const def = PLANT_TYPES[newPlants[i].type] || PLANT_TYPES.daisy;
              totalProd += getProduction(def.baseProduction, newPlants[i].level);
+             totalXpRate += getPassiveXpRate(def.basePassiveXp, newPlants[i].level);
          } else if (newPlants[i].phase < 3 && newPlants[i].spotIndex >= 0 && newPlants[i].shelfIndex >= 0) {
              // Grow!
              const duration = PHASE_DURATIONS_MS[p.phase];
@@ -371,18 +444,35 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
          }
       }
 
-      const generated = Math.floor(totalProd * dtSeconds);
+      const offline = dtMs >= OFFLINE_EARNINGS_MIN_AWAY_MS && s.lastTick !== defaultState.lastTick;
+      const effectiveDtMs = offline ? Math.min(dtMs, GARDEN_OFFLINE_CAP_MS) : dtMs;
+      const effectiveSeconds = Math.max(0, effectiveDtMs / 1000);
+      const goldRatio = offline ? GARDEN_OFFLINE_GOLD_RATIO : 1;
+      const xpRatio = offline ? GARDEN_OFFLINE_XP_RATIO : 1;
+      const goldRaw = (Number(s.passiveGoldBuffer) || 0) + totalProd * effectiveSeconds * goldRatio;
+      const xpRaw = (Number(s.passiveXpBuffer) || 0) + totalXpRate * effectiveSeconds * xpRatio;
+      const generated = Math.floor(goldRaw);
+      const generatedXp = Math.floor(xpRaw);
+      const passiveGoldBuffer = goldRaw - generated;
+      const passiveXpBuffer = xpRaw - generatedXp;
 
       let newOfflineEarnings = s.offlineEarnings;
-      if (dtMs >= OFFLINE_EARNINGS_MIN_AWAY_MS && generated > 0 && s.lastTick !== defaultState.lastTick) {
+      let newOfflineXp = s.offlineXp;
+      if (offline && generated > 0) {
          newOfflineEarnings = (s.offlineEarnings || 0) + generated;
       }
+      if (offline && generatedXp > 0) {
+         newOfflineXp = (s.offlineXp || 0) + generatedXp;
+      }
 
-      if (generated > 0 || needsPlantUpdate) {
+      if (generated > 0 || generatedXp > 0 || needsPlantUpdate || passiveGoldBuffer !== s.passiveGoldBuffer || passiveXpBuffer !== s.passiveXpBuffer) {
         return {
-          ...applyGardenProgress(s, generated),
+          ...applyGardenRewards(s, { gold: generated, xp: generatedXp }),
           lastTick: now,
           offlineEarnings: newOfflineEarnings,
+          offlineXp: newOfflineXp,
+          passiveGoldBuffer,
+          passiveXpBuffer,
           plants: needsPlantUpdate ? newPlants : s.plants
         };
       }
@@ -392,7 +482,35 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   }, 1000);
 
   const clearOfflineEarnings = () => {
-    setState(s => ({ ...s, offlineEarnings: null }));
+    setState(s => ({ ...s, offlineEarnings: null, offlineXp: null }));
+  };
+
+  const levelUp = async () => {
+    if (!state.levelReady || state.level >= LEVELS[LEVELS.length - 1].level) return;
+    if (onGardenLevelUp) {
+      const result = await onGardenLevelUp();
+      if (result?.error) return;
+      if (result?.garden) {
+        const next = normalizePersistedGardenState(result.garden, state.gold);
+        syncedEarnedRef.current = next.totalGoldEarned;
+        setState((prev) => ({ ...next, gold: prev.gold }));
+      }
+      return;
+    }
+
+    const reward = getGardenLevelReward(state.level);
+    setState((prev) => {
+      if (!prev.levelReady || prev.level >= LEVELS[LEVELS.length - 1].level) return prev;
+      const nextLevel = prev.level + 1;
+      return {
+        ...prev,
+        level: nextLevel,
+        xp: 0,
+        xpRequired: getGardenXpRequired(nextLevel),
+        levelReady: false,
+        totalGoldEarned: prev.totalGoldEarned + reward,
+      };
+    });
   };
 
   const buyPlant = async (type: keyof typeof PLANT_TYPES, shelfIndex: number, spotIndex: number) => {
@@ -470,10 +588,15 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
         if (!plant) return prev;
 
         if (plant.phase === 3) {
-            // It's fully grown. Tap generates gold directly.
+            const now = Date.now();
+            if (plant.lastTapped && now - plant.lastTapped < GARDEN_TAP_REWARD_COOLDOWN_MS) return prev;
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
-            const amount = getClickReward(def.baseClick, plant.level);
-            return applyGardenProgress(prev, amount);
+            const gold = getClickReward(def.baseClick, plant.level);
+            const xp = getClickXpReward(def.baseXp, plant.level);
+            return applyGardenRewards({
+              ...prev,
+              plants: prev.plants.map(p => p.id === plantId ? { ...p, lastTapped: now } : p),
+            }, { gold, xp });
         } else {
             // Not grown. Tap accelerates growth by a fixed amount.
             const duration = PHASE_DURATIONS_MS[plant.phase];
@@ -547,6 +670,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
         clearOfflineEarnings,
         waterPlant,
         tapPlant,
+        levelUp,
         movePlantToInventory,
         movePlantToShelf
       }}

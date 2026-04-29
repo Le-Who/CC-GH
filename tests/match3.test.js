@@ -348,15 +348,87 @@ describe("current Match-3 engine resolution", () => {
     assert.ok(result.steps[0].filled.length > 0, "Special clear should report filled cells for animation");
   });
 
+  it("activates a column special hit by a row special before gravity", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_row";
+    board[0][3] = "special_column";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 });
+
+    assert.equal(result.valid, true);
+    assert.equal(result.special, true);
+    assert.deepEqual(
+      result.steps[0].triggeredSpecials.map((cell) => `${cell.x}:${cell.y}:${cell.type}`).sort(),
+      ["1:0:special_row", "3:0:special_column"],
+    );
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 3 && cell.y === 7), "Triggered column should clear down the full column");
+  });
+
+  it("activates a row special hit by a column special before gravity", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_column";
+    board[4][1] = "special_row";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 });
+
+    assert.equal(result.valid, true);
+    assert.ok(result.steps[0].triggeredSpecials.some((cell) => cell.x === 1 && cell.y === 4 && cell.type === "special_row"));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 7 && cell.y === 4), "Triggered row should clear across the full row");
+  });
+
+  it("activates specials inside blast clears", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_blast";
+    board[0][2] = "special_column";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 });
+
+    assert.equal(result.valid, true);
+    assert.ok(result.steps[0].triggeredSpecials.some((cell) => cell.x === 2 && cell.y === 0 && cell.type === "special_column"));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 2 && cell.y === 7));
+  });
+
+  it("chains indirect colour specials without looping forever", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_row";
+    board[0][3] = "special_colour";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 });
+
+    assert.equal(result.valid, true);
+    assert.equal(result.steps.length > 0, true);
+    assert.ok(result.steps[0].triggeredSpecials.some((cell) => cell.x === 3 && cell.y === 0 && cell.type === "special_colour"));
+    assert.ok(result.steps[0].cleared.length <= ENGINE_BOARD_SIZE * ENGINE_BOARD_SIZE);
+    assertFullyPopulated(result.board);
+  });
+
+  it("activates both specials when two specials are swapped", () => {
+    const board = stableEngineBoard();
+    board[0][0] = "special_row";
+    board[0][1] = "special_column";
+
+    const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 });
+
+    assert.equal(result.valid, true);
+    assert.deepEqual(
+      result.steps[0].triggeredSpecials.map((cell) => cell.type).sort(),
+      ["special_column", "special_row"],
+    );
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 0 && cell.y === 7));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 7 && cell.y === 0));
+  });
+
   it("auto-credits Star Drop tokens that fall into the bottom during backfill", () => {
     const board = stableEngineBoard();
     board[0][0] = "special_row";
+    board[0][3] = "special_column";
     board[6][0] = "drop_energy";
     board[7][0] = "drop_gold";
 
     const result = attemptMatch3Move(board, { x: 0, y: 0 }, { x: 1, y: 0 }, { collectDrops: true });
 
     assert.equal(result.valid, true);
+    assert.ok(result.steps[0].triggeredSpecials.some((cell) => cell.type === "special_column"));
     assert.equal(result.dropCollected.length, 2);
     assert.equal(result.board[7][0].startsWith("drop_"), false);
     assertFullyPopulated(result.board);

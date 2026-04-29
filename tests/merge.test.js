@@ -3,7 +3,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { MERGE_WILD_GENERATOR_ID } from "../game-logic.js";
+import {
+  MERGE_CHAINS,
+  MERGE_RECIPES,
+  MERGE_START_CHAIN_ID,
+  MERGE_WILD_GENERATOR_ID,
+  getMergePairResult,
+  normalizeMergeItem,
+} from "../game-logic.js";
 import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,9 +21,9 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     // Reset store before each test
     mergeStore.setState({
       board: Array.from({ length: 7 }, () => Array(9).fill(null)),
-      generators: ["textile"],
+      generators: [MERGE_START_CHAIN_ID],
       generatorState: {
-        textile: { tapsLeft: 30, cooldownEnd: 0 },
+        [MERGE_START_CHAIN_ID]: { tapsLeft: 30, cooldownEnd: 0 },
         [MERGE_WILD_GENERATOR_ID]: { tapsLeft: 30, cooldownEnd: 0 },
       },
       mergeInventory: [],
@@ -49,21 +56,21 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
     it("setBoard updates the board", () => {
       const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
-      newBoard[0][0] = { id: "textile_1", chainId: "textile", level: 0 };
+      newBoard[0][0] = { id: "seed", chainId: "flora", level: 0 };
 
       mergeStore.getState().setBoard(newBoard);
       const { board } = mergeStore.getState();
-      assert.deepStrictEqual(board[0][0], { id: "textile_1", chainId: "textile", level: 0 });
+      assert.deepStrictEqual(board[0][0], { id: "seed", chainId: "flora", level: 0 });
       assert.strictEqual(mergeStore.getState().boardItemCount(), 1);
     });
 
     it("setGenerators updates the generators list", () => {
-      mergeStore.getState().setGenerators(["textile", "wood"]);
-      assert.deepStrictEqual(mergeStore.getState().generators, ["textile", "wood"]);
+      mergeStore.getState().setGenerators(["flora", "earth"]);
+      assert.deepStrictEqual(mergeStore.getState().generators, ["flora", "earth"]);
     });
 
     it("setGeneratorState updates the generator states", () => {
-      const newState = { textile: { tapsLeft: 5, cooldownEnd: 1000 } };
+      const newState = { flora: { tapsLeft: 5, cooldownEnd: 1000 } };
       mergeStore.getState().setGeneratorState(newState);
       assert.deepStrictEqual(mergeStore.getState().generatorState, newState);
     });
@@ -80,19 +87,19 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("setSelectedFuel updates fuel selection for a chain", () => {
-      mergeStore.getState().setSelectedFuel("textile", "strawberry");
-      assert.deepStrictEqual(mergeStore.getState().selectedFuel, { textile: "strawberry" });
+      mergeStore.getState().setSelectedFuel("flora", "strawberry");
+      assert.deepStrictEqual(mergeStore.getState().selectedFuel, { flora: "strawberry" });
 
-      mergeStore.getState().setSelectedFuel("wood", "corn");
-      assert.deepStrictEqual(mergeStore.getState().selectedFuel, { textile: "strawberry", wood: "corn" });
+      mergeStore.getState().setSelectedFuel("earth", "corn");
+      assert.deepStrictEqual(mergeStore.getState().selectedFuel, { flora: "strawberry", earth: "corn" });
     });
   });
 
   describe("Computed Properties", () => {
     it("getItemInfo returns correct info or null", () => {
-      const info = mergeStore.getState().getItemInfo("thread");
+      const info = mergeStore.getState().getItemInfo("seed");
       assert.ok(info);
-      assert.strictEqual(info.chainId, "textile");
+      assert.strictEqual(info.chainId, "flora");
       assert.strictEqual(info.level, 0);
 
       const invalid = mergeStore.getState().getItemInfo("invalid_item");
@@ -100,7 +107,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("isOnCooldown correctly identifies active cooldowns", () => {
-      const chainId = "textile";
+      const chainId = "flora";
 
       // No cooldown
       mergeStore.getState().setGeneratorState({ [chainId]: { tapsLeft: 0, cooldownEnd: 0 } });
@@ -156,9 +163,9 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
     it("returns false if items have different chainIds or levels", () => {
       const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
-      newBoard[0][0] = { id: "textile_1", chainId: "textile", level: 0 };
-      newBoard[0][1] = { id: "textile_2", chainId: "textile", level: 1 };
-      newBoard[0][2] = { id: "wood_1", chainId: "wood", level: 0 };
+      newBoard[0][0] = { id: "seed", chainId: "flora", level: 0 };
+      newBoard[0][1] = { id: "sprout", chainId: "flora", level: 1 };
+      newBoard[0][2] = { id: "ember", chainId: "fire", level: 0 };
       mergeStore.getState().setBoard(newBoard);
 
       const { canMerge } = mergeStore.getState();
@@ -198,7 +205,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     it("returns true for alchemy recipe pairs", () => {
       const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
       newBoard[0][0] = { id: "sand", chainId: "earth", level: 1 };
-      newBoard[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+      newBoard[0][1] = { id: "flame", chainId: "fire", level: 1 };
       mergeStore.getState().setBoard(newBoard);
 
       const { canMerge } = mergeStore.getState();
@@ -276,7 +283,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     it("performs optimistic recipe merges", () => {
       const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
       newBoard[0][0] = { id: "sand", chainId: "earth", level: 1 };
-      newBoard[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+      newBoard[0][1] = { id: "flame", chainId: "fire", level: 1 };
       mergeStore.getState().setBoard(newBoard);
 
       const oldBoard = mergeStore.getState().mergeOptimistic(0, 0, 0, 1);
@@ -285,8 +292,8 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.strictEqual(mergeStore.getState().board[0][0], null);
       assert.deepStrictEqual(mergeStore.getState().board[0][1], {
         id: "glass",
-        chainId: "earth",
-        level: 5,
+        chainId: "alchemy",
+        level: 2,
       });
     });
   });
@@ -296,17 +303,17 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const originalState = mergeStore.getState().snapshot();
 
       // Modify state
-      mergeStore.getState().setGenerators(["wood"]);
+      mergeStore.getState().setGenerators(["earth"]);
       mergeStore.getState().setLastFreePull(999);
 
       const modifiedState = mergeStore.getState();
-      assert.deepStrictEqual(modifiedState.generators, ["wood"]);
+      assert.deepStrictEqual(modifiedState.generators, ["earth"]);
       assert.strictEqual(modifiedState.lastFreePull, 999);
 
       // Rollback
       mergeStore.getState().rollback(originalState);
       const restoredState = mergeStore.getState();
-      assert.deepStrictEqual(restoredState.generators, ["textile"]);
+      assert.deepStrictEqual(restoredState.generators, ["flora"]);
       assert.strictEqual(restoredState.lastFreePull, 0);
     });
   });
@@ -314,7 +321,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
   describe("Actions: syncFromServer", () => {
     it("syncs subset of fields from server while preserving others", () => {
       const serverData = {
-        generators: ["textile", "wood"],
+        generators: ["flora", "earth"],
         lastFreePull: 123456789,
         freeTapCharges: 7,
       };
@@ -322,7 +329,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       mergeStore.getState().syncFromServer(serverData);
       const state = mergeStore.getState();
 
-      assert.deepStrictEqual(state.generators, ["textile", "wood"]);
+      assert.deepStrictEqual(state.generators, ["flora", "earth"]);
       assert.strictEqual(state.lastFreePull, 123456789);
       assert.strictEqual(state.freeTapCharges, 7);
       // Ensure other fields are intact
@@ -344,7 +351,54 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       mergeStore.getState().syncFromServer(partialData);
       const state = mergeStore.getState();
       assert.deepStrictEqual(state.mergeInventory, ["gold_item"]);
-      assert.deepStrictEqual(state.generators, ["textile"]);
+      assert.deepStrictEqual(state.generators, ["flora"]);
+    });
+  });
+
+  describe("Alchemy recipe graph", () => {
+    it("resolves every published recipe to its configured output", () => {
+      for (const recipe of MERGE_RECIPES) {
+        const [firstId, secondId] = recipe.ingredients;
+        const first = normalizeMergeItem({ id: firstId });
+        const second = normalizeMergeItem({ id: secondId });
+        const result = getMergePairResult(first, second);
+        const chain = MERGE_CHAINS[recipe.result.chainId];
+
+        assert.ok(first, `Missing first ingredient ${firstId}`);
+        assert.ok(second, `Missing second ingredient ${secondId}`);
+        assert.ok(result, `Recipe ${recipe.id} did not resolve`);
+        assert.equal(result.id, chain.items[recipe.result.level]);
+        assert.equal(result.chainId, recipe.result.chainId);
+        assert.equal(result.level, recipe.result.level);
+        assert.equal(result.recipeId, recipe.id);
+      }
+    });
+
+    it("keeps recipe metadata visible for the recipe book", () => {
+      assert.ok(MERGE_RECIPES.length >= 10);
+      for (const recipe of MERGE_RECIPES) {
+        assert.ok(recipe.name, `${recipe.id} should have a name`);
+        assert.ok(recipe.hint, `${recipe.id} should have a hint`);
+        assert.equal(recipe.discovered, true);
+      }
+    });
+
+    it("maps legacy persisted items into the new alchemy taxonomy", () => {
+      assert.deepEqual(normalizeMergeItem({ id: "thread", chainId: "textile", level: 0 }), {
+        id: "seed",
+        chainId: "flora",
+        level: 0,
+      });
+      assert.deepEqual(normalizeMergeItem({ id: "lightning", chainId: "storm", level: 3 }), {
+        id: "lightning",
+        chainId: "air",
+        level: 4,
+      });
+      assert.deepEqual(normalizeMergeItem({ id: "loom", chainId: "craft", level: 3 }), {
+        id: "vial",
+        chainId: "alchemy",
+        level: 3,
+      });
     });
   });
 
@@ -408,6 +462,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
       assert.ok(mergeGame.includes("result.yardDrop"), "Merge feedback should use the current yardDrop field");
       assert.ok(mergeGame.includes("lastMergeReward"), "Merge HUD should expose the latest Yard reward");
+      assert.ok(mergeGame.includes("merge-recipe-book"), "Merge menu should expose a compact recipe book");
       assert.ok(!mergeGame.includes("result.roomDrop"), "Old Room-drop naming should not drive Merge rewards");
       assert.ok(i18n.includes('"merge.reward"'), "Merge reward status should be localizable");
     });

@@ -6,6 +6,8 @@
  * ═══════════════════════════════════════════════════
  */
 
+import { normalizeMergeItem } from "./merge-config.js";
+
 export const BOARD_ROWS = 7;
 export const BOARD_COLS = 9;
 
@@ -46,6 +48,9 @@ export function hydrateMergeBoard(p) {
     for (let r = 0; r < board.length; r++) {
       if (!Array.isArray(board[r])) board[r] = Array(BOARD_COLS).fill(null);
       while (board[r].length < BOARD_COLS) board[r].push(null);
+      for (let c = 0; c < board[r].length; c++) {
+        board[r][c] = normalizeMergeItem(board[r][c]);
+      }
     }
   }
   p.merge.board = board;

@@ -17,7 +17,9 @@ import {
   CROPS,
   CROP_TIERS,
   getMergePairResult,
+  MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
+  normalizeMergeChainId,
   pickMergeDropChainId,
   TIER_YIELD,
 } from "../game-logic.js";
@@ -29,8 +31,18 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
   function ensureMergeState(p) {
     hydrateMergeBoard(p);
-    if (!p.merge.generators) p.merge.generators = ["textile"];
+    const sourceGenerators = Array.isArray(p.merge.generators) && p.merge.generators.length
+      ? p.merge.generators
+      : [MERGE_START_CHAIN_ID];
+    p.merge.generators = [...new Set(sourceGenerators.map(normalizeMergeChainId).filter(Boolean))];
+    if (!p.merge.generators.length) p.merge.generators = [MERGE_START_CHAIN_ID];
     if (!p.merge.generatorState) p.merge.generatorState = {};
+    const migratedState = {};
+    for (const [chainId, state] of Object.entries(p.merge.generatorState)) {
+      const normalized = normalizeMergeChainId(chainId);
+      if (normalized && !migratedState[normalized]) migratedState[normalized] = state;
+    }
+    p.merge.generatorState = migratedState;
     if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
     if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
     if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;

@@ -98,6 +98,8 @@ describe("Pixi scene geometry helpers", () => {
     assert.ok(scenes.includes("assets_bubbo_balls"), "Bubbo runtime should use the new ball artwork");
     assert.ok(scenes.includes("finishLineY"), "Bubbo danger/finish line should be independently positioned below the last row");
     assert.ok(scenes.includes("boardLayer.enableRenderGroup"), "Bubbo board pressure motion should use a render group");
+    assert.ok(scenes.includes("falling._life = reduce ? 42 : 78"), "Bubbo island drops should stay visible long enough to read as falling");
+    assert.ok(scenes.includes("falling._gravity = reduce ? 0.18 : 0.07"), "Bubbo island drops should use slow gravity instead of instant removal");
     assert.ok(bubboGame.includes("bottomHudReserve: true"), "Bubbo scene should reserve launcher space above the bottom HUD");
     assert.ok(assetBundles.includes("assets_bubbo_balls"), "Bubbo should preload the corrected sheet artwork");
   });

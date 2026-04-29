@@ -6,167 +6,302 @@
  */
 
 /* ═══════════════════════════════════════════════════
- *  MERGE CHAINS (Gacha Merge v7.0)
- *  Merge chains use eight levels. Level 8 = Legendary.
- *  The live generator rolls random chains; recipes add alchemy-style shortcuts.
+ *  MERGE CHAINS (Alchemy Merge v8.0)
+ *  Merge chains use eight levels. Cross-chain recipes form a readable
+ *  alchemy graph instead of unrelated crafting shortcuts.
  * ═══════════════════════════════════════════════════ */
 export const MERGE_WILD_GENERATOR_ID = "wild";
+export const MERGE_START_CHAIN_ID = "flora";
 
 export const MERGE_CHAINS = {
-  textile: {
-    id: "textile",
-    name: "Textile",
+  flora: {
+    id: "flora",
+    name: "Flora",
     items: [
-      "thread",
-      "yarn",
-      "fabric",
-      "shirt",
-      "jacket",
-      "sweater",
-      "coat",
-      "tapestry",
+      "seed",
+      "sprout",
+      "herb",
+      "blossom",
+      "vine",
+      "grove",
+      "lifebloom",
+      "world_tree",
     ],
     names: [
-      "Thread",
-      "Yarn",
-      "Fabric",
-      "Shirt",
-      "Jacket",
-      "Sweater",
-      "Coat",
-      "Legendary Tapestry",
+      "Seed",
+      "Sprout",
+      "Herb",
+      "Blossom",
+      "Vine",
+      "Grove",
+      "Lifebloom",
+      "World Tree",
     ],
-    emoji: ["🧵", "🧶", "🪡", "👕", "🧥", "🧤", "🥼", "👑"],
-  },
-  wood: {
-    id: "wood",
-    name: "Wood",
-    items: [
-      "twig",
-      "branch",
-      "log",
-      "plank",
-      "chair",
-      "table",
-      "wardrobe",
-      "throne",
-    ],
-    names: [
-      "Twig",
-      "Branch",
-      "Log",
-      "Plank",
-      "Chair",
-      "Table",
-      "Wardrobe",
-      "Legendary Throne",
-    ],
-    emoji: ["🌿", "🪵", "🪓", "🪑", "💺", "🛋️", "🚪", "👑"],
+    emoji: ["🌰", "🌱", "🌿", "🌼", "🍃", "🌳", "💚", "🌍"],
   },
   earth: {
     id: "earth",
     name: "Earth",
     items: [
       "dust",
+      "clay",
       "sand",
       "stone",
       "ore",
       "crystal",
-      "glass",
-      "prism",
+      "geode",
       "monolith",
     ],
     names: [
       "Dust",
+      "Clay",
       "Sand",
       "Stone",
       "Ore",
       "Crystal",
-      "Glass",
-      "Prism",
-      "Legendary Monolith",
+      "Geode",
+      "Monolith",
     ],
-    emoji: ["💨", "🏖️", "🪨", "⛏️", "💎", "🔍", "🌈", "🗿"],
+    emoji: ["💨", "🟫", "🏖️", "🪨", "⛏️", "💎", "🪬", "🗿"],
   },
-  storm: {
-    id: "storm",
-    name: "Storm",
+  water: {
+    id: "water",
+    name: "Water",
     items: [
-      "spark",
+      "dew",
+      "droplet",
+      "stream",
+      "spring",
+      "pond",
+      "tide",
+      "rainstone",
+      "ocean_heart",
+    ],
+    names: [
+      "Dew",
+      "Droplet",
+      "Stream",
+      "Spring",
+      "Pond",
+      "Tide",
+      "Rainstone",
+      "Ocean Heart",
+    ],
+    emoji: ["💧", "💦", "〰️", "♨️", "🪷", "🌊", "🔷", "💙"],
+  },
+  fire: {
+    id: "fire",
+    name: "Fire",
+    items: [
+      "ember",
+      "flame",
+      "coal",
+      "kiln",
+      "forge",
+      "sunshard",
+      "phoenix_ash",
+      "solar_core",
+    ],
+    names: [
+      "Ember",
+      "Flame",
+      "Coal",
+      "Kiln",
+      "Forge",
+      "Sunshard",
+      "Phoenix Ash",
+      "Solar Core",
+    ],
+    emoji: ["🔥", "🔥", "⚫", "🧱", "⚒️", "☀️", "🪶", "🔆"],
+  },
+  air: {
+    id: "air",
+    name: "Air",
+    items: [
+      "breeze",
       "cloud",
+      "spark",
       "bolt",
       "lightning",
       "storm_cell",
-      "thunderhead",
       "aurora",
       "tempest_crown",
     ],
     names: [
-      "Spark",
+      "Breeze",
       "Cloud",
+      "Spark",
       "Bolt",
       "Lightning",
       "Storm Cell",
-      "Thunderhead",
       "Aurora",
-      "Legendary Tempest Crown",
+      "Tempest Crown",
     ],
-    emoji: ["✨", "☁️", "⚡", "🌩️", "⛈️", "🌪️", "🌌", "👑"],
+    emoji: ["🍃", "☁️", "✨", "⚡", "🌩️", "⛈️", "🌌", "👑"],
   },
-  craft: {
-    id: "craft",
-    name: "Craft",
+  alchemy: {
+    id: "alchemy",
+    name: "Alchemy",
     items: [
-      "bundle",
-      "toolkit",
-      "camp_chair",
-      "loom",
-      "workbench",
-      "atelier",
-      "guild_hall",
-      "relic_workshop",
+      "mud",
+      "brick",
+      "glass",
+      "vial",
+      "elixir",
+      "lens",
+      "astrolabe",
+      "philosopher_stone",
     ],
     names: [
-      "Bundle",
-      "Toolkit",
-      "Camp Chair",
-      "Loom",
-      "Workbench",
-      "Atelier",
-      "Guild Hall",
-      "Legendary Workshop",
+      "Mud",
+      "Brick",
+      "Glass",
+      "Vial",
+      "Elixir",
+      "Lens",
+      "Astrolabe",
+      "Philosopher Stone",
     ],
-    emoji: ["🪢", "🧰", "🪑", "🧵", "🛠️", "🏠", "🏛️", "✨"],
+    emoji: ["🟤", "🧱", "🔍", "🧪", "✨", "🔎", "🧭", "🜍"],
   },
 };
 
 export const MERGE_RECIPES = [
   {
-    id: "thread_twig_bundle",
-    ingredients: ["thread", "twig"],
-    result: { chainId: "craft", level: 0 },
+    id: "seed_dew_sprout",
+    name: "Germination",
+    hint: "A seed needs dew before it becomes a sprout.",
+    ingredients: ["seed", "dew"],
+    result: { chainId: "flora", level: 1 },
+    discovered: true,
   },
   {
-    id: "yarn_branch_toolkit",
-    ingredients: ["yarn", "branch"],
-    result: { chainId: "craft", level: 1 },
+    id: "dew_dust_mud",
+    name: "Soft Earth",
+    hint: "Water turns loose dust into workable mud.",
+    ingredients: ["dew", "dust"],
+    result: { chainId: "alchemy", level: 0 },
+    discovered: true,
   },
   {
-    id: "fabric_plank_loom",
-    ingredients: ["fabric", "plank"],
-    result: { chainId: "craft", level: 3 },
+    id: "clay_ember_brick",
+    name: "Fired Clay",
+    hint: "Clay hardens when fired by an ember.",
+    ingredients: ["clay", "ember"],
+    result: { chainId: "alchemy", level: 1 },
+    discovered: true,
   },
   {
-    id: "sand_lightning_glass",
-    ingredients: ["sand", "lightning"],
-    result: { chainId: "earth", level: 5 },
+    id: "sand_flame_glass",
+    name: "Glassmaking",
+    hint: "Flame melts sand into clear glass.",
+    ingredients: ["sand", "flame"],
+    result: { chainId: "alchemy", level: 2 },
+    discovered: true,
   },
   {
-    id: "crystal_aurora_prism",
-    ingredients: ["crystal", "aurora"],
-    result: { chainId: "earth", level: 6 },
+    id: "glass_droplet_vial",
+    name: "Vessel",
+    hint: "A droplet gives glass a purpose: a vial.",
+    ingredients: ["glass", "droplet"],
+    result: { chainId: "alchemy", level: 3 },
+    discovered: true,
+  },
+  {
+    id: "vial_herb_elixir",
+    name: "Infusion",
+    hint: "Herbs steeped in a vial become an elixir.",
+    ingredients: ["vial", "herb"],
+    result: { chainId: "alchemy", level: 4 },
+    discovered: true,
+  },
+  {
+    id: "glass_spark_lens",
+    name: "Focused Light",
+    hint: "A spark teaches glass to focus energy.",
+    ingredients: ["glass", "spark"],
+    result: { chainId: "alchemy", level: 5 },
+    discovered: true,
+  },
+  {
+    id: "lens_cloud_astrolabe",
+    name: "Sky Reading",
+    hint: "A lens pointed through clouds becomes an astrolabe.",
+    ingredients: ["lens", "cloud"],
+    result: { chainId: "alchemy", level: 6 },
+    discovered: true,
+  },
+  {
+    id: "crystal_elixir_philosopher_stone",
+    name: "Great Work",
+    hint: "Crystal structure and elixir energy complete the stone.",
+    ingredients: ["crystal", "elixir"],
+    result: { chainId: "alchemy", level: 7 },
+    discovered: true,
+  },
+  {
+    id: "breeze_droplet_cloud",
+    name: "Condensation",
+    hint: "Moving air gathers droplets into clouds.",
+    ingredients: ["breeze", "droplet"],
+    result: { chainId: "air", level: 1 },
+    discovered: true,
+  },
+  {
+    id: "cloud_spark_bolt",
+    name: "Charge",
+    hint: "A spark in a cloud becomes a bolt.",
+    ingredients: ["cloud", "spark"],
+    result: { chainId: "air", level: 3 },
+    discovered: true,
+  },
+  {
+    id: "ore_coal_forge",
+    name: "Smelting",
+    hint: "Ore and coal make a working forge.",
+    ingredients: ["ore", "coal"],
+    result: { chainId: "fire", level: 4 },
+    discovered: true,
   },
 ];
+
+export const MERGE_CHAIN_ALIASES = {
+  textile: "flora",
+  wood: "earth",
+  storm: "air",
+  craft: "alchemy",
+};
+
+export const MERGE_ITEM_ALIASES = {
+  thread: "seed",
+  yarn: "sprout",
+  fabric: "herb",
+  shirt: "blossom",
+  jacket: "vine",
+  sweater: "grove",
+  coat: "lifebloom",
+  tapestry: "world_tree",
+  twig: "dust",
+  branch: "clay",
+  log: "sand",
+  plank: "stone",
+  chair: "ore",
+  table: "crystal",
+  wardrobe: "geode",
+  throne: "monolith",
+  stone: "stone",
+  ore: "ore",
+  crystal: "crystal",
+  prism: "geode",
+  bundle: "mud",
+  toolkit: "brick",
+  camp_chair: "glass",
+  loom: "vial",
+  workbench: "elixir",
+  atelier: "lens",
+  guild_hall: "astrolabe",
+  relic_workshop: "philosopher_stone",
+};
 
 function recipeKey(itemIds = []) {
   return itemIds.map((id) => String(id || "")).sort().join("+");
@@ -178,9 +313,38 @@ function chainItem(chainId, level) {
   return { id: chain.items[level], chainId, level };
 }
 
+const ITEM_TO_CHAIN = new Map();
+for (const chain of Object.values(MERGE_CHAINS)) {
+  chain.items.forEach((id, level) => {
+    ITEM_TO_CHAIN.set(id, { id, chainId: chain.id, level });
+  });
+}
+
+export function normalizeMergeChainId(chainId) {
+  const raw = String(chainId || "");
+  if (MERGE_CHAINS[raw]) return raw;
+  return MERGE_CHAIN_ALIASES[raw] || null;
+}
+
+export function normalizeMergeItem(item) {
+  if (!item || typeof item !== "object") return null;
+  const direct = ITEM_TO_CHAIN.get(item.id);
+  if (direct) return { ...direct };
+  const aliasId = MERGE_ITEM_ALIASES[item.id];
+  const alias = aliasId ? ITEM_TO_CHAIN.get(aliasId) : null;
+  if (alias) return { ...alias };
+  const chainId = normalizeMergeChainId(item.chainId);
+  if (!chainId) return null;
+  const chain = MERGE_CHAINS[chainId];
+  const level = Math.max(0, Math.min(chain.items.length - 1, Math.floor(Number(item.level) || 0)));
+  return chainItem(chainId, level);
+}
+
 export function getMergeRecipeResult(first, second) {
-  if (!first?.id || !second?.id) return null;
-  const key = recipeKey([first.id, second.id]);
+  const left = normalizeMergeItem(first);
+  const right = normalizeMergeItem(second);
+  if (!left?.id || !right?.id) return null;
+  const key = recipeKey([left.id, right.id]);
   const recipe = MERGE_RECIPES.find((candidate) => recipeKey(candidate.ingredients) === key);
   if (!recipe) return null;
   const result = chainItem(recipe.result.chainId, recipe.result.level);
@@ -188,11 +352,13 @@ export function getMergeRecipeResult(first, second) {
 }
 
 export function getMergePairResult(first, second) {
-  if (!first || !second) return null;
-  if (first.chainId === second.chainId && first.level === second.level) {
-    return chainItem(first.chainId, Number(first.level || 0) + 1);
+  const left = normalizeMergeItem(first);
+  const right = normalizeMergeItem(second);
+  if (!left || !right) return null;
+  if (left.chainId === right.chainId && left.level === right.level) {
+    return chainItem(left.chainId, Number(left.level || 0) + 1);
   }
-  return getMergeRecipeResult(first, second);
+  return getMergeRecipeResult(left, right);
 }
 
 export function canMergePair(first, second) {
@@ -204,7 +370,8 @@ export function pickMergeDropChainId(board = [], random = Math.random) {
   const activeChainIds = new Set();
   for (const row of board || []) {
     for (const item of row || []) {
-      if (item?.chainId && MERGE_CHAINS[item.chainId]) activeChainIds.add(item.chainId);
+        const chainId = normalizeMergeChainId(item?.chainId);
+        if (chainId) activeChainIds.add(chainId);
     }
   }
   const pool = activeChainIds.size > 0 && random() < 0.62
