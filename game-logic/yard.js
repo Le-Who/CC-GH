@@ -433,11 +433,10 @@ function setBowlFood(yard, bowlId, foodId, now) {
   return true;
 }
 
-function matchingVisitorCandidates(goodie, bowl, condition = "new") {
+function matchingVisitorCandidates(goodie, bowl, condition = "new", conditionProfile = getYardConditionProfile(goodie, condition)) {
   const food = YARD_FOODS[bowl.foodId];
   if (!food) return [];
   const tags = new Set([...(goodie.tags || []), ...(food.tags || [])]);
-  const conditionProfile = getYardConditionProfile(goodie, condition);
   const candidates = [];
   for (const visitor of Object.values(YARD_VISITORS)) {
     if (visitor.requires) {
@@ -451,6 +450,44 @@ function matchingVisitorCandidates(goodie, bowl, condition = "new") {
       weight: Math.max(1, visitor.baseWeight * strictBoost + matches * 4) * (food.attraction || 1) * conditionProfile.attraction,
       strict: !!visitor.requires,
     });
+  }
+  return candidates;
+}
+
+function createYardSimulationCache() {
+  return {
+    activities: new Map(),
+    candidates: new Map(),
+    conditionProfiles: new Map(),
+  };
+}
+
+function cachedConditionProfile(cache, goodie, condition = "new") {
+  const key = `${goodie.id}:${condition}`;
+  let profile = cache.conditionProfiles.get(key);
+  if (!profile) {
+    profile = getYardConditionProfile(goodie, condition);
+    cache.conditionProfiles.set(key, profile);
+  }
+  return profile;
+}
+
+function cachedGoodieActivities(cache, goodie, condition = "new") {
+  const key = `${goodie.id}:${condition}`;
+  let activities = cache.activities.get(key);
+  if (!activities) {
+    activities = getYardGoodieActivities(goodie, condition);
+    cache.activities.set(key, activities);
+  }
+  return activities;
+}
+
+function cachedVisitorCandidates(cache, goodie, bowl, condition = "new") {
+  const key = `${goodie.id}:${bowl.foodId || ""}:${condition}`;
+  let candidates = cache.candidates.get(key);
+  if (!candidates) {
+    candidates = matchingVisitorCandidates(goodie, bowl, condition, cachedConditionProfile(cache, goodie, condition));
+    cache.candidates.set(key, candidates);
   }
   return candidates;
 }
@@ -564,7 +601,7 @@ function processDepartures(yard, now) {
   }
 }
 
-function simulateStep(yard, now, seedBase) {
+function simulateStep(yard, now, seedBase, cache) {
   processDepartures(yard, now);
   expireBowls(yard, now);
   helperRefill(yard, now);
@@ -578,7 +615,7 @@ function simulateStep(yard, now, seedBase) {
     const capacity = getYardGoodieCapacity(goodie);
     const activeCount = slotCounts.get(placed.slotId) || 0;
     if (activeCount >= capacity) continue;
-    const availableActivities = getYardGoodieActivities(goodie, placed.condition)
+    const availableActivities = cachedGoodieActivities(cache, goodie, placed.condition)
       .filter((activity) => !occupied.has(`${placed.slotId}:${activity.id}`));
     if (!availableActivities.length) continue;
 
@@ -587,10 +624,10 @@ function simulateStep(yard, now, seedBase) {
       const activitySeed = `${seedBase}:${placed.slotId}:${activityIndex}`;
       const bowl = bowlsWithFood[hashString(`${activitySeed}:bowl`) % bowlsWithFood.length];
       if (!bowl?.foodId) continue;
-      const candidates = matchingVisitorCandidates(goodie, bowl, placed.condition);
+      const candidates = cachedVisitorCandidates(cache, goodie, bowl, placed.condition);
       if (!candidates.length) continue;
       const hasStrict = candidates.some((entry) => entry.strict);
-      const conditionProfile = getYardConditionProfile(goodie, placed.condition);
+      const conditionProfile = cachedConditionProfile(cache, goodie, placed.condition);
       const chance = Math.max(0.08, Math.min(0.96, (hasStrict ? 0.92 : 0.42) * conditionProfile.attraction));
       const totalVisits = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
       if (!hasStrict && totalVisits > 0 && randomUnit(`${activitySeed}:chance`) > chance) continue;
@@ -625,9 +662,10 @@ export function simulateYardState(rawYard, now = Date.now(), legacy = {}, seed =
   }
   const end = Math.min(safeNow, yard.lastSimulatedAt + YARD_SIMULATION_CAP_MS);
   let cursor = yard.lastSimulatedAt;
+  const cache = createYardSimulationCache();
   while (cursor < end) {
     cursor = Math.min(cursor + YARD_HOUR_MS, end);
-    simulateStep(yard, cursor, `${seed}:${yard.lastSimulatedAt}:${cursor}`);
+    simulateStep(yard, cursor, `${seed}:${yard.lastSimulatedAt}:${cursor}`, cache);
   }
   processDepartures(yard, end);
   if (end < safeNow) {
