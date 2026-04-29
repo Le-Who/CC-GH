@@ -190,9 +190,9 @@ function getFarmStats(p) {
   };
 }
 
-function buildInventory(p) {
-  hydrateMergeBoard(p);
-  const yard = ensurePlayerYard(p);
+function buildInventory(p, options = {}) {
+  if (options.hydrateMerge !== false) hydrateMergeBoard(p);
+  const yard = options.yard || ensurePlayerYard(p);
   const roomInventory = Array.isArray(p.room?.roomInventory)
     ? p.room.roomInventory
     : Array.isArray(p.room?.inventory)
@@ -257,9 +257,10 @@ function buildSeasonPass(p) {
 }
 
 export function buildSnapshot(p, extras = {}) {
+  const now = Date.now();
   hydrateMergeBoard(p);
-  calcRegen(p);
-  const yard = ensurePlayerYard(p);
+  calcRegen(p, now);
+  const yard = ensurePlayerYard(p, now);
   const farmStats = getFarmStats(p);
   const bloxSaved = parseJsonValue(p.blox?.savedState, null);
   const savedModes = parseJsonValue(p.match3?.savedModes, {});
@@ -270,7 +271,7 @@ export function buildSnapshot(p, extras = {}) {
       : [];
 
   return {
-    serverTime: Date.now(),
+    serverTime: now,
     player: {
       id: p.id,
       username: p.username,
@@ -279,7 +280,7 @@ export function buildSnapshot(p, extras = {}) {
       syncSeq: p._syncSeq || 0,
     },
     resources: normalizeResources(p),
-    inventory: buildInventory(p),
+    inventory: buildInventory(p, { yard, hydrateMerge: false }),
     farm: {
       ...(p.farm || {}),
       plots: farmPlotsWithGrowth(p.farm),
@@ -309,7 +310,7 @@ export function buildSnapshot(p, extras = {}) {
       highScore: p.match3?.highScore || 0,
       savedModes,
     },
-    garden: normalizeGardenState(p.garden, Date.now()),
+    garden: normalizeGardenState(p.garden, now),
     merge: {
       ...(p.merge || {}),
       itemCounts: countMergeItems(p.merge?.board || []),
@@ -415,6 +416,11 @@ function randomYardGoodie(p, chance = 0.08) {
   const id = candidates[Math.floor(Math.random() * candidates.length)];
   yard.goodieInventory[id] = (yard.goodieInventory[id] || 0) + 1;
   return id;
+}
+
+function actionTime(options = {}) {
+  const value = Number(options.now);
+  return Number.isFinite(value) ? Math.max(0, Math.floor(value)) : Date.now();
 }
 
 function makeBloxTray() {
@@ -669,7 +675,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
         tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT,
         cooldownEnd: 0,
       };
-      const now = Date.now();
+      const now = actionTime(options);
       if (now >= state.cooldownEnd) {
         state.tapsLeft = ECONOMY.GENERATOR_TAP_LIMIT;
         state.cooldownEnd = 0;
@@ -723,22 +729,29 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       p.merge.board[fromR][fromC] = null;
       unlockMergeChain(p, resultItem.chainId);
       const yardDrop = resultItem.level >= 4 ? randomYardGoodie(p, 0.18) : null;
-      return ok(action, p, { newItem: p.merge.board[toR][toC], recipeId: resultItem.recipeId || null, yardDrop, newAchievements: checkAchievements(p) });
+      return ok(action, p, {
+        newItem: p.merge.board[toR][toC],
+        recipeId: resultItem.recipeId || null,
+        yardDrop,
+        reward: yardDrop ? { type: "yardGoodie", goodieId: yardDrop, source: resultItem.recipeId ? "mergeRecipe" : "merge" } : undefined,
+        newAchievements: checkAchievements(p),
+      });
     }
     case "merge.gacha":
     case "merge.freePull": {
       ensureMergeState(p);
       const free = action === "merge.freePull";
+      const now = actionTime(options);
+      const cells = emptyMergeCells(p.merge.board);
+      if (!cells.length) return fail(400, "board full");
       if (free) {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date(now).toISOString().slice(0, 10);
         if (new Date(p.merge.lastFreePull || 0).toISOString().slice(0, 10) === today) return fail(400, "free pull already used today");
-        p.merge.lastFreePull = Date.now();
+        p.merge.lastFreePull = now;
       } else {
         if ((p.resources.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) return fail(400, "not enough tokens", { required: ECONOMY.GACHA_PULL_COST });
         p.resources.gachaTokens -= ECONOMY.GACHA_PULL_COST;
       }
-      const cells = emptyMergeCells(p.merge.board);
-      if (!cells.length) return fail(400, "board full");
       const chainIds = Object.keys(MERGE_CHAINS);
       const chainId = chainIds[Math.floor(Math.random() * chainIds.length)];
       const chain = MERGE_CHAINS[chainId];
@@ -746,13 +759,19 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
       unlockMergeChain(p, chainId);
       const yardDrop = randomYardGoodie(p, free ? 0.04 : 0.12);
-      return ok(action, p, { spawned: { r, c, item: p.merge.board[r][c] }, chainId, yardDrop });
+      return ok(action, p, {
+        spawned: { r, c, item: p.merge.board[r][c] },
+        chainId,
+        yardDrop,
+        reward: yardDrop ? { type: "yardGoodie", goodieId: yardDrop, source: free ? "freePull" : "gacha" } : undefined,
+      });
     }
     case "merge.claimFreeTaps": {
       ensureMergeState(p);
-      const today = new Date().toISOString().slice(0, 10);
+      const now = actionTime(options);
+      const today = new Date(now).toISOString().slice(0, 10);
       if (new Date(p.merge.lastFreeTaps || 0).toISOString().slice(0, 10) === today) return fail(400, "already claimed today");
-      p.merge.lastFreeTaps = Date.now();
+      p.merge.lastFreeTaps = now;
       p.merge.freeTapCharges = (Number(p.merge.freeTapCharges) || 0) + 30;
       return ok(action, p, { freeTapCharges: p.merge.freeTapCharges });
     }
@@ -761,8 +780,9 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       ensureMergeState(p);
       if (!validCoord(r, BOARD_ROWS) || !validCoord(c, BOARD_COLS)) return fail(400, "invalid coordinates");
       if (!p.merge.board[r]?.[c]) return fail(400, "empty cell");
+      const trashedItem = p.merge.board[r][c];
       p.merge.board[r][c] = null;
-      return ok(action, p, { r, c });
+      return ok(action, p, { r, c, trashedItem });
     }
     case "blox.start": {
       calcRegen(p);
@@ -902,7 +922,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
 export async function applyActionWithReceipt(p, action, payload = {}, meta = {}) {
   const clientActionId = normalizeClientActionId(meta.clientActionId);
   const serverNow = Number.isFinite(Number(meta.serverNow)) ? Number(meta.serverNow) : Date.now();
-  const actionOptions = { yardNow: serverNow };
+  const actionOptions = { yardNow: serverNow, now: serverNow };
 
   if (!clientActionId) return applyAction(p, action, payload, actionOptions);
 

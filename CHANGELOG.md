@@ -39,28 +39,44 @@
 - Fixed Gem Crush touch reliability by capturing pointer gestures on the Pixi canvas target, disabling hit capture on decorative Pixi layers, and resolving long mobile swipes by direction instead of the final release cell.
 - Reworked Building Blox drag-and-drop so tray pieces are centered, the carried piece stays aligned to the original grab point even after scaling to board cells, board placement uses the ghost anchor, and the snapped footprint preview remains separate from the finger-following piece.
 - Moved Blox and Gem Crush playfields into larger fullscreen mobile layouts with lower thumb-reachable board placement and refreshed the shared game shell/menu palette toward the cozy pastel nature direction from the Figma design brief.
+- Exposed authoritative Gacha Merge Yard goodie drops in the live HUD/pause status and removed the stale room-drop client field from merge feedback.
 - Extended Gem Crush with Puzzling Potions art, special row/column/blast/colour pieces, Star Drop token preservation, timed countdown finishing, and non-mutating invalid swaps.
 - Added the Pixi helper dependencies needed for the tracked game asset/runtime path: GSAP, `@pixi/ui`, `@pixi/sound`, `pixi-filters`, `typed-signals`, and Spine Pixi v8 support.
 
 ### API
 
+- Added commit-success hooks to `withPlayerLock()` and moved Farm/resource analytics event inserts behind them so OCC retry losers cannot double-record side effects.
+- Extended `/api/health` with actual Redis availability, `player_stats_view` refresh state, and explicit process-local Brain Blitz duel-room scope/counts while preserving the legacy `postgres` and `redis` booleans.
 - Added optional `clientActionId` and `intentServerTime` metadata to `POST /api/player/mutate`, plus per-player idempotency receipts capped at 200 entries or 72 hours. Duplicate `clientActionId + action + payloadHash` requests replay the saved result metadata without repeating side effects, while the same id with a different payload returns a terminal conflict.
 - Made the HTTP Yard mutation path server-time-authoritative so request `payload.now` cannot advance visits, gifts, rewards, or daily letters; direct test/helper calls can still inject a clock through function options.
 - Extended Cozy Yard goodie catalog data with activity anchors, capacity, layering, condition variants, and backward-compatible visitor motion fields while preserving the existing `yard.*` mutate action names.
 - Added server-owned `yard` player state, schema migration from old Pet/Room starter data, deterministic offline visitor simulation, `meta.yardCatalog`, realtime yard sync, and the new `yard.*` mutate action family. Old `/api/player/mutate` `pet.*`, `quest.*`, and `room.*` gameplay actions were replaced, while legacy room placement wrapper endpoints now return 410 replacement errors.
 - Added `buildId` to `/api/config` and `/api/health`, with no-store headers on `/api/config`, while preserving existing public endpoint names and player mutate contracts.
+- Refactored legacy locked route handlers so `withPlayerLock()` callbacks return structured mutation results and HTTP responses are sent only after the lock resolves.
+- Tightened Gacha Merge mutations around server-time daily free pull/free-tap resets, full-board pull rejection before spend/stamp, explicit Yard goodie rewards, and trash receipts.
 - Added `garden.goldDelta` to the player mutate API so Garden Shelf gold changes update shared player resources with the same insufficient-gold guard as the other Hub games.
 - Extended the internal `bubbo.start` and `bubbo.sync` current-game payloads with optional `board`, `seed`, `waveIndex`, `rowOffset`, and `pressure` fields while keeping the existing mutate action names and older snapshot fallbacks.
 
 ### Operations
 
+- Added an ordered SQL migration runner backed by `schema_migrations`, keeping `db.js` schema creation as a first-start compatibility fallback for legacy bootstrap objects.
+- Backfilled SQL schema history through `migrations/002_player_state_and_stats.sql` and narrowed `db.js` bootstrap to migration-first compatibility fallback.
+- Aligned CI branch filters with the deploy/current remote HEAD branch `codex/telegram-pixi-vps-migration`.
 - Added `pnpm run perf:guard`, a gameplay hot-path performance budget runner with p50/p95/max timings and an ignored JSON report under `artifacts/perf/`.
+- Hardened `perf:guard` with focused `--suite` runs, report summary metadata, and Player JSON migration/snapshot budgets separate from SQL migration history.
+- Expanded the performance guard into Node hot-path, Vite build-artifact, and Chromium runtime layers with `perf:guard:build`, `perf:guard:browser`, `perf:guard:all`, repeated focused suite support, and `docs/PERF_GUARD.md` research notes.
 - Propagated the GitHub commit SHA as `BUILD_ID`, `VITE_BUILD_ID`, and `APP_BUILD_ID` through Docker build, Compose runtime, and the deploy workflow.
 - Removed obsolete benchmark/check scratch scripts, legacy README/changelog stubs, and stale eslint report artifacts from the active tree, then tightened the cleanup allowlist.
 
 ### Tests
 
+- Added `tests/operational-debt.test.js` for SQL migration discovery/application, mutation commit hooks, Redis health reporting, and `player_stats_view` refresh status capture.
+- Expanded operational debt coverage for complete numbered SQL migration history and the rule that locked route callbacks must not write Express responses directly.
+- Added Merge regression coverage for random generator output, recipe Yard goodie rewards, server-time free pull/free-tap resets, full-board spend guards, trash receipts, and live HUD reward text.
+- Added Cozy Yard long-idle regression coverage for capped offline returns, reload replay prevention, and future timestamp clamping on reconnect.
 - Added `tests/perf-guard.test.js` to keep Blox, Gem Crush, Merge, Bubbo, Garden Shelf, Brain Blitz, and Cozy Yard hot-path budgets explicit in the Node suite.
+- Extended perf guard tests to require unique suite ids, valid p95/max budgets, focused-run support, summary metadata, and Player JSON current/legacy migration plus snapshot suites.
+- Added build-budget tests and a Chromium runtime perf smoke for startup Pixi laziness, Gacha Merge live-frame cadence, long tasks, and long animation frames when supported.
 - Added Playwright coverage proving per-game pause menus preserve active gameplay context, stay compact, hide active Gem Crush mode changes, keep Resume as the primary recovery action, and work across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard.
 - Added unit/store coverage for HTTP Yard time authority, idempotent Yard purchases/gift collection/daily letters, terminal client-action conflicts, outbox timeout/network persistence, success removal, storage restore, and companion-config coalescing.
 - Verified production builds keep Pixi out of the startup HTML and initial app chunk, moving the runtime to async chunks while keeping the initial app chunk below the previous Vite large-chunk warning threshold.

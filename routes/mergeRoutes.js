@@ -22,6 +22,7 @@ import {
   TIER_YIELD,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
 export default function mergeRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -67,20 +68,21 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   router.post("/api/merge/state", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       ensureMergeState(p);
-      res.json({
+      return routeOk({
         merge: p.merge,
         resources: p.resources,
       });
     });
+    return sendRouteResult(res, result);
   });
 
   /* ─── Generator Tap ─── */
   router.post("/api/merge/tap", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { chainId = MERGE_WILD_GENERATOR_ID, cropId } = req.body;
 
       ensureMergeState(p);
@@ -88,10 +90,10 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
       // Check generator unlocked state
       if (!wildTap && !MERGE_CHAINS[chainId]) {
-        return res.status(400).json({ error: "invalid chainId" });
+        return routeFail(400, { error: "invalid chainId" });
       }
       if (!wildTap && !p.merge.generators.includes(chainId)) {
-        return res.status(400).json({ error: "generator locked" });
+        return routeFail(400, { error: "generator locked" });
       }
 
       const generatorId = wildTap ? MERGE_WILD_GENERATOR_ID : chainId;
@@ -108,7 +110,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       }
 
       if (state.tapsLeft <= 0) {
-        return res.status(400).json({
+        return routeFail(400, {
           error: "generator cooling down",
           cooldownEnd: state.cooldownEnd,
         });
@@ -117,7 +119,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       // Need at least 1 empty cell
       const empty = getEmptyCells(p.merge.board);
       if (empty.length === 0) {
-        return res.status(400).json({ error: "board full" });
+        return routeFail(400, { error: "board full" });
       }
 
       const freeTapCharges = Math.max(0, Number(p.merge.freeTapCharges) || 0);
@@ -125,12 +127,12 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
       if (!usedFreeTap) {
         if (!cropId || !CROPS[cropId]) {
-          return res.status(400).json({ error: "invalid crop for energy" });
+          return routeFail(400, { error: "invalid crop for energy" });
         }
 
         // Deduct the crop only when no free tap is available.
         if (!p.farm?.harvested || !p.farm.harvested[cropId] || p.farm.harvested[cropId] <= 0) {
-          return res.status(400).json({ error: "not enough crops" });
+          return routeFail(400, { error: "not enough crops" });
         }
         p.farm.harvested[cropId]--;
         if (p.farm.harvested[cropId] <= 0) delete p.farm.harvested[cropId];
@@ -177,7 +179,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         spawnedItems.push({ r, c });
       }
 
-      res.json({
+      return routeOk({
         success: true,
         merge: p.merge,
         resources: p.resources,
@@ -187,13 +189,14 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         usedFreeTap,
       });
     });
+    return sendRouteResult(res, result);
   });
 
   /* ─── Merge Items ─── */
   router.post("/api/merge/merge", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { fromR, fromC, toR, toC } = req.body;
       hydrateMergeBoard(p);
       const board = p.merge.board;
@@ -204,15 +207,15 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         !validCoord(toR, BOARD_ROWS) ||
         !validCoord(toC, BOARD_COLS)
       ) {
-        return res.status(400).json({ error: "invalid coordinates" });
+        return routeFail(400, { error: "invalid coordinates" });
       }
       const src = board[fromR][fromC];
       const dst = board[toR][toC];
       if (!src || !dst) {
-        return res.status(400).json({ error: "empty cell" });
+        return routeFail(400, { error: "empty cell" });
       }
       const resultItem = getMergePairResult(src, dst);
-      if (!resultItem) return res.status(400).json({ error: "chain/level mismatch" });
+      if (!resultItem) return routeFail(400, { error: "chain/level mismatch" });
 
       // Upgrade target, clear source
       board[toR][toC] = {
@@ -222,24 +225,25 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       };
       board[fromR][fromC] = null;
       tryUnlockChain(p, resultItem.chainId);
-      res.json({
+      return routeOk({
         success: true,
         merge: p.merge,
         newItem: board[toR][toC],
         recipeId: resultItem.recipeId || null,
       });
     });
+    return sendRouteResult(res, result);
   });
 
   /* ─── Gacha Roll ─── */
   router.post("/api/merge/gacha", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       hydrateMergeBoard(p);
 
       if ((p.resources.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) {
-        return res.status(400).json({
+        return routeFail(400, {
           error: "not enough tokens",
           required: ECONOMY.GACHA_PULL_COST,
         });
@@ -247,7 +251,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
       const empty = getEmptyCells(p.merge.board);
       if (empty.length === 0) {
-        return res.status(400).json({ error: "board full" });
+        return routeFail(400, { error: "board full" });
       }
 
       // Deduct tokens
@@ -262,20 +266,21 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
       // Unlock chain generator if not already
       tryUnlockChain(p, chainId);
-      res.json({
+      return routeOk({
         success: true,
         merge: p.merge,
         resources: p.resources,
         spawned: { r, c, chainId },
       });
     });
+    return sendRouteResult(res, result);
   });
 
   /* ─── Daily Free Pull ─── */
   router.post("/api/merge/free-pull", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       ensureMergeState(p);
       const now = Date.now();
 
@@ -285,12 +290,12 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         .slice(0, 10);
       const todayDate = new Date(now).toISOString().slice(0, 10);
       if (lastDate === todayDate) {
-        return res.status(400).json({ error: "free pull already used today" });
+        return routeFail(400, { error: "free pull already used today" });
       }
 
       const empty = getEmptyCells(p.merge.board);
       if (empty.length === 0) {
-        return res.status(400).json({ error: "board full" });
+        return routeFail(400, { error: "board full" });
       }
 
       // Spawn random L0 item (no cost)
@@ -303,53 +308,57 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
       // Unlock chain generator if not already
       tryUnlockChain(p, chainId);
-      res.json({
+      return routeOk({
         success: true,
         merge: p.merge,
         spawned: { r, c, chainId },
       });
     });
+    return sendRouteResult(res, result);
   });
 
   /* ─── Trash Item ─── */
   router.post("/api/merge/trash", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { r, c } = req.body;
       if (!validCoord(r, BOARD_ROWS) || !validCoord(c, BOARD_COLS)) {
-        return res.status(400).json({ error: "invalid coordinates" });
+        return routeFail(400, { error: "invalid coordinates" });
       }
       ensureMergeState(p);
 
       if (!p.merge.board[r]?.[c]) {
-        return res.status(400).json({ error: "empty cell" });
+        return routeFail(400, { error: "empty cell" });
       }
 
+      const trashedItem = p.merge.board[r][c];
       p.merge.board[r][c] = null;
-      res.json({ success: true, merge: p.merge });
+      return routeOk({ success: true, merge: p.merge, trashedItem });
     });
+    return sendRouteResult(res, result);
   });
   /* ─── Claim 30 Free Daily Taps ─── */
   router.post("/api/merge/claim-free-taps", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
 
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const now = Date.now();
       ensureMergeState(p);
       const lastClaimStr = p.merge.lastFreeTaps ? new Date(p.merge.lastFreeTaps).toISOString().slice(0, 10) : "";
       const todayStr = new Date().toISOString().slice(0, 10);
       
       if (lastClaimStr === todayStr) {
-         return res.status(400).json({ error: "already claimed today" });
+         return routeFail(400, { error: "already claimed today" });
       }
 
       p.merge.lastFreeTaps = now;
       p.merge.freeTapCharges = (Number(p.merge.freeTapCharges) || 0) + 30;
 
-      res.json({ success: true, merge: p.merge });
+      return routeOk({ success: true, merge: p.merge });
     });
+    return sendRouteResult(res, result);
   });
 
   return router;

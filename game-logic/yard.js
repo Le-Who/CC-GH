@@ -613,9 +613,14 @@ export function simulateYardState(rawYard, now = Date.now(), legacy = {}, seed =
   const rawLastSimulatedAt = rawYard && typeof rawYard === "object"
     ? Math.max(0, Math.floor(finiteNumber(rawYard.lastSimulatedAt, safeNow)))
     : safeNow;
-  const yard = normalizeYardState(rawYard, legacy, Math.min(rawLastSimulatedAt, safeNow));
+  const clampedLastSimulatedAt = Math.min(rawLastSimulatedAt, safeNow);
+  const source = rawYard && typeof rawYard === "object"
+    ? { ...rawYard, lastSimulatedAt: clampedLastSimulatedAt }
+    : rawYard;
+  const yard = normalizeYardState(source, legacy, clampedLastSimulatedAt);
   if (safeNow <= yard.lastSimulatedAt) {
     processDepartures(yard, safeNow);
+    yard.lastSimulatedAt = safeNow;
     return yard;
   }
   const end = Math.min(safeNow, yard.lastSimulatedAt + YARD_SIMULATION_CAP_MS);
@@ -625,6 +630,12 @@ export function simulateYardState(rawYard, now = Date.now(), legacy = {}, seed =
     simulateStep(yard, cursor, `${seed}:${yard.lastSimulatedAt}:${cursor}`);
   }
   processDepartures(yard, end);
+  if (end < safeNow) {
+    processDepartures(yard, safeNow);
+    expireBowls(yard, safeNow);
+    yard.lastSimulatedAt = safeNow;
+    return normalizeYardState(yard, legacy, safeNow);
+  }
   yard.lastSimulatedAt = end;
   return normalizeYardState(yard, legacy, end);
 }

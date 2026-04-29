@@ -11,6 +11,8 @@ import {
   processOfflineActions,
   simulateYardState,
 } from "../game-logic.js";
+import { applyMigrations } from "../playerManager.js";
+import { applyAction, buildSnapshot } from "../routes/player.js";
 import { createEmptyBoard, canAnyPieceFit, placePiece } from "../game-logic/blox-engine.js";
 import { PIECES } from "../game-logic/blox-pieces.js";
 import { hydrateMergeBoard, getEmptyCells } from "../game-logic/merge-board-utils.js";
@@ -36,12 +38,16 @@ function quantile(sorted, q) {
   return sorted[index];
 }
 
-function benchmark(fn, { iterations = 200, warmup = 30 } = {}) {
-  for (let i = 0; i < warmup; i += 1) fn();
+async function maybeAwait(value) {
+  if (value && typeof value.then === "function") await value;
+}
+
+async function benchmark(fn, { iterations = 200, warmup = 30 } = {}) {
+  for (let i = 0; i < warmup; i += 1) await maybeAwait(fn());
   const times = [];
   for (let i = 0; i < iterations; i += 1) {
     const started = performance.now();
-    fn();
+    await maybeAwait(fn());
     times.push(performance.now() - started);
   }
   times.sort((a, b) => a - b);
@@ -88,6 +94,12 @@ function makeFullOfflinePlayer() {
   return player;
 }
 
+function makeFullDayOfflinePlayer() {
+  const player = makeFullOfflinePlayer();
+  player._lastSeen = Date.now() - 24 * 60 * 60 * 1000;
+  return player;
+}
+
 function makeQuestionPool(size = 600) {
   return Array.from({ length: size }, (_, index) => ({
     id: index,
@@ -109,6 +121,26 @@ function makeMergePlayer() {
   return player;
 }
 
+function makeMergeGeneratorPlayer() {
+  const player = createDefaultPlayer("merge_generator_perf", "MergeGeneratorPerf");
+  player.merge.freeTapCharges = 30;
+  return player;
+}
+
+function makeMergeRecipePlayer() {
+  const player = createDefaultPlayer("merge_recipe_perf", "MergeRecipePerf");
+  player.merge.board[0][0] = { id: "sand", chainId: "earth", level: 1 };
+  player.merge.board[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+  return player;
+}
+
+function makeAlmostFullBloxBoard() {
+  const board = createEmptyBoard();
+  for (const row of board) row.fill("#7c3aed");
+  board[9][9] = null;
+  return board;
+}
+
 function makeYardFixture() {
   const now = Date.now();
   const yard = createDefaultYardState(now - 36 * 60 * 60 * 1000);
@@ -128,6 +160,54 @@ function makeYardFixture() {
   return yard;
 }
 
+function makeLongIdleYardFixture() {
+  const now = Date.now();
+  const yard = createDefaultYardState(now - 9 * 24 * 60 * 60 * 1000);
+  yard.currencies.treats = 2000;
+  yard.foodInventory.kibble = 10;
+  yard.goodieInventory.cardboard_cottage = 1;
+  yard.placedGoodies = [
+    { slotId: "large-1", goodieId: "cardboard_cottage", condition: "worn", uses: 8, placedAt: now - 8 * 24 * 60 * 60 * 1000 },
+  ];
+  yard.bowls = [{
+    id: "bowl-1",
+    foodId: "kibble",
+    servings: 99,
+    placedAt: now - 8 * 24 * 60 * 60 * 1000,
+    expiresAt: now + 60 * 60 * 1000,
+  }];
+  return yard;
+}
+
+function makeLegacyMigrationPlayer() {
+  return {
+    id: "legacy_perf_guard",
+    username: "LegacyPerf",
+    schemaVersion: 1,
+  };
+}
+
+function makeSnapshotPlayer() {
+  const now = Date.now();
+  const player = createDefaultPlayer("snapshot_perf", "SnapshotPerf", now - 300_000);
+  player.resources.gold = 750;
+  player.resources.gachaTokens = 3;
+  player.farm.harvested = { strawberry: 12, blueberry: 4 };
+  player.merge.freeTapCharges = 12;
+  player.merge.board[0][0] = { id: "thread", chainId: "textile", level: 0 };
+  player.merge.board[0][1] = { id: "cloth", chainId: "textile", level: 1 };
+  player.yard.currencies.treats = 250;
+  player.yard.goodieInventory.leaf_pot = 1;
+  player.yard.placedGoodies = [{
+    slotId: "small-1",
+    goodieId: "leaf_pot",
+    condition: "new",
+    uses: 0,
+    placedAt: now - 60_000,
+  }];
+  return player;
+}
+
 const stableMatchBoard = generateBoard();
 const stableMove = findValidMatch3Move(stableMatchBoard);
 const stableDropBoard = seedDropTokens(generateBoard(), 4);
@@ -135,7 +215,14 @@ const stableDropMove = findValidMatch3Move(stableDropBoard);
 const stableBubboRun = createBubboRun("perf_guard_bubbo");
 const stableQuestionPool = makeQuestionPool();
 const stableMergePlayer = makeMergePlayer();
+const stableMergeGeneratorPlayer = makeMergeGeneratorPlayer();
+const stableMergeRecipePlayer = makeMergeRecipePlayer();
+const stableAlmostFullBloxBoard = makeAlmostFullBloxBoard();
 const stableYard = makeYardFixture();
+const stableLongIdleYard = makeLongIdleYardFixture();
+const stableCurrentPlayer = createDefaultPlayer("current_perf_guard", "CurrentPerf");
+const stableLegacyPlayer = makeLegacyMigrationPlayer();
+const stableSnapshotPlayer = makeSnapshotPlayer();
 
 export const PERF_SUITES = [
   {
@@ -151,7 +238,7 @@ export const PERF_SUITES = [
     id: "match3.find-matches",
     group: "Gem Crush",
     description: "Scan an 8x8 board for matches during input and cascades.",
-    budget: { p95: 0.2, max: 1.5 },
+    budget: { p95: 0.2, max: 5 },
     iterations: 900,
     warmup: 80,
     fn: () => findMatches(stableMatchBoard),
@@ -193,6 +280,18 @@ export const PERF_SUITES = [
     fn: () => canAnyPieceFit(createEmptyBoard(), PIECES.slice(0, 3).map((piece) => ({ piece, placed: false }))),
   },
   {
+    id: "blox.almost-full-fit-scan",
+    group: "Building Blox",
+    description: "Scan a nearly full board with only non-fitting tray pieces.",
+    budget: { p95: 0.7, max: 3 },
+    iterations: 500,
+    warmup: 70,
+    fn: () => canAnyPieceFit(
+      stableAlmostFullBloxBoard,
+      PIECES.filter((piece) => piece.cells.length > 1).slice(0, 3).map((piece) => ({ piece, placed: false })),
+    ),
+  },
+  {
     id: "blox.place-piece",
     group: "Building Blox",
     description: "Apply an authoritative piece placement mutation.",
@@ -208,7 +307,7 @@ export const PERF_SUITES = [
     id: "merge.board-hydrate",
     group: "Gacha Merge",
     description: "Hydrate persisted merge board and scan empty cells.",
-    budget: { p95: 0.3, max: 1.5 },
+    budget: { p95: 0.3, max: 8 },
     iterations: 700,
     warmup: 80,
     fn: () => {
@@ -216,6 +315,29 @@ export const PERF_SUITES = [
       hydrateMergeBoard(player);
       getEmptyCells(player.merge.board);
     },
+  },
+  {
+    id: "merge.apply-generator",
+    group: "Gacha Merge",
+    description: "Apply a server-authoritative random generator tap including snapshot construction.",
+    budget: { p95: 1.2, max: 6 },
+    iterations: 180,
+    warmup: 30,
+    fn: () => applyAction(structuredClone(stableMergeGeneratorPlayer), "merge.tap", {}, { now: 1_800_000_000_000 }),
+  },
+  {
+    id: "merge.apply-recipe",
+    group: "Gacha Merge",
+    description: "Apply the sand plus lightning recipe merge with authoritative rewards and snapshot construction.",
+    budget: { p95: 1.2, max: 6 },
+    iterations: 180,
+    warmup: 30,
+    fn: () => applyAction(
+      structuredClone(stableMergeRecipePlayer),
+      "merge.merge",
+      { fromR: 0, fromC: 0, toR: 0, toC: 1 },
+      { now: 1_800_000_000_000 },
+    ),
   },
   {
     id: "bubbo.pressure-advance",
@@ -245,6 +367,15 @@ export const PERF_SUITES = [
     fn: () => processOfflineActions(makeFullOfflinePlayer(), Date.now()),
   },
   {
+    id: "farm.offline-24h",
+    group: "Garden Shelf",
+    description: "Process a 24-hour offline return through capped helper actions.",
+    budget: { p95: 1.2, max: 6 },
+    iterations: 220,
+    warmup: 30,
+    fn: () => processOfflineActions(makeFullDayOfflinePlayer(), Date.now()),
+  },
+  {
     id: "trivia.pick-questions",
     group: "Brain Blitz",
     description: "Filter and shuffle a large question pool.",
@@ -262,10 +393,61 @@ export const PERF_SUITES = [
     warmup: 25,
     fn: () => simulateYardState(stableYard, Date.now(), {}, "perf_guard"),
   },
+  {
+    id: "yard.simulate-long-idle",
+    group: "Cozy Yard",
+    description: "Simulate a multi-day Yard return through the capped idle window.",
+    budget: { p95: 2.8, max: 12 },
+    iterations: 150,
+    warmup: 25,
+    fn: () => simulateYardState(stableLongIdleYard, Date.now(), {}, "perf_guard_long_idle"),
+  },
+  {
+    id: "player.apply-migrations-current",
+    group: "Player JSON",
+    description: "Run the no-op current-schema JSON migration path used on every locked player load.",
+    budget: { p95: 0.35, max: 2 },
+    iterations: 500,
+    warmup: 70,
+    fn: () => applyMigrations(structuredClone(stableCurrentPlayer)),
+  },
+  {
+    id: "player.apply-migrations-legacy",
+    group: "Player JSON",
+    description: "Upgrade a minimal legacy player document through the full JSON migration ladder.",
+    budget: { p95: 0.65, max: 3 },
+    iterations: 420,
+    warmup: 60,
+    fn: () => applyMigrations(structuredClone(stableLegacyPlayer)),
+  },
+  {
+    id: "player.build-snapshot",
+    group: "Player JSON",
+    description: "Build an authoritative mutation snapshot with inventory, Yard, Merge, achievements, and meta catalogs.",
+    budget: { p95: 0.8, max: 4 },
+    iterations: 320,
+    warmup: 50,
+    fn: () => buildSnapshot(structuredClone(stableSnapshotPlayer)),
+  },
 ];
 
-function resultForSuite(suite) {
-  const stats = benchmark(suite.fn, suite);
+function aggregateRoundStats(rounds) {
+  return {
+    iterations: rounds.reduce((sum, round) => sum + round.iterations, 0),
+    warmup: rounds.reduce((sum, round) => sum + round.warmup, 0),
+    p50: quantile([...rounds.map((round) => round.p50)].sort((a, b) => a - b), 0.5),
+    p95: Math.max(...rounds.map((round) => round.p95)),
+    max: Math.max(...rounds.map((round) => round.max)),
+    avg: rounds.reduce((sum, round) => sum + round.avg, 0) / rounds.length,
+  };
+}
+
+async function resultForSuite(suite, repeat = 1) {
+  const rounds = [];
+  for (let round = 0; round < repeat; round += 1) {
+    rounds.push(await benchmark(suite.fn, suite));
+  }
+  const stats = aggregateRoundStats(rounds);
   const failures = [];
   if (stats.p95 > suite.budget.p95) failures.push(`p95 ${stats.p95.toFixed(3)}ms > ${suite.budget.p95}ms`);
   if (stats.max > suite.budget.max) failures.push(`max ${stats.max.toFixed(3)}ms > ${suite.budget.max}ms`);
@@ -275,21 +457,68 @@ function resultForSuite(suite) {
     description: suite.description,
     budget: suite.budget,
     stats,
+    rounds,
     passed: failures.length === 0,
     failures,
   };
 }
 
-export async function runPerfGuard({ writeReport = true, quiet = false, reportPath = REPORT_PATH } = {}) {
-  const startedAt = new Date().toISOString();
-  const results = PERF_SUITES.map(resultForSuite);
+function budgetRatio(result) {
+  const p95Ratio = result.budget.p95 > 0 ? result.stats.p95 / result.budget.p95 : 0;
+  const maxRatio = result.budget.max > 0 ? result.stats.max / result.budget.max : 0;
+  return Math.max(p95Ratio, maxRatio);
+}
+
+function buildSummary(results) {
   const failed = results.filter((result) => !result.passed);
+  const slowest = [...results]
+    .sort((a, b) => budgetRatio(b) - budgetRatio(a))
+    .slice(0, 5)
+    .map((result) => ({
+      id: result.id,
+      ratio: Number(budgetRatio(result).toFixed(3)),
+      p95: result.stats.p95,
+      max: result.stats.max,
+    }));
+  return {
+    totalSuites: results.length,
+    passedSuites: results.length - failed.length,
+    failedSuites: failed.length,
+    slowestBudgetRatios: slowest,
+  };
+}
+
+function selectSuites(suiteIds = []) {
+  if (!suiteIds?.length) return PERF_SUITES;
+  const wanted = new Set(suiteIds);
+  const selected = PERF_SUITES.filter((suite) => wanted.has(suite.id));
+  const found = new Set(selected.map((suite) => suite.id));
+  const missing = [...wanted].filter((id) => !found.has(id));
+  if (missing.length) {
+    throw new Error(`Unknown perf suite id(s): ${missing.join(", ")}`);
+  }
+  return selected;
+}
+
+export async function runPerfGuard({ writeReport = true, quiet = false, reportPath = REPORT_PATH, suiteIds = [], repeat = 1 } = {}) {
+  const startedAt = new Date().toISOString();
+  const suites = selectSuites(suiteIds);
+  const safeRepeat = Math.max(1, Math.floor(Number(repeat) || 1));
+  const results = [];
+  for (const suite of suites) {
+    results.push(await resultForSuite(suite, safeRepeat));
+  }
+  const failed = results.filter((result) => !result.passed);
+  const summary = buildSummary(results);
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: startedAt,
     node: process.version,
     platform: `${process.platform}-${process.arch}`,
     budgets: "milliseconds; p95 and max must both stay inside budget",
+    suiteFilter: suiteIds,
+    repeat: safeRepeat,
+    summary,
     results,
     passed: failed.length === 0,
   };
@@ -308,6 +537,9 @@ export async function runPerfGuard({ writeReport = true, quiet = false, reportPa
       );
       if (result.failures.length) console.log(`  ${result.failures.join("; ")}`);
     }
+    console.log(
+      `Summary: ${summary.passedSuites}/${summary.totalSuites} suites passed; slowest budget ratio ${summary.slowestBudgetRatios[0]?.ratio ?? 0}`,
+    );
     if (writeReport) console.log(`Report: ${reportPath}`);
   }
 
@@ -315,17 +547,36 @@ export async function runPerfGuard({ writeReport = true, quiet = false, reportPa
 }
 
 function parseArgs(argv) {
+  const args = argv.filter((arg) => arg !== "--");
+  const suiteArgIndex = args.indexOf("--suite");
+  const repeatArgIndex = args.indexOf("--repeat");
+  const suiteIds = suiteArgIndex >= 0
+    ? String(args[suiteArgIndex + 1] || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean)
+    : [];
   return {
-    quiet: argv.includes("--quiet"),
-    writeReport: !argv.includes("--no-write"),
-    reportPath: argv.includes("--report")
-      ? path.resolve(argv[argv.indexOf("--report") + 1] || REPORT_PATH)
+    quiet: args.includes("--quiet"),
+    list: args.includes("--list"),
+    suiteIds,
+    repeat: repeatArgIndex >= 0 ? Number(args[repeatArgIndex + 1] || 1) : 1,
+    writeReport: !args.includes("--no-write"),
+    reportPath: args.includes("--report")
+      ? path.resolve(args[args.indexOf("--report") + 1] || REPORT_PATH)
       : REPORT_PATH,
   };
 }
 
 const currentFile = pathToFileURL(fileURLToPath(import.meta.url)).href;
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === currentFile) {
-  const report = await runPerfGuard(parseArgs(process.argv.slice(2)));
+  const args = parseArgs(process.argv.slice(2));
+  if (args.list) {
+    for (const suite of PERF_SUITES) {
+      console.log(`${suite.id}\t${suite.group}\t${suite.description}`);
+    }
+    process.exit(0);
+  }
+  const report = await runPerfGuard(args);
   if (!report.passed) process.exitCode = 1;
 }

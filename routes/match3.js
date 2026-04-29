@@ -12,6 +12,7 @@ import {
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 import { getDb } from "../db.js";
+import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
 export default function match3Routes(requireAuth, resolveUser) {
   const router = Router();
@@ -34,13 +35,14 @@ export default function match3Routes(requireAuth, resolveUser) {
   router.post("/api/game/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
-      res.json({
+    const result = await withPlayerLock(userId, async (p) => {
+      return routeOk({
         game: p.match3.currentGame || null,
         highScore: p.match3.highScore,
         savedModes: _parseSavedModes(p.match3.savedModes),
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   // Sync saved mode states with an immediate durable write.
@@ -48,7 +50,7 @@ export default function match3Routes(requireAuth, resolveUser) {
   router.post("/api/game/sync-modes", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { savedModes, game } = req.body;
       let changed = false;
 
@@ -64,20 +66,21 @@ export default function match3Routes(requireAuth, resolveUser) {
       }
 
       if (changed) { /* save handled implicitly by wrapper function */ }
-      res.json({ success: true });
+      return routeOk({ success: true });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.post("/api/game/start", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { mode = "classic", isResume } = req.body;
 
       // v5.0.2: Resume path — register session without charging energy.
       if (isResume) {
         p.match3.currentGame = { score: 0, movesLeft: 30, combo: 0, mode };
-        return res.json({
+        return routeOk({
           success: true,
           resources: p.resources,
           highScore: p.match3.highScore,
@@ -90,19 +93,20 @@ export default function match3Routes(requireAuth, resolveUser) {
       p.match3.currentGame = game;
       p.match3.totalGames++;
 
-      res.json({
+      return routeOk({
         success: true,
         resources: p.resources,
         highScore: p.match3.highScore,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   /* ─── Game End (dedicated endpoint for highScore save + gold reward) ─── */
   router.post("/api/game/end", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { score, fromQuit } = req.body;
 
       // Prevent awarding gold if there was no active session logged
@@ -115,7 +119,7 @@ export default function match3Routes(requireAuth, resolveUser) {
         console.warn(
           `⚠️ User ${userId} tried to end Match-3 without starting a session.`,
         );
-        return res.status(403).json({ error: "Invalid session" });
+        return routeFail(403, { error: "Invalid session" });
       }
 
       let goldReward = 0;
@@ -148,7 +152,7 @@ export default function match3Routes(requireAuth, resolveUser) {
       `;
       const rank = parseInt(count) + 1;
 
-      res.json({
+      return routeOk({
         success: true,
         resources: p.resources,
         goldReward,
@@ -157,6 +161,7 @@ export default function match3Routes(requireAuth, resolveUser) {
         rank,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   return router;

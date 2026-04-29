@@ -43,6 +43,45 @@ export function getRedisClient() {
   return redis;
 }
 
+export async function getRedisHealth() {
+  const configured = !!process.env.REDIS_URL;
+  if (!configured) {
+    return {
+      configured: false,
+      connected: false,
+      status: "disabled",
+      distributedGuarantees: false,
+    };
+  }
+  if (!redis || !redisEnabled) {
+    return {
+      configured: true,
+      connected: false,
+      status: "unavailable",
+      distributedGuarantees: false,
+    };
+  }
+
+  try {
+    const pong = await redis.ping();
+    const connected = pong === "PONG";
+    return {
+      configured: true,
+      connected,
+      status: connected ? "ok" : "unexpected_response",
+      distributedGuarantees: connected,
+    };
+  } catch (e) {
+    return {
+      configured: true,
+      connected: false,
+      status: "error",
+      error: e.message,
+      distributedGuarantees: false,
+    };
+  }
+}
+
 export async function redisGetPlayer(userId) {
   if (!redisEnabled) return null;
   try {

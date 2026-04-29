@@ -7,10 +7,12 @@ import { PixiScene } from "../../app/PixiScene.jsx";
 import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
+import { useGameHub } from "../../game-state/useGameHub.js";
 export default function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const lastResult = useGameHub((state) => state.lastResult);
   const { t } = useAppI18n();
   const merge = snapshot?.merge || {};
   const inventory = snapshot?.inventory || {};
@@ -35,6 +37,9 @@ export default function MergeGame() {
   const canFreePull = new Date(merge.lastFreePull || 0).toISOString().slice(0, 10) !== today;
   const canClaimFreeTaps = new Date(merge.lastFreeTaps || 0).toISOString().slice(0, 10) !== today;
   const canTapGenerator = !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
+  const lastMergeReward = lastResult?.action?.startsWith?.("merge.") && lastResult.reward?.type === "yardGoodie"
+    ? lastResult.reward.goodieId
+    : null;
 
   const onMergeCell = useCallback(
     (r, c, item) => {
@@ -76,7 +81,7 @@ export default function MergeGame() {
       return performAction("merge.merge", { fromR, fromC, toR, toC }, { key: `merge.merge.${fromR}.${fromC}.${toR}.${toC}` }).then((result) => {
         if (!result.error) {
           setSelectedCell(null);
-          audioManager.play(result.roomDrop ? "gacha" : "merge");
+          audioManager.play(result.yardDrop ? "gacha" : "merge");
         }
         return result;
       });
@@ -117,6 +122,7 @@ export default function MergeGame() {
               <span>{t("merge.items")} <strong>{itemTotal}</strong></span>
               <span>{t("merge.mode")} <strong>{trashMode ? t("merge.modeTrash") : t("merge.modeMerge")}</strong></span>
               <span>{t("merge.recipes")} <strong>{MERGE_RECIPES.length}</strong></span>
+              {lastMergeReward && <span>{t("merge.reward")} <strong>{lastMergeReward}</strong></span>}
             </div>
           </div>
           <div className="merge-action-dock" data-no-nav-swipe="true">
@@ -209,7 +215,8 @@ export default function MergeGame() {
               { label: t("merge.mode"), value: trashMode ? t("merge.modeTrash") : t("merge.modeMerge") },
               { label: t("merge.free"), value: merge.freeTapCharges || 0 },
               { label: t("merge.items"), value: itemTotal },
-            ] : []}
+              lastMergeReward ? { label: t("merge.reward"), value: lastMergeReward } : null,
+            ].filter(Boolean) : []}
           />
           {activePause && (
             <div className="pause-action-stack">

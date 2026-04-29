@@ -5,13 +5,80 @@
  * ═══════════════════════════════════════════════════════
  */
 import postgres from "postgres";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 let sql = null;
 let schemaReadyPromise = null;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_MIGRATIONS_DIR = path.join(__dirname, "migrations");
 
-async function createSchema() {
+function stripTransactionWrapper(sqlText) {
+  return String(sqlText || "")
+    .replace(/^\s*BEGIN\s*;\s*/i, "")
+    .replace(/\s*COMMIT\s*;\s*$/i, "")
+    .trim();
+}
+
+export function getMigrationFiles(migrationsDir = DEFAULT_MIGRATIONS_DIR) {
+  if (!fs.existsSync(migrationsDir)) return [];
+  return fs
+    .readdirSync(migrationsDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && /^\d+_.+\.sql$/i.test(entry.name))
+    .map((entry) => {
+      const version = entry.name.match(/^(\d+)_/)?.[1];
+      return {
+        version,
+        name: entry.name,
+        path: path.join(migrationsDir, entry.name),
+      };
+    })
+    .filter((entry) => entry.version)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function runSqlMigrations(database = sql, options = {}) {
+  if (!database) return [];
+  const migrationsDir = options.migrationsDir || DEFAULT_MIGRATIONS_DIR;
+  const logger = options.logger || console;
+  const migrations = getMigrationFiles(migrationsDir);
+  if (migrations.length === 0) return [];
+
+  await database`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `;
+  const rows = await database`SELECT version FROM schema_migrations`;
+  const appliedVersions = new Set(rows.map((row) => String(row.version)));
+  const applied = [];
+
+  for (const migration of migrations) {
+    if (appliedVersions.has(migration.version)) continue;
+    const sqlText = stripTransactionWrapper(fs.readFileSync(migration.path, "utf-8"));
+    await database.begin(async (tx) => {
+      if (sqlText) await tx.unsafe(sqlText, [], { simple: true });
+      await tx`
+        INSERT INTO schema_migrations (version, name)
+        VALUES (${migration.version}, ${migration.name})
+      `;
+    });
+    applied.push({ version: migration.version, name: migration.name });
+    logger.log(`Applied SQL migration ${migration.name}`);
+  }
+
+  return applied;
+}
+
+async function createCompatibilitySchema() {
   if (!sql) return;
 
+  // Compatibility fallback for databases that predate the numbered migration
+  // runner or were bootstrapped from a partial schema. New installs are created
+  // by migrations/*.sql first; these statements should normally be no-ops.
   await sql`
     CREATE TABLE IF NOT EXISTS players (
       id TEXT PRIMARY KEY,
@@ -76,6 +143,11 @@ async function createSchema() {
   `;
 }
 
+async function ensureSchemaObjects() {
+  await runSqlMigrations();
+  await createCompatibilitySchema();
+}
+
 export function initDb() {
   if (sql) return sql;
 
@@ -96,7 +168,7 @@ export function initDb() {
     });
     console.log("🐘 PostgreSQL database initialized successfully.");
     
-    schemaReadyPromise = createSchema().catch((err) => {
+    schemaReadyPromise = ensureSchemaObjects().catch((err) => {
       console.error("Database schema init error:", err.message);
       throw err;
     });
@@ -114,7 +186,9 @@ export function getDb() {
 }
 
 export async function ensureDbSchema() {
-  if (!schemaReadyPromise && sql) schemaReadyPromise = createSchema();
+  if (!schemaReadyPromise && sql) {
+    schemaReadyPromise = ensureSchemaObjects();
+  }
   if (schemaReadyPromise) await schemaReadyPromise;
 }
 

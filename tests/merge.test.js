@@ -399,5 +399,17 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(scenes.includes('app.stage.on("pointercancel", cancel)'), "Pixi pointer cancellations must clear sessions");
       assert.ok(host.includes("onLostPointerCapture"), "DOM pointer capture loss should release Telegram swipe suppression");
     });
+
+    it("listens for Cozy Yard reward drops from the authoritative Merge action result", () => {
+      const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
+      const i18nPath = path.join(__dirname, "..", "src", "app", "i18n.jsx");
+      const mergeGame = fs.readFileSync(mergePath, "utf-8");
+      const i18n = fs.readFileSync(i18nPath, "utf-8");
+
+      assert.ok(mergeGame.includes("result.yardDrop"), "Merge feedback should use the current yardDrop field");
+      assert.ok(mergeGame.includes("lastMergeReward"), "Merge HUD should expose the latest Yard reward");
+      assert.ok(!mergeGame.includes("result.roomDrop"), "Old Room-drop naming should not drive Merge rewards");
+      assert.ok(i18n.includes('"merge.reward"'), "Merge reward status should be localizable");
+    });
   });
 });

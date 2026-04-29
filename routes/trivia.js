@@ -15,6 +15,7 @@ import {
   makeClientQuestion,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -40,7 +41,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   router.post("/api/trivia/start", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { count = 5, difficulty } = req.body;
       calcRegen(p);
 
@@ -54,7 +55,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         startedAt: Date.now(),
       };
 
-      res.json({
+      return routeOk({
         success: true,
         resources: p.resources,
         stats: {
@@ -65,14 +66,15 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         question: makeClientQuestion(questions[0], 0, questions.length),
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.post("/api/trivia/forfeit", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const s = p.trivia.session;
-      if (!s) return res.status(400).json({ error: "no session" });
+      if (!s) return routeFail(400, { error: "no session" });
 
       // Mark session complete with current stats
       p.trivia.totalScore += s.score;
@@ -82,7 +84,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       const finalScore = s.score;
       p.trivia.session = null;
 
-      res.json({
+      return routeOk({
         success: true,
         score: finalScore,
         stats: {
@@ -93,17 +95,18 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         },
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.post("/api/trivia/answer", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { answer, timeMs } = req.body;
       const s = p.trivia.session;
-      if (!s) return res.status(400).json({ error: "no session" });
+      if (!s) return routeFail(400, { error: "no session" });
       const q = s.questions[s.index];
-      if (!q) return res.status(400).json({ error: "done" });
+      if (!q) return routeFail(400, { error: "done" });
 
       const correct = answer === q.correctAnswer;
       const timeBonus = correct
@@ -141,7 +144,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
           s.questions.length,
         );
 
-      res.json({
+      return routeOk({
         correct,
         points,
         timeBonus,
@@ -162,6 +165,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
           : undefined,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   /* ═══════════════════════════════════════════════════
@@ -201,12 +205,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   router.post("/api/trivia/duel/create", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { count = 5, difficulty } = req.body;
 
       // v10.1: Optimized O(1) quota check via waitingRoomsByUser index
       if (waitingRoomsByUser.has(userId)) {
-        return res.status(429).json({
+        return routeFail(429, {
           error: "ACTIVE_ROOM_EXISTS",
           message: "You already have a waiting room",
         });
@@ -262,7 +266,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       // Sync v10.1: Track user's active waiting room
       waitingRoomsByUser.set(userId, roomId);
 
-      res.json({
+      return routeOk({
         success: true,
         resources: p.resources,
         roomId,
@@ -270,35 +274,36 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         questionCount: questions.length,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.post("/api/trivia/duel/join", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { inviteCode } = req.body;
       if (!inviteCode)
-        return res.status(400).json({ error: "inviteCode required" });
+        return routeFail(400, { error: "inviteCode required" });
 
       const room = duelRooms.get(inviteCode.toUpperCase());
-      if (!room) return res.status(404).json({ error: "Room not found" });
+      if (!room) return routeFail(404, { error: "Room not found" });
       // Check if room has expired
       if (
         room.status === "waiting" &&
         Date.now() - room.createdAt > DUEL_WAIT_EXPIRY_MS
       ) {
         duelRooms.delete(inviteCode.toUpperCase());
-        return res.status(404).json({ error: "Room expired" });
+        return routeFail(404, { error: "Room expired" });
       }
       if (room.status === "finished")
-        return res.status(400).json({ error: "Duel already finished" });
+        return routeFail(400, { error: "Duel already finished" });
       // Self-join guard — can't join your own room
       if (room.players[userId])
-        return res.status(400).json({
+        return routeFail(400, {
           error: "You're already in this room — share the code with a friend!",
         });
       if (Object.keys(room.players).length >= 2)
-        return res.status(400).json({ error: "Room is full" });
+        return routeFail(400, { error: "Room is full" });
       if (!room.players[userId]) {
         room.players[userId] = {
           userId,
@@ -324,7 +329,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       }
 
       const playerNames = Object.values(room.players).map((pl) => pl.username);
-      res.json({
+      return routeOk({
         success: true,
         roomId: room.roomId,
         status: room.status,
@@ -332,6 +337,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         questionCount: room.questions.length,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.post("/api/trivia/duel/start", requireAuth, async (req, res) => {
@@ -359,17 +365,17 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   router.post("/api/trivia/duel/answer", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (_p) => {
+    const result = await withPlayerLock(userId, async (_p) => {
       const { roomId, answer, timeMs } = req.body;
       const room = duelRooms.get(roomId);
-      if (!room) return res.status(404).json({ error: "Room not found" });
+      if (!room) return routeFail(404, { error: "Room not found" });
       const dp = room.players[userId];
-      if (!dp) return res.status(403).json({ error: "Not in this room" });
-      if (dp.finished) return res.status(400).json({ error: "Already finished" });
+      if (!dp) return routeFail(403, { error: "Not in this room" });
+      if (dp.finished) return routeFail(400, { error: "Already finished" });
 
       const qIndex = dp.answers.length;
       const q = room.questions[qIndex];
-      if (!q) return res.status(400).json({ error: "No more questions" });
+      if (!q) return routeFail(400, { error: "No more questions" });
 
       const correct = answer === q.correctAnswer;
       const timeBonus = correct
@@ -425,7 +431,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
           room.questions.length,
         );
 
-      res.json({
+      return routeOk({
         correct,
         points,
         timeBonus,
@@ -436,6 +442,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         nextQuestion,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.get("/api/trivia/duel/status/:roomId", (req, res) => {
@@ -514,12 +521,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   router.post("/api/trivia/duel/ready", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (_p) => {
+    const result = await withPlayerLock(userId, async (_p) => {
       const { roomId } = req.body;
       const room = duelRooms.get(roomId);
-      if (!room) return res.status(404).json({ error: "Room not found" });
+      if (!room) return routeFail(404, { error: "Room not found" });
       const dp = room.players[userId];
-      if (!dp) return res.status(403).json({ error: "Not in this room" });
+      if (!dp) return routeFail(403, { error: "Not in this room" });
 
       dp.ready = true;
 
@@ -534,12 +541,13 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         ready: !!pl.ready,
       }));
 
-      res.json({
+      return routeOk({
         success: true,
         status: room.status,
         players: playersInfo,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   /* ─── Duel History ─── */
@@ -565,6 +573,9 @@ export default function triviaRoutes(requireAuth, resolveUser) {
 
   // Expose duelRooms for health endpoint
   router._duelRooms = duelRooms;
+  router._waitingRoomsByUser = waitingRoomsByUser;
+  router._duelHistory = duelHistory;
+  router._duelRoomScope = "process-local";
 
   return router;
 }

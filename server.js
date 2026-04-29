@@ -8,7 +8,7 @@ import compression from "compression";
 
 import { getAccountReport } from "./accountManager.js";
 import { ensureDbSchema, initDb, getDb } from "./db.js";
-import { initRedis } from "./redisAdapter.js";
+import { getRedisHealth, initRedis } from "./redisAdapter.js";
 import { initSocket } from "./socketManager.js";
 import { requireAuth, resolveUser } from "./middleware/auth.js";
 import { defaultLimiter } from "./middleware/rateLimit.js";
@@ -38,6 +38,40 @@ const PUBLIC_APP_URL = process.env.PUBLIC_APP_URL || (CUSTOM_DOMAIN ? `https://$
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || "";
 
 export const app = express();
+const playerStatsRefreshState = {
+  lastAttemptAt: null,
+  lastSuccessAt: null,
+  lastError: null,
+};
+
+export function getPlayerStatsRefreshStatus() {
+  return { ...playerStatsRefreshState };
+}
+
+export function resetPlayerStatsRefreshStatusForTests() {
+  playerStatsRefreshState.lastAttemptAt = null;
+  playerStatsRefreshState.lastSuccessAt = null;
+  playerStatsRefreshState.lastError = null;
+}
+
+export async function refreshPlayerStatsView(database = getDb(), now = Date.now()) {
+  const attemptedAt = new Date(now).toISOString();
+  playerStatsRefreshState.lastAttemptAt = attemptedAt;
+  if (!database) {
+    playerStatsRefreshState.lastError = "PostgreSQL unavailable";
+    return false;
+  }
+  try {
+    await database`REFRESH MATERIALIZED VIEW CONCURRENTLY player_stats_view`;
+    playerStatsRefreshState.lastSuccessAt = attemptedAt;
+    playerStatsRefreshState.lastError = null;
+    return true;
+  } catch (err) {
+    playerStatsRefreshState.lastError = err?.message || String(err);
+    console.error("Failed to refresh player_stats_view:", playerStatsRefreshState.lastError);
+    return false;
+  }
+}
 
 app.use(compression());
 app.use(express.json({ limit: "1mb" }));
@@ -122,14 +156,26 @@ app.get("/api/health", async (_req, res) => {
   } catch (e) {
     console.error("Health check PostgreSQL error:", e.message);
   }
+  const redisStatus = await getRedisHealth();
+  const playerStatsView = getPlayerStatsRefreshStatus();
+  const redisHealthy = !redisStatus.configured || redisStatus.connected;
+  const statsRefreshHealthy = !playerStatsView.lastError;
 
   res.json({
-    status: postgres ? "ok" : "degraded",
+    status: postgres && redisHealthy && statsRefreshHealthy ? "ok" : "degraded",
     uptime: Math.floor(process.uptime()),
     version: APP_VERSION,
     buildId: APP_BUILD_ID,
     postgres,
-    redis: !!process.env.REDIS_URL,
+    redis: redisStatus.connected,
+    redisStatus,
+    playerStatsView,
+    triviaDuelRooms: {
+      scope: triviaRouter._duelRoomScope || "process-local",
+      activeRooms: triviaRouter._duelRooms?.size || 0,
+      waitingRooms: triviaRouter._waitingRoomsByUser?.size || 0,
+      historyEntries: triviaRouter._duelHistory?.length || 0,
+    },
   });
 });
 
@@ -224,13 +270,7 @@ async function start() {
   initSocket(httpServer);
 
   setInterval(async () => {
-    const sql = getDb();
-    if (!sql) return;
-    try {
-      await sql`REFRESH MATERIALIZED VIEW CONCURRENTLY player_stats_view`;
-    } catch (err) {
-      console.error("Failed to refresh player_stats_view:", err.message);
-    }
+    await refreshPlayerStatsView();
   }, 5 * 60 * 1000);
 
   httpServer.listen(PORT, () => {

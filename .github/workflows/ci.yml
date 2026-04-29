@@ -2,9 +2,9 @@ name: Game Hub CI
 
 on:
   push:
-    branches: [game-hub]
+    branches: [codex/telegram-pixi-vps-migration]
   pull_request:
-    branches: [game-hub]
+    branches: [codex/telegram-pixi-vps-migration]
 
 jobs:
   test:

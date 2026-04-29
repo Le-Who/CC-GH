@@ -9,23 +9,66 @@ describe("perf:guard contract", () => {
       "match3.generate-board",
       "match3.resolve-valid-swap",
       "match3.star-drop-swap",
+      "blox.almost-full-fit-scan",
       "blox.fit-scan",
       "merge.board-hydrate",
+      "merge.apply-generator",
+      "merge.apply-recipe",
       "bubbo.pressure-advance",
       "bubbo.apply-shot",
       "farm.offline-full",
+      "farm.offline-24h",
       "trivia.pick-questions",
       "yard.simulate-36h",
+      "yard.simulate-long-idle",
+      "player.apply-migrations-current",
+      "player.apply-migrations-legacy",
+      "player.build-snapshot",
     ]) {
       assert.ok(ids.has(required), `missing perf suite: ${required}`);
     }
 
+    assert.equal(ids.size, PERF_SUITES.length, "perf suite ids must be unique");
     for (const suite of PERF_SUITES) {
       assert.ok(Number.isFinite(suite.budget?.p95), `${suite.id} needs a p95 budget`);
       assert.ok(Number.isFinite(suite.budget?.max), `${suite.id} needs a max budget`);
+      assert.ok(suite.budget.max >= suite.budget.p95, `${suite.id} max budget must be at least p95 budget`);
       assert.ok(suite.iterations >= 100, `${suite.id} needs enough samples for objective timing`);
+      assert.equal(typeof suite.fn, "function", `${suite.id} needs a benchmark function`);
+      assert.equal(typeof suite.group, "string", `${suite.id} needs a group`);
       assert.equal(typeof suite.description, "string");
     }
+  });
+
+  it("can run a focused suite and emits report summary metadata", async () => {
+    const report = await runPerfGuard({
+      writeReport: false,
+      quiet: true,
+      suiteIds: ["player.build-snapshot"],
+    });
+
+    assert.equal(report.schemaVersion, 2);
+    assert.equal(report.results.length, 1);
+    assert.equal(report.results[0].id, "player.build-snapshot");
+    assert.equal(report.summary.totalSuites, 1);
+    assert.equal(report.summary.failedSuites, 0);
+    assert.ok(Array.isArray(report.summary.slowestBudgetRatios));
+  });
+
+  it("can repeat focused suites and aggregates the worst round for CI gating", async () => {
+    const report = await runPerfGuard({
+      writeReport: false,
+      quiet: true,
+      suiteIds: ["match3.find-matches"],
+      repeat: 2,
+    });
+
+    assert.equal(report.results.length, 1);
+    assert.equal(report.results[0].rounds.length, 2);
+    assert.equal(
+      report.results[0].stats.p95,
+      Math.max(...report.results[0].rounds.map((round) => round.p95)),
+    );
   });
 
   it("keeps gameplay hot paths inside their budgets", async () => {

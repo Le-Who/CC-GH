@@ -21,6 +21,8 @@ import {
   redisGetOrLoadPlayer,
 } from "./redisAdapter.js";
 
+const AFTER_COMMIT = Symbol("player.afterCommit");
+
 /* ═══════════════════════════════════════════════════
  *  HYBRID LOCKING: In-Process Mutex + OCC Safety Net
  *
@@ -37,6 +39,36 @@ import {
 const _mutexChain = new Map();
 const _memoryPlayers = new Map();
 
+export function afterPlayerCommit(player, fn) {
+  if (!player || typeof player !== "object") {
+    throw new TypeError("afterPlayerCommit requires a player object");
+  }
+  if (typeof fn !== "function") {
+    throw new TypeError("afterPlayerCommit requires a function");
+  }
+  if (!player[AFTER_COMMIT]) {
+    Object.defineProperty(player, AFTER_COMMIT, {
+      value: [],
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  player[AFTER_COMMIT].push(fn);
+}
+
+async function runAfterCommitHooks(userId, player) {
+  const hooks = player?.[AFTER_COMMIT];
+  if (!Array.isArray(hooks) || hooks.length === 0) return;
+  delete player[AFTER_COMMIT];
+  for (const hook of hooks) {
+    try {
+      await hook(player);
+    } catch (err) {
+      console.error(`[withPlayerLock] After-commit hook failed for ${userId}:`, err?.message || err);
+    }
+  }
+}
+
 /**
  * Acquires an in-process mutex for the given account ID.
  * Concurrent calls for the same account are queued and executed serially.
@@ -51,7 +83,7 @@ function _acquireMutex(userId, fn) {
   // Cleanup entry when chain completes to prevent memory leak
   next.finally(() => {
     if (_mutexChain.get(userId) === next) _mutexChain.delete(userId);
-  });
+  }).catch(() => {});
   return next;
 }
 
@@ -86,12 +118,14 @@ function emitPlayerSync(userId, player) {
  * 3. Fetches current state & _version without DB locks.
  * 4. Executes route handler (re-applied on every OCC retry attempt).
  * 5. Saves state back using OCC (UPDATE ... WHERE _version = old).
- * 6. If OCC fails (multi-instance race), retries up to 3 times.
+ * 6. Runs registered after-commit side effects only after the save wins.
+ * 7. If OCC fails (multi-instance race), retries up to 3 times.
  *
  * CRITICAL: asyncFn is called on EVERY retry attempt against freshly-loaded
  * state. This ensures mutations are never silently dropped during OCC
  * collisions. The HTTP response (res.json) is only sent on the first
  * attempt; subsequent calls to res.json are harmlessly ignored by Express.
+ * Duplicate-sensitive side effects must use afterPlayerCommit().
  */
 export async function withPlayerLock(userId, asyncFn, username = null) {
   const sql = getDb();
@@ -116,6 +150,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
       player._version = crypto.randomUUID();
       _memoryPlayers.set(userId, player);
       emitPlayerSync(userId, player);
+      await runAfterCommitHooks(userId, player);
       return handlerResult === undefined ? player : handlerResult;
     });
   }
@@ -152,8 +187,8 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         // 3. Execute Route Handler on EVERY attempt
         // On retries, asyncFn re-applies the mutation against fresh DB state.
         // res.json() calls on attempt >= 2 are harmlessly ignored (headersSent).
-        // Side-effects like player_events INSERTs use .catch() (fire-and-forget)
-        // so a duplicate analytics row is acceptable vs silent data loss.
+        // Duplicate-sensitive side effects must register after-commit hooks so
+        // losing OCC attempts cannot write external records.
         const handlerResult = await asyncFn(player);
 
         // Global safeguard: Verify all achievements automatically before DB freeze
@@ -183,6 +218,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
 
           // Emit authenticated realtime sync.
           emitPlayerSync(userId, player);
+          await runAfterCommitHooks(userId, player);
           
           return handlerResult === undefined ? player : handlerResult;
         }
@@ -252,9 +288,10 @@ export function applyMigrations(p) {
   const currentSchemaVersion = 11;
   
   if (!p) return null;
+  const now = Date.now();
 
-  if (!p.garden) p.garden = createDefaultGardenState(Date.now());
-  if (!p.yard) p.yard = createDefaultYardState(Date.now(), { pet: p.pet, room: p.room });
+  if (!p.garden) p.garden = createDefaultGardenState(now);
+  if (!p.yard) p.yard = createDefaultYardState(now, { pet: p.pet, room: p.room });
 
   // v8.1: Early-return
   if (p.schemaVersion >= currentSchemaVersion) {
@@ -267,7 +304,7 @@ export function applyMigrations(p) {
       energy: {
         current: ECONOMY.ENERGY_START,
         max: ECONOMY.ENERGY_MAX,
-        lastRegenTimestamp: Date.now(),
+        lastRegenTimestamp: now,
       },
     };
     if (!p.farm) {
@@ -296,7 +333,7 @@ export function applyMigrations(p) {
   if (p.schemaVersion < 3) {
     if (!p.pet.stats) p.pet.stats = { happiness: 100 };
     if (!("fullness" in p.pet.stats)) p.pet.stats.fullness = 0;
-    if (!p.pet.lastDigestionTimestamp) p.pet.lastDigestionTimestamp = Date.now();
+    if (!p.pet.lastDigestionTimestamp) p.pet.lastDigestionTimestamp = now;
     if (!p.pet.activeOrders) p.pet.activeOrders = [];
     if (!p.pet.abilities) p.pet.abilities = {};
     if (!("autoPlant" in p.pet.abilities)) p.pet.abilities.autoPlant = false;
@@ -337,7 +374,7 @@ export function applyMigrations(p) {
       p.match3.currentGame = null;
       p.match3.savedModes = {};
     }
-    p._lastSeen = Date.now();
+    p._lastSeen = now;
     p.resources.gachaTokens = (p.resources.gachaTokens || 0) + 5;
     p.schemaVersion = 5;
   }
@@ -390,12 +427,12 @@ export function applyMigrations(p) {
   }
 
   if (!p.schemaVersion || p.schemaVersion < 10) {
-    if (!p.garden) p.garden = createDefaultGardenState(Date.now());
+    if (!p.garden) p.garden = createDefaultGardenState(now);
     p.schemaVersion = 10;
   }
 
   if (!p.schemaVersion || p.schemaVersion < 11) {
-    if (!p.yard) p.yard = createDefaultYardState(Date.now(), { pet: p.pet, room: p.room });
+    if (!p.yard) p.yard = createDefaultYardState(now, { pet: p.pet, room: p.room });
     p.schemaVersion = 11;
   }
 

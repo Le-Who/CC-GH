@@ -25,6 +25,8 @@ import {
   normalizeYardState,
   simulateYardState,
   YARD_GOODIES,
+  YARD_HOUR_MS,
+  YARD_SIMULATION_CAP_MS,
   MERGE_CHAINS,
   MERGE_WILD_GENERATOR_ID,
 } from "../game-logic.js";
@@ -202,6 +204,17 @@ describe("Garden Shelf shared gold actions", () => {
 });
 
 describe("Gacha Merge shared generator and recipes", () => {
+  function withRandomSequence(sequence, fn) {
+    const originalRandom = Math.random;
+    let index = 0;
+    Math.random = () => sequence[Math.min(index++, sequence.length - 1)];
+    return Promise.resolve()
+      .then(fn)
+      .finally(() => {
+        Math.random = originalRandom;
+      });
+  }
+
   it("wild generator consumes a free tap and spawns a random configured chain", async () => {
     const p = createDefaultPlayer("merge-wild", "Merge");
     p.merge.freeTapCharges = 1;
@@ -226,6 +239,75 @@ describe("Gacha Merge shared generator and recipes", () => {
     assert.deepEqual(p.merge.board[0][0], null);
     assert.deepEqual(p.merge.board[0][1], { id: "glass", chainId: "earth", level: 5 });
     assert.equal(result.body.recipeId, "sand_lightning_glass");
+  });
+
+  it("does not spend gacha tokens or burn daily free pulls when the board is full", async () => {
+    const p = createDefaultPlayer("merge-full-board", "Merge");
+    p.resources.gachaTokens = ECONOMY.GACHA_PULL_COST;
+    p.merge.board = p.merge.board.map((row) =>
+      row.map(() => ({ id: "thread", chainId: "textile", level: 0 })),
+    );
+
+    const paid = await applyAction(p, "merge.gacha");
+    const free = await applyAction(p, "merge.freePull", {}, { now: 1_800_000_000_000 });
+
+    assert.equal(paid.status, 400);
+    assert.equal(paid.body.error, "board full");
+    assert.equal(p.resources.gachaTokens, ECONOMY.GACHA_PULL_COST);
+    assert.equal(free.status, 400);
+    assert.equal(free.body.error, "board full");
+    assert.equal(p.merge.lastFreePull, 0);
+  });
+
+  it("uses server time for daily free-pull and free-tap reset windows", async () => {
+    const start = 1_800_000_000_000;
+    const nextDay = start + 26 * 60 * 60 * 1000;
+    const p = createDefaultPlayer("merge-server-time", "Merge", start);
+    p.merge.lastFreePull = start;
+    p.merge.lastFreeTaps = start;
+
+    const sameDayPull = await applyAction(p, "merge.freePull", {}, { now: start + 60_000 });
+    const nextDayPull = await applyAction(p, "merge.freePull", {}, { now: nextDay });
+    const sameDayTaps = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + 60_000 });
+    const nextDayTaps = await applyAction(p, "merge.claimFreeTaps", {}, { now: nextDay });
+
+    assert.equal(sameDayPull.status, 400);
+    assert.equal(nextDayPull.status, 200);
+    assert.equal(p.merge.lastFreePull, nextDay);
+    assert.equal(sameDayTaps.status, 400);
+    assert.equal(nextDayTaps.status, 200);
+    assert.equal(p.merge.lastFreeTaps, nextDay);
+    assert.equal(p.merge.freeTapCharges, 30);
+  });
+
+  it("surfaces high-tier Merge recipe Yard drops as explicit rewards", async () => {
+    await withRandomSequence([0.01, 0.01], async () => {
+      const p = createDefaultPlayer("merge-yard-drop", "Merge");
+      p.merge.board[0][0] = { id: "sand", chainId: "earth", level: 1 };
+      p.merge.board[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+
+      const result = await applyAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
+
+      assert.equal(result.status, 200);
+      assert.equal(result.body.recipeId, "sand_lightning_glass");
+      assert.equal(result.body.reward?.type, "yardGoodie");
+      assert.equal(result.body.reward.goodieId, result.body.yardDrop);
+      assert.equal(result.body.snapshot.yard.goodieInventory[result.body.yardDrop], 1);
+    });
+  });
+
+  it("returns the trashed item without changing free taps or rewards", async () => {
+    const p = createDefaultPlayer("merge-trash", "Merge");
+    p.merge.freeTapCharges = 4;
+    p.merge.board[2][3] = { id: "thread", chainId: "textile", level: 0 };
+
+    const result = await applyAction(p, "merge.trash", { r: 2, c: 3 });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.trashedItem, { id: "thread", chainId: "textile", level: 0 });
+    assert.equal(p.merge.board[2][3], null);
+    assert.equal(p.merge.freeTapCharges, 4);
+    assert.equal(result.body.reward, undefined);
   });
 });
 
@@ -600,6 +682,60 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(collected.status, 200);
     assert.equal(collected.body.collected.gifts, 0);
     assert.ok(p.yard.lastSimulatedAt <= start + 60_000);
+  });
+
+  it("caps long-idle Yard rewards but advances simulation freshness to the reload time", () => {
+    const start = 1_800_000_000_000;
+    const returnedAt = start + YARD_SIMULATION_CAP_MS + 48 * YARD_HOUR_MS;
+    const yard = simulateYardState({
+      currencies: { treats: 80, shinyTreats: 0 },
+      foodInventory: {},
+      goodieInventory: {},
+      placedGoodies: [{
+        slotId: "small-1",
+        goodieId: "yarn_mouse",
+        condition: "new",
+        uses: 0,
+        placedAt: start,
+      }],
+      bowls: [{
+        id: "bowl-1",
+        foodId: "kibble",
+        servings: 99,
+        placedAt: start,
+        expiresAt: returnedAt + YARD_HOUR_MS,
+      }],
+      activeVisitors: [],
+      pendingGifts: [],
+      petbook: {},
+      album: { photos: [], favoritePhotoId: null },
+      mementos: {},
+      expansion: { level: 1 },
+      remodel: "meadow",
+      ownedRemodels: ["meadow"],
+      helper: { unlocked: false, autoRefill: false, preferredFoodId: "kibble" },
+      companion: { name: "Buddy", species: "dog", skinId: "basic_dog", mood: "curious" },
+      dailyLetter: { lastClaimedDate: null, stamps: 0 },
+      lastSimulatedAt: start,
+    }, returnedAt, {}, "long-idle");
+
+    const afterReload = simulateYardState(yard, returnedAt, {}, "long-idle");
+
+    assert.equal(yard.lastSimulatedAt, returnedAt);
+    assert.deepEqual(afterReload.pendingGifts, yard.pendingGifts);
+    assert.deepEqual(afterReload.activeVisitors, yard.activeVisitors);
+  });
+
+  it("clamps future Yard simulation timestamps on reconnect", () => {
+    const now = 1_800_000_000_000;
+    const yard = simulateYardState({
+      lastSimulatedAt: now + YARD_HOUR_MS,
+      bowls: [],
+      activeVisitors: [],
+      pendingGifts: [],
+    }, now, {}, "future-clock");
+
+    assert.equal(yard.lastSimulatedAt, now);
   });
 
   it("deduplicates Yard purchases, gifts, and daily letters by client action id", async () => {

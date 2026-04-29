@@ -19,8 +19,9 @@ import {
   BOOSTER_CONFIG,
   PLOT_THEMES,
 } from "../game-logic.js";
-import { withPlayerLock } from "../playerManager.js";
+import { afterPlayerCommit, withPlayerLock } from "../playerManager.js";
 import { getDb } from "../db.js";
+import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
 export default function farmRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -39,7 +40,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.post("/api/farm/state", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       calcRegen(p);
 
       // Run offline simulation (harvest → plant → water)
@@ -58,7 +59,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         newAchievements.length > 0
       ) { /* consolidated save handled by wrapper returning p */ }
 
-      res.json({
+      return routeOk({
         ...p.farm,
         plots: farmPlotsWithGrowth(p.farm),
         resources: p.resources,
@@ -78,6 +79,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         serverTime: Date.now(),
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   router.post("/api/farm/plant", requireAuth, async (req, res) => {
@@ -85,38 +87,39 @@ export default function farmRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
     const response = await withPlayerLock(userId, async (p) => {
       const { plotId, cropId } = req.body;
-      if (!CROPS[cropId]) return res.status(400).json({ error: "unknown crop" });
+      if (!CROPS[cropId]) return routeFail(400, { error: "unknown crop" });
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
-        return res.status(400).json({ error: "invalid plot" });
+        return routeFail(400, { error: "invalid plot" });
       const plot = p.farm.plots[idx];
-      if (plot.crop) return res.status(400).json({ error: "plot occupied" });
+      if (plot.crop) return routeFail(400, { error: "plot occupied" });
       const seeds = p.farm.inventory[cropId] || 0;
-      if (seeds <= 0) return res.status(400).json({ error: "no seeds" });
+      if (seeds <= 0) return routeFail(400, { error: "no seeds" });
 
       p.farm.inventory[cropId] = seeds - 1;
       plot.crop = cropId;
       plot.plantedAt = Date.now();
       plot.watered = false;
 
-      const sql = getDb();
-      if (sql) {
-        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
-            VALUES (${userId}, ${username}, 'plant', ${sql.json({ crop_id: cropId })})`.catch(console.error);
-      }
+      afterPlayerCommit(p, async () => {
+        const sql = getDb();
+        if (!sql) return;
+        await sql`INSERT INTO player_events (user_id, username, event_type, metadata)
+            VALUES (${userId}, ${username}, 'plant', ${sql.json({ crop_id: cropId })})`;
+      });
 
       const newAchievements = checkAchievements(p);
 
-      return {
+      return routeOk({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         inventory: p.farm.inventory,
         newAchievements,
         achievements: p.achievements,
         serverTime: Date.now(),
-      };
+      });
     }, username);
-    if (!res.headersSent) res.json(response);
+    return sendRouteResult(res, response);
   });
 
   router.post("/api/farm/water", requireAuth, async (req, res) => {
@@ -126,23 +129,23 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
-        return res.status(400).json({ error: "invalid plot" });
+        return routeFail(400, { error: "invalid plot" });
       const plot = p.farm.plots[idx];
       if (!plot.crop || plot.watered)
-        return res.status(400).json({ error: "cannot water" });
+        return routeFail(400, { error: "cannot water" });
       plot.watered = true;
       
       const newAchievements = checkAchievements(p);
 
-      return {
+      return routeOk({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         newAchievements,
         achievements: p.achievements,
         serverTime: Date.now(),
-      };
+      });
     }, username);
-    if (!res.headersSent) res.json(response);
+    return sendRouteResult(res, response);
   });
 
   router.post("/api/farm/harvest", requireAuth, async (req, res) => {
@@ -152,10 +155,10 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
-        return res.status(400).json({ error: "invalid plot" });
+        return routeFail(400, { error: "invalid plot" });
       const plot = p.farm.plots[idx];
       if (!plot.crop)
-        return res.status(400).json({ error: "nothing to harvest" });
+        return routeFail(400, { error: "nothing to harvest" });
       // Allow 2500ms grace period for client-server network latency and time drift
       // Otherwise, the legitimate optimistic UI triggers a 400 error which freezes the game.
       if (getGrowthPct(plot, Date.now() + 2500) < 1) {
@@ -165,7 +168,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         const totalGrowMs = (cfg?.growthTime || 60000) * mult;
         const elapsed = Date.now() - (plot.plantedAt || Date.now());
         const remainingMs = Math.max(0, totalGrowMs - elapsed);
-        return res.status(400).json({
+        return routeFail(400, {
           error: "crop not grown",
           remainingMs,
           serverTime: Date.now()
@@ -203,15 +206,16 @@ export default function farmRoutes(requireAuth, resolveUser) {
       plot.plantedAt = null;
       plot.watered = false;
 
-      const sql = getDb();
-      if (sql) {
-        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
-            VALUES (${userId}, ${username}, 'harvest', ${sql.json({ crop_id: cropId, xp_gained: cfg.xp, is_rare: !!cfg.isRare })})`.catch(console.error);
-      }
+      afterPlayerCommit(p, async () => {
+        const sql = getDb();
+        if (!sql) return;
+        await sql`INSERT INTO player_events (user_id, username, event_type, metadata)
+            VALUES (${userId}, ${username}, 'harvest', ${sql.json({ crop_id: cropId, xp_gained: cfg.xp, is_rare: !!cfg.isRare })})`;
+      });
 
       const newAchievements = checkAchievements(p);
 
-      return {
+      return routeOk({
         success: true,
         reward: { coins: cfg.sellPrice, xp: cfg.xp, crop: cfg.emoji },
         plots: farmPlotsWithGrowth(p.farm),
@@ -224,9 +228,9 @@ export default function farmRoutes(requireAuth, resolveUser) {
         newAchievements,
         achievements: p.achievements,
         serverTime: Date.now(),
-      };
+      });
     }, username);
-    if (!res.headersSent) res.json(response);
+    return sendRouteResult(res, response);
   });
 
   /* ─── Uproot (💣 — no refund) ─── */
@@ -237,24 +241,24 @@ export default function farmRoutes(requireAuth, resolveUser) {
       const { plotId } = req.body;
       const idx = Number(plotId);
       if (!Number.isInteger(idx) || idx < 0 || idx >= p.farm.plots.length)
-        return res.status(400).json({ error: "invalid plot" });
+        return routeFail(400, { error: "invalid plot" });
       const plot = p.farm.plots[idx];
-      if (!plot.crop) return res.status(400).json({ error: "nothing to uproot" });
+      if (!plot.crop) return routeFail(400, { error: "nothing to uproot" });
       if (getGrowthPct(plot) >= 1)
-        return res.status(400).json({ error: "already ready — harvest instead" });
+        return routeFail(400, { error: "already ready — harvest instead" });
 
       // Hard write-off: seed is lost, plot cleared
       plot.crop = null;
       plot.plantedAt = null;
       plot.watered = false;
-      return {
+      return routeOk({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         resources: p.resources,
         serverTime: Date.now(),
-      };
+      });
     }, username);
-    if (!res.headersSent) res.json(response);
+    return sendRouteResult(res, response);
   });
 
   router.post("/api/farm/buy-seeds", requireAuth, async (req, res) => {
@@ -263,22 +267,22 @@ export default function farmRoutes(requireAuth, resolveUser) {
     const response = await withPlayerLock(userId, async (p) => {
       const { cropId, amount = 1 } = req.body;
       const cfg = CROPS[cropId];
-      if (!cfg) return res.status(400).json({ error: "unknown crop" });
+      if (!cfg) return routeFail(400, { error: "unknown crop" });
       // Validate amount: must be positive integer, capped at 1000
       const qty = Math.max(1, Math.floor(Number(amount) || 1));
-      if (qty > 1000) return res.status(400).json({ error: "amount too large" });
+      if (qty > 1000) return routeFail(400, { error: "amount too large" });
       const cost = cfg.seedPrice * qty;
       if (p.resources.gold < cost)
-        return res.status(400).json({ error: "not enough gold" });
+        return routeFail(400, { error: "not enough gold" });
       p.resources.gold -= cost;
       p.farm.inventory[cropId] = (p.farm.inventory[cropId] || 0) + qty;
-      return {
+      return routeOk({
         success: true,
         resources: p.resources,
         inventory: p.farm.inventory,
-      };
+      });
     }, username);
-    if (!res.headersSent) res.json(response);
+    return sendRouteResult(res, response);
   });
 
   const BUY_PLOT_BASE_COST = 200;
@@ -287,18 +291,18 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.post("/api/farm/buy-plot", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const currentPlots = p.farm.plots.length;
 
       if (currentPlots >= MAX_PLOTS) {
-        return res.status(400).json({ error: "max plots reached" });
+        return routeFail(400, { error: "max plots reached" });
       }
 
       // Doubling cost: 200, 400, 800, 1600, 3200, 6400
       const cost = BUY_PLOT_BASE_COST * Math.pow(2, currentPlots - 6);
 
       if (p.resources.gold < cost) {
-        return res.status(400).json({ error: "not enough gold", cost });
+        return routeFail(400, { error: "not enough gold", cost });
       }
 
       p.resources.gold -= cost;
@@ -309,11 +313,12 @@ export default function farmRoutes(requireAuth, resolveUser) {
         watered: false,
       });
 
-      const sql = getDb();
-      if (sql) {
-        sql`INSERT INTO player_events (user_id, username, event_type, metadata) 
-            VALUES (${userId}, ${username}, 'buy_plot', ${sql.json({ plot_id: currentPlots, cost })})`.catch(console.error);
-      }
+      afterPlayerCommit(p, async () => {
+        const sql = getDb();
+        if (!sql) return;
+        await sql`INSERT INTO player_events (user_id, username, event_type, metadata)
+            VALUES (${userId}, ${username}, 'buy_plot', ${sql.json({ plot_id: currentPlots, cost })})`;
+      });
 
       const nextCost =
         currentPlots + 1 < MAX_PLOTS
@@ -322,7 +327,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
           
       const newAchievements = checkAchievements(p);
 
-      res.json({
+      return routeOk({
         success: true,
         plots: farmPlotsWithGrowth(p.farm),
         resources: p.resources,
@@ -333,6 +338,7 @@ export default function farmRoutes(requireAuth, resolveUser) {
         achievements: p.achievements,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   /* ─── v7.3: Dynamic Crops Config ─── */
@@ -361,69 +367,72 @@ export default function farmRoutes(requireAuth, resolveUser) {
   router.post("/api/farm/activate-booster", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { boosterId = "fertilizer" } = req.body;
       const cfg = BOOSTER_CONFIG[boosterId];
-      if (!cfg) return res.status(400).json({ error: "unknown booster" });
+      if (!cfg) return routeFail(400, { error: "unknown booster" });
       if (!p.boosters) p.boosters = {};
       if (
         p.boosters[boosterId]?.active &&
         p.boosters[boosterId].expiresAt > Date.now()
       ) {
-        return res.status(400).json({ error: "booster already active" });
+        return routeFail(400, { error: "booster already active" });
       }
       if (p.resources.gold < cfg.cost) {
-        return res.status(400).json({ error: "not enough gold" });
+        return routeFail(400, { error: "not enough gold" });
       }
       p.resources.gold -= cfg.cost;
       p.boosters[boosterId] = {
         active: true,
         expiresAt: Date.now() + cfg.durationMs,
       };
-      res.json({
+      return routeOk({
         success: true,
         boosters: p.boosters,
         resources: p.resources,
       });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   /* ─── v7.3: Buy Plot Theme ─── */
   router.post("/api/farm/buy-theme", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { themeId } = req.body;
       const theme = PLOT_THEMES[themeId];
-      if (!theme) return res.status(400).json({ error: "unknown theme" });
+      if (!theme) return routeFail(400, { error: "unknown theme" });
       if (!p.cosmetics)
         p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
       if (p.cosmetics.ownedThemes.includes(themeId)) {
-        return res.status(400).json({ error: "already owned" });
+        return routeFail(400, { error: "already owned" });
       }
       if (p.resources.gold < theme.cost) {
-        return res.status(400).json({ error: "not enough gold" });
+        return routeFail(400, { error: "not enough gold" });
       }
       p.resources.gold -= theme.cost;
       p.cosmetics.ownedThemes.push(themeId);
-      res.json({ success: true, cosmetics: p.cosmetics, resources: p.resources });
+      return routeOk({ success: true, cosmetics: p.cosmetics, resources: p.resources });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   /* ─── v7.3: Set Active Theme ─── */
   router.post("/api/farm/set-theme", requireAuth, async (req, res) => {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { themeId } = req.body;
       if (!p.cosmetics)
         p.cosmetics = { activePlotTheme: "default", ownedThemes: ["default"] };
       if (!p.cosmetics.ownedThemes.includes(themeId)) {
-        return res.status(400).json({ error: "theme not owned" });
+        return routeFail(400, { error: "theme not owned" });
       }
       p.cosmetics.activePlotTheme = themeId;
-      res.json({ success: true, cosmetics: p.cosmetics });
+      return routeOk({ success: true, cosmetics: p.cosmetics });
     }, username);
+    return sendRouteResult(res, result);
   });
 
   return router;

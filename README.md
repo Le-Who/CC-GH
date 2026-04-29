@@ -84,7 +84,7 @@ Telegram Mini App
   -> Socket.IO player_sync to the account room
 ```
 
-`withPlayerLock()` is the mutation contract. It serializes mutations for a player inside one Node process with a promise-chain mutex, then uses `_version` optimistic concurrency control on `players.data` as the cross-instance safety net. Route handlers may be retried on OCC collision, so handler code must be safe when re-applied against fresh state. Fire-and-forget analytics inserts are currently accepted as duplicate-tolerant.
+`withPlayerLock()` is the mutation contract. It serializes mutations for a player inside one Node process with a promise-chain mutex, then uses `_version` optimistic concurrency control on `players.data` as the cross-instance safety net. Route handlers may be retried on OCC collision, so handler code must be safe when re-applied against fresh state. Locked route handlers return structured mutation results and send HTTP responses after the lock resolves. Duplicate-sensitive side effects belong behind `afterPlayerCommit()` hooks; fire-and-forget analytics inserts must be duplicate-tolerant if they are not commit gated.
 
 Client REST calls are made through `api()`, which adds Telegram or dev auth and uses an 8 second timeout by default. `createBatcher()` can group client requests into `/api/batch`; the server dispatches sub-requests through the Express router stack without network loopback, limits sub-request concurrency to 3, and uses nonce dedupe through Redis or an in-memory fallback.
 
@@ -115,15 +115,16 @@ Socket.IO uses the same auth model through handshake data:
 
 ## Persistence And Schema
 
-PostgreSQL is the durable source of truth. Runtime schema creation currently lives in `db.js` and includes:
+PostgreSQL is the durable source of truth. `db.js` applies ordered SQL files from `migrations/*.sql` once through the `schema_migrations` table, then runs compatibility `CREATE IF NOT EXISTS` fallback for old deployments or partial local databases. The numbered SQL history includes:
 
 - `players(id text primary key, data jsonb, updated_at timestamptz)`
 - `accounts`
 - `account_identities`
 - `player_events`
 - `player_stats_view` materialized view plus indexes
+- `schema_migrations`
 
-`migrations/001_accounts_identity.sql` is an identity-table bootstrap migration, not a complete schema history. `scripts/migrate-accounts.mjs` migrates legacy player ids to canonical `acct:<uuid>` ids and supports `--dry-run`, `--apply`, and `--verify`.
+`migrations/001_accounts_identity.sql` creates the canonical account identity tables. `migrations/002_player_state_and_stats.sql` creates the player state table, player event table, stats view, and supporting indexes. Add future SQL changes as new numbered migration files instead of expanding runtime compatibility fallback. `scripts/migrate-accounts.mjs` migrates legacy player ids to canonical `acct:<uuid>` ids and supports `--dry-run`, `--apply`, and `--verify`.
 
 Player JSON schema migrations are applied in `playerManager.js::applyMigrations()` during player mutation/loading. This is separate from SQL schema creation. Keep both migration paths in mind when changing saved state.
 
@@ -140,7 +141,7 @@ If Redis is unavailable, rate limits and nonce dedupe fall back to process-local
 Public unauthenticated APIs:
 
 - `GET /api/config` returns uncached client config plus `appVersion` and `buildId`.
-- `GET /api/health` returns app liveness plus `version` and `buildId`.
+- `GET /api/health` returns app liveness plus `version`, `buildId`, PostgreSQL status, Redis availability details, `player_stats_view` refresh state, and process-local Brain Blitz duel-room scope/counts.
 - `GET /api/health/ping`
 - `GET /api/content/crops`
 - leaderboard reads
@@ -206,11 +207,14 @@ pnpm run build
 pnpm test
 pnpm run test:perf
 pnpm run perf:guard
+pnpm run perf:guard:build
+pnpm run perf:guard:browser
+pnpm run perf:guard:all
 pnpm run test:cleanup
 docker build -t game-hub-ci .
 ```
 
-`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage, pointer-session cleanup coverage, Blox drag geometry coverage, shared theme/shell guards, the `perf:guard` budget contract, and Match-3 resolution plus animation-delay checks for bonus-block backfill, cascade snapshots, stuck overlay prevention, and Star Drop bottom-token auto-crediting. `pnpm run perf:guard` runs the same gameplay hot-path budgets directly and writes an ignored JSON report to `artifacts/perf/perf-guard-report.json`; budgets cover Blox fit/placement, Gem Crush board generation/matches/swaps/Star Drop, Merge board hydration, Bubbo pressure/shots, Garden Shelf offline simulation, Brain Blitz question picking, and Cozy Yard 36-hour visitor simulation. Playwright e2e specs are separate; the current focused gameplay checks are:
+`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pressure/drop coverage, pointer-session cleanup coverage, Blox drag geometry coverage, shared theme/shell guards, the `perf:guard` budget contract, and Match-3 resolution plus animation-delay checks for bonus-block backfill, cascade snapshots, stuck overlay prevention, and Star Drop bottom-token auto-crediting. `pnpm run perf:guard` runs hot-path budgets directly and writes an ignored JSON report to `artifacts/perf/perf-guard-report.json`; budgets cover Blox fit/placement, Gem Crush board generation/matches/swaps/Star Drop, Merge hydration/generator/recipe mutations, Bubbo pressure/shots, Garden Shelf offline simulation, Brain Blitz question picking, Cozy Yard visitor/long-idle simulation, and Player JSON migration/snapshot paths. `pnpm run perf:guard:build` checks Vite build artifact budgets after `pnpm run build`, and `pnpm run perf:guard:browser` runs the Chromium runtime smoke for lazy startup plus Gacha Merge live-play frame cadence. Use `pnpm run perf:guard -- --suite player.build-snapshot --repeat 3` for a focused repeated budget pass. The design rationale and budget policy live in `docs/PERF_GUARD.md`. Playwright e2e specs are separate; the current focused gameplay checks are:
 
 ```bash
 pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
@@ -268,13 +272,14 @@ docker compose -p ccgh up -d --remove-orphans
 
 The deploy workflow builds and pushes a GHCR image, copies `docker-compose.yml` to `/opt/game-hub`, writes the production `.env`, verifies that `APP_HOST_PORT` is not reserved or owned by another process, restarts only the `ccgh` compose project, removes stale failed app-recreate containers named like `*_ccgh-app`, and runs local plus public health checks. Deployment requires Docker Compose v2 through `docker compose`; legacy Python `docker-compose` v1.29.2 is intentionally rejected because it can fail with `KeyError: 'ContainerConfig'` when recreating app containers from modern image metadata.
 
-Current workflow trigger note: CI is configured for the `game-hub` branch, while deploy is configured for `codex/telegram-pixi-vps-migration`. Keep this intentional or align it before changing the release branch model.
+Current workflow trigger note: CI and deploy both target `codex/telegram-pixi-vps-migration`, which is also the current remote HEAD branch for this repo.
 
 ## Operations
 
 Health:
 
-- `/api/health` returns `ok` only when PostgreSQL responds to `SELECT 1`; otherwise it returns `degraded`.
+- `/api/health` returns `ok` when PostgreSQL responds to `SELECT 1`, configured Redis responds to `PING`, and the last `player_stats_view` refresh attempt has no recorded error; otherwise it returns `degraded`.
+- The health payload keeps the legacy `postgres` and `redis` booleans and adds `redisStatus`, `playerStatsView`, and `triviaDuelRooms` details for operational checks.
 - `/api/health/ping` is a simple 200 `PONG`.
 
 Cache and sync:
@@ -302,22 +307,26 @@ Cleanup gate:
 
 Verified current limitations:
 
-- SQL schema evolution is split between runtime `CREATE IF NOT EXISTS` statements, one SQL migration file, and JSON-state migrations. A dedicated ordered migration runner would make deploys and rollback reasoning safer.
-- `withPlayerLock()` retries route handlers after OCC collisions. This protects state but makes duplicate-tolerant side effects an implicit requirement. Analytics inserts are currently fire-and-forget and can duplicate during retries.
+- Player JSON migrations remain in `playerManager.js::applyMigrations()` and are separate from SQL schema migrations.
 - Redis fallbacks for nonce dedupe and rate limiting are process-local. They are not safe as distributed guarantees if the app scales beyond one Node instance without Redis.
-- CI and deploy workflows target different branches. This may be intentional during migration, but it is a release-risk if the active production branch changes.
-- Brain Blitz duel rooms are held in process memory, so they are not durable across restarts and are not shared across instances.
-- `player_stats_view` refresh is timer-based and logs failures; there is no external scheduler or alerting in this repo.
+- Brain Blitz duel rooms are explicitly process-local and are reported in `/api/health`; they are not durable across restarts and are not shared across instances.
+- `player_stats_view` refresh is timer-based and exposed through `/api/health`; there is still no external scheduler or alerting in this repo.
+
+Addressed in the current branch:
+
+- Added an ordered SQL migration runner backed by `schema_migrations`, backfilled SQL history through `002_player_state_and_stats.sql`, and kept `db.js` schema creation as compatibility fallback.
+- Refactored remaining locked route handlers to return structured mutation results instead of writing Express responses inside `withPlayerLock()` callbacks.
+- Moved Farm/resource analytics writes behind `afterPlayerCommit()` so losing OCC retry attempts cannot double-record events.
+- Tightened Gacha Merge daily reset, generator, recipe, trash, reward-drop, and Cozy Yard goodie integration semantics around authoritative mutation results.
+- Hardened Cozy Yard long-idle/reconnect simulation so capped offline returns do not replay extra visitor or gift windows on reload.
+- Aligned CI and deploy workflow branch filters to `codex/telegram-pixi-vps-migration`.
+- Added `/api/health` details for actual Redis availability, materialized-view refresh success/failure, and Brain Blitz process-local room scope.
 
 Improvement backlog:
 
-1. Add an explicit migration runner and make `db.js` schema creation a bootstrap fallback instead of the primary schema history.
-2. Refactor route handlers to return structured mutation results instead of writing to `res` inside `withPlayerLock()` callbacks.
-3. Move duplicate-sensitive side effects behind commit-success hooks so OCC retries cannot double-record them.
-4. Broaden Playwright e2e beyond the focused minigame/gesture specs to cover full economy loops, trivia duel edge cases, Cozy Yard long-idle visitor flows, and additional viewport-change cases outside Gem Crush.
-5. Align CI/deploy branch triggers with the current release model.
-6. Persist or explicitly scope trivia duel rooms depending on whether cross-instance play is required.
-7. Add operational checks for materialized-view refresh failures and Redis availability.
+1. Broaden Playwright e2e beyond the focused minigame/gesture specs to cover full economy loops, trivia duel edge cases, Cozy Yard long-idle visitor flows, and additional viewport-change cases outside Gem Crush.
+2. Decide whether Brain Blitz duels need durable cross-instance storage; current product scope is explicitly process-local.
+3. Add external scheduler/alerting for materialized-view refresh failures and Redis outages if the VPS moves beyond in-app health checks.
 
 ## Must-Preserve Invariants
 

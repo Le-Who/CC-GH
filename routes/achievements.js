@@ -7,6 +7,7 @@
 import { Router } from "express";
 import { ACHIEVEMENTS, checkAchievements } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
 export default function achievementRoutes(requireAuth, resolveUser) {
   const router = Router();
@@ -16,7 +17,7 @@ export default function achievementRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
 
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       // Check for newly unlocked badges
       const newlyUnlocked = checkAchievements(p);
 
@@ -35,30 +36,31 @@ export default function achievementRoutes(requireAuth, resolveUser) {
         };
       }
 
-      res.json({
+      return routeOk({
         badges,
         newlyUnlocked,
         totalUnlocked: Object.keys(p.achievements).length,
         totalBadges: Object.keys(ACHIEVEMENTS).length,
       });
     });
+    return sendRouteResult(res, result);
   });
 
   /* ─── Claim Achievement Reward ─── */
   router.post("/api/achievements/claim", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
-    await withPlayerLock(userId, async (p) => {
+    const result = await withPlayerLock(userId, async (p) => {
       const { badgeId } = req.body;
 
       if (!badgeId || !ACHIEVEMENTS[badgeId]) {
-        return res.status(400).json({ error: "invalid badge ID" });
+        return routeFail(400, { error: "invalid badge ID" });
       }
       if (!p.achievements[badgeId]) {
-        return res.status(400).json({ error: "badge not unlocked" });
+        return routeFail(400, { error: "badge not unlocked" });
       }
       if (p.achievements[badgeId].seen) {
-        return res.status(400).json({ error: "already claimed" });
+        return routeFail(400, { error: "already claimed" });
       }
 
       // Grant reward
@@ -69,13 +71,14 @@ export default function achievementRoutes(requireAuth, resolveUser) {
 
       // Mark as claimed
       p.achievements[badgeId].seen = true;
-      res.json({
+      return routeOk({
         success: true,
         reward,
         resources: p.resources,
         achievements: p.achievements,
       });
     });
+    return sendRouteResult(res, result);
   });
 
   return router;
