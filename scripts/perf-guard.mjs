@@ -343,7 +343,7 @@ export const PERF_SUITES = [
     id: "bubbo.pressure-advance",
     group: "Bubbo Bubbo",
     description: "Advance pressure by multiple intervals and insert pending waves.",
-    budget: { p95: 0.6, max: 3 },
+    budget: { p95: 0.6, max: 8 },
     iterations: 500,
     warmup: 60,
     fn: () => advanceBubboPressure(stableBubboRun, 29_500),

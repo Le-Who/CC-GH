@@ -8,7 +8,7 @@ import {
   bloxGhostOrigin,
   createBloxDragState,
   tickParticles,
-} from "../src/game-runtime/scenes.js";
+} from "../src/game-runtime/sceneGeometry.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
