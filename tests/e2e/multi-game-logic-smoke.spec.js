@@ -6,6 +6,7 @@ import {
   getGardenLevelReward,
   getGardenXpRequired,
 } from "../../game-logic.js";
+import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
 import { applyAction } from "../../routes/player.js";
 import { BUBBO_COLS, BUBBO_ROWS, advanceBubboPressure, generateBubboWave, settleFloatingBubbo } from "../../src/game-core/bubbo/engine.js";
 import { BOARD_SIZE, attemptMatch3Move } from "../../src/game-core/match3/engine.js";
@@ -186,8 +187,8 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    const levelButton = page.locator(".stats-row .stat-chip.clickable").filter({ hasText: "Garden XP" });
-    await expect(levelButton).toContainText(`${getGardenXpRequired(1)}/${getGardenXpRequired(1)}`);
+    const levelButton = page.locator(".stats-row .stat-chip.clickable").filter({ hasText: "Level Up" });
+    await expect(levelButton).toContainText(`+${formatGardenGoldAmount(getGardenLevelReward(1))}`);
     const levelResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/player/mutate")) return false;
       return parsePlayerActionRequest(response.request())?.action === "garden.levelUp";

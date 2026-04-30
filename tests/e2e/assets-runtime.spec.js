@@ -49,6 +49,7 @@ test.describe("generated runtime asset manifest", () => {
     await exitActiveGame(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
+    await expect(page.locator(".companion-yard-layout")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Cozy Yard")).toBeVisible();
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", /\/assets-runtime\/companion-yard\/backgrounds\//);
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");

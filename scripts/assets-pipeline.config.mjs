@@ -1,8 +1,21 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-function entry(key, source, outputDir, bundle = null, formats = ["webp", "png"]) {
-  return { key, source, outputDir, bundle, formats };
+function entry(key, source, outputDir, bundle = null, formats = ["webp", "png"], options = {}) {
+  return { key, source, outputDir, bundle, formats, ...options };
+}
+
+function runtimeWebpOnly(options = {}) {
+  return {
+    formats: ["webp"],
+    raster: {
+      webp: {
+        quality: 90,
+        effort: 6,
+        ...options,
+      },
+    },
+  };
 }
 
 async function fileExists(rootDir, source) {
@@ -85,13 +98,16 @@ async function addGardenEntries(entries, rootDir) {
 async function addCompanionYardEntries(entries, rootDir) {
   const root = "public/games/companion-yard";
   const files = await walkFiles(rootDir, root, new Set([".png"]));
+  const compactRuntimeImage = runtimeWebpOnly();
   for (const file of files) {
     const parts = file.slice(`${root}/`.length).split("/");
     if (parts.length !== 2) continue;
     const [type, fileName] = parts;
     if (!["backgrounds", "foods", "goodies", "visitors", "companions"].includes(type)) continue;
     const id = path.basename(fileName, path.extname(fileName));
-    entries.push(entry(`companionYard.${type}.${id}`, file, `companion-yard/${type}`));
+    entries.push(entry(`companionYard.${type}.${id}`, file, `companion-yard/${type}`, null, compactRuntimeImage.formats, {
+      raster: compactRuntimeImage.raster,
+    }));
   }
 }
 

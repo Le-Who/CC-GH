@@ -68,381 +68,471 @@
     },
     "companionYard.backgrounds.meadow": {
       "type": "image",
-      "width": 960,
-      "height": 640,
-      "src": "/assets-runtime/companion-yard/backgrounds/meadow.158b7cf5.webp",
-      "fallback": "/assets-runtime/companion-yard/backgrounds/meadow.fad03082.png"
+      "width": 1024,
+      "height": 1536,
+      "src": "/assets-runtime/companion-yard/backgrounds/meadow.056cbb64.webp"
     },
     "companionYard.backgrounds.moon_garden": {
       "type": "image",
-      "width": 960,
-      "height": 640,
-      "src": "/assets-runtime/companion-yard/backgrounds/moon_garden.5a3d3e1e.webp",
-      "fallback": "/assets-runtime/companion-yard/backgrounds/moon_garden.640c711c.png"
+      "width": 1024,
+      "height": 1536,
+      "src": "/assets-runtime/companion-yard/backgrounds/moon_garden.8c2f8325.webp"
     },
     "companionYard.backgrounds.tea_house": {
       "type": "image",
-      "width": 960,
-      "height": 640,
-      "src": "/assets-runtime/companion-yard/backgrounds/tea_house.c8a7995a.webp",
-      "fallback": "/assets-runtime/companion-yard/backgrounds/tea_house.bf516520.png"
+      "width": 1024,
+      "height": 1536,
+      "src": "/assets-runtime/companion-yard/backgrounds/tea_house.2c688598.webp"
     },
     "companionYard.companions.bunny": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/companions/bunny.9ccf83ef.webp",
-      "fallback": "/assets-runtime/companion-yard/companions/bunny.9c35b557.png"
+      "width": 313,
+      "height": 510,
+      "src": "/assets-runtime/companion-yard/companions/bunny.4bbd0f74.webp"
     },
     "companionYard.companions.cat": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/companions/cat.371b49ff.webp",
-      "fallback": "/assets-runtime/companion-yard/companions/cat.8b297723.png"
+      "width": 395,
+      "height": 459,
+      "src": "/assets-runtime/companion-yard/companions/cat.c249c9bb.webp"
     },
     "companionYard.companions.dog": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/companions/dog.47a631c9.webp",
-      "fallback": "/assets-runtime/companion-yard/companions/dog.297cc731.png"
+      "width": 397,
+      "height": 443,
+      "src": "/assets-runtime/companion-yard/companions/dog.eb4db511.webp"
     },
     "companionYard.companions.fox": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/companions/fox.1d467673.webp",
-      "fallback": "/assets-runtime/companion-yard/companions/fox.18a56577.png"
+      "width": 403,
+      "height": 457,
+      "src": "/assets-runtime/companion-yard/companions/fox.1a93992a.webp"
     },
     "companionYard.companions.hamster": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/companions/hamster.26eacfa7.webp",
-      "fallback": "/assets-runtime/companion-yard/companions/hamster.19c01254.png"
+      "width": 313,
+      "height": 357,
+      "src": "/assets-runtime/companion-yard/companions/hamster.f49a8d6f.webp"
     },
     "companionYard.companions.turtle": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/companions/turtle.476d43d5.webp",
-      "fallback": "/assets-runtime/companion-yard/companions/turtle.f9541e36.png"
+      "width": 436,
+      "height": 343,
+      "src": "/assets-runtime/companion-yard/companions/turtle.3f620c3b.webp"
     },
     "companionYard.foods.berry_plate": {
       "type": "image",
       "width": 320,
       "height": 320,
-      "src": "/assets-runtime/companion-yard/foods/berry_plate.95f3afa9.webp",
-      "fallback": "/assets-runtime/companion-yard/foods/berry_plate.e506d580.png"
+      "src": "/assets-runtime/companion-yard/foods/berry_plate.29c75e12.webp"
     },
     "companionYard.foods.bonito_bowl": {
       "type": "image",
       "width": 320,
       "height": 320,
-      "src": "/assets-runtime/companion-yard/foods/bonito_bowl.da906b60.webp",
-      "fallback": "/assets-runtime/companion-yard/foods/bonito_bowl.f3a2e97f.png"
+      "src": "/assets-runtime/companion-yard/foods/bonito_bowl.ee0677bd.webp"
     },
     "companionYard.foods.empty_bowl": {
       "type": "image",
       "width": 320,
       "height": 320,
-      "src": "/assets-runtime/companion-yard/foods/empty_bowl.849e5241.webp",
-      "fallback": "/assets-runtime/companion-yard/foods/empty_bowl.9df1cd86.png"
+      "src": "/assets-runtime/companion-yard/foods/empty_bowl.e998ff32.webp"
     },
     "companionYard.foods.kibble": {
       "type": "image",
       "width": 320,
       "height": 320,
-      "src": "/assets-runtime/companion-yard/foods/kibble.7d791972.webp",
-      "fallback": "/assets-runtime/companion-yard/foods/kibble.26ca5b97.png"
+      "src": "/assets-runtime/companion-yard/foods/kibble.448c908b.webp"
     },
     "companionYard.goodies.book_nook": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/book_nook.47902993.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/book_nook.fb6082dc.png"
+      "width": 650,
+      "height": 363,
+      "src": "/assets-runtime/companion-yard/goodies/book_nook.f82c2939.webp"
     },
     "companionYard.goodies.book_nook_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/book_nook_broken.d7e8af17.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/book_nook_broken.f7e7a1bc.png"
+      "src": "/assets-runtime/companion-yard/goodies/book_nook_broken.15ae7394.webp"
     },
     "companionYard.goodies.book_nook_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/book_nook_worn.7d9add8f.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/book_nook_worn.b4eccbc7.png"
+      "src": "/assets-runtime/companion-yard/goodies/book_nook_worn.d9fa19eb.webp"
     },
     "companionYard.goodies.cardboard_cottage": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage.10a66e40.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cardboard_cottage.814aaaf5.png"
+      "width": 457,
+      "height": 370,
+      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage.eabde7ee.webp"
     },
     "companionYard.goodies.cardboard_cottage_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage_broken.b58ac08c.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cardboard_cottage_broken.d664c144.png"
+      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage_broken.320f363d.webp"
     },
     "companionYard.goodies.cardboard_cottage_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage_worn.4d6d62c4.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cardboard_cottage_worn.c8998e88.png"
+      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage_worn.6587a5d6.webp"
     },
     "companionYard.goodies.cloud_bed": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cloud_bed.5245dc0f.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cloud_bed.51ee95b6.png"
+      "width": 434,
+      "height": 283,
+      "src": "/assets-runtime/companion-yard/goodies/cloud_bed.5957223f.webp"
     },
     "companionYard.goodies.cloud_bed_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cloud_bed_broken.e746dddb.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cloud_bed_broken.a77c2dba.png"
+      "src": "/assets-runtime/companion-yard/goodies/cloud_bed_broken.b96b8996.webp"
     },
     "companionYard.goodies.cloud_bed_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cloud_bed_worn.cc49f3fd.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cloud_bed_worn.27d8554d.png"
+      "src": "/assets-runtime/companion-yard/goodies/cloud_bed_worn.63ad84f9.webp"
     },
     "companionYard.goodies.cozy_chair": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cozy_chair.1dbb50c6.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cozy_chair.633b6d97.png"
+      "width": 365,
+      "height": 319,
+      "src": "/assets-runtime/companion-yard/goodies/cozy_chair.b2f41008.webp"
     },
     "companionYard.goodies.cozy_chair_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cozy_chair_broken.56e1afa4.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cozy_chair_broken.1e127a62.png"
+      "src": "/assets-runtime/companion-yard/goodies/cozy_chair_broken.95ebf340.webp"
     },
     "companionYard.goodies.cozy_chair_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/cozy_chair_worn.4205e488.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/cozy_chair_worn.45f574e7.png"
+      "src": "/assets-runtime/companion-yard/goodies/cozy_chair_worn.514d2828.webp"
     },
     "companionYard.goodies.fountain_bowl": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl.71a1788a.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/fountain_bowl.354b042e.png"
+      "width": 375,
+      "height": 300,
+      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl.64822417.webp"
     },
     "companionYard.goodies.fountain_bowl_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl_broken.6233c9a5.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/fountain_bowl_broken.130e03d6.png"
+      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl_broken.16094894.webp"
     },
     "companionYard.goodies.fountain_bowl_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl_worn.e977f61f.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/fountain_bowl_worn.9a8d9843.png"
+      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl_worn.9ede9c53.webp"
     },
     "companionYard.goodies.leaf_pot": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/leaf_pot.792201c8.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/leaf_pot.5369212b.png"
+      "width": 301,
+      "height": 269,
+      "src": "/assets-runtime/companion-yard/goodies/leaf_pot.f51e45e9.webp"
     },
     "companionYard.goodies.leaf_pot_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/leaf_pot_broken.9553ee52.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/leaf_pot_broken.8926555d.png"
+      "src": "/assets-runtime/companion-yard/goodies/leaf_pot_broken.82f993dc.webp"
     },
     "companionYard.goodies.leaf_pot_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/leaf_pot_worn.c35d5dcb.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/leaf_pot_worn.38d3848b.png"
+      "src": "/assets-runtime/companion-yard/goodies/leaf_pot_worn.59c6901e.webp"
     },
     "companionYard.goodies.moon_lamp": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/moon_lamp.b3dd25b1.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/moon_lamp.0d6eebe6.png"
+      "width": 242,
+      "height": 328,
+      "src": "/assets-runtime/companion-yard/goodies/moon_lamp.1f417681.webp"
     },
     "companionYard.goodies.moon_lamp_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/moon_lamp_broken.948d6835.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/moon_lamp_broken.b9d8b896.png"
+      "src": "/assets-runtime/companion-yard/goodies/moon_lamp_broken.fa077508.webp"
     },
     "companionYard.goodies.moon_lamp_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/moon_lamp_worn.a5c31e02.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/moon_lamp_worn.adfa468a.png"
+      "src": "/assets-runtime/companion-yard/goodies/moon_lamp_worn.a71a5a00.webp"
     },
     "companionYard.goodies.moss_rug": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/moss_rug.4c55a66e.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/moss_rug.27d5b5c8.png"
+      "width": 471,
+      "height": 253,
+      "src": "/assets-runtime/companion-yard/goodies/moss_rug.dde1173e.webp"
     },
     "companionYard.goodies.moss_rug_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/moss_rug_broken.195774e2.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/moss_rug_broken.cb8e8836.png"
+      "src": "/assets-runtime/companion-yard/goodies/moss_rug_broken.06f0ed6d.webp"
     },
     "companionYard.goodies.moss_rug_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/moss_rug_worn.0e6cc24a.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/moss_rug_worn.b59f8956.png"
+      "src": "/assets-runtime/companion-yard/goodies/moss_rug_worn.624bc2a5.webp"
     },
     "companionYard.goodies.snack_table": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/snack_table.99870564.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/snack_table.dc10aed4.png"
+      "width": 380,
+      "height": 269,
+      "src": "/assets-runtime/companion-yard/goodies/snack_table.1db852d5.webp"
     },
     "companionYard.goodies.snack_table_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/snack_table_broken.af07ff95.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/snack_table_broken.7f30b81c.png"
+      "src": "/assets-runtime/companion-yard/goodies/snack_table_broken.fff1bd6d.webp"
     },
     "companionYard.goodies.snack_table_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/snack_table_worn.31df1c72.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/snack_table_worn.789a4fa7.png"
+      "src": "/assets-runtime/companion-yard/goodies/snack_table_worn.a7362caf.webp"
     },
     "companionYard.goodies.sun_cushion": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/sun_cushion.9a1c6d09.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/sun_cushion.4e163656.png"
+      "width": 397,
+      "height": 293,
+      "src": "/assets-runtime/companion-yard/goodies/sun_cushion.15f87ba9.webp"
     },
     "companionYard.goodies.sun_cushion_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/sun_cushion_broken.cc31f7e4.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/sun_cushion_broken.fa9f2e68.png"
+      "src": "/assets-runtime/companion-yard/goodies/sun_cushion_broken.a8561bc2.webp"
     },
     "companionYard.goodies.sun_cushion_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/sun_cushion_worn.7936093b.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/sun_cushion_worn.b0c04c64.png"
+      "src": "/assets-runtime/companion-yard/goodies/sun_cushion_worn.a0f3887f.webp"
     },
     "companionYard.goodies.yarn_mouse": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse.6064122e.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/yarn_mouse.66733002.png"
+      "width": 306,
+      "height": 194,
+      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse.dec11fbf.webp"
     },
     "companionYard.goodies.yarn_mouse_broken": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse_broken.d33ab771.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/yarn_mouse_broken.791e06cf.png"
+      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse_broken.88cb6b43.webp"
     },
     "companionYard.goodies.yarn_mouse_worn": {
       "type": "image",
       "width": 360,
       "height": 360,
-      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse_worn.9ac81354.webp",
-      "fallback": "/assets-runtime/companion-yard/goodies/yarn_mouse_worn.84dee0bd.png"
+      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse_worn.851eab86.webp"
     },
     "companionYard.visitors.basil_turtle": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/basil_turtle.1ee449a0.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/basil_turtle.a87d6a55.png"
+      "width": 356,
+      "height": 239,
+      "src": "/assets-runtime/companion-yard/visitors/basil_turtle.9997d74d.webp"
+    },
+    "companionYard.visitors.basil_turtle_rest": {
+      "type": "image",
+      "width": 305,
+      "height": 203,
+      "src": "/assets-runtime/companion-yard/visitors/basil_turtle_rest.0149a160.webp"
+    },
+    "companionYard.visitors.basil_turtle_soak": {
+      "type": "image",
+      "width": 356,
+      "height": 239,
+      "src": "/assets-runtime/companion-yard/visitors/basil_turtle_soak.9997d74d.webp"
+    },
+    "companionYard.visitors.basil_turtle_watch": {
+      "type": "image",
+      "width": 324,
+      "height": 234,
+      "src": "/assets-runtime/companion-yard/visitors/basil_turtle_watch.044fe8e0.webp"
     },
     "companionYard.visitors.mika_cat": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/mika_cat.21f2a05c.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/mika_cat.2dc2d196.png"
+      "width": 378,
+      "height": 332,
+      "src": "/assets-runtime/companion-yard/visitors/mika_cat.726500d6.webp"
+    },
+    "companionYard.visitors.mika_cat_nap": {
+      "type": "image",
+      "width": 337,
+      "height": 224,
+      "src": "/assets-runtime/companion-yard/visitors/mika_cat_nap.c218e1d8.webp"
+    },
+    "companionYard.visitors.mika_cat_pounce": {
+      "type": "image",
+      "width": 378,
+      "height": 332,
+      "src": "/assets-runtime/companion-yard/visitors/mika_cat_pounce.726500d6.webp"
+    },
+    "companionYard.visitors.mika_cat_sit": {
+      "type": "image",
+      "width": 274,
+      "height": 316,
+      "src": "/assets-runtime/companion-yard/visitors/mika_cat_sit.4c6f8bd1.webp"
     },
     "companionYard.visitors.mochi_bunny": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/mochi_bunny.f77760fd.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/mochi_bunny.59c4b7ad.png"
+      "width": 327,
+      "height": 242,
+      "src": "/assets-runtime/companion-yard/visitors/mochi_bunny.d3f5628d.webp"
+    },
+    "companionYard.visitors.mochi_bunny_nap": {
+      "type": "image",
+      "width": 327,
+      "height": 242,
+      "src": "/assets-runtime/companion-yard/visitors/mochi_bunny_nap.d3f5628d.webp"
+    },
+    "companionYard.visitors.mochi_bunny_nibble": {
+      "type": "image",
+      "width": 240,
+      "height": 321,
+      "src": "/assets-runtime/companion-yard/visitors/mochi_bunny_nibble.ba0f04b8.webp"
+    },
+    "companionYard.visitors.mochi_bunny_stretch": {
+      "type": "image",
+      "width": 333,
+      "height": 288,
+      "src": "/assets-runtime/companion-yard/visitors/mochi_bunny_stretch.a8a270f9.webp"
     },
     "companionYard.visitors.pebble_pup": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/pebble_pup.139d668c.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/pebble_pup.dfd64c7d.png"
+      "width": 324,
+      "height": 294,
+      "src": "/assets-runtime/companion-yard/visitors/pebble_pup.871191f5.webp"
+    },
+    "companionYard.visitors.pebble_pup_roll": {
+      "type": "image",
+      "width": 369,
+      "height": 247,
+      "src": "/assets-runtime/companion-yard/visitors/pebble_pup_roll.1b1af56c.webp"
+    },
+    "companionYard.visitors.pebble_pup_sit": {
+      "type": "image",
+      "width": 282,
+      "height": 288,
+      "src": "/assets-runtime/companion-yard/visitors/pebble_pup_sit.df091812.webp"
+    },
+    "companionYard.visitors.pebble_pup_sniff": {
+      "type": "image",
+      "width": 324,
+      "height": 294,
+      "src": "/assets-runtime/companion-yard/visitors/pebble_pup_sniff.871191f5.webp"
     },
     "companionYard.visitors.pip_hamster": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/pip_hamster.22481885.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/pip_hamster.fbea6687.png"
+      "width": 234,
+      "height": 262,
+      "src": "/assets-runtime/companion-yard/visitors/pip_hamster.b89fd6a6.webp"
+    },
+    "companionYard.visitors.pip_hamster_nibble": {
+      "type": "image",
+      "width": 234,
+      "height": 262,
+      "src": "/assets-runtime/companion-yard/visitors/pip_hamster_nibble.b89fd6a6.webp"
+    },
+    "companionYard.visitors.pip_hamster_peek": {
+      "type": "image",
+      "width": 237,
+      "height": 197,
+      "src": "/assets-runtime/companion-yard/visitors/pip_hamster_peek.754895c9.webp"
+    },
+    "companionYard.visitors.pip_hamster_sit": {
+      "type": "image",
+      "width": 225,
+      "height": 272,
+      "src": "/assets-runtime/companion-yard/visitors/pip_hamster_sit.54f8d0d0.webp"
     },
     "companionYard.visitors.sage_turtle": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/sage_turtle.39b99c1d.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/sage_turtle.cfb95307.png"
+      "width": 351,
+      "height": 253,
+      "src": "/assets-runtime/companion-yard/visitors/sage_turtle.b1356c88.webp"
+    },
+    "companionYard.visitors.sage_turtle_rest": {
+      "type": "image",
+      "width": 310,
+      "height": 247,
+      "src": "/assets-runtime/companion-yard/visitors/sage_turtle_rest.30eb1e55.webp"
+    },
+    "companionYard.visitors.sage_turtle_soak": {
+      "type": "image",
+      "width": 351,
+      "height": 253,
+      "src": "/assets-runtime/companion-yard/visitors/sage_turtle_soak.b1356c88.webp"
+    },
+    "companionYard.visitors.sage_turtle_watch": {
+      "type": "image",
+      "width": 295,
+      "height": 243,
+      "src": "/assets-runtime/companion-yard/visitors/sage_turtle_watch.b7261db2.webp"
     },
     "companionYard.visitors.starlit_fox": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/starlit_fox.88fb4406.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/starlit_fox.4725abd8.png"
+      "width": 271,
+      "height": 311,
+      "src": "/assets-runtime/companion-yard/visitors/starlit_fox.483765d7.webp"
+    },
+    "companionYard.visitors.starlit_fox_curl": {
+      "type": "image",
+      "width": 311,
+      "height": 247,
+      "src": "/assets-runtime/companion-yard/visitors/starlit_fox_curl.a79d65ef.webp"
+    },
+    "companionYard.visitors.starlit_fox_glow": {
+      "type": "image",
+      "width": 271,
+      "height": 311,
+      "src": "/assets-runtime/companion-yard/visitors/starlit_fox_glow.483765d7.webp"
+    },
+    "companionYard.visitors.starlit_fox_watch": {
+      "type": "image",
+      "width": 274,
+      "height": 257,
+      "src": "/assets-runtime/companion-yard/visitors/starlit_fox_watch.4a38c6bf.webp"
     },
     "companionYard.visitors.willow_fox": {
       "type": "image",
-      "width": 360,
-      "height": 360,
-      "src": "/assets-runtime/companion-yard/visitors/willow_fox.57b62ae1.webp",
-      "fallback": "/assets-runtime/companion-yard/visitors/willow_fox.d932ff33.png"
+      "width": 279,
+      "height": 319,
+      "src": "/assets-runtime/companion-yard/visitors/willow_fox.18240cc8.webp"
+    },
+    "companionYard.visitors.willow_fox_curl": {
+      "type": "image",
+      "width": 315,
+      "height": 263,
+      "src": "/assets-runtime/companion-yard/visitors/willow_fox_curl.5d104204.webp"
+    },
+    "companionYard.visitors.willow_fox_listen": {
+      "type": "image",
+      "width": 279,
+      "height": 319,
+      "src": "/assets-runtime/companion-yard/visitors/willow_fox_listen.18240cc8.webp"
+    },
+    "companionYard.visitors.willow_fox_peek": {
+      "type": "image",
+      "width": 287,
+      "height": 257,
+      "src": "/assets-runtime/companion-yard/visitors/willow_fox_peek.802c8107.webp"
     },
     "gardenShelf.bottomPlank": {
       "type": "image",

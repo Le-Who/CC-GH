@@ -96,8 +96,13 @@ export const LEVELS = GARDEN_LEVELS as GardenLevelDefinition[];
 export const PHASE_DURATIONS_MS = [120000, 480000, 1800000];
 
 export const TAP_GROWTH_ACCELERATION_MS = 2000;
+export const GARDEN_GROWTH_TAP_COOLDOWN_MS = 500;
 export const WATER_COOLDOWN_MS = 8 * 60 * 1000;
 export const WATER_GROWTH_ACCELERATION_RATIO = 0.08;
+
+export function getGardenTapCooldownMs(phase: number) {
+  return phase < 3 ? GARDEN_GROWTH_TAP_COOLDOWN_MS : GARDEN_TAP_REWARD_COOLDOWN_MS;
+}
 
 export const MAX_SHELVES = 5;
 export const SPOTS_PER_SHELF = 3;

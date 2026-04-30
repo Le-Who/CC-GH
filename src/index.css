@@ -353,6 +353,19 @@ button.stat-chip {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mint) 22%, transparent);
 }
 
+.stat-chip.clickable.active::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in srgb, var(--amber) 62%, transparent);
+  background: linear-gradient(115deg, transparent 18%, rgba(255, 244, 189, 0.52) 48%, transparent 76%);
+  background-size: 220% 100%;
+  opacity: 0.62;
+  pointer-events: none;
+  animation: garden-level-ready-sheen 1.8s ease-in-out infinite;
+}
+
 .stat-chip svg {
   color: var(--amber);
 }
@@ -1315,7 +1328,7 @@ button.item-card {
 }
 
 .merge-play-status {
-  grid-template-columns: minmax(118px, 1fr) minmax(0, auto);
+  grid-template-columns: minmax(118px, 1fr) minmax(0, auto) auto;
 }
 
 .merge-play-status .game-play-stats {
@@ -1345,7 +1358,7 @@ button.item-card {
 
 .merge-generator-dock {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(86px, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(104px, auto);
   gap: 8px;
   align-items: stretch;
 }
@@ -1378,13 +1391,25 @@ button.item-card {
   font-weight: 850;
 }
 
-.merge-action-grid {
+.merge-generator-hint {
+  min-height: 30px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--glass-card-strong) 64%, var(--field));
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.merge-action-strip {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
 }
 
-.merge-action-grid .panel-button {
+.merge-action-strip .panel-button {
   min-height: 44px;
   padding-inline: 6px;
 }
@@ -1924,6 +1949,8 @@ button.item-card {
 }
 
 .yard-pose-peek img,
+.yard-pose-listen img,
+.yard-pose-curl img,
 .yard-pose-sniff img,
 .yard-pose-watch img,
 .yard-pose-nibble img,
@@ -2408,6 +2435,89 @@ button.item-card {
   font-weight: 1000;
 }
 
+.garden-tap-pulse,
+.garden-detail-tap-pulse {
+  position: absolute;
+  inset: 16px;
+  z-index: 28;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--amber) 72%, transparent);
+  background: radial-gradient(circle, rgba(255, 236, 166, 0.26), transparent 62%);
+  pointer-events: none;
+}
+
+.garden-detail-tap-pulse {
+  inset: 10px;
+}
+
+.garden-floating-note,
+.garden-detail-floating-note {
+  position: absolute;
+  top: 48%;
+  z-index: 60;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: rgba(46, 29, 34, 0.76);
+  color: #fff7d6;
+  font-size: 0.68rem;
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.garden-detail-floating-note {
+  top: 54%;
+  font-size: 0.82rem;
+  padding: 5px 9px;
+}
+
+.garden-floating-note.gold,
+.garden-detail-floating-note.gold {
+  color: #ffe59a;
+  border: 1px solid rgba(255, 203, 97, 0.42);
+}
+
+.garden-floating-note.xp,
+.garden-detail-floating-note.xp,
+.garden-floating-note.time,
+.garden-detail-floating-note.time {
+  color: #bdf8d4;
+  border: 1px solid rgba(92, 214, 142, 0.36);
+}
+
+.garden-detail-plant-stage {
+  width: 100%;
+  min-height: 228px;
+  margin: 1.25rem 0 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2.5vw, 12px);
+}
+
+.garden-detail-nav {
+  flex: 0 0 44px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--glass-card-strong) 78%, var(--field));
+}
+
+@keyframes garden-level-ready-sheen {
+  0% {
+    background-position: 180% 0;
+    opacity: 0.32;
+  }
+  50% {
+    opacity: 0.72;
+  }
+  100% {
+    background-position: -80% 0;
+    opacity: 0.32;
+  }
+}
+
 .garden-glass-menu h2,
 .garden-modal-card h2,
 .garden-glass-sheet h2,
@@ -2760,12 +2870,24 @@ button.item-card {
   }
 
   .merge-play-status {
-    grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title actions"
+      "stats stats";
   }
 
   .merge-play-status .game-play-stats {
+    grid-area: stats;
     grid-auto-columns: minmax(48px, auto);
     gap: 4px;
+  }
+
+  .merge-play-status .game-play-title {
+    grid-area: title;
+  }
+
+  .merge-hud-actions {
+    grid-area: actions;
   }
 
   .merge-play-status .game-play-stats span {
@@ -2783,7 +2905,7 @@ button.item-card {
   }
 
   .merge-generator-dock {
-    grid-template-columns: minmax(0, 1fr) 54px;
+    grid-template-columns: minmax(0, 1fr) 64px;
     gap: 6px;
   }
 
@@ -2802,16 +2924,20 @@ button.item-card {
     font-size: 0.72rem;
   }
 
-  .merge-action-grid {
+  .merge-generator-hint {
+    font-size: 0.62rem;
+  }
+
+  .merge-action-strip {
     gap: 5px;
   }
 
-  .merge-action-grid .panel-button {
+  .merge-action-strip .panel-button {
     min-height: 40px;
     padding: 0;
   }
 
-  .merge-action-grid .panel-button span {
+  .merge-action-strip .panel-button span {
     display: none;
   }
 }

@@ -61,12 +61,16 @@ async function rasterMetadata(sourceAbsolute) {
   };
 }
 
-async function optimizeRaster(sourceAbsolute, format) {
+async function optimizeRaster(sourceAbsolute, format, options = {}) {
   if (format === "webp") {
-    return sharp(sourceAbsolute).webp({ lossless: true }).toBuffer();
+    return sharp(sourceAbsolute).webp(options.webp || { lossless: true }).toBuffer();
   }
   if (format === "png") {
-    return sharp(sourceAbsolute).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+    return sharp(sourceAbsolute).png({
+      compressionLevel: 9,
+      adaptiveFiltering: true,
+      ...(options.png || {}),
+    }).toBuffer();
   }
   throw new Error(`Unsupported raster output format: ${format}`);
 }
@@ -118,7 +122,7 @@ async function buildEntry({ rootDir, outputRoot, entry }) {
   } else if ([".png", ".jpg", ".jpeg"].includes(sourceExt)) {
     Object.assign(item, await rasterMetadata(sourceAbsolute));
     for (const format of formats) {
-      const buffer = await optimizeRaster(sourceAbsolute, format);
+      const buffer = await optimizeRaster(sourceAbsolute, format, entry.raster || {});
       const url = await writeHashedAsset({
         rootDir,
         outputRoot,

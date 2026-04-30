@@ -80,7 +80,7 @@ const translations = {
     'hud.level': 'Ур. сада',
     'hud.plants': 'Растения',
     'level.progress': 'Опыт сада',
-    'level.up': 'Уровень',
+    'level.up': 'Повысить уровень',
     'shop.seedShop': 'Магазин семян',
     'shop.inventory': 'Инвентарь ({count})',
     'shop.yields': 'Даёт {amount} зол./с',

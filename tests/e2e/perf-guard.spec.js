@@ -84,8 +84,8 @@ test.describe("runtime perf guard", () => {
     await expect(page.getByText("Gacha Merge")).toBeVisible();
     await page.getByRole("button", { name: /^Play$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.getByRole("button", { name: "30 Taps" }).click();
-    await page.locator(".merge-action-dock").getByRole("button", { name: /^Tap$/ }).click();
+    await page.locator(".merge-action-strip button").filter({ hasText: "Daily +30" }).click();
+    await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
 
     const liveFrames = await sampleFrames(page);
     expect(liveFrames.frames).toBeGreaterThanOrEqual(20);

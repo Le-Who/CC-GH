@@ -11,7 +11,7 @@ import {
   formatGardenGoldAmount,
   getClickReward,
   getClickXpReward,
-  GARDEN_TAP_REWARD_COOLDOWN_MS,
+  getGardenTapCooldownMs,
 } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Coins, Droplets } from 'lucide-react';
@@ -148,7 +148,8 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
   const { tapPlant } = useGame();
   const [imgError, setImgError] = React.useState(false);
   const [isPressing, setIsPressing] = React.useState(false);
-  const [floatingTexts, setFloatingTexts] = React.useState<{id: string, text: string, type: 'gold' | 'time'}[]>([]);
+  const [tapPulse, setTapPulse] = React.useState(0);
+  const [floatingTexts, setFloatingTexts] = React.useState<{id: string, text: string, type: 'gold' | 'xp' | 'time', x: number}[]>([]);
   
   const pressStartTimer = useRef<NodeJS.Timeout | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -192,32 +193,35 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
       // If duration is under 500ms, it's considered a tap
       if (duration < 500 && plant) {
         const now = Date.now();
-        const canTap = !plant.lastTapped || now - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
+        const canTap = !plant.lastTapped || now - plant.lastTapped >= getGardenTapCooldownMs(plant.phase);
         if (!canTap) return;
         tapPlant(plant.id);
         
-        // Add floating text
         const id = Math.random().toString();
+        setTapPulse(now);
         
-        // Visual pop effect using a small scale burst
         if (e && e.currentTarget) {
             const btn = e.currentTarget as HTMLElement;
-            btn.style.transform = 'scale(0.85)';
-            setTimeout(() => { btn.style.transform = ''; }, 150);
+            btn.style.transform = 'scale(0.92)';
+            setTimeout(() => { btn.style.transform = ''; }, 120);
         }
 
         if (plant.phase === 3) {
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
             const amount = getClickReward(def.baseClick, plant.level);
             const xp = getClickXpReward(def.baseXp, plant.level);
-            setFloatingTexts(prev => [...prev, { id, text: `+${formatGardenGoldAmount(amount)} G · +${xp} XP`, type: 'gold' }]);
+            setFloatingTexts(prev => [
+              ...prev,
+              { id: `${id}-gold`, text: `+${formatGardenGoldAmount(amount)} G`, type: 'gold', x: -18 },
+              { id: `${id}-xp`, text: `+${xp} XP`, type: 'xp', x: 22 },
+            ]);
         } else {
-            setFloatingTexts(prev => [...prev, { id, text: `-${tapAccelerationSeconds}s`, type: 'time' }]);
+            setFloatingTexts(prev => [...prev, { id, text: `+${tapAccelerationSeconds}s`, type: 'time', x: 0 }]);
         }
         
         setTimeout(() => {
-            setFloatingTexts(prev => prev.filter(ft => ft.id !== id));
-        }, 1000);
+            setFloatingTexts(prev => prev.filter(ft => !ft.id.startsWith(id)));
+        }, 1150);
       }
     }
   };
@@ -274,9 +278,21 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           onContextMenu={(e) => e.preventDefault()}
           className="relative flex flex-col items-center justify-end z-10 group w-20 h-32 touch-none"
         >
-      <div className="w-20 flex flex-col items-center justify-end h-full relative">
+        <div className="w-20 flex flex-col items-center justify-end h-full relative">
         <div className="absolute bottom-[-2px] w-14 h-4 bg-black/50 blur-[3px] rounded-full pointer-events-none"></div>
         <PhaseEffects phase={phase} color={def.color} />
+        <AnimatePresence>
+          {tapPulse > 0 && (
+            <motion.span
+              key={tapPulse}
+              className="garden-tap-pulse"
+              initial={{ opacity: 0.55, scale: 0.55 }}
+              animate={{ opacity: 0, scale: 1.55 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.46, ease: "easeOut" }}
+            />
+          )}
+        </AnimatePresence>
         
         {/* Progress ring for stash action */}
         <AnimatePresence>
@@ -375,11 +391,12 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
         {floatingTexts.map(ft => (
           <motion.div
             key={ft.id}
-            initial={{ opacity: 1, y: 0, scale: 0.8 }}
-            animate={{ opacity: 0, y: -40, scale: 1.2 }}
+            initial={{ opacity: 0, y: 10, scale: 0.78 }}
+            animate={{ opacity: [0, 1, 1, 0], y: -46, scale: [0.78, 1.08, 1] }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className={`absolute top-1/2 left-1/2 -translate-x-1/2 text-xs font-bold pointer-events-none z-50 drop-shadow-md ${ft.type === 'gold' ? 'text-amber-300' : 'text-emerald-400'}`}
+            transition={{ duration: 0.95, ease: "easeOut" }}
+            style={{ left: `calc(50% + ${ft.x}px)` }}
+            className={`garden-floating-note ${ft.type}`}
           >
             {ft.text}
           </motion.div>

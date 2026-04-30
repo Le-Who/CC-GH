@@ -173,9 +173,19 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".game-menu-overlay:visible .generator-list")).toHaveCount(0);
     await page.getByRole("button", { name: /^Play$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.getByRole("button", { name: "30 Taps" }).click();
-    await page.locator(".merge-action-dock").getByRole("button", { name: /^Tap$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toContainText(/Tap|30 Taps|Gacha|Free/);
+    await page.locator(".merge-play-status .merge-stat-button").filter({ hasText: "Items" }).click();
+    await expect(page.locator(".game-menu-overlay:visible .merge-item-book")).toBeVisible();
+    await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
+    await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await page.locator(".merge-play-status .merge-stat-button").filter({ hasText: "Recipes" }).click();
+    await expect(page.locator(".game-menu-overlay:visible .merge-recipe-book")).toBeVisible();
+    await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
+    await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Resume$/ }).click();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await page.locator(".merge-action-strip button").filter({ hasText: "Daily +30" }).click();
+    await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
+    await expect(page.locator(".merge-action-dock")).toContainText(/Generate|Daily|Token|Source/);
     await pauseActiveGame(page);
     await exitToHub(page);
 

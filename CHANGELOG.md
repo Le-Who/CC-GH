@@ -4,6 +4,9 @@
 
 ### Client
 
+- Refined Garden Shelf touch feedback: growing plants can be tapped slightly more often than mature earners, detailed-view arrows sit beside the focused plant, the garden XP chip turns into a Level Up action when ready, and tap rewards now surface clearer gold/XP feedback.
+- Reworked Gacha Merge live controls so Items and Recipes open their library overlays instead of pause, while the source dock groups generator, daily, token, and trash actions with clearer labels and generation hints.
+- Refreshed Cozy Yard production art with split interactive goodie assets, split companion sprites, pose-specific common/uncommon/rare visitor sprites, and the new Meadow, Tea House, and Moon Garden backgrounds.
 - Repaired Bubbo as a single gameplay layer: pending pressure rows are stored as playable state, rendered and targeted as virtual row `-1`, pressure shifts consume the pending row before generating the next one, sparse boards refill back to at least three playable rows without pressure penalty, and the menu now offers Classic 36-shot and Timed 90-second unlimited-shot runs.
 - Added capped lightweight Bubbo falling motion with deterministic stagger, sway, spin, wobble, and reduced-motion fallback while keeping effects on the existing Pixi ticker/particle path.
 - Added a durable Cozy Yard outbox for `yard.*` actions using IndexedDB with localStorage fallback, entity-level conflict locks, retry on timeout/network errors, reconnect/focus/visibility drains, and pending bowl/slot/shop/gift visuals instead of tap-then-rollback UX.
@@ -61,6 +64,7 @@
 
 ### Operations
 
+- Added per-entry runtime asset encoding so Cozy Yard keeps editable PNG source/fallback art while generated runtime Yard assets ship as compact WebP-only files under the existing build payload budgets.
 - Added an ordered SQL migration runner backed by `schema_migrations`, keeping `db.js` schema creation as a first-start compatibility fallback for legacy bootstrap objects.
 - Backfilled SQL schema history through `migrations/002_player_state_and_stats.sql` and narrowed `db.js` bootstrap to migration-first compatibility fallback.
 - Aligned CI branch filters with the deploy/current remote HEAD branch `codex/telegram-pixi-vps-migration`.
@@ -73,6 +77,7 @@
 
 ### Tests
 
+- Added asset-pipeline coverage for WebP-only runtime entries and hardened the runtime asset browser smoke around Cozy Yard lazy loading.
 - Added `tests/operational-debt.test.js` for SQL migration discovery/application, mutation commit hooks, Redis health reporting, and `player_stats_view` refresh status capture.
 - Expanded operational debt coverage for complete numbered SQL migration history and the rule that locked route callbacks must not write Express responses directly.
 - Added Merge regression coverage for random generator output, recipe Yard goodie rewards, server-time free pull/free-tap resets, full-board spend guards, trash receipts, and live HUD reward text.

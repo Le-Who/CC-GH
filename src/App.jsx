@@ -24,7 +24,7 @@ import {
   gardenTranslate,
   getStoredGardenLanguage,
 } from "./games/garden-shelf/lib/i18n";
-import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold } from "./games/garden-shelf/constants.ts";
+import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
@@ -185,15 +185,16 @@ export default function App() {
   const gardenXp = Math.max(0, Number(gardenHud?.xp) || 0);
   const gardenXpProgress = Math.min(100, (gardenXp / gardenXpRequired) * 100);
   const gardenMaxLevel = LEVELS[LEVELS.length - 1]?.level ?? 1;
-  const gardenCanLevelUp = (Number(gardenHud?.level) || 1) < gardenMaxLevel
+  const gardenLevel = Number(gardenHud?.level) || 1;
+  const gardenCanLevelUp = gardenLevel < gardenMaxLevel
     && (!!gardenHud?.levelReady || gardenXp >= gardenXpRequired);
   const stats = activeTab === "garden"
     ? [
         { icon: Sparkles, label: gardenTranslate(gardenLanguage, "hud.gold"), value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)) },
         {
           icon: Leaf,
-          label: gardenTranslate(gardenLanguage, "level.progress"),
-          value: `${Math.floor(gardenXp)}/${gardenXpRequired}`,
+          label: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
+          value: gardenCanLevelUp ? `+${formatGardenDisplayGold(getGardenLevelReward(gardenLevel))}` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
           progress: gardenXpProgress,
           active: gardenCanLevelUp,
           title: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),

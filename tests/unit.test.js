@@ -1080,6 +1080,10 @@ describe("Cozy Yard asset resolver", () => {
           type: "image",
           src: "/assets-runtime/companion-yard/backgrounds/tea_house.1234abcd.webp",
         },
+        "companionYard.visitors.mika_cat_pounce": {
+          type: "image",
+          src: "/assets-runtime/companion-yard/visitors/mika_cat_pounce.1234abcd.webp",
+        },
       },
     };
 
@@ -1094,6 +1098,10 @@ describe("Cozy Yard asset resolver", () => {
     assert.equal(
       resolveCompanionYardAsset(manualManifest, "foods", "empty_bowl", runtimeManifest),
       "/games/companion-yard/foods/empty_bowl.png",
+    );
+    assert.equal(
+      resolveCompanionYardAsset(manualManifest, "visitors", "mika_cat_pounce", runtimeManifest),
+      "/assets-runtime/companion-yard/visitors/mika_cat_pounce.1234abcd.webp",
     );
   });
 });

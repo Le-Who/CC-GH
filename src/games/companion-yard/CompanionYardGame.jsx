@@ -137,6 +137,17 @@ function getVisitorMotion(visit, slot, activity, renderNow) {
   };
 }
 
+function visitorAssetId(visitorInfo, pose) {
+  if (!visitorInfo?.id) return "";
+  return Array.isArray(visitorInfo.poses) && visitorInfo.poses.includes(pose)
+    ? `${visitorInfo.id}_${pose}`
+    : visitorInfo.id;
+}
+
+function visitorPreviewAssetId(visitorInfo) {
+  return visitorAssetId(visitorInfo, visitorInfo?.poses?.[0]);
+}
+
 function YardButton({ children, icon: Icon = Sparkles, onClick, disabled, danger, active, subtle, title, className = "" }) {
   return (
     <button
@@ -362,7 +373,7 @@ export default function CompanionYardGame() {
           title={`${item.visitorInfo.name} · ${item.activity.pose}`}
           aria-label={`${item.visitorInfo.name} visitor`}
         >
-          <img src={assetPath("visitors", item.visitorInfo.id)} alt="" />
+          <img src={assetPath("visitors", visitorAssetId(item.visitorInfo, item.motion.pose))} alt="" />
           <b>{item.visitorInfo.name}</b>
         </button>
       ))}
@@ -605,7 +616,7 @@ export default function CompanionYardGame() {
               const seen = !!entry;
               return (
                 <div key={visitor.id} className={`yard-petbook-card${seen ? " seen" : ""}`}>
-                  <img src={assetPath("visitors", visitor.id)} alt="" />
+                  <img src={assetPath("visitors", visitorPreviewAssetId(visitor))} alt="" />
                   <span>
                     <strong>{seen ? visitor.name : "Unknown visitor"}</strong>
                     <small>{seen ? `${SPECIES_LABELS[visitor.species] || visitor.species} · ${entry.visits} visits` : `${visitor.rarity} visitor`}</small>
@@ -624,7 +635,7 @@ export default function CompanionYardGame() {
               const visitor = visitors[photo.visitorId];
               return (
                 <div className="yard-photo-card" key={photo.id}>
-                  <img src={assetPath("visitors", photo.visitorId)} alt="" />
+                  <img src={assetPath("visitors", visitor ? visitorPreviewAssetId(visitor) : photo.visitorId)} alt="" />
                   <span><strong>{visitor?.name || photo.visitorId}</strong><small>{photo.pose} · {photo.caption || "Cozy Yard"}</small></span>
                   <YardButton icon={Images} subtle active={yard.album.favoritePhotoId === photo.id} onClick={() => performAction("yard.favoritePhoto", { photoId: photo.id })}>Favorite</YardButton>
                 </div>

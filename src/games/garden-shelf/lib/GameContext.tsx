@@ -18,7 +18,7 @@ import {
   GARDEN_OFFLINE_CAP_MS,
   GARDEN_OFFLINE_GOLD_RATIO,
   GARDEN_OFFLINE_XP_RATIO,
-  GARDEN_TAP_REWARD_COOLDOWN_MS,
+  getGardenTapCooldownMs,
   getGardenLevelReward,
   getGardenXpRequired,
 } from '../constants';
@@ -594,7 +594,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
         const plant = prev.plants.find(p => p.id === plantId);
         if (!plant) return prev;
         const now = Date.now();
-        if (plant.lastTapped && now - plant.lastTapped < GARDEN_TAP_REWARD_COOLDOWN_MS) return prev;
+        if (plant.lastTapped && now - plant.lastTapped < getGardenTapCooldownMs(plant.phase)) return prev;
 
         if (plant.phase === 3) {
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;

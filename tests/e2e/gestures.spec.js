@@ -110,7 +110,7 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.getByRole("button", { name: "+" }).first().click();
     const panel = page.locator(".fixed.bottom-0").last();
     await expect(panel).toContainText("Seed Shop");
-    await panel.locator("button").filter({ hasText: "25" }).click();
+    await panel.locator("button").filter({ hasText: "2,500" }).click();
     await expect(page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId("garden-phase-badge")).toHaveCount(0);
 
@@ -267,8 +267,8 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /^Play$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.getByRole("button", { name: "30 Taps" }).click();
-    await page.locator(".merge-action-dock").getByRole("button", { name: /^Tap$/ }).click();
+    await page.locator(".merge-action-strip button").filter({ hasText: "Daily +30" }).click();
+    await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
     const box = await hostBox(page);
     await page.mouse.move(box.x + box.width * 0.38, box.y + box.height * 0.35);
     await page.mouse.down();

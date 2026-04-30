@@ -14,7 +14,7 @@ import {
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
   WATER_COOLDOWN_MS,
-  GARDEN_TAP_REWARD_COOLDOWN_MS,
+  getGardenTapCooldownMs,
 } from '../constants';
 import { ChevronLeft, ChevronRight, Coins, X, ArrowUpCircle, Trash2, Droplets, Archive, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -245,7 +245,8 @@ function PlantDetail({
   const { t } = useGardenI18n();
   const plant = state.plants.find((p) => p.id === plantId);
   const [clickScale, setClickScale] = useState(1);
-  const [floatingNotes, setFloatingNotes] = useState<{ id: number, x: number, y: number, text: string, color: string }[]>([]);
+  const [tapPulse, setTapPulse] = useState(0);
+  const [floatingNotes, setFloatingNotes] = useState<{ id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' }[]>([]);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [imgError, setImgError] = useState(false);
   const swipeStart = React.useRef<{ x: number; y: number } | null>(null);
@@ -276,31 +277,29 @@ function PlantDetail({
   const bgStyle = getGardenSpriteStyle(spriteIndex, phase, (phaseScales[phase] || 0.8) * (isUpgrading ? 1.15 : 1), assetPaths.sheet);
 
   const handleMash = (e: React.PointerEvent) => {
-    const canTap = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
+    const canTap = !plant.lastTapped || Date.now() - plant.lastTapped >= getGardenTapCooldownMs(plant.phase);
     if (!canTap) return;
     tapPlant(plantId);
 
     const id = Date.now() + Math.random();
-    let text = "";
-    let color = "";
+    const notes: { id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' }[] = [];
     
     if (phase === 3) {
-       const canReward = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
-       if (!canReward) return;
        const value = getClickReward(def.baseClick, plant.level);
        const xp = getClickXpReward(def.baseXp, plant.level);
-       text = `+${formatGardenGoldAmount(value)} · +${xp} XP`;
-       color = "text-amber-400";
+       notes.push(
+        { id, shift: -34, text: `+${formatGardenGoldAmount(value)} G`, tone: 'gold' },
+        { id: id + 0.1, shift: 28, text: `+${xp} XP`, tone: 'xp' },
+       );
     } else {
-       text = `+${tapAccelerationSeconds}s`;
-       color = "text-emerald-400";
+       notes.push({ id, shift: 0, text: `+${tapAccelerationSeconds}s`, tone: 'time' });
     }
 
-    const newNote = { id, x: e.clientX, y: e.clientY, text, color };
-    setFloatingNotes(prev => [...prev, newNote]);
+    setTapPulse(id);
+    setFloatingNotes(prev => [...prev, ...notes]);
     setTimeout(() => {
-      setFloatingNotes(prev => prev.filter(n => n.id !== id));
-    }, 1000);
+      setFloatingNotes(prev => prev.filter(n => Math.floor(n.id) !== Math.floor(id)));
+    }, 1150);
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const x = (rect.left + rect.width / 2) / window.innerWidth;
@@ -320,8 +319,9 @@ function PlantDetail({
       scalar: 0.5 + Math.random() * 0.3,
     });
 
-    setClickScale(1.1);
-    setTimeout(() => setClickScale(1), 50);
+    setClickScale(0.94);
+    setTimeout(() => setClickScale(1.08), 70);
+    setTimeout(() => setClickScale(1), 180);
   };
 
   const handleUpgrade = () => {
@@ -362,18 +362,8 @@ function PlantDetail({
 
   return (
     <div className="flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="flex w-full items-center justify-between mb-4">
-        {canNavigate && (
-          <button
-            type="button"
-            className="garden-icon-button mr-2 shrink-0"
-            onClick={() => onNavigate(-1)}
-            aria-label={t('plantDetail.previous')}
-          >
-            <ChevronLeft size={18} />
-          </button>
-        )}
-        <div>
+      <div className="mb-4 flex w-full items-start justify-between gap-4">
+        <div className="min-w-0">
           <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
           <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
              {isFullyGrown
@@ -387,7 +377,7 @@ function PlantDetail({
           )}
         </div>
         
-        <div className="flex flex-col items-end">
+        <div className="flex shrink-0 flex-col items-end">
           {isFullyGrown ? (
             <>
               <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
@@ -404,32 +394,46 @@ function PlantDetail({
             </>
           )}
         </div>
+      </div>
+
+      <div className="garden-detail-plant-stage">
         {canNavigate && (
           <button
             type="button"
-            className="garden-icon-button ml-2 shrink-0"
-            onClick={() => onNavigate(1)}
-            aria-label={t('plantDetail.next')}
+            className="garden-icon-button garden-detail-nav"
+            onClick={() => onNavigate(-1)}
+            aria-label={t('plantDetail.previous')}
           >
-            <ChevronRight size={18} />
+            <ChevronLeft size={20} />
           </button>
         )}
-      </div>
-
-      <div className="relative my-8">
+        <div className="relative flex h-52 w-52 shrink-0 items-center justify-center">
         <AnimatePresence>
           {floatingNotes.map(note => (
             <motion.div
               key={note.id}
-              initial={{ opacity: 1, y: 0, x: note.x - (window.innerWidth / 2) }}
-              animate={{ opacity: 0, y: -100 }}
+              initial={{ opacity: 0, y: 24, scale: 0.78 }}
+              animate={{ opacity: [0, 1, 1, 0], y: -92, scale: [0.78, 1.08, 1] }}
               exit={{ opacity: 0 }}
-              style={{ position: 'absolute', pointerEvents: 'none', zIndex: 100 }}
-              className={cn(note.color, "font-mono font-bold text-lg")}
+              transition={{ duration: 1.05, ease: "easeOut" }}
+              style={{ left: `calc(50% + ${note.shift}px)` }}
+              className={`garden-detail-floating-note ${note.tone}`}
             >
               {note.text}
             </motion.div>
           ))}
+        </AnimatePresence>
+        <AnimatePresence>
+          {tapPulse > 0 && (
+            <motion.span
+              key={tapPulse}
+              className="garden-detail-tap-pulse"
+              initial={{ opacity: 0.5, scale: 0.72 }}
+              animate={{ opacity: 0, scale: 1.2 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.48, ease: "easeOut" }}
+            />
+          )}
         </AnimatePresence>
         
         {/* Growth Progress Ring */}
@@ -479,6 +483,17 @@ function PlantDetail({
           )}
 
         </motion.button>
+        </div>
+        {canNavigate && (
+          <button
+            type="button"
+            className="garden-icon-button garden-detail-nav"
+            onClick={() => onNavigate(1)}
+            aria-label={t('plantDetail.next')}
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
       </div>
 
       <p className="mb-4 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">

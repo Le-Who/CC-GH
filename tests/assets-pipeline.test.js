@@ -85,4 +85,28 @@ describe("asset runtime pipeline", () => {
     assert.match(svgUrl, /^\/assets-runtime\/icons\/badge\.[a-f0-9]{8}\.svg$/);
     assert.match(svg, /viewBox="0 0 24 24"/);
   });
+
+  it("supports WebP-only raster entries without a PNG fallback", async () => {
+    const root = await makeTempRoot();
+    const result = await buildAssetRuntimeManifest({
+      rootDir: root,
+      outputRoot: "public/assets-runtime",
+      entries: [
+        {
+          key: "test.pixel.compact",
+          source: "source/pixel.png",
+          outputDir: "test",
+          formats: ["webp"],
+          raster: {
+            webp: { quality: 90, effort: 6 },
+          },
+        },
+      ],
+      clean: true,
+    });
+
+    const item = result.manifest.assets["test.pixel.compact"];
+    assert.match(item.src, /^\/assets-runtime\/test\/pixel\.[a-f0-9]{8}\.webp$/);
+    assert.equal(item.fallback, undefined);
+  });
 });
