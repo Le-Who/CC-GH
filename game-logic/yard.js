@@ -16,6 +16,10 @@ import {
 
 const MAX_PENDING_GIFTS = 100;
 const MAX_ALBUM_PHOTOS = 80;
+const MAX_PLACEMENTS_BY_EXPANSION = {
+  1: 8,
+  2: 14,
+};
 
 function finiteNumber(value, fallback = 0) {
   const number = Number(value);
@@ -24,6 +28,21 @@ function finiteNumber(value, fallback = 0) {
 
 function clampInteger(value, min, max, fallback = min) {
   return Math.max(min, Math.min(max, Math.floor(finiteNumber(value, fallback))));
+}
+
+function hasPlacementCoordinates(source = {}) {
+  return Number.isFinite(Number(source.x)) && Number.isFinite(Number(source.y));
+}
+
+function clampPlacementPercent(value, fallback = 50) {
+  return Math.max(6, Math.min(94, finiteNumber(value, fallback)));
+}
+
+function normalizePlacementPosition(source = {}, fallback = {}) {
+  return {
+    x: clampPlacementPercent(source.x, fallback.x ?? 50),
+    y: clampPlacementPercent(source.y, fallback.y ?? 72),
+  };
 }
 
 function cloneCounts(source = {}) {
@@ -130,18 +149,24 @@ function normalizePlacedGoodies(rawPlaced = [], expansionLevel = 1, legacy = {})
     for (const raw of rawPlaced) {
       const goodieId = String(raw?.goodieId || "");
       const goodie = YARD_GOODIES[goodieId];
-      const slotId = String(raw?.slotId || "");
+      const requestedSlotId = String(raw?.slotId || "");
+      const hasFreePosition = hasPlacementCoordinates(raw);
+      const slotId = requestedSlotId || `free_${hashString(`${goodieId}:${raw?.x}:${raw?.y}:${placed.length}`).toString(36)}`;
       const slot = slotMap.get(slotId);
-      if (!goodie || !slot || used.has(slotId)) continue;
-      if (goodie.size === "large" && slot.size !== "large") continue;
+      if (!goodie || used.has(slotId)) continue;
+      if (!hasFreePosition && !slot) continue;
+      if (!hasFreePosition && goodie.size === "large" && slot.size !== "large") continue;
       used.add(slotId);
       const uses = clampInteger(raw.uses, 0, 999, 0);
       const condition = raw.condition === "broken" || raw.condition === "worn" ? raw.condition : "new";
+      const position = normalizePlacementPosition(raw, slot || { x: 50, y: 72 });
       placed.push({
         slotId,
         goodieId,
         condition,
         uses,
+        x: position.x,
+        y: position.y,
         placedAt: Math.max(0, Math.floor(finiteNumber(raw.placedAt, 0))),
       });
     }
@@ -165,6 +190,8 @@ function normalizePlacedGoodies(rawPlaced = [], expansionLevel = 1, legacy = {})
         goodieId,
         condition: "new",
         uses: 0,
+        x: slot.x,
+        y: slot.y,
         placedAt: 0,
       });
     }
@@ -691,18 +718,36 @@ function actionNow(payload = {}, options = {}) {
   return Math.max(0, Math.floor(finiteNumber(value, Date.now())));
 }
 
-function validSlotForGoodie(yard, slotId, goodie) {
-  const slot = getUnlockedYardSlots(yard.expansion.level).find((candidate) => candidate.id === slotId);
-  if (!slot) return null;
-  if (goodie.size === "large" && slot.size !== "large") return null;
-  return slot;
+function maxYardPlacements(yard) {
+  return MAX_PLACEMENTS_BY_EXPANSION[yard.expansion.level >= 2 ? 2 : 1] || MAX_PLACEMENTS_BY_EXPANSION[1];
+}
+
+function normalizePlacementForGoodie(yard, payload = {}, goodie, now) {
+  const requestedSlotId = String(payload.slotId || "");
+  const staticSlot = requestedSlotId
+    ? getUnlockedYardSlots(yard.expansion.level).find((candidate) => candidate.id === requestedSlotId)
+    : null;
+
+  if (staticSlot && !hasPlacementCoordinates(payload)) {
+    if (goodie.size === "large" && staticSlot.size !== "large") return null;
+    return {
+      slotId: staticSlot.id,
+      ...normalizePlacementPosition(staticSlot),
+    };
+  }
+
+  if (!hasPlacementCoordinates(payload)) return null;
+  return {
+    slotId: requestedSlotId || makeYardId("free", now, `${goodie.id}:${payload.x}:${payload.y}:${yard.placedGoodies.length}`),
+    ...normalizePlacementPosition(payload),
+  };
 }
 
 function returnInvalidPlacedGoodies(yard) {
   const validSlots = new Set(getUnlockedYardSlots(yard.expansion.level).map((slot) => slot.id));
   const remaining = [];
   for (const placed of yard.placedGoodies) {
-    if (validSlots.has(placed.slotId)) remaining.push(placed);
+    if (validSlots.has(placed.slotId) || hasPlacementCoordinates(placed)) remaining.push(placed);
     else incCount(yard.goodieInventory, placed.goodieId, 1);
   }
   yard.placedGoodies = remaining;
@@ -744,15 +789,36 @@ export function applyYardActionToState(rawYard, action, payload = {}, legacy = {
     }
     case "yard.placeGoodie": {
       const goodieId = String(payload.goodieId || "");
-      const slotId = String(payload.slotId || "");
       const goodie = YARD_GOODIES[goodieId];
       if (!goodie) return { ...fail(400, "unknown goodie"), yard };
-      if (!validSlotForGoodie(yard, slotId, goodie)) return { ...fail(400, "invalid slot"), yard };
-      if (yard.placedGoodies.some((placed) => placed.slotId === slotId)) return { ...fail(400, "slot occupied"), yard };
+      if (yard.placedGoodies.length >= maxYardPlacements(yard)) return { ...fail(400, "yard is full"), yard };
+      const placement = normalizePlacementForGoodie(yard, payload, goodie, now);
+      if (!placement) return { ...fail(400, "invalid placement"), yard };
+      if (yard.placedGoodies.some((placed) => placed.slotId === placement.slotId)) return { ...fail(400, "slot occupied"), yard };
       if ((yard.goodieInventory[goodieId] || 0) <= 0) return { ...fail(400, "goodie not owned"), yard };
       incCount(yard.goodieInventory, goodieId, -1);
-      yard.placedGoodies.push({ slotId, goodieId, condition: "new", uses: 0, placedAt: now });
-      return { ...ok({ goodieId, slotId }), yard };
+      yard.placedGoodies.push({
+        slotId: placement.slotId,
+        goodieId,
+        condition: "new",
+        uses: 0,
+        x: placement.x,
+        y: placement.y,
+        placedAt: now,
+      });
+      return { ...ok({ goodieId, slotId: placement.slotId, x: placement.x, y: placement.y }), yard };
+    }
+    case "yard.moveGoodie": {
+      const slotId = String(payload.slotId || "");
+      const index = yard.placedGoodies.findIndex((placed) => placed.slotId === slotId || placed.goodieId === payload.goodieId);
+      if (index < 0) return { ...fail(400, "goodie not placed"), yard };
+      const placed = yard.placedGoodies[index];
+      if (yard.activeVisitors.some((visit) => visit.slotId === placed.slotId)) return { ...fail(400, "visitor is using this goodie"), yard };
+      if (!hasPlacementCoordinates(payload)) return { ...fail(400, "invalid placement"), yard };
+      const position = normalizePlacementPosition(payload, placed);
+      placed.x = position.x;
+      placed.y = position.y;
+      return { ...ok({ goodieId: placed.goodieId, slotId: placed.slotId, x: placed.x, y: placed.y }), yard };
     }
     case "yard.pickupGoodie": {
       const slotId = String(payload.slotId || "");

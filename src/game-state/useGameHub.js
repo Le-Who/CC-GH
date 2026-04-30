@@ -25,7 +25,7 @@ function createClientActionId() {
 
 function yardEntityKey(action, payload = {}) {
   if (action === "yard.setFood") return `bowl:${payload.bowlId || "bowl-1"}`;
-  if (action === "yard.placeGoodie" || action === "yard.pickupGoodie" || action === "yard.fixGoodie") return `slot:${payload.slotId || payload.goodieId || "unknown"}`;
+  if (action === "yard.placeGoodie" || action === "yard.pickupGoodie" || action === "yard.fixGoodie" || action === "yard.moveGoodie") return `slot:${payload.slotId || payload.goodieId || "unknown"}`;
   if (action === "yard.collectGifts") return "gifts";
   if (action === "yard.claimDailyLetter") return "dailyLetter";
   if (action === "yard.configureCompanion") return "companion";

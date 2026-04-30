@@ -737,11 +737,36 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(placed.status, 200);
     assert.equal(p.yard.goodieInventory.cardboard_cottage || 0, 0);
     assert.equal(p.yard.placedGoodies[0].goodieId, "cardboard_cottage");
+    assert.equal(p.yard.placedGoodies[0].x, 28);
+    assert.equal(p.yard.placedGoodies[0].y, 76);
 
     const picked = await applyAction(p, "yard.pickupGoodie", { slotId: "large-1" });
     assert.equal(picked.status, 200);
     assert.equal(p.yard.placedGoodies.length, 0);
     assert.equal(p.yard.goodieInventory.cardboard_cottage, 1);
+  });
+
+  it("places and moves goodies at free yard coordinates", async () => {
+    const p = createDefaultPlayer("yard-free-place", "Yard");
+
+    const placed = await applyAction(p, "yard.placeGoodie", {
+      goodieId: "yarn_mouse",
+      x: 48.5,
+      y: 67.25,
+    });
+    assert.equal(placed.status, 200);
+    assert.match(p.yard.placedGoodies[0].slotId, /^free_/);
+    assert.equal(p.yard.placedGoodies[0].x, 48.5);
+    assert.equal(p.yard.placedGoodies[0].y, 67.25);
+
+    const moved = await applyAction(p, "yard.moveGoodie", {
+      slotId: p.yard.placedGoodies[0].slotId,
+      x: 72,
+      y: 41,
+    });
+    assert.equal(moved.status, 200);
+    assert.equal(p.yard.placedGoodies[0].x, 72);
+    assert.equal(p.yard.placedGoodies[0].y, 41);
   });
 
   it("does not respawn starter or legacy goodies after they are placed or picked up", async () => {

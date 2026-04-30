@@ -846,6 +846,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     case "yard.setFood":
     case "yard.buyGoodie":
     case "yard.placeGoodie":
+    case "yard.moveGoodie":
     case "yard.pickupGoodie":
     case "yard.fixGoodie":
     case "yard.collectGifts":
