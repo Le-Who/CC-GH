@@ -20,6 +20,7 @@ function runtimeWebpOnly(options = {}) {
 
 const PNG_EXTENSIONS = new Set([".png"]);
 const SVG_EXTENSIONS = new Set([".svg"]);
+const WEBP_ONLY_FORMATS = ["webp"];
 
 async function fileExists(rootDir, source) {
   try {
@@ -85,11 +86,11 @@ async function collectPixiEntries(rootDir) {
 
 async function collectGardenEntries(rootDir) {
   const gardenEntries = [
-    entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf"),
-    entry("gardenShelf.shelf", "public/games/garden-shelf/assets_shelf.png", "garden-shelf"),
-    entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf"),
-    entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf"),
-    entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf"),
+    entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
+    entry("gardenShelf.shelf", "public/games/garden-shelf/assets_shelf.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
+    entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
+    entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
+    entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
   ];
 
   return existingEntries(rootDir, gardenEntries);
@@ -135,7 +136,7 @@ async function collectIconEntries(rootDir) {
   const entries = [];
   for (const file of files) {
     const id = path.basename(file, path.extname(file)).replace(/-/g, "");
-    entries.push(entry(`icons.${id}`, file, "icons"));
+    entries.push(entry(`icons.${id}`, file, "icons", null, WEBP_ONLY_FORMATS));
   }
   return entries;
 }

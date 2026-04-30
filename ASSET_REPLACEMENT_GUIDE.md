@@ -42,7 +42,8 @@ public/assets/manifest.json manual override
 
 Default output policy:
 
-- PNG/JPEG source art generates lossless WebP primary plus optimized PNG fallback.
+- Pixi game PNG/JPEG source art generates lossless WebP primary plus optimized PNG fallback, because Pixi receives a source list and can use the fallback.
+- Garden Shelf, app icons, and Cozy Yard runtime PNG art generate WebP-only outputs where the app does not use a second generated source.
 - SVG source art is optimized with SVGO and keeps `viewBox`.
 - Content-hashed files are safe for immutable browser/CDN caching.
 - `public/assets-runtime/manifest.json` is short-lived and should be fetched with `no-cache`.

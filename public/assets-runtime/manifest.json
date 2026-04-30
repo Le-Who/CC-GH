@@ -538,50 +538,43 @@
       "type": "image",
       "width": 310,
       "height": 58,
-      "src": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.6c819bbc.webp",
-      "fallback": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.2e9fa8d0.png"
+      "src": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.6c819bbc.webp"
     },
     "gardenShelf.settingsCog": {
       "type": "image",
       "width": 63,
       "height": 69,
-      "src": "/assets-runtime/garden-shelf/assets_garden_cog.8fc375b0.webp",
-      "fallback": "/assets-runtime/garden-shelf/assets_garden_cog.1a3cd8f3.png"
+      "src": "/assets-runtime/garden-shelf/assets_garden_cog.8fc375b0.webp"
     },
     "gardenShelf.sheet.transparent": {
       "type": "image",
       "width": 1672,
       "height": 941,
-      "src": "/assets-runtime/garden-shelf/assets_transparent.65310970.webp",
-      "fallback": "/assets-runtime/garden-shelf/assets_transparent.5c2e32f4.png"
+      "src": "/assets-runtime/garden-shelf/assets_transparent.65310970.webp"
     },
     "gardenShelf.shelf": {
       "type": "image",
       "width": 385,
       "height": 77,
-      "src": "/assets-runtime/garden-shelf/assets_shelf.bf005800.webp",
-      "fallback": "/assets-runtime/garden-shelf/assets_shelf.c7fbc363.png"
+      "src": "/assets-runtime/garden-shelf/assets_shelf.bf005800.webp"
     },
     "gardenShelf.sign": {
       "type": "image",
       "width": 370,
       "height": 139,
-      "src": "/assets-runtime/garden-shelf/assets_garden_sign.97058d31.webp",
-      "fallback": "/assets-runtime/garden-shelf/assets_garden_sign.1356166a.png"
+      "src": "/assets-runtime/garden-shelf/assets_garden_sign.97058d31.webp"
     },
     "icons.icon192": {
       "type": "image",
       "width": 640,
       "height": 640,
-      "src": "/assets-runtime/icons/icon-192.8f7d4bf1.webp",
-      "fallback": "/assets-runtime/icons/icon-192.a2803a6a.png"
+      "src": "/assets-runtime/icons/icon-192.8f7d4bf1.webp"
     },
     "icons.icon512": {
       "type": "image",
       "width": 640,
       "height": 640,
-      "src": "/assets-runtime/icons/icon-512.8f7d4bf1.webp",
-      "fallback": "/assets-runtime/icons/icon-512.a2803a6a.png"
+      "src": "/assets-runtime/icons/icon-512.8f7d4bf1.webp"
     },
     "match3.piece.dragon": {
       "type": "image",

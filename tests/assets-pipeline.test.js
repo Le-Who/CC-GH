@@ -6,12 +6,12 @@ import path from "node:path";
 
 import sharp from "sharp";
 import { buildAssetRuntimeManifest } from "../scripts/assets-pipeline.mjs";
+import { loadAssetPipelineEntries } from "../scripts/assets-pipeline.config.mjs";
 
-async function makeTempRoot() {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), "ccgh-assets-"));
-  await fs.mkdir(path.join(root, "source", "icons"), { recursive: true });
+async function writePixelPng(filePath) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(
-    path.join(root, "source", "pixel.png"),
+    filePath,
     await sharp({
       create: {
         width: 1,
@@ -21,6 +21,12 @@ async function makeTempRoot() {
       },
     }).png().toBuffer(),
   );
+}
+
+async function makeTempRoot() {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "ccgh-assets-"));
+  await fs.mkdir(path.join(root, "source", "icons"), { recursive: true });
+  await writePixelPng(path.join(root, "source", "pixel.png"));
   await fs.writeFile(
     path.join(root, "source", "icons", "badge.svg"),
     '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Badge</title><path id="mark" d="M2 2h20v20H2z"/></svg>',
@@ -108,5 +114,55 @@ describe("asset runtime pipeline", () => {
     const item = result.manifest.assets["test.pixel.compact"];
     assert.match(item.src, /^\/assets-runtime\/test\/pixel\.[a-f0-9]{8}\.webp$/);
     assert.equal(item.fallback, undefined);
+  });
+
+  it("keeps non-Pixi runtime images WebP-only while Pixi assets retain PNG fallback", async () => {
+    const root = await makeTempRoot();
+    await writePixelPng(path.join(root, "public/games/bubbo-bubbo/images/bubble-blue.png"));
+    await writePixelPng(path.join(root, "public/games/garden-shelf/assets_shelf.png"));
+    await writePixelPng(path.join(root, "public/icons/icon-192.png"));
+
+    const formatsByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry.formats]));
+
+    assert.deepEqual(formatsByKey.get("bubbo.bubble.blue"), ["webp", "png"]);
+    assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("icons.icon192"), ["webp"]);
+  });
+
+  it("reuses unchanged generated raster assets across clean builds", async () => {
+    const root = await makeTempRoot();
+    const entries = [
+      {
+        key: "test.pixel.cached",
+        source: "source/pixel.png",
+        outputDir: "test",
+        formats: ["webp"],
+        raster: {
+          webp: { quality: 90, effort: 1 },
+        },
+      },
+    ];
+
+    const first = await buildAssetRuntimeManifest({
+      rootDir: root,
+      outputRoot: "public/assets-runtime",
+      entries,
+      clean: true,
+    });
+    const outputPath = path.join(root, "public", first.manifest.assets["test.pixel.cached"].src.replace(/^\//, ""));
+    const cachedMtime = new Date("2001-01-01T00:00:00.000Z");
+    await fs.utimes(outputPath, cachedMtime, cachedMtime);
+    const cachedStat = await fs.stat(outputPath);
+
+    const second = await buildAssetRuntimeManifest({
+      rootDir: root,
+      outputRoot: "public/assets-runtime",
+      entries,
+      clean: true,
+    });
+    const secondStat = await fs.stat(outputPath);
+
+    assert.deepEqual(second.manifest, first.manifest);
+    assert.equal(secondStat.mtimeMs, cachedStat.mtimeMs);
   });
 });
