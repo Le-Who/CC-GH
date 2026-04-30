@@ -18,6 +18,9 @@ function runtimeWebpOnly(options = {}) {
   };
 }
 
+const PNG_EXTENSIONS = new Set([".png"]);
+const SVG_EXTENSIONS = new Set([".svg"]);
+
 async function fileExists(rootDir, source) {
   try {
     await fs.access(path.resolve(rootDir, source));
@@ -27,8 +30,9 @@ async function fileExists(rootDir, source) {
   }
 }
 
-async function addIfExists(entries, rootDir, assetEntry) {
-  if (await fileExists(rootDir, assetEntry.source)) entries.push(assetEntry);
+async function existingEntries(rootDir, assetEntries) {
+  const exists = await Promise.all(assetEntries.map((assetEntry) => fileExists(rootDir, assetEntry.source)));
+  return assetEntries.filter((_, index) => exists[index]);
 }
 
 async function walkFiles(rootDir, relativeDir, extensions) {
@@ -53,7 +57,7 @@ async function walkFiles(rootDir, relativeDir, extensions) {
   return files.sort();
 }
 
-async function addPixiEntries(entries, rootDir) {
+async function collectPixiEntries(rootDir) {
   const pixiEntries = [
     entry("bubbo.background.tile", "public/games/bubbo-bubbo/images/background-tile.png", "bubbo", "pixi.bubbo"),
     entry("bubbo.bubble.blue", "public/games/bubbo-bubbo/images/bubble-blue.png", "bubbo", "pixi.bubbo"),
@@ -76,12 +80,10 @@ async function addPixiEntries(entries, rootDir) {
     entry("match3.special.row", "public/games/puzzling-potions/images/special-row.png", "puzzling-potions", "pixi.match3"),
   ];
 
-  for (const assetEntry of pixiEntries) {
-    await addIfExists(entries, rootDir, assetEntry);
-  }
+  return existingEntries(rootDir, pixiEntries);
 }
 
-async function addGardenEntries(entries, rootDir) {
+async function collectGardenEntries(rootDir) {
   const gardenEntries = [
     entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf"),
     entry("gardenShelf.shelf", "public/games/garden-shelf/assets_shelf.png", "garden-shelf"),
@@ -90,15 +92,14 @@ async function addGardenEntries(entries, rootDir) {
     entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf"),
   ];
 
-  for (const assetEntry of gardenEntries) {
-    await addIfExists(entries, rootDir, assetEntry);
-  }
+  return existingEntries(rootDir, gardenEntries);
 }
 
-async function addCompanionYardEntries(entries, rootDir) {
+async function collectCompanionYardEntries(rootDir) {
   const root = "public/games/companion-yard";
-  const files = await walkFiles(rootDir, root, new Set([".png"]));
+  const files = await walkFiles(rootDir, root, PNG_EXTENSIONS);
   const compactRuntimeImage = runtimeWebpOnly();
+  const entries = [];
   for (const file of files) {
     const parts = file.slice(`${root}/`.length).split("/");
     if (parts.length !== 2) continue;
@@ -109,13 +110,16 @@ async function addCompanionYardEntries(entries, rootDir) {
       raster: compactRuntimeImage.raster,
     }));
   }
+  return entries;
 }
 
-async function addSvgEntries(entries, rootDir) {
-  const files = [
-    ...await walkFiles(rootDir, "public/pets", new Set([".svg"])),
-    ...await walkFiles(rootDir, "public/assets", new Set([".svg"])),
-  ];
+async function collectSvgEntries(rootDir) {
+  const [petFiles, assetFiles] = await Promise.all([
+    walkFiles(rootDir, "public/pets", SVG_EXTENSIONS),
+    walkFiles(rootDir, "public/assets", SVG_EXTENSIONS),
+  ]);
+  const files = [...petFiles, ...assetFiles];
+  const entries = [];
   for (const file of files) {
     const key = file
       .replace(/^public\//, "")
@@ -123,22 +127,26 @@ async function addSvgEntries(entries, rootDir) {
       .replace(/\//g, ".");
     entries.push(entry(key, file, path.dirname(file).replace(/^public\//, ""), null, ["svg"]));
   }
+  return entries;
 }
 
-async function addIconEntries(entries, rootDir) {
-  const files = await walkFiles(rootDir, "public/icons", new Set([".png"]));
+async function collectIconEntries(rootDir) {
+  const files = await walkFiles(rootDir, "public/icons", PNG_EXTENSIONS);
+  const entries = [];
   for (const file of files) {
     const id = path.basename(file, path.extname(file)).replace(/-/g, "");
     entries.push(entry(`icons.${id}`, file, "icons"));
   }
+  return entries;
 }
 
 export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
-  const entries = [];
-  await addPixiEntries(entries, rootDir);
-  await addGardenEntries(entries, rootDir);
-  await addCompanionYardEntries(entries, rootDir);
-  await addSvgEntries(entries, rootDir);
-  await addIconEntries(entries, rootDir);
-  return entries;
+  const groups = await Promise.all([
+    collectPixiEntries(rootDir),
+    collectGardenEntries(rootDir),
+    collectCompanionYardEntries(rootDir),
+    collectSvgEntries(rootDir),
+    collectIconEntries(rootDir),
+  ]);
+  return groups.flat();
 }

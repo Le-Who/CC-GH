@@ -7,6 +7,7 @@ export const BUBBO_PRESSURE_INTERVAL_MS = 9500;
 export const BUBBO_PRESSURE_STEP = 1;
 
 export const BUBBO_COLORS = ["mint", "amber", "coral", "sky", "berry"];
+const BUBBO_COLOR_SET = new Set(BUBBO_COLORS);
 
 export const BUBBO_PALETTE = {
   mint: "#6ee7b7",
@@ -96,28 +97,35 @@ export function createBubboBoard(options = {}) {
 
 export function normalizeBubboBoard(board) {
   const source = Array.isArray(board) && board.length ? board : createBubboBoard();
-  return Array.from({ length: BUBBO_ROWS }, (_, row) =>
-    Array.from({ length: BUBBO_COLS }, (_, col) => {
-      const value = source[row]?.[col] || null;
-      return BUBBO_COLORS.includes(value) ? value : null;
-    }),
-  );
+  const normalized = Array(BUBBO_ROWS);
+  for (let row = 0; row < BUBBO_ROWS; row += 1) {
+    const sourceRow = source[row] || [];
+    const nextRow = Array(BUBBO_COLS);
+    for (let col = 0; col < BUBBO_COLS; col += 1) {
+      const value = sourceRow[col] || null;
+      nextRow[col] = BUBBO_COLOR_SET.has(value) ? value : null;
+    }
+    normalized[row] = nextRow;
+  }
+  return normalized;
 }
 
 export function normalizeBubboPendingRow(row, seed = "bubbo", waveIndex = BUBBO_START_ROWS) {
   const fallback = generateBubboWave(seed || "bubbo", Number.isFinite(Number(waveIndex)) ? Number(waveIndex) : BUBBO_START_ROWS);
   const source = Array.isArray(row) && row.length ? row : fallback;
-  return Array.from({ length: BUBBO_COLS }, (_, col) => {
+  const normalized = Array(BUBBO_COLS);
+  for (let col = 0; col < BUBBO_COLS; col += 1) {
     const value = source[col] || null;
-    return BUBBO_COLORS.includes(value) ? value : null;
-  });
+    normalized[col] = BUBBO_COLOR_SET.has(value) ? value : null;
+  }
+  return normalized;
 }
 
 export function randomBubboColor(board = null) {
   const available = new Set();
   for (const row of board || []) {
     for (const value of row || []) {
-      if (BUBBO_COLORS.includes(value)) available.add(value);
+      if (BUBBO_COLOR_SET.has(value)) available.add(value);
     }
   }
   const pool = available.size ? [...available] : BUBBO_COLORS;
@@ -130,18 +138,27 @@ export function getBubboRowVisualOffset(row, rowOffset = 0) {
 
 export function getBubboNeighbors(row, col, rowOffset = 0, options = {}) {
   const minRow = options.includePendingRow ? -1 : 0;
-  const offsets = getBubboRowVisualOffset(row, rowOffset) ? ODD_NEIGHBORS : EVEN_NEIGHBORS;
-  return offsets
-    .map(([dr, dc]) => [row + dr, col + dc])
-    .filter(([r, c]) => r >= minRow && r < BUBBO_ROWS && c >= 0 && c < BUBBO_COLS);
+  const neighbors = [];
+  const offsets = getBubboNeighborOffsets(row, rowOffset);
+  for (let i = 0; i < offsets.length; i += 1) {
+    const [dr, dc] = offsets[i];
+    const r = row + dr;
+    const c = col + dc;
+    if (r >= minRow && r < BUBBO_ROWS && c >= 0 && c < BUBBO_COLS) neighbors.push([r, c]);
+  }
+  return neighbors;
 }
 
-function cellKey(row, col) {
-  return `${row}:${col}`;
+function getBubboNeighborOffsets(row, rowOffset = 0) {
+  return getBubboRowVisualOffset(row, rowOffset) ? ODD_NEIGHBORS : EVEN_NEIGHBORS;
 }
 
-function parseKey(key) {
-  return key.split(":").map(Number);
+function cellId(row, col) {
+  return (row + 1) * BUBBO_COLS + col;
+}
+
+function parseCellId(id) {
+  return [Math.floor(id / BUBBO_COLS) - 1, id % BUBBO_COLS];
 }
 
 function hasPendingRow(pendingRow) {
@@ -169,11 +186,16 @@ function nearestEmptyCell(board, row, col, rowOffset = 0, pendingRow = null) {
   if (!getBubboCell(board, pendingRow, startRow, startCol)) return [startRow, startCol];
 
   const queue = [[startRow, startCol]];
-  const seen = new Set([cellKey(startRow, startCol)]);
-  while (queue.length) {
-    const [r, c] = queue.shift();
-    for (const [nr, nc] of getBubboNeighbors(r, c, rowOffset, { includePendingRow })) {
-      const key = cellKey(nr, nc);
+  const seen = new Set([cellId(startRow, startCol)]);
+  for (let i = 0; i < queue.length; i += 1) {
+    const [r, c] = queue[i];
+    const offsets = getBubboNeighborOffsets(r, rowOffset);
+    for (let j = 0; j < offsets.length; j += 1) {
+      const [dr, dc] = offsets[j];
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr < minRow || nr >= BUBBO_ROWS || nc < 0 || nc >= BUBBO_COLS) continue;
+      const key = cellId(nr, nc);
       if (seen.has(key)) continue;
       if (!getBubboCell(board, pendingRow, nr, nc)) return [nr, nc];
       seen.add(key);
@@ -188,17 +210,23 @@ function sameColorCluster(board, row, col, rowOffset = 0, pendingRow = null) {
   const color = getBubboCell(board, pendingRow, row, col);
   if (!color) return [];
   const queue = [[row, col]];
-  const seen = new Set([cellKey(row, col)]);
+  const seen = new Set([cellId(row, col)]);
   for (let i = 0; i < queue.length; i++) {
     const [r, c] = queue[i];
-    for (const [nr, nc] of getBubboNeighbors(r, c, rowOffset, { includePendingRow })) {
-      const key = cellKey(nr, nc);
+    const offsets = getBubboNeighborOffsets(r, rowOffset);
+    const minRow = includePendingRow ? -1 : 0;
+    for (let j = 0; j < offsets.length; j += 1) {
+      const [dr, dc] = offsets[j];
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr < minRow || nr >= BUBBO_ROWS || nc < 0 || nc >= BUBBO_COLS) continue;
+      const key = cellId(nr, nc);
       if (seen.has(key) || getBubboCell(board, pendingRow, nr, nc) !== color) continue;
       seen.add(key);
       queue.push([nr, nc]);
     }
   }
-  return [...seen].map(parseKey);
+  return [...seen].map(parseCellId);
 }
 
 export function settleFloatingBubbo(board, rowOffset = 0, options = {}) {
@@ -209,21 +237,27 @@ export function settleFloatingBubbo(board, rowOffset = 0, options = {}) {
   if (includePendingRow) {
     for (let c = 0; c < BUBBO_COLS; c++) {
       if (!pendingRow[c]) continue;
-      const key = cellKey(-1, c);
+      const key = cellId(-1, c);
       anchored.add(key);
       queue.push([-1, c]);
     }
   }
   for (let c = 0; c < BUBBO_COLS; c++) {
     if (!board[0][c]) continue;
-    const key = cellKey(0, c);
+    const key = cellId(0, c);
     anchored.add(key);
     queue.push([0, c]);
   }
   for (let i = 0; i < queue.length; i++) {
     const [r, c] = queue[i];
-    for (const [nr, nc] of getBubboNeighbors(r, c, rowOffset, { includePendingRow })) {
-      const key = cellKey(nr, nc);
+    const offsets = getBubboNeighborOffsets(r, rowOffset);
+    const minRow = includePendingRow ? -1 : 0;
+    for (let j = 0; j < offsets.length; j += 1) {
+      const [dr, dc] = offsets[j];
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr < minRow || nr >= BUBBO_ROWS || nc < 0 || nc >= BUBBO_COLS) continue;
+      const key = cellId(nr, nc);
       if (anchored.has(key) || !getBubboCell(board, pendingRow, nr, nc)) continue;
       anchored.add(key);
       queue.push([nr, nc]);
@@ -233,7 +267,7 @@ export function settleFloatingBubbo(board, rowOffset = 0, options = {}) {
   const dropped = [];
   for (let r = 0; r < BUBBO_ROWS; r++) {
     for (let c = 0; c < BUBBO_COLS; c++) {
-      if (board[r][c] && !anchored.has(cellKey(r, c))) dropped.push([r, c]);
+      if (board[r][c] && !anchored.has(cellId(r, c))) dropped.push([r, c]);
     }
   }
   return dropped;
@@ -397,7 +431,7 @@ export function applyBubboShot(board, color, row, col, options = {}) {
   }
 
   const [landedRow, landedCol] = target;
-  setBubboCell(next, pendingRow, landedRow, landedCol, BUBBO_COLORS.includes(color) ? color : BUBBO_COLORS[0]);
+  setBubboCell(next, pendingRow, landedRow, landedCol, BUBBO_COLOR_SET.has(color) ? color : BUBBO_COLORS[0]);
 
   const cluster = sameColorCluster(next, landedRow, landedCol, rowOffset, pendingRow);
   const popped = cluster.length >= 3 ? cluster : [];

@@ -67,6 +67,7 @@
 
 ### Operations
 
+- Optimized perf-guard hot paths without changing gameplay semantics: Bubbo pressure/shot traversal and normalization, Merge generator empty-cell selection, current-schema player migrations, snapshot achievement metadata, and runtime asset entry scanning now do less repeat allocation while keeping existing budgets intact.
 - Added per-entry runtime asset encoding so Cozy Yard keeps editable PNG source/fallback art while generated runtime Yard assets ship as compact WebP-only files under the existing build payload budgets.
 - Added an ordered SQL migration runner backed by `schema_migrations`, keeping `db.js` schema creation as a first-start compatibility fallback for legacy bootstrap objects.
 - Backfilled SQL schema history through `migrations/002_player_state_and_stats.sql` and narrowed `db.js` bootstrap to migration-first compatibility fallback.
@@ -80,6 +81,7 @@
 
 ### Tests
 
+- Verified the conservative perf loop with full Node tests plus `perf:guard:all`, covering Node, build-budget, and Chromium runtime guards without loosening budgets.
 - Added Cozy Yard unit and Playwright coverage for free-coordinate goodie placement, `yard.moveGoodie`, HUD-launched in-game screens, and mobile placement confirmation.
 - Added asset-pipeline coverage for WebP-only runtime entries and hardened the runtime asset browser smoke around Cozy Yard lazy loading.
 - Added `tests/operational-debt.test.js` for SQL migration discovery/application, mutation commit hooks, Redis health reporting, and `player_stats_view` refresh status capture.

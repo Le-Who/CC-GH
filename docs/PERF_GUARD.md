@@ -56,3 +56,11 @@ This repo uses three performance guard layers because one metric cannot cover a 
 - raw max is diagnostic only: it is reported as a warning when it exceeds the tail budget, because single-sample VM scheduling or GC spikes are not stable enough to fail otherwise healthy p95/p99 measurements.
 - Prefer adding focused suites for changed mechanics over loosening shared budgets.
 - Browser performance specs stay separate from `pnpm test` because they are slower and environment-sensitive.
+
+## Conservative Optimization Workflow
+
+- Capture a repeat baseline before changing code, usually with `pnpm run perf:guard -- --suite <id> --repeat 3` for the target suite.
+- Keep only changes that show at least a 3% p95 improvement with no p99 regression and no gameplay-semantic change.
+- Refresh the baseline after each kept win before moving to the next target, so later comparisons measure against the current tree.
+- Treat `pnpm run perf:guard:all` as the final source of truth because it covers Node hot paths, build budgets, and browser runtime smoke together.
+- Stop after three consecutive noisy, reverted, or sub-3% attempts, or when the next likely change would require gameplay behavior changes.

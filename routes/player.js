@@ -64,6 +64,8 @@ const BUBBO_START_ROWS = 5;
 const BUBBO_SHOTS = 36;
 const BUBBO_TIMED_SECONDS = 90;
 const BUBBO_COLORS = ["mint", "amber", "coral", "sky", "berry"];
+const ACHIEVEMENT_ENTRIES = Object.entries(ACHIEVEMENTS);
+const ACHIEVEMENT_TOTAL = ACHIEVEMENT_ENTRIES.length;
 
 function parseJsonValue(raw, fallback) {
   if (!raw) return fallback;
@@ -323,7 +325,7 @@ function buildInventory(p, options = {}) {
 
 function buildAchievements(p) {
   const badges = {};
-  for (const [id, badge] of Object.entries(ACHIEVEMENTS)) {
+  for (const [id, badge] of ACHIEVEMENT_ENTRIES) {
     badges[id] = {
       id,
       name: badge.name,
@@ -433,7 +435,7 @@ export function buildSnapshot(p, extras = {}) {
       badges: buildAchievements(p),
       raw: p.achievements || {},
       totalUnlocked: Object.keys(p.achievements || {}).length,
-      totalBadges: Object.keys(ACHIEVEMENTS).length,
+      totalBadges: ACHIEVEMENT_TOTAL,
     },
     meta: {
       crops: CROPS,
@@ -901,10 +903,11 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       const yieldCfg = TIER_YIELD[tier] || TIER_YIELD.cheap;
       const spawnCount = usedFreeTap ? 1 : Math.floor(Math.random() * (yieldCfg.max - yieldCfg.min + 1)) + yieldCfg.min;
       const spawned = [];
+      const openCells = empty;
       for (let i = 0; i < spawnCount; i++) {
-        const cells = emptyMergeCells(p.merge.board);
-        if (!cells.length) break;
-        const [r, c] = cells[Math.floor(Math.random() * cells.length)];
+        if (!openCells.length) break;
+        const cellIndex = Math.floor(Math.random() * openCells.length);
+        const [r, c] = openCells.splice(cellIndex, 1)[0];
         const dropChainId = wildTap ? pickMergeDropChainId(p.merge.board) : chainId;
         const chain = MERGE_CHAINS[dropChainId];
         const rand = Math.random();

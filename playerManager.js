@@ -288,6 +288,9 @@ export function applyMigrations(p) {
   const currentSchemaVersion = 11;
   
   if (!p) return null;
+  if (p.schemaVersion >= currentSchemaVersion && p.garden && p.yard) {
+    return p;
+  }
   const now = Date.now();
 
   if (!p.garden) p.garden = createDefaultGardenState(now);
