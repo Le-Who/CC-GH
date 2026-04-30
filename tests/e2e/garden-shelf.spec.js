@@ -30,11 +30,12 @@ test.describe("Garden Shelf flow", () => {
     await expect(page.locator('img[src="/games/garden-shelf/assets_garden_bottom_plank.png"]')).toBeVisible();
     await expect(page.locator('img[src="/games/garden-shelf/assets_shelf.png"]').first()).toBeVisible();
     await expect(page.getByText("Gold Balance")).toHaveCount(0);
-    await expect(page.locator(".stats-row")).toContainText("Garden Lv");
+    await expect(page.getByText("Garden Lv 1")).toBeVisible();
+    await expect(page.locator(".stats-row")).toContainText("Garden XP");
     await expect(page.locator(".stats-row")).toContainText("Plants");
     await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
     const goldStat = page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
-    await expect(goldStat).toContainText("100");
+    await expect(goldStat).toContainText("10,000");
 
     await page.getByRole("button", { name: "+" }).first().click();
     const panel = page.locator(".fixed.bottom-0").last();
@@ -43,19 +44,20 @@ test.describe("Garden Shelf flow", () => {
     await expect(panel).toContainText("Daisy");
     await expect(panel).toContainText("Lavender");
     await expect(panel).toContainText("Unlocks at Lv 4");
-    await panel.locator("button").filter({ hasText: "25" }).click();
+    await panel.locator("button").filter({ hasText: "2,500" }).click();
 
     await expect(page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
     await expect(page.getByTestId("garden-phase-badge")).toHaveCount(0);
     await expect(page.getByTestId("garden-water-ready")).toBeVisible();
-    await expect(goldStat).toContainText("75");
+    await expect(goldStat).toContainText("7,500");
 
     await page.getByRole("button", { name: "Garden settings" }).click();
     await expect(page.locator(".garden-glass-menu")).toBeVisible();
     await expect(page.getByText("Settings")).toBeVisible();
     await page.getByRole("button", { name: "Russian" }).click();
     await expect(page.getByText("Мой сад")).toBeVisible();
-    await expect(page.locator(".stats-row")).toContainText("Ур. сада");
+    await expect(page.getByText("Ур. сада 1")).toBeVisible();
+    await expect(page.locator(".stats-row")).toContainText("Опыт сада");
     await expect(page.getByRole("button", { name: /Блоки/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Камни/ })).toBeVisible();
     await expect(page.getByText("Настройки")).toBeVisible();
@@ -87,7 +89,7 @@ test.describe("Garden Shelf flow", () => {
       const body = parsePlayerActionRequest(response.request());
       return body?.action === "garden.sync" && body?.payload?.state?.plants?.length > 0;
     }, { timeout: 10000 });
-    await panel.locator("button").filter({ hasText: "25" }).click();
+    await panel.locator("button").filter({ hasText: "2,500" }).click();
     await expect(first.page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
     await syncAfterPlant;
     await first.context.close();
@@ -96,7 +98,7 @@ test.describe("Garden Shelf flow", () => {
     await expect(second.page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 15000 });
     await expect(second.page.locator(".stats-row")).toContainText("1/3");
     const goldStat = second.page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
-    await expect(goldStat).toContainText("75");
+    await expect(goldStat).toContainText("7,500");
     await second.context.close();
   });
 
@@ -137,7 +139,7 @@ test.describe("Garden Shelf flow", () => {
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Welcome Back!")).toHaveCount(0);
     await expect(page.getByText("Collect Gold")).toHaveCount(0);
-    await expect(page.locator(".stats-row")).toContainText("Garden Lv");
+    await expect(page.locator(".stats-row")).toContainText("Garden XP");
   });
 
   test("keeps generated offline reward visible until the player collects it", async ({ page }) => {

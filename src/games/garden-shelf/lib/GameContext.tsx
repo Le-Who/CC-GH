@@ -69,6 +69,7 @@ interface GameContextType {
   waterPlant: (plantId: string) => void;
   tapPlant: (plantId: string) => void;
   levelUp: () => void;
+  renameGarden: (name: string) => void;
   movePlantToInventory: (plantId: string) => void;
   movePlantToShelf: (plantId: string, shelfIndex: number, spotIndex: number) => void;
 }
@@ -83,6 +84,10 @@ const OFFLINE_EARNINGS_MIN_AWAY_MS = 30 * 60 * 1000;
 
 function normalizeHubGold(value: number | undefined) {
   return Math.max(0, Math.floor(Number(value) || 0));
+}
+
+function normalizeGardenName(value: unknown) {
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 22);
 }
 
 function withoutSharedGold(state: GameState): Omit<GameState, 'gold'> {
@@ -125,6 +130,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
     ...defaultState,
     ...source,
     economyVersion: GARDEN_ECONOMY_VERSION,
+    name: normalizeGardenName(source.name),
     plants,
     totalGoldEarned: Math.max(0, Math.floor(Number(source.totalGoldEarned) || 0)),
     level,
@@ -156,6 +162,7 @@ function hasGardenProgress(state: GameState | null) {
     state.level > 1 ||
     state.xp > 0 ||
     state.shelvesUnlocked > 1 ||
+    !!state.name ||
     state.totalGoldEarned > 0
   );
 }
@@ -586,10 +593,10 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
      setState(prev => {
         const plant = prev.plants.find(p => p.id === plantId);
         if (!plant) return prev;
+        const now = Date.now();
+        if (plant.lastTapped && now - plant.lastTapped < GARDEN_TAP_REWARD_COOLDOWN_MS) return prev;
 
         if (plant.phase === 3) {
-            const now = Date.now();
-            if (plant.lastTapped && now - plant.lastTapped < GARDEN_TAP_REWARD_COOLDOWN_MS) return prev;
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
             const gold = getClickReward(def.baseClick, plant.level);
             const xp = getClickXpReward(def.baseXp, plant.level);
@@ -609,10 +616,15 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
 
             return {
                ...prev,
-               plants: prev.plants.map(p => p.id === plantId ? { ...p, phase: newPhase, phaseProgress: newProgress } : p)
+               plants: prev.plants.map(p => p.id === plantId ? { ...p, phase: newPhase, phaseProgress: newProgress, lastTapped: now } : p)
             };
         }
      });
+  };
+
+  const renameGarden = (name: string) => {
+    const nextName = normalizeGardenName(name);
+    setState((prev) => (prev.name === nextName ? prev : { ...prev, name: nextName }));
   };
 
   const waterPlant = (plantId: string) => {
@@ -671,6 +683,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
         waterPlant,
         tapPlant,
         levelUp,
+        renameGarden,
         movePlantToInventory,
         movePlantToShelf
       }}

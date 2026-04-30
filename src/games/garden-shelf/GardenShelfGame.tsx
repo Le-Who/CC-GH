@@ -19,14 +19,21 @@ import { ArrowUpCircle, Coins } from 'lucide-react';
 const GARDEN_NAME_KEY = 'garden_shelf_name';
 
 function GardenSign() {
+  const { state, renameGarden } = useGame();
   const { t } = useGardenI18n();
   const [editing, setEditing] = useState(false);
-  const [customName, setCustomName] = useState(() => {
-    if (typeof window === 'undefined') return '';
-    return window.localStorage.getItem(GARDEN_NAME_KEY) || '';
-  });
-  const [draftName, setDraftName] = useState(customName);
-  const displayName = customName.trim() || t('garden.defaultName');
+  const [draftName, setDraftName] = useState(state.name || '');
+  const displayName = state.name?.trim() || t('garden.defaultName');
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || state.name) return;
+    const legacyName = window.localStorage.getItem(GARDEN_NAME_KEY);
+    if (legacyName?.trim()) renameGarden(legacyName);
+  }, [renameGarden, state.name]);
+
+  React.useEffect(() => {
+    setDraftName(state.name || '');
+  }, [state.name]);
 
   const startEditing = () => {
     setDraftName(displayName);
@@ -35,7 +42,7 @@ function GardenSign() {
 
   const commitName = () => {
     const nextName = draftName.trim();
-    setCustomName(nextName);
+    renameGarden(nextName);
     if (nextName) {
       window.localStorage.setItem(GARDEN_NAME_KEY, nextName);
     } else {
@@ -77,10 +84,15 @@ function GardenSign() {
             type="button"
             onClick={startEditing}
             aria-label={t('garden.rename')}
-            className="absolute inset-x-[15%] top-[52%] min-h-[44px] -translate-y-1/2 truncate text-center font-serif text-[clamp(0.85rem,3.6vw,1.18rem)] font-bold tracking-widest text-amber-50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]"
+            className="absolute inset-x-[15%] top-[45%] min-h-[44px] -translate-y-1/2 truncate text-center font-serif text-[clamp(0.82rem,3.3vw,1.12rem)] font-bold tracking-widest text-amber-50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]"
           >
             {displayName}
           </button>
+        )}
+        {!editing && (
+          <div className="absolute inset-x-[18%] top-[68%] truncate text-center font-mono text-[10px] font-black uppercase tracking-[0.18em] text-amber-100/90 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]">
+            {t('hud.level')} {state.level}
+          </div>
         )}
       </div>
     </div>
@@ -249,10 +261,9 @@ function GameContent() {
         <div className="absolute -top-[10%] left-1/4 w-[120%] h-[80%] bg-gradient-to-b from-[#ffd7b5] to-transparent blur-[80px] opacity-10 transform -rotate-[30deg]"></div>
       </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
+        <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
         <GardenSign />
         <GardenSettingsButton />
-        <GardenProgress />
 
         {/* The Glass Dome Container */}
         <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">

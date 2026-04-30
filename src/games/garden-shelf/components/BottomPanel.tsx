@@ -4,6 +4,8 @@ import confetti from 'canvas-confetti';
 import { useGame } from '../lib/GameContext';
 import {
   PLANT_TYPES,
+  formatGardenGoldAmount,
+  formatGardenRate,
   getUpgradeCost,
   getProduction,
   getClickReward,
@@ -14,7 +16,7 @@ import {
   WATER_COOLDOWN_MS,
   GARDEN_TAP_REWARD_COOLDOWN_MS,
 } from '../constants';
-import { Coins, X, ArrowUpCircle, Trash2, Droplets, Archive, Lock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Coins, X, ArrowUpCircle, Trash2, Droplets, Archive, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GARDEN_SHEET_PATH, getGardenSpriteStyle } from '../lib/sprites';
 import { useGardenI18n } from '../lib/i18n';
@@ -25,6 +27,33 @@ interface BottomPanelProps {
 }
 
 export function BottomPanel({ spot, onClose }: BottomPanelProps) {
+  const { state } = useGame();
+  const [activePlantId, setActivePlantId] = useState(spot?.plantId || '');
+  const placedPlants = React.useMemo(
+    () => [...state.plants]
+      .filter((plant) => plant.shelfIndex >= 0 && plant.spotIndex >= 0)
+      .sort((left, right) => left.shelfIndex - right.shelfIndex || left.spotIndex - right.spotIndex || left.id.localeCompare(right.id)),
+    [state.plants],
+  );
+  const activePlantIndex = placedPlants.findIndex((plant) => plant.id === activePlantId);
+  const activeSpot = activePlantId && activePlantIndex >= 0
+    ? {
+        shelfIndex: placedPlants[activePlantIndex].shelfIndex,
+        spotIndex: placedPlants[activePlantIndex].spotIndex,
+        plantId: activePlantId,
+      }
+    : spot;
+
+  React.useEffect(() => {
+    setActivePlantId(spot?.plantId || '');
+  }, [spot?.plantId]);
+
+  const selectRelativePlant = (direction: -1 | 1) => {
+    if (activePlantIndex < 0 || placedPlants.length < 2) return;
+    const nextIndex = (activePlantIndex + direction + placedPlants.length) % placedPlants.length;
+    setActivePlantId(placedPlants[nextIndex].id);
+  };
+
   if (!spot) return null;
 
   return (
@@ -51,10 +80,16 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
         </button>
 
         <div className="w-full px-6 pb-8">
-          {spot.plantId ? (
-            <PlantDetail plantId={spot.plantId} onClose={onClose} />
+          {activeSpot.plantId ? (
+            <PlantDetail
+              plantId={activeSpot.plantId}
+              onClose={onClose}
+              onNavigate={placedPlants.length > 1 ? selectRelativePlant : undefined}
+              plantIndex={activePlantIndex}
+              plantCount={placedPlants.length}
+            />
           ) : (
-            <Shop shelfIndex={spot.shelfIndex} spotIndex={spot.spotIndex} onClose={onClose} />
+            <Shop shelfIndex={activeSpot.shelfIndex} spotIndex={activeSpot.spotIndex} onClose={onClose} />
           )}
         </div>
       </motion.div>
@@ -118,7 +153,7 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
                   </h3>
                   <p className="font-mono text-[10px]">
                     {isUnlocked
-                      ? t('shop.yields', { amount: plant.baseProduction })
+                      ? t('shop.yields', { amount: formatGardenRate(plant.baseProduction) })
                       : t('shop.unlockAt', { level: unlockLevel })}
                   </p>
                 </div>
@@ -139,7 +174,7 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
               >
                 {isUnlocked ? (
                   <>
-                    {plant.baseCost} <Coins size={12} className={canBuy ? "text-amber-400" : "text-slate-600"} />
+                    {formatGardenGoldAmount(plant.baseCost)} <Coins size={12} className={canBuy ? "text-amber-400" : "text-slate-600"} />
                   </>
                 ) : (
                   <>
@@ -188,7 +223,19 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
   );
 }
 
-function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => void }) {
+function PlantDetail({
+  plantId,
+  onClose,
+  onNavigate,
+  plantIndex = 0,
+  plantCount = 1,
+}: {
+  plantId: string,
+  onClose: () => void,
+  onNavigate?: (direction: -1 | 1) => void,
+  plantIndex?: number,
+  plantCount?: number,
+}) {
   const { state, upgradePlant, sellPlant, tapPlant, waterPlant, movePlantToInventory } = useGame();
   const { t } = useGardenI18n();
   const plant = state.plants.find((p) => p.id === plantId);
@@ -196,6 +243,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
   const [floatingNotes, setFloatingNotes] = useState<{ id: number, x: number, y: number, text: string, color: string }[]>([]);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const swipeStart = React.useRef<{ x: number; y: number } | null>(null);
 
   if (!plant) {
     onClose();
@@ -223,8 +271,10 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
   const bgStyle = getGardenSpriteStyle(spriteIndex, phase, (phaseScales[phase] || 0.8) * (isUpgrading ? 1.15 : 1));
 
   const handleMash = (e: React.PointerEvent) => {
+    const canTap = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
+    if (!canTap) return;
     tapPlant(plantId);
-    
+
     const id = Date.now() + Math.random();
     let text = "";
     let color = "";
@@ -234,7 +284,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
        if (!canReward) return;
        const value = getClickReward(def.baseClick, plant.level);
        const xp = getClickXpReward(def.baseXp, plant.level);
-       text = `+${value} · +${xp} XP`;
+       text = `+${formatGardenGoldAmount(value)} · +${xp} XP`;
        color = "text-amber-400";
     } else {
        text = `+${tapAccelerationSeconds}s`;
@@ -289,10 +339,35 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
   const now = Date.now();
   const canWater = phase < 3 && (!plant.lastWatered || (now - plant.lastWatered) >= WATER_COOLDOWN_MS);
   const isFullyGrown = phase === 3;
+  const canNavigate = !!onNavigate && plantCount > 1;
+  const handleTouchStart = (event: React.TouchEvent) => {
+    if ((event.target as HTMLElement).closest('button, input, select, textarea')) return;
+    const touch = event.touches[0];
+    swipeStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  };
+  const handleTouchEnd = (event: React.TouchEvent) => {
+    if (!canNavigate || !swipeStart.current) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - swipeStart.current.x;
+    const dy = touch.clientY - swipeStart.current.y;
+    swipeStart.current = null;
+    if (Math.abs(dx) < 46 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+    onNavigate(dx < 0 ? 1 : -1);
+  };
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className="flex w-full items-center justify-between mb-4">
+        {canNavigate && (
+          <button
+            type="button"
+            className="garden-icon-button mr-2 shrink-0"
+            onClick={() => onNavigate(-1)}
+            aria-label={t('plantDetail.previous')}
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
         <div>
           <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
           <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
@@ -300,6 +375,11 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
                ? t('plantDetail.mature', { level: plant.level })
                : t('plantDetail.growing', { phase })}
           </div>
+          {canNavigate && (
+            <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
+              {t('plantDetail.position', { current: plantIndex + 1, total: plantCount })}
+            </div>
+          )}
         </div>
         
         <div className="flex flex-col items-end">
@@ -307,7 +387,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
             <>
               <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
               <span className="flex items-center gap-1 font-mono text-[color:var(--ink)]">
-                {production} <small className="text-[10px] opacity-60">G/s</small>
+                {formatGardenRate(production)} <small className="text-[10px] opacity-60">G/s</small>
               </span>
             </>
           ) : (
@@ -319,6 +399,16 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
             </>
           )}
         </div>
+        {canNavigate && (
+          <button
+            type="button"
+            className="garden-icon-button ml-2 shrink-0"
+            onClick={() => onNavigate(1)}
+            aria-label={t('plantDetail.next')}
+          >
+            <ChevronRight size={18} />
+          </button>
+        )}
       </div>
 
       <div className="relative my-8">
@@ -443,7 +533,7 @@ function PlantDetail({ plantId, onClose }: { plantId: string, onClose: () => voi
             <span>{isUpgrading ? t('plantDetail.evolving') : t('plantDetail.evolve')}</span>
             <span className="mx-2 opacity-30">|</span>
             <span className="flex items-center gap-1">
-              {upgradeCost} <Coins size={14} className={canAfford ? "text-amber-400" : "text-slate-600"} />
+              {formatGardenGoldAmount(upgradeCost)} <Coins size={14} className={canAfford ? "text-amber-400" : "text-slate-600"} />
             </span>
           </motion.button>
       )}

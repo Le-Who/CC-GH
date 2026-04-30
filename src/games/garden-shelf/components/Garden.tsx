@@ -8,6 +8,7 @@ import {
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
   WATER_COOLDOWN_MS,
+  formatGardenGoldAmount,
   getClickReward,
   getClickXpReward,
   GARDEN_TAP_REWARD_COOLDOWN_MS,
@@ -69,7 +70,7 @@ export function Garden({ onSelectSpot }: GardenProps) {
                        canAfford ? "danger" : "disabled",
                      )}
                    >
-                     {unlockCost} <Coins size={14} className={canAfford ? "text-rose-400" : "text-slate-500"} />
+                     {formatGardenGoldAmount(unlockCost)} <Coins size={14} className={canAfford ? "text-rose-400" : "text-slate-500"} />
                    </motion.button>
                  </div>
                  <Shelf visualsOnly />
@@ -187,6 +188,9 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
       
       // If duration is under 500ms, it's considered a tap
       if (duration < 500 && plant) {
+        const now = Date.now();
+        const canTap = !plant.lastTapped || now - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
+        if (!canTap) return;
         tapPlant(plant.id);
         
         // Add floating text
@@ -202,11 +206,8 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
         if (plant.phase === 3) {
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
             const amount = getClickReward(def.baseClick, plant.level);
-            const canReward = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
-            if (canReward) {
-              const xp = getClickXpReward(def.baseXp, plant.level);
-              setFloatingTexts(prev => [...prev, { id, text: `+${amount} G · +${xp} XP`, type: 'gold' }]);
-            }
+            const xp = getClickXpReward(def.baseXp, plant.level);
+            setFloatingTexts(prev => [...prev, { id, text: `+${formatGardenGoldAmount(amount)} G · +${xp} XP`, type: 'gold' }]);
         } else {
             setFloatingTexts(prev => [...prev, { id, text: `-${tapAccelerationSeconds}s`, type: 'time' }]);
         }

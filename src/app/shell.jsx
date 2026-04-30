@@ -28,13 +28,25 @@ export function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled
   );
 }
 
-export function Stat({ icon: Icon, label, value }) {
+export function Stat({ icon: Icon, label, value, progress = null, onClick = null, active = false, title = "" }) {
+  const Tag = onClick ? "button" : "div";
+  const boundedProgress = progress == null ? null : Math.max(0, Math.min(100, Number(progress) || 0));
   return (
-    <div className="stat-chip">
+    <Tag
+      type={onClick ? "button" : undefined}
+      className={`stat-chip${onClick ? " clickable" : ""}${active ? " active" : ""}`}
+      onClick={onClick || undefined}
+      title={title || undefined}
+    >
       <Icon size={17} />
       <span>{label}</span>
       <strong>{value}</strong>
-    </div>
+      {boundedProgress != null && (
+        <i className="stat-progress" aria-hidden="true">
+          <b style={{ transform: `scaleX(${boundedProgress / 100})` }} />
+        </i>
+      )}
+    </Tag>
   );
 }
 

@@ -12,6 +12,7 @@
  * ═══════════════════════════════════════════════════ */
 export const MERGE_WILD_GENERATOR_ID = "wild";
 export const MERGE_START_CHAIN_ID = "flora";
+export const MERGE_GENERATOR_CHAIN_IDS = ["flora", "earth", "water", "fire", "air"];
 
 export const MERGE_CHAINS = {
   flora: {
@@ -176,6 +177,14 @@ export const MERGE_RECIPES = [
     discovered: true,
   },
   {
+    id: "seed_mud_sprout",
+    name: "Seedbed",
+    hint: "Mud can shelter a seed into the same first sprout.",
+    ingredients: ["seed", "mud"],
+    result: { chainId: "flora", level: 1 },
+    discovered: false,
+  },
+  {
     id: "dew_dust_mud",
     name: "Soft Earth",
     hint: "Water turns loose dust into workable mud.",
@@ -192,12 +201,28 @@ export const MERGE_RECIPES = [
     discovered: true,
   },
   {
+    id: "mud_ember_brick",
+    name: "Baked Mud",
+    hint: "A small ember can harden wet mud into brick.",
+    ingredients: ["mud", "ember"],
+    result: { chainId: "alchemy", level: 1 },
+    discovered: false,
+  },
+  {
     id: "sand_flame_glass",
     name: "Glassmaking",
     hint: "Flame melts sand into clear glass.",
     ingredients: ["sand", "flame"],
     result: { chainId: "alchemy", level: 2 },
-    discovered: true,
+    discovered: false,
+  },
+  {
+    id: "sand_ember_glass",
+    name: "Patient Glass",
+    hint: "Even a small ember can make glass if the sand waits long enough.",
+    ingredients: ["sand", "ember"],
+    result: { chainId: "alchemy", level: 2 },
+    discovered: false,
   },
   {
     id: "glass_droplet_vial",
@@ -205,7 +230,15 @@ export const MERGE_RECIPES = [
     hint: "A droplet gives glass a purpose: a vial.",
     ingredients: ["glass", "droplet"],
     result: { chainId: "alchemy", level: 3 },
-    discovered: true,
+    discovered: false,
+  },
+  {
+    id: "glass_dew_vial",
+    name: "Fine Vessel",
+    hint: "Dew cools glass into a small vial without cracking it.",
+    ingredients: ["glass", "dew"],
+    result: { chainId: "alchemy", level: 3 },
+    discovered: false,
   },
   {
     id: "vial_herb_elixir",
@@ -213,7 +246,15 @@ export const MERGE_RECIPES = [
     hint: "Herbs steeped in a vial become an elixir.",
     ingredients: ["vial", "herb"],
     result: { chainId: "alchemy", level: 4 },
-    discovered: true,
+    discovered: false,
+  },
+  {
+    id: "vial_blossom_elixir",
+    name: "Bloom Infusion",
+    hint: "A stronger blossom makes the vial bloom into an elixir.",
+    ingredients: ["vial", "blossom"],
+    result: { chainId: "alchemy", level: 4 },
+    discovered: false,
   },
   {
     id: "glass_spark_lens",
@@ -221,7 +262,7 @@ export const MERGE_RECIPES = [
     hint: "A spark teaches glass to focus energy.",
     ingredients: ["glass", "spark"],
     result: { chainId: "alchemy", level: 5 },
-    discovered: true,
+    discovered: false,
   },
   {
     id: "lens_cloud_astrolabe",
@@ -229,7 +270,7 @@ export const MERGE_RECIPES = [
     hint: "A lens pointed through clouds becomes an astrolabe.",
     ingredients: ["lens", "cloud"],
     result: { chainId: "alchemy", level: 6 },
-    discovered: true,
+    discovered: false,
   },
   {
     id: "crystal_elixir_philosopher_stone",
@@ -237,7 +278,15 @@ export const MERGE_RECIPES = [
     hint: "Crystal structure and elixir energy complete the stone.",
     ingredients: ["crystal", "elixir"],
     result: { chainId: "alchemy", level: 7 },
-    discovered: true,
+    discovered: false,
+  },
+  {
+    id: "geode_astrolabe_philosopher_stone",
+    name: "Star Map",
+    hint: "A geode and astrolabe reveal the same final stone by the sky path.",
+    ingredients: ["geode", "astrolabe"],
+    result: { chainId: "alchemy", level: 7 },
+    discovered: false,
   },
   {
     id: "breeze_droplet_cloud",
@@ -248,12 +297,28 @@ export const MERGE_RECIPES = [
     discovered: true,
   },
   {
+    id: "breeze_dew_cloud",
+    name: "Morning Cloud",
+    hint: "A breeze can lift dew into a young cloud.",
+    ingredients: ["breeze", "dew"],
+    result: { chainId: "air", level: 1 },
+    discovered: false,
+  },
+  {
+    id: "cloud_ember_spark",
+    name: "Static Lift",
+    hint: "Heat inside a cloud wakes a spark.",
+    ingredients: ["cloud", "ember"],
+    result: { chainId: "air", level: 2 },
+    discovered: false,
+  },
+  {
     id: "cloud_spark_bolt",
     name: "Charge",
     hint: "A spark in a cloud becomes a bolt.",
     ingredients: ["cloud", "spark"],
     result: { chainId: "air", level: 3 },
-    discovered: true,
+    discovered: false,
   },
   {
     id: "ore_coal_forge",
@@ -261,7 +326,31 @@ export const MERGE_RECIPES = [
     hint: "Ore and coal make a working forge.",
     ingredients: ["ore", "coal"],
     result: { chainId: "fire", level: 4 },
-    discovered: true,
+    discovered: false,
+  },
+  {
+    id: "forge_crystal_sunshard",
+    name: "Prism Forge",
+    hint: "A forge can cut crystal into a sunshard.",
+    ingredients: ["forge", "crystal"],
+    result: { chainId: "fire", level: 5 },
+    discovered: false,
+  },
+  {
+    id: "sunshard_tide_rainstone",
+    name: "Sun Shower",
+    hint: "Sunshard heat and tide pressure condense into a rainstone.",
+    ingredients: ["sunshard", "tide"],
+    result: { chainId: "water", level: 6 },
+    discovered: false,
+  },
+  {
+    id: "rainstone_storm_cell_aurora",
+    name: "Aurora Weather",
+    hint: "Rainstone inside a storm cell paints the sky.",
+    ingredients: ["rainstone", "storm_cell"],
+    result: { chainId: "air", level: 6 },
+    discovered: false,
   },
 ];
 
@@ -320,6 +409,33 @@ for (const chain of Object.values(MERGE_CHAINS)) {
   });
 }
 
+export function isMergeGeneratorChain(chainId) {
+  return MERGE_GENERATOR_CHAIN_IDS.includes(String(chainId || ""));
+}
+
+export function getStarterMergeRecipeIds() {
+  return MERGE_RECIPES.filter((recipe) => recipe.discovered).map((recipe) => recipe.id);
+}
+
+export function getStarterMergeItemIds() {
+  const ids = new Set();
+  for (const chainId of MERGE_GENERATOR_CHAIN_IDS) {
+    const itemId = MERGE_CHAINS[chainId]?.items?.[0];
+    if (itemId) ids.add(itemId);
+  }
+  for (const recipe of MERGE_RECIPES.filter((candidate) => candidate.discovered)) {
+    for (const itemId of recipe.ingredients) ids.add(itemId);
+    const resultId = MERGE_CHAINS[recipe.result.chainId]?.items?.[recipe.result.level];
+    if (resultId) ids.add(resultId);
+  }
+  return [...ids];
+}
+
+export function getMergeItemInfo(itemId) {
+  const info = ITEM_TO_CHAIN.get(String(itemId || ""));
+  return info ? { ...info } : null;
+}
+
 export function normalizeMergeChainId(chainId) {
   const raw = String(chainId || "");
   if (MERGE_CHAINS[raw]) return raw;
@@ -366,12 +482,12 @@ export function canMergePair(first, second) {
 }
 
 export function pickMergeDropChainId(board = [], random = Math.random) {
-  const allChainIds = Object.keys(MERGE_CHAINS);
+  const allChainIds = MERGE_GENERATOR_CHAIN_IDS;
   const activeChainIds = new Set();
   for (const row of board || []) {
     for (const item of row || []) {
         const chainId = normalizeMergeChainId(item?.chainId);
-        if (chainId) activeChainIds.add(chainId);
+        if (chainId && isMergeGeneratorChain(chainId)) activeChainIds.add(chainId);
     }
   }
   const pool = activeChainIds.size > 0 && random() < 0.62

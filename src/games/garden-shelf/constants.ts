@@ -45,6 +45,28 @@ export interface GardenLevelDefinition {
   unlocks: PlantType[];
 }
 
+export const GARDEN_GOLD_DISPLAY_MULTIPLIER = 100;
+
+function formatDisplayNumber(value: number, fractionDigits = 0) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  return new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: fractionDigits,
+    minimumFractionDigits: 0,
+  }).format(safeValue);
+}
+
+export function toGardenGoldDisplayValue(value: number) {
+  return (Number(value) || 0) * GARDEN_GOLD_DISPLAY_MULTIPLIER;
+}
+
+export function formatGardenGoldAmount(value: number) {
+  return formatDisplayNumber(toGardenGoldDisplayValue(value), 0);
+}
+
+export function formatGardenRate(value: number) {
+  return formatDisplayNumber(toGardenGoldDisplayValue(value), 2);
+}
+
 export const PLANT_TYPES: Record<PlantType, PlantDefinition> = {
   daisy: { id: 'daisy', name: 'Daisy', icon: Flower, baseCost: 25, baseProduction: 0.035, baseClick: 1, baseXp: 4, basePassiveXp: 0.012, color: 'text-amber-400', spriteIndex: 0 },
   lavender: { id: 'lavender', name: 'Lavender', icon: Flower, baseCost: 90, baseProduction: 0.08, baseClick: 2, baseXp: 6, basePassiveXp: 0.025, color: 'text-purple-400', spriteIndex: 1 },

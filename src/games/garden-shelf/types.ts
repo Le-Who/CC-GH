@@ -16,6 +16,7 @@ export interface PlantData {
 
 export interface GameState {
   economyVersion: number;
+  name: string;
   gold: number;
   totalGoldEarned: number;
   level: number;

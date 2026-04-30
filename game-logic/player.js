@@ -7,7 +7,7 @@
 
 import { ECONOMY } from "./economy.js";
 import { createGardenEconomyState } from "./garden-economy.js";
-import { MERGE_START_CHAIN_ID, MERGE_WILD_GENERATOR_ID } from "./merge-config.js";
+import { MERGE_START_CHAIN_ID, MERGE_WILD_GENERATOR_ID, getStarterMergeItemIds, getStarterMergeRecipeIds } from "./merge-config.js";
 import { createDefaultYardState } from "./yard.js";
 
 /* ═══════════════════════════════════════════════════
@@ -133,6 +133,8 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       ),
       generators: [MERGE_START_CHAIN_ID], // Unlocked generator chain IDs
       inventory: [], // Unplaced items from gacha
+      discoveredItems: getStarterMergeItemIds(),
+      discoveredRecipes: getStarterMergeRecipeIds(),
       lastFreePull: 0, // Timestamp of last daily free pull
       lastFreeTaps: 0,
       freeTapCharges: 0,

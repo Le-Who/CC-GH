@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   MERGE_CHAINS,
+  MERGE_GENERATOR_CHAIN_IDS,
   MERGE_RECIPES,
   MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
@@ -376,11 +377,18 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
     it("keeps recipe metadata visible for the recipe book", () => {
       assert.ok(MERGE_RECIPES.length >= 10);
+      assert.ok(MERGE_RECIPES.some((recipe) => recipe.discovered === true), "Starter recipes should be visible immediately");
+      assert.ok(MERGE_RECIPES.some((recipe) => recipe.discovered === false), "Advanced recipes should have locked slots");
       for (const recipe of MERGE_RECIPES) {
         assert.ok(recipe.name, `${recipe.id} should have a name`);
         assert.ok(recipe.hint, `${recipe.id} should have a hint`);
-        assert.equal(recipe.discovered, true);
+        assert.equal(typeof recipe.discovered, "boolean", `${recipe.id} should declare starter visibility`);
       }
+    });
+
+    it("keeps alchemy out of random generator pools so it stays recipe-only", () => {
+      assert.ok(!MERGE_GENERATOR_CHAIN_IDS.includes("alchemy"));
+      assert.ok(MERGE_GENERATOR_CHAIN_IDS.every((chainId) => MERGE_CHAINS[chainId]));
     });
 
     it("maps legacy persisted items into the new alchemy taxonomy", () => {

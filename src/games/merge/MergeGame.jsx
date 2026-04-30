@@ -4,17 +4,34 @@ import { CROPS, ECONOMY, MERGE_CHAINS, MERGE_RECIPES, MERGE_WILD_GENERATOR_ID } 
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
+import { GameShell, PanelButton, PauseBrief, SectionTabs } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameHub } from "../../game-state/useGameHub.js";
 
-function mergeItemLabel(itemId) {
+function translated(t, key, fallback) {
+  const value = t(key);
+  return value === key ? fallback : value;
+}
+
+function mergeItemName(itemId, t) {
   for (const chain of Object.values(MERGE_CHAINS)) {
     const level = chain.items.indexOf(itemId);
-    if (level >= 0) return `${chain.emoji[level]} ${chain.names[level]}`;
+    if (level >= 0) return translated(t, `merge.item.${itemId}`, chain.names[level]);
   }
   return itemId;
+}
+
+function mergeItemLabel(itemId, t) {
+  for (const chain of Object.values(MERGE_CHAINS)) {
+    const level = chain.items.indexOf(itemId);
+    if (level >= 0) return `${chain.emoji[level]} ${mergeItemName(itemId, t)}`;
+  }
+  return itemId;
+}
+
+function recipeResultItem(recipe) {
+  return MERGE_CHAINS[recipe.result.chainId]?.items[recipe.result.level] || "";
 }
 
 export default function MergeGame() {
@@ -28,7 +45,7 @@ export default function MergeGame() {
   const [selectedFuel, setSelectedFuel] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
-  const [showRecipes, setShowRecipes] = useState(false);
+  const [menuTab, setMenuTab] = useState("overview");
   const [mergePlaying, setMergePlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const isPlaying = mergePlaying && !paused;
@@ -50,6 +67,31 @@ export default function MergeGame() {
   const lastMergeReward = lastResult?.action?.startsWith?.("merge.") && lastResult.reward?.type === "yardGoodie"
     ? lastResult.reward.goodieId
     : null;
+  const discoveredRecipes = useMemo(() => {
+    const ids = new Set(MERGE_RECIPES.filter((recipe) => recipe.discovered).map((recipe) => recipe.id));
+    for (const id of merge.discoveredRecipes || []) ids.add(id);
+    return ids;
+  }, [merge.discoveredRecipes]);
+  const discoveredItems = useMemo(() => {
+    const ids = new Set(merge.discoveredItems || []);
+    for (const recipe of MERGE_RECIPES.filter((candidate) => candidate.discovered)) {
+      recipe.ingredients.forEach((id) => ids.add(id));
+      const resultId = recipeResultItem(recipe);
+      if (resultId) ids.add(resultId);
+    }
+    for (const [itemId, qty] of Object.entries(merge.itemCounts || {})) {
+      if (qty > 0) ids.add(itemId);
+    }
+    for (const chain of Object.values(MERGE_CHAINS)) {
+      if (chain.id !== "alchemy" && chain.items[0]) ids.add(chain.items[0]);
+    }
+    return ids;
+  }, [merge.discoveredItems, merge.itemCounts]);
+  const recipeStats = `${discoveredRecipes.size}/${MERGE_RECIPES.length}`;
+  const openMenuTab = useCallback((tab) => {
+    setMenuTab(tab);
+    if (mergePlaying) setPaused(true);
+  }, [mergePlaying]);
 
   const onMergeCell = useCallback(
     (r, c, item) => {
@@ -129,9 +171,13 @@ export default function MergeGame() {
               <span>{`${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${tokenCount} ${t("common.tokens").toLowerCase()}`}</span>
             </div>
             <div className="game-play-stats">
-              <span>{t("merge.items")} <strong>{itemTotal}</strong></span>
+              <button type="button" className="merge-stat-button" onClick={() => openMenuTab("items")}>
+                {t("merge.items")} <strong>{itemTotal}</strong>
+              </button>
               <span>{t("merge.mode")} <strong>{trashMode ? t("merge.modeTrash") : t("merge.modeMerge")}</strong></span>
-              <span>{t("merge.recipes")} <strong>{MERGE_RECIPES.length}</strong></span>
+              <button type="button" className="merge-stat-button" onClick={() => openMenuTab("recipes")}>
+                {t("merge.recipes")} <strong>{recipeStats}</strong>
+              </button>
               {lastMergeReward && <span>{t("merge.reward")} <strong>{lastMergeReward}</strong></span>}
             </div>
           </div>
@@ -228,29 +274,51 @@ export default function MergeGame() {
               lastMergeReward ? { label: t("merge.reward"), value: lastMergeReward } : null,
             ].filter(Boolean) : []}
           />
-          <div className="merge-recipe-book">
-            <PanelButton
-              icon={BookOpen}
-              subtle
-              active={showRecipes}
-              onClick={() => setShowRecipes((value) => !value)}
-              title={t("merge.recipeBook")}
-            >
-              {t("merge.recipeBook")}
-            </PanelButton>
-            {showRecipes && (
-              <div className="panel-scroll compact-list merge-recipe-list">
-                {MERGE_RECIPES.map((recipe) => (
-                  <span key={recipe.id} title={recipe.hint}>
-                    <strong>{recipe.name}</strong>
-                    {recipe.ingredients.map(mergeItemLabel).join(" + ")}
-                    {" -> "}
-                    {mergeItemLabel(MERGE_CHAINS[recipe.result.chainId]?.items[recipe.result.level])}
-                  </span>
-                ))}
-              </div>
-            )}
+          <div className="merge-menu-tabs">
+            <SectionTabs
+              tabs={[
+                { id: "overview", label: t("merge.overview") },
+                { id: "recipes", label: t("merge.recipeBook") },
+                { id: "items", label: t("merge.itemBook") },
+              ]}
+              active={menuTab}
+              onChange={setMenuTab}
+            />
           </div>
+          {menuTab === "overview" && (
+            <div className="merge-overview-grid">
+              <button type="button" className="merge-overview-card" onClick={() => setMenuTab("items")}>
+                <strong>{t("merge.items")}</strong>
+                <span>{t("merge.itemsOnBoard", { count: itemTotal })}</span>
+              </button>
+              <button type="button" className="merge-overview-card" onClick={() => setMenuTab("recipes")}>
+                <strong>{t("merge.recipes")}</strong>
+                <span>{t("merge.recipeProgress", { known: discoveredRecipes.size, total: MERGE_RECIPES.length })}</span>
+              </button>
+            </div>
+          )}
+          {menuTab === "recipes" && (
+            <div className="merge-recipe-book">
+              <div className="panel-scroll merge-recipe-list">
+                {MERGE_RECIPES.map((recipe, index) => {
+                  const known = discoveredRecipes.has(recipe.id);
+                  const resultId = recipeResultItem(recipe);
+                  return (
+                    <div key={recipe.id} className={`merge-recipe-card${known ? "" : " locked"}`} title={known ? translated(t, `merge.recipe.${recipe.id}.hint`, recipe.hint) : t("merge.lockedRecipeHint")}>
+                      <span className="merge-recipe-kicker">{known ? t("merge.knownRecipe") : t("merge.lockedRecipeNumber", { number: index + 1 })}</span>
+                      <strong>{known ? translated(t, `merge.recipe.${recipe.id}.name`, recipe.name) : t("merge.unknownRecipe")}</strong>
+                      <small>{known ? translated(t, `merge.recipe.${recipe.id}.hint`, recipe.hint) : t("merge.lockedRecipeHint")}</small>
+                      <span className="merge-recipe-formula">
+                        {known
+                          ? `${recipe.ingredients.map((id) => mergeItemLabel(id, t)).join(" + ")} -> ${mergeItemLabel(resultId, t)}`
+                          : t("merge.hiddenFormula")}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {activePause && (
             <div className="pause-action-stack">
               <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
@@ -274,12 +342,28 @@ export default function MergeGame() {
               <div className="button-row merge-start-actions">
                 <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
-              <div className="panel-scroll compact-list">
-                {Object.entries(merge.itemCounts || {}).map(([itemId, qty]) => (
-                  <span key={itemId}>{itemId} x{qty}</span>
-                ))}
-              </div>
             </>
+          )}
+          {menuTab === "items" && (
+            <div className="panel-scroll merge-item-book">
+              {Object.values(MERGE_CHAINS).map((chain) => (
+                <section key={chain.id} className="merge-item-chain">
+                  <strong>{translated(t, `merge.chain.${chain.id}`, chain.name)}</strong>
+                  <div>
+                    {chain.items.map((itemId, level) => {
+                      const known = discoveredItems.has(itemId);
+                      const qty = merge.itemCounts?.[itemId] || 0;
+                      return (
+                        <span key={itemId} className={known ? "" : "locked"}>
+                          <b>{known ? `${chain.emoji[level]} ${mergeItemName(itemId, t)}` : t("merge.undiscoveredItem")}</b>
+                          <small>{known ? t("merge.itemCount", { count: qty }) : t("merge.itemHiddenLevel", { level: level + 1 })}</small>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
           )}
         </>
       )}

@@ -17,6 +17,9 @@ import {
   CROPS,
   CROP_TIERS,
   getMergePairResult,
+  getStarterMergeItemIds,
+  getStarterMergeRecipeIds,
+  isMergeGeneratorChain,
   MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
   normalizeMergeChainId,
@@ -39,6 +42,10 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     if (!p.merge.generatorState) p.merge.generatorState = {};
     const migratedState = {};
     for (const [chainId, state] of Object.entries(p.merge.generatorState)) {
+      if (chainId === MERGE_WILD_GENERATOR_ID && !migratedState[MERGE_WILD_GENERATOR_ID]) {
+        migratedState[MERGE_WILD_GENERATOR_ID] = state;
+        continue;
+      }
       const normalized = normalizeMergeChainId(chainId);
       if (normalized && !migratedState[normalized]) migratedState[normalized] = state;
     }
@@ -46,6 +53,18 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
     if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
     if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;
+    const starterRecipes = getStarterMergeRecipeIds();
+    const discoveredRecipes = Array.isArray(p.merge.discoveredRecipes) ? p.merge.discoveredRecipes : starterRecipes;
+    p.merge.discoveredRecipes = [...new Set([...starterRecipes, ...discoveredRecipes].map(String))];
+    const starterItems = getStarterMergeItemIds();
+    const boardItems = [];
+    for (const row of p.merge.board || []) {
+      for (const item of row || []) {
+        if (item?.id) boardItems.push(item.id);
+      }
+    }
+    const discoveredItems = Array.isArray(p.merge.discoveredItems) ? p.merge.discoveredItems : starterItems;
+    p.merge.discoveredItems = [...new Set([...starterItems, ...discoveredItems, ...boardItems].map(String))];
 
     for (const chainId of p.merge.generators) {
       if (!p.merge.generatorState[chainId]) {
@@ -65,6 +84,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
   /** Helper: unlock chain generator if not already unlocked */
   function tryUnlockChain(p, chainId) {
+    if (!isMergeGeneratorChain(chainId)) return;
     if (!p.merge.generators.includes(chainId)) {
       p.merge.generators.push(chainId);
       if (!p.merge.generatorState[chainId]) {
@@ -74,6 +94,22 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         };
       }
     }
+  }
+
+  function rememberMergeItem(p, item) {
+    if (!item?.id) return false;
+    if (!Array.isArray(p.merge.discoveredItems)) p.merge.discoveredItems = getStarterMergeItemIds();
+    if (p.merge.discoveredItems.includes(item.id)) return false;
+    p.merge.discoveredItems.push(item.id);
+    return true;
+  }
+
+  function rememberMergeRecipe(p, recipeId) {
+    if (!recipeId) return false;
+    if (!Array.isArray(p.merge.discoveredRecipes)) p.merge.discoveredRecipes = getStarterMergeRecipeIds();
+    if (p.merge.discoveredRecipes.includes(recipeId)) return false;
+    p.merge.discoveredRecipes.push(recipeId);
+    return true;
   }
 
   /* ─── Merge State ─── */
@@ -188,6 +224,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
           level: dropLevel,
         };
         if (wildTap) tryUnlockChain(p, dropChainId);
+        rememberMergeItem(p, p.merge.board[r][c]);
         spawnedItems.push({ r, c });
       }
 
@@ -237,11 +274,15 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       };
       board[fromR][fromC] = null;
       tryUnlockChain(p, resultItem.chainId);
+      const recipeDiscovered = rememberMergeRecipe(p, resultItem.recipeId);
+      const itemDiscovered = rememberMergeItem(p, board[toR][toC]);
       return routeOk({
         success: true,
         merge: p.merge,
         newItem: board[toR][toC],
         recipeId: resultItem.recipeId || null,
+        recipeDiscovered,
+        itemDiscovered,
       });
     });
     return sendRouteResult(res, result);
@@ -270,11 +311,12 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       p.resources.gachaTokens -= ECONOMY.GACHA_PULL_COST;
 
       // Pick random chain and spawn L0 item
-      const chainIds = Object.keys(MERGE_CHAINS);
+      const chainIds = Object.keys(MERGE_CHAINS).filter(isMergeGeneratorChain);
       const chainId = chainIds[Math.floor(Math.random() * chainIds.length)];
       const chain = MERGE_CHAINS[chainId];
       const [r, c] = empty[Math.floor(Math.random() * empty.length)];
       p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
+      rememberMergeItem(p, p.merge.board[r][c]);
 
       // Unlock chain generator if not already
       tryUnlockChain(p, chainId);
@@ -311,12 +353,13 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       }
 
       // Spawn random L0 item (no cost)
-      const chainIds = Object.keys(MERGE_CHAINS);
+      const chainIds = Object.keys(MERGE_CHAINS).filter(isMergeGeneratorChain);
       const chainId = chainIds[Math.floor(Math.random() * chainIds.length)];
       const chain = MERGE_CHAINS[chainId];
       const [r, c] = empty[Math.floor(Math.random() * empty.length)];
       p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
       p.merge.lastFreePull = now;
+      rememberMergeItem(p, p.merge.board[r][c]);
 
       // Unlock chain generator if not already
       tryUnlockChain(p, chainId);

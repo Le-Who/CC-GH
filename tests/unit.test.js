@@ -32,14 +32,23 @@ import {
   GARDEN_OFFLINE_GOLD_RATIO,
   GARDEN_OFFLINE_XP_RATIO,
   GARDEN_STARTER_GOLD,
+  GARDEN_TAP_REWARD_COOLDOWN_MS,
   createGardenEconomyState,
   getGardenLevelReward,
   getGardenXpRequired,
   MERGE_CHAINS,
+  MERGE_GENERATOR_CHAIN_IDS,
   MERGE_WILD_GENERATOR_ID,
 } from "../game-logic.js";
 import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
-import { PLANT_TYPES, getProduction, getPassiveXpRate } from "../src/games/garden-shelf/constants.ts";
+import {
+  GARDEN_GOLD_DISPLAY_MULTIPLIER,
+  PLANT_TYPES,
+  formatGardenGoldAmount,
+  formatGardenRate,
+  getPassiveXpRate,
+  getProduction,
+} from "../src/games/garden-shelf/constants.ts";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
 import { applyAction, applyActionWithReceipt, buildSnapshot } from "../routes/player.js";
 
@@ -142,6 +151,7 @@ describe("Garden Shelf shared gold actions", () => {
     const startGold = p.resources.gold;
     const gardenState = {
       economyVersion: GARDEN_ECONOMY_VERSION,
+      name: "Window Basil",
       totalGoldEarned: 42,
       level: 4,
       xp: 120,
@@ -174,6 +184,7 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(p.resources.gold, startGold, "garden.sync must not alter shared gold");
     assert.deepEqual(result.body.snapshot.garden.plants, gardenState.plants);
     assert.equal(result.body.snapshot.garden.level, 4);
+    assert.equal(result.body.snapshot.garden.name, "Window Basil");
     assert.equal(result.body.snapshot.garden.economyVersion, GARDEN_ECONOMY_VERSION);
     assert.equal(result.body.snapshot.garden.xpRequired, getGardenXpRequired(4));
     assert.equal(result.body.snapshot.garden.levelReady, false);
@@ -182,6 +193,14 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(result.body.snapshot.garden.offlineXp, null);
     assert.equal(buildSnapshot(p).garden.xp, 120);
     assert.equal(buildSnapshot(p).garden.offlineEarnings, null);
+  });
+
+  it("keeps Garden Shelf display denomination separate from stored economy units", () => {
+    assert.equal(GARDEN_GOLD_DISPLAY_MULTIPLIER, 100);
+    assert.equal(GARDEN_TAP_REWARD_COOLDOWN_MS, 750);
+    assert.equal(formatGardenGoldAmount(25), "2,500");
+    assert.equal(formatGardenGoldAmount(100), "10,000");
+    assert.equal(formatGardenRate(0.035), "3.5");
   });
 
   it("sanitizes malformed Garden Shelf sync payloads", async () => {
@@ -358,6 +377,35 @@ describe("Gacha Merge shared generator and recipes", () => {
     assert.deepEqual(p.merge.board[0][0], null);
     assert.deepEqual(p.merge.board[0][1], { id: "glass", chainId: "alchemy", level: 2 });
     assert.equal(result.body.recipeId, "sand_flame_glass");
+    assert.equal(result.body.recipeDiscovered, true);
+    assert.ok(result.body.snapshot.merge.discoveredRecipes.includes("sand_flame_glass"));
+    assert.ok(result.body.snapshot.merge.discoveredItems.includes("glass"));
+  });
+
+  it("starts with known starter recipes and keeps advanced recipes locked until discovered", async () => {
+    const p = createDefaultPlayer("merge-discovery", "Merge");
+    const initial = buildSnapshot(p).merge;
+
+    assert.ok(initial.discoveredRecipes.includes("seed_dew_sprout"));
+    assert.ok(initial.discoveredRecipes.includes("dew_dust_mud"));
+    assert.ok(!initial.discoveredRecipes.includes("sand_flame_glass"));
+  });
+
+  it("keeps alchemy as a recipe-only chain outside free-pull and gacha generator drops", async () => {
+    await withRandomSequence([0.999, 0, 0.999, 0], async () => {
+      const p = createDefaultPlayer("merge-no-alchemy-drops", "Merge");
+      p.resources.gachaTokens = ECONOMY.GACHA_PULL_COST;
+
+      const free = await applyAction(p, "merge.freePull", {}, { now: 1_800_000_000_000 });
+      const paid = await applyAction(p, "merge.gacha");
+
+      assert.equal(free.status, 200);
+      assert.equal(paid.status, 200);
+      assert.notEqual(free.body.spawned.item.chainId, "alchemy");
+      assert.notEqual(paid.body.spawned.item.chainId, "alchemy");
+      assert.ok(MERGE_GENERATOR_CHAIN_IDS.includes(free.body.spawned.item.chainId));
+      assert.ok(MERGE_GENERATOR_CHAIN_IDS.includes(paid.body.spawned.item.chainId));
+    });
   });
 
   it("does not spend gacha tokens or burn daily free pulls when the board is full", async () => {

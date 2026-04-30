@@ -3,7 +3,7 @@ export const GARDEN_STARTER_GOLD = 120;
 export const GARDEN_OFFLINE_CAP_MS = 6 * 60 * 60 * 1000;
 export const GARDEN_OFFLINE_GOLD_RATIO = 0.35;
 export const GARDEN_OFFLINE_XP_RATIO = 0.25;
-export const GARDEN_TAP_REWARD_COOLDOWN_MS = 1200;
+export const GARDEN_TAP_REWARD_COOLDOWN_MS = 750;
 export const GARDEN_MAX_LEVEL = 24;
 
 export const GARDEN_LEVELS = [
@@ -62,6 +62,7 @@ export function createGardenStarterPlant(now = Date.now()) {
 export function createGardenEconomyState(now = Date.now(), options = {}) {
   return {
     economyVersion: GARDEN_ECONOMY_VERSION,
+    name: "",
     totalGoldEarned: 0,
     level: 1,
     xp: 0,

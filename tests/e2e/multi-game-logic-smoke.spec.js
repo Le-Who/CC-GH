@@ -110,10 +110,10 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     const pageErrors = await boot(page, "merge_recipe_book_smoke");
     await page.getByRole("button", { name: /Merge/ }).click();
-    await page.locator(".merge-recipe-book").getByRole("button", { name: /Recipe Book/ }).click();
-    await expect(page.locator(".merge-recipe-book")).toContainText("Glassmaking");
-    await expect(page.locator(".merge-recipe-book")).toContainText("Sand +");
-    await expect(page.locator(".merge-recipe-book")).toContainText("Flame ->");
+    await page.getByRole("button", { name: /Recipe Book/ }).click();
+    await expect(page.locator(".merge-recipe-book")).toContainText("Germination");
+    await expect(page.locator(".merge-recipe-book")).toContainText("Undiscovered reaction");
+    await expect(page.locator(".merge-recipe-book")).toContainText("??? + ??? -> ???");
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
@@ -156,21 +156,15 @@ test.describe("CC-GH multi-game logic smoke", () => {
       },
     });
 
-    const resetResponsePromise = page.waitForResponse((response) => {
-      if (!response.url().includes("/api/player/mutate")) return false;
-      return parsePlayerActionRequest(response.request())?.action === "garden.resetEconomy";
-    }, { timeout: 10000 });
     await page.reload();
-    const resetResponse = await resetResponsePromise;
-    expect(resetResponse.ok()).toBe(true);
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" })).toContainText("12,000");
     const resetSnapshot = await snapshot(page);
     expect(resetSnapshot.resources.gold).toBe(GARDEN_STARTER_GOLD);
     expect(resetSnapshot.garden.economyVersion).toBe(GARDEN_ECONOMY_VERSION);
     expect(resetSnapshot.garden.plants).toHaveLength(1);
-    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" })).toContainText(String(GARDEN_STARTER_GOLD));
     await expect(page.locator(".stats-row")).toContainText("1/3");
-    await expect(page.locator(".garden-level-panel")).toContainText(`0/${getGardenXpRequired(1)} XP`);
+    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(1)}`);
 
     await mutate(page, "garden.sync", {
       state: {
@@ -192,16 +186,17 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole("button", { name: /Level Up/ })).toBeVisible();
+    const levelButton = page.locator(".stats-row .stat-chip.clickable").filter({ hasText: "Garden XP" });
+    await expect(levelButton).toContainText(`${getGardenXpRequired(1)}/${getGardenXpRequired(1)}`);
     const levelResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/player/mutate")) return false;
       return parsePlayerActionRequest(response.request())?.action === "garden.levelUp";
     }, { timeout: 10000 });
-    await page.getByRole("button", { name: /Level Up/ }).click();
+    await levelButton.click();
     const levelBody = await (await levelResponsePromise).json();
     expect(levelBody.reward).toBe(getGardenLevelReward(1));
     expect(levelBody.garden.level).toBe(2);
-    await expect(page.locator(".garden-level-panel")).toContainText(`0/${getGardenXpRequired(2)} XP`);
+    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(2)}`);
     expect(pageErrors).toEqual([]);
   });
 });

@@ -17,7 +17,15 @@
  * ═══════════════════════════════════════════════════════
  */
 import { create } from "zustand";
-import { MERGE_CHAINS, ECONOMY, MERGE_START_CHAIN_ID, MERGE_WILD_GENERATOR_ID, getMergePairResult } from "../../game-logic.js";
+import {
+  MERGE_CHAINS,
+  ECONOMY,
+  MERGE_START_CHAIN_ID,
+  MERGE_WILD_GENERATOR_ID,
+  getMergePairResult,
+  getStarterMergeItemIds,
+  getStarterMergeRecipeIds,
+} from "../../game-logic.js";
 
 const BOARD_ROWS = 7;
 const BOARD_COLS = 9;
@@ -48,6 +56,8 @@ export const mergeStore = create((set, get) => ({
   lastFreePull: 0,
   lastFreeTaps: 0,
   freeTapCharges: 0,
+  discoveredItems: getStarterMergeItemIds(),
+  discoveredRecipes: getStarterMergeRecipeIds(),
   trashMode: false,
   selectedFuel: {}, // chainId → cropId
 
@@ -113,6 +123,8 @@ export const mergeStore = create((set, get) => ({
       lastFreeTaps: mergeData.lastFreeTaps || get().lastFreeTaps,
       freeTapCharges:
         mergeData.freeTapCharges ?? get().freeTapCharges,
+      discoveredItems: mergeData.discoveredItems || get().discoveredItems,
+      discoveredRecipes: mergeData.discoveredRecipes || get().discoveredRecipes,
     });
   },
 
@@ -154,6 +166,8 @@ export const mergeStore = create((set, get) => ({
       lastFreePull: get().lastFreePull,
       lastFreeTaps: get().lastFreeTaps,
       freeTapCharges: get().freeTapCharges,
+      discoveredItems: get().discoveredItems,
+      discoveredRecipes: get().discoveredRecipes,
     }),
 
   rollback: (snap) => set(snap),

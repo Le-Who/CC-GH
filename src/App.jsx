@@ -24,6 +24,7 @@ import {
   gardenTranslate,
   getStoredGardenLanguage,
 } from "./games/garden-shelf/lib/i18n";
+import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold } from "./games/garden-shelf/constants.ts";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
@@ -96,6 +97,7 @@ export default function App() {
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
   const hydrateOutbox = useGameHub((state) => state.hydrateOutbox);
   const drainOutbox = useGameHub((state) => state.drainOutbox);
+  const performAction = useGameHub((state) => state.performAction);
   const applyRealtimePayload = useGameHub((state) => state.applyRealtimePayload);
   const status = useGameHub((state) => state.status);
   const message = useGameHub((state) => state.message);
@@ -179,10 +181,26 @@ export default function App() {
   const resources = snapshot?.resources || {};
   const energy = resources.energy || {};
   const shellActive = activeGameShell === activeTab;
+  const gardenXpRequired = Math.max(1, Number(gardenHud?.xpRequired) || 1);
+  const gardenXp = Math.max(0, Number(gardenHud?.xp) || 0);
+  const gardenXpProgress = Math.min(100, (gardenXp / gardenXpRequired) * 100);
+  const gardenMaxLevel = LEVELS[LEVELS.length - 1]?.level ?? 1;
+  const gardenCanLevelUp = (Number(gardenHud?.level) || 1) < gardenMaxLevel
+    && (!!gardenHud?.levelReady || gardenXp >= gardenXpRequired);
   const stats = activeTab === "garden"
     ? [
-        { icon: Sparkles, label: gardenTranslate(gardenLanguage, "hud.gold"), value: formatCount(Math.floor(Number(resources.gold) || 0)) },
-        { icon: Leaf, label: gardenTranslate(gardenLanguage, "hud.level"), value: gardenHud?.level || 1 },
+        { icon: Sparkles, label: gardenTranslate(gardenLanguage, "hud.gold"), value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)) },
+        {
+          icon: Leaf,
+          label: gardenTranslate(gardenLanguage, "level.progress"),
+          value: `${Math.floor(gardenXp)}/${gardenXpRequired}`,
+          progress: gardenXpProgress,
+          active: gardenCanLevelUp,
+          title: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
+          onClick: gardenCanLevelUp
+            ? () => performAction("garden.levelUp", {}, { key: `garden.levelUp.${Date.now()}`, silent: true, feedback: false, timeoutMs: 12000 })
+            : null,
+        },
         { icon: PackageOpen, label: gardenTranslate(gardenLanguage, "hud.plants"), value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
       ]
     : [
@@ -219,7 +237,16 @@ export default function App() {
         </section>
         <section className="stats-row">
           {stats.map((item) => (
-            <Stat key={item.label} icon={item.icon} label={item.label} value={item.value} />
+            <Stat
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              value={item.value}
+              progress={item.progress}
+              onClick={item.onClick}
+              active={item.active}
+              title={item.title}
+            />
           ))}
         </section>
         {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}

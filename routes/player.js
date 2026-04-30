@@ -48,7 +48,10 @@ import {
   GARDEN_STARTER_GOLD,
   getGardenLevelReward,
   getGardenXpRequired,
+  getStarterMergeItemIds,
+  getStarterMergeRecipeIds,
   hasLegacyGardenProgress,
+  isMergeGeneratorChain,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 
@@ -218,6 +221,10 @@ function finiteNumber(value, fallback = 0) {
   return Number.isFinite(number) ? number : fallback;
 }
 
+function normalizeGardenName(value) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, 22);
+}
+
 function normalizeGardenPlant(raw = {}) {
   const id = String(raw.id || randomUUID()).slice(0, 80);
   const rawType = String(raw.type || "daisy").slice(0, 40);
@@ -251,6 +258,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
       source.economyVersion,
       hasLegacyGardenProgress(source) ? 1 : (fallback.economyVersion || GARDEN_ECONOMY_VERSION),
     )))),
+    name: normalizeGardenName(source.name),
     totalGoldEarned: Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.totalGoldEarned, fallback.totalGoldEarned)))),
     level,
     xp,
@@ -356,7 +364,7 @@ function buildSeasonPass(p) {
 
 export function buildSnapshot(p, extras = {}) {
   const now = Date.now();
-  hydrateMergeBoard(p);
+  ensureMergeState(p);
   calcRegen(p, now);
   const yard = ensurePlayerYard(p, now);
   const farmStats = getFarmStats(p);
@@ -466,6 +474,10 @@ function ensureMergeState(p) {
   if (!p.merge.generatorState) p.merge.generatorState = {};
   const migratedState = {};
   for (const [chainId, state] of Object.entries(p.merge.generatorState)) {
+    if (chainId === MERGE_WILD_GENERATOR_ID && !migratedState[MERGE_WILD_GENERATOR_ID]) {
+      migratedState[MERGE_WILD_GENERATOR_ID] = state;
+      continue;
+    }
     const normalized = normalizeMergeChainId(chainId);
     if (normalized && !migratedState[normalized]) migratedState[normalized] = state;
   }
@@ -473,6 +485,18 @@ function ensureMergeState(p) {
   if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
   if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
   if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;
+  const starterRecipes = getStarterMergeRecipeIds();
+  const discoveredRecipes = Array.isArray(p.merge.discoveredRecipes) ? p.merge.discoveredRecipes : starterRecipes;
+  p.merge.discoveredRecipes = [...new Set([...starterRecipes, ...discoveredRecipes].map(String))];
+  const starterItems = getStarterMergeItemIds();
+  const discoveredItems = Array.isArray(p.merge.discoveredItems) ? p.merge.discoveredItems : starterItems;
+  const boardItems = [];
+  for (const row of p.merge.board || []) {
+    for (const item of row || []) {
+      if (item?.id) boardItems.push(item.id);
+    }
+  }
+  p.merge.discoveredItems = [...new Set([...starterItems, ...discoveredItems, ...boardItems].map(String))];
   for (const chainId of p.merge.generators) {
     if (!p.merge.generatorState[chainId]) {
       p.merge.generatorState[chainId] = {
@@ -500,6 +524,7 @@ function emptyMergeCells(board) {
 }
 
 function unlockMergeChain(p, chainId) {
+  if (!isMergeGeneratorChain(chainId)) return;
   if (!p.merge.generators.includes(chainId)) {
     p.merge.generators.push(chainId);
   }
@@ -509,6 +534,22 @@ function unlockMergeChain(p, chainId) {
       cooldownEnd: 0,
     };
   }
+}
+
+function rememberMergeItem(p, item) {
+  if (!item?.id) return false;
+  if (!Array.isArray(p.merge.discoveredItems)) p.merge.discoveredItems = getStarterMergeItemIds();
+  if (p.merge.discoveredItems.includes(item.id)) return false;
+  p.merge.discoveredItems.push(item.id);
+  return true;
+}
+
+function rememberMergeRecipe(p, recipeId) {
+  if (!recipeId) return false;
+  if (!Array.isArray(p.merge.discoveredRecipes)) p.merge.discoveredRecipes = getStarterMergeRecipeIds();
+  if (p.merge.discoveredRecipes.includes(recipeId)) return false;
+  p.merge.discoveredRecipes.push(recipeId);
+  return true;
 }
 
 function randomYardGoodie(p, chance = 0.08) {
@@ -524,6 +565,16 @@ function randomYardGoodie(p, chance = 0.08) {
   const id = candidates[Math.floor(Math.random() * candidates.length)];
   yard.goodieInventory[id] = (yard.goodieInventory[id] || 0) + 1;
   return id;
+}
+
+function mergeYardDropChance(resultItem, recipeDiscovered = false) {
+  if (!resultItem) return 0;
+  if (resultItem.chainId === "alchemy" && resultItem.level >= 7) return 0.32;
+  if (resultItem.chainId === "alchemy" && resultItem.level >= 5) return 0.22;
+  if (recipeDiscovered) return 0.14;
+  if (resultItem.level >= 5) return 0.16;
+  if (resultItem.level >= 4) return 0.1;
+  return 0;
 }
 
 function actionTime(options = {}) {
@@ -861,6 +912,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
         else if (rand > 0.8 && chain.items.length > 1) level = 1;
         p.merge.board[r][c] = { id: chain.items[level], chainId: dropChainId, level };
         if (wildTap) unlockMergeChain(p, dropChainId);
+        rememberMergeItem(p, p.merge.board[r][c]);
         spawned.push({ r, c, item: p.merge.board[r][c] });
       }
       p.merge.generatorState[generatorId] = state;
@@ -878,10 +930,14 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       p.merge.board[toR][toC] = { id: resultItem.id, chainId: resultItem.chainId, level: resultItem.level };
       p.merge.board[fromR][fromC] = null;
       unlockMergeChain(p, resultItem.chainId);
-      const yardDrop = resultItem.level >= 4 ? randomYardGoodie(p, 0.18) : null;
+      const recipeDiscovered = rememberMergeRecipe(p, resultItem.recipeId);
+      const itemDiscovered = rememberMergeItem(p, p.merge.board[toR][toC]);
+      const yardDrop = randomYardGoodie(p, mergeYardDropChance(resultItem, recipeDiscovered));
       return ok(action, p, {
         newItem: p.merge.board[toR][toC],
         recipeId: resultItem.recipeId || null,
+        recipeDiscovered,
+        itemDiscovered,
         yardDrop,
         reward: yardDrop ? { type: "yardGoodie", goodieId: yardDrop, source: resultItem.recipeId ? "mergeRecipe" : "merge" } : undefined,
         newAchievements: checkAchievements(p),
@@ -902,12 +958,13 @@ export async function applyAction(p, action, payload = {}, options = {}) {
         if ((p.resources.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) return fail(400, "not enough tokens", { required: ECONOMY.GACHA_PULL_COST });
         p.resources.gachaTokens -= ECONOMY.GACHA_PULL_COST;
       }
-      const chainIds = Object.keys(MERGE_CHAINS);
+      const chainIds = Object.keys(MERGE_CHAINS).filter(isMergeGeneratorChain);
       const chainId = chainIds[Math.floor(Math.random() * chainIds.length)];
       const chain = MERGE_CHAINS[chainId];
       const [r, c] = cells[Math.floor(Math.random() * cells.length)];
       p.merge.board[r][c] = { id: chain.items[0], chainId, level: 0 };
       unlockMergeChain(p, chainId);
+      rememberMergeItem(p, p.merge.board[r][c]);
       const yardDrop = randomYardGoodie(p, free ? 0.04 : 0.12);
       return ok(action, p, {
         spawned: { r, c, item: p.merge.board[r][c] },
