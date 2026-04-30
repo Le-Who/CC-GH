@@ -7,7 +7,9 @@ This guide covers replaceable visual and audio assets for the CC-GH Telegram Min
 - App icons: `public/icons/icon-192.png`, `public/icons/icon-512.png`
 - Pet bodies and expressions: `public/pets/*.svg`
 - Cozy Yard runtime art: `public/games/companion-yard/**`
-- Asset manifest: `public/assets/manifest.json`
+- Manual override manifest: `public/assets/manifest.json`
+- Generated runtime manifest: `public/assets-runtime/manifest.json`
+- Editable source/provenance files: `assets-source/**`
 - Built production output: `dist/` after `pnpm run build`
 
 Files under `public/` are served from the site root. For example:
@@ -16,6 +18,34 @@ Files under `public/` are served from the site root. For example:
 public/pets/basic_dog_body.svg -> /pets/basic_dog_body.svg
 public/assets/sfx/tap.webm -> /assets/sfx/tap.webm
 ```
+
+Files under `assets-source/` are not served by the app. Keep raw upstream exports, editable SVG sources, PSD/Figma exports, and other provenance files there instead of under `public/`.
+
+## Optimized Runtime Pipeline
+
+`pnpm run assets:build` writes optimized, content-hashed runtime files into:
+
+```text
+public/assets-runtime/
+```
+
+`pnpm run build` runs this step automatically before Vite. Do not edit `public/assets-runtime/**` by hand; change the source/fallback asset, then regenerate.
+
+The runtime resolution order is:
+
+```text
+public/assets/manifest.json manual override
+-> public/assets-runtime/manifest.json generated asset
+-> stable legacy public/games or public/pets fallback path
+-> procedural/synthesized fallback where the game supports it
+```
+
+Default output policy:
+
+- PNG/JPEG source art generates lossless WebP primary plus optimized PNG fallback.
+- SVG source art is optimized with SVGO and keeps `viewBox`.
+- Content-hashed files are safe for immutable browser/CDN caching.
+- `public/assets-runtime/manifest.json` is short-lived and should be fetched with `no-cache`.
 
 ## Pet Graphics
 
@@ -75,6 +105,7 @@ Requirements:
 After replacing icons, run:
 
 ```bash
+pnpm run assets:build
 pnpm run build
 ```
 
@@ -161,7 +192,7 @@ public/games/companion-yard/visitors/<visitor_id>.png
 public/games/companion-yard/companions/<species>.png
 ```
 
-The checked-in `public/games/companion-yard/source-svg/` files are editable starter sources only. The app loads the PNG/WebP runtime paths above.
+The checked-in editable starter sources live under `assets-source/games/companion-yard/source-svg/`. The app loads the PNG/WebP runtime paths above or their generated `/assets-runtime/` equivalents.
 
 Register replacement paths in:
 
@@ -301,6 +332,7 @@ Example manifest entry:
 Run these checks after replacing assets:
 
 ```bash
+pnpm run assets:build
 pnpm run build
 pnpm test
 pnpm exec playwright test tests/e2e/farm.spec.js tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js

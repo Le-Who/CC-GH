@@ -274,18 +274,20 @@ export default function MergeGame() {
               lastMergeReward ? { label: t("merge.reward"), value: lastMergeReward } : null,
             ].filter(Boolean) : []}
           />
-          <div className="merge-menu-tabs">
-            <SectionTabs
-              tabs={[
-                { id: "overview", label: t("merge.overview") },
-                { id: "recipes", label: t("merge.recipeBook") },
-                { id: "items", label: t("merge.itemBook") },
-              ]}
-              active={menuTab}
-              onChange={setMenuTab}
-            />
-          </div>
-          {menuTab === "overview" && (
+          {!activePause && (
+            <div className="merge-menu-tabs">
+              <SectionTabs
+                tabs={[
+                  { id: "overview", label: t("merge.overview") },
+                  { id: "recipes", label: t("merge.recipeBook") },
+                  { id: "items", label: t("merge.itemBook") },
+                ]}
+                active={menuTab}
+                onChange={setMenuTab}
+              />
+            </div>
+          )}
+          {!activePause && menuTab === "overview" && (
             <div className="merge-overview-grid">
               <button type="button" className="merge-overview-card" onClick={() => setMenuTab("items")}>
                 <strong>{t("merge.items")}</strong>
@@ -297,7 +299,7 @@ export default function MergeGame() {
               </button>
             </div>
           )}
-          {menuTab === "recipes" && (
+          {!activePause && menuTab === "recipes" && (
             <div className="merge-recipe-book">
               <div className="panel-scroll merge-recipe-list">
                 {MERGE_RECIPES.map((recipe, index) => {
@@ -344,7 +346,7 @@ export default function MergeGame() {
               </div>
             </>
           )}
-          {menuTab === "items" && (
+          {!activePause && menuTab === "items" && (
             <div className="panel-scroll merge-item-book">
               {Object.values(MERGE_CHAINS).map((chain) => (
                 <section key={chain.id} className="merge-item-chain">

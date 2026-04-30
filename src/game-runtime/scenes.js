@@ -14,7 +14,7 @@ import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../game-core/match3/engine.js
 import { MATCH3_TIMING, match3StepStartFrame } from "../game-core/match3/animation.js";
 import { GRID } from "../game-core/blox/pieces.js";
 import { canPlace as canPlaceBloxPiece } from "../game-core/blox/engine.js";
-import { assetUrl } from "./assetBundles.js";
+import { resolveAssetUrl } from "./assetBundles.js";
 import {
   bloxAnchorCellFromDrag,
   bloxGhostOrigin,
@@ -46,9 +46,12 @@ const GEM_COLORS = {
   special_colour: 0xcdb7e9,
 };
 
-const BUBBO_IMAGE_BASE = "/games/bubbo-bubbo/images";
-const POTIONS_IMAGE_BASE = "/games/puzzling-potions/images";
-const BUBBO_BALL_SHEET = assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png");
+const BUBBO_ASSET_KEYS = {
+  ballSheet: "bubbo.balls.sheet",
+  backgroundTile: "bubbo.background.tile",
+  bottomTray: "bubbo.bottomTray",
+  cannonMain: "bubbo.cannon.main",
+};
 const BUBBO_BALL_SHEET_WIDTH = 1672;
 const BUBBO_BALL_SHEET_HEIGHT = 941;
 const BUBBO_BALL_ROWS = {
@@ -84,23 +87,23 @@ const BUBBO_BALL_FRAMES = {
 const BUBBO_BALL_DRAW_SCALE = 2.42;
 const bubboBallTextureCache = new Map();
 const BUBBO_BUBBLE_ASSETS = {
-  mint: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-green.png`),
-  amber: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-yellow.png`),
-  coral: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-red.png`),
-  sky: assetUrl(`${BUBBO_IMAGE_BASE}/bubble-blue.png`),
+  mint: "bubbo.bubble.green",
+  amber: "bubbo.bubble.yellow",
+  coral: "bubbo.bubble.red",
+  sky: "bubbo.bubble.blue",
 };
 
 const POTION_PIECE_ASSETS = {
-  fire: assetUrl(`${POTIONS_IMAGE_BASE}/piece-dragon.png`),
-  water: assetUrl(`${POTIONS_IMAGE_BASE}/piece-frog.png`),
-  earth: assetUrl(`${POTIONS_IMAGE_BASE}/piece-newt.png`),
-  air: assetUrl(`${POTIONS_IMAGE_BASE}/piece-snake.png`),
-  light: assetUrl(`${POTIONS_IMAGE_BASE}/piece-spider.png`),
-  dark: assetUrl(`${POTIONS_IMAGE_BASE}/piece-yeti.png`),
-  special_row: assetUrl(`${POTIONS_IMAGE_BASE}/special-row.png`),
-  special_column: assetUrl(`${POTIONS_IMAGE_BASE}/special-column.png`),
-  special_blast: assetUrl(`${POTIONS_IMAGE_BASE}/special-blast.png`),
-  special_colour: assetUrl(`${POTIONS_IMAGE_BASE}/special-colour.png`),
+  fire: "match3.piece.dragon",
+  water: "match3.piece.frog",
+  earth: "match3.piece.newt",
+  air: "match3.piece.snake",
+  light: "match3.piece.spider",
+  dark: "match3.piece.yeti",
+  special_row: "match3.special.row",
+  special_column: "match3.special.column",
+  special_blast: "match3.special.blast",
+  special_colour: "match3.special.colour",
 };
 
 let graphicsManifest = null;
@@ -260,7 +263,7 @@ function bubboBallTexture(colorName, variant = "idle") {
     padding: variant === "idle" ? 12 : 5,
     square: variant === "idle",
   });
-  const base = Texture.from(BUBBO_BALL_SHEET);
+  const base = Texture.from(gameAsset(BUBBO_ASSET_KEYS.ballSheet));
   const texture = new Texture({
     source: base.source,
     frame: frameRect,
@@ -271,7 +274,7 @@ function bubboBallTexture(colorName, variant = "idle") {
 }
 
 function gameAsset(path) {
-  return assetUrl(path);
+  return resolveAssetUrl(path);
 }
 
 function loadGraphicsManifest(onReady) {
@@ -484,7 +487,7 @@ function drawBubboBackground(root, app, layout, frameBottom) {
   }
   curves.stroke({ color: palette.pattern, width: 2, alpha: palette.lineAlpha * 0.7 });
   root.addChild(curves);
-  root.addChild(tiledSprite(gameAsset(`${BUBBO_IMAGE_BASE}/background-tile.png`), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, palette.tileAlpha));
+  root.addChild(tiledSprite(gameAsset(BUBBO_ASSET_KEYS.backgroundTile), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, palette.tileAlpha));
   return palette;
 }
 
@@ -1047,7 +1050,7 @@ export function buildMatch3Scene(app, initial = {}) {
         .fill({ color, alpha: 0.8 })
         .stroke({ color: TEXT, width: 2, alpha: 0.7 }),
     );
-    const pieceAsset = POTION_PIECE_ASSETS[gem];
+    const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
     if (pieceAsset) dragLayer.addChild(sprite(pieceAsset, drag.x, drag.y, radius * 1.85, radius * 1.85, 0.92));
   }
 
@@ -1071,7 +1074,7 @@ export function buildMatch3Scene(app, initial = {}) {
         .fill({ color, alpha: Math.min(0.95, alpha) })
         .stroke({ color: TEXT, width: 2, alpha: 0.36 }),
     );
-    const pieceAsset = POTION_PIECE_ASSETS[gem];
+    const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
     if (pieceAsset) {
       group.addChild(sprite(pieceAsset, 0, 0, radius * 1.9, radius * 1.9, Math.min(0.98, alpha + 0.08)));
     }
@@ -1331,7 +1334,7 @@ export function buildMatch3Scene(app, initial = {}) {
     const { size, cell, left, top } = fitted;
     publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });
     root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
-    root.addChild(tiledSprite(gameAsset(`${POTIONS_IMAGE_BASE}/shelf-block.png`), left - 4, top - 4, size + 8, size + 8, 0.16));
+    root.addChild(tiledSprite(gameAsset("match3.shelf.block"), left - 4, top - 4, size + 8, size + 8, 0.16));
     queueMatch3Animation(data.match3Animation);
     const renderBoard = activeAnimationBoard(actual);
     for (let y = 0; y < BOARD_SIZE; y++) {
@@ -1363,7 +1366,7 @@ export function buildMatch3Scene(app, initial = {}) {
           },
         });
         root.addChild(orb);
-        const pieceAsset = POTION_PIECE_ASSETS[gem];
+        const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
         if (pieceAsset && !dragging) {
           root.addChild(sprite(pieceAsset, left + x * cell + cell / 2, top + y * cell + cell / 2, cell * 0.72, cell * 0.72, 0.96));
         }
@@ -1660,7 +1663,7 @@ export function buildBubboScene(app, initial = {}) {
         .stroke({ color: TEXT, width: Math.max(1.5, radius * 0.09), alpha: 0.24 });
       g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
       group.addChild(g);
-      const asset = BUBBO_BUBBLE_ASSETS[colorName];
+      const asset = gameAsset(BUBBO_BUBBLE_ASSETS[colorName]);
       if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.12, radius * 2.12, alpha));
     }
     group.x = x;
@@ -1836,9 +1839,9 @@ export function buildBubboScene(app, initial = {}) {
     }
 
     const cannonColor = state.current || BUBBO_COLORS[0];
-    root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/bottom-tray.png`), layout.cannonX, Math.min(layout.playHeight - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
+    root.addChild(sprite(gameAsset(BUBBO_ASSET_KEYS.bottomTray), layout.cannonX, Math.min(layout.playHeight - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
     root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: background.cannonPanel, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
-    root.addChild(sprite(gameAsset(`${BUBBO_IMAGE_BASE}/cannon-main.png`), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
+    root.addChild(sprite(gameAsset(BUBBO_ASSET_KEYS.cannonMain), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
     if (!state.bottomHudReserve) {
@@ -2030,7 +2033,9 @@ export function buildMergeScene(app, initial = {}) {
 
   function itemAsset(item) {
     if (!item) return "";
-    return item.asset || graphicsManifest?.graphics?.games?.gachaMerge?.items?.[item.id] || "";
+    return item.asset
+      || graphicsManifest?.graphics?.games?.gachaMerge?.items?.[item.id]
+      || resolveAssetUrl(`gachaMerge.items.${item.id}`, { legacyPath: "" });
   }
 
   function sameMergeTarget(item, other) {

@@ -1057,6 +1057,45 @@ describe("Cozy Yard asset resolver", () => {
       "/custom-yard/goodies/yarn_mouse_worn.png",
     );
   });
+
+  it("uses generated runtime assets between manual overrides and legacy fallbacks", () => {
+    const manualManifest = {
+      graphics: {
+        games: {
+          companionYard: {
+            backgrounds: {
+              meadow: "/custom-yard/backgrounds/meadow.webp",
+            },
+          },
+        },
+      },
+    };
+    const runtimeManifest = {
+      assets: {
+        "companionYard.backgrounds.meadow": {
+          type: "image",
+          src: "/assets-runtime/companion-yard/backgrounds/meadow.1234abcd.webp",
+        },
+        "companionYard.backgrounds.tea_house": {
+          type: "image",
+          src: "/assets-runtime/companion-yard/backgrounds/tea_house.1234abcd.webp",
+        },
+      },
+    };
+
+    assert.equal(
+      resolveCompanionYardAsset(manualManifest, "backgrounds", "meadow", runtimeManifest),
+      "/custom-yard/backgrounds/meadow.webp",
+    );
+    assert.equal(
+      resolveCompanionYardAsset(manualManifest, "backgrounds", "tea_house", runtimeManifest),
+      "/assets-runtime/companion-yard/backgrounds/tea_house.1234abcd.webp",
+    );
+    assert.equal(
+      resolveCompanionYardAsset(manualManifest, "foods", "empty_bowl", runtimeManifest),
+      "/games/companion-yard/foods/empty_bowl.png",
+    );
+  });
 });
 
 /* ─────────────────────────────────────────────────────

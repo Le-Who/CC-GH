@@ -27,6 +27,7 @@ This repo uses three performance guard layers because one metric cannot cover a 
    - Brain Blitz question picking.
    - Cozy Yard 36-hour and long-idle simulation.
    - Player JSON current/legacy migrations and authoritative snapshot building.
+   - Runtime asset pipeline entry scanning, generated-manifest parsing, and Pixi bundle URL mapping.
 
    Useful focused commands:
 
@@ -38,11 +39,11 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 2. `pnpm run build && pnpm run perf:guard:build`
 
-   Build artifact budgets for startup JS/CSS, async Pixi chunks, game chunks, and the invariant that Pixi runtime chunks must not be module-preloaded into startup HTML. This writes `artifacts/perf/perf-build-report.json`.
+   Build artifact budgets for startup JS/CSS, async Pixi chunks, game chunks, generated `/assets-runtime` manifest/payload size, content-hashed runtime asset names, and the invariant that Pixi runtime chunks must not be module-preloaded into startup HTML. This writes `artifacts/perf/perf-build-report.json`.
 
 3. `pnpm run perf:guard:browser`
 
-   Browser runtime smoke for the current Telegram shell. It checks startup lazy-loading, enters Gacha Merge, performs a real free-tap generator action, samples `requestAnimationFrame` cadence, and records Long Task / Long Animation Frame entries when the browser supports them.
+   Browser runtime smoke for the current Telegram shell. It checks startup lazy-loading, verifies startup uses the generated runtime manifest without eager Bubbo/Gem Crush art, enters Gacha Merge, performs a real free-tap generator action, samples `requestAnimationFrame` cadence, records Long Task / Long Animation Frame entries when the browser supports them, and runs the generated runtime asset coverage spec for Garden Shelf, Bubbo, Gem Crush, and Cozy Yard.
 
 4. `pnpm run perf:guard:all`
 

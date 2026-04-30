@@ -24,44 +24,44 @@
       "bloxBackground": "",
       "match3Background": "",
       "mergeBackground": "",
-      "yardBackground": "/games/companion-yard/backgrounds/meadow.png"
+      "yardBackground": ""
     },
     "games": {
       "bubboBubbo": {
-        "source": "/games/bubbo-bubbo/raw-assets/",
+        "source": "assets-source/games/bubbo-bubbo/raw-assets/ (not served)",
         "images": "/games/bubbo-bubbo/images/",
         "license": "/games/bubbo-bubbo/LICENSE"
       },
       "puzzlingPotions": {
-        "source": "/games/puzzling-potions/raw-assets/",
+        "source": "assets-source/games/puzzling-potions/raw-assets/ (not served)",
         "images": "/games/puzzling-potions/images/",
         "license": "/games/puzzling-potions/LICENSE"
       },
       "gardenShelf": {
-        "source": "/games/garden-shelf/",
-        "images": "/games/garden-shelf/",
-        "sheet": "/games/garden-shelf/assets_transparent.png",
-        "shelf": "/games/garden-shelf/assets_shelf.png",
-        "sign": "/games/garden-shelf/assets_garden_sign.png",
-        "bottomPlank": "/games/garden-shelf/assets_garden_bottom_plank.png",
-        "settingsCog": "/games/garden-shelf/assets_garden_cog.png"
+        "source": "public/games/garden-shelf/ (legacy runtime fallback)",
+        "images": "",
+        "sheet": "",
+        "shelf": "",
+        "sign": "",
+        "bottomPlank": "",
+        "settingsCog": ""
       },
       "companionYard": {
-        "source": "/games/companion-yard/",
+        "source": "assets-source/games/companion-yard/source-svg/ (editable SVG source, not served)",
         "backgrounds": {
-          "meadow": "/games/companion-yard/backgrounds/meadow.png",
-          "tea_house": "/games/companion-yard/backgrounds/tea_house.png",
-          "moon_garden": "/games/companion-yard/backgrounds/moon_garden.png"
+          "meadow": "",
+          "tea_house": "",
+          "moon_garden": ""
         },
         "foods": {
-          "empty_bowl": "/games/companion-yard/foods/empty_bowl.png",
-          "kibble": "/games/companion-yard/foods/kibble.png",
-          "berry_plate": "/games/companion-yard/foods/berry_plate.png",
-          "bonito_bowl": "/games/companion-yard/foods/bonito_bowl.png"
+          "empty_bowl": "",
+          "kibble": "",
+          "berry_plate": "",
+          "bonito_bowl": ""
         },
-        "goodies": "/games/companion-yard/goodies/",
-        "visitors": "/games/companion-yard/visitors/",
-        "companions": "/games/companion-yard/companions/",
+        "goodies": "",
+        "visitors": "",
+        "companions": "",
         "notes": "Goodies support base, _worn, and _broken PNG variants; visitors and companions use stable catalog ids."
       },
       "gachaMerge": {

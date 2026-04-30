@@ -95,7 +95,7 @@ describe("Pixi scene geometry helpers", () => {
 
     assert.ok(scenes.includes("BUBBO_BALL_FRAMES"), "Bubbo should crop the new ball sheet from measured transparent bounds");
     assert.ok(scenes.includes("BUBBO_BALL_DRAW_SCALE"), "Bubbo should size the corrected sheet artwork to fill the hex grid");
-    assert.ok(scenes.includes("assets_bubbo_balls"), "Bubbo runtime should use the new ball artwork");
+    assert.ok(scenes.includes("bubbo.balls.sheet"), "Bubbo runtime should resolve the new ball artwork through the runtime asset manifest");
     assert.ok(scenes.includes("finishLineY"), "Bubbo danger/finish line should be independently positioned below the last row");
     assert.ok(scenes.includes("boardLayer.enableRenderGroup"), "Bubbo board pressure motion should use a render group");
     assert.ok(scenes.includes("falling._life = reduce ? 42 : 78"), "Bubbo island drops should stay visible long enough to read as falling");

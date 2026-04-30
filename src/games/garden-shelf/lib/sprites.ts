@@ -1,8 +1,28 @@
+import { resolveAssetUrl } from "../../../game-runtime/assetBundles.js";
+
 export const GARDEN_SHEET_PATH = "/games/garden-shelf/assets_transparent.png";
 export const GARDEN_SHELF_PATH = "/games/garden-shelf/assets_shelf.png";
 export const GARDEN_SIGN_PATH = "/games/garden-shelf/assets_garden_sign.png";
 export const GARDEN_COG_PATH = "/games/garden-shelf/assets_garden_cog.png";
 export const GARDEN_BOTTOM_PLANK_PATH = "/games/garden-shelf/assets_garden_bottom_plank.png";
+
+export type GardenAssetPaths = {
+  sheet: string;
+  shelf: string;
+  sign: string;
+  settingsCog: string;
+  bottomPlank: string;
+};
+
+export function resolveGardenAssetPaths(runtimeManifest?: unknown): GardenAssetPaths {
+  return {
+    sheet: resolveAssetUrl("gardenShelf.sheet.transparent", { runtimeManifest, legacyPath: GARDEN_SHEET_PATH }),
+    shelf: resolveAssetUrl("gardenShelf.shelf", { runtimeManifest, legacyPath: GARDEN_SHELF_PATH }),
+    sign: resolveAssetUrl("gardenShelf.sign", { runtimeManifest, legacyPath: GARDEN_SIGN_PATH }),
+    settingsCog: resolveAssetUrl("gardenShelf.settingsCog", { runtimeManifest, legacyPath: GARDEN_COG_PATH }),
+    bottomPlank: resolveAssetUrl("gardenShelf.bottomPlank", { runtimeManifest, legacyPath: GARDEN_BOTTOM_PLANK_PATH }),
+  };
+}
 
 export const spriteData = {
   "fullWidth": 1672,
@@ -274,12 +294,12 @@ export function getGardenSpriteFrame(spriteIndex = 0, phase = 0) {
   return spriteData.sprites.find((sprite) => sprite && sprite.col === col && sprite.row === row);
 }
 
-export function getGardenSpriteStyle(spriteIndex = 0, phase = 0, scale = 1) {
+export function getGardenSpriteStyle(spriteIndex = 0, phase = 0, scale = 1, sheetPath = GARDEN_SHEET_PATH) {
   const safePhase = Math.max(0, Math.min(3, Number(phase) || 0));
   const sprite = getGardenSpriteFrame(spriteIndex, safePhase);
   if (!sprite) {
     return {
-      backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
+      backgroundImage: `url('${sheetPath}')`,
       backgroundSize: "800% 400%",
       backgroundPosition: `${(((spriteIndex % 2) * 4 + safePhase) / 7) * 100}% ${(Math.floor(spriteIndex / 2) / 3) * 100}%`,
       width: `${96 * scale}px`,
@@ -291,7 +311,7 @@ export function getGardenSpriteStyle(spriteIndex = 0, phase = 0, scale = 1) {
   const pX = (sprite.x / (spriteData.fullWidth - sprite.width)) * 100;
   const pY = (sprite.y / (spriteData.fullHeight - sprite.height)) * 100;
   return {
-    backgroundImage: `url('${GARDEN_SHEET_PATH}')`,
+    backgroundImage: `url('${sheetPath}')`,
     backgroundSize: `${(spriteData.fullWidth / sprite.width) * 100}% ${(spriteData.fullHeight / sprite.height) * 100}%`,
     backgroundPosition: `${pX}% ${pY}%`,
     width: `${sprite.width * scale}px`,

@@ -18,15 +18,17 @@ import {
 } from '../constants';
 import { ChevronLeft, ChevronRight, Coins, X, ArrowUpCircle, Trash2, Droplets, Archive, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { GARDEN_SHEET_PATH, getGardenSpriteStyle } from '../lib/sprites';
+import { getGardenSpriteStyle } from '../lib/sprites';
+import type { GardenAssetPaths } from '../lib/sprites';
 import { useGardenI18n } from '../lib/i18n';
 
 interface BottomPanelProps {
   spot: { shelfIndex: number, spotIndex: number, plantId?: string } | null;
   onClose: () => void;
+  assetPaths: GardenAssetPaths;
 }
 
-export function BottomPanel({ spot, onClose }: BottomPanelProps) {
+export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   const { state } = useGame();
   const [activePlantId, setActivePlantId] = useState(spot?.plantId || '');
   const placedPlants = React.useMemo(
@@ -87,9 +89,10 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
               onNavigate={placedPlants.length > 1 ? selectRelativePlant : undefined}
               plantIndex={activePlantIndex}
               plantCount={placedPlants.length}
+              assetPaths={assetPaths}
             />
           ) : (
-            <Shop shelfIndex={activeSpot.shelfIndex} spotIndex={activeSpot.spotIndex} onClose={onClose} />
+            <Shop shelfIndex={activeSpot.shelfIndex} spotIndex={activeSpot.spotIndex} onClose={onClose} assetPaths={assetPaths} />
           )}
         </div>
       </motion.div>
@@ -97,15 +100,15 @@ export function BottomPanel({ spot, onClose }: BottomPanelProps) {
   );
 }
 
-function PlantThumb({ spriteIndex, phase = 3 }: { spriteIndex: number, phase?: number }) {
+function PlantThumb({ spriteIndex, phase = 3, assetPaths }: { spriteIndex: number, phase?: number, assetPaths: GardenAssetPaths }) {
   return (
     <div className="garden-card-row flex h-12 w-12 items-end justify-center overflow-hidden rounded-lg">
-      <div style={getGardenSpriteStyle(spriteIndex, phase, 0.24)} />
+      <div style={getGardenSpriteStyle(spriteIndex, phase, 0.24, assetPaths.sheet)} />
     </div>
   );
 }
 
-function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotIndex: number, onClose: () => void }) {
+function Shop({ shelfIndex, spotIndex, onClose, assetPaths }: { shelfIndex: number, spotIndex: number, onClose: () => void, assetPaths: GardenAssetPaths }) {
   const { state, buyPlant, unlockedPlants, movePlantToShelf } = useGame();
   const { t } = useGardenI18n();
   const [tab, setTab] = useState<'shop' | 'inventory'>('shop');
@@ -145,7 +148,7 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
             )}>
               <div className="flex items-center gap-4">
                 <div className={cn(!isUnlocked && "grayscale opacity-55")}>
-                  <PlantThumb spriteIndex={plant.spriteIndex} />
+                  <PlantThumb spriteIndex={plant.spriteIndex} assetPaths={assetPaths} />
                 </div>
                 <div>
                   <h3 className="text-sm font-black">
@@ -198,7 +201,7 @@ function Shop({ shelfIndex, spotIndex, onClose }: { shelfIndex: number, spotInde
            return (
             <div key={p.id} className="garden-card-row flex items-center justify-between gap-3 rounded-lg p-4">
               <div className="flex items-center gap-4">
-                <PlantThumb spriteIndex={def.spriteIndex} phase={p.phase} />
+                <PlantThumb spriteIndex={def.spriteIndex} phase={p.phase} assetPaths={assetPaths} />
                 <div>
                   <h3 className="text-sm font-black">{t(`plant.${def.id}`)}</h3>
                   <p className="font-mono text-[10px]">{t('shop.phaseLevel', { phase: p.phase, level: p.level })}</p>
@@ -229,12 +232,14 @@ function PlantDetail({
   onNavigate,
   plantIndex = 0,
   plantCount = 1,
+  assetPaths,
 }: {
   plantId: string,
   onClose: () => void,
   onNavigate?: (direction: -1 | 1) => void,
   plantIndex?: number,
   plantCount?: number,
+  assetPaths: GardenAssetPaths,
 }) {
   const { state, upgradePlant, sellPlant, tapPlant, waterPlant, movePlantToInventory } = useGame();
   const { t } = useGardenI18n();
@@ -268,7 +273,7 @@ function PlantDetail({
   const tapAccelerationSeconds = Math.round(TAP_GROWTH_ACCELERATION_MS / 1000);
 
   const phaseScales = [0.55, 0.65, 0.75, 0.8];
-  const bgStyle = getGardenSpriteStyle(spriteIndex, phase, (phaseScales[phase] || 0.8) * (isUpgrading ? 1.15 : 1));
+  const bgStyle = getGardenSpriteStyle(spriteIndex, phase, (phaseScales[phase] || 0.8) * (isUpgrading ? 1.15 : 1), assetPaths.sheet);
 
   const handleMash = (e: React.PointerEvent) => {
     const canTap = !plant.lastTapped || Date.now() - plant.lastTapped >= GARDEN_TAP_REWARD_COOLDOWN_MS;
@@ -454,7 +459,7 @@ function PlantDetail({
           
           {!imgError && (
             <img 
-              src={GARDEN_SHEET_PATH} 
+              src={assetPaths.sheet}
               className="hidden" 
               onError={() => setImgError(true)} 
               alt=""

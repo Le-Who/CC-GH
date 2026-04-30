@@ -36,6 +36,7 @@ const PORT = process.env.PORT || 8090;
 const CUSTOM_DOMAIN = process.env.CUSTOM_DOMAIN || "";
 const PUBLIC_APP_URL = process.env.PUBLIC_APP_URL || (CUSTOM_DOMAIN ? `https://${CUSTOM_DOMAIN}` : "");
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || "";
+const ASSET_BASE_URL = process.env.ASSET_BASE_URL || process.env.VITE_ASSET_BASE_URL || "";
 
 export const app = express();
 const playerStatsRefreshState = {
@@ -139,6 +140,7 @@ app.get("/api/config", (_req, res) => {
     appVersion: APP_VERSION,
     buildId: APP_BUILD_ID,
     publicAppUrl: PUBLIC_APP_URL || null,
+    assetBaseUrl: ASSET_BASE_URL || null,
     telegramBotUsername: TELEGRAM_BOT_USERNAME || null,
     telegramAuthRequired: process.env.NODE_ENV === "production",
     devAuthEnabled: process.env.DEV_AUTH_ENABLED === "true" && process.env.NODE_ENV !== "production",
@@ -222,8 +224,19 @@ function getIndexHtml() {
     );
   }
   return indexHtmlTemplate
-    .replace("<!--APP_VERSION_INJECT-->", `<script>window.__APP_VERSION__=${JSON.stringify(APP_VERSION)};window.__APP_BUILD_ID__=${JSON.stringify(APP_BUILD_ID)}</script>`)
+    .replace("<!--APP_VERSION_INJECT-->", `<script>window.__APP_VERSION__=${JSON.stringify(APP_VERSION)};window.__APP_BUILD_ID__=${JSON.stringify(APP_BUILD_ID)};window.__ASSET_BASE_URL__=${JSON.stringify(ASSET_BASE_URL)}</script>`)
     .replace("{{APP_VERSION}}", `v${APP_VERSION}`);
+}
+
+function setStaticAssetHeaders(res, filePath) {
+  const normalized = filePath.replace(/\\/g, "/");
+  if (/\/assets-runtime\/manifest\.json$/i.test(normalized) || /\/assets\/manifest\.json$/i.test(normalized)) {
+    res.setHeader("Cache-Control", "no-cache");
+    return;
+  }
+  if (/\/assets-runtime\/.+\.[a-f0-9]{8}\.(?:png|webp|avif|svg|json|webm|mp3|wav)$/i.test(normalized)) {
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  }
 }
 
 app.use((req, res, next) => {
@@ -235,7 +248,7 @@ app.use((req, res, next) => {
 });
 
 if (fs.existsSync(path.join(__dirname, "dist"))) {
-  app.use(express.static(path.join(__dirname, "dist"), { index: false }));
+  app.use(express.static(path.join(__dirname, "dist"), { index: false, setHeaders: setStaticAssetHeaders }));
 }
 
 app.get("/game-logic.js", (_req, res) => {

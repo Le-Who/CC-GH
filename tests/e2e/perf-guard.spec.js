@@ -32,6 +32,15 @@ async function installRuntimeProbe(page) {
   });
 }
 
+function observeRuntimeAssetRequests(page) {
+  const paths = new Set();
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.pathname.startsWith("/assets-runtime/")) paths.add(url.pathname);
+  });
+  return paths;
+}
+
 async function sampleFrames(page, durationMs = 900) {
   return page.evaluate((duration) => new Promise((resolve) => {
     const deltas = [];
@@ -58,6 +67,7 @@ async function sampleFrames(page, durationMs = 900) {
 test.describe("runtime perf guard", () => {
   test("keeps startup lazy and Merge live play within frame/long-task smoke budgets", async ({ page }) => {
     await installRuntimeProbe(page);
+    const runtimeAssetPaths = observeRuntimeAssetRequests(page);
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
 
@@ -65,6 +75,10 @@ test.describe("runtime perf guard", () => {
       performance.getEntriesByType("resource").map((entry) => entry.name),
     );
     expect(startupResources.some((name) => /LazyPixiSceneHost|pixi/i.test(name))).toBe(false);
+    await expect.poll(() => runtimeAssetPaths.has("/assets-runtime/manifest.json")).toBe(true);
+    expect(
+      [...runtimeAssetPaths].some((path) => /^\/assets-runtime\/(?:bubbo|puzzling-potions)\//.test(path)),
+    ).toBe(false);
 
     await page.getByRole("button", { name: /Merge/ }).click();
     await expect(page.getByText("Gacha Merge")).toBeVisible();

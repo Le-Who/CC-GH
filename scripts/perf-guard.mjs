@@ -29,8 +29,10 @@ import {
   createBubboRun,
   generateBubboWave,
 } from "../src/game-core/bubbo/engine.js";
+import { loadAssetPipelineEntries } from "./assets-pipeline.config.mjs";
 
 const REPORT_PATH = path.resolve("artifacts", "perf", "perf-guard-report.json");
+const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 function quantile(sorted, q) {
   if (!sorted.length) return 0;
@@ -207,6 +209,86 @@ function makeSnapshotPlayer() {
     placedAt: now - 60_000,
   }];
   return player;
+}
+
+function normalizeSlashes(value) {
+  return String(value || "").replace(/\\/g, "/");
+}
+
+function runtimeFileBase(source) {
+  return path.basename(source, path.extname(source)).replace(/[^a-zA-Z0-9_-]+/g, "-");
+}
+
+function syntheticRuntimeUrl(entry, format) {
+  const outputDir = normalizeSlashes(entry.outputDir || path.dirname(entry.source));
+  const fileName = `${runtimeFileBase(entry.source)}.1234abcd.${format}`;
+  return `/${normalizeSlashes(path.posix.join("assets-runtime", outputDir, fileName))}`;
+}
+
+async function scanAssetPipelineEntries() {
+  const entries = await loadAssetPipelineEntries(PROJECT_ROOT);
+  if (entries.length < 80) throw new Error(`Asset pipeline scan returned only ${entries.length} entries`);
+  return entries;
+}
+
+let syntheticRuntimeManifestPromise = null;
+async function syntheticRuntimeManifest() {
+  if (!syntheticRuntimeManifestPromise) {
+    syntheticRuntimeManifestPromise = scanAssetPipelineEntries().then((entries) => {
+      const manifest = {
+        version: 1,
+        generatedAt: new Date(0).toISOString(),
+        assets: {},
+        bundles: {},
+      };
+      for (const entry of entries) {
+        const formats = entry.formats?.length ? entry.formats : ["webp", "png"];
+        const item = {
+          type: entry.type || (path.extname(entry.source).toLowerCase() === ".svg" ? "svg" : "image"),
+          src: syntheticRuntimeUrl(entry, formats[0]),
+        };
+        if (formats[1]) item.fallback = syntheticRuntimeUrl(entry, formats[1]);
+        manifest.assets[entry.key] = item;
+        if (entry.bundle) {
+          manifest.bundles[entry.bundle] ||= [];
+          manifest.bundles[entry.bundle].push(entry.key);
+        }
+      }
+      for (const key of Object.keys(manifest.bundles)) {
+        manifest.bundles[key] = [...new Set(manifest.bundles[key])].sort();
+      }
+      manifest.assets = Object.fromEntries(Object.entries(manifest.assets).sort(([left], [right]) => left.localeCompare(right)));
+      manifest.bundles = Object.fromEntries(Object.entries(manifest.bundles).sort(([left], [right]) => left.localeCompare(right)));
+      return manifest;
+    });
+  }
+  return syntheticRuntimeManifestPromise;
+}
+
+let syntheticRuntimeManifestJsonPromise = null;
+async function syntheticRuntimeManifestJson() {
+  if (!syntheticRuntimeManifestJsonPromise) {
+    syntheticRuntimeManifestJsonPromise = syntheticRuntimeManifest().then((manifest) => JSON.stringify(manifest));
+  }
+  return syntheticRuntimeManifestJsonPromise;
+}
+
+async function parseSyntheticRuntimeManifest() {
+  const manifest = JSON.parse(await syntheticRuntimeManifestJson());
+  if (Object.keys(manifest.assets || {}).length < 80) throw new Error("Synthetic runtime manifest lost asset entries");
+}
+
+async function resolveSyntheticRuntimeBundles() {
+  const manifest = await syntheticRuntimeManifest();
+  let resolved = 0;
+  for (const keys of Object.values(manifest.bundles)) {
+    for (const key of keys) {
+      const item = manifest.assets[key];
+      if (item?.src) resolved += 1;
+      if (item?.fallback) resolved += 1;
+    }
+  }
+  if (resolved < 30) throw new Error(`Synthetic runtime bundle map resolved only ${resolved} sources`);
 }
 
 const stableMatchBoard = generateBoard();
@@ -429,6 +511,33 @@ export const PERF_SUITES = [
     iterations: 320,
     warmup: 50,
     fn: () => buildSnapshot(structuredClone(stableSnapshotPlayer)),
+  },
+  {
+    id: "assets.pipeline-entry-scan",
+    group: "Runtime Assets",
+    description: "Scan the configured source tree and produce asset-pipeline entries.",
+    budget: { p95: 8, max: 30 },
+    iterations: 140,
+    warmup: 20,
+    fn: () => scanAssetPipelineEntries(),
+  },
+  {
+    id: "assets.runtime-manifest-parse",
+    group: "Runtime Assets",
+    description: "Parse a generated-sized runtime asset manifest payload.",
+    budget: { p95: 0.8, max: 5 },
+    iterations: 700,
+    warmup: 80,
+    fn: () => parseSyntheticRuntimeManifest(),
+  },
+  {
+    id: "assets.runtime-bundle-map",
+    group: "Runtime Assets",
+    description: "Resolve generated Pixi bundle asset keys to runtime source URLs.",
+    budget: { p95: 0.25, max: 3 },
+    iterations: 900,
+    warmup: 80,
+    fn: () => resolveSyntheticRuntimeBundles(),
   },
 ];
 

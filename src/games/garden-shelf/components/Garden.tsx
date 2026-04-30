@@ -18,17 +18,19 @@ import { Coins, Droplets } from 'lucide-react';
 import { PlantData } from '../types';
 import { cn } from '../lib/utils';
 import { Lock } from 'lucide-react';
-import { GARDEN_SHEET_PATH, GARDEN_SHELF_PATH, getGardenSpriteStyle } from '../lib/sprites';
+import { getGardenSpriteStyle } from '../lib/sprites';
+import type { GardenAssetPaths } from '../lib/sprites';
 import { useGardenI18n } from '../lib/i18n';
 
 interface GardenProps {
   onSelectSpot: (shelfIndex: number, spotIndex: number, plantId?: string) => void;
+  assetPaths: GardenAssetPaths;
 }
 
 const GARDEN_SHELVES = Array.from({ length: MAX_SHELVES }, (_, i) => i);
 const GARDEN_SPOTS = Array.from({ length: SPOTS_PER_SHELF }, (_, i) => i);
 
-export function Garden({ onSelectSpot }: GardenProps) {
+export function Garden({ onSelectSpot, assetPaths }: GardenProps) {
   const { state, unlockShelf } = useGame();
   const { t } = useGardenI18n();
   const plantsBySpot = useMemo(() => {
@@ -73,7 +75,7 @@ export function Garden({ onSelectSpot }: GardenProps) {
                      {formatGardenGoldAmount(unlockCost)} <Coins size={14} className={canAfford ? "text-rose-400" : "text-slate-500"} />
                    </motion.button>
                  </div>
-                 <Shelf visualsOnly />
+                 <Shelf visualsOnly assetPaths={assetPaths} />
                </div>
              );
           }
@@ -87,15 +89,16 @@ export function Garden({ onSelectSpot }: GardenProps) {
                 const plant = plantsBySpot.get(`${shelfIndex}:${spotIndex}`);
 
                 return (
-                  <Spot 
+                  <Spot
                     key={spotIndex} 
                     plant={plant} 
+                    assetPaths={assetPaths}
                     onClick={() => onSelectSpot(shelfIndex, spotIndex, plant?.id)} 
                   />
                 );
               })}
             </div>
-            <Shelf />
+            <Shelf assetPaths={assetPaths} />
           </div>
         );
       })}
@@ -103,7 +106,7 @@ export function Garden({ onSelectSpot }: GardenProps) {
   );
 }
 
-function Shelf({ visualsOnly = false }: { visualsOnly?: boolean }) {
+function Shelf({ visualsOnly = false, assetPaths }: { visualsOnly?: boolean, assetPaths: GardenAssetPaths }) {
   return (
     <div
       className={cn(
@@ -113,7 +116,7 @@ function Shelf({ visualsOnly = false }: { visualsOnly?: boolean }) {
       style={{ aspectRatio: '385 / 77' }}
     >
       <img
-        src={GARDEN_SHELF_PATH}
+        src={assetPaths.shelf}
         alt=""
         draggable={false}
         className="absolute inset-0 h-full w-full object-fill drop-shadow-[0_18px_18px_rgba(0,0,0,0.45)]"
@@ -141,7 +144,7 @@ function PhaseEffects({ phase, color }: { phase: number, color: string }) {
   );
 }
 
-const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onClick }) => {
+const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: GardenAssetPaths }> = ({ plant, onClick, assetPaths }) => {
   const { tapPlant } = useGame();
   const [imgError, setImgError] = React.useState(false);
   const [isPressing, setIsPressing] = React.useState(false);
@@ -239,7 +242,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
     && (!plant.lastWatered || Date.now() - plant.lastWatered >= WATER_COOLDOWN_MS);
 
   const phaseScales = [0.45, 0.50, 0.55, 0.6];
-  const bgStyle = getGardenSpriteStyle(spriteIndex, phase, phaseScales[phase] || 0.6);
+  const bgStyle = getGardenSpriteStyle(spriteIndex, phase, phaseScales[phase] || 0.6, assetPaths.sheet);
 
   return (
     <AnimatePresence mode="wait">
@@ -312,7 +315,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void }> = ({ plant, onC
         {/* Hidden img to catch load error */}
         {!imgError && (
           <img 
-            src={GARDEN_SHEET_PATH} 
+            src={assetPaths.sheet}
             className="hidden" 
             onError={() => setImgError(true)} 
             alt=""

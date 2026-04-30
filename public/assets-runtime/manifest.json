@@ -1,0 +1,635 @@
+{
+  "version": 1,
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "assets": {
+    "assets.game-shell-cycle": {
+      "type": "svg",
+      "src": "/assets-runtime/assets/game-shell-cycle.692cc008.svg"
+    },
+    "assets.game-shell-meditation": {
+      "type": "svg",
+      "src": "/assets-runtime/assets/game-shell-meditation.73292e10.svg"
+    },
+    "bubbo.background.tile": {
+      "type": "image",
+      "width": 64,
+      "height": 64,
+      "src": "/assets-runtime/bubbo/background-tile.91be12f3.webp",
+      "fallback": "/assets-runtime/bubbo/background-tile.5cbbd525.png"
+    },
+    "bubbo.balls.sheet": {
+      "type": "image",
+      "width": 1672,
+      "height": 941,
+      "src": "/assets-runtime/bubbo/assets_bubbo_balls.b1f99080.webp",
+      "fallback": "/assets-runtime/bubbo/assets_bubbo_balls.c5c3ef79.png"
+    },
+    "bubbo.bottomTray": {
+      "type": "image",
+      "width": 323,
+      "height": 150,
+      "src": "/assets-runtime/bubbo/bottom-tray.43d047fd.webp",
+      "fallback": "/assets-runtime/bubbo/bottom-tray.bed8e5c1.png"
+    },
+    "bubbo.bubble.blue": {
+      "type": "image",
+      "width": 142,
+      "height": 141,
+      "src": "/assets-runtime/bubbo/bubble-blue.3f58275b.webp",
+      "fallback": "/assets-runtime/bubbo/bubble-blue.1ad60939.png"
+    },
+    "bubbo.bubble.green": {
+      "type": "image",
+      "width": 142,
+      "height": 141,
+      "src": "/assets-runtime/bubbo/bubble-green.3538108d.webp",
+      "fallback": "/assets-runtime/bubbo/bubble-green.8e23d6c7.png"
+    },
+    "bubbo.bubble.red": {
+      "type": "image",
+      "width": 142,
+      "height": 142,
+      "src": "/assets-runtime/bubbo/bubble-red.f2588032.webp",
+      "fallback": "/assets-runtime/bubbo/bubble-red.e93400b5.png"
+    },
+    "bubbo.bubble.yellow": {
+      "type": "image",
+      "width": 142,
+      "height": 142,
+      "src": "/assets-runtime/bubbo/bubble-yellow.8c719194.webp",
+      "fallback": "/assets-runtime/bubbo/bubble-yellow.226765ab.png"
+    },
+    "bubbo.cannon.main": {
+      "type": "image",
+      "width": 150,
+      "height": 247,
+      "src": "/assets-runtime/bubbo/cannon-main.fe17dd2d.webp",
+      "fallback": "/assets-runtime/bubbo/cannon-main.b568df44.png"
+    },
+    "companionYard.backgrounds.meadow": {
+      "type": "image",
+      "width": 960,
+      "height": 640,
+      "src": "/assets-runtime/companion-yard/backgrounds/meadow.158b7cf5.webp",
+      "fallback": "/assets-runtime/companion-yard/backgrounds/meadow.fad03082.png"
+    },
+    "companionYard.backgrounds.moon_garden": {
+      "type": "image",
+      "width": 960,
+      "height": 640,
+      "src": "/assets-runtime/companion-yard/backgrounds/moon_garden.5a3d3e1e.webp",
+      "fallback": "/assets-runtime/companion-yard/backgrounds/moon_garden.640c711c.png"
+    },
+    "companionYard.backgrounds.tea_house": {
+      "type": "image",
+      "width": 960,
+      "height": 640,
+      "src": "/assets-runtime/companion-yard/backgrounds/tea_house.c8a7995a.webp",
+      "fallback": "/assets-runtime/companion-yard/backgrounds/tea_house.bf516520.png"
+    },
+    "companionYard.companions.bunny": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/companions/bunny.9ccf83ef.webp",
+      "fallback": "/assets-runtime/companion-yard/companions/bunny.9c35b557.png"
+    },
+    "companionYard.companions.cat": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/companions/cat.371b49ff.webp",
+      "fallback": "/assets-runtime/companion-yard/companions/cat.8b297723.png"
+    },
+    "companionYard.companions.dog": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/companions/dog.47a631c9.webp",
+      "fallback": "/assets-runtime/companion-yard/companions/dog.297cc731.png"
+    },
+    "companionYard.companions.fox": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/companions/fox.1d467673.webp",
+      "fallback": "/assets-runtime/companion-yard/companions/fox.18a56577.png"
+    },
+    "companionYard.companions.hamster": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/companions/hamster.26eacfa7.webp",
+      "fallback": "/assets-runtime/companion-yard/companions/hamster.19c01254.png"
+    },
+    "companionYard.companions.turtle": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/companions/turtle.476d43d5.webp",
+      "fallback": "/assets-runtime/companion-yard/companions/turtle.f9541e36.png"
+    },
+    "companionYard.foods.berry_plate": {
+      "type": "image",
+      "width": 320,
+      "height": 320,
+      "src": "/assets-runtime/companion-yard/foods/berry_plate.95f3afa9.webp",
+      "fallback": "/assets-runtime/companion-yard/foods/berry_plate.e506d580.png"
+    },
+    "companionYard.foods.bonito_bowl": {
+      "type": "image",
+      "width": 320,
+      "height": 320,
+      "src": "/assets-runtime/companion-yard/foods/bonito_bowl.da906b60.webp",
+      "fallback": "/assets-runtime/companion-yard/foods/bonito_bowl.f3a2e97f.png"
+    },
+    "companionYard.foods.empty_bowl": {
+      "type": "image",
+      "width": 320,
+      "height": 320,
+      "src": "/assets-runtime/companion-yard/foods/empty_bowl.849e5241.webp",
+      "fallback": "/assets-runtime/companion-yard/foods/empty_bowl.9df1cd86.png"
+    },
+    "companionYard.foods.kibble": {
+      "type": "image",
+      "width": 320,
+      "height": 320,
+      "src": "/assets-runtime/companion-yard/foods/kibble.7d791972.webp",
+      "fallback": "/assets-runtime/companion-yard/foods/kibble.26ca5b97.png"
+    },
+    "companionYard.goodies.book_nook": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/book_nook.47902993.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/book_nook.fb6082dc.png"
+    },
+    "companionYard.goodies.book_nook_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/book_nook_broken.d7e8af17.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/book_nook_broken.f7e7a1bc.png"
+    },
+    "companionYard.goodies.book_nook_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/book_nook_worn.7d9add8f.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/book_nook_worn.b4eccbc7.png"
+    },
+    "companionYard.goodies.cardboard_cottage": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage.10a66e40.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cardboard_cottage.814aaaf5.png"
+    },
+    "companionYard.goodies.cardboard_cottage_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage_broken.b58ac08c.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cardboard_cottage_broken.d664c144.png"
+    },
+    "companionYard.goodies.cardboard_cottage_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cardboard_cottage_worn.4d6d62c4.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cardboard_cottage_worn.c8998e88.png"
+    },
+    "companionYard.goodies.cloud_bed": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cloud_bed.5245dc0f.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cloud_bed.51ee95b6.png"
+    },
+    "companionYard.goodies.cloud_bed_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cloud_bed_broken.e746dddb.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cloud_bed_broken.a77c2dba.png"
+    },
+    "companionYard.goodies.cloud_bed_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cloud_bed_worn.cc49f3fd.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cloud_bed_worn.27d8554d.png"
+    },
+    "companionYard.goodies.cozy_chair": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cozy_chair.1dbb50c6.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cozy_chair.633b6d97.png"
+    },
+    "companionYard.goodies.cozy_chair_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cozy_chair_broken.56e1afa4.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cozy_chair_broken.1e127a62.png"
+    },
+    "companionYard.goodies.cozy_chair_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/cozy_chair_worn.4205e488.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/cozy_chair_worn.45f574e7.png"
+    },
+    "companionYard.goodies.fountain_bowl": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl.71a1788a.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/fountain_bowl.354b042e.png"
+    },
+    "companionYard.goodies.fountain_bowl_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl_broken.6233c9a5.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/fountain_bowl_broken.130e03d6.png"
+    },
+    "companionYard.goodies.fountain_bowl_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/fountain_bowl_worn.e977f61f.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/fountain_bowl_worn.9a8d9843.png"
+    },
+    "companionYard.goodies.leaf_pot": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/leaf_pot.792201c8.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/leaf_pot.5369212b.png"
+    },
+    "companionYard.goodies.leaf_pot_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/leaf_pot_broken.9553ee52.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/leaf_pot_broken.8926555d.png"
+    },
+    "companionYard.goodies.leaf_pot_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/leaf_pot_worn.c35d5dcb.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/leaf_pot_worn.38d3848b.png"
+    },
+    "companionYard.goodies.moon_lamp": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/moon_lamp.b3dd25b1.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/moon_lamp.0d6eebe6.png"
+    },
+    "companionYard.goodies.moon_lamp_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/moon_lamp_broken.948d6835.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/moon_lamp_broken.b9d8b896.png"
+    },
+    "companionYard.goodies.moon_lamp_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/moon_lamp_worn.a5c31e02.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/moon_lamp_worn.adfa468a.png"
+    },
+    "companionYard.goodies.moss_rug": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/moss_rug.4c55a66e.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/moss_rug.27d5b5c8.png"
+    },
+    "companionYard.goodies.moss_rug_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/moss_rug_broken.195774e2.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/moss_rug_broken.cb8e8836.png"
+    },
+    "companionYard.goodies.moss_rug_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/moss_rug_worn.0e6cc24a.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/moss_rug_worn.b59f8956.png"
+    },
+    "companionYard.goodies.snack_table": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/snack_table.99870564.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/snack_table.dc10aed4.png"
+    },
+    "companionYard.goodies.snack_table_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/snack_table_broken.af07ff95.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/snack_table_broken.7f30b81c.png"
+    },
+    "companionYard.goodies.snack_table_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/snack_table_worn.31df1c72.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/snack_table_worn.789a4fa7.png"
+    },
+    "companionYard.goodies.sun_cushion": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/sun_cushion.9a1c6d09.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/sun_cushion.4e163656.png"
+    },
+    "companionYard.goodies.sun_cushion_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/sun_cushion_broken.cc31f7e4.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/sun_cushion_broken.fa9f2e68.png"
+    },
+    "companionYard.goodies.sun_cushion_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/sun_cushion_worn.7936093b.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/sun_cushion_worn.b0c04c64.png"
+    },
+    "companionYard.goodies.yarn_mouse": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse.6064122e.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/yarn_mouse.66733002.png"
+    },
+    "companionYard.goodies.yarn_mouse_broken": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse_broken.d33ab771.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/yarn_mouse_broken.791e06cf.png"
+    },
+    "companionYard.goodies.yarn_mouse_worn": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/goodies/yarn_mouse_worn.9ac81354.webp",
+      "fallback": "/assets-runtime/companion-yard/goodies/yarn_mouse_worn.84dee0bd.png"
+    },
+    "companionYard.visitors.basil_turtle": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/basil_turtle.1ee449a0.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/basil_turtle.a87d6a55.png"
+    },
+    "companionYard.visitors.mika_cat": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/mika_cat.21f2a05c.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/mika_cat.2dc2d196.png"
+    },
+    "companionYard.visitors.mochi_bunny": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/mochi_bunny.f77760fd.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/mochi_bunny.59c4b7ad.png"
+    },
+    "companionYard.visitors.pebble_pup": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/pebble_pup.139d668c.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/pebble_pup.dfd64c7d.png"
+    },
+    "companionYard.visitors.pip_hamster": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/pip_hamster.22481885.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/pip_hamster.fbea6687.png"
+    },
+    "companionYard.visitors.sage_turtle": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/sage_turtle.39b99c1d.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/sage_turtle.cfb95307.png"
+    },
+    "companionYard.visitors.starlit_fox": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/starlit_fox.88fb4406.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/starlit_fox.4725abd8.png"
+    },
+    "companionYard.visitors.willow_fox": {
+      "type": "image",
+      "width": 360,
+      "height": 360,
+      "src": "/assets-runtime/companion-yard/visitors/willow_fox.57b62ae1.webp",
+      "fallback": "/assets-runtime/companion-yard/visitors/willow_fox.d932ff33.png"
+    },
+    "gardenShelf.bottomPlank": {
+      "type": "image",
+      "width": 310,
+      "height": 58,
+      "src": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.6c819bbc.webp",
+      "fallback": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.2e9fa8d0.png"
+    },
+    "gardenShelf.settingsCog": {
+      "type": "image",
+      "width": 63,
+      "height": 69,
+      "src": "/assets-runtime/garden-shelf/assets_garden_cog.8fc375b0.webp",
+      "fallback": "/assets-runtime/garden-shelf/assets_garden_cog.1a3cd8f3.png"
+    },
+    "gardenShelf.sheet.transparent": {
+      "type": "image",
+      "width": 1672,
+      "height": 941,
+      "src": "/assets-runtime/garden-shelf/assets_transparent.65310970.webp",
+      "fallback": "/assets-runtime/garden-shelf/assets_transparent.5c2e32f4.png"
+    },
+    "gardenShelf.shelf": {
+      "type": "image",
+      "width": 385,
+      "height": 77,
+      "src": "/assets-runtime/garden-shelf/assets_shelf.bf005800.webp",
+      "fallback": "/assets-runtime/garden-shelf/assets_shelf.c7fbc363.png"
+    },
+    "gardenShelf.sign": {
+      "type": "image",
+      "width": 370,
+      "height": 139,
+      "src": "/assets-runtime/garden-shelf/assets_garden_sign.97058d31.webp",
+      "fallback": "/assets-runtime/garden-shelf/assets_garden_sign.1356166a.png"
+    },
+    "icons.icon192": {
+      "type": "image",
+      "width": 640,
+      "height": 640,
+      "src": "/assets-runtime/icons/icon-192.8f7d4bf1.webp",
+      "fallback": "/assets-runtime/icons/icon-192.a2803a6a.png"
+    },
+    "icons.icon512": {
+      "type": "image",
+      "width": 640,
+      "height": 640,
+      "src": "/assets-runtime/icons/icon-512.8f7d4bf1.webp",
+      "fallback": "/assets-runtime/icons/icon-512.a2803a6a.png"
+    },
+    "match3.piece.dragon": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/piece-dragon.d0442724.webp",
+      "fallback": "/assets-runtime/puzzling-potions/piece-dragon.b087329d.png"
+    },
+    "match3.piece.frog": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/piece-frog.04c06c21.webp",
+      "fallback": "/assets-runtime/puzzling-potions/piece-frog.1c842f57.png"
+    },
+    "match3.piece.newt": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/piece-newt.729ca2f4.webp",
+      "fallback": "/assets-runtime/puzzling-potions/piece-newt.2f5110ce.png"
+    },
+    "match3.piece.snake": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/piece-snake.b98c613f.webp",
+      "fallback": "/assets-runtime/puzzling-potions/piece-snake.4e09997c.png"
+    },
+    "match3.piece.spider": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/piece-spider.243f8e8d.webp",
+      "fallback": "/assets-runtime/puzzling-potions/piece-spider.159b2575.png"
+    },
+    "match3.piece.yeti": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/piece-yeti.53dee5a9.webp",
+      "fallback": "/assets-runtime/puzzling-potions/piece-yeti.a4eeffcf.png"
+    },
+    "match3.shelf.block": {
+      "type": "image",
+      "width": 100,
+      "height": 100,
+      "src": "/assets-runtime/puzzling-potions/shelf-block.7cb4ad10.webp",
+      "fallback": "/assets-runtime/puzzling-potions/shelf-block.e14f3ae4.png"
+    },
+    "match3.special.blast": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/special-blast.600a9d97.webp",
+      "fallback": "/assets-runtime/puzzling-potions/special-blast.4b32ae95.png"
+    },
+    "match3.special.colour": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/special-colour.288234cc.webp",
+      "fallback": "/assets-runtime/puzzling-potions/special-colour.5e01af86.png"
+    },
+    "match3.special.column": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/special-column.c6da2901.webp",
+      "fallback": "/assets-runtime/puzzling-potions/special-column.fe151a62.png"
+    },
+    "match3.special.row": {
+      "type": "image",
+      "width": 150,
+      "height": 150,
+      "src": "/assets-runtime/puzzling-potions/special-row.6b9d724c.webp",
+      "fallback": "/assets-runtime/puzzling-potions/special-row.9746cfa1.png"
+    },
+    "pets.basic_bunny_body": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/basic_bunny_body.dff3b9df.svg"
+    },
+    "pets.basic_cat_body": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/basic_cat_body.0b180130.svg"
+    },
+    "pets.basic_dog_body": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/basic_dog_body.c48e944b.svg"
+    },
+    "pets.expr_content": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/expr_content.c759acc4.svg"
+    },
+    "pets.expr_ecstatic": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/expr_ecstatic.83a4491d.svg"
+    },
+    "pets.expr_happy": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/expr_happy.bc6dd099.svg"
+    },
+    "pets.expr_miserable": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/expr_miserable.706a32c5.svg"
+    },
+    "pets.expr_neutral": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/expr_neutral.5b133fa9.svg"
+    },
+    "pets.expr_sad": {
+      "type": "svg",
+      "src": "/assets-runtime/pets/expr_sad.e00b84b9.svg"
+    }
+  },
+  "bundles": {
+    "pixi.bubbo": [
+      "bubbo.background.tile",
+      "bubbo.balls.sheet",
+      "bubbo.bottomTray",
+      "bubbo.bubble.blue",
+      "bubbo.bubble.green",
+      "bubbo.bubble.red",
+      "bubbo.bubble.yellow",
+      "bubbo.cannon.main"
+    ],
+    "pixi.match3": [
+      "match3.piece.dragon",
+      "match3.piece.frog",
+      "match3.piece.newt",
+      "match3.piece.snake",
+      "match3.piece.spider",
+      "match3.piece.yeti",
+      "match3.shelf.block",
+      "match3.special.blast",
+      "match3.special.colour",
+      "match3.special.column",
+      "match3.special.row"
+    ]
+  }
+}

@@ -1,3 +1,5 @@
+import { assetUrl, loadRuntimeAssetManifest, runtimeAssetSrc } from "../../game-runtime/assetBundles.js";
+
 const COMPANION_YARD_ROOT = "/games/companion-yard";
 
 function cleanId(id) {
@@ -14,8 +16,23 @@ export function companionYardFallbackAssetPath(type, id) {
   return joinAssetPath(`${COMPANION_YARD_ROOT}/${cleanId(type)}`, id);
 }
 
-export function resolveCompanionYardAsset(manifest, type, id) {
-  const companionYard = manifest?.graphics?.games?.companionYard || {};
+function splitManifests(manifest, runtimeManifest) {
+  if (manifest?.manual || manifest?.runtime) {
+    return {
+      manual: manifest.manual || null,
+      runtime: runtimeManifest || manifest.runtime || null,
+    };
+  }
+  return { manual: manifest || null, runtime: runtimeManifest || null };
+}
+
+export function companionYardRuntimeAssetKey(type, id) {
+  return `companionYard.${cleanId(type)}.${cleanId(id)}`;
+}
+
+export function resolveCompanionYardAsset(manifest, type, id, runtimeManifest = null) {
+  const { manual, runtime } = splitManifests(manifest, runtimeManifest);
+  const companionYard = manual?.graphics?.games?.companionYard || {};
   const bucket = companionYard?.[type];
 
   if (bucket && typeof bucket === "object" && !Array.isArray(bucket)) {
@@ -27,16 +44,19 @@ export function resolveCompanionYardAsset(manifest, type, id) {
     return joinAssetPath(bucket, id);
   }
 
-  return companionYardFallbackAssetPath(type, id);
+  const generated = runtimeAssetSrc(runtime, companionYardRuntimeAssetKey(type, id));
+  if (generated) return generated;
+
+  return assetUrl(companionYardFallbackAssetPath(type, id));
 }
 
 export async function loadCompanionYardManifest(fetchImpl = globalThis.fetch) {
   if (typeof fetchImpl !== "function") return null;
-  try {
-    const response = await fetchImpl("/assets/manifest.json", { cache: "no-cache" });
-    if (!response?.ok) return null;
-    return await response.json();
-  } catch {
-    return null;
-  }
+  const [manual, runtime] = await Promise.all([
+    fetchImpl("/assets/manifest.json", { cache: "no-cache" })
+      .then((response) => (response?.ok ? response.json() : null))
+      .catch(() => null),
+    loadRuntimeAssetManifest(fetchImpl),
+  ]);
+  return { manual, runtime };
 }

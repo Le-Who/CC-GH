@@ -67,6 +67,7 @@
 - Added `pnpm run perf:guard`, a gameplay hot-path performance budget runner with p50/p95/max timings and an ignored JSON report under `artifacts/perf/`.
 - Hardened `perf:guard` with focused `--suite` runs, report summary metadata, and Player JSON migration/snapshot budgets separate from SQL migration history.
 - Expanded the performance guard into Node hot-path, Vite build-artifact, and Chromium runtime layers with `perf:guard:build`, `perf:guard:browser`, `perf:guard:all`, repeated focused suite support, and `docs/PERF_GUARD.md` research notes.
+- Extended perf guards for the generated asset pipeline with Node runtime-asset suites, build-time `/assets-runtime` manifest/payload budgets, content-hash filename checks, and browser asset-runtime coverage in `perf:guard:browser`.
 - Propagated the GitHub commit SHA as `BUILD_ID`, `VITE_BUILD_ID`, and `APP_BUILD_ID` through Docker build, Compose runtime, and the deploy workflow.
 - Removed obsolete benchmark/check scratch scripts, legacy README/changelog stubs, and stale eslint report artifacts from the active tree, then tightened the cleanup allowlist.
 
@@ -78,6 +79,7 @@
 - Added Cozy Yard long-idle regression coverage for capped offline returns, reload replay prevention, and future timestamp clamping on reconnect.
 - Added `tests/perf-guard.test.js` to keep Blox, Gem Crush, Merge, Bubbo, Garden Shelf, Brain Blitz, and Cozy Yard hot-path budgets explicit in the Node suite.
 - Extended perf guard tests to require unique suite ids, valid p95/p99-tail budgets, focused-run support, summary metadata, raw max spike diagnostics, and Player JSON current/legacy migration plus snapshot suites.
+- Added asset-pipeline perf contract coverage for pipeline entry scanning, generated-manifest parsing, Pixi bundle mapping, runtime asset build budgets, and required content-hashed `/assets-runtime` payloads.
 - Added build-budget tests and a Chromium runtime perf smoke for startup Pixi laziness, Gacha Merge live-frame cadence, long tasks, and long animation frames when supported.
 - Added Playwright coverage proving per-game pause menus preserve active gameplay context, stay compact, hide active Gem Crush mode changes, keep Resume as the primary recovery action, and work across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard.
 - Added unit/store coverage for HTTP Yard time authority, idempotent Yard purchases/gift collection/daily letters, terminal client-action conflicts, outbox timeout/network persistence, success removal, storage restore, and companion-config coalescing.

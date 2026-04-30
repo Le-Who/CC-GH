@@ -14,10 +14,16 @@ export const DEFAULT_BUILD_BUDGETS = {
   initialCssGzipBytes: 20_000,
   asyncPixiRawBytes: 660_000,
   maxGameChunkRawBytes: 75_000,
+  runtimeManifestRawBytes: 40_000,
+  runtimeManifestGzipBytes: 5_000,
+  runtimeAssetsTotalRawBytes: 12_000_000,
+  runtimeAssetMaxRawBytes: 2_500_000,
 };
 
 const PIXI_CHUNK_RE = /(LazyPixiSceneHost|pixi|WebGLRenderer|WebGPURenderer|CanvasRenderer|BitmapFont|BufferResource|RenderTargetSystem|browserAll|webworkerAll|Filter|animation)/i;
 const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame)/;
+const RUNTIME_ASSET_MANIFEST_PATH = "assets-runtime/manifest.json";
+const HASHED_RUNTIME_ASSET_RE = /^assets-runtime\/.+\.[a-f0-9]{8}\.(?:png|webp|avif|svg|json|webm|mp3|wav)$/i;
 
 function normalizeAssetRef(ref = "") {
   const clean = ref.replace(/^https?:\/\/[^/]+/i, "").split(/[?#]/)[0];
@@ -74,10 +80,14 @@ async function fileMetric(distDir, relativePath) {
 function summarize(files) {
   const rawBytes = files.reduce((sum, file) => sum + file.rawBytes, 0);
   const gzipBytes = files.reduce((sum, file) => sum + file.gzipBytes, 0);
+  const maxRawBytes = Math.max(0, ...files.map((file) => file.rawBytes));
+  const maxGzipBytes = Math.max(0, ...files.map((file) => file.gzipBytes));
   return {
     count: files.length,
     rawBytes,
     gzipBytes,
+    maxRawBytes,
+    maxGzipBytes,
     files,
   };
 }
@@ -93,11 +103,14 @@ function budgetFailure(id, actual, budget, unit = "bytes") {
 }
 
 export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAULT_BUILD_BUDGETS } = {}) {
+  const effectiveBudgets = { ...DEFAULT_BUILD_BUDGETS, ...budgets };
   const html = await fs.readFile(path.join(distDir, "index.html"), "utf8");
   const allFiles = await readFiles(distDir);
   const assetFiles = allFiles.filter((file) => file.startsWith("assets/"));
+  const runtimeAssetPaths = allFiles.filter((file) => file.startsWith("assets-runtime/"));
   const byPath = new Map();
   for (const file of assetFiles) byPath.set(file, await fileMetric(distDir, file));
+  const runtimeAssetFiles = await Promise.all(runtimeAssetPaths.map((file) => fileMetric(distDir, file)));
 
   const initialScriptRefs = [
     ...htmlAssetRefs(html, "script", "src"),
@@ -112,26 +125,82 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
   const gameChunks = assetFiles
     .filter((file) => file.endsWith(".js") && GAME_CHUNK_RE.test(file))
     .map((file) => byPath.get(file));
+  const runtimeManifest = runtimeAssetFiles.find((file) => file.path === RUNTIME_ASSET_MANIFEST_PATH);
+  const runtimePayloads = runtimeAssetFiles.filter((file) => file.path !== RUNTIME_ASSET_MANIFEST_PATH);
 
   const metrics = {
     initialScripts: summarize(initialScripts),
     initialCss: summarize(initialCss),
     asyncPixiChunks: summarize(asyncPixiChunks),
     gameChunks: summarize(gameChunks),
+    runtimeAssetManifest: summarize(runtimeManifest ? [runtimeManifest] : []),
+    runtimeAssets: summarize(runtimePayloads),
   };
 
   const failures = [
-    budgetFailure("startup.initial-js.raw", metrics.initialScripts.rawBytes, budgets.initialScriptRawBytes),
-    budgetFailure("startup.initial-js.gzip", metrics.initialScripts.gzipBytes, budgets.initialScriptGzipBytes),
-    budgetFailure("startup.initial-css.raw", metrics.initialCss.rawBytes, budgets.initialCssRawBytes),
-    budgetFailure("startup.initial-css.gzip", metrics.initialCss.gzipBytes, budgets.initialCssGzipBytes),
-    budgetFailure("pixi.async-total.raw", metrics.asyncPixiChunks.rawBytes, budgets.asyncPixiRawBytes),
+    budgetFailure("startup.initial-js.raw", metrics.initialScripts.rawBytes, effectiveBudgets.initialScriptRawBytes),
+    budgetFailure("startup.initial-js.gzip", metrics.initialScripts.gzipBytes, effectiveBudgets.initialScriptGzipBytes),
+    budgetFailure("startup.initial-css.raw", metrics.initialCss.rawBytes, effectiveBudgets.initialCssRawBytes),
+    budgetFailure("startup.initial-css.gzip", metrics.initialCss.gzipBytes, effectiveBudgets.initialCssGzipBytes),
+    budgetFailure("pixi.async-total.raw", metrics.asyncPixiChunks.rawBytes, effectiveBudgets.asyncPixiRawBytes),
     budgetFailure(
       "games.max-chunk.raw",
       Math.max(0, ...metrics.gameChunks.files.map((file) => file.rawBytes)),
-      budgets.maxGameChunkRawBytes,
+      effectiveBudgets.maxGameChunkRawBytes,
     ),
+    runtimeManifest
+      ? null
+      : {
+        id: "runtime-assets.manifest.present",
+        actual: false,
+        budget: true,
+        message: "Runtime asset manifest is missing from dist/assets-runtime/manifest.json",
+      },
+    runtimeManifest
+      ? budgetFailure("runtime-assets.manifest.raw", metrics.runtimeAssetManifest.rawBytes, effectiveBudgets.runtimeManifestRawBytes)
+      : null,
+    runtimeManifest
+      ? budgetFailure("runtime-assets.manifest.gzip", metrics.runtimeAssetManifest.gzipBytes, effectiveBudgets.runtimeManifestGzipBytes)
+      : null,
+    budgetFailure("runtime-assets.total.raw", metrics.runtimeAssets.rawBytes, effectiveBudgets.runtimeAssetsTotalRawBytes),
+    budgetFailure("runtime-assets.max-file.raw", metrics.runtimeAssets.maxRawBytes, effectiveBudgets.runtimeAssetMaxRawBytes),
   ].filter(Boolean);
+
+  const unhashedRuntimeAssets = runtimePayloads
+    .map((file) => file.path)
+    .filter((file) => !HASHED_RUNTIME_ASSET_RE.test(file));
+  if (unhashedRuntimeAssets.length) {
+    failures.push({
+      id: "runtime-assets.hashed-names",
+      actual: unhashedRuntimeAssets,
+      budget: [],
+      message: `Runtime assets must use content-hashed file names: ${unhashedRuntimeAssets.join(", ")}`,
+    });
+  }
+
+  if (runtimeManifest) {
+    try {
+      const manifest = JSON.parse(await fs.readFile(path.join(distDir, RUNTIME_ASSET_MANIFEST_PATH), "utf8"));
+      const assetCount = Object.keys(manifest.assets || {}).length;
+      if (assetCount === 0) {
+        failures.push({
+          id: "runtime-assets.manifest.nonempty",
+          actual: assetCount,
+          budget: "> 0",
+          message: "Runtime asset manifest must include generated asset entries",
+        });
+      }
+      metrics.runtimeAssetManifest.assetCount = assetCount;
+      metrics.runtimeAssetManifest.bundleCount = Object.keys(manifest.bundles || {}).length;
+    } catch (error) {
+      failures.push({
+        id: "runtime-assets.manifest.valid-json",
+        actual: String(error?.message || error),
+        budget: "valid JSON",
+        message: `Runtime asset manifest must be valid JSON: ${error?.message || error}`,
+      });
+    }
+  }
 
   const preloadedPixi = initialScriptRefs.filter((ref) => PIXI_CHUNK_RE.test(ref));
   if (preloadedPixi.length) {
@@ -147,7 +216,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     schemaVersion: 1,
     generatedAt: new Date().toISOString(),
     distDir: path.resolve(distDir),
-    budgets,
+    budgets: effectiveBudgets,
     metrics,
     failures,
     passed: failures.length === 0,

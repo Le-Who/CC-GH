@@ -13,12 +13,14 @@ import { audioManager } from '../../services/audioManager.js';
 import { cn } from './lib/utils';
 import { GardenI18nProvider, useGardenI18n } from './lib/i18n';
 import type { GardenLanguage } from './lib/i18n';
-import { GARDEN_BOTTOM_PLANK_PATH, GARDEN_COG_PATH, GARDEN_SIGN_PATH } from './lib/sprites';
+import { resolveGardenAssetPaths } from './lib/sprites';
+import type { GardenAssetPaths } from './lib/sprites';
+import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
 import { ArrowUpCircle, Coins } from 'lucide-react';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
 
-function GardenSign() {
+function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
   const { state, renameGarden } = useGame();
   const { t } = useGardenI18n();
   const [editing, setEditing] = useState(false);
@@ -57,7 +59,7 @@ function GardenSign() {
       <div className="absolute right-[22%] top-0 h-[36px] w-1 rounded-full bg-gradient-to-b from-[#2a1a0b] to-[#3e2712]" />
       <div className="relative mt-5" style={{ aspectRatio: '370 / 139' }}>
         <img
-          src={GARDEN_SIGN_PATH}
+          src={assetPaths.sign}
           alt=""
           draggable={false}
           className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.5)]"
@@ -99,7 +101,7 @@ function GardenSign() {
   );
 }
 
-function GardenSettingsButton() {
+function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) {
   const { language, setLanguage, t } = useGardenI18n();
   const [open, setOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => audioManager.isEnabled());
@@ -120,7 +122,7 @@ function GardenSettingsButton() {
         aria-label={t('settings.open')}
         onClick={() => setOpen(true)}
       >
-        <img src={GARDEN_COG_PATH} alt="" draggable={false} className="h-full w-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)]" />
+        <img src={assetPaths.settingsCog} alt="" draggable={false} className="h-full w-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)]" />
       </button>
 
       <AnimatePresence>
@@ -237,6 +239,8 @@ function GardenProgress() {
 
 function GameContent() {
   const [selectedSpot, setSelectedSpot] = useState<{ shelfIndex: number, spotIndex: number, plantId?: string } | null>(null);
+  const [runtimeAssetManifest, setRuntimeAssetManifest] = useState<unknown>(null);
+  const assetPaths = React.useMemo(() => resolveGardenAssetPaths(runtimeAssetManifest), [runtimeAssetManifest]);
 
   // Prevent default overscroll bounce on mobile
   React.useEffect(() => {
@@ -247,6 +251,16 @@ function GameContent() {
       document.body.style.overscrollBehavior = 'auto';
       document.body.style.userSelect = 'auto';
       document.body.style.webkitUserSelect = 'auto';
+    };
+  }, []);
+
+  React.useEffect(() => {
+    let active = true;
+    loadRuntimeAssetManifest().then((manifest) => {
+      if (active) setRuntimeAssetManifest(manifest);
+    });
+    return () => {
+      active = false;
     };
   }, []);
 
@@ -262,8 +276,8 @@ function GameContent() {
       </div>
 
         <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
-        <GardenSign />
-        <GardenSettingsButton />
+        <GardenSign assetPaths={assetPaths} />
+        <GardenSettingsButton assetPaths={assetPaths} />
 
         {/* The Glass Dome Container */}
         <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">
@@ -272,7 +286,7 @@ function GameContent() {
           <div className="absolute top-12 right-6 w-4 h-[40%] rounded-full bg-gradient-to-b from-white/10 to-transparent blur-[6px] transform rotate-[10deg]"></div>
           
           <img
-            src={GARDEN_BOTTOM_PLANK_PATH}
+            src={assetPaths.bottomPlank}
             alt=""
             draggable={false}
             className="absolute -bottom-[12px] left-1/2 h-[clamp(52px,13vw,72px)] w-[calc(100%+24px)] max-w-none -translate-x-1/2 object-fill drop-shadow-[0_12px_16px_rgba(0,0,0,0.65)]"
@@ -281,13 +295,13 @@ function GameContent() {
 
         {/* We need the Garden to scroll inside but z-index it correctly behind the dome reflections */}
         <div className="flex-1 overflow-hidden relative z-10 rounded-[140px_140px_0_0]">
-          <Garden onSelectSpot={(shelfIndex, spotIndex, plantId) => setSelectedSpot({ shelfIndex, spotIndex, plantId })} />
+          <Garden assetPaths={assetPaths} onSelectSpot={(shelfIndex, spotIndex, plantId) => setSelectedSpot({ shelfIndex, spotIndex, plantId })} />
         </div>
       </div>
       
       <AnimatePresence>
         {selectedSpot && (
-          <BottomPanel spot={selectedSpot} onClose={() => setSelectedSpot(null)} />
+          <BottomPanel assetPaths={assetPaths} spot={selectedSpot} onClose={() => setSelectedSpot(null)} />
         )}
       </AnimatePresence>
     </div>

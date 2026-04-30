@@ -4,46 +4,165 @@ export function clientBuildId() {
   return globalThis.__APP_BUILD_ID__ || import.meta.env?.VITE_BUILD_ID || globalThis.__APP_VERSION__ || "";
 }
 
-export function assetUrl(path) {
-  const buildId = clientBuildId();
-  if (!buildId || !String(path).startsWith("/games/")) return path;
-  const joiner = path.includes("?") ? "&" : "?";
-  return `${path}${joiner}v=${encodeURIComponent(buildId)}`;
+export function assetBaseUrl() {
+  return (globalThis.__ASSET_BASE_URL__ || import.meta.env?.VITE_ASSET_BASE_URL || "").replace(/\/+$/, "");
 }
+
+function isAbsoluteUrl(path) {
+  return /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(String(path || "")) || String(path || "").startsWith("data:");
+}
+
+function withAssetBase(path) {
+  const value = String(path || "");
+  const base = assetBaseUrl();
+  if (!base || !value.startsWith("/assets-runtime/") || isAbsoluteUrl(value)) return value;
+  return `${base}${value}`;
+}
+
+export function assetUrl(path) {
+  const value = String(path || "");
+  if (!value) return value;
+  const based = withAssetBase(value);
+  const buildId = clientBuildId();
+  if (!buildId || !value.startsWith("/games/")) return based;
+  const joiner = based.includes("?") ? "&" : "?";
+  return `${based}${joiner}v=${encodeURIComponent(buildId)}`;
+}
+
+export const LEGACY_ASSET_PATHS = {
+  "bubbo.background.tile": "/games/bubbo-bubbo/images/background-tile.png",
+  "bubbo.bubble.blue": "/games/bubbo-bubbo/images/bubble-blue.png",
+  "bubbo.bubble.green": "/games/bubbo-bubbo/images/bubble-green.png",
+  "bubbo.bubble.red": "/games/bubbo-bubbo/images/bubble-red.png",
+  "bubbo.bubble.yellow": "/games/bubbo-bubbo/images/bubble-yellow.png",
+  "bubbo.balls.sheet": "/games/bubbo-bubbo/assets_bubbo_balls.png",
+  "bubbo.bottomTray": "/games/bubbo-bubbo/images/bottom-tray.png",
+  "bubbo.cannon.main": "/games/bubbo-bubbo/images/cannon-main.png",
+  "match3.piece.dragon": "/games/puzzling-potions/images/piece-dragon.png",
+  "match3.piece.frog": "/games/puzzling-potions/images/piece-frog.png",
+  "match3.piece.newt": "/games/puzzling-potions/images/piece-newt.png",
+  "match3.piece.snake": "/games/puzzling-potions/images/piece-snake.png",
+  "match3.piece.spider": "/games/puzzling-potions/images/piece-spider.png",
+  "match3.piece.yeti": "/games/puzzling-potions/images/piece-yeti.png",
+  "match3.shelf.block": "/games/puzzling-potions/images/shelf-block.png",
+  "match3.special.blast": "/games/puzzling-potions/images/special-blast.png",
+  "match3.special.column": "/games/puzzling-potions/images/special-column.png",
+  "match3.special.colour": "/games/puzzling-potions/images/special-colour.png",
+  "match3.special.row": "/games/puzzling-potions/images/special-row.png",
+  "gardenShelf.sheet.transparent": "/games/garden-shelf/assets_transparent.png",
+  "gardenShelf.shelf": "/games/garden-shelf/assets_shelf.png",
+  "gardenShelf.sign": "/games/garden-shelf/assets_garden_sign.png",
+  "gardenShelf.bottomPlank": "/games/garden-shelf/assets_garden_bottom_plank.png",
+  "gardenShelf.settingsCog": "/games/garden-shelf/assets_garden_cog.png",
+};
 
 export const GAME_ASSET_BUNDLES = {
   bubbo: [
-    assetUrl("/games/bubbo-bubbo/images/background-tile.png"),
-    assetUrl("/games/bubbo-bubbo/images/bubble-blue.png"),
-    assetUrl("/games/bubbo-bubbo/images/bubble-green.png"),
-    assetUrl("/games/bubbo-bubbo/images/bubble-red.png"),
-    assetUrl("/games/bubbo-bubbo/images/bubble-yellow.png"),
-    assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png"),
-    assetUrl("/games/bubbo-bubbo/images/bottom-tray.png"),
-    assetUrl("/games/bubbo-bubbo/images/cannon-main.png"),
+    "bubbo.background.tile",
+    "bubbo.bubble.blue",
+    "bubbo.bubble.green",
+    "bubbo.bubble.red",
+    "bubbo.bubble.yellow",
+    "bubbo.balls.sheet",
+    "bubbo.bottomTray",
+    "bubbo.cannon.main",
   ],
   match3: [
-    assetUrl("/games/puzzling-potions/images/piece-dragon.png"),
-    assetUrl("/games/puzzling-potions/images/piece-frog.png"),
-    assetUrl("/games/puzzling-potions/images/piece-newt.png"),
-    assetUrl("/games/puzzling-potions/images/piece-snake.png"),
-    assetUrl("/games/puzzling-potions/images/piece-spider.png"),
-    assetUrl("/games/puzzling-potions/images/piece-yeti.png"),
-    assetUrl("/games/puzzling-potions/images/shelf-block.png"),
-    assetUrl("/games/puzzling-potions/images/special-blast.png"),
-    assetUrl("/games/puzzling-potions/images/special-column.png"),
-    assetUrl("/games/puzzling-potions/images/special-colour.png"),
-    assetUrl("/games/puzzling-potions/images/special-row.png"),
+    "match3.piece.dragon",
+    "match3.piece.frog",
+    "match3.piece.newt",
+    "match3.piece.snake",
+    "match3.piece.spider",
+    "match3.piece.yeti",
+    "match3.shelf.block",
+    "match3.special.blast",
+    "match3.special.column",
+    "match3.special.colour",
+    "match3.special.row",
   ],
 };
 
+let runtimeAssetManifest = null;
+let runtimeAssetManifestPromise = null;
 const warming = new Map();
+const registeredBundles = new Set();
+
+export function setRuntimeAssetManifest(manifest) {
+  runtimeAssetManifest = manifest || null;
+  return runtimeAssetManifest;
+}
+
+export function getRuntimeAssetManifest() {
+  return runtimeAssetManifest;
+}
+
+export function runtimeAssetSources(manifest, key) {
+  const item = manifest?.assets?.[key];
+  if (!item) return [];
+  const sources = [];
+  if (Array.isArray(item.src)) sources.push(...item.src);
+  else if (item.src) sources.push(item.src);
+  if (item.fallback) sources.push(item.fallback);
+  return sources.filter(Boolean).map(withAssetBase);
+}
+
+export function runtimeAssetSrc(manifest, key) {
+  return runtimeAssetSources(manifest, key)[0] || "";
+}
+
+export function resolveAssetUrl(keyOrPath, options = {}) {
+  const { runtimeManifest = runtimeAssetManifest } = options;
+  const legacyPath = Object.prototype.hasOwnProperty.call(options, "legacyPath")
+    ? options.legacyPath
+    : LEGACY_ASSET_PATHS[keyOrPath];
+  const generated = runtimeAssetSrc(runtimeManifest, keyOrPath);
+  if (generated) return generated;
+  if (legacyPath === "") return "";
+  return assetUrl(legacyPath || keyOrPath);
+}
+
+function resolveAssetSourceList(keyOrPath, runtimeManifest = runtimeAssetManifest) {
+  const generated = runtimeAssetSources(runtimeManifest, keyOrPath);
+  if (generated.length) return generated;
+  return [assetUrl(LEGACY_ASSET_PATHS[keyOrPath] || keyOrPath)];
+}
+
+export async function loadRuntimeAssetManifest(fetchImpl = globalThis.fetch) {
+  if (runtimeAssetManifest) return runtimeAssetManifest;
+  if (typeof fetchImpl !== "function") return null;
+  if (!runtimeAssetManifestPromise) {
+    runtimeAssetManifestPromise = fetchImpl(assetUrl("/assets-runtime/manifest.json"), { cache: "no-cache" })
+      .then((response) => (response?.ok ? response.json() : null))
+      .then((manifest) => setRuntimeAssetManifest(manifest))
+      .catch(() => null);
+  }
+  return runtimeAssetManifestPromise;
+}
+
+function sceneBundleKeys(sceneKey, manifest) {
+  return manifest?.bundles?.[`pixi.${sceneKey}`] || GAME_ASSET_BUNDLES[sceneKey] || [];
+}
+
+function pixiBundleAssets(sceneKey, manifest) {
+  return sceneBundleKeys(sceneKey, manifest).map((key) => ({
+    alias: key,
+    src: resolveAssetSourceList(key, manifest),
+  }));
+}
 
 export function warmPixiAssetBundle(sceneKey) {
-  const assets = GAME_ASSET_BUNDLES[sceneKey];
-  if (!assets?.length) return Promise.resolve();
+  if (!GAME_ASSET_BUNDLES[sceneKey]?.length) return Promise.resolve();
   if (!warming.has(sceneKey)) {
-    warming.set(sceneKey, Assets.load(assets).catch(() => null));
+    warming.set(sceneKey, loadRuntimeAssetManifest().then((manifest) => {
+      const assets = pixiBundleAssets(sceneKey, manifest);
+      if (!assets.length) return null;
+      const bundleName = `ccgh.${sceneKey}`;
+      if (!registeredBundles.has(bundleName)) {
+        Assets.addBundle(bundleName, assets);
+        registeredBundles.add(bundleName);
+      }
+      return Assets.loadBundle(bundleName);
+    }).catch(() => null));
   }
   return warming.get(sceneKey);
 }

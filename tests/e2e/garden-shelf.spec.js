@@ -26,9 +26,9 @@ test.describe("Garden Shelf flow", () => {
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("My Garden")).toBeVisible();
-    await expect(page.locator('img[src="/games/garden-shelf/assets_garden_sign.png"]')).toBeVisible();
-    await expect(page.locator('img[src="/games/garden-shelf/assets_garden_bottom_plank.png"]')).toBeVisible();
-    await expect(page.locator('img[src="/games/garden-shelf/assets_shelf.png"]').first()).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/assets_garden_sign."]')).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/assets_garden_bottom_plank."]')).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/assets_shelf."]').first()).toBeVisible();
     await expect(page.getByText("Gold Balance")).toHaveCount(0);
     await expect(page.getByText("Garden Lv 1")).toBeVisible();
     await expect(page.locator(".stats-row")).toContainText("Garden XP");

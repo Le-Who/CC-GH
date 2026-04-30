@@ -1,9 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { loadAssetPipelineEntries } from "../scripts/assets-pipeline.config.mjs";
 import { PERF_SUITES, evaluatePerfBudget, runPerfGuard } from "../scripts/perf-guard.mjs";
 
 describe("perf:guard contract", () => {
-  it("covers the current gameplay hot paths with explicit p95 and p99 tail budgets", () => {
+  it("covers the current gameplay and runtime asset hot paths with explicit p95 and p99 tail budgets", () => {
     const ids = new Set(PERF_SUITES.map((suite) => suite.id));
     for (const required of [
       "match3.generate-board",
@@ -24,6 +25,9 @@ describe("perf:guard contract", () => {
       "player.apply-migrations-current",
       "player.apply-migrations-legacy",
       "player.build-snapshot",
+      "assets.pipeline-entry-scan",
+      "assets.runtime-manifest-parse",
+      "assets.runtime-bundle-map",
     ]) {
       assert.ok(ids.has(required), `missing perf suite: ${required}`);
     }
@@ -38,6 +42,45 @@ describe("perf:guard contract", () => {
       assert.equal(typeof suite.group, "string", `${suite.id} needs a group`);
       assert.equal(typeof suite.description, "string");
     }
+  });
+
+  it("keeps asset pipeline perf coverage aligned with generated Pixi bundles", async () => {
+    const entries = await loadAssetPipelineEntries();
+    const ids = new Set(entries.map((entry) => entry.key));
+    const bundles = new Map();
+    for (const entry of entries) {
+      if (!entry.bundle) continue;
+      if (!bundles.has(entry.bundle)) bundles.set(entry.bundle, new Set());
+      bundles.get(entry.bundle).add(entry.key);
+    }
+
+    for (const required of [
+      "bubbo.background.tile",
+      "bubbo.bubble.blue",
+      "bubbo.bubble.green",
+      "bubbo.bubble.red",
+      "bubbo.bubble.yellow",
+      "bubbo.balls.sheet",
+      "bubbo.bottomTray",
+      "bubbo.cannon.main",
+      "match3.piece.dragon",
+      "match3.piece.frog",
+      "match3.piece.newt",
+      "match3.piece.snake",
+      "match3.piece.spider",
+      "match3.piece.yeti",
+      "match3.shelf.block",
+      "match3.special.blast",
+      "match3.special.column",
+      "match3.special.colour",
+      "match3.special.row",
+    ]) {
+      assert.ok(ids.has(required), `missing pipeline entry: ${required}`);
+    }
+
+    assert.equal(bundles.get("pixi.bubbo")?.size, 8);
+    assert.equal(bundles.get("pixi.match3")?.size, 11);
+    assert.equal(ids.size, entries.length, "asset pipeline entry keys must be unique");
   });
 
   it("can run a focused suite and emits report summary metadata", async () => {
@@ -56,6 +99,21 @@ describe("perf:guard contract", () => {
     assert.ok(Number.isFinite(report.results[0].stats.p99));
     assert.deepEqual(report.results[0].failures, []);
     assert.ok(Array.isArray(report.results[0].warnings));
+  });
+
+  it("can run a focused runtime asset suite", async () => {
+    const report = await runPerfGuard({
+      writeReport: false,
+      quiet: true,
+      suiteIds: ["assets.runtime-bundle-map"],
+      repeat: 2,
+    });
+
+    assert.equal(report.results.length, 1);
+    assert.equal(report.results[0].id, "assets.runtime-bundle-map");
+    assert.equal(report.results[0].group, "Runtime Assets");
+    assert.equal(report.results[0].rounds.length, 2);
+    assert.deepEqual(report.results[0].failures, []);
   });
 
   it("can repeat focused suites and aggregates the worst round for CI gating", async () => {

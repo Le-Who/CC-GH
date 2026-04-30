@@ -12,9 +12,9 @@ export default defineConfig({
 
       // Workbox configuration
       workbox: {
-        // Precache all Vite-built assets (hashed filenames)
+        // Precache Vite-built shell assets only. Runtime art is cached on demand below.
         globPatterns: [
-          "**/*.{js,css,woff,woff2,svg}",
+          "**/*.{js,css,woff,woff2}",
         ],
         // Skip waiting + claim clients = instant activation on deploy
         skipWaiting: true,
@@ -40,6 +40,26 @@ export default defineConfig({
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 5, // 5 min
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          // Runtime art — CacheFirst, loaded lazily per game/scene.
+          {
+            urlPattern: ({ url, request }) =>
+              (
+                url.pathname.startsWith("/assets-runtime/") ||
+                url.pathname.startsWith("/games/")
+              ) &&
+              ["image", "audio", "font"].includes(request.destination),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "runtime-art-v1",
+              expiration: {
+                maxEntries: 800,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
               cacheableResponse: {
                 statuses: [0, 200],

@@ -59,7 +59,7 @@ Frontend flow:
 3. `src/game-state/useGameHub.js` loads `/api/player/snapshot` and sends all new-stack gameplay commands through `/api/player/mutate`. Yard actions first enter a durable outbox with `clientActionId`, `entityKey`, retry timing, reconnect/focus/visibility drains, and IndexedDB storage with localStorage fallback.
 4. `src/game-state/inventory.js` normalizes seeds, harvested crops, merge board counts, yard food/goodie inventories, and rewards so legacy Farm resources, Merge, Bag, and Cozy Yard use one inventory shape.
 5. Garden Shelf mounts as a React game under `src/games/garden-shelf/` with sprite-sheet assets in `public/games/garden-shelf/`; Cozy Yard mounts as a React game under `src/games/companion-yard/` with starter assets in `public/games/companion-yard/`, manifest-backed background overrides, and DOM-rendered visitor movement layers; Blox, Match-3, Merge, and Bubbo lazy-load the Pixi runtime only when the player shows intent to open a Pixi tab.
-6. `src/game-runtime/LazyPixiSceneHost.jsx` imports `PixiGameHost` and the Pixi scene builders behind a dynamic import. `src/game-runtime/assetBundles.js` preloads tracked game art from `public/games/bubbo-bubbo/` and `public/games/puzzling-potions/` before Pixi scene builds, appends the current build id to `/games/*` asset URLs, then the scenes keep procedural fallbacks for missing optional art.
+6. `src/game-runtime/LazyPixiSceneHost.jsx` imports `PixiGameHost` and the Pixi scene builders behind a dynamic import. `src/game-runtime/assetBundles.js` first tries generated content-hashed assets from `public/assets-runtime/manifest.json`, registers Pixi bundles with `Assets.addBundle`, and falls back to versioned legacy `/games/*` paths when a generated asset is missing.
 7. Pixi gameplay surfaces opt out of Telegram viewport swipes during pointer gestures and use the shared `createPointerSession()` state machine for pointer id tracking, derived taps, drag thresholds, blur/visibility cleanup, and RAF-coalesced drag visuals. `PixiGameHost` captures gestures on the active canvas target so embedded browser wrappers do not steal Pixi pointer input.
 8. Gameplay enters a shared immersive mobile shell across Blox, Gem Crush, Merge, Bubbo, Brain Blitz, and Cozy Yard. Live play hides Hub chrome and keeps only a compact in-game HUD visible; pause/menu/result surfaces render as accessible dialog overlays over the playfield, focus the first actionable control, and expose explicit Exit-to-Hub navigation. Garden Shelf keeps its own idle-game shelf UI inside the hub tab.
 9. Blox, Gem Crush, Gacha Merge, and Bubbo tune their Pixi board geometry for mobile thumb reach: playfields stay as large as the viewport allows, reserve room for compact HUD/tray controls, and sit lower in fullscreen play instead of pinning to the top edge. Gacha Merge measures its live status strip and bottom control dock before fitting the board, so generator/gacha/trash/pause controls stay reachable without covering the merge grid. Gem Crush measures the live HUD before fitting the board and redraws Pixi scenes on container or WebView viewport changes instead of waiting for pause/resume state updates. Bubbo stores the pending pressure row as gameplay state, renders it as hittable virtual row `-1`, carries a row-offset phase through pressure shifts, and refills sparse boards back to at least three playable rows without pressure or danger penalty.
@@ -180,9 +180,10 @@ Copy `.env.example` and set:
 - `ADMIN_TOKEN`
 - `DEV_AUTH_ENABLED`
 - `APP_BUILD_ID`
+- `ASSET_BASE_URL`
 
 The compose stack also uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to provision PostgreSQL. In production, GitHub Actions writes `/opt/game-hub/.env` from repository secrets; do not commit production `.env` files.
-`APP_BUILD_ID` is written from the GitHub commit SHA during deployment and mirrored into the Docker build as `VITE_BUILD_ID` so HTML, `/api/config`, the update manager, and versioned `/games/*` assets agree on cache freshness.
+`APP_BUILD_ID` is written from the GitHub commit SHA during deployment and mirrored into the Docker build as `VITE_BUILD_ID` so HTML, `/api/config`, and the update manager agree on app freshness. Runtime art uses content-hashed `/assets-runtime/*` URLs; legacy `/games/*` fallbacks still receive a build-id query. `ASSET_BASE_URL` is optional and only prefixes generated runtime assets for a future static asset domain/CDN.
 
 Playwright web-server runs with `NODE_ENV=test`, `DEV_AUTH_ENABLED=true`, and an empty `DATABASE_URL`; in that mode only, `withPlayerLock()` uses a process-local player store so browser smoke tests can exercise authenticated mutations without a local Postgres tenant. Production and normal development still require PostgreSQL for durable player state.
 
@@ -203,6 +204,7 @@ Vite proxies `/api` to `http://localhost:8090`. For local browser auth, set `DEV
 Useful checks:
 
 ```bash
+pnpm run assets:build
 pnpm run build
 pnpm test
 pnpm run test:perf
@@ -214,7 +216,7 @@ pnpm run test:cleanup
 docker build -t game-hub-ci .
 ```
 
-`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pending-row, pressure/drop, sparse-refill, and timed-state coverage, pointer-session cleanup coverage, Blox drag geometry coverage, shared theme/shell guards, the `perf:guard` budget contract, and Match-3 resolution plus animation-delay checks for bonus-block backfill, cascade snapshots, stuck overlay prevention, and Star Drop bottom-token auto-crediting. `pnpm run perf:guard` runs hot-path budgets directly and writes an ignored JSON report to `artifacts/perf/perf-guard-report.json`; budgets cover Blox fit/placement, Gem Crush board generation/matches/swaps/Star Drop, Merge hydration/generator/recipe mutations, Bubbo pressure/shots, Garden Shelf offline simulation, Brain Blitz question picking, Cozy Yard visitor/long-idle simulation, and Player JSON migration/snapshot paths. The guard fails on p95 and p99 tail regressions, while raw max spikes are reported as diagnostics so isolated VM/GC noise does not fail CI. `pnpm run perf:guard:build` checks Vite build artifact budgets after `pnpm run build`, and `pnpm run perf:guard:browser` runs the Chromium runtime smoke for lazy startup plus Gacha Merge live-play frame cadence. Use `pnpm run perf:guard -- --suite player.build-snapshot --repeat 3` for a focused repeated budget pass. The design rationale and budget policy live in `docs/PERF_GUARD.md`. Playwright e2e specs are separate; the current focused gameplay checks are:
+`pnpm test` runs the Node test suite listed in `package.json`. It includes pure Bubbo pending-row, pressure/drop, sparse-refill, and timed-state coverage, pointer-session cleanup coverage, Blox drag geometry coverage, shared theme/shell guards, the `perf:guard` budget contract, and Match-3 resolution plus animation-delay checks for bonus-block backfill, cascade snapshots, stuck overlay prevention, and Star Drop bottom-token auto-crediting. `pnpm run perf:guard` runs hot-path budgets directly and writes an ignored JSON report to `artifacts/perf/perf-guard-report.json`; budgets cover Blox fit/placement, Gem Crush board generation/matches/swaps/Star Drop, Merge hydration/generator/recipe mutations, Bubbo pressure/shots, Garden Shelf offline simulation, Brain Blitz question picking, Cozy Yard visitor/long-idle simulation, Player JSON migration/snapshot paths, and runtime asset pipeline scan/manifest/bundle mapping. The guard fails on p95 and p99 tail regressions, while raw max spikes are reported as diagnostics so isolated VM/GC noise does not fail CI. `pnpm run perf:guard:build` checks Vite build artifact budgets plus generated `/assets-runtime` manifest and payload budgets after `pnpm run build`, and `pnpm run perf:guard:browser` runs Chromium runtime smoke for lazy startup, generated asset loading, and Gacha Merge live-play frame cadence. Use `pnpm run perf:guard -- --suite player.build-snapshot --repeat 3` for a focused repeated budget pass. The design rationale and budget policy live in `docs/PERF_GUARD.md`. Playwright e2e specs are separate; the current focused gameplay checks are:
 
 ```bash
 pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/gestures.spec.js
@@ -224,9 +226,9 @@ pnpm exec playwright test tests/e2e/companion-yard.spec.js --project=mobile-chro
 
 ## Asset Replacement
 
-Replaceable app graphics and audio are registered through `public/assets/manifest.json`. Existing pet SVGs and PWA icons remain compatible, while missing custom scene art or SFX falls back to procedural Pixi graphics and synthesized UI tones.
+Replaceable app graphics and audio are registered through `public/assets/manifest.json`. Generated optimized runtime art is written to `public/assets-runtime/manifest.json` by `pnpm run assets:build`, which runs automatically before `pnpm run build`. Manual manifest overrides win over generated assets, and missing custom scene art or SFX still falls back to procedural Pixi graphics and synthesized UI tones.
 
-Tracked game source art lives under `public/games/bubbo-bubbo/`, `public/games/puzzling-potions/`, `public/games/garden-shelf/`, and `public/games/companion-yard/`. The Bubbo/Puzzling Potions normalized `images/` folders are loaded by `src/game-runtime/assetBundles.js`; Companion Yard loads PNG starter backgrounds, food, goodies, worn/broken variants, visitors, and companion species through its asset resolver.
+Browser-served runtime fallbacks live under `public/games/bubbo-bubbo/`, `public/games/puzzling-potions/`, `public/games/garden-shelf/`, and `public/games/companion-yard/`. Editable source exports and upstream raw assets live under `assets-source/` and are not copied into the production runtime image. Bubbo, Gem Crush, Garden Shelf, and Cozy Yard resolve generated WebP/PNG/SVG runtime assets first, then fall back to the stable public paths.
 
 Cozy Yard content ids, rarity weights, attraction tags, durability, rewards, remodel metadata, slots, activity anchors, visitor capacity, and asset keys are authored in `game-logic/yard-catalog.js`. Replace remodel backgrounds either by overwriting `public/games/companion-yard/backgrounds/<remodel_id>.png` or by setting `graphics.games.companionYard.backgrounds.<remodel_id>` in `public/assets/manifest.json`; other runtime art can use the same `graphics.games.companionYard` manifest bucket while keeping catalog ids and file names aligned.
 
@@ -286,8 +288,8 @@ Cache and sync:
 
 - Use `/api/clear-cache` if stale service-worker or browser storage state blocks a client.
 - The app also performs build-id freshness checks through `/api/config`; when the server build differs from the injected client build, it unregisters service workers, deletes caches, and reloads once with `?build=<id>`.
-- The PWA config precaches hashed built assets, keeps HTML navigation network-only, excludes `/api/config` from runtime API caching, uses short NetworkFirst caching for other API GET requests, and keeps CacheFirst for fonts.
-- Runtime `/games/*` asset URLs include the client build id as a query parameter so Pixi art refreshes with each deployed build.
+- The PWA config precaches hashed shell assets, keeps HTML navigation network-only, excludes `/api/config` from runtime API caching, uses short NetworkFirst caching for other API GET requests, and keeps CacheFirst caches for fonts and lazily loaded runtime art.
+- Runtime `/assets-runtime/*` files use content-hashed names and immutable cache headers; `/assets-runtime/manifest.json` and `/assets/manifest.json` stay no-cache. Legacy `/games/*` fallback URLs keep the client build-id query.
 - The initial app chunk must not eagerly import or preload Pixi runtime modules. Pixi scene code loads through the async `LazyPixiSceneHost` path, with tab hover/focus/pointerdown preloading to hide latency when the player intends to open a Pixi game.
 - Socket clients disconnect while the document is hidden and reconnect on visibility return.
 
