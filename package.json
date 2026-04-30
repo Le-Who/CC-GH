@@ -76,5 +76,11 @@
     "google-gax": {
       "minimatch": "^10.2.1"
     }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
   }
 }

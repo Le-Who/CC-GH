@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { setGameGestureActive } from "../platform/telegram.js";
-import { warmPixiAssetBundle } from "./assetBundles.js";
+import { warmPixiAssetBundle } from "./pixiAssetBundles.js";
 
 function destroyPixiApp(app) {
   if (!app) return;

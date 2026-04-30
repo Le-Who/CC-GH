@@ -48,7 +48,7 @@ import {
   formatGardenRate,
   getPassiveXpRate,
   getProduction,
-} from "../src/games/garden-shelf/constants.ts";
+} from "../game-logic/garden-shelf-plants.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
 import { applyAction, applyActionWithReceipt, buildSnapshot } from "../routes/player.js";
 
