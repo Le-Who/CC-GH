@@ -64,3 +64,17 @@ This repo uses three performance guard layers because one metric cannot cover a 
 - Refresh the baseline after each kept win before moving to the next target, so later comparisons measure against the current tree.
 - Treat `pnpm run perf:guard:all` as the final source of truth because it covers Node hot paths, build budgets, and browser runtime smoke together.
 - Stop after three consecutive noisy, reverted, or sub-3% attempts, or when the next likely change would require gameplay behavior changes.
+
+## Local Loop Notes
+
+### 2026-04-30 Conservative Loop
+
+The April 30, 2026 loop stopped by rule after three consecutive safe attempts failed to produce a confirmed 3% p95 win. No gameplay or budget changes were kept.
+
+| Attempt | Target | Baseline p95 | Attempt p95 | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | `yard.simulate-long-idle` per-step visit counting | 0.599ms | 0.800ms | Reverted; p95 regressed. |
+| 2 | `assets.pipeline-entry-scan` immutable entry templates | 1.151ms | 1.600ms | Reverted; p95 regressed. |
+| 3 | `merge.board-hydrate` empty-cell normalization shortcut | 0.076ms | 0.088ms | Reverted; sub-3% and p95 regressed. |
+
+Evidence artifacts were written under `artifacts/perf/attempt1-yard-*.json`, `artifacts/perf/attempt2-assets-*.json`, and `artifacts/perf/attempt3-merge-*.json`.
