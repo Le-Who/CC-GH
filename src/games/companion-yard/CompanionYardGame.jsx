@@ -10,6 +10,7 @@ import {
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { audioManager } from "../../services/audioManager.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset } from "./assets.js";
+import "./companion-yard.css";
 
 const SPECIES_LABELS = {
   cat: "Cat",
