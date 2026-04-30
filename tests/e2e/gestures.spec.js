@@ -267,7 +267,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /^Play$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-action-strip button").filter({ hasText: "Daily +30" }).click();
+    await page.locator(".merge-action-strip button").filter({ hasText: /Claim \+/ }).click();
     await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
     const box = await hostBox(page);
     await page.mouse.move(box.x + box.width * 0.38, box.y + box.height * 0.35);

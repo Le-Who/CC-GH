@@ -13,6 +13,48 @@
 export const MERGE_WILD_GENERATOR_ID = "wild";
 export const MERGE_START_CHAIN_ID = "flora";
 export const MERGE_GENERATOR_CHAIN_IDS = ["flora", "earth", "water", "fire", "air"];
+export const MERGE_FREE_TAP_RECHARGE_MS = 20 * 60 * 1000;
+export const MERGE_FREE_TAP_BANK_CAP = 30;
+
+export function getMergeFreeTapClaim(merge = {}, now = Date.now()) {
+  const currentCharges = Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0));
+  const capacity = Math.max(0, MERGE_FREE_TAP_BANK_CAP - currentCharges);
+  const nowValue = Number(now);
+  const safeNow = Math.max(0, Math.floor(Number.isFinite(nowValue) ? nowValue : Date.now()));
+  const lastFreeTaps = Math.max(0, Math.floor(Number(merge.lastFreeTaps) || 0));
+
+  if (capacity <= 0) {
+    return {
+      claimable: 0,
+      freeTapCharges: currentCharges,
+      nextLastFreeTaps: lastFreeTaps || safeNow,
+      nextFreeTapAt: (lastFreeTaps || safeNow) + MERGE_FREE_TAP_RECHARGE_MS,
+    };
+  }
+
+  if (!lastFreeTaps) {
+    return {
+      claimable: capacity,
+      freeTapCharges: MERGE_FREE_TAP_BANK_CAP,
+      nextLastFreeTaps: safeNow,
+      nextFreeTapAt: safeNow + MERGE_FREE_TAP_RECHARGE_MS,
+    };
+  }
+
+  const elapsed = safeNow - lastFreeTaps;
+  const earned = Math.floor(elapsed / MERGE_FREE_TAP_RECHARGE_MS);
+  const claimable = Math.max(0, Math.min(capacity, earned));
+  const nextLastFreeTaps = claimable > 0
+    ? lastFreeTaps + claimable * MERGE_FREE_TAP_RECHARGE_MS
+    : lastFreeTaps;
+
+  return {
+    claimable,
+    freeTapCharges: currentCharges + claimable,
+    nextLastFreeTaps,
+    nextFreeTapAt: nextLastFreeTaps + MERGE_FREE_TAP_RECHARGE_MS,
+  };
+}
 
 export const MERGE_CHAINS = {
   flora: {

@@ -35,6 +35,61 @@ async function makeTempRoot() {
 }
 
 describe("asset runtime pipeline", () => {
+  it("keeps the Cozy Yard HUD atlas alpha-cropped without edge fragments", async () => {
+    const atlasPath = path.resolve("public/games/companion-yard/HUD.png");
+    const { data, info } = await sharp(atlasPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const cols = 5;
+    const rows = 5;
+
+    assert.equal(info.width % cols, 0, "HUD atlas width should divide evenly into the declared grid");
+    assert.equal(info.height % rows, 0, "HUD atlas height should divide evenly into the declared grid");
+
+    const cellW = info.width / cols;
+    const cellH = info.height / rows;
+    const alphaAt = (x, y) => data[(y * info.width + x) * 4 + 3];
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
+        const x0 = col * cellW;
+        const y0 = row * cellH;
+        const seen = new Uint8Array(cellW * cellH);
+        const components = [];
+
+        for (let y = 0; y < cellH; y += 1) {
+          for (let x = 0; x < cellW; x += 1) {
+            const startIndex = y * cellW + x;
+            if (seen[startIndex]) continue;
+            seen[startIndex] = 1;
+            if (alphaAt(x0 + x, y0 + y) <= 16) continue;
+
+            const stack = [[x, y]];
+            let count = 0;
+            while (stack.length) {
+              const [cx, cy] = stack.pop();
+              count += 1;
+              for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                const nx = cx + dx;
+                const ny = cy + dy;
+                if (nx < 0 || ny < 0 || nx >= cellW || ny >= cellH) continue;
+                const index = ny * cellW + nx;
+                if (seen[index]) continue;
+                seen[index] = 1;
+                if (alphaAt(x0 + nx, y0 + ny) > 16) stack.push([nx, ny]);
+              }
+            }
+            components.push(count);
+          }
+        }
+
+        assert.equal(
+          components.filter((count) => count > 32).length,
+          1,
+          `HUD cell ${row}:${col} should contain one alpha component after mask-based slicing`,
+        );
+      }
+    }
+  });
+
   it("generates deterministic content-hashed raster assets and bundles", async () => {
     const root = await makeTempRoot();
     const entries = [

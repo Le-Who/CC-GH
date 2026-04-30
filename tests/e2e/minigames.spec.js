@@ -183,9 +183,9 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
     await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Resume$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-action-strip button").filter({ hasText: "Daily +30" }).click();
+    await page.locator(".merge-action-strip button").filter({ hasText: /Claim \+/ }).click();
     await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toContainText(/Generate|Daily|Token|Source/);
+    await expect(page.locator(".merge-action-dock")).toContainText(/Generate|Claim|Next|Token|Source/);
     await pauseActiveGame(page);
     await exitToHub(page);
 
@@ -228,11 +228,8 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.getByText("Room Inventory")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Petbook" })).toBeVisible();
     await page.getByRole("button", { name: "Daily letter" }).click();
-    await expect(page.locator(".companion-yard-panel")).toContainText("Treats");
-    await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".yard-game-screen")).toContainText("Daily letter");
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await pauseActiveGame(page);
-    await exitToHub(page);
 
     expect(pageErrors).toEqual([]);
   });
@@ -278,16 +275,14 @@ test.describe("New-stack minigame smoke", () => {
     }
 
     await page.getByRole("button", { name: /Yard/ }).click();
-    await page.getByRole("button", { name: /^Play$/ }).click();
     const roomStage = page.locator(".active-game-frame .room-stage");
     await expect(roomStage).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await expect(page.locator(".bottom-tabs")).toBeHidden();
     const roomBox = await roomStage.boundingBox();
     expect(roomBox).not.toBeNull();
     expect(roomBox.height).toBeGreaterThanOrEqual(620);
     expect(roomBox.width).toBeGreaterThanOrEqual(360);
-    await pauseActiveGame(page);
-    await exitToHub(page);
   });
 
   test("pause menus preserve per-game mechanics and expose game-specific recovery state", async ({ page }) => {
@@ -359,15 +354,10 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".bottom-tabs")).toBeVisible();
 
     await page.getByRole("button", { name: /Yard/ }).click();
-    await page.getByRole("button", { name: /^Play$/ }).click();
-    overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="yard"]')).toContainText("Watch visitors");
-    await expectCompactPauseMenu(overlay, 3);
-    await overlay.getByRole("button", { name: /^Resume$/ }).click();
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
-    overlay = await pauseActiveGame(page);
-    await overlay.getByRole("button", { name: /^Exit$/ }).click();
-    await expect(page.locator(".bottom-tabs")).toBeVisible();
+    await expect(page.locator(".companion-yard-stage")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await page.getByRole("button", { name: "Settings" }).click();
+    await expect(page.locator(".yard-game-screen")).toContainText("Back to garden");
   });
 
   test("Gem Crush live HUD stays clear and canvas redraws on viewport resize", async ({ page }) => {

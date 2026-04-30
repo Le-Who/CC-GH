@@ -8,10 +8,12 @@ import {
   YARD_SIMULATION_CAP_MS,
   YARD_SLOT_LAYOUTS,
   YARD_SPECIES,
+  YARD_STARTER_REMODEL_IDS,
   YARD_VISITORS,
   getYardConditionProfile,
   getYardGoodieActivities,
   getYardGoodieCapacity,
+  isYardGoodieLayable,
 } from "./yard-catalog.js";
 
 const MAX_PENDING_GIFTS = 100;
@@ -268,6 +270,8 @@ function normalizeVisitors(rawVisitors = [], now = Date.now()) {
         pose: String(visit.pose || activity.pose || "sit").slice(0, 40),
         activityId: activity.id,
         activityLayer: activity.layer || "front",
+        activityKind: activity.kind || "active",
+        stationary: !!activity.stationary,
         entryEdge,
         facing: normalizeFacing(visit.facing, entryEdge, activity),
         motionSeed,
@@ -343,7 +347,7 @@ export function createDefaultYardState(now = Date.now(), legacy = {}) {
     mementos: {},
     expansion: { level: 1 },
     remodel: "meadow",
-    ownedRemodels: ["meadow"],
+    ownedRemodels: [...YARD_STARTER_REMODEL_IDS],
     helper: { unlocked: false, autoRefill: false, preferredFoodId: "kibble" },
     companion: normalizeCompanion({}, legacy),
     dailyLetter: { lastClaimedDate: null, stamps: 0 },
@@ -357,8 +361,9 @@ export function normalizeYardState(raw = null, legacy = {}, now = Date.now()) {
   const fallback = createDefaultYardState(now, starterLegacy);
   const source = hasExistingYard ? raw : {};
   const expansionLevel = clampInteger(source.expansion?.level, 1, 2, fallback.expansion.level);
+  const starterOwnedRemodels = YARD_STARTER_REMODEL_IDS.filter((id) => YARD_REMODELS[id]);
   const ownedRemodels = Array.isArray(source.ownedRemodels)
-    ? [...new Set(["meadow", ...source.ownedRemodels.filter((id) => YARD_REMODELS[id])])]
+    ? [...new Set([...starterOwnedRemodels, ...source.ownedRemodels.filter((id) => YARD_REMODELS[id])])]
     : [...fallback.ownedRemodels];
   const remodel = YARD_REMODELS[source.remodel] && ownedRemodels.includes(source.remodel)
     ? source.remodel
@@ -538,7 +543,10 @@ function pickActivityForVisitor(goodie, placed, visitor, availableActivities, se
   const visitorTags = new Set(visitor.tags || []);
   const visitorPoses = new Set(visitor.poses || []);
   const matching = availableActivities.filter((activity) => visitorPoses.has(activity.pose) || visitorTags.has(activity.id));
-  const pool = matching.length ? matching : availableActivities;
+  const layMatches = isYardGoodieLayable(goodie)
+    ? matching.filter((activity) => activity.kind === "lie" && visitorPoses.has(activity.pose))
+    : [];
+  const pool = layMatches.length ? layMatches : matching.length ? matching : availableActivities;
   return pool[hashString(`${seed}:activity`) % pool.length] || availableActivities[0];
 }
 
@@ -555,6 +563,8 @@ function registerArrival(yard, visitor, placed, bowl, activity, now, seed) {
     pose,
     activityId: activity?.id || "rest",
     activityLayer: activity?.layer || "front",
+    activityKind: activity?.kind || "active",
+    stationary: !!activity?.stationary,
     entryEdge,
     facing: normalizeFacing(activity?.facing, entryEdge, activity),
     motionSeed: hashString(`${seed}:${visitor.id}:${activity?.id || "rest"}:motion`).toString(36),

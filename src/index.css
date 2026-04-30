@@ -560,6 +560,44 @@ button.stat-chip {
   pointer-events: none;
 }
 
+.mode-grid button::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  z-index: 0;
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 7px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.mode-choice-selected {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid color-mix(in srgb, var(--mint) 78%, var(--ink));
+  border-radius: 999px;
+  background: var(--field);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mint) 16%, transparent);
+  opacity: 0;
+  transform: scale(0.76);
+  transition: opacity 160ms ease, transform 160ms ease;
+  pointer-events: none;
+}
+
+.mode-grid button.active .mode-choice-selected {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.mode-grid button > strong,
+.mode-grid button > small {
+  position: relative;
+  z-index: 1;
+}
+
 .section-tabs button.active,
 .mode-grid button.active {
   border-color: color-mix(in srgb, var(--mint) 70%, transparent);

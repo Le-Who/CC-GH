@@ -24,6 +24,7 @@ import {
   farmPlotsWithGrowth,
   getYardCatalogSnapshot,
   getGrowthPct,
+  getMergeFreeTapClaim,
   getMergePairResult,
   getUnlockedSeeds,
   hydrateMergeBoard,
@@ -190,8 +191,10 @@ function rememberActionReceipt(p, receipt, now = Date.now()) {
 }
 
 function actionExtrasFromResult(result) {
-  const body = result?.body || {};
-  const { success, action, snapshot, ...extras } = body;
+  const extras = { ...(result?.body || {}) };
+  delete extras.success;
+  delete extras.action;
+  delete extras.snapshot;
   return extras;
 }
 
@@ -980,11 +983,15 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     case "merge.claimFreeTaps": {
       ensureMergeState(p);
       const now = actionTime(options);
-      const today = new Date(now).toISOString().slice(0, 10);
-      if (new Date(p.merge.lastFreeTaps || 0).toISOString().slice(0, 10) === today) return fail(400, "already claimed today");
-      p.merge.lastFreeTaps = now;
-      p.merge.freeTapCharges = (Number(p.merge.freeTapCharges) || 0) + 30;
-      return ok(action, p, { freeTapCharges: p.merge.freeTapCharges });
+      const claim = getMergeFreeTapClaim(p.merge, now);
+      if (claim.claimable <= 0) return fail(400, "no free taps ready", { nextFreeTapAt: claim.nextFreeTapAt });
+      p.merge.lastFreeTaps = claim.nextLastFreeTaps;
+      p.merge.freeTapCharges = claim.freeTapCharges;
+      return ok(action, p, {
+        freeTapCharges: p.merge.freeTapCharges,
+        claimable: claim.claimable,
+        nextFreeTapAt: claim.nextFreeTapAt,
+      });
     }
     case "merge.trash": {
       const { r, c } = payload;

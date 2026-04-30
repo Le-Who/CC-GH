@@ -323,6 +323,7 @@ export default function BubboGame() {
             <div className="mode-grid bubbo-mode-grid" data-mode-selector="bubbo">
               {BUBBO_MODES.map((item) => (
                 <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
+                  <span className="mode-choice-selected" aria-hidden="true" />
                   <strong>{t(item.labelKey)}</strong>
                   <small>{t(item.hintKey)}</small>
                 </button>

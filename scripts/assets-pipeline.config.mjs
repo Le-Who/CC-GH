@@ -39,7 +39,7 @@ async function existingEntries(rootDir, assetEntries) {
 async function walkFiles(rootDir, relativeDir, extensions) {
   const absoluteDir = path.resolve(rootDir, relativeDir);
   const files = [];
-  let items = [];
+  let items;
   try {
     items = await fs.readdir(absoluteDir, { withFileTypes: true });
   } catch {

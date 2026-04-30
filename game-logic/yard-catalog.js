@@ -52,6 +52,39 @@ export const YARD_CONDITION_VARIANTS = {
   },
 };
 
+export const YARD_ACTIVITY_KINDS = {
+  active: "active",
+  stationary: "stationary",
+  lie: "lie",
+};
+
+export const YARD_STARTER_REMODEL_IDS = ["meadow", "moon_garden"];
+
+const STATIONARY_ACTIVITY_POSES = new Set(["nap", "rest", "curl", "peek", "watch", "soak", "perch"]);
+
+function normalizeActivityKind(activity = {}) {
+  const kind = String(activity.kind || "");
+  if (kind === YARD_ACTIVITY_KINDS.lie || kind === YARD_ACTIVITY_KINDS.stationary || kind === YARD_ACTIVITY_KINDS.active) {
+    return kind;
+  }
+  const pose = String(activity.pose || activity.id || "");
+  return STATIONARY_ACTIVITY_POSES.has(pose) ? YARD_ACTIVITY_KINDS.stationary : YARD_ACTIVITY_KINDS.active;
+}
+
+export function isYardVisitorPoseStationary(visitor = {}, pose = "") {
+  return Array.isArray(visitor.stationaryPoses) && visitor.stationaryPoses.includes(String(pose || ""));
+}
+
+export function isYardGoodieLayable(goodie = {}) {
+  return Array.isArray(goodie.surfaceTypes) && goodie.surfaceTypes.includes("lie");
+}
+
+export function isYardGoodieBlocking(goodie = {}) {
+  if (!goodie || !goodie.id) return false;
+  if (typeof goodie.blocksMovement === "boolean") return goodie.blocksMovement;
+  return !isYardGoodieLayable(goodie);
+}
+
 const DEFAULT_SMALL_ACTIVITIES = [
   { id: "rest", pose: "sit", x: 0, y: -9, layer: "front", roam: 2 },
   { id: "sniff", pose: "sniff", x: 5, y: -5, layer: "front", roam: 2 },
@@ -73,6 +106,7 @@ function activityListForGoodie(goodie = {}) {
 function normalizeActivity(activity = {}, index = 0) {
   const id = String(activity.id || activity.pose || `activity-${index}`).slice(0, 40);
   const layer = activity.layer === "back" ? "back" : "front";
+  const kind = normalizeActivityKind(activity);
   return {
     id,
     pose: String(activity.pose || id || "sit").slice(0, 40),
@@ -81,6 +115,8 @@ function normalizeActivity(activity = {}, index = 0) {
     layer,
     facing: activity.facing === "left" || activity.facing === "right" ? activity.facing : null,
     roam: Math.max(0, Math.min(8, Number.isFinite(Number(activity.roam)) ? Number(activity.roam) : 2)),
+    kind,
+    stationary: !!activity.stationary || kind !== YARD_ACTIVITY_KINDS.active,
   };
 }
 
@@ -141,6 +177,8 @@ export const YARD_GOODIES = {
     desc: "A warm pillow for sleepy guests.",
     size: "small",
     tags: ["nap", "warm"],
+    surfaceTypes: ["lie"],
+    blocksMovement: false,
     cost: { treats: 0, shinyTreats: 0 },
     fixCost: { treats: 24, shinyTreats: 0 },
     durability: 8,
@@ -150,8 +188,8 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -8 },
     layer: "front",
     activities: [
-      { id: "nap", pose: "nap", x: 0, y: -8, layer: "front", roam: 1 },
-      { id: "stretch", pose: "stretch", x: 6, y: -5, layer: "front", roam: 2 },
+      { id: "nap", pose: "nap", kind: "lie", x: 0, y: -8, layer: "front", roam: 0 },
+      { id: "stretch", pose: "stretch", kind: "lie", x: 6, y: -5, layer: "front", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -170,8 +208,8 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -9 },
     layer: "front",
     activities: [
-      { id: "window-peek", pose: "peek", x: -12, y: -14, layer: "back", facing: "right", roam: 1 },
-      { id: "door-lounge", pose: "rest", x: 13, y: -5, layer: "front", facing: "left", roam: 2 },
+      { id: "window-peek", pose: "peek", kind: "stationary", x: -12, y: -14, layer: "back", facing: "right", roam: 0 },
+      { id: "door-lounge", pose: "rest", kind: "stationary", x: 13, y: -5, layer: "front", facing: "left", roam: 0 },
       { id: "sniff", pose: "sniff", x: -4, y: -2, layer: "front", roam: 2 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
@@ -191,8 +229,8 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -8 },
     layer: "front",
     activities: [
-      { id: "soak-left", pose: "soak", x: -12, y: -6, layer: "front", facing: "right", roam: 1 },
-      { id: "watch-right", pose: "watch", x: 13, y: -13, layer: "back", facing: "left", roam: 1 },
+      { id: "soak-left", pose: "soak", kind: "stationary", x: -12, y: -6, layer: "front", facing: "right", roam: 0 },
+      { id: "watch-right", pose: "watch", kind: "stationary", x: 13, y: -13, layer: "back", facing: "left", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -202,6 +240,8 @@ export const YARD_GOODIES = {
     desc: "A sturdy seat for pets that like height.",
     size: "large",
     tags: ["nap", "tall"],
+    surfaceTypes: ["lie"],
+    blocksMovement: false,
     cost: { treats: 180, shinyTreats: 0 },
     fixCost: { treats: 45, shinyTreats: 0 },
     durability: 9,
@@ -211,8 +251,8 @@ export const YARD_GOODIES = {
     anchor: { x: 1, y: -16 },
     layer: "front",
     activities: [
-      { id: "perch", pose: "sit", x: 1, y: -16, layer: "front", roam: 1 },
-      { id: "rest", pose: "rest", x: 0, y: -12, layer: "front", roam: 1 },
+      { id: "perch", pose: "sit", kind: "stationary", x: 1, y: -16, layer: "front", roam: 0 },
+      { id: "rest", pose: "rest", kind: "lie", x: 0, y: -12, layer: "front", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -252,7 +292,7 @@ export const YARD_GOODIES = {
     layer: "front",
     activities: [
       { id: "sniff", pose: "sniff", x: -2, y: -9, layer: "front", roam: 2 },
-      { id: "peek", pose: "peek", x: 6, y: -13, layer: "back", roam: 1 },
+      { id: "peek", pose: "peek", kind: "stationary", x: 6, y: -13, layer: "back", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -262,6 +302,8 @@ export const YARD_GOODIES = {
     desc: "A soft patch for stretching out.",
     size: "large",
     tags: ["nap", "fresh"],
+    surfaceTypes: ["lie"],
+    blocksMovement: false,
     cost: { treats: 220, shinyTreats: 0 },
     fixCost: { treats: 55, shinyTreats: 0 },
     durability: 10,
@@ -271,8 +313,8 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -5 },
     layer: "front",
     activities: [
-      { id: "roll-left", pose: "roll", x: -12, y: -5, layer: "front", facing: "right", roam: 4 },
-      { id: "stretch-right", pose: "stretch", x: 12, y: -6, layer: "front", facing: "left", roam: 3 },
+      { id: "roll-left", pose: "roll", kind: "lie", x: -12, y: -5, layer: "front", facing: "right", roam: 0 },
+      { id: "stretch-right", pose: "stretch", kind: "lie", x: 12, y: -6, layer: "front", facing: "left", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -282,6 +324,8 @@ export const YARD_GOODIES = {
     desc: "A premium nap spot with a soft rim.",
     size: "large",
     tags: ["nap", "premium"],
+    surfaceTypes: ["lie"],
+    blocksMovement: false,
     cost: { treats: 0, shinyTreats: 5 },
     fixCost: { treats: 0, shinyTreats: 1 },
     durability: 12,
@@ -291,8 +335,8 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -10 },
     layer: "front",
     activities: [
-      { id: "nap-left", pose: "nap", x: -10, y: -9, layer: "front", facing: "right", roam: 1 },
-      { id: "rest-right", pose: "rest", x: 11, y: -11, layer: "front", facing: "left", roam: 1 },
+      { id: "nap-left", pose: "nap", kind: "lie", x: -10, y: -9, layer: "front", facing: "right", roam: 0 },
+      { id: "rest-right", pose: "rest", kind: "lie", x: 11, y: -11, layer: "front", facing: "left", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -311,9 +355,9 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -12 },
     layer: "back",
     activities: [
-      { id: "watch", pose: "watch", x: -3, y: -13, layer: "back", roam: 1 },
+      { id: "watch", pose: "watch", kind: "stationary", x: -3, y: -13, layer: "back", roam: 0 },
       { id: "glow", pose: "glow", x: 4, y: -13, layer: "front", roam: 1 },
-      { id: "peek", pose: "peek", x: 7, y: -9, layer: "front", roam: 1 },
+      { id: "peek", pose: "peek", kind: "stationary", x: 7, y: -9, layer: "front", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -332,8 +376,8 @@ export const YARD_GOODIES = {
     anchor: { x: 0, y: -11 },
     layer: "front",
     activities: [
-      { id: "quiet-left", pose: "sit", x: -11, y: -11, layer: "front", facing: "right", roam: 1 },
-      { id: "peek-right", pose: "peek", x: 12, y: -15, layer: "back", facing: "left", roam: 1 },
+      { id: "quiet-left", pose: "sit", kind: "stationary", x: -11, y: -11, layer: "front", facing: "right", roam: 0 },
+      { id: "peek-right", pose: "peek", kind: "stationary", x: 12, y: -15, layer: "back", facing: "left", roam: 0 },
     ],
     conditionVariants: YARD_CONDITION_VARIANTS,
   },
@@ -361,6 +405,7 @@ export const YARD_VISITORS = {
     gift: { treats: [8, 16], shinyChance: 0.02 },
     memento: { id: "mika_bell", name: "Tiny Bell", threshold: 4 },
     poses: ["pounce", "sit", "nap"],
+    stationaryPoses: ["nap"],
     assetKey: "visitors.mikaCat",
   },
   pebble_pup: {
@@ -374,6 +419,7 @@ export const YARD_VISITORS = {
     gift: { treats: [9, 18], shinyChance: 0.02 },
     memento: { id: "pebble_tag", name: "Worn Name Tag", threshold: 4 },
     poses: ["sniff", "roll", "sit"],
+    stationaryPoses: ["roll"],
     assetKey: "visitors.pebblePup",
   },
   mochi_bunny: {
@@ -387,6 +433,7 @@ export const YARD_VISITORS = {
     gift: { treats: [8, 17], shinyChance: 0.025 },
     memento: { id: "mochi_ribbon", name: "Soft Ribbon", threshold: 4 },
     poses: ["nap", "nibble", "stretch"],
+    stationaryPoses: ["nap"],
     assetKey: "visitors.mochiBunny",
   },
   pip_hamster: {
@@ -400,6 +447,7 @@ export const YARD_VISITORS = {
     gift: { treats: [12, 24], shinyChance: 0.04 },
     memento: { id: "pip_seed", name: "Polished Seed", threshold: 3 },
     poses: ["nibble", "peek", "sit"],
+    stationaryPoses: ["peek"],
     assetKey: "visitors.pipHamster",
   },
   willow_fox: {
@@ -413,6 +461,7 @@ export const YARD_VISITORS = {
     gift: { treats: [14, 26], shinyChance: 0.05 },
     memento: { id: "willow_leaf", name: "Silver Leaf", threshold: 3 },
     poses: ["listen", "curl", "peek"],
+    stationaryPoses: ["curl", "peek"],
     assetKey: "visitors.willowFox",
   },
   basil_turtle: {
@@ -426,6 +475,7 @@ export const YARD_VISITORS = {
     gift: { treats: [15, 28], shinyChance: 0.05 },
     memento: { id: "basil_pebble", name: "Smooth Pebble", threshold: 3 },
     poses: ["soak", "watch", "rest"],
+    stationaryPoses: ["rest", "soak", "watch"],
     assetKey: "visitors.basilTurtle",
   },
   starlit_fox: {
@@ -440,6 +490,7 @@ export const YARD_VISITORS = {
     gift: { treats: [32, 58], shinyChance: 0.35 },
     memento: { id: "starlit_charm", name: "Moonlit Charm", threshold: 1 },
     poses: ["glow", "curl", "watch"],
+    stationaryPoses: ["curl", "watch"],
     assetKey: "visitors.starlitFox",
   },
   sage_turtle: {
@@ -454,6 +505,7 @@ export const YARD_VISITORS = {
     gift: { treats: [28, 52], shinyChance: 0.28 },
     memento: { id: "sage_shell_chip", name: "Shell Chip", threshold: 1 },
     poses: ["soak", "rest", "watch"],
+    stationaryPoses: ["rest", "soak", "watch"],
     assetKey: "visitors.sageTurtle",
   },
 };
@@ -464,6 +516,7 @@ export const YARD_REMODELS = {
     name: "Morning Meadow",
     desc: "Warm grass, soft light, and a low fence.",
     cost: { treats: 0, shinyTreats: 0 },
+    starterOwned: true,
     assetKey: "remodels.meadow",
     themeClass: "yard-remodel-meadow",
   },
@@ -472,6 +525,8 @@ export const YARD_REMODELS = {
     name: "Tea House",
     desc: "Paper doors, polished wood, and quiet shade.",
     cost: { treats: 720, shinyTreats: 0 },
+    starterOwned: false,
+    shopOrder: 1,
     assetKey: "remodels.teaHouse",
     themeClass: "yard-remodel-tea-house",
   },
@@ -480,6 +535,7 @@ export const YARD_REMODELS = {
     name: "Moon Garden",
     desc: "Night flowers and a still blue glow.",
     cost: { treats: 900, shinyTreats: 6 },
+    starterOwned: true,
     assetKey: "remodels.moonGarden",
     themeClass: "yard-remodel-moon-garden",
   },

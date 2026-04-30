@@ -25,8 +25,12 @@ import {
   normalizeYardState,
   simulateYardState,
   YARD_GOODIES,
+  YARD_REMODELS,
+  YARD_VISITORS,
   YARD_HOUR_MS,
   YARD_SIMULATION_CAP_MS,
+  MERGE_FREE_TAP_BANK_CAP,
+  MERGE_FREE_TAP_RECHARGE_MS,
   GARDEN_ECONOMY_VERSION,
   GARDEN_OFFLINE_CAP_MS,
   GARDEN_OFFLINE_GOLD_RATIO,
@@ -39,7 +43,15 @@ import {
   MERGE_CHAINS,
   MERGE_GENERATOR_CHAIN_IDS,
   MERGE_WILD_GENERATOR_ID,
+  getYardGoodieActivities,
+  isYardGoodieBlocking,
+  isYardGoodieLayable,
+  isYardVisitorPoseStationary,
 } from "../game-logic.js";
+import {
+  getVisitorMotion,
+  isPointInsideObstacle,
+} from "../src/games/companion-yard/movement.js";
 import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
 import {
   GARDEN_GOLD_DISPLAY_MULTIPLIER,
@@ -426,25 +438,40 @@ describe("Gacha Merge shared generator and recipes", () => {
     assert.equal(p.merge.lastFreePull, 0);
   });
 
-  it("uses server time for daily free-pull and free-tap reset windows", async () => {
+  it("uses server time for daily free-pull and paced free-tap recharge windows", async () => {
     const start = 1_800_000_000_000;
     const nextDay = start + 26 * 60 * 60 * 1000;
     const p = createDefaultPlayer("merge-server-time", "Merge", start);
     p.merge.lastFreePull = start;
     p.merge.lastFreeTaps = start;
+    p.merge.freeTapCharges = 0;
 
     const sameDayPull = await applyAction(p, "merge.freePull", {}, { now: start + 60_000 });
     const nextDayPull = await applyAction(p, "merge.freePull", {}, { now: nextDay });
-    const sameDayTaps = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + 60_000 });
-    const nextDayTaps = await applyAction(p, "merge.claimFreeTaps", {}, { now: nextDay });
+    const tooSoonTaps = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + 60_000 });
+    const firstRecharge = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + MERGE_FREE_TAP_RECHARGE_MS });
+    const laterRecharge = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + 3 * MERGE_FREE_TAP_RECHARGE_MS });
 
     assert.equal(sameDayPull.status, 400);
     assert.equal(nextDayPull.status, 200);
     assert.equal(p.merge.lastFreePull, nextDay);
-    assert.equal(sameDayTaps.status, 400);
-    assert.equal(nextDayTaps.status, 200);
-    assert.equal(p.merge.lastFreeTaps, nextDay);
-    assert.equal(p.merge.freeTapCharges, 30);
+    assert.equal(tooSoonTaps.status, 400);
+    assert.equal(tooSoonTaps.body.error, "no free taps ready");
+    assert.equal(firstRecharge.status, 200);
+    assert.equal(firstRecharge.body.freeTapCharges, 1);
+    assert.equal(laterRecharge.status, 200);
+    assert.equal(p.merge.freeTapCharges, 3);
+    assert.equal(p.merge.lastFreeTaps, start + 3 * MERGE_FREE_TAP_RECHARGE_MS);
+  });
+
+  it("grants a capped starter bank for first-time Merge free-tap claims", async () => {
+    const p = createDefaultPlayer("merge-first-free-taps", "Merge", 1_800_000_000_000);
+
+    const result = await applyAction(p, "merge.claimFreeTaps", {}, { now: 1_800_000_060_000 });
+
+    assert.equal(result.status, 200);
+    assert.equal(p.merge.freeTapCharges, MERGE_FREE_TAP_BANK_CAP);
+    assert.equal(result.body.freeTapCharges, MERGE_FREE_TAP_BANK_CAP);
   });
 
   it("surfaces high-tier Merge recipe Yard drops as explicit rewards", async () => {
@@ -725,6 +752,62 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(new Set(largeSlotVisitors.map((visit) => visit.activityId)).size, largeSlotVisitors.length);
   });
 
+  it("types Yard goodies as layable surfaces or movement blockers", () => {
+    assert.equal(isYardGoodieLayable(YARD_GOODIES.sun_cushion), true);
+    assert.equal(isYardGoodieLayable(YARD_GOODIES.cloud_bed), true);
+    assert.equal(isYardGoodieBlocking(YARD_GOODIES.yarn_mouse), true);
+    assert.equal(isYardGoodieBlocking(YARD_GOODIES.sun_cushion), false);
+
+    const cloudActivities = getYardGoodieActivities(YARD_GOODIES.cloud_bed);
+    assert.ok(cloudActivities.some((activity) => activity.kind === "lie"));
+  });
+
+  it("marks known stationary visitor pose assets as map-still poses", () => {
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.mochi_bunny, "nap"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.mika_cat, "nap"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.basil_turtle, "rest"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.pebble_pup, "roll"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.pip_hamster, "peek"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.starlit_fox, "curl"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.willow_fox, "curl"), true);
+    assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.mika_cat, "pounce"), false);
+  });
+
+  it("keeps stationary visitor poses anchored while routing active movement around blockers", () => {
+    const start = 1_800_000_000_000;
+    const visit = {
+      visitId: "stationary-visit",
+      visitorId: "mochi_bunny",
+      pose: "nap",
+      entryEdge: "left",
+      motionSeed: "still",
+      arrivedAt: start,
+      leavesAt: start + 60 * 60 * 1000,
+    };
+    const activity = { id: "nap", pose: "nap", x: 0, y: -8, roam: 6, layer: "front", kind: "lie" };
+    const first = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 30 * 60 * 1000, {
+      visitorInfo: YARD_VISITORS.mochi_bunny,
+    });
+    const second = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 31 * 60 * 1000, {
+      visitorInfo: YARD_VISITORS.mochi_bunny,
+    });
+
+    assert.equal(first.x, second.x);
+    assert.equal(first.y, second.y);
+
+    const moving = getVisitorMotion({
+      ...visit,
+      pose: "pounce",
+      arrivedAt: start,
+      leavesAt: start + 60 * 60 * 1000,
+    }, { x: 50, y: 50 }, { id: "chase", pose: "pounce", x: 0, y: 0, roam: 5 }, start + 5 * 60 * 1000, {
+      visitorInfo: YARD_VISITORS.mika_cat,
+      obstacles: [{ x: 20, y: 40, width: 40, height: 20 }],
+    });
+
+    assert.equal(isPointInsideObstacle(moving, { x: 20, y: 40, width: 40, height: 20 }), false);
+  });
+
   it("buys, places, and picks up goodies through yard actions", async () => {
     const p = createDefaultPlayer("yard-place", "Yard");
     p.yard.currencies.treats = 500;
@@ -852,10 +935,14 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(p.yard.expansion.level, 2);
     assert.ok(p.yard.bowls.some((bowl) => bowl.id === "bowl-2"));
     assert.equal(p.yard.helper.unlocked, true);
+    const treatsAfterExpansion = p.yard.currencies.treats;
+    const shinyAfterExpansion = p.yard.currencies.shinyTreats;
 
     const remodel = await applyAction(p, "yard.setRemodel", { remodelId: "moon_garden", now: start });
     assert.equal(remodel.status, 200);
     assert.equal(p.yard.remodel, "moon_garden");
+    assert.equal(p.yard.currencies.treats, treatsAfterExpansion);
+    assert.equal(p.yard.currencies.shinyTreats, shinyAfterExpansion);
 
     const companion = await applyAction(p, "yard.configureCompanion", {
       name: "Mochi",
@@ -883,6 +970,23 @@ describe("Cozy Yard player contracts", () => {
     const favorite = await applyAction(p, "yard.favoritePhoto", { photoId: p.yard.album.photos[0].id });
     assert.equal(favorite.status, 200);
     assert.equal(p.yard.album.favoritePhotoId, p.yard.album.photos[0].id);
+  });
+
+  it("starts Yard with meadow and moon garden owned while Tea House remains the first shop background", async () => {
+    const start = 1_800_000_000_000;
+    const p = createDefaultPlayer("yard-backgrounds", "Yard", start);
+
+    assert.deepEqual(p.yard.ownedRemodels, ["meadow", "moon_garden"]);
+    assert.equal(YARD_REMODELS.tea_house.shopOrder, 1);
+    assert.equal(YARD_REMODELS.tea_house.starterOwned, false);
+
+    p.yard.currencies.treats = YARD_REMODELS.tea_house.cost.treats;
+    const teaHouse = await applyAction(p, "yard.setRemodel", { remodelId: "tea_house", now: start });
+
+    assert.equal(teaHouse.status, 200);
+    assert.equal(p.yard.remodel, "tea_house");
+    assert.ok(p.yard.ownedRemodels.includes("tea_house"));
+    assert.equal(p.yard.currencies.treats, 0);
   });
 
   it("ignores future payload.now through receipt-backed HTTP mutate flow", async () => {

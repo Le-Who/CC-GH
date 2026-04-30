@@ -108,7 +108,7 @@ async function cacheFilesExist(rootDir, written) {
 }
 
 async function walkOutputFiles(dir) {
-  let items = [];
+  let items;
   try {
     items = await fs.readdir(dir, { withFileTypes: true });
   } catch {

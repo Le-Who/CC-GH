@@ -1,6 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { Home, PackageOpen, Pause, Play, RotateCcw, Sparkles, Trash2, Zap } from "lucide-react";
-import { CROPS, ECONOMY, MERGE_CHAINS, MERGE_RECIPES, MERGE_WILD_GENERATOR_ID } from "../../../game-logic.js";
+import {
+  CROPS,
+  ECONOMY,
+  MERGE_CHAINS,
+  MERGE_RECIPES,
+  MERGE_WILD_GENERATOR_ID,
+  getMergeFreeTapClaim,
+} from "../../../game-logic.js";
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
@@ -62,9 +69,12 @@ export default function MergeGame() {
   const wildGenerator = merge.generatorState?.[MERGE_WILD_GENERATOR_ID] || {};
   const generatorCoolingDown = wildGenerator.cooldownEnd > Date.now();
   const tokenCount = inventory.rewards?.gachaTokens || 0;
-  const today = new Date().toISOString().slice(0, 10);
+  const now = snapshot?.serverTime || Date.now();
+  const today = new Date(now).toISOString().slice(0, 10);
   const canFreePull = new Date(merge.lastFreePull || 0).toISOString().slice(0, 10) !== today;
-  const canClaimFreeTaps = new Date(merge.lastFreeTaps || 0).toISOString().slice(0, 10) !== today;
+  const freeTapClaim = getMergeFreeTapClaim(merge, now);
+  const canClaimFreeTaps = freeTapClaim.claimable > 0;
+  const freeTapWaitMinutes = Math.max(1, Math.ceil((freeTapClaim.nextFreeTapAt - now) / 60000));
   const canTapGenerator = !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
   const activeCrop = activeFuel ? CROPS[activeFuel] : null;
   const generatorHint = (merge.freeTapCharges || 0) > 0
@@ -238,7 +248,9 @@ export default function MergeGame() {
                 onClick={() => performAction("merge.claimFreeTaps")}
                 title={t("merge.dailyTapsHint")}
               >
-                {canClaimFreeTaps ? t("merge.dailyTaps") : t("merge.tapsClaimed")}
+                {canClaimFreeTaps
+                  ? t("merge.dailyTaps", { count: freeTapClaim.claimable })
+                  : t("merge.nextFreeTap", { minutes: freeTapWaitMinutes })}
               </PanelButton>
               <PanelButton
                 icon={PackageOpen}

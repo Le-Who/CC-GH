@@ -648,7 +648,7 @@ export function buildFarmScene(app, initial = {}) {
     }
   }
 
-  function handleStageTap(event) {
+  function _handleStageTap(event) {
     if (suppressTap) return;
     const cell = cellFromPoint(layout, event.global.x, event.global.y);
     if (!cell) return;

@@ -94,11 +94,6 @@ export default function BloxGame() {
             { label: t("common.reward"), value: currentReward },
           ]}
           onPause={() => setPaused(true)}
-          onFinish={() => {
-            setPaused(true);
-            performAction("blox.end", { score: state.score });
-          }}
-          finishLabel={t("common.end")}
         />
       )}
       overlay={(

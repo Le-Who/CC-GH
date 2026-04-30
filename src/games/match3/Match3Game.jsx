@@ -206,7 +206,6 @@ export default function Match3Game() {
             { label: t("common.combo"), value: combo || "-" },
           ]}
           onPause={() => setPaused(true)}
-          onFinish={() => finish(score)}
         />
       )}
       overlay={(
@@ -243,6 +242,7 @@ export default function Match3Game() {
             <div className="mode-grid" data-mode-selector="match3">
               {MATCH3_MODES.map((item) => (
                 <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
+                  <span className="mode-choice-selected" aria-hidden="true" />
                   <strong>{t(item.labelKey)}</strong>
                   <small>{t(item.hintKey)}</small>
                 </button>

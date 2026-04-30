@@ -8,9 +8,9 @@ import { Router } from "express";
 import {
   ECONOMY,
   MERGE_CHAINS,
-  calcRegen,
   hydrateMergeBoard,
   getEmptyCells,
+  getMergeFreeTapClaim,
   validCoord,
   BOARD_ROWS,
   BOARD_COLS,
@@ -393,7 +393,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     });
     return sendRouteResult(res, result);
   });
-  /* ─── Claim 30 Free Daily Taps ─── */
+  /* ─── Claim paced free taps ─── */
   router.post("/api/merge/claim-free-taps", requireAuth, async (req, res) => {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
@@ -401,17 +401,15 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const result = await withPlayerLock(userId, async (p) => {
       const now = Date.now();
       ensureMergeState(p);
-      const lastClaimStr = p.merge.lastFreeTaps ? new Date(p.merge.lastFreeTaps).toISOString().slice(0, 10) : "";
-      const todayStr = new Date().toISOString().slice(0, 10);
-      
-      if (lastClaimStr === todayStr) {
-         return routeFail(400, { error: "already claimed today" });
+      const claim = getMergeFreeTapClaim(p.merge, now);
+      if (claim.claimable <= 0) {
+        return routeFail(400, { error: "no free taps ready", nextFreeTapAt: claim.nextFreeTapAt });
       }
 
-      p.merge.lastFreeTaps = now;
-      p.merge.freeTapCharges = (Number(p.merge.freeTapCharges) || 0) + 30;
+      p.merge.lastFreeTaps = claim.nextLastFreeTaps;
+      p.merge.freeTapCharges = claim.freeTapCharges;
 
-      return routeOk({ success: true, merge: p.merge });
+      return routeOk({ success: true, merge: p.merge, claimable: claim.claimable, nextFreeTapAt: claim.nextFreeTapAt });
     });
     return sendRouteResult(res, result);
   });

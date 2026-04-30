@@ -462,6 +462,28 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(host.includes("onLostPointerCapture"), "DOM pointer capture loss should release Telegram swipe suppression");
     });
 
+    it("keeps accidental end-run controls out of Blox and Gem Crush live HUDs", () => {
+      const bloxPath = path.join(__dirname, "..", "src", "games", "blox", "BloxGame.jsx");
+      const match3Path = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
+      const bloxGame = fs.readFileSync(bloxPath, "utf-8");
+      const match3Game = fs.readFileSync(match3Path, "utf-8");
+      const bloxHud = bloxGame.match(/<GamePlayHud[\s\S]*?\/>/)?.[0] || "";
+      const match3Hud = match3Game.match(/<GamePlayHud[\s\S]*?\/>/)?.[0] || "";
+
+      assert.ok(!bloxHud.includes("onFinish"), "Blox live HUD should only expose Pause, with End Run in the pause menu");
+      assert.ok(!match3Hud.includes("onFinish"), "Gem Crush live HUD should only expose Pause, with End Run in the pause menu");
+      assert.ok(bloxGame.includes("t(\"common.endRun\")"), "Blox pause menu should still expose End Run");
+      assert.ok(match3Game.includes("t(\"common.endRun\")"), "Gem Crush pause menu should still expose End Run");
+    });
+
+    it("styles mode selectors as explicit clickable controls instead of stat cards", () => {
+      const cssPath = path.join(__dirname, "..", "src", "index.css");
+      const css = fs.readFileSync(cssPath, "utf-8");
+
+      assert.ok(css.includes(".mode-grid button::before"), "Mode buttons should have a dedicated button affordance layer");
+      assert.ok(css.includes("mode-choice-selected"), "Active mode buttons should render an explicit selected marker");
+    });
+
     it("listens for Cozy Yard reward drops from the authoritative Merge action result", () => {
       const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
       const i18nPath = path.join(__dirname, "..", "src", "app", "i18n.jsx");
