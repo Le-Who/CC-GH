@@ -443,6 +443,10 @@ export default function CompanionYardGame() {
           }}
           onClick={(event) => {
             event.stopPropagation();
+            if (placementDraft) {
+              updatePlacementDraft(event);
+              return;
+            }
             audioManager.play("tap");
             setSelectedVisitId(item.visit.visitId);
           }}
@@ -474,6 +478,10 @@ export default function CompanionYardGame() {
             disabled={!!slotPending}
             onClick={(event) => {
               event.stopPropagation();
+              if (placementDraft) {
+                updatePlacementDraft(event);
+                return;
+              }
               if (slotVisitors.length) {
                 setSelectedVisitId(slotVisitors[0].visitId);
               } else {

@@ -59,6 +59,134 @@ function buildFreePlacementSnapshot(now = Date.now()) {
   return buildSnapshot(player);
 }
 
+function buildOccupiedPlacementSnapshot(now = Date.now()) {
+  const player = createDefaultPlayer("yard-occupied-placement-user", "Yard Occupied Placement", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.goodieInventory = {
+    yarn_mouse: 1,
+  };
+  player.yard.placedGoodies = [{
+    slotId: "occupied-sun-cushion",
+    goodieId: "sun_cushion",
+    condition: "new",
+    uses: 0,
+    x: 68,
+    y: 58,
+    placedAt: now - 60_000,
+  }];
+  player.yard.activeVisitors = [];
+  return buildSnapshot(player);
+}
+
+function buildHudAuditSnapshot(now = Date.now()) {
+  const player = createDefaultPlayer("yard-hud-user", "Yard HUD", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.currencies = { treats: 704, shinyTreats: 4 };
+  player.yard.foodInventory = { kibble: 3, berry_plate: 2, bonito_bowl: 1 };
+  player.yard.goodieInventory = {
+    yarn_mouse: 2,
+    sun_cushion: 1,
+    leaf_pot: 1,
+  };
+  player.yard.placedGoodies = [
+    {
+      slotId: "slot-yarn",
+      goodieId: "yarn_mouse",
+      condition: "new",
+      uses: 0,
+      x: 31,
+      y: 58,
+      placedAt: now - 120000,
+    },
+    {
+      slotId: "slot-cottage",
+      goodieId: "cardboard_cottage",
+      condition: "worn",
+      uses: 12,
+      x: 49,
+      y: 43,
+      placedAt: now - 240000,
+    },
+  ];
+  player.yard.activeVisitors = [{
+    visitId: "visit-mika",
+    visitorId: "mika_cat",
+    goodieId: "cardboard_cottage",
+    slotId: "slot-cottage",
+    bowlId: "bowl-1",
+    pose: "peek",
+    activityId: "window-peek",
+    activityLayer: "back",
+    entryEdge: "left",
+    facing: "right",
+    motionSeed: "mika-motion",
+    arrivedAt: now - 8 * 60_000,
+    leavesAt: now + 40 * 60_000,
+  }];
+  player.yard.pendingGifts = [{
+    id: "gift-mika",
+    visitorId: "mika_cat",
+    treats: 42,
+    shinyTreats: 1,
+    createdAt: now - 60000,
+  }];
+  player.yard.petbook = {
+    mika_cat: { visits: 3, lastVisitedAt: now - 60000 },
+  };
+  player.yard.album = {
+    favoritePhotoId: null,
+    photos: [{
+      id: "photo-mika",
+      visitorId: "mika_cat",
+      pose: "peek",
+      caption: "Mika by the window",
+      takenAt: now - 50000,
+    }],
+  };
+  player.yard.expansion = { level: 1 };
+  player.yard.ownedRemodels = ["meadow", "moon_garden"];
+  player.yard.helper = { unlocked: true, autoRefill: false, preferredFoodId: "kibble" };
+  player.yard.dailyLetter = { lastClaimedDate: "2026-04-30", stamps: 4 };
+  return buildSnapshot(player);
+}
+
+async function contrastRatioFor(page, textSelector, surfaceSelector) {
+  return page.locator(textSelector).first().evaluate((el, selector) => {
+    const parseRgb = (value) => {
+      const match = String(value).match(/rgba?\(([^)]+)\)/);
+      if (!match) return [0, 0, 0, 1];
+      const parts = match[1].split(",").map((part) => Number(part.trim()));
+      return [parts[0] || 0, parts[1] || 0, parts[2] || 0, parts[3] == null ? 1 : parts[3]];
+    };
+    const blend = (fg, bg) => {
+      const alpha = fg[3] + bg[3] * (1 - fg[3]);
+      return [
+        (fg[0] * fg[3] + bg[0] * bg[3] * (1 - fg[3])) / alpha,
+        (fg[1] * fg[3] + bg[1] * bg[3] * (1 - fg[3])) / alpha,
+        (fg[2] * fg[3] + bg[2] * bg[3] * (1 - fg[3])) / alpha,
+        alpha,
+      ];
+    };
+    const luminance = (rgb) => {
+      const channels = rgb.slice(0, 3).map((value) => {
+        const c = value / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    const ratio = (fg, bg) => {
+      const a = luminance(fg);
+      const b = luminance(bg);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    };
+    const surface = selector ? el.closest(selector) : el.parentElement;
+    const base = document.documentElement.dataset.uiTheme === "dark" ? [0, 0, 0, 1] : [255, 255, 255, 1];
+    const bg = blend(parseRgb(getComputedStyle(surface || el).backgroundColor), base);
+    const fg = blend(parseRgb(getComputedStyle(el).color), bg);
+    return ratio(fg, bg);
+  }, surfaceSelector);
+}
+
 test.describe("Cozy Yard movement and assets", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -163,5 +291,146 @@ test.describe("Cozy Yard movement and assets", () => {
     expect(placement.payload.x).toBeLessThan(74);
     expect(placement.payload.y).toBeGreaterThan(52);
     expect(placement.payload.y).toBeLessThan(64);
+  });
+
+  test("keeps placement mode when tapping over an existing goodie", async ({ page }) => {
+    const snapshot = buildOccupiedPlacementSnapshot();
+    const mutateBodies = [];
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      mutateBodies.push(JSON.parse(route.request().postData() || "{}"));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: /Yard/ }).click();
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    const goodiesDialog = page.getByRole("dialog", { name: "Goodies" });
+    await goodiesDialog.getByRole("button", { name: "Place", exact: true }).first().click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+
+    const stage = page.locator(".companion-yard-stage");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box.x + box.width * 0.68, box.y + box.height * 0.58);
+    await page.getByRole("button", { name: "Confirm placement" }).click();
+
+    await expect.poll(() => mutateBodies.some((body) => body.action === "yard.placeGoodie")).toBe(true);
+    expect(mutateBodies.some((body) => body.action === "yard.moveGoodie")).toBe(false);
+    const placement = mutateBodies.find((body) => body.action === "yard.placeGoodie");
+    expect(placement.payload.goodieId).toBe("yarn_mouse");
+    expect(placement.payload.x).toBeGreaterThan(66);
+    expect(placement.payload.x).toBeLessThan(70);
+    expect(placement.payload.y).toBeGreaterThan(56);
+    expect(placement.payload.y).toBeLessThan(60);
+  });
+
+  test("keeps mobile standalone HUD and screens readable in dark mode", async ({ page }) => {
+    const snapshot = buildHudAuditSnapshot();
+    const screens = [
+      ["Food", "Food bowls"],
+      ["Goodies", "Goodies"],
+      ["Shop", "Shop"],
+      ["Petbook", "Petbook"],
+      ["Album", "Photo album"],
+      ["Gifts", "Gift collection"],
+      ["Repair goodies", "Repair goodies"],
+      ["Remodel yard", "Remodel yard"],
+      ["Expansion", "Expansion"],
+      ["Daily letter", "Daily letter"],
+      ["Companion helper", "Companion helper"],
+      ["Settings", "Settings"],
+    ];
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem("garden_shelf_language", "en");
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+    });
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: /Yard/ }).click();
+    await expect(page.locator(".companion-yard-stage")).toBeVisible();
+
+    const hudMetrics = await page.evaluate(() => {
+      const visible = (el) => {
+        const rect = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+      };
+      const minSide = (selector) => {
+        const values = [...document.querySelectorAll(selector)]
+          .filter(visible)
+          .map((el) => {
+            const rect = el.getBoundingClientRect();
+            return Math.min(rect.width, rect.height);
+          });
+        return values.length ? Math.min(...values) : 0;
+      };
+      return {
+        viewportWidth: window.innerWidth,
+        bottomIconMin: minSide(".yard-bottom-dock .yard-hud-icon"),
+        compactIconMin: minSide(".yard-corner-actions .yard-hud-icon, .yard-side-tools .yard-hud-icon"),
+        compactButtonMin: minSide(".yard-corner-actions .yard-icon-button, .yard-side-tools .yard-icon-button"),
+        goodieMin: minSide(".yard-placed-goodie"),
+      };
+    });
+    expect(hudMetrics.bottomIconMin).toBeGreaterThanOrEqual(38);
+    expect(hudMetrics.compactIconMin).toBeGreaterThanOrEqual(38);
+    expect(hudMetrics.compactButtonMin).toBeGreaterThanOrEqual(48);
+    expect(hudMetrics.goodieMin).toBeGreaterThanOrEqual(hudMetrics.viewportWidth <= 780 ? 88 : 82);
+    expect(await contrastRatioFor(page, ".yard-currency-chip span", ".yard-currency-chip")).toBeGreaterThanOrEqual(4.5);
+
+    for (const [buttonName, dialogName] of screens) {
+      const close = page.getByRole("button", { name: "Close" });
+      if (await close.count()) await close.first().click();
+
+      await page.getByRole("button", { name: buttonName, exact: true }).click();
+      await expect(page.getByRole("dialog", { name: dialogName })).toBeVisible();
+
+      const layout = await page.evaluate(() => {
+        const screen = document.querySelector(".yard-game-screen")?.getBoundingClientRect();
+        const dock = document.querySelector(".yard-bottom-dock")?.getBoundingClientRect();
+        const smallButtons = [...document.querySelectorAll(".yard-game-screen button")]
+          .filter((button) => {
+            const rect = button.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44);
+          })
+          .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
+        return {
+          screenBottom: screen?.bottom || 0,
+          dockTop: dock?.top || window.innerHeight,
+          smallButtons,
+        };
+      });
+      expect(layout.screenBottom).toBeLessThanOrEqual(layout.dockTop);
+      expect(layout.smallButtons).toEqual([]);
+    }
+
+    await page.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    await page.getByRole("dialog", { name: "Goodies" }).getByRole("button", { name: "Place", exact: true }).first().click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+    expect(await contrastRatioFor(page, ".yard-placement-dock span", ".yard-placement-dock")).toBeGreaterThanOrEqual(4.5);
   });
 });
