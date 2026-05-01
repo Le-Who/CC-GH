@@ -32,6 +32,8 @@ import {
 import { withPlayerLock } from "../playerManager.js";
 import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
+const MERGE_EXCHANGE_CLAIM_RETENTION_DAYS = 7;
+
 export default function mergeRoutes(requireAuth, resolveUser) {
   const router = Router();
 
@@ -100,7 +102,11 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       }
       if (Object.keys(entries).length) claims[date] = entries;
     }
-    return claims;
+    return Object.fromEntries(
+      Object.entries(claims)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .slice(-MERGE_EXCHANGE_CLAIM_RETENTION_DAYS),
+    );
   }
 
   function findMergeExchangeOffer(offerId) {
@@ -477,13 +483,13 @@ export default function mergeRoutes(requireAuth, resolveUser) {
 
       p.merge.alchemyEssence = currentEssence - offer.cost;
       const reward = grantMergeExchangeReward(p, offer.reward);
-      p.merge.exchangeClaims = {
+      p.merge.exchangeClaims = normalizeMergeExchangeClaims({
         ...p.merge.exchangeClaims,
         [today]: {
           ...claimsToday,
           [offer.id]: currentClaims + 1,
         },
-      };
+      });
       return routeOk({
         success: true,
         merge: p.merge,

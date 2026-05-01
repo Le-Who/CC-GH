@@ -14,6 +14,20 @@ export interface PlantData {
   lastTapped?: number; // timestamp for mature reward cooldown
 }
 
+export interface GardenDailyQuestState {
+  date: string;
+  claimed: string[];
+  stats: {
+    taps: number;
+    waters: number;
+    plantsBought: number;
+    upgrades: number;
+    goldEarned: number;
+    xpEarned: number;
+    levelUps: number;
+  };
+}
+
 export interface GameState {
   economyVersion: number;
   name: string;
@@ -25,6 +39,7 @@ export interface GameState {
   levelReady: boolean;
   shelvesUnlocked: number;
   claimedQuests: string[];
+  dailyQuests: GardenDailyQuestState;
   plants: PlantData[];
   passiveGoldBuffer: number;
   passiveXpBuffer: number;

@@ -1,3 +1,5 @@
+import { createGardenDailyQuestState } from "./garden-quests.js";
+
 export const GARDEN_ECONOMY_VERSION = 2;
 export const GARDEN_STARTER_GOLD = 120;
 export const GARDEN_OFFLINE_CAP_MS = 6 * 60 * 60 * 1000;
@@ -70,6 +72,7 @@ export function createGardenEconomyState(now = Date.now(), options = {}) {
     levelReady: false,
     shelvesUnlocked: 1,
     claimedQuests: [],
+    dailyQuests: createGardenDailyQuestState(now),
     plants: options.starter ? [createGardenStarterPlant(now)] : [],
     passiveGoldBuffer: 0,
     passiveXpBuffer: 0,

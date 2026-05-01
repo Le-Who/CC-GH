@@ -17,7 +17,8 @@ import { resolveGardenAssetPaths } from './lib/sprites';
 import type { GardenAssetPaths } from './lib/sprites';
 import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
 import { formatGardenGoldAmount } from './constants';
-import type { GameState } from './types';
+import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
+import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
 import { ArrowUpCircle, CheckCircle2, ClipboardList, Coins, Gift, X } from 'lucide-react';
 import './garden-shelf.css';
 
@@ -201,74 +202,21 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
   );
 }
 
-interface GardenQuestDefinition {
-  id: string;
-  reward: number;
-  titleKey: string;
-  bodyKey: string;
-  getProgress: (state: GameState) => { current: number; target: number };
-}
-
-const GARDEN_QUESTS: GardenQuestDefinition[] = [
-  {
-    id: 'first_plant',
-    reward: 12,
-    titleKey: 'quest.firstPlant.title',
-    bodyKey: 'quest.firstPlant.body',
-    getProgress: (state) => ({ current: Math.min(state.plants.length, 1), target: 1 }),
-  },
-  {
-    id: 'mature_plant',
-    reward: 25,
-    titleKey: 'quest.maturePlant.title',
-    bodyKey: 'quest.maturePlant.body',
-    getProgress: (state) => ({ current: state.plants.some((plant) => plant.phase === 3) ? 1 : 0, target: 1 }),
-  },
-  {
-    id: 'level_2',
-    reward: 40,
-    titleKey: 'quest.level2.title',
-    bodyKey: 'quest.level2.body',
-    getProgress: (state) => ({ current: Math.min(state.level, 2), target: 2 }),
-  },
-  {
-    id: 'filled_shelf',
-    reward: 60,
-    titleKey: 'quest.filledShelf.title',
-    bodyKey: 'quest.filledShelf.body',
-    getProgress: (state) => ({
-      current: Math.min(state.plants.filter((plant) => plant.shelfIndex >= 0 && plant.spotIndex >= 0).length, 3),
-      target: 3,
-    }),
-  },
-  {
-    id: 'second_shelf',
-    reward: 90,
-    titleKey: 'quest.secondShelf.title',
-    bodyKey: 'quest.secondShelf.body',
-    getProgress: (state) => ({ current: Math.min(state.shelvesUnlocked, 2), target: 2 }),
-  },
-];
-
 function GardenQuestButton() {
   const { state, claimQuest } = useGame();
   const { t } = useGardenI18n();
   const [open, setOpen] = useState(false);
-  const quests = React.useMemo(() => GARDEN_QUESTS.map((quest) => {
-    const progress = quest.getProgress(state);
-    const current = Math.max(0, Math.min(progress.target, Math.floor(progress.current)));
-    const target = Math.max(1, Math.floor(progress.target));
-    const claimed = state.claimedQuests.includes(quest.id);
-    return {
-      ...quest,
-      current,
-      target,
-      complete: current >= target,
-      claimed,
-      percent: Math.max(6, Math.min(100, (current / target) * 100)),
-    };
-  }), [state]);
-  const readyCount = quests.filter((quest) => quest.complete && !quest.claimed).length;
+  const sections = React.useMemo(() => buildGardenQuestSections(state), [state]);
+  const readyCount = sections
+    .flatMap((section) => section.quests)
+    .filter((quest) => quest.unlocked && quest.complete && !quest.claimed)
+    .length;
+
+  React.useEffect(() => {
+    const openQuests = () => setOpen(true);
+    window.addEventListener(GARDEN_OPEN_QUESTS_EVENT, openQuests);
+    return () => window.removeEventListener(GARDEN_OPEN_QUESTS_EVENT, openQuests);
+  }, []);
 
   return (
     <>
@@ -320,44 +268,58 @@ function GardenQuestButton() {
                 </button>
               </div>
 
-              <div className="space-y-3">
-                {quests.map((quest) => {
-                  const canClaim = quest.complete && !quest.claimed;
-                  return (
-                    <article key={quest.id} className="garden-quest-card">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3>{t(quest.titleKey)}</h3>
-                          <p>{t(quest.bodyKey)}</p>
-                        </div>
-                        <div className="garden-quest-reward">
-                          <Coins size={14} />
-                          {formatGardenGoldAmount(quest.reward)}
-                        </div>
-                      </div>
-                      <div className="garden-quest-progress" aria-label={t('quest.progress', { current: quest.current, target: quest.target })}>
-                        <span style={{ width: `${quest.percent}%` }} />
-                      </div>
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <span className="font-mono text-[11px] text-[color:var(--muted)]">
-                          {t('quest.progress', { current: quest.current, target: quest.target })}
-                        </span>
-                        <button
-                          type="button"
-                          className={cn(
-                            "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
-                            canClaim ? "secondary garden-quest-claimable" : "disabled",
-                          )}
-                          disabled={!canClaim}
-                          onClick={() => claimQuest(quest.id, quest.reward)}
-                        >
-                          {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
-                          {quest.claimed ? t('quest.claimed') : t('quest.claim')}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className="space-y-4">
+                {sections.map((section) => (
+                  <section key={section.id} className={cn("garden-quest-section", section.locked && "locked")}>
+                    <div className="garden-quest-section-header">
+                      <strong>{t(section.titleKey, section.titleVars)}</strong>
+                      <span>{t(section.subtitleKey, section.subtitleVars)}</span>
+                    </div>
+                    <div className="space-y-3">
+                      {section.quests.map((quest) => {
+                        const canClaim = quest.unlocked && quest.complete && !quest.claimed;
+                        return (
+                          <article key={quest.id} className={cn("garden-quest-card", quest.kind === "daily" && "daily", quest.locked && "locked")}>
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <h3>{t(quest.titleKey, quest.titleVars)}</h3>
+                                <p>{t(quest.bodyKey, quest.bodyVars)}</p>
+                              </div>
+                              <div className="garden-quest-reward">
+                                <Coins size={14} />
+                                {formatGardenGoldAmount(quest.reward)}
+                              </div>
+                            </div>
+                            <div className="garden-quest-progress" aria-label={t('quest.progress', { current: quest.current, target: quest.target })}>
+                              {quest.endowed > 0 && (
+                                <i style={{ width: `${Math.min(100, (quest.endowed / quest.target) * 100)}%` }} aria-hidden="true" />
+                              )}
+                              <span style={{ width: `${quest.percent}%` }} />
+                            </div>
+                            <div className="mt-3 flex items-center justify-between gap-3">
+                              <span className="font-mono text-[11px] text-[color:var(--muted)]">
+                                {t('quest.progress', { current: quest.current, target: quest.target })}
+                                {quest.endowed > 0 && <em>{t('quest.endowed', { count: quest.endowed })}</em>}
+                              </span>
+                              <button
+                                type="button"
+                                className={cn(
+                                  "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
+                                  canClaim ? "secondary garden-quest-claimable" : "disabled",
+                                )}
+                                disabled={!canClaim}
+                                onClick={() => claimQuest(quest.id, quest.reward)}
+                              >
+                                {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
+                                {quest.claimed ? t('quest.claimed') : quest.locked ? t('quest.locked') : t('quest.claim')}
+                              </button>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
             </motion.div>
           </>
@@ -365,6 +327,18 @@ function GardenQuestButton() {
       </AnimatePresence>
     </>
   );
+}
+
+function GardenLevelUpBridge() {
+  const { levelUp } = useGame();
+
+  React.useEffect(() => {
+    const handleLevelUp = () => levelUp();
+    window.addEventListener(GARDEN_LEVEL_UP_EVENT, handleLevelUp);
+    return () => window.removeEventListener(GARDEN_LEVEL_UP_EVENT, handleLevelUp);
+  }, [levelUp]);
+
+  return null;
 }
 
 function LevelUpRewardModal() {
@@ -565,6 +539,7 @@ export default function App() {
       onHudChange={setGardenHud}
     >
       <GardenI18nProvider>
+        <GardenLevelUpBridge />
         <GameContent />
         <OfflineWelcome />
         <LevelUpRewardModal />

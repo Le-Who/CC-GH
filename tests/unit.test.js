@@ -37,9 +37,13 @@ import {
   GARDEN_OFFLINE_XP_RATIO,
   GARDEN_STARTER_GOLD,
   GARDEN_TAP_REWARD_COOLDOWN_MS,
+  buildGardenDailyQuests,
   createGardenEconomyState,
+  getGardenReadyQuestCount,
   getGardenLevelReward,
   getGardenXpRequired,
+  normalizeGardenDailyQuestState,
+  recordGardenDailyProgress,
   clampYardPointToPlayzone,
   MERGE_CHAINS,
   MERGE_EXCHANGE_OFFERS,
@@ -234,6 +238,55 @@ describe("Garden Shelf shared gold actions", () => {
     assert.deepEqual(buildSnapshot(p).garden.claimedQuests, ["first_plant"]);
   });
 
+  it("resets Garden daily quests by day and builds three claim-gated portions", () => {
+    const dayStart = Date.UTC(2026, 4, 1, 10);
+    const state = createGardenEconomyState(dayStart, { starter: true });
+    state.dailyQuests = recordGardenDailyProgress(state.dailyQuests, {
+      taps: 2,
+      waters: 1,
+      goldEarned: 12,
+      xpEarned: 6,
+    }, dayStart);
+
+    const quests = buildGardenDailyQuests(state, dayStart);
+    assert.equal(quests.length, 9);
+    assert.equal(quests.filter((quest) => quest.groupIndex === 0).every((quest) => quest.unlocked), true);
+    assert.equal(quests.filter((quest) => quest.groupIndex === 1).every((quest) => quest.locked), true);
+    assert.ok(quests.some((quest) => quest.endowed > 0 && quest.current >= quest.endowed));
+
+    const firstGroupClaimed = quests
+      .filter((quest) => quest.groupIndex === 0)
+      .map((quest) => quest.id);
+    state.dailyQuests.claimed = firstGroupClaimed;
+    const nextPortion = buildGardenDailyQuests(state, dayStart);
+    assert.equal(nextPortion.filter((quest) => quest.groupIndex === 1).every((quest) => quest.unlocked), true);
+
+    const nextDay = normalizeGardenDailyQuestState(state.dailyQuests, dayStart + 26 * 60 * 60 * 1000);
+    assert.deepEqual(nextDay.claimed, []);
+    assert.equal(nextDay.stats.taps, 0);
+  });
+
+  it("counts ready Garden daily quests without mixing them into story claims", () => {
+    const now = Date.UTC(2026, 4, 1, 12);
+    const state = createGardenEconomyState(now, { starter: true });
+    state.dailyQuests = recordGardenDailyProgress(state.dailyQuests, {
+      taps: 20,
+      waters: 20,
+      plantsBought: 4,
+      upgrades: 2,
+      goldEarned: 100,
+      xpEarned: 100,
+    }, now);
+
+    const ready = getGardenReadyQuestCount(state, now);
+    assert.ok(ready >= 3);
+    const daily = buildGardenDailyQuests(state, now).find((quest) => quest.unlocked && quest.complete);
+    assert.ok(daily);
+    state.dailyQuests.claimed = [daily.id];
+    assert.equal(state.claimedQuests.includes(daily.id), false);
+    assert.equal(getGardenReadyQuestCount(state, now), ready - 1);
+  });
+
   it("keeps Garden Shelf display denomination separate from stored economy units", () => {
     assert.equal(GARDEN_GOLD_DISPLAY_MULTIPLIER, 100);
     assert.equal(GARDEN_TAP_REWARD_COOLDOWN_MS, 750);
@@ -348,6 +401,26 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(p.garden.levelReady, false);
   });
 
+  it("does not let stale Garden sync reopen an already claimed level-up reward", async () => {
+    const p = createDefaultPlayer("garden-level-stale-sync", "Garden");
+    p.garden = createGardenEconomyState(1_800_000_000_000);
+    p.garden.xp = getGardenXpRequired(1);
+    p.garden.levelReady = true;
+    const staleReadyState = { ...p.garden };
+    const startGold = p.resources.gold;
+
+    const first = await applyAction(p, "garden.levelUp");
+    const staleSync = await applyAction(p, "garden.sync", { state: staleReadyState });
+    const second = await applyAction(p, "garden.levelUp");
+
+    assert.equal(first.status, 200);
+    assert.equal(staleSync.status, 200);
+    assert.equal(p.garden.level, 2);
+    assert.equal(p.garden.levelReady, false);
+    assert.equal(second.status, 400);
+    assert.equal(p.resources.gold, startGold + getGardenLevelReward(1));
+  });
+
   it("rejects Garden Level Up before the XP bar is ready", async () => {
     const p = createDefaultPlayer("garden-level-not-ready", "Garden");
     p.garden = createGardenEconomyState(1_800_000_000_000);
@@ -442,6 +515,32 @@ describe("Gacha Merge shared generator and recipes", () => {
     assert.equal(result.body.offerId, offer.id);
     assert.equal(result.body.snapshot.merge.alchemyEssence, 0);
     assert.equal(result.body.snapshot.yard.currencies.treats, p.yard.currencies.treats);
+  });
+
+  it("prunes old Merge exchange claim buckets while preserving today's limit", async () => {
+    const p = createDefaultPlayer("merge-exchange-prune", "Merge");
+    const offer = MERGE_EXCHANGE_OFFERS.find((candidate) => candidate.id === "yard_treats_small");
+    assert.ok(offer);
+    p.merge.alchemyEssence = offer.cost * 2;
+    p.merge.exchangeClaims = {
+      "2026-04-20": { [offer.id]: 1 },
+      "2026-04-21": { [offer.id]: 1 },
+      "2026-04-22": { [offer.id]: 1 },
+      "2026-04-23": { [offer.id]: 1 },
+      "2026-04-24": { [offer.id]: 1 },
+      "2026-04-25": { [offer.id]: 1 },
+      "2026-04-26": { [offer.id]: 1 },
+      "2026-04-27": { [offer.id]: 1 },
+      "2026-04-28": { [offer.id]: 1 },
+    };
+
+    const result = await applyAction(p, "merge.exchange", { offerId: offer.id }, { now: Date.UTC(2026, 4, 1, 12) });
+    const dates = Object.keys(p.merge.exchangeClaims);
+
+    assert.equal(result.status, 200);
+    assert.equal(dates.length, 7);
+    assert.equal(dates.includes("2026-04-20"), false);
+    assert.equal(p.merge.exchangeClaims["2026-05-01"][offer.id], 1);
   });
 
   it("starts with known starter recipes and keeps advanced recipes locked until discovered", async () => {
@@ -835,6 +934,9 @@ describe("Cozy Yard player contracts", () => {
       leavesAt: start + 60 * 60 * 1000,
     };
     const activity = { id: "nap", pose: "nap", x: 0, y: -8, roam: 6, layer: "front", kind: "lie" };
+    const justArrived = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 60_000, {
+      visitorInfo: YARD_VISITORS.mochi_bunny,
+    });
     const first = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 30 * 60 * 1000, {
       visitorInfo: YARD_VISITORS.mochi_bunny,
     });
@@ -842,6 +944,10 @@ describe("Cozy Yard player contracts", () => {
       visitorInfo: YARD_VISITORS.mochi_bunny,
     });
 
+    assert.equal(justArrived.phase, "active");
+    assert.equal(justArrived.pinned, true);
+    assert.equal(justArrived.x, 50);
+    assert.equal(justArrived.y, 62);
     assert.equal(first.x, second.x);
     assert.equal(first.y, second.y);
 

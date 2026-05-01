@@ -279,7 +279,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(resetSnapshot.resources.gold).toBe(GARDEN_STARTER_GOLD);
     expect(resetSnapshot.garden.economyVersion).toBe(GARDEN_ECONOMY_VERSION);
     expect(resetSnapshot.garden.plants).toHaveLength(1);
-    await expect(page.locator(".stats-row")).toContainText("1/3");
+    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" })).toBeVisible();
     await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(1)}`);
 
     await mutate(page, "garden.sync", {
@@ -318,8 +318,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
       if (!response.url().includes("/api/player/mutate")) return false;
       return parsePlayerActionRequest(response.request())?.action === "garden.levelUp";
     }, { timeout: 10000 });
-    await levelButton.click();
-    await levelButton.click({ force: true });
+    await levelButton.dblclick({ force: true });
     const levelBody = await (await levelResponsePromise).json();
     expect(levelBody.reward).toBe(getGardenLevelReward(1));
     expect(levelBody.garden.level).toBe(2);
