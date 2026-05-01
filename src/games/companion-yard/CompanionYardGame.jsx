@@ -7,6 +7,7 @@ import {
   clampYardPointToPlayzone,
   getYardGoodieActivities,
   getUnlockedYardSlots,
+  isYardVisitUsingGoodie,
 } from "../../../game-logic.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { audioManager } from "../../services/audioManager.js";
@@ -272,12 +273,13 @@ export default function CompanionYardGame() {
   const visitorsBySlot = useMemo(() => {
     const map = new Map();
     for (const visit of yard.activeVisitors || []) {
+      if (!isYardVisitUsingGoodie(visit, renderNow)) continue;
       const visits = map.get(visit.slotId) || [];
       visits.push(visit);
       map.set(visit.slotId, visits);
     }
     return map;
-  }, [yard.activeVisitors]);
+  }, [yard.activeVisitors, renderNow]);
 
   const activeVisitorItems = useMemo(() => (
     (yard.activeVisitors || [])
@@ -442,13 +444,17 @@ export default function CompanionYardGame() {
         <button
           type="button"
           key={item.visit.visitId}
-          className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${item.motion.stationary ? " yard-visitor-stationary" : ""}${item.motion.pinned ? " yard-visitor-pinned" : ""}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
+          className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${item.activity.kind === "lie" ? " yard-visitor-lie" : ""}${item.motion.stationary ? " yard-visitor-stationary" : ""}${item.motion.pinned ? " yard-visitor-pinned" : ""}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
           style={{
             left: `${item.motion.x}%`,
             top: `${item.motion.y}%`,
             zIndex: item.zIndex,
             "--visitor-facing": item.visit.facing === "left" ? -1 : 1,
           }}
+          data-motion-x={item.motion.x.toFixed(2)}
+          data-motion-y={item.motion.y.toFixed(2)}
+          data-motion-phase={item.motion.phase}
+          data-motion-stationary={item.motion.stationary ? "true" : "false"}
           onClick={(event) => {
             event.stopPropagation();
             if (placementDraft) {

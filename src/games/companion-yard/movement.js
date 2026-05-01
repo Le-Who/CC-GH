@@ -159,21 +159,34 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
   const progress = clamp((renderNow - arrivedAt) / (leavesAt - arrivedAt), 0, 1);
   const playzoneId = options.playzoneId || "meadow";
   const playzoneMargin = Math.max(0, Number(options.playzoneMargin) || 0);
-  const rawAnchor = {
-    x: clamp((anchor?.x || 50) + (activity?.x || 0), 0, 100),
-    y: clamp((anchor?.y || 70) + (activity?.y || 0), 0, 100),
-  };
-  const anchorPoint = clampYardPointToPlayzone(playzoneId, rawAnchor, { margin: playzoneMargin });
-  const anchorX = anchorPoint.x;
-  const anchorY = anchorPoint.y;
   const constrain = (point) => clampYardPointToPlayzone(playzoneId, point, { margin: playzoneMargin });
-  const edgePoint = constrain(getEntryPoint(visit.entryEdge, anchorX, anchorY));
-  const exitPoint = constrain(getEntryPoint(visit.exitEdge || visit.entryEdge, anchorX, anchorY));
-  const seed = seedNumber(visit.motionSeed || visit.visitId);
   const stationary = !!activity?.stationary ||
     activity?.kind === "lie" ||
     activity?.kind === "stationary" ||
     isYardVisitorPoseStationary(options.visitorInfo, visit.pose || activity?.pose);
+  const activityX = Number(activity?.x) || 0;
+  const activityY = activity?.kind === "lie" ? 0 : Number(activity?.y) || 0;
+  const basePoint = constrain({
+    x: clamp(anchor?.x || 50, 0, 100),
+    y: clamp(anchor?.y || 70, 0, 100),
+  });
+  const offsetPoint = {
+    x: clamp(basePoint.x + activityX, 3, 97),
+    y: clamp(basePoint.y + activityY, 5, 98),
+  };
+  const rawAnchor = {
+    x: clamp((anchor?.x || 50) + activityX, 0, 100),
+    y: clamp((anchor?.y || 70) + activityY, 0, 100),
+  };
+  const anchorPoint = stationary ? offsetPoint : constrain(rawAnchor);
+  const routeAnchor = stationary ? basePoint : anchorPoint;
+  const anchorX = anchorPoint.x;
+  const anchorY = anchorPoint.y;
+  const routeX = routeAnchor.x;
+  const routeY = routeAnchor.y;
+  const edgePoint = constrain(getEntryPoint(visit.entryEdge, routeX, routeY));
+  const exitPoint = constrain(getEntryPoint(visit.exitEdge || visit.entryEdge, routeX, routeY));
+  const seed = seedNumber(visit.motionSeed || visit.visitId);
   const roam = stationary ? 0 : Number(activity?.roam || 0);
   const obstacles = Array.isArray(options.obstacles) ? options.obstacles : [];
   const pinnedToAnchor = !!options.pinToAnchor || (stationary && options.pinStationary !== false);
@@ -192,7 +205,7 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
   if (progress < 0.18) {
     const local = progress / 0.18;
     return {
-      ...constrain(routePoint(edgePoint, { x: anchorX, y: anchorY }, local, obstacles)),
+      ...constrain(routePoint(edgePoint, { x: routeX, y: routeY }, local, obstacles)),
       pose: "walk",
       phase: "entering",
       stationary: false,
@@ -202,7 +215,7 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
   if (progress > 0.84) {
     const local = (progress - 0.84) / 0.16;
     return {
-      ...constrain(routePoint({ x: anchorX, y: anchorY }, exitPoint, local, obstacles)),
+      ...constrain(routePoint({ x: routeX, y: routeY }, exitPoint, local, obstacles)),
       pose: "walk",
       phase: "leaving",
       stationary: false,
@@ -212,10 +225,12 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
   const rhythm = renderNow / (2300 + (seed % 900)) + seed;
   const roamX = Math.sin(rhythm) * roam;
   const roamY = Math.cos(rhythm * 0.7) * Math.min(3, roam);
-  const activePoint = constrain(avoidObstacleRects({
-    x: clamp(anchorX + roamX, 3, 97),
-    y: clamp(anchorY + roamY, 5, 98),
-  }, obstacles));
+  const activePoint = stationary
+    ? { x: anchorX, y: anchorY }
+    : constrain(avoidObstacleRects({
+        x: clamp(anchorX + roamX, 3, 97),
+        y: clamp(anchorY + roamY, 5, 98),
+      }, obstacles));
   return {
     x: activePoint.x,
     y: activePoint.y,

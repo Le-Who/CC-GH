@@ -19,7 +19,7 @@ import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
 import { formatGardenGoldAmount } from './constants';
 import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
-import { ArrowUpCircle, CheckCircle2, ClipboardList, Coins, Gift, X } from 'lucide-react';
+import { ArrowUpCircle, CheckCircle2, Coins, Gift, X } from 'lucide-react';
 import './garden-shelf.css';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
@@ -202,35 +202,50 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
   );
 }
 
-function GardenQuestButton() {
+function gardenQuestPriority(quest) {
+  const locked = !!quest.locked || !quest.unlocked;
+  if (!quest.claimed && quest.kind === "daily" && !locked) return 0;
+  if (!quest.claimed && quest.kind === "story") return 1;
+  if (quest.claimed && quest.kind === "daily") return 2;
+  if (quest.claimed && quest.kind === "story") return 3;
+  return 4;
+}
+
+function GardenQuestController() {
   const { state, claimQuest } = useGame();
   const { t } = useGardenI18n();
   const [open, setOpen] = useState(false);
-  const sections = React.useMemo(() => buildGardenQuestSections(state), [state]);
-  const readyCount = sections
-    .flatMap((section) => section.quests)
-    .filter((quest) => quest.unlocked && quest.complete && !quest.claimed)
-    .length;
+  const quests = React.useMemo(() => buildGardenQuestSections(state)
+    .flatMap((section, sectionIndex) => section.quests.map((quest, questIndex) => ({
+      ...quest,
+      sectionIndex,
+      questIndex,
+    })))
+    .sort((left, right) => (
+      gardenQuestPriority(left) - gardenQuestPriority(right) ||
+      Number(!!right.complete) - Number(!!left.complete) ||
+      right.percent - left.percent ||
+      left.sectionIndex - right.sectionIndex ||
+      left.questIndex - right.questIndex
+    )), [state]);
 
   React.useEffect(() => {
-    const openQuests = () => setOpen(true);
+    const openQuests = () => {
+      setOpen(true);
+      return true;
+    };
+    (window as any).__openGardenQuests = openQuests;
     window.addEventListener(GARDEN_OPEN_QUESTS_EVENT, openQuests);
-    return () => window.removeEventListener(GARDEN_OPEN_QUESTS_EVENT, openQuests);
+    return () => {
+      if ((window as any).__openGardenQuests === openQuests) {
+        delete (window as any).__openGardenQuests;
+      }
+      window.removeEventListener(GARDEN_OPEN_QUESTS_EVENT, openQuests);
+    };
   }, []);
 
   return (
     <>
-      <button
-        type="button"
-        className={cn("garden-quest-trigger absolute left-3 top-3 z-[140]", readyCount > 0 && "ready")}
-        aria-label={t('quest.open')}
-        onClick={() => setOpen(true)}
-      >
-        <ClipboardList size={18} />
-        <span>{t('quest.open')}</span>
-        {readyCount > 0 && <b>{readyCount}</b>}
-      </button>
-
       <AnimatePresence>
         {open && (
           <>
@@ -268,58 +283,56 @@ function GardenQuestButton() {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {sections.map((section) => (
-                  <section key={section.id} className={cn("garden-quest-section", section.locked && "locked")}>
-                    <div className="garden-quest-section-header">
-                      <strong>{t(section.titleKey, section.titleVars)}</strong>
-                      <span>{t(section.subtitleKey, section.subtitleVars)}</span>
-                    </div>
-                    <div className="space-y-3">
-                      {section.quests.map((quest) => {
-                        const canClaim = quest.unlocked && quest.complete && !quest.claimed;
-                        return (
-                          <article key={quest.id} className={cn("garden-quest-card", quest.kind === "daily" && "daily", quest.locked && "locked")}>
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <h3>{t(quest.titleKey, quest.titleVars)}</h3>
-                                <p>{t(quest.bodyKey, quest.bodyVars)}</p>
-                              </div>
-                              <div className="garden-quest-reward">
-                                <Coins size={14} />
-                                {formatGardenGoldAmount(quest.reward)}
-                              </div>
-                            </div>
-                            <div className="garden-quest-progress" aria-label={t('quest.progress', { current: quest.current, target: quest.target })}>
-                              {quest.endowed > 0 && (
-                                <i style={{ width: `${Math.min(100, (quest.endowed / quest.target) * 100)}%` }} aria-hidden="true" />
-                              )}
-                              <span style={{ width: `${quest.percent}%` }} />
-                            </div>
-                            <div className="mt-3 flex items-center justify-between gap-3">
-                              <span className="font-mono text-[11px] text-[color:var(--muted)]">
-                                {t('quest.progress', { current: quest.current, target: quest.target })}
-                                {quest.endowed > 0 && <em>{t('quest.endowed', { count: quest.endowed })}</em>}
-                              </span>
-                              <button
-                                type="button"
-                                className={cn(
-                                  "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
-                                  canClaim ? "secondary garden-quest-claimable" : "disabled",
-                                )}
-                                disabled={!canClaim}
-                                onClick={() => claimQuest(quest.id, quest.reward)}
-                              >
-                                {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
-                                {quest.claimed ? t('quest.claimed') : quest.locked ? t('quest.locked') : t('quest.claim')}
-                              </button>
-                            </div>
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
+              <div className="space-y-3">
+                {quests.map((quest) => {
+                  const canClaim = quest.unlocked && quest.complete && !quest.claimed;
+                  return (
+                    <article
+                      key={quest.id}
+                      className={cn("garden-quest-card", quest.kind === "daily" && "daily", quest.locked && "locked")}
+                      data-quest-id={quest.id}
+                      data-quest-kind={quest.kind}
+                      data-quest-claimed={quest.claimed ? "true" : "false"}
+                      data-quest-locked={quest.locked ? "true" : "false"}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3>{t(quest.titleKey, quest.titleVars)}</h3>
+                          <span className={`garden-quest-type ${quest.kind}`}>{t(quest.kind === 'daily' ? 'quest.daily' : 'quest.story')}</span>
+                          <p>{t(quest.bodyKey, quest.bodyVars)}</p>
+                        </div>
+                        <div className="garden-quest-reward">
+                          <Coins size={14} />
+                          {formatGardenGoldAmount(quest.reward)}
+                        </div>
+                      </div>
+                      <div className="garden-quest-progress" aria-label={t('quest.progress', { current: quest.current, target: quest.target })}>
+                        {quest.endowed > 0 && (
+                          <i style={{ width: `${Math.min(100, (quest.endowed / quest.target) * 100)}%` }} aria-hidden="true" />
+                        )}
+                        <span style={{ width: `${quest.percent}%` }} />
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="font-mono text-[11px] text-[color:var(--muted)]">
+                          {t('quest.progress', { current: quest.current, target: quest.target })}
+                          {quest.endowed > 0 && <em>{t('quest.endowed', { count: quest.endowed })}</em>}
+                        </span>
+                        <button
+                          type="button"
+                          className={cn(
+                            "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
+                            canClaim ? "secondary garden-quest-claimable" : "disabled",
+                          )}
+                          disabled={!canClaim}
+                          onClick={() => claimQuest(quest.id, quest.reward)}
+                        >
+                          {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
+                          {quest.claimed ? t('quest.claimed') : quest.locked ? t('quest.locked') : t('quest.claim')}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </motion.div>
           </>
@@ -439,7 +452,7 @@ function GameContent() {
 
         <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
         <GardenSign assetPaths={assetPaths} />
-        <GardenQuestButton />
+        <GardenQuestController />
         <GardenSettingsButton assetPaths={assetPaths} />
 
         {/* The Glass Dome Container */}

@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { createDefaultPlayer } from "../../game-logic.js";
+import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
 import { buildSnapshot } from "../../routes/player.js";
+import { isPointInsideObstacle } from "../../src/games/companion-yard/movement.js";
 
 function buildYardMovementSnapshot(now = Date.now()) {
   const player = createDefaultPlayer("yard-motion-user", "Yard Motion", now);
@@ -75,6 +76,76 @@ function buildOccupiedPlacementSnapshot(now = Date.now()) {
     placedAt: now - 60_000,
   }];
   player.yard.activeVisitors = [];
+  return buildSnapshot(player);
+}
+
+function buildPlayzoneAuditSnapshot(remodel = "meadow", now = Date.now()) {
+  const player = createDefaultPlayer(`yard-playzone-${remodel}`, "Yard Playzone", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.remodel = remodel;
+  player.yard.ownedRemodels = ["meadow", "moon_garden", "tea_house"];
+  player.yard.goodieInventory = { yarn_mouse: 1 };
+  player.yard.placedGoodies = [
+    {
+      slotId: "nap-cushion",
+      goodieId: "sun_cushion",
+      condition: "new",
+      uses: 0,
+      x: remodel === "tea_house" ? 50 : 52,
+      y: remodel === "tea_house" ? 70 : 66,
+      placedAt: now - 240000,
+    },
+    {
+      slotId: "path-blocker",
+      goodieId: "yarn_mouse",
+      condition: "new",
+      uses: 0,
+      x: remodel === "moon_garden" ? 45 : 50,
+      y: remodel === "moon_garden" ? 64 : 62,
+      placedAt: now - 180000,
+    },
+    {
+      slotId: "runner-toy",
+      goodieId: "yarn_mouse",
+      condition: "new",
+      uses: 0,
+      x: remodel === "tea_house" ? 64 : 70,
+      y: remodel === "tea_house" ? 66 : 64,
+      placedAt: now - 120000,
+    },
+  ];
+  player.yard.activeVisitors = [
+    {
+      visitId: `visit-mochi-${remodel}`,
+      visitorId: "mochi_bunny",
+      goodieId: "sun_cushion",
+      slotId: "nap-cushion",
+      bowlId: "bowl-1",
+      pose: "nap",
+      activityId: "nap",
+      activityLayer: "front",
+      entryEdge: "left",
+      facing: "right",
+      motionSeed: `mochi-${remodel}`,
+      arrivedAt: now - 30 * 60_000,
+      leavesAt: now + 30 * 60_000,
+    },
+    {
+      visitId: `visit-mika-${remodel}`,
+      visitorId: "mika_cat",
+      goodieId: "yarn_mouse",
+      slotId: "runner-toy",
+      bowlId: "bowl-1",
+      pose: "pounce",
+      activityId: "chase",
+      activityLayer: "front",
+      entryEdge: "left",
+      facing: "right",
+      motionSeed: `mika-${remodel}`,
+      arrivedAt: now - 30 * 60_000,
+      leavesAt: now + 30 * 60_000,
+    },
+  ];
   return buildSnapshot(player);
 }
 
@@ -335,6 +406,103 @@ test.describe("Cozy Yard movement and assets", () => {
     expect(placement.payload.x).toBeLessThan(70);
     expect(placement.payload.y).toBeGreaterThan(56);
     expect(placement.payload.y).toBeLessThan(60);
+  });
+
+  test("keeps visitors and free placement inside mobile playzones across yard backgrounds", async ({ page }) => {
+    let snapshot = buildPlayzoneAuditSnapshot("meadow");
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    for (const [remodel, label] of [
+      ["meadow", "Morning Meadow"],
+      ["moon_garden", "Moon Garden"],
+      ["tea_house", "Tea House"],
+    ]) {
+      snapshot = buildPlayzoneAuditSnapshot(remodel);
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      await page.getByRole("button", { name: /Yard/ }).click();
+      await expect(page.locator(".companion-yard-stage")).toBeVisible();
+      await expect(page.locator(".yard-background-art")).toHaveAttribute("src", new RegExp(`${remodel}`));
+
+      const mikaMotion = await page.getByRole("button", { name: "Mika visitor" }).evaluate((node) => ({
+        x: Number(node.dataset.motionX),
+        y: Number(node.dataset.motionY),
+      }));
+      expect(isYardPointInPlayzone(remodel, mikaMotion.x, mikaMotion.y), `${label} active visitor should stay in the playzone`).toBe(true);
+      expect(isPointInsideObstacle(mikaMotion, {
+        x: (remodel === "moon_garden" ? 45 : 50) - 7,
+        y: (remodel === "moon_garden" ? 64 : 62) - 6,
+        width: 14,
+        height: 12,
+      }), `${label} active visitor should be repelled by the blocking goodie`).toBe(false);
+
+      const cushionBox = await page.getByRole("button", { name: /Sun Cushion placed goodie/ }).boundingBox();
+      const mochiBox = await page.getByRole("button", { name: "Mochi visitor" }).boundingBox();
+      expect(cushionBox, `${label} cushion should render`).not.toBeNull();
+      expect(mochiBox, `${label} stationary visitor should render`).not.toBeNull();
+      const cushionCenter = {
+        x: cushionBox.x + cushionBox.width / 2,
+        y: cushionBox.y + cushionBox.height / 2,
+      };
+      const mochiCenter = {
+        x: mochiBox.x + mochiBox.width / 2,
+        y: mochiBox.y + mochiBox.height / 2,
+      };
+      expect(Math.abs(mochiCenter.x - cushionCenter.x), `${label} stationary visitor should stay horizontally on the decor`).toBeLessThan(cushionBox.width * 0.55);
+      expect(Math.abs(mochiCenter.y - cushionCenter.y), `${label} stationary visitor should stay visually on the decor`).toBeLessThan(cushionBox.height * 0.75);
+    }
+  });
+
+  test("clamps free move targets to the playable yard on narrow mobile", async ({ page }) => {
+    const snapshot = buildOccupiedPlacementSnapshot();
+    const mutateBodies = [];
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      mutateBodies.push(JSON.parse(route.request().postData() || "{}"));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: /Yard/ }).click();
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    const goodiesDialog = page.getByRole("dialog", { name: "Goodies" });
+    await goodiesDialog.getByRole("button", { name: "Move", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+
+    const stage = page.locator(".companion-yard-stage");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.08);
+    await page.getByRole("button", { name: "Confirm placement" }).click();
+
+    await expect.poll(() => mutateBodies.some((body) => body.action === "yard.moveGoodie")).toBe(true);
+    const move = mutateBodies.find((body) => body.action === "yard.moveGoodie");
+    expect(isYardPointInPlayzone("meadow", move.payload.x, move.payload.y)).toBe(true);
   });
 
   test("keeps mobile standalone HUD and screens readable in dark mode", async ({ page }) => {

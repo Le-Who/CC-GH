@@ -23,6 +23,7 @@ const MAX_PLACEMENTS_BY_EXPANSION = {
   1: 8,
   2: 14,
 };
+const YARD_VISIT_GOODIE_RELEASE_PROGRESS = 0.84;
 
 function finiteNumber(value, fallback = 0) {
   const number = Number(value);
@@ -418,13 +419,26 @@ function updateGoodieCondition(placed) {
   else placed.condition = "new";
 }
 
-function activeAnchorIds(yard) {
-  return new Set((yard.activeVisitors || []).map((visit) => `${visit.slotId}:${visit.activityId || "rest"}`));
+export function isYardVisitUsingGoodie(visit = {}, now = Date.now()) {
+  const arrivedAt = Math.max(0, Math.floor(finiteNumber(visit.arrivedAt, now)));
+  const leavesAt = Math.max(arrivedAt + 60_000, Math.floor(finiteNumber(visit.leavesAt, arrivedAt + 60_000)));
+  const safeNow = Math.max(0, Math.floor(finiteNumber(now, Date.now())));
+  if (safeNow >= leavesAt) return false;
+  if (safeNow <= arrivedAt) return true;
+  const progress = (safeNow - arrivedAt) / Math.max(1, leavesAt - arrivedAt);
+  return progress < YARD_VISIT_GOODIE_RELEASE_PROGRESS;
 }
 
-function activeSlotCounts(yard) {
+function activeAnchorIds(yard, now = Date.now()) {
+  return new Set((yard.activeVisitors || [])
+    .filter((visit) => isYardVisitUsingGoodie(visit, now))
+    .map((visit) => `${visit.slotId}:${visit.activityId || "rest"}`));
+}
+
+function activeSlotCounts(yard, now = Date.now()) {
   const counts = new Map();
   for (const visit of yard.activeVisitors || []) {
+    if (!isYardVisitUsingGoodie(visit, now)) continue;
     counts.set(visit.slotId, (counts.get(visit.slotId) || 0) + 1);
   }
   return counts;
@@ -640,14 +654,30 @@ function processDepartures(yard, now) {
   }
 }
 
+function releaseDepartingVisitorsFromSlot(yard, slotId, now) {
+  const remaining = [];
+  for (const visit of yard.activeVisitors || []) {
+    if (visit.slotId === slotId && !isYardVisitUsingGoodie(visit, now)) {
+      const gift = createGiftForVisit(yard, visit, now);
+      if (gift) yard.pendingGifts.push(gift);
+    } else {
+      remaining.push(visit);
+    }
+  }
+  yard.activeVisitors = remaining;
+  if (yard.pendingGifts.length > MAX_PENDING_GIFTS) {
+    yard.pendingGifts = yard.pendingGifts.slice(-MAX_PENDING_GIFTS);
+  }
+}
+
 function simulateStep(yard, now, seedBase, cache) {
   processDepartures(yard, now);
   expireBowls(yard, now);
   helperRefill(yard, now);
   const bowlsWithFood = yard.bowls.filter((bowl) => bowl.foodId && bowl.servings > 0);
   if (!bowlsWithFood.length) return;
-  const occupied = activeAnchorIds(yard);
-  const slotCounts = activeSlotCounts(yard);
+  const occupied = activeAnchorIds(yard, now);
+  const slotCounts = activeSlotCounts(yard, now);
   for (const placed of yard.placedGoodies) {
     const goodie = YARD_GOODIES[placed.goodieId];
     if (!goodie) continue;
@@ -831,7 +861,8 @@ export function applyYardActionToState(rawYard, action, payload = {}, legacy = {
       const index = yard.placedGoodies.findIndex((placed) => placed.slotId === slotId || placed.goodieId === payload.goodieId);
       if (index < 0) return { ...fail(400, "goodie not placed"), yard };
       const placed = yard.placedGoodies[index];
-      if (yard.activeVisitors.some((visit) => visit.slotId === placed.slotId)) return { ...fail(400, "visitor is using this goodie"), yard };
+      releaseDepartingVisitorsFromSlot(yard, placed.slotId, now);
+      if (yard.activeVisitors.some((visit) => visit.slotId === placed.slotId && isYardVisitUsingGoodie(visit, now))) return { ...fail(400, "visitor is using this goodie"), yard };
       if (!hasPlacementCoordinates(payload)) return { ...fail(400, "invalid placement"), yard };
       const position = normalizePlacementPosition(payload, placed);
       const clampedPosition = clampYardPointToPlayzone(yard.remodel, position);
@@ -844,7 +875,8 @@ export function applyYardActionToState(rawYard, action, payload = {}, legacy = {
       const index = yard.placedGoodies.findIndex((placed) => placed.slotId === slotId || placed.goodieId === payload.goodieId);
       if (index < 0) return { ...fail(400, "goodie not placed"), yard };
       const placed = yard.placedGoodies[index];
-      if (yard.activeVisitors.some((visit) => visit.slotId === placed.slotId)) return { ...fail(400, "visitor is using this goodie"), yard };
+      releaseDepartingVisitorsFromSlot(yard, placed.slotId, now);
+      if (yard.activeVisitors.some((visit) => visit.slotId === placed.slotId && isYardVisitUsingGoodie(visit, now))) return { ...fail(400, "visitor is using this goodie"), yard };
       yard.placedGoodies.splice(index, 1);
       incCount(yard.goodieInventory, placed.goodieId, 1);
       return { ...ok({ goodieId: placed.goodieId, slotId: placed.slotId }), yard };
@@ -853,6 +885,8 @@ export function applyYardActionToState(rawYard, action, payload = {}, legacy = {
       const slotId = String(payload.slotId || "");
       const placed = yard.placedGoodies.find((candidate) => candidate.slotId === slotId || candidate.goodieId === payload.goodieId);
       if (!placed) return { ...fail(400, "goodie not placed"), yard };
+      releaseDepartingVisitorsFromSlot(yard, placed.slotId, now);
+      if (yard.activeVisitors.some((visit) => visit.slotId === placed.slotId && isYardVisitUsingGoodie(visit, now))) return { ...fail(400, "visitor is using this goodie"), yard };
       if (placed.condition === "new") return { ...fail(400, "goodie is already fresh"), yard };
       const goodie = YARD_GOODIES[placed.goodieId];
       if (!spend(yard.currencies, goodie.fixCost)) return { ...fail(400, "not enough yard currency"), yard };

@@ -100,6 +100,25 @@
   letter-spacing: 0;
 }
 
+.garden-quest-type {
+  min-height: 22px;
+  margin: 0 0 6px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 0.64rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+  color: var(--garden-action-info-ink);
+  background: color-mix(in srgb, var(--sky) 18%, var(--glass-card-strong));
+}
+
+.garden-quest-type.story {
+  color: var(--garden-action-secondary-ink);
+  background: color-mix(in srgb, var(--amber) 16%, var(--glass-card-strong));
+}
+
 .garden-quest-card p {
   margin: 0;
   color: var(--muted);

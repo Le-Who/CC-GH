@@ -55,6 +55,7 @@ import {
   isYardGoodieBlocking,
   isYardGoodieLayable,
   isYardVisitorPoseStationary,
+  isYardVisitUsingGoodie,
 } from "../game-logic.js";
 import {
   getVisitorMotion,
@@ -947,7 +948,7 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(justArrived.phase, "active");
     assert.equal(justArrived.pinned, true);
     assert.equal(justArrived.x, 50);
-    assert.equal(justArrived.y, 62);
+    assert.equal(justArrived.y, 70);
     assert.equal(first.x, second.x);
     assert.equal(first.y, second.y);
 
@@ -962,6 +963,85 @@ describe("Cozy Yard player contracts", () => {
     });
 
     assert.equal(isPointInsideObstacle(moving, { x: 20, y: 40, width: 40, height: 20 }), false);
+  });
+
+  it("keeps lie poses on their decor instead of snapping the pose to a distant playzone row", () => {
+    const start = 1_800_000_000_000;
+    const visit = {
+      visitId: "stationary-low-row",
+      visitorId: "mochi_bunny",
+      pose: "nap",
+      entryEdge: "left",
+      motionSeed: "still-low-row",
+      arrivedAt: start,
+      leavesAt: start + 60 * 60 * 1000,
+    };
+    const motion = getVisitorMotion(
+      visit,
+      { x: 50, y: 28 },
+      { id: "nap", pose: "nap", x: 0, y: -12, roam: 6, layer: "front", kind: "lie" },
+      start + 30 * 60 * 1000,
+      { visitorInfo: YARD_VISITORS.mochi_bunny, playzoneId: "meadow" },
+    );
+
+    assert.equal(motion.stationary, true);
+    assert.equal(motion.x, 50);
+    assert.equal(motion.y, 28);
+  });
+
+  it("lets leaving Yard visitors release their goodie before the visit fully expires", async () => {
+    const now = 1_800_000_000_000;
+    const buildPlayer = (id, arrivedAt) => {
+      const player = createDefaultPlayer(id, "Yard");
+      player.yard.lastSimulatedAt = now;
+      player.yard.placedGoodies = [{
+        slotId: "nap-slot",
+        goodieId: "sun_cushion",
+        condition: "new",
+        uses: 0,
+        x: 50,
+        y: 70,
+        placedAt: now - 60_000,
+      }];
+      player.yard.activeVisitors = [{
+        visitId: `${id}-visit`,
+        visitorId: "mochi_bunny",
+        goodieId: "sun_cushion",
+        slotId: "nap-slot",
+        bowlId: "bowl-1",
+        pose: "nap",
+        activityId: "nap",
+        activityLayer: "front",
+        entryEdge: "left",
+        facing: "right",
+        motionSeed: `${id}-motion`,
+        arrivedAt,
+        leavesAt: now + 5 * 60 * 1000,
+      }];
+      return player;
+    };
+
+    const stillResting = buildPlayer("yard-still-using", now - 20 * 60 * 1000);
+    assert.equal(isYardVisitUsingGoodie(stillResting.yard.activeVisitors[0], now), true);
+    const blocked = await applyAction(stillResting, "yard.moveGoodie", {
+      slotId: "nap-slot",
+      x: 62,
+      y: 72,
+    }, { yardNow: now });
+    assert.equal(blocked.status, 400);
+    assert.equal(blocked.body.error, "visitor is using this goodie");
+
+    const leaving = buildPlayer("yard-releasing", now - 60 * 60 * 1000);
+    assert.equal(isYardVisitUsingGoodie(leaving.yard.activeVisitors[0], now), false);
+    const moved = await applyAction(leaving, "yard.moveGoodie", {
+      slotId: "nap-slot",
+      x: 62,
+      y: 72,
+    }, { yardNow: now });
+    assert.equal(moved.status, 200);
+    assert.equal(leaving.yard.placedGoodies[0].x, 62);
+    assert.equal(leaving.yard.activeVisitors.length, 0);
+    assert.equal(leaving.yard.pendingGifts.length, 1);
   });
 
   it("clamps Yard visitors and placements into the current background playzone", async () => {

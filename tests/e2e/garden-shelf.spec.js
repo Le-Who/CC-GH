@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { GARDEN_ECONOMY_VERSION, getGardenXpRequired } from "../../game-logic.js";
+import {
+  GARDEN_ECONOMY_VERSION,
+  buildGardenDailyQuests,
+  createDefaultPlayer,
+  getGardenXpRequired,
+} from "../../game-logic.js";
+import { buildSnapshot } from "../../routes/player.js";
 
 function parsePlayerActionRequest(request) {
   try {
@@ -18,6 +24,43 @@ test.describe("Garden Shelf flow", () => {
       window.localStorage.removeItem("garden_shelf_name");
     });
   });
+
+  async function contrastRatioFor(page, textSelector, surfaceSelector) {
+    return page.locator(textSelector).first().evaluate((el, selector) => {
+      const parseRgb = (value) => {
+        const match = String(value).match(/rgba?\(([^)]+)\)/);
+        if (!match) return [0, 0, 0, 1];
+        const parts = match[1].split(",").map((part) => Number(part.trim()));
+        return [parts[0] || 0, parts[1] || 0, parts[2] || 0, parts[3] == null ? 1 : parts[3]];
+      };
+      const blend = (fg, bg) => {
+        const alpha = fg[3] + bg[3] * (1 - fg[3]);
+        return [
+          (fg[0] * fg[3] + bg[0] * bg[3] * (1 - fg[3])) / alpha,
+          (fg[1] * fg[3] + bg[1] * bg[3] * (1 - fg[3])) / alpha,
+          (fg[2] * fg[3] + bg[2] * bg[3] * (1 - fg[3])) / alpha,
+          alpha,
+        ];
+      };
+      const luminance = (rgb) => {
+        const channels = rgb.slice(0, 3).map((value) => {
+          const c = value / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+      };
+      const ratio = (fg, bg) => {
+        const a = luminance(fg);
+        const b = luminance(bg);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      };
+      const surface = selector ? el.closest(selector) : el.parentElement;
+      const base = document.documentElement.dataset.uiTheme === "dark" ? [0, 0, 0, 1] : [255, 255, 255, 1];
+      const bg = blend(parseRgb(getComputedStyle(surface || el).backgroundColor), base);
+      const fg = blend(parseRgb(getComputedStyle(el).color), bg);
+      return ratio(fg, bg);
+    }, surfaceSelector);
+  }
 
   test("loads the Garden Shelf port and plants from the shelf panel", async ({ page }) => {
     const pageErrors = [];
@@ -73,6 +116,137 @@ test.describe("Garden Shelf flow", () => {
     await expect(page.getByRole("button", { name: /Блоки/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Камни/ })).toBeVisible();
     await expect(page.getByText("Настройки")).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("opens shell Garden quests with daily priority and protects repeated quest claims", async ({ page }) => {
+    const pageErrors = [];
+    page.on("pageerror", (err) => pageErrors.push(err.message));
+
+    const player = createDefaultPlayer(`garden_quest_${Date.now()}`, "Garden Quest");
+    const today = new Date().toISOString().slice(0, 10);
+    const gardenState = {
+      economyVersion: GARDEN_ECONOMY_VERSION,
+      totalGoldEarned: 120,
+      level: 2,
+      xp: 0,
+      xpRequired: getGardenXpRequired(2),
+      levelReady: false,
+      shelvesUnlocked: 1,
+      plants: [{
+        id: "daily-daisy",
+        type: "daisy",
+        level: 2,
+        shelfIndex: 0,
+        spotIndex: 0,
+        phase: 3,
+        phaseProgress: 0,
+        lastTapped: 0,
+      }],
+      claimedQuests: ["first_plant"],
+      dailyQuests: {
+        date: today,
+        claimed: [],
+        stats: {
+          taps: 12,
+          waters: 12,
+          plantsBought: 4,
+          upgrades: 3,
+          goldEarned: 80,
+          xpEarned: 80,
+          levelUps: 2,
+        },
+      },
+      lastTick: Date.now(),
+      offlineEarnings: null,
+      offlineXp: null,
+    };
+    const dailyQuests = buildGardenDailyQuests(gardenState);
+    const unlockedDaily = dailyQuests.filter((quest) => quest.unlocked && quest.complete);
+    const claimedDaily = unlockedDaily[0];
+    const claimableDaily = unlockedDaily.find((quest) => quest.id !== claimedDaily.id);
+    expect(claimedDaily).toBeTruthy();
+    expect(claimableDaily).toBeTruthy();
+    gardenState.dailyQuests.claimed = [claimedDaily.id];
+    player.garden = gardenState;
+    let snapshot = buildSnapshot(player);
+    let dailyClaimRequests = 0;
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+      window.localStorage.setItem("garden_shelf_language", "ru");
+    });
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      const body = parsePlayerActionRequest(route.request()) || {};
+      if (body.action === "garden.goldDelta" && body.payload?.reason === `quest:${claimableDaily.id}`) {
+        dailyClaimRequests += 1;
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      if (body.action === "garden.goldDelta") {
+        snapshot = {
+          ...snapshot,
+          resources: {
+            ...snapshot.resources,
+            gold: Math.max(0, Math.floor(Number(snapshot.resources?.gold) || 0) + Math.trunc(Number(body.payload?.amount) || 0)),
+          },
+        };
+      }
+      if (body.action === "garden.sync") {
+        snapshot = {
+          ...snapshot,
+          garden: body.payload?.state || snapshot.garden,
+        };
+      }
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          action: body.action,
+          snapshot,
+          goldDelta: body.payload?.amount || 0,
+        }),
+      });
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator(".garden-quest-trigger")).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => typeof window.__openGardenQuests)).toBe("function");
+    await page.locator(".stats-row .stat-chip").filter({ hasText: "Квесты сада" }).click();
+    const questDialog = page.getByRole("dialog", { name: "Квесты сада" });
+    await expect(questDialog).toBeVisible();
+    await expect(questDialog).toContainText("Дневной");
+    await expect(questDialog).toContainText("Сюжетный");
+    expect(await contrastRatioFor(page, ".garden-quest-card h3", ".garden-quest-card")).toBeGreaterThanOrEqual(4.5);
+
+    const order = await page.locator(".garden-quest-card").evaluateAll((cards) => cards.map((card) => ({
+      kind: card.getAttribute("data-quest-kind"),
+      claimed: card.getAttribute("data-quest-claimed") === "true",
+      locked: card.getAttribute("data-quest-locked") === "true",
+    })));
+    const findIndex = (predicate) => order.findIndex(predicate);
+    const activeDailyIndex = findIndex((quest) => quest.kind === "daily" && !quest.claimed && !quest.locked);
+    const activeStoryIndex = findIndex((quest) => quest.kind === "story" && !quest.claimed);
+    const claimedDailyIndex = findIndex((quest) => quest.kind === "daily" && quest.claimed);
+    const claimedStoryIndex = findIndex((quest) => quest.kind === "story" && quest.claimed);
+    expect(activeDailyIndex).toBeGreaterThanOrEqual(0);
+    expect(activeStoryIndex).toBeGreaterThan(activeDailyIndex);
+    expect(claimedDailyIndex).toBeGreaterThan(activeStoryIndex);
+    expect(claimedStoryIndex).toBeGreaterThan(claimedDailyIndex);
+
+    const dailyQuest = page.locator(`.garden-quest-card[data-quest-id="${claimableDaily.id}"]`);
+    const claimButton = dailyQuest.getByRole("button", { name: "Забрать" });
+    await claimButton.click();
+    await claimButton.click({ force: true });
+    await expect(dailyQuest.getByRole("button", { name: "Получено" })).toBeVisible({ timeout: 10000 });
+    expect(dailyClaimRequests).toBe(1);
     expect(pageErrors).toEqual([]);
   });
 

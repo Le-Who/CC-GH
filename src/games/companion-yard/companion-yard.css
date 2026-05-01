@@ -241,6 +241,14 @@
   transform: translate(-50%, -92%) scale(1.06);
 }
 
+.yard-visitor-lie {
+  transform: translate(-50%, -58%);
+}
+
+.yard-visitor-lie.selected {
+  transform: translate(-50%, -58%) scale(1.06);
+}
+
 .yard-visitor b {
   margin-top: -8px;
   border-radius: 999px;
