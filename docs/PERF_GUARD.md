@@ -67,6 +67,30 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-01 Conservative Loop
+
+The May 1, 2026 loop kept one build/CSS asset win and stopped before further likely changes crossed into gameplay/runtime semantics. No gameplay rules, budgets, or tests were loosened.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-01-baseline-node-repeat3.json` passed 24/24 suites; slowest ratios were `yard.simulate-long-idle`, `merge.apply-generator`, `assets.pipeline-entry-scan`, `merge.board-hydrate`, and `player.build-snapshot`.
+- Build: `artifacts/perf/2026-05-01-baseline-build-report.json` passed with startup CSS `93,157B` raw / `16,758B` gzip and startup JS `544,026B` raw / `179,408B` gzip.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Merge snapshot item counting reuse | `merge.apply-generator` p95 `0.169ms` in A/B baseline | `0.207ms` after edit | Reverted; A/B showed the original path was faster. |
+| 2 | `assets.pipeline-entry-scan` recursive sort reduction | p95 `1.318ms` | `2.026ms` | Reverted; p95 regressed. |
+| 3 | Startup font subset payload | startup CSS `93,157B` raw / `16,758B` gzip | `87,243B` raw / `16,068B` gzip | Kept; PWA precache also dropped from 100 entries / 2218 KiB to 54 entries / 1658 KiB. |
+| 4 | Lazy Merge CSS split | startup CSS `87,243B` raw | `76,093B` raw | Reverted; browser guard repeatedly missed Merge frame p95 (`50.10ms > 50ms`). |
+
+Kept change:
+- Replaced broad `@fontsource` imports with explicit WOFF2 Latin, Latin-ext, and Cyrillic `@font-face` declarations in `src/fonts.css`, preserving the app's English/Russian typography while dropping unused startup font subsets and legacy WOFF fallbacks.
+
+Verification for the kept state:
+- `pnpm run build`
+- `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-01-attempt3-font-subsets-build-report.json`
+- `pnpm run perf:guard -- --repeat 3 --report artifacts/perf/2026-05-01-post-font-node-baseline-repeat3.json`
+- `pnpm run perf:guard:browser`
+
 ### 2026-04-30 Conservative Loop
 
 The April 30, 2026 loop stopped by rule after three consecutive safe attempts failed to produce a confirmed 3% p95 win. No gameplay or budget changes were kept.

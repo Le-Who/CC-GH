@@ -72,6 +72,7 @@
 
 ### Operations
 
+- Reduced startup font payload by replacing broad Fontsource imports with explicit WOFF2 Latin, Latin-ext, and Cyrillic faces, cutting guarded startup CSS while preserving the existing English/Russian typography and browser perf budgets.
 - Kept the production build guard inside the existing startup CSS budget by moving Garden-only quest/level-up styling into the lazy Garden Shelf CSS chunk instead of loosening `perf:guard:build`.
 - Optimized perf-guard hot paths without changing gameplay semantics: Bubbo pressure/shot traversal and normalization, Merge generator empty-cell selection, current-schema player migrations, snapshot achievement metadata, and runtime asset entry scanning now do less repeat allocation while keeping existing budgets intact.
 - Added per-entry runtime asset encoding so Cozy Yard keeps editable PNG source/fallback art while generated runtime Yard assets ship as compact WebP-only files under the existing build payload budgets.
