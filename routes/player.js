@@ -50,6 +50,8 @@ import {
   GARDEN_MAX_LEVEL,
   GARDEN_STARTER_GOLD,
   getGardenLevelReward,
+  normalizeGardenDailyQuestState,
+  recordGardenDailyProgress,
   getGardenXpRequired,
   getStarterMergeItemIds,
   getStarterMergeRecipeIds,
@@ -222,6 +224,7 @@ function normalizeResources(p) {
 const GARDEN_MAX_SHELVES = 5;
 const GARDEN_MAX_PLANTS = 48;
 const GARDEN_PLANT_IDS = new Set(["daisy", "lavender", "basil", "rosemary", "monstera", "succulent", "pothos", "strawberry"]);
+const MERGE_EXCHANGE_CLAIM_RETENTION_DAYS = 7;
 
 function finiteNumber(value, fallback = 0) {
   const number = Number(value);
@@ -281,6 +284,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
     levelReady: level < GARDEN_MAX_LEVEL && xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.min(GARDEN_MAX_SHELVES, Math.floor(finiteNumber(source.shelvesUnlocked, fallback.shelvesUnlocked)))),
     claimedQuests: normalizeGardenClaimedQuests(source.claimedQuests),
+    dailyQuests: normalizeGardenDailyQuestState(source.dailyQuests, now),
     plants,
     passiveGoldBuffer: Math.max(0, Math.min(1, finiteNumber(source.passiveGoldBuffer, 0))),
     passiveXpBuffer: Math.max(0, Math.min(1, finiteNumber(source.passiveXpBuffer, 0))),
@@ -545,7 +549,11 @@ function normalizeMergeExchangeClaims(raw) {
     }
     if (Object.keys(entries).length) claims[date] = entries;
   }
-  return claims;
+  return Object.fromEntries(
+    Object.entries(claims)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .slice(-MERGE_EXCHANGE_CLAIM_RETENTION_DAYS),
+  );
 }
 
 function findMergeExchangeOffer(offerId) {
@@ -696,7 +704,22 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, { goldDelta: amount, reason: payload.reason || "garden" });
     }
     case "garden.sync": {
-      p.garden = normalizeGardenState(payload.state, Date.now());
+      const now = Date.now();
+      const previous = normalizeGardenState(p.garden, now);
+      const incoming = normalizeGardenState(payload.state, now);
+      if (previous.level > incoming.level) {
+        p.garden = {
+          ...incoming,
+          level: previous.level,
+          xp: previous.xp,
+          xpRequired: previous.xpRequired,
+          levelReady: previous.levelReady,
+          totalGoldEarned: Math.max(incoming.totalGoldEarned, previous.totalGoldEarned),
+          dailyQuests: previous.dailyQuests,
+        };
+      } else {
+        p.garden = incoming;
+      }
       return ok(action, p, { garden: p.garden });
     }
     case "garden.resetEconomy": {
@@ -735,6 +758,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
         xpRequired: getGardenXpRequired(nextLevel),
         levelReady: false,
         totalGoldEarned: Math.max(0, Math.floor(Number(p.garden.totalGoldEarned) || 0)) + reward,
+        dailyQuests: recordGardenDailyProgress(p.garden.dailyQuests, { levelUps: 1 }),
       };
       if (!p.resources) p.resources = {};
       p.resources.gold = Math.max(0, Math.floor(Number(p.resources.gold) || 0)) + reward;
@@ -1055,13 +1079,13 @@ export async function applyAction(p, action, payload = {}, options = {}) {
 
       p.merge.alchemyEssence = currentEssence - offer.cost;
       const reward = grantMergeExchangeReward(p, offer.reward);
-      p.merge.exchangeClaims = {
+      p.merge.exchangeClaims = normalizeMergeExchangeClaims({
         ...p.merge.exchangeClaims,
         [today]: {
           ...claimsToday,
           [offer.id]: currentClaims + 1,
         },
-      };
+      });
       return ok(action, p, {
         offerId: offer.id,
         essenceSpent: offer.cost,

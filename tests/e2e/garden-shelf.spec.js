@@ -32,13 +32,13 @@ test.describe("Garden Shelf flow", () => {
     await expect(page.getByText("Gold Balance")).toHaveCount(0);
     await expect(page.getByText("Garden Lv 1")).toBeVisible();
     await expect(page.locator(".stats-row")).toContainText("Garden XP");
-    await expect(page.locator(".stats-row")).toContainText("Plants");
+    await expect(page.locator(".stats-row")).toContainText("Garden quests");
     await expect(page.locator(".garden-level-panel")).toHaveCount(0);
     await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
     const goldStat = page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
     await expect(goldStat).toContainText("10,000");
 
-    await page.getByRole("button", { name: "Garden quests" }).click();
+    await page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" }).click();
     const questDialog = page.locator(".garden-glass-menu[role='dialog']").filter({ hasText: "Garden quests" });
     await expect(questDialog).toBeVisible();
     const questBox = await questDialog.boundingBox();
@@ -108,7 +108,7 @@ test.describe("Garden Shelf flow", () => {
 
     const second = await openDevice();
     await expect(second.page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 15000 });
-    await expect(second.page.locator(".stats-row")).toContainText("1/3");
+    await expect(second.page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" })).toBeVisible();
     const goldStat = second.page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
     await expect(goldStat).toContainText("7,500");
     await second.context.close();

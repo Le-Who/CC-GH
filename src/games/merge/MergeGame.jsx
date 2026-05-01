@@ -5,6 +5,7 @@ import {
   ECONOMY,
   MERGE_CHAINS,
   MERGE_EXCHANGE_OFFERS,
+  MERGE_FREE_TAP_BANK_CAP,
   MERGE_RECIPES,
   MERGE_WILD_GENERATOR_ID,
   getMergeFreeTapClaim,
@@ -117,6 +118,7 @@ export default function MergeGame() {
   const canFreePull = new Date(merge.lastFreePull || 0).toISOString().slice(0, 10) !== today;
   const freeTapClaim = getMergeFreeTapClaim(merge, now);
   const canClaimFreeTaps = freeTapClaim.claimable > 0;
+  const freeTapBankFull = Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0)) >= MERGE_FREE_TAP_BANK_CAP;
   const freeTapWaitMinutes = Math.max(1, Math.ceil((freeTapClaim.nextFreeTapAt - now) / 60000));
   const canTapGenerator = !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
   const activeCrop = activeFuel ? CROPS[activeFuel] : null;
@@ -430,6 +432,8 @@ export default function MergeGame() {
               >
                 {canClaimFreeTaps
                   ? t("merge.dailyTaps", { count: freeTapClaim.claimable })
+                  : freeTapBankFull
+                    ? t("merge.freeTapBankFull", { count: MERGE_FREE_TAP_BANK_CAP })
                   : t("merge.nextFreeTap", { minutes: freeTapWaitMinutes })}
               </PanelButton>
               <PanelButton

@@ -362,7 +362,7 @@ function PlantDetail({
 
   return (
     <div className="flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="mb-4 flex w-full items-start justify-between gap-4">
+      <div className="mb-4 flex w-full items-start justify-between gap-4 pr-12">
         <div className="min-w-0">
           <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
           <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
@@ -377,7 +377,7 @@ function PlantDetail({
           )}
         </div>
         
-        <div className="flex shrink-0 flex-col items-end">
+        <div className="flex max-w-[48%] shrink-0 flex-col items-end text-right">
           {isFullyGrown ? (
             <>
               <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>

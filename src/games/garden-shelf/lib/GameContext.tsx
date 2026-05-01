@@ -24,6 +24,12 @@ import {
 } from '../constants';
 import { useInterval } from './useInterval';
 import { createGardenEconomyState, shouldResetGardenEconomy } from '../../../../game-logic/garden-economy.js';
+import {
+  getGardenReadyQuestCount,
+  isGardenDailyQuestId,
+  normalizeGardenDailyQuestState,
+  recordGardenDailyProgress,
+} from '../../../../game-logic/garden-quests.js';
 
 interface GardenHudState {
   level: number;
@@ -34,6 +40,7 @@ interface GardenHudState {
   xp: number;
   xpRequired: number;
   levelReady: boolean;
+  questReadyCount: number;
 }
 
 interface GoldDeltaResult {
@@ -148,6 +155,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
     levelReady: level < LEVELS[LEVELS.length - 1].level && xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.floor(Number(source.shelvesUnlocked) || 1)),
     claimedQuests: normalizeClaimedQuests(source.claimedQuests),
+    dailyQuests: normalizeGardenDailyQuestState(source.dailyQuests),
     passiveGoldBuffer: Math.max(0, Math.min(1, Number(source.passiveGoldBuffer) || 0)),
     passiveXpBuffer: Math.max(0, Math.min(1, Number(source.passiveXpBuffer) || 0)),
     lastTick: Math.max(0, Math.floor(Number(source.lastTick) || Date.now())),
@@ -177,7 +185,7 @@ function hasGardenProgress(state: GameState | null) {
   );
 }
 
-function applyGardenRewards(prev: GameState, rewards: { gold?: number; xp?: number }) {
+function applyGardenRewards(prev: GameState, rewards: { gold?: number; xp?: number }, options: { trackDaily?: boolean } = {}) {
   const earnedGold = Math.max(0, Math.floor(Number(rewards.gold) || 0));
   const earnedXp = Math.max(0, Math.floor(Number(rewards.xp) || 0));
   if (!earnedGold && !earnedXp) return prev;
@@ -190,6 +198,9 @@ function applyGardenRewards(prev: GameState, rewards: { gold?: number; xp?: numb
     : prev.xp;
   return {
     ...prev,
+    dailyQuests: options.trackDaily === false
+      ? prev.dailyQuests
+      : recordGardenDailyProgress(prev.dailyQuests, { goldEarned: earnedGold, xpEarned: earnedXp }),
     totalGoldEarned: prev.totalGoldEarned + earnedGold,
     xp: newXp,
     xpRequired,
@@ -379,8 +390,9 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       xp: state.xp,
       xpRequired: state.xpRequired,
       levelReady: state.levelReady,
+      questReadyCount: getGardenReadyQuestCount(state),
     });
-  }, [onHudChange, state.level, state.levelReady, state.plants, state.shelvesUnlocked, state.xp, state.xpRequired]);
+  }, [onHudChange, state.claimedQuests, state.dailyQuests, state.level, state.levelReady, state.plants, state.shelvesUnlocked, state.xp, state.xpRequired]);
 
   useEffect(() => () => onHudChange?.(null), [onHudChange]);
 
@@ -529,6 +541,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       const nextLevel = prev.level + 1;
       return {
         ...prev,
+        dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { levelUps: 1 }),
         level: nextLevel,
         xp: 0,
         xpRequired: getGardenXpRequired(nextLevel),
@@ -543,17 +556,33 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     const safeQuestId = String(questId || '').trim();
     const goldReward = Math.max(0, Math.floor(Number(reward) || 0));
     if (!/^[a-z0-9_-]{1,48}$/.test(safeQuestId)) return;
-    if (questPendingRef.current.has(safeQuestId) || state.claimedQuests.includes(safeQuestId) || goldReward <= 0) return;
+    const dailyQuest = isGardenDailyQuestId(safeQuestId);
+    const dailyState = normalizeGardenDailyQuestState(state.dailyQuests);
+    const alreadyClaimed = dailyQuest
+      ? dailyState.claimed.includes(safeQuestId)
+      : state.claimedQuests.includes(safeQuestId);
+    if (questPendingRef.current.has(safeQuestId) || alreadyClaimed || goldReward <= 0) return;
     questPendingRef.current.add(safeQuestId);
     try {
       const result = await commitGoldDelta(goldReward, `quest:${safeQuestId}`);
       if (result.error) return;
       setState((prev) => {
+        if (dailyQuest) {
+          const nextDaily = normalizeGardenDailyQuestState(prev.dailyQuests);
+          if (nextDaily.claimed.includes(safeQuestId)) return prev;
+          return applyGardenRewards({
+            ...prev,
+            dailyQuests: {
+              ...nextDaily,
+              claimed: [...nextDaily.claimed, safeQuestId],
+            },
+          }, { gold: goldReward }, { trackDaily: false });
+        }
         if (prev.claimedQuests.includes(safeQuestId)) return prev;
         return applyGardenRewards({
           ...prev,
           claimedQuests: [...prev.claimedQuests, safeQuestId],
-        }, { gold: goldReward });
+        }, { gold: goldReward }, { trackDaily: false });
       });
     } finally {
       questPendingRef.current.delete(safeQuestId);
@@ -568,6 +597,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
       if (result.error) return;
       setState((prev) => ({
         ...prev,
+        dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { plantsBought: 1 }),
         plants: [
           ...prev.plants,
           {
@@ -594,9 +624,10 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
     const result = await commitGoldDelta(-cost, 'upgradePlant');
     if (result.error) return;
 
-    setState((prev) => ({
-      ...prev,
-      plants: prev.plants.map((p) =>
+      setState((prev) => ({
+        ...prev,
+        dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { upgrades: 1 }),
+        plants: prev.plants.map((p) =>
         p.id === plantId ? { ...p, level: p.level + 1 } : p
       ),
     }));
@@ -642,6 +673,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
             const xp = getClickXpReward(def.baseXp, plant.level);
             return applyGardenRewards({
               ...prev,
+              dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { taps: 1 }),
               plants: prev.plants.map(p => p.id === plantId ? { ...p, lastTapped: now } : p),
             }, { gold, xp });
         } else {
@@ -656,6 +688,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
 
             return {
                ...prev,
+               dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { taps: 1 }),
                plants: prev.plants.map(p => p.id === plantId ? { ...p, phase: newPhase, phaseProgress: newProgress, lastTapped: now } : p)
             };
         }
@@ -686,10 +719,11 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
            newProgress = 0;
         }
 
-        return {
-           ...prev,
-           plants: prev.plants.map(p => p.id === plantId ? { ...p, phase: newPhase, phaseProgress: newProgress, lastWatered: now } : p)
-        };
+         return {
+            ...prev,
+            dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { waters: 1 }),
+            plants: prev.plants.map(p => p.id === plantId ? { ...p, phase: newPhase, phaseProgress: newProgress, lastWatered: now } : p)
+         };
      })
   };
 

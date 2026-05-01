@@ -57,6 +57,42 @@
   color: var(--ink);
 }
 
+.garden-quest-section {
+  display: grid;
+  gap: 10px;
+}
+
+.garden-quest-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink);
+}
+
+.garden-quest-section-header strong {
+  font-size: 0.72rem;
+  font-weight: 1000;
+  letter-spacing: 0;
+}
+
+.garden-quest-section-header span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.garden-quest-card.daily {
+  border-color: color-mix(in srgb, var(--sky) 42%, var(--glass-border-soft));
+}
+
+.garden-quest-card.locked {
+  opacity: 0.62;
+}
+
 .garden-quest-card h3 {
   margin: 0 0 4px;
   font-size: 0.82rem;
@@ -85,6 +121,7 @@
 }
 
 .garden-quest-progress {
+  position: relative;
   height: 6px;
   margin-top: 10px;
   overflow: hidden;
@@ -92,11 +129,26 @@
   background: var(--line-soft);
 }
 
+.garden-quest-progress i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--amber) 54%, transparent);
+}
+
 .garden-quest-progress span {
+  position: relative;
   display: block;
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--sky), var(--leaf), var(--amber));
+}
+
+.garden-quest-card em {
+  margin-left: 8px;
+  color: var(--garden-action-secondary-ink);
+  font-style: normal;
 }
 
 .garden-quest-claimable {

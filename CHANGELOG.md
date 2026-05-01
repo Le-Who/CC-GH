@@ -4,6 +4,10 @@
 
 ### Client
 
+- Added Garden Shelf daily quests as three daily portions of three moderately simple tasks, with deterministic daily rotation, endowed-progress cues, daily claimed state, and a HUD quest entry replacing the old Plants stat chip.
+- Fixed Garden Shelf Level Up spam so rapid repeated taps send only one level-up mutation and cannot replay the reward modal, and adjusted the plant detail header so Income no longer sits under the close button.
+- Fixed Cozy Yard layable goodie interactions so seated/stationary visitors stay pinned to the occupied decoration and render above it, while the HUD atlas icons now scale to match the large button affordances.
+- Fixed the Gacha Merge full free-tap bank state so a capped bank shows a bank-full label instead of a misleading recharge timer.
 - Added Garden Shelf quests with one-time claimed state, localized quest copy, reward claiming, and a Level Up reward modal while keeping quest styling lazy-loaded with the Garden game chunk instead of the startup CSS bundle.
 - Added a compact profile popover in the Hub topbar and removed the always-visible profile strip so the main shell leaves more vertical room for live game surfaces.
 - Refined Gacha Merge mobile live controls so the free-tap claim remains readable in the bottom action strip, the Pixi canvas exposes measured board geometry for smoke tests, and Items/Recipes/Exchange drawers stay reachable during active play.
@@ -57,6 +61,9 @@
 
 ### API
 
+- Added shared Garden daily quest state normalization and progress recording to the player snapshot so daily quests reset by day while preserving same-day claimed ids across syncs.
+- Hardened `garden.sync` against stale post-level-up payloads so an older client cannot reopen a level reward that was already claimed.
+- Pruned Merge exchange claim buckets to a small recent retention window in both the player mutate path and the legacy merge route path.
 - Preserved Garden Shelf `claimedQuests` through `garden.sync` with server-side id sanitization so claimed quest rewards stay shared across devices.
 - Added commit-success hooks to `withPlayerLock()` and moved Farm/resource analytics event inserts behind them so OCC retry losers cannot double-record side effects.
 - Extended `/api/health` with actual Redis availability, `player_stats_view` refresh state, and explicit process-local Brain Blitz duel-room scope/counts while preserving the legacy `postgres` and `redis` booleans.
@@ -88,6 +95,8 @@
 
 ### Tests
 
+- Added Garden Shelf unit coverage for daily quest reset/portion unlocking/endowed progress, ready quest counts, stale sync after level-up, and rapid Level Up click suppression in mobile Playwright.
+- Added Cozy Yard unit and mobile Playwright coverage for pinned stationary visitor motion and HUD-screen readability, plus Merge exchange-claim retention coverage.
 - Added unit and Chromium Playwright coverage for Garden quest id persistence, duplicate-safe Garden Level Up requests, the Level Up reward modal, Merge mobile dock/readable free taps, exchange/drawer discovery updates, and Cozy Yard playzone clamping.
 - Verified the conservative perf loop with full Node tests plus `perf:guard:all`, covering Node, build-budget, and Chromium runtime guards without loosening budgets.
 - Added Cozy Yard unit and Playwright coverage for free-coordinate goodie placement, `yard.moveGoodie`, HUD-launched in-game screens, and mobile placement confirmation.

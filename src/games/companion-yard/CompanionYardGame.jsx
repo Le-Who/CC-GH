@@ -293,14 +293,15 @@ export default function CompanionYardGame() {
           playzoneId: yard.remodel || "meadow",
           playzoneMargin: 1,
         });
-        const layer = activity.kind === "lie" ? "front" : activity.layer || visit.activityLayer || "front";
+        const sitsOnGoodie = Array.isArray(goodie.surfaceTypes) && goodie.surfaceTypes.includes("lie");
+        const layer = activity.kind === "lie" || sitsOnGoodie ? "front" : activity.layer || visit.activityLayer || "front";
         return {
           visit,
           visitorInfo,
           activity,
           motion,
           layer,
-          zIndex: Math.round(motion.y * 10),
+          zIndex: Math.round(motion.y * 10) + (sitsOnGoodie ? 200 : 0),
         };
       })
       .filter(Boolean)
@@ -441,7 +442,7 @@ export default function CompanionYardGame() {
         <button
           type="button"
           key={item.visit.visitId}
-          className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${item.motion.stationary ? " yard-visitor-stationary" : ""}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
+          className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${item.motion.stationary ? " yard-visitor-stationary" : ""}${item.motion.pinned ? " yard-visitor-pinned" : ""}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
           style={{
             left: `${item.motion.x}%`,
             top: `${item.motion.y}%`,

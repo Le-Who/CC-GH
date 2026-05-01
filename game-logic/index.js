@@ -14,6 +14,7 @@ export * from "./economy.js";
 export * from "./crops.js";
 export * from "./merge-config.js";
 export * from "./garden-economy.js";
+export * from "./garden-quests.js";
 export * from "./pet-assets.js";
 export * from "./yard-catalog.js";
 export * from "./yard-playzones.js";

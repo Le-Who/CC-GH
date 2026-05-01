@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
   Blocks,
   Bot,
   Gem,
+  ClipboardList,
   Home,
   Leaf,
   Moon,
@@ -25,6 +26,7 @@ import {
   gardenTranslate,
   getStoredGardenLanguage,
 } from "./games/garden-shelf/lib/i18n";
+import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from "./games/garden-shelf/events";
 import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
@@ -98,16 +100,18 @@ export default function App() {
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
   const hydrateOutbox = useGameHub((state) => state.hydrateOutbox);
   const drainOutbox = useGameHub((state) => state.drainOutbox);
-  const performAction = useGameHub((state) => state.performAction);
   const applyRealtimePayload = useGameHub((state) => state.applyRealtimePayload);
   const status = useGameHub((state) => state.status);
   const message = useGameHub((state) => state.message);
+  const lastResult = useGameHub((state) => state.lastResult);
   const gardenHud = useGameHub((state) => state.gardenHud);
   const [platform, setPlatform] = useState(null);
   const [config, setConfig] = useState(null);
   const [gardenLanguage, setGardenLanguage] = useState(() => getStoredGardenLanguage());
   const [uiTheme, setUiTheme] = useState(() => readStoredUiTheme());
   const [profileOpen, setProfileOpen] = useState(false);
+  const [gardenLevelUpPending, setGardenLevelUpPending] = useState(false);
+  const gardenLevelUpPendingRef = useRef(false);
   const [isPending, startTransition] = useTransition();
   const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
@@ -190,6 +194,27 @@ export default function App() {
   const gardenLevel = Number(gardenHud?.level) || 1;
   const gardenCanLevelUp = gardenLevel < gardenMaxLevel
     && (!!gardenHud?.levelReady || gardenXp >= gardenXpRequired);
+  useEffect(() => {
+    if (!gardenCanLevelUp) {
+      gardenLevelUpPendingRef.current = false;
+      setGardenLevelUpPending(false);
+    }
+  }, [gardenCanLevelUp]);
+  useEffect(() => {
+    if (lastResult?.action === "garden.levelUp" && lastResult.error) {
+      gardenLevelUpPendingRef.current = false;
+      setGardenLevelUpPending(false);
+    }
+  }, [lastResult]);
+  const requestGardenLevelUp = useCallback(() => {
+    if (!gardenCanLevelUp || gardenLevelUpPendingRef.current) return;
+    gardenLevelUpPendingRef.current = true;
+    setGardenLevelUpPending(true);
+    window.dispatchEvent(new Event(GARDEN_LEVEL_UP_EVENT));
+  }, [gardenCanLevelUp]);
+  const openGardenQuests = useCallback(() => {
+    window.dispatchEvent(new Event(GARDEN_OPEN_QUESTS_EVENT));
+  }, []);
   const profileName = user?.username || user?.firstName || user?.first_name || t("app.player");
   const profileRuntime = config?.telegramBotUsername ? `@${config.telegramBotUsername}` : t("app.runtime");
   const profileInitial = (user?.firstName || user?.first_name || user?.username || "G").slice(0, 1);
@@ -201,13 +226,18 @@ export default function App() {
           label: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
           value: gardenCanLevelUp ? `+${formatGardenDisplayGold(getGardenLevelReward(gardenLevel))}` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
           progress: gardenXpProgress,
-          active: gardenCanLevelUp,
+          active: gardenCanLevelUp && !gardenLevelUpPending,
           title: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
-          onClick: gardenCanLevelUp
-            ? () => performAction("garden.levelUp", {}, { key: "garden.levelUp", silent: true, feedback: false, timeoutMs: 12000 })
-            : null,
+          onClick: gardenCanLevelUp && !gardenLevelUpPending ? requestGardenLevelUp : null,
         },
-        { icon: PackageOpen, label: gardenTranslate(gardenLanguage, "hud.plants"), value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
+        {
+          icon: ClipboardList,
+          label: gardenTranslate(gardenLanguage, "quest.title"),
+          value: gardenHud?.questReadyCount > 0 ? gardenHud.questReadyCount : gardenTranslate(gardenLanguage, "quest.openShort"),
+          title: gardenTranslate(gardenLanguage, "quest.open"),
+          onClick: openGardenQuests,
+          active: (gardenHud?.questReadyCount || 0) > 0,
+        },
       ]
     : [
         { icon: Sparkles, label: t("common.gold"), value: formatCount(resources.gold || 0) },

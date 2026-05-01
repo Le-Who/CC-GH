@@ -176,6 +176,18 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
     isYardVisitorPoseStationary(options.visitorInfo, visit.pose || activity?.pose);
   const roam = stationary ? 0 : Number(activity?.roam || 0);
   const obstacles = Array.isArray(options.obstacles) ? options.obstacles : [];
+  const pinnedToAnchor = !!options.pinToAnchor || (stationary && options.pinStationary !== false);
+
+  if (pinnedToAnchor) {
+    return {
+      x: anchorX,
+      y: anchorY,
+      pose: visit.pose || activity?.pose || "sit",
+      phase: "active",
+      stationary: true,
+      pinned: true,
+    };
+  }
 
   if (progress < 0.18) {
     const local = progress / 0.18;
