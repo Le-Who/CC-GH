@@ -69,6 +69,7 @@ export function createGardenEconomyState(now = Date.now(), options = {}) {
     xpRequired: getGardenXpRequired(1),
     levelReady: false,
     shelvesUnlocked: 1,
+    claimedQuests: [],
     plants: options.starter ? [createGardenStarterPlant(now)] : [],
     passiveGoldBuffer: 0,
     passiveXpBuffer: 0,

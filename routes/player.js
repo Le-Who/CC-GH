@@ -232,6 +232,14 @@ function normalizeGardenName(value) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, 22);
 }
 
+function normalizeGardenClaimedQuests(raw = []) {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw
+    .map((id) => String(id || "").trim())
+    .filter((id) => /^[a-z0-9_-]{1,48}$/.test(id))
+  )].slice(0, 80);
+}
+
 function normalizeGardenPlant(raw = {}) {
   const id = String(raw.id || randomUUID()).slice(0, 80);
   const rawType = String(raw.type || "daisy").slice(0, 40);
@@ -272,6 +280,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
     xpRequired,
     levelReady: level < GARDEN_MAX_LEVEL && xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.min(GARDEN_MAX_SHELVES, Math.floor(finiteNumber(source.shelvesUnlocked, fallback.shelvesUnlocked)))),
+    claimedQuests: normalizeGardenClaimedQuests(source.claimedQuests),
     plants,
     passiveGoldBuffer: Math.max(0, Math.min(1, finiteNumber(source.passiveGoldBuffer, 0))),
     passiveXpBuffer: Math.max(0, Math.min(1, finiteNumber(source.passiveXpBuffer, 0))),

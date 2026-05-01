@@ -423,6 +423,7 @@ export default function MergeGame() {
             <div className="merge-action-strip">
               <PanelButton
                 icon={Zap}
+                className="merge-free-taps-button"
                 disabled={!canClaimFreeTaps}
                 onClick={() => performAction("merge.claimFreeTaps")}
                 title={t("merge.dailyTapsHint")}

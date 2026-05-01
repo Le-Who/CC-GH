@@ -1,0 +1,104 @@
+.garden-level-up-button {
+  border-color: color-mix(in srgb, var(--amber) 78%, transparent) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--amber) 36%, white 12%), color-mix(in srgb, var(--amber) 26%, var(--glass-card-strong))) !important;
+  color: var(--garden-action-secondary-ink) !important;
+  box-shadow: 0 8px 18px rgba(245, 158, 11, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+}
+
+.garden-quest-trigger {
+  min-height: 44px;
+  max-width: min(48vw, 174px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--sky) 58%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06)),
+    color-mix(in srgb, var(--sky) 18%, var(--glass-card-strong));
+  color: var(--sky-ink);
+  font: 900 11px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  text-transform: uppercase;
+  box-shadow: 0 8px 18px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.garden-quest-trigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.garden-quest-trigger b {
+  min-width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--amber);
+  color: #3d2504;
+  font-size: 11px;
+}
+
+.garden-quest-trigger.ready {
+  border-color: color-mix(in srgb, var(--amber) 72%, transparent);
+  color: var(--garden-action-secondary-ink);
+}
+
+.garden-quest-card {
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05)),
+    var(--glass-card);
+  color: var(--ink);
+}
+
+.garden-quest-card h3 {
+  margin: 0 0 4px;
+  font-size: 0.82rem;
+  font-weight: 1000;
+  letter-spacing: 0;
+}
+
+.garden-quest-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.garden-quest-reward {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--amber) 44%, transparent);
+  background: color-mix(in srgb, var(--amber) 16%, var(--glass-card-strong));
+  color: var(--garden-action-secondary-ink);
+  font: 900 11px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.garden-quest-progress {
+  height: 6px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+
+.garden-quest-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--sky), var(--leaf), var(--amber));
+}
+
+.garden-quest-claimable {
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.18);
+}

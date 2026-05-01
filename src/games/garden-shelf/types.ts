@@ -24,6 +24,7 @@ export interface GameState {
   xpRequired: number;
   levelReady: boolean;
   shelvesUnlocked: number;
+  claimedQuests: string[];
   plants: PlantData[];
   passiveGoldBuffer: number;
   passiveXpBuffer: number;

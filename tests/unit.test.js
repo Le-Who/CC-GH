@@ -40,12 +40,14 @@ import {
   createGardenEconomyState,
   getGardenLevelReward,
   getGardenXpRequired,
+  clampYardPointToPlayzone,
   MERGE_CHAINS,
   MERGE_EXCHANGE_OFFERS,
   MERGE_GENERATOR_CHAIN_IDS,
   MERGE_WILD_GENERATOR_ID,
   calculateMergeEssenceReward,
   getYardGoodieActivities,
+  isYardPointInPlayzone,
   isYardGoodieBlocking,
   isYardGoodieLayable,
   isYardVisitorPoseStationary,
@@ -208,6 +210,28 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(result.body.snapshot.garden.offlineXp, null);
     assert.equal(buildSnapshot(p).garden.xp, 120);
     assert.equal(buildSnapshot(p).garden.offlineEarnings, null);
+  });
+
+  it("persists claimed Garden Shelf quest ids without accepting malformed ids", async () => {
+    const p = createDefaultPlayer("garden-quest-sync", "Garden");
+
+    const result = await applyAction(p, "garden.sync", {
+      state: {
+        economyVersion: GARDEN_ECONOMY_VERSION,
+        level: 2,
+        xp: 0,
+        xpRequired: getGardenXpRequired(2),
+        levelReady: false,
+        shelvesUnlocked: 1,
+        plants: [],
+        claimedQuests: ["first_plant", "../bad"],
+        lastTick: 123456,
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.snapshot.garden.claimedQuests, ["first_plant"]);
+    assert.deepEqual(buildSnapshot(p).garden.claimedQuests, ["first_plant"]);
   });
 
   it("keeps Garden Shelf display denomination separate from stored economy units", () => {
@@ -832,6 +856,31 @@ describe("Cozy Yard player contracts", () => {
     });
 
     assert.equal(isPointInsideObstacle(moving, { x: 20, y: 40, width: 40, height: 20 }), false);
+  });
+
+  it("clamps Yard visitors and placements into the current background playzone", async () => {
+    assert.equal(isYardPointInPlayzone("meadow", 50, 8), false);
+    assert.equal(isYardPointInPlayzone("tea_house", 92, 52), false);
+    assert.equal(isYardPointInPlayzone("tea_house", 50, 70), true);
+
+    const clampedMeadow = clampYardPointToPlayzone("meadow", { x: 50, y: 8 });
+    assert.ok(isYardPointInPlayzone("meadow", clampedMeadow.x, clampedMeadow.y));
+    assert.ok(clampedMeadow.y > 18);
+
+    const clampedTea = clampYardPointToPlayzone("tea_house", { x: 92, y: 52 });
+    assert.ok(isYardPointInPlayzone("tea_house", clampedTea.x, clampedTea.y));
+
+    const p = createDefaultPlayer("yard-playzone-place", "Yard");
+    p.yard.remodel = "tea_house";
+    p.yard.ownedRemodels = ["meadow", "moon_garden", "tea_house"];
+    const placed = await applyAction(p, "yard.placeGoodie", {
+      goodieId: "yarn_mouse",
+      x: 92,
+      y: 52,
+    });
+
+    assert.equal(placed.status, 200);
+    assert.ok(isYardPointInPlayzone("tea_house", p.yard.placedGoodies[0].x, p.yard.placedGoodies[0].y));
   });
 
   it("buys, places, and picks up goodies through yard actions", async () => {

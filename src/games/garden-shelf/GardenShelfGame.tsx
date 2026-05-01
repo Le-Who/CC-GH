@@ -16,7 +16,10 @@ import type { GardenLanguage } from './lib/i18n';
 import { resolveGardenAssetPaths } from './lib/sprites';
 import type { GardenAssetPaths } from './lib/sprites';
 import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
-import { ArrowUpCircle, Coins } from 'lucide-react';
+import { formatGardenGoldAmount } from './constants';
+import type { GameState } from './types';
+import { ArrowUpCircle, CheckCircle2, ClipboardList, Coins, Gift, X } from 'lucide-react';
+import './garden-shelf.css';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
 
@@ -198,6 +201,172 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
   );
 }
 
+interface GardenQuestDefinition {
+  id: string;
+  reward: number;
+  titleKey: string;
+  bodyKey: string;
+  getProgress: (state: GameState) => { current: number; target: number };
+}
+
+const GARDEN_QUESTS: GardenQuestDefinition[] = [
+  {
+    id: 'first_plant',
+    reward: 12,
+    titleKey: 'quest.firstPlant.title',
+    bodyKey: 'quest.firstPlant.body',
+    getProgress: (state) => ({ current: Math.min(state.plants.length, 1), target: 1 }),
+  },
+  {
+    id: 'mature_plant',
+    reward: 25,
+    titleKey: 'quest.maturePlant.title',
+    bodyKey: 'quest.maturePlant.body',
+    getProgress: (state) => ({ current: state.plants.some((plant) => plant.phase === 3) ? 1 : 0, target: 1 }),
+  },
+  {
+    id: 'level_2',
+    reward: 40,
+    titleKey: 'quest.level2.title',
+    bodyKey: 'quest.level2.body',
+    getProgress: (state) => ({ current: Math.min(state.level, 2), target: 2 }),
+  },
+  {
+    id: 'filled_shelf',
+    reward: 60,
+    titleKey: 'quest.filledShelf.title',
+    bodyKey: 'quest.filledShelf.body',
+    getProgress: (state) => ({
+      current: Math.min(state.plants.filter((plant) => plant.shelfIndex >= 0 && plant.spotIndex >= 0).length, 3),
+      target: 3,
+    }),
+  },
+  {
+    id: 'second_shelf',
+    reward: 90,
+    titleKey: 'quest.secondShelf.title',
+    bodyKey: 'quest.secondShelf.body',
+    getProgress: (state) => ({ current: Math.min(state.shelvesUnlocked, 2), target: 2 }),
+  },
+];
+
+function GardenQuestButton() {
+  const { state, claimQuest } = useGame();
+  const { t } = useGardenI18n();
+  const [open, setOpen] = useState(false);
+  const quests = React.useMemo(() => GARDEN_QUESTS.map((quest) => {
+    const progress = quest.getProgress(state);
+    const current = Math.max(0, Math.min(progress.target, Math.floor(progress.current)));
+    const target = Math.max(1, Math.floor(progress.target));
+    const claimed = state.claimedQuests.includes(quest.id);
+    return {
+      ...quest,
+      current,
+      target,
+      complete: current >= target,
+      claimed,
+      percent: Math.max(6, Math.min(100, (current / target) * 100)),
+    };
+  }), [state]);
+  const readyCount = quests.filter((quest) => quest.complete && !quest.claimed).length;
+
+  return (
+    <>
+      <button
+        type="button"
+        className={cn("garden-quest-trigger absolute left-3 top-3 z-[140]", readyCount > 0 && "ready")}
+        aria-label={t('quest.open')}
+        onClick={() => setOpen(true)}
+      >
+        <ClipboardList size={18} />
+        <span>{t('quest.open')}</span>
+        {readyCount > 0 && <b>{readyCount}</b>}
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.button
+              type="button"
+              aria-label={t('settings.close')}
+              className="glass-scrim absolute inset-0 z-[180]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              className="garden-glass-menu absolute left-1/2 top-16 z-[190] max-h-[calc(100%-88px)] w-[calc(100%-24px)] max-w-[380px] -translate-x-1/2 overflow-auto border p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('quest.title')}
+              initial={{ opacity: 0, y: -10, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.96 }}
+              transition={{ duration: 0.16 }}
+            >
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">{t('quest.title')}</h2>
+                  <p className="mt-1 text-xs text-[color:var(--muted)]">{t('quest.subtitle')}</p>
+                </div>
+                <button
+                  type="button"
+                  className="garden-icon-button shrink-0"
+                  onClick={() => setOpen(false)}
+                  aria-label={t('settings.close')}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {quests.map((quest) => {
+                  const canClaim = quest.complete && !quest.claimed;
+                  return (
+                    <article key={quest.id} className="garden-quest-card">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3>{t(quest.titleKey)}</h3>
+                          <p>{t(quest.bodyKey)}</p>
+                        </div>
+                        <div className="garden-quest-reward">
+                          <Coins size={14} />
+                          {formatGardenGoldAmount(quest.reward)}
+                        </div>
+                      </div>
+                      <div className="garden-quest-progress" aria-label={t('quest.progress', { current: quest.current, target: quest.target })}>
+                        <span style={{ width: `${quest.percent}%` }} />
+                      </div>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="font-mono text-[11px] text-[color:var(--muted)]">
+                          {t('quest.progress', { current: quest.current, target: quest.target })}
+                        </span>
+                        <button
+                          type="button"
+                          className={cn(
+                            "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
+                            canClaim ? "secondary garden-quest-claimable" : "disabled",
+                          )}
+                          disabled={!canClaim}
+                          onClick={() => claimQuest(quest.id, quest.reward)}
+                        >
+                          {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
+                          {quest.claimed ? t('quest.claimed') : t('quest.claim')}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 function GardenProgress() {
   const { state, levelUp } = useGame();
   const { t } = useGardenI18n();
@@ -219,7 +388,7 @@ function GardenProgress() {
           <button
             type="button"
             onClick={levelUp}
-            className="garden-action-button secondary min-h-[38px] shrink-0 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]"
+            className="garden-action-button secondary garden-level-up-button min-h-[38px] shrink-0 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]"
           >
             <ArrowUpCircle size={14} />
             {t('level.up')}
@@ -234,6 +403,64 @@ function GardenProgress() {
         />
       </div>
     </div>
+  );
+}
+
+function LevelUpRewardModal() {
+  const lastResult = useGameHub((state) => state.lastResult);
+  const { t } = useGardenI18n();
+  const [notice, setNotice] = useState<{ reward: number; level: number } | null>(null);
+  const seenResultRef = React.useRef<unknown>(null);
+
+  React.useEffect(() => {
+    if (!lastResult || lastResult === seenResultRef.current) return;
+    seenResultRef.current = lastResult;
+    if (lastResult.action !== 'garden.levelUp' || lastResult.error) return;
+    const reward = Math.max(0, Math.floor(Number(lastResult.reward) || 0));
+    if (!reward) return;
+    const level = Math.max(1, Math.floor(Number(lastResult.garden?.level || lastResult.snapshot?.garden?.level) || 1));
+    setNotice({ reward, level });
+  }, [lastResult]);
+
+  return (
+    <AnimatePresence>
+      {notice && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="glass-scrim fixed inset-0 z-50 flex flex-col items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+            animate={{ scale: 1, y: 0, opacity: 1 }}
+            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            className="garden-modal-card relative flex w-full max-w-sm flex-col items-center overflow-hidden p-8 text-center"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('level.rewardTitle')}
+          >
+            <div className="relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[color:var(--glass-border-soft)] bg-[color:var(--glass-card)]">
+              <ArrowUpCircle className="h-8 w-8 text-amber-400" strokeWidth={1.5} />
+            </div>
+            <h2 className="relative z-10 mb-2 text-xl font-black uppercase tracking-[0.1em]">{t('level.rewardTitle')}</h2>
+            <p className="relative z-10 mb-8 text-sm text-[color:var(--muted)]">{t('level.rewardBody', { level: notice.level })}</p>
+            <div className="garden-card-row relative z-10 mb-8 flex items-center gap-2 rounded-lg px-6 py-3">
+              <Coins className="h-6 w-6 fill-amber-500/50 text-amber-400" />
+              <span className="font-mono text-3xl text-[color:var(--ink)]">{formatGardenGoldAmount(notice.reward)}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNotice(null)}
+              className="garden-action-button secondary relative z-10 w-full py-4 font-mono text-sm uppercase tracking-[0.12em] transition-colors"
+            >
+              {t('offline.collect')}
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -277,7 +504,9 @@ function GameContent() {
 
         <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
         <GardenSign assetPaths={assetPaths} />
+        <GardenQuestButton />
         <GardenSettingsButton assetPaths={assetPaths} />
+        <GardenProgress />
 
         {/* The Glass Dome Container */}
         <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">
@@ -358,7 +587,7 @@ export default function App() {
       {
         silent: true,
         feedback: false,
-        key: `garden.levelUp.${Date.now()}`,
+        key: 'garden.levelUp',
         timeoutMs: 12000,
       },
     ),
@@ -378,6 +607,7 @@ export default function App() {
       <GardenI18nProvider>
         <GameContent />
         <OfflineWelcome />
+        <LevelUpRewardModal />
       </GardenI18nProvider>
     </GameProvider>
   );

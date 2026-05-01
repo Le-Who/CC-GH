@@ -4,6 +4,7 @@ import {
   YARD_GOODIES,
   YARD_REMODELS,
   YARD_VISITORS,
+  clampYardPointToPlayzone,
   getYardGoodieActivities,
   getUnlockedYardSlots,
 } from "../../../game-logic.js";
@@ -289,19 +290,22 @@ export default function CompanionYardGame() {
         const motion = getVisitorMotion(visit, getPlacedPosition(placed, slotMap), activity, renderNow, {
           visitorInfo,
           obstacles: obstacleRects.filter((obstacle) => obstacle.slotId !== placed.slotId),
+          playzoneId: yard.remodel || "meadow",
+          playzoneMargin: 1,
         });
+        const layer = activity.kind === "lie" ? "front" : activity.layer || visit.activityLayer || "front";
         return {
           visit,
           visitorInfo,
           activity,
           motion,
-          layer: activity.layer || visit.activityLayer || "front",
+          layer,
           zIndex: Math.round(motion.y * 10),
         };
       })
       .filter(Boolean)
       .sort((a, b) => a.motion.y - b.motion.y)
-  ), [yard.activeVisitors, placedBySlot, slotMap, goodies, visitors, renderNow, obstacleRects]);
+  ), [yard.activeVisitors, yard.remodel, placedBySlot, slotMap, goodies, visitors, renderNow, obstacleRects]);
 
   const selectedVisit = useMemo(() => (
     (yard.activeVisitors || []).find((visit) => visit.visitId === selectedVisitId) || null
@@ -340,10 +344,12 @@ export default function CompanionYardGame() {
     const rect = stageRef.current?.getBoundingClientRect();
     if (!rect?.width || !rect?.height) return null;
     return {
-      x: clamp(((event.clientX - rect.left) / rect.width) * 100, 8, 92),
-      y: clamp(((event.clientY - rect.top) / rect.height) * 100, 12, 90),
+      ...clampYardPointToPlayzone(yard.remodel || "meadow", {
+        x: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
+        y: clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100),
+      }, { margin: 1 }),
     };
-  }, []);
+  }, [yard.remodel]);
 
   const isPlacementSurfaceEvent = useCallback((event) => {
     if (!(event.target instanceof Element)) return false;
@@ -358,18 +364,19 @@ export default function CompanionYardGame() {
   }, [placementDraft, stagePointFromEvent]);
 
   const startPlaceGoodie = useCallback((goodieId) => {
+    const start = clampYardPointToPlayzone(yard.remodel || "meadow", { x: 50, y: 70 }, { margin: 1 });
     setActiveScreen(null);
     setSelectedVisitId(null);
     setPlacementDraft({
       mode: "place",
       goodieId,
-      x: 50,
-      y: 70,
+      x: start.x,
+      y: start.y,
     });
-  }, []);
+  }, [yard.remodel]);
 
   const startMoveGoodie = useCallback((placed) => {
-    const point = getPlacedPosition(placed, slotMap);
+    const point = clampYardPointToPlayzone(yard.remodel || "meadow", getPlacedPosition(placed, slotMap), { margin: 1 });
     setActiveScreen(null);
     setSelectedVisitId(null);
     setPlacementDraft({
@@ -379,7 +386,7 @@ export default function CompanionYardGame() {
       x: point.x,
       y: point.y,
     });
-  }, [slotMap]);
+  }, [slotMap, yard.remodel]);
 
   const cancelPlacement = useCallback(() => {
     audioManager.play("tap");

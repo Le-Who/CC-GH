@@ -132,7 +132,7 @@
 }
 
 .yard-pet-layer-front {
-  z-index: 3;
+  z-index: 4;
 }
 
 .yard-slot {
@@ -734,11 +734,11 @@
   left: max(10px, env(safe-area-inset-left, 0px));
   right: max(10px, env(safe-area-inset-right, 0px));
   bottom: max(10px, calc(var(--safe-bottom) + 10px));
-  min-height: 76px;
+  min-height: 66px;
   display: grid;
-  grid-template-columns: repeat(6, minmax(48px, 1fr));
-  gap: 6px;
-  padding: 8px;
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+  gap: 4px;
+  padding: 5px;
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
   background: var(--yard-hud-cream-strong);
@@ -748,13 +748,13 @@
 .yard-icon-button {
   position: relative;
   min-width: 0;
-  min-height: 58px;
+  min-height: 52px;
   border: 1px solid rgba(142, 113, 63, 0.28);
   border-radius: 8px;
   display: grid;
   place-items: center;
   gap: 1px;
-  padding: 4px;
+  padding: 2px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.52), rgba(255, 244, 213, 0.18)),
     rgba(255, 249, 232, 0.9);
@@ -765,19 +765,19 @@
 }
 
 .yard-icon-button.compact {
-  width: 56px;
-  height: 56px;
-  min-height: 56px;
+  width: 50px;
+  height: 50px;
+  min-height: 50px;
 }
 
 .yard-icon-button .yard-hud-icon {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
 }
 
 .yard-icon-button.compact .yard-hud-icon {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
 }
 
 .yard-icon-button.active {
@@ -1193,30 +1193,30 @@
   }
 
   .yard-icon-button.compact {
-    width: 52px;
-    height: 52px;
-    min-height: 52px;
+    width: 50px;
+    height: 50px;
+    min-height: 50px;
   }
 
   .yard-icon-button.compact .yard-hud-icon {
-    width: 40px;
-    height: 40px;
+    width: 46px;
+    height: 46px;
   }
 
   .yard-bottom-dock {
-    min-height: 72px;
+    min-height: 64px;
     gap: 4px;
-    padding: 6px;
+    padding: 5px;
   }
 
   .yard-icon-button {
-    min-height: 56px;
-    padding: 3px;
+    min-height: 52px;
+    padding: 2px;
   }
 
   .yard-icon-button .yard-hud-icon {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
   }
 
   .yard-icon-label {
@@ -1281,24 +1281,24 @@
   }
 
   .yard-icon-button.compact {
-    width: 50px;
-    height: 50px;
-    min-height: 50px;
+    width: 48px;
+    height: 48px;
+    min-height: 48px;
   }
 
   .yard-icon-button.compact .yard-hud-icon {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
 
   .yard-bottom-dock {
-    min-height: 72px;
-    grid-template-columns: repeat(6, minmax(48px, 1fr));
+    min-height: 62px;
+    grid-template-columns: repeat(6, minmax(44px, 1fr));
   }
 
   .yard-icon-button .yard-hud-icon {
-    width: 40px;
-    height: 40px;
+    width: 46px;
+    height: 46px;
   }
 
   .yard-icon-label {

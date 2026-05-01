@@ -12,6 +12,7 @@ import {
   Sun,
   Volume2,
   VolumeX,
+  X,
   Zap,
 } from "lucide-react";
 import { getPublicConfig } from "./services/apiClient.js";
@@ -106,6 +107,7 @@ export default function App() {
   const [config, setConfig] = useState(null);
   const [gardenLanguage, setGardenLanguage] = useState(() => getStoredGardenLanguage());
   const [uiTheme, setUiTheme] = useState(() => readStoredUiTheme());
+  const [profileOpen, setProfileOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
@@ -188,6 +190,9 @@ export default function App() {
   const gardenLevel = Number(gardenHud?.level) || 1;
   const gardenCanLevelUp = gardenLevel < gardenMaxLevel
     && (!!gardenHud?.levelReady || gardenXp >= gardenXpRequired);
+  const profileName = user?.username || user?.firstName || user?.first_name || t("app.player");
+  const profileRuntime = config?.telegramBotUsername ? `@${config.telegramBotUsername}` : t("app.runtime");
+  const profileInitial = (user?.firstName || user?.first_name || user?.username || "G").slice(0, 1);
   const stats = activeTab === "garden"
     ? [
         { icon: Sparkles, label: gardenTranslate(gardenLanguage, "hud.gold"), value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)) },
@@ -199,7 +204,7 @@ export default function App() {
           active: gardenCanLevelUp,
           title: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
           onClick: gardenCanLevelUp
-            ? () => performAction("garden.levelUp", {}, { key: `garden.levelUp.${Date.now()}`, silent: true, feedback: false, timeoutMs: 12000 })
+            ? () => performAction("garden.levelUp", {}, { key: "garden.levelUp", silent: true, feedback: false, timeoutMs: 12000 })
             : null,
         },
         { icon: PackageOpen, label: gardenTranslate(gardenLanguage, "hud.plants"), value: `${gardenHud?.plants ?? 0}/${gardenHud?.slots ?? 3}` },
@@ -222,6 +227,15 @@ export default function App() {
             <h1>{t("app.title")}</h1>
           </div>
           <div className="topbar-actions">
+            <button
+              type="button"
+              className="profile-avatar-button"
+              aria-label={t("app.player")}
+              title={profileName}
+              onClick={() => setProfileOpen(true)}
+            >
+              {profileInitial}
+            </button>
             <ThemeToggle theme={uiTheme} onToggle={toggleUiTheme} />
             {activeTab !== "garden" && <AudioToggle />}
             <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
@@ -229,13 +243,43 @@ export default function App() {
             </button>
           </div>
         </header>
-        <section className="profile-strip">
-          <div className="avatar">{(user?.firstName || user?.first_name || user?.username || "G").slice(0, 1)}</div>
-          <div>
-            <strong>{user?.username || user?.firstName || user?.first_name || t("app.player")}</strong>
-            <span>{config?.telegramBotUsername ? `@${config.telegramBotUsername}` : t("app.runtime")}</span>
-          </div>
-        </section>
+        <AnimatePresence>
+          {profileOpen && (
+            <motion.section
+              className="profile-popover"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("app.player")}
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reduceMotion ? 0.01 : 0.16 }}
+            >
+              <button type="button" className="profile-popover-scrim" aria-label={t("common.close")} onClick={() => setProfileOpen(false)} />
+              <motion.div
+                className="profile-popover-card"
+                initial={reduceMotion ? false : { opacity: 0, y: -8, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                transition={{ duration: reduceMotion ? 0.01 : 0.18, ease: "easeOut" }}
+              >
+                <button type="button" className="profile-popover-close" aria-label={t("common.close")} onClick={() => setProfileOpen(false)}>
+                  <X size={18} />
+                </button>
+                <div className="profile-popover-avatar">{profileInitial}</div>
+                <div className="profile-popover-copy">
+                  <strong>{profileName}</strong>
+                  <span>{profileRuntime}</span>
+                </div>
+                <div className="profile-popover-stats">
+                  <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
+                  <span>{t("common.energy")}<b>{energy.current ?? 0}/{energy.max ?? 0}</b></span>
+                  <span>{t("common.tokens")}<b>{resources.gachaTokens || 0}</b></span>
+                </div>
+              </motion.div>
+            </motion.section>
+          )}
+        </AnimatePresence>
         <section className="stats-row">
           {stats.map((item) => (
             <Stat

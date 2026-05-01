@@ -156,12 +156,13 @@ select:focus {
 }
 
 .telegram-app {
+  position: relative;
   width: min(100vw, 1180px);
   height: min(100dvh, var(--tg-viewport-stable-height, 100dvh));
   margin: 0 auto;
   padding: calc(12px + var(--safe-top)) 14px calc(88px + var(--safe-bottom));
   display: grid;
-  grid-template-rows: auto auto auto auto 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 12px;
   overflow: hidden;
 }
@@ -197,6 +198,130 @@ select:focus {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.profile-avatar-button,
+.profile-popover-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--amber), var(--coral));
+  color: var(--navy);
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.profile-avatar-button {
+  border: 1px solid color-mix(in srgb, var(--amber) 58%, var(--glass-border));
+  box-shadow: 0 10px 24px rgba(220, 122, 133, 0.18);
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+}
+
+.profile-avatar-button:hover,
+.profile-avatar-button:focus-visible {
+  transform: translateY(-1px);
+  filter: saturate(1.05);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 22%, transparent), 0 14px 30px rgba(220, 122, 133, 0.22);
+  outline: none;
+}
+
+.profile-popover {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.profile-popover-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.profile-popover-card {
+  position: absolute;
+  top: calc(72px + var(--safe-top));
+  right: 14px;
+  width: min(320px, calc(100% - 28px));
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow-strong);
+  color: var(--ink);
+  pointer-events: auto;
+}
+
+.profile-popover-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.profile-popover-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.profile-popover-copy strong,
+.profile-popover-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-popover-copy span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.profile-popover-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.profile-popover-stats span {
+  min-width: 0;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  display: grid;
+  gap: 2px;
+  padding: 7px;
+  background: color-mix(in srgb, var(--glass-card-strong) 68%, var(--panel-2));
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.profile-popover-stats b {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eyebrow {
@@ -2485,7 +2610,7 @@ button.item-card {
 @media (max-width: 780px) {
   .telegram-app {
     width: min(100vw, 560px);
-    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
   }
 
   .game-layout,
@@ -2621,8 +2746,9 @@ button.item-card {
     gap: 9px;
   }
 
-  .profile-strip {
-    min-height: 50px;
+  .profile-avatar-button {
+    width: 44px;
+    height: 44px;
   }
 
   .stats-row,
@@ -2802,6 +2928,19 @@ button.item-card {
 
   .merge-action-strip .panel-button span {
     display: none;
+  }
+
+  .merge-action-strip .panel-button.merge-free-taps-button {
+    padding-inline: 4px;
+  }
+
+  .merge-action-strip .panel-button.merge-free-taps-button span {
+    display: inline;
+    max-width: 58px;
+    white-space: normal;
+    text-align: left;
+    font-size: 0.56rem;
+    line-height: 1.05;
   }
 }
 

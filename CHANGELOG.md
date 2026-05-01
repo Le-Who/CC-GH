@@ -4,6 +4,10 @@
 
 ### Client
 
+- Added Garden Shelf quests with one-time claimed state, localized quest copy, reward claiming, and a Level Up reward modal while keeping quest styling lazy-loaded with the Garden game chunk instead of the startup CSS bundle.
+- Added a compact profile popover in the Hub topbar and removed the always-visible profile strip so the main shell leaves more vertical room for live game surfaces.
+- Refined Gacha Merge mobile live controls so the free-tap claim remains readable in the bottom action strip, the Pixi canvas exposes measured board geometry for smoke tests, and Items/Recipes/Exchange drawers stay reachable during active play.
+- Constrained Cozy Yard placements and visitor motion to remodel-specific playzones for Morning Meadow, Moon Garden, and Tea House, preventing freely placed goodies or roaming pets from landing on non-playable background art.
 - Reworked Cozy Yard into a standalone mobile-style yard screen: all food, goodies, shop, petbook, album, gift, repair, remodel, expansion, daily letter, helper, camera, sound, and settings interactions now open as in-game HUD surfaces instead of below-stage menus.
 - Added Cozy Yard free goodie placement and movement with percent-based yard coordinates, a placement confirmation dock, migrated legacy slot fallbacks, and the new `yard.moveGoodie` mutation.
 - Added the Cozy Yard HUD sprite assets under `public/games/companion-yard/HUD.*` and wired the runtime controls to the PNG sheet.
@@ -53,6 +57,7 @@
 
 ### API
 
+- Preserved Garden Shelf `claimedQuests` through `garden.sync` with server-side id sanitization so claimed quest rewards stay shared across devices.
 - Added commit-success hooks to `withPlayerLock()` and moved Farm/resource analytics event inserts behind them so OCC retry losers cannot double-record side effects.
 - Extended `/api/health` with actual Redis availability, `player_stats_view` refresh state, and explicit process-local Brain Blitz duel-room scope/counts while preserving the legacy `postgres` and `redis` booleans.
 - Added optional `clientActionId` and `intentServerTime` metadata to `POST /api/player/mutate`, plus per-player idempotency receipts capped at 200 entries or 72 hours. Duplicate `clientActionId + action + payloadHash` requests replay the saved result metadata without repeating side effects, while the same id with a different payload returns a terminal conflict.
@@ -67,6 +72,7 @@
 
 ### Operations
 
+- Kept the production build guard inside the existing startup CSS budget by moving Garden-only quest/level-up styling into the lazy Garden Shelf CSS chunk instead of loosening `perf:guard:build`.
 - Optimized perf-guard hot paths without changing gameplay semantics: Bubbo pressure/shot traversal and normalization, Merge generator empty-cell selection, current-schema player migrations, snapshot achievement metadata, and runtime asset entry scanning now do less repeat allocation while keeping existing budgets intact.
 - Added per-entry runtime asset encoding so Cozy Yard keeps editable PNG source/fallback art while generated runtime Yard assets ship as compact WebP-only files under the existing build payload budgets.
 - Added an ordered SQL migration runner backed by `schema_migrations`, keeping `db.js` schema creation as a first-start compatibility fallback for legacy bootstrap objects.
@@ -81,6 +87,7 @@
 
 ### Tests
 
+- Added unit and Chromium Playwright coverage for Garden quest id persistence, duplicate-safe Garden Level Up requests, the Level Up reward modal, Merge mobile dock/readable free taps, exchange/drawer discovery updates, and Cozy Yard playzone clamping.
 - Verified the conservative perf loop with full Node tests plus `perf:guard:all`, covering Node, build-budget, and Chromium runtime guards without loosening budgets.
 - Added Cozy Yard unit and Playwright coverage for free-coordinate goodie placement, `yard.moveGoodie`, HUD-launched in-game screens, and mobile placement confirmation.
 - Added asset-pipeline coverage for WebP-only runtime entries and hardened the runtime asset browser smoke around Cozy Yard lazy loading.

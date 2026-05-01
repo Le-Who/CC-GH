@@ -69,6 +69,7 @@ interface GameContextType {
   waterPlant: (plantId: string) => void;
   tapPlant: (plantId: string) => void;
   levelUp: () => void;
+  claimQuest: (questId: string, reward: number) => void;
   renameGarden: (name: string) => void;
   movePlantToInventory: (plantId: string) => void;
   movePlantToShelf: (plantId: string, shelfIndex: number, spotIndex: number) => void;
@@ -88,6 +89,14 @@ function normalizeHubGold(value: number | undefined) {
 
 function normalizeGardenName(value: unknown) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 22);
+}
+
+function normalizeClaimedQuests(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value
+    .map((id) => String(id || '').trim())
+    .filter((id) => /^[a-z0-9_-]{1,48}$/.test(id))
+  )].slice(0, 80);
 }
 
 function withoutSharedGold(state: GameState): Omit<GameState, 'gold'> {
@@ -138,6 +147,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
     xpRequired,
     levelReady: level < LEVELS[LEVELS.length - 1].level && xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.floor(Number(source.shelvesUnlocked) || 1)),
+    claimedQuests: normalizeClaimedQuests(source.claimedQuests),
     passiveGoldBuffer: Math.max(0, Math.min(1, Number(source.passiveGoldBuffer) || 0)),
     passiveXpBuffer: Math.max(0, Math.min(1, Number(source.passiveXpBuffer) || 0)),
     lastTick: Math.max(0, Math.floor(Number(source.lastTick) || Date.now())),
@@ -218,6 +228,8 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   const currentStateKeyRef = React.useRef(initialServerStateKey);
   const syncedEarnedRef = React.useRef(state.totalGoldEarned);
   const resetPendingRef = React.useRef(initialResetNeeded);
+  const levelUpPendingRef = React.useRef(false);
+  const questPendingRef = React.useRef(new Set<string>());
   const syncRef = React.useRef<{
     timer: number | null;
     lastAt: number;
@@ -493,14 +505,20 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   };
 
   const levelUp = async () => {
+    if (levelUpPendingRef.current) return;
     if (!state.levelReady || state.level >= LEVELS[LEVELS.length - 1].level) return;
+    levelUpPendingRef.current = true;
     if (onGardenLevelUp) {
-      const result = await onGardenLevelUp();
-      if (result?.error) return;
-      if (result?.garden) {
-        const next = normalizePersistedGardenState(result.garden, state.gold);
-        syncedEarnedRef.current = next.totalGoldEarned;
-        setState((prev) => ({ ...next, gold: prev.gold }));
+      try {
+        const result = await onGardenLevelUp();
+        if (result?.error) return;
+        if (result?.garden) {
+          const next = normalizePersistedGardenState(result.garden, state.gold);
+          syncedEarnedRef.current = next.totalGoldEarned;
+          setState((prev) => ({ ...next, gold: prev.gold }));
+        }
+      } finally {
+        levelUpPendingRef.current = false;
       }
       return;
     }
@@ -518,6 +536,28 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
         totalGoldEarned: prev.totalGoldEarned + reward,
       };
     });
+    levelUpPendingRef.current = false;
+  };
+
+  const claimQuest = async (questId: string, reward: number) => {
+    const safeQuestId = String(questId || '').trim();
+    const goldReward = Math.max(0, Math.floor(Number(reward) || 0));
+    if (!/^[a-z0-9_-]{1,48}$/.test(safeQuestId)) return;
+    if (questPendingRef.current.has(safeQuestId) || state.claimedQuests.includes(safeQuestId) || goldReward <= 0) return;
+    questPendingRef.current.add(safeQuestId);
+    try {
+      const result = await commitGoldDelta(goldReward, `quest:${safeQuestId}`);
+      if (result.error) return;
+      setState((prev) => {
+        if (prev.claimedQuests.includes(safeQuestId)) return prev;
+        return applyGardenRewards({
+          ...prev,
+          claimedQuests: [...prev.claimedQuests, safeQuestId],
+        }, { gold: goldReward });
+      });
+    } finally {
+      questPendingRef.current.delete(safeQuestId);
+    }
   };
 
   const buyPlant = async (type: keyof typeof PLANT_TYPES, shelfIndex: number, spotIndex: number) => {
@@ -683,6 +723,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
         waterPlant,
         tapPlant,
         levelUp,
+        claimQuest,
         renameGarden,
         movePlantToInventory,
         movePlantToShelf

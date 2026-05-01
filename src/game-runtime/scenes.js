@@ -2233,6 +2233,11 @@ export function buildMergeScene(app, initial = {}) {
     });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;
+    publishCanvasLayout(app, "merge", { top, left, size: width });
+    if (app.canvas?.dataset) {
+      app.canvas.dataset.mergeBoardCell = String(Math.round(cell * 100) / 100);
+      app.canvas.dataset.mergeBoardHeight = String(Math.round(height * 100) / 100);
+    }
     drawAlchemyTable(left, top, width, height, cell);
     root.addChild(
       new Graphics()
