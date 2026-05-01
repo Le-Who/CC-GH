@@ -15,7 +15,7 @@ CC-GH is a multi-game Telegram Mini App deployed as an isolated VPS Docker Compo
 | Cache / nonce / rate limit | Self-hosted Redis with in-memory fallbacks |
 | Edge proxy | Host-level Caddy on the VPS |
 | Package manager | pnpm 10.28.2 through Corepack |
-| Container runtime | Node 22 Alpine image |
+| Container runtime | Node 24 Alpine image |
 | Game asset helpers | Pixi Assets, GSAP, `@pixi/ui`, `@pixi/sound`, `pixi-filters`, `typed-signals`, and Spine Pixi v8 support libraries |
 
 ## Games
@@ -194,6 +194,7 @@ Playwright web-server runs with `NODE_ENV=test`, `DEV_AUTH_ENABLED=true`, and an
 Install and run:
 
 ```bash
+# Use Node 24 LTS.
 corepack enable
 corepack prepare pnpm@10.28.2 --activate
 pnpm install
