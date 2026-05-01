@@ -67,6 +67,22 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-01 Conservative Loop Follow-up
+
+The follow-up May 1, 2026 loop stopped by rule after three consecutive safe attempts were reverted or failed to reach the 3% keep threshold. No gameplay rules, budgets, or tests were loosened, and no code changes were kept.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-01-loop2-baseline-node-repeat3.json` passed 24/24 suites; slowest ratios were `yard.simulate-long-idle`, `merge.board-hydrate`, `assets.pipeline-entry-scan`, `bubbo.pressure-advance`, and `player.build-snapshot`.
+- Build: `artifacts/perf/2026-05-01-loop2-baseline-build-report.json` passed with startup JS `554,541B` raw / `182,514B` gzip and startup CSS `89,294B` raw / `16,473B` gzip.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Lazy boot imports for update manager and realtime client | startup JS `554,541B` raw | `551,675B` raw | Reverted; only about 0.5% raw JS reduction. |
+| 2 | `yard.simulate-long-idle` occupancy and visit-count reuse | p95 `0.428ms` | `0.608ms` | Reverted; focused p95 and p99 regressed. |
+| 3 | Dead startup CSS selector cleanup | startup CSS `89,294B` raw | `87,616B` raw | Reverted; about 1.9% raw CSS reduction, below the keep threshold. |
+
+Evidence artifacts were written under `artifacts/perf/2026-05-01-loop2-*.json`. The code tree returned to the baseline state before this documentation note.
+
 ### 2026-05-01 Conservative Loop
 
 The May 1, 2026 loop kept one build/CSS asset win and stopped before further likely changes crossed into gameplay/runtime semantics. No gameplay rules, budgets, or tests were loosened.
