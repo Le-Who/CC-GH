@@ -1,4 +1,5 @@
 import PixiGameHost from "./PixiGameHost.jsx";
+import { useAppI18n } from "../app/i18n.jsx";
 import {
   buildBloxScene,
   buildBubboScene,
@@ -16,9 +17,10 @@ const SCENE_BUILDERS = {
 };
 
 export default function LazyPixiSceneHost({ sceneKey, sceneState }) {
+  const { t } = useAppI18n();
   const buildScene = SCENE_BUILDERS[sceneKey];
   if (!buildScene) {
-    return <div className="loading-panel">Unknown game runtime</div>;
+    return <div className="loading-panel">{t("app.unknownGameRuntime")}</div>;
   }
   return <PixiGameHost sceneKey={sceneKey} buildScene={buildScene} sceneState={sceneState} />;
 }

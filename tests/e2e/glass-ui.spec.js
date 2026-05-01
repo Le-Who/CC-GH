@@ -52,6 +52,24 @@ test.describe("Glass UI rollout smoke", () => {
     });
   }
 
+  async function expectDarkUiSurface(locator, label) {
+    const samples = await locator.evaluate((node) => {
+      const style = window.getComputedStyle(node);
+      const raw = `${style.backgroundImage}, ${style.backgroundColor}`;
+      return [...raw.matchAll(/rgba?\(([^)]+)\)/g)]
+        .map((match) => {
+          const parts = match[1].split(/[\s,\/]+/).filter(Boolean).map(Number);
+          const [r, g, b] = parts;
+          const alpha = parts.length > 3 ? parts[3] : 1;
+          return { r, g, b, alpha };
+        })
+        .filter((color) => Number.isFinite(color.r) && Number.isFinite(color.g) && Number.isFinite(color.b) && color.alpha >= 0.5)
+        .map((color) => (color.r + color.g + color.b) / 3);
+    });
+    expect(samples.length, `${label} has high-alpha background colors`).toBeGreaterThan(0);
+    expect(Math.max(...samples), `${label} should not keep a light panel background in dark mode`).toBeLessThan(150);
+  }
+
   async function pauseAndCheck(page, label, testInfo, shellId = null) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
     const overlay = shellId
@@ -102,6 +120,15 @@ test.describe("Glass UI rollout smoke", () => {
         await expect(page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay:visible`)).toHaveCount(0);
       }
       await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
+      if (game.id === "merge") {
+        await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
+        await expectReadableGlass(page, page.locator(".merge-scene-drawer"), "Merge exchange drawer", testInfo);
+        await expectDarkUiSurface(page.locator(".merge-library-rail button").first(), "Merge library rail button");
+        await expectDarkUiSurface(page.locator(".merge-scene-drawer"), "Merge scene drawer");
+        await expectDarkUiSurface(page.locator(".merge-action-dock"), "Merge action dock");
+        await expectDarkUiSurface(page.locator(".merge-exchange-offer").first(), "Merge exchange offer");
+        await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
+      }
       await pauseAndCheck(page, game.label, testInfo, game.id);
       await exitToHub(page);
     }
@@ -116,10 +143,9 @@ test.describe("Glass UI rollout smoke", () => {
 
     await page.getByRole("button", { name: /Yard/ }).click();
     await page.waitForTimeout(260);
-    await expectReadableGlass(page, page.locator(".companion-yard-panel"), "Cozy Yard menu", testInfo);
-    await page.getByRole("button", { name: /^Play$/ }).click();
-    await expectReadableGlass(page, page.locator(".game-play-hud").last(), "Yard live HUD", testInfo);
-    await pauseAndCheck(page, "Yard", testInfo);
-    await exitToHub(page);
+    await expectReadableGlass(page, page.locator(".yard-currency-chip").first(), "Yard currency chip", testInfo);
+    await expectReadableGlass(page, page.locator(".yard-bottom-dock"), "Yard action dock", testInfo);
+    await page.getByRole("button", { name: "Settings" }).click();
+    await expectReadableGlass(page, page.locator(".yard-game-screen"), "Yard settings screen", testInfo);
   });
 });

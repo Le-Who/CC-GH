@@ -155,7 +155,7 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
                   onClick={() => setOpen(false)}
                   aria-label={t('settings.close')}
                 >
-                  x
+                  <X size={16} />
                 </button>
               </div>
 
@@ -296,7 +296,7 @@ function GardenQuestButton() {
               onClick={() => setOpen(false)}
             />
             <motion.div
-              className="garden-glass-menu absolute left-1/2 top-16 z-[190] max-h-[calc(100%-88px)] w-[calc(100%-24px)] max-w-[380px] -translate-x-1/2 overflow-auto border p-4"
+              className="garden-glass-menu absolute inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
               role="dialog"
               aria-modal="true"
               aria-label={t('quest.title')}
@@ -364,45 +364,6 @@ function GardenQuestButton() {
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-function GardenProgress() {
-  const { state, levelUp } = useGame();
-  const { t } = useGardenI18n();
-  const xpRequired = Math.max(1, state.xpRequired || 1);
-  const progress = Math.max(0, Math.min(100, (state.xp / xpRequired) * 100));
-
-  return (
-    <div className="garden-level-panel absolute left-1/2 top-[105px] z-[130] w-[min(88%,360px)] -translate-x-1/2 px-4 py-3">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[10px] font-black uppercase tracking-[0.14em] text-[color:var(--muted)]">
-            {t('level.progress')}
-          </div>
-          <div className="font-mono text-xs text-[color:var(--ink)]">
-            {Math.floor(state.xp)}/{xpRequired} XP
-          </div>
-        </div>
-        {state.levelReady && (
-          <button
-            type="button"
-            onClick={levelUp}
-            className="garden-action-button secondary garden-level-up-button min-h-[38px] shrink-0 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]"
-          >
-            <ArrowUpCircle size={14} />
-            {t('level.up')}
-            <Coins size={12} />
-          </button>
-        )}
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-[color:var(--line-soft)]">
-        <div
-          className="h-full rounded-full bg-[linear-gradient(90deg,var(--mint),var(--leaf),var(--amber))] transition-[width] duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -506,7 +467,6 @@ function GameContent() {
         <GardenSign assetPaths={assetPaths} />
         <GardenQuestButton />
         <GardenSettingsButton assetPaths={assetPaths} />
-        <GardenProgress />
 
         {/* The Glass Dome Container */}
         <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">

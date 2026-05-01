@@ -382,7 +382,7 @@ function PlantDetail({
             <>
               <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
               <span className="flex items-center gap-1 font-mono text-[color:var(--ink)]">
-                {formatGardenRate(production)} <small className="text-[10px] opacity-60">G/s</small>
+                {formatGardenRate(production)} <small className="text-[10px] opacity-60">{t('unit.goldPerSecond')}</small>
               </span>
             </>
           ) : (

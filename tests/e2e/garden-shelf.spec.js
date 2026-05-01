@@ -33,9 +33,21 @@ test.describe("Garden Shelf flow", () => {
     await expect(page.getByText("Garden Lv 1")).toBeVisible();
     await expect(page.locator(".stats-row")).toContainText("Garden XP");
     await expect(page.locator(".stats-row")).toContainText("Plants");
+    await expect(page.locator(".garden-level-panel")).toHaveCount(0);
     await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
     const goldStat = page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
     await expect(goldStat).toContainText("10,000");
+
+    await page.getByRole("button", { name: "Garden quests" }).click();
+    const questDialog = page.locator(".garden-glass-menu[role='dialog']").filter({ hasText: "Garden quests" });
+    await expect(questDialog).toBeVisible();
+    const questBox = await questDialog.boundingBox();
+    const viewport = page.viewportSize();
+    expect(questBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(questBox.x).toBeGreaterThanOrEqual(0);
+    expect(questBox.x + questBox.width).toBeLessThanOrEqual(viewport.width + 1);
+    await questDialog.getByRole("button", { name: "Close settings" }).click();
 
     await page.getByRole("button", { name: "+" }).first().click();
     const panel = page.locator(".fixed.bottom-0").last();

@@ -1,5 +1,6 @@
 import React from "react";
 import { GameLoadBoundary, preloadPixiSceneHost } from "./PixiScene.jsx";
+import { useAppI18n } from "./i18n.jsx";
 export const PIXI_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
 const gameLoaders = {
   garden: () => import("../games/garden-shelf/GardenShelfGame"),
@@ -18,10 +19,11 @@ export function preloadGameTab(tabId) {
   if (PIXI_TABS.has(tabId)) preloadPixiSceneHost();
 }
 export function ActiveGame({ activeTab }) {
+  const { t } = useAppI18n();
   const GameComponent = gameComponents[activeTab] || gameComponents.room;
   return (
     <GameLoadBoundary key={activeTab}>
-      <React.Suspense fallback={<div className="loading-panel">Loading game</div>}>
+      <React.Suspense fallback={<div className="loading-panel">{t("app.loadingGame")}</div>}>
         <GameComponent />
       </React.Suspense>
     </GameLoadBoundary>

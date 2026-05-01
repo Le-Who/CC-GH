@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Application } from "pixi.js";
+import { useAppI18n } from "../app/i18n.jsx";
 import { setGameGestureActive } from "../platform/telegram.js";
 import { warmPixiAssetBundle } from "./pixiAssetBundles.js";
 
@@ -13,6 +14,7 @@ function destroyPixiApp(app) {
 }
 
 export default function PixiGameHost({ sceneKey, buildScene, sceneState, className = "" }) {
+  const { t } = useAppI18n();
   const containerRef = useRef(null);
   const appRef = useRef(null);
   const sceneRef = useRef(null);
@@ -166,7 +168,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       onPointerCancel={endGesture}
       onLostPointerCapture={endGesture}
     >
-      {failed && <div className="pixi-fallback">Renderer unavailable</div>}
+      {failed && <div className="pixi-fallback">{t("app.rendererUnavailable")}</div>}
     </div>
   );
 }
