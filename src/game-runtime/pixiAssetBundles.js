@@ -20,7 +20,6 @@ function pixiBundleAssets(sceneKey, manifest) {
 }
 
 export function warmPixiAssetBundle(sceneKey) {
-  if (!GAME_ASSET_BUNDLES[sceneKey]?.length) return Promise.resolve();
   if (!warming.has(sceneKey)) {
     warming.set(sceneKey, loadRuntimeAssetManifest().then((manifest) => {
       const assets = pixiBundleAssets(sceneKey, manifest);

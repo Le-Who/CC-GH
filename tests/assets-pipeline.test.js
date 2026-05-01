@@ -184,6 +184,21 @@ describe("asset runtime pipeline", () => {
     assert.deepEqual(formatsByKey.get("icons.icon192"), ["webp"]);
   });
 
+  it("maps Alchemy Table runtime art into the Merge Pixi bundle", async () => {
+    const root = await makeTempRoot();
+    await writePixelPng(path.join(root, "public/games/gacha-merge/backgrounds/table.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/libraryRail.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/fx/essenceOrb.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/items/seed.png"));
+
+    const entriesByKey = new Map((await loadAssetPipelineEntries(root)).map((assetEntry) => [assetEntry.key, assetEntry]));
+
+    assert.equal(entriesByKey.get("gachaMerge.background.table")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.libraryRail")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.fx.essenceOrb")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.items.seed")?.bundle, "pixi.merge");
+  });
+
   it("reuses unchanged generated raster assets across clean builds", async () => {
     const root = await makeTempRoot();
     const entries = [

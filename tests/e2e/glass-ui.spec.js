@@ -87,7 +87,7 @@ test.describe("Glass UI rollout smoke", () => {
     const gameCases = [
       { id: "blox", tab: /Blox/, menuText: "Building Blox", start: /^Start$/, label: "Blox" },
       { id: "match3", tab: /Gems/, menuText: "Gem Crush", start: /^Start$/, label: "Match-3" },
-      { id: "merge", tab: /Merge/, menuText: "Gacha Merge", start: /^Play$/, label: "Merge" },
+      { id: "merge", tab: /Merge/, menuText: "Alchemy Table", label: "Merge" },
       { id: "bubbo", tab: /Bubbo/, menuText: "Bubbo Bubbo", start: /^Start$/, label: "Bubbo" },
     ];
 
@@ -95,8 +95,12 @@ test.describe("Glass UI rollout smoke", () => {
       await page.getByRole("button", { name: game.tab }).click();
       await expect(page.getByText(game.menuText)).toBeVisible();
       await page.waitForTimeout(260);
-      await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
-      await page.getByRole("button", { name: game.start }).click();
+      if (game.start) {
+        await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
+        await page.getByRole("button", { name: game.start }).click();
+      } else {
+        await expect(page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay:visible`)).toHaveCount(0);
+      }
       await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       await pauseAndCheck(page, game.label, testInfo, game.id);
       await exitToHub(page);

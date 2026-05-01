@@ -5,10 +5,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   MERGE_CHAINS,
+  MERGE_EXCHANGE_OFFERS,
   MERGE_GENERATOR_CHAIN_IDS,
   MERGE_RECIPES,
   MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
+  calculateMergeEssenceReward,
   getMergePairResult,
   normalizeMergeItem,
 } from "../game-logic.js";
@@ -31,6 +33,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       lastFreePull: 0,
       lastFreeTaps: 0,
       freeTapCharges: 0,
+      alchemyEssence: 0,
       trashMode: false,
       selectedFuel: {},
     });
@@ -391,6 +394,22 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(MERGE_GENERATOR_CHAIN_IDS.every((chainId) => MERGE_CHAINS[chainId]));
     });
 
+    it("publishes Essence exchange offers and server-side reward math", () => {
+      const treatsOffer = MERGE_EXCHANGE_OFFERS.find((offer) => offer.id === "yard_treats_small");
+      const shinyOffer = MERGE_EXCHANGE_OFFERS.find((offer) => offer.id === "yard_shiny_treat");
+
+      assert.ok(treatsOffer, "Treat exchange offer should exist");
+      assert.ok(shinyOffer, "Shiny Treat exchange offer should exist");
+      assert.equal(treatsOffer.targetGame, "yard");
+      assert.equal(shinyOffer.targetGame, "yard");
+      assert.ok(treatsOffer.cost > 0);
+      assert.ok(shinyOffer.cost > treatsOffer.cost);
+      assert.ok(treatsOffer.reward.treats > 0);
+      assert.ok(shinyOffer.reward.shinyTreats > 0);
+      assert.equal(calculateMergeEssenceReward({ chainId: "alchemy", level: 2 }, { recipeDiscovered: true }), 18);
+      assert.equal(calculateMergeEssenceReward({ chainId: "flora", level: 3 }, { recipeDiscovered: false }), 4);
+    });
+
     it("maps legacy persisted items into the new alchemy taxonomy", () => {
       assert.deepEqual(normalizeMergeItem({ id: "thread", chainId: "textile", level: 0 }), {
         id: "seed",
@@ -493,6 +512,12 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(mergeGame.includes("result.yardDrop"), "Merge feedback should use the current yardDrop field");
       assert.ok(mergeGame.includes("lastMergeReward"), "Merge HUD should expose the latest Yard reward");
       assert.ok(mergeGame.includes("merge-recipe-book"), "Merge menu should expose a compact recipe book");
+      assert.ok(mergeGame.includes("merge-library-rail"), "Merge should expose the library inside the active scene");
+      assert.ok(mergeGame.includes("merge-exchange-panel"), "Merge should expose the exchange shop inside the active scene");
+      assert.ok(mergeGame.includes("merge-essence-beaker"), "Merge should show crafted Essence progress in the active scene");
+      assert.ok(mergeGame.includes("merge.exchange"), "Merge exchange should use the authoritative action pipeline");
+      assert.ok(i18n.includes('"merge.alchemyTable"'), "Alchemy Table title should be localizable");
+      assert.ok(i18n.includes('"merge.essence"'), "Essence label should be localizable");
       assert.ok(!mergeGame.includes("result.roomDrop"), "Old Room-drop naming should not drive Merge rewards");
       assert.ok(i18n.includes('"merge.reward"'), "Merge reward status should be localizable");
     });

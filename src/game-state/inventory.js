@@ -46,6 +46,7 @@ export function normalizeInventory(snapshot = {}) {
     rewards: {
       gold: resources.gold ?? base.rewards?.gold ?? 0,
       gachaTokens: resources.gachaTokens ?? base.rewards?.gachaTokens ?? 0,
+      alchemyEssence: merge.alchemyEssence ?? base.rewards?.alchemyEssence ?? 0,
       energy: resources.energy ?? base.rewards?.energy ?? null,
     },
   };

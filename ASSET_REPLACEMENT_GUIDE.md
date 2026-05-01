@@ -140,38 +140,26 @@ Recommended image formats:
 
 Keep large backgrounds under roughly 500 KB each for Telegram mobile startup speed.
 
-## Gacha Merge Item Icons
+## Merge Alchemy Table Assets
 
-Gacha Merge supports per-item icon paths through:
-
-```text
-public/assets/manifest.json -> graphics.games.gachaMerge.items
-```
-
-Place files under:
+Merge supports manual override paths through:
 
 ```text
-public/assets/merge-items/
+public/assets/manifest.json -> graphics.games.gachaMerge
 ```
 
-Then set the matching item key, for example:
+Generated runtime assets can also be placed under:
 
-```json
-{
-  "graphics": {
-    "games": {
-      "gachaMerge": {
-        "items": {
-          "thread": "/assets/merge-items/thread.png",
-          "yarn": "/assets/merge-items/yarn.webp"
-        }
-      }
-    }
-  }
-}
+```text
+public/games/gacha-merge/backgrounds/table.png
+public/games/gacha-merge/ui/libraryRail.png
+public/games/gacha-merge/ui/exchangePanel.png
+public/games/gacha-merge/fx/essenceOrb.png
+public/games/gacha-merge/fx/recipeGlow.png
+public/games/gacha-merge/items/<live_item_id>.png
 ```
 
-If a path is empty, the Pixi scene uses the larger procedural icon fallback with a level badge. Keep item icons square, transparent, and readable at `48x48`. The manifest lists all live chains, including Textile, Wood, Earth, Storm, and Craft recipe results.
+The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`. If a path is empty or a runtime file is missing, the Pixi scene uses the procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; UI panels should be slice-friendly or safely scalable at mobile widths.
 
 ## Cozy Yard Assets
 

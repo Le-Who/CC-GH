@@ -167,21 +167,24 @@ test.describe("New-stack minigame smoke", () => {
     await exitToHub(page);
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.getByText("Gacha Merge")).toBeVisible();
+    await expect(page.getByText("Alchemy Table")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
-    await expect(page.locator(".game-menu-overlay:visible .generator-list")).toHaveCount(0);
-    await page.getByRole("button", { name: /^Play$/ }).click();
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-play-status .merge-stat-button").filter({ hasText: "Items" }).click();
-    await expect(page.locator(".game-menu-overlay:visible .merge-item-book")).toBeVisible();
+    await expect(page.locator(".merge-library-rail")).toBeVisible();
+    await page.locator(".merge-library-rail button").filter({ hasText: "Items" }).click();
+    await expect(page.locator(".merge-scene-drawer .merge-item-book")).toBeVisible();
     await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
-    await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Resume$/ }).click();
+    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-play-status .merge-stat-button").filter({ hasText: "Recipes" }).click();
-    await expect(page.locator(".game-menu-overlay:visible .merge-recipe-book")).toBeVisible();
+    await page.locator(".merge-library-rail button").filter({ hasText: "Recipe" }).click();
+    await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toBeVisible();
     await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
-    await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Resume$/ }).click();
+    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
+    await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
+    await expect(page.locator(".merge-scene-drawer .merge-exchange-list")).toBeVisible();
+    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
     await page.locator(".merge-action-strip button").filter({ hasText: /Claim \+/ }).click();
     await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
@@ -224,7 +227,7 @@ test.describe("New-stack minigame smoke", () => {
     await exitToHub(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
-    await expect(page.getByText("Cozy Yard")).toBeVisible();
+    await expect(page.locator(".companion-yard-stage, .companion-yard-layout").first()).toBeVisible();
     await expect(page.getByText("Room Inventory")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Petbook" })).toBeVisible();
     await page.getByRole("button", { name: "Daily letter" }).click();
@@ -247,13 +250,13 @@ test.describe("New-stack minigame smoke", () => {
     const pixiGames = [
       { tab: /Blox/, start: /^Start$/ },
       { tab: /Gems/, start: /^Start$/ },
-      { tab: /Merge/, start: /^Play$/ },
+      { tab: /Merge/, id: "merge" },
       { tab: /Bubbo/, start: /^Start$/, id: "bubbo", minHostHeight: 620 },
     ];
 
     for (const game of pixiGames) {
       await page.getByRole("button", { name: game.tab }).click();
-      await page.getByRole("button", { name: game.start }).click();
+      if (game.start) await page.getByRole("button", { name: game.start }).click();
       const host = page.locator(".active-game-frame .pixi-host").last();
       await expect(host).toBeVisible();
       await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
@@ -318,10 +321,9 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".bottom-tabs")).toBeVisible();
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await page.getByRole("button", { name: /^Play$/ }).click();
     overlay = await pauseActiveGame(page);
     await expect(overlay.locator('[data-pause-menu="merge"]')).toContainText("Merge matching items");
-    await expectCompactPauseMenu(overlay, 4);
+    await expectCompactPauseMenu(overlay, 3);
     await expect(overlay.getByRole("button", { name: /^Resume$/ }).first()).toBeVisible();
     await overlay.getByRole("button", { name: /^Resume$/ }).first().click();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);

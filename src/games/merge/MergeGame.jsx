@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
-import { Home, PackageOpen, Pause, Play, RotateCcw, Sparkles, Trash2, Zap } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BookOpen, Home, PackageOpen, Pause, Play, ShoppingBag, Sparkles, Trash2, X, Zap } from "lucide-react";
 import {
   CROPS,
   ECONOMY,
   MERGE_CHAINS,
+  MERGE_EXCHANGE_OFFERS,
   MERGE_RECIPES,
   MERGE_WILD_GENERATOR_ID,
   getMergeFreeTapClaim,
@@ -11,10 +12,11 @@ import {
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GameShell, PanelButton, PauseBrief, SectionTabs } from "../../app/shell.jsx";
+import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameHub } from "../../game-state/useGameHub.js";
+import { loadRuntimeAssetManifest, resolveAssetUrl } from "../../game-runtime/assetBundles.js";
 
 function translated(t, key, fallback) {
   const value = t(key);
@@ -41,6 +43,39 @@ function recipeResultItem(recipe) {
   return MERGE_CHAINS[recipe.result.chainId]?.items[recipe.result.level] || "";
 }
 
+function manualMergeAsset(manifest, section, id) {
+  return manifest?.graphics?.games?.gachaMerge?.[section]?.[id] || "";
+}
+
+function useMergeUiAssets() {
+  const [assets, setAssets] = useState({ libraryRail: "", exchangePanel: "" });
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      fetch("/assets/manifest.json", { cache: "no-cache" }).then((response) => (response.ok ? response.json() : null)).catch(() => null),
+      loadRuntimeAssetManifest().catch(() => null),
+    ]).then(([manualManifest, runtimeManifest]) => {
+      if (cancelled) return;
+      const asset = (section, id) => (
+        manualMergeAsset(manualManifest, section, id)
+        || resolveAssetUrl(`gachaMerge.${section}.${id}`, { runtimeManifest, legacyPath: "" })
+      );
+      setAssets({
+        libraryRail: asset("ui", "libraryRail"),
+        exchangePanel: asset("ui", "exchangePanel"),
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return assets;
+}
+
+function cssUrl(value) {
+  return value ? `url(${JSON.stringify(value)})` : undefined;
+}
+
 export default function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -52,13 +87,11 @@ export default function MergeGame() {
   const [selectedFuel, setSelectedFuel] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
-  const [menuTab, setMenuTab] = useState("overview");
-  const [mergePlaying, setMergePlaying] = useState(false);
+  const [activePanel, setActivePanel] = useState(null);
   const [paused, setPaused] = useState(false);
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const isPlaying = mergePlaying && !paused;
-  const activePause = mergePlaying && paused && !libraryOpen;
-  const browsingLibrary = mergePlaying && paused && libraryOpen;
+  const uiAssets = useMergeUiAssets();
+  const isPlaying = !paused;
+  const activePause = paused;
   useImmersiveGame("merge", true);
 
   const harvestedEntries = listPositive(inventory.harvested || {});
@@ -71,6 +104,16 @@ export default function MergeGame() {
   const tokenCount = inventory.rewards?.gachaTokens || 0;
   const now = snapshot?.serverTime || Date.now();
   const today = new Date(now).toISOString().slice(0, 10);
+  const alchemyEssence = Math.max(0, Math.floor(Number(merge.alchemyEssence) || 0));
+  const exchangeClaimsToday = merge.exchangeClaims?.[today] || {};
+  const visibleExchangeOffers = MERGE_EXCHANGE_OFFERS;
+  const nextEssenceGoal = visibleExchangeOffers
+    .filter((offer) => !offer.locked && offer.cost > 0)
+    .sort((left, right) => left.cost - right.cost)
+    .find((offer) => offer.cost > alchemyEssence)
+      || visibleExchangeOffers.filter((offer) => !offer.locked && offer.cost > 0).sort((left, right) => right.cost - left.cost)[0]
+      || null;
+  const essenceProgress = nextEssenceGoal ? Math.min(100, (alchemyEssence / nextEssenceGoal.cost) * 100) : 100;
   const canFreePull = new Date(merge.lastFreePull || 0).toISOString().slice(0, 10) !== today;
   const freeTapClaim = getMergeFreeTapClaim(merge, now);
   const canClaimFreeTaps = freeTapClaim.claimable > 0;
@@ -84,6 +127,9 @@ export default function MergeGame() {
       : t("merge.generatorHintEmpty");
   const lastMergeReward = lastResult?.action?.startsWith?.("merge.") && lastResult.reward?.type === "yardGoodie"
     ? lastResult.reward.goodieId
+    : null;
+  const lastEssenceReward = lastResult?.action === "merge.merge" && lastResult.essenceReward
+    ? lastResult.essenceReward
     : null;
   const discoveredRecipes = useMemo(() => {
     const ids = new Set(MERGE_RECIPES.filter((recipe) => recipe.discovered).map((recipe) => recipe.id));
@@ -106,26 +152,20 @@ export default function MergeGame() {
     return ids;
   }, [merge.discoveredItems, merge.itemCounts]);
   const recipeStats = `${discoveredRecipes.size}/${MERGE_RECIPES.length}`;
-  const openMenuTab = useCallback((tab) => {
-    setMenuTab(tab);
-    if (mergePlaying) {
-      setLibraryOpen(true);
-      setPaused(true);
-    }
-  }, [mergePlaying]);
+  const openScenePanel = useCallback((panel) => {
+    setActivePanel((current) => (current === panel ? null : panel));
+  }, []);
   const pauseMerge = useCallback(() => {
-    setLibraryOpen(false);
+    setActivePanel(null);
     setPaused(true);
   }, []);
   const resumeMerge = useCallback(() => {
-    setLibraryOpen(false);
     setPaused(false);
   }, []);
-  const stopMerge = useCallback(() => {
-    setLibraryOpen(false);
-    setPaused(false);
-    setMergePlaying(false);
-  }, []);
+  const closeScenePanel = useCallback(() => setActivePanel(null), []);
+  const exchangeOffer = useCallback((offerId) => (
+    performAction("merge.exchange", { offerId }, { key: `merge.exchange.${offerId}` })
+  ), [performAction]);
 
   const onMergeCell = useCallback(
     (r, c, item) => {
@@ -178,40 +218,161 @@ export default function MergeGame() {
   const sceneState = useMemo(
     () => ({
       merge,
+      mergeEssence: alchemyEssence,
       mergeSelected: selectedCell,
       trashMode,
       mergeLocked: !isPlaying,
       mergeStatusText: trashMode ? t("merge.statusTrash") : t("merge.statusMerge"),
       mergeMissText: t("merge.miss"),
+      mergePerfectText: t("merge.perfectReaction"),
       mergeLevelPrefix: t("farm.levelShort"),
-      mergeBottomReserve: 154,
+      mergeBottomReserve: 126,
       onMergeCell,
       onMergeDrop,
     }),
-    [isPlaying, merge, onMergeCell, onMergeDrop, selectedCell, trashMode, t],
+    [alchemyEssence, isPlaying, merge, onMergeCell, onMergeDrop, selectedCell, trashMode, t],
   );
+
+  const renderRecipeBook = () => (
+    <div className="merge-recipe-book">
+      <div className="panel-scroll merge-recipe-list">
+        {MERGE_RECIPES.map((recipe, index) => {
+          const known = discoveredRecipes.has(recipe.id);
+          const resultId = recipeResultItem(recipe);
+          return (
+            <div key={recipe.id} className={`merge-recipe-card${known ? "" : " locked"}`} title={known ? translated(t, `merge.recipe.${recipe.id}.hint`, recipe.hint) : t("merge.lockedRecipeHint")}>
+              <span className="merge-recipe-kicker">{known ? t("merge.knownRecipe") : t("merge.lockedRecipeNumber", { number: index + 1 })}</span>
+              <strong>{known ? translated(t, `merge.recipe.${recipe.id}.name`, recipe.name) : t("merge.unknownRecipe")}</strong>
+              <small>{known ? translated(t, `merge.recipe.${recipe.id}.hint`, recipe.hint) : t("merge.lockedRecipeHint")}</small>
+              <span className="merge-recipe-formula">
+                {known
+                  ? `${recipe.ingredients.map((id) => mergeItemLabel(id, t)).join(" + ")} -> ${mergeItemLabel(resultId, t)}`
+                  : t("merge.hiddenFormula")}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderItemBook = () => (
+    <div className="panel-scroll merge-item-book">
+      {Object.values(MERGE_CHAINS).map((chain) => (
+        <section key={chain.id} className="merge-item-chain">
+          <strong>{translated(t, `merge.chain.${chain.id}`, chain.name)}</strong>
+          <div>
+            {chain.items.map((itemId, level) => {
+              const known = discoveredItems.has(itemId);
+              const qty = merge.itemCounts?.[itemId] || 0;
+              return (
+                <span key={itemId} className={known ? "" : "locked"}>
+                  <b>{known ? `${chain.emoji[level]} ${mergeItemName(itemId, t)}` : t("merge.undiscoveredItem")}</b>
+                  <small>{known ? t("merge.itemCount", { count: qty }) : t("merge.itemHiddenLevel", { level: level + 1 })}</small>
+                </span>
+              );
+            })}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+
+  const renderExchangePanel = () => (
+    <div className="merge-exchange-list">
+      {visibleExchangeOffers.map((offer) => {
+        const used = Math.max(0, Math.floor(Number(exchangeClaimsToday[offer.id]) || 0));
+        const limit = Math.max(0, Math.floor(Number(offer.perDayLimit) || 0));
+        const limitReached = limit > 0 && used >= limit;
+        const canExchange = !offer.locked && !limitReached && alchemyEssence >= offer.cost;
+        const rewardLabel = offer.reward?.shinyTreats
+          ? t("yard.cost.shiny", { count: offer.reward.shinyTreats })
+          : offer.reward?.treats
+            ? t("yard.cost.treats", { count: offer.reward.treats })
+            : t("merge.exchange.futureReward");
+        return (
+          <button
+            key={offer.id}
+            type="button"
+            className={`merge-exchange-offer${offer.locked ? " locked" : ""}${canExchange ? " ready" : ""}`}
+            disabled={!canExchange}
+            onClick={() => exchangeOffer(offer.id)}
+          >
+            <span>
+              <strong>{translated(t, offer.labelKey, rewardLabel)}</strong>
+              <small>{translated(t, offer.descriptionKey, t("merge.exchange.defaultHint"))}</small>
+            </span>
+            <b>{offer.locked ? t("merge.exchange.locked") : t("merge.exchange.cost", { count: offer.cost })}</b>
+            {limit > 0 && <i>{t("merge.exchange.limit", { used, limit })}</i>}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const renderScenePanel = () => {
+    if (!activePanel) return null;
+    const title = activePanel === "recipes"
+      ? t("merge.recipeBook")
+      : activePanel === "items"
+        ? t("merge.itemBook")
+        : t("merge.exchange.title");
+    return (
+      <aside
+        className={`merge-scene-drawer ${activePanel === "exchange" ? "merge-exchange-panel" : "merge-library-panel"}`}
+        data-no-nav-swipe="true"
+        aria-label={title}
+        style={activePanel === "exchange" && uiAssets.exchangePanel ? { "--merge-drawer-art": cssUrl(uiAssets.exchangePanel) } : undefined}
+      >
+        <div className="merge-drawer-header">
+          <div>
+            <strong>{title}</strong>
+            <span>
+              {activePanel === "recipes"
+                ? t("merge.recipeProgress", { known: discoveredRecipes.size, total: MERGE_RECIPES.length })
+                : activePanel === "items"
+                  ? t("merge.itemsOnBoard", { count: itemTotal })
+                  : t("merge.exchange.balance", { count: alchemyEssence })}
+            </span>
+          </div>
+          <button type="button" className="merge-icon-button" onClick={closeScenePanel} aria-label={t("common.close")}>
+            <X size={18} />
+          </button>
+        </div>
+        {activePanel === "recipes" && renderRecipeBook()}
+        {activePanel === "items" && renderItemBook()}
+        {activePanel === "exchange" && renderExchangePanel()}
+      </aside>
+    );
+  };
 
   return (
     <GameShell
       gameId="merge"
-      phase={isPlaying ? "playing" : mergePlaying ? "paused" : "menu"}
+      phase={paused ? "paused" : "playing"}
       skin="meditation"
-      overlayClassName="merge-menu-overlay"
+      overlayClassName="merge-pause-overlay"
       hud={(
         <>
           <div className="game-play-hud merge-play-status">
             <div className="game-play-title">
-              <strong>{t("merge.title")}</strong>
+              <strong>{t("merge.alchemyTable")}</strong>
               <span>{generatorHint}</span>
             </div>
             <div className="game-play-stats">
-              <button type="button" className="merge-stat-button" onClick={() => openMenuTab("items")}>
+              <button type="button" className="merge-stat-button" onClick={() => openScenePanel("items")}>
                 {t("merge.items")} <strong>{itemTotal}</strong>
               </button>
-              <button type="button" className="merge-stat-button" onClick={() => openMenuTab("recipes")}>
+              <button type="button" className="merge-stat-button" onClick={() => openScenePanel("recipes")}>
                 {t("merge.recipes")} <strong>{recipeStats}</strong>
               </button>
+              <button type="button" className="merge-essence-beaker" onClick={() => openScenePanel("exchange")}>
+                <span>{t("merge.essence")}</span>
+                <strong>{alchemyEssence}</strong>
+                <i aria-hidden="true"><b style={{ transform: `scaleX(${essenceProgress / 100})` }} /></i>
+              </button>
               <span>{t("merge.mode")} <strong>{trashMode ? t("merge.modeTrash") : t("merge.modeMerge")}</strong></span>
+              {lastEssenceReward && <span>{t("merge.essenceGain")} <strong>+{lastEssenceReward}</strong></span>}
               {lastMergeReward && <span>{t("merge.reward")} <strong>{lastMergeReward}</strong></span>}
             </div>
             <div className="game-play-actions merge-hud-actions">
@@ -220,6 +381,24 @@ export default function MergeGame() {
               </PanelButton>
             </div>
           </div>
+          <div className="merge-library-rail" data-no-nav-swipe="true" style={uiAssets.libraryRail ? { "--merge-rail-art": cssUrl(uiAssets.libraryRail) } : undefined}>
+            <button type="button" className={activePanel === "recipes" ? "active" : ""} onClick={() => openScenePanel("recipes")}>
+              <BookOpen size={19} />
+              <span>{t("merge.recipeBook")}</span>
+              <b>{recipeStats}</b>
+            </button>
+            <button type="button" className={activePanel === "items" ? "active" : ""} onClick={() => openScenePanel("items")}>
+              <PackageOpen size={19} />
+              <span>{t("merge.itemBook")}</span>
+              <b>{itemTotal}</b>
+            </button>
+            <button type="button" className={activePanel === "exchange" ? "active" : ""} onClick={() => openScenePanel("exchange")}>
+              <ShoppingBag size={19} />
+              <span>{t("merge.exchange.short")}</span>
+              <b>{alchemyEssence}</b>
+            </button>
+          </div>
+          {renderScenePanel()}
           <div className="merge-action-dock" data-no-nav-swipe="true">
             <div className="merge-generator-dock">
               <label className="merge-fuel-field">
@@ -285,84 +464,10 @@ export default function MergeGame() {
         <>
           <div className="panel-header pause-panel-header">
             <div>
-              <strong>{t("merge.title")}</strong>
-              <span>{activePause ? t("pause.paused") : `${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${inventory.rewards?.gachaTokens || 0} ${t("common.tokens").toLowerCase()}`}</span>
+              <strong>{t("merge.alchemyTable")}</strong>
+              <span>{`${alchemyEssence} ${t("merge.essence").toLowerCase()} · ${merge.freeTapCharges || 0} ${t("merge.freeTaps")} · ${inventory.rewards?.gachaTokens || 0} ${t("common.tokens").toLowerCase()}`}</span>
             </div>
-            {!activePause && (
-              <PanelButton icon={Play} className="pause-primary" onClick={() => {
-                if (!mergePlaying) {
-                  setMergePlaying(true);
-                  setLibraryOpen(false);
-                  setPaused(false);
-                } else {
-                  resumeMerge();
-                }
-              }}>
-                {mergePlaying ? t("common.resume") : t("common.play")}
-              </PanelButton>
-            )}
           </div>
-          {!browsingLibrary && (
-            <PauseBrief
-              gameId="merge"
-              kicker={mergePlaying ? t("pause.paused") : t("pause.ready")}
-              title={mergePlaying ? t("pause.mergeFrozen") : t("pause.mergeReady")}
-              body={mergePlaying ? t("pause.mergeIntro") : t("pause.mergePlan")}
-              status={mergePlaying ? [
-                { label: t("merge.mode"), value: trashMode ? t("merge.modeTrash") : t("merge.modeMerge") },
-                { label: t("merge.free"), value: merge.freeTapCharges || 0 },
-                { label: t("merge.items"), value: itemTotal },
-                lastMergeReward ? { label: t("merge.reward"), value: lastMergeReward } : null,
-              ].filter(Boolean) : []}
-            />
-          )}
-          {!activePause && (
-            <div className="merge-menu-tabs">
-              <SectionTabs
-                tabs={[
-                  { id: "overview", label: t("merge.overview") },
-                  { id: "recipes", label: t("merge.recipeBook") },
-                  { id: "items", label: t("merge.itemBook") },
-                ]}
-                active={menuTab}
-                onChange={setMenuTab}
-              />
-            </div>
-          )}
-          {!activePause && menuTab === "overview" && (
-            <div className="merge-overview-grid">
-              <button type="button" className="merge-overview-card" onClick={() => setMenuTab("items")}>
-                <strong>{t("merge.items")}</strong>
-                <span>{t("merge.itemsOnBoard", { count: itemTotal })}</span>
-              </button>
-              <button type="button" className="merge-overview-card" onClick={() => setMenuTab("recipes")}>
-                <strong>{t("merge.recipes")}</strong>
-                <span>{t("merge.recipeProgress", { known: discoveredRecipes.size, total: MERGE_RECIPES.length })}</span>
-              </button>
-            </div>
-          )}
-          {!activePause && menuTab === "recipes" && (
-            <div className="merge-recipe-book">
-              <div className="panel-scroll merge-recipe-list">
-                {MERGE_RECIPES.map((recipe, index) => {
-                  const known = discoveredRecipes.has(recipe.id);
-                  const resultId = recipeResultItem(recipe);
-                  return (
-                    <div key={recipe.id} className={`merge-recipe-card${known ? "" : " locked"}`} title={known ? translated(t, `merge.recipe.${recipe.id}.hint`, recipe.hint) : t("merge.lockedRecipeHint")}>
-                      <span className="merge-recipe-kicker">{known ? t("merge.knownRecipe") : t("merge.lockedRecipeNumber", { number: index + 1 })}</span>
-                      <strong>{known ? translated(t, `merge.recipe.${recipe.id}.name`, recipe.name) : t("merge.unknownRecipe")}</strong>
-                      <small>{known ? translated(t, `merge.recipe.${recipe.id}.hint`, recipe.hint) : t("merge.lockedRecipeHint")}</small>
-                      <span className="merge-recipe-formula">
-                        {known
-                          ? `${recipe.ingredients.map((id) => mergeItemLabel(id, t)).join(" + ")} -> ${mergeItemLabel(resultId, t)}`
-                          : t("merge.hiddenFormula")}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
           {activePause && (
             <div className="pause-action-stack">
               <PanelButton icon={Play} className="pause-primary" onClick={resumeMerge}>{t("common.resume")}</PanelButton>
@@ -376,39 +481,22 @@ export default function MergeGame() {
                 >
                   {trashMode ? t("merge.trashOn") : t("merge.trashOff")}
                 </PanelButton>
-                <PanelButton icon={RotateCcw} subtle onClick={stopMerge}>{t("merge.stopPlay")}</PanelButton>
                 <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
             </div>
           )}
-          {!activePause && (
-            <>
-              <div className="button-row merge-start-actions">
-                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
-              </div>
-            </>
-          )}
-          {!activePause && menuTab === "items" && (
-            <div className="panel-scroll merge-item-book">
-              {Object.values(MERGE_CHAINS).map((chain) => (
-                <section key={chain.id} className="merge-item-chain">
-                  <strong>{translated(t, `merge.chain.${chain.id}`, chain.name)}</strong>
-                  <div>
-                    {chain.items.map((itemId, level) => {
-                      const known = discoveredItems.has(itemId);
-                      const qty = merge.itemCounts?.[itemId] || 0;
-                      return (
-                        <span key={itemId} className={known ? "" : "locked"}>
-                          <b>{known ? `${chain.emoji[level]} ${mergeItemName(itemId, t)}` : t("merge.undiscoveredItem")}</b>
-                          <small>{known ? t("merge.itemCount", { count: qty }) : t("merge.itemHiddenLevel", { level: level + 1 })}</small>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
+          <PauseBrief
+            gameId="merge"
+            kicker={t("pause.paused")}
+            title={t("pause.mergeFrozen")}
+            body={t("pause.mergeIntro")}
+            status={[
+              { label: t("merge.mode"), value: trashMode ? t("merge.modeTrash") : t("merge.modeMerge") },
+              { label: t("merge.essence"), value: alchemyEssence },
+              { label: t("merge.items"), value: itemTotal },
+              lastMergeReward ? { label: t("merge.reward"), value: lastMergeReward } : null,
+            ].filter(Boolean)}
+          />
         </>
       )}
     >

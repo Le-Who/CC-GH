@@ -133,6 +133,8 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       ),
       generators: [MERGE_START_CHAIN_ID], // Unlocked generator chain IDs
       inventory: [], // Unplaced items from gacha
+      alchemyEssence: 0,
+      exchangeClaims: {},
       discoveredItems: getStarterMergeItemIds(),
       discoveredRecipes: getStarterMergeRecipeIds(),
       lastFreePull: 0, // Timestamp of last daily free pull

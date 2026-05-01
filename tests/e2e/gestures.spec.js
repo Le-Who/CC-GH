@@ -257,7 +257,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const pageErrors = await boot(page, "merge_drag");
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.getByText("Gacha Merge")).toBeVisible();
+    await expect(page.getByText("Alchemy Table")).toBeVisible();
     await canvasIsNonBlank(page);
 
     const host = page.locator(".pixi-host");
@@ -265,7 +265,6 @@ test.describe("Pixi touch and drag interactions", () => {
     const touchAction = await host.evaluate((node) => getComputedStyle(node).touchAction);
     expect(touchAction).toBe("none");
 
-    await page.getByRole("button", { name: /^Play$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
     await page.locator(".merge-action-strip button").filter({ hasText: /Claim \+/ }).click();
     await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();

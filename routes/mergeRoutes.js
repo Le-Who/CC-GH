@@ -16,13 +16,16 @@ import {
   BOARD_COLS,
   CROPS,
   CROP_TIERS,
+  calculateMergeEssenceReward,
   getMergePairResult,
   getStarterMergeItemIds,
   getStarterMergeRecipeIds,
   isMergeGeneratorChain,
+  MERGE_EXCHANGE_OFFERS,
   MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
   normalizeMergeChainId,
+  normalizeYardState,
   pickMergeDropChainId,
   TIER_YIELD,
 } from "../game-logic.js";
@@ -53,6 +56,8 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     if (p.merge.lastFreePull == null) p.merge.lastFreePull = 0;
     if (p.merge.lastFreeTaps == null) p.merge.lastFreeTaps = 0;
     if (p.merge.freeTapCharges == null) p.merge.freeTapCharges = 0;
+    p.merge.alchemyEssence = Math.max(0, Math.floor(Number(p.merge.alchemyEssence) || 0));
+    p.merge.exchangeClaims = normalizeMergeExchangeClaims(p.merge.exchangeClaims);
     const starterRecipes = getStarterMergeRecipeIds();
     const discoveredRecipes = Array.isArray(p.merge.discoveredRecipes) ? p.merge.discoveredRecipes : starterRecipes;
     p.merge.discoveredRecipes = [...new Set([...starterRecipes, ...discoveredRecipes].map(String))];
@@ -80,6 +85,42 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         cooldownEnd: 0,
       };
     }
+  }
+
+  function normalizeMergeExchangeClaims(raw) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+    const claims = {};
+    for (const [date, value] of Object.entries(raw)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+      if (!value || typeof value !== "object" || Array.isArray(value)) continue;
+      const entries = {};
+      for (const [offerId, count] of Object.entries(value)) {
+        const normalizedCount = Math.max(0, Math.floor(Number(count) || 0));
+        if (normalizedCount > 0) entries[offerId] = normalizedCount;
+      }
+      if (Object.keys(entries).length) claims[date] = entries;
+    }
+    return claims;
+  }
+
+  function findMergeExchangeOffer(offerId) {
+    return MERGE_EXCHANGE_OFFERS.find((offer) => offer.id === String(offerId || ""));
+  }
+
+  function ensureRouteYard(p, now = Date.now()) {
+    const legacy = p.room || p.petRoom || {};
+    p.yard = normalizeYardState(p.yard, legacy, now);
+    return p.yard;
+  }
+
+  function grantMergeExchangeReward(p, reward = {}) {
+    const yard = ensureRouteYard(p);
+    if (!yard.currencies) yard.currencies = { treats: 0, shinyTreats: 0 };
+    const treats = Math.max(0, Math.floor(Number(reward.treats) || 0));
+    const shinyTreats = Math.max(0, Math.floor(Number(reward.shinyTreats) || 0));
+    if (treats) yard.currencies.treats = Math.max(0, (yard.currencies.treats || 0) + treats);
+    if (shinyTreats) yard.currencies.shinyTreats = Math.max(0, (yard.currencies.shinyTreats || 0) + shinyTreats);
+    return { treats, shinyTreats };
   }
 
   /** Helper: unlock chain generator if not already unlocked */
@@ -276,6 +317,8 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       tryUnlockChain(p, resultItem.chainId);
       const recipeDiscovered = rememberMergeRecipe(p, resultItem.recipeId);
       const itemDiscovered = rememberMergeItem(p, board[toR][toC]);
+      const essenceReward = calculateMergeEssenceReward(resultItem, { recipeDiscovered });
+      p.merge.alchemyEssence = Math.max(0, Math.floor(Number(p.merge.alchemyEssence) || 0)) + essenceReward;
       return routeOk({
         success: true,
         merge: p.merge,
@@ -283,6 +326,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
         recipeId: resultItem.recipeId || null,
         recipeDiscovered,
         itemDiscovered,
+        essenceReward,
       });
     });
     return sendRouteResult(res, result);
@@ -410,6 +454,45 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       p.merge.freeTapCharges = claim.freeTapCharges;
 
       return routeOk({ success: true, merge: p.merge, claimable: claim.claimable, nextFreeTapAt: claim.nextFreeTapAt });
+    });
+    return sendRouteResult(res, result);
+  });
+
+  router.post("/api/merge/exchange", requireAuth, async (req, res) => {
+    const { userId } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+
+    const result = await withPlayerLock(userId, async (p) => {
+      ensureMergeState(p);
+      const offer = findMergeExchangeOffer(req.body?.offerId);
+      if (!offer) return routeFail(400, { error: "unknown exchange offer" });
+      if (offer.locked) return routeFail(400, { error: "exchange offer locked" });
+      const currentEssence = Math.max(0, Math.floor(Number(p.merge.alchemyEssence) || 0));
+      if (currentEssence < offer.cost) return routeFail(400, { error: "not enough essence", required: offer.cost });
+      const today = new Date().toISOString().slice(0, 10);
+      const limit = Math.max(0, Math.floor(Number(offer.perDayLimit) || 0));
+      const claimsToday = p.merge.exchangeClaims[today] || {};
+      const currentClaims = Math.max(0, Math.floor(Number(claimsToday[offer.id]) || 0));
+      if (limit > 0 && currentClaims >= limit) return routeFail(400, { error: "exchange limit reached", limit });
+
+      p.merge.alchemyEssence = currentEssence - offer.cost;
+      const reward = grantMergeExchangeReward(p, offer.reward);
+      p.merge.exchangeClaims = {
+        ...p.merge.exchangeClaims,
+        [today]: {
+          ...claimsToday,
+          [offer.id]: currentClaims + 1,
+        },
+      };
+      return routeOk({
+        success: true,
+        merge: p.merge,
+        yard: p.yard,
+        offerId: offer.id,
+        essenceSpent: offer.cost,
+        reward,
+        exchangeClaims: p.merge.exchangeClaims[today],
+      });
     });
     return sendRouteResult(res, result);
   });

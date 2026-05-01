@@ -111,7 +111,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     const pageErrors = await boot(page, "merge_recipe_book_smoke");
     await page.getByRole("button", { name: /Merge/ }).click();
-    await page.getByRole("button", { name: /Recipe Book/ }).click();
+    await page.locator(".merge-library-rail button").filter({ hasText: "Recipe Book" }).click();
     await expect(page.locator(".merge-recipe-book")).toContainText("Germination");
     await expect(page.locator(".merge-recipe-book")).toContainText("Undiscovered reaction");
     await expect(page.locator(".merge-recipe-book")).toContainText("??? + ??? -> ???");

@@ -41,8 +41,10 @@ import {
   getGardenLevelReward,
   getGardenXpRequired,
   MERGE_CHAINS,
+  MERGE_EXCHANGE_OFFERS,
   MERGE_GENERATOR_CHAIN_IDS,
   MERGE_WILD_GENERATOR_ID,
+  calculateMergeEssenceReward,
   getYardGoodieActivities,
   isYardGoodieBlocking,
   isYardGoodieLayable,
@@ -91,6 +93,7 @@ describe("createDefaultPlayer", () => {
     assert.ok(p.merge);
     assert.equal(p.merge.board.length, 7);
     assert.equal(p.merge.board[0].length, 9);
+    assert.equal(p.merge.alchemyEssence, 0);
     assert.ok(Array.isArray(p.merge.generators));
     assert.equal(p.pet.affectionXp, 0);
     assert.equal(p.pet.affectionLevel, 1);
@@ -390,8 +393,31 @@ describe("Gacha Merge shared generator and recipes", () => {
     assert.deepEqual(p.merge.board[0][1], { id: "glass", chainId: "alchemy", level: 2 });
     assert.equal(result.body.recipeId, "sand_flame_glass");
     assert.equal(result.body.recipeDiscovered, true);
+    assert.equal(
+      result.body.essenceReward,
+      calculateMergeEssenceReward(result.body.newItem, { recipeDiscovered: true }),
+    );
+    assert.equal(p.merge.alchemyEssence, result.body.essenceReward);
+    assert.equal(result.body.snapshot.merge.alchemyEssence, result.body.essenceReward);
     assert.ok(result.body.snapshot.merge.discoveredRecipes.includes("sand_flame_glass"));
     assert.ok(result.body.snapshot.merge.discoveredItems.includes("glass"));
+  });
+
+  it("exchanges crafted Essence for Cozy Yard currency atomically", async () => {
+    const p = createDefaultPlayer("merge-exchange", "Merge");
+    const offer = MERGE_EXCHANGE_OFFERS.find((candidate) => candidate.id === "yard_treats_small");
+    assert.ok(offer);
+    p.merge.alchemyEssence = offer.cost;
+    const treatsBefore = p.yard.currencies.treats;
+
+    const result = await applyAction(p, "merge.exchange", { offerId: offer.id });
+
+    assert.equal(result.status, 200);
+    assert.equal(p.merge.alchemyEssence, 0);
+    assert.equal(p.yard.currencies.treats, treatsBefore + offer.reward.treats);
+    assert.equal(result.body.offerId, offer.id);
+    assert.equal(result.body.snapshot.merge.alchemyEssence, 0);
+    assert.equal(result.body.snapshot.yard.currencies.treats, p.yard.currencies.treats);
   });
 
   it("starts with known starter recipes and keeps advanced recipes locked until discovered", async () => {

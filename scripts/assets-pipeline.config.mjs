@@ -114,6 +114,35 @@ async function collectCompanionYardEntries(rootDir) {
   return entries;
 }
 
+async function collectGachaMergeEntries(rootDir) {
+  const root = "public/games/gacha-merge";
+  const [pngFiles, svgFiles] = await Promise.all([
+    walkFiles(rootDir, root, PNG_EXTENSIONS),
+    walkFiles(rootDir, root, SVG_EXTENSIONS),
+  ]);
+  const sectionKeys = {
+    backgrounds: "background",
+    ui: "ui",
+    fx: "fx",
+    items: "items",
+  };
+  const compactRuntimeImage = runtimeWebpOnly();
+  const entries = [];
+  for (const file of [...pngFiles, ...svgFiles].sort()) {
+    const parts = file.slice(`${root}/`.length).split("/");
+    if (parts.length !== 2) continue;
+    const [folder, fileName] = parts;
+    const section = sectionKeys[folder];
+    if (!section) continue;
+    const extension = path.extname(fileName).toLowerCase();
+    const id = path.basename(fileName, extension);
+    const formats = extension === ".svg" ? ["svg"] : compactRuntimeImage.formats;
+    const options = extension === ".svg" ? {} : { raster: compactRuntimeImage.raster };
+    entries.push(entry(`gachaMerge.${section}.${id}`, file, `gacha-merge/${folder}`, "pixi.merge", formats, options));
+  }
+  return entries;
+}
+
 async function collectSvgEntries(rootDir) {
   const [petFiles, assetFiles] = await Promise.all([
     walkFiles(rootDir, "public/pets", SVG_EXTENSIONS),
@@ -146,6 +175,7 @@ export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
     collectPixiEntries(rootDir),
     collectGardenEntries(rootDir),
     collectCompanionYardEntries(rootDir),
+    collectGachaMergeEntries(rootDir),
     collectSvgEntries(rootDir),
     collectIconEntries(rootDir),
   ]);

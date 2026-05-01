@@ -56,6 +56,8 @@ export const mergeStore = create((set, get) => ({
   lastFreePull: 0,
   lastFreeTaps: 0,
   freeTapCharges: 0,
+  alchemyEssence: 0,
+  exchangeClaims: {},
   discoveredItems: getStarterMergeItemIds(),
   discoveredRecipes: getStarterMergeRecipeIds(),
   trashMode: false,
@@ -103,6 +105,7 @@ export const mergeStore = create((set, get) => ({
   setLastFreePull: (lastFreePull) => set({ lastFreePull }),
   setLastFreeTaps: (lastFreeTaps) => set({ lastFreeTaps }),
   setFreeTapCharges: (freeTapCharges) => set({ freeTapCharges }),
+  setAlchemyEssence: (alchemyEssence) => set({ alchemyEssence }),
   setMergeInventory: (mergeInventory) => set({ mergeInventory }),
   toggleTrashMode: () => set((s) => ({ trashMode: !s.trashMode })),
   setSelectedFuel: (chainId, cropId) =>
@@ -123,6 +126,9 @@ export const mergeStore = create((set, get) => ({
       lastFreeTaps: mergeData.lastFreeTaps || get().lastFreeTaps,
       freeTapCharges:
         mergeData.freeTapCharges ?? get().freeTapCharges,
+      alchemyEssence:
+        mergeData.alchemyEssence ?? get().alchemyEssence,
+      exchangeClaims: mergeData.exchangeClaims || get().exchangeClaims,
       discoveredItems: mergeData.discoveredItems || get().discoveredItems,
       discoveredRecipes: mergeData.discoveredRecipes || get().discoveredRecipes,
     });
@@ -166,6 +172,8 @@ export const mergeStore = create((set, get) => ({
       lastFreePull: get().lastFreePull,
       lastFreeTaps: get().lastFreeTaps,
       freeTapCharges: get().freeTapCharges,
+      alchemyEssence: get().alchemyEssence,
+      exchangeClaims: get().exchangeClaims,
       discoveredItems: get().discoveredItems,
       discoveredRecipes: get().discoveredRecipes,
     }),

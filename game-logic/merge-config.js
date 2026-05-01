@@ -15,6 +15,45 @@ export const MERGE_START_CHAIN_ID = "flora";
 export const MERGE_GENERATOR_CHAIN_IDS = ["flora", "earth", "water", "fire", "air"];
 export const MERGE_FREE_TAP_RECHARGE_MS = 20 * 60 * 1000;
 export const MERGE_FREE_TAP_BANK_CAP = 30;
+export const MERGE_EXCHANGE_OFFERS = [
+  {
+    id: "yard_treats_small",
+    labelKey: "merge.exchange.treatsSmall",
+    descriptionKey: "merge.exchange.treatsSmallHint",
+    targetGame: "yard",
+    cost: 50,
+    reward: { treats: 120 },
+    perDayLimit: 4,
+  },
+  {
+    id: "yard_shiny_treat",
+    labelKey: "merge.exchange.shinyTreat",
+    descriptionKey: "merge.exchange.shinyTreatHint",
+    targetGame: "yard",
+    cost: 120,
+    reward: { shinyTreats: 1 },
+    perDayLimit: 2,
+  },
+  {
+    id: "future_game_slot",
+    labelKey: "merge.exchange.futureSlot",
+    descriptionKey: "merge.exchange.futureSlotHint",
+    targetGame: "future",
+    cost: 0,
+    reward: {},
+    locked: true,
+  },
+];
+
+export function calculateMergeEssenceReward(resultItem, options = {}) {
+  if (!resultItem) return 0;
+  const level = Math.max(0, Math.floor(Number(resultItem.level) || 0));
+  const chainId = String(resultItem.chainId || "");
+  const base = chainId === "alchemy" ? 8 + level * 2 : 1 + level;
+  const discoveryBonus = options.recipeDiscovered ? 6 : 0;
+  const highTierBonus = chainId === "alchemy" && level >= 5 ? 8 : 0;
+  return Math.max(1, base + discoveryBonus + highTierBonus);
+}
 
 export function getMergeFreeTapClaim(merge = {}, now = Date.now()) {
   const currentCharges = Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0));
