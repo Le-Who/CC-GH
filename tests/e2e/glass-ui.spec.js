@@ -100,7 +100,7 @@ test.describe("Glass UI rollout smoke", () => {
 
     await page.getByRole("button", { name: "+" }).first().click();
     await expectReadableGlass(page, page.locator(".garden-glass-sheet"), "Garden seed shop sheet", testInfo);
-    await page.locator(".garden-glass-sheet").getByRole("button").first().click();
+    await page.getByRole("button", { name: "Close seed shop" }).click();
 
     const gameCases = [
       { id: "blox", tab: /Blox/, menuText: "Building Blox", start: /^Start$/, label: "Blox" },

@@ -119,6 +119,37 @@ test.describe("Garden Shelf flow", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("uses compositor-light mobile overlays for Garden Shelf panels", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "Mobile overlay budget is calibrated for coarse-pointer webviews.");
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect.poll(() => page.evaluate(() => typeof window.__openGardenQuests)).toBe("function");
+
+    await page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" }).click();
+    const questDialog = page.getByRole("dialog", { name: "Garden quests" });
+    await expect(questDialog).toBeVisible();
+    const questOverlayStyles = await questDialog.evaluate((dialog) => {
+      const scrim = document.querySelector(".glass-scrim");
+      const read = (element) => {
+        const styles = window.getComputedStyle(element);
+        return {
+          backdropFilter: styles.backdropFilter,
+          webkitBackdropFilter: styles.webkitBackdropFilter,
+        };
+      };
+      return { dialog: read(dialog), scrim: scrim ? read(scrim) : null };
+    });
+    expect(questOverlayStyles.dialog.backdropFilter).toBe("none");
+    expect(questOverlayStyles.scrim?.backdropFilter).toBe("none");
+    await questDialog.getByRole("button", { name: "Close settings" }).click();
+
+    await page.getByRole("button", { name: "+" }).first().click();
+    const sheet = page.locator(".garden-glass-sheet").last();
+    await expect(sheet).toBeVisible();
+    const sheetBackdrop = await sheet.evaluate((element) => window.getComputedStyle(element).backdropFilter);
+    expect(sheetBackdrop).toBe("none");
+  });
+
   test("opens shell Garden quests with daily priority and protects repeated quest claims", async ({ page }) => {
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));

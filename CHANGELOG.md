@@ -4,6 +4,11 @@
 
 ### Client
 
+- Restored the Gacha Merge live Pixi scene by routing split-scene art lookups through the exported shared graphics manifest helper instead of a private runtime variable.
+- Reduced Gacha Merge browser-runtime load by rendering the static Pixi board on demand, running the Pixi ticker only while merge feedback effects are active, loading only the requested Pixi scene builder at runtime, patching changed Merge board cells incrementally, and serializing pending Merge actions so free-tap claiming cannot overlap generator taps.
+- Reduced Garden Shelf mobile overlay cost by disabling expensive blur on coarse pointers, containing overlay paint/layout work, deferring confetti to a dynamic effect import, and expanding the daily quest template reserve to reduce near-repeat assignments.
+- Refined Cozy Yard mobile HUD and visitor staging: the activity pill now localizes active visitor counts, bottom dock labels render above icons, tool-drawer buttons no longer get covered by the activity chip, and decor-local visitor offsets are scaled before projection so pets stay visually attached to their decorations.
+- Tightened Gem Crush live board fitting with a small measured HUD reserve buffer so the board stays clear of the top HUD on narrow mobile webviews.
 - Added a shared Telegram game UX foundation: static game registry, adaptive per-game HUD descriptors, receipt-backed reliable action helpers, transient reward/status event feedback, Telegram Back Button handling, closing confirmation for active/pending runs, and hidden-Farm compatibility in the runtime registry.
 - Refined live game surfaces for mobile Telegram play: Blox now previews optimistic placements and predicted line clears, Gem Crush restores snapshot runs before defaults and emits combo/match feedback, Merge uses server-derived cooldown timing plus generator source chips and safer valuable-item trash confirmation, Bubbo moves finish/settle controls into pause with resume/pressure/aim-assist cues, Brain Blitz records real answer elapsed time with a reveal phase, and Cozy Yard shifts more persistent HUD into an activity pill plus tool drawer.
 - Split the monolithic Pixi scene module into per-game scene builders behind the existing stable `src/game-runtime/scenes.js` export surface, keeping Farm hidden but available for runtime compatibility.
@@ -86,6 +91,7 @@
 
 ### Operations
 
+- Ran the Garden/Merge/Yard conservative follow-up perf loop with repeat-3 guard evidence. Reverted the Yard and Merge micro-optimizations after p95 regressions, kept split Pixi scene import pruning as code-quality cleanup, repaired guard-discovered Merge browser cadence/long-task misses with on-demand Pixi rendering, scene-specific runtime chunks, incremental board patching, and action serialization, and stopped without loosening budgets or changing gameplay semantics.
 - Ran a conservative Telegram UX performance loop using `perf:guard` as source of truth. Kept startup shell and Telegram SDK lazy-loading wins plus a Merge hydration null fast path; stopped by rule after three consecutive rejected/sub-threshold attempts without loosening budgets or changing gameplay semantics.
 - Restored the tracked asset replacement guide and tightened the game asset sheet brief around the current generated-runtime/manual-manifest contract, including legacy and hidden art surfaces that are not live override paths today.
 - Reduced guarded startup JS by splitting broad Vite vendor chunks into dependency-family chunks and deferring the realtime client module until the app boot effect, while keeping Pixi and runtime art lazy.
@@ -106,6 +112,7 @@
 
 ### Tests
 
+- Added regression coverage for Garden Shelf mobile overlay blur removal, dynamic confetti loading, expanded daily quest rotation, Gacha Merge split-scene asset helpers and mobile scene smoke, Cozy Yard localized activity status/bottom-label geometry/decor-anchored visitors, i18n keys used through local `text()` helpers, and stabilized mobile minigame smoke around hidden Yard tools and Blox HUD selection.
 - Added Telegram game UX foundation coverage for the hidden Farm registry contract, reliable action id policy, adaptive HUD descriptors, null local HUD state, Match-3 snapshot-first restoration, Merge server clock derivation, and real Trivia question timing.
 - Added focused gameplay regression coverage for Blox non-mutating placement previews, Bubbo pressure labels and aim assist, split Pixi scene runtime assertions, and the Garden details-label i18n path caught by the browser guard.
 - Added Garden Shelf unit coverage for daily quest reset/portion unlocking/endowed progress, ready quest counts, stale sync after level-up, and rapid Level Up click suppression in mobile Playwright.

@@ -215,19 +215,22 @@ function GardenQuestController() {
   const { state, claimQuest } = useGame();
   const { t } = useGardenI18n();
   const [open, setOpen] = useState(false);
-  const quests = React.useMemo(() => buildGardenQuestSections(state)
-    .flatMap((section, sectionIndex) => section.quests.map((quest, questIndex) => ({
-      ...quest,
-      sectionIndex,
-      questIndex,
-    })))
-    .sort((left, right) => (
-      gardenQuestPriority(left) - gardenQuestPriority(right) ||
-      Number(!!right.complete) - Number(!!left.complete) ||
-      right.percent - left.percent ||
-      left.sectionIndex - right.sectionIndex ||
-      left.questIndex - right.questIndex
-    )), [state]);
+  const quests = React.useMemo(() => {
+    if (!open) return [];
+    return buildGardenQuestSections(state)
+      .flatMap((section, sectionIndex) => section.quests.map((quest, questIndex) => ({
+        ...quest,
+        sectionIndex,
+        questIndex,
+      })))
+      .sort((left, right) => (
+        gardenQuestPriority(left) - gardenQuestPriority(right) ||
+        Number(!!right.complete) - Number(!!left.complete) ||
+        right.percent - left.percent ||
+        left.sectionIndex - right.sectionIndex ||
+        left.questIndex - right.questIndex
+      ));
+  }, [open, state]);
 
   React.useEffect(() => {
     const openQuests = () => {
@@ -467,8 +470,8 @@ function GameContent() {
         {/* The Glass Dome Container */}
         <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">
           {/* Main Reflection */}
-          <div className="absolute top-10 left-6 w-8 h-[60%] rounded-full bg-gradient-to-b from-white/20 to-transparent blur-[8px] transform -rotate-[10deg]"></div>
-          <div className="absolute top-12 right-6 w-4 h-[40%] rounded-full bg-gradient-to-b from-white/10 to-transparent blur-[6px] transform rotate-[10deg]"></div>
+          <div className="garden-dome-reflection absolute top-10 left-6 w-8 h-[60%] rounded-full bg-gradient-to-b from-white/20 to-transparent blur-[8px] transform -rotate-[10deg]"></div>
+          <div className="garden-dome-reflection absolute top-12 right-6 w-4 h-[40%] rounded-full bg-gradient-to-b from-white/10 to-transparent blur-[6px] transform rotate-[10deg]"></div>
           
           <img
             src={assetPaths.bottomPlank}

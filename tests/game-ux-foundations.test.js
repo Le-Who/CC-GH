@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { GAME_REGISTRY, PIXI_GAME_IDS, VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
 import { buildGameHudDescriptors } from "../src/app/useGameHudDescriptors.js";
 import { createClientActionId, shouldUseDurableOutbox } from "../src/game-state/reliableActions.js";
@@ -72,5 +73,22 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.equal(timing.timeMs, 2450);
     assert.equal(timing.remainingMs, 12_550);
     assert.ok(timing.progress < 1 && timing.progress > 0.8);
+  });
+
+  it("keeps Garden Shelf confetti off the initial panel-open module path", () => {
+    const bottomPanel = readFileSync(new URL("../src/games/garden-shelf/components/BottomPanel.tsx", import.meta.url), "utf8");
+    const offlineWelcome = readFileSync(new URL("../src/games/garden-shelf/components/OfflineWelcome.tsx", import.meta.url), "utf8");
+    const effects = readFileSync(new URL("../src/games/garden-shelf/lib/effects.ts", import.meta.url), "utf8");
+
+    assert.ok(!bottomPanel.includes("import confetti from 'canvas-confetti'"));
+    assert.ok(!offlineWelcome.includes("import confetti from 'canvas-confetti'"));
+    assert.match(effects, /import\(['"]canvas-confetti['"]\)/);
+  });
+
+  it("keeps split Pixi scenes off private runtime module state", () => {
+    const mergeScene = readFileSync(new URL("../src/game-runtime/scenes/mergeScene.js", import.meta.url), "utf8");
+
+    assert.ok(!mergeScene.includes("graphicsManifest?."));
+    assert.match(mergeScene, /graphicsGameAsset/);
   });
 });

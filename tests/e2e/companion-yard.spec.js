@@ -310,10 +310,28 @@ test.describe("Cozy Yard movement and assets", () => {
     await expect(page.locator(".yard-visitor")).toHaveCount(2);
     expect(await page.locator(".yard-pet-layer-back .yard-visitor").count()).toBeGreaterThan(0);
     expect(await page.locator(".yard-pet-layer-front .yard-visitor").count()).toBeGreaterThan(0);
+    const cottageBox = await page.getByRole("button", { name: /Cardboard Cottage placed goodie/ }).boundingBox();
+    expect(cottageBox).not.toBeNull();
+    for (const visitorName of ["Mika visitor", "Mochi visitor"]) {
+      const visitorBox = await page.getByRole("button", { name: visitorName }).boundingBox();
+      expect(visitorBox, `${visitorName} should render near the cottage`).not.toBeNull();
+      const visitorCenter = {
+        x: visitorBox.x + visitorBox.width / 2,
+        y: visitorBox.y + visitorBox.height / 2,
+      };
+      const cottageCenter = {
+        x: cottageBox.x + cottageBox.width / 2,
+        y: cottageBox.y + cottageBox.height / 2,
+      };
+      expect(Math.abs(visitorCenter.x - cottageCenter.x), `${visitorName} should stay horizontally attached to the decor`).toBeLessThan(cottageBox.width * 0.7);
+      expect(Math.abs(visitorCenter.y - cottageCenter.y), `${visitorName} should stay vertically attached to the decor`).toBeLessThan(cottageBox.height * 0.9);
+    }
 
-    await page.getByRole("button", { name: "Mochi visitor" }).click({ force: true });
-    await expect(page.locator(".yard-status-card")).toContainText("Mochi");
+    const mochiVisitor = page.getByRole("button", { name: "Mochi visitor" });
+    await mochiVisitor.click({ force: true });
+    await expect(mochiVisitor).toHaveClass(/selected/);
 
+    await page.getByRole("button", { name: "Tools" }).click();
     await page.getByRole("button", { name: "Camera" }).click();
     await expect.poll(() => mutateBodies.some((body) => body.action === "yard.capturePhoto")).toBe(true);
     const capture = mutateBodies.find((body) => body.action === "yard.capturePhoto");
@@ -573,7 +591,11 @@ test.describe("Cozy Yard movement and assets", () => {
       const close = page.getByRole("button", { name: "Close" });
       if (await close.count()) await close.first().click();
 
-      await page.getByRole("button", { name: buttonName, exact: true }).click();
+      const screenButton = page.getByRole("button", { name: buttonName, exact: true });
+      if (!await screenButton.count() || !await screenButton.first().isVisible()) {
+        await page.getByRole("button", { name: "Tools", exact: true }).click();
+      }
+      await screenButton.click();
       await expect(page.getByRole("dialog", { name: dialogName })).toBeVisible();
 
       const layout = await page.evaluate(() => {
@@ -600,5 +622,48 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.getByRole("dialog", { name: "Goodies" }).getByRole("button", { name: "Place", exact: true }).first().click();
     await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
     expect(await contrastRatioFor(page, ".yard-placement-dock span", ".yard-placement-dock")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("localizes active visitor status and keeps bottom dock labels above icons on mobile", async ({ page }) => {
+    const snapshot = buildHudAuditSnapshot();
+    snapshot.yard.pendingGifts = [];
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem("garden_shelf_language", "ru");
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+    });
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole("button", { name: /Двор|Yard/ }).click();
+    const activityPill = page.locator(".yard-activity-pill");
+    await expect(activityPill).toContainText("Гостей: 1");
+    await expect(activityPill).not.toContainText("{count}");
+
+    const dockItems = await page.evaluate(() => [...document.querySelectorAll(".yard-bottom-dock .yard-icon-button")]
+      .map((button) => {
+        const icon = button.querySelector(".yard-hud-icon")?.getBoundingClientRect();
+        const label = button.querySelector(".yard-icon-label")?.getBoundingClientRect();
+        return {
+          iconTop: icon?.top || 0,
+          labelBottom: label?.bottom || 0,
+          labelHeight: label?.height || 0,
+          labelWidth: label?.width || 0,
+        };
+      }));
+    expect(dockItems).toHaveLength(6);
+    for (const item of dockItems) {
+      expect(item.labelHeight).toBeGreaterThan(5);
+      expect(item.labelWidth).toBeGreaterThan(10);
+      expect(item.labelBottom).toBeLessThanOrEqual(item.iconTop + 2);
+    }
   });
 });

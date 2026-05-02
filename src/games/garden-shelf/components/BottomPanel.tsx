@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
 import { useGame } from '../lib/GameContext';
 import {
   PLANT_TYPES,
@@ -21,6 +20,7 @@ import { cn } from '../lib/utils';
 import { getGardenSpriteStyle } from '../lib/sprites';
 import type { GardenAssetPaths } from '../lib/sprites';
 import { useGardenI18n } from '../lib/i18n';
+import { runGardenConfetti } from '../lib/effects';
 
 interface BottomPanelProps {
   spot: { shelfIndex: number, spotIndex: number, plantId?: string } | null;
@@ -28,8 +28,11 @@ interface BottomPanelProps {
   assetPaths: GardenAssetPaths;
 }
 
+const AVAILABLE_PLANTS = Object.values(PLANT_TYPES);
+
 export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   const { state } = useGame();
+  const { t } = useGardenI18n();
   const [activePlantId, setActivePlantId] = useState(spot?.plantId || '');
   const placedPlants = React.useMemo(
     () => [...state.plants]
@@ -77,7 +80,7 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
       >
         <div className="my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />
         
-        <button onClick={onClose} className="garden-icon-button absolute right-4 top-4 transition">
+        <button type="button" aria-label={t('shop.close')} onClick={onClose} className="garden-icon-button absolute right-4 top-4 z-50 h-14 w-14 transition">
           <X size={16} />
         </button>
 
@@ -113,8 +116,7 @@ function Shop({ shelfIndex, spotIndex, onClose, assetPaths }: { shelfIndex: numb
   const { t } = useGardenI18n();
   const [tab, setTab] = useState<'shop' | 'inventory'>('shop');
 
-  const availablePlants = Object.values(PLANT_TYPES);
-  const inventoryPlants = state.plants.filter(p => p.spotIndex === -1);
+  const inventoryPlants = React.useMemo(() => state.plants.filter((plant) => plant.spotIndex === -1), [state.plants]);
 
   return (
     <div className="flex flex-col w-full h-full max-h-[60vh]">
@@ -135,7 +137,7 @@ function Shop({ shelfIndex, spotIndex, onClose, assetPaths }: { shelfIndex: numb
       </div>
       
       <div className="overflow-y-auto w-full space-y-3 pb-8 pr-2 -mr-2">
-        {tab === 'shop' && availablePlants.map((plant) => {
+        {tab === 'shop' && AVAILABLE_PLANTS.map((plant) => {
           const isUnlocked = unlockedPlants.includes(plant.id);
           const canAfford = state.gold >= plant.baseCost;
           const canBuy = isUnlocked && canAfford;
@@ -305,7 +307,7 @@ function PlantDetail({
     const x = (rect.left + rect.width / 2) / window.innerWidth;
     const y = (rect.top + rect.height / 2) / window.innerHeight;
 
-    confetti({
+    void runGardenConfetti({
       particleCount: 8 + Math.floor(Math.random() * 6),
       spread: 80,
       origin: { x, y },
@@ -317,6 +319,10 @@ function PlantDetail({
       ticks: 80,
       shapes: ['circle'],
       scalar: 0.5 + Math.random() * 0.3,
+    }, {
+      particleCount: 5,
+      ticks: 46,
+      spread: 56,
     });
 
     setClickScale(0.94);
@@ -333,12 +339,15 @@ function PlantDetail({
   };
   
   const handleWater = () => {
-     waterPlant(plantId);
-     confetti({
+    waterPlant(plantId);
+    void runGardenConfetti({
       particleCount: 20,
       spread: 40,
-      colors: ['#38bdf8', '#0ea5e9', '#0284c7', '#bae6fd']
-     });
+      colors: ['#38bdf8', '#0ea5e9', '#0284c7', '#bae6fd'],
+    }, {
+      particleCount: 8,
+      ticks: 46,
+    });
   };
   
   const now = Date.now();

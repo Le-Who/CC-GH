@@ -61,9 +61,11 @@ function collectUsedTranslationKeys() {
   for (const file of files) {
     const source = fs.readFileSync(file, "utf-8");
     const literalTCalls = /\b(?:t|appTranslate)\(\s*["']([^"']+)["']/g;
+    const literalLocalTextCalls = /\btext\(\s*["']([^"']+)["']/g;
     const literalGardenCalls = /\bgardenTranslate\([^,]+,\s*["']([^"']+)["']/g;
     const keyProps = /\b(?:labelKey|hintKey|titleKey|bodyKey|descriptionKey)\s*:\s*["']([^"']+)["']/g;
     for (const [, key] of source.matchAll(literalTCalls)) add(file, key);
+    for (const [, key] of source.matchAll(literalLocalTextCalls)) add(file, key);
     for (const [, key] of source.matchAll(literalGardenCalls)) add(file, key);
     for (const [, key] of source.matchAll(keyProps)) add(file, key);
   }

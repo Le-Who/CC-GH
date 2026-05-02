@@ -142,7 +142,7 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.move(left + cell * 1.5, top + cell * 0.5, { steps: 8 });
     await page.mouse.up();
 
-    await expect(page.getByText(/Score/).first()).toBeVisible();
+    await expect(page.locator('[data-game-shell="blox"] .game-play-hud')).toContainText("Score");
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

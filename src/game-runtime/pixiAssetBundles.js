@@ -7,6 +7,7 @@ import {
 
 const warming = new Map();
 const registeredBundles = new Set();
+const DEFERRED_SCENE_BUNDLES = new Set(["merge"]);
 
 function sceneBundleKeys(sceneKey, manifest) {
   return manifest?.bundles?.[`pixi.${sceneKey}`] || GAME_ASSET_BUNDLES[sceneKey] || [];
@@ -20,6 +21,7 @@ function pixiBundleAssets(sceneKey, manifest) {
 }
 
 export function warmPixiAssetBundle(sceneKey) {
+  if (DEFERRED_SCENE_BUNDLES.has(sceneKey)) return Promise.resolve(null);
   if (!warming.has(sceneKey)) {
     warming.set(sceneKey, loadRuntimeAssetManifest().then((manifest) => {
       const assets = pixiBundleAssets(sceneKey, manifest);

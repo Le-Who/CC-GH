@@ -1,92 +1,37 @@
 import {
   Container,
   Graphics,
-  Rectangle,
-  Sprite,
-  Text,
-  TilingSprite,
-  Texture,
-  CROPS,
   MERGE_CHAINS,
   getMergePairResult,
   createPointerSession,
-  BUBBO_COLORS,
-  BUBBO_COLS,
-  BUBBO_PALETTE,
-  BUBBO_ROWS,
-  generateBubboWave,
-  getAssistedBubboAim,
-  getBubboNeighbors,
-  getBubboRowVisualOffset,
-  BOARD_SIZE,
-  DROP_ICONS,
-  GEM_ICONS,
-  MATCH3_TIMING,
-  match3StepStartFrame,
-  GRID,
-  canPlaceBloxPiece,
   resolveAssetUrl,
-  GEM_COLORS,
-  BUBBO_ASSET_KEYS,
-  BUBBO_BALL_SHEET_WIDTH,
-  BUBBO_BALL_SHEET_HEIGHT,
-  BUBBO_BALL_ROWS,
-  BUBBO_BALL_FRAMES,
-  BUBBO_BALL_DRAW_SCALE,
-  BUBBO_BUBBLE_ASSETS,
-  POTION_PIECE_ASSETS,
-  FARM_SOIL,
   PANEL,
-  PANEL_2,
-  FIELD,
   TEXT,
   MUTED,
   MINT,
   AMBER,
   CORAL,
   SKY,
-  BUBBO_NUMBERS,
-  BUBBO_BACKGROUND_THEMES,
   viewWidth,
   viewHeight,
-  shellElement,
   reserveFromShellChrome,
   reserveBottomFromShellChrome,
   publishCanvasLayout,
-  currentUiTheme,
   clear,
-  destroyLater,
   label,
   rect,
   sprite,
-  bubboBallFrame,
-  bubboBallTexture,
-  gameAsset,
   loadGraphicsManifest,
-  tiledSprite,
+  graphicsGameAsset,
   strokedRect,
-  colorNumber,
   makeInteractive,
-  fit,
-  fitWithTopReserve,
   fitGrid,
   cellFromPoint,
-  centeredPieceOrigin,
-  isAdjacentMatch3Cell,
-  match3TargetFromGesture,
-  cropProgress,
   makeSparkles,
-  cellCenter,
-  makeTween,
-  drawBubboBackground,
   makeRipple,
   makeRafScheduler,
   setupStage,
-  bloxAnchorCellFromDrag,
-  bloxGhostOrigin,
-  bloxPieceBounds,
-  createBloxDragState,
-  tickParticles
+  tickParticles,
 } from './shared/runtime.js';
 
 export function buildMergeScene(app, initial = {}) {
@@ -98,10 +43,22 @@ export function buildMergeScene(app, initial = {}) {
   let layout = null;
   let drag = null;
   let destroyed = false;
+  let cellViews = [];
+  let lastStaticKey = "";
+  let lastBoardKeys = [];
+  let assetVersion = 0;
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
   loadGraphicsManifest(() => {
+    assetVersion += 1;
     if (!destroyed) draw();
   });
+
+  function renderStaticFrame() {
+    app.render?.();
+    if (!drag && effects.children.length === 0) {
+      app.ticker.stop();
+    }
+  }
 
   const pointer = createPointerSession({
     onMove: (next) => {
@@ -150,12 +107,23 @@ export function buildMergeScene(app, initial = {}) {
   function itemAsset(item) {
     if (!item) return "";
     return item.asset
-      || graphicsManifest?.graphics?.games?.gachaMerge?.items?.[item.id]
+      || graphicsGameAsset("gachaMerge", "items", item.id)
       || resolveAssetUrl(`gachaMerge.items.${item.id}`, { legacyPath: "" });
   }
 
+  function itemSignature(item) {
+    if (!item) return "";
+    return [
+      item.id || item.itemId || "",
+      item.chainId || "",
+      item.level ?? "",
+      item.asset || "",
+      item.recipeId || item.recipe || "",
+    ].join(":");
+  }
+
   function mergeSceneAsset(section, id) {
-    return graphicsManifest?.graphics?.games?.gachaMerge?.[section]?.[id]
+    return graphicsGameAsset("gachaMerge", section, id)
       || resolveAssetUrl(`gachaMerge.${section}.${id}`, { legacyPath: "" });
   }
 
@@ -238,6 +206,33 @@ export function buildMergeScene(app, initial = {}) {
     return group;
   }
 
+  function drawBoardCell(container, board, r, c, cell, left, top, tapSourceItem) {
+    clear(container);
+    const item = board[r]?.[c];
+    const selected = data.mergeSelected?.r === r && data.mergeSelected?.c === c;
+    const matching = item && (
+      (drag?.item && sameMergeTarget(drag.item, item) && !(drag.fromR === r && drag.fromC === c))
+      || (tapSourceItem && sameMergeTarget(tapSourceItem, item) && !selected)
+    );
+    const color = item ? [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][item.level || 0] : 0xe3eddc;
+    const tile = matching || selected
+      ? strokedRect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, selected ? AMBER : MINT, 6, color, item ? 0.95 : 0.82, 3)
+      : rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 6, item ? 1 : 0.82);
+    makeInteractive(tile, {
+      pointerdown: (event) => {
+        if (data.mergeLocked) return;
+        if (!item) return;
+        drag = { fromR: r, fromC: c, item, pointerId: event.pointerId, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
+        pointer.start(event, { kind: "merge-cell", cell: { r, c }, item });
+        updateDragVisual();
+      },
+    });
+    container.addChild(tile);
+    if (item && !(drag?.fromR === r && drag?.fromC === c)) {
+      container.addChild(drawMergeItem(item, left + c * cell + cell / 2, top + r * cell + cell / 2, cell));
+    }
+  }
+
   function playMergeDropFeedback(point, result = {}, item = null) {
     const success = !result?.error;
     const color = success ? MINT : CORAL;
@@ -247,6 +242,7 @@ export function buildMergeScene(app, initial = {}) {
       const reject = label(data.mergeMissText || "miss", point.x, point.y - 22, 13, CORAL);
       reject._tween = { fromX: reject.x, fromY: reject.y, toX: reject.x + 12, toY: reject.y - 18, duration: 18, fade: true, scaleFrom: 0.9, scaleTo: 1.05 };
       effects.addChild(reject);
+      app.ticker.start();
       return;
     }
     const level = Number(result?.newItem?.level ?? item?.level ?? 0) + 1;
@@ -286,6 +282,7 @@ export function buildMergeScene(app, initial = {}) {
       shard._life = 25 + i;
       effects.addChild(shard);
     }
+    app.ticker.start();
   }
 
   function updateDragVisualNow() {
@@ -327,6 +324,7 @@ export function buildMergeScene(app, initial = {}) {
     if (target) {
       dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0xf7efe0, 0.58, 3));
     }
+    app.render?.();
   }
 
   function updateDragVisual() {
@@ -334,7 +332,6 @@ export function buildMergeScene(app, initial = {}) {
   }
 
   function draw() {
-    clear(root);
     const merge = data.merge || {};
     const board = merge.board || Array.from({ length: 7 }, () => Array(9).fill(null));
     const cols = 9;
@@ -354,6 +351,41 @@ export function buildMergeScene(app, initial = {}) {
       app.canvas.dataset.mergeBoardCell = String(Math.round(cell * 100) / 100);
       app.canvas.dataset.mergeBoardHeight = String(Math.round(height * 100) / 100);
     }
+    const tapSourceItem = data.mergeSelected
+      ? board[data.mergeSelected.r]?.[data.mergeSelected.c]
+      : null;
+    const staticKey = [
+      Math.round(left * 100) / 100,
+      Math.round(top * 100) / 100,
+      Math.round(cell * 100) / 100,
+      Math.round(width * 100) / 100,
+      Math.round(height * 100) / 100,
+      data.mergeSelected ? `${data.mergeSelected.r}:${data.mergeSelected.c}` : "",
+      drag?.item ? itemSignature(drag.item) : "",
+      data.trashMode ? "trash" : "merge",
+      data.mergeStatusText || "",
+      assetVersion,
+    ].join("|");
+    const boardKeys = Array.from({ length: rows }, (_, r) => (
+      Array.from({ length: cols }, (_, c) => itemSignature(board[r]?.[c]))
+    ));
+    const canPatchBoard = lastStaticKey === staticKey
+      && cellViews.length === rows
+      && cellViews.every((row) => row.length === cols);
+    if (canPatchBoard) {
+      for (let r = 0; r < rows; r += 1) {
+        for (let c = 0; c < cols; c += 1) {
+          if (lastBoardKeys[r]?.[c] === boardKeys[r][c]) continue;
+          drawBoardCell(cellViews[r][c], board, r, c, cell, left, top, tapSourceItem);
+        }
+      }
+      lastBoardKeys = boardKeys;
+      if (drag) updateDragVisual();
+      else clear(dragLayer);
+      renderStaticFrame();
+      return;
+    }
+    clear(root);
     drawAlchemyTable(left, top, width, height, cell);
     root.addChild(
       new Graphics()
@@ -361,42 +393,33 @@ export function buildMergeScene(app, initial = {}) {
         .fill({ color: 0xeee5cf, alpha: 0.72 })
         .stroke({ color: 0x5d4634, width: 2, alpha: 0.25 }),
     );
-    const tapSourceItem = data.mergeSelected
-      ? board[data.mergeSelected.r]?.[data.mergeSelected.c]
-      : null;
+    cellViews = [];
     for (let r = 0; r < rows; r++) {
+      const rowViews = [];
       for (let c = 0; c < cols; c++) {
-        const item = board[r]?.[c];
-        const selected = data.mergeSelected?.r === r && data.mergeSelected?.c === c;
-        const matching = item && (
-          (drag?.item && sameMergeTarget(drag.item, item) && !(drag.fromR === r && drag.fromC === c))
-          || (tapSourceItem && sameMergeTarget(tapSourceItem, item) && !selected)
-        );
-        const color = item ? [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][item.level || 0] : 0xe3eddc;
-        const tile = matching || selected
-          ? strokedRect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, selected ? AMBER : MINT, 6, color, item ? 0.95 : 0.82, 3)
-          : rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 6, item ? 1 : 0.82);
-        makeInteractive(tile, {
-          pointerdown: (event) => {
-            if (data.mergeLocked) return;
-            if (!item) return;
-            drag = { fromR: r, fromC: c, item, pointerId: event.pointerId, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
-            pointer.start(event, { kind: "merge-cell", cell: { r, c }, item });
-            updateDragVisual();
-          },
-        });
-        root.addChild(tile);
-        if (item && !(drag?.fromR === r && drag?.fromC === c)) {
-          root.addChild(drawMergeItem(item, left + c * cell + cell / 2, top + r * cell + cell / 2, cell));
-        }
+        const cellContainer = new Container();
+        drawBoardCell(cellContainer, board, r, c, cell, left, top, tapSourceItem);
+        root.addChild(cellContainer);
+        rowViews.push(cellContainer);
       }
+      cellViews.push(rowViews);
     }
-    updateDragVisual();
+    lastStaticKey = staticKey;
+    lastBoardKeys = boardKeys;
+    if (drag) updateDragVisual();
+    else clear(dragLayer);
     root.addChild(label(data.mergeStatusText || (data.trashMode ? "Trash mode" : "Drag/tap merge pairs"), viewWidth(app) / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
+    renderStaticFrame();
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
-  const ticker = () => tickParticles(effects);
+  const ticker = () => {
+    tickParticles(effects);
+    if (!drag && effects.children.length === 0) {
+      app.render?.();
+      app.ticker.stop();
+    }
+  };
   app.ticker.add(ticker);
   draw();
   return {

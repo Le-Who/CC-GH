@@ -55,18 +55,35 @@ export const GARDEN_STORY_QUESTS = [
 ];
 
 const DAILY_QUEST_TEMPLATES = [
-  { key: "tap_3", stat: "taps", target: 3, endowed: 1, reward: 14, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
-  { key: "tap_5", stat: "taps", target: 5, endowed: 2, reward: 18, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
-  { key: "water_1", stat: "waters", target: 1, endowed: 0, reward: 14, titleKey: "quest.daily.water.title", bodyKey: "quest.daily.water.body" },
-  { key: "water_2", stat: "waters", target: 2, endowed: 1, reward: 20, titleKey: "quest.daily.water.title", bodyKey: "quest.daily.water.body" },
-  { key: "tend_4", stat: "tends", target: 4, endowed: 1, reward: 16, titleKey: "quest.daily.tend.title", bodyKey: "quest.daily.tend.body" },
-  { key: "gold_20", stat: "goldEarned", target: 20, endowed: 5, reward: 18, titleKey: "quest.daily.gold.title", bodyKey: "quest.daily.gold.body" },
-  { key: "gold_35", stat: "goldEarned", target: 35, endowed: 8, reward: 24, titleKey: "quest.daily.gold.title", bodyKey: "quest.daily.gold.body" },
-  { key: "xp_16", stat: "xpEarned", target: 16, endowed: 4, reward: 18, titleKey: "quest.daily.xp.title", bodyKey: "quest.daily.xp.body" },
-  { key: "plant_1", stat: "plantsBought", target: 1, endowed: 0, reward: 18, titleKey: "quest.daily.plant.title", bodyKey: "quest.daily.plant.body" },
-  { key: "upgrade_1", stat: "upgrades", target: 1, endowed: 0, reward: 24, titleKey: "quest.daily.upgrade.title", bodyKey: "quest.daily.upgrade.body" },
-  { key: "placed_2", metric: "placedPlants", target: 2, endowed: 1, reward: 14, titleKey: "quest.daily.placed.title", bodyKey: "quest.daily.placed.body" },
-  { key: "mature_1", metric: "maturePlants", target: 1, endowed: 0, reward: 18, titleKey: "quest.daily.mature.title", bodyKey: "quest.daily.mature.body" },
+  { key: "tap_3", tier: 1, stat: "taps", target: 3, endowed: 1, reward: 14, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
+  { key: "tap_4", tier: 1, stat: "taps", target: 4, endowed: 1, reward: 15, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
+  { key: "water_1", tier: 1, stat: "waters", target: 1, endowed: 0, reward: 14, titleKey: "quest.daily.water.title", bodyKey: "quest.daily.water.body" },
+  { key: "tend_4", tier: 1, stat: "tends", target: 4, endowed: 1, reward: 16, titleKey: "quest.daily.tend.title", bodyKey: "quest.daily.tend.body" },
+  { key: "gold_20", tier: 1, stat: "goldEarned", target: 20, endowed: 5, reward: 18, titleKey: "quest.daily.gold.title", bodyKey: "quest.daily.gold.body" },
+  { key: "xp_16", tier: 1, stat: "xpEarned", target: 16, endowed: 4, reward: 18, titleKey: "quest.daily.xp.title", bodyKey: "quest.daily.xp.body" },
+  { key: "plant_1", tier: 1, stat: "plantsBought", target: 1, endowed: 0, reward: 18, titleKey: "quest.daily.plant.title", bodyKey: "quest.daily.plant.body" },
+  { key: "placed_1", tier: 1, metric: "placedPlants", target: 1, endowed: 0, reward: 12, titleKey: "quest.daily.placed.title", bodyKey: "quest.daily.placed.body" },
+  { key: "placed_2", tier: 1, metric: "placedPlants", target: 2, endowed: 1, reward: 14, titleKey: "quest.daily.placed.title", bodyKey: "quest.daily.placed.body" },
+
+  { key: "tap_5", tier: 2, stat: "taps", target: 5, endowed: 2, reward: 18, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
+  { key: "tap_6", tier: 2, stat: "taps", target: 6, endowed: 2, reward: 20, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
+  { key: "water_2", tier: 2, stat: "waters", target: 2, endowed: 1, reward: 20, titleKey: "quest.daily.water.title", bodyKey: "quest.daily.water.body" },
+  { key: "tend_6", tier: 2, stat: "tends", target: 6, endowed: 2, reward: 22, titleKey: "quest.daily.tend.title", bodyKey: "quest.daily.tend.body" },
+  { key: "gold_35", tier: 2, stat: "goldEarned", target: 35, endowed: 8, reward: 24, titleKey: "quest.daily.gold.title", bodyKey: "quest.daily.gold.body" },
+  { key: "xp_28", tier: 2, stat: "xpEarned", target: 28, endowed: 6, reward: 24, titleKey: "quest.daily.xp.title", bodyKey: "quest.daily.xp.body" },
+  { key: "mature_1", tier: 2, metric: "maturePlants", target: 1, endowed: 0, reward: 18, titleKey: "quest.daily.mature.title", bodyKey: "quest.daily.mature.body" },
+  { key: "upgrade_1", tier: 2, stat: "upgrades", target: 1, endowed: 0, reward: 24, titleKey: "quest.daily.upgrade.title", bodyKey: "quest.daily.upgrade.body" },
+  { key: "placed_3", tier: 2, metric: "placedPlants", target: 3, endowed: 1, reward: 22, titleKey: "quest.daily.placed.title", bodyKey: "quest.daily.placed.body" },
+
+  { key: "tap_8", tier: 3, stat: "taps", target: 8, endowed: 2, reward: 24, titleKey: "quest.daily.tap.title", bodyKey: "quest.daily.tap.body" },
+  { key: "water_3", tier: 3, stat: "waters", target: 3, endowed: 1, reward: 26, titleKey: "quest.daily.water.title", bodyKey: "quest.daily.water.body" },
+  { key: "water_4", tier: 3, stat: "waters", target: 4, endowed: 1, reward: 30, titleKey: "quest.daily.water.title", bodyKey: "quest.daily.water.body" },
+  { key: "tend_8", tier: 3, stat: "tends", target: 8, endowed: 2, reward: 28, titleKey: "quest.daily.tend.title", bodyKey: "quest.daily.tend.body" },
+  { key: "gold_50", tier: 3, stat: "goldEarned", target: 50, endowed: 10, reward: 30, titleKey: "quest.daily.gold.title", bodyKey: "quest.daily.gold.body" },
+  { key: "xp_40", tier: 3, stat: "xpEarned", target: 40, endowed: 8, reward: 30, titleKey: "quest.daily.xp.title", bodyKey: "quest.daily.xp.body" },
+  { key: "plant_2", tier: 3, stat: "plantsBought", target: 2, endowed: 0, reward: 30, titleKey: "quest.daily.plant.title", bodyKey: "quest.daily.plant.body" },
+  { key: "upgrade_2", tier: 3, stat: "upgrades", target: 2, endowed: 0, reward: 36, titleKey: "quest.daily.upgrade.title", bodyKey: "quest.daily.upgrade.body" },
+  { key: "mature_2", tier: 3, metric: "maturePlants", target: 2, endowed: 0, reward: 32, titleKey: "quest.daily.mature.title", bodyKey: "quest.daily.mature.body" },
 ];
 
 function safeInteger(value, fallback = 0) {
@@ -135,11 +152,20 @@ export function recordGardenDailyProgress(rawDaily, deltas = {}, now = Date.now(
   return { ...daily, stats };
 }
 
+function dayNumberFromDateKey(date) {
+  const timestamp = Date.parse(`${date}T00:00:00.000Z`);
+  return Math.max(0, Math.floor((Number.isFinite(timestamp) ? timestamp : 0) / 86_400_000));
+}
+
 function selectedDailyTemplates(date) {
-  const offset = hashText(date) % DAILY_QUEST_TEMPLATES.length;
-  return Array.from({ length: GARDEN_DAILY_QUEST_COUNT }, (_item, index) => (
-    DAILY_QUEST_TEMPLATES[(offset + index) % DAILY_QUEST_TEMPLATES.length]
-  ));
+  const dayNumber = dayNumberFromDateKey(date);
+  return [1, 2, 3].flatMap((tier) => {
+    const bucket = DAILY_QUEST_TEMPLATES.filter((template) => template.tier === tier);
+    const start = (dayNumber * GARDEN_DAILY_QUESTS_PER_GROUP + hashText(`garden:${tier}`)) % bucket.length;
+    return Array.from({ length: GARDEN_DAILY_QUESTS_PER_GROUP }, (_item, index) => (
+      bucket[(start + index) % bucket.length]
+    ));
+  });
 }
 
 function metricProgress(metric, state = {}) {
@@ -196,6 +222,7 @@ export function buildGardenDailyQuests(state = {}, now = Date.now()) {
     const groupIndex = Math.floor(index / GARDEN_DAILY_QUESTS_PER_GROUP);
     return {
       id: `daily_${dateToken}_${index}_${template.key}`,
+      templateKey: template.key,
       kind: "daily",
       reward: template.reward,
       titleKey: template.titleKey,

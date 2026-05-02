@@ -2,21 +2,24 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../lib/GameContext';
 import { Coins } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { useGardenI18n } from '../lib/i18n';
 import { formatGardenGoldAmount } from '../constants';
+import { runGardenConfetti } from '../lib/effects';
 
 export function OfflineWelcome() {
   const { state, clearOfflineEarnings } = useGame();
   const { t } = useGardenI18n();
 
   const handleCollect = () => {
-    // Pop confetti before closing
-    confetti({
+    void runGardenConfetti({
       particleCount: 150,
       spread: 100,
       origin: { y: 0.6 },
-      colors: ['#fcd34d', '#f59e0b', '#d97706', '#ffeebb']
+      colors: ['#fcd34d', '#f59e0b', '#d97706', '#ffeebb'],
+    }, {
+      particleCount: 24,
+      ticks: 58,
+      spread: 72,
     });
     clearOfflineEarnings();
   };

@@ -67,6 +67,34 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-02 Garden/Merge/Yard Follow-up Loop
+
+The Garden/Merge/Yard follow-up loop stopped by rule after three consecutive safe attempts were reverted or failed to produce a confirmed guarded `>=3%` p95/build improvement. Final validation then exposed real browser-runtime guard misses in Merge's static Pixi render loop and overlapping Merge action path; those guard failures were fixed directly instead of loosening browser thresholds. No gameplay rules, RNG, rewards, persistence meaning, budgets, or tests were loosened.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-02-current-fixes-baseline-node-repeat3.json` passed 24/24 suites; slowest ratios were `yard.simulate-long-idle`, `merge.board-hydrate`, `assets.pipeline-entry-scan`, `player.build-snapshot`, and `merge.apply-generator`.
+- Build: `artifacts/perf/2026-05-02-current-fixes-baseline-build-report.json` passed with startup JS `311,830B` raw / `100,022B` gzip, startup CSS `93,059B` raw / `17,037B` gzip, async Pixi chunks `612,080B` raw / `186,882B` gzip, and runtime assets `7,687,694B` raw.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Cozy Yard recorded-visit reuse | `yard.simulate-long-idle` p95 `0.964ms` | `1.138ms` | Reverted; focused p95 and p99 regressed. |
+| 2 | Split Pixi scene import pruning | build startup JS `311,830B` raw / `100,022B` gzip | unchanged | Kept only as code-quality cleanup; guarded build bytes were identical, so this was not counted as a perf win. |
+| 3 | Merge board hydration row caching | `merge.board-hydrate` p95 `0.095ms` | `0.103ms` | Reverted; focused p95 and p99 regressed. |
+
+Kept changes:
+- Removed unused named imports from the split Pixi scene modules, reducing `pnpm exec eslint .` from 295 warnings to a clean exit while leaving the build metrics unchanged.
+- Stopped Gacha Merge from continuously auto-rendering its static Pixi board. The scene now renders on draw/drag/state updates and starts the Pixi ticker only while merge feedback particles are alive. A custom browser trace improved the Merge sample from 18-19 frames at `50-66ms` p95 to 51-55 frames at about `16.8ms` p95.
+- Split `LazyPixiSceneHost` further so entering Merge loads `PixiGameHost` plus the Merge builder instead of every Pixi scene builder. The build guard's async Pixi payload dropped from `612,080B` raw / `186,882B` gzip at baseline to `297,351B` raw / `87,624B` gzip in the final `perf:guard:all` pass.
+- Coalesced Pixi state updates onto `requestAnimationFrame`, removed the duplicate post-construction scene update, patched only changed Merge board cells after generator actions, skipped blocking full-bundle prewarm for Merge item art, disabled nonessential free-tap-claim feedback, and serialized pending Merge actions so `Claim +` cannot overlap `Generate` in the same runtime frame.
+- Final `pnpm run perf:guard:all` passed: Node 24/24 with slowest budget ratio `0.292`, build budgets passed with startup JS `311,959B` raw / `100,067B` gzip and startup CSS `93,079B` raw / `17,041B` gzip, and browser runtime smoke passed 2/2.
+
+Verification for the kept state:
+- `pnpm exec eslint .`
+- `pnpm run test:cleanup`
+- `pnpm test`
+- `pnpm run build`
+- `pnpm run perf:guard:all`
+
 ### 2026-05-02 Telegram Mini App UX Implementation Loop
 
 The Telegram Mini App UX implementation pass kept three conservative performance wins and stopped by rule after three consecutive reverted or sub-threshold attempts. No gameplay rules, rewards, RNG distribution, budgets, or tests were loosened.

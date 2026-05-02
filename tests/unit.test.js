@@ -267,6 +267,27 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(nextDay.stats.taps, 0);
   });
 
+  it("rotates Garden daily quest assignments from a deep reserve without near-repeat days", () => {
+    const firstDay = Date.UTC(2026, 4, 1, 12);
+    const state = createGardenEconomyState(firstDay, { starter: true });
+    const dailyKeysByDay = Array.from({ length: 14 }, (_item, index) => {
+      const quests = buildGardenDailyQuests(state, firstDay + index * 86_400_000);
+      const keys = quests.map((quest) => quest.templateKey || quest.id.replace(/^daily_\d{8}_\d_/, ""));
+      assert.equal(keys.length, 9);
+      assert.equal(new Set(keys).size, keys.length, `daily set ${index + 1} should not duplicate templates`);
+      return keys;
+    });
+
+    const reserve = new Set(dailyKeysByDay.flat());
+    assert.ok(reserve.size >= 20, `expected at least 20 templates over two weeks, got ${reserve.size}`);
+
+    for (let index = 1; index < dailyKeysByDay.length; index += 1) {
+      const previous = new Set(dailyKeysByDay[index - 1]);
+      const overlap = dailyKeysByDay[index].filter((key) => previous.has(key));
+      assert.ok(overlap.length <= 5, `day ${index} -> ${index + 1} repeats too many templates: ${overlap.join(", ")}`);
+    }
+  });
+
   it("counts ready Garden daily quests without mixing them into story claims", () => {
     const now = Date.UTC(2026, 4, 1, 12);
     const state = createGardenEconomyState(now, { starter: true });
@@ -987,6 +1008,34 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(motion.stationary, true);
     assert.equal(motion.x, 50);
     assert.equal(motion.y, 28);
+  });
+
+  it("scales Yard activity offsets before projecting visitor poses into the full stage", () => {
+    const start = 1_800_000_000_000;
+    const visit = {
+      visitId: "stationary-scaled-offset",
+      visitorId: "pip_hamster",
+      pose: "watch",
+      entryEdge: "right",
+      motionSeed: "scaled-offset",
+      arrivedAt: start,
+      leavesAt: start + 60 * 60 * 1000,
+    };
+    const activity = { id: "watch-right", pose: "watch", kind: "stationary", x: 13, y: -13, roam: 0 };
+    const unscaled = getVisitorMotion(visit, { x: 50, y: 50 }, activity, start + 30 * 60 * 1000, {
+      visitorInfo: YARD_VISITORS.pip_hamster,
+      activityScale: 1,
+    });
+    const scaled = getVisitorMotion(visit, { x: 50, y: 50 }, activity, start + 30 * 60 * 1000, {
+      visitorInfo: YARD_VISITORS.pip_hamster,
+      activityScale: 0.4,
+    });
+
+    assert.equal(unscaled.x, 63);
+    assert.equal(unscaled.y, 37);
+    assert.equal(scaled.x, 55.2);
+    assert.equal(scaled.y, 44.8);
+    assert.ok(Math.hypot(scaled.x - 50, scaled.y - 50) < Math.hypot(unscaled.x - 50, unscaled.y - 50));
   });
 
   it("lets leaving Yard visitors release their goodie before the visit fully expires", async () => {

@@ -4,8 +4,11 @@ import { PanelButton } from "./shell.jsx";
 import { AppI18nContext, useAppI18n } from "./i18n.jsx";
 const loadPixiSceneHost = () => import("../game-runtime/LazyPixiSceneHost.jsx");
 const LazyPixiSceneHost = React.lazy(loadPixiSceneHost);
-export function preloadPixiSceneHost() {
-  return loadPixiSceneHost();
+export function preloadPixiSceneHost(sceneKey = null) {
+  return loadPixiSceneHost().then((module) => {
+    if (!sceneKey) return module;
+    return module.preloadPixiSceneRuntime?.(sceneKey) || module;
+  });
 }
 export class GameLoadBoundary extends React.Component {
   constructor(props) {

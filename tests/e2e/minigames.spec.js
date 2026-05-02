@@ -153,7 +153,7 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.getByText(/Score/).first()).toBeVisible();
+    await expect(page.locator('[data-game-shell="blox"] .game-play-hud')).toContainText("Score");
     await pauseActiveGame(page);
     await exitToHub(page);
 
@@ -230,6 +230,7 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".companion-yard-stage, .companion-yard-layout").first()).toBeVisible();
     await expect(page.getByText("Room Inventory")).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Petbook" })).toBeVisible();
+    await page.getByRole("button", { name: "Tools" }).click();
     await page.getByRole("button", { name: "Daily letter" }).click();
     await expect(page.locator(".yard-game-screen")).toContainText("Daily letter");
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();

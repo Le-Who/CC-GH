@@ -271,7 +271,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
         <motion.button
           initial={{ opacity: 0, y: 20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.5, filter: "blur(4px)" }}
+          exit={{ opacity: 0, y: -20, scale: 0.5 }}
           whileTap={{ scale: 0.95 }}
           whileHover={{ y: -2 }}
           onPointerDown={handlePointerDown}

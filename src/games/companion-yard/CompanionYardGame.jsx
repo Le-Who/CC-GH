@@ -49,7 +49,9 @@ function formatCount(value) {
 function yardText(t, key, fallback, values) {
   if (typeof t !== "function") return fallback;
   const value = t(key, values);
-  return value === key ? fallback : value;
+  if (value !== key) return value;
+  if (!values) return fallback;
+  return String(fallback).replace(/\{(\w+)\}/g, (_match, valueKey) => String(values[valueKey] ?? ""));
 }
 
 function catalogText(t, type, id, field, fallback) {
@@ -192,6 +194,10 @@ function useCompanionYardShell(controls = null) {
   }, [controls, setActiveGameShell]);
 }
 
+function getGoodieActivityScale(goodie = {}) {
+  return goodie.size === "large" ? 0.42 : 0.34;
+}
+
 function YardActivityPill({ pendingGiftCount, activeVisitorCount, visitorCount, pendingCount, text }) {
   let label = text("yard.activity.calm", "Yard calm");
   let value = "";
@@ -321,6 +327,7 @@ export default function CompanionYardGame() {
           obstacles: obstacleRects.filter((obstacle) => obstacle.slotId !== placed.slotId),
           playzoneId: yard.remodel || "meadow",
           playzoneMargin: 1,
+          activityScale: getGoodieActivityScale(goodie),
         });
         const sitsOnGoodie = Array.isArray(goodie.surfaceTypes) && goodie.surfaceTypes.includes("lie");
         const layer = activity.kind === "lie" || sitsOnGoodie ? "front" : activity.layer || visit.activityLayer || "front";
@@ -492,6 +499,8 @@ export default function CompanionYardGame() {
           data-motion-y={item.motion.y.toFixed(2)}
           data-motion-phase={item.motion.phase}
           data-motion-stationary={item.motion.stationary ? "true" : "false"}
+          data-slot-id={item.visit.slotId}
+          data-goodie-id={item.visit.goodieId}
           onClick={(event) => {
             event.stopPropagation();
             if (placementDraft) {
@@ -526,6 +535,8 @@ export default function CompanionYardGame() {
             key={placed.slotId}
             className={`yard-slot yard-placed-goodie yard-slot-${goodie.size}${slotPending ? " pending" : ""}${moving ? " moving" : ""}`}
             style={{ left: `${position.x}%`, top: `${position.y}%` }}
+            data-slot-id={placed.slotId}
+            data-goodie-id={placed.goodieId}
             disabled={!!slotPending}
             onClick={(event) => {
               event.stopPropagation();

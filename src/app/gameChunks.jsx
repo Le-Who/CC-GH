@@ -16,7 +16,7 @@ const gameComponents = Object.fromEntries(
 );
 export function preloadGameTab(tabId) {
   gameLoaders[tabId]?.();
-  if (PIXI_TABS.has(tabId)) preloadPixiSceneHost();
+  if (PIXI_TABS.has(tabId)) preloadPixiSceneHost(tabId);
 }
 export function ActiveGame({ activeTab }) {
   const { t } = useAppI18n();

@@ -79,11 +79,31 @@ function cssUrl(value) {
   return value ? `url(${JSON.stringify(value)})` : undefined;
 }
 
+function boardVisualSignature(board = []) {
+  return board
+    .map((row = []) => row
+      .map((item) => {
+        if (!item) return "";
+        return [
+          item.id || item.itemId || "",
+          item.chainId || "",
+          item.level ?? "",
+          item.asset || "",
+          item.recipe || "",
+        ].join(":");
+      })
+      .join(","))
+    .join("|");
+}
+
 export default function MergeGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
   const lastResult = useGameHub((state) => state.lastResult);
+  const mergeActionPending = useGameHub((state) => (
+    Object.keys(state.busy || {}).some((key) => key.startsWith("merge."))
+  ));
   const pushEvent = useGameEvents((store) => store.pushEvent);
   const { t } = useAppI18n();
   const merge = snapshot?.merge || {};
@@ -135,7 +155,9 @@ export default function MergeGame() {
   const canClaimFreeTaps = freeTapClaim.claimable > 0;
   const freeTapBankFull = Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0)) >= MERGE_FREE_TAP_BANK_CAP;
   const freeTapWaitMinutes = Math.max(1, Math.ceil((freeTapClaim.nextFreeTapAt - now) / 60000));
-  const canTapGenerator = !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
+  const canTapGenerator = !mergeActionPending && !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
+  const mergeBoardSignature = useMemo(() => boardVisualSignature(merge.board), [merge.board]);
+  const sceneMerge = useMemo(() => ({ board: merge.board || [] }), [mergeBoardSignature]);
   const activeCrop = activeFuel ? CROPS[activeFuel] : null;
   const generatorHint = (merge.freeTapCharges || 0) > 0
     ? t("merge.generatorHintFree", { count: merge.freeTapCharges || 0 })
@@ -248,7 +270,7 @@ export default function MergeGame() {
 
   const sceneState = useMemo(
     () => ({
-      merge,
+      merge: sceneMerge,
       mergeEssence: alchemyEssence,
       mergeSelected: selectedCell,
       trashMode,
@@ -261,7 +283,7 @@ export default function MergeGame() {
       onMergeCell,
       onMergeDrop,
     }),
-    [alchemyEssence, isPlaying, merge, onMergeCell, onMergeDrop, selectedCell, trashMode, t],
+    [alchemyEssence, isPlaying, onMergeCell, onMergeDrop, sceneMerge, selectedCell, trashMode, t],
   );
 
   const renderRecipeBook = () => (
@@ -474,8 +496,8 @@ export default function MergeGame() {
               <PanelButton
                 icon={Zap}
                 className="merge-free-taps-button"
-                disabled={!canClaimFreeTaps}
-                onClick={() => performAction("merge.claimFreeTaps")}
+                disabled={mergeActionPending || !canClaimFreeTaps}
+                onClick={() => performAction("merge.claimFreeTaps", {}, { feedback: false })}
                 title={t("merge.dailyTapsHint")}
               >
                 {canClaimFreeTaps

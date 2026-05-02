@@ -862,6 +862,24 @@
   white-space: nowrap;
 }
 
+.yard-bottom-dock .yard-icon-button {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: center;
+  gap: 2px;
+  padding: 3px 2px 2px;
+}
+
+.yard-bottom-dock .yard-icon-label {
+  order: -1;
+  position: static;
+  width: auto;
+  height: auto;
+  clip: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.05;
+}
+
 .yard-badge {
   position: absolute;
   right: 3px;
@@ -895,6 +913,7 @@
   background: var(--yard-hud-cream);
   color: var(--yard-hud-ink);
   box-shadow: 0 10px 24px rgba(72, 58, 34, 0.12);
+  pointer-events: none;
 }
 
 .yard-activity-pill .yard-hud-icon {
@@ -1267,6 +1286,11 @@
     gap: 5px;
   }
 
+  .yard-activity-pill {
+    top: max(68px, calc(var(--safe-top) + 68px));
+    max-width: min(56%, 260px);
+  }
+
   .yard-icon-button.compact {
     width: 50px;
     height: 50px;
@@ -1383,6 +1407,21 @@
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+
+  .yard-bottom-dock .yard-icon-label {
+    position: static;
+    width: auto;
+    height: auto;
+    clip: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 0.48rem;
+  }
+
+  .yard-bottom-dock .yard-icon-button .yard-hud-icon {
+    width: 42px;
+    height: 42px;
   }
 
   .yard-game-screen {

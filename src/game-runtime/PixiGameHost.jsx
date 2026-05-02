@@ -19,6 +19,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
   const appRef = useRef(null);
   const sceneRef = useRef(null);
   const stateRef = useRef(sceneState);
+  const updateFrameRef = useRef(0);
   const activePointerRef = useRef(null);
   const captureTargetRef = useRef(null);
   const [failed, setFailed] = useState(false);
@@ -134,8 +135,8 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
           destroyPixiApp(app);
           return;
         }
+        // Scene builders consume the initial state and draw once; avoid an immediate duplicate redraw.
         sceneRef.current = buildScene(app, stateRef.current);
-        sceneRef.current?.update?.(stateRef.current);
       } catch (err) {
         console.error(`Pixi scene ${sceneKey} failed`, err);
         setFailed(true);
@@ -145,6 +146,8 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
     mount();
     return () => {
       cancelled = true;
+      window.cancelAnimationFrame(updateFrameRef.current);
+      updateFrameRef.current = 0;
       sceneRef.current?.destroy?.();
       sceneRef.current = null;
       appRef.current = null;
@@ -155,7 +158,16 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
 
   useEffect(() => {
     stateRef.current = sceneState;
-    sceneRef.current?.update?.(sceneState);
+    if (!sceneRef.current) return undefined;
+    window.cancelAnimationFrame(updateFrameRef.current);
+    updateFrameRef.current = window.requestAnimationFrame(() => {
+      updateFrameRef.current = 0;
+      sceneRef.current?.update?.(stateRef.current);
+    });
+    return () => {
+      window.cancelAnimationFrame(updateFrameRef.current);
+      updateFrameRef.current = 0;
+    };
   }, [sceneState]);
 
   return (

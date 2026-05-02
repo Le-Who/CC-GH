@@ -206,7 +206,41 @@
   display: none;
 }
 
+.garden-root--mobile-lite .garden-dome-reflection {
+  display: none;
+}
+
 .garden-root--mobile-lite .garden-tap-pulse,
 .garden-root--mobile-lite .garden-floating-note {
   will-change: transform, opacity;
+}
+
+@media (max-width: 640px), (pointer: coarse) {
+  .glass-scrim,
+  .garden-glass-menu,
+  .garden-glass-sheet,
+  .garden-modal-card {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .glass-scrim {
+    background: color-mix(in srgb, var(--glass-scrim) 82%, transparent) !important;
+  }
+
+  .garden-glass-menu,
+  .garden-glass-sheet,
+  .garden-modal-card {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .garden-glass-menu[role="dialog"],
+  .garden-glass-sheet {
+    overscroll-behavior: contain;
+  }
+
+  .garden-quest-card,
+  .garden-card-row {
+    contain: layout paint style;
+  }
 }
