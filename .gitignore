@@ -9,6 +9,7 @@ dist/
 .idea/
 .DS_Store
 eslint.config.*
+docs/
 
 # legacy and dev artifacts
 eslint_output.txt
