@@ -120,9 +120,22 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("pixi.js") || id.includes("@pixi")) return undefined;
-          if (id.includes("framer-motion")) return "motion-vendor";
+          if (id.includes("framer-motion") || id.includes("motion-dom") || id.includes("motion-utils") || id.includes("@emotion/is-prop-valid")) return "motion-vendor";
           if (id.includes("lucide-react")) return "icon-vendor";
           if (id.includes("@telegram-apps")) return "telegram-vendor";
+          if (
+            id.includes("socket.io-client") ||
+            id.includes("socket.io-parser") ||
+            id.includes("engine.io-client") ||
+            id.includes("engine.io-parser") ||
+            id.includes("@socket.io") ||
+            id.includes("component-emitter") ||
+            id.includes("parseuri")
+          ) return "socket-vendor";
+          if (id.includes("workbox-window")) return "workbox-vendor";
+          if (id.includes("canvas-confetti")) return "garden-effects-vendor";
+          if (id.includes("idb-keyval")) return "storage-vendor";
+          if (id.includes("zustand")) return "state-vendor";
           if (id.includes("react") || id.includes("scheduler")) return "react-vendor";
           return "vendor";
         },

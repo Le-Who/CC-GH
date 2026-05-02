@@ -79,6 +79,9 @@
 
 ### Operations
 
+- Restored the tracked asset replacement guide and tightened the game asset sheet brief around the current generated-runtime/manual-manifest contract, including legacy and hidden art surfaces that are not live override paths today.
+- Reduced guarded startup JS by splitting broad Vite vendor chunks into dependency-family chunks and deferring the realtime client module until the app boot effect, while keeping Pixi and runtime art lazy.
+- Fixed Playwright browser perf parity so `perf:guard:browser` builds production Vite assets before starting the test-mode server, preventing browser smoke runs from leaving a dev/test build that fails `perf:guard:build`.
 - Reduced startup font payload by replacing broad Fontsource imports with explicit WOFF2 Latin, Latin-ext, and Cyrillic faces, cutting guarded startup CSS while preserving the existing English/Russian typography and browser perf budgets.
 - Kept the production build guard inside the existing startup CSS budget by moving Garden-only quest/level-up styling into the lazy Garden Shelf CSS chunk instead of loosening `perf:guard:build`.
 - Optimized perf-guard hot paths without changing gameplay semantics: Bubbo pressure/shot traversal and normalization, Merge generator empty-cell selection, current-schema player migrations, snapshot achievement metadata, and runtime asset entry scanning now do less repeat allocation while keeping existing budgets intact.

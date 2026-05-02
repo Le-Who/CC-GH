@@ -43,7 +43,7 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 3. `pnpm run perf:guard:browser`
 
-   Browser runtime smoke for the current Telegram shell. It checks startup lazy-loading, verifies startup uses the generated runtime manifest without eager Bubbo/Gem Crush art, enters Gacha Merge, performs a real free-tap generator action, samples `requestAnimationFrame` cadence, records Long Task / Long Animation Frame entries when the browser supports them, and runs the generated runtime asset coverage spec for Garden Shelf, Bubbo, Gem Crush, and Cozy Yard.
+   Browser runtime smoke for the current Telegram shell. The Playwright web-server builds production assets first, then starts `server.js` with the test env for dev auth and in-memory player state. The specs check startup lazy-loading, verify startup uses the generated runtime manifest without eager Bubbo/Gem Crush art, enter Gacha Merge, perform a real free-tap generator action, sample `requestAnimationFrame` cadence, record Long Task / Long Animation Frame entries when the browser supports them, and run the generated runtime asset coverage spec for Garden Shelf, Bubbo, Gem Crush, and Cozy Yard.
 
 4. `pnpm run perf:guard:all`
 
@@ -66,6 +66,35 @@ This repo uses three performance guard layers because one metric cannot cover a 
 - Stop after three consecutive noisy, reverted, or sub-3% attempts, or when the next likely change would require gameplay behavior changes.
 
 ## Local Loop Notes
+
+### 2026-05-02 Conservative Loop
+
+The May 2, 2026 loop kept two build/startup wins plus one Playwright CI-parity fix, then stopped by rule after three consecutive safe attempts were reverted or failed the 3% keep threshold. No gameplay rules, budgets, or tests were loosened.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-02-baseline-node-repeat3.json` passed 24/24 suites; slowest ratios were `bubbo.pressure-advance`, `merge.board-hydrate`, `yard.simulate-long-idle`, `assets.pipeline-entry-scan`, and `merge.apply-generator`.
+- Production build at loop start failed `perf:guard:build`: startup JS was `775,857B` raw / `245,299B` gzip and largest game chunk was `83,093B`, over the existing budgets.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Bubbo unsupported-cell traversal queue | pressure p95 `0.073ms` | `0.075ms` | Reverted; mixed/noisy, despite `apply-shot` improving. |
+| 2 | Vendor chunk family split | startup JS `775,857B` raw / `245,299B` gzip | `536,791B` raw / `175,808B` gzip | Kept; game chunks also dropped under the existing max budget. |
+| 3 | Lazy realtime client import | startup JS `536,791B` raw / `175,808B` gzip | final `494,519B` raw / `162,604B` gzip | Kept; browser guard passed. |
+| 4 | Lazy update manager import | startup JS `494,488B` raw | `492,467B` raw | Reverted; about 0.4%, below threshold. |
+| 5 | Bubbo dropped-cell aggregation | pressure p95 `0.091ms` | `0.108ms` | Reverted; p95 regressed. |
+| 6 | Gacha Merge asset scan single walk | asset scan p95 `0.937ms` | `1.647ms` | Reverted; p95 regressed. |
+
+Kept changes:
+- Split Vite manual chunks by stable dependency family so lazy-only Garden effects, socket runtime, storage/state helpers, and motion internals no longer get pulled into one broad startup `vendor` chunk.
+- Deferred `socket.io-client` by loading `src/services/realtimeClient.js` inside the boot effect while preserving the existing auth/status/outbox flow.
+- Replaced the Playwright web-server command with `scripts/playwright-web-server.mjs`, which builds with `NODE_ENV=production` and then runs the test server with Playwright's test env. This prevents `perf:guard:browser` from leaving behind a dev/test-mode Vite build that fails `perf:guard:build`.
+
+Verification for the kept state:
+- `pnpm run build`
+- `pnpm run perf:guard:build` inside `pnpm run perf:guard:all` passed with startup JS `494,519B` raw / `162,604B` gzip
+- `pnpm run perf:guard:browser`
+- `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-02-post-browser-production-build-report.json`
+- `pnpm run perf:guard -- --repeat 3 --report artifacts/perf/2026-05-02-post-vendor-split-node-repeat3.json`
 
 ### 2026-05-01 Conservative Loop Follow-up
 

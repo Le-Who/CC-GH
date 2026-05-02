@@ -19,7 +19,6 @@ import {
 import { getPublicConfig } from "./services/apiClient.js";
 import { installUpdateManager } from "./services/updateManager.js";
 import { audioManager } from "./services/audioManager.js";
-import { connectRealtime } from "./services/realtimeClient.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
 import {
   GARDEN_LANGUAGE_EVENT,
@@ -136,6 +135,7 @@ export default function App() {
     let cleanupRealtime = () => {};
     let cancelled = false;
     async function boot() {
+      const realtimeClient = import("./services/realtimeClient.js");
       const [platformState, publicConfig] = await Promise.all([initTelegramPlatform(), getPublicConfig()]);
       if (cancelled) return;
       setPlatform(platformState);
@@ -143,7 +143,9 @@ export default function App() {
       await loadSnapshot();
       await hydrateOutbox();
       drainOutbox();
-      cleanupRealtime = await connectRealtime(
+      const { connectRealtime } = await realtimeClient;
+      if (cancelled) return;
+      const realtimeCleanup = await connectRealtime(
         (payload) => applyRealtimePayload(payload),
         (nextStatus) => {
           if (nextStatus === "offline") useGameHub.setState({ status: "offline" });
@@ -153,6 +155,8 @@ export default function App() {
           }
         },
       );
+      if (cancelled) realtimeCleanup();
+      else cleanupRealtime = realtimeCleanup;
     }
     boot();
     return () => {

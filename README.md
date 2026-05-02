@@ -187,7 +187,7 @@ Copy `.env.example` and set:
 The compose stack also uses `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to provision PostgreSQL. In production, GitHub Actions writes `/opt/game-hub/.env` from repository secrets; do not commit production `.env` files.
 `APP_BUILD_ID` is written from the GitHub commit SHA during deployment and mirrored into the Docker build as `VITE_BUILD_ID` so HTML, `/api/config`, and the update manager agree on app freshness. Runtime art uses content-hashed `/assets-runtime/*` URLs; legacy `/games/*` fallbacks still receive a build-id query. `ASSET_BASE_URL` is optional and only prefixes generated runtime assets for a future static asset domain/CDN.
 
-Playwright web-server runs with `NODE_ENV=test`, `DEV_AUTH_ENABLED=true`, and an empty `DATABASE_URL`; in that mode only, `withPlayerLock()` uses a process-local player store so browser smoke tests can exercise authenticated mutations without a local Postgres tenant. Production and normal development still require PostgreSQL for durable player state.
+Playwright web-server builds the Vite app with `NODE_ENV=production`, then runs `server.js` with `NODE_ENV=test`, `DEV_AUTH_ENABLED=true`, and an empty `DATABASE_URL`; in server test mode only, `withPlayerLock()` uses a process-local player store so browser smoke tests can exercise authenticated mutations without a local Postgres tenant. Production and normal development still require PostgreSQL for durable player state.
 
 ## Development
 

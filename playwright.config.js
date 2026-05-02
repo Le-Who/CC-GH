@@ -26,7 +26,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: "pnpm run build && node server.js",
+    command: "node scripts/playwright-web-server.mjs",
     url: `http://localhost:${port}`,
     reuseExistingServer: false,
     timeout: 120000,

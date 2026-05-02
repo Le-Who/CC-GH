@@ -12,7 +12,7 @@
 - `Pixi` - сцена идет через `src/app/PixiScene.jsx`, `src/game-runtime/LazyPixiSceneHost.jsx` и builder из `src/game-runtime/scenes.js`.
 - `Legacy/hidden` - код и API есть, но игра не зарегистрирована в текущих вкладках.
 
-`Asset key` - стабильный ключ, который уже можно использовать в `public/assets/manifest.json` или который попадает в generated runtime manifest после `pnpm run assets:build`.
+`Asset key` - стабильный ключ generated runtime manifest после `pnpm run assets:build` или ручной override key только там, где код реально читает `public/assets/manifest.json`.
 
 ## Общая архитектура игр и ассетов
 
@@ -48,7 +48,7 @@
 Ручной manifest:
 
 - `public/assets/manifest.json`
-- Используется для ручных override путей: icons, pets, scene backgrounds, Garden Shelf, Cozy Yard, Gacha Merge, audio.
+- Используется для ручных override путей там, где есть resolver: Cozy Yard (`graphics.games.companionYard`), Gacha Merge (`graphics.games.gachaMerge`) и audio (`audio.sfx`). Иконки/pets/legacy scene placeholders остаются в manifest как registry/source hints, но не все из них являются live overrides в текущих игровых resolver'ах.
 
 Generated runtime manifest:
 
@@ -66,6 +66,13 @@ Pipeline config:
 - Cozy Yard собирает все PNG из `public/games/companion-yard/{backgrounds,foods,goodies,visitors,companions}` в WebP-only runtime entries.
 - Gacha Merge собирает PNG/SVG из `public/games/gacha-merge/{backgrounds,ui,fx,items}` и кладет их в bundle `pixi.merge`.
 - SVG из `public/pets` и `public/assets` идут как stable SVG runtime assets.
+
+Resolver order by game:
+
+- Cozy Yard: manual manifest override -> generated runtime asset -> `public/games/companion-yard/**` fallback.
+- Gacha Merge: manual manifest override -> generated runtime asset -> procedural fallback.
+- Bubbo, Gem Crush, Garden Shelf: generated runtime asset -> stable legacy `public/games/**` fallback. Manual manifest buckets for Garden/Bubbo/Match-3 do not override art unless a resolver is added.
+- Building Blox, Brain Blitz, Cozy Farm: no dedicated generated production-art resolver in the visible runtime today; mostly procedural/DOM art.
 
 Общий контракт для будущего asset sheet:
 
@@ -183,13 +190,15 @@ Runtime keys:
 - `gardenShelf.bottomPlank`
 - `gardenShelf.settingsCog`
 
-Manual manifest bucket:
+Manual manifest placeholders exist in `public/assets/manifest.json`, but the current Garden resolver does not read them:
 
 - `graphics.games.gardenShelf.sheet`
 - `graphics.games.gardenShelf.shelf`
 - `graphics.games.gardenShelf.sign`
 - `graphics.games.gardenShelf.bottomPlank`
 - `graphics.games.gardenShelf.settingsCog`
+
+Use generated runtime files or update `resolveGardenAssetPaths` before relying on these as live overrides.
 
 ### Asset sheet materials needed
 
@@ -219,7 +228,7 @@ Optional polish:
 Technical constraints:
 
 - Plant sheet must preserve transparent background and stable frame indexing.
-- Current `getGardenSpriteStyle` expects sheet-style frame addressing; do not replace with arbitrary cropped images unless resolver is changed.
+- Current `getGardenSpriteStyle` reads `spriteData` from `src/games/garden-shelf/lib/sprites.ts`: full sheet `1672 x 941`, 32 explicit frame rectangles, 8 plant sprite indices x 4 phases. Do not replace with arbitrary cropped images unless resolver/frame data is changed.
 - Shelf/sign/bottom plank are DOM `<img>` style assets, not Pixi textures.
 - Generated runtime entries are WebP-only; source PNG can stay in `public/games/garden-shelf/`.
 
@@ -360,8 +369,8 @@ Runtime folders:
 - `public/games/companion-yard/foods/`
 - `public/games/companion-yard/goodies/`
 - `public/games/companion-yard/visitors/`
-- `public/games/companion-yard/HUD.png`
-- `public/games/companion-yard/HUD.svg`
+- `public/games/companion-yard/HUD.png` direct CSS sprite, not generated runtime manifest today.
+- `public/games/companion-yard/HUD.svg` editable/source reference for the HUD sprite.
 
 Runtime generated key pattern:
 
@@ -418,6 +427,7 @@ Technical constraints:
 - Non-layable goodies are movement blockers; silhouettes should read as obstacles.
 - Backgrounds must leave UI-safe zones for HUD buttons and lower controls.
 - Generated runtime currently emits compact WebP-only Yard assets, so source PNG/SVG can be high quality but runtime should remain compact.
+- The HUD atlas is sliced by CSS background positions in `companion-yard.css`; keep a 5x5 layout or update the CSS positions together.
 
 ## 3. Gacha Merge / Alchemy Table
 
@@ -800,6 +810,7 @@ Technical constraints:
 - Pixi sprite draw uses centered texture with transparent background.
 - Board is responsive; avoid fixed baked-in text inside board art.
 - Runtime uses `gameAsset(POTION_PIECE_ASSETS[type])`, so new art should preserve current keys unless code is updated.
+- Public Puzzling Potions files such as `background.png`, `game-header.png`, `logo-game.png`, `books-*.png`, `highlight.png`, and `shelf-corner.png` are legacy/reference surfaces in this app right now; the active generated Match-3 bundle is only the 11 keys listed above.
 
 ## 6. Bubbo Bubbo
 
@@ -929,6 +940,7 @@ Technical constraints:
 
 - Existing sheet slicing assumes `1672 x 941` sheet and fixed frame coordinates. If replacing the sheet, either match the frame layout or update `BUBBO_BALL_FRAMES`.
 - Current asset bundle only includes 8 keys; adding cannon parts/laser assets requires adding pipeline entries and runtime references.
+- Extra committed Bubbo files (`bubble-glow`, `bubble-shadow`, `bubble-shine`, `cannon-arrow`, `cannon-barrel`, `cannon-top`, `laser-line`, `satellite`) are legacy/hidden public surfaces until they are added to `assetBundles.js`, the pipeline config, and the scene builder.
 - Bubble art must work at dynamic radius; transparent padding should not make bubble collisions look misaligned.
 - The pending row must look hittable, not like a forecast-only row.
 
@@ -1298,6 +1310,24 @@ For new runtime keys:
 
 For manual overrides:
 
-1. Set the path in `public/assets/manifest.json`.
-2. Keep the fallback public path unless intentionally removing legacy support.
-3. Prefer generated `/assets-runtime/*` for production assets and manual manifest for urgent overrides/prototypes.
+1. Confirm the target game has a manual manifest resolver before setting the path in `public/assets/manifest.json`.
+2. Set the path under the supported bucket (`graphics.games.companionYard`, `graphics.games.gachaMerge`, or `audio.sfx` today).
+3. Keep the fallback public path unless intentionally removing legacy support.
+4. Prefer generated `/assets-runtime/*` for production assets and manual manifest for urgent overrides/prototypes.
+
+## Verified from Code vs Designer Judgment
+
+Verified from code on 2026-05-02:
+
+- Visible bottom-tab games are `garden`, `blox`, `match3`, `merge`, `bubbo`, `trivia`, and `room`; `farm` is legacy/hidden but still has component, Pixi scene, API actions, and harvested-crop coupling into Merge.
+- Pixi tabs are `blox`, `match3`, `merge`, and `bubbo`; Garden Shelf, Cozy Yard, and Brain Blitz are React/DOM surfaces.
+- Current generated runtime manifest has 115 assets and only two active Pixi bundles: `pixi.bubbo` and `pixi.match3`; `pixi.merge` is a supported future bundle once Gacha Merge files exist.
+- Current resolver order differs by game as listed above; do not apply manual manifest override assumptions globally.
+- Blox, Brain Blitz, and legacy Farm still need new resolver/key work before production art can be treated as runtime contract.
+
+Still needs designer/art-director judgment:
+
+- Final visual style, palette, and material language per game.
+- Exact sprite margins, safe areas, pivot points, and pose silhouettes after production art is drafted.
+- Whether procedural surfaces like Blox board cells, Trivia cards, and Farm crop stages should remain lightweight UI or become full art assets.
+- Whether Cozy Yard HUD atlas should stay as a direct CSS sprite or move into the generated runtime manifest.
