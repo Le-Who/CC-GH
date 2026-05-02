@@ -2931,7 +2931,7 @@ button.item-card {
 
   .merge-library-rail {
     top: auto;
-    bottom: max(142px, calc(var(--safe-bottom) + 142px));
+    bottom: max(166px, calc(var(--safe-bottom) + 166px));
     left: 6px;
     width: auto;
     grid-template-columns: repeat(3, 48px);
@@ -2954,9 +2954,9 @@ button.item-card {
   }
 
   .merge-scene-drawer {
-    top: max(88px, calc(var(--safe-top) + 88px));
+    top: max(150px, calc(var(--safe-top) + 150px));
     right: 6px;
-    bottom: max(132px, calc(var(--safe-bottom) + 132px));
+    bottom: max(166px, calc(var(--safe-bottom) + 166px));
     left: 6px;
     width: auto;
     padding: 8px;
@@ -2979,7 +2979,7 @@ button.item-card {
   }
 
   .merge-generator-dock {
-    grid-template-columns: minmax(0, 1fr) 64px;
+    grid-template-columns: minmax(0, 1fr) 104px;
     gap: 6px;
   }
 
@@ -3008,11 +3008,17 @@ button.item-card {
 
   .merge-action-strip .panel-button {
     min-height: 40px;
-    padding: 0;
+    padding: 0 5px;
+    gap: 4px;
   }
 
   .merge-action-strip .panel-button span {
-    display: none;
+    display: inline;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    font-size: 0.56rem;
+    line-height: 1.05;
   }
 
   .merge-action-strip .panel-button.merge-free-taps-button {
@@ -3021,7 +3027,7 @@ button.item-card {
 
   .merge-action-strip .panel-button.merge-free-taps-button span {
     display: inline;
-    max-width: 58px;
+    max-width: 100%;
     white-space: normal;
     text-align: left;
     font-size: 0.56rem;

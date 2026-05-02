@@ -77,6 +77,14 @@ async function canvasIsNonBlank(page) {
   expect(dataUrlLength).toBeGreaterThan(2000);
 }
 
+async function expectAbove(first, second, label, gap = 4) {
+  const firstBox = await first.boundingBox();
+  const secondBox = await second.boundingBox();
+  expect(firstBox, `${label} first surface should be measurable`).toBeTruthy();
+  expect(secondBox, `${label} second surface should be measurable`).toBeTruthy();
+  expect(firstBox.y + firstBox.height, `${label} should not overlap`).toBeLessThanOrEqual(secondBox.y - gap);
+}
+
 test.describe("CC-GH multi-game logic smoke", () => {
   test("Match-3 activates chained specials and still renders the browser game", async ({ page }) => {
     const board = stableMatch3Board();
@@ -122,6 +130,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
   });
 
   test("Merge mobile dock keeps live controls readable and updates discovery drawers", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 360, height: 740 });
     const now = Date.now();
     const offer = MERGE_EXCHANGE_OFFERS.find((candidate) => candidate.id === "yard_treats_small");
     expect(offer).toBeTruthy();
@@ -159,6 +168,10 @@ test.describe("CC-GH multi-game logic smoke", () => {
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /Merge/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await expectAbove(page.locator(".merge-library-rail"), page.locator(".merge-action-dock"), "Merge mobile rail and dock");
+    for (const label of ["Generate", "Daily Drop", "Token Pull", "Trash"]) {
+      await expect(page.locator(".merge-action-dock .panel-button").filter({ hasText: label }).locator("span")).toBeVisible();
+    }
     await canvasIsNonBlank(page);
 
     const canvas = page.locator(".pixi-host canvas");
@@ -182,6 +195,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
     const exchangeDrawer = page.locator(".merge-scene-drawer");
+    await expectAbove(exchangeDrawer, page.locator(".merge-action-dock"), "Merge mobile exchange drawer and dock");
     await expect(exchangeDrawer).toContainText("50 Essence ready");
     const exchangeResponsePromise = page.waitForResponse((response) => {
       if (!response.url().includes("/api/player/mutate")) return false;
@@ -230,6 +244,50 @@ test.describe("CC-GH multi-game logic smoke", () => {
       path: testInfo.outputPath("merge-mobile-recipe-book.png"),
       fullPage: false,
     });
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Merge Russian dark drawers stay above the readable mobile dock", async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 740 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `merge_ru_dark_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+      window.localStorage.setItem("garden_shelf_language", "ru");
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+      window.localStorage.removeItem("terrarium_save");
+      window.localStorage.removeItem("garden_shelf_name");
+    });
+    const pageErrors = [];
+    page.on("pageerror", (err) => pageErrors.push(err.message));
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "dark");
+    await page.locator(".bottom-tabs button").nth(3).click();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await expect(page.locator(".topbar")).toBeHidden();
+    await expect(page.locator(".stats-row")).toBeHidden();
+    await expect(page.locator(".bottom-tabs")).toBeHidden();
+    await expectAbove(page.locator(".merge-library-rail"), page.locator(".merge-action-dock"), "Merge Russian dark rail and dock");
+
+    for (const label of ["Создать", "Дневной дроп", "За токены", "Удалить"]) {
+      await expect(page.locator(".merge-action-dock .panel-button").filter({ hasText: label }).locator("span")).toBeVisible();
+    }
+
+    const drawerCases = [
+      { index: 0, text: "Книга рецептов" },
+      { index: 1, text: "Предметы" },
+      { index: 2, text: "Обменная лавка" },
+    ];
+    for (const drawerCase of drawerCases) {
+      await page.locator(".merge-library-rail button").nth(drawerCase.index).click();
+      const drawer = page.locator(".merge-scene-drawer");
+      await expect(drawer).toContainText(drawerCase.text);
+      await expectAbove(drawer, page.locator(".merge-action-dock"), `Merge Russian dark ${drawerCase.text} drawer and dock`);
+      await drawer.getByRole("button", { name: /^Закрыть$/ }).click();
+      await expect(drawer).toBeHidden();
+    }
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
