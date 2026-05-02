@@ -12,6 +12,20 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function readSceneRuntimeText() {
+  const files = [path.join(__dirname, "..", "src", "game-runtime", "scenes.js")];
+  const scenesDir = path.join(__dirname, "..", "src", "game-runtime", "scenes");
+  const visit = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(fullPath);
+      else if (entry.name.endsWith(".js")) files.push(fullPath);
+    }
+  };
+  visit(scenesDir);
+  return files.map((file) => fs.readFileSync(file, "utf-8")).join("\n");
+}
+
 const line3 = {
   id: "h3",
   color: "#60a5fa",
@@ -89,7 +103,7 @@ describe("Pixi scene geometry helpers", () => {
   });
 
   it("keeps Bubbo using corrected sheet frames and internal HUD reserve", () => {
-    const scenes = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "scenes.js"), "utf-8");
+    const scenes = readSceneRuntimeText();
     const assetBundles = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "assetBundles.js"), "utf-8");
     const bubboGame = fs.readFileSync(path.join(__dirname, "..", "src", "games", "bubbo", "BubboGame.jsx"), "utf-8");
 

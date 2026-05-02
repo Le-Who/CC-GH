@@ -13,7 +13,10 @@ import {
   createBubboRun,
   dropFloatingBubbo,
   generateBubboWave,
+  getAssistedBubboAim,
+  getBubboDangerRows,
   getBubboOccupiedPlayableRows,
+  getBubboPressureLabel,
   getBubboRemainingCount,
   getBubboRowVisualOffset,
   isBubboDanger,
@@ -39,6 +42,32 @@ describe("Bubbo engine", () => {
     assert.ok(getBubboRemainingCount(board) > 0);
     assert.equal(board[BUBBO_ROWS - 1].every((cell) => cell === null), true);
     assert.equal(isBubboDanger(board), false);
+  });
+
+  it("reports pressure labels from danger rows without mutating the board", () => {
+    const board = createBubboBoard({ seed: "labels", startRows: 1 });
+    board[BUBBO_ROWS - 2][0] = "mint";
+
+    assert.equal(getBubboDangerRows(board), 1);
+    assert.deepEqual(getBubboPressureLabel({ dangerRows: 0, pressureStep: 0.2 }), { label: "Calm", tone: "calm" });
+    assert.deepEqual(getBubboPressureLabel({ dangerRows: 1, pressureStep: 0.2 }), { label: "Warning", tone: "warning" });
+    assert.deepEqual(getBubboPressureLabel({ dangerRows: 2, pressureStep: 0.2 }), { label: "Critical", tone: "critical" });
+  });
+
+  it("keeps Bubbo aim assistance inside a narrow angle window", () => {
+    const assisted = getAssistedBubboAim({
+      rawAngle: -1.0,
+      maxDegrees: 4,
+      candidates: [
+        { angle: -0.8, target: { row: 0, col: 1 } },
+        { angle: -1.03, target: { row: 0, col: 2 } },
+      ],
+    });
+
+    assert.equal(assisted.adjusted, true);
+    assert.equal(assisted.angle, -1.03);
+    assert.deepEqual(assisted.target, { row: 0, col: 2 });
+    assert.equal(getAssistedBubboAim({ rawAngle: -1, maxDegrees: 2, candidates: [{ angle: -0.8 }] }).adjusted, false);
   });
 
   it("creates deterministic procedural waves instead of fixed stripes", () => {

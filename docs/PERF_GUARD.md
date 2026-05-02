@@ -67,6 +67,36 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-02 Telegram Mini App UX Implementation Loop
+
+The Telegram Mini App UX implementation pass kept three conservative performance wins and stopped by rule after three consecutive reverted or sub-threshold attempts. No gameplay rules, rewards, RNG distribution, budgets, or tests were loosened.
+
+Baseline reports:
+- Focused implementation guard: `artifacts/perf/post-telegram-ux.json` passed 5/5 suites after the UX work.
+- Node loop baseline: `artifacts/perf/2026-05-02-telegram-ux-loop-baseline-node-repeat3.json` passed 24/24 suites.
+- Build baseline: `artifacts/perf/2026-05-02-telegram-ux-loop-baseline-build-report.json` passed with startup JS `503,219B` raw / `165,318B` gzip and startup CSS `92,298B` raw / `16,891B` gzip.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Remove app-shell `framer-motion` from startup | startup JS `503,219B` raw / `165,318B` gzip | `375,936B` raw / `123,502B` gzip | Kept; browser guard passed after fixing the Garden details i18n crash and null local HUD state exposed by Chromium. |
+| 2 | Merge board hydration null fast path | `merge.board-hydrate` p95 `0.103ms` | `0.093ms` | Kept; p99 also improved and Merge tests passed. |
+| 3 | Lazy Telegram SDK import | startup JS `375,936B` raw / `123,502B` gzip | `309,137B` raw / `99,561B` gzip | Kept; browser guard passed with Back Button/closing/haptics/swipe behavior still progressive. |
+| 4 | Direct Garden shell helper imports | startup JS `309,137B` raw / `99,561B` gzip | `308,741B` raw / `99,383B` gzip | Reverted; below 3% threshold. |
+| 5 | Reuse Merge item counts inside player snapshot | `player.build-snapshot` p95 `0.208ms` | `0.630ms` | Reverted; focused p95 regressed. |
+| 6 | Remove redundant Gacha Merge asset entry sort | `assets.pipeline-entry-scan` p95 `2.299ms` | `3.041ms` | Reverted; focused p95 regressed. |
+
+Kept changes:
+- Replaced app-shell `framer-motion` wrappers in `App.jsx` and `src/app/shell.jsx` with CSS transitions in `src/index.css`, leaving Garden's lazy `framer-motion` usage in the Garden game chunk.
+- Loaded `@telegram-apps/sdk` through dynamic platform imports while preserving synchronous auth fallback from `window.Telegram.WebApp.initData`.
+- Short-circuited `hydrateMergeBoard()` for `null`/`undefined` cells while continuing to normalize every non-empty Merge item.
+
+Verification for the kept state:
+- `pnpm test`
+- `pnpm run build`
+- `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-02-telegram-ux-post-attempt3-build-report.json`
+- `pnpm run perf:guard:browser`
+- `pnpm run perf:guard -- --repeat 3 --report artifacts/perf/2026-05-02-telegram-ux-post-attempt3-node-repeat3.json`
+
 ### 2026-05-02 Conservative Loop
 
 The May 2, 2026 loop kept two build/startup wins plus one Playwright CI-parity fix, then stopped by rule after three consecutive safe attempts were reverted or failed the 3% keep threshold. No gameplay rules, budgets, or tests were loosened.

@@ -178,16 +178,44 @@ function YardCurrencyChip({ icon, label, value }) {
   );
 }
 
-function useCompanionYardShell() {
+function useCompanionYardShell(controls = null) {
   const setActiveGameShell = useGameHub((state) => state.setActiveGameShell);
   useEffect(() => {
-    setActiveGameShell("room");
+    setActiveGameShell(controls ? { id: "room", ...controls } : "room");
     return () => {
-      if (useGameHub.getState().activeGameShell === "room") {
+      const current = useGameHub.getState().activeGameShell;
+      const currentId = typeof current === "string" ? current : current?.id;
+      if (currentId === "room") {
         useGameHub.getState().setActiveGameShell(null);
       }
     };
-  }, [setActiveGameShell]);
+  }, [controls, setActiveGameShell]);
+}
+
+function YardActivityPill({ pendingGiftCount, activeVisitorCount, visitorCount, pendingCount, text }) {
+  let label = text("yard.activity.calm", "Yard calm");
+  let value = "";
+  let tone = "calm";
+  if (pendingCount > 0) {
+    label = text("yard.activity.saving", "Saving yard");
+    value = String(pendingCount);
+    tone = "saving";
+  } else if (pendingGiftCount > 0) {
+    label = text("yard.activity.gifts", "Gifts ready");
+    value = String(pendingGiftCount);
+    tone = "ready";
+  } else if (activeVisitorCount > 0) {
+    label = text("yard.activity.visitors", "{count} visiting", { count: activeVisitorCount });
+    value = String(visitorCount);
+    tone = "active";
+  }
+  return (
+    <div className={`yard-activity-pill tone-${tone}`}>
+      <YardIcon name={tone === "ready" ? "gifts" : tone === "saving" ? "settings" : "petbook"} />
+      <span>{label}</span>
+      {value && <b>{value}</b>}
+    </div>
+  );
 }
 
 export default function CompanionYardGame() {
@@ -210,11 +238,10 @@ export default function CompanionYardGame() {
   const [assetManifest, setAssetManifest] = useState(null);
   const [renderNow, setRenderNow] = useState(snapshot?.serverTime || Date.now());
   const [soundEnabled, setSoundEnabled] = useState(() => audioManager.isEnabled());
+  const [yardToolsOpen, setYardToolsOpen] = useState(false);
   const stageRef = useRef(null);
   const screenRef = useRef(null);
   const nameInputRef = useRef(null);
-
-  useCompanionYardShell();
 
   const pendingByKey = useMemo(() => {
     const map = new Map();
@@ -336,10 +363,20 @@ export default function CompanionYardGame() {
   const remodelDesc = useCallback((remodel) => catalogText(t, "remodels", remodel?.id, "desc", remodel?.desc || ""), [t]);
   const speciesLabel = useCallback((species) => text(`yard.species.${species}`, SPECIES_LABELS[species] || species), [text]);
 
-  const closeScreen = useCallback(() => setActiveScreen(null), []);
+  const closeScreen = useCallback(() => {
+    setActiveScreen(null);
+    setYardToolsOpen(false);
+  }, []);
+  const yardShellControls = useMemo(() => ({
+    activeRun: false,
+    openPanel: !!activeScreen || !!placementDraft,
+    closePanel: activeScreen ? closeScreen : placementDraft ? () => setPlacementDraft(null) : null,
+  }), [activeScreen, closeScreen, placementDraft]);
+  useCompanionYardShell(yardShellControls);
 
   const openScreen = useCallback((screen) => {
     setPlacementDraft(null);
+    setYardToolsOpen(false);
     setActiveScreen(screen);
   }, []);
 
@@ -895,6 +932,7 @@ export default function CompanionYardGame() {
         </div>
         {renderPetLayer("back")}
         {renderPlacedGoodies()}
+        {placementDraft && <div className="yard-playzone-guide" aria-hidden="true" />}
         {renderPlacementPreview()}
         {renderPetLayer("front")}
         <div className="yard-companion" onClick={() => openScreen("companion")} role="button" tabIndex={0}>
@@ -910,19 +948,25 @@ export default function CompanionYardGame() {
           <div className="yard-corner-actions">
             <YardIconButton compact icon="settings" label={text("yard.screen.settings", "Settings")} active={activeScreen === "settings"} onClick={() => openScreen("settings")} />
             <YardIconButton compact icon={soundEnabled ? "sound-on" : "sound-off"} label={soundEnabled ? text("yard.soundOn", "Sound on") : text("yard.soundOff", "Sound off")} active={soundEnabled} onClick={toggleSound} />
+            <YardIconButton compact icon="shop" label={text("yard.tools", "Tools")} active={yardToolsOpen} onClick={() => setYardToolsOpen((value) => !value)} />
           </div>
-          <div className="yard-side-tools">
-            <YardIconButton compact icon="camera" label={text("yard.camera", "Camera")} disabled={!activeVisitorCount} onClick={captureFirstVisitor} />
-            <YardIconButton compact icon="daily" label={text("yard.screen.daily", "Daily letter")} active={activeScreen === "daily"} onClick={() => openScreen("daily")} />
-            <YardIconButton compact icon="repair" label={text("yard.screen.repair", "Repair goodies")} badge={staleGoodies.length || null} active={activeScreen === "repair"} onClick={() => openScreen("repair")} />
-            <YardIconButton compact icon="remodel" label={text("yard.screen.remodel", "Remodel yard")} active={activeScreen === "remodel"} onClick={() => openScreen("remodel")} />
-            <YardIconButton compact icon="expansion" label={text("yard.screen.expansion", "Expansion")} active={activeScreen === "expansion"} onClick={() => openScreen("expansion")} />
-            <YardIconButton compact icon="companion" label={text("yard.screen.companion", "Companion helper")} active={activeScreen === "companion"} onClick={() => openScreen("companion")} />
-          </div>
-          <div className="yard-status-card">
-            <strong>{selectedVisit ? visitors[selectedVisit.visitorId]?.name || text("yard.visitor", "Visitor") : text("yard.title", "Cozy Yard")}</strong>
-            <span>{text("yard.status", "{active} visiting · {total} visits", { active: activeVisitorCount, total: visitorCount })}</span>
-          </div>
+          {yardToolsOpen && (
+            <div className="yard-side-tools open">
+              <YardIconButton compact icon="camera" label={text("yard.camera", "Camera")} disabled={!activeVisitorCount} onClick={captureFirstVisitor} />
+              <YardIconButton compact icon="daily" label={text("yard.screen.daily", "Daily letter")} active={activeScreen === "daily"} onClick={() => openScreen("daily")} />
+              <YardIconButton compact icon="repair" label={text("yard.screen.repair", "Repair goodies")} badge={staleGoodies.length || null} active={activeScreen === "repair"} onClick={() => openScreen("repair")} />
+              <YardIconButton compact icon="remodel" label={text("yard.screen.remodel", "Remodel yard")} active={activeScreen === "remodel"} onClick={() => openScreen("remodel")} />
+              <YardIconButton compact icon="expansion" label={text("yard.screen.expansion", "Expansion")} active={activeScreen === "expansion"} onClick={() => openScreen("expansion")} />
+              <YardIconButton compact icon="companion" label={text("yard.screen.companion", "Companion helper")} active={activeScreen === "companion"} onClick={() => openScreen("companion")} />
+            </div>
+          )}
+          <YardActivityPill
+            pendingGiftCount={pendingGiftCount}
+            activeVisitorCount={activeVisitorCount}
+            visitorCount={visitorCount}
+            pendingCount={pendingByKey.size}
+            text={text}
+          />
           <div className="yard-bottom-dock">
             <YardIconButton icon="food" label={text("yard.nav.food", "Food")} active={activeScreen === "food"} onClick={() => openScreen("food")} />
             <YardIconButton icon="goodies" label={text("yard.nav.goodies", "Goodies")} active={activeScreen === "goodies"} onClick={() => openScreen("goodies")} />

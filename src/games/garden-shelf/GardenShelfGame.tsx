@@ -415,6 +415,7 @@ function LevelUpRewardModal() {
 function GameContent() {
   const [selectedSpot, setSelectedSpot] = useState<{ shelfIndex: number, spotIndex: number, plantId?: string } | null>(null);
   const [runtimeAssetManifest, setRuntimeAssetManifest] = useState<unknown>(null);
+  const [mobileLiteDecor, setMobileLiteDecor] = useState(false);
   const assetPaths = React.useMemo(() => resolveGardenAssetPaths(runtimeAssetManifest), [runtimeAssetManifest]);
 
   // Prevent default overscroll bounce on mobile
@@ -439,15 +440,23 @@ function GameContent() {
     };
   }, []);
 
+  React.useEffect(() => {
+    const query = window.matchMedia('(max-width: 640px), (pointer: coarse)');
+    const apply = () => setMobileLiteDecor(query.matches);
+    apply();
+    query.addEventListener?.('change', apply);
+    return () => query.removeEventListener?.('change', apply);
+  }, []);
+
   return (
-    <div className="mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg">
+    <div className={cn("garden-root mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg", mobileLiteDecor && "garden-root--mobile-lite")}>
       {/* Background Atmosphere */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#ffeebb10,transparent_70%)]"></div>
-        <div className="absolute top-10 left-[-20%] w-[50%] h-[30%] bg-[#5c2a38] rounded-full blur-[40px] opacity-30"></div>
-        <div className="absolute bottom-20 right-[-10%] w-[60%] h-[40%] bg-[#40232a] rounded-full blur-[50px] opacity-60"></div>
+        <div className="garden-ambient-blob absolute top-10 left-[-20%] w-[50%] h-[30%] bg-[#5c2a38] rounded-full blur-[40px] opacity-30"></div>
+        <div className="garden-ambient-blob absolute bottom-20 right-[-10%] w-[60%] h-[40%] bg-[#40232a] rounded-full blur-[50px] opacity-60"></div>
         {/* Soft sunlight rays */}
-        <div className="absolute -top-[10%] left-1/4 w-[120%] h-[80%] bg-gradient-to-b from-[#ffd7b5] to-transparent blur-[80px] opacity-10 transform -rotate-[30deg]"></div>
+        <div className="garden-sparkle-layer absolute -top-[10%] left-1/4 w-[120%] h-[80%] bg-gradient-to-b from-[#ffd7b5] to-transparent blur-[80px] opacity-10 transform -rotate-[30deg]"></div>
       </div>
 
         <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">

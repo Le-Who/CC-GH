@@ -14,7 +14,7 @@ import {
   getGardenTapCooldownMs,
 } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coins, Droplets } from 'lucide-react';
+import { Coins, Droplets, Info } from 'lucide-react';
 import { PlantData } from '../types';
 import { cn } from '../lib/utils';
 import { Lock } from 'lucide-react';
@@ -146,6 +146,7 @@ function PhaseEffects({ phase, color }: { phase: number, color: string }) {
 
 const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: GardenAssetPaths }> = ({ plant, onClick, assetPaths }) => {
   const { tapPlant } = useGame();
+  const { t } = useGardenI18n();
   const [imgError, setImgError] = React.useState(false);
   const [isPressing, setIsPressing] = React.useState(false);
   const [tapPulse, setTapPulse] = React.useState(0);
@@ -247,6 +248,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
 
   const phaseScales = [0.45, 0.50, 0.55, 0.6];
   const bgStyle = getGardenSpriteStyle(spriteIndex, phase, phaseScales[phase] || 0.6, assetPaths.sheet);
+  const detailsLabel = t('plantDetail.details');
 
   return (
     <AnimatePresence mode="wait">
@@ -265,8 +267,8 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           </div>
         </motion.button>
       ) : (
+        <div key="plant" className="garden-spot-shell">
         <motion.button
-          key="plant"
           initial={{ opacity: 0, y: 20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.5, filter: "blur(4px)" }}
@@ -277,6 +279,8 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           onPointerLeave={cancelPress}
           onContextMenu={(e) => e.preventDefault()}
           className="relative flex flex-col items-center justify-end z-10 group w-20 h-32 touch-none"
+          data-garden-plant="true"
+          data-plant-id={plant.id}
         >
         <div className="w-20 flex flex-col items-center justify-end h-full relative">
         <div className="absolute bottom-[-2px] w-14 h-4 bg-black/50 blur-[3px] rounded-full pointer-events-none"></div>
@@ -403,6 +407,17 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
         ))}
       </AnimatePresence>
     </motion.button>
+        <button
+          type="button"
+          className="plant-details-button"
+          aria-label={detailsLabel}
+          title={detailsLabel}
+          data-plant-details-button="true"
+          onClick={onClick}
+        >
+          <Info size={14} />
+        </button>
+      </div>
       )}
     </AnimatePresence>
   );

@@ -17,7 +17,9 @@ import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameHub } from "../../game-state/useGameHub.js";
+import { useGameEvents } from "../../game-state/gameEvents.js";
 import { loadRuntimeAssetManifest, resolveAssetUrl } from "../../game-runtime/assetBundles.js";
+import { useServerClock } from "./useServerClock.js";
 
 function translated(t, key, fallback) {
   const value = t(key);
@@ -82,18 +84,31 @@ export default function MergeGame() {
   const performAction = useAction();
   const exitToHub = useExitToHub();
   const lastResult = useGameHub((state) => state.lastResult);
+  const pushEvent = useGameEvents((store) => store.pushEvent);
   const { t } = useAppI18n();
   const merge = snapshot?.merge || {};
   const inventory = snapshot?.inventory || {};
+  const serverNow = useServerClock(snapshot);
   const [selectedFuel, setSelectedFuel] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
+  const [trashConfirmCell, setTrashConfirmCell] = useState("");
   const [activePanel, setActivePanel] = useState(null);
   const [paused, setPaused] = useState(false);
   const uiAssets = useMergeUiAssets();
   const isPlaying = !paused;
   const activePause = paused;
-  useImmersiveGame("merge", true);
+  const shellControls = useMemo(() => ({
+    activeRun: true,
+    openPanel: !!activePanel,
+    closePanel: activePanel ? () => setActivePanel(null) : null,
+    pauseRun: () => setPaused(true),
+    hudState: {
+      alchemyEssence: Math.max(0, Math.floor(Number(merge.alchemyEssence) || 0)),
+      freeTapCharges: Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0)),
+    },
+  }), [activePanel, merge.alchemyEssence, merge.freeTapCharges]);
+  useImmersiveGame("merge", true, shellControls);
 
   const harvestedEntries = listPositive(inventory.harvested || {});
   const firstFuel = harvestedEntries[0]?.[0];
@@ -101,9 +116,9 @@ export default function MergeGame() {
   const activeFuel = selectedFuelAvailable ? selectedFuel : firstFuel;
   const itemTotal = Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0);
   const wildGenerator = merge.generatorState?.[MERGE_WILD_GENERATOR_ID] || {};
-  const generatorCoolingDown = wildGenerator.cooldownEnd > Date.now();
+  const generatorCoolingDown = wildGenerator.cooldownEnd > serverNow;
   const tokenCount = inventory.rewards?.gachaTokens || 0;
-  const now = snapshot?.serverTime || Date.now();
+  const now = serverNow;
   const today = new Date(now).toISOString().slice(0, 10);
   const alchemyEssence = Math.max(0, Math.floor(Number(merge.alchemyEssence) || 0));
   const exchangeClaimsToday = merge.exchangeClaims?.[today] || {};
@@ -168,14 +183,27 @@ export default function MergeGame() {
   const exchangeOffer = useCallback((offerId) => (
     performAction("merge.exchange", { offerId }, { key: `merge.exchange.${offerId}` })
   ), [performAction]);
+  const requestTrash = useCallback((r, c, item) => {
+    if (!item) return Promise.resolve({ error: "empty cell" });
+    const cellKey = `${r}:${c}`;
+    const needsConfirm = Number(item.level) > 0 || item.chainId === "alchemy" || item.recipe;
+    if (needsConfirm && trashConfirmCell !== cellKey) {
+      setTrashConfirmCell(cellKey);
+      pushEvent({ game: "merge", title: t("merge.trashConfirmTitle"), value: t("merge.trashConfirmBody"), tone: "warning", ttlMs: 2400 });
+      return Promise.resolve({ pending: true, confirm: true });
+    }
+    setTrashConfirmCell("");
+    return performAction("merge.trash", { r, c }, { key: `merge.trash.${r}.${c}.${item.itemId || item.id || ""}` });
+  }, [performAction, pushEvent, t, trashConfirmCell]);
 
   const onMergeCell = useCallback(
     (r, c, item) => {
       if (!isPlaying) return;
       if (trashMode) {
-        if (item) performAction("merge.trash", { r, c }, { key: `merge.trash.${r}.${c}` });
+        if (item) requestTrash(r, c, item);
         return;
       }
+      setTrashConfirmCell("");
       if (!item) {
         setSelectedCell(null);
         return;
@@ -192,16 +220,17 @@ export default function MergeGame() {
         if (!result.error) setSelectedCell(null);
       });
     },
-    [isPlaying, performAction, selectedCell, trashMode],
+    [isPlaying, performAction, requestTrash, selectedCell, trashMode],
   );
 
   const onMergeDrop = useCallback(
     (fromR, fromC, toR, toC, item) => {
       if (!isPlaying) return Promise.resolve({ error: "paused" });
       if (trashMode) {
-        if (item) return performAction("merge.trash", { r: fromR, c: fromC }, { key: `merge.trash.${fromR}.${fromC}` });
+        if (item) return requestTrash(fromR, fromC, item);
         return Promise.resolve({ error: "empty cell" });
       }
+      setTrashConfirmCell("");
       if (fromR === toR && fromC === toC) {
         setSelectedCell({ r: fromR, c: fromC });
         return Promise.resolve({ error: "same cell" });
@@ -214,7 +243,7 @@ export default function MergeGame() {
         return result;
       });
     },
-    [isPlaying, performAction, trashMode],
+    [isPlaying, performAction, requestTrash, trashMode],
   );
 
   const sceneState = useMemo(
@@ -403,15 +432,34 @@ export default function MergeGame() {
           {renderScenePanel()}
           <div className="merge-action-dock" data-no-nav-swipe="true">
             <div className="merge-generator-dock">
-              <label className="merge-fuel-field">
+              <div className="merge-fuel-field">
                 <span>{t("merge.source")}</span>
-                <select value={activeFuel || ""} onChange={(event) => setSelectedFuel(event.target.value)}>
-                  <option value="">{t("merge.noFuel")}</option>
+                <div className="merge-source-chips" role="radiogroup" aria-label={t("merge.source")}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={!activeFuel}
+                    className={!activeFuel ? "active" : ""}
+                    onClick={() => setSelectedFuel("")}
+                  >
+                    {t("merge.noFuel")}
+                  </button>
                   {harvestedEntries.map(([cropId, qty]) => (
-                    <option key={cropId} value={cropId}>{CROPS[cropId]?.emoji || ""} {cropId} x{qty}</option>
+                    <button
+                      key={cropId}
+                      type="button"
+                      role="radio"
+                      aria-checked={activeFuel === cropId}
+                      className={activeFuel === cropId ? "active" : ""}
+                      onClick={() => setSelectedFuel(cropId)}
+                    >
+                      <span>{CROPS[cropId]?.emoji || ""}</span>
+                      <b>{CROPS[cropId]?.name || cropId}</b>
+                      <small>x{qty}</small>
+                    </button>
                   ))}
-                </select>
-              </label>
+                </div>
+              </div>
               <PanelButton
                 icon={Zap}
                 disabled={!canTapGenerator}
@@ -456,7 +504,10 @@ export default function MergeGame() {
                 icon={Trash2}
                 danger={trashMode}
                 active={trashMode}
-                onClick={() => setTrashMode((value) => !value)}
+                onClick={() => {
+                  setTrashConfirmCell("");
+                  setTrashMode((value) => !value);
+                }}
                 title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
               >
                 {trashMode ? t("merge.trashOn") : t("merge.trash")}
@@ -481,7 +532,10 @@ export default function MergeGame() {
                   icon={Trash2}
                   danger={trashMode}
                   active={trashMode}
-                  onClick={() => setTrashMode((value) => !value)}
+                  onClick={() => {
+                    setTrashConfirmCell("");
+                    setTrashMode((value) => !value);
+                  }}
                   title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
                 >
                   {trashMode ? t("merge.trashOn") : t("merge.trashOff")}

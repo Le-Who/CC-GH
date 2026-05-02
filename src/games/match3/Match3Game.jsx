@@ -10,6 +10,8 @@ import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
+import { useGameEvents } from "../../game-state/gameEvents.js";
+import { selectMatch3InitialRun } from "./selectMatch3Run.js";
 const MATCH3_MODES = [
   { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
   { id: "timed", labelKey: "match3.mode.timed", hintKey: "match3.mode.timedHint" },
@@ -28,6 +30,7 @@ export default function Match3Game() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const pushEvent = useGameEvents((store) => store.pushEvent);
   const { t } = useAppI18n();
   const [mode, setMode] = useState("classic");
   const [board, setBoard] = useState(() => generateBoard());
@@ -41,11 +44,20 @@ export default function Match3Game() {
   const [matchAnimation, setMatchAnimation] = useState(null);
   const [leaders, setLeaders] = useState([]);
   const animationTimerRef = useRef(null);
+  const restoredRunKeyRef = useRef("");
   const isPlaying = gameActive && !paused;
   const activePause = gameActive && paused;
   const currentMode = MATCH3_MODES.find((item) => item.id === mode) || MATCH3_MODES[0];
   const currentReward = score > 0 ? Math.max(5, Math.floor(score / 25)) : 0;
-  useImmersiveGame("match3", true);
+  const pauseRun = useCallback(() => {
+    if (gameActive) setPaused(true);
+  }, [gameActive]);
+  const shellControls = useMemo(() => ({
+    activeRun: gameActive,
+    pauseRun,
+    hudState: { score, movesLeft, combo, mode },
+  }), [combo, gameActive, mode, movesLeft, pauseRun, score]);
+  useImmersiveGame("match3", true, shellControls);
 
   useEffect(() => {
     api("/api/leaderboard").then((data) => {
@@ -56,6 +68,16 @@ export default function Match3Game() {
   function createModeBoard(nextMode = mode) {
     const nextBoard = generateBoard();
     return nextMode === "drop" ? seedDropTokens(nextBoard, 3) : nextBoard;
+  }
+
+  function createDefaultRun(nextMode = mode) {
+    return {
+      board: createModeBoard(nextMode),
+      score: 0,
+      movesLeft: nextMode === "timed" ? 90 : 30,
+      combo: 0,
+      mode: nextMode,
+    };
   }
 
   const queueMatchAnimation = useCallback((animation, lockMs = 96) => {
@@ -71,6 +93,25 @@ export default function Match3Game() {
   }, []);
 
   useEffect(() => () => window.clearTimeout(animationTimerRef.current), []);
+
+  useEffect(() => {
+    const current = snapshot?.match3?.currentGame;
+    if (gameActive || !Array.isArray(current?.board) || current.board.length === 0) return;
+    const runKey = `${current.mode || "classic"}:${current.score || 0}:${current.movesLeft || 0}:${current.board.length}:${current.board[0]?.join("") || ""}`;
+    if (restoredRunKeyRef.current === runKey) return;
+    const restored = selectMatch3InitialRun(snapshot, createDefaultRun);
+    restoredRunKeyRef.current = runKey;
+    setMode(restored.mode);
+    setBoard(restored.board);
+    setScore(restored.score);
+    setMovesLeft(restored.movesLeft);
+    setCombo(restored.combo);
+    setGameActive(true);
+    setPaused(false);
+    setInputLocked(false);
+    setSelected(null);
+    setMatchAnimation(null);
+  }, [gameActive, snapshot]);
 
   function start(nextMode = mode) {
     const nextBoard = createModeBoard(nextMode);
@@ -157,13 +198,21 @@ export default function Match3Game() {
       );
       haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
+      if (result.totalPoints > 0) {
+        pushEvent({
+          game: "match3",
+          title: result.combo > 1 ? t("match3.comboEvent", { combo: result.combo }) : t("match3.matchEvent"),
+          value: `+${result.totalPoints}`,
+          tone: result.combo > 1 ? "success" : "neutral",
+        });
+      }
       performAction("match3.syncMode", {
         game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
         savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: result.combo } },
       }, { silent: true, key: "match3.sync" });
       maybeEnd(nextMoves, nextScore);
     },
-    [board, combo, gameActive, inputLocked, mode, movesLeft, performAction, queueMatchAnimation, score, snapshot?.match3?.savedModes],
+    [board, combo, gameActive, inputLocked, mode, movesLeft, performAction, pushEvent, queueMatchAnimation, score, snapshot?.match3?.savedModes, t],
   );
 
   const onCell = useCallback(
@@ -181,6 +230,11 @@ export default function Match3Game() {
   const sceneState = useMemo(
     () => ({
       match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked },
+      match3Timer: mode === "timed" ? {
+        label: `${Math.max(0, movesLeft)}s`,
+        progress: Math.max(0, Math.min(1, movesLeft / 90)),
+        tone: movesLeft <= 10 ? "critical" : movesLeft <= 30 ? "warning" : "calm",
+      } : null,
       match3StatusText: `${t(currentMode.labelKey)} · ${score} ${t("common.score").toLowerCase()} · ${movesLeft} ${(mode === "timed" ? t("common.time") : t("common.moves")).toLowerCase()}`,
       selectedGem: selected,
       match3Animation: matchAnimation,

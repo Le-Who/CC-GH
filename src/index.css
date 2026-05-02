@@ -228,11 +228,65 @@ select:focus {
   outline: none;
 }
 
+@keyframes shell-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shell-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shell-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shell-hud-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shell-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .profile-popover {
   position: absolute;
   inset: 0;
   z-index: 60;
   pointer-events: none;
+  animation: shell-fade-in 160ms ease-out both;
 }
 
 .profile-popover-scrim {
@@ -263,6 +317,7 @@ select:focus {
   box-shadow: var(--glass-shadow-strong);
   color: var(--ink);
   pointer-events: auto;
+  animation: shell-pop-in 180ms ease-out both;
 }
 
 .profile-popover-close {
@@ -563,6 +618,7 @@ button.stat-chip {
   min-height: 0;
   overflow: hidden;
   display: grid;
+  animation: shell-slide-in 220ms ease-out both;
 }
 
 .game-layout,
@@ -923,6 +979,7 @@ button.stat-chip {
   contain: paint;
   scrollbar-width: thin;
   outline: none;
+  animation: shell-fade-in 220ms ease-out both;
 }
 
 .game-shell.shell-paused::after,
@@ -975,6 +1032,7 @@ button.stat-chip {
   contain: paint;
   will-change: transform, opacity;
   pointer-events: auto;
+  animation: shell-hud-in 200ms ease-out both;
 }
 
 .game-play-hud-bottom {
@@ -1006,10 +1064,80 @@ button.stat-chip {
   --shell-soft: rgba(30, 42, 45, 0.94);
 }
 
+.bubbo-resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--mint) 46%, var(--glass-border-soft));
+  border-radius: 8px;
+  padding: 9px;
+  background: color-mix(in srgb, var(--mint) 14%, var(--glass-card-strong));
+  color: var(--ink);
+}
+
+.bubbo-resume-banner span {
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
 .game-play-title,
 .game-play-stats,
 .game-play-actions {
   min-width: 0;
+}
+
+.game-event-overlay {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  top: max(72px, calc(var(--safe-top) + 72px));
+  width: min(320px, calc(100vw - 28px));
+  transform: translateX(-50%);
+  display: grid;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.game-event-card {
+  min-height: 42px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--glass-surface-strong);
+  color: var(--ink);
+  box-shadow: 0 12px 28px rgba(68, 54, 91, 0.16);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  animation: shell-toast-in 180ms ease-out both;
+}
+
+.game-event-card span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  font-weight: 950;
+}
+
+.game-event-card strong {
+  color: var(--amber);
+  font-size: 0.95rem;
+  font-weight: 1000;
+}
+
+.game-event-card.tone-success {
+  border-color: color-mix(in srgb, var(--mint) 48%, transparent);
+}
+
+.game-event-card.tone-warning {
+  border-color: color-mix(in srgb, var(--coral) 52%, transparent);
 }
 
 .game-play-title strong,
@@ -1739,13 +1867,42 @@ button.item-card {
   font-weight: 1000;
 }
 
-.merge-fuel-field select {
+.merge-source-chips {
+  min-width: 0;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.merge-source-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.merge-source-chips button {
+  min-width: max-content;
   min-height: 34px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 5px 8px;
-  border-color: var(--glass-border-soft);
   background: color-mix(in srgb, var(--field) 84%, white);
-  font-size: 0.82rem;
-  font-weight: 850;
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.merge-source-chips button.active {
+  border-color: color-mix(in srgb, var(--amber) 72%, transparent);
+  background: color-mix(in srgb, var(--amber) 18%, var(--field));
+}
+
+.merge-source-chips small {
+  color: var(--muted);
+  font-weight: 1000;
 }
 
 .merge-generator-hint {
@@ -2119,6 +2276,10 @@ button.item-card {
   line-height: 1.08;
 }
 
+.question-panel.revealing .answer-grid button {
+  cursor: default;
+}
+
 .question-meta {
   display: flex;
   flex-wrap: wrap;
@@ -2150,6 +2311,55 @@ button.item-card {
   color: var(--ink);
   text-align: left;
   font-weight: 850;
+}
+
+.answer-grid button.correct {
+  border-color: color-mix(in srgb, var(--mint) 62%, transparent);
+  background: color-mix(in srgb, var(--mint) 22%, var(--glass-card-strong));
+}
+
+.answer-grid button.incorrect {
+  border-color: color-mix(in srgb, var(--coral) 58%, transparent);
+  background: color-mix(in srgb, var(--coral) 18%, var(--glass-card-strong));
+}
+
+.trivia-timer-bar {
+  position: relative;
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+
+.trivia-timer-bar b {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-origin: left center;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--mint), var(--amber), var(--coral));
+}
+
+.trivia-reveal {
+  min-height: 38px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 9px;
+  background: var(--glass-card-strong);
+  color: var(--ink);
+}
+
+.trivia-reveal.correct {
+  border-color: color-mix(in srgb, var(--mint) 50%, transparent);
+}
+
+.trivia-reveal.incorrect {
+  border-color: color-mix(in srgb, var(--coral) 48%, transparent);
 }
 
 .duel-box,

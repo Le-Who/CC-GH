@@ -1,16 +1,18 @@
 import { useCallback, useEffect } from "react";
 import { useGameHub } from "../game-state/useGameHub.js";
 
-export function useImmersiveGame(tabId, active) {
+export function useImmersiveGame(tabId, active, controls = null) {
   const setActiveGameShell = useGameHub((state) => state.setActiveGameShell);
   useEffect(() => {
-    setActiveGameShell(active ? tabId : null);
+    setActiveGameShell(active ? (controls ? { id: tabId, ...controls } : tabId) : null);
     return () => {
-      if (useGameHub.getState().activeGameShell === tabId) {
+      const current = useGameHub.getState().activeGameShell;
+      const currentId = typeof current === "string" ? current : current?.id;
+      if (currentId === tabId) {
         useGameHub.getState().setActiveGameShell(null);
       }
     };
-  }, [active, setActiveGameShell, tabId]);
+  }, [active, controls, setActiveGameShell, tabId]);
 }
 
 export function useSnapshot() {
@@ -19,6 +21,10 @@ export function useSnapshot() {
 
 export function useAction() {
   return useGameHub((state) => state.performAction);
+}
+
+export function useReliableAction() {
+  return useGameHub((state) => state.performReliableAction);
 }
 
 export function useExitToHub() {

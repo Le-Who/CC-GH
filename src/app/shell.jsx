@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check, Pause, Sparkles } from "lucide-react";
 import { audioManager } from "../services/audioManager.js";
 import { useAppI18n } from "./i18n.jsx";
@@ -28,7 +27,7 @@ export function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled
   );
 }
 
-export function Stat({ icon: Icon, label, value, progress = null, onClick = null, active = false, title = "" }) {
+export function Stat({ icon: Icon, label, value, progress = null, onClick = null, active = false, title = "", id = "", dataGardenXp = false }) {
   const Tag = onClick ? "button" : "div";
   const boundedProgress = progress == null ? null : Math.max(0, Math.min(100, Number(progress) || 0));
   return (
@@ -37,6 +36,8 @@ export function Stat({ icon: Icon, label, value, progress = null, onClick = null
       className={`stat-chip${onClick ? " clickable" : ""}${active ? " active" : ""}`}
       onClick={onClick || undefined}
       title={title || undefined}
+      data-stat-id={id || undefined}
+      data-garden-xp={dataGardenXp ? "true" : undefined}
     >
       <Icon size={17} />
       <span>{label}</span>
@@ -70,14 +71,10 @@ export function PauseBrief({ gameId, kicker, title, body, status = [] }) {
 }
 
 export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = null, extraActions = null, className = "" }) {
-  const reduceMotion = useReducedMotion();
   const { t } = useAppI18n();
   return (
-    <motion.div
+    <div
       className={`game-play-hud ${className}`.trim()}
-      initial={reduceMotion ? false : { opacity: 0, y: -14 }}
-      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-      transition={{ duration: reduceMotion ? 0.01 : 0.2, ease: "easeOut" }}
     >
       <div className="game-play-title">
         <strong>{title}</strong>
@@ -95,12 +92,11 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
         <PanelButton icon={Pause} subtle onClick={onPause}>{t("common.pause")}</PanelButton>
         {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel || t("common.settle")}</PanelButton>}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "" }) {
-  const reduceMotion = useReducedMotion();
   const overlayRef = useRef(null);
 
   useEffect(() => {
@@ -119,26 +115,20 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
     >
       {children}
       {phase === "playing" && hud}
-      <AnimatePresence initial={false} mode="wait">
-        {phase !== "playing" && (
-          <motion.aside
-            key={`${gameId}-${phase}`}
-            ref={overlayRef}
-            className={`side-panel game-menu-overlay ${overlayClassName}`}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${gameId} ${phase} menu`}
-            data-menu-phase={phase}
-            tabIndex={-1}
-            initial={reduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
-          >
-            {overlay}
-          </motion.aside>
-        )}
-      </AnimatePresence>
+      {phase !== "playing" && (
+        <aside
+          key={`${gameId}-${phase}`}
+          ref={overlayRef}
+          className={`side-panel game-menu-overlay ${overlayClassName}`}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${gameId} ${phase} menu`}
+          data-menu-phase={phase}
+          tabIndex={-1}
+        >
+          {overlay}
+        </aside>
+      )}
     </div>
   );
 }

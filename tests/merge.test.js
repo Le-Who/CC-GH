@@ -19,6 +19,20 @@ import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+function readSceneRuntimeText() {
+  const files = [path.join(__dirname, "..", "src", "game-runtime", "scenes.js")];
+  const scenesDir = path.join(__dirname, "..", "src", "game-runtime", "scenes");
+  const visit = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(fullPath);
+      else if (entry.name.endsWith(".js")) files.push(fullPath);
+    }
+  };
+  visit(scenesDir);
+  return files.map((file) => fs.readFileSync(file, "utf-8")).join("\n");
+}
+
 describe("Merge Engine Hooks (useMergeEngine)", () => {
   beforeEach(() => {
     // Reset store before each test
@@ -462,7 +476,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const mergeGame = fs.readFileSync(mergePath, "utf-8");
       const bubboGame = fs.readFileSync(bubboPath, "utf-8");
       const css = fs.readFileSync(cssPath, "utf-8");
-      const scenes = fs.readFileSync(scenesPath, "utf-8");
+      const scenes = readSceneRuntimeText();
       const host = fs.readFileSync(hostPath, "utf-8");
 
       assert.ok(shell.includes("export function GameShell"), "GameShell should centralize play/menu/pause states");

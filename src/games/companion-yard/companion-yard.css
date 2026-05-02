@@ -696,7 +696,7 @@
 .yard-corner-actions,
 .yard-side-tools,
 .yard-bottom-dock,
-.yard-status-card,
+.yard-activity-pill,
 .yard-placement-dock,
 .yard-game-screen {
   pointer-events: auto;
@@ -764,6 +764,14 @@
   top: calc(max(10px, var(--safe-top)) + 78px);
   display: grid;
   gap: 7px;
+}
+
+.yard-side-tools.open {
+  padding: 6px;
+  border: 1px solid var(--yard-hud-line);
+  border-radius: 8px;
+  background: var(--yard-hud-cream);
+  box-shadow: var(--yard-hud-shadow);
 }
 
 .yard-bottom-dock {
@@ -871,39 +879,54 @@
   box-shadow: 0 4px 8px rgba(128, 52, 39, 0.24);
 }
 
-.yard-status-card {
+.yard-activity-pill {
   position: absolute;
   top: max(12px, calc(var(--safe-top) + 12px));
   left: 50%;
-  max-width: min(32%, 280px);
+  max-width: min(36%, 300px);
+  min-height: 44px;
   transform: translateX(-50%);
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
-  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
   background: var(--yard-hud-cream);
   color: var(--yard-hud-ink);
-  text-align: center;
   box-shadow: 0 10px 24px rgba(72, 58, 34, 0.12);
 }
 
-.yard-status-card strong,
-.yard-status-card span {
-  display: block;
+.yard-activity-pill .yard-hud-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  --yard-hud-icon-zoom: 1.1;
+}
+
+.yard-activity-pill span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.yard-status-card strong {
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 1000;
 }
 
-.yard-status-card span {
-  color: var(--yard-hud-muted);
+.yard-activity-pill b {
+  min-width: 21px;
+  height: 21px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  background: rgba(226, 111, 79, 0.92);
+  color: #fff8e6;
   font-size: 0.68rem;
-  font-weight: 900;
+}
+
+.yard-activity-pill.tone-saving {
+  border-color: rgba(98, 152, 194, 0.42);
 }
 
 .companion-yard-layout .yard-slot {
@@ -943,6 +966,19 @@
 
 .yard-placement-active {
   cursor: crosshair;
+}
+
+.yard-playzone-guide {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 22%;
+  bottom: 15%;
+  z-index: 4;
+  pointer-events: none;
+  border: 2px dashed rgba(255, 248, 214, 0.58);
+  border-radius: 8px;
+  background: rgba(255, 247, 190, 0.08);
 }
 
 .yard-placement-dock {

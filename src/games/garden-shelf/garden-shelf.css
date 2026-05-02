@@ -173,3 +173,40 @@
 .garden-quest-claimable {
   box-shadow: 0 8px 16px rgba(245, 158, 11, 0.18);
 }
+
+.garden-spot-shell {
+  position: relative;
+  z-index: 10;
+  width: 80px;
+  height: 128px;
+}
+
+.plant-details-button {
+  position: absolute;
+  right: 4px;
+  top: 14px;
+  z-index: 50;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--sky) 52%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-card-strong) 86%, white 8%);
+  color: var(--sky-ink);
+  box-shadow: 0 8px 14px rgba(15, 23, 42, 0.28);
+}
+
+.plant-details-button:active {
+  transform: scale(0.94);
+}
+
+.garden-root--mobile-lite .garden-ambient-blob,
+.garden-root--mobile-lite .garden-sparkle-layer {
+  display: none;
+}
+
+.garden-root--mobile-lite .garden-tap-pulse,
+.garden-root--mobile-lite .garden-floating-note {
+  will-change: transform, opacity;
+}

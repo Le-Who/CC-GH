@@ -4,6 +4,7 @@ import { api } from "../services/apiClient.js";
 import { audioManager } from "../services/audioManager.js";
 import { haptic } from "../platform/telegram.js";
 import { withNormalizedSnapshot } from "./inventory.js";
+import { createClientActionId, shouldUseDurableOutbox } from "./reliableActions.js";
 
 const YARD_OUTBOX_KEY = "game_hub_yard_outbox_v1";
 const RETRY_DELAYS_MS = [0, 2000, 5000, 15000, 30000, 60000];
@@ -18,7 +19,7 @@ function isYardAction(action) {
   return typeof action === "string" && action.startsWith("yard.");
 }
 
-function createClientActionId() {
+function createYardActionId() {
   const random = globalThis.crypto?.randomUUID?.() || Math.random().toString(36).slice(2);
   return `yard:${Date.now().toString(36)}:${random}`;
 }
@@ -41,13 +42,19 @@ function retryDelay(attempts = 0) {
   return RETRY_DELAYS_MS[Math.min(Math.max(0, attempts), RETRY_DELAYS_MS.length - 1)];
 }
 
+function normalizeSnapshot(snapshot) {
+  const normalized = withNormalizedSnapshot(snapshot);
+  return normalized ? { ...normalized, receivedAt: Date.now() } : normalized;
+}
+
 function normalizeOutboxItems(items) {
   if (!Array.isArray(items)) return [];
-  return items.filter((item) => item?.clientActionId && isYardAction(item.action)).map((item) => ({
+  return items.filter((item) => item?.clientActionId && shouldUseDurableOutbox(item.action)).map((item) => ({
     clientActionId: String(item.clientActionId),
     action: String(item.action),
     payload: item.payload && typeof item.payload === "object" ? item.payload : {},
     entityKey: String(item.entityKey || yardEntityKey(item.action, item.payload)),
+    pendingLabel: String(item.pendingLabel || actionLabel(item.action)),
     intentServerTime: Number(item.intentServerTime) || Date.now(),
     createdAt: Number(item.createdAt) || Date.now(),
     attempts: Math.max(0, Math.floor(Number(item.attempts) || 0)),
@@ -108,7 +115,7 @@ export const useGameHub = create((set, get) => ({
 
   applySnapshot: (snapshot) => {
     if (!snapshot) return;
-    set({ snapshot: withNormalizedSnapshot(snapshot), status: "ready" });
+    set({ snapshot: normalizeSnapshot(snapshot), status: "ready" });
   },
 
   loadSnapshot: async () => {
@@ -118,7 +125,7 @@ export const useGameHub = create((set, get) => ({
       set({ status: "offline", message: result.error });
       return result;
     }
-    const snapshot = withNormalizedSnapshot(result);
+    const snapshot = normalizeSnapshot(result);
     set({ snapshot, status: "ready", message: "" });
     scheduleOutboxDrain(get, 0);
     return snapshot;
@@ -131,7 +138,8 @@ export const useGameHub = create((set, get) => ({
     const key = options.key || action;
     if (get().busy[key]) return { error: "busy" };
     set((state) => ({ busy: { ...state.busy, [key]: true }, message: "" }));
-    const result = await api("/api/player/mutate", { action, payload }, { timeoutMs: options.timeoutMs || 9000 });
+    const body = options.clientActionId ? { action, payload, clientActionId: options.clientActionId } : { action, payload };
+    const result = await api("/api/player/mutate", body, { timeoutMs: options.timeoutMs || 9000 });
     set((state) => {
       const busy = { ...state.busy };
       delete busy[key];
@@ -143,7 +151,7 @@ export const useGameHub = create((set, get) => ({
         };
       }
       const snapshot = result.snapshot
-        ? withNormalizedSnapshot(result.snapshot)
+        ? normalizeSnapshot(result.snapshot)
         : state.snapshot;
       return {
         busy,
@@ -158,6 +166,20 @@ export const useGameHub = create((set, get) => ({
       audioManager.play(result.error ? "warning" : "success");
     }
     return result;
+  },
+
+  performReliableAction: async (action, payload = {}, options = {}) => {
+    const durability = options.durability || (shouldUseDurableOutbox(action) ? "outbox" : "receipt");
+    const clientActionId = options.clientActionId || createClientActionId(action, options.scope || "game", options.idParts || []);
+    if (durability === "outbox") {
+      return get().enqueueYardAction(action, payload, { ...options, clientActionId });
+    }
+    return get().performAction(action, payload, {
+      ...options,
+      key: options.key || clientActionId,
+      clientActionId,
+      outbox: false,
+    });
   },
 
   hydrateOutbox: async () => {
@@ -184,6 +206,7 @@ export const useGameHub = create((set, get) => ({
           status: "pending",
           nextAttemptAt: 0,
           intentServerTime: Date.now(),
+          pendingLabel: options.pendingLabel || pendingActions[existingIndex].pendingLabel,
         };
         pendingActions = [
           ...pendingActions.slice(0, existingIndex),
@@ -194,10 +217,11 @@ export const useGameHub = create((set, get) => ({
         queuedItem = pendingActions[existingIndex];
       } else {
         queuedItem = {
-          clientActionId: createClientActionId(),
+          clientActionId: options.clientActionId || createYardActionId(),
           action,
           payload,
           entityKey,
+          pendingLabel: options.pendingLabel || actionLabel(action),
           intentServerTime: Date.now(),
           createdAt: Date.now(),
           attempts: 0,
@@ -267,7 +291,7 @@ export const useGameHub = create((set, get) => ({
           return {
             pendingActions,
             busy,
-            snapshot: result.snapshot ? withNormalizedSnapshot(result.snapshot) : state.snapshot,
+            snapshot: result.snapshot ? normalizeSnapshot(result.snapshot) : state.snapshot,
             lastResult: result,
             status: "ready",
             message: "",
@@ -368,7 +392,7 @@ export const useGameHub = create((set, get) => ({
           ? { ...prev.achievements, raw: payload.achievements }
           : prev.achievements,
       };
-      return { snapshot: withNormalizedSnapshot(next) };
+      return { snapshot: normalizeSnapshot(next) };
     });
   },
 

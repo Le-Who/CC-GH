@@ -295,6 +295,48 @@ export function isBubboDanger(board = []) {
   return board[BUBBO_ROWS - 2]?.some(Boolean) || board[BUBBO_ROWS - 1]?.some(Boolean) || false;
 }
 
+export function getBubboDangerRows(board = []) {
+  const normalized = normalizeBubboBoard(board);
+  let dangerRows = 0;
+  for (let row = BUBBO_ROWS - 2; row < BUBBO_ROWS; row += 1) {
+    if (normalized[row]?.some(Boolean)) dangerRows += 1;
+  }
+  return dangerRows;
+}
+
+export function getBubboPressureLabel({ dangerRows = 0, pressureStep = 0 } = {}) {
+  const rows = Math.max(0, Number(dangerRows) || 0);
+  const step = Math.max(0, Number(pressureStep) || 0);
+  if (rows >= 2) return { label: "Critical", tone: "critical" };
+  if (rows >= 1 || step >= 0.72) return { label: "Warning", tone: "warning" };
+  return { label: "Calm", tone: "calm" };
+}
+
+function normalizeAngleRadians(value = 0) {
+  let next = Number(value) || 0;
+  while (next > Math.PI) next -= Math.PI * 2;
+  while (next < -Math.PI) next += Math.PI * 2;
+  return next;
+}
+
+function angleDistanceRadians(a, b) {
+  return Math.abs(normalizeAngleRadians(a - b));
+}
+
+export function getAssistedBubboAim({ rawAngle = 0, candidates = [], maxDegrees = 4 } = {}) {
+  const max = Math.max(0, Number(maxDegrees) || 0) * (Math.PI / 180);
+  let best = null;
+  for (const candidate of candidates) {
+    const angle = Number(candidate?.angle);
+    if (!Number.isFinite(angle)) continue;
+    const distance = angleDistanceRadians(rawAngle, angle);
+    if (distance <= max && (!best || distance < best.distance)) {
+      best = { angle, distance, target: candidate.target || null };
+    }
+  }
+  return best ? { angle: best.angle, adjusted: true, distance: best.distance, target: best.target } : { angle: rawAngle, adjusted: false, distance: 0, target: null };
+}
+
 export function getBubboOccupiedPlayableRows(board = []) {
   return normalizeBubboBoard(board).filter((row) => row.some(Boolean)).length;
 }

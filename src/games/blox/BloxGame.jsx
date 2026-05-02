@@ -4,18 +4,23 @@ import { api } from "../../services/apiClient.js";
 import { audioManager } from "../../services/audioManager.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
 import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app/shell.jsx";
-import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
+import { useAction, useExitToHub, useImmersiveGame, useReliableAction, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
+import { useGameEvents } from "../../game-state/gameEvents.js";
+import { previewBloxPlacement } from "../../../game-logic/blox-engine.js";
 export default function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
+  const performReliableAction = useReliableAction();
   const exitToHub = useExitToHub();
+  const pushEvent = useGameEvents((store) => store.pushEvent);
   const { t } = useAppI18n();
   const [selectedPiece, setSelectedPiece] = useState(-1);
   const [paused, setPaused] = useState(false);
+  const [optimisticState, setOptimisticState] = useState(null);
   const saved = snapshot?.blox?.savedState || {};
-  const state = {
+  const serverState = {
     board: saved.board || [],
     tray: saved.tray || [],
     score: saved.score || 0,
@@ -23,12 +28,25 @@ export default function BloxGame() {
     highScore: snapshot?.blox?.highScore || saved.highScore || 0,
     gameActive: saved.gameActive || snapshot?.blox?.activeGame || false,
   };
+  const state = optimisticState || serverState;
   const [leaders, setLeaders] = useState([]);
   const isPlaying = state.gameActive && !paused;
   const activePause = state.gameActive && paused;
   const currentReward = state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0;
   const trayPieces = state.tray.filter((piece) => piece && !piece.placed).length;
-  useImmersiveGame("blox", true);
+  const pauseRun = useCallback(() => {
+    if (state.gameActive) setPaused(true);
+  }, [state.gameActive]);
+  const shellControls = useMemo(() => ({
+    activeRun: state.gameActive,
+    pauseRun,
+    hudState: {
+      score: state.score,
+      linesCleared: state.linesCleared,
+      currentReward,
+    },
+  }), [currentReward, pauseRun, state.gameActive, state.linesCleared, state.score]);
+  useImmersiveGame("blox", true, shellControls);
 
   useEffect(() => {
     api("/api/blox/leaderboard").then((data) => {
@@ -40,28 +58,61 @@ export default function BloxGame() {
     if (!state.gameActive) setPaused(false);
   }, [state.gameActive]);
 
-  const onCell = useCallback(
-    (row, col) => {
-      if (selectedPiece < 0 || !state.gameActive) return;
-      performAction("blox.place", { pieceIdx: selectedPiece, row, col }, { key: `blox.place.${selectedPiece}.${row}.${col}` }).then((result) => {
-        if (!result.error) setSelectedPiece(-1);
-      });
-    },
-    [performAction, selectedPiece, state.gameActive],
-  );
+  useEffect(() => {
+    setOptimisticState(null);
+  }, [saved.board, saved.gameActive, saved.linesCleared, saved.score, saved.tray]);
 
-  const onDrop = useCallback(
+  const submitPlacement = useCallback(
     (pieceIdx, row, col) => {
       if (pieceIdx < 0 || !state.gameActive) return Promise.resolve({ error: "inactive" });
-      return performAction("blox.place", { pieceIdx, row, col }, { key: `blox.place.${pieceIdx}.${row}.${col}` }).then((result) => {
-        if (!result.error) {
-          setSelectedPiece(-1);
-          if (result.clear?.cleared) audioManager.play("clear");
+      const preview = previewBloxPlacement(state, { pieceIdx, row, col });
+      if (!preview.valid) {
+        pushEvent({ game: "blox", title: t("blox.invalidPlacement"), value: "", tone: "warning" });
+        return Promise.resolve({ error: preview.reason || "invalid placement" });
+      }
+      setOptimisticState({
+        ...preview.state,
+        highScore: state.highScore,
+        gameActive: state.gameActive,
+      });
+      return performReliableAction("blox.place", { pieceIdx, row, col }, {
+        key: `blox.place.${pieceIdx}.${row}.${col}`,
+        idParts: [pieceIdx, row, col],
+      }).then((result) => {
+        if (result.error) {
+          setOptimisticState(null);
+          pushEvent({ game: "blox", title: result.error, value: "", tone: "warning" });
+          return result;
+        }
+        setSelectedPiece(-1);
+        if (result.clear?.cleared) {
+          audioManager.play("clear");
+          pushEvent({
+            game: "blox",
+            title: t("blox.clear"),
+            value: `+${result.clear.cleared}`,
+            tone: "success",
+          });
         }
         return result;
       });
     },
-    [performAction, state.gameActive],
+    [performReliableAction, pushEvent, state, t],
+  );
+
+  const onCell = useCallback(
+    (row, col) => {
+      if (selectedPiece < 0 || !state.gameActive) return;
+      submitPlacement(selectedPiece, row, col);
+    },
+    [selectedPiece, state.gameActive, submitPlacement],
+  );
+
+  const onDrop = useCallback(
+    (pieceIdx, row, col) => {
+      return submitPlacement(pieceIdx, row, col);
+    },
+    [submitPlacement],
   );
 
   const sceneState = useMemo(
@@ -71,12 +122,13 @@ export default function BloxGame() {
       bloxClearText: t("blox.clear"),
       bloxHudReserve: 132,
       bloxHideStatusText: true,
+      bloxPredictedLines: optimisticState?.linesCleared ? Math.max(0, optimisticState.linesCleared - (serverState.linesCleared || 0)) : 0,
       selectedBloxPiece: selectedPiece,
       onBloxCell: onCell,
       onBloxDrop: onDrop,
       onBloxTray: setSelectedPiece,
     }),
-    [state, isPlaying, selectedPiece, onCell, onDrop, t],
+    [state, isPlaying, optimisticState, serverState.linesCleared, selectedPiece, onCell, onDrop, t],
   );
 
   return (

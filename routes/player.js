@@ -42,6 +42,7 @@ import {
   createEmptyBoard,
   canAnyPieceFit,
   canPlace,
+  clearBloxLines,
   calcBubboReward,
   placePiece,
   createDefaultGardenState,
@@ -644,32 +645,6 @@ function makeBloxTray() {
     piece: PIECES[Math.floor(Math.random() * PIECES.length)],
     placed: false,
   }));
-}
-
-function clearBloxLines(board) {
-  const rows = [];
-  const cols = [];
-  for (let r = 0; r < board.length; r++) {
-    if (board[r].every(Boolean)) rows.push(r);
-  }
-  for (let c = 0; c < board[0].length; c++) {
-    let full = true;
-    for (let r = 0; r < board.length; r++) {
-      if (!board[r][c]) {
-        full = false;
-        break;
-      }
-    }
-    if (full) cols.push(c);
-  }
-  for (const r of rows) {
-    for (let c = 0; c < board[r].length; c++) board[r][c] = null;
-  }
-  for (const c of cols) {
-    for (let r = 0; r < board.length; r++) board[r][c] = null;
-  }
-  const cleared = rows.length + cols.length;
-  return { rows, cols, cleared, points: cleared ? cleared * 10 + Math.max(0, cleared - 1) * 10 : 0 };
 }
 
 function normalizeBloxSaved(savedState, p) {

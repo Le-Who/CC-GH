@@ -7,7 +7,7 @@
  */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { ECONOMY, calcBloxReward, createDefaultPlayer, createEmptyBoard } from "../game-logic.js";
+import { ECONOMY, calcBloxReward, createDefaultPlayer, createEmptyBoard, previewBloxPlacement } from "../game-logic.js";
 import { PIECES as BLOX_PIECES } from "../src/game-core/blox/pieces.js";
 import { applyAction } from "../routes/player.js";
 
@@ -221,6 +221,26 @@ describe("Building Blox — Line Clearing", () => {
     assert.equal(result.body.clear.cleared, 2);
     assert.equal(result.body.savedState.board[0].every((cell) => cell === null), true);
     assert.equal(result.body.savedState.board.every((row) => row[9] === null), true);
+  });
+
+  it("previews placement without mutating the authoritative saved board", () => {
+    const board = createEmptyBoard();
+    for (let c = 0; c < GRID - 1; c++) board[0][c] = "#row";
+    const dot = BLOX_PIECES.find((piece) => piece.id === "dot");
+    const state = {
+      board,
+      tray: [{ piece: dot, placed: false }],
+      score: 0,
+      linesCleared: 0,
+    };
+
+    const preview = previewBloxPlacement(state, { pieceIdx: 0, row: 0, col: 9 });
+
+    assert.equal(preview.valid, true);
+    assert.equal(preview.clear.cleared, 1);
+    assert.equal(preview.state.linesCleared, 1);
+    assert.equal(state.board[0][9], null);
+    assert.equal(state.tray[0].placed, false);
   });
 });
 

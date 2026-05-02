@@ -250,3 +250,41 @@ describe("useGameHub Yard outbox", () => {
     assert.equal(restored[0].payload.name, "Luna");
   });
 });
+
+describe("useGameHub.performReliableAction", () => {
+  beforeEach(() => {
+    Object.defineProperty(globalThis, "window", {
+      configurable: true,
+      value: { Telegram: null },
+    });
+    resetHubState();
+  });
+
+  it("sends receipt-backed gameplay actions with a clientActionId", async () => {
+    const snapshot = {
+      resources: { gold: 101 },
+      farm: { harvested: {}, plots: [] },
+      garden: { level: 1, plants: [], shelvesUnlocked: 1 },
+      yard: { currencies: { treats: 80, shinyTreats: 0 }, pendingGifts: [] },
+      merge: {},
+      pet: {},
+    };
+    globalThis.fetch = async (path, options = {}) => {
+      if (path === "/api/config") return responseJson({ devAuthEnabled: false });
+      assert.equal(path, "/api/player/mutate");
+      const body = JSON.parse(options.body);
+      assert.equal(body.action, "blox.place");
+      assert.equal(body.clientActionId, "blox-test-action");
+      return responseJson({ success: true, snapshot });
+    };
+
+    const result = await useGameHub.getState().performReliableAction(
+      "blox.place",
+      { pieceIdx: 0, row: 0, col: 0 },
+      { clientActionId: "blox-test-action", feedback: false },
+    );
+
+    assert.equal(result.success, true);
+    assert.equal(useGameHub.getState().snapshot.resources.gold, 101);
+  });
+});

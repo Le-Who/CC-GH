@@ -24,6 +24,67 @@ export function placePiece(board, piece, row, col) {
   }
 }
 
+export function clearBloxLines(board) {
+  const rows = [];
+  const cols = [];
+  for (let r = 0; r < board.length; r++) {
+    if (board[r].every(Boolean)) rows.push(r);
+  }
+  for (let c = 0; c < board[0].length; c++) {
+    let full = true;
+    for (let r = 0; r < board.length; r++) {
+      if (!board[r][c]) {
+        full = false;
+        break;
+      }
+    }
+    if (full) cols.push(c);
+  }
+  for (const r of rows) {
+    for (let c = 0; c < board[r].length; c++) board[r][c] = null;
+  }
+  for (const c of cols) {
+    for (let r = 0; r < board.length; r++) board[r][c] = null;
+  }
+  const cleared = rows.length + cols.length;
+  return { rows, cols, cleared, points: cleared ? cleared * 10 + Math.max(0, cleared - 1) * 10 : 0 };
+}
+
+export function cloneBloxState(state = {}) {
+  return {
+    ...state,
+    board: Array.isArray(state.board)
+      ? state.board.map((row) => (Array.isArray(row) ? [...row] : []))
+      : createEmptyBoard(),
+    tray: Array.isArray(state.tray)
+      ? state.tray.map((item) => (item ? { ...item, piece: item.piece ? { ...item.piece, cells: [...item.piece.cells] } : item.piece } : item))
+      : [],
+  };
+}
+
+export function previewBloxPlacement(state = {}, placement = {}) {
+  const pieceIdx = Number(placement.pieceIdx);
+  const row = Number(placement.row);
+  const col = Number(placement.col);
+  const next = cloneBloxState(state);
+  const trayItem = next.tray[pieceIdx];
+  if (!Number.isInteger(pieceIdx) || !Number.isInteger(row) || !Number.isInteger(col)) {
+    return { valid: false, reason: "invalid coordinates", state: next };
+  }
+  if (!trayItem || trayItem.placed || !trayItem.piece) {
+    return { valid: false, reason: "invalid piece", state: next };
+  }
+  if (!canPlace(next.board, trayItem.piece, row, col)) {
+    return { valid: false, reason: "invalid placement", state: next };
+  }
+  placePiece(next.board, trayItem.piece, row, col);
+  next.tray[pieceIdx] = { ...trayItem, placed: true };
+  const clear = clearBloxLines(next.board);
+  next.score = (Number(next.score) || 0) + trayItem.piece.cells.length + clear.points;
+  next.linesCleared = (Number(next.linesCleared) || 0) + clear.cleared;
+  return { valid: true, state: next, clear };
+}
+
 export function canAnyPieceFit(board, tray) {
   for (const t of tray) {
     if (t.placed) continue;

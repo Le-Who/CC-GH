@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronRight, Home, Play, RotateCcw, Trophy } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { GamePlayHud, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
+import { getQuestionTiming, useQuestionTimer } from "./useQuestionTimer.js";
 export default function TriviaGame() {
   const snapshot = useSnapshot();
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
@@ -21,11 +22,28 @@ export default function TriviaGame() {
   const [duelStatus, setDuelStatus] = useState(null);
   const [history, setHistory] = useState([]);
   const [paused, setPaused] = useState(false);
+  const [reveal, setReveal] = useState(null);
+  const revealTimerRef = useRef(null);
   const inShell = view !== "menu";
   const questionActive = (view === "solo" || view === "duel-play") && question;
   const isPlaying = questionActive && !paused;
   const activePause = questionActive && paused;
-  useImmersiveGame("trivia", inShell);
+  const questionTiming = useQuestionTimer(question, (question?.timeLimit || 15) * 1000);
+  const pauseRun = useCallback(() => {
+    if (questionActive) setPaused(true);
+  }, [questionActive]);
+  const shellControls = useMemo(() => ({
+    activeRun: !!questionActive,
+    pauseRun,
+    hudState: {
+      score: sessionScore,
+      streak,
+      timeLeft: Math.ceil(questionTiming.remainingMs / 1000),
+    },
+  }), [pauseRun, questionActive, questionTiming.remainingMs, sessionScore, streak]);
+  useImmersiveGame("trivia", inShell, shellControls);
+
+  useEffect(() => () => window.clearTimeout(revealTimerRef.current), []);
 
   useEffect(() => {
     api("/api/trivia/duel/history").then((data) => {
@@ -43,29 +61,44 @@ export default function TriviaGame() {
     setQuestion(data.question);
     setSessionScore(0);
     setStreak(0);
+    setReveal(null);
     setPaused(false);
     setView("solo");
     await loadSnapshot();
   }
 
   async function submitAnswer(answer) {
+    if (reveal) return;
     const path = view === "duel-play" ? "/api/trivia/duel/answer" : "/api/trivia/answer";
-    const data = await api(path, view === "duel-play" ? { roomId, answer, timeMs: 1200 } : { answer, timeMs: 1200 });
+    const timing = getQuestionTiming(questionTiming.startedAt, Date.now(), (question?.timeLimit || 15) * 1000);
+    const timeMs = Math.max(1, Math.round(timing.timeMs));
+    const data = await api(path, view === "duel-play" ? { roomId, answer, timeMs } : { answer, timeMs });
     if (data.error) {
       useGameHub.setState({ message: data.error });
       return;
     }
-    setSessionScore(data.sessionScore ?? data.score ?? sessionScore);
-    setStreak(data.streak || 0);
-    if (data.nextQuestion) {
-      setQuestion(data.nextQuestion);
-    } else {
-      setQuestion(null);
-      setPaused(false);
-      setView(data.results ? "duel-results" : "results");
-      setDuelStatus(data.results || data);
-      await loadSnapshot();
-    }
+    setReveal({
+      answer,
+      correct: !!data.correct,
+      correctAnswer: data.correctAnswer,
+      points: Number(data.points) || 0,
+      timeMs,
+    });
+    window.clearTimeout(revealTimerRef.current);
+    revealTimerRef.current = window.setTimeout(async () => {
+      setSessionScore(data.sessionScore ?? data.score ?? sessionScore);
+      setStreak(data.streak || 0);
+      setReveal(null);
+      if (data.nextQuestion) {
+        setQuestion(data.nextQuestion);
+      } else {
+        setQuestion(null);
+        setPaused(false);
+        setView(data.results ? "duel-results" : "results");
+        setDuelStatus(data.results || data);
+        await loadSnapshot();
+      }
+    }, 1100);
   }
 
   async function createDuel() {
@@ -76,6 +109,7 @@ export default function TriviaGame() {
     }
     setRoomId(data.roomId);
     setDuelStatus(data);
+    setReveal(null);
     setPaused(false);
     setView("duel-room");
   }
@@ -108,6 +142,7 @@ export default function TriviaGame() {
       return;
     }
     setQuestion(data.question);
+    setReveal(null);
     setPaused(false);
     setView("duel-play");
   }
@@ -135,7 +170,7 @@ export default function TriviaGame() {
             stats={[
               { label: t("common.score"), value: sessionScore },
               { label: t("trivia.streakLabel"), value: streak || 0 },
-              { label: t("common.questionShort"), value: `${(question.index ?? 0) + 1}/${question.total || "?"}` },
+              { label: t("common.time"), value: Math.ceil(questionTiming.remainingMs / 1000) },
             ]}
             onPause={() => setPaused(true)}
           />
@@ -168,7 +203,7 @@ export default function TriviaGame() {
           </>
         )}
         {(view === "solo" || view === "duel-play") && question && (
-          <QuestionPanel question={question} score={sessionScore} streak={streak} submitAnswer={submitAnswer} />
+          <QuestionPanel question={question} score={sessionScore} streak={streak} submitAnswer={submitAnswer} reveal={reveal} timing={questionTiming} />
         )}
         {view === "duel-room" && (
           <div className="duel-box">
@@ -229,6 +264,7 @@ export default function TriviaGame() {
                 onClick={() => {
                   setPaused(false);
                   setQuestion(null);
+                  setReveal(null);
                   setView("menu");
                 }}
               >
@@ -240,6 +276,7 @@ export default function TriviaGame() {
                 onClick={() => {
                   setPaused(false);
                   setQuestion(null);
+                  setReveal(null);
                   setView("menu");
                   exitToHub();
                 }}
@@ -264,24 +301,42 @@ export default function TriviaGame() {
   );
 }
 
-function QuestionPanel({ question, score, streak, submitAnswer }) {
+function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing }) {
   const { t } = useAppI18n();
+  const remainingSeconds = Math.ceil((timing?.remainingMs || 0) / 1000);
   return (
-    <div className="question-panel">
+    <div className={`question-panel${reveal ? " revealing" : ""}`}>
       <div className="question-meta">
         <span>{t("trivia.question", { current: (question.index ?? 0) + 1, total: question.total || "?" })}</span>
         <span>{t("common.score")} {score}</span>
         <span>{streak ? t("trivia.streak", { streak }) : t("trivia.noStreak")}</span>
       </div>
       <h2>{question.question}</h2>
-      <small>{question.category} · {question.difficulty} · {question.timeLimit || 15}s</small>
+      <small>{question.category} · {question.difficulty} · {remainingSeconds}s</small>
+      <i className="trivia-timer-bar" aria-hidden="true"><b style={{ transform: `scaleX(${timing?.progress ?? 1})` }} /></i>
       <div className="answer-grid">
-        {(question.answers || []).map((answer) => (
-          <button key={answer} onClick={() => submitAnswer(answer)}>
+        {(question.answers || []).map((answer) => {
+          const isCorrect = reveal && answer === reveal.correctAnswer;
+          const isChosenWrong = reveal && answer === reveal.answer && !reveal.correct;
+          return (
+          <button
+            key={answer}
+            className={`${isCorrect ? "correct" : ""}${isChosenWrong ? " incorrect" : ""}`.trim()}
+            disabled={!!reveal}
+            onClick={() => submitAnswer(answer)}
+          >
             {answer}
           </button>
-        ))}
+          );
+        })}
       </div>
+      {reveal && (
+        <div className={`trivia-reveal ${reveal.correct ? "correct" : "incorrect"}`}>
+          <strong>{reveal.correct ? t("trivia.correct") : t("trivia.incorrect")}</strong>
+          <span>{t("trivia.answerTime", { ms: reveal.timeMs })}</span>
+          {reveal.points > 0 && <b>+{reveal.points}</b>}
+        </div>
+      )}
     </div>
   );
 }

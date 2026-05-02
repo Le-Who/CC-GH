@@ -1,24 +1,3 @@
-import {
-  bindMiniAppCssVars,
-  bindViewportCssVars,
-  disableVerticalSwipes,
-  enableVerticalSwipes,
-  expandViewport,
-  hapticFeedbackImpactOccurred,
-  hapticFeedbackNotificationOccurred,
-  init,
-  initDataRaw,
-  initDataUser,
-  isHapticFeedbackSupported,
-  isMiniAppMounted,
-  isSwipeBehaviorSupported,
-  miniAppReady,
-  mountMiniApp,
-  mountSwipeBehavior,
-  mountViewport,
-  retrieveRawInitData,
-} from "@telegram-apps/sdk";
-
 let platformState = {
   initialized: false,
   inTelegram: false,
@@ -26,19 +5,42 @@ let platformState = {
   user: null,
 };
 
-function readRawInitData() {
+let telegramSdkPromise = null;
+
+function loadTelegramSdk() {
+  telegramSdkPromise ||= import("@telegram-apps/sdk").catch(() => null);
+  return telegramSdkPromise;
+}
+
+function readWindowTelegram() {
   try {
-    return retrieveRawInitData() || initDataRaw() || "";
+    return window.Telegram?.WebApp || null;
   } catch {
-    return window.Telegram?.WebApp?.initData || "";
+    return null;
   }
 }
 
-function readUser() {
+function readRawInitDataFromWindow() {
+  return readWindowTelegram()?.initData || "";
+}
+
+function readUserFromWindow() {
+  return readWindowTelegram()?.initDataUnsafe?.user || null;
+}
+
+function readRawInitData(sdk = null) {
   try {
-    return initDataUser() || window.Telegram?.WebApp?.initDataUnsafe?.user || null;
+    return sdk?.retrieveRawInitData?.() || sdk?.initDataRaw?.() || readRawInitDataFromWindow();
   } catch {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user || null;
+    return readRawInitDataFromWindow();
+  }
+}
+
+function readUser(sdk = null) {
+  try {
+    return sdk?.initDataUser?.() || readUserFromWindow();
+  } catch {
+    return readUserFromWindow();
   }
 }
 
@@ -46,21 +48,22 @@ export async function initTelegramPlatform() {
   if (platformState.initialized) return platformState;
 
   const cleanup = [];
+  const sdk = await loadTelegramSdk();
   try {
-    cleanup.push(init({ acceptCustomStyles: true }));
-    if (!isMiniAppMounted()) mountMiniApp();
-    mountViewport();
-    mountSwipeBehavior();
-    bindMiniAppCssVars();
-    bindViewportCssVars();
-    expandViewport();
-    miniAppReady();
+    cleanup.push(sdk?.init?.({ acceptCustomStyles: true }));
+    if (!sdk?.isMiniAppMounted?.()) sdk?.mountMiniApp?.();
+    sdk?.mountViewport?.();
+    sdk?.mountSwipeBehavior?.();
+    sdk?.bindMiniAppCssVars?.();
+    sdk?.bindViewportCssVars?.();
+    sdk?.expandViewport?.();
+    sdk?.miniAppReady?.();
   } catch {
     // Local browser/dev mode is allowed; auth will decide if dev credentials are accepted.
   }
 
-  const rawInitData = readRawInitData();
-  const user = readUser();
+  const rawInitData = readRawInitData(sdk);
+  const user = readUser(sdk);
   platformState = {
     initialized: true,
     inTelegram: !!rawInitData,
@@ -72,32 +75,36 @@ export async function initTelegramPlatform() {
 }
 
 export function getTelegramAuthData() {
-  return platformState.rawInitData || readRawInitData();
+  return platformState.rawInitData || readRawInitDataFromWindow();
 }
 
 export function getTelegramUser() {
-  return platformState.user || readUser();
+  return platformState.user || readUserFromWindow();
 }
 
 export function setGameGestureActive(active) {
-  try {
-    if (!isSwipeBehaviorSupported()) return;
-    if (active) disableVerticalSwipes();
-    else enableVerticalSwipes();
-  } catch {
-    // Unsupported Telegram clients and local browsers can ignore this.
-  }
+  void loadTelegramSdk().then((sdk) => {
+    try {
+      if (!sdk?.isSwipeBehaviorSupported?.()) return;
+      if (active) sdk.disableVerticalSwipes?.();
+      else sdk.enableVerticalSwipes?.();
+    } catch {
+      // Unsupported Telegram clients and local browsers can ignore this.
+    }
+  });
 }
 
 export function haptic(type = "light") {
-  try {
-    if (!isHapticFeedbackSupported()) return;
-    if (type === "success" || type === "warning" || type === "error") {
-      hapticFeedbackNotificationOccurred(type);
-    } else {
-      hapticFeedbackImpactOccurred(type);
+  void loadTelegramSdk().then((sdk) => {
+    try {
+      if (!sdk?.isHapticFeedbackSupported?.()) return;
+      if (type === "success" || type === "warning" || type === "error") {
+        sdk.hapticFeedbackNotificationOccurred?.(type);
+      } else {
+        sdk.hapticFeedbackImpactOccurred?.(type);
+      }
+    } catch {
+      // Haptics are progressive enhancement.
     }
-  } catch {
-    // Haptics are progressive enhancement.
-  }
+  });
 }

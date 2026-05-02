@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Clock, Gem, Home, Play, RotateCcw, Sparkles, Trophy } from "lucide-react";
 import { audioManager } from "../../services/audioManager.js";
-import { BUBBO_SHOTS, BUBBO_TIMED_SECONDS, advanceBubboPressure, createBubboRun, getBubboRemainingCount, isBubboDanger, randomBubboColor, resolveBubboShot } from "../../game-core/bubbo/engine.js";
+import { BUBBO_SHOTS, BUBBO_TIMED_SECONDS, advanceBubboPressure, createBubboRun, getBubboDangerRows, getBubboPressureLabel, getBubboRemainingCount, isBubboDanger, randomBubboColor, resolveBubboShot } from "../../game-core/bubbo/engine.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
 import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
+import { useGameEvents } from "../../game-state/gameEvents.js";
 const BUBBO_MODES = [
   { id: "classic", labelKey: "bubbo.mode.classic", hintKey: "bubbo.mode.classicHint" },
   { id: "timed", labelKey: "bubbo.mode.timed", hintKey: "bubbo.mode.timedHint" },
@@ -14,6 +15,7 @@ export default function BubboGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
+  const pushEvent = useGameEvents((store) => store.pushEvent);
   const { t } = useAppI18n();
   const initialRun = useMemo(() => createBubboRun("local-preview"), []);
   const [board, setBoard] = useState(() => initialRun.board);
@@ -38,14 +40,29 @@ export default function BubboGame() {
   const bubbleRef = useRef({ current: currentBubble, next: nextBubble });
   const shotAdvanceRef = useRef(null);
   const highScore = snapshot?.bubbo?.highScore || 0;
+  const savedRun = snapshot?.bubbo?.currentGame || null;
   const remainingBubbles = getBubboRemainingCount(board);
   const isPlaying = gameActive && !paused;
   const activePause = gameActive && paused;
   const danger = isBubboDanger(board);
+  const pressureLabel = getBubboPressureLabel({ dangerRows: getBubboDangerRows(board), pressureStep });
+  const pressureValue = t(`bubbo.pressure.${pressureLabel.tone}`);
   const currentMode = BUBBO_MODES.find((item) => item.id === mode) || BUBBO_MODES[0];
   const primaryLimitLabel = mode === "timed" ? t("common.time") : t("common.shots");
   const primaryLimitValue = mode === "timed" ? timeLeft : shotsLeft;
-  useImmersiveGame("bubbo", true);
+  const pauseRun = useCallback(() => {
+    if (gameActive) setPaused(true);
+  }, [gameActive]);
+  const shellControls = useMemo(() => ({
+    activeRun: gameActive,
+    pauseRun,
+    hudState: {
+      score,
+      shotsLeft,
+      pressureLabel: pressureValue,
+    },
+  }), [gameActive, pauseRun, pressureValue, score, shotsLeft]);
+  useImmersiveGame("bubbo", true, shellControls);
 
   useEffect(() => {
     runRef.current = { board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft, shotsFired, mode, timeLeft };
@@ -93,6 +110,36 @@ export default function BubboGame() {
     setNextBubble(queuedBubble);
     setLastShot(null);
   }, [mode, performAction]);
+
+  const resumeRun = useCallback(() => {
+    if (!savedRun?.board) return;
+    const fallback = createBubboRun(savedRun.seed || null, { mode: savedRun.mode || mode });
+    const nextBoard = Array.isArray(savedRun.board) ? savedRun.board : fallback.board;
+    const nextPendingRow = Array.isArray(savedRun.pendingRow) ? savedRun.pendingRow : fallback.pendingRow;
+    const nextMode = savedRun.mode || fallback.mode;
+    setBoard(nextBoard);
+    setPendingRow(nextPendingRow);
+    setSeed(savedRun.seed || fallback.seed);
+    setWaveIndex(Number.isFinite(Number(savedRun.waveIndex)) ? Number(savedRun.waveIndex) : fallback.waveIndex);
+    setRowOffset(Number(savedRun.rowOffset) || 0);
+    setPressure(Number(savedRun.pressure) || 0);
+    setPressureStep(Number(savedRun.pressureStep) || 0);
+    setScore(Number(savedRun.score) || 0);
+    setMode(nextMode);
+    setTimeLeft(Number.isFinite(Number(savedRun.timeLeft)) ? Number(savedRun.timeLeft) : (nextMode === "timed" ? BUBBO_TIMED_SECONDS : null));
+    setShotsLeft(Number.isFinite(Number(savedRun.shotsLeft)) ? Number(savedRun.shotsLeft) : BUBBO_SHOTS);
+    setShotsFired(Number(savedRun.shotsFired) || 0);
+    setGameActive(true);
+    setPaused(false);
+    pressureClockRef.current = Date.now();
+    const firstBubble = randomBubboColor(nextBoard);
+    const queuedBubble = randomBubboColor(nextBoard);
+    bubbleRef.current = { current: firstBubble, next: queuedBubble };
+    shotAdvanceRef.current = null;
+    setCurrentBubble(firstBubble);
+    setNextBubble(queuedBubble);
+    setLastShot(null);
+  }, [mode, savedRun]);
 
   const finish = useCallback(
     (finalScore = score, fromQuit = false) => {
@@ -212,6 +259,14 @@ export default function BubboGame() {
         setNextBubble(fallbackNext);
       }
       audioManager.play(result.popped.length || result.dropped.length ? "clear" : "tap");
+      if (result.popped.length || result.dropped.length) {
+        pushEvent({
+          game: "bubbo",
+          title: t("bubbo.clearEvent"),
+          value: `+${result.points}`,
+          tone: "success",
+        });
+      }
       performAction(
         "bubbo.sync",
         {
@@ -235,7 +290,7 @@ export default function BubboGame() {
         finish(nextScore);
       }
     },
-    [board, currentBubble, finish, gameActive, mode, nextBubble, pendingRow, performAction, pressure, pressureStep, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex],
+    [board, currentBubble, finish, gameActive, mode, nextBubble, pendingRow, performAction, pressure, pressureStep, pushEvent, rowOffset, score, seed, shotsFired, shotsLeft, t, timeLeft, waveIndex],
   );
 
   const sceneState = useMemo(
@@ -253,6 +308,8 @@ export default function BubboGame() {
         next: nextBubble,
         lastShot,
         pressureStep,
+        pressureLabel: pressureValue,
+        aimAssist: true,
         seed,
         waveIndex,
         rowOffset,
@@ -262,7 +319,7 @@ export default function BubboGame() {
       onBubboFire: onFire,
       onBubboShotStart: onShotStart,
     }),
-    [board, currentBubble, currentMode.labelKey, isPlaying, lastShot, mode, nextBubble, onFire, onShotStart, pendingRow, pressureStep, primaryLimitLabel, primaryLimitValue, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex, t],
+    [board, currentBubble, currentMode.labelKey, isPlaying, lastShot, mode, nextBubble, onFire, onShotStart, pendingRow, pressureStep, pressureValue, primaryLimitLabel, primaryLimitValue, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex, t],
   );
 
   return (
@@ -278,10 +335,9 @@ export default function BubboGame() {
           stats={[
             { label: t("common.score"), value: score },
             { label: primaryLimitLabel, value: primaryLimitValue },
-            { label: t("common.pressure"), value: `${Math.round(pressureStep * 100)}%` },
+            { label: t("common.pressure"), value: pressureValue },
           ]}
           onPause={() => setPaused(true)}
-          onFinish={() => finish(score)}
           className="game-play-hud-bottom bubbo-play-hud"
         />
       )}
@@ -320,15 +376,23 @@ export default function BubboGame() {
             </div>
           )}
           {!gameActive && (
-            <div className="mode-grid bubbo-mode-grid" data-mode-selector="bubbo">
-              {BUBBO_MODES.map((item) => (
-                <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
-                  <span className="mode-choice-selected" aria-hidden="true" />
-                  <strong>{t(item.labelKey)}</strong>
-                  <small>{t(item.hintKey)}</small>
-                </button>
-              ))}
-            </div>
+            <>
+              {savedRun?.board && (
+                <div className="bubbo-resume-banner">
+                  <span>{t("bubbo.resumeHint")}</span>
+                  <PanelButton icon={Play} onClick={resumeRun}>{t("common.resume")}</PanelButton>
+                </div>
+              )}
+              <div className="mode-grid bubbo-mode-grid" data-mode-selector="bubbo">
+                {BUBBO_MODES.map((item) => (
+                  <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
+                    <span className="mode-choice-selected" aria-hidden="true" />
+                    <strong>{t(item.labelKey)}</strong>
+                    <small>{t(item.hintKey)}</small>
+                  </button>
+                ))}
+              </div>
+            </>
           )}
           {!activePause && (
             <>

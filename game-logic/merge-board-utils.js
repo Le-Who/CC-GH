@@ -49,7 +49,8 @@ export function hydrateMergeBoard(p) {
       if (!Array.isArray(board[r])) board[r] = Array(BOARD_COLS).fill(null);
       while (board[r].length < BOARD_COLS) board[r].push(null);
       for (let c = 0; c < board[r].length; c++) {
-        board[r][c] = normalizeMergeItem(board[r][c]);
+        const item = board[r][c];
+        board[r][c] = item == null ? null : normalizeMergeItem(item);
       }
     }
   }

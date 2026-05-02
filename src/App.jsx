@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
   Blocks,
   Bot,
@@ -11,6 +10,8 @@ import {
   PackageOpen,
   Sparkles,
   Sun,
+  Timer,
+  Trophy,
   Volume2,
   VolumeX,
   X,
@@ -28,20 +29,18 @@ import {
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from "./games/garden-shelf/events";
 import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
 import { useGameHub } from "./game-state/useGameHub.js";
+import { useGameEvents } from "./game-state/gameEvents.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
 import { AppI18nContext, appTranslate, useAppI18n } from "./app/i18n.jsx";
+import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
 import { Stat, formatCount } from "./app/shell.jsx";
+import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
+import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
 
-const TABS = [
-  { id: "garden", labelKey: "tabs.garden", icon: Leaf },
-  { id: "blox", labelKey: "tabs.blox", icon: Blocks },
-  { id: "match3", labelKey: "tabs.gems", icon: Gem },
-  { id: "merge", labelKey: "tabs.merge", icon: PackageOpen },
-  { id: "bubbo", labelKey: "tabs.bubbo", icon: Sparkles },
-  { id: "trivia", labelKey: "tabs.trivia", icon: Bot },
-  { id: "room", labelKey: "tabs.room", icon: Home },
-];
+const TAB_ICONS = { garden: Leaf, blox: Blocks, match3: Gem, merge: PackageOpen, bubbo: Sparkles, trivia: Bot, room: Home };
+const STAT_ICONS = { gold: Sparkles, energy: Zap, tokens: PackageOpen, score: Trophy, lines: Blocks, reward: Sparkles, moves: Gem, combo: Sparkles, essence: Sparkles, freeTaps: Zap, fuel: PackageOpen, shots: Sparkles, pressure: Timer, streak: Zap, time: Timer };
+const TABS = VISIBLE_GAME_IDS.map((id) => ({ id, labelKey: GAME_REGISTRY[id].labelKey, icon: TAB_ICONS[id] || Sparkles }));
 
 const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
 const UI_THEME_KEY = "game_hub_ui_theme";
@@ -91,10 +90,33 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
+function GameEventOverlay() {
+  const events = useGameEvents((state) => state.events);
+  const dismissEvent = useGameEvents((state) => state.dismissEvent);
+
+  useEffect(() => {
+    if (!events.length) return undefined;
+    const timers = events.map((event) => window.setTimeout(() => dismissEvent(event.id), event.ttlMs));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [dismissEvent, events]);
+
+  return (
+    <div className="game-event-overlay" aria-live="polite" aria-atomic="false">
+      {events.map((event) => (
+        <div key={event.id} className={`game-event-card tone-${event.tone}`}>
+          <span>{event.title}</span>
+          {event.value && <strong>{event.value}</strong>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function App() {
   const activeTab = useGameHub((state) => state.activeTab);
   const setActiveTab = useGameHub((state) => state.setActiveTab);
   const activeGameShell = useGameHub((state) => state.activeGameShell);
+  const pendingActions = useGameHub((state) => state.pendingActions);
   const snapshot = useSnapshot();
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
   const hydrateOutbox = useGameHub((state) => state.hydrateOutbox);
@@ -112,13 +134,14 @@ export default function App() {
   const [gardenLevelUpPending, setGardenLevelUpPending] = useState(false);
   const gardenLevelUpPendingRef = useRef(false);
   const [isPending, startTransition] = useTransition();
-  const reduceMotion = useReducedMotion();
   const user = useMemo(() => getTelegramUser(), [platform]);
   const t = useCallback((key, vars) => appTranslate(gardenLanguage, key, vars), [gardenLanguage]);
   const i18nValue = useMemo(() => ({ language: gardenLanguage, t }), [gardenLanguage, t]);
   const toggleUiTheme = useCallback(() => {
     setUiTheme((value) => (value === "dark" ? "light" : "dark"));
   }, []);
+  const closeProfile = useCallback(() => setProfileOpen(false), []);
+  const exitToGarden = useCallback(() => setActiveTab("garden"), [setActiveTab]);
 
   useEffect(() => {
     document.documentElement.dataset.uiTheme = uiTheme;
@@ -190,7 +213,19 @@ export default function App() {
 
   const resources = snapshot?.resources || {};
   const energy = resources.energy || {};
-  const shellActive = activeGameShell === activeTab;
+  const activeGameShellId = typeof activeGameShell === "string" ? activeGameShell : activeGameShell?.id;
+  const activeGameControls = activeGameShell && typeof activeGameShell === "object" ? activeGameShell : null;
+  const shellActive = activeGameShellId === activeTab;
+  const gameHudDescriptors = useGameHudDescriptors(activeTab, snapshot, activeGameControls?.hudState || null);
+  useTelegramGameNavigation({
+    activeGame: activeTab === "garden" ? null : activeTab,
+    hasOpenPanel: profileOpen || !!activeGameControls?.openPanel,
+    hasActiveRun: !!activeGameControls?.activeRun,
+    hasPendingActions: pendingActions.some((item) => item.status !== "failed"),
+    closePanel: profileOpen ? closeProfile : activeGameControls?.closePanel,
+    pauseRun: activeGameControls?.pauseRun || activeGameControls?.pause,
+    exitToHub: exitToGarden,
+  });
   const gardenXpRequired = Math.max(1, Number(gardenHud?.xpRequired) || 1);
   const gardenXp = Math.max(0, Number(gardenHud?.xp) || 0);
   const gardenXpProgress = Math.min(100, (gardenXp / gardenXpRequired) * 100);
@@ -233,6 +268,8 @@ export default function App() {
           active: gardenCanLevelUp && !gardenLevelUpPending,
           title: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
           onClick: gardenCanLevelUp && !gardenLevelUpPending ? requestGardenLevelUp : null,
+          id: "garden-xp",
+          dataGardenXp: true,
         },
         {
           icon: ClipboardList,
@@ -243,7 +280,15 @@ export default function App() {
           active: (gardenHud?.questReadyCount || 0) > 0,
         },
       ]
-    : [
+    : gameHudDescriptors?.length
+      ? gameHudDescriptors.map((item) => ({
+          icon: STAT_ICONS[item.id] || Sparkles,
+          label: item.label || t(item.labelKey),
+          value: item.value,
+          progress: item.progress,
+          id: item.id,
+        }))
+      : [
         { icon: Sparkles, label: t("common.gold"), value: formatCount(resources.gold || 0) },
         { icon: Zap, label: t("common.energy"), value: `${energy.current ?? 0}/${energy.max ?? 0}` },
         { icon: PackageOpen, label: t("common.tokens"), value: resources.gachaTokens || 0 },
@@ -277,43 +322,31 @@ export default function App() {
             </button>
           </div>
         </header>
-        <AnimatePresence>
-          {profileOpen && (
-            <motion.section
-              className="profile-popover"
-              role="dialog"
-              aria-modal="true"
-              aria-label={t("app.player")}
-              initial={reduceMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: reduceMotion ? 0.01 : 0.16 }}
-            >
-              <button type="button" className="profile-popover-scrim" aria-label={t("common.close")} onClick={() => setProfileOpen(false)} />
-              <motion.div
-                className="profile-popover-card"
-                initial={reduceMotion ? false : { opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                transition={{ duration: reduceMotion ? 0.01 : 0.18, ease: "easeOut" }}
-              >
-                <button type="button" className="profile-popover-close" aria-label={t("common.close")} onClick={() => setProfileOpen(false)}>
-                  <X size={18} />
-                </button>
-                <div className="profile-popover-avatar">{profileInitial}</div>
-                <div className="profile-popover-copy">
-                  <strong>{profileName}</strong>
-                  <span>{profileRuntime}</span>
-                </div>
-                <div className="profile-popover-stats">
-                  <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
-                  <span>{t("common.energy")}<b>{energy.current ?? 0}/{energy.max ?? 0}</b></span>
-                  <span>{t("common.tokens")}<b>{resources.gachaTokens || 0}</b></span>
-                </div>
-              </motion.div>
-            </motion.section>
-          )}
-        </AnimatePresence>
+        {profileOpen && (
+          <section
+            className="profile-popover"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t("app.player")}
+          >
+            <button type="button" className="profile-popover-scrim" aria-label={t("common.close")} onClick={closeProfile} />
+            <div className="profile-popover-card">
+              <button type="button" className="profile-popover-close" aria-label={t("common.close")} onClick={closeProfile}>
+                <X size={18} />
+              </button>
+              <div className="profile-popover-avatar">{profileInitial}</div>
+              <div className="profile-popover-copy">
+                <strong>{profileName}</strong>
+                <span>{profileRuntime}</span>
+              </div>
+              <div className="profile-popover-stats">
+                <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
+                <span>{t("common.energy")}<b>{energy.current ?? 0}/{energy.max ?? 0}</b></span>
+                <span>{t("common.tokens")}<b>{resources.gachaTokens || 0}</b></span>
+              </div>
+            </div>
+          </section>
+        )}
         <section className="stats-row">
           {stats.map((item) => (
             <Stat
@@ -325,55 +358,41 @@ export default function App() {
               onClick={item.onClick}
               active={item.active}
               title={item.title}
+              id={item.id}
+              dataGardenXp={item.dataGardenXp}
             />
           ))}
         </section>
+        <GameEventOverlay />
         {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
         {!snapshot ? (
           <div className="loading-panel">{t("app.loading")}</div>
         ) : (
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.section
-              key={activeTab}
-              className="active-game-frame"
-              initial={reduceMotion ? false : { opacity: 0, x: 32 }}
-              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: 0 }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -24 }}
-              transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
-            >
-              <ActiveGame activeTab={activeTab} />
-            </motion.section>
-          </AnimatePresence>
+          <section key={activeTab} className="active-game-frame">
+            <ActiveGame activeTab={activeTab} />
+          </section>
         )}
-        <LayoutGroup>
-          <nav className="bottom-tabs">
-            {TABS.map(({ id, labelKey, icon: Icon }) => (
-              <button
-                type="button"
-                key={id}
-                className={activeTab === id ? "active" : ""}
-                onClick={() => {
-                  startTransition(() => setActiveTab(id));
-                  haptic("light");
-                  audioManager.play("tap");
-                }}
-                onFocus={() => preloadGameTab(id)}
-                onPointerDown={() => preloadGameTab(id)}
-                onPointerEnter={() => preloadGameTab(id)}
-              >
-                {activeTab === id && !reduceMotion && (
-                  <motion.span
-                    className="nav-pill"
-                    layoutId="nav-pill"
-                    transition={{ type: "spring", stiffness: 500, damping: 31 }}
-                  />
-                )}
-                <Icon size={19} />
-                <span>{t(labelKey)}</span>
-              </button>
-            ))}
-          </nav>
-        </LayoutGroup>
+        <nav className="bottom-tabs">
+          {TABS.map(({ id, labelKey, icon: Icon }) => (
+            <button
+              type="button"
+              key={id}
+              className={activeTab === id ? "active" : ""}
+              onClick={() => {
+                startTransition(() => setActiveTab(id));
+                haptic("light");
+                audioManager.play("tap");
+              }}
+              onFocus={() => preloadGameTab(id)}
+              onPointerDown={() => preloadGameTab(id)}
+              onPointerEnter={() => preloadGameTab(id)}
+            >
+              {activeTab === id && <span className="nav-pill" aria-hidden="true" />}
+              <Icon size={19} />
+              <span>{t(labelKey)}</span>
+            </button>
+          ))}
+        </nav>
       </main>
     </AppI18nContext.Provider>
   );

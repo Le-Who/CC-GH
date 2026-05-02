@@ -4,6 +4,13 @@
 
 ### Client
 
+- Added a shared Telegram game UX foundation: static game registry, adaptive per-game HUD descriptors, receipt-backed reliable action helpers, transient reward/status event feedback, Telegram Back Button handling, closing confirmation for active/pending runs, and hidden-Farm compatibility in the runtime registry.
+- Refined live game surfaces for mobile Telegram play: Blox now previews optimistic placements and predicted line clears, Gem Crush restores snapshot runs before defaults and emits combo/match feedback, Merge uses server-derived cooldown timing plus generator source chips and safer valuable-item trash confirmation, Bubbo moves finish/settle controls into pause with resume/pressure/aim-assist cues, Brain Blitz records real answer elapsed time with a reveal phase, and Cozy Yard shifts more persistent HUD into an activity pill plus tool drawer.
+- Split the monolithic Pixi scene module into per-game scene builders behind the existing stable `src/game-runtime/scenes.js` export surface, keeping Farm hidden but available for runtime compatibility.
+- Fixed Garden Shelf plant-details affordances so the explicit details button does not steal ordinary tap-to-grow/harvest behavior, and fixed the production Garden chunk crash by reading Garden i18n inside each plant spot.
+- Moved app-shell motion wrappers off the startup `framer-motion` dependency and replaced them with CSS transitions for profile popovers, active game frames, in-game HUDs, pause overlays, and transient event cards.
+- Loaded the Telegram Mini App SDK progressively from the platform layer instead of preloading it in startup HTML, while preserving `window.Telegram.WebApp.initData` auth fallback, swipe locking, haptics, Back Button, and closing confirmation behavior.
+
 - Added Garden Shelf daily quests as three daily portions of three moderately simple tasks, with deterministic daily rotation, endowed-progress cues, daily claimed state, and a HUD quest entry replacing the old Plants stat chip.
 - Fixed Garden Shelf Level Up spam so rapid repeated taps send only one level-up mutation and cannot replay the reward modal, and adjusted the plant detail header so Income no longer sits under the close button.
 - Fixed Cozy Yard layable goodie interactions so seated/stationary visitors stay pinned to the occupied decoration and render above it, while the HUD atlas icons now scale to match the large button affordances.
@@ -79,6 +86,7 @@
 
 ### Operations
 
+- Ran a conservative Telegram UX performance loop using `perf:guard` as source of truth. Kept startup shell and Telegram SDK lazy-loading wins plus a Merge hydration null fast path; stopped by rule after three consecutive rejected/sub-threshold attempts without loosening budgets or changing gameplay semantics.
 - Restored the tracked asset replacement guide and tightened the game asset sheet brief around the current generated-runtime/manual-manifest contract, including legacy and hidden art surfaces that are not live override paths today.
 - Reduced guarded startup JS by splitting broad Vite vendor chunks into dependency-family chunks and deferring the realtime client module until the app boot effect, while keeping Pixi and runtime art lazy.
 - Fixed Playwright browser perf parity so `perf:guard:browser` builds production Vite assets before starting the test-mode server, preventing browser smoke runs from leaving a dev/test build that fails `perf:guard:build`.
@@ -98,6 +106,8 @@
 
 ### Tests
 
+- Added Telegram game UX foundation coverage for the hidden Farm registry contract, reliable action id policy, adaptive HUD descriptors, null local HUD state, Match-3 snapshot-first restoration, Merge server clock derivation, and real Trivia question timing.
+- Added focused gameplay regression coverage for Blox non-mutating placement previews, Bubbo pressure labels and aim assist, split Pixi scene runtime assertions, and the Garden details-label i18n path caught by the browser guard.
 - Added Garden Shelf unit coverage for daily quest reset/portion unlocking/endowed progress, ready quest counts, stale sync after level-up, and rapid Level Up click suppression in mobile Playwright.
 - Added Cozy Yard unit and mobile Playwright coverage for pinned stationary visitor motion and HUD-screen readability, plus Merge exchange-claim retention coverage.
 - Added unit and Chromium Playwright coverage for Garden quest id persistence, duplicate-safe Garden Level Up requests, the Level Up reward modal, Merge mobile dock/readable free taps, exchange/drawer discovery updates, and Cozy Yard playzone clamping.
