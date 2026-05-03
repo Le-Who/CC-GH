@@ -80,10 +80,13 @@ export function GameEventLog({ gameId = null, limit = 2, className = "" }) {
       .slice(0, Math.max(1, Number(limit) || 1))
   ), [events, gameId, limit]);
 
-  if (!visibleEvents.length) return null;
-
   return (
-    <div className={`game-play-event-log${className ? ` ${className}` : ""}`} aria-live="polite" aria-atomic="false">
+    <div
+      className={`game-play-event-log${className ? ` ${className}` : ""}`}
+      aria-live="polite"
+      aria-atomic="false"
+      data-empty={visibleEvents.length ? undefined : "true"}
+    >
       {visibleEvents.map((event) => (
         <p key={event.id} className={`tone-${event.tone}`}>
           <b>{event.title}</b>
@@ -98,13 +101,13 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
   const { t } = useAppI18n();
   return (
     <div
-      className={`game-play-hud ${className}`.trim()}
+      className={`game-play-hud${gameId ? " has-event-log" : ""}${className ? ` ${className}` : ""}`.trim()}
     >
       <div className="game-play-title">
         <strong>{title}</strong>
         {subtitle && <span>{subtitle}</span>}
-        <GameEventLog gameId={gameId} />
       </div>
+      {gameId && <GameEventLog gameId={gameId} />}
       <div className="game-play-stats">
         {stats.map((item) => (
           <span key={item.label}>

@@ -39,6 +39,7 @@ async function match3BoardLayout(page) {
       if (!Number.isFinite(boardLeft) || !Number.isFinite(boardTop) || !Number.isFinite(boardSize)) return null;
       const gridSize = boardSize - 20;
       return {
+        canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
         left: rect.x + boardLeft + 10,
         top: rect.y + boardTop + 10,
         size: gridSize,
@@ -50,6 +51,23 @@ async function match3BoardLayout(page) {
   }
   expect(layout?.size || 0).toBeGreaterThan(140);
   return layout;
+}
+
+async function match3HudBoardMetrics(page) {
+  const hud = page.locator('[data-game-shell="match3"] .game-play-hud');
+  const eventSlot = page.locator('[data-game-shell="match3"] .game-play-event-log');
+  await expect(hud).toBeVisible();
+  await expect(eventSlot).toBeAttached();
+  const hudBox = await hud.boundingBox();
+  const eventBox = await eventSlot.boundingBox();
+  const board = await match3BoardLayout(page);
+  expect(hudBox).not.toBeNull();
+  expect(eventBox).not.toBeNull();
+  return {
+    hud: { y: hudBox.y, height: hudBox.height },
+    eventSlot: { width: eventBox.width, height: eventBox.height },
+    board,
+  };
 }
 
 function findValidMatch3Move(board) {
@@ -201,6 +219,44 @@ test.describe("Pixi touch and drag interactions", () => {
     await touchDrag(page, start, end);
     await expect(swapSync).resolves.toMatchObject({ action: "match3.syncMode" });
     await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Match-3 score events stay in a fixed HUD slot without resizing the board", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.use?.hasTouch, "HUD slot stability is verified through touch dispatch");
+    const pageErrors = await boot(page, "match3_event_slot");
+
+    await page.getByRole("button", { name: /Gems/ }).click();
+    const initialSync = waitForMatch3Sync(page, 8000);
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    const startBody = await initialSync;
+    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await page.waitForTimeout(260);
+    const before = await match3HudBoardMetrics(page);
+
+    const move = findValidMatch3Move(startBody?.payload?.savedModes?.classic?.board);
+    expect(move).toBeTruthy();
+    const start = {
+      x: before.board.left + before.board.cell * (move.from.x + 0.5),
+      y: before.board.top + before.board.cell * (move.from.y + 0.5),
+    };
+    const direction = {
+      x: Math.sign(move.to.x - move.from.x),
+      y: Math.sign(move.to.y - move.from.y),
+    };
+    const swapSync = waitForMatch3Sync(page, 8000);
+    await touchDrag(page, start, {
+      x: start.x + direction.x * before.board.cell * 2.35,
+      y: start.y + direction.y * before.board.cell * 2.35,
+    });
+    await expect(swapSync).resolves.toMatchObject({ action: "match3.syncMode" });
+    await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toContainText(/\+\d+/);
+
+    const after = await match3HudBoardMetrics(page);
+    expect(Math.abs(after.hud.height - before.hud.height)).toBeLessThanOrEqual(1);
+    expect(Math.abs(after.eventSlot.height - before.eventSlot.height)).toBeLessThanOrEqual(1);
+    expect(Math.abs(after.board.size - before.board.size)).toBeLessThanOrEqual(1);
+    expect(Math.abs(after.board.top - before.board.top)).toBeLessThanOrEqual(1);
     expect(pageErrors).toEqual([]);
   });
 

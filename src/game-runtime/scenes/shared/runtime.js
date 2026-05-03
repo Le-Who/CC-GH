@@ -152,19 +152,42 @@ function shellElement(app) {
   return app.canvas?.closest?.(".game-shell") || null;
 }
 
+function offsetTopWithin(container, element) {
+  if (!container || !element || typeof HTMLElement === "undefined") return null;
+  let top = 0;
+  let current = element;
+  while (current && current !== container && current instanceof HTMLElement) {
+    top += current.offsetTop || 0;
+    current = current.offsetParent;
+  }
+  return current === container ? top : null;
+}
+
 function reserveFromShellChrome(app, selector, fallback = 0) {
+  const shell = shellElement(app);
+  const chrome = shell?.querySelector?.(selector);
   const canvasRect = app.canvas?.getBoundingClientRect?.();
-  const chromeRect = shellElement(app)?.querySelector?.(selector)?.getBoundingClientRect?.();
+  const chromeRect = chrome?.getBoundingClientRect?.();
   if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
-  const reserve = chromeRect.bottom - canvasRect.top + 8;
+  const canvasTop = offsetTopWithin(shell, app.canvas);
+  const chromeTop = offsetTopWithin(shell, chrome);
+  const reserve = canvasTop != null && chromeTop != null
+    ? chromeTop + chrome.offsetHeight - canvasTop + 8
+    : chromeRect.bottom - canvasRect.top + 8;
   return Math.max(fallback, Math.ceil(reserve));
 }
 
 function reserveBottomFromShellChrome(app, selector, fallback = 0) {
+  const shell = shellElement(app);
+  const chrome = shell?.querySelector?.(selector);
   const canvasRect = app.canvas?.getBoundingClientRect?.();
-  const chromeRect = shellElement(app)?.querySelector?.(selector)?.getBoundingClientRect?.();
+  const chromeRect = chrome?.getBoundingClientRect?.();
   if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
-  const reserve = canvasRect.bottom - chromeRect.top + 8;
+  const canvasTop = offsetTopWithin(shell, app.canvas);
+  const chromeTop = offsetTopWithin(shell, chrome);
+  const reserve = canvasTop != null && chromeTop != null
+    ? canvasTop + app.canvas.offsetHeight - chromeTop + 8
+    : canvasRect.bottom - chromeRect.top + 8;
   return Math.max(fallback, Math.ceil(reserve));
 }
 

@@ -409,12 +409,12 @@ export default function MergeGame() {
       overlayClassName="merge-pause-overlay"
       hud={(
         <>
-          <div className="game-play-hud merge-play-status">
+          <div className="game-play-hud has-event-log merge-play-status">
             <div className="game-play-title">
               <strong>{t("merge.alchemyTable")}</strong>
               <span>{generatorHint}</span>
-              <GameEventLog gameId="merge" />
             </div>
+            <GameEventLog gameId="merge" />
             <div className="game-play-stats">
               <button type="button" className="merge-stat-button" onClick={() => openScenePanel("items")}>
                 {t("merge.items")} <strong>{itemTotal}</strong>

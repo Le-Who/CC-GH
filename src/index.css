@@ -1006,6 +1006,10 @@ button.stat-chip {
   animation: shell-hud-in 200ms ease-out both;
 }
 
+.game-play-hud.has-event-log {
+  grid-template-columns: minmax(124px, 1fr) minmax(112px, 0.72fr) minmax(0, auto) auto;
+}
+
 .game-play-hud-bottom {
   top: auto;
   bottom: max(8px, calc(var(--safe-bottom) + 8px));
@@ -1013,6 +1017,10 @@ button.stat-chip {
   background:
     linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
     var(--glass-surface-strong);
+}
+
+.game-play-hud-bottom.has-event-log {
+  grid-template-columns: minmax(108px, 0.86fr) minmax(112px, 0.72fr) minmax(0, 1.18fr) auto;
 }
 
 .game-play-title,
@@ -1098,24 +1106,34 @@ button.stat-chip {
 }
 
 .game-play-event-log {
+  align-self: center;
+  width: clamp(112px, 18vw, 184px);
+  height: 44px;
   display: grid;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   gap: 3px;
-  max-height: 44px;
   overflow: hidden;
-  margin-top: 4px;
+  margin: 0;
+  transition: opacity 140ms ease;
+}
+
+.game-play-event-log[data-empty="true"] {
+  opacity: 0;
 }
 
 .game-play-event-log p {
   min-width: 0;
-  min-height: 22px;
+  min-height: 0;
+  height: 100%;
   margin: 0;
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--shell-accent, var(--mint)) 44%, var(--glass-border-soft));
   border-radius: 7px;
-  padding: 3px 7px;
+  padding: 2px 7px;
   background: color-mix(in srgb, var(--shell-accent, var(--mint)) 13%, var(--glass-card-strong));
   color: var(--ink);
   font-size: 0.68rem;
@@ -1132,7 +1150,11 @@ button.stat-chip {
 }
 
 .game-play-event-log strong {
-  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--amber);
   font-size: 0.78rem;
   font-weight: 1000;
@@ -1676,8 +1698,20 @@ button.stat-chip {
     align-items: end;
   }
 
+  .game-play-hud.has-event-log {
+    grid-template-columns: minmax(92px, 1fr) minmax(84px, 0.72fr) auto;
+    grid-template-areas:
+      "title events actions"
+      "stats stats stats";
+  }
+
   .game-play-title {
     grid-area: title;
+  }
+
+  .game-play-event-log {
+    grid-area: events;
+    width: min(132px, 100%);
   }
 
   .game-play-stats {
@@ -1813,6 +1847,15 @@ button.stat-chip {
     right: 6px;
     top: max(6px, calc(var(--safe-top) + 6px));
     padding: 6px;
+    gap: 6px;
+  }
+
+  .game-play-hud.has-event-log {
+    grid-template-columns: minmax(92px, 1fr) minmax(78px, 0.68fr) auto;
+  }
+
+  .game-play-event-log {
+    width: min(116px, 100%);
   }
 
   .game-play-actions .panel-button {

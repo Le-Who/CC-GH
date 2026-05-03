@@ -35,7 +35,7 @@
 }
 
 .merge-play-status {
-  grid-template-columns: minmax(118px, 1fr) minmax(0, auto) auto;
+  grid-template-columns: minmax(118px, 1fr) minmax(112px, 0.62fr) minmax(0, auto) auto;
 }
 
 .merge-play-status .game-play-stats {
@@ -658,10 +658,10 @@
   }
 
   .merge-play-status {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(78px, 0.68fr) auto;
     grid-template-areas:
-      "title actions"
-      "stats stats";
+      "title events actions"
+      "stats stats stats";
   }
 
   .merge-play-status .game-play-stats {
@@ -672,6 +672,11 @@
 
   .merge-play-status .game-play-title {
     grid-area: title;
+  }
+
+  .merge-play-status .game-play-event-log {
+    grid-area: events;
+    width: min(108px, 100%);
   }
 
   .merge-hud-actions {
