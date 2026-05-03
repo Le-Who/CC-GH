@@ -57,10 +57,16 @@ test.describe("generated runtime asset manifest", () => {
 
     await page.getByRole("button", { name: /Merge/ }).click();
     await expect(page.getByText("Alchemy Table")).toBeVisible();
+    await expect(page.locator(".merge-scene-hud")).toBeVisible();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/backgrounds/table.");
+    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/hudBar.");
+    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/actionIconGenerate.");
     await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/boardFrame.");
     await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/cellEmpty.");
+    await page.getByRole("button", { name: /Recipes/ }).first().click();
+    await expect(page.locator(".merge-scene-drawer")).toBeVisible();
+    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/libraryPanel.");
     await exitActiveGame(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();

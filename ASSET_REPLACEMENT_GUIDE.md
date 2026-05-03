@@ -154,8 +154,20 @@ Generated runtime assets can also be placed under:
 ```text
 public/games/gacha-merge/backgrounds/table.png
 public/games/gacha-merge/ui/libraryRail.png
+public/games/gacha-merge/ui/libraryPanel.png
 public/games/gacha-merge/ui/exchangePanel.png
 public/games/gacha-merge/ui/actionDock.png
+public/games/gacha-merge/ui/hudBar.png
+public/games/gacha-merge/ui/hudIconItems.png
+public/games/gacha-merge/ui/hudIconRecipes.png
+public/games/gacha-merge/ui/hudIconExchange.png
+public/games/gacha-merge/ui/hudIconEssence.png
+public/games/gacha-merge/ui/hudIconMode.png
+public/games/gacha-merge/ui/hudIconPause.png
+public/games/gacha-merge/ui/actionIconGenerate.png
+public/games/gacha-merge/ui/actionIconDaily.png
+public/games/gacha-merge/ui/actionIconTokens.png
+public/games/gacha-merge/ui/actionIconTrash.png
 public/games/gacha-merge/ui/boardFrame.png
 public/games/gacha-merge/ui/cellEmpty.png
 public/games/gacha-merge/ui/cellOccupied.png
@@ -166,7 +178,7 @@ public/games/gacha-merge/fx/recipeGlow.png
 public/games/gacha-merge/items/<live_item_id>.png
 ```
 
-The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.ui.boardFrame`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`, and places any generated entries in `pixi.merge`. If a slot is absent, the Pixi scene keeps its procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; board/cell art should survive scaling across the 7x9 grid; UI panels should be slice-friendly or safely scalable at mobile widths.
+The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.ui.hudBar`, `gachaMerge.ui.boardFrame`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`, and places any generated entries in `pixi.merge`. If a slot is absent, the scene keeps its procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; board/cell art should survive scaling across the 7x9 grid. HUD and action icons are rendered by DOM controls over generated art, so they need clean silhouettes at `20-24px`. Recipe/item drawers use `libraryPanel`, Exchange uses `exchangePanel`, and both panel surfaces are treated as 2:3 artwork with a centered safe content area; do not stretch panel art to arbitrary ratios. Bottom dock art sits behind live React controls, so keep it low-contrast under labels and buttons.
 
 ## Cozy Yard Assets
 

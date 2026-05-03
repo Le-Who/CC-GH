@@ -54,8 +54,8 @@ Generated runtime manifest:
 
 - `public/assets-runtime/manifest.json`
 - Генерируется `pnpm run assets:build`.
-- Текущий срез содержит 174 runtime assets.
-- Текущие Pixi bundles: `pixi.bubbo` = 8 ключей, `pixi.match3` = 11 ключей, `pixi.merge` = 59 ключей.
+- Текущий срез содержит 186 runtime assets.
+- Текущие Pixi bundles: `pixi.bubbo` = 8 ключей, `pixi.match3` = 11 ключей, `pixi.merge` = 71 ключ.
 - `pixi.merge` собирается из `public/games/gacha-merge/{backgrounds,ui,fx,items}` и должен оставаться lazy/deferred для startup, но активная Merge сцена force-load'ит свой bundle перед построением Pixi арта.
 
 Pipeline config:
@@ -545,16 +545,28 @@ Exchange offers:
 
 Current art state:
 
-- `public/games/gacha-merge/` contains the checked-in Alchemy Table starter package: 1 table background, 8 UI assets, 2 FX assets, and 48 item icons.
-- Generated runtime output maps those files into `pixi.merge` and currently covers `gachaMerge.background.table`, board/cell UI states, library/exchange/action surfaces, essence/recipe FX, and the live item ids.
+- `public/games/gacha-merge/` contains the checked-in Alchemy Table starter package: 1 table background, 20 UI assets, 2 FX assets, and 48 item icons.
+- Generated runtime output maps those files into `pixi.merge` and currently covers `gachaMerge.background.table`, board/cell UI states, custom HUD/action icons, library/exchange/action surfaces, essence/recipe FX, and the live item ids.
 - Missing or manually unset slots still fall back to procedural table/cells, colored item circles, emoji/text labels, generated sparkles, generated recipe glow, and generated Essence labels.
 
 Manual manifest slots already exist:
 
 - `graphics.games.gachaMerge.background.table`
 - `graphics.games.gachaMerge.ui.libraryRail`
+- `graphics.games.gachaMerge.ui.libraryPanel`
 - `graphics.games.gachaMerge.ui.exchangePanel`
 - `graphics.games.gachaMerge.ui.actionDock`
+- `graphics.games.gachaMerge.ui.hudBar`
+- `graphics.games.gachaMerge.ui.hudIconItems`
+- `graphics.games.gachaMerge.ui.hudIconRecipes`
+- `graphics.games.gachaMerge.ui.hudIconExchange`
+- `graphics.games.gachaMerge.ui.hudIconEssence`
+- `graphics.games.gachaMerge.ui.hudIconMode`
+- `graphics.games.gachaMerge.ui.hudIconPause`
+- `graphics.games.gachaMerge.ui.actionIconGenerate`
+- `graphics.games.gachaMerge.ui.actionIconDaily`
+- `graphics.games.gachaMerge.ui.actionIconTokens`
+- `graphics.games.gachaMerge.ui.actionIconTrash`
 - `graphics.games.gachaMerge.ui.boardFrame`
 - `graphics.games.gachaMerge.ui.cellEmpty`
 - `graphics.games.gachaMerge.ui.cellOccupied`
@@ -568,8 +580,20 @@ Generated pipeline input folders:
 
 - `public/games/gacha-merge/backgrounds/table.png` or `.svg`
 - `public/games/gacha-merge/ui/libraryRail.png`
+- `public/games/gacha-merge/ui/libraryPanel.png`
 - `public/games/gacha-merge/ui/exchangePanel.png`
 - `public/games/gacha-merge/ui/actionDock.png`
+- `public/games/gacha-merge/ui/hudBar.png`
+- `public/games/gacha-merge/ui/hudIconItems.png`
+- `public/games/gacha-merge/ui/hudIconRecipes.png`
+- `public/games/gacha-merge/ui/hudIconExchange.png`
+- `public/games/gacha-merge/ui/hudIconEssence.png`
+- `public/games/gacha-merge/ui/hudIconMode.png`
+- `public/games/gacha-merge/ui/hudIconPause.png`
+- `public/games/gacha-merge/ui/actionIconGenerate.png`
+- `public/games/gacha-merge/ui/actionIconDaily.png`
+- `public/games/gacha-merge/ui/actionIconTokens.png`
+- `public/games/gacha-merge/ui/actionIconTrash.png`
 - `public/games/gacha-merge/ui/boardFrame.png`
 - `public/games/gacha-merge/ui/cellEmpty.png`
 - `public/games/gacha-merge/ui/cellOccupied.png`
@@ -583,8 +607,20 @@ Generated runtime key pattern:
 
 - `gachaMerge.background.table`
 - `gachaMerge.ui.libraryRail`
+- `gachaMerge.ui.libraryPanel`
 - `gachaMerge.ui.exchangePanel`
 - `gachaMerge.ui.actionDock`
+- `gachaMerge.ui.hudBar`
+- `gachaMerge.ui.hudIconItems`
+- `gachaMerge.ui.hudIconRecipes`
+- `gachaMerge.ui.hudIconExchange`
+- `gachaMerge.ui.hudIconEssence`
+- `gachaMerge.ui.hudIconMode`
+- `gachaMerge.ui.hudIconPause`
+- `gachaMerge.ui.actionIconGenerate`
+- `gachaMerge.ui.actionIconDaily`
+- `gachaMerge.ui.actionIconTokens`
+- `gachaMerge.ui.actionIconTrash`
 - `gachaMerge.ui.boardFrame`
 - `gachaMerge.ui.cellEmpty`
 - `gachaMerge.ui.cellOccupied`
@@ -600,21 +636,20 @@ Current checked-in starter art covers:
 
 - Full Alchemy Table background sized to fill Pixi canvas behind the 7x9 board.
 - Board cell frame/tile states: empty, occupied, selected, and valid merge target.
+- Custom Alchemy Table HUD bar with Items, Recipes, Exchange, Essence, Mode, and Pause icons.
+- Action icons for generator/free taps, daily drop, token pull, and trash mode.
 - 48 item icons: all chain items listed above.
 - Essence orb FX.
 - Recipe glow/highlight.
 - Library rail art.
-- Exchange panel art.
+- Library and Exchange panel art.
 - Bottom action dock art.
 
 Still useful production polish:
 
 - Invalid/drop miss board state if the scene starts drawing a separate miss/invalid visual.
-- Generator/source button visual: wild generator, crop fuel, free tap.
-- Daily drop icon.
-- Token pull/gacha icon.
-- Trash mode icon/state.
-- Essence beaker icon.
+- Source-specific crop fuel visual variants.
+- Trash mode state variant if it needs a separate armed/danger visual.
 - Discovery states: unknown item silhouette, locked recipe card, newly discovered recipe burst.
 - Perfect reaction / Yard reward drop moment.
 
@@ -626,7 +661,9 @@ Technical constraints:
 - Manual manifest override wins over generated asset.
 - Background table art is rendered full-canvas; important board-safe area should remain centered and not fight the 7x9 board.
 - Optional board/cell art is read from `gachaMerge.ui.boardFrame`, `cellEmpty`, `cellOccupied`, `cellSelected`, and `cellTarget`; if missing, the scene keeps procedural rounded cells.
-- Optional bottom dock art is read from `gachaMerge.ui.actionDock` behind live DOM controls; keep it low-contrast because text/icons are still rendered by React.
+- HUD and action icons are rendered by live DOM controls and must read at `20-24px` without relying on fine internal detail.
+- Recipe and item drawers use `gachaMerge.ui.libraryPanel`; Exchange uses `gachaMerge.ui.exchangePanel`. Both are treated as 2:3 panel artwork with centered safe content and should not be stretched to arbitrary viewport ratios.
+- Optional bottom dock art is read from `gachaMerge.ui.actionDock` behind live DOM controls; keep it low-contrast because labels and buttons are still rendered by React.
 
 ## 4. Building Blox
 
@@ -1269,7 +1306,7 @@ Current audio manager can synthesize tones if no file is configured, but final a
 
 ### Priority 1 - highest leverage production art
 
-1. Gacha Merge polish pass: source/gacha/daily/trash icons, invalid/drop-miss state, discovery silhouettes/cards, and reward-drop moment on top of the committed table/UI/item/FX starter package.
+1. Gacha Merge polish pass: source-specific crop fuel visuals, invalid/drop-miss state, discovery silhouettes/cards, and reward-drop moment on top of the committed table/HUD/UI/item/FX starter package.
 2. Cozy Yard refinement: background safe areas, visitor pose consistency, goodie anchor clarity.
 3. Garden Shelf plant sheet: all 8 plants x 4 phases with clean transparent frames.
 4. Bubbo complete sheet: include berry parity and cleaner cannon/laser assets.
@@ -1348,7 +1385,7 @@ Verified from code on 2026-05-03:
 
 - Visible bottom-tab games are `garden`, `blox`, `match3`, `merge`, `bubbo`, `trivia`, and `room`; `farm` is legacy/hidden but still has component, Pixi scene, API actions, and harvested-crop coupling into Merge.
 - Pixi tabs are `blox`, `match3`, `merge`, and `bubbo`; Garden Shelf, Cozy Yard, and Brain Blitz are React/DOM surfaces.
-- Current generated runtime manifest has 174 assets and three active Pixi bundles: `pixi.bubbo`, `pixi.match3`, and `pixi.merge`.
+- Current generated runtime manifest has 186 assets and three active Pixi bundles: `pixi.bubbo`, `pixi.match3`, and `pixi.merge`.
 - Current resolver order differs by game as listed above; do not apply manual manifest override assumptions globally.
 - Blox, Brain Blitz, and legacy Farm still need new resolver/key work before production art can be treated as runtime contract.
 
