@@ -1,0 +1,168 @@
+/* Farm-specific styles are lazy-loaded with FarmGame. */
+
+.item-card small,
+.progress-card span {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.item-card:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(1.08);
+}
+
+.quantity-row {
+  display: grid;
+  gap: 8px;
+}
+
+.quantity-row {
+  grid-template-columns: 1fr 92px;
+  align-items: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.grid-list,
+.badge-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.item-card,
+.progress-card {
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+    color-mix(in srgb, var(--glass-card-strong) 70%, var(--field));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.game-menu-overlay .progress-card,
+.game-menu-overlay .item-card {
+  border-color: var(--glass-border-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
+}
+
+.item-card {
+  min-height: 68px;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+button.item-card {
+  cursor: pointer;
+}
+
+.item-card.selected {
+  border-color: var(--mint);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mint) 40%, transparent);
+}
+
+.item-card.locked {
+  opacity: 0.55;
+}
+
+.item-card > span:not(.item-emoji) {
+  min-width: 0;
+}
+
+.item-card strong,
+.item-card small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-emoji {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
+  font-size: 1.45rem;
+}
+
+.theme-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.theme-strip button {
+  min-height: 66px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    color-mix(in srgb, var(--glass-card) 60%, var(--field));
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.theme-strip button.active {
+  border-color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 16%, var(--field));
+}
+
+.theme-strip span,
+.theme-strip small {
+  display: block;
+}
+
+.badge-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.badge-card {
+  min-height: 102px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--field);
+  opacity: 0.5;
+}
+
+.badge-card.unlocked {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+.badge-card span {
+  font-size: 1.6rem;
+}
+
+.badge-card strong,
+.badge-card small {
+  display: block;
+}
+
+.progress-card {
+  padding: 12px;
+}
+
+@media (max-width: 780px) {
+
+  .item-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .item-card .panel-button {
+    grid-column: span 1;
+  }
+
+  .theme-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

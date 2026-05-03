@@ -7,6 +7,8 @@ import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
+import "./bubbo.css";
+
 const BUBBO_MODES = [
   { id: "classic", labelKey: "bubbo.mode.classic", hintKey: "bubbo.mode.classicHint" },
   { id: "timed", labelKey: "bubbo.mode.timed", hintKey: "bubbo.mode.timedHint" },

@@ -6,6 +6,8 @@ import { PixiScene } from "../../app/PixiScene.jsx";
 import { GamePlayHud, PanelButton, SectionTabs, formatCount } from "../../app/shell.jsx";
 import { useAction, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
+import "./farm.css";
+
 export default function FarmGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -302,4 +304,3 @@ function SeasonPanel() {
     </div>
   );
 }
-

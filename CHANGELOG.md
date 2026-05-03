@@ -95,6 +95,7 @@
 
 ### Operations
 
+- Ran an indefinite conservative route-CSS perf loop using `perf:guard` as source of truth. Moved game-specific styles into lazy chunks for Merge, Brain Blitz, hidden Farm compatibility, Garden Shelf, Cozy Yard, and Bubbo, cutting guarded startup CSS from `94,016B` raw / `17,160B` gzip to `67,267B` raw / `12,672B` gzip without loosening budgets or changing gameplay.
 - Ran a conservative Garden/UI follow-up perf loop using `perf:guard` as source of truth. Kept a Yard simulation total-visit cache and per-root asset-entry cache after repeat guard wins, kept small CSS/DOM cleanups as non-counted UI cleanup, rejected snapshot/Blox micro-optimizations after noisy or regressed p95, and stopped before gameplay-semantic changes.
 - Ran the Garden/Merge/Yard conservative follow-up perf loop with repeat-3 guard evidence. Reverted the Yard and Merge micro-optimizations after p95 regressions, kept split Pixi scene import pruning as code-quality cleanup, repaired guard-discovered Merge browser cadence/long-task misses with on-demand Pixi rendering, scene-specific runtime chunks, incremental board patching, and action serialization, and stopped without loosening budgets or changing gameplay semantics.
 - Ran a conservative Telegram UX performance loop using `perf:guard` as source of truth. Kept startup shell and Telegram SDK lazy-loading wins plus a Merge hydration null fast path; stopped by rule after three consecutive rejected/sub-threshold attempts without loosening budgets or changing gameplay semantics.

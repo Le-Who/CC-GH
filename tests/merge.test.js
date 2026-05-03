@@ -466,6 +466,8 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const match3Path = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
       const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
       const bubboPath = path.join(__dirname, "..", "src", "games", "bubbo", "BubboGame.jsx");
+      const gardenGamePath = path.join(__dirname, "..", "src", "games", "garden-shelf", "GardenShelfGame.tsx");
+      const gardenCssPath = path.join(__dirname, "..", "src", "games", "garden-shelf", "garden-shelf.css");
       const cssPath = path.join(__dirname, "..", "src", "index.css");
       const scenesPath = path.join(__dirname, "..", "src", "game-runtime", "scenes.js");
       const hostPath = path.join(__dirname, "..", "src", "game-runtime", "PixiGameHost.jsx");
@@ -475,6 +477,8 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const match3Game = fs.readFileSync(match3Path, "utf-8");
       const mergeGame = fs.readFileSync(mergePath, "utf-8");
       const bubboGame = fs.readFileSync(bubboPath, "utf-8");
+      const gardenGame = fs.readFileSync(gardenGamePath, "utf-8");
+      const gardenCss = fs.readFileSync(gardenCssPath, "utf-8");
       const css = fs.readFileSync(cssPath, "utf-8");
       const scenes = readSceneRuntimeText();
       const host = fs.readFileSync(hostPath, "utf-8");
@@ -488,7 +492,9 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(css.includes("--glass-surface"), "Shared glass tokens should own menu and HUD styling");
       assert.ok(css.includes(':root[data-ui-theme="dark"]'), "The Garden Shelf matte palette should exist as a global dark UI theme");
       assert.ok(app.includes("ThemeToggle"), "Players should be able to switch the global UI theme");
-      assert.ok(css.includes("garden-glass-sheet"), "Garden Shelf sheets should stay on the shared glass surface");
+      assert.ok(gardenGame.includes("garden-shelf.css"), "Garden Shelf should load its route-local shared-glass styling");
+      assert.ok(gardenCss.includes("garden-glass-sheet"), "Garden Shelf sheets should stay on the shared glass surface");
+      assert.ok(gardenCss.includes("--glass-surface"), "Garden Shelf sheets should keep using shared glass tokens");
       assert.ok(css.includes("game-shell-cycle.svg"), "Cycle-inspired shell art should be wired");
       assert.ok(css.includes("game-shell-meditation.svg"), "Meditation-inspired shell art should be wired");
       assert.ok(scenes.includes('app.stage.on("pointercancel", cancel)'), "Pixi pointer cancellations must clear sessions");

@@ -1,0 +1,797 @@
+/* Merge-specific styles are lazy-loaded with MergeGame. */
+
+.button-row.merge-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.merge-menu-overlay {
+  gap: 9px;
+}
+
+.merge-menu-overlay .generator-list {
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 8px;
+}
+
+.merge-menu-overlay .generator-card {
+  padding: 9px;
+  gap: 7px;
+}
+
+.merge-menu-overlay .generator-card select {
+  min-height: 40px;
+  padding: 7px 9px;
+  font-size: 0.86rem;
+}
+
+.merge-menu-overlay .generator-card .panel-button {
+  min-height: 42px;
+}
+
+.merge-menu-overlay .compact-list {
+  max-height: 92px;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  overflow: auto;
+}
+
+.merge-play-status {
+  grid-template-columns: minmax(118px, 1fr) minmax(0, auto) auto;
+}
+
+.merge-play-status .game-play-stats {
+  grid-auto-columns: minmax(58px, auto);
+}
+
+.merge-essence-beaker {
+  min-height: 34px;
+  min-width: 86px;
+  border: 1px solid color-mix(in srgb, #79b8d9 52%, var(--glass-border-soft));
+  border-radius: 8px;
+  padding: 4px 8px 6px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.82), transparent 26px),
+    linear-gradient(180deg, rgba(236, 251, 255, 0.88), rgba(203, 236, 236, 0.72));
+  color: #214557;
+  box-shadow: inset 0 -8px 18px rgba(94, 177, 196, 0.17), 0 7px 18px rgba(69, 107, 119, 0.12);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.merge-essence-beaker span {
+  color: #416273;
+  font-size: 0.58rem;
+  font-weight: 1000;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.merge-essence-beaker strong {
+  font-size: 0.84rem;
+  line-height: 1;
+}
+
+.merge-essence-beaker i {
+  height: 4px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(63, 105, 123, 0.18);
+  transform: translateZ(0);
+}
+
+.merge-essence-beaker i b {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #66c5d3, #d8b85c);
+  transform-origin: left center;
+}
+
+.merge-library-rail {
+  position: absolute;
+  z-index: 5;
+  left: max(10px, env(safe-area-inset-left, 0px));
+  top: calc(var(--safe-top) + 88px);
+  width: 96px;
+  display: grid;
+  gap: 8px;
+  isolation: isolate;
+  pointer-events: auto;
+}
+
+.merge-library-rail::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -8px;
+  border-radius: 10px;
+  background-image: var(--merge-rail-art);
+  background-position: center;
+  background-size: 100% 100%;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+.merge-library-rail button,
+.merge-icon-button {
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(250, 244, 227, 0.72)),
+    var(--glass-card-strong);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.merge-library-rail button {
+  position: relative;
+  min-height: 58px;
+  padding: 7px 7px 6px;
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 2px;
+  box-shadow: 0 10px 24px rgba(68, 54, 91, 0.13);
+}
+
+.merge-library-rail button.active {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--glass-border));
+  background:
+    linear-gradient(180deg, rgba(255, 247, 223, 0.9), rgba(230, 247, 238, 0.8)),
+    var(--glass-surface-strong);
+}
+
+.merge-library-rail button span {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merge-library-rail button b {
+  color: var(--ink);
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.merge-scene-drawer {
+  position: absolute;
+  z-index: 6;
+  top: calc(var(--safe-top) + 88px);
+  right: max(10px, env(safe-area-inset-right, 0px));
+  bottom: max(116px, calc(var(--safe-bottom) + 116px));
+  width: min(340px, calc(100% - 126px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 241, 225, 0.78)),
+    color-mix(in srgb, var(--glass-surface-strong) 88%, #dfeedd);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 18px 44px rgba(53, 43, 72, 0.18);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.merge-scene-drawer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--merge-drawer-art);
+  background-position: center;
+  background-size: 100% 100%;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.merge-drawer-header,
+.merge-recipe-book,
+.merge-item-book,
+.merge-exchange-list {
+  position: relative;
+}
+
+.merge-drawer-header {
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+}
+
+.merge-drawer-header strong,
+.merge-drawer-header span {
+  display: block;
+}
+
+.merge-drawer-header strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.05;
+}
+
+.merge-drawer-header span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.merge-icon-button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+}
+
+.merge-action-dock {
+  position: absolute;
+  z-index: 4;
+  left: max(8px, env(safe-area-inset-left, 0px));
+  right: max(8px, env(safe-area-inset-right, 0px));
+  bottom: max(8px, calc(var(--safe-bottom) + 8px));
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 12px 34px rgba(68, 54, 91, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  pointer-events: auto;
+  contain: paint;
+}
+
+.merge-generator-dock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(104px, auto);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.merge-fuel-field {
+  min-width: 0;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--field));
+}
+
+.merge-fuel-field span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 1000;
+}
+
+.merge-source-chips {
+  min-width: 0;
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.merge-source-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.merge-source-chips button {
+  min-width: max-content;
+  min-height: 34px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  background: color-mix(in srgb, var(--field) 84%, white);
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.merge-source-chips button.active {
+  border-color: color-mix(in srgb, var(--amber) 72%, transparent);
+  background: color-mix(in srgb, var(--amber) 18%, var(--field));
+}
+
+.merge-source-chips small {
+  color: var(--muted);
+  font-weight: 1000;
+}
+
+.merge-generator-hint {
+  min-height: 30px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--glass-card-strong) 64%, var(--field));
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.merge-action-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.merge-action-strip .panel-button {
+  min-height: 44px;
+  padding-inline: 6px;
+}
+
+.merge-stat-button {
+  min-height: 34px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--glass-card-strong) 70%, transparent);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.merge-stat-button strong {
+  margin-left: 4px;
+}
+
+.merge-start-actions {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.merge-recipe-book {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.merge-menu-tabs {
+  display: grid;
+}
+
+.merge-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.merge-overview-card {
+  min-height: 68px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 10px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  background: color-mix(in srgb, var(--glass-card-strong) 70%, var(--field));
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.merge-overview-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.merge-recipe-list {
+  max-height: min(36vh, 280px);
+  display: grid;
+  gap: 8px;
+}
+
+.merge-recipe-card {
+  display: grid;
+  gap: 0.22rem;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--glass-card-strong) 66%, var(--field));
+  text-align: left;
+  white-space: normal;
+}
+
+.merge-recipe-card.locked {
+  border-style: dashed;
+  opacity: 0.72;
+}
+
+.merge-recipe-card strong {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.merge-recipe-kicker,
+.merge-recipe-card small,
+.merge-recipe-formula {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.merge-recipe-formula {
+  color: var(--ink);
+}
+
+.merge-item-book {
+  max-height: min(38vh, 300px);
+  display: grid;
+  gap: 10px;
+  padding-right: 2px;
+}
+
+.merge-item-chain {
+  display: grid;
+  gap: 6px;
+}
+
+.merge-item-chain > strong {
+  color: var(--ink);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.merge-item-chain > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.merge-item-chain span {
+  min-height: 52px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 7px 8px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  background: color-mix(in srgb, var(--glass-card-strong) 66%, var(--field));
+}
+
+.merge-item-chain span.locked {
+  border-style: dashed;
+  opacity: 0.62;
+}
+
+.merge-item-chain b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.merge-item-chain small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.merge-exchange-list {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.merge-exchange-offer {
+  min-height: 82px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 8px;
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(244, 250, 236, 0.64)),
+    color-mix(in srgb, var(--glass-card-strong) 70%, var(--field));
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.merge-exchange-offer.ready {
+  border-color: color-mix(in srgb, #54a87c 54%, var(--glass-border));
+  box-shadow: inset 0 0 0 1px rgba(84, 168, 124, 0.16), 0 10px 24px rgba(80, 122, 96, 0.13);
+}
+
+.merge-exchange-offer.locked,
+.merge-exchange-offer:disabled {
+  cursor: default;
+  opacity: 0.64;
+}
+
+.merge-exchange-offer span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.merge-exchange-offer strong {
+  overflow: hidden;
+  font-size: 0.82rem;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merge-exchange-offer small,
+.merge-exchange-offer i {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.merge-exchange-offer b {
+  justify-self: end;
+  border-radius: 999px;
+  padding: 5px 7px;
+  background: color-mix(in srgb, #eff7fb 72%, var(--field));
+  color: #365c69;
+  font-size: 0.7rem;
+}
+
+.merge-exchange-offer i {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+:root[data-ui-theme="dark"] .merge-essence-beaker {
+  border-color: color-mix(in srgb, var(--sky) 42%, var(--glass-border));
+  background:
+    radial-gradient(circle at 24% 18%, rgba(210, 244, 255, 0.16), transparent 26px),
+    linear-gradient(180deg, rgba(30, 51, 58, 0.94), rgba(25, 38, 42, 0.92));
+  color: #e2f7fb;
+  box-shadow: inset 0 -8px 18px rgba(80, 174, 190, 0.12), 0 9px 24px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-ui-theme="dark"] .merge-essence-beaker span {
+  color: #a9d8e6;
+}
+
+:root[data-ui-theme="dark"] .merge-essence-beaker i {
+  background: rgba(203, 239, 248, 0.16);
+}
+
+:root[data-ui-theme="dark"] .merge-library-rail button,
+:root[data-ui-theme="dark"] .merge-icon-button {
+  border-color: var(--glass-border);
+  background:
+    linear-gradient(180deg, rgba(55, 43, 41, 0.9), rgba(35, 27, 29, 0.94)),
+    var(--glass-card-strong);
+  color: var(--ink);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 238, 187, 0.06);
+}
+
+:root[data-ui-theme="dark"] .merge-library-rail button.active {
+  border-color: color-mix(in srgb, var(--amber) 46%, var(--glass-border));
+  background:
+    linear-gradient(180deg, rgba(76, 54, 41, 0.94), rgba(40, 32, 30, 0.96)),
+    var(--glass-surface-strong);
+}
+
+:root[data-ui-theme="dark"] .merge-scene-drawer,
+:root[data-ui-theme="dark"] .merge-action-dock {
+  border-color: var(--glass-border);
+  background:
+    linear-gradient(180deg, rgba(47, 35, 39, 0.94), rgba(31, 24, 27, 0.96)),
+    var(--glass-surface-strong);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 238, 187, 0.06);
+}
+
+:root[data-ui-theme="dark"] .merge-fuel-field,
+:root[data-ui-theme="dark"] .merge-generator-hint,
+:root[data-ui-theme="dark"] .merge-stat-button,
+:root[data-ui-theme="dark"] .merge-overview-card,
+:root[data-ui-theme="dark"] .merge-recipe-card,
+:root[data-ui-theme="dark"] .merge-item-chain span {
+  border-color: var(--glass-border-soft);
+  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--field));
+  color: var(--ink);
+}
+
+:root[data-ui-theme="dark"] .merge-fuel-field select {
+  border-color: var(--glass-border-soft);
+  background: color-mix(in srgb, var(--field) 92%, #000 8%);
+  color: var(--ink);
+}
+
+:root[data-ui-theme="dark"] .merge-fuel-field select option {
+  background: var(--field);
+  color: var(--ink);
+}
+
+:root[data-ui-theme="dark"] .merge-exchange-offer {
+  border-color: var(--glass-border-soft);
+  background:
+    linear-gradient(180deg, rgba(55, 44, 38, 0.88), rgba(36, 29, 28, 0.94)),
+    color-mix(in srgb, var(--glass-card-strong) 72%, var(--field));
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 238, 187, 0.06);
+}
+
+:root[data-ui-theme="dark"] .merge-exchange-offer.ready {
+  border-color: color-mix(in srgb, var(--leaf) 52%, var(--glass-border));
+  box-shadow: inset 0 0 0 1px rgba(141, 192, 129, 0.16), 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-ui-theme="dark"] .merge-exchange-offer b {
+  background: color-mix(in srgb, rgba(40, 57, 55, 0.95) 74%, var(--field));
+  color: #c9f2df;
+}
+
+@media (max-width: 420px) {
+
+  .button-row.merge-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .merge-play-status {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title actions"
+      "stats stats";
+  }
+
+  .merge-play-status .game-play-stats {
+    grid-area: stats;
+    grid-auto-columns: minmax(48px, auto);
+    gap: 4px;
+  }
+
+  .merge-play-status .game-play-title {
+    grid-area: title;
+  }
+
+  .merge-hud-actions {
+    grid-area: actions;
+  }
+
+  .merge-play-status .game-play-stats span {
+    min-height: 34px;
+    padding: 4px 5px;
+    font-size: 0.6rem;
+  }
+
+  .merge-essence-beaker {
+    min-width: 68px;
+    min-height: 34px;
+    padding-inline: 6px;
+  }
+
+  .merge-library-rail {
+    top: auto;
+    bottom: max(166px, calc(var(--safe-bottom) + 166px));
+    left: 6px;
+    width: auto;
+    grid-template-columns: repeat(3, 48px);
+    gap: 5px;
+  }
+
+  .merge-library-rail button {
+    width: 48px;
+    min-height: 48px;
+    padding: 0;
+    place-items: center;
+  }
+
+  .merge-library-rail button span {
+    display: none;
+  }
+
+  .merge-library-rail button b {
+    font-size: 0.58rem;
+  }
+
+  .merge-scene-drawer {
+    top: max(150px, calc(var(--safe-top) + 150px));
+    right: 6px;
+    bottom: max(166px, calc(var(--safe-bottom) + 166px));
+    left: 6px;
+    width: auto;
+    padding: 8px;
+  }
+
+  .merge-item-chain > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .merge-exchange-offer {
+    min-height: 76px;
+  }
+
+  .merge-action-dock {
+    left: 6px;
+    right: 6px;
+    bottom: max(6px, calc(var(--safe-bottom) + 6px));
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .merge-generator-dock {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: 6px;
+  }
+
+  .merge-fuel-field {
+    min-height: 40px;
+    padding: 4px 5px 4px 8px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .merge-fuel-field span {
+    font-size: 0.62rem;
+  }
+
+  .merge-fuel-field select {
+    min-height: 32px;
+    font-size: 0.72rem;
+  }
+
+  .merge-generator-hint {
+    font-size: 0.62rem;
+  }
+
+  .merge-action-strip {
+    gap: 5px;
+  }
+
+  .merge-action-strip .panel-button {
+    min-height: 40px;
+    padding: 0 5px;
+    gap: 4px;
+  }
+
+  .merge-action-strip .panel-button span {
+    display: inline;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    font-size: 0.56rem;
+    line-height: 1.05;
+  }
+
+  .merge-action-strip .panel-button.merge-free-taps-button {
+    padding-inline: 4px;
+  }
+
+  .merge-action-strip .panel-button.merge-free-taps-button span {
+    display: inline;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    font-size: 0.56rem;
+    line-height: 1.05;
+  }
+}

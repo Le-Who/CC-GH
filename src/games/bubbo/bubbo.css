@@ -1,0 +1,54 @@
+/* Bubbo-specific styles are lazy-loaded with BubboGame. */
+
+.bubbo-play-hud {
+  --shell-accent: var(--mint);
+}
+
+.bubbo-shell {
+  --shell-art:
+    linear-gradient(135deg, rgba(143, 207, 157, 0.18), transparent 42%),
+    linear-gradient(315deg, rgba(139, 191, 217, 0.14), transparent 46%);
+  --shell-accent: #76b98d;
+  --shell-soft: rgba(239, 247, 229, 0.72);
+}
+
+:root[data-ui-theme="dark"] .bubbo-shell {
+  --shell-art:
+    linear-gradient(135deg, rgba(115, 210, 160, 0.08), transparent 44%),
+    linear-gradient(315deg, rgba(136, 199, 223, 0.07), transparent 48%);
+  --shell-accent: #8ed7b0;
+  --shell-soft: rgba(30, 42, 45, 0.94);
+}
+
+.bubbo-resume-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--mint) 46%, var(--glass-border-soft));
+  border-radius: 8px;
+  padding: 9px;
+  background: color-mix(in srgb, var(--mint) 14%, var(--glass-card-strong));
+  color: var(--ink);
+}
+
+.bubbo-resume-banner span {
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.mode-grid.bubbo-mode-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bubbo-shell.shell-playing {
+  --bubbo-bottom-hud-space: clamp(126px, 18dvh, 164px);
+}
+
+.bubbo-shell.shell-playing .pixi-host,
+.telegram-app.play-mode .bubbo-shell.shell-playing .pixi-host,
+.telegram-app.play-mode.immersive-mode .bubbo-shell.shell-playing .pixi-host {
+  align-self: start;
+  height: 100%;
+}

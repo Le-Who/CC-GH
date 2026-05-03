@@ -67,6 +67,40 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-03 Indefinite Route-CSS Perf Loop
+
+This route-CSS loop used the current request's stricter stop rule of seven consecutive noisy/reverted/sub-3% attempts. It stopped earlier because the remaining likely changes were shared startup shell CSS or gameplay/runtime semantics. No budgets or tests were loosened.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-03-indefinite-baseline-node-repeat3.json` passed 24/24 suites; the slowest budget ratio was `0.184`.
+- Build: `artifacts/perf/2026-05-03-indefinite-baseline-build-report.json` passed with startup JS `312,798B` raw / `100,382B` gzip, startup CSS `94,016B` raw / `17,160B` gzip, async Pixi chunks `297,351B` raw / `87,587B` gzip, and runtime assets `7,687,694B` raw.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Gacha Merge route-local CSS chunk | startup CSS `94,016B` raw / `17,160B` gzip | `79,923B` raw / `14,828B` gzip | Kept; `perf:guard:build` and `perf:guard:browser` passed. |
+| 2 | Brain Blitz route CSS, widened with hidden Farm compatibility CSS after Brain Blitz alone was sub-3% | startup CSS `79,923B` raw / `14,828B` gzip | `75,590B` raw / `14,153B` gzip | Kept; one browser long-task miss reran green, and focused UI smoke passed. |
+| 3 | Garden Shelf route-local CSS chunk | startup CSS `75,590B` raw / `14,153B` gzip | `70,169B` raw / `13,243B` gzip | Kept; browser smoke passed and focused Garden Shelf smoke passed. |
+| 4 | Cozy Yard room-stage CSS, widened with Bubbo route CSS after Yard alone was sub-3% | startup CSS `70,169B` raw / `13,243B` gzip | `67,267B` raw / `12,672B` gzip | Kept; `perf:guard:build`, `perf:guard:browser`, and focused route smoke passed. |
+
+Kept changes:
+- Split game-specific selectors into lazy CSS chunks for Gacha Merge, Brain Blitz, hidden Farm compatibility, Garden Shelf, Cozy Yard room-stage surfaces, and Bubbo.
+- Reduced guarded startup CSS from `94,016B` raw / `17,160B` gzip to `67,267B` raw / `12,672B` gzip, a 28.5% raw reduction and 26.2% gzip reduction.
+- Left shared shell, root theme, and gameplay/runtime logic untouched; the final stop was before changes that would affect shared startup UI or gameplay semantics.
+- Updated the static migrated-menu guard to assert Garden Shelf imports its lazy CSS and that the route CSS still uses the shared glass token surface.
+- Refreshed Node guard after kept wins in `artifacts/perf/2026-05-03-indefinite-post-attempt3-node-repeat3.json`; it passed 24/24 suites with slowest budget ratio `0.181`.
+- Final `pnpm run perf:guard:all` passed: Node 24/24 with slowest budget ratio `0.181`, build budgets passed with startup JS `312,904B` raw / `100,426B` gzip and startup CSS `67,267B` raw / `12,672B` gzip, and browser runtime smoke passed 2/2.
+
+Verification for the kept state:
+- `git diff --check`
+- `pnpm run test:cleanup`
+- `pnpm test`
+- `pnpm run build`
+- `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-03-indefinite-attempt4-yard-bubbo-css-build-report.json`
+- `pnpm run perf:guard:browser`
+- `pnpm exec playwright test tests/e2e/minigames.spec.js tests/e2e/companion-yard.spec.js --grep "tabs render rich|pause menus preserve|play-mode canvases|renders manifest-backed|opens in-game HUD" --project=chromium --workers=1`
+- `pnpm exec playwright test tests/e2e/garden-shelf.spec.js --project=chromium --workers=1`
+- `pnpm run perf:guard:all`
+
 ### 2026-05-03 Garden Daily Rotation And HUD Follow-up Loop
 
 The Garden/UI follow-up loop used the current request's stricter stop rule of seven consecutive noisy/reverted/sub-3% attempts, but stopped earlier because the remaining likely changes were gameplay-engine, RNG, or browser render-loop semantics. No budgets or tests were loosened.

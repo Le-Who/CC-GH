@@ -1,3 +1,268 @@
+/* Garden shared glass/action styles are lazy-loaded with GardenShelfGame. */
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.pt-safe {
+  padding-top: calc(var(--safe-top) + 1rem);
+}
+
+.pb-safe-offset-4 {
+  padding-bottom: calc(var(--safe-bottom) + 1rem);
+}
+
+.garden-glass-menu,
+.garden-glass-sheet,
+.garden-glass-card,
+.garden-modal-card,
+.garden-card-row,
+.garden-level-panel,
+.garden-floating-lock,
+.garden-timer-chip {
+  color: var(--ink);
+  border-color: var(--glass-border) !important;
+  background:
+    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
+    var(--glass-surface-strong) !important;
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-shadow-strong) !important;
+}
+
+.garden-glass-sheet {
+  border-radius: 8px 8px 0 0 !important;
+  max-width: min(560px, 100vw);
+  margin-inline: auto;
+  background:
+    linear-gradient(180deg, var(--garden-sheet-highlight), var(--garden-sheet-highlight-soft)),
+    var(--garden-sheet-surface) !important;
+  -webkit-backdrop-filter: var(--glass-filter-soft);
+  backdrop-filter: var(--glass-filter-soft);
+  contain: layout paint;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+.garden-glass-menu,
+.garden-modal-card {
+  border-radius: 8px !important;
+}
+
+.garden-card-row,
+.garden-level-panel,
+.garden-floating-lock,
+.garden-timer-chip {
+  border: 1px solid var(--glass-border-soft) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06)),
+    var(--glass-card) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+.garden-floating-lock {
+  width: min(16rem, calc(100vw - 48px));
+}
+
+.garden-level-panel {
+  border-radius: 8px;
+}
+
+.glass-scrim {
+  background: var(--glass-scrim) !important;
+  -webkit-backdrop-filter: var(--glass-filter-soft);
+  backdrop-filter: var(--glass-filter-soft);
+}
+
+.garden-icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--glass-card);
+  color: var(--muted);
+}
+
+.garden-segmented-control {
+  border: 1px solid var(--glass-border-soft);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass-card) 72%, var(--panel-2));
+}
+
+.garden-segmented-button,
+.garden-choice-button,
+.garden-action-button {
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 900;
+}
+
+.garden-choice-button {
+  width: 100%;
+  padding: 0 12px;
+  text-align: left;
+}
+
+.garden-segmented-button.active,
+.garden-choice-button.active,
+.garden-action-button.primary {
+  border-color: color-mix(in srgb, var(--mint) 62%, transparent);
+  background: color-mix(in srgb, var(--mint) 18%, var(--glass-card-strong));
+  color: var(--ink);
+}
+
+.garden-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.garden-action-button.secondary {
+  border-color: color-mix(in srgb, var(--amber) 58%, transparent);
+  background: color-mix(in srgb, var(--amber) 18%, var(--glass-card-strong));
+  color: var(--garden-action-secondary-ink);
+}
+
+.garden-action-button.danger {
+  border-color: color-mix(in srgb, var(--coral) 58%, transparent);
+  background: color-mix(in srgb, var(--coral) 18%, var(--glass-card-strong));
+  color: var(--garden-action-danger-ink);
+}
+
+.garden-action-button.info {
+  border-color: color-mix(in srgb, var(--sky) 58%, transparent);
+  background: color-mix(in srgb, var(--sky) 18%, var(--glass-card-strong));
+  color: var(--garden-action-info-ink);
+}
+
+.garden-action-button:disabled,
+.garden-action-button.disabled {
+  border-color: var(--glass-border-soft);
+  background: color-mix(in srgb, var(--glass-card) 50%, transparent);
+  color: color-mix(in srgb, var(--muted) 72%, white);
+  cursor: not-allowed;
+}
+
+.garden-spot-empty {
+  border: 1px dashed var(--glass-border-soft);
+  background: color-mix(in srgb, var(--glass-card) 68%, transparent);
+  color: var(--muted);
+}
+
+.garden-status-badge {
+  border: 1px solid color-mix(in srgb, var(--sky) 55%, transparent);
+  background: color-mix(in srgb, var(--sky) 24%, var(--glass-card-strong));
+  color: var(--sky-ink);
+  box-shadow: 0 8px 18px rgba(56, 189, 248, 0.18);
+}
+
+.garden-timer-chip {
+  color: var(--garden-timer-ink);
+  font-weight: 1000;
+}
+
+.garden-tap-pulse,
+.garden-detail-tap-pulse {
+  position: absolute;
+  inset: 16px;
+  z-index: 28;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--amber) 72%, transparent);
+  background: radial-gradient(circle, rgba(255, 236, 166, 0.26), transparent 62%);
+  pointer-events: none;
+}
+
+.garden-detail-tap-pulse {
+  inset: 10px;
+}
+
+.garden-floating-note,
+.garden-detail-floating-note {
+  position: absolute;
+  top: 48%;
+  z-index: 60;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: rgba(46, 29, 34, 0.76);
+  color: #fff7d6;
+  font-size: 0.68rem;
+  font-weight: 1000;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.garden-detail-floating-note {
+  top: 54%;
+  font-size: 0.82rem;
+  padding: 5px 9px;
+}
+
+.garden-floating-note.gold,
+.garden-detail-floating-note.gold {
+  color: #ffe59a;
+  border: 1px solid rgba(255, 203, 97, 0.42);
+}
+
+.garden-floating-note.xp,
+.garden-detail-floating-note.xp,
+.garden-floating-note.time,
+.garden-detail-floating-note.time {
+  color: #bdf8d4;
+  border: 1px solid rgba(92, 214, 142, 0.36);
+}
+
+.garden-detail-plant-stage {
+  width: 100%;
+  min-height: 228px;
+  margin: 1.25rem 0 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2.5vw, 12px);
+}
+
+.garden-detail-nav {
+  flex: 0 0 44px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--glass-card-strong) 78%, var(--field));
+}
+
+.garden-glass-menu h2,
+.garden-modal-card h2,
+.garden-glass-sheet h2,
+.garden-glass-sheet h3,
+.garden-card-row h3 {
+  color: var(--ink);
+}
+
+.garden-glass-menu p,
+.garden-modal-card p,
+.garden-glass-sheet p,
+.garden-card-row p,
+.garden-glass-sheet small,
+.garden-card-row small {
+  color: var(--muted);
+}
+
 .garden-level-up-button {
   border-color: color-mix(in srgb, var(--amber) 78%, transparent) !important;
   background:

@@ -6,6 +6,8 @@ import { GamePlayHud, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { getQuestionTiming, useQuestionTimer } from "./useQuestionTimer.js";
+import "./trivia.css";
+
 export default function TriviaGame() {
   const snapshot = useSnapshot();
   const loadSnapshot = useGameHub((state) => state.loadSnapshot);
