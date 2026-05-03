@@ -252,6 +252,7 @@ export default function Match3Game() {
       skin="cycle"
       hud={(
         <GamePlayHud
+          gameId="match3"
           title={t("match3.title")}
           subtitle={`${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
           stats={[

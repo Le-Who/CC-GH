@@ -67,6 +67,31 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-03 Garden Daily Rotation And HUD Follow-up Loop
+
+The Garden/UI follow-up loop used the current request's stricter stop rule of seven consecutive noisy/reverted/sub-3% attempts, but stopped earlier because the remaining likely changes were gameplay-engine, RNG, or browser render-loop semantics. No budgets or tests were loosened.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-03-garden-ui-baseline-node-repeat3.json` passed 24/24 suites; slowest ratios were `yard.simulate-long-idle`, `merge.board-hydrate`, `merge.apply-generator`, `assets.pipeline-entry-scan`, and `player.build-snapshot`.
+- Build: `artifacts/perf/2026-05-03-garden-ui-baseline-build-report.json` passed with startup JS `312,769B` raw / `100,365B` gzip, startup CSS `94,094B` raw / `17,165B` gzip, async Pixi chunks `297,351B` raw / `87,584B` gzip, and runtime assets `7,687,694B` raw.
+
+| Attempt | Target | Baseline | Attempt | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Player snapshot static meta wrapper reuse | `player.build-snapshot` p95 `0.090ms` | `0.096ms` | Reverted; focused p95 regressed. |
+| 2 | Blox bounded/inlined fit scans | `blox.fit-scan` p95 `0.003ms`; `blox.almost-full-fit-scan` p95 `0.017ms` | best mixed result `0.004ms` / `0.015ms`; final candidate `0.004ms` / `0.019ms` | Reverted; one suite stayed noisy or regressed. |
+| 3 | Yard total-visit count reuse inside simulation step | `yard.simulate-36h` p95 `0.154ms`; `yard.simulate-long-idle` p95 `1.130ms` | `0.097ms` / `0.482ms` | Kept; focused Yard tests passed. |
+| 4 | Duplicate startup HUD CSS rule removal | startup CSS `94,094B` raw / `17,165B` gzip | `94,016B` raw / `17,160B` gzip | Kept as mechanical cleanup; below 3%, not counted as a perf win. |
+| 5 | Per-root asset pipeline entry cache | `assets.pipeline-entry-scan` p95 `1.498ms` | `0.003ms` | Kept; asset pipeline and perf guard contract tests passed. |
+| 6 | Skip hidden global event overlay DOM during immersive play | Browser guard baseline only | `perf:guard:browser` passed | Kept as UI/runtime cleanup; no gameplay rule change and no counted p95 win. |
+
+Kept changes:
+- Cached Yard total historical visit count within each simulation step and incremented it after registered arrivals, preserving first-visit/chance semantics while removing repeated `petbook` reductions.
+- Cached asset-pipeline entry scans by resolved root for the one-shot build/test helper path; failed scans evict the cache.
+- Removed a duplicate bottom-HUD CSS rule and skipped rendering the already-hidden global event overlay DOM while active games use the lower HUD action log.
+- Final refreshed Node baseline after kept wins passed 24/24 in `artifacts/perf/2026-05-03-post-attempt5-assets-baseline-node-repeat3.json`; slowest budget ratio was `0.197`.
+- Build guard after the UI cleanup passed in `artifacts/perf/2026-05-03-post-attempt6-build-report.json` with startup JS `312,798B` raw / `100,382B` gzip, startup CSS `94,016B` raw / `17,160B` gzip, async Pixi chunks `297,351B` raw / `87,587B` gzip, and runtime assets `7,687,694B` raw.
+- Browser runtime smoke passed 2/2 with startup Pixi laziness, generated runtime assets, and Merge frame/long-task budgets intact.
+
 ### 2026-05-02 Garden/Merge/Yard Follow-up Loop
 
 The Garden/Merge/Yard follow-up loop stopped by rule after three consecutive safe attempts were reverted or failed to produce a confirmed guarded `>=3%` p95/build improvement. Final validation then exposed real browser-runtime guard misses in Merge's static Pixi render loop and overlapping Merge action path; those guard failures were fixed directly instead of loosening browser thresholds. No gameplay rules, RNG, rewards, persistence meaning, budgets, or tests were loosened.

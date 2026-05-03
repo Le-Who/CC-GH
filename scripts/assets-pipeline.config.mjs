@@ -21,6 +21,7 @@ function runtimeWebpOnly(options = {}) {
 const PNG_EXTENSIONS = new Set([".png"]);
 const SVG_EXTENSIONS = new Set([".svg"]);
 const WEBP_ONLY_FORMATS = ["webp"];
+const assetEntryCache = new Map();
 
 async function fileExists(rootDir, source) {
   try {
@@ -171,13 +172,24 @@ async function collectIconEntries(rootDir) {
 }
 
 export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
-  const groups = await Promise.all([
-    collectPixiEntries(rootDir),
-    collectGardenEntries(rootDir),
-    collectCompanionYardEntries(rootDir),
-    collectGachaMergeEntries(rootDir),
-    collectSvgEntries(rootDir),
-    collectIconEntries(rootDir),
-  ]);
-  return groups.flat();
+  const resolvedRoot = path.resolve(rootDir);
+  const cached = assetEntryCache.get(resolvedRoot);
+  if (cached) return cached;
+
+  const entriesPromise = Promise.all([
+    collectPixiEntries(resolvedRoot),
+    collectGardenEntries(resolvedRoot),
+    collectCompanionYardEntries(resolvedRoot),
+    collectGachaMergeEntries(resolvedRoot),
+    collectSvgEntries(resolvedRoot),
+    collectIconEntries(resolvedRoot),
+  ]).then((groups) => groups.flat());
+
+  assetEntryCache.set(resolvedRoot, entriesPromise);
+  try {
+    return await entriesPromise;
+  } catch (error) {
+    assetEntryCache.delete(resolvedRoot);
+    throw error;
+  }
 }

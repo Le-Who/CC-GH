@@ -200,7 +200,8 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator('[data-mode-selector="bubbo"]')).toContainText("Timed");
     await page.getByRole("button", { name: /^Start$/ }).click();
     const bubboHud = page.locator(".bubbo-play-hud");
-    await expect(bubboHud).toContainText(/bubbles/i);
+    await expect(bubboHud.locator(".game-play-title")).toContainText("Bubbo Bubbo");
+    await expect(bubboHud).not.toContainText(/best|bubbles/i);
     await expect(bubboHud).toContainText(/Shots/);
     const bubboHostBox = await page.locator(".active-game-frame .pixi-host").boundingBox();
     const bubboHudBox = await bubboHud.boundingBox();

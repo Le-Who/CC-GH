@@ -13,7 +13,7 @@ import {
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
+import { GameEventLog, GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameHub } from "../../game-state/useGameHub.js";
@@ -411,6 +411,7 @@ export default function MergeGame() {
             <div className="game-play-title">
               <strong>{t("merge.alchemyTable")}</strong>
               <span>{generatorHint}</span>
+              <GameEventLog gameId="merge" />
             </div>
             <div className="game-play-stats">
               <button type="button" className="merge-stat-button" onClick={() => openScenePanel("items")}>

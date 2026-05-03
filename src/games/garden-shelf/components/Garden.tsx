@@ -324,7 +324,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           <motion.div
             initial={{ opacity: 0, y: 4, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="garden-status-badge absolute right-2 top-16 z-30 flex h-7 w-7 items-center justify-center rounded-full"
+            className="garden-status-badge absolute right-[-8px] top-14 z-30 flex h-7 w-7 items-center justify-center rounded-full"
             aria-hidden="true"
             data-testid="garden-water-ready"
           >

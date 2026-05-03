@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Check, Pause, Sparkles } from "lucide-react";
 import { audioManager } from "../services/audioManager.js";
 import { useAppI18n } from "./i18n.jsx";
+import { useGameEvents } from "../game-state/gameEvents.js";
+
 export function formatCount(value) {
   if (value == null) return "0";
   if (value >= 10000) return `${(value / 1000).toFixed(1)}k`;
@@ -70,7 +72,29 @@ export function PauseBrief({ gameId, kicker, title, body, status = [] }) {
   );
 }
 
-export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = null, extraActions = null, className = "" }) {
+export function GameEventLog({ gameId = null, limit = 2, className = "" }) {
+  const events = useGameEvents((state) => state.events);
+  const visibleEvents = useMemo(() => (
+    events
+      .filter((event) => !gameId || event.game === gameId)
+      .slice(0, Math.max(1, Number(limit) || 1))
+  ), [events, gameId, limit]);
+
+  if (!visibleEvents.length) return null;
+
+  return (
+    <div className={`game-play-event-log${className ? ` ${className}` : ""}`} aria-live="polite" aria-atomic="false">
+      {visibleEvents.map((event) => (
+        <p key={event.id} className={`tone-${event.tone}`}>
+          <b>{event.title}</b>
+          {event.value && <strong>{event.value}</strong>}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = null, extraActions = null, className = "", gameId = null }) {
   const { t } = useAppI18n();
   return (
     <div
@@ -78,7 +102,8 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
     >
       <div className="game-play-title">
         <strong>{title}</strong>
-        <span>{subtitle}</span>
+        {subtitle && <span>{subtitle}</span>}
+        <GameEventLog gameId={gameId} />
       </div>
       <div className="game-play-stats">
         {stats.map((item) => (

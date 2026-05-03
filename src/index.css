@@ -1100,6 +1100,10 @@ button.stat-chip {
   pointer-events: none;
 }
 
+.telegram-app.immersive-mode .game-event-overlay {
+  display: none;
+}
+
 .game-event-card {
   min-height: 42px;
   border: 1px solid var(--glass-border);
@@ -1158,6 +1162,52 @@ button.stat-chip {
   color: var(--muted);
   font-size: 0.74rem;
   font-weight: 850;
+}
+
+.game-play-event-log {
+  display: grid;
+  gap: 3px;
+  max-height: 44px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.game-play-event-log p {
+  min-width: 0;
+  min-height: 22px;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--shell-accent, var(--mint)) 44%, var(--glass-border-soft));
+  border-radius: 7px;
+  padding: 3px 7px;
+  background: color-mix(in srgb, var(--shell-accent, var(--mint)) 13%, var(--glass-card-strong));
+  color: var(--ink);
+  font-size: 0.68rem;
+  line-height: 1;
+  animation: shell-toast-in 150ms ease-out both;
+}
+
+.game-play-event-log b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 1000;
+}
+
+.game-play-event-log strong {
+  flex: 0 0 auto;
+  color: var(--amber);
+  font-size: 0.78rem;
+  font-weight: 1000;
+}
+
+.game-play-event-log .tone-warning {
+  border-color: color-mix(in srgb, var(--coral) 48%, var(--glass-border-soft));
+  background: color-mix(in srgb, var(--coral) 13%, var(--glass-card-strong));
 }
 
 .game-play-stats {
@@ -3295,12 +3345,6 @@ button.item-card {
     padding: 10px;
   }
 }
-
-.game-play-hud-bottom {
-  top: auto;
-  bottom: max(8px, calc(var(--safe-bottom) + 8px));
-}
-
 
 .bubbo-shell.shell-playing {
   --bubbo-bottom-hud-space: clamp(126px, 18dvh, 164px);

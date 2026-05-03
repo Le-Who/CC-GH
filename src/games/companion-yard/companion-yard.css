@@ -779,11 +779,11 @@
   left: max(10px, env(safe-area-inset-left, 0px));
   right: max(10px, env(safe-area-inset-right, 0px));
   bottom: max(10px, calc(var(--safe-bottom) + 10px));
-  min-height: 66px;
+  min-height: 72px;
   display: grid;
   grid-template-columns: repeat(6, minmax(44px, 1fr));
   gap: 4px;
-  padding: 5px;
+  padding: 6px;
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
   background: var(--yard-hud-cream-strong);
@@ -863,10 +863,18 @@
 }
 
 .yard-bottom-dock .yard-icon-button {
-  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 58px;
+  grid-template-rows: minmax(11px, auto) minmax(40px, 1fr);
   align-content: center;
   gap: 2px;
   padding: 3px 2px 2px;
+  overflow: visible;
+}
+
+.yard-bottom-dock .yard-icon-button .yard-hud-icon {
+  width: 40px;
+  height: 40px;
+  --yard-hud-icon-zoom: 1.08;
 }
 
 .yard-bottom-dock .yard-icon-label {
@@ -1303,7 +1311,7 @@
   }
 
   .yard-bottom-dock {
-    min-height: 64px;
+    min-height: 70px;
     gap: 4px;
     padding: 5px;
   }
@@ -1314,8 +1322,8 @@
   }
 
   .yard-icon-button .yard-hud-icon {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
   }
 
   .yard-icon-label {
@@ -1323,12 +1331,12 @@
   }
 
   .yard-game-screen {
-    bottom: max(82px, calc(var(--safe-bottom) + 82px));
+    bottom: max(90px, calc(var(--safe-bottom) + 90px));
     max-height: min(70dvh, calc(100% - 104px));
   }
 
   .yard-placement-dock {
-    bottom: max(82px, calc(var(--safe-bottom) + 82px));
+    bottom: max(90px, calc(var(--safe-bottom) + 90px));
   }
 
   .yard-row-actions {

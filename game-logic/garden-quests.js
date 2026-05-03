@@ -157,13 +157,38 @@ function dayNumberFromDateKey(date) {
   return Math.max(0, Math.floor((Number.isFinite(timestamp) ? timestamp : 0) / 86_400_000));
 }
 
+function greatestCommonDivisor(left, right) {
+  let a = Math.abs(left);
+  let b = Math.abs(right);
+  while (b > 0) {
+    const next = a % b;
+    a = b;
+    b = next;
+  }
+  return a || 1;
+}
+
+function dailyRotationStride(bucketLength, tier) {
+  const candidates = [2, 4, 5, 7, 8, 1];
+  const offset = hashText(`garden:daily:stride:${tier}`) % candidates.length;
+  for (let index = 0; index < candidates.length; index += 1) {
+    const stride = candidates[(offset + index) % candidates.length] % bucketLength;
+    if (stride > 0 && greatestCommonDivisor(stride, bucketLength) === 1) return stride;
+  }
+  return 1;
+}
+
 function selectedDailyTemplates(date) {
   const dayNumber = dayNumberFromDateKey(date);
+  const groupCount = GARDEN_DAILY_QUESTS_PER_GROUP;
+  const cycleIndex = Math.floor(dayNumber / groupCount);
+  const daySlot = dayNumber % groupCount;
   return [1, 2, 3].flatMap((tier) => {
     const bucket = DAILY_QUEST_TEMPLATES.filter((template) => template.tier === tier);
-    const start = (dayNumber * GARDEN_DAILY_QUESTS_PER_GROUP + hashText(`garden:${tier}`)) % bucket.length;
-    return Array.from({ length: GARDEN_DAILY_QUESTS_PER_GROUP }, (_item, index) => (
-      bucket[(start + index) % bucket.length]
+    const stride = dailyRotationStride(bucket.length, tier);
+    const start = (hashText(`garden:daily:${tier}`) + cycleIndex) % bucket.length;
+    return Array.from({ length: groupCount }, (_item, index) => (
+      bucket[(start + daySlot * groupCount + index * stride) % bucket.length]
     ));
   });
 }

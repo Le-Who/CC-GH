@@ -138,6 +138,7 @@ export default function BloxGame() {
       skin="meditation"
       hud={(
         <GamePlayHud
+          gameId="blox"
           title={t("blox.title")}
           subtitle={t("blox.rewardLine", { best: state.highScore, reward: currentReward })}
           stats={[

@@ -678,6 +678,13 @@ function simulateStep(yard, now, seedBase, cache) {
   if (!bowlsWithFood.length) return;
   const occupied = activeAnchorIds(yard, now);
   const slotCounts = activeSlotCounts(yard, now);
+  let totalVisits = null;
+  const getTotalVisits = () => {
+    if (totalVisits === null) {
+      totalVisits = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
+    }
+    return totalVisits;
+  };
   for (const placed of yard.placedGoodies) {
     const goodie = YARD_GOODIES[placed.goodieId];
     if (!goodie) continue;
@@ -698,13 +705,13 @@ function simulateStep(yard, now, seedBase, cache) {
       const hasStrict = candidates.some((entry) => entry.strict);
       const conditionProfile = cachedConditionProfile(cache, goodie, placed.condition);
       const chance = Math.max(0.08, Math.min(0.96, (hasStrict ? 0.92 : 0.42) * conditionProfile.attraction));
-      const totalVisits = Object.values(yard.petbook || {}).reduce((sum, entry) => sum + (entry.visits || 0), 0);
-      if (!hasStrict && totalVisits > 0 && randomUnit(`${activitySeed}:chance`) > chance) continue;
+      if (!hasStrict && getTotalVisits() > 0 && randomUnit(`${activitySeed}:chance`) > chance) continue;
       const visitor = pickVisitor(candidates, `${activitySeed}:visitor`);
       if (!visitor) continue;
       const activity = pickActivityForVisitor(goodie, placed, visitor, availableActivities, activitySeed);
       if (!activity || occupied.has(`${placed.slotId}:${activity.id}`)) continue;
       registerArrival(yard, visitor, placed, bowl, activity, now, `${activitySeed}:${activity.id}`);
+      if (totalVisits !== null) totalVisits += 1;
       occupied.add(`${placed.slotId}:${activity.id}`);
       slotCounts.set(placed.slotId, (slotCounts.get(placed.slotId) || 0) + 1);
       const index = availableActivities.findIndex((candidate) => candidate.id === activity.id);

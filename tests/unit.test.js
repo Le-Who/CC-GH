@@ -38,6 +38,7 @@ import {
   GARDEN_STARTER_GOLD,
   GARDEN_TAP_REWARD_COOLDOWN_MS,
   buildGardenDailyQuests,
+  buildGardenQuestSections,
   createGardenEconomyState,
   getGardenReadyQuestCount,
   getGardenLevelReward,
@@ -270,22 +271,55 @@ describe("Garden Shelf shared gold actions", () => {
   it("rotates Garden daily quest assignments from a deep reserve without near-repeat days", () => {
     const firstDay = Date.UTC(2026, 4, 1, 12);
     const state = createGardenEconomyState(firstDay, { starter: true });
-    const dailyKeysByDay = Array.from({ length: 14 }, (_item, index) => {
-      const quests = buildGardenDailyQuests(state, firstDay + index * 86_400_000);
+    const dailyDetailsByDay = Array.from({ length: 14 }, (_item, index) => {
+      const now = firstDay + index * 86_400_000;
+      const quests = buildGardenDailyQuests(state, now);
       const keys = quests.map((quest) => quest.templateKey || quest.id.replace(/^daily_\d{8}_\d_/, ""));
       assert.equal(keys.length, 9);
       assert.equal(new Set(keys).size, keys.length, `daily set ${index + 1} should not duplicate templates`);
-      return keys;
+      assert.deepEqual(quests.map((quest) => quest.groupIndex), [0, 0, 0, 1, 1, 1, 2, 2, 2]);
+      assert.deepEqual(quests.map((quest) => quest.section), [
+        "daily-1", "daily-1", "daily-1",
+        "daily-2", "daily-2", "daily-2",
+        "daily-3", "daily-3", "daily-3",
+      ]);
+
+      const sectionIds = buildGardenQuestSections(state, now).map((section) => section.id);
+      assert.deepEqual(sectionIds, ["story", "daily-1", "daily-2", "daily-3"]);
+
+      const rewardsByGroup = [0, 1, 2].map((groupIndex) => quests
+        .filter((quest) => quest.groupIndex === groupIndex)
+        .reduce((sum, quest) => sum + quest.reward, 0));
+      assert.ok(rewardsByGroup[0] < rewardsByGroup[1], `day ${index + 1} tier 1 should stay below tier 2 rewards`);
+      assert.ok(rewardsByGroup[1] < rewardsByGroup[2], `day ${index + 1} tier 2 should stay below tier 3 rewards`);
+
+      return { keys, quests };
     });
 
+    const dailyKeysByDay = dailyDetailsByDay.map((day) => day.keys);
     const reserve = new Set(dailyKeysByDay.flat());
     assert.ok(reserve.size >= 20, `expected at least 20 templates over two weeks, got ${reserve.size}`);
 
     for (let index = 1; index < dailyKeysByDay.length; index += 1) {
       const previous = new Set(dailyKeysByDay[index - 1]);
       const overlap = dailyKeysByDay[index].filter((key) => previous.has(key));
-      assert.ok(overlap.length <= 5, `day ${index} -> ${index + 1} repeats too many templates: ${overlap.join(", ")}`);
+      assert.ok(overlap.length <= 3, `day ${index} -> ${index + 1} repeats too many templates: ${overlap.join(", ")}`);
     }
+
+    for (let index = 3; index < dailyKeysByDay.length; index += 1) {
+      assert.notDeepEqual(
+        dailyKeysByDay[index],
+        dailyKeysByDay[index - 3],
+        `day ${index + 1} should not replay the exact daily set from day ${index - 2}`,
+      );
+    }
+
+    state.dailyQuests.claimed = dailyDetailsByDay[0].quests
+      .filter((quest) => quest.groupIndex === 0)
+      .map((quest) => quest.id);
+    const nextDayQuests = buildGardenDailyQuests(state, firstDay + 86_400_000);
+    assert.equal(nextDayQuests.filter((quest) => quest.groupIndex === 0).every((quest) => quest.unlocked && !quest.claimed), true);
+    assert.equal(nextDayQuests.filter((quest) => quest.groupIndex === 1).every((quest) => quest.locked && !quest.claimed), true);
   });
 
   it("counts ready Garden daily quests without mixing them into story claims", () => {
@@ -969,7 +1003,7 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(justArrived.phase, "active");
     assert.equal(justArrived.pinned, true);
     assert.equal(justArrived.x, 50);
-    assert.equal(justArrived.y, 70);
+    assert.equal(justArrived.y, 62);
     assert.equal(first.x, second.x);
     assert.equal(first.y, second.y);
 
@@ -1002,12 +1036,12 @@ describe("Cozy Yard player contracts", () => {
       { x: 50, y: 28 },
       { id: "nap", pose: "nap", x: 0, y: -12, roam: 6, layer: "front", kind: "lie" },
       start + 30 * 60 * 1000,
-      { visitorInfo: YARD_VISITORS.mochi_bunny, playzoneId: "meadow" },
+      { visitorInfo: YARD_VISITORS.mochi_bunny, playzoneId: "meadow", activityScale: 0.42 },
     );
 
     assert.equal(motion.stationary, true);
     assert.equal(motion.x, 50);
-    assert.equal(motion.y, 28);
+    assert.equal(motion.y, 22.96);
   });
 
   it("scales Yard activity offsets before projecting visitor poses into the full stage", () => {

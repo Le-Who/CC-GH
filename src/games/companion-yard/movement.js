@@ -166,7 +166,7 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
     isYardVisitorPoseStationary(options.visitorInfo, visit.pose || activity?.pose);
   const activityScale = Number.isFinite(Number(options.activityScale)) ? Number(options.activityScale) : 1;
   const activityX = (Number(activity?.x) || 0) * activityScale;
-  const activityY = activity?.kind === "lie" ? 0 : (Number(activity?.y) || 0) * activityScale;
+  const activityY = (Number(activity?.y) || 0) * activityScale;
   const basePoint = constrain({
     x: clamp(anchor?.x || 50, 0, 100),
     y: clamp(anchor?.y || 70, 0, 100),

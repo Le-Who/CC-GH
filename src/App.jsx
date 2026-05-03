@@ -90,7 +90,7 @@ function ThemeToggle({ theme, onToggle }) {
   );
 }
 
-function GameEventOverlay() {
+function GameEventOverlay({ hidden = false }) {
   const events = useGameEvents((state) => state.events);
   const dismissEvent = useGameEvents((state) => state.dismissEvent);
 
@@ -100,7 +100,7 @@ function GameEventOverlay() {
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [dismissEvent, events]);
 
-  return (
+  return hidden ? null : (
     <div className="game-event-overlay" aria-live="polite" aria-atomic="false">
       {events.map((event) => (
         <div key={event.id} className={`game-event-card tone-${event.tone}`}>
@@ -363,7 +363,7 @@ export default function App() {
             />
           ))}
         </section>
-        <GameEventOverlay />
+        <GameEventOverlay hidden={shellActive} />
         {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
         {!snapshot ? (
           <div className="loading-panel">{t("app.loading")}</div>

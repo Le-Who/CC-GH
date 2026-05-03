@@ -330,8 +330,8 @@ export default function BubboGame() {
       className="bubbo-shell"
       hud={(
         <GamePlayHud
+          gameId="bubbo"
           title={t("bubbo.title")}
-          subtitle={`${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${highScore} · ${remainingBubbles} ${t("bubbo.bubbles")}`}
           stats={[
             { label: t("common.score"), value: score },
             { label: primaryLimitLabel, value: primaryLimitValue },

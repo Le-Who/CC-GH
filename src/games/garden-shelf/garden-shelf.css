@@ -183,12 +183,12 @@
 
 .plant-details-button {
   position: absolute;
-  right: 4px;
-  top: 14px;
+  right: -12px;
+  top: 4px;
   z-index: 50;
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--sky) 52%, transparent);
   border-radius: 999px;
