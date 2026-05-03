@@ -541,11 +541,15 @@ function cachedVisitorCandidates(cache, goodie, bowl, condition = "new") {
 }
 
 function pickVisitor(candidates, seed) {
-  const strict = candidates.filter((entry) => entry.strict);
+  const strict = [];
+  let total = 0;
+  for (const entry of candidates) {
+    if (entry.strict) strict.push(entry);
+    total += entry.weight;
+  }
   if (strict.length && randomUnit(`${seed}:strict`) < 0.82) {
     return strict[hashString(`${seed}:strict-pick`) % strict.length].visitor;
   }
-  const total = candidates.reduce((sum, entry) => sum + entry.weight, 0);
   if (total <= 0) return null;
   let cursor = randomUnit(seed) * total;
   for (const entry of candidates) {
@@ -556,12 +560,19 @@ function pickVisitor(candidates, seed) {
 }
 
 function pickActivityForVisitor(goodie, placed, visitor, availableActivities, seed) {
-  const visitorTags = new Set(visitor.tags || []);
-  const visitorPoses = new Set(visitor.poses || []);
-  const matching = availableActivities.filter((activity) => visitorPoses.has(activity.pose) || visitorTags.has(activity.id));
-  const layMatches = isYardGoodieLayable(goodie)
-    ? matching.filter((activity) => activity.kind === "lie" && visitorPoses.has(activity.pose))
-    : [];
+  const visitorTags = visitor.tags || [];
+  const visitorPoses = visitor.poses || [];
+  const layable = isYardGoodieLayable(goodie);
+  const matching = [];
+  const layMatches = [];
+  for (const activity of availableActivities) {
+    const poseMatch = visitorPoses.includes(activity.pose);
+    if (!poseMatch && !visitorTags.includes(activity.id)) continue;
+    matching.push(activity);
+    if (layable && activity.kind === "lie" && poseMatch) {
+      layMatches.push(activity);
+    }
+  }
   const pool = layMatches.length ? layMatches : matching.length ? matching : availableActivities;
   return pool[hashString(`${seed}:activity`) % pool.length] || availableActivities[0];
 }

@@ -346,7 +346,7 @@ export async function buildAssetRuntimeManifest({
 
   const manifestPath = path.resolve(rootDir, outputRoot, "manifest.json");
   await fs.mkdir(path.dirname(manifestPath), { recursive: true });
-  await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  await fs.writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
 
   if (cache) await writeBuildCache(rootDir, cacheFile, nextCacheEntries);
   if (clean) {

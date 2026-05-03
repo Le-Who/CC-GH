@@ -67,6 +67,36 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
 ## Local Loop Notes
 
+### 2026-05-03 Objective Indefinite Epoch Perf Loop
+
+This loop used the objective epoch mode requested for the CC-GH repo: repeat-4 Node baselines, focused repeat-4 guard runs, reruns for ambiguous tails, full relevant guards before keeping a win, baseline refresh after each kept win, and a retargeted backlog after plateau. The loop stopped only when the user explicitly requested finalization, documentation, full validation, commit, and push. No budgets, tests, warmups, assertions, gameplay rules, RNG, rewards, persistence meaning, migrations, auth, public contracts, OCC/idempotency behavior, service-worker freshness, or Pixi lazy-loading boundaries were loosened.
+
+Baseline reports:
+- Node: `artifacts/perf/2026-05-03-objective-epoch-baseline-node-repeat4.json` passed 24/24 suites; slowest suite was `yard.simulate-long-idle` at p95 `0.560ms`, p99 `0.892ms`, ratio `0.200`.
+- Build: `artifacts/perf/2026-05-03-objective-epoch-build-baseline-report.json` passed with startup JS `260,381B` raw / `84,432B` gzip, startup CSS `68,112B` raw / `12,828B` gzip, async Pixi chunks `297,351B` raw / `87,591B` gzip, runtime manifest `23,478B` raw / `3,045B` gzip, and runtime assets `7,687,694B` raw.
+- Final refreshed Node baseline during the loop: `artifacts/perf/2026-05-03-objective-epoch2-post-attempt3-baseline-node-repeat4.json` passed 24/24 suites; slowest suite was `yard.simulate-long-idle` at p95 `0.661ms`, p99 `0.923ms`, ratio `0.236`.
+
+| Attempt | Target | Active Baseline | Attempt Evidence | Result |
+| --- | --- | ---: | ---: | --- |
+| 1 | Cozy Yard visitor/activity selection allocation | `yard.simulate-long-idle` p95 `0.560ms`, p99 `0.892ms` | rerun p95 `0.504ms`, p99 `0.700ms` | Kept; correctness, focused guard rerun, and full Node guard passed. |
+| 2 | Yard module-level visitor list | `yard.simulate-long-idle` p95 `0.508ms`, p99 `0.640ms` | p95 `0.645ms`, p99 `1.140ms` | Reverted; focused guard regressed. |
+| 3 | Bubbo dropped-list manual append | `bubbo.pressure-advance` p95 `0.081ms`, p99 `0.143ms` | p95 `0.102ms`, p99 `0.216ms` | Reverted; focused guard regressed. |
+| 4 | Merge empty-cell row caching | `merge.board-hydrate` p95 `0.040ms`; `merge.apply-generator` p95 `0.119ms`; `merge.apply-recipe` p95 `0.053ms` | p95 `0.050ms` / `0.139ms` / `0.079ms` | Reverted; all focused Merge suites regressed. |
+| 5 | Player achievement lookup cache | `player.build-snapshot` p95 `0.086ms` | rerun p95 `0.092ms` | Reverted; first run was not reproducible. |
+| 6 | Yard lazy activity match arrays | `yard.simulate-long-idle` p95 `0.508ms`; `yard.simulate-36h` p95 `0.074ms` | p95 `0.556ms` / `0.125ms` | Reverted; both Yard suites regressed. |
+| 7 | Player season-pass claimed lookup cache | `player.build-snapshot` p95 `0.086ms`, p99 `0.173ms` | p95 `0.109ms`, p99 `0.214ms` | Reverted; focused snapshot guard regressed. |
+| 8 | Compact generated runtime manifest JSON | runtime manifest `23,478B` raw / `3,045B` gzip | `18,379B` raw / `2,899B` gzip | Kept; asset tests, build guard, and `perf:guard:all` passed. |
+| 9 | Garden Shelf/Farm per-call cheap-refuel id cache | `farm.offline-full` p95 `0.034ms`, p99 `0.076ms`; `farm.offline-24h` p95 `0.015ms`, p99 `0.032ms` | rerun p95 `0.022ms`, p99 `0.072ms`; p95 `0.014ms`, p99 `0.027ms` | Kept; processOfflineActions tests, focused guard rerun, and full Node guard passed. |
+| 10 | Yard active-visitor scan merge | `yard.simulate-long-idle` p95 `0.661ms`; `yard.simulate-36h` p99 `0.394ms` | p95 `0.657ms`; p99 `0.493ms` | Reverted; below threshold and tail regressed. |
+| 11 | Yard condition-profile parameter reuse | `yard.simulate-long-idle` p95 `0.661ms` | p95 `0.942ms` | Reverted; focused guard regressed. |
+
+Kept changes:
+- Replaced transient `filter`, `reduce`, and `Set` work in pure Yard visitor/activity selection helpers with order-preserving loops, keeping seeded selection and modulo choice semantics intact.
+- Wrote the generated runtime asset manifest as compact JSON, preserving asset keys, content-hashed URLs, fallbacks, bundle mappings, and no-cache manifest serving while reducing guarded manifest bytes.
+- Cached cheap crop refuel ids inside a single `processOfflineActions()` call only. The cache is request-local and safe because the relevant inventory only decreases during that offline simulation.
+
+Reusable learnings are recorded in `.jules/safe-perf-guard-loop.md` so rejected micro-targets are not retried without a new profile or changed code shape.
+
 ### 2026-05-03 Indefinite Route-CSS Perf Loop
 
 This route-CSS loop used the current request's stricter stop rule of seven consecutive noisy/reverted/sub-3% attempts. It stopped earlier because the remaining likely changes were shared startup shell CSS or gameplay/runtime semantics. No budgets or tests were loosened.

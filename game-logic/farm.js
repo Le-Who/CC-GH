@@ -95,19 +95,26 @@ export function processOfflineActions(player, now = Date.now()) {
   };
 
   // Helper: try to refuel pet by eating cheap crops from inventory
+  let cheapRefuelIds = null;
+  function getCheapRefuelIds() {
+    if (!cheapRefuelIds) {
+      cheapRefuelIds = Object.keys(player.farm.inventory).filter(
+        (id) =>
+          CROP_TIERS[id] === "cheap" &&
+          CROPS[id] &&
+          player.farm.inventory[id] > 0,
+      );
+      // Sort by lowest fullnessYield first (eat the least valuable first)
+      cheapRefuelIds.sort(
+        (a, b) => (CROPS[a].fullnessYield || 0) - (CROPS[b].fullnessYield || 0),
+      );
+    }
+    return cheapRefuelIds;
+  }
+
   function tryRefuel(needed) {
-    const cheapIds = Object.keys(player.farm.inventory).filter(
-      (id) =>
-        CROP_TIERS[id] === "cheap" &&
-        CROPS[id] &&
-        player.farm.inventory[id] > 0,
-    );
-    // Sort by lowest fullnessYield first (eat the least valuable first)
-    cheapIds.sort(
-      (a, b) => (CROPS[a].fullnessYield || 0) - (CROPS[b].fullnessYield || 0),
-    );
     let gained = 0;
-    for (const id of cheapIds) {
+    for (const id of getCheapRefuelIds()) {
       while (gained < needed && player.farm.inventory[id] > 0) {
         player.farm.inventory[id]--;
         const yield_ = CROPS[id].fullnessYield || 5;

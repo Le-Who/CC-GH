@@ -233,7 +233,7 @@ pnpm exec playwright test tests/e2e/multi-game-logic-smoke.spec.js --project=chr
 
 ## Asset Replacement
 
-Replaceable app graphics and audio are registered through `public/assets/manifest.json`. Generated optimized runtime art is written to `public/assets-runtime/manifest.json` by `pnpm run assets:build`, which runs automatically before `pnpm run build`. Manual manifest overrides win over generated assets, and missing custom scene art or SFX still falls back to procedural Pixi graphics and synthesized UI tones.
+Replaceable app graphics and audio are registered through `public/assets/manifest.json`. Generated optimized runtime art is written to the compact JSON file `public/assets-runtime/manifest.json` by `pnpm run assets:build`, which runs automatically before `pnpm run build`. Keep that generated manifest machine-formatted and inspect it with JSON tooling instead of hand-formatting it; manual manifest overrides still win over generated assets, and missing custom scene art or SFX still falls back to procedural Pixi graphics and synthesized UI tones.
 
 Browser-served runtime fallbacks live under `public/games/bubbo-bubbo/`, `public/games/puzzling-potions/`, `public/games/garden-shelf/`, and `public/games/companion-yard/`. Editable source exports and upstream raw assets live under `assets-source/` and are not copied into the production runtime image. Bubbo, Gem Crush, Garden Shelf, and Cozy Yard resolve generated WebP/PNG/SVG runtime assets first, then fall back to the stable public paths. Cozy Yard source sheets are kept under `assets-source/games/companion-yard/source-sheets/`; the runtime-facing split files are the stable `public/games/companion-yard/{backgrounds,companions,goodies,visitors}/` PNGs.
 
