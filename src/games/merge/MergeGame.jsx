@@ -20,6 +20,7 @@ import { useGameHub } from "../../game-state/useGameHub.js";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { loadRuntimeAssetManifest, resolveAssetUrl } from "../../game-runtime/assetBundles.js";
 import { useServerClock } from "./useServerClock.js";
+import "./i18n.js";
 import "./merge.css";
 
 function translated(t, key, fallback) {

@@ -7,6 +7,7 @@ import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
+import "./i18n.js";
 import "./bubbo.css";
 
 const BUBBO_MODES = [

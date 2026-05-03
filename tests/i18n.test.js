@@ -6,6 +6,17 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
+const TRANSLATION_SOURCES = [
+  { name: "app translations", path: ["src", "app", "i18n.jsx"] },
+  { name: "blox translations", path: ["src", "games", "blox", "i18n.js"] },
+  { name: "match3 translations", path: ["src", "games", "match3", "i18n.js"] },
+  { name: "bubbo translations", path: ["src", "games", "bubbo", "i18n.js"] },
+  { name: "trivia translations", path: ["src", "games", "trivia", "i18n.js"] },
+  { name: "farm translations", path: ["src", "games", "farm", "i18n.js"] },
+  { name: "garden translations", path: ["src", "games", "garden-shelf", "lib", "i18n.tsx"] },
+  { name: "merge translations", path: ["src", "games", "merge", "i18n.js"] },
+  { name: "companion yard translations", path: ["src", "games", "companion-yard", "i18n.js"] },
+];
 
 function readRepoFile(...segments) {
   return fs.readFileSync(path.join(repoRoot, ...segments), "utf-8");
@@ -75,28 +86,22 @@ function collectUsedTranslationKeys() {
 
 describe("i18n coverage", () => {
   it("keeps English and Russian translation maps in sync", () => {
-    const appSource = readRepoFile("src", "app", "i18n.jsx");
-    const gardenSource = readRepoFile("src", "games", "garden-shelf", "lib", "i18n.tsx");
-
-    assertSameKeys(
-      "app translations",
-      extractTranslationKeys(appSource, "en"),
-      extractTranslationKeys(appSource, "ru"),
-    );
-    assertSameKeys(
-      "garden translations",
-      extractTranslationKeys(gardenSource, "en"),
-      extractTranslationKeys(gardenSource, "ru"),
-    );
+    for (const source of TRANSLATION_SOURCES) {
+      const sourceText = readRepoFile(...source.path);
+      assertSameKeys(
+        source.name,
+        extractTranslationKeys(sourceText, "en"),
+        extractTranslationKeys(sourceText, "ru"),
+      );
+    }
   });
 
   it("defines every literal translation key used by app and game UI code", () => {
-    const appSource = readRepoFile("src", "app", "i18n.jsx");
-    const gardenSource = readRepoFile("src", "games", "garden-shelf", "lib", "i18n.tsx");
-    const knownKeys = new Set([
-      ...extractTranslationKeys(appSource, "en"),
-      ...extractTranslationKeys(gardenSource, "en"),
-    ]);
+    const knownKeys = new Set();
+    for (const source of TRANSLATION_SOURCES) {
+      const sourceText = readRepoFile(...source.path);
+      for (const key of extractTranslationKeys(sourceText, "en")) knownKeys.add(key);
+    }
     const usedKeys = collectUsedTranslationKeys();
     const missing = [...usedKeys.keys()]
       .filter((key) => !knownKeys.has(key))

@@ -1,13 +1,15 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-
-export type GardenLanguage = 'en' | 'ru';
+import {
+  GARDEN_LANGUAGE_EVENT,
+  getStoredGardenLanguage,
+  setStoredGardenLanguage,
+  type GardenLanguage,
+} from './language';
 
 type TranslationVars = Record<string, string | number>;
 
-const STORAGE_KEY = 'garden_shelf_language';
-
-export const GARDEN_LANGUAGE_EVENT = 'garden-shelf-language-change';
+export { GARDEN_LANGUAGE_EVENT, getStoredGardenLanguage };
 
 const translations = {
   en: {
@@ -229,11 +231,6 @@ function interpolate(template: string, vars?: TranslationVars) {
   return template.replace(/\{(\w+)\}/g, (_match, key) => String(vars[key] ?? ''));
 }
 
-export function getStoredGardenLanguage(): GardenLanguage {
-  if (typeof window === 'undefined') return 'en';
-  return window.localStorage.getItem(STORAGE_KEY) === 'ru' ? 'ru' : 'en';
-}
-
 export function gardenTranslate(language: GardenLanguage, key: string, vars?: TranslationVars) {
   const template = translations[language][key] || translations.en[key] || key;
   return interpolate(template, vars);
@@ -244,7 +241,7 @@ export function GardenI18nProvider({ children }: { children: ReactNode }) {
 
   const setLanguage = useCallback((nextLanguage: GardenLanguage) => {
     setLanguageState(nextLanguage);
-    window.localStorage.setItem(STORAGE_KEY, nextLanguage);
+    setStoredGardenLanguage(nextLanguage);
     window.dispatchEvent(new CustomEvent(GARDEN_LANGUAGE_EVENT, { detail: nextLanguage }));
   }, []);
 

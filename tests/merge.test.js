@@ -525,7 +525,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
     it("listens for Cozy Yard reward drops from the authoritative Merge action result", () => {
       const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
-      const i18nPath = path.join(__dirname, "..", "src", "app", "i18n.jsx");
+      const i18nPath = path.join(__dirname, "..", "src", "games", "merge", "i18n.js");
       const mergeGame = fs.readFileSync(mergePath, "utf-8");
       const i18n = fs.readFileSync(i18nPath, "utf-8");
 

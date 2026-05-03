@@ -43,6 +43,7 @@ export function hydrateMergeBoard(p) {
   }
   // Ensure 7×9 dimensions
   if (Array.isArray(board)) {
+    const normalizedItems = new Map();
     while (board.length < BOARD_ROWS)
       board.push(Array(BOARD_COLS).fill(null));
     for (let r = 0; r < board.length; r++) {
@@ -50,7 +51,14 @@ export function hydrateMergeBoard(p) {
       while (board[r].length < BOARD_COLS) board[r].push(null);
       for (let c = 0; c < board[r].length; c++) {
         const item = board[r][c];
-        board[r][c] = item == null ? null : normalizeMergeItem(item);
+        if (item == null) {
+          board[r][c] = null;
+          continue;
+        }
+        const key = `${item.id || ""}|${item.chainId || ""}|${item.level ?? ""}`;
+        if (!normalizedItems.has(key)) normalizedItems.set(key, normalizeMergeItem(item));
+        const normalized = normalizedItems.get(key);
+        board[r][c] = normalized ? { ...normalized } : null;
       }
     }
   }

@@ -14,6 +14,7 @@ import { audioManager } from "../../services/audioManager.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { loadCompanionYardManifest, resolveCompanionYardAsset } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
+import "./i18n.js";
 import "./companion-yard.css";
 
 const SPECIES_LABELS = {

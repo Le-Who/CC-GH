@@ -12,6 +12,7 @@ import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { selectMatch3InitialRun } from "./selectMatch3Run.js";
+import "./i18n.js";
 const MATCH3_MODES = [
   { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
   { id: "timed", labelKey: "match3.mode.timed", hintKey: "match3.mode.timedHint" },

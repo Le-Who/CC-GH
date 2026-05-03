@@ -9,6 +9,7 @@ import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { previewBloxPlacement } from "../../../game-logic/blox-engine.js";
+import "./i18n.js";
 export default function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();

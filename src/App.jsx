@@ -23,9 +23,8 @@ import { audioManager } from "./services/audioManager.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
 import {
   GARDEN_LANGUAGE_EVENT,
-  gardenTranslate,
   getStoredGardenLanguage,
-} from "./games/garden-shelf/lib/i18n";
+} from "./games/garden-shelf/lib/language";
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from "./games/garden-shelf/events";
 import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
 import { useGameHub } from "./game-state/useGameHub.js";
@@ -259,23 +258,23 @@ export default function App() {
   const profileInitial = (user?.firstName || user?.first_name || user?.username || "G").slice(0, 1);
   const stats = activeTab === "garden"
     ? [
-        { icon: Sparkles, label: gardenTranslate(gardenLanguage, "hud.gold"), value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)) },
+        { icon: Sparkles, label: t("hud.gold"), value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)) },
         {
           icon: Leaf,
-          label: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
+          label: gardenCanLevelUp ? t("level.up") : t("level.progress"),
           value: gardenCanLevelUp ? `+${formatGardenDisplayGold(getGardenLevelReward(gardenLevel))}` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
           progress: gardenXpProgress,
           active: gardenCanLevelUp && !gardenLevelUpPending,
-          title: gardenCanLevelUp ? gardenTranslate(gardenLanguage, "level.up") : gardenTranslate(gardenLanguage, "level.progress"),
+          title: gardenCanLevelUp ? t("level.up") : t("level.progress"),
           onClick: gardenCanLevelUp && !gardenLevelUpPending ? requestGardenLevelUp : null,
           id: "garden-xp",
           dataGardenXp: true,
         },
         {
           icon: ClipboardList,
-          label: gardenTranslate(gardenLanguage, "quest.title"),
-          value: gardenHud?.questReadyCount > 0 ? gardenHud.questReadyCount : gardenTranslate(gardenLanguage, "quest.openShort"),
-          title: gardenTranslate(gardenLanguage, "quest.open"),
+          label: t("quest.title"),
+          value: gardenHud?.questReadyCount > 0 ? gardenHud.questReadyCount : t("quest.openShort"),
+          title: t("quest.open"),
           onClick: openGardenQuests,
           active: (gardenHud?.questReadyCount || 0) > 0,
         },
