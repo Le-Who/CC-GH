@@ -4,6 +4,7 @@
 
 ### Client
 
+- Added the checked-in Gacha Merge / Alchemy Table starter art package for table, board/cell UI, action surfaces, FX, and item icons, then forced the active Merge Pixi host to load `pixi.merge` so generated runtime art renders while startup prewarm remains deferred.
 - Moved live game clear/reward notices into the lower in-game HUD action log for Blox, Gem Crush, Merge, and Bubbo, and removed Bubbo's redundant live subtitle so the playfield is not covered during active shots.
 - Reworked Garden Shelf plant action affordances so details and watering controls sit outside the plant art instead of overlapping the pots.
 - Refined Cozy Yard HUD and visitor placement so bottom dock atlas icons no longer clip and layable visitor poses stay visually on their occupied decorations.

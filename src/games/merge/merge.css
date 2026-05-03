@@ -255,6 +255,25 @@
   box-shadow: 0 12px 34px rgba(68, 54, 91, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.48);
   pointer-events: auto;
   contain: paint;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.merge-action-dock::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image: var(--merge-action-dock-art);
+  background-position: center;
+  background-size: 100% 100%;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.merge-action-dock > * {
+  position: relative;
+  z-index: 1;
 }
 
 .merge-generator-dock {

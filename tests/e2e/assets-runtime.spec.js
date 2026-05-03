@@ -12,10 +12,17 @@ function observeRuntimeAssetRequests(page) {
 }
 
 async function expectRuntimePath(paths, prefix) {
-  await expect.poll(() => [...paths].some((path) => path.startsWith(prefix))).toBe(true);
+  await expect.poll(() => [...paths].some((path) => path.startsWith(prefix)), {
+    message: `expected a runtime asset request starting with ${prefix}`,
+    timeout: 10000,
+  }).toBe(true);
 }
 
 async function exitActiveGame(page) {
+  const overlay = page.locator(".game-menu-overlay:visible").first();
+  if (await overlay.count() === 0) {
+    await page.getByRole("button", { name: /Pause/ }).click({ force: true });
+  }
   await page.locator(".game-menu-overlay:visible").first().getByRole("button", { name: /^Exit$/ }).click();
   await expect(page.locator(".bottom-tabs")).toBeVisible();
 }
@@ -27,7 +34,7 @@ test.describe("generated runtime asset manifest", () => {
     });
   });
 
-  test("serves Garden Shelf, Bubbo, Gem Crush, and Cozy Yard art from assets-runtime", async ({ page }) => {
+  test("serves Garden Shelf, Bubbo, Gem Crush, Merge, and Cozy Yard art from assets-runtime", async ({ page }) => {
     test.setTimeout(60_000);
     const runtimePaths = observeRuntimeAssetRequests(page);
 
@@ -46,6 +53,14 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.getByText("Gem Crush")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/assets-runtime/puzzling-potions/");
+    await exitActiveGame(page);
+
+    await page.getByRole("button", { name: /Merge/ }).click();
+    await expect(page.getByText("Alchemy Table")).toBeVisible();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
+    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/backgrounds/table.");
+    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/boardFrame.");
+    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/cellEmpty.");
     await exitActiveGame(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();

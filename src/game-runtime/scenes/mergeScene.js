@@ -33,6 +33,9 @@ import {
   setupStage,
   tickParticles,
 } from './shared/runtime.js';
+import { loadRuntimeAssetManifest } from '../assetBundles.js';
+
+const MERGE_TABLE_ART_ASPECT = 1536 / 1024;
 
 export function buildMergeScene(app, initial = {}) {
   const root = new Container();
@@ -51,6 +54,11 @@ export function buildMergeScene(app, initial = {}) {
   loadGraphicsManifest(() => {
     assetVersion += 1;
     if (!destroyed) draw();
+  });
+  loadRuntimeAssetManifest().then((manifest) => {
+    if (!manifest || destroyed) return;
+    assetVersion += 1;
+    draw();
   });
 
   function renderStaticFrame() {
@@ -127,6 +135,12 @@ export function buildMergeScene(app, initial = {}) {
       || resolveAssetUrl(`gachaMerge.${section}.${id}`, { legacyPath: "" });
   }
 
+  function mergeCellAsset({ selected = false, matching = false, occupied = false } = {}) {
+    if (selected) return mergeSceneAsset("ui", "cellSelected");
+    if (matching) return mergeSceneAsset("ui", "cellTarget");
+    return mergeSceneAsset("ui", occupied ? "cellOccupied" : "cellEmpty");
+  }
+
   function sameMergeTarget(item, other) {
     return !!getMergePairResult(item, other);
   }
@@ -136,7 +150,10 @@ export function buildMergeScene(app, initial = {}) {
     const stageHeight = viewHeight(app);
     const tableAsset = mergeSceneAsset("background", "table");
     if (tableAsset) {
-      root.addChild(sprite(tableAsset, stageWidth / 2, stageHeight / 2, stageWidth, stageHeight, 1));
+      const stageAspect = stageWidth / stageHeight;
+      const drawWidth = stageAspect > MERGE_TABLE_ART_ASPECT ? stageWidth : stageHeight * MERGE_TABLE_ART_ASPECT;
+      const drawHeight = stageAspect > MERGE_TABLE_ART_ASPECT ? stageWidth / MERGE_TABLE_ART_ASPECT : stageHeight;
+      root.addChild(sprite(tableAsset, stageWidth / 2, stageHeight / 2, drawWidth, drawHeight, 1));
       return;
     }
     root.addChild(
@@ -215,9 +232,15 @@ export function buildMergeScene(app, initial = {}) {
       || (tapSourceItem && sameMergeTarget(tapSourceItem, item) && !selected)
     );
     const color = item ? [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][item.level || 0] : 0xe3eddc;
-    const tile = matching || selected
-      ? strokedRect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, selected ? AMBER : MINT, 6, color, item ? 0.95 : 0.82, 3)
-      : rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 6, item ? 1 : 0.82);
+    const tileX = left + c * cell + 2;
+    const tileY = top + r * cell + 2;
+    const tileSize = cell - 4;
+    const tileAsset = mergeCellAsset({ selected, matching, occupied: !!item });
+    const tile = tileAsset
+      ? sprite(tileAsset, tileX + tileSize / 2, tileY + tileSize / 2, tileSize, tileSize, item ? 1 : 0.92)
+      : matching || selected
+        ? strokedRect(tileX, tileY, tileSize, tileSize, selected ? AMBER : MINT, 6, color, item ? 0.95 : 0.82, 3)
+        : rect(tileX, tileY, tileSize, tileSize, color, 6, item ? 1 : 0.82);
     makeInteractive(tile, {
       pointerdown: (event) => {
         if (data.mergeLocked) return;
@@ -387,12 +410,17 @@ export function buildMergeScene(app, initial = {}) {
     }
     clear(root);
     drawAlchemyTable(left, top, width, height, cell);
-    root.addChild(
-      new Graphics()
-        .roundRect(left - 10, top - 10, width + 20, height + 20, 18)
-        .fill({ color: 0xeee5cf, alpha: 0.72 })
-        .stroke({ color: 0x5d4634, width: 2, alpha: 0.25 }),
-    );
+    const boardFrameAsset = mergeSceneAsset("ui", "boardFrame");
+    if (boardFrameAsset) {
+      root.addChild(sprite(boardFrameAsset, left + width / 2, top + height / 2, width + 20, height + 20, 1));
+    } else {
+      root.addChild(
+        new Graphics()
+          .roundRect(left - 10, top - 10, width + 20, height + 20, 18)
+          .fill({ color: 0xeee5cf, alpha: 0.72 })
+          .stroke({ color: 0x5d4634, width: 2, alpha: 0.25 }),
+      );
+    }
     cellViews = [];
     for (let r = 0; r < rows; r++) {
       const rowViews = [];

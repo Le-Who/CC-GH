@@ -70,7 +70,13 @@
         },
         "ui": {
           "libraryRail": "",
-          "exchangePanel": ""
+          "exchangePanel": "",
+          "actionDock": "",
+          "boardFrame": "",
+          "cellEmpty": "",
+          "cellOccupied": "",
+          "cellSelected": "",
+          "cellTarget": ""
         },
         "fx": {
           "essenceOrb": "",

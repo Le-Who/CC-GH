@@ -155,12 +155,18 @@ Generated runtime assets can also be placed under:
 public/games/gacha-merge/backgrounds/table.png
 public/games/gacha-merge/ui/libraryRail.png
 public/games/gacha-merge/ui/exchangePanel.png
+public/games/gacha-merge/ui/actionDock.png
+public/games/gacha-merge/ui/boardFrame.png
+public/games/gacha-merge/ui/cellEmpty.png
+public/games/gacha-merge/ui/cellOccupied.png
+public/games/gacha-merge/ui/cellSelected.png
+public/games/gacha-merge/ui/cellTarget.png
 public/games/gacha-merge/fx/essenceOrb.png
 public/games/gacha-merge/fx/recipeGlow.png
 public/games/gacha-merge/items/<live_item_id>.png
 ```
 
-The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`, and places any generated entries in `pixi.merge`. This checkout currently has the code/path contract but no committed `public/games/gacha-merge/**` image files, so the Pixi scene uses the procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; UI panels should be slice-friendly or safely scalable at mobile widths.
+The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.ui.boardFrame`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`, and places any generated entries in `pixi.merge`. If a slot is absent, the Pixi scene keeps its procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; board/cell art should survive scaling across the 7x9 grid; UI panels should be slice-friendly or safely scalable at mobile widths.
 
 ## Cozy Yard Assets
 

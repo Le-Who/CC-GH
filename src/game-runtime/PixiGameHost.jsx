@@ -130,7 +130,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
         }
         appRef.current = app;
         containerRef.current.appendChild(app.canvas);
-        await warmPixiAssetBundle(sceneKey);
+        await warmPixiAssetBundle(sceneKey, { force: true });
         if (cancelled) {
           destroyPixiApp(app);
           return;

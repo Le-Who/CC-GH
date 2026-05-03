@@ -20,8 +20,9 @@ function pixiBundleAssets(sceneKey, manifest) {
   }));
 }
 
-export function warmPixiAssetBundle(sceneKey) {
-  if (DEFERRED_SCENE_BUNDLES.has(sceneKey)) return Promise.resolve(null);
+export function warmPixiAssetBundle(sceneKey, options = {}) {
+  const force = options.force === true;
+  if (!force && DEFERRED_SCENE_BUNDLES.has(sceneKey)) return Promise.resolve(null);
   if (!warming.has(sceneKey)) {
     warming.set(sceneKey, loadRuntimeAssetManifest().then((manifest) => {
       const assets = pixiBundleAssets(sceneKey, manifest);

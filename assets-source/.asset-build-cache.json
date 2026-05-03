@@ -1069,6 +1069,714 @@
         "/assets-runtime/companion-yard/visitors/willow_fox_peek.802c8107.webp"
       ]
     },
+    "gachaMerge.background.table": {
+      "signature": "d8e45cec7d4a3e42112f653640673d21a5c739fb32436e5f3cb1cfbb9b6b419f",
+      "item": {
+        "type": "image",
+        "width": 1536,
+        "height": 1024,
+        "src": "/assets-runtime/gacha-merge/backgrounds/table.158385b7.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/backgrounds/table.158385b7.webp"
+      ]
+    },
+    "gachaMerge.fx.essenceOrb": {
+      "signature": "a400dbf3678b800705b248668d45353fe9494eb51c023dcc6eca1a0a367bd2ca",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/fx/essenceOrb.bc5d8ff1.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/fx/essenceOrb.bc5d8ff1.webp"
+      ]
+    },
+    "gachaMerge.fx.recipeGlow": {
+      "signature": "0391602865be40d784859ba05119b62a5b2e770e940e98164557c5fbfdfb7a6e",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/fx/recipeGlow.c93f6b38.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/fx/recipeGlow.c93f6b38.webp"
+      ]
+    },
+    "gachaMerge.items.astrolabe": {
+      "signature": "e50e091e68b79d7a8a60be65102924b1f9fb39ee34276b1c8c7902bee080d1ed",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/astrolabe.77695b1e.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/astrolabe.77695b1e.webp"
+      ]
+    },
+    "gachaMerge.items.aurora": {
+      "signature": "23d4d291a7a5b3aac2bb81812ae98eb7ecc395acd431bb6fcd4a76bc0ac140ae",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/aurora.1298d891.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/aurora.1298d891.webp"
+      ]
+    },
+    "gachaMerge.items.blossom": {
+      "signature": "56a04db3da07822feb690a41d9583aad94a7d87ee35a7d6ffcde49c0b04b01f4",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/blossom.c34fb452.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/blossom.c34fb452.webp"
+      ]
+    },
+    "gachaMerge.items.bolt": {
+      "signature": "5d4d33e7a496a9485be41d2827d9f8a4ff4f9f013deb9809085705474fa2f23d",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/bolt.9f2fadd9.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/bolt.9f2fadd9.webp"
+      ]
+    },
+    "gachaMerge.items.breeze": {
+      "signature": "5ce34fb45a511a192c9737203014a8f33dfa0963483bd339f7af6eb4524d102d",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/breeze.0ddb4688.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/breeze.0ddb4688.webp"
+      ]
+    },
+    "gachaMerge.items.brick": {
+      "signature": "b5e77d4873088c4f4c62425734562e8fd2ce005ed4194c27f42c80c50db83405",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/brick.d0997d32.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/brick.d0997d32.webp"
+      ]
+    },
+    "gachaMerge.items.clay": {
+      "signature": "2baed25952d8194febfb05cbd80304ff5f717c95a411d020abffb301b0e579e6",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/clay.709e95a2.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/clay.709e95a2.webp"
+      ]
+    },
+    "gachaMerge.items.cloud": {
+      "signature": "7c4195fb05c04613eb5ff601195858c7fe7059296141fae16d31153a92a2c961",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/cloud.0943bd4b.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/cloud.0943bd4b.webp"
+      ]
+    },
+    "gachaMerge.items.coal": {
+      "signature": "5facb9b4bb1f7d8dde64cbe20fbfdf423243a63ea1829519f4cf332c7c25c5b8",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/coal.e26c670b.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/coal.e26c670b.webp"
+      ]
+    },
+    "gachaMerge.items.crystal": {
+      "signature": "fd731d9a3ede7f538ad73127adf0e4c2bf5b06337a2fda95535dc1b36c3ce962",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/crystal.c0c59cc2.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/crystal.c0c59cc2.webp"
+      ]
+    },
+    "gachaMerge.items.dew": {
+      "signature": "ebb92a288c4105e6ee40633b1d95b2446cacd7c64658a89640b8bdddab5e632f",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/dew.cb7291f4.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/dew.cb7291f4.webp"
+      ]
+    },
+    "gachaMerge.items.droplet": {
+      "signature": "db734c9e1ff3a631c1680d2cf9f154036de6d22332e64a68c2fcf69f88c9b8cc",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/droplet.5080c0a9.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/droplet.5080c0a9.webp"
+      ]
+    },
+    "gachaMerge.items.dust": {
+      "signature": "217d1042d4966e245d1ae561203eb0ae08c7d3bc882ef0fd900fc9881fb5bb8f",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/dust.978473dd.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/dust.978473dd.webp"
+      ]
+    },
+    "gachaMerge.items.elixir": {
+      "signature": "eca35bcf934bf8a21b77b4acb8cb9d624e85df7271bd4c8e4df537f85b0eef2b",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/elixir.e33a07b2.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/elixir.e33a07b2.webp"
+      ]
+    },
+    "gachaMerge.items.ember": {
+      "signature": "b55b3af53881b20844d71eb071412373b76a7f06cefdd274301769088666eca7",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/ember.3b6915f3.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/ember.3b6915f3.webp"
+      ]
+    },
+    "gachaMerge.items.flame": {
+      "signature": "4e21d00f67db37dfcc4cc64c063ec76d4cfd6b83ecf609950e5350bebc1340c1",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/flame.052e234e.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/flame.052e234e.webp"
+      ]
+    },
+    "gachaMerge.items.forge": {
+      "signature": "adb950aa9b6cab33b80e682236e6410b89b610c9e340c9f275d1e5f9dad30310",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/forge.c7a55d00.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/forge.c7a55d00.webp"
+      ]
+    },
+    "gachaMerge.items.geode": {
+      "signature": "83c207eaab90adcc38dab41ee9e9637b1cb6a4b084c061bb928fc5738ebb38f2",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/geode.88125ccc.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/geode.88125ccc.webp"
+      ]
+    },
+    "gachaMerge.items.glass": {
+      "signature": "1821a4dd69f334e8a5d2bf59394a94e1b2a6e1f4879bca4885f47d9e307935f3",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/glass.039eae70.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/glass.039eae70.webp"
+      ]
+    },
+    "gachaMerge.items.grove": {
+      "signature": "1962d59d38a70fea367d8023188a6c4788ef0a8c2f43adbae538043cabcd1e3c",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/grove.3fcc91df.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/grove.3fcc91df.webp"
+      ]
+    },
+    "gachaMerge.items.herb": {
+      "signature": "08dd039056656c5a99da8425585507caf0193e8a7e4a13eb00226ed0b5798c01",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/herb.f235a6c9.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/herb.f235a6c9.webp"
+      ]
+    },
+    "gachaMerge.items.kiln": {
+      "signature": "90b850a11671aee3083e7d1a2dc1f3f1ee9e4a0a013e6134658294fdedcfe015",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/kiln.0788dbb5.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/kiln.0788dbb5.webp"
+      ]
+    },
+    "gachaMerge.items.lens": {
+      "signature": "225eda3d87a0fd100773b34ab5e38ef3902f371ef5a022fef344faac207fb23f",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/lens.36c07f6c.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/lens.36c07f6c.webp"
+      ]
+    },
+    "gachaMerge.items.lifebloom": {
+      "signature": "cb579c3f3c136d89e214880e28c8254f147fc1d0f1c021cb223f516ff1be581e",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/lifebloom.0ffe0f05.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/lifebloom.0ffe0f05.webp"
+      ]
+    },
+    "gachaMerge.items.lightning": {
+      "signature": "f37304891cc62e31377890b7e881106f98c94303f0f1e2abdf6e63d10a153bbd",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/lightning.fce9e3ff.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/lightning.fce9e3ff.webp"
+      ]
+    },
+    "gachaMerge.items.monolith": {
+      "signature": "e8b6b26c59b62e74b49f4b5753e29a4d703e47f4d7ab9299cfc96b2136cf749f",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/monolith.c7ee03fe.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/monolith.c7ee03fe.webp"
+      ]
+    },
+    "gachaMerge.items.mud": {
+      "signature": "9238438952b9cd64950ed6d0b615a81c7d2b8f7246e722ee82c6fa164896d098",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/mud.ff555d59.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/mud.ff555d59.webp"
+      ]
+    },
+    "gachaMerge.items.ocean_heart": {
+      "signature": "49b6301409960bbe05c8fc88403e3717b8c24cf6473182ea1fa11fdc2a5bd15e",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/ocean_heart.7e2b4acc.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/ocean_heart.7e2b4acc.webp"
+      ]
+    },
+    "gachaMerge.items.ore": {
+      "signature": "127ddb735ae8949ef7ed21f69dbf019075cffc51310d91338678283326eb0f01",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/ore.7e89773c.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/ore.7e89773c.webp"
+      ]
+    },
+    "gachaMerge.items.philosopher_stone": {
+      "signature": "7e8cd579614052443b67beb8a27019ecf2bb0cc505123b4b687f87fbe5b7c5b9",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/philosopher_stone.f72265f9.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/philosopher_stone.f72265f9.webp"
+      ]
+    },
+    "gachaMerge.items.phoenix_ash": {
+      "signature": "13d3ee34fe000fe253dd52e9e38ffbdf7c074e882d4616caa551c2af91f680cc",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/phoenix_ash.0cb8196d.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/phoenix_ash.0cb8196d.webp"
+      ]
+    },
+    "gachaMerge.items.pond": {
+      "signature": "b91b83b671b2a1542e5f4bf2bece54c52b4f20202bb427af0865813b2a30a5ac",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/pond.96a4101a.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/pond.96a4101a.webp"
+      ]
+    },
+    "gachaMerge.items.rainstone": {
+      "signature": "19a7592d86f21225bb01b4ad11fddb932e76a1b12eb00d2110a3b61df911e854",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/rainstone.7a93777e.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/rainstone.7a93777e.webp"
+      ]
+    },
+    "gachaMerge.items.sand": {
+      "signature": "20185f68e724692306fcac50c6bbdd105afd3b55c367edcc8151e606f3b8c2a4",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/sand.1a3c13c7.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/sand.1a3c13c7.webp"
+      ]
+    },
+    "gachaMerge.items.seed": {
+      "signature": "9a6fd15567a65669255cbc516f3f7937b3ac6b925f02beae96c63dc1dbad097a",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/seed.087a3762.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/seed.087a3762.webp"
+      ]
+    },
+    "gachaMerge.items.solar_core": {
+      "signature": "224d3236713b1ddac5a6c9089ae22c80ff73af282105e8273cb69d9156512ed5",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/solar_core.9de8ac21.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/solar_core.9de8ac21.webp"
+      ]
+    },
+    "gachaMerge.items.spark": {
+      "signature": "cec0d7f04b19f525a125581577be0968cc9e81eb279acc55e93bcbb86890d3d0",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/spark.6aa863a7.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/spark.6aa863a7.webp"
+      ]
+    },
+    "gachaMerge.items.spring": {
+      "signature": "2bce224698d2d9edc658e95d479492940781a463ecc7720d1c1d3c2e709c9715",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/spring.333ebf6f.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/spring.333ebf6f.webp"
+      ]
+    },
+    "gachaMerge.items.sprout": {
+      "signature": "e6b5bf174ff293c5a1d9504a549513273ec10ccf4efd075739703119ebcb6a50",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/sprout.dab0112c.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/sprout.dab0112c.webp"
+      ]
+    },
+    "gachaMerge.items.stone": {
+      "signature": "3a4ee2d0fbb419be80986308bc0aa7dee7d585c17c80714d1af2320f1b29d4df",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/stone.4d2ccc06.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/stone.4d2ccc06.webp"
+      ]
+    },
+    "gachaMerge.items.storm_cell": {
+      "signature": "b18989be6763fbec8efdeaed1f4f40a0037a3a5cf6f5da6098744b94b2a480fd",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/storm_cell.2f1ea454.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/storm_cell.2f1ea454.webp"
+      ]
+    },
+    "gachaMerge.items.stream": {
+      "signature": "ee86aaf1ac6a4d0470bcafa845629b46b6a2123a35128ab7efec679efb33438e",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/stream.273e87af.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/stream.273e87af.webp"
+      ]
+    },
+    "gachaMerge.items.sunshard": {
+      "signature": "1a3aa14ef3208167220fc94aeb74ed53c80b5cf262af246a04d7322cf76a0584",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/sunshard.921ca5e8.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/sunshard.921ca5e8.webp"
+      ]
+    },
+    "gachaMerge.items.tempest_crown": {
+      "signature": "2623042fcda10a609b1d0f8b295a852dda64e644c316ca091f338d8309a069c1",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/tempest_crown.42e8c469.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/tempest_crown.42e8c469.webp"
+      ]
+    },
+    "gachaMerge.items.tide": {
+      "signature": "70cf6a40b50bd75e088c3185a0584ec20b35de24f2194221f1030e75de626a2b",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/tide.f70a4cee.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/tide.f70a4cee.webp"
+      ]
+    },
+    "gachaMerge.items.vial": {
+      "signature": "732d17c5711715c7a40968df86cee8313cdc7d74f82cded81dbb64be790fa1da",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/vial.03a3cbea.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/vial.03a3cbea.webp"
+      ]
+    },
+    "gachaMerge.items.vine": {
+      "signature": "eb6d72f7c74a0d4583b630aed1281a433e836c74afa24a423d4e09c72b2fa930",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/vine.9e9637dc.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/vine.9e9637dc.webp"
+      ]
+    },
+    "gachaMerge.items.world_tree": {
+      "signature": "7cf4cfa949c9089f939735e9ebc0932e413036387567d95d8f20fd10ab2c72cb",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/items/world_tree.c7ce4210.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/items/world_tree.c7ce4210.webp"
+      ]
+    },
+    "gachaMerge.ui.actionDock": {
+      "signature": "0f4dff2ffc6670fc6b0b987c14c030fafcc0885176d1761ad49a040444b69e2d",
+      "item": {
+        "type": "image",
+        "width": 1280,
+        "height": 338,
+        "src": "/assets-runtime/gacha-merge/ui/actionDock.28e5f43f.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/actionDock.28e5f43f.webp"
+      ]
+    },
+    "gachaMerge.ui.boardFrame": {
+      "signature": "5e72f295541efb97f942e1bacbc03d7284f7ae5caebaef54a54446ac8705b976",
+      "item": {
+        "type": "image",
+        "width": 1152,
+        "height": 896,
+        "src": "/assets-runtime/gacha-merge/ui/boardFrame.97f995b5.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/boardFrame.97f995b5.webp"
+      ]
+    },
+    "gachaMerge.ui.cellEmpty": {
+      "signature": "d0dd0dccd6d79dd2ab18f1d8a083e8eb9129a27554a1061c0f54d49740c6c912",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/ui/cellEmpty.4f15c817.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/cellEmpty.4f15c817.webp"
+      ]
+    },
+    "gachaMerge.ui.cellOccupied": {
+      "signature": "15ad97c53fbdd09bcb3e84329a03d19c3cfb2b104b1674293c96b0ce374d3c5a",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/ui/cellOccupied.36b4e55e.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/cellOccupied.36b4e55e.webp"
+      ]
+    },
+    "gachaMerge.ui.cellSelected": {
+      "signature": "bf5b182beb26099811ed2a93397d74e352ecadbea4e101c5ab7a5c91f877e8a2",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/ui/cellSelected.2a845381.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/cellSelected.2a845381.webp"
+      ]
+    },
+    "gachaMerge.ui.cellTarget": {
+      "signature": "ab5bb95f4bd96085201f98b4d4ff246a1779996d399978f643b838de2bbf238b",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/gacha-merge/ui/cellTarget.3fdc7bfc.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/cellTarget.3fdc7bfc.webp"
+      ]
+    },
+    "gachaMerge.ui.exchangePanel": {
+      "signature": "f29808d956fb3616388fac4585bd86ebc130cfb5480fc8bf48cfac0ede4c5c40",
+      "item": {
+        "type": "image",
+        "width": 640,
+        "height": 960,
+        "src": "/assets-runtime/gacha-merge/ui/exchangePanel.0bcf95aa.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/exchangePanel.0bcf95aa.webp"
+      ]
+    },
+    "gachaMerge.ui.libraryRail": {
+      "signature": "0f9f14cc6490cf7c71d11e46c1e2944085e812a0df4b4be629541470edd63a0e",
+      "item": {
+        "type": "image",
+        "width": 1280,
+        "height": 346,
+        "src": "/assets-runtime/gacha-merge/ui/libraryRail.0ff3227b.webp"
+      },
+      "written": [
+        "/assets-runtime/gacha-merge/ui/libraryRail.0ff3227b.webp"
+      ]
+    },
     "gardenShelf.bottomPlank": {
       "signature": "634bb28d9ddbabdd3b5525a3752bfb821bafc4501bb3f3306c3393ea1d4bffaf",
       "item": {

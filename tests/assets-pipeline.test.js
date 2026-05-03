@@ -188,6 +188,12 @@ describe("asset runtime pipeline", () => {
     const root = await makeTempRoot();
     await writePixelPng(path.join(root, "public/games/gacha-merge/backgrounds/table.png"));
     await writePixelPng(path.join(root, "public/games/gacha-merge/ui/libraryRail.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/actionDock.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/boardFrame.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/cellEmpty.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/cellOccupied.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/cellSelected.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/cellTarget.png"));
     await writePixelPng(path.join(root, "public/games/gacha-merge/fx/essenceOrb.png"));
     await writePixelPng(path.join(root, "public/games/gacha-merge/items/seed.png"));
 
@@ -195,6 +201,12 @@ describe("asset runtime pipeline", () => {
 
     assert.equal(entriesByKey.get("gachaMerge.background.table")?.bundle, "pixi.merge");
     assert.equal(entriesByKey.get("gachaMerge.ui.libraryRail")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.actionDock")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.boardFrame")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.cellEmpty")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.cellOccupied")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.cellSelected")?.bundle, "pixi.merge");
+    assert.equal(entriesByKey.get("gachaMerge.ui.cellTarget")?.bundle, "pixi.merge");
     assert.equal(entriesByKey.get("gachaMerge.fx.essenceOrb")?.bundle, "pixi.merge");
     assert.equal(entriesByKey.get("gachaMerge.items.seed")?.bundle, "pixi.merge");
   });

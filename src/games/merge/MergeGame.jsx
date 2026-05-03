@@ -53,7 +53,7 @@ function manualMergeAsset(manifest, section, id) {
 }
 
 function useMergeUiAssets() {
-  const [assets, setAssets] = useState({ libraryRail: "", exchangePanel: "" });
+  const [assets, setAssets] = useState({ libraryRail: "", exchangePanel: "", actionDock: "" });
   useEffect(() => {
     let cancelled = false;
     Promise.all([
@@ -68,6 +68,7 @@ function useMergeUiAssets() {
       setAssets({
         libraryRail: asset("ui", "libraryRail"),
         exchangePanel: asset("ui", "exchangePanel"),
+        actionDock: asset("ui", "actionDock"),
       });
     });
     return () => {
@@ -455,7 +456,11 @@ export default function MergeGame() {
             </button>
           </div>
           {renderScenePanel()}
-          <div className="merge-action-dock" data-no-nav-swipe="true">
+          <div
+            className="merge-action-dock"
+            data-no-nav-swipe="true"
+            style={uiAssets.actionDock ? { "--merge-action-dock-art": cssUrl(uiAssets.actionDock) } : undefined}
+          >
             <div className="merge-generator-dock">
               <div className="merge-fuel-field">
                 <span>{t("merge.source")}</span>
