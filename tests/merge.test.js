@@ -10,8 +10,12 @@ import {
   MERGE_RECIPES,
   MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
+  BOARD_COLS,
+  BOARD_ROWS,
   calculateMergeEssenceReward,
+  createDefaultPlayer,
   getMergePairResult,
+  hydrateMergeBoard,
   normalizeMergeItem,
 } from "../game-logic.js";
 import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
@@ -34,10 +38,40 @@ function readSceneRuntimeText() {
 }
 
 describe("Merge Engine Hooks (useMergeEngine)", () => {
+  describe("Board Geometry", () => {
+    it("uses a vertical 9x7 board contract", () => {
+      const player = createDefaultPlayer("merge-vertical-board", "Merge");
+
+      assert.strictEqual(BOARD_ROWS, 9);
+      assert.strictEqual(BOARD_COLS, 7);
+      assert.strictEqual(player.merge.board.length, BOARD_ROWS);
+      assert.strictEqual(player.merge.board[0].length, BOARD_COLS);
+    });
+
+    it("hydrates legacy 7x9 boards into vertical 9x7 boards without dropping cells", () => {
+      const seed = { id: "seed", chainId: "flora", level: 0 };
+      const dew = { id: "dew", chainId: "water", level: 0 };
+      const player = {
+        merge: {
+          board: Array.from({ length: 7 }, () => Array(9).fill(null)),
+        },
+      };
+      player.merge.board[0][8] = seed;
+      player.merge.board[6][0] = dew;
+
+      hydrateMergeBoard(player);
+
+      assert.strictEqual(player.merge.board.length, BOARD_ROWS);
+      assert.strictEqual(player.merge.board[0].length, BOARD_COLS);
+      assert.deepStrictEqual(player.merge.board[8][0], seed);
+      assert.deepStrictEqual(player.merge.board[0][6], dew);
+    });
+  });
+
   beforeEach(() => {
     // Reset store before each test
     mergeStore.setState({
-      board: Array.from({ length: 7 }, () => Array(9).fill(null)),
+      board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
       generators: [MERGE_START_CHAIN_ID],
       generatorState: {
         [MERGE_START_CHAIN_ID]: { tapsLeft: 30, cooldownEnd: 0 },
@@ -54,10 +88,10 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
   });
 
   describe("Initial State & Basic Actions", () => {
-    it("initializes with an empty 7x9 board", () => {
+    it("initializes with an empty 9x7 board", () => {
       const { board } = mergeStore.getState();
-      assert.strictEqual(board.length, 7);
-      assert.strictEqual(board[0].length, 9);
+      assert.strictEqual(board.length, BOARD_ROWS);
+      assert.strictEqual(board[0].length, BOARD_COLS);
       assert.strictEqual(mergeStore.getState().boardItemCount(), 0);
     });
 
@@ -73,7 +107,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("setBoard updates the board", () => {
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+        const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[0][0] = { id: "seed", chainId: "flora", level: 0 };
 
       mergeStore.getState().setBoard(newBoard);
@@ -164,7 +198,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     it("boardItemCount returns correct count of non-null cells", () => {
       assert.strictEqual(mergeStore.getState().boardItemCount(), 0);
 
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+        const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[0][0] = { id: "item1" };
       newBoard[1][1] = { id: "item2" };
       mergeStore.getState().setBoard(newBoard);
@@ -180,7 +214,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("returns false if items have different chainIds or levels", () => {
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+        const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[0][0] = { id: "seed", chainId: "flora", level: 0 };
       newBoard[0][1] = { id: "sprout", chainId: "flora", level: 1 };
       newBoard[0][2] = { id: "ember", chainId: "fire", level: 0 };
@@ -196,7 +230,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const maxLevelItemId = Object.keys(ITEM_LOOKUP).find(id => ITEM_LOOKUP[id].nextId === null);
       if (maxLevelItemId) {
         const info = ITEM_LOOKUP[maxLevelItemId];
-        const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
         newBoard[0][0] = { id: maxLevelItemId, chainId: info.chainId, level: info.level };
         newBoard[0][1] = { id: maxLevelItemId, chainId: info.chainId, level: info.level };
         mergeStore.getState().setBoard(newBoard);
@@ -210,7 +244,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const mergeableItemId = Object.keys(ITEM_LOOKUP).find(id => ITEM_LOOKUP[id].nextId !== null);
       if (mergeableItemId) {
         const info = ITEM_LOOKUP[mergeableItemId];
-        const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
         newBoard[0][0] = { id: mergeableItemId, chainId: info.chainId, level: info.level };
         newBoard[0][1] = { id: mergeableItemId, chainId: info.chainId, level: info.level };
         mergeStore.getState().setBoard(newBoard);
@@ -221,7 +255,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("returns true for alchemy recipe pairs", () => {
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[0][0] = { id: "sand", chainId: "earth", level: 1 };
       newBoard[0][1] = { id: "flame", chainId: "fire", level: 1 };
       mergeStore.getState().setBoard(newBoard);
@@ -233,14 +267,14 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     it("returns false for out-of-bounds coordinates", () => {
       const { canMerge } = mergeStore.getState();
       assert.strictEqual(canMerge(-1, 0, 0, 0), false);
-      assert.strictEqual(canMerge(0, 0, 7, 0), false);
-      assert.strictEqual(canMerge(0, 0, 0, 9), false);
+      assert.strictEqual(canMerge(0, 0, BOARD_ROWS, 0), false);
+      assert.strictEqual(canMerge(0, 0, 0, BOARD_COLS), false);
     });
   });
 
   describe("Cell Operations", () => {
     it("clearCell removes item from specified coordinates", () => {
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[3][3] = { id: "some_item" };
       mergeStore.getState().setBoard(newBoard);
       assert.strictEqual(mergeStore.getState().board[3][3].id, "some_item");
@@ -258,7 +292,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const maxLevelItemId = Object.keys(ITEM_LOOKUP).find(id => ITEM_LOOKUP[id].nextId === null);
       if (maxLevelItemId) {
         const info = ITEM_LOOKUP[maxLevelItemId];
-        const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
         newBoard[0][0] = { id: maxLevelItemId, chainId: info.chainId, level: info.level };
         mergeStore.getState().setBoard(newBoard);
 
@@ -273,7 +307,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const info = ITEM_LOOKUP[mergeableItemId];
       const nextInfo = ITEM_LOOKUP[info.nextId];
 
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[0][0] = { id: mergeableItemId, chainId: info.chainId, level: info.level };
       newBoard[0][1] = { id: mergeableItemId, chainId: info.chainId, level: info.level };
       mergeStore.getState().setBoard(newBoard);
@@ -299,7 +333,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("performs optimistic recipe merges", () => {
-      const newBoard = Array.from({ length: 7 }, () => Array(9).fill(null));
+      const newBoard = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
       newBoard[0][0] = { id: "sand", chainId: "earth", level: 1 };
       newBoard[0][1] = { id: "flame", chainId: "fire", level: 1 };
       mergeStore.getState().setBoard(newBoard);
@@ -530,11 +564,12 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const i18n = fs.readFileSync(i18nPath, "utf-8");
 
       assert.ok(mergeGame.includes("result.yardDrop"), "Merge feedback should use the current yardDrop field");
-      assert.ok(mergeGame.includes("lastMergeReward"), "Merge HUD should expose the latest Yard reward");
+      assert.ok(mergeGame.includes("lastMergeReward"), "Merge pause status should expose the latest Yard reward");
       assert.ok(mergeGame.includes("merge-recipe-book"), "Merge menu should expose a compact recipe book");
-      assert.ok(mergeGame.includes("merge-library-rail"), "Merge should expose the library inside the active scene");
+      assert.ok(mergeGame.includes("merge-top-tool"), "Merge should expose standalone top HUD tools inside the active scene");
       assert.ok(mergeGame.includes("merge-exchange-panel"), "Merge should expose the exchange shop inside the active scene");
-      assert.ok(mergeGame.includes("merge-essence-beaker"), "Merge should show crafted Essence progress in the active scene");
+      assert.ok(mergeGame.includes("merge-hud-essence"), "Merge should show crafted Essence in the standalone active HUD");
+      assert.ok(mergeGame.includes("merge-action-area"), "Merge should use the asset-backed standalone bottom dock");
       assert.ok(mergeGame.includes("merge.exchange"), "Merge exchange should use the authoritative action pipeline");
       assert.ok(i18n.includes('"merge.alchemyTable"'), "Alchemy Table title should be localizable");
       assert.ok(i18n.includes('"merge.essence"'), "Essence label should be localizable");

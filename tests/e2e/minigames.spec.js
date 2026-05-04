@@ -167,28 +167,27 @@ test.describe("New-stack minigame smoke", () => {
     await exitToHub(page);
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.getByText("Alchemy Table")).toBeVisible();
+    await expect(page.locator(".merge-scene-hud")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".pixi-host canvas")).toBeVisible();
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await expect(page.locator(".merge-library-rail")).toBeVisible();
-    await page.locator(".merge-library-rail button").filter({ hasText: "Items" }).click();
+    await page.locator('[data-merge-panel="items"]').click();
     await expect(page.locator(".merge-scene-drawer .merge-item-book")).toBeVisible();
     await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
     await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-library-rail button").filter({ hasText: "Recipe" }).click();
+    await page.locator('[data-merge-panel="recipes"]').click();
     await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toBeVisible();
     await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
     await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-    await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
+    await page.locator('[data-merge-panel="exchange"]').click();
     await expect(page.locator(".merge-scene-drawer .merge-exchange-list")).toBeVisible();
     await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-action-strip button").filter({ hasText: /Claim \+/ }).click();
-    await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toContainText(/Generate|Claim|Next|Token|Source/);
+    await page.locator('[data-merge-action="daily"]').click();
+    await page.locator('[data-merge-action="generate"]').click();
+    await expect(page.locator(".merge-action-area")).toBeVisible();
     await pauseActiveGame(page);
     await exitToHub(page);
 

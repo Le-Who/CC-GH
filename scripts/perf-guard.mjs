@@ -15,7 +15,7 @@ import { applyMigrations } from "../playerManager.js";
 import { applyAction, buildSnapshot } from "../routes/player.js";
 import { createEmptyBoard, canAnyPieceFit, placePiece } from "../game-logic/blox-engine.js";
 import { PIECES } from "../game-logic/blox-pieces.js";
-import { hydrateMergeBoard, getEmptyCells } from "../game-logic/merge-board-utils.js";
+import { BOARD_COLS, BOARD_ROWS, hydrateMergeBoard, getEmptyCells } from "../game-logic/merge-board-utils.js";
 import {
   generateBoard,
   findMatches,
@@ -118,8 +118,8 @@ function makeQuestionPool(size = 600) {
 
 function makeMergePlayer() {
   const player = createDefaultPlayer("merge_perf", "MergePerf");
-  player.merge.board = Array.from({ length: 7 }, (_, row) =>
-    Array.from({ length: 9 }, (_, col) => ((row + col) % 5 === 0 ? { id: "thread", level: 1 } : null)),
+  player.merge.board = Array.from({ length: BOARD_ROWS }, (_, row) =>
+    Array.from({ length: BOARD_COLS }, (_, col) => ((row + col) % 5 === 0 ? { id: "thread", level: 1 } : null)),
   );
   return player;
 }

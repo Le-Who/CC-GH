@@ -47,6 +47,8 @@ import {
   recordGardenDailyProgress,
   clampYardPointToPlayzone,
   MERGE_CHAINS,
+  BOARD_COLS,
+  BOARD_ROWS,
   MERGE_EXCHANGE_OFFERS,
   MERGE_GENERATOR_CHAIN_IDS,
   MERGE_WILD_GENERATOR_ID,
@@ -99,8 +101,8 @@ describe("createDefaultPlayer", () => {
     assert.equal(p.resources.gachaTokens, 0);
     // v7.0: Merge + Affection fields
     assert.ok(p.merge);
-    assert.equal(p.merge.board.length, 7);
-    assert.equal(p.merge.board[0].length, 9);
+    assert.equal(p.merge.board.length, BOARD_ROWS);
+    assert.equal(p.merge.board[0].length, BOARD_COLS);
     assert.equal(p.merge.alchemyEssence, 0);
     assert.ok(Array.isArray(p.merge.generators));
     assert.equal(p.pet.affectionXp, 0);

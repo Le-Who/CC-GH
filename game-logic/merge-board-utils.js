@@ -8,8 +8,54 @@
 
 import { normalizeMergeItem } from "./merge-config.js";
 
-export const BOARD_ROWS = 7;
-export const BOARD_COLS = 9;
+export const BOARD_ROWS = 9;
+export const BOARD_COLS = 7;
+
+const LEGACY_WIDE_ROWS = 7;
+const LEGACY_WIDE_COLS = 9;
+
+export function createEmptyMergeBoard() {
+  return Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
+}
+
+function normalizeBoardItem(item, cache) {
+  if (item == null) return null;
+  const key = `${item.id || ""}|${item.chainId || ""}|${item.level ?? ""}`;
+  if (!cache.has(key)) cache.set(key, normalizeMergeItem(item));
+  const normalized = cache.get(key);
+  return normalized ? { ...normalized } : null;
+}
+
+function isLegacyWideBoard(board) {
+  if (!Array.isArray(board)) return false;
+  if (board.length !== LEGACY_WIDE_ROWS) return false;
+  return board.some((row) => Array.isArray(row) && row.length > BOARD_COLS);
+}
+
+function normalizeBoardShape(board) {
+  const next = createEmptyMergeBoard();
+  const normalizedItems = new Map();
+  if (!Array.isArray(board)) return next;
+
+  if (isLegacyWideBoard(board)) {
+    for (let r = 0; r < Math.min(board.length, LEGACY_WIDE_ROWS); r += 1) {
+      const row = Array.isArray(board[r]) ? board[r] : [];
+      for (let c = 0; c < Math.min(row.length, LEGACY_WIDE_COLS); c += 1) {
+        if (c >= BOARD_ROWS || r >= BOARD_COLS) continue;
+        next[c][r] = normalizeBoardItem(row[c], normalizedItems);
+      }
+    }
+    return next;
+  }
+
+  for (let r = 0; r < Math.min(board.length, BOARD_ROWS); r += 1) {
+    const row = Array.isArray(board[r]) ? board[r] : [];
+    for (let c = 0; c < Math.min(row.length, BOARD_COLS); c += 1) {
+      next[r][c] = normalizeBoardItem(row[c], normalizedItems);
+    }
+  }
+  return next;
+}
 
 /**
  * Hydrate merge board from persisted JSON storage.
@@ -41,28 +87,7 @@ export function hydrateMergeBoard(p) {
         return row;
       });
   }
-  // Ensure 7×9 dimensions
-  if (Array.isArray(board)) {
-    const normalizedItems = new Map();
-    while (board.length < BOARD_ROWS)
-      board.push(Array(BOARD_COLS).fill(null));
-    for (let r = 0; r < board.length; r++) {
-      if (!Array.isArray(board[r])) board[r] = Array(BOARD_COLS).fill(null);
-      while (board[r].length < BOARD_COLS) board[r].push(null);
-      for (let c = 0; c < board[r].length; c++) {
-        const item = board[r][c];
-        if (item == null) {
-          board[r][c] = null;
-          continue;
-        }
-        const key = `${item.id || ""}|${item.chainId || ""}|${item.level ?? ""}`;
-        if (!normalizedItems.has(key)) normalizedItems.set(key, normalizeMergeItem(item));
-        const normalized = normalizedItems.get(key);
-        board[r][c] = normalized ? { ...normalized } : null;
-      }
-    }
-  }
-  p.merge.board = board;
+  p.merge.board = normalizeBoardShape(board);
 }
 
 /** Helper: get empty cells on a board */

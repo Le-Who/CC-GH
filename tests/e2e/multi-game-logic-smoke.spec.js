@@ -121,7 +121,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     const pageErrors = await boot(page, "merge_recipe_book_smoke");
     await page.getByRole("button", { name: /Merge/ }).click();
-    await page.locator(".merge-library-rail button").filter({ hasText: "Recipe Book" }).click();
+    await page.locator('[data-merge-panel="recipes"]').click();
     await expect(page.locator(".merge-recipe-book")).toContainText("Germination");
     await expect(page.locator(".merge-recipe-book")).toContainText("Undiscovered reaction");
     await expect(page.locator(".merge-recipe-book")).toContainText("??? + ??? -> ???");
@@ -168,9 +168,9 @@ test.describe("CC-GH multi-game logic smoke", () => {
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /Merge/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await expectAbove(page.locator(".merge-library-rail"), page.locator(".merge-action-dock"), "Merge mobile rail and dock");
-    for (const label of ["Generate", "Daily Drop", "Token Pull", "Trash"]) {
-      await expect(page.locator(".merge-action-dock .panel-button").filter({ hasText: label }).locator("span")).toBeVisible();
+    await expectAbove(page.locator(".merge-scene-hud"), page.locator(".merge-action-dock"), "Merge standalone top HUD and dock");
+    for (const action of ["generate", "daily", "gacha", "trash"]) {
+      await expect(page.locator(`[data-merge-action="${action}"]`)).toBeVisible();
     }
     await canvasIsNonBlank(page);
 
@@ -179,21 +179,27 @@ test.describe("CC-GH multi-game logic smoke", () => {
     const layout = await canvas.evaluate((node) => ({
       left: Number(node.dataset.mergeBoardLeft),
       top: Number(node.dataset.mergeBoardTop),
+      rows: Number(node.dataset.mergeBoardRows),
+      cols: Number(node.dataset.mergeBoardCols),
       size: Number(node.dataset.mergeBoardSize),
+      width: Number(node.dataset.mergeBoardWidth),
+      height: Number(node.dataset.mergeBoardHeight),
       cell: Number(node.dataset.mergeBoardCell),
     }));
+    expect(layout.rows).toBe(9);
+    expect(layout.cols).toBe(7);
+    expect(layout.height).toBeGreaterThan(layout.width);
     expect(layout.size).toBeGreaterThan(300);
     expect(layout.cell).toBeGreaterThan(30);
 
-    const freeTapButton = page.locator(".merge-action-strip .merge-free-taps-button");
-    await expect(freeTapButton).toContainText(/Claim \+/);
-    await expect(freeTapButton.locator("span")).toBeVisible();
+    const freeTapButton = page.locator('[data-merge-action="daily"]');
+    await expect(freeTapButton).toContainText(/Claim Daily Tokens/);
     await freeTapButton.click();
-    await expect(page.locator(".merge-generator-hint")).toContainText(/free taps/i);
-    await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toContainText(/Generate|Next tap|Claim free taps|free taps/i);
+    await expect(page.locator(".merge-hud-energy")).toContainText(/[1-9]\d*\/30/);
+    await page.locator('[data-merge-action="generate"]').click();
+    await expect(page.locator(".merge-action-dock")).toBeVisible();
 
-    await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
+    await page.locator('[data-merge-panel="exchange"]').click();
     const exchangeDrawer = page.locator(".merge-scene-drawer");
     await expectAbove(exchangeDrawer, page.locator(".merge-action-dock"), "Merge mobile exchange drawer and dock");
     await expect(exchangeDrawer).toContainText("50 Essence ready");
@@ -207,7 +213,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     await expect(exchangeDrawer).toContainText("0 Essence ready");
     await exchangeDrawer.getByRole("button", { name: /^Close$/ }).click();
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
+    await page.locator('[data-merge-panel="exchange"]').click();
     await expect(page.locator(".merge-scene-drawer .merge-exchange-list")).toBeVisible();
     await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
 
@@ -234,10 +240,10 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(mergeBody.recipeDiscovered).toBe(true);
     expect(mergeBody.itemDiscovered).toBe(true);
 
-    await page.locator(".merge-library-rail button").filter({ hasText: "Items" }).click();
+    await page.locator('[data-merge-panel="items"]').click();
     await expect(page.locator(".merge-scene-drawer .merge-item-book")).toContainText("Glass");
     await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-    await page.locator(".merge-library-rail button").filter({ hasText: "Recipe" }).click();
+    await page.locator('[data-merge-panel="recipes"]').click();
     await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toContainText("Sand");
     await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toContainText("Glass");
     await page.screenshot({
@@ -269,19 +275,19 @@ test.describe("CC-GH multi-game logic smoke", () => {
     await expect(page.locator(".topbar")).toBeHidden();
     await expect(page.locator(".stats-row")).toBeHidden();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
-    await expectAbove(page.locator(".merge-library-rail"), page.locator(".merge-action-dock"), "Merge Russian dark rail and dock");
+    await expectAbove(page.locator(".merge-scene-hud"), page.locator(".merge-action-dock"), "Merge Russian standalone top HUD and dock");
 
-    for (const label of ["Создать", "Дневной дроп", "За токены", "Удалить"]) {
-      await expect(page.locator(".merge-action-dock .panel-button").filter({ hasText: label }).locator("span")).toBeVisible();
+    for (const action of ["generate", "daily", "gacha", "trash"]) {
+      await expect(page.locator(`[data-merge-action="${action}"]`)).toBeVisible();
     }
 
     const drawerCases = [
-      { index: 0, text: "Книга рецептов" },
-      { index: 1, text: "Предметы" },
-      { index: 2, text: "Обменная лавка" },
+      { selector: '[data-merge-panel="exchange"]', text: "Обменная лавка" },
+      { selector: '[data-merge-panel="items"]', text: "Предметы" },
+      { selector: '[data-merge-panel="recipes"]', text: "Книга рецептов" },
     ];
     for (const drawerCase of drawerCases) {
-      await page.locator(".merge-library-rail button").nth(drawerCase.index).click();
+      await page.locator(drawerCase.selector).click();
       const drawer = page.locator(".merge-scene-drawer");
       await expect(drawer).toContainText(drawerCase.text);
       await expectAbove(drawer, page.locator(".merge-action-dock"), `Merge Russian dark ${drawerCase.text} drawer and dock`);

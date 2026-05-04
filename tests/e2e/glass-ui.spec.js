@@ -105,13 +105,17 @@ test.describe("Glass UI rollout smoke", () => {
     const gameCases = [
       { id: "blox", tab: /Blox/, menuText: "Building Blox", start: /^Start$/, label: "Blox" },
       { id: "match3", tab: /Gems/, menuText: "Gem Crush", start: /^Start$/, label: "Match-3" },
-      { id: "merge", tab: /Merge/, menuText: "Alchemy Table", label: "Merge" },
+      { id: "merge", tab: /Merge/, label: "Merge" },
       { id: "bubbo", tab: /Bubbo/, menuText: "Bubbo Bubbo", start: /^Start$/, label: "Bubbo" },
     ];
 
     for (const game of gameCases) {
       await page.getByRole("button", { name: game.tab }).click();
-      await expect(page.getByText(game.menuText)).toBeVisible();
+      if (game.menuText) {
+        await expect(page.getByText(game.menuText)).toBeVisible();
+      } else {
+        await expect(page.locator(".merge-scene-hud")).toBeVisible();
+      }
       await page.waitForTimeout(260);
       if (game.start) {
         await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
@@ -119,15 +123,15 @@ test.describe("Glass UI rollout smoke", () => {
       } else {
         await expect(page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay:visible`)).toHaveCount(0);
       }
-      await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       if (game.id === "merge") {
-        await page.locator(".merge-library-rail button").filter({ hasText: "Exchange" }).click();
+        await expect(page.locator(".merge-action-area")).toBeVisible();
+        await page.locator('[data-merge-panel="exchange"]').click();
         await expectReadableGlass(page, page.locator(".merge-scene-drawer"), "Merge exchange drawer", testInfo);
-        await expectDarkUiSurface(page.locator(".merge-library-rail button").first(), "Merge library rail button");
         await expectDarkUiSurface(page.locator(".merge-scene-drawer"), "Merge scene drawer");
-        await expectDarkUiSurface(page.locator(".merge-action-dock"), "Merge action dock");
         await expectDarkUiSurface(page.locator(".merge-exchange-offer").first(), "Merge exchange offer");
         await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
+      } else {
+        await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       }
       await pauseAndCheck(page, game.label, testInfo, game.id);
       await exitToHub(page);

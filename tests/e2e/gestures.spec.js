@@ -313,7 +313,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const pageErrors = await boot(page, "merge_drag");
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.getByText("Alchemy Table")).toBeVisible();
+    await expect(page.locator(".merge-scene-hud")).toBeVisible();
     await canvasIsNonBlank(page);
 
     const host = page.locator(".pixi-host");
@@ -322,8 +322,8 @@ test.describe("Pixi touch and drag interactions", () => {
     expect(touchAction).toBe("none");
 
     await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator(".merge-action-strip button").filter({ hasText: /Claim \+/ }).click();
-    await page.locator(".merge-action-dock").getByRole("button", { name: /^Generate$/ }).click();
+    await page.locator('[data-merge-action="daily"]').click();
+    await page.locator('[data-merge-action="generate"]').click();
     const box = await hostBox(page);
     await page.mouse.move(box.x + box.width * 0.38, box.y + box.height * 0.35);
     await page.mouse.down();

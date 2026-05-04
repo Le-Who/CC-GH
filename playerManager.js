@@ -12,7 +12,7 @@
  */
 
 import crypto from "crypto";
-import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, checkAchievements } from "./game-logic.js";
+import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, createEmptyMergeBoard, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
 import { getIO } from "./socketManager.js";
 import {
@@ -346,9 +346,8 @@ export function applyMigrations(p) {
 
   if (p.schemaVersion < 4) {
     if (!p.merge) {
-      const BOARD_ROWS = 7, BOARD_COLS = 9;
       p.merge = {
-        board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
+        board: createEmptyMergeBoard(),
         generators: ["textile"], inventory: [], lastFreePull: 0,
         lastFreeTaps: 0,
         freeTapCharges: 0,
@@ -447,9 +446,8 @@ export function applyMigrations(p) {
   }
 
   if (!p.merge) {
-    const BOARD_ROWS = 7, BOARD_COLS = 9;
     p.merge = {
-      board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
+      board: createEmptyMergeBoard(),
       generators: ["textile"],
       inventory: [],
       lastFreePull: 0,

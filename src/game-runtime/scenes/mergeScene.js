@@ -34,6 +34,7 @@ import {
   tickParticles,
 } from './shared/runtime.js';
 import { loadRuntimeAssetManifest } from '../assetBundles.js';
+import { BOARD_COLS, BOARD_ROWS, createEmptyMergeBoard } from '../../../game-logic.js';
 
 const MERGE_TABLE_ART_ASPECT = 1536 / 1024;
 
@@ -356,11 +357,11 @@ export function buildMergeScene(app, initial = {}) {
 
   function draw() {
     const merge = data.merge || {};
-    const board = merge.board || Array.from({ length: 7 }, () => Array(9).fill(null));
-    const cols = 9;
-    const rows = 7;
-    const reservedTop = reserveFromShellChrome(app, ".merge-play-status", 66);
-    const reservedBottom = reserveBottomFromShellChrome(app, ".merge-action-dock", data.mergeBottomReserve || 146);
+    const board = merge.board || createEmptyMergeBoard();
+    const cols = BOARD_COLS;
+    const rows = BOARD_ROWS;
+    const reservedTop = reserveFromShellChrome(app, ".merge-scene-hud", 104);
+    const reservedBottom = reserveBottomFromShellChrome(app, ".merge-action-area", data.mergeBottomReserve || 176);
     const fitted = fitGrid(app, cols, rows, 14, reservedBottom + 32, {
       reservedTop,
       verticalAnchor: 0.5,
@@ -369,8 +370,11 @@ export function buildMergeScene(app, initial = {}) {
     });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;
-    publishCanvasLayout(app, "merge", { top, left, size: width });
+    publishCanvasLayout(app, "merge", { top, left, size: Math.max(width, height) });
     if (app.canvas?.dataset) {
+      app.canvas.dataset.mergeBoardRows = String(rows);
+      app.canvas.dataset.mergeBoardCols = String(cols);
+      app.canvas.dataset.mergeBoardWidth = String(Math.round(width * 100) / 100);
       app.canvas.dataset.mergeBoardCell = String(Math.round(cell * 100) / 100);
       app.canvas.dataset.mergeBoardHeight = String(Math.round(height * 100) / 100);
     }
@@ -412,7 +416,10 @@ export function buildMergeScene(app, initial = {}) {
     drawAlchemyTable(left, top, width, height, cell);
     const boardFrameAsset = mergeSceneAsset("ui", "boardFrame");
     if (boardFrameAsset) {
-      root.addChild(sprite(boardFrameAsset, left + width / 2, top + height / 2, width + 20, height + 20, 1));
+      const framePad = Math.max(24, Math.min(cell * 1.25, viewWidth(app) - width - 12));
+      const frame = sprite(boardFrameAsset, left + width / 2, top + height / 2, height + framePad, width + framePad, 1);
+      frame.rotation = Math.PI / 2;
+      root.addChild(frame);
     } else {
       root.addChild(
         new Graphics()

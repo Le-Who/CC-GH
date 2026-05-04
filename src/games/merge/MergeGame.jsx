@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpen, Home, PackageOpen, Pause, Play, ShoppingBag, Sparkles, Trash2, X, Zap } from "lucide-react";
+import { BookOpen, Home, PackageOpen, Play, Sparkles, Trash2, X, Zap } from "lucide-react";
 import {
-  CROPS,
   ECONOMY,
   MERGE_CHAINS,
   MERGE_EXCHANGE_OFFERS,
@@ -13,7 +12,7 @@ import {
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GameEventLog, GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
+import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameHub } from "../../game-state/useGameHub.js";
@@ -107,40 +106,21 @@ function MergeAssetIcon({ asset, icon: Icon = Sparkles, className = "" }) {
   return <Icon size={18} aria-hidden="true" />;
 }
 
-function MergeArtButton({ children, iconAsset = "", fallbackIcon = Sparkles, onClick, disabled, active, danger, subtle, title, className = "" }) {
+function MergeTopTool({ asset, icon, label, active, onClick, panel }) {
   return (
     <button
       type="button"
-      className={`merge-art-button${active ? " active" : ""}${danger ? " danger" : ""}${subtle ? " subtle" : ""}${className ? ` ${className}` : ""}`}
-      disabled={disabled}
-      aria-label={title || (typeof children === "string" ? children : undefined)}
-      title={title}
+      className={`merge-top-tool${active ? " active" : ""}`}
+      aria-label={label}
+      title={label}
+      data-merge-panel={panel}
       onClick={(event) => {
         audioManager.play("tap");
         onClick?.(event);
       }}
     >
-      <MergeAssetIcon asset={iconAsset} icon={fallbackIcon} />
-      <span className="merge-button-label">{children}</span>
+      <MergeAssetIcon asset={asset} icon={icon} />
     </button>
-  );
-}
-
-function MergeHudChip({ label, value, iconAsset = "", fallbackIcon = Sparkles, onClick = null, active = false, progress = null, title = "" }) {
-  const Tag = onClick ? "button" : "div";
-  const boundedProgress = progress == null ? null : Math.max(0, Math.min(100, Number(progress) || 0));
-  return (
-    <Tag
-      type={onClick ? "button" : undefined}
-      className={`merge-hud-chip${onClick ? " clickable" : ""}${active ? " active" : ""}`}
-      onClick={onClick || undefined}
-      title={title || undefined}
-    >
-      <MergeAssetIcon asset={iconAsset} icon={fallbackIcon} />
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {boundedProgress != null && <i aria-hidden="true"><b style={{ transform: `scaleX(${boundedProgress / 100})` }} /></i>}
-    </Tag>
   );
 }
 
@@ -174,7 +154,6 @@ export default function MergeGame() {
   const merge = snapshot?.merge || {};
   const inventory = snapshot?.inventory || {};
   const serverNow = useServerClock(snapshot);
-  const [selectedFuel, setSelectedFuel] = useState("");
   const [selectedCell, setSelectedCell] = useState(null);
   const [trashMode, setTrashMode] = useState(false);
   const [trashConfirmCell, setTrashConfirmCell] = useState("");
@@ -197,8 +176,7 @@ export default function MergeGame() {
 
   const harvestedEntries = listPositive(inventory.harvested || {});
   const firstFuel = harvestedEntries[0]?.[0];
-  const selectedFuelAvailable = harvestedEntries.some(([cropId]) => cropId === selectedFuel);
-  const activeFuel = selectedFuelAvailable ? selectedFuel : firstFuel;
+  const activeFuel = firstFuel;
   const itemTotal = Object.values(merge.itemCounts || {}).reduce((sum, qty) => sum + qty, 0);
   const wildGenerator = merge.generatorState?.[MERGE_WILD_GENERATOR_ID] || {};
   const generatorCoolingDown = wildGenerator.cooldownEnd > serverNow;
@@ -208,32 +186,17 @@ export default function MergeGame() {
   const alchemyEssence = Math.max(0, Math.floor(Number(merge.alchemyEssence) || 0));
   const exchangeClaimsToday = merge.exchangeClaims?.[today] || {};
   const visibleExchangeOffers = MERGE_EXCHANGE_OFFERS;
-  const nextEssenceGoal = visibleExchangeOffers
-    .filter((offer) => !offer.locked && offer.cost > 0)
-    .sort((left, right) => left.cost - right.cost)
-    .find((offer) => offer.cost > alchemyEssence)
-      || visibleExchangeOffers.filter((offer) => !offer.locked && offer.cost > 0).sort((left, right) => right.cost - left.cost)[0]
-      || null;
-  const essenceProgress = nextEssenceGoal ? Math.min(100, (alchemyEssence / nextEssenceGoal.cost) * 100) : 100;
   const canFreePull = new Date(merge.lastFreePull || 0).toISOString().slice(0, 10) !== today;
   const freeTapClaim = getMergeFreeTapClaim(merge, now);
   const canClaimFreeTaps = freeTapClaim.claimable > 0;
+  const freeTapCharges = Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0));
   const freeTapBankFull = Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0)) >= MERGE_FREE_TAP_BANK_CAP;
   const freeTapWaitMinutes = Math.max(1, Math.ceil((freeTapClaim.nextFreeTapAt - now) / 60000));
-  const canTapGenerator = !mergeActionPending && !generatorCoolingDown && (!!activeFuel || (merge.freeTapCharges || 0) > 0);
+  const canTapGenerator = !mergeActionPending && !generatorCoolingDown && (!!activeFuel || freeTapCharges > 0);
   const mergeBoardSignature = useMemo(() => boardVisualSignature(merge.board), [merge.board]);
   const sceneMerge = useMemo(() => ({ board: merge.board || [] }), [mergeBoardSignature]);
-  const activeCrop = activeFuel ? CROPS[activeFuel] : null;
-  const generatorHint = (merge.freeTapCharges || 0) > 0
-    ? t("merge.generatorHintFree", { count: merge.freeTapCharges || 0 })
-    : activeCrop
-      ? t("merge.generatorHintCrop", { crop: activeCrop.name || activeFuel })
-      : t("merge.generatorHintEmpty");
   const lastMergeReward = lastResult?.action?.startsWith?.("merge.") && lastResult.reward?.type === "yardGoodie"
     ? lastResult.reward.goodieId
-    : null;
-  const lastEssenceReward = lastResult?.action === "merge.merge" && lastResult.essenceReward
-    ? lastResult.essenceReward
     : null;
   const discoveredRecipes = useMemo(() => {
     const ids = new Set(MERGE_RECIPES.filter((recipe) => recipe.discovered).map((recipe) => recipe.id));
@@ -255,7 +218,22 @@ export default function MergeGame() {
     }
     return ids;
   }, [merge.discoveredItems, merge.itemCounts]);
-  const recipeStats = `${discoveredRecipes.size}/${MERGE_RECIPES.length}`;
+  const generatorCostBadge = activeFuel ? "-1" : freeTapCharges > 0 ? "0" : "";
+  const dailyDockDisabled = mergeActionPending || (!canClaimFreeTaps && !canFreePull);
+  const dailyDockLabel = canClaimFreeTaps || canFreePull
+    ? t("merge.claimDailyTokens")
+      : freeTapBankFull
+        ? t("merge.freeTapBankFull", { count: MERGE_FREE_TAP_BANK_CAP })
+        : t("merge.nextFreeTap", { minutes: freeTapWaitMinutes });
+  const claimDailyDock = useCallback(() => {
+    if (canClaimFreeTaps) {
+      return performAction("merge.claimFreeTaps", {}, { feedback: false });
+    }
+    if (canFreePull) {
+      return performAction("merge.freePull");
+    }
+    return Promise.resolve({ error: "daily unavailable" });
+  }, [canClaimFreeTaps, canFreePull, performAction]);
   const openScenePanel = useCallback((panel) => {
     setActivePanel((current) => (current === panel ? null : panel));
   }, []);
@@ -344,7 +322,7 @@ export default function MergeGame() {
       mergeMissText: t("merge.miss"),
       mergePerfectText: t("merge.perfectReaction"),
       mergeLevelPrefix: t("farm.levelShort"),
-      mergeBottomReserve: 126,
+      mergeBottomReserve: 188,
       onMergeCell,
       onMergeDrop,
     }),
@@ -474,133 +452,116 @@ export default function MergeGame() {
       hud={(
         <>
           <div className="merge-scene-hud" data-no-nav-swipe="true" style={uiAssets.hudBar ? { "--merge-hud-art": cssUrl(uiAssets.hudBar) } : undefined}>
-            <div className="merge-hud-title">
-              <strong>{t("merge.alchemyTable")}</strong>
-              <span>{generatorHint}</span>
+            <button
+              type="button"
+              className="merge-hud-essence"
+              data-merge-panel="exchange"
+              onClick={() => openScenePanel("exchange")}
+              aria-label={t("merge.exchange.title")}
+              title={t("merge.exchange.title")}
+            >
+              <MergeAssetIcon asset={uiAssets.hudIconEssence} icon={Sparkles} />
+              <strong>{alchemyEssence}</strong>
+            </button>
+            <div className="merge-hud-energy" aria-label={t("merge.freeTaps")}>
+              <Zap size={28} aria-hidden="true" />
+              <strong>{freeTapCharges}/{MERGE_FREE_TAP_BANK_CAP}</strong>
             </div>
-            <GameEventLog gameId="merge" className="merge-hud-events" />
-            <div className="merge-hud-stats">
-              <MergeHudChip label={t("merge.items")} value={itemTotal} iconAsset={uiAssets.hudIconItems} fallbackIcon={PackageOpen} onClick={() => openScenePanel("items")} />
-              <MergeHudChip label={t("merge.recipes")} value={recipeStats} iconAsset={uiAssets.hudIconRecipes} fallbackIcon={BookOpen} onClick={() => openScenePanel("recipes")} />
-              <MergeHudChip label={t("merge.essence")} value={alchemyEssence} iconAsset={uiAssets.hudIconEssence} fallbackIcon={Sparkles} onClick={() => openScenePanel("exchange")} progress={essenceProgress} />
-              <MergeHudChip label={t("merge.mode")} value={trashMode ? t("merge.modeTrash") : t("merge.modeMerge")} iconAsset={uiAssets.hudIconMode} fallbackIcon={Sparkles} active={trashMode} />
-              {lastEssenceReward && <MergeHudChip label={t("merge.essenceGain")} value={`+${lastEssenceReward}`} iconAsset={uiAssets.hudIconEssence} fallbackIcon={Sparkles} />}
-              {lastMergeReward && <MergeHudChip label={t("merge.reward")} value={lastMergeReward} iconAsset={uiAssets.hudIconExchange} fallbackIcon={ShoppingBag} />}
+            <div className="merge-hud-tools">
+              <MergeTopTool
+                asset={uiAssets.hudIconItems}
+                icon={PackageOpen}
+                label={t("merge.itemBook")}
+                active={activePanel === "items"}
+                panel="items"
+                onClick={() => openScenePanel("items")}
+              />
+              <MergeTopTool
+                asset=""
+                icon={Sparkles}
+                label={t("merge.recipeBook")}
+                active={activePanel === "recipes"}
+                panel="recipes"
+                onClick={() => openScenePanel("recipes")}
+              />
+              <MergeTopTool
+                asset={uiAssets.hudIconRecipes || uiAssets.hudIconExchange}
+                icon={BookOpen}
+                label={t("common.pause")}
+                panel="pause"
+                onClick={pauseMerge}
+              />
             </div>
-            <MergeArtButton className="merge-hud-pause-button" iconAsset={uiAssets.hudIconPause} fallbackIcon={Pause} subtle onClick={pauseMerge} title={t("common.pause")}>
-              {t("common.pause")}
-            </MergeArtButton>
-          </div>
-          <div className="merge-library-rail" data-no-nav-swipe="true" style={uiAssets.libraryRail ? { "--merge-rail-art": cssUrl(uiAssets.libraryRail) } : undefined}>
-            <button type="button" className={activePanel === "recipes" ? "active" : ""} onClick={() => openScenePanel("recipes")}>
-              <MergeAssetIcon asset={uiAssets.hudIconRecipes} icon={BookOpen} />
-              <span>{t("merge.recipeBook")}</span>
-              <b>{recipeStats}</b>
-            </button>
-            <button type="button" className={activePanel === "items" ? "active" : ""} onClick={() => openScenePanel("items")}>
-              <MergeAssetIcon asset={uiAssets.hudIconItems} icon={PackageOpen} />
-              <span>{t("merge.itemBook")}</span>
-              <b>{itemTotal}</b>
-            </button>
-            <button type="button" className={activePanel === "exchange" ? "active" : ""} onClick={() => openScenePanel("exchange")}>
-              <MergeAssetIcon asset={uiAssets.hudIconExchange} icon={ShoppingBag} />
-              <span>{t("merge.exchange.short")}</span>
-              <b>{alchemyEssence}</b>
-            </button>
           </div>
           {renderScenePanel()}
           <div
-            className="merge-action-dock"
+            className="merge-action-area"
             data-no-nav-swipe="true"
-            style={uiAssets.actionDock ? { "--merge-action-dock-art": cssUrl(uiAssets.actionDock) } : undefined}
           >
-            <div className="merge-generator-dock">
-              <div className="merge-fuel-field">
-                <span>{t("merge.source")}</span>
-                <div className="merge-source-chips" role="radiogroup" aria-label={t("merge.source")}>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={!activeFuel}
-                    className={!activeFuel ? "active" : ""}
-                    onClick={() => setSelectedFuel("")}
-                  >
-                    {t("merge.noFuel")}
-                  </button>
-                  {harvestedEntries.map(([cropId, qty]) => (
-                    <button
-                      key={cropId}
-                      type="button"
-                      role="radio"
-                      aria-checked={activeFuel === cropId}
-                      className={activeFuel === cropId ? "active" : ""}
-                      onClick={() => setSelectedFuel(cropId)}
-                    >
-                      <span>{CROPS[cropId]?.emoji || ""}</span>
-                      <b>{CROPS[cropId]?.name || cropId}</b>
-                      <small>x{qty}</small>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <MergeArtButton
-                iconAsset={uiAssets.actionIconGenerate}
-                fallbackIcon={Zap}
-                disabled={!canTapGenerator}
-                onClick={() => performAction("merge.tap", { chainId: MERGE_WILD_GENERATOR_ID, cropId: activeFuel }, { key: "merge.tap.wild" })}
-                title={generatorCoolingDown ? t("merge.coolingDown") : undefined}
-              >
-                {t("merge.generate")}
-              </MergeArtButton>
-            </div>
-            <div className="merge-generator-hint">{generatorHint}</div>
-            <div className="merge-action-strip">
-              <MergeArtButton
-                iconAsset={uiAssets.actionIconGenerate}
-                fallbackIcon={Zap}
-                className="merge-free-taps-button"
-                disabled={mergeActionPending || !canClaimFreeTaps}
-                onClick={() => performAction("merge.claimFreeTaps", {}, { feedback: false })}
-                title={t("merge.dailyTapsHint")}
-              >
-                {canClaimFreeTaps
-                  ? t("merge.dailyTaps", { count: freeTapClaim.claimable })
-                  : freeTapBankFull
-                    ? t("merge.freeTapBankFull", { count: MERGE_FREE_TAP_BANK_CAP })
-                  : t("merge.nextFreeTap", { minutes: freeTapWaitMinutes })}
-              </MergeArtButton>
-              <MergeArtButton
-                iconAsset={uiAssets.actionIconDaily}
-                fallbackIcon={PackageOpen}
-                disabled={!canFreePull}
-                onClick={() => performAction("merge.freePull")}
-                title={t("merge.dailyDropHint")}
-              >
-                {canFreePull ? t("merge.dailyDrop") : t("merge.dropClaimed")}
-              </MergeArtButton>
-              <MergeArtButton
-                iconAsset={uiAssets.actionIconTokens}
-                fallbackIcon={Sparkles}
-                disabled={tokenCount < ECONOMY.GACHA_PULL_COST}
-                onClick={() => performAction("merge.gacha")}
-                title={t("merge.tokenPullHint", { cost: ECONOMY.GACHA_PULL_COST })}
-              >
-                {t("merge.tokenPull")}
-              </MergeArtButton>
-              <MergeArtButton
-                iconAsset={uiAssets.actionIconTrash}
-                fallbackIcon={Trash2}
-                danger={trashMode}
-                active={trashMode}
+            <div
+              className="merge-action-dock"
+              style={uiAssets.actionDock ? { "--merge-action-dock-art": cssUrl(uiAssets.actionDock) } : undefined}
+            >
+              <button
+                type="button"
+                className={`merge-dock-side merge-dock-trash${trashMode ? " active" : ""}`}
+                data-merge-action="trash"
+                aria-label={trashMode ? t("merge.trashOn") : t("merge.trash")}
+                title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
                 onClick={() => {
+                  audioManager.play("tap");
                   setTrashConfirmCell("");
                   setTrashMode((value) => !value);
                 }}
-                title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
               >
-                {trashMode ? t("merge.trashOn") : t("merge.trash")}
-              </MergeArtButton>
+                <MergeAssetIcon asset={uiAssets.actionIconTrash} icon={Trash2} />
+                <span>{trashMode ? t("merge.trashOn") : t("merge.trash")}</span>
+              </button>
+              <button
+                type="button"
+                className="merge-dock-generate"
+                data-merge-action="generate"
+                disabled={!canTapGenerator}
+                aria-label={t("merge.generate")}
+                title={generatorCoolingDown ? t("merge.coolingDown") : undefined}
+                onClick={() => {
+                  audioManager.play("tap");
+                  performAction("merge.tap", { chainId: MERGE_WILD_GENERATOR_ID, cropId: activeFuel }, { key: "merge.tap.wild" });
+                }}
+              >
+                <MergeAssetIcon asset={uiAssets.actionIconGenerate} icon={Zap} />
+                {generatorCostBadge && <b>{generatorCostBadge}</b>}
+              </button>
+              <button
+                type="button"
+                className="merge-dock-side merge-dock-gacha"
+                data-merge-action="gacha"
+                disabled={tokenCount < ECONOMY.GACHA_PULL_COST}
+                aria-label={t("merge.tokenPull")}
+                title={t("merge.tokenPullHint", { cost: ECONOMY.GACHA_PULL_COST })}
+                onClick={() => {
+                  audioManager.play("tap");
+                  performAction("merge.gacha");
+                }}
+              >
+                <MergeAssetIcon asset={uiAssets.actionIconTokens} icon={Sparkles} />
+                <span>{t("merge.gacha")}</span>
+                <b>{tokenCount}</b>
+              </button>
             </div>
+            <button
+              type="button"
+              className="merge-daily-token-button"
+              data-merge-action="daily"
+              disabled={dailyDockDisabled}
+              onClick={() => {
+                audioManager.play("tap");
+                claimDailyDock();
+              }}
+            >
+              <MergeAssetIcon asset="" icon={Sparkles} />
+              <span>{dailyDockLabel}</span>
+            </button>
           </div>
         </>
       )}

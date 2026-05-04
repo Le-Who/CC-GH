@@ -2,7 +2,7 @@
  * ═══════════════════════════════════════════════════════
  *  useMergeEngine — React/Zustand hook for Gacha Merge state
  *
- *  Owns: board (7×9), generators, generatorState, mergeInventory,
+ *  Owns: board (9×7), generators, generatorState, mergeInventory,
  *  lastFreePull, lastFreeTaps, trashMode.
  *
  *  Server-authoritative: all mutations go through API calls.
@@ -22,13 +22,11 @@ import {
   ECONOMY,
   MERGE_START_CHAIN_ID,
   MERGE_WILD_GENERATOR_ID,
+  createEmptyMergeBoard,
   getMergePairResult,
   getStarterMergeItemIds,
   getStarterMergeRecipeIds,
 } from "../../game-logic.js";
-
-const BOARD_ROWS = 7;
-const BOARD_COLS = 9;
 
 /** Build item lookup from chains */
 const ITEM_LOOKUP = {};
@@ -46,7 +44,7 @@ for (const chain of Object.values(MERGE_CHAINS)) {
 
 export const mergeStore = create((set, get) => ({
   // ─── State ───
-  board: Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null)),
+  board: createEmptyMergeBoard(),
   generators: [MERGE_START_CHAIN_ID],
   generatorState: {
     [MERGE_START_CHAIN_ID]: { tapsLeft: ECONOMY.GENERATOR_TAP_LIMIT, cooldownEnd: 0 },

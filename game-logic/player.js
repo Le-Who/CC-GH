@@ -7,6 +7,7 @@
 
 import { ECONOMY } from "./economy.js";
 import { createGardenEconomyState } from "./garden-economy.js";
+import { createEmptyMergeBoard } from "./merge-board-utils.js";
 import { MERGE_START_CHAIN_ID, MERGE_WILD_GENERATOR_ID, getStarterMergeItemIds, getStarterMergeRecipeIds } from "./merge-config.js";
 import { createDefaultYardState } from "./yard.js";
 
@@ -77,8 +78,6 @@ export function createDefaultGardenState(now = Date.now()) {
  * @returns {PlayerState}
  */
 export function createDefaultPlayer(userId, username, now = Date.now()) {
-  const BOARD_ROWS = 7,
-    BOARD_COLS = 9;
   return {
     id: userId,
     username: username || "Player",
@@ -128,9 +127,7 @@ export function createDefaultPlayer(userId, username, now = Date.now()) {
       harvested: {},
     },
     merge: {
-      board: Array.from({ length: BOARD_ROWS }, () =>
-        Array(BOARD_COLS).fill(null),
-      ),
+      board: createEmptyMergeBoard(),
       generators: [MERGE_START_CHAIN_ID], // Unlocked generator chain IDs
       inventory: [], // Unplaced items from gacha
       alchemyEssence: 0,
