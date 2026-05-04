@@ -49,6 +49,7 @@ import {
   createGardenEconomyState,
   GARDEN_ECONOMY_VERSION,
   GARDEN_MAX_LEVEL,
+  PLANT_TYPES as GARDEN_PLANT_TYPES,
   GARDEN_STARTER_GOLD,
   getGardenLevelReward,
   normalizeGardenDailyQuestState,
@@ -224,7 +225,7 @@ function normalizeResources(p) {
 
 const GARDEN_MAX_SHELVES = 5;
 const GARDEN_MAX_PLANTS = 48;
-const GARDEN_PLANT_IDS = new Set(["daisy", "lavender", "basil", "rosemary", "monstera", "succulent", "pothos", "strawberry"]);
+const GARDEN_PLANT_IDS = new Set(Object.keys(GARDEN_PLANT_TYPES));
 const MERGE_EXCHANGE_CLAIM_RETENTION_DAYS = 7;
 
 function finiteNumber(value, fallback = 0) {

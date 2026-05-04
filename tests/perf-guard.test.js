@@ -74,12 +74,22 @@ describe("perf:guard contract", () => {
       "match3.special.column",
       "match3.special.colour",
       "match3.special.row",
+      "match3.background.table",
+      "match3.board.frame",
+      "match3.board.cell",
+      "match3.board.cellSelected",
+      "match3.ui.hudBar",
+      "match3.ui.menuPanel",
+      "match3.fx.clearBurst",
+      "match3.drop.gold",
+      "match3.drop.seeds",
+      "match3.drop.energy",
     ]) {
       assert.ok(ids.has(required), `missing pipeline entry: ${required}`);
     }
 
     assert.equal(bundles.get("pixi.bubbo")?.size, 8);
-    assert.equal(bundles.get("pixi.match3")?.size, 11);
+    assert.equal(bundles.get("pixi.match3")?.size, 21);
     assert.equal(ids.size, entries.length, "asset pipeline entry keys must be unique");
   });
 

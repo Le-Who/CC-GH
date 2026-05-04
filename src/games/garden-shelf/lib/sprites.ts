@@ -24,9 +24,23 @@ export function resolveGardenAssetPaths(runtimeManifest?: unknown): GardenAssetP
   };
 }
 
+export const GARDEN_PLANT_COUNT = 14;
+export const GARDEN_PHASE_COUNT = 4;
+export const GARDEN_SHEET_COLUMNS = 8;
+export const GARDEN_SHEET_ROWS = Math.ceil(GARDEN_PLANT_COUNT / 2);
+export const GARDEN_SHEET_WIDTH = 1672;
+export const GARDEN_SHEET_HEIGHT = 1645;
+const GARDEN_CELL_WIDTH = GARDEN_SHEET_WIDTH / GARDEN_SHEET_COLUMNS;
+const GARDEN_CELL_HEIGHT = GARDEN_SHEET_HEIGHT / GARDEN_SHEET_ROWS;
+const GARDEN_FRAME_INSET_X = 18;
+const GARDEN_FRAME_INSET_Y = 14;
+const GARDEN_FRAME_WIDTH = 173;
+const GARDEN_FRAME_HEIGHT = 207;
+const GARDEN_NEW_PLANT_START_INDEX = 8;
+
 export const spriteData = {
-  "fullWidth": 1672,
-  "fullHeight": 941,
+  "fullWidth": GARDEN_SHEET_WIDTH,
+  "fullHeight": GARDEN_SHEET_HEIGHT,
   "sprites": [
     {
       "col": 0,
@@ -285,13 +299,42 @@ export const spriteData = {
       "height": 195
     }
   ]
+};
+
+function buildGardenSpriteFrames() {
+  return Array.from({ length: GARDEN_PLANT_COUNT * GARDEN_PHASE_COUNT }, (_item, index) => {
+    const spriteIndex = Math.floor(index / GARDEN_PHASE_COUNT);
+    const phase = index % GARDEN_PHASE_COUNT;
+    const col = (spriteIndex % 2) * GARDEN_PHASE_COUNT + phase;
+    const row = Math.floor(spriteIndex / 2);
+    const usesFullCell = spriteIndex >= GARDEN_NEW_PLANT_START_INDEX;
+    return {
+      col,
+      row,
+      x: Math.round(col * GARDEN_CELL_WIDTH + (usesFullCell ? 0 : GARDEN_FRAME_INSET_X)),
+      y: Math.round(row * GARDEN_CELL_HEIGHT + (usesFullCell ? 0 : GARDEN_FRAME_INSET_Y)),
+      width: usesFullCell ? Math.round(GARDEN_CELL_WIDTH) : GARDEN_FRAME_WIDTH,
+      height: usesFullCell ? Math.round(GARDEN_CELL_HEIGHT) : GARDEN_FRAME_HEIGHT,
+    };
+  });
 }
+
+spriteData.sprites = buildGardenSpriteFrames();
 
 export function getGardenSpriteFrame(spriteIndex = 0, phase = 0) {
   const safePhase = Math.max(0, Math.min(3, Number(phase) || 0));
-  const col = (spriteIndex % 2) * 4 + safePhase;
-  const row = Math.floor(spriteIndex / 2);
-  return spriteData.sprites.find((sprite) => sprite && sprite.col === col && sprite.row === row);
+  const safeIndex = Math.max(0, Math.min(GARDEN_PLANT_COUNT - 1, Math.floor(Number(spriteIndex) || 0)));
+  const col = (safeIndex % 2) * 4 + safePhase;
+  const row = Math.floor(safeIndex / 2);
+  const usesFullCell = safeIndex >= GARDEN_NEW_PLANT_START_INDEX;
+  return {
+    col,
+    row,
+    x: Math.round(col * GARDEN_CELL_WIDTH + (usesFullCell ? 0 : GARDEN_FRAME_INSET_X)),
+    y: Math.round(row * GARDEN_CELL_HEIGHT + (usesFullCell ? 0 : GARDEN_FRAME_INSET_Y)),
+    width: usesFullCell ? Math.round(GARDEN_CELL_WIDTH) : GARDEN_FRAME_WIDTH,
+    height: usesFullCell ? Math.round(GARDEN_CELL_HEIGHT) : GARDEN_FRAME_HEIGHT,
+  };
 }
 
 export function getGardenSpriteStyle(spriteIndex = 0, phase = 0, scale = 1, sheetPath = GARDEN_SHEET_PATH) {
@@ -300,8 +343,8 @@ export function getGardenSpriteStyle(spriteIndex = 0, phase = 0, scale = 1, shee
   if (!sprite) {
     return {
       backgroundImage: `url('${sheetPath}')`,
-      backgroundSize: "800% 400%",
-      backgroundPosition: `${(((spriteIndex % 2) * 4 + safePhase) / 7) * 100}% ${(Math.floor(spriteIndex / 2) / 3) * 100}%`,
+      backgroundSize: `${GARDEN_SHEET_COLUMNS * 100}% ${GARDEN_SHEET_ROWS * 100}%`,
+      backgroundPosition: `${(((spriteIndex % 2) * 4 + safePhase) / (GARDEN_SHEET_COLUMNS - 1)) * 100}% ${(Math.floor(spriteIndex / 2) / Math.max(1, GARDEN_SHEET_ROWS - 1)) * 100}%`,
       width: `${96 * scale}px`,
       height: `${96 * scale}px`,
       transformOrigin: "bottom center",

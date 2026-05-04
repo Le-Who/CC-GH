@@ -9,12 +9,14 @@ import {
   match3StepStartFrame,
   GEM_COLORS,
   POTION_PIECE_ASSETS,
+  MATCH3_ASSET_KEYS,
   PANEL,
   TEXT,
   AMBER,
   CORAL,
   SKY,
   viewWidth,
+  viewHeight,
   reserveFromShellChrome,
   publishCanvasLayout,
   clear,
@@ -305,6 +307,10 @@ export function buildMatch3Scene(app, initial = {}) {
       const motionDelay = clearDelay + MATCH3_TIMING.clearFrames;
       for (const cell of step.cleared || []) {
         const pos = cellCenter(layout, cell.x, cell.y);
+        const burstAsset = sprite(gameAsset(MATCH3_ASSET_KEYS.fxClearBurst), pos.x, pos.y, radius * 2.6, radius * 2.6, 0.74);
+        burstAsset._delay = clearDelay + 0.5 + ((cell.x + cell.y) % 2) * 0.4;
+        burstAsset._tween = { fromX: pos.x, fromY: pos.y, toX: pos.x, toY: pos.y, duration: 12, fade: true, scaleFrom: 0.56, scaleTo: 1.24, ease: "pop" };
+        effects.addChild(burstAsset);
         const pulse = new Graphics().circle(0, 0, radius * (1 + Math.min(0.55, step.combo * 0.08))).stroke({ color: AMBER, width: 3, alpha: 0.86 });
         pulse.x = pos.x;
         pulse.y = pos.y;
@@ -402,8 +408,10 @@ export function buildMatch3Scene(app, initial = {}) {
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });
-    root.addChild(rect(left - 10, top - 10, size + 20, size + 20, PANEL, 16));
-    root.addChild(tiledSprite(gameAsset("match3.shelf.block"), left - 4, top - 4, size + 8, size + 8, 0.16));
+    root.addChild(rect(0, 0, viewWidth(app), viewHeight(app), 0x1b1424, 0));
+    root.addChild(tiledSprite(gameAsset(MATCH3_ASSET_KEYS.backgroundTable), 0, 0, viewWidth(app), viewHeight(app), 0.78));
+    root.addChild(rect(left - 18, top - 18, size + 36, size + 36, PANEL, 18, 0.18));
+    root.addChild(sprite(gameAsset(MATCH3_ASSET_KEYS.boardFrame), left + size / 2, top + size / 2, size + 38, size + 38, 0.98));
     queueMatch3Animation(data.match3Animation);
     const renderBoard = activeAnimationBoard(actual);
     for (let y = 0; y < BOARD_SIZE; y++) {
@@ -411,9 +419,13 @@ export function buildMatch3Scene(app, initial = {}) {
         const gem = renderBoard[y]?.[x];
         const selected = data.selectedGem?.x === x && data.selectedGem?.y === y;
         const dragging = drag?.from?.x === x && drag?.from?.y === y;
+        root.addChild(sprite(gameAsset(MATCH3_ASSET_KEYS.boardCell), left + x * cell + cell / 2, top + y * cell + cell / 2, cell - 5, cell - 5, 0.92));
+        if (selected) {
+          root.addChild(sprite(gameAsset(MATCH3_ASSET_KEYS.boardCellSelected), left + x * cell + cell / 2, top + y * cell + cell / 2, cell + 1, cell + 1, 0.96));
+        }
         const tile = selected
-          ? strokedRect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, AMBER, 10, 0xf7efe0, 1, 3)
-          : rect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, 0xe8efdc, 10);
+          ? strokedRect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, AMBER, 10, 0xf7efe0, 0.08, 3)
+          : rect(left + x * cell + 3, top + y * cell + 3, cell - 6, cell - 6, 0xe8efdc, 10, 0.001);
         makeInteractive(tile, {
           pointerdown: (event) => {
             if (!state.gameActive || matchInputLocked()) return;

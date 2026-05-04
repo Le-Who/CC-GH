@@ -39,16 +39,16 @@ function readSceneRuntimeText() {
 
 describe("Merge Engine Hooks (useMergeEngine)", () => {
   describe("Board Geometry", () => {
-    it("uses a vertical 9x7 board contract", () => {
+    it("uses a vertical 7x5 board contract", () => {
       const player = createDefaultPlayer("merge-vertical-board", "Merge");
 
-      assert.strictEqual(BOARD_ROWS, 9);
-      assert.strictEqual(BOARD_COLS, 7);
+      assert.strictEqual(BOARD_ROWS, 7);
+      assert.strictEqual(BOARD_COLS, 5);
       assert.strictEqual(player.merge.board.length, BOARD_ROWS);
       assert.strictEqual(player.merge.board[0].length, BOARD_COLS);
     });
 
-    it("hydrates legacy 7x9 boards into vertical 9x7 boards without dropping cells", () => {
+    it("hydrates legacy wide boards into vertical 7x5 boards and reflows overflow", () => {
       const seed = { id: "seed", chainId: "flora", level: 0 };
       const dew = { id: "dew", chainId: "water", level: 0 };
       const player = {
@@ -63,8 +63,30 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
 
       assert.strictEqual(player.merge.board.length, BOARD_ROWS);
       assert.strictEqual(player.merge.board[0].length, BOARD_COLS);
-      assert.deepStrictEqual(player.merge.board[8][0], seed);
-      assert.deepStrictEqual(player.merge.board[0][6], dew);
+      assert.deepStrictEqual(player.merge.board[0][0], seed);
+      assert.deepStrictEqual(player.merge.board[6][0], dew);
+    });
+
+    it("compacts current 9x7 boards into 7x5 without losing early overflow items", () => {
+      const seed = { id: "seed", chainId: "flora", level: 0 };
+      const dew = { id: "dew", chainId: "water", level: 0 };
+      const ember = { id: "ember", chainId: "fire", level: 0 };
+      const player = {
+        merge: {
+          board: Array.from({ length: 9 }, () => Array(7).fill(null)),
+        },
+      };
+      player.merge.board[0][0] = seed;
+      player.merge.board[6][4] = dew;
+      player.merge.board[8][6] = ember;
+
+      hydrateMergeBoard(player);
+
+      assert.strictEqual(player.merge.board.length, BOARD_ROWS);
+      assert.strictEqual(player.merge.board[0].length, BOARD_COLS);
+      assert.deepStrictEqual(player.merge.board[0][0], seed);
+      assert.deepStrictEqual(player.merge.board[6][4], dew);
+      assert.deepStrictEqual(player.merge.board[0][1], ember);
     });
   });
 
@@ -88,7 +110,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
   });
 
   describe("Initial State & Basic Actions", () => {
-    it("initializes with an empty 9x7 board", () => {
+    it("initializes with an empty 7x5 board", () => {
       const { board } = mergeStore.getState();
       assert.strictEqual(board.length, BOARD_ROWS);
       assert.strictEqual(board[0].length, BOARD_COLS);

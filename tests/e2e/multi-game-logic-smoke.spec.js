@@ -185,11 +185,16 @@ test.describe("CC-GH multi-game logic smoke", () => {
       width: Number(node.dataset.mergeBoardWidth),
       height: Number(node.dataset.mergeBoardHeight),
       cell: Number(node.dataset.mergeBoardCell),
+      frameWidth: Number(node.dataset.mergeBoardFrameWidth),
+      frameHeight: Number(node.dataset.mergeBoardFrameHeight),
     }));
-    expect(layout.rows).toBe(9);
-    expect(layout.cols).toBe(7);
+    expect(layout.rows).toBe(7);
+    expect(layout.cols).toBe(5);
     expect(layout.height).toBeGreaterThan(layout.width);
-    expect(layout.size).toBeGreaterThan(300);
+    expect(layout.height / layout.width).toBeCloseTo(7 / 5, 1);
+    expect(layout.frameHeight).toBeGreaterThan(layout.height);
+    expect(layout.frameWidth).toBeGreaterThan(layout.width);
+    expect(layout.size).toBeGreaterThan(250);
     expect(layout.cell).toBeGreaterThan(30);
 
     const freeTapButton = page.locator('[data-merge-action="daily"]');

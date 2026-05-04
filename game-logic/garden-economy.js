@@ -6,7 +6,7 @@ export const GARDEN_OFFLINE_CAP_MS = 6 * 60 * 60 * 1000;
 export const GARDEN_OFFLINE_GOLD_RATIO = 0.35;
 export const GARDEN_OFFLINE_XP_RATIO = 0.25;
 export const GARDEN_TAP_REWARD_COOLDOWN_MS = 750;
-export const GARDEN_MAX_LEVEL = 24;
+export const GARDEN_MAX_LEVEL = 30;
 
 export const GARDEN_LEVELS = [
   { level: 1, xpRequired: 90, reward: 35, unlocks: ["daisy"] },
@@ -31,8 +31,14 @@ export const GARDEN_LEVELS = [
   { level: 20, xpRequired: 12480, reward: 4160, unlocks: [] },
   { level: 21, xpRequired: 15080, reward: 5120, unlocks: [] },
   { level: 22, xpRequired: 18120, reward: 6280, unlocks: ["strawberry"] },
-  { level: 23, xpRequired: 21640, reward: 7660, unlocks: [] },
-  { level: 24, xpRequired: 25680, reward: 9300, unlocks: [] },
+  { level: 23, xpRequired: 21640, reward: 7660, unlocks: ["bonsai"] },
+  { level: 24, xpRequired: 25680, reward: 9300, unlocks: ["string_of_pearls"] },
+  { level: 25, xpRequired: 30320, reward: 11240, unlocks: ["orchid"] },
+  { level: 26, xpRequired: 35640, reward: 13520, unlocks: ["venus_flytrap"] },
+  { level: 27, xpRequired: 41720, reward: 16180, unlocks: [] },
+  { level: 28, xpRequired: 48640, reward: 19280, unlocks: ["moon_cactus"] },
+  { level: 29, xpRequired: 56500, reward: 22880, unlocks: [] },
+  { level: 30, xpRequired: 65400, reward: 27060, unlocks: ["fern"] },
 ];
 
 export function getGardenLevelDefinition(level = 1) {

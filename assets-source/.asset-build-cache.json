@@ -1946,15 +1946,15 @@
       ]
     },
     "gardenShelf.sheet.transparent": {
-      "signature": "ee19d60b18dd2e0d83a275143aa77c2e5cacc6b66752ba4a188a06d6abee24ea",
+      "signature": "729a7316d447140d7db2042c117dc48aeba3e264d43633285a8781865a9cc5b6",
       "item": {
         "type": "image",
         "width": 1672,
-        "height": 941,
-        "src": "/assets-runtime/garden-shelf/assets_transparent.65310970.webp"
+        "height": 1645,
+        "src": "/assets-runtime/garden-shelf/assets_transparent.7407e2cb.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/assets_transparent.65310970.webp"
+        "/assets-runtime/garden-shelf/assets_transparent.7407e2cb.webp"
       ]
     },
     "gardenShelf.shelf": {
@@ -2005,158 +2005,298 @@
         "/assets-runtime/icons/icon-512.8f7d4bf1.webp"
       ]
     },
-    "match3.piece.dragon": {
-      "signature": "bd53c7395ce6f46b50657364890bfa48e3048bff727a634d98d0e5db6ca0b997",
+    "match3.background.table": {
+      "signature": "4bdaafce8fa8f2bcce14a13379fb3d4d34e8eea07b3ccbf006950fc9f873a0fe",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/piece-dragon.d0442724.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-dragon.b087329d.png"
+        "width": 512,
+        "height": 512,
+        "src": "/assets-runtime/puzzling-potions/background-table.ca3b276f.webp",
+        "fallback": "/assets-runtime/puzzling-potions/background-table.5de6c437.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-dragon.d0442724.webp",
-        "/assets-runtime/puzzling-potions/piece-dragon.b087329d.png"
+        "/assets-runtime/puzzling-potions/background-table.ca3b276f.webp",
+        "/assets-runtime/puzzling-potions/background-table.5de6c437.png"
+      ]
+    },
+    "match3.board.cell": {
+      "signature": "d519735792697e19177c342809cf5a59e806ffea75c3d7f0e9fd434eed424137",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/puzzling-potions/cell-empty.d3a85d05.webp",
+        "fallback": "/assets-runtime/puzzling-potions/cell-empty.25548b4e.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/cell-empty.d3a85d05.webp",
+        "/assets-runtime/puzzling-potions/cell-empty.25548b4e.png"
+      ]
+    },
+    "match3.board.cellSelected": {
+      "signature": "ca214899b510414b59b55bde93af6c212bbc0d5a6f0f2f92b5ad8273abea788e",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/puzzling-potions/cell-selected.d6177c61.webp",
+        "fallback": "/assets-runtime/puzzling-potions/cell-selected.05f40eff.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/cell-selected.d6177c61.webp",
+        "/assets-runtime/puzzling-potions/cell-selected.05f40eff.png"
+      ]
+    },
+    "match3.board.frame": {
+      "signature": "bb3b27f9483b4ae077b00e1d310d6e4489a2e9a9a127ead3f3f6d53d8db75be3",
+      "item": {
+        "type": "image",
+        "width": 720,
+        "height": 720,
+        "src": "/assets-runtime/puzzling-potions/board-frame.198180ad.webp",
+        "fallback": "/assets-runtime/puzzling-potions/board-frame.3cdd8435.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/board-frame.198180ad.webp",
+        "/assets-runtime/puzzling-potions/board-frame.3cdd8435.png"
+      ]
+    },
+    "match3.drop.energy": {
+      "signature": "a739cd2d6400b068d1f9be2b141c4137075b31ae0894c9f42633fe030adb4085",
+      "item": {
+        "type": "image",
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/drop-energy.72420c5c.webp",
+        "fallback": "/assets-runtime/puzzling-potions/drop-energy.6f73abd5.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/drop-energy.72420c5c.webp",
+        "/assets-runtime/puzzling-potions/drop-energy.6f73abd5.png"
+      ]
+    },
+    "match3.drop.gold": {
+      "signature": "24e96f0d68b1ce9a73a3ff31ebd4f97c0209c7b688323974f15f6dcfc73a0b0e",
+      "item": {
+        "type": "image",
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/drop-gold.a6503c5e.webp",
+        "fallback": "/assets-runtime/puzzling-potions/drop-gold.2e80ca76.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/drop-gold.a6503c5e.webp",
+        "/assets-runtime/puzzling-potions/drop-gold.2e80ca76.png"
+      ]
+    },
+    "match3.drop.seeds": {
+      "signature": "e1eaad0874f7c5a029a86dbb1a5bb6f8ed2de686e8082ff0449d9ab083b81df6",
+      "item": {
+        "type": "image",
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/drop-seeds.c8ef043a.webp",
+        "fallback": "/assets-runtime/puzzling-potions/drop-seeds.c58462da.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/drop-seeds.c8ef043a.webp",
+        "/assets-runtime/puzzling-potions/drop-seeds.c58462da.png"
+      ]
+    },
+    "match3.fx.clearBurst": {
+      "signature": "f4affcc3d0576a96f0af708d9e2fd05278a83bc9ec05ece84c6f4c47e43dab96",
+      "item": {
+        "type": "image",
+        "width": 256,
+        "height": 256,
+        "src": "/assets-runtime/puzzling-potions/fx-clear-burst.f632ad49.webp",
+        "fallback": "/assets-runtime/puzzling-potions/fx-clear-burst.3f118e7e.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/fx-clear-burst.f632ad49.webp",
+        "/assets-runtime/puzzling-potions/fx-clear-burst.3f118e7e.png"
+      ]
+    },
+    "match3.piece.dragon": {
+      "signature": "b9b334469d9c4dc874ce0eab9e928764170acbad994b5dfdc1b8f75194019146",
+      "item": {
+        "type": "image",
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/piece-dragon.3e52d8bc.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-dragon.a00c6a2d.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/piece-dragon.3e52d8bc.webp",
+        "/assets-runtime/puzzling-potions/piece-dragon.a00c6a2d.png"
       ]
     },
     "match3.piece.frog": {
-      "signature": "51f275f4b3671104b239949e0ac045e0d9f00bf523b6a08725be9ee51cffdc25",
+      "signature": "ab9a68a8df7bc6e7a846657e75c4f7ce16cfae98648872e909c15b1c8d9ab487",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/piece-frog.04c06c21.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-frog.1c842f57.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/piece-frog.fab1a25f.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-frog.761bc25c.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-frog.04c06c21.webp",
-        "/assets-runtime/puzzling-potions/piece-frog.1c842f57.png"
+        "/assets-runtime/puzzling-potions/piece-frog.fab1a25f.webp",
+        "/assets-runtime/puzzling-potions/piece-frog.761bc25c.png"
       ]
     },
     "match3.piece.newt": {
-      "signature": "b6d2cff91389b2fe92db04eef28da964d86b1d8a95a8edc587c753326b946631",
+      "signature": "e65520e8b02f629d42dcdfd4a63712a99f93a11e412e913d876e3644696c44fa",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/piece-newt.729ca2f4.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-newt.2f5110ce.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/piece-newt.89e75638.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-newt.53a0ecaf.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-newt.729ca2f4.webp",
-        "/assets-runtime/puzzling-potions/piece-newt.2f5110ce.png"
+        "/assets-runtime/puzzling-potions/piece-newt.89e75638.webp",
+        "/assets-runtime/puzzling-potions/piece-newt.53a0ecaf.png"
       ]
     },
     "match3.piece.snake": {
-      "signature": "d80833f3b3539c0915934d14fafd968bd3d66a57d2115202c774d6f47925612b",
+      "signature": "ba4652317635155debc7957445fb77fd0d1f8ebe6b630ff4ebfc0c7f34062558",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/piece-snake.b98c613f.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-snake.4e09997c.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/piece-snake.02e6d058.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-snake.ef6c04d7.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-snake.b98c613f.webp",
-        "/assets-runtime/puzzling-potions/piece-snake.4e09997c.png"
+        "/assets-runtime/puzzling-potions/piece-snake.02e6d058.webp",
+        "/assets-runtime/puzzling-potions/piece-snake.ef6c04d7.png"
       ]
     },
     "match3.piece.spider": {
-      "signature": "ae619ec1e31a010c4ee0ea413711972a29723ca69d1263288d43c2704ae42a4a",
+      "signature": "627a295000c55f115870631813f97bbedcc13bf769e6bea547a252e65836c5c7",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/piece-spider.243f8e8d.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-spider.159b2575.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/piece-spider.08e714d8.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-spider.8644c35a.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-spider.243f8e8d.webp",
-        "/assets-runtime/puzzling-potions/piece-spider.159b2575.png"
+        "/assets-runtime/puzzling-potions/piece-spider.08e714d8.webp",
+        "/assets-runtime/puzzling-potions/piece-spider.8644c35a.png"
       ]
     },
     "match3.piece.yeti": {
-      "signature": "00e1112a0a63ea8e90cce941c53e9b92a695a157d053a612b2dca4dfa724c0e3",
+      "signature": "9ae16837b7dee365b237c1f53f7e6f40a5c4598bfccd7f58d52ba6efd6573081",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/piece-yeti.53dee5a9.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-yeti.a4eeffcf.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/piece-yeti.77b07412.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-yeti.dec25c69.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-yeti.53dee5a9.webp",
-        "/assets-runtime/puzzling-potions/piece-yeti.a4eeffcf.png"
+        "/assets-runtime/puzzling-potions/piece-yeti.77b07412.webp",
+        "/assets-runtime/puzzling-potions/piece-yeti.dec25c69.png"
       ]
     },
     "match3.shelf.block": {
-      "signature": "aaabe6c75f469b52644216899472b7956718f06113c411e5ff3daa2ea707a0bc",
+      "signature": "f25003703518c6ba7e157d5346564a2011487efff24285e19241b7f67094bad9",
       "item": {
         "type": "image",
-        "width": 100,
-        "height": 100,
-        "src": "/assets-runtime/puzzling-potions/shelf-block.7cb4ad10.webp",
-        "fallback": "/assets-runtime/puzzling-potions/shelf-block.e14f3ae4.png"
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/puzzling-potions/shelf-block.4d27a394.webp",
+        "fallback": "/assets-runtime/puzzling-potions/shelf-block.dcaca562.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/shelf-block.7cb4ad10.webp",
-        "/assets-runtime/puzzling-potions/shelf-block.e14f3ae4.png"
+        "/assets-runtime/puzzling-potions/shelf-block.4d27a394.webp",
+        "/assets-runtime/puzzling-potions/shelf-block.dcaca562.png"
       ]
     },
     "match3.special.blast": {
-      "signature": "7e28a1e50e7dff3d2033329d490a343dcc4f17e15cd8bd1d1205634a242d83d4",
+      "signature": "f2dc9017dd9cb27116de6cf39344dc58bb9fd18b7480a2dda373c283e111ec19",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/special-blast.600a9d97.webp",
-        "fallback": "/assets-runtime/puzzling-potions/special-blast.4b32ae95.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/special-blast.f613376e.webp",
+        "fallback": "/assets-runtime/puzzling-potions/special-blast.1616e528.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/special-blast.600a9d97.webp",
-        "/assets-runtime/puzzling-potions/special-blast.4b32ae95.png"
+        "/assets-runtime/puzzling-potions/special-blast.f613376e.webp",
+        "/assets-runtime/puzzling-potions/special-blast.1616e528.png"
       ]
     },
     "match3.special.colour": {
-      "signature": "7cad385bb14d655b8834e2c62848c3355c66dc43f0e7e80138393c2ea842d5fd",
+      "signature": "4301f637ee57e76879ad38312558d9169ed2cab36501c06961618b6b7591c48b",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/special-colour.288234cc.webp",
-        "fallback": "/assets-runtime/puzzling-potions/special-colour.5e01af86.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/special-colour.1d3097ff.webp",
+        "fallback": "/assets-runtime/puzzling-potions/special-colour.53ebde22.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/special-colour.288234cc.webp",
-        "/assets-runtime/puzzling-potions/special-colour.5e01af86.png"
+        "/assets-runtime/puzzling-potions/special-colour.1d3097ff.webp",
+        "/assets-runtime/puzzling-potions/special-colour.53ebde22.png"
       ]
     },
     "match3.special.column": {
-      "signature": "3f66d57db93cbefea8b383226384393eb5f4270c405473572bf5a6c6236b0114",
+      "signature": "43a5f8e590b77a4924f09f7315fb5cb82eabe00eb2d4bfb99caa3b7daec9afb1",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/special-column.c6da2901.webp",
-        "fallback": "/assets-runtime/puzzling-potions/special-column.fe151a62.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/special-column.3e9d37b7.webp",
+        "fallback": "/assets-runtime/puzzling-potions/special-column.4ff2bbf1.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/special-column.c6da2901.webp",
-        "/assets-runtime/puzzling-potions/special-column.fe151a62.png"
+        "/assets-runtime/puzzling-potions/special-column.3e9d37b7.webp",
+        "/assets-runtime/puzzling-potions/special-column.4ff2bbf1.png"
       ]
     },
     "match3.special.row": {
-      "signature": "08b10b24f118da9849dc218f02845e849fd933732b4521478f6396e9b85cda6b",
+      "signature": "fbc14ef7b125495b245678394e222b2884db99b53ea03d9e9cc649ba18a9c6ee",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 150,
-        "src": "/assets-runtime/puzzling-potions/special-row.6b9d724c.webp",
-        "fallback": "/assets-runtime/puzzling-potions/special-row.9746cfa1.png"
+        "width": 144,
+        "height": 144,
+        "src": "/assets-runtime/puzzling-potions/special-row.63c296de.webp",
+        "fallback": "/assets-runtime/puzzling-potions/special-row.e0f3c032.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/special-row.6b9d724c.webp",
-        "/assets-runtime/puzzling-potions/special-row.9746cfa1.png"
+        "/assets-runtime/puzzling-potions/special-row.63c296de.webp",
+        "/assets-runtime/puzzling-potions/special-row.e0f3c032.png"
+      ]
+    },
+    "match3.ui.hudBar": {
+      "signature": "19aa304491c7c0bc1f5387ad673c9c23fe611bf5f6450968232306cd49e98466",
+      "item": {
+        "type": "image",
+        "width": 900,
+        "height": 160,
+        "src": "/assets-runtime/puzzling-potions/hud-bar.b39173fe.webp",
+        "fallback": "/assets-runtime/puzzling-potions/hud-bar.639551c3.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/hud-bar.b39173fe.webp",
+        "/assets-runtime/puzzling-potions/hud-bar.639551c3.png"
+      ]
+    },
+    "match3.ui.menuPanel": {
+      "signature": "8865f1dcb68b6ec0f90eb41da926f3ec1788f8c865ce1541c83d9588e79a0437",
+      "item": {
+        "type": "image",
+        "width": 620,
+        "height": 760,
+        "src": "/assets-runtime/puzzling-potions/menu-panel.5bc3b20a.webp",
+        "fallback": "/assets-runtime/puzzling-potions/menu-panel.a48ffe4d.png"
+      },
+      "written": [
+        "/assets-runtime/puzzling-potions/menu-panel.5bc3b20a.webp",
+        "/assets-runtime/puzzling-potions/menu-panel.a48ffe4d.png"
       ]
     },
     "pets.basic_bunny_body": {

@@ -98,6 +98,19 @@ const POTION_PIECE_ASSETS = {
   special_column: "match3.special.column",
   special_blast: "match3.special.blast",
   special_colour: "match3.special.colour",
+  drop_gold: "match3.drop.gold",
+  drop_seeds: "match3.drop.seeds",
+  drop_energy: "match3.drop.energy",
+};
+
+const MATCH3_ASSET_KEYS = {
+  backgroundTable: "match3.background.table",
+  boardFrame: "match3.board.frame",
+  boardCell: "match3.board.cell",
+  boardCellSelected: "match3.board.cellSelected",
+  uiHudBar: "match3.ui.hudBar",
+  uiMenuPanel: "match3.ui.menuPanel",
+  fxClearBurst: "match3.fx.clearBurst",
 };
 
 let graphicsManifest = null;
@@ -575,7 +588,7 @@ export {
   CROPS, MERGE_CHAINS, getMergePairResult, createPointerSession,
   BUBBO_COLORS, BUBBO_COLS, BUBBO_PALETTE, BUBBO_ROWS, generateBubboWave, getAssistedBubboAim, getBubboNeighbors, getBubboRowVisualOffset,
   BOARD_SIZE, DROP_ICONS, GEM_ICONS, MATCH3_TIMING, match3StepStartFrame, GRID, canPlaceBloxPiece, resolveAssetUrl,
-  GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, BUBBO_BUBBLE_ASSETS, POTION_PIECE_ASSETS,
+  GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, BUBBO_BUBBLE_ASSETS, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
   FARM_SOIL, PANEL, PANEL_2, FIELD, TEXT, MUTED, MINT, AMBER, CORAL, SKY, BUBBO_NUMBERS, BUBBO_BACKGROUND_THEMES,
   viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
   bloxAnchorCellFromDrag, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,

@@ -1,6 +1,6 @@
 # CC-GH Game Asset Sheet Brief
 
-Дата среза: 2026-05-02. Цель документа - дать подробное смысловое и техническое описание всех игровых поверхностей CC-GH, чтобы на его основе можно было генерировать полный список материалов для asset sheet, production art backlog или промпты для генерации графики.
+Дата среза: 2026-05-04. Цель документа - дать подробное смысловое и техническое описание всех игровых поверхностей CC-GH, чтобы на его основе можно было генерировать полный список материалов для asset sheet, production art backlog или промпты для генерации графики.
 
 ## Как читать этот документ
 
@@ -54,8 +54,8 @@ Generated runtime manifest:
 
 - `public/assets-runtime/manifest.json`
 - Генерируется `pnpm run assets:build`.
-- Текущий срез содержит 186 runtime assets.
-- Текущие Pixi bundles: `pixi.bubbo` = 8 ключей, `pixi.match3` = 11 ключей, `pixi.merge` = 71 ключ.
+- Текущий срез содержит 196 runtime assets.
+- Текущие Pixi bundles: `pixi.bubbo` = 8 ключей, `pixi.match3` = 21 ключ, `pixi.merge` = 71 ключ.
 - `pixi.merge` собирается из `public/games/gacha-merge/{backgrounds,ui,fx,items}` и должен оставаться lazy/deferred для startup, но активная Merge сцена force-load'ит свой bundle перед построением Pixi арта.
 
 Pipeline config:
@@ -155,12 +155,18 @@ Plant definitions:
 | `succulent` | Succulent | 16 | 5 | 4200 | 1.1 | 20 | 25 |
 | `pothos` | Pothos | 19 | 6 | 11000 | 1.9 | 32 | 34 |
 | `strawberry` | Strawberry | 22 | 7 | 26000 | 3.2 | 50 | 45 |
+| `bonsai` | Bonsai | 23 | 8 | 62000 | 5.1 | 78 | 58 |
+| `string_of_pearls` | String of Pearls | 24 | 9 | 145000 | 8 | 116 | 74 |
+| `orchid` | Orchid | 25 | 10 | 330000 | 12.4 | 170 | 92 |
+| `venus_flytrap` | Venus Flytrap | 26 | 11 | 740000 | 18.8 | 250 | 112 |
+| `moon_cactus` | Moon Cactus | 28 | 12 | 1600000 | 28.2 | 360 | 138 |
+| `fern` | Fern | 30 | 13 | 3400000 | 42 | 520 | 170 |
 
 Level unlock curve:
 
-- Max level: `24`.
-- Unlocks: level 1 `daisy`, level 4 `lavender`, level 7 `basil`, level 10 `rosemary`, level 13 `monstera`, level 16 `succulent`, level 19 `pothos`, level 22 `strawberry`.
-- Level rewards start at 35 gold on level 1 and end at 9300 gold at level 24 definition.
+- Max level: `30`.
+- Unlocks: level 1 `daisy`, level 4 `lavender`, level 7 `basil`, level 10 `rosemary`, level 13 `monstera`, level 16 `succulent`, level 19 `pothos`, level 22 `strawberry`, level 23 `bonsai`, level 24 `string_of_pearls`, level 25 `orchid`, level 26 `venus_flytrap`, level 28 `moon_cactus`, level 30 `fern`.
+- Level rewards start at 35 gold on level 1 and end at 27060 gold at level 30 definition.
 
 Quest groups:
 
@@ -181,6 +187,9 @@ Current stable files:
 - `public/games/garden-shelf/plants_sheet.png`
 - `public/games/garden-shelf/plants_sheet_clean.png`
 - `public/games/garden-shelf/sprites.json`
+- `assets-source/imagegen/garden-shelf/existing-8-transparent.png`
+- `assets-source/imagegen/garden-shelf/families/*-keyed.png`
+- `assets-source/imagegen/garden-shelf/families/*-transparent.png`
 
 Runtime keys:
 
@@ -189,6 +198,8 @@ Runtime keys:
 - `gardenShelf.sign`
 - `gardenShelf.bottomPlank`
 - `gardenShelf.settingsCog`
+
+Expanded plant generation uses isolated one-family sheets on the `#123456` chroma key. Keep the old eight plants in `existing-8-transparent.png`, generate only the six new families under `families/`, and let `scripts/generate-themed-match3-garden-assets.mjs` compose the final 14-plant runtime sheet.
 
 Manual manifest placeholders exist in `public/assets/manifest.json`, but the current Garden resolver does not read them:
 
@@ -204,7 +215,7 @@ Use generated runtime files or update `resolveGardenAssetPaths` before relying o
 
 Must-have art:
 
-- One transparent plant sprite sheet covering 8 plant types x 4 phases.
+- One transparent plant sprite sheet covering 14 plant types x 4 phases.
 - Shelf/backplate art that supports 5 horizontal shelves and 3 slots per shelf.
 - Empty-slot state, locked-slot/locked-shelf state, affordable/unaffordable state.
 - Garden sign with editable text area.
@@ -228,7 +239,7 @@ Optional polish:
 Technical constraints:
 
 - Plant sheet must preserve transparent background and stable frame indexing.
-- Current `getGardenSpriteStyle` reads `spriteData` from `src/games/garden-shelf/lib/sprites.ts`: full sheet `1672 x 941`, 32 explicit frame rectangles, 8 plant sprite indices x 4 phases. Do not replace with arbitrary cropped images unless resolver/frame data is changed.
+- Current `getGardenSpriteStyle` reads `spriteData` from `src/games/garden-shelf/lib/sprites.ts`: full sheet `1672 x 1645`, 56 generated frame rectangles, 14 plant sprite indices x 4 phases. Do not replace with arbitrary cropped images unless resolver/frame data is changed.
 - Shelf/sign/bottom plank are DOM `<img>` style assets, not Pixi textures.
 - Generated runtime entries are WebP-only; source PNG can stay in `public/games/garden-shelf/`.
 
@@ -433,13 +444,13 @@ Technical constraints:
 
 ### Смысл игры
 
-Gacha Merge is now framed as an Alchemy Table. Игрок добывает материалы из generator taps, gacha tokens или daily free drop, затем объединяет пары предметов на 7x9 table board. Обычные цепочки дают base materials, а специальные recipe combinations создают Alchemy items. Crafting gives Essence; Essence converts into Cozy Yard rewards through Exchange.
+Gacha Merge is now framed as an Alchemy Table. Игрок добывает материалы из generator taps, gacha tokens или daily free drop, затем объединяет пары предметов на 7x5 table board. Обычные цепочки дают base materials, а специальные recipe combinations создают Alchemy items. Crafting gives Essence; Essence converts into Cozy Yard rewards through Exchange.
 
 Главная фантазия: настольная алхимия, где материалы превращаются в рецепты, библиотека открытий заполняется, а результат связан с другими системами проекта.
 
 ### Игровой цикл
 
-1. Board содержит 7 строк x 9 колонок.
+1. Board содержит 7 строк x 5 колонок.
 2. Игрок выбирает fuel source: harvested crop или free tap.
 3. Wild generator spawns random material chain items.
 4. Gacha pull за tokens или daily drop добавляет случайный L0 item.
@@ -456,7 +467,7 @@ Gacha Merge is now framed as an Alchemy Table. Игрок добывает ма�
 - Scene builder: `buildMergeScene` in `src/game-runtime/scenes.js`.
 - State/config: `game-logic/merge-config.js`, `game-logic/merge-board-utils.js`.
 - Server authority: `routes/player.js` action cases plus legacy `routes/mergeRoutes.js`.
-- Board: `BOARD_ROWS = 7`, `BOARD_COLS = 9`.
+- Board: `BOARD_ROWS = 7`, `BOARD_COLS = 5`.
 - Main state: `snapshot.merge`.
 - Uses Farm harvested crops as generator fuel if no free taps are banked.
 - Can reward Cozy Yard goodies through `yardDrop` on some merge/gacha paths.
@@ -634,7 +645,7 @@ Generated runtime key pattern:
 
 Current checked-in starter art covers:
 
-- Full Alchemy Table background sized to fill Pixi canvas behind the 7x9 board.
+- Full Alchemy Table background sized to fill Pixi canvas behind the 7x5 board.
 - Board cell frame/tile states: empty, occupied, selected, and valid merge target.
 - Custom Alchemy Table HUD bar with Items, Recipes, Exchange, Essence, Mode, and Pause icons.
 - Action icons for generator/free taps, daily drop, token pull, and trash mode.
@@ -659,7 +670,8 @@ Technical constraints:
 - Transparent PNG or SVG are both accepted by pipeline.
 - If an item file exists in `public/games/gacha-merge/items`, it joins `pixi.merge`.
 - Manual manifest override wins over generated asset.
-- Background table art is rendered full-canvas; important board-safe area should remain centered and not fight the 7x9 board.
+- Background table art is rendered full-canvas; important board-safe area should remain centered and not fight the 7x5 board.
+- HUD and dock backing art must be empty decorative surfaces only: no baked scores, labels, filled bars, meter fills, or pre-rendered progress state.
 - Optional board/cell art is read from `gachaMerge.ui.boardFrame`, `cellEmpty`, `cellOccupied`, `cellSelected`, and `cellTarget`; if missing, the scene keeps procedural rounded cells.
 - HUD and action icons are rendered by live DOM controls and must read at `20-24px` without relying on fine internal detail.
 - Recipe and item drawers use `gachaMerge.ui.libraryPanel`; Exchange uses `gachaMerge.ui.exchangePanel`. Both are treated as 2:3 panel artwork with centered safe content and should not be stretched to arbitrary viewport ratios.
@@ -818,11 +830,9 @@ Special types:
 
 Drop token types:
 
-- `drop_gold`
-- `drop_seeds`
-- `drop_energy`
-
-Drop tokens currently use emoji fallback, not dedicated runtime art.
+- `drop_gold` -> `match3.drop.gold`
+- `drop_seeds` -> `match3.drop.seeds`
+- `drop_energy` -> `match3.drop.energy`
 
 ### Current runtime assets
 
@@ -843,9 +853,20 @@ Current runtime keys:
 - `match3.special.column`
 - `match3.special.colour`
 - `match3.special.row`
+- `match3.background.table`
+- `match3.board.frame`
+- `match3.board.cell`
+- `match3.board.cellSelected`
+- `match3.ui.hudBar`
+- `match3.ui.menuPanel`
+- `match3.fx.clearBurst`
+- `match3.drop.gold`
+- `match3.drop.seeds`
+- `match3.drop.energy`
 
 Additional source/reference assets exist in:
 
+- `assets-source/imagegen/match3/`
 - `assets-source/games/puzzling-potions/dist-source/`
 - `assets-source/games/puzzling-potions/raw-assets/`
 
@@ -874,7 +895,8 @@ Technical constraints:
 - Pixi sprite draw uses centered texture with transparent background.
 - Board is responsive; avoid fixed baked-in text inside board art.
 - Runtime uses `gameAsset(POTION_PIECE_ASSETS[type])`, so new art should preserve current keys unless code is updated.
-- Public Puzzling Potions files such as `background.png`, `game-header.png`, `logo-game.png`, `books-*.png`, `highlight.png`, and `shelf-corner.png` are legacy/reference surfaces in this app right now; the active generated Match-3 bundle is only the 11 keys listed above.
+- HUD/menu backing art must stay empty decorative surfaces only: no baked scores, labels, filled bars, meter fills, buttons, or pre-rendered progress state.
+- Public Puzzling Potions files such as `background.png`, `game-header.png`, `logo-game.png`, `books-*.png`, `highlight.png`, and `shelf-corner.png` are legacy/reference surfaces in this app right now; the active generated Match-3 bundle is the 21 keys listed above.
 
 ## 6. Bubbo Bubbo
 
@@ -1308,9 +1330,9 @@ Current audio manager can synthesize tones if no file is configured, but final a
 
 1. Gacha Merge polish pass: source-specific crop fuel visuals, invalid/drop-miss state, discovery silhouettes/cards, and reward-drop moment on top of the committed table/HUD/UI/item/FX starter package.
 2. Cozy Yard refinement: background safe areas, visitor pose consistency, goodie anchor clarity.
-3. Garden Shelf plant sheet: all 8 plants x 4 phases with clean transparent frames.
+3. Garden Shelf plant sheet: all 14 plants x 4 phases with clean transparent frames.
 4. Bubbo complete sheet: include berry parity and cleaner cannon/laser assets.
-5. Match-3 drop token art: `drop_gold`, `drop_seeds`, `drop_energy`.
+5. Match-3 standalone asset polish: preserve the 21-key themed bundle and keep HUD/menu backplates free of baked gameplay state.
 
 ### Priority 2 - procedural-to-art upgrades
 

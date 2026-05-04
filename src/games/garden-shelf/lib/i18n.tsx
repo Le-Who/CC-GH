@@ -113,6 +113,12 @@ const translations = {
     'plant.succulent': 'Succulent',
     'plant.pothos': 'Pothos',
     'plant.strawberry': 'Strawberry',
+    'plant.bonsai': 'Bonsai',
+    'plant.string_of_pearls': 'String of Pearls',
+    'plant.orchid': 'Orchid',
+    'plant.venus_flytrap': 'Venus Flytrap',
+    'plant.moon_cactus': 'Moon Cactus',
+    'plant.fern': 'Fern',
   },
   ru: {
     'garden.defaultName': 'Мой сад',
@@ -215,6 +221,12 @@ const translations = {
     'plant.succulent': 'Суккулент',
     'plant.pothos': 'Потос',
     'plant.strawberry': 'Клубника',
+    'plant.bonsai': 'Бонсай',
+    'plant.string_of_pearls': 'Крестовник Роули',
+    'plant.orchid': 'Орхидея',
+    'plant.venus_flytrap': 'Венерина мухоловка',
+    'plant.moon_cactus': 'Лунный кактус',
+    'plant.fern': 'Папоротник',
   },
 } satisfies Record<GardenLanguage, Record<string, string>>;
 

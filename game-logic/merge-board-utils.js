@@ -8,11 +8,8 @@
 
 import { normalizeMergeItem } from "./merge-config.js";
 
-export const BOARD_ROWS = 9;
-export const BOARD_COLS = 7;
-
-const LEGACY_WIDE_ROWS = 7;
-const LEGACY_WIDE_COLS = 9;
+export const BOARD_ROWS = 7;
+export const BOARD_COLS = 5;
 
 export function createEmptyMergeBoard() {
   return Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
@@ -26,32 +23,33 @@ function normalizeBoardItem(item, cache) {
   return normalized ? { ...normalized } : null;
 }
 
-function isLegacyWideBoard(board) {
-  if (!Array.isArray(board)) return false;
-  if (board.length !== LEGACY_WIDE_ROWS) return false;
-  return board.some((row) => Array.isArray(row) && row.length > BOARD_COLS);
-}
-
 function normalizeBoardShape(board) {
   const next = createEmptyMergeBoard();
   const normalizedItems = new Map();
   if (!Array.isArray(board)) return next;
+  const overflow = [];
 
-  if (isLegacyWideBoard(board)) {
-    for (let r = 0; r < Math.min(board.length, LEGACY_WIDE_ROWS); r += 1) {
-      const row = Array.isArray(board[r]) ? board[r] : [];
-      for (let c = 0; c < Math.min(row.length, LEGACY_WIDE_COLS); c += 1) {
-        if (c >= BOARD_ROWS || r >= BOARD_COLS) continue;
-        next[c][r] = normalizeBoardItem(row[c], normalizedItems);
+  for (let r = 0; r < board.length; r += 1) {
+    const row = Array.isArray(board[r]) ? board[r] : [];
+    for (let c = 0; c < row.length; c += 1) {
+      const item = normalizeBoardItem(row[c], normalizedItems);
+      if (!item) continue;
+      if (r < BOARD_ROWS && c < BOARD_COLS && !next[r][c]) {
+        next[r][c] = item;
+      } else {
+        overflow.push(item);
       }
     }
-    return next;
   }
 
-  for (let r = 0; r < Math.min(board.length, BOARD_ROWS); r += 1) {
-    const row = Array.isArray(board[r]) ? board[r] : [];
-    for (let c = 0; c < Math.min(row.length, BOARD_COLS); c += 1) {
-      next[r][c] = normalizeBoardItem(row[c], normalizedItems);
+  if (overflow.length) {
+    let index = 0;
+    for (let r = 0; r < BOARD_ROWS; r += 1) {
+      for (let c = 0; c < BOARD_COLS; c += 1) {
+        if (next[r][c] || index >= overflow.length) continue;
+        next[r][c] = overflow[index];
+        index += 1;
+      }
     }
   }
   return next;

@@ -235,6 +235,39 @@ describe("asset runtime pipeline", () => {
     assert.equal(entriesByKey.get("gachaMerge.items.seed")?.bundle, "pixi.merge");
   });
 
+  it("maps standalone Match-3 board, HUD, drop, and FX art into the Match-3 Pixi bundle", async () => {
+    const root = await makeTempRoot();
+    const match3Files = [
+      "background-table.png",
+      "board-frame.png",
+      "cell-empty.png",
+      "cell-selected.png",
+      "hud-bar.png",
+      "menu-panel.png",
+      "fx-clear-burst.png",
+      "drop-gold.png",
+      "drop-seeds.png",
+      "drop-energy.png",
+    ];
+
+    for (const fileName of match3Files) {
+      await writePixelPng(path.join(root, "public/games/puzzling-potions/images", fileName));
+    }
+
+    const entriesByKey = new Map((await loadAssetPipelineEntries(root)).map((assetEntry) => [assetEntry.key, assetEntry]));
+
+    assert.equal(entriesByKey.get("match3.background.table")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.board.frame")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.board.cell")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.board.cellSelected")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.ui.hudBar")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.ui.menuPanel")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.fx.clearBurst")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.drop.gold")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.drop.seeds")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.get("match3.drop.energy")?.bundle, "pixi.match3");
+  });
+
   it("reuses unchanged generated raster assets across clean builds", async () => {
     const root = await makeTempRoot();
     const entries = [

@@ -80,6 +80,16 @@ async function collectPixiEntries(rootDir) {
     entry("match3.special.column", "public/games/puzzling-potions/images/special-column.png", "puzzling-potions", "pixi.match3"),
     entry("match3.special.colour", "public/games/puzzling-potions/images/special-colour.png", "puzzling-potions", "pixi.match3"),
     entry("match3.special.row", "public/games/puzzling-potions/images/special-row.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.background.table", "public/games/puzzling-potions/images/background-table.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.board.frame", "public/games/puzzling-potions/images/board-frame.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.board.cell", "public/games/puzzling-potions/images/cell-empty.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.board.cellSelected", "public/games/puzzling-potions/images/cell-selected.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.ui.hudBar", "public/games/puzzling-potions/images/hud-bar.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.ui.menuPanel", "public/games/puzzling-potions/images/menu-panel.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.fx.clearBurst", "public/games/puzzling-potions/images/fx-clear-burst.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.drop.gold", "public/games/puzzling-potions/images/drop-gold.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.drop.seeds", "public/games/puzzling-potions/images/drop-seeds.png", "puzzling-potions", "pixi.match3"),
+    entry("match3.drop.energy", "public/games/puzzling-potions/images/drop-energy.png", "puzzling-potions", "pixi.match3"),
   ];
 
   return existingEntries(rootDir, pixiEntries);

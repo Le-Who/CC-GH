@@ -13,6 +13,7 @@ import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { selectMatch3InitialRun } from "./selectMatch3Run.js";
 import "./i18n.js";
+import "./match3.css";
 const MATCH3_MODES = [
   { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
   { id: "timed", labelKey: "match3.mode.timed", hintKey: "match3.mode.timedHint" },
@@ -250,10 +251,13 @@ export default function Match3Game() {
     <GameShell
       gameId="match3"
       phase={isPlaying ? "playing" : gameActive ? "paused" : "menu"}
-      skin="cycle"
+      skin="potion"
+      className="match3-shell"
+      overlayClassName="match3-menu-overlay"
       hud={(
         <GamePlayHud
           gameId="match3"
+          className="match3-scene-hud"
           title={t("match3.title")}
           subtitle={`${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
           stats={[

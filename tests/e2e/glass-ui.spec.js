@@ -70,12 +70,44 @@ test.describe("Glass UI rollout smoke", () => {
     expect(Math.max(...samples), `${label} should not keep a light panel background in dark mode`).toBeLessThan(150);
   }
 
+  async function expectPotionSurface(page, locator, label, testInfo) {
+    await expect(locator).toBeVisible();
+    await page.waitForTimeout(80);
+    const surface = await locator.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const computed = window.getComputedStyle(node);
+      const before = window.getComputedStyle(node, "::before");
+      return {
+        x: rect.x,
+        width: rect.width,
+        height: rect.height,
+        backgroundImage: before.backgroundImage,
+        backdrop: computed.backdropFilter || computed.webkitBackdropFilter || "",
+      };
+    });
+    const viewport = page.viewportSize();
+    expect(viewport, `${label} has a viewport`).not.toBeNull();
+    expect(surface.x, `${label} left edge stays inside viewport`).toBeGreaterThanOrEqual(0);
+    expect(surface.x + surface.width, `${label} right edge stays inside viewport`).toBeLessThanOrEqual(viewport.width + 1);
+    expect(surface.height, `${label} keeps readable height`).toBeGreaterThan(42);
+    expect(surface.backgroundImage, `${label} uses themed potion art`).toContain("/games/puzzling-potions/images/");
+    expect(surface.backdrop, `${label} should not use the shared glass blur`).toMatch(/^$|none/);
+    await page.screenshot({
+      path: testInfo.outputPath(`${label.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`),
+      fullPage: false,
+    });
+  }
+
   async function pauseAndCheck(page, label, testInfo, shellId = null) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
     const overlay = shellId
       ? page.locator(`[data-game-shell="${shellId}"] .game-menu-overlay`)
       : page.locator(".game-menu-overlay").last();
-    await expectReadableGlass(page, overlay, `${label} pause menu`, testInfo);
+    if (shellId === "match3") {
+      await expectPotionSurface(page, overlay, `${label} pause menu`, testInfo);
+    } else {
+      await expectReadableGlass(page, overlay, `${label} pause menu`, testInfo);
+    }
   }
 
   async function exitToHub(page) {
@@ -84,7 +116,7 @@ test.describe("Glass UI rollout smoke", () => {
     await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
   }
 
-  test("mobile menus and live HUDs share the glass surface", async ({ page }, testInfo) => {
+  test("mobile menus and live HUDs keep their expected visual surfaces", async ({ page }, testInfo) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width: 420, height: 680 });
     await boot(page);
@@ -118,7 +150,11 @@ test.describe("Glass UI rollout smoke", () => {
       }
       await page.waitForTimeout(260);
       if (game.start) {
-        await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
+        if (game.id === "match3") {
+          await expectPotionSurface(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
+        } else {
+          await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
+        }
         await page.getByRole("button", { name: game.start }).click();
       } else {
         await expect(page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay:visible`)).toHaveCount(0);
@@ -130,6 +166,8 @@ test.describe("Glass UI rollout smoke", () => {
         await expectDarkUiSurface(page.locator(".merge-scene-drawer"), "Merge scene drawer");
         await expectDarkUiSurface(page.locator(".merge-exchange-offer").first(), "Merge exchange offer");
         await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
+      } else if (game.id === "match3") {
+        await expectPotionSurface(page, page.locator(`[data-game-shell="${game.id}"] .match3-scene-hud`), `${game.label} live HUD`, testInfo);
       } else {
         await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       }

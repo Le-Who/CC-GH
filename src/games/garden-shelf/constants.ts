@@ -48,7 +48,21 @@ export {
   toGardenGoldDisplayValue,
 };
 
-export type PlantType = 'daisy' | 'lavender' | 'basil' | 'rosemary' | 'monstera' | 'succulent' | 'pothos' | 'strawberry';
+export type PlantType =
+  | 'daisy'
+  | 'lavender'
+  | 'basil'
+  | 'rosemary'
+  | 'monstera'
+  | 'succulent'
+  | 'pothos'
+  | 'strawberry'
+  | 'bonsai'
+  | 'string_of_pearls'
+  | 'orchid'
+  | 'venus_flytrap'
+  | 'moon_cactus'
+  | 'fern';
 
 export interface PlantDefinition {
   id: PlantType;
@@ -79,6 +93,12 @@ const PLANT_ICONS: Record<PlantType, React.ElementType> = {
   succulent: Clover,
   pothos: Leaf,
   strawberry: Flower,
+  bonsai: Sprout,
+  string_of_pearls: Clover,
+  orchid: Flower,
+  venus_flytrap: Leaf,
+  moon_cactus: Flower,
+  fern: Leaf,
 };
 
 export const PLANT_TYPES: Record<PlantType, PlantDefinition> = Object.fromEntries(

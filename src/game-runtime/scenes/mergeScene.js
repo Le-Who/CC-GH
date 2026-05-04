@@ -37,6 +37,7 @@ import { loadRuntimeAssetManifest } from '../assetBundles.js';
 import { BOARD_COLS, BOARD_ROWS, createEmptyMergeBoard } from '../../../game-logic.js';
 
 const MERGE_TABLE_ART_ASPECT = 1536 / 1024;
+const MERGE_BOARD_FRAME_ASPECT = 896 / 1152;
 
 export function buildMergeScene(app, initial = {}) {
   const root = new Container();
@@ -360,13 +361,13 @@ export function buildMergeScene(app, initial = {}) {
     const board = merge.board || createEmptyMergeBoard();
     const cols = BOARD_COLS;
     const rows = BOARD_ROWS;
-    const reservedTop = reserveFromShellChrome(app, ".merge-scene-hud", 104);
+    const reservedTop = reserveFromShellChrome(app, ".merge-scene-hud", 88);
     const reservedBottom = reserveBottomFromShellChrome(app, ".merge-action-area", data.mergeBottomReserve || 176);
-    const fitted = fitGrid(app, cols, rows, 10, reservedBottom + 10, {
+    const fitted = fitGrid(app, cols, rows, 12, reservedBottom + 8, {
       reservedTop,
-      verticalAnchor: 0.62,
-      minCell: 30,
-      maxCell: 78,
+      verticalAnchor: 0.5,
+      minCell: 34,
+      maxCell: 82,
     });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;
@@ -415,8 +416,13 @@ export function buildMergeScene(app, initial = {}) {
     drawAlchemyTable(left, top, width, height, cell);
     const boardFrameAsset = mergeSceneAsset("ui", "boardFrame");
     if (boardFrameAsset) {
-      const framePad = Math.max(24, Math.min(cell * 1.25, viewWidth(app) - width - 12));
-      const frame = sprite(boardFrameAsset, left + width / 2, top + height / 2, height + framePad, width + framePad, 1);
+      const frameHeight = height + cell * 1.08;
+      const frameWidth = Math.max(width + cell * 1.05, frameHeight * MERGE_BOARD_FRAME_ASPECT);
+      if (app.canvas?.dataset) {
+        app.canvas.dataset.mergeBoardFrameWidth = String(Math.round(frameWidth * 100) / 100);
+        app.canvas.dataset.mergeBoardFrameHeight = String(Math.round(frameHeight * 100) / 100);
+      }
+      const frame = sprite(boardFrameAsset, left + width / 2, top + height / 2, frameHeight, frameWidth, 1);
       frame.rotation = Math.PI / 2;
       root.addChild(frame);
     } else {

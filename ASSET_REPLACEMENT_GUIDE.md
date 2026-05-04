@@ -128,10 +128,29 @@ Garden Shelf: public/games/garden-shelf/assets_*.png -> generated gardenShelf.* 
 Cozy Yard: public/games/companion-yard/{backgrounds,foods,goodies,visitors,companions}/ -> generated companionYard.* runtime keys
 Gacha Merge: public/games/gacha-merge/{backgrounds,ui,fx,items}/ -> generated gachaMerge.* runtime keys
 Bubbo: public/games/bubbo-bubbo/images/*.png and assets_bubbo_balls.png -> generated bubbo.* runtime keys listed in src/game-runtime/assetBundles.js
-Gem Crush: public/games/puzzling-potions/images/piece-*.png, shelf-block.png, special-*.png -> generated match3.* runtime keys listed in src/game-runtime/assetBundles.js
+Gem Crush / Match-3: public/games/puzzling-potions/images/{piece-*.png,shelf-block.png,special-*.png,background-table.png,board-frame.png,cell-empty.png,cell-selected.png,hud-bar.png,menu-panel.png,fx-clear-burst.png,drop-*.png} -> generated match3.* runtime keys listed in src/game-runtime/assetBundles.js
 ```
 
 Building Blox, Brain Blitz, and legacy Cozy Farm are still mostly procedural/DOM surfaces. Add proposed keys and resolver code before shipping new production art for those games.
+
+The current Garden Shelf and Match-3 revamp keeps image-generation provenance in project-specific folders and never in a mixed atlas:
+
+```text
+assets-source/imagegen/garden-shelf/existing-8-transparent.png
+assets-source/imagegen/garden-shelf/families/*-keyed.png
+assets-source/imagegen/garden-shelf/families/*-transparent.png
+assets-source/imagegen/match3/pieces-keyed.png
+assets-source/imagegen/match3/pieces-transparent.png
+assets-source/imagegen/match3/specials-drops-keyed.png
+assets-source/imagegen/match3/specials-drops-transparent.png
+assets-source/imagegen/match3/ui-keyed.png
+assets-source/imagegen/match3/ui-transparent.png
+assets-source/imagegen/match3/background-table-keyed.png
+assets-source/imagegen/match3/background-table-transparent.png
+```
+
+Run `node scripts/generate-themed-match3-garden-assets.mjs` after changing those sources. The script writes Garden runtime sheets and slices the Match-3 sheets into the 21 active `match3.*` files. HUD/backplate source art must stay empty decorative backing only: no baked score, labels, filled bars, meter fills, or pre-rendered progress state.
+The current image-generation key is `#123456`; keep keyed sources project-specific and remove it with hard alpha/no despill so plant flowers, pot accents, and Match-3 piece colors are not washed out.
 
 Recommended image formats:
 
@@ -178,7 +197,7 @@ public/games/gacha-merge/fx/recipeGlow.png
 public/games/gacha-merge/items/<live_item_id>.png
 ```
 
-The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.ui.hudBar`, `gachaMerge.ui.boardFrame`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`, and places any generated entries in `pixi.merge`. If a slot is absent, the scene keeps its procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; board/cell art should survive scaling across the 7x9 grid. HUD and action icons are rendered by DOM controls over generated art, so they need clean silhouettes at `20-24px`. Recipe/item drawers use `libraryPanel`, Exchange uses `exchangePanel`, and both panel surfaces are treated as 2:3 artwork with a centered safe content area; do not stretch panel art to arbitrary ratios. Bottom dock art sits behind live React controls, so keep it low-contrast under labels and buttons.
+The asset pipeline maps those files to stable keys such as `gachaMerge.background.table`, `gachaMerge.ui.hudBar`, `gachaMerge.ui.boardFrame`, `gachaMerge.fx.essenceOrb`, and `gachaMerge.items.seed`, and places any generated entries in `pixi.merge`. If a slot is absent, the scene keeps its procedural Alchemy Table fallback with colored tokens and level badges. Keep item icons square, transparent, and readable at `48x48`; board/cell art should survive scaling across the 7x5 grid. HUD and action icons are rendered by DOM controls over generated art, so they need clean silhouettes at `20-24px`. HUD/dock/panel backing art must be empty decorative surfaces only: no baked scores, labels, filled bars, meter fills, or pre-rendered progress state. Recipe/item drawers use `libraryPanel`, Exchange uses `exchangePanel`, and both panel surfaces are treated as 2:3 artwork with a centered safe content area; do not stretch panel art to arbitrary ratios. Bottom dock art sits behind live React controls, so keep it low-contrast under labels and buttons.
 
 ## Cozy Yard Assets
 

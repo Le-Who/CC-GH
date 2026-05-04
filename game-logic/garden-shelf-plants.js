@@ -11,6 +11,12 @@ export const PLANT_TYPES = {
   succulent: { id: "succulent", name: "Succulent", baseCost: 4200, baseProduction: 1.1, baseClick: 20, baseXp: 25, basePassiveXp: 0.2, color: "text-lime-400", spriteIndex: 5 },
   pothos: { id: "pothos", name: "Pothos", baseCost: 11000, baseProduction: 1.9, baseClick: 32, baseXp: 34, basePassiveXp: 0.32, color: "text-green-400", spriteIndex: 6 },
   strawberry: { id: "strawberry", name: "Strawberry", baseCost: 26000, baseProduction: 3.2, baseClick: 50, baseXp: 45, basePassiveXp: 0.5, color: "text-red-400", spriteIndex: 7 },
+  bonsai: { id: "bonsai", name: "Bonsai", baseCost: 62000, baseProduction: 5.1, baseClick: 78, baseXp: 58, basePassiveXp: 0.72, color: "text-cyan-400", spriteIndex: 8 },
+  string_of_pearls: { id: "string_of_pearls", name: "String of Pearls", baseCost: 145000, baseProduction: 8, baseClick: 116, baseXp: 74, basePassiveXp: 1, color: "text-emerald-300", spriteIndex: 9 },
+  orchid: { id: "orchid", name: "Orchid", baseCost: 330000, baseProduction: 12.4, baseClick: 170, baseXp: 92, basePassiveXp: 1.36, color: "text-fuchsia-300", spriteIndex: 10 },
+  venus_flytrap: { id: "venus_flytrap", name: "Venus Flytrap", baseCost: 740000, baseProduction: 18.8, baseClick: 250, baseXp: 112, basePassiveXp: 1.82, color: "text-lime-300", spriteIndex: 11 },
+  moon_cactus: { id: "moon_cactus", name: "Moon Cactus", baseCost: 1600000, baseProduction: 28.2, baseClick: 360, baseXp: 138, basePassiveXp: 2.42, color: "text-orange-300", spriteIndex: 12 },
+  fern: { id: "fern", name: "Fern", baseCost: 3400000, baseProduction: 42, baseClick: 520, baseXp: 170, basePassiveXp: 3.2, color: "text-green-300", spriteIndex: 13 },
 };
 
 function formatDisplayNumber(value, fractionDigits = 0) {

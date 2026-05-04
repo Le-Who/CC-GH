@@ -71,7 +71,9 @@ import {
   formatGardenGoldAmount,
   formatGardenRate,
   getPassiveXpRate,
+  getPlantUnlockLevel,
   getProduction,
+  getUnlockedPlantIds,
 } from "../game-logic/garden-shelf-plants.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
 import { applyAction, applyActionWithReceipt, buildSnapshot } from "../routes/player.js";
@@ -381,9 +383,9 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(result.status, 200);
     assert.equal(garden.totalGoldEarned, 0);
     assert.equal(garden.economyVersion, GARDEN_ECONOMY_VERSION);
-    assert.equal(garden.level, 24);
+    assert.equal(garden.level, 30);
     assert.equal(garden.xp, 0);
-    assert.equal(garden.xpRequired, getGardenXpRequired(24));
+    assert.equal(garden.xpRequired, getGardenXpRequired(30));
     assert.equal(garden.levelReady, false);
     assert.equal(garden.shelvesUnlocked, 5);
     assert.equal(garden.plants[0].type, "daisy");
@@ -394,6 +396,61 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(garden.plants[0].phaseProgress, 86400000);
     assert.equal(garden.offlineEarnings, null);
     assert.equal(garden.offlineXp, null);
+  });
+
+  it("keeps the expanded Garden Shelf plant catalog unlockable and server-syncable", async () => {
+    const expectedPlantIds = [
+      "daisy",
+      "lavender",
+      "basil",
+      "rosemary",
+      "monstera",
+      "succulent",
+      "pothos",
+      "strawberry",
+      "bonsai",
+      "string_of_pearls",
+      "orchid",
+      "venus_flytrap",
+      "moon_cactus",
+      "fern",
+    ];
+
+    assert.deepEqual(Object.keys(PLANT_TYPES), expectedPlantIds);
+    assert.deepEqual(
+      Object.values(PLANT_TYPES).map((plant) => plant.spriteIndex),
+      expectedPlantIds.map((_plantId, index) => index),
+    );
+    assert.equal(getPlantUnlockLevel("bonsai"), 23);
+    assert.equal(getPlantUnlockLevel("fern"), 30);
+    assert.deepEqual(getUnlockedPlantIds(30), expectedPlantIds);
+
+    const p = createDefaultPlayer("garden-expanded-plants", "Garden");
+    const result = await applyAction(p, "garden.sync", {
+      state: {
+        economyVersion: GARDEN_ECONOMY_VERSION,
+        level: 30,
+        xp: 0,
+        xpRequired: getGardenXpRequired(30),
+        levelReady: false,
+        shelvesUnlocked: 5,
+        plants: [
+          {
+            id: "plant-venus-flytrap",
+            type: "venus_flytrap",
+            level: 2,
+            shelfIndex: 4,
+            spotIndex: 1,
+            phase: 3,
+            phaseProgress: 0,
+          },
+        ],
+      },
+    });
+
+    assert.equal(result.status, 200);
+    assert.equal(result.body.snapshot.garden.level, 30);
+    assert.equal(result.body.snapshot.garden.plants[0].type, "venus_flytrap");
   });
 
   it("marks legacy Garden progress for explicit economy reset", () => {
