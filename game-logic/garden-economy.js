@@ -5,7 +5,7 @@ export const GARDEN_STARTER_GOLD = 120;
 export const GARDEN_OFFLINE_CAP_MS = 6 * 60 * 60 * 1000;
 export const GARDEN_OFFLINE_GOLD_RATIO = 0.35;
 export const GARDEN_OFFLINE_XP_RATIO = 0.25;
-export const GARDEN_TAP_REWARD_COOLDOWN_MS = 750;
+export const GARDEN_TAP_REWARD_COOLDOWN_MS = 500;
 export const GARDEN_MAX_LEVEL = 30;
 
 export const GARDEN_LEVELS = [

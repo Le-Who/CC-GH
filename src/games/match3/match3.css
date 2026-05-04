@@ -44,14 +44,10 @@
   animation: match3-hud-in 200ms ease-out both;
 }
 
-.game-play-hud.has-event-log.match3-scene-hud {
-  grid-template-columns: minmax(112px, 0.72fr) minmax(116px, 0.48fr) minmax(210px, 1fr) minmax(86px, auto);
-  grid-template-areas: "title events stats actions";
-}
-
-.game-play-hud.has-event-log.match3-scene-hud:has(.game-play-event-log[data-empty="true"]) {
-  grid-template-columns: minmax(112px, 0.76fr) minmax(214px, 1fr) minmax(86px, auto);
+.game-play-hud.match3-scene-hud {
+  grid-template-columns: minmax(112px, 0.74fr) minmax(240px, 1fr) minmax(86px, auto);
   grid-template-areas: "title stats actions";
+  align-items: center;
 }
 
 .match3-scene-hud .game-play-title {
@@ -75,15 +71,6 @@
   text-shadow: 0 2px 0 rgba(65, 34, 19, 0.45);
 }
 
-.match3-scene-hud .game-play-event-log {
-  grid-area: events;
-  width: min(140px, 100%);
-}
-
-.match3-scene-hud .game-play-event-log[data-empty="true"] {
-  display: none;
-}
-
 .match3-scene-hud .game-play-stats {
   grid-area: stats;
   width: 100%;
@@ -105,8 +92,7 @@
   background: rgba(33, 23, 22, 0.58);
 }
 
-.match3-scene-hud .game-play-stats strong,
-.match3-scene-hud .game-play-event-log strong {
+.match3-scene-hud .game-play-stats strong {
   color: var(--match3-amber);
 }
 
@@ -138,6 +124,15 @@
   color: var(--match3-ink);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+.game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
+  width: min(390px, calc(100% - 18px));
+  aspect-ratio: 620 / 700;
+  max-height: min(82dvh, calc(100% - 18px));
+  align-content: center;
+  gap: 12px;
+  padding: clamp(64px, 14%, 84px) clamp(40px, 9%, 56px) clamp(48px, 9%, 62px);
 }
 
 .match3-menu-overlay::before {
@@ -221,6 +216,27 @@
   background: rgba(25, 14, 12, 0.22);
 }
 
+.match3-compact-pause-card {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.match3-compact-pause-card > span {
+  color: var(--match3-mint);
+  font-size: 0.7rem;
+  font-weight: 1000;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.match3-compact-pause-card > strong {
+  color: var(--match3-ink);
+  font-size: clamp(1.15rem, 4.4vw, 1.55rem);
+  line-height: 1;
+  text-shadow: 0 2px 0 rgba(65, 34, 19, 0.45);
+}
+
 .match3-menu-overlay .mode-grid button {
   position: relative;
   min-height: 82px;
@@ -266,8 +282,7 @@
 }
 
 @media (max-width: 560px) {
-  .game-play-hud.has-event-log.match3-scene-hud,
-  .game-play-hud.has-event-log.match3-scene-hud:has(.game-play-event-log[data-empty="true"]) {
+  .game-play-hud.match3-scene-hud {
     width: calc(100vw - 12px);
     min-height: 74px;
     grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
@@ -275,10 +290,6 @@
       "title actions"
       "stats stats";
     padding: 8px 10px;
-  }
-
-  .match3-scene-hud .game-play-event-log {
-    display: none;
   }
 
   .match3-scene-hud .game-play-title {
@@ -319,6 +330,11 @@
     width: min(390px, calc(100% - 14px));
     padding: 58px 32px 32px;
     overflow: auto;
+  }
+
+  .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
+    width: min(360px, calc(100% - 14px));
+    padding: 60px 34px 42px;
   }
 
   .match3-menu-overlay .mode-grid {

@@ -1933,6 +1933,78 @@
         "/assets-runtime/garden-shelf/assets_garden_bottom_plank.6c819bbc.webp"
       ]
     },
+    "gardenShelf.fx.care-sprout": {
+      "signature": "ebce9488a59932903d6a833b84763614238ff532daab389525d8ca9496ecca00",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/care-sprout.b3c99c63.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/care-sprout.b3c99c63.webp"
+      ]
+    },
+    "gardenShelf.fx.coin-glint": {
+      "signature": "9a3b3dfe5b1b30806b63ccc29dec038d3df052def0c7c83debd8cc8f645b1bc4",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/coin-glint.055bd070.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/coin-glint.055bd070.webp"
+      ]
+    },
+    "gardenShelf.fx.gold-sparkle": {
+      "signature": "0c1b371395f55347394a2c55bcd894ac55ff27e85b0ea8d78128e13087c51e19",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/gold-sparkle.7485d4ec.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/gold-sparkle.7485d4ec.webp"
+      ]
+    },
+    "gardenShelf.fx.leaf-glint": {
+      "signature": "e672226826595f57e28038ece3f7ebd0fc7cdf33e7191c3d62185ad1279038a3",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/leaf-glint.cd3adb03.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/leaf-glint.cd3adb03.webp"
+      ]
+    },
+    "gardenShelf.fx.water-splash": {
+      "signature": "f8fd07b59094743458cdaa22ea5f9fcd281ac95679030e3a882ac6c1451d729a",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/water-splash.35c6e312.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/water-splash.35c6e312.webp"
+      ]
+    },
+    "gardenShelf.fx.xp-leaf-sparkle": {
+      "signature": "aae79bd59f01f1ecfb0007804fe7a9351f69eb9d76f5c9559ef353270e176438",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.dd71862c.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.dd71862c.webp"
+      ]
+    },
     "gardenShelf.settingsCog": {
       "signature": "b51a393baa33d7f9ed7fd0ce61f909f7ee218eef97061e5f943358cd7f4f0391",
       "item": {
@@ -2048,17 +2120,17 @@
       ]
     },
     "match3.board.frame": {
-      "signature": "bb3b27f9483b4ae077b00e1d310d6e4489a2e9a9a127ead3f3f6d53d8db75be3",
+      "signature": "286f38f81c40dae268bfe12dd8517de817dc647944a7edf9fda9c59a85850eca",
       "item": {
         "type": "image",
         "width": 720,
         "height": 720,
-        "src": "/assets-runtime/puzzling-potions/board-frame.198180ad.webp",
-        "fallback": "/assets-runtime/puzzling-potions/board-frame.3cdd8435.png"
+        "src": "/assets-runtime/puzzling-potions/board-frame.2efbd2b0.webp",
+        "fallback": "/assets-runtime/puzzling-potions/board-frame.bce477ff.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/board-frame.198180ad.webp",
-        "/assets-runtime/puzzling-potions/board-frame.3cdd8435.png"
+        "/assets-runtime/puzzling-potions/board-frame.2efbd2b0.webp",
+        "/assets-runtime/puzzling-potions/board-frame.bce477ff.png"
       ]
     },
     "match3.drop.energy": {
@@ -2118,87 +2190,87 @@
       ]
     },
     "match3.piece.dragon": {
-      "signature": "b9b334469d9c4dc874ce0eab9e928764170acbad994b5dfdc1b8f75194019146",
+      "signature": "9087fcfe53a997c61728b7637ebcc6185897b08c6cd6b303da3c7fbabbc5dce2",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-dragon.3e52d8bc.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-dragon.a00c6a2d.png"
+        "src": "/assets-runtime/puzzling-potions/piece-dragon.671ea44c.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-dragon.ce98cdaf.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-dragon.3e52d8bc.webp",
-        "/assets-runtime/puzzling-potions/piece-dragon.a00c6a2d.png"
+        "/assets-runtime/puzzling-potions/piece-dragon.671ea44c.webp",
+        "/assets-runtime/puzzling-potions/piece-dragon.ce98cdaf.png"
       ]
     },
     "match3.piece.frog": {
-      "signature": "ab9a68a8df7bc6e7a846657e75c4f7ce16cfae98648872e909c15b1c8d9ab487",
+      "signature": "66196d7c08599bce1fe12de9e9f12c679b2221eed258faad81e84a84be23f628",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-frog.fab1a25f.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-frog.761bc25c.png"
+        "src": "/assets-runtime/puzzling-potions/piece-frog.14dc1aa4.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-frog.320e54d5.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-frog.fab1a25f.webp",
-        "/assets-runtime/puzzling-potions/piece-frog.761bc25c.png"
+        "/assets-runtime/puzzling-potions/piece-frog.14dc1aa4.webp",
+        "/assets-runtime/puzzling-potions/piece-frog.320e54d5.png"
       ]
     },
     "match3.piece.newt": {
-      "signature": "e65520e8b02f629d42dcdfd4a63712a99f93a11e412e913d876e3644696c44fa",
+      "signature": "5847db900b2a049106ef4385c354abdf9a509420257b3dfb1f982813f338d5fd",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-newt.89e75638.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-newt.53a0ecaf.png"
+        "src": "/assets-runtime/puzzling-potions/piece-newt.7aa8d8db.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-newt.ffa95b9c.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-newt.89e75638.webp",
-        "/assets-runtime/puzzling-potions/piece-newt.53a0ecaf.png"
+        "/assets-runtime/puzzling-potions/piece-newt.7aa8d8db.webp",
+        "/assets-runtime/puzzling-potions/piece-newt.ffa95b9c.png"
       ]
     },
     "match3.piece.snake": {
-      "signature": "ba4652317635155debc7957445fb77fd0d1f8ebe6b630ff4ebfc0c7f34062558",
+      "signature": "9e6db6843a2aef4a6d86f1753c3278eae6c50a036e23aec8377557927d0234dc",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-snake.02e6d058.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-snake.ef6c04d7.png"
+        "src": "/assets-runtime/puzzling-potions/piece-snake.fc0bbc1b.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-snake.c7ea4de6.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-snake.02e6d058.webp",
-        "/assets-runtime/puzzling-potions/piece-snake.ef6c04d7.png"
+        "/assets-runtime/puzzling-potions/piece-snake.fc0bbc1b.webp",
+        "/assets-runtime/puzzling-potions/piece-snake.c7ea4de6.png"
       ]
     },
     "match3.piece.spider": {
-      "signature": "627a295000c55f115870631813f97bbedcc13bf769e6bea547a252e65836c5c7",
+      "signature": "de9f274519a60988f5ef5b9cc9d8c9d683896c95fa2c8b7e40f4ee428b720b9f",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-spider.08e714d8.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-spider.8644c35a.png"
+        "src": "/assets-runtime/puzzling-potions/piece-spider.2c57fa05.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-spider.8cdcfd8e.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-spider.08e714d8.webp",
-        "/assets-runtime/puzzling-potions/piece-spider.8644c35a.png"
+        "/assets-runtime/puzzling-potions/piece-spider.2c57fa05.webp",
+        "/assets-runtime/puzzling-potions/piece-spider.8cdcfd8e.png"
       ]
     },
     "match3.piece.yeti": {
-      "signature": "9ae16837b7dee365b237c1f53f7e6f40a5c4598bfccd7f58d52ba6efd6573081",
+      "signature": "e935bfebf672d85edf7d5d9b4ae83ce9a33f7c8edfe21e3aa6eb2a8a25419b16",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-yeti.77b07412.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-yeti.dec25c69.png"
+        "src": "/assets-runtime/puzzling-potions/piece-yeti.35298566.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-yeti.75a96a5d.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-yeti.77b07412.webp",
-        "/assets-runtime/puzzling-potions/piece-yeti.dec25c69.png"
+        "/assets-runtime/puzzling-potions/piece-yeti.35298566.webp",
+        "/assets-runtime/puzzling-potions/piece-yeti.75a96a5d.png"
       ]
     },
     "match3.shelf.block": {
@@ -2286,17 +2358,17 @@
       ]
     },
     "match3.ui.menuPanel": {
-      "signature": "8865f1dcb68b6ec0f90eb41da926f3ec1788f8c865ce1541c83d9588e79a0437",
+      "signature": "35086e5730557ef74f332f398db951ab607b4e6d5fa30cc5f3b038514c6e193c",
       "item": {
         "type": "image",
         "width": 620,
         "height": 760,
-        "src": "/assets-runtime/puzzling-potions/menu-panel.5bc3b20a.webp",
-        "fallback": "/assets-runtime/puzzling-potions/menu-panel.a48ffe4d.png"
+        "src": "/assets-runtime/puzzling-potions/menu-panel.c2408b6e.webp",
+        "fallback": "/assets-runtime/puzzling-potions/menu-panel.a75b72eb.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/menu-panel.5bc3b20a.webp",
-        "/assets-runtime/puzzling-potions/menu-panel.a48ffe4d.png"
+        "/assets-runtime/puzzling-potions/menu-panel.c2408b6e.webp",
+        "/assets-runtime/puzzling-potions/menu-panel.a75b72eb.png"
       ]
     },
     "pets.basic_bunny_body": {

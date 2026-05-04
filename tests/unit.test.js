@@ -349,7 +349,7 @@ describe("Garden Shelf shared gold actions", () => {
 
   it("keeps Garden Shelf display denomination separate from stored economy units", () => {
     assert.equal(GARDEN_GOLD_DISPLAY_MULTIPLIER, 100);
-    assert.equal(GARDEN_TAP_REWARD_COOLDOWN_MS, 750);
+    assert.equal(GARDEN_TAP_REWARD_COOLDOWN_MS, 500);
     assert.equal(formatGardenGoldAmount(25), "2,500");
     assert.equal(formatGardenGoldAmount(100), "10,000");
     assert.equal(formatGardenRate(0.035), "3.5");
@@ -907,6 +907,14 @@ describe("Cozy Yard player contracts", () => {
     assert.ok(cottage.activities.some((activity) => activity.layer === "front"));
   });
 
+  it("keeps Yard visual sizes as render-only catalog metadata", () => {
+    assert.deepEqual(YARD_GOODIES.yarn_mouse.visualSize, { width: 64, height: 54 });
+    assert.deepEqual(YARD_GOODIES.moss_rug.visualSize, { width: 156, height: 88 });
+    assert.ok(YARD_GOODIES.cardboard_cottage.visualSize.width > YARD_GOODIES.yarn_mouse.visualSize.width * 2);
+    assert.ok(YARD_GOODIES.moon_lamp.visualSize.height > YARD_GOODIES.yarn_mouse.visualSize.height);
+    assert.equal(YARD_GOODIES.fountain_bowl.capacity, 2);
+  });
+
   it("normalizes old active visitor snapshots with stable motion fields", () => {
     const now = 1_800_000_000_000;
     const normalized = normalizeYardState({
@@ -1014,6 +1022,31 @@ describe("Cozy Yard player contracts", () => {
     const largeSlotVisitors = result.activeVisitors.filter((visit) => visit.slotId === "large-1");
     assert.ok(largeSlotVisitors.length >= 2);
     assert.equal(new Set(largeSlotVisitors.map((visit) => visit.activityId)).size, largeSlotVisitors.length);
+  });
+
+  it("preserves visual pose anchors for centered visitor-to-goodie alignment", () => {
+    const start = 1_800_000_000_000;
+    const fountainActivities = getYardGoodieActivities(YARD_GOODIES.fountain_bowl);
+    const soakLeft = fountainActivities.find((activity) => activity.id === "soak-left");
+    assert.deepEqual(soakLeft.visualAnchor, { x: 48, y: 78 });
+
+    const motion = getVisitorMotion(
+      {
+        visitId: "visual-anchor-visit",
+        visitorId: "basil_turtle",
+        pose: "soak",
+        entryEdge: "left",
+        motionSeed: "visual-anchor",
+        arrivedAt: start,
+        leavesAt: start + 60 * 60 * 1000,
+      },
+      { x: 52, y: 62 },
+      soakLeft,
+      start + 30 * 60 * 1000,
+      { visitorInfo: YARD_VISITORS.basil_turtle, activityScale: 0.42 },
+    );
+
+    assert.deepEqual(motion.visualAnchor, { x: 48, y: 78 });
   });
 
   it("types Yard goodies as layable surfaces or movement blockers", () => {

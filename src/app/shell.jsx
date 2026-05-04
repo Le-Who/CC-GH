@@ -3,6 +3,7 @@ import { Check, Pause, Sparkles } from "lucide-react";
 import { audioManager } from "../services/audioManager.js";
 import { useAppI18n } from "./i18n.jsx";
 import { useGameEvents } from "../game-state/gameEvents.js";
+import { useEscapeDismiss } from "./useDismissableLayer.js";
 
 export function formatCount(value) {
   if (value == null) return "0";
@@ -124,8 +125,12 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
   );
 }
 
-export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "" }) {
+export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "", onDismiss = null }) {
+  const { t } = useAppI18n();
   const overlayRef = useRef(null);
+  const canDismissOverlay = phase !== "playing" && typeof onDismiss === "function";
+
+  useEscapeDismiss(canDismissOverlay, onDismiss);
 
   useEffect(() => {
     if (phase === "playing") return undefined;
@@ -143,6 +148,14 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
     >
       {children}
       {phase === "playing" && hud}
+      {canDismissOverlay && (
+        <button
+          type="button"
+          className="game-menu-dismiss"
+          aria-label={t("common.close")}
+          onClick={onDismiss}
+        />
+      )}
       {phase !== "playing" && (
         <aside
           key={`${gameId}-${phase}`}

@@ -1041,6 +1041,16 @@ button.stat-chip {
   pointer-events: none;
 }
 
+.game-shell .game-menu-dismiss {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+
 .telegram-app.immersive-mode .game-event-overlay {
   display: none;
 }

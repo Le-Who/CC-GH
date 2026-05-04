@@ -200,6 +200,7 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
       phase: "active",
       stationary: true,
       pinned: true,
+      visualAnchor: activity?.visualAnchor || null,
     };
   }
 
@@ -210,6 +211,7 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
       pose: "walk",
       phase: "entering",
       stationary: false,
+      visualAnchor: null,
     };
   }
 
@@ -220,6 +222,7 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
       pose: "walk",
       phase: "leaving",
       stationary: false,
+      visualAnchor: null,
     };
   }
 
@@ -238,5 +241,6 @@ export function getVisitorMotion(visit, anchor, activity, renderNow, options = {
     pose: visit.pose || activity?.pose || "sit",
     phase: "active",
     stationary,
+    visualAnchor: activity?.visualAnchor || null,
   };
 }

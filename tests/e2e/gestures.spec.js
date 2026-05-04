@@ -57,15 +57,15 @@ async function match3HudBoardMetrics(page) {
   const hud = page.locator('[data-game-shell="match3"] .game-play-hud');
   const eventSlot = page.locator('[data-game-shell="match3"] .game-play-event-log');
   await expect(hud).toBeVisible();
-  await expect(eventSlot).toBeAttached();
   const hudBox = await hud.boundingBox();
-  const eventBox = await eventSlot.boundingBox();
+  const eventCount = await eventSlot.count();
+  const eventBox = eventCount ? await eventSlot.boundingBox() : null;
   const board = await match3BoardLayout(page);
   expect(hudBox).not.toBeNull();
-  expect(eventBox).not.toBeNull();
   return {
     hud: { y: hudBox.y, height: hudBox.height },
-    eventSlot: { width: eventBox.width, height: eventBox.height },
+    eventSlot: eventBox ? { width: eventBox.width, height: eventBox.height } : null,
+    eventLogCount: eventCount,
     board,
   };
 }
@@ -222,9 +222,9 @@ test.describe("Pixi touch and drag interactions", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("Match-3 score events stay in a fixed HUD slot without resizing the board", async ({ page }, testInfo) => {
-    test.skip(!testInfo.project.use?.hasTouch, "HUD slot stability is verified through touch dispatch");
-    const pageErrors = await boot(page, "match3_event_slot");
+  test("Match-3 keeps the event log absent and board stable after scoring", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.use?.hasTouch, "HUD stability is verified through touch dispatch");
+    const pageErrors = await boot(page, "match3_no_event_log");
 
     await page.getByRole("button", { name: /Gems/ }).click();
     const initialSync = waitForMatch3Sync(page, 8000);
@@ -233,6 +233,7 @@ test.describe("Pixi touch and drag interactions", () => {
     await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
     await page.waitForTimeout(260);
     const before = await match3HudBoardMetrics(page);
+    expect(before.eventLogCount).toBe(0);
 
     const move = findValidMatch3Move(startBody?.payload?.savedModes?.classic?.board);
     expect(move).toBeTruthy();
@@ -250,11 +251,11 @@ test.describe("Pixi touch and drag interactions", () => {
       y: start.y + direction.y * before.board.cell * 2.35,
     });
     await expect(swapSync).resolves.toMatchObject({ action: "match3.syncMode" });
-    await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toContainText(/\+\d+/);
+    await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toHaveCount(0);
 
     const after = await match3HudBoardMetrics(page);
+    expect(after.eventLogCount).toBe(0);
     expect(Math.abs(after.hud.height - before.hud.height)).toBeLessThanOrEqual(1);
-    expect(Math.abs(after.eventSlot.height - before.eventSlot.height)).toBeLessThanOrEqual(1);
     expect(Math.abs(after.board.size - before.board.size)).toBeLessThanOrEqual(1);
     expect(Math.abs(after.board.top - before.board.top)).toBeLessThanOrEqual(1);
     expect(pageErrors).toEqual([]);

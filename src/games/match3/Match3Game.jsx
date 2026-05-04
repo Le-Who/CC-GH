@@ -10,7 +10,6 @@ import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
-import { useGameEvents } from "../../game-state/gameEvents.js";
 import { selectMatch3InitialRun } from "./selectMatch3Run.js";
 import "./i18n.js";
 import "./match3.css";
@@ -32,7 +31,6 @@ export default function Match3Game() {
   const snapshot = useSnapshot();
   const performAction = useAction();
   const exitToHub = useExitToHub();
-  const pushEvent = useGameEvents((store) => store.pushEvent);
   const { t } = useAppI18n();
   const [mode, setMode] = useState("classic");
   const [board, setBoard] = useState(() => generateBoard());
@@ -200,21 +198,13 @@ export default function Match3Game() {
       );
       haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
-      if (result.totalPoints > 0) {
-        pushEvent({
-          game: "match3",
-          title: result.combo > 1 ? t("match3.comboEvent", { combo: result.combo }) : t("match3.matchEvent"),
-          value: `+${result.totalPoints}`,
-          tone: result.combo > 1 ? "success" : "neutral",
-        });
-      }
       performAction("match3.syncMode", {
         game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
         savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: result.combo } },
       }, { silent: true, key: "match3.sync" });
       maybeEnd(nextMoves, nextScore);
     },
-    [board, combo, gameActive, inputLocked, mode, movesLeft, performAction, pushEvent, queueMatchAnimation, score, snapshot?.match3?.savedModes, t],
+    [board, combo, gameActive, inputLocked, mode, movesLeft, performAction, queueMatchAnimation, score, snapshot?.match3?.savedModes],
   );
 
   const onCell = useCallback(
@@ -253,10 +243,10 @@ export default function Match3Game() {
       phase={isPlaying ? "playing" : gameActive ? "paused" : "menu"}
       skin="potion"
       className="match3-shell"
-      overlayClassName="match3-menu-overlay"
+      overlayClassName={`match3-menu-overlay${activePause ? " match3-pause-compact" : ""}`}
+      onDismiss={activePause ? () => setPaused(false) : null}
       hud={(
         <GamePlayHud
-          gameId="match3"
           className="match3-scene-hud"
           title={t("match3.title")}
           subtitle={`${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
@@ -269,26 +259,17 @@ export default function Match3Game() {
         />
       )}
       overlay={(
-        <>
-          <div className="panel-header pause-panel-header">
-            <div>
+        activePause ? (
+          <>
+            <div className="match3-compact-pause-card" data-compact-pause="match3">
+              <span>{t("pause.paused")}</span>
               <strong>{t("match3.title")}</strong>
-              <span>{activePause ? t("pause.paused") : `${t("common.best")} ${snapshot?.match3?.highScore || 0} · ${t("common.combo")} ${combo || "-"}`}</span>
+              <div className="pause-status-line">
+                <span>{t("common.score")} <b>{score}</b></span>
+                <span>{mode === "timed" ? t("common.time") : t("common.moves")} <b>{movesLeft}</b></span>
+                <span>{t("common.combo")} <b>{combo || "-"}</b></span>
+              </div>
             </div>
-            {!activePause && <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>}
-          </div>
-          <PauseBrief
-            gameId="match3"
-            kicker={gameActive ? t("pause.paused") : t("pause.ready")}
-            title={gameActive ? t("pause.match3Frozen") : t("pause.match3Ready")}
-            body={gameActive ? t("pause.match3Intro") : t("pause.match3Choose")}
-            status={gameActive ? [
-              { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.moves") },
-              { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
-              { label: t("common.score"), value: score },
-            ] : []}
-          />
-          {activePause && (
             <div className="pause-action-stack">
               <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
               <div className="button-row">
@@ -297,7 +278,27 @@ export default function Match3Game() {
                 <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
             </div>
-          )}
+          </>
+        ) : (
+          <>
+            <div className="panel-header pause-panel-header">
+              <div>
+                <strong>{t("match3.title")}</strong>
+                <span>{`${t("common.best")} ${snapshot?.match3?.highScore || 0} · ${t("common.combo")} ${combo || "-"}`}</span>
+              </div>
+              <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>
+            </div>
+            <PauseBrief
+              gameId="match3"
+              kicker={gameActive ? t("pause.paused") : t("pause.ready")}
+              title={gameActive ? t("pause.match3Frozen") : t("pause.match3Ready")}
+              body={gameActive ? t("pause.match3Intro") : t("pause.match3Choose")}
+              status={gameActive ? [
+                { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.moves") },
+                { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
+                { label: t("common.score"), value: score },
+              ] : []}
+            />
           {!gameActive ? (
             <div className="mode-grid" data-mode-selector="match3">
               {MATCH3_MODES.map((item) => (
@@ -326,7 +327,8 @@ export default function Match3Game() {
               <Leaderboard entries={leaders} />
             </>
           )}
-        </>
+          </>
+        )
       )}
     >
       <PixiScene sceneKey="match3" sceneState={sceneState} />

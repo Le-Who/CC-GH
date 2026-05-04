@@ -35,6 +35,7 @@ import { AppI18nContext, appTranslate, useAppI18n } from "./app/i18n.jsx";
 import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
 import { Stat, formatCount } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
+import { useEscapeDismiss } from "./app/useDismissableLayer.js";
 import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
 
 const TAB_ICONS = { garden: Leaf, blox: Blocks, match3: Gem, merge: PackageOpen, bubbo: Sparkles, trivia: Bot, room: Home };
@@ -44,14 +45,20 @@ const TABS = VISIBLE_GAME_IDS.map((id) => ({ id, labelKey: GAME_REGISTRY[id].lab
 const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
 const UI_THEME_KEY = "game_hub_ui_theme";
 
-function readStoredUiTheme() {
-  if (typeof window === "undefined") return "light";
+function systemUiTheme() {
+  if (typeof window === "undefined") return "dark";
+  return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
+}
+
+function readUiThemePreference() {
+  if (typeof window === "undefined") return { theme: "dark", explicit: false };
   try {
     const value = window.localStorage.getItem(UI_THEME_KEY);
-    return value === "dark" ? "dark" : "light";
+    if (value === "dark" || value === "light") return { theme: value, explicit: true };
   } catch {
-    return "light";
+    // Fall back to system preference for the current session.
   }
+  return { theme: systemUiTheme(), explicit: false };
 }
 
 function AudioToggle() {
@@ -128,7 +135,7 @@ export default function App() {
   const [platform, setPlatform] = useState(null);
   const [config, setConfig] = useState(null);
   const [gardenLanguage, setGardenLanguage] = useState(() => getStoredGardenLanguage());
-  const [uiTheme, setUiTheme] = useState(() => readStoredUiTheme());
+  const [uiThemePreference, setUiThemePreference] = useState(() => readUiThemePreference());
   const [profileOpen, setProfileOpen] = useState(false);
   const [gardenLevelUpPending, setGardenLevelUpPending] = useState(false);
   const gardenLevelUpPendingRef = useRef(false);
@@ -136,21 +143,39 @@ export default function App() {
   const user = useMemo(() => getTelegramUser(), [platform]);
   const t = useCallback((key, vars) => appTranslate(gardenLanguage, key, vars), [gardenLanguage]);
   const i18nValue = useMemo(() => ({ language: gardenLanguage, t }), [gardenLanguage, t]);
+  const uiTheme = uiThemePreference.theme;
   const toggleUiTheme = useCallback(() => {
-    setUiTheme((value) => (value === "dark" ? "light" : "dark"));
+    setUiThemePreference((value) => ({
+      theme: value.theme === "dark" ? "light" : "dark",
+      explicit: true,
+    }));
   }, []);
   const closeProfile = useCallback(() => setProfileOpen(false), []);
   const exitToGarden = useCallback(() => setActiveTab("garden"), [setActiveTab]);
+  useEscapeDismiss(profileOpen, closeProfile);
 
   useEffect(() => {
     document.documentElement.dataset.uiTheme = uiTheme;
     document.documentElement.style.colorScheme = uiTheme;
-    try {
-      window.localStorage.setItem(UI_THEME_KEY, uiTheme);
-    } catch {
-      // Best effort only; the toggle still works for the current session.
+    if (uiThemePreference.explicit) {
+      try {
+        window.localStorage.setItem(UI_THEME_KEY, uiTheme);
+      } catch {
+        // Best effort only; the toggle still works for the current session.
+      }
     }
-  }, [uiTheme]);
+  }, [uiTheme, uiThemePreference.explicit]);
+
+  useEffect(() => {
+    if (uiThemePreference.explicit || typeof window === "undefined") return undefined;
+    const query = window.matchMedia?.("(prefers-color-scheme: light)");
+    if (!query) return undefined;
+    const applySystemTheme = () => {
+      setUiThemePreference((value) => (value.explicit ? value : { theme: systemUiTheme(), explicit: false }));
+    };
+    query.addEventListener?.("change", applySystemTheme);
+    return () => query.removeEventListener?.("change", applySystemTheme);
+  }, [uiThemePreference.explicit]);
 
   useEffect(() => {
     const cleanupUpdates = installUpdateManager();

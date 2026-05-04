@@ -12,15 +12,16 @@ import {
   SHELF_UNLOCK_COSTS,
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
-  WATER_COOLDOWN_MS,
   WATER_GROWTH_ACCELERATION_RATIO,
   GARDEN_ECONOMY_VERSION,
   GARDEN_OFFLINE_CAP_MS,
   GARDEN_OFFLINE_GOLD_RATIO,
   GARDEN_OFFLINE_XP_RATIO,
   getGardenTapCooldownMs,
+  getGardenWaterCooldownMs,
   getGardenLevelReward,
   getGardenXpRequired,
+  getMatureWaterReward,
 } from '../constants';
 import { useInterval } from './useInterval';
 import { createGardenEconomyState, shouldResetGardenEconomy } from '../../../../game-logic/garden-economy.js';
@@ -703,11 +704,20 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
   const waterPlant = (plantId: string) => {
      setState(prev => {
         const plant = prev.plants.find(p => p.id === plantId);
-        if (!plant || plant.phase === 3) return prev; // Cannot water fully grown plant, or maybe you can? Let's say it just works for growth.
+        if (!plant) return prev;
 
         const now = Date.now();
-        if (plant.lastWatered && now - plant.lastWatered < WATER_COOLDOWN_MS) {
+        if (plant.lastWatered && now - plant.lastWatered < getGardenWaterCooldownMs(plant.phase)) {
             return prev;
+        }
+
+        if (plant.phase === 3) {
+            const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
+            return applyGardenRewards({
+              ...prev,
+              dailyQuests: recordGardenDailyProgress(prev.dailyQuests, { waters: 1 }),
+              plants: prev.plants.map(p => p.id === plantId ? { ...p, lastWatered: now } : p),
+            }, getMatureWaterReward(def.baseClick, def.baseXp, plant.level));
         }
 
         const duration = PHASE_DURATIONS_MS[plant.phase];

@@ -96,12 +96,17 @@ async function collectPixiEntries(rootDir) {
 }
 
 async function collectGardenEntries(rootDir) {
+  const fxFiles = await walkFiles(rootDir, "public/games/garden-shelf/fx", PNG_EXTENSIONS);
   const gardenEntries = [
     entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
     entry("gardenShelf.shelf", "public/games/garden-shelf/assets_shelf.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
     entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
     entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
     entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
+    ...fxFiles.map((file) => {
+      const id = path.basename(file, path.extname(file));
+      return entry(`gardenShelf.fx.${id}`, file, "garden-shelf/fx", null, WEBP_ONLY_FORMATS);
+    }),
   ];
 
   return existingEntries(rootDir, gardenEntries);

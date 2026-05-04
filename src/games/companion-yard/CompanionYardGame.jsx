@@ -12,6 +12,7 @@ import {
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { audioManager } from "../../services/audioManager.js";
 import { useAppI18n } from "../../app/i18n.jsx";
+import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
 import "./i18n.js";
@@ -64,6 +65,35 @@ function costLabel(cost = {}, t = null) {
   if (cost.treats) parts.push(yardText(t, "yard.cost.treats", `${cost.treats} treats`, { count: cost.treats }));
   if (cost.shinyTreats) parts.push(yardText(t, "yard.cost.shiny", `${cost.shinyTreats} shiny`, { count: cost.shinyTreats }));
   return parts.length ? parts.join(" + ") : yardText(t, "yard.cost.free", "Free");
+}
+
+function costParts(cost = {}, t = null) {
+  const parts = [];
+  if (cost.treats) {
+    parts.push({
+      icon: "treats",
+      label: yardText(t, "yard.cost.treats", `${cost.treats} treats`, { count: cost.treats }),
+    });
+  }
+  if (cost.shinyTreats) {
+    parts.push({
+      icon: "shiny",
+      label: yardText(t, "yard.cost.shiny", `${cost.shinyTreats} shiny`, { count: cost.shinyTreats }),
+    });
+  }
+  return parts.length ? parts : [{ label: yardText(t, "yard.cost.free", "Free"), plain: true }];
+}
+
+function goodieStageStyle(position, goodie) {
+  const visualSize = goodie?.visualSize ?? {};
+  const width = Number(visualSize.width);
+  const height = Number(visualSize.height);
+  return {
+    left: `${position.x}%`,
+    top: `${position.y}%`,
+    ...(Number.isFinite(width) && width > 0 ? { "--yard-goodie-w": `${width}px` } : {}),
+    ...(Number.isFinite(height) && height > 0 ? { "--yard-goodie-h": `${height}px` } : {}),
+  };
 }
 
 function clamp(value, min, max) {
@@ -177,6 +207,36 @@ function YardCurrencyChip({ icon, label, value }) {
       <YardIcon name={icon} />
       <span>{label}</span>
       <strong>{value}</strong>
+    </div>
+  );
+}
+
+function YardPriceChip({ parts }) {
+  const priceParts = Array.isArray(parts) && parts.length ? parts : [{ label: "Free", plain: true }];
+  return (
+    <span className={`yard-price-chip${priceParts.every((part) => part.plain) ? " is-plain" : ""}`}>
+      {priceParts.map((part, index) => (
+        <span className={`yard-price-part${part.plain ? " is-plain" : ""}`} key={`${part.icon ?? "plain"}-${part.label}-${index}`}>
+          {part.icon ? <YardIcon name={part.icon} /> : null}
+          <b>{part.label}</b>
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function YardShopRow({ imageSrc, title, description, priceParts, children }) {
+  return (
+    <div className="yard-shop-row yard-shop-row-polished">
+      <img className="yard-shop-thumb" src={imageSrc} alt="" />
+      <div className="yard-shop-copy">
+        <strong>{title}</strong>
+        <small>{description}</small>
+      </div>
+      <YardPriceChip parts={priceParts} />
+      <div className="yard-row-actions">
+        {children}
+      </div>
     </div>
   );
 }
@@ -375,11 +435,16 @@ export default function CompanionYardGame() {
     setActiveScreen(null);
     setYardToolsOpen(false);
   }, []);
+  const closePlacement = useCallback(() => {
+    setPlacementDraft(null);
+  }, []);
+  useEscapeDismiss(!!activeScreen || yardToolsOpen, closeScreen);
+  useEscapeDismiss(!!placementDraft, closePlacement);
   const yardShellControls = useMemo(() => ({
     activeRun: false,
     openPanel: !!activeScreen || !!placementDraft,
-    closePanel: activeScreen ? closeScreen : placementDraft ? () => setPlacementDraft(null) : null,
-  }), [activeScreen, closeScreen, placementDraft]);
+    closePanel: activeScreen ? closeScreen : placementDraft ? closePlacement : null,
+  }), [activeScreen, closePlacement, closeScreen, placementDraft]);
   useCompanionYardShell(yardShellControls);
 
   const openScreen = useCallback((screen) => {
@@ -483,41 +548,56 @@ export default function CompanionYardGame() {
     setSoundEnabled(await audioManager.toggle());
   }, []);
 
+  const visitorVisualAnchor = (item) => {
+    const anchor = item.motion.visualAnchor || item.activity.visualAnchor || null;
+    if (anchor) return { x: anchor.x, y: anchor.y };
+    if (item.activity.kind === "lie") return { x: 50, y: 62 };
+    if (item.motion.stationary) return { x: 50, y: 84 };
+    return { x: 50, y: 92 };
+  };
+
   const renderPetLayer = (layer) => (
     <div className={`yard-pet-layer yard-pet-layer-${layer}`}>
-      {activeVisitorItems.filter((item) => (layer === "back" ? item.layer === "back" : item.layer !== "back")).map((item) => (
-        <button
-          type="button"
-          key={item.visit.visitId}
-          className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${item.activity.kind === "lie" ? " yard-visitor-lie" : ""}${item.motion.stationary ? " yard-visitor-stationary" : ""}${item.motion.pinned ? " yard-visitor-pinned" : ""}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
-          style={{
-            left: `${item.motion.x}%`,
-            top: `${item.motion.y}%`,
-            zIndex: item.zIndex,
-            "--visitor-facing": item.visit.facing === "left" ? -1 : 1,
-          }}
-          data-motion-x={item.motion.x.toFixed(2)}
-          data-motion-y={item.motion.y.toFixed(2)}
-          data-motion-phase={item.motion.phase}
-          data-motion-stationary={item.motion.stationary ? "true" : "false"}
-          data-slot-id={item.visit.slotId}
-          data-goodie-id={item.visit.goodieId}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (placementDraft) {
-              updatePlacementDraft(event);
-              return;
-            }
-            audioManager.play("tap");
-            setSelectedVisitId(item.visit.visitId);
-          }}
-          title={`${item.visitorInfo.name} · ${item.activity.pose}`}
-          aria-label={`${item.visitorInfo.name} visitor`}
-        >
-          <img src={assetPath("visitors", visitorAssetId(item.visitorInfo, item.motion.pose))} alt="" />
-          <b>{item.visitorInfo.name}</b>
-        </button>
-      ))}
+      {activeVisitorItems.filter((item) => (layer === "back" ? item.layer === "back" : item.layer !== "back")).map((item) => {
+        const visualAnchor = visitorVisualAnchor(item);
+        return (
+          <button
+            type="button"
+            key={item.visit.visitId}
+            className={`yard-visitor yard-visitor-${item.visitorInfo.rarity} yard-pose-${item.motion.pose} yard-motion-${item.motion.phase}${item.activity.kind === "lie" ? " yard-visitor-lie" : ""}${item.motion.stationary ? " yard-visitor-stationary" : ""}${item.motion.pinned ? " yard-visitor-pinned" : ""}${selectedVisitId === item.visit.visitId ? " selected" : ""}`}
+            style={{
+              left: `${item.motion.x}%`,
+              top: `${item.motion.y}%`,
+              zIndex: item.zIndex,
+              "--visitor-facing": item.visit.facing === "left" ? -1 : 1,
+              "--visitor-offset-x": `${-visualAnchor.x}%`,
+              "--visitor-offset-y": `${-visualAnchor.y}%`,
+            }}
+            data-motion-x={item.motion.x.toFixed(2)}
+            data-motion-y={item.motion.y.toFixed(2)}
+            data-visual-anchor-x={visualAnchor.x.toFixed(2)}
+            data-visual-anchor-y={visualAnchor.y.toFixed(2)}
+            data-motion-phase={item.motion.phase}
+            data-motion-stationary={item.motion.stationary ? "true" : "false"}
+            data-slot-id={item.visit.slotId}
+            data-goodie-id={item.visit.goodieId}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (placementDraft) {
+                updatePlacementDraft(event);
+                return;
+              }
+              audioManager.play("tap");
+              setSelectedVisitId(item.visit.visitId);
+            }}
+            title={`${item.visitorInfo.name} · ${item.activity.pose}`}
+            aria-label={`${item.visitorInfo.name} ${text("yard.visitor", "visitor")}`}
+          >
+            <img src={assetPath("visitors", visitorAssetId(item.visitorInfo, item.motion.pose))} alt="" />
+            <b>{item.visitorInfo.name}</b>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -535,9 +615,10 @@ export default function CompanionYardGame() {
             type="button"
             key={placed.slotId}
             className={`yard-slot yard-placed-goodie yard-slot-${goodie.size}${slotPending ? " pending" : ""}${moving ? " moving" : ""}`}
-            style={{ left: `${position.x}%`, top: `${position.y}%` }}
+            style={goodieStageStyle(position, goodie)}
             data-slot-id={placed.slotId}
             data-goodie-id={placed.goodieId}
+            data-goodie-size={goodie.size}
             disabled={!!slotPending}
             onClick={(event) => {
               event.stopPropagation();
@@ -572,7 +653,7 @@ export default function CompanionYardGame() {
     return (
       <div
         className={`yard-placement-preview yard-slot yard-slot-${goodie.size}`}
-        style={{ left: `${placementDraft.x}%`, top: `${placementDraft.y}%` }}
+        style={goodieStageStyle(placementDraft, goodie)}
       >
         <img src={assetPath("goodies", placementDraft.goodieId)} alt="" />
       </div>
@@ -663,25 +744,33 @@ export default function CompanionYardGame() {
       <div className="yard-card">
         <strong>{text("yard.shop.food", "Food shop")}</strong>
         {Object.values(foods).map((food) => (
-          <div className="yard-shop-row" key={food.id}>
-            <img src={assetPath("foods", food.id)} alt="" />
-            <span><strong>{foodName(food)}</strong><small>{foodDesc(food)} · {costLabel(food.cost, t)}</small></span>
+          <YardShopRow
+            key={food.id}
+            imageSrc={assetPath("foods", food.id)}
+            title={foodName(food)}
+            description={foodDesc(food)}
+            priceParts={costParts(food.cost, t)}
+          >
             <YardActionButton icon="shop" disabled={hasPending(`shop:food:${food.id}`)} onClick={() => performAction("yard.buyFood", { foodId: food.id, qty: 1 })}>
               {hasPending(`shop:food:${food.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
             </YardActionButton>
-          </div>
+          </YardShopRow>
         ))}
       </div>
       <div className="yard-card">
         <strong>{text("yard.shop.goodies", "Goodies shop")}</strong>
         {Object.values(goodies).map((goodie) => (
-          <div className="yard-shop-row" key={goodie.id}>
-            <img src={assetPath("goodies", goodie.id)} alt="" />
-            <span><strong>{goodieName(goodie)}</strong><small>{goodieDesc(goodie)} · {costLabel(goodie.cost, t)}</small></span>
+          <YardShopRow
+            key={goodie.id}
+            imageSrc={assetPath("goodies", goodie.id)}
+            title={goodieName(goodie)}
+            description={goodieDesc(goodie)}
+            priceParts={costParts(goodie.cost, t)}
+          >
             <YardActionButton icon="shop" disabled={hasPending(`shop:goodie:${goodie.id}`)} onClick={() => performAction("yard.buyGoodie", { goodieId: goodie.id })}>
               {hasPending(`shop:goodie:${goodie.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
             </YardActionButton>
-          </div>
+          </YardShopRow>
         ))}
       </div>
       <div className="yard-card">
@@ -692,13 +781,17 @@ export default function CompanionYardGame() {
           .map((remodel) => {
             const owned = yard.ownedRemodels?.includes(remodel.id);
             return (
-              <div className="yard-shop-row" key={remodel.id}>
-                <img src={assetPath("backgrounds", remodel.id)} alt="" />
-                <span><strong>{remodelName(remodel)}</strong><small>{remodelDesc(remodel)} · {owned ? text("yard.owned", "Owned") : costLabel(remodel.cost, t)}</small></span>
+              <YardShopRow
+                key={remodel.id}
+                imageSrc={assetPath("backgrounds", remodel.id)}
+                title={remodelName(remodel)}
+                description={remodelDesc(remodel)}
+                priceParts={owned ? [{ label: text("yard.owned", "Owned"), plain: true }] : costParts(remodel.cost, t)}
+              >
                 <YardActionButton icon="remodel" active={owned} disabled={hasPending("remodel")} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>
                   {hasPending("remodel") ? text("yard.syncing", "Syncing") : owned ? text("yard.set", "Set") : text("yard.buy", "Buy")}
                 </YardActionButton>
-              </div>
+              </YardShopRow>
             );
           })}
       </div>
@@ -913,6 +1006,10 @@ export default function CompanionYardGame() {
         ref={stageRef}
         className={`room-stage companion-yard-stage ${selectedRemodel.themeClass || "yard-remodel-meadow"}${placementDraft ? " yard-placement-active" : ""}`}
         onPointerDown={(event) => {
+          if ((activeScreen || yardToolsOpen) && isPlacementSurfaceEvent(event)) {
+            closeScreen();
+            return;
+          }
           if (!placementDraft || !isPlacementSurfaceEvent(event)) return;
           updatePlacementDraft(event);
         }}

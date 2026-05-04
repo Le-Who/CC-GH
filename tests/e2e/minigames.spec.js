@@ -30,6 +30,8 @@ test.describe("New-stack minigame smoke", () => {
     expect(viewport).not.toBeNull();
     expect(overlayBox.x).toBeGreaterThanOrEqual(0);
     expect(overlayBox.x + overlayBox.width).toBeLessThanOrEqual(viewport.width);
+    expect(overlayBox.y).toBeGreaterThanOrEqual(0);
+    expect(overlayBox.y + overlayBox.height).toBeLessThanOrEqual(viewport.height + 1);
     return overlay;
   }
 
@@ -312,10 +314,33 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="match3"]')).toContainText("Swap neighboring gems");
+    await expect(overlay.locator('[data-compact-pause="match3"]')).toContainText("Gem Crush");
+    await expect(overlay.locator('[data-compact-pause="match3"]')).toContainText("Paused");
     await expect(overlay.locator('[data-mode-selector="match3"]')).toHaveCount(0);
+    await expect(overlay.locator(".leaderboard")).toHaveCount(0);
+    const match3PauseLayout = await overlay.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const smallButtons = [...node.querySelectorAll("button")]
+        .filter((button) => {
+          const styles = getComputedStyle(button);
+          const box = button.getBoundingClientRect();
+          return styles.display !== "none" && styles.visibility !== "hidden" && box.width > 0 && box.height > 0 && (box.width < 44 || box.height < 44);
+        })
+        .map((button) => button.textContent.trim());
+      return {
+        width: rect.width,
+        height: rect.height,
+        smallButtons,
+      };
+    });
+    expect(match3PauseLayout.width).toBeGreaterThanOrEqual(350);
+    expect(match3PauseLayout.height).toBeGreaterThanOrEqual(390);
+    expect(match3PauseLayout.smallButtons).toEqual([]);
     await expectCompactPauseMenu(overlay, 4);
-    await overlay.getByRole("button", { name: /^Resume$/ }).click();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    overlay = await pauseActiveGame(page);
+    await page.mouse.click(12, 12);
     await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
     await overlay.getByRole("button", { name: /^Exit$/ }).click();
@@ -375,6 +400,7 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toHaveCount(0);
 
     const before = await expectMatch3BoardClearOfHud(page);
     await page.setViewportSize({ width: 420, height: 700 });

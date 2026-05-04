@@ -355,7 +355,7 @@
   position: absolute;
   width: 86px;
   min-height: 90px;
-  transform: translate(-50%, -92%);
+  transform: translate(var(--visitor-offset-x, -50%), var(--visitor-offset-y, -92%));
   border: 0;
   padding: 0;
   background: transparent;
@@ -394,15 +394,15 @@
 }
 
 .yard-visitor.selected {
-  transform: translate(-50%, -92%) scale(1.06);
+  transform: translate(var(--visitor-offset-x, -50%), var(--visitor-offset-y, -92%)) scale(1.06);
 }
 
 .yard-visitor-lie {
-  transform: translate(-50%, -58%);
+  --visitor-offset-y: -62%;
 }
 
 .yard-visitor-lie.selected {
-  transform: translate(-50%, -58%) scale(1.06);
+  transform: translate(var(--visitor-offset-x, -50%), var(--visitor-offset-y, -62%)) scale(1.06);
 }
 
 .yard-visitor b {
@@ -414,6 +414,35 @@
   font-size: 0.68rem;
   font-weight: 1000;
   box-shadow: 0 5px 12px rgba(72, 56, 40, 0.14);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 140ms ease;
+}
+
+.yard-visitor:hover b,
+.yard-visitor:focus-visible b {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .yard-visitor:hover b {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+  }
+
+  .yard-visitor:focus-visible b {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
 }
 
 .yard-visitor-rare b {
@@ -478,10 +507,10 @@
 @keyframes pet-perched {
   0%,
   100% {
-    transform: translate(-50%, -92%);
+    transform: translate(var(--visitor-offset-x, -50%), var(--visitor-offset-y, -92%));
   }
   50% {
-    transform: translate(-50%, -94%);
+    transform: translate(var(--visitor-offset-x, -50%), calc(var(--visitor-offset-y, -92%) - 2%));
   }
 }
 
@@ -878,7 +907,9 @@
   align-items: center;
   column-gap: 6px;
   padding: 6px 9px 6px 6px;
-  background: var(--yard-hud-cream);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 245, 218, 0.12)),
+    var(--yard-hud-cream);
   color: var(--yard-hud-ink);
   box-shadow: var(--yard-hud-shadow);
 }
@@ -926,7 +957,9 @@
   padding: 6px;
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
-  background: var(--yard-hud-cream);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06)),
+    var(--yard-hud-cream);
   box-shadow: var(--yard-hud-shadow);
 }
 
@@ -942,7 +975,9 @@
   padding: 6px;
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
-  background: var(--yard-hud-cream-strong);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 242, 206, 0.18)),
+    var(--yard-hud-cream-strong);
   box-shadow: 0 16px 38px rgba(72, 58, 34, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
@@ -1074,7 +1109,9 @@
   align-items: center;
   gap: 7px;
   padding: 6px 10px;
-  background: var(--yard-hud-cream);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.38), rgba(255, 245, 218, 0.12)),
+    var(--yard-hud-cream);
   color: var(--yard-hud-ink);
   box-shadow: 0 10px 24px rgba(72, 58, 34, 0.12);
   pointer-events: none;
@@ -1113,6 +1150,8 @@
 }
 
 .companion-yard-layout .yard-slot {
+  width: clamp(44px, var(--yard-goodie-w, 82px), 184px);
+  height: clamp(44px, var(--yard-goodie-h, 82px), 148px);
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -1242,6 +1281,8 @@
   gap: 10px;
   padding: 8px 10px;
   border-bottom: 1px solid rgba(117, 88, 48, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
 }
 
 .yard-screen-header > div {
@@ -1317,6 +1358,103 @@
   display: inline-flex;
   justify-content: flex-end;
   gap: 6px;
+}
+
+.yard-shop-row-polished {
+  min-height: 76px;
+  grid-template-columns: 46px minmax(0, 1fr) minmax(112px, max-content) auto;
+  gap: 10px;
+  padding: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.05)),
+    rgba(255, 252, 241, 0.72);
+}
+
+.yard-shop-row-polished .yard-shop-thumb {
+  width: 44px;
+  height: 44px;
+}
+
+.yard-shop-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.yard-shop-copy strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--yard-hud-ink);
+  font-size: 0.9rem;
+  line-height: 1.12;
+}
+
+.yard-shop-copy small {
+  max-width: 46ch;
+  color: var(--yard-hud-muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.yard-price-chip {
+  min-width: 112px;
+  max-width: 176px;
+  min-height: 40px;
+  border: 1px solid rgba(143, 106, 54, 0.22);
+  border-radius: 8px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px !important;
+  padding: 4px 7px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 244, 212, 0.62)),
+    rgba(255, 247, 220, 0.92);
+  color: var(--yard-hud-ink);
+  font-size: 0.74rem;
+  line-height: 1.05;
+  white-space: normal;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.68), 0 6px 12px rgba(92, 69, 39, 0.08);
+}
+
+.yard-price-chip.is-plain {
+  min-width: 76px;
+  max-width: 118px;
+}
+
+.yard-price-part {
+  min-width: 0;
+  min-height: 28px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 3px !important;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: rgba(255, 253, 244, 0.68);
+}
+
+.yard-price-part.is-plain {
+  min-height: 30px;
+  background: transparent;
+}
+
+.yard-price-chip .yard-hud-icon {
+  width: 22px;
+  height: 22px;
+  --yard-hud-icon-zoom: 0.88;
+  flex: 0 0 auto;
+}
+
+.yard-price-chip b {
+  max-width: 7.5rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .yard-choice-grid {
@@ -1501,13 +1639,13 @@
   }
 
   .companion-yard-layout .yard-slot {
-    width: 92px;
-    height: 92px;
+    width: clamp(44px, calc(var(--yard-goodie-w, 82px) * 0.94), 172px);
+    height: clamp(44px, calc(var(--yard-goodie-h, 82px) * 0.94), 140px);
   }
 
   .companion-yard-layout .yard-slot-large {
-    width: 132px;
-    height: 108px;
+    width: clamp(76px, calc(var(--yard-goodie-w, 118px) * 0.94), 172px);
+    height: clamp(62px, calc(var(--yard-goodie-h, 96px) * 0.94), 140px);
   }
 
   .yard-visitor {
@@ -1592,6 +1730,16 @@
     width: calc(100% - 12px);
   }
 
+  .companion-yard-layout .yard-slot {
+    width: clamp(44px, calc(var(--yard-goodie-w, 82px) * 0.86), 150px);
+    height: clamp(44px, calc(var(--yard-goodie-h, 82px) * 0.86), 126px);
+  }
+
+  .companion-yard-layout .yard-slot-large {
+    width: clamp(72px, calc(var(--yard-goodie-w, 118px) * 0.86), 150px);
+    height: clamp(58px, calc(var(--yard-goodie-h, 96px) * 0.86), 126px);
+  }
+
   .yard-screen-content {
     padding: 8px;
   }
@@ -1602,9 +1750,28 @@
     grid-template-columns: 42px minmax(0, 1fr);
   }
 
+  .yard-shop-row-polished {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .yard-price-chip {
+    grid-column: 2;
+    justify-self: start;
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .yard-shop-row .yard-row-actions,
   .yard-shop-row > .yard-button,
   .yard-photo-card > .yard-button {
     grid-column: 1 / -1;
+  }
+
+  .yard-shop-row-polished .yard-row-actions {
+    justify-content: stretch;
+  }
+
+  .yard-shop-row-polished .yard-button {
+    width: 100%;
   }
 }

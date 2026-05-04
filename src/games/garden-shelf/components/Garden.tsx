@@ -7,7 +7,7 @@ import {
   SHELF_UNLOCK_COSTS,
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
-  WATER_COOLDOWN_MS,
+  getGardenWaterCooldownMs,
   formatGardenGoldAmount,
   getClickReward,
   getClickXpReward,
@@ -243,8 +243,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
   const timeStr = phase < 3 ? `${m}:${s.toString().padStart(2, '0')}` : '';
   const tapAccelerationSeconds = Math.round(TAP_GROWTH_ACCELERATION_MS / 1000);
   const canWater = !!plant
-    && phase < 3
-    && (!plant.lastWatered || Date.now() - plant.lastWatered >= WATER_COOLDOWN_MS);
+    && (!plant.lastWatered || Date.now() - plant.lastWatered >= getGardenWaterCooldownMs(phase));
 
   const phaseScales = [0.45, 0.50, 0.55, 0.6];
   const bgStyle = getGardenSpriteStyle(spriteIndex, phase, phaseScales[phase] || 0.6, assetPaths.sheet);
@@ -324,7 +323,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           <motion.div
             initial={{ opacity: 0, y: 4, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="garden-status-badge absolute right-[-8px] top-14 z-30 flex h-7 w-7 items-center justify-center rounded-full"
+            className={cn("garden-status-badge absolute right-[-8px] top-14 z-30 flex h-7 w-7 items-center justify-center rounded-full", phase === 3 && "garden-care-ready")}
             aria-hidden="true"
             data-testid="garden-water-ready"
           >
@@ -344,7 +343,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
 
         {!imgError ? (
           <div 
-            className="transition-transform"
+            className={cn("garden-plant-sprite transition-transform", phase === 3 && "garden-plant-grown")}
             style={bgStyle}
           />
         ) : (

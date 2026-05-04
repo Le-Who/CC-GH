@@ -12,8 +12,9 @@ import {
   getPlantUnlockLevel,
   PHASE_DURATIONS_MS,
   TAP_GROWTH_ACCELERATION_MS,
-  WATER_COOLDOWN_MS,
+  getGardenWaterCooldownMs,
   getGardenTapCooldownMs,
+  getMatureWaterReward,
 } from '../constants';
 import { ChevronLeft, ChevronRight, Coins, X, ArrowUpCircle, Trash2, Droplets, Archive, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -21,6 +22,7 @@ import { getGardenSpriteStyle } from '../lib/sprites';
 import type { GardenAssetPaths } from '../lib/sprites';
 import { useGardenI18n } from '../lib/i18n';
 import { runGardenConfetti } from '../lib/effects';
+import { useEscapeDismiss, useOutsideDismiss } from '../../../app/useDismissableLayer.js';
 
 interface BottomPanelProps {
   spot: { shelfIndex: number, spotIndex: number, plantId?: string } | null;
@@ -33,6 +35,7 @@ const AVAILABLE_PLANTS = Object.values(PLANT_TYPES);
 export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   const { state } = useGame();
   const { t } = useGardenI18n();
+  const sheetRef = React.useRef<HTMLDivElement | null>(null);
   const [activePlantId, setActivePlantId] = useState(spot?.plantId || '');
   const placedPlants = React.useMemo(
     () => [...state.plants]
@@ -52,6 +55,8 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   React.useEffect(() => {
     setActivePlantId(spot?.plantId || '');
   }, [spot?.plantId]);
+  useEscapeDismiss(!!spot, onClose);
+  useOutsideDismiss(!!spot, sheetRef, onClose);
 
   const selectRelativePlant = (direction: -1 | 1) => {
     if (activePlantIndex < 0 || placedPlants.length < 2) return;
@@ -68,23 +73,29 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="glass-scrim fixed inset-0 z-30"
+        className="glass-scrim fixed inset-0 z-[180]"
       />
       
       <motion.div
+        ref={sheetRef}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, bounce: 0 }}
-        className="garden-glass-sheet fixed bottom-0 left-0 right-0 z-40 max-h-[85vh] flex flex-col items-center pb-safe-offset-4 border-t"
+        className="garden-glass-sheet garden-bottom-sheet fixed bottom-0 left-0 right-0 z-[190] max-h-[85vh] flex flex-col items-center pb-safe-offset-4 border-t"
       >
-        <div className="my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />
+        <div className="garden-sheet-grabber my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />
         
-        <button type="button" aria-label={t('shop.close')} onClick={onClose} className="garden-icon-button absolute right-4 top-4 z-50 h-14 w-14 transition">
+        <button
+          type="button"
+          aria-label={t(activeSpot.plantId ? 'plantDetail.close' : 'shop.close')}
+          onClick={onClose}
+          className="garden-icon-button garden-sheet-close absolute right-4 top-4 z-[200] h-14 w-14 transition"
+        >
           <X size={16} />
         </button>
 
-        <div className="w-full px-6 pb-8">
+        <div className="garden-sheet-content w-full px-6 pb-8">
           {activeSpot.plantId ? (
             <PlantDetail
               plantId={activeSpot.plantId}
@@ -248,7 +259,7 @@ function PlantDetail({
   const plant = state.plants.find((p) => p.id === plantId);
   const [clickScale, setClickScale] = useState(1);
   const [tapPulse, setTapPulse] = useState(0);
-  const [floatingNotes, setFloatingNotes] = useState<{ id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' }[]>([]);
+  const [floatingNotes, setFloatingNotes] = useState<{ id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' | 'care' }[]>([]);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [imgError, setImgError] = useState(false);
   const swipeStart = React.useRef<{ x: number; y: number } | null>(null);
@@ -284,7 +295,7 @@ function PlantDetail({
     tapPlant(plantId);
 
     const id = Date.now() + Math.random();
-    const notes: { id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' }[] = [];
+    const notes: { id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' | 'care' }[] = [];
     
     if (phase === 3) {
        const value = getClickReward(def.baseClick, plant.level);
@@ -339,20 +350,36 @@ function PlantDetail({
   };
   
   const handleWater = () => {
+    if (!canWater) return;
+    const id = Date.now() + Math.random();
+    if (isFullyGrown) {
+      const reward = getMatureWaterReward(def.baseClick, def.baseXp, plant.level);
+      setTapPulse(id);
+      setFloatingNotes(prev => [
+        ...prev,
+        { id, shift: -38, text: `+${formatGardenGoldAmount(reward.gold)} G`, tone: 'gold' },
+        { id: id + 0.1, shift: 34, text: `+${reward.xp} XP`, tone: 'care' },
+      ]);
+      setTimeout(() => {
+        setFloatingNotes(prev => prev.filter(n => Math.floor(n.id) !== Math.floor(id)));
+      }, 1250);
+    }
     waterPlant(plantId);
     void runGardenConfetti({
-      particleCount: 20,
-      spread: 40,
-      colors: ['#38bdf8', '#0ea5e9', '#0284c7', '#bae6fd'],
+      particleCount: isFullyGrown ? 26 : 20,
+      spread: isFullyGrown ? 64 : 40,
+      colors: isFullyGrown
+        ? ['#fcd34d', '#86efac', '#f9a8d4', '#fff7ad']
+        : ['#38bdf8', '#0ea5e9', '#0284c7', '#bae6fd'],
     }, {
-      particleCount: 8,
+      particleCount: isFullyGrown ? 10 : 8,
       ticks: 46,
     });
   };
   
   const now = Date.now();
-  const canWater = phase < 3 && (!plant.lastWatered || (now - plant.lastWatered) >= WATER_COOLDOWN_MS);
   const isFullyGrown = phase === 3;
+  const canWater = !plant.lastWatered || (now - plant.lastWatered) >= getGardenWaterCooldownMs(phase);
   const canNavigate = !!onNavigate && plantCount > 1;
   const handleTouchStart = (event: React.TouchEvent) => {
     if ((event.target as HTMLElement).closest('button, input, select, textarea')) return;
@@ -370,8 +397,8 @@ function PlantDetail({
   };
 
   return (
-    <div className="flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="mb-4 flex w-full items-start justify-between gap-4 pr-12">
+    <div className="garden-detail-panel flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div className="garden-detail-header mb-4 flex w-full items-start justify-between gap-4 pr-12">
         <div className="min-w-0">
           <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
           <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
@@ -386,7 +413,7 @@ function PlantDetail({
           )}
         </div>
         
-        <div className="flex max-w-[48%] shrink-0 flex-col items-end text-right">
+        <div className="garden-detail-meta flex max-w-[48%] shrink-0 flex-col items-end text-right">
           {isFullyGrown ? (
             <>
               <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
@@ -416,7 +443,7 @@ function PlantDetail({
             <ChevronLeft size={20} />
           </button>
         )}
-        <div className="relative flex h-52 w-52 shrink-0 items-center justify-center">
+        <div className="garden-detail-plant-wrap relative flex h-52 w-52 shrink-0 items-center justify-center">
         <AnimatePresence>
           {floatingNotes.map(note => (
             <motion.div
@@ -460,7 +487,7 @@ function PlantDetail({
           }}
           onPointerDown={handleMash}
           className={cn(
-            "relative w-48 h-48 rounded-full border border-white/10 bg-gradient-to-b from-white/5 to-transparent flex items-center justify-center transition-all shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]",
+            "garden-detail-plant-button relative w-48 h-48 rounded-full border border-white/10 bg-gradient-to-b from-white/5 to-transparent flex items-center justify-center transition-all shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]",
             def.color,
             isUpgrading && "shadow-[0_0_50px_rgba(251,113,133,0.5)]"
           )}
@@ -481,7 +508,7 @@ function PlantDetail({
 
           {!imgError ? (
             <div 
-              className="relative z-10 transition-transform duration-300"
+              className={cn("garden-plant-sprite relative z-10 transition-transform duration-300", isFullyGrown && "garden-plant-grown")}
               style={bgStyle}
             />
           ) : (
@@ -505,11 +532,11 @@ function PlantDetail({
         )}
       </div>
 
-      <p className="mb-4 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
+      <p className="garden-detail-hint mb-4 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
         {isFullyGrown ? t('plantDetail.tapGold') : t('plantDetail.tapGrowth')}
       </p>
 
-      <div className="w-full flex gap-3 mb-3">
+      <div className="garden-detail-actions w-full flex gap-3 mb-3">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => {
@@ -532,20 +559,18 @@ function PlantDetail({
           <Archive size={16} /> {t('plantDetail.stash')}
         </motion.button>
 
-        {!isFullyGrown && (
-          <motion.button
-            whileTap={canWater ? { scale: 0.95 } : {}}
-            disabled={!canWater}
-            onClick={handleWater}
-            className={cn(
-              "garden-action-button flex-col px-6 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-all",
-              canWater ? "info" : "disabled",
-            )}
-          >
-            <Droplets size={16} strokeWidth={1.5} className="mb-1" />
-            {t('plantDetail.water')}
-          </motion.button>
-        )}
+        <motion.button
+          whileTap={canWater ? { scale: 0.95 } : {}}
+          disabled={!canWater}
+          onClick={handleWater}
+          className={cn(
+            "garden-action-button flex-col px-6 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-all",
+            canWater ? (isFullyGrown ? "care" : "info") : "disabled",
+          )}
+        >
+          <Droplets size={16} strokeWidth={1.5} className="mb-1" />
+          {isFullyGrown ? t('plantDetail.careWater') : t('plantDetail.water')}
+        </motion.button>
       </div>
       
       {isFullyGrown && (
@@ -554,7 +579,7 @@ function PlantDetail({
             disabled={!canAfford}
             onClick={handleUpgrade}
             className={cn(
-              "garden-action-button w-full gap-3 p-4 font-mono text-xs uppercase tracking-[0.12em] transition-all",
+              "garden-action-button garden-detail-evolve w-full gap-3 p-4 font-mono text-xs uppercase tracking-[0.12em] transition-all",
               canAfford ? "secondary" : "disabled",
             )}
           >

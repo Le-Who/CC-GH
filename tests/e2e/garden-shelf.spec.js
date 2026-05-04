@@ -119,6 +119,136 @@ test.describe("Garden Shelf flow", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("keeps mature plant detail dismissible and reward feedback readable on short mobile screens", async ({ page }) => {
+    const now = Date.now();
+    const player = createDefaultPlayer(`garden_mature_feedback_${now}`, "Garden Feedback", now);
+    player.garden = {
+      economyVersion: GARDEN_ECONOMY_VERSION,
+      totalGoldEarned: 100,
+      level: 12,
+      xp: 120,
+      xpRequired: getGardenXpRequired(12),
+      levelReady: false,
+      shelvesUnlocked: 1,
+      plants: [{
+        id: "mature-feedback-basil",
+        type: "basil",
+        level: 12,
+        shelfIndex: 0,
+        spotIndex: 0,
+        phase: 3,
+        phaseProgress: 0,
+        lastTapped: 0,
+        lastWatered: 0,
+      }],
+      lastTick: now,
+      offlineEarnings: null,
+      offlineXp: null,
+    };
+    let snapshot = buildSnapshot(player);
+
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+    await page.route("**/api/player/mutate", async (route) => {
+      const body = parsePlayerActionRequest(route.request()) || {};
+      if (body.action === "garden.goldDelta") {
+        snapshot = {
+          ...snapshot,
+          resources: {
+            ...snapshot.resources,
+            gold: Math.max(0, Math.floor(Number(snapshot.resources?.gold) || 0) + Math.trunc(Number(body.payload?.amount) || 0)),
+          },
+        };
+      }
+      if (body.action === "garden.sync") {
+        snapshot = {
+          ...snapshot,
+          garden: body.payload?.state || snapshot.garden,
+        };
+      }
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          action: body.action,
+          snapshot,
+          goldDelta: body.payload?.amount || 0,
+        }),
+      });
+    });
+
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 360, height: 640 },
+      { width: 390, height: 844 },
+    ]) {
+      snapshot = buildSnapshot(player);
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      await page.locator('[data-garden-plant="true"]').first().click({ force: true });
+      await expect(page.locator(".garden-floating-note.gold")).toBeVisible();
+      await expect(page.locator(".garden-floating-note.xp")).toBeVisible();
+      const shelfNoteFontSize = await page.locator(".garden-floating-note.gold").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+      expect(shelfNoteFontSize).toBeGreaterThanOrEqual(14);
+
+      await page.getByRole("button", { name: "Plant details" }).first().click();
+      const sheet = page.locator(".garden-glass-sheet").last();
+      await expect(sheet).toBeVisible();
+      await expect.poll(async () => sheet.evaluate((node) => node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height + 1);
+      const closeButton = page.getByRole("button", { name: "Close plant detail" });
+      await expect(closeButton).toBeVisible();
+
+      const layout = await sheet.evaluate((node) => {
+        const rect = node.getBoundingClientRect();
+        const visible = (el) => {
+          const styles = getComputedStyle(el);
+          const box = el.getBoundingClientRect();
+          return styles.display !== "none" && styles.visibility !== "hidden" && box.width > 0 && box.height > 0;
+        };
+        const smallButtons = [...node.querySelectorAll("button")]
+          .filter(visible)
+          .filter((button) => {
+            const box = button.getBoundingClientRect();
+            return box.width < 44 || box.height < 44;
+          })
+          .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
+        const close = node.querySelector('[aria-label="Close plant detail"]')?.getBoundingClientRect();
+        return {
+          top: rect.top,
+          bottom: rect.bottom,
+          close: close ? { x: close.x, y: close.y, right: close.right, bottom: close.bottom } : null,
+          smallButtons,
+        };
+      });
+      expect(layout.top).toBeGreaterThanOrEqual(0);
+      expect(layout.bottom).toBeLessThanOrEqual(viewport.height + 1);
+      expect(layout.close).not.toBeNull();
+      expect(layout.close.x).toBeGreaterThanOrEqual(0);
+      expect(layout.close.y).toBeGreaterThanOrEqual(0);
+      expect(layout.close.right).toBeLessThanOrEqual(viewport.width + 1);
+      expect(layout.close.bottom).toBeLessThanOrEqual(viewport.height + 1);
+      expect(layout.smallButtons).toEqual([]);
+
+      await page.getByRole("button", { name: "Care water" }).click();
+      await expect(page.locator(".garden-detail-floating-note.gold")).toBeVisible();
+      await expect(page.locator(".garden-detail-floating-note.care")).toBeVisible();
+      const detailNoteFontSize = await page.locator(".garden-detail-floating-note.gold").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+      expect(detailNoteFontSize).toBeGreaterThanOrEqual(14);
+
+      await page.keyboard.press("Escape");
+      await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+
+      await page.getByRole("button", { name: "Plant details" }).first().click();
+      await expect(page.locator(".garden-glass-sheet").last()).toBeVisible();
+      await page.mouse.click(12, 12);
+      await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+    }
+  });
+
   test("uses compositor-light mobile overlays for Garden Shelf panels", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Mobile overlay budget is calibrated for coarse-pointer webviews.");
     await page.goto("/");

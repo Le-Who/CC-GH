@@ -85,6 +85,22 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(effects, /import\(['"]canvas-confetti['"]\)/);
   });
 
+  it("wires shared overlay dismissal and mature Garden care watering through DOM text", () => {
+    const dismissHook = readFileSync(new URL("../src/app/useDismissableLayer.js", import.meta.url), "utf8");
+    const shell = readFileSync(new URL("../src/app/shell.jsx", import.meta.url), "utf8");
+    const gardenGame = readFileSync(new URL("../src/games/garden-shelf/GardenShelfGame.tsx", import.meta.url), "utf8");
+    const gardenContext = readFileSync(new URL("../src/games/garden-shelf/lib/GameContext.tsx", import.meta.url), "utf8");
+    const bottomPanel = readFileSync(new URL("../src/games/garden-shelf/components/BottomPanel.tsx", import.meta.url), "utf8");
+
+    assert.match(dismissHook, /event\.key !== "Escape"/);
+    assert.match(dismissHook, /document\.addEventListener\("pointerdown"/);
+    assert.match(shell, /useEscapeDismiss\(canDismissOverlay, onDismiss\)/);
+    assert.match(gardenGame, /useEscapeDismiss\(open, closeSettings\)/);
+    assert.match(gardenContext, /getGardenWaterCooldownMs\(plant\.phase\)/);
+    assert.match(gardenContext, /getMatureWaterReward\(def\.baseClick, def\.baseXp, plant\.level\)/);
+    assert.match(bottomPanel, /t\('plantDetail\.careWater'\)/);
+  });
+
   it("keeps split Pixi scenes off private runtime module state", () => {
     const mergeScene = readFileSync(new URL("../src/game-runtime/scenes/mergeScene.js", import.meta.url), "utf8");
 

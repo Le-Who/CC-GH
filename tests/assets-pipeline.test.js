@@ -39,6 +39,36 @@ async function makeTempRoot() {
   return root;
 }
 
+async function alphaBbox(imagePath) {
+  const { data, info } = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let minX = info.width;
+  let minY = info.height;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const alpha = data[(y * info.width + x) * info.channels + 3];
+      if (alpha > 8) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+  if (maxX < 0) return { x: 0, y: 0, width: 0, height: 0, right: info.width, bottom: info.height, canvasWidth: info.width, canvasHeight: info.height };
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1,
+    right: info.width - maxX - 1,
+    bottom: info.height - maxY - 1,
+    canvasWidth: info.width,
+    canvasHeight: info.height,
+  };
+}
+
 describe("asset runtime pipeline", () => {
   it("keeps Garden Shelf plant sprite frames wide enough for overhanging art", async () => {
     const sheetPath = path.resolve("public/games/garden-shelf/assets_transparent.png");
@@ -128,6 +158,29 @@ describe("asset runtime pipeline", () => {
     }
   });
 
+  it("keeps Gem Crush tokens centered and menu/board panels expanded inside their canvases", async () => {
+    for (const token of ["dragon", "frog", "newt", "snake", "spider", "yeti"]) {
+      const box = await alphaBbox(path.resolve(`public/games/puzzling-potions/images/piece-${token}.png`));
+      assert.ok(box.x >= 8, `${token} should have left transparent padding`);
+      assert.ok(box.right >= 8, `${token} should have right transparent padding`);
+      assert.ok(box.y >= 8, `${token} should have top transparent padding`);
+      assert.ok(box.bottom >= 8, `${token} should have bottom transparent padding`);
+      assert.ok(Math.abs(box.x - box.right) <= 8, `${token} alpha should be horizontally centered`);
+    }
+
+    const board = await alphaBbox(path.resolve("public/games/puzzling-potions/images/board-frame.png"));
+    assert.ok(board.x <= 24, "board frame should be wider than the old cropped source");
+    assert.ok(board.y <= 24, "board frame should be taller than the old cropped source");
+    assert.ok(board.right <= 24, "board frame should fill the right side of the canvas");
+    assert.ok(board.bottom <= 24, "board frame should fill the bottom of the canvas");
+
+    const menu = await alphaBbox(path.resolve("public/games/puzzling-potions/images/menu-panel.png"));
+    assert.ok(menu.x <= 32, "pause/menu panel should be wider than the old cropped source");
+    assert.ok(menu.y <= 32, "pause/menu panel should be taller than the old cropped source");
+    assert.ok(menu.right <= 32, "pause/menu panel should fill the right side of the canvas");
+    assert.ok(menu.bottom <= 32, "pause/menu panel should fill the bottom of the canvas");
+  });
+
   it("generates deterministic content-hashed raster assets and bundles", async () => {
     const root = await makeTempRoot();
     const entries = [
@@ -213,12 +266,18 @@ describe("asset runtime pipeline", () => {
     const root = await makeTempRoot();
     await writePixelPng(path.join(root, "public/games/bubbo-bubbo/images/bubble-blue.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/assets_shelf.png"));
+    await writePixelPng(path.join(root, "public/games/garden-shelf/fx/gold-sparkle.png"));
+    await writePixelPng(path.join(root, "public/games/companion-yard/foods/kibble.png"));
+    await writePixelPng(path.join(root, "public/games/companion-yard/ui/cozy-price-chip.png"));
     await writePixelPng(path.join(root, "public/icons/icon-192.png"));
 
     const formatsByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry.formats]));
 
     assert.deepEqual(formatsByKey.get("bubbo.bubble.blue"), ["webp", "png"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("gardenShelf.fx.gold-sparkle"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);
+    assert.equal(formatsByKey.has("companionYard.ui.cozy-price-chip"), false);
     assert.deepEqual(formatsByKey.get("icons.icon192"), ["webp"]);
   });
 

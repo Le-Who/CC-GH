@@ -328,8 +328,29 @@ test.describe("Cozy Yard movement and assets", () => {
     }
 
     const mochiVisitor = page.getByRole("button", { name: "Mochi visitor" });
+    const labelState = await mochiVisitor.locator("b").evaluate((node) => {
+      const styles = getComputedStyle(node);
+      return { opacity: Number(styles.opacity), visibility: styles.visibility };
+    });
+    expect(labelState.opacity).toBe(0);
+    expect(labelState.visibility).toBe("hidden");
+    const canHover = await page.evaluate(() => window.matchMedia("(hover: hover)").matches);
+    if (canHover) {
+      await mochiVisitor.hover({ force: true });
+      await expect(mochiVisitor.locator("b")).toBeVisible();
+      await page.mouse.move(1, 1);
+    }
     await mochiVisitor.click({ force: true });
     await expect(mochiVisitor).toHaveClass(/selected/);
+    await page.mouse.move(1, 1);
+    await mochiVisitor.evaluate((node) => node.blur());
+    await page.waitForTimeout(180);
+    const selectedLabelState = await mochiVisitor.locator("b").evaluate((node) => {
+      const styles = getComputedStyle(node);
+      return { opacity: Number(styles.opacity), visibility: styles.visibility };
+    });
+    expect(selectedLabelState.opacity).toBe(0);
+    expect(selectedLabelState.visibility).toBe("hidden");
 
     await page.getByRole("button", { name: "Tools" }).click();
     await page.getByRole("button", { name: "Camera" }).click();
@@ -578,14 +599,28 @@ test.describe("Cozy Yard movement and assets", () => {
         bottomIconMin: minSide(".yard-bottom-dock .yard-hud-icon"),
         compactIconMin: minSide(".yard-corner-actions .yard-hud-icon, .yard-side-tools .yard-hud-icon"),
         compactButtonMin: minSide(".yard-corner-actions .yard-icon-button, .yard-side-tools .yard-icon-button"),
-        goodieMin: minSide(".yard-placed-goodie"),
+        goodieSizes: Object.fromEntries([...document.querySelectorAll(".yard-placed-goodie")]
+          .filter(visible)
+          .map((el) => {
+            const rect = el.getBoundingClientRect();
+            return [el.dataset.goodieId, { width: rect.width, height: rect.height }];
+          })),
       };
     });
     expect(hudMetrics.bottomIconMin).toBeGreaterThanOrEqual(38);
     expect(hudMetrics.compactIconMin).toBeGreaterThanOrEqual(38);
     expect(hudMetrics.compactButtonMin).toBeGreaterThanOrEqual(48);
-    expect(hudMetrics.goodieMin).toBeGreaterThanOrEqual(hudMetrics.viewportWidth <= 780 ? 88 : 82);
+    expect(hudMetrics.goodieSizes.yarn_mouse.width).toBeLessThan(hudMetrics.goodieSizes.cardboard_cottage.width * 0.55);
+    expect(hudMetrics.goodieSizes.yarn_mouse.height).toBeLessThan(hudMetrics.goodieSizes.cardboard_cottage.height * 0.55);
+    expect(hudMetrics.goodieSizes.cardboard_cottage.width).toBeGreaterThan(hudMetrics.viewportWidth <= 420 ? 140 : 150);
     expect(await contrastRatioFor(page, ".yard-currency-chip span", ".yard-currency-chip")).toBeGreaterThanOrEqual(4.5);
+    const legacyHudBackgrounds = await page.evaluate(() => {
+      const selectors = [".yard-currency-chip", ".yard-side-tools", ".yard-bottom-dock", ".yard-activity-pill"];
+      return selectors.flatMap((selector) => [...document.querySelectorAll(selector)]
+        .map((node) => ({ selector, backgroundImage: getComputedStyle(node).backgroundImage }))
+        .filter(({ backgroundImage }) => /companion-yard\/ui|cozy-[\w-]+\.png/.test(backgroundImage)));
+    });
+    expect(legacyHudBackgrounds).toEqual([]);
 
     for (const [buttonName, dialogName] of screens) {
       const close = page.getByRole("button", { name: "Close" });
@@ -597,6 +632,13 @@ test.describe("Cozy Yard movement and assets", () => {
       }
       await screenButton.click();
       await expect(page.getByRole("dialog", { name: dialogName })).toBeVisible();
+      const legacyScreenBackgrounds = await page.evaluate(() => {
+        const selectors = [".yard-game-screen", ".yard-screen-header", ".yard-shop-row-polished", ".yard-price-chip"];
+        return selectors.flatMap((selector) => [...document.querySelectorAll(selector)]
+          .map((node) => ({ selector, backgroundImage: getComputedStyle(node).backgroundImage }))
+          .filter(({ backgroundImage }) => /companion-yard\/ui|cozy-[\w-]+\.png/.test(backgroundImage)));
+      });
+      expect(legacyScreenBackgrounds).toEqual([]);
 
       const layout = await page.evaluate(() => {
         const screen = document.querySelector(".yard-game-screen")?.getBoundingClientRect();
@@ -615,9 +657,38 @@ test.describe("Cozy Yard movement and assets", () => {
       });
       expect(layout.screenBottom).toBeLessThanOrEqual(layout.dockTop);
       expect(layout.smallButtons).toEqual([]);
+
+      if (buttonName === "Shop") {
+        await expect(page.locator(".yard-shop-row-polished").first()).toBeVisible();
+        await expect(page.locator(".yard-shop-row-polished .yard-price-chip").first()).toBeVisible();
+        expect(await page.locator(".yard-price-chip.is-plain .yard-hud-icon").count()).toBe(0);
+        const shopLayout = await page.locator(".yard-shop-row-polished").first().evaluate((row) => {
+          const copy = row.querySelector(".yard-shop-copy small")?.getBoundingClientRect();
+          const price = row.querySelector(".yard-price-chip")?.getBoundingClientRect();
+          const action = row.querySelector(".yard-row-actions")?.getBoundingClientRect();
+          return {
+            priceText: row.querySelector(".yard-price-chip")?.textContent?.trim() || "",
+            copyRight: copy?.right || 0,
+            priceLeft: price?.left || 0,
+            priceRight: price?.right || 0,
+            actionLeft: action?.left || 0,
+            sameRow: Math.abs((price?.top || 0) - (action?.top || 0)) < 12,
+          };
+        });
+        expect(shopLayout.priceText.length).toBeGreaterThan(0);
+        if (shopLayout.sameRow) {
+          expect(shopLayout.copyRight).toBeLessThanOrEqual(shopLayout.priceLeft + 1);
+          expect(shopLayout.priceRight).toBeLessThanOrEqual(shopLayout.actionLeft + 1);
+        }
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("dialog", { name: dialogName })).toHaveCount(0);
+      }
     }
 
-    await page.getByRole("button", { name: "Close" }).click();
+    await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+    await page.locator(".yard-background-art").click({ position: { x: 16, y: 180 }, force: true });
+    await expect(page.locator(".yard-game-screen")).toHaveCount(0);
+
     await page.getByRole("button", { name: "Goodies", exact: true }).click();
     await page.getByRole("dialog", { name: "Goodies" }).getByRole("button", { name: "Place", exact: true }).first().click();
     await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();

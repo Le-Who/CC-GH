@@ -118,10 +118,22 @@ export const PHASE_DURATIONS_MS = [120000, 480000, 1800000];
 export const TAP_GROWTH_ACCELERATION_MS = 2000;
 export const GARDEN_GROWTH_TAP_COOLDOWN_MS = 500;
 export const WATER_COOLDOWN_MS = 8 * 60 * 1000;
+export const MATURE_WATER_COOLDOWN_MS = 10 * 60 * 1000;
 export const WATER_GROWTH_ACCELERATION_RATIO = 0.08;
 
 export function getGardenTapCooldownMs(phase: number) {
   return phase < 3 ? GARDEN_GROWTH_TAP_COOLDOWN_MS : GARDEN_TAP_REWARD_COOLDOWN_MS;
+}
+
+export function getGardenWaterCooldownMs(phase: number) {
+  return phase < 3 ? WATER_COOLDOWN_MS : MATURE_WATER_COOLDOWN_MS;
+}
+
+export function getMatureWaterReward(baseClick: number, baseXp: number, level: number) {
+  return {
+    gold: Math.max(1, Math.floor(getClickReward(baseClick, level) * 0.35)),
+    xp: Math.max(1, Math.floor(getClickXpReward(baseXp, level) * 0.6)),
+  };
 }
 
 export const MAX_SHELVES = 5;

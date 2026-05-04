@@ -142,14 +142,14 @@ export function buildMatch3Scene(app, initial = {}) {
     group.addChild(
       new Graphics()
         .circle(0, 0, radius * 1.08)
-        .fill({ color: 0x1b1112, alpha: 0.34 })
-        .stroke({ color, width: Math.max(2, radius * 0.13), alpha: 0.88 }),
+        .fill({ color: 0x1b1112, alpha: 0.24 })
+        .stroke({ color, width: Math.max(1.5, radius * 0.08), alpha: 0.62 }),
     );
     group.addChild(
       new Graphics()
         .circle(0, 0, radius)
-        .fill({ color, alpha: Math.min(0.92, alpha) })
-        .stroke({ color: 0xfff3cb, width: 2, alpha: 0.42 }),
+        .fill({ color, alpha: Math.min(0.72, alpha * 0.78) })
+        .stroke({ color: 0xfff3cb, width: 1.5, alpha: 0.28 }),
     );
     const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
     if (pieceAsset) {
@@ -157,7 +157,7 @@ export function buildMatch3Scene(app, initial = {}) {
     }
     const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
     if (icon && !pieceAsset) group.addChild(label(icon, 0, 0, Math.max(13, radius * 0.88), TEXT));
-    if (icon && pieceAsset) {
+    if (icon && pieceAsset && (String(gem).startsWith("drop_") || String(gem).startsWith("special_"))) {
       group.addChild(
         new Graphics()
           .circle(radius * 0.58, radius * 0.58, Math.max(8, radius * 0.28))
@@ -425,7 +425,7 @@ export function buildMatch3Scene(app, initial = {}) {
     publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });
     root.addChild(rect(0, 0, viewWidth(app), viewHeight(app), 0x1b1424, 0));
     root.addChild(tiledSprite(gameAsset(MATCH3_ASSET_KEYS.backgroundTable), 0, 0, viewWidth(app), viewHeight(app), 0.78));
-    const frameSize = size * 1.34;
+    const frameSize = size * 1.42;
     if (app.canvas?.dataset) {
       app.canvas.dataset.match3BoardFrameSize = String(Math.round(frameSize * 100) / 100);
       app.canvas.dataset.match3BoardFrameInnerSize = String(Math.round(frameSize * 0.76 * 100) / 100);
@@ -463,12 +463,12 @@ export function buildMatch3Scene(app, initial = {}) {
           new Graphics()
             .circle(tokenX, tokenY, tokenRadius * 1.12)
             .fill({ color: 0x1a1112, alpha: dragging ? 0.18 : 0.36 })
-            .stroke({ color, width: Math.max(3, cell * 0.055), alpha: dragging ? 0.42 : 0.92 }),
+            .stroke({ color, width: Math.max(2, cell * 0.038), alpha: dragging ? 0.32 : 0.58 }),
         );
         const orb = new Graphics()
           .circle(tokenX, tokenY, cell * (selected ? 0.31 : 0.27))
-          .fill({ color, alpha: dragging ? 0.32 : 0.92 })
-          .stroke({ color: 0xfff3cb, width: 2, alpha: dragging ? 0.18 : 0.48 });
+          .fill({ color, alpha: dragging ? 0.22 : 0.58 })
+          .stroke({ color: 0xfff3cb, width: 1.5, alpha: dragging ? 0.14 : 0.24 });
         makeInteractive(orb, {
           pointerdown: (event) => {
             if (!state.gameActive || matchInputLocked()) return;
@@ -479,10 +479,10 @@ export function buildMatch3Scene(app, initial = {}) {
         root.addChild(orb);
         const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
         if (pieceAsset && !dragging) {
-          root.addChild(sprite(pieceAsset, tokenX, tokenY, cell * 0.74, cell * 0.74, 0.98));
+          root.addChild(sprite(pieceAsset, tokenX, tokenY, cell * 0.82, cell * 0.82, 0.98));
         }
         const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
-        if (icon && pieceAsset && !dragging) {
+        if (icon && pieceAsset && !dragging && (String(gem).startsWith("drop_") || String(gem).startsWith("special_"))) {
           root.addChild(
             new Graphics()
               .circle(tokenX + cell * 0.21, tokenY + cell * 0.2, Math.max(8, cell * 0.12))

@@ -16,6 +16,7 @@ import type { GardenLanguage } from './lib/i18n';
 import { resolveGardenAssetPaths } from './lib/sprites';
 import type { GardenAssetPaths } from './lib/sprites';
 import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
+import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
 import { formatGardenGoldAmount } from './constants';
 import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
@@ -109,6 +110,8 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
   const { language, setLanguage, t } = useGardenI18n();
   const [open, setOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => audioManager.isEnabled());
+  const closeSettings = useCallback(() => setOpen(false), []);
+  useEscapeDismiss(open, closeSettings);
 
   const toggleSound = async () => {
     setSoundEnabled(await audioManager.toggle());
@@ -139,7 +142,7 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
+              onClick={closeSettings}
             />
             <motion.div
               className="garden-glass-menu absolute right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
@@ -153,7 +156,7 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
                 <button
                   type="button"
                   className="garden-icon-button text-sm"
-                  onClick={() => setOpen(false)}
+                  onClick={closeSettings}
                   aria-label={t('settings.close')}
                 >
                   <X size={16} />
@@ -215,6 +218,8 @@ function GardenQuestController() {
   const { state, claimQuest } = useGame();
   const { t } = useGardenI18n();
   const [open, setOpen] = useState(false);
+  const closeQuests = useCallback(() => setOpen(false), []);
+  useEscapeDismiss(open, closeQuests);
   const quests = React.useMemo(() => {
     if (!open) return [];
     return buildGardenQuestSections(state)
@@ -259,7 +264,7 @@ function GardenQuestController() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
+              onClick={closeQuests}
             />
             <motion.div
               className="garden-glass-menu absolute inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
@@ -279,7 +284,7 @@ function GardenQuestController() {
                 <button
                   type="button"
                   className="garden-icon-button shrink-0"
-                  onClick={() => setOpen(false)}
+                  onClick={closeQuests}
                   aria-label={t('settings.close')}
                 >
                   <X size={16} />
@@ -361,7 +366,9 @@ function LevelUpRewardModal() {
   const lastResult = useGameHub((state) => state.lastResult);
   const { t } = useGardenI18n();
   const [notice, setNotice] = useState<{ reward: number; level: number } | null>(null);
+  const closeNotice = useCallback(() => setNotice(null), []);
   const seenResultRef = React.useRef<unknown>(null);
+  useEscapeDismiss(!!notice, closeNotice);
 
   React.useEffect(() => {
     if (!lastResult || lastResult === seenResultRef.current) return;
@@ -403,7 +410,7 @@ function LevelUpRewardModal() {
             </div>
             <button
               type="button"
-              onClick={() => setNotice(null)}
+              onClick={closeNotice}
               className="garden-action-button secondary relative z-10 w-full py-4 font-mono text-sm uppercase tracking-[0.12em] transition-colors"
             >
               {t('offline.collect')}
