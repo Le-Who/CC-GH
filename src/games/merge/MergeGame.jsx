@@ -318,7 +318,6 @@ export default function MergeGame() {
       mergeSelected: selectedCell,
       trashMode,
       mergeLocked: !isPlaying,
-      mergeStatusText: trashMode ? t("merge.statusTrash") : t("merge.statusMerge"),
       mergeMissText: t("merge.miss"),
       mergePerfectText: t("merge.perfectReaction"),
       mergeLevelPrefix: t("farm.levelShort"),

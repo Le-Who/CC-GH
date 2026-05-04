@@ -1261,12 +1261,12 @@
 /* Standalone Merge HUD: asset-backed in-scene controls, no shared glass chrome. */
 .merge-scene-hud {
   top: max(6px, calc(var(--safe-top) + 6px));
-  width: min(560px, calc(100% - 36px));
+  width: min(600px, calc(100% - 36px));
   min-height: 0;
-  height: clamp(58px, 7.2vw, 76px);
-  grid-template-columns: minmax(60px, 0.72fr) minmax(104px, auto) minmax(108px, 0.9fr);
-  gap: clamp(8px, 1.6vw, 18px);
-  padding: 0 clamp(18px, 4.2vw, 34px);
+  height: clamp(52px, 6.4vw, 66px);
+  grid-template-columns: minmax(92px, 0.72fr) minmax(100px, auto) minmax(98px, 0.82fr);
+  gap: clamp(6px, 1.2vw, 14px);
+  padding: 0 clamp(18px, 3.6vw, 30px);
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -1297,7 +1297,7 @@
 
 .merge-hud-essence {
   min-width: 0;
-  height: clamp(42px, 5.6vw, 58px);
+  height: clamp(36px, 4.9vw, 48px);
   display: inline-grid;
   grid-template-columns: clamp(24px, 4vw, 34px) minmax(0, auto);
   align-items: center;
@@ -1313,14 +1313,14 @@
 }
 
 .merge-hud-essence .merge-asset-icon {
-  width: clamp(26px, 4.2vw, 36px);
-  height: clamp(26px, 4.2vw, 36px);
+  width: clamp(24px, 3.7vw, 31px);
+  height: clamp(24px, 3.7vw, 31px);
 }
 
 .merge-hud-essence strong {
   min-width: 0;
   overflow: hidden;
-  font-size: clamp(1.25rem, 2.1vw, 1.65rem);
+  font-size: clamp(1.08rem, 1.75vw, 1.46rem);
   line-height: 1;
   font-weight: 1000;
   text-overflow: ellipsis;
@@ -1328,8 +1328,8 @@
 }
 
 .merge-hud-energy {
-  height: clamp(40px, 5.4vw, 54px);
-  min-width: clamp(104px, 15vw, 150px);
+  height: clamp(36px, 4.8vw, 46px);
+  min-width: clamp(100px, 13vw, 136px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1343,15 +1343,15 @@
 }
 
 .merge-hud-energy svg {
-  width: clamp(24px, 4vw, 34px);
-  height: clamp(24px, 4vw, 34px);
+  width: clamp(22px, 3.4vw, 30px);
+  height: clamp(22px, 3.4vw, 30px);
   color: #ffc400;
   fill: currentColor;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.32));
 }
 
 .merge-hud-energy strong {
-  font-size: clamp(1.05rem, 1.95vw, 1.55rem);
+  font-size: clamp(0.98rem, 1.65vw, 1.34rem);
   line-height: 1;
   font-weight: 1000;
   white-space: nowrap;
@@ -1362,12 +1362,12 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: clamp(6px, 1.4vw, 13px);
+  gap: clamp(4px, 1vw, 9px);
 }
 
 .merge-top-tool {
-  width: clamp(34px, 4.8vw, 46px);
-  height: clamp(34px, 4.8vw, 46px);
+  width: clamp(30px, 4.1vw, 38px);
+  height: clamp(30px, 4.1vw, 38px);
   display: grid;
   place-items: center;
   border: 0;
@@ -1385,8 +1385,8 @@
 
 .merge-top-tool .merge-asset-icon,
 .merge-top-tool svg {
-  width: clamp(28px, 4vw, 40px);
-  height: clamp(28px, 4vw, 40px);
+  width: clamp(23px, 3.4vw, 31px);
+  height: clamp(23px, 3.4vw, 31px);
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.38));
 }
 
@@ -1401,6 +1401,8 @@
   gap: clamp(8px, 1.8vw, 14px);
   pointer-events: auto;
   transform: translateX(-50%);
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .merge-action-area .merge-action-dock {
@@ -1409,19 +1411,20 @@
   right: auto;
   bottom: auto;
   width: 100%;
-  height: clamp(92px, 14.6vw, 132px);
+  height: auto;
+  aspect-ratio: 1280 / 338;
   display: grid;
-  grid-template-columns: minmax(72px, 1fr) minmax(88px, 0.68fr) minmax(72px, 1fr);
+  grid-template-columns: minmax(58px, 1fr) minmax(78px, 0.68fr) minmax(58px, 1fr);
   align-items: center;
   gap: 0;
-  padding: 0 clamp(26px, 6vw, 56px);
-  border: 0;
+  padding: 0 clamp(28px, 7.4vw, 72px);
+  border: 0 !important;
   border-radius: 8px;
-  background: transparent;
-  box-shadow: none;
+  background: transparent !important;
+  box-shadow: none !important;
   color: #fff;
   contain: layout paint;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .merge-action-area .merge-action-dock::before {
@@ -1433,8 +1436,8 @@
 
 .merge-dock-side {
   position: relative;
-  width: clamp(68px, 13.5vw, 112px);
-  height: clamp(70px, 12.5vw, 108px);
+  width: clamp(58px, 12vw, 86px);
+  height: 70%;
   display: grid;
   place-items: center;
   align-self: center;
@@ -1445,7 +1448,7 @@
   color: #fff;
   cursor: pointer;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  overflow: visible;
+  overflow: hidden;
 }
 
 .merge-dock-trash {
@@ -1459,7 +1462,7 @@
 .merge-dock-side::before {
   content: "";
   position: absolute;
-  inset: clamp(8px, 1.4vw, 14px);
+  inset: clamp(6px, 1.2vw, 11px);
   border-radius: 14px;
   background: rgba(71, 66, 66, 0.58);
 }
@@ -1476,8 +1479,8 @@
 .merge-dock-side svg {
   position: relative;
   z-index: 1;
-  width: clamp(40px, 8vw, 64px);
-  height: clamp(40px, 8vw, 64px);
+  width: clamp(32px, 6vw, 46px);
+  height: clamp(32px, 6vw, 46px);
   filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.44));
 }
 
@@ -1485,11 +1488,11 @@
   position: absolute;
   z-index: 2;
   left: 50%;
-  bottom: clamp(12px, 1.8vw, 18px);
+  bottom: clamp(8px, 1.5vw, 12px);
   max-width: 96px;
   transform: translateX(-50%);
   color: #fff;
-  font-size: clamp(0.62rem, 1.35vw, 0.82rem);
+  font-size: clamp(0.58rem, 1.05vw, 0.72rem);
   font-weight: 1000;
   letter-spacing: 0;
   line-height: 1;
@@ -1517,8 +1520,8 @@
 }
 
 .merge-dock-gacha b {
-  top: 4px;
-  right: 4px;
+  top: clamp(6px, 1.1vw, 10px);
+  right: clamp(6px, 1.1vw, 10px);
   border-color: rgba(255, 255, 255, 0.42);
   background: #2b86ff;
   color: #fff;
@@ -1526,8 +1529,8 @@
 
 .merge-dock-generate {
   position: relative;
-  width: clamp(78px, 13.2vw, 124px);
-  height: clamp(78px, 13.2vw, 124px);
+  width: clamp(70px, 12.2vw, 108px);
+  height: clamp(70px, 12.2vw, 108px);
   display: grid;
   place-items: center;
   justify-self: center;
@@ -1543,8 +1546,8 @@
 
 .merge-dock-generate .merge-asset-icon,
 .merge-dock-generate svg {
-  width: clamp(62px, 11vw, 110px);
-  height: clamp(62px, 11vw, 110px);
+  width: clamp(54px, 9.4vw, 92px);
+  height: clamp(54px, 9.4vw, 92px);
   color: #f4d678;
   fill: currentColor;
   filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.46));
@@ -1608,39 +1611,39 @@
 @media (max-width: 520px) {
   .merge-scene-hud {
     width: min(354px, calc(100% - 24px));
-    height: 56px;
-    grid-template-columns: minmax(48px, 0.62fr) minmax(90px, auto) minmax(98px, 0.92fr);
-    gap: 6px;
-    padding-inline: 15px;
+    height: 50px;
+    grid-template-columns: minmax(72px, 0.62fr) minmax(86px, auto) minmax(88px, 0.92fr);
+    gap: 4px;
+    padding-inline: 14px;
   }
 
   .merge-hud-essence {
-    grid-template-columns: 23px minmax(0, auto);
-    gap: 5px;
+    grid-template-columns: 20px minmax(0, auto);
+    gap: 4px;
   }
 
   .merge-hud-essence .merge-asset-icon {
-    width: 24px;
-    height: 24px;
+    width: 21px;
+    height: 21px;
   }
 
   .merge-hud-essence strong {
-    font-size: 1.06rem;
+    font-size: 0.96rem;
   }
 
   .merge-hud-energy {
-    min-width: 92px;
-    height: 38px;
-    gap: 6px;
+    min-width: 86px;
+    height: 34px;
+    gap: 5px;
   }
 
   .merge-hud-energy svg {
-    width: 24px;
-    height: 24px;
+    width: 21px;
+    height: 21px;
   }
 
   .merge-hud-energy strong {
-    font-size: 1.03rem;
+    font-size: 0.94rem;
   }
 
   .merge-hud-tools {
@@ -1648,14 +1651,14 @@
   }
 
   .merge-top-tool {
-    width: 30px;
-    height: 38px;
+    width: 28px;
+    height: 34px;
   }
 
   .merge-top-tool .merge-asset-icon,
   .merge-top-tool svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
 
   .merge-action-area {
@@ -1664,35 +1667,35 @@
   }
 
   .merge-action-area .merge-action-dock {
-    height: 92px;
-    padding-inline: 24px;
+    height: auto;
+    padding-inline: 22px;
   }
 
   .merge-dock-side {
-    width: 66px;
-    height: 72px;
+    width: 58px;
+    height: 68%;
   }
 
   .merge-dock-side .merge-asset-icon,
   .merge-dock-side svg {
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
   }
 
   .merge-dock-side span {
     max-width: 70px;
-    font-size: 0.6rem;
+    font-size: 0.56rem;
   }
 
   .merge-dock-generate {
-    width: 78px;
-    height: 78px;
+    width: 68px;
+    height: 68px;
   }
 
   .merge-dock-generate .merge-asset-icon,
   .merge-dock-generate svg {
-    width: 66px;
-    height: 66px;
+    width: 54px;
+    height: 54px;
   }
 
   .merge-daily-token-button {

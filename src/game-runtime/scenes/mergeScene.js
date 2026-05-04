@@ -196,7 +196,7 @@ export function buildMergeScene(app, initial = {}) {
 
   function drawMergeItem(item, x, y, cell, alpha = 1) {
     const level = item?.level || 0;
-    const radius = Math.min(cell * 0.42, 27);
+    const radius = Math.min(cell * 0.46, 34);
     const fill = [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][level] || AMBER;
     const group = new Container();
     group.eventMode = "none";
@@ -211,7 +211,7 @@ export function buildMergeScene(app, initial = {}) {
     );
     const asset = itemAsset(item);
     if (asset) {
-      group.addChild(sprite(asset, 0, 0, radius * 1.8, radius * 1.8, 0.98));
+      group.addChild(sprite(asset, 0, 0, radius * 1.94, radius * 1.94, 0.98));
     } else {
       group.addChild(label(itemText(item), 0, -1, Math.max(20, cell * 0.46), TEXT));
     }
@@ -220,7 +220,7 @@ export function buildMergeScene(app, initial = {}) {
       .fill({ color: PANEL, alpha: 0.92 })
       .stroke({ color: fill, width: 1.5, alpha: 0.75 });
     group.addChild(badge);
-    group.addChild(label(`${data.mergeLevelPrefix || "L"}${level + 1}`, radius * 0.7, radius * 0.53, Math.max(8, cell * 0.13), TEXT));
+    group.addChild(label(`${data.mergeLevelPrefix || "L"}${level + 1}`, radius * 0.7, radius * 0.53, Math.max(9, cell * 0.15), TEXT));
     return group;
   }
 
@@ -362,11 +362,11 @@ export function buildMergeScene(app, initial = {}) {
     const rows = BOARD_ROWS;
     const reservedTop = reserveFromShellChrome(app, ".merge-scene-hud", 104);
     const reservedBottom = reserveBottomFromShellChrome(app, ".merge-action-area", data.mergeBottomReserve || 176);
-    const fitted = fitGrid(app, cols, rows, 14, reservedBottom + 32, {
+    const fitted = fitGrid(app, cols, rows, 10, reservedBottom + 10, {
       reservedTop,
-      verticalAnchor: 0.5,
+      verticalAnchor: 0.62,
       minCell: 30,
-      maxCell: 58,
+      maxCell: 78,
     });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;
@@ -390,7 +390,6 @@ export function buildMergeScene(app, initial = {}) {
       data.mergeSelected ? `${data.mergeSelected.r}:${data.mergeSelected.c}` : "",
       drag?.item ? itemSignature(drag.item) : "",
       data.trashMode ? "trash" : "merge",
-      data.mergeStatusText || "",
       assetVersion,
     ].join("|");
     const boardKeys = Array.from({ length: rows }, (_, r) => (
@@ -443,7 +442,6 @@ export function buildMergeScene(app, initial = {}) {
     lastBoardKeys = boardKeys;
     if (drag) updateDragVisual();
     else clear(dragLayer);
-    root.addChild(label(data.mergeStatusText || (data.trashMode ? "Trash mode" : "Drag/tap merge pairs"), viewWidth(app) / 2, top + height + 24, 14, data.trashMode ? CORAL : MUTED));
     renderStaticFrame();
   }
 
