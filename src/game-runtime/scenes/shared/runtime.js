@@ -28,7 +28,7 @@ const GEM_COLORS = {
   fire: 0xff5534,
   water: 0x1687ff,
   earth: 0x4f9a34,
-  air: 0x9b6cff,
+  air: 0xff1493,
   light: 0xffc629,
   dark: 0x4a36b8,
   drop_gold: 0xf6c86d,

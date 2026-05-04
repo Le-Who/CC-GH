@@ -133,6 +133,14 @@ export function buildMatch3Scene(app, initial = {}) {
     return !!data.match3?.inputLocked;
   }
 
+  function potionPieceVisual(gem, baseSize) {
+    const tuned = {
+      air: { scale: 1.08, x: -baseSize * 0.026, y: 0 },
+      light: { scale: 1.08, x: -baseSize * 0.026, y: 0 },
+    }[gem];
+    return tuned || { scale: 1, x: 0, y: 0 };
+  }
+
   function makeGemView(gem, radius, alpha = 1) {
     const color = GEM_COLORS[gem] || 0xa4af9a;
     const group = new Container();
@@ -153,7 +161,9 @@ export function buildMatch3Scene(app, initial = {}) {
     );
     const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
     if (pieceAsset) {
-      group.addChild(sprite(pieceAsset, 0, 0, radius * 1.9, radius * 1.9, Math.min(0.98, alpha + 0.08)));
+      const pieceSize = radius * 1.9;
+      const pieceAdjust = potionPieceVisual(gem, pieceSize);
+      group.addChild(sprite(pieceAsset, pieceAdjust.x, pieceAdjust.y, pieceSize * pieceAdjust.scale, pieceSize * pieceAdjust.scale, Math.min(0.98, alpha + 0.08)));
     }
     const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
     if (icon && !pieceAsset) group.addChild(label(icon, 0, 0, Math.max(13, radius * 0.88), TEXT));
@@ -479,7 +489,9 @@ export function buildMatch3Scene(app, initial = {}) {
         root.addChild(orb);
         const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
         if (pieceAsset && !dragging) {
-          root.addChild(sprite(pieceAsset, tokenX, tokenY, cell * 0.82, cell * 0.82, 0.98));
+          const pieceSize = cell * 0.82;
+          const pieceAdjust = potionPieceVisual(gem, pieceSize);
+          root.addChild(sprite(pieceAsset, tokenX + pieceAdjust.x, tokenY + pieceAdjust.y, pieceSize * pieceAdjust.scale, pieceSize * pieceAdjust.scale, 0.98));
         }
         const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
         if (icon && pieceAsset && !dragging && (String(gem).startsWith("drop_") || String(gem).startsWith("special_"))) {

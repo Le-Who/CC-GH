@@ -1261,10 +1261,10 @@
 /* Standalone Merge HUD: asset-backed in-scene controls, no shared glass chrome. */
 .merge-scene-hud {
   top: max(6px, calc(var(--safe-top) + 6px));
-  width: min(600px, calc(100% - 36px));
+  width: min(640px, calc(100% - 36px));
   min-height: 0;
   height: clamp(52px, 6.4vw, 66px);
-  grid-template-columns: minmax(92px, 0.72fr) minmax(100px, auto) minmax(98px, 0.82fr);
+  grid-template-columns: minmax(92px, 0.62fr) minmax(100px, auto) minmax(150px, auto);
   gap: clamp(6px, 1.2vw, 14px);
   padding: 0 clamp(18px, 3.6vw, 30px);
   border: 0;
@@ -1297,7 +1297,8 @@
 
 .merge-hud-essence {
   min-width: 0;
-  height: clamp(36px, 4.9vw, 48px);
+  min-height: 44px;
+  height: clamp(44px, 4.9vw, 48px);
   display: inline-grid;
   grid-template-columns: clamp(24px, 4vw, 34px) minmax(0, auto);
   align-items: center;
@@ -1366,8 +1367,8 @@
 }
 
 .merge-top-tool {
-  width: clamp(30px, 4.1vw, 38px);
-  height: clamp(30px, 4.1vw, 38px);
+  width: clamp(44px, 4.8vw, 48px);
+  height: clamp(44px, 4.8vw, 48px);
   display: grid;
   place-items: center;
   border: 0;
@@ -1661,16 +1662,18 @@
 
 @media (max-width: 520px) {
   .merge-scene-hud {
-    width: min(354px, calc(100% - 24px));
-    height: 50px;
-    grid-template-columns: minmax(72px, 0.62fr) minmax(86px, auto) minmax(88px, 0.92fr);
-    gap: 4px;
-    padding-inline: 14px;
+    width: min(360px, calc(100% - 12px));
+    height: 52px;
+    grid-template-columns: minmax(44px, 0.5fr) minmax(86px, auto) minmax(140px, auto);
+    gap: 3px;
+    padding-inline: 6px;
   }
 
   .merge-hud-essence {
+    min-width: 44px;
+    height: 44px;
     grid-template-columns: 20px minmax(0, auto);
-    gap: 4px;
+    gap: 3px;
   }
 
   .merge-hud-essence .merge-asset-icon {
@@ -1702,8 +1705,9 @@
   }
 
   .merge-top-tool {
-    width: 28px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
   }
 
   .merge-top-tool .merge-asset-icon,

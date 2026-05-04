@@ -6,7 +6,7 @@ import { haptic } from "../../platform/telegram.js";
 import { generateBoard, hasValidMoves, attemptMatch3Move, seedDropTokens } from "../../game-core/match3/engine.js";
 import { estimateMatch3CascadeLockMs } from "../../game-core/match3/animation.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app/shell.jsx";
+import { GamePlayHud, GameShell, PanelButton, Stat } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
@@ -249,7 +249,6 @@ export default function Match3Game() {
         <GamePlayHud
           className="match3-scene-hud"
           title={t("match3.title")}
-          subtitle={`${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${snapshot?.match3?.highScore || 0}`}
           stats={[
             { label: t("common.score"), value: score },
             { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
@@ -284,21 +283,9 @@ export default function Match3Game() {
             <div className="panel-header pause-panel-header">
               <div>
                 <strong>{t("match3.title")}</strong>
-                <span>{`${t("common.best")} ${snapshot?.match3?.highScore || 0} · ${t("common.combo")} ${combo || "-"}`}</span>
               </div>
               <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>{gameActive ? t("common.new") : t("common.start")}</PanelButton>
             </div>
-            <PauseBrief
-              gameId="match3"
-              kicker={gameActive ? t("pause.paused") : t("pause.ready")}
-              title={gameActive ? t("pause.match3Frozen") : t("pause.match3Ready")}
-              body={gameActive ? t("pause.match3Intro") : t("pause.match3Choose")}
-              status={gameActive ? [
-                { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.moves") },
-                { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
-                { label: t("common.score"), value: score },
-              ] : []}
-            />
           {!gameActive ? (
             <div className="mode-grid" data-mode-selector="match3">
               {MATCH3_MODES.map((item) => (
@@ -312,7 +299,7 @@ export default function Match3Game() {
           ) : !activePause && (
             <div className="pause-menu-callout">{t("pause.match3NoModeChange")}</div>
           )}
-          {!activePause && (
+          {!activePause && gameActive && (
             <>
               <div className="metric-grid">
                 <Stat icon={Trophy} label={t("common.score")} value={score} />
@@ -324,7 +311,17 @@ export default function Match3Game() {
                 <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
                 <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
-              <Leaderboard entries={leaders} />
+            </>
+          )}
+          {!activePause && !gameActive && (
+            <>
+              <div className="button-row two match3-menu-actions">
+                <PanelButton icon={RotateCcw} subtle onClick={() => setBoard(createModeBoard(mode))}>{t("match3.reshuffle")}</PanelButton>
+                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
+              </div>
+              <div className="match3-menu-leaderboard">
+                <Leaderboard entries={leaders.slice(0, 3)} />
+              </div>
             </>
           )}
           </>

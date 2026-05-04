@@ -204,15 +204,25 @@ export function buildMergeScene(app, initial = {}) {
     );
   }
 
-  function drawMergeItem(item, x, y, cell, alpha = 1) {
+  function drawMergeItem(item, x, y, cell, alpha = 1, state = {}) {
     const level = item?.level || 0;
-    const radius = Math.min(cell * 0.46, 34);
+    const focused = !!state.selected || !!state.matching;
+    const radius = Math.min(cell * (focused ? 0.48 : 0.46), focused ? 36 : 34);
     const fill = [0x9ed8b4, 0xf6c86d, 0xf29485, 0x8fc5e8, 0xcdb7e9, 0xf6b8d0, 0xffbf8f, 0xffefd0][level] || AMBER;
     const group = new Container();
     group.eventMode = "none";
     group.alpha = alpha;
     group.x = x;
     group.y = y;
+    if (focused) {
+      group.addChild(
+        new Graphics()
+          .circle(0, 0, radius * (state.selected ? 1.22 : 1.14))
+          .fill({ color: state.selected ? AMBER : MINT, alpha: state.selected ? 0.16 : 0.12 })
+          .stroke({ color: state.selected ? AMBER : MINT, width: Math.max(2, cell * 0.035), alpha: state.selected ? 0.58 : 0.46 }),
+      );
+      group.scale.set(state.selected ? 1.035 : 1.018);
+    }
     group.addChild(
       new Graphics()
         .circle(0, 0, radius)
@@ -262,7 +272,7 @@ export function buildMergeScene(app, initial = {}) {
     });
     container.addChild(tile);
     if (item && !(drag?.fromR === r && drag?.fromC === c)) {
-      container.addChild(drawMergeItem(item, left + c * cell + cell / 2, top + r * cell + cell / 2, cell));
+      container.addChild(drawMergeItem(item, left + c * cell + cell / 2, top + r * cell + cell / 2, cell, 1, { selected, matching }));
     }
   }
 
@@ -282,10 +292,10 @@ export function buildMergeScene(app, initial = {}) {
           new Graphics()
             .moveTo(sourceX, sourceY)
             .quadraticCurveTo((sourceX + targetX) / 2, Math.min(sourceY, targetY) - layout.cell * 0.34, targetX, targetY)
-            .stroke({ color: MINT, width: 2.5, alpha: 0.28 }),
+            .stroke({ color: MINT, width: 3, alpha: 0.36 }),
         );
         if (glowAsset) {
-          root.addChild(sprite(glowAsset, targetX, targetY, layout.cell * 0.82, layout.cell * 0.82, 0.46));
+          root.addChild(sprite(glowAsset, targetX, targetY, layout.cell * 0.86, layout.cell * 0.86, 0.5));
         } else {
           root.addChild(
             new Graphics()
@@ -300,8 +310,8 @@ export function buildMergeScene(app, initial = {}) {
   function playMergeDropFeedback(point, result = {}, item = null) {
     const success = !result?.error;
     const color = success ? MINT : CORAL;
-    makeSparkles(effects, point.x, point.y, color, success ? 14 : 6);
-    makeRipple(effects, point.x, point.y, color, success ? 32 : 20);
+    makeSparkles(effects, point.x, point.y, color, success ? 9 : 6);
+    makeRipple(effects, point.x, point.y, color, success ? 24 : 20);
     if (!success) {
       const reject = label(data.mergeMissText || "miss", point.x, point.y - 22, 13, CORAL);
       reject._tween = { fromX: reject.x, fromY: reject.y, toX: reject.x + 12, toY: reject.y - 18, duration: 18, fade: true, scaleFrom: 0.9, scaleTo: 1.05 };
@@ -322,17 +332,17 @@ export function buildMergeScene(app, initial = {}) {
     if (essenceReward > 0) {
       const essenceAsset = mergeSceneAsset("fx", "essenceOrb");
       if (essenceAsset) {
-        const orb = sprite(essenceAsset, point.x, point.y - 14, 34, 34, 0.92);
-        orb._tween = { fromX: orb.x, fromY: orb.y, toX: orb.x, toY: orb.y - 44, duration: 30, fade: true, scaleFrom: 0.72, scaleTo: 1.12 };
+        const orb = sprite(essenceAsset, point.x, point.y - 12, 25, 25, 0.82);
+        orb._tween = { fromX: orb.x, fromY: orb.y, toX: orb.x, toY: orb.y - 32, duration: 24, fade: true, scaleFrom: 0.64, scaleTo: 0.98 };
         effects.addChild(orb);
       }
-      const essencePop = label(`+${essenceReward}`, point.x + 24, point.y - 18, 16, SKY);
-      essencePop._tween = { fromX: essencePop.x, fromY: essencePop.y, toX: essencePop.x + 2, toY: essencePop.y - 38, duration: 28, fade: true, scaleFrom: 0.72, scaleTo: 1.18 };
+      const essencePop = label(`+${essenceReward}`, point.x + 19, point.y - 16, 13, SKY);
+      essencePop._tween = { fromX: essencePop.x, fromY: essencePop.y, toX: essencePop.x + 2, toY: essencePop.y - 28, duration: 24, fade: true, scaleFrom: 0.7, scaleTo: 1.06 };
       effects.addChild(essencePop);
-      makeSparkles(effects, point.x + 10, point.y - 10, SKY, 7);
+      makeSparkles(effects, point.x + 8, point.y - 8, SKY, 4);
     }
-    for (let i = 0; i < 6; i += 1) {
-      const angle = -Math.PI / 2 + (i - 2.5) * 0.28;
+    for (let i = 0; i < 4; i += 1) {
+      const angle = -Math.PI / 2 + (i - 1.5) * 0.32;
       const shard = new Graphics()
         .roundRect(-3, -9, 6, 18, 4)
         .fill({ color: [MINT, AMBER, SKY, 0xcdb7e9][i % 4], alpha: 0.88 });
@@ -365,10 +375,10 @@ export function buildMergeScene(app, initial = {}) {
           new Graphics()
             .moveTo(drag.x, drag.y - lift * 0.4)
             .quadraticCurveTo((drag.x + targetX) / 2, Math.min(drag.y, targetY) - layout.cell * 0.54, targetX, targetY)
-            .stroke({ color: MINT, width: 3, alpha: 0.34 }),
+            .stroke({ color: MINT, width: 3, alpha: 0.4 }),
         );
         if (glowAsset) {
-          dragLayer.addChild(sprite(glowAsset, targetX, targetY, layout.cell * 0.92, layout.cell * 0.92, 0.72));
+          dragLayer.addChild(sprite(glowAsset, targetX, targetY, layout.cell * 0.88, layout.cell * 0.88, 0.62));
         } else {
           dragLayer.addChild(
             new Graphics()
@@ -402,11 +412,12 @@ export function buildMergeScene(app, initial = {}) {
     const rows = BOARD_ROWS;
     const reservedTop = reserveFromShellChrome(app, ".merge-scene-hud", 88);
     const reservedBottom = reserveBottomFromShellChrome(app, ".merge-action-area", data.mergeBottomReserve || 176);
-    const fitted = fitGrid(app, cols, rows, 12, reservedBottom + 8, {
+    const roomyBoard = viewWidth(app) >= 700 && viewHeight(app) >= 720;
+    const fitted = fitGrid(app, cols, rows, roomyBoard ? 10 : 12, reservedBottom + 8, {
       reservedTop,
       verticalAnchor: 0.5,
       minCell: 34,
-      maxCell: 82,
+      maxCell: roomyBoard ? 96 : 82,
     });
     layout = { ...fitted, cols, rows };
     const { cell, left, top, width, height } = fitted;

@@ -272,7 +272,9 @@
 .garden-floating-note.time,
 .garden-detail-floating-note.time,
 .garden-floating-note.care,
-.garden-detail-floating-note.care {
+.garden-detail-floating-note.care,
+.garden-floating-note.reward,
+.garden-detail-floating-note.reward {
   color: #bdf8d4;
   border: 1px solid rgba(92, 214, 142, 0.36);
 }
@@ -290,6 +292,17 @@
 .garden-floating-note.care::before,
 .garden-detail-floating-note.care::before {
   background-image: url("/games/garden-shelf/fx/care-sprout.png");
+}
+
+.garden-floating-note.reward,
+.garden-detail-floating-note.reward {
+  color: #fff1ad;
+  border-color: rgba(255, 211, 101, 0.42);
+}
+
+.garden-floating-note.reward::before,
+.garden-detail-floating-note.reward::before {
+  background-image: url("/games/garden-shelf/fx/coin-glint.png");
 }
 
 .garden-plant-sprite {

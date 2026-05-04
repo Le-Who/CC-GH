@@ -259,7 +259,7 @@ function PlantDetail({
   const plant = state.plants.find((p) => p.id === plantId);
   const [clickScale, setClickScale] = useState(1);
   const [tapPulse, setTapPulse] = useState(0);
-  const [floatingNotes, setFloatingNotes] = useState<{ id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' | 'care' }[]>([]);
+  const [floatingNotes, setFloatingNotes] = useState<{ id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' | 'care' | 'reward' }[]>([]);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [imgError, setImgError] = useState(false);
   const swipeStart = React.useRef<{ x: number; y: number } | null>(null);
@@ -295,21 +295,20 @@ function PlantDetail({
     tapPlant(plantId);
 
     const id = Date.now() + Math.random();
-    const notes: { id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' | 'care' }[] = [];
+    const notes: { id: number, shift: number, text: string, tone: 'gold' | 'xp' | 'time' | 'care' | 'reward' }[] = [];
     
     if (phase === 3) {
        const value = getClickReward(def.baseClick, plant.level);
        const xp = getClickXpReward(def.baseXp, plant.level);
        notes.push(
-        { id, shift: -34, text: `+${formatGardenGoldAmount(value)} G`, tone: 'gold' },
-        { id: id + 0.1, shift: 28, text: `+${xp} XP`, tone: 'xp' },
+        { id, shift: 0, text: `+${formatGardenGoldAmount(value)} G · +${xp} XP`, tone: 'reward' },
        );
     } else {
        notes.push({ id, shift: 0, text: `+${tapAccelerationSeconds}s`, tone: 'time' });
     }
 
     setTapPulse(id);
-    setFloatingNotes(prev => [...prev, ...notes]);
+    setFloatingNotes(notes);
     setTimeout(() => {
       setFloatingNotes(prev => prev.filter(n => Math.floor(n.id) !== Math.floor(id)));
     }, 1150);
@@ -355,10 +354,8 @@ function PlantDetail({
     if (isFullyGrown) {
       const reward = getMatureWaterReward(def.baseClick, def.baseXp, plant.level);
       setTapPulse(id);
-      setFloatingNotes(prev => [
-        ...prev,
-        { id, shift: -38, text: `+${formatGardenGoldAmount(reward.gold)} G`, tone: 'gold' },
-        { id: id + 0.1, shift: 34, text: `+${reward.xp} XP`, tone: 'care' },
+      setFloatingNotes([
+        { id, shift: 0, text: `+${formatGardenGoldAmount(reward.gold)} G · +${reward.xp} XP`, tone: 'reward' },
       ]);
       setTimeout(() => {
         setFloatingNotes(prev => prev.filter(n => Math.floor(n.id) !== Math.floor(id)));

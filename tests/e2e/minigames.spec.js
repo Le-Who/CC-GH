@@ -334,7 +334,9 @@ test.describe("New-stack minigame smoke", () => {
       };
     });
     expect(match3PauseLayout.width).toBeGreaterThanOrEqual(350);
-    expect(match3PauseLayout.height).toBeGreaterThanOrEqual(390);
+    expect(match3PauseLayout.height).toBeGreaterThanOrEqual(280);
+    expect(match3PauseLayout.height).toBeLessThanOrEqual(360);
+    expect(match3PauseLayout.width).toBeGreaterThan(match3PauseLayout.height);
     expect(match3PauseLayout.smallButtons).toEqual([]);
     await expectCompactPauseMenu(overlay, 4);
     await page.keyboard.press("Escape");

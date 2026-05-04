@@ -150,7 +150,7 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
   const [imgError, setImgError] = React.useState(false);
   const [isPressing, setIsPressing] = React.useState(false);
   const [tapPulse, setTapPulse] = React.useState(0);
-  const [floatingTexts, setFloatingTexts] = React.useState<{id: string, text: string, type: 'gold' | 'xp' | 'time', x: number}[]>([]);
+  const [floatingTexts, setFloatingTexts] = React.useState<{id: string, text: string, type: 'gold' | 'xp' | 'time' | 'reward', x: number}[]>([]);
   
   const pressStartTimer = useRef<NodeJS.Timeout | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
@@ -211,13 +211,11 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
             const amount = getClickReward(def.baseClick, plant.level);
             const xp = getClickXpReward(def.baseXp, plant.level);
-            setFloatingTexts(prev => [
-              ...prev,
-              { id: `${id}-gold`, text: `+${formatGardenGoldAmount(amount)} G`, type: 'gold', x: -18 },
-              { id: `${id}-xp`, text: `+${xp} XP`, type: 'xp', x: 22 },
+            setFloatingTexts([
+              { id: `${id}-reward`, text: `+${formatGardenGoldAmount(amount)} G · +${xp} XP`, type: 'reward', x: 0 },
             ]);
         } else {
-            setFloatingTexts(prev => [...prev, { id, text: `+${tapAccelerationSeconds}s`, type: 'time', x: 0 }]);
+            setFloatingTexts([{ id, text: `+${tapAccelerationSeconds}s`, type: 'time', x: 0 }]);
         }
         
         setTimeout(() => {
