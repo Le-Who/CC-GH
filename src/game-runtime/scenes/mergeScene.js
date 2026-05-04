@@ -75,7 +75,10 @@ export function buildMergeScene(app, initial = {}) {
       if (!drag) return;
       drag.x = next.x;
       drag.y = next.y;
-      updateDragVisual();
+      if (next.moved) {
+        drag.moved = true;
+        updateDragVisual();
+      }
     },
     onTap: (done) => {
       const cell = done.data?.cell;
@@ -83,7 +86,13 @@ export function buildMergeScene(app, initial = {}) {
       drag = null;
       dragVisual.cancel();
       clear(dragLayer);
-      if (cell) data.onMergeCell?.(cell.r, cell.c, item);
+      if (cell) {
+        data.onMergeCell?.(cell.r, cell.c, item);
+        const tone = item ? AMBER : MUTED;
+        makeRipple(effects, done.x, done.y, tone, item ? 24 : 14);
+        if (item) makeSparkles(effects, done.x, done.y, tone, 5);
+        app.ticker.start();
+      }
       draw();
     },
     onDragEnd: (done) => {
@@ -247,14 +256,44 @@ export function buildMergeScene(app, initial = {}) {
       pointerdown: (event) => {
         if (data.mergeLocked) return;
         if (!item) return;
-        drag = { fromR: r, fromC: c, item, pointerId: event.pointerId, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y };
+        drag = { fromR: r, fromC: c, item, pointerId: event.pointerId, x: event.global.x, y: event.global.y, startX: event.global.x, startY: event.global.y, moved: false };
         pointer.start(event, { kind: "merge-cell", cell: { r, c }, item });
-        updateDragVisual();
       },
     });
     container.addChild(tile);
     if (item && !(drag?.fromR === r && drag?.fromC === c)) {
       container.addChild(drawMergeItem(item, left + c * cell + cell / 2, top + r * cell + cell / 2, cell));
+    }
+  }
+
+  function drawTapSelectionLinks(board, tapSourceItem) {
+    const selected = data.mergeSelected;
+    if (!selected || !tapSourceItem || !layout) return;
+    const sourceX = layout.left + selected.c * layout.cell + layout.cell / 2;
+    const sourceY = layout.top + selected.r * layout.cell + layout.cell / 2;
+    const glowAsset = mergeSceneAsset("fx", "recipeGlow");
+    for (let r = 0; r < layout.rows; r += 1) {
+      for (let c = 0; c < layout.cols; c += 1) {
+        const item = board[r]?.[c];
+        if (!item || (selected.r === r && selected.c === c) || !sameMergeTarget(tapSourceItem, item)) continue;
+        const targetX = layout.left + c * layout.cell + layout.cell / 2;
+        const targetY = layout.top + r * layout.cell + layout.cell / 2;
+        root.addChild(
+          new Graphics()
+            .moveTo(sourceX, sourceY)
+            .quadraticCurveTo((sourceX + targetX) / 2, Math.min(sourceY, targetY) - layout.cell * 0.34, targetX, targetY)
+            .stroke({ color: MINT, width: 2.5, alpha: 0.28 }),
+        );
+        if (glowAsset) {
+          root.addChild(sprite(glowAsset, targetX, targetY, layout.cell * 0.82, layout.cell * 0.82, 0.46));
+        } else {
+          root.addChild(
+            new Graphics()
+              .circle(targetX, targetY, layout.cell * 0.38)
+              .stroke({ color: MINT, width: 3, alpha: 0.38 }),
+          );
+        }
+      }
     }
   }
 
@@ -433,6 +472,7 @@ export function buildMergeScene(app, initial = {}) {
           .stroke({ color: 0x5d4634, width: 2, alpha: 0.25 }),
       );
     }
+    drawTapSelectionLinks(board, tapSourceItem);
     cellViews = [];
     for (let r = 0; r < rows; r++) {
       const rowViews = [];

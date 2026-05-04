@@ -19,6 +19,7 @@ import { useGameHub } from "../../game-state/useGameHub.js";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { loadRuntimeAssetManifest, resolveAssetUrl } from "../../game-runtime/assetBundles.js";
 import { useServerClock } from "./useServerClock.js";
+import { resolveMergeTapSelection } from "./selection.js";
 import "./i18n.js";
 import "./merge.css";
 
@@ -264,28 +265,33 @@ export default function MergeGame() {
   const onMergeCell = useCallback(
     (r, c, item) => {
       if (!isPlaying) return;
-      if (trashMode) {
-        if (item) requestTrash(r, c, item);
+      const decision = resolveMergeTapSelection({
+        board: merge.board || [],
+        selectedCell,
+        r,
+        c,
+        item,
+        trashMode,
+      });
+      if (decision.action === "trash") {
+        requestTrash(r, c, item);
         return;
       }
+      if (decision.action === "noop") return;
       setTrashConfirmCell("");
-      if (!item) {
+      if (decision.action === "clear") {
         setSelectedCell(null);
         return;
       }
-      if (!selectedCell) {
-        setSelectedCell({ r, c });
+      if (decision.action === "select") {
+        setSelectedCell(decision.selectedCell);
         return;
       }
-      if (selectedCell.r === r && selectedCell.c === c) {
-        setSelectedCell(null);
-        return;
-      }
-      performAction("merge.merge", { fromR: selectedCell.r, fromC: selectedCell.c, toR: r, toC: c }, { key: `merge.merge.${selectedCell.r}.${selectedCell.c}.${r}.${c}` }).then((result) => {
+      performAction("merge.merge", { fromR: decision.from.r, fromC: decision.from.c, toR: decision.to.r, toC: decision.to.c }, { key: `merge.merge.${decision.from.r}.${decision.from.c}.${decision.to.r}.${decision.to.c}` }).then((result) => {
         if (!result.error) setSelectedCell(null);
       });
     },
-    [isPlaying, performAction, requestTrash, selectedCell, trashMode],
+    [isPlaying, merge.board, performAction, requestTrash, selectedCell, trashMode],
   );
 
   const onMergeDrop = useCallback(

@@ -141,9 +141,15 @@ export function buildMatch3Scene(app, initial = {}) {
     group.alpha = alpha;
     group.addChild(
       new Graphics()
+        .circle(0, 0, radius * 1.08)
+        .fill({ color: 0x1b1112, alpha: 0.34 })
+        .stroke({ color, width: Math.max(2, radius * 0.13), alpha: 0.88 }),
+    );
+    group.addChild(
+      new Graphics()
         .circle(0, 0, radius)
-        .fill({ color, alpha: Math.min(0.95, alpha) })
-        .stroke({ color: TEXT, width: 2, alpha: 0.36 }),
+        .fill({ color, alpha: Math.min(0.92, alpha) })
+        .stroke({ color: 0xfff3cb, width: 2, alpha: 0.42 }),
     );
     const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
     if (pieceAsset) {
@@ -151,6 +157,15 @@ export function buildMatch3Scene(app, initial = {}) {
     }
     const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
     if (icon && !pieceAsset) group.addChild(label(icon, 0, 0, Math.max(13, radius * 0.88), TEXT));
+    if (icon && pieceAsset) {
+      group.addChild(
+        new Graphics()
+          .circle(radius * 0.58, radius * 0.58, Math.max(8, radius * 0.28))
+          .fill({ color: 0x231515, alpha: 0.78 })
+          .stroke({ color: 0xfff3cb, width: 1.5, alpha: 0.7 }),
+      );
+      group.addChild(label(icon, radius * 0.58, radius * 0.58, Math.max(10, radius * 0.36), 0xfff7df));
+    }
     return group;
   }
 
@@ -404,14 +419,19 @@ export function buildMatch3Scene(app, initial = {}) {
     const fallback = data.fallbackBoard || [];
     const actual = board.length ? board : fallback;
     const hudReserve = state.gameActive ? reserveFromShellChrome(app, ".game-play-hud", data.match3HudReserve || 0) + 4 : 0;
-    const fitted = fitWithTopReserve(app, BOARD_SIZE, BOARD_SIZE, 14, hudReserve, 44, { verticalAnchor: 0.66 });
+    const fitted = fitWithTopReserve(app, BOARD_SIZE, BOARD_SIZE, 14, hudReserve, 44, { verticalAnchor: 0.46 });
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });
     root.addChild(rect(0, 0, viewWidth(app), viewHeight(app), 0x1b1424, 0));
     root.addChild(tiledSprite(gameAsset(MATCH3_ASSET_KEYS.backgroundTable), 0, 0, viewWidth(app), viewHeight(app), 0.78));
-    root.addChild(rect(left - 18, top - 18, size + 36, size + 36, PANEL, 18, 0.18));
-    root.addChild(sprite(gameAsset(MATCH3_ASSET_KEYS.boardFrame), left + size / 2, top + size / 2, size + 38, size + 38, 0.98));
+    const frameSize = size * 1.34;
+    if (app.canvas?.dataset) {
+      app.canvas.dataset.match3BoardFrameSize = String(Math.round(frameSize * 100) / 100);
+      app.canvas.dataset.match3BoardFrameInnerSize = String(Math.round(frameSize * 0.76 * 100) / 100);
+    }
+    root.addChild(rect(left - cell * 0.12, top - cell * 0.12, size + cell * 0.24, size + cell * 0.24, PANEL, 18, 0.16));
+    root.addChild(sprite(gameAsset(MATCH3_ASSET_KEYS.boardFrame), left + size / 2, top + size / 2, frameSize, frameSize, 0.99));
     queueMatch3Animation(data.match3Animation);
     const renderBoard = activeAnimationBoard(actual);
     for (let y = 0; y < BOARD_SIZE; y++) {
@@ -436,9 +456,19 @@ export function buildMatch3Scene(app, initial = {}) {
         root.addChild(tile);
         if (!gem) continue;
         const color = GEM_COLORS[gem] || 0xa4af9a;
+        const tokenX = left + x * cell + cell / 2;
+        const tokenY = top + y * cell + cell / 2;
+        const tokenRadius = cell * (selected ? 0.36 : 0.32);
+        root.addChild(
+          new Graphics()
+            .circle(tokenX, tokenY, tokenRadius * 1.12)
+            .fill({ color: 0x1a1112, alpha: dragging ? 0.18 : 0.36 })
+            .stroke({ color, width: Math.max(3, cell * 0.055), alpha: dragging ? 0.42 : 0.92 }),
+        );
         const orb = new Graphics()
-          .circle(left + x * cell + cell / 2, top + y * cell + cell / 2, cell * (selected ? 0.34 : 0.29))
-          .fill({ color, alpha: dragging ? 0.38 : 1 });
+          .circle(tokenX, tokenY, cell * (selected ? 0.31 : 0.27))
+          .fill({ color, alpha: dragging ? 0.32 : 0.92 })
+          .stroke({ color: 0xfff3cb, width: 2, alpha: dragging ? 0.18 : 0.48 });
         makeInteractive(orb, {
           pointerdown: (event) => {
             if (!state.gameActive || matchInputLocked()) return;
@@ -449,16 +479,24 @@ export function buildMatch3Scene(app, initial = {}) {
         root.addChild(orb);
         const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
         if (pieceAsset && !dragging) {
-          root.addChild(sprite(pieceAsset, left + x * cell + cell / 2, top + y * cell + cell / 2, cell * 0.72, cell * 0.72, 0.96));
+          root.addChild(sprite(pieceAsset, tokenX, tokenY, cell * 0.74, cell * 0.74, 0.98));
         }
         const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
+        if (icon && pieceAsset && !dragging) {
+          root.addChild(
+            new Graphics()
+              .circle(tokenX + cell * 0.21, tokenY + cell * 0.2, Math.max(8, cell * 0.12))
+              .fill({ color: 0x211312, alpha: 0.82 })
+              .stroke({ color: 0xfff3cb, width: 1.5, alpha: 0.74 }),
+          );
+          root.addChild(label(icon, tokenX + cell * 0.21, tokenY + cell * 0.2, Math.max(10, cell * 0.18), 0xfff7df));
+        }
         if (icon && !pieceAsset) {
-          root.addChild(label(icon, left + x * cell + cell / 2, top + y * cell + cell / 2, Math.max(12, cell * 0.34)));
+          root.addChild(label(icon, tokenX, tokenY, Math.max(12, cell * 0.34)));
         }
       }
     }
     updateDragVisual();
-    root.addChild(label(data.match3StatusText || `${state.gameMode || "classic"} · ${state.score || 0} pts · ${state.movesLeft ?? 30} moves`, viewWidth(app) / 2, top + size + 24, 14, AMBER));
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));

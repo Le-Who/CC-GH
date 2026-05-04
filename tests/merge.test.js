@@ -19,6 +19,7 @@ import {
   normalizeMergeItem,
 } from "../game-logic.js";
 import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
+import { resolveMergeTapSelection } from "../src/games/merge/selection.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -429,6 +430,28 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
   });
 
+  describe("Tap selection", () => {
+    it("selects a tapped table token and merges only when the second tap is a valid pair", () => {
+      const board = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(null));
+      board[0][0] = normalizeMergeItem({ id: "seed" });
+      board[0][1] = normalizeMergeItem({ id: "seed" });
+      board[0][2] = normalizeMergeItem({ id: "ember" });
+
+      assert.deepEqual(
+        resolveMergeTapSelection({ board, selectedCell: null, r: 0, c: 0, item: board[0][0] }),
+        { action: "select", selectedCell: { r: 0, c: 0 } },
+      );
+      assert.deepEqual(
+        resolveMergeTapSelection({ board, selectedCell: { r: 0, c: 0 }, r: 0, c: 1, item: board[0][1] }),
+        { action: "merge", from: { r: 0, c: 0 }, to: { r: 0, c: 1 }, selectedCell: null },
+      );
+      assert.deepEqual(
+        resolveMergeTapSelection({ board, selectedCell: { r: 0, c: 0 }, r: 0, c: 2, item: board[0][2] }),
+        { action: "select", selectedCell: { r: 0, c: 2 } },
+      );
+    });
+  });
+
   describe("Alchemy recipe graph", () => {
     it("resolves every published recipe to its configured output", () => {
       for (const recipe of MERGE_RECIPES) {
@@ -569,6 +592,16 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(!match3Hud.includes("onFinish"), "Gem Crush live HUD should only expose Pause, with End Run in the pause menu");
       assert.ok(bloxGame.includes("t(\"common.endRun\")"), "Blox pause menu should still expose End Run");
       assert.ok(match3Game.includes("t(\"common.endRun\")"), "Gem Crush pause menu should still expose End Run");
+    });
+
+    it("keeps Gem Crush status in the HUD instead of duplicating it below the board", () => {
+      const match3ScenePath = path.join(__dirname, "..", "src", "game-runtime", "scenes", "match3Scene.js");
+      const match3CssPath = path.join(__dirname, "..", "src", "games", "match3", "match3.css");
+      const match3Scene = fs.readFileSync(match3ScenePath, "utf-8");
+      const match3Css = fs.readFileSync(match3CssPath, "utf-8");
+
+      assert.ok(!match3Scene.includes("match3StatusText ||"), "Gem Crush should not draw a duplicate bottom status line in Pixi");
+      assert.ok(match3Css.includes("match3-scene-hud:has"), "Gem Crush HUD should collapse the empty event slot so stats stay centered");
     });
 
     it("styles mode selectors as explicit clickable controls instead of stat cards", () => {

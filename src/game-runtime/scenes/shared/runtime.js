@@ -25,12 +25,12 @@ import {
 } from "../../sceneGeometry.js";
 
 const GEM_COLORS = {
-  fire: 0xffa986,
-  water: 0x93c8f4,
-  earth: 0x9ed8b4,
-  air: 0xd7e9ef,
-  light: 0xf8d781,
-  dark: 0xcdb7e9,
+  fire: 0xff5c3b,
+  water: 0x35c9ee,
+  earth: 0x5ac15f,
+  air: 0x54d6c5,
+  light: 0xffd447,
+  dark: 0x8f71ee,
   drop_gold: 0xf6c86d,
   drop_seeds: 0xa8d97a,
   drop_energy: 0x8fd6ee,

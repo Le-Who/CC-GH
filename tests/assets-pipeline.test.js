@@ -7,6 +7,11 @@ import path from "node:path";
 import sharp from "sharp";
 import { buildAssetRuntimeManifest } from "../scripts/assets-pipeline.mjs";
 import { loadAssetPipelineEntries } from "../scripts/assets-pipeline.config.mjs";
+import {
+  GARDEN_PHASE_COUNT,
+  GARDEN_PLANT_COUNT,
+  getGardenSpriteFrame,
+} from "../src/games/garden-shelf/lib/sprites.ts";
 
 async function writePixelPng(filePath) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -35,6 +40,39 @@ async function makeTempRoot() {
 }
 
 describe("asset runtime pipeline", () => {
+  it("keeps Garden Shelf plant sprite frames wide enough for overhanging art", async () => {
+    const sheetPath = path.resolve("public/games/garden-shelf/assets_transparent.png");
+    const { data, info } = await sharp(sheetPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const alphaAt = (x, y) => {
+      if (x < 0 || y < 0 || x >= info.width || y >= info.height) return 0;
+      return data[(y * info.width + x) * 4 + 3];
+    };
+    const countOutsideAlpha = (sprite, side) => {
+      let count = 0;
+      if (side === "left" || side === "right") {
+        const x = side === "left" ? sprite.x - 1 : sprite.x + sprite.width;
+        for (let y = sprite.y; y < sprite.y + sprite.height; y += 1) {
+          if (alphaAt(x, y) > 16) count += 1;
+        }
+        return count;
+      }
+      const y = sprite.y - 1;
+      for (let x = sprite.x; x < sprite.x + sprite.width; x += 1) {
+        if (alphaAt(x, y) > 16) count += 1;
+      }
+      return count;
+    };
+
+    for (let spriteIndex = 0; spriteIndex < GARDEN_PLANT_COUNT; spriteIndex += 1) {
+      for (let phase = 0; phase < GARDEN_PHASE_COUNT; phase += 1) {
+        const sprite = getGardenSpriteFrame(spriteIndex, phase);
+        assert.equal(countOutsideAlpha(sprite, "left"), 0, `plant ${spriteIndex} phase ${phase} clips on the left edge`);
+        assert.equal(countOutsideAlpha(sprite, "right"), 0, `plant ${spriteIndex} phase ${phase} clips on the right edge`);
+        assert.equal(countOutsideAlpha(sprite, "top"), 0, `plant ${spriteIndex} phase ${phase} clips on the top edge`);
+      }
+    }
+  });
+
   it("keeps the Cozy Yard HUD atlas alpha-cropped without edge fragments", async () => {
     const atlasPath = path.resolve("public/games/companion-yard/HUD.png");
     const { data, info } = await sharp(atlasPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

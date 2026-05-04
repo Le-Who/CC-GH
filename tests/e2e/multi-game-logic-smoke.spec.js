@@ -129,7 +129,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("Merge mobile dock keeps live controls readable and updates discovery drawers", async ({ page }, testInfo) => {
+  test("Merge mobile tap selection keeps controls readable and updates discovery drawers", async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 360, height: 740 });
     const now = Date.now();
     const offer = MERGE_EXCHANGE_OFFERS.find((candidate) => candidate.id === "yard_treats_small");
@@ -236,10 +236,9 @@ test.describe("CC-GH multi-game logic smoke", () => {
       if (!response.url().includes("/api/player/mutate")) return false;
       return parsePlayerActionRequest(response.request())?.action === "merge.merge";
     });
-    await page.mouse.move(from.x, from.y);
-    await page.mouse.down();
-    await page.mouse.move(to.x, to.y, { steps: 8 });
-    await page.mouse.up();
+    await page.mouse.click(from.x, from.y);
+    await page.waitForTimeout(180);
+    await page.mouse.click(to.x, to.y);
     const mergeBody = await (await mergeResponsePromise).json();
     expect(mergeBody.recipeId).toBe("sand_flame_glass");
     expect(mergeBody.recipeDiscovered).toBe(true);
