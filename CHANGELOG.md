@@ -4,6 +4,9 @@
 
 ### Client
 
+- Refined Cozy Yard mobile polish so stationary and lying visitors use decor-local visual anchors, live yard visitor names stay hidden until hover/focus, and shop rows keep description, price, and action controls aligned away from thumbnails on narrow screens with light/dark contrast coverage.
+- Corrected Puzzling Potions snake, spider, yeti, and newt token crops, regenerated their content-hashed runtime assets, and added alpha-component checks so neighboring-token slivers cannot return.
+- Removed stale global Companion Yard mobile overrides from the startup stylesheet so the lazy Yard CSS chunk remains the single source for yard visitor, slot, and shop layout rules.
 - Replaced Gacha Merge's live shared HUD treatment with a generated Alchemy Table HUD and icon set, hid the portrait quick rail behind HUD panel buttons, and constrained recipe/exchange drawers to aspect-correct panel art instead of stretching surfaces.
 - Added the checked-in Gacha Merge / Alchemy Table starter art package for table, board/cell UI, action surfaces, FX, and item icons, then forced the active Merge Pixi host to load `pixi.merge` so generated runtime art renders while startup prewarm remains deferred.
 - Moved live game clear/reward notices into the lower in-game HUD action log for Blox, Gem Crush, Merge, and Bubbo, and removed Bubbo's redundant live subtitle so the playfield is not covered during active shots.
@@ -97,6 +100,8 @@
 
 ### Operations
 
+- Retired the unused Bubbo individual bubble PNG runtime/source paths after confirming the live scene uses the corrected Bubbo ball sheet, and updated the generated Pixi bundle contract to preload only the active sheet/tray/cannon/background assets.
+- Tightened generated runtime WebP encoding for oversized Bubbo and Garden Shelf sheets while preserving required Pixi PNG fallbacks, bringing `perf:guard:build` runtime payload size back under budget without loosening thresholds.
 - Ran an objective indefinite epoch perf loop using `perf:guard` as source of truth. Kept loop-based Cozy Yard visitor/activity selection, compact generated runtime manifest output, and a per-call Garden Shelf/Farm cheap-refuel id cache; rejected Yard, Bubbo, Merge, and Player micro-targets after repeat guard regressions or non-reproducible p95, and stopped only after the explicit finalization request without loosening budgets or changing gameplay semantics.
 - Ran an indefinite conservative route-CSS perf loop using `perf:guard` as source of truth. Moved game-specific styles into lazy chunks for Merge, Brain Blitz, hidden Farm compatibility, Garden Shelf, Cozy Yard, and Bubbo, cutting guarded startup CSS from `94,016B` raw / `17,160B` gzip to `67,267B` raw / `12,672B` gzip without loosening budgets or changing gameplay.
 - Ran a conservative Garden/UI follow-up perf loop using `perf:guard` as source of truth. Kept a Yard simulation total-visit cache and per-root asset-entry cache after repeat guard wins, kept small CSS/DOM cleanups as non-counted UI cleanup, rejected snapshot/Blox micro-optimizations after noisy or regressed p95, and stopped before gameplay-semantic changes.
@@ -121,6 +126,9 @@
 
 ### Tests
 
+- Added focused Cozy Yard Playwright coverage for multi-anchor visitor placement, hidden live-yard visitor labels, mobile shop spacing, dark-theme price contrast, and localized bottom-dock readability.
+- Added a mobile UI viewport matrix pass covering 320x568, 390x844 high-DPI, 414x896, tablet portrait/landscape, desktop smoke, touch contexts, horizontal-scroll checks, bottom dock clipping, dialog reachability, and Pixi resize/redraw behavior.
+- Extended asset pipeline tests to reject extra alpha components in Puzzling Potions token images and updated runtime asset tests for the current Bubbo sheet-only bundle contract.
 - Added focused Garden daily quest coverage for adjacent-day variety, no day-plus-three replay, claim reset safety, reward tier balance, and daily section ordering.
 - Updated browser smoke coverage for the Bubbo live HUD subtitle removal and reran mobile minigame, Garden Shelf, Cozy Yard, and perf browser guards around the new HUD/action-log flow.
 - Added regression coverage for Garden Shelf mobile overlay blur removal, dynamic confetti loading, expanded daily quest rotation, Gacha Merge split-scene asset helpers and mobile scene smoke, Cozy Yard localized activity status/bottom-label geometry/decor-anchored visitors, i18n keys used through local `text()` helpers, and stabilized mobile minigame smoke around hidden Yard tools and Blox HUD selection.

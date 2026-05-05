@@ -56,10 +56,6 @@ describe("perf:guard contract", () => {
 
     for (const required of [
       "bubbo.background.tile",
-      "bubbo.bubble.blue",
-      "bubbo.bubble.green",
-      "bubbo.bubble.red",
-      "bubbo.bubble.yellow",
       "bubbo.balls.sheet",
       "bubbo.bottomTray",
       "bubbo.cannon.main",
@@ -88,7 +84,7 @@ describe("perf:guard contract", () => {
       assert.ok(ids.has(required), `missing pipeline entry: ${required}`);
     }
 
-    assert.equal(bundles.get("pixi.bubbo")?.size, 8);
+    assert.equal(bundles.get("pixi.bubbo")?.size, 4);
     assert.equal(bundles.get("pixi.match3")?.size, 21);
     assert.equal(ids.size, entries.length, "asset pipeline entry keys must be unique");
   });

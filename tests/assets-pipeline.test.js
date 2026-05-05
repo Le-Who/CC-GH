@@ -69,6 +69,45 @@ async function alphaBbox(imagePath) {
   };
 }
 
+async function alphaComponents(imagePath, threshold = 16) {
+  const { data, info } = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const seen = new Uint8Array(info.width * info.height);
+  const alphaAt = (x, y) => data[(y * info.width + x) * info.channels + 3];
+  const components = [];
+
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const startIndex = y * info.width + x;
+      if (seen[startIndex]) continue;
+      seen[startIndex] = 1;
+      if (alphaAt(x, y) <= threshold) continue;
+
+      const stack = [[x, y]];
+      let count = 0;
+      let minX = x;
+      let maxX = x;
+      while (stack.length) {
+        const [cx, cy] = stack.pop();
+        count += 1;
+        minX = Math.min(minX, cx);
+        maxX = Math.max(maxX, cx);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx < 0 || ny < 0 || nx >= info.width || ny >= info.height) continue;
+          const index = ny * info.width + nx;
+          if (seen[index]) continue;
+          seen[index] = 1;
+          if (alphaAt(nx, ny) > threshold) stack.push([nx, ny]);
+        }
+      }
+      components.push({ count, minX, maxX });
+    }
+  }
+
+  return components.sort((a, b) => b.count - a.count);
+}
+
 describe("asset runtime pipeline", () => {
   it("keeps Garden Shelf plant sprite frames wide enough for overhanging art", async () => {
     const sheetPath = path.resolve("public/games/garden-shelf/assets_transparent.png");
@@ -160,12 +199,15 @@ describe("asset runtime pipeline", () => {
 
   it("keeps Gem Crush tokens centered and menu/board panels expanded inside their canvases", async () => {
     for (const token of ["dragon", "frog", "newt", "snake", "spider", "yeti"]) {
-      const box = await alphaBbox(path.resolve(`public/games/puzzling-potions/images/piece-${token}.png`));
+      const piecePath = path.resolve(`public/games/puzzling-potions/images/piece-${token}.png`);
+      const box = await alphaBbox(piecePath);
+      const components = await alphaComponents(piecePath);
       assert.ok(box.x >= 8, `${token} should have left transparent padding`);
       assert.ok(box.right >= 8, `${token} should have right transparent padding`);
       assert.ok(box.y >= 8, `${token} should have top transparent padding`);
       assert.ok(box.bottom >= 8, `${token} should have bottom transparent padding`);
       assert.ok(Math.abs(box.x - box.right) <= 8, `${token} alpha should be horizontally centered`);
+      assert.equal(components.filter(({ count }) => count > 32).length, 1, `${token} should not include a neighboring token fragment`);
     }
 
     const board = await alphaBbox(path.resolve("public/games/puzzling-potions/images/board-frame.png"));
@@ -264,7 +306,7 @@ describe("asset runtime pipeline", () => {
 
   it("keeps non-Pixi runtime images WebP-only while Pixi assets retain PNG fallback", async () => {
     const root = await makeTempRoot();
-    await writePixelPng(path.join(root, "public/games/bubbo-bubbo/images/bubble-blue.png"));
+    await writePixelPng(path.join(root, "public/games/bubbo-bubbo/assets_bubbo_balls.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/assets_shelf.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/fx/gold-sparkle.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/foods/kibble.png"));
@@ -273,7 +315,7 @@ describe("asset runtime pipeline", () => {
 
     const formatsByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry.formats]));
 
-    assert.deepEqual(formatsByKey.get("bubbo.bubble.blue"), ["webp", "png"]);
+    assert.deepEqual(formatsByKey.get("bubbo.balls.sheet"), ["webp", "png"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.fx.gold-sparkle"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);

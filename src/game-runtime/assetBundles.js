@@ -29,10 +29,6 @@ export function assetUrl(path) {
 
 export const LEGACY_ASSET_PATHS = {
   "bubbo.background.tile": "/games/bubbo-bubbo/images/background-tile.png",
-  "bubbo.bubble.blue": "/games/bubbo-bubbo/images/bubble-blue.png",
-  "bubbo.bubble.green": "/games/bubbo-bubbo/images/bubble-green.png",
-  "bubbo.bubble.red": "/games/bubbo-bubbo/images/bubble-red.png",
-  "bubbo.bubble.yellow": "/games/bubbo-bubbo/images/bubble-yellow.png",
   "bubbo.balls.sheet": "/games/bubbo-bubbo/assets_bubbo_balls.png",
   "bubbo.bottomTray": "/games/bubbo-bubbo/images/bottom-tray.png",
   "bubbo.cannon.main": "/games/bubbo-bubbo/images/cannon-main.png",
@@ -67,10 +63,6 @@ export const LEGACY_ASSET_PATHS = {
 export const GAME_ASSET_BUNDLES = {
   bubbo: [
     "bubbo.background.tile",
-    "bubbo.bubble.blue",
-    "bubbo.bubble.green",
-    "bubbo.bubble.red",
-    "bubbo.bubble.yellow",
     "bubbo.balls.sheet",
     "bubbo.bottomTray",
     "bubbo.cannon.main",

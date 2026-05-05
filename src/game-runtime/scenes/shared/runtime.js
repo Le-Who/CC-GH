@@ -80,12 +80,6 @@ const BUBBO_BALL_FRAMES = {
 };
 const BUBBO_BALL_DRAW_SCALE = 2.42;
 const bubboBallTextureCache = new Map();
-const BUBBO_BUBBLE_ASSETS = {
-  mint: "bubbo.bubble.green",
-  amber: "bubbo.bubble.yellow",
-  coral: "bubbo.bubble.red",
-  sky: "bubbo.bubble.blue",
-};
 
 const POTION_PIECE_ASSETS = {
   fire: "match3.piece.dragon",
@@ -588,7 +582,7 @@ export {
   CROPS, MERGE_CHAINS, getMergePairResult, createPointerSession,
   BUBBO_COLORS, BUBBO_COLS, BUBBO_PALETTE, BUBBO_ROWS, generateBubboWave, getAssistedBubboAim, getBubboNeighbors, getBubboRowVisualOffset,
   BOARD_SIZE, DROP_ICONS, GEM_ICONS, MATCH3_TIMING, match3StepStartFrame, GRID, canPlaceBloxPiece, resolveAssetUrl,
-  GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, BUBBO_BUBBLE_ASSETS, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
+  GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
   FARM_SOIL, PANEL, PANEL_2, FIELD, TEXT, MUTED, MINT, AMBER, CORAL, SKY, BUBBO_NUMBERS, BUBBO_BACKGROUND_THEMES,
   viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
   bloxAnchorCellFromDrag, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,

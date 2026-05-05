@@ -11,7 +11,6 @@ import {
   getBubboRowVisualOffset,
   BUBBO_ASSET_KEYS,
   BUBBO_BALL_DRAW_SCALE,
-  BUBBO_BUBBLE_ASSETS,
   TEXT,
   AMBER,
   SKY,
@@ -293,8 +292,6 @@ export function buildBubboScene(app, initial = {}) {
         .stroke({ color: TEXT, width: Math.max(1.5, radius * 0.09), alpha: 0.24 });
       g.circle(-radius * 0.28, -radius * 0.32, radius * 0.22).fill({ color: 0xffffff, alpha: 0.34 * alpha });
       group.addChild(g);
-      const asset = gameAsset(BUBBO_BUBBLE_ASSETS[colorName]);
-      if (asset) group.addChild(sprite(asset, 0, 0, radius * 2.12, radius * 2.12, alpha));
     }
     group.x = x;
     group.y = y;

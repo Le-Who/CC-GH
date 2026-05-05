@@ -22,19 +22,19 @@ async function writeRuntimeAssets(root) {
     JSON.stringify({
       version: 1,
       assets: {
-        "bubbo.bubble.blue": {
+        "bubbo.balls.sheet": {
           type: "image",
-          src: "/assets-runtime/bubbo/bubble-blue.1234abcd.webp",
-          fallback: "/assets-runtime/bubbo/bubble-blue.5678abcd.png",
+          src: "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
+          fallback: "/assets-runtime/bubbo/assets_bubbo_balls.5678abcd.png",
         },
       },
       bundles: {
-        "pixi.bubbo": ["bubbo.bubble.blue"],
+        "pixi.bubbo": ["bubbo.balls.sheet"],
       },
     }),
   );
-  await writeFile(root, "assets-runtime/bubbo/bubble-blue.1234abcd.webp", "webp");
-  await writeFile(root, "assets-runtime/bubbo/bubble-blue.5678abcd.png", "png");
+  await writeFile(root, "assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp", "webp");
+  await writeFile(root, "assets-runtime/bubbo/assets_bubbo_balls.5678abcd.png", "png");
 }
 
 describe("build perf guard", () => {
@@ -130,14 +130,14 @@ describe("build perf guard", () => {
       JSON.stringify({
         version: 1,
         assets: {
-          "bubbo.bubble.blue": {
+          "bubbo.balls.sheet": {
             type: "image",
-            src: "/assets-runtime/bubbo/bubble-blue.webp",
+            src: "/assets-runtime/bubbo/assets_bubbo_balls.webp",
           },
         },
       }),
     );
-    await writeFile(unhashedRoot, "assets-runtime/bubbo/bubble-blue.webp", "webp");
+    await writeFile(unhashedRoot, "assets-runtime/bubbo/assets_bubbo_balls.webp", "webp");
 
     const unhashed = await runBuildPerfGuard({
       distDir: unhashedRoot,

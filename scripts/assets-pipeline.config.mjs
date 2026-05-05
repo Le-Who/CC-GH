@@ -60,13 +60,14 @@ async function walkFiles(rootDir, relativeDir, extensions) {
 }
 
 async function collectPixiEntries(rootDir) {
+  const bubboBallSheetRuntime = {
+    raster: {
+      webp: { quality: 90, effort: 6 },
+    },
+  };
   const pixiEntries = [
     entry("bubbo.background.tile", "public/games/bubbo-bubbo/images/background-tile.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.bubble.blue", "public/games/bubbo-bubbo/images/bubble-blue.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.bubble.green", "public/games/bubbo-bubbo/images/bubble-green.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.bubble.red", "public/games/bubbo-bubbo/images/bubble-red.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.bubble.yellow", "public/games/bubbo-bubbo/images/bubble-yellow.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.balls.sheet", "public/games/bubbo-bubbo/assets_bubbo_balls.png", "bubbo", "pixi.bubbo"),
+    entry("bubbo.balls.sheet", "public/games/bubbo-bubbo/assets_bubbo_balls.png", "bubbo", "pixi.bubbo", undefined, bubboBallSheetRuntime),
     entry("bubbo.bottomTray", "public/games/bubbo-bubbo/images/bottom-tray.png", "bubbo", "pixi.bubbo"),
     entry("bubbo.cannon.main", "public/games/bubbo-bubbo/images/cannon-main.png", "bubbo", "pixi.bubbo"),
     entry("match3.piece.dragon", "public/games/puzzling-potions/images/piece-dragon.png", "puzzling-potions", "pixi.match3"),
@@ -97,15 +98,16 @@ async function collectPixiEntries(rootDir) {
 
 async function collectGardenEntries(rootDir) {
   const fxFiles = await walkFiles(rootDir, "public/games/garden-shelf/fx", PNG_EXTENSIONS);
+  const compactRuntimeImage = runtimeWebpOnly();
   const gardenEntries = [
-    entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
-    entry("gardenShelf.shelf", "public/games/garden-shelf/assets_shelf.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
-    entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
-    entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
-    entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf", null, WEBP_ONLY_FORMATS),
+    entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.shelf", "public/games/garden-shelf/assets_shelf.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
     ...fxFiles.map((file) => {
       const id = path.basename(file, path.extname(file));
-      return entry(`gardenShelf.fx.${id}`, file, "garden-shelf/fx", null, WEBP_ONLY_FORMATS);
+      return entry(`gardenShelf.fx.${id}`, file, "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage);
     }),
   ];
 

@@ -22,38 +22,38 @@ describe("runtime asset URL resolution", () => {
   });
 
   it("keeps build id cache busting on legacy /games assets only", () => {
-    assert.equal(assetUrl("/games/bubbo-bubbo/images/bubble-blue.png"), "/games/bubbo-bubbo/images/bubble-blue.png?v=build-a");
-    assert.equal(assetUrl("/assets-runtime/bubbo/bubble-blue.1234abcd.webp"), "/assets-runtime/bubbo/bubble-blue.1234abcd.webp");
+    assert.equal(assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png"), "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a");
+    assert.equal(assetUrl("/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp"), "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp");
   });
 
   it("uses generated content-hashed assets before legacy fallbacks", () => {
     const runtimeManifest = {
       assets: {
-        "bubbo.bubble.blue": {
+        "bubbo.balls.sheet": {
           type: "image",
-          src: "/assets-runtime/bubbo/bubble-blue.1234abcd.webp",
-          fallback: "/assets-runtime/bubbo/bubble-blue.5678abcd.png",
+          src: "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
+          fallback: "/assets-runtime/bubbo/assets_bubbo_balls.5678abcd.png",
         },
       },
     };
 
     assert.equal(
-      runtimeAssetSrc(runtimeManifest, "bubbo.bubble.blue"),
-      "/assets-runtime/bubbo/bubble-blue.1234abcd.webp",
+      runtimeAssetSrc(runtimeManifest, "bubbo.balls.sheet"),
+      "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
     );
     assert.equal(
-      resolveAssetUrl("bubbo.bubble.blue", {
+      resolveAssetUrl("bubbo.balls.sheet", {
         runtimeManifest,
-        legacyPath: "/games/bubbo-bubbo/images/bubble-blue.png",
+        legacyPath: "/games/bubbo-bubbo/assets_bubbo_balls.png",
       }),
-      "/assets-runtime/bubbo/bubble-blue.1234abcd.webp",
+      "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
     );
     assert.equal(
-      resolveAssetUrl("bubbo.bubble.missing", {
+      resolveAssetUrl("bubbo.asset.missing", {
         runtimeManifest,
-        legacyPath: "/games/bubbo-bubbo/images/bubble-blue.png",
+        legacyPath: "/games/bubbo-bubbo/assets_bubbo_balls.png",
       }),
-      "/games/bubbo-bubbo/images/bubble-blue.png?v=build-a",
+      "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a",
     );
     assert.equal(
       resolveAssetUrl("gachaMerge.items.thread", {
@@ -68,12 +68,12 @@ describe("runtime asset URL resolution", () => {
     globalThis.__ASSET_BASE_URL__ = "https://assets.example.test";
 
     assert.equal(
-      assetUrl("/assets-runtime/bubbo/bubble-blue.1234abcd.webp"),
-      "https://assets.example.test/assets-runtime/bubbo/bubble-blue.1234abcd.webp",
+      assetUrl("/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp"),
+      "https://assets.example.test/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
     );
     assert.equal(
-      assetUrl("/games/bubbo-bubbo/images/bubble-blue.png"),
-      "/games/bubbo-bubbo/images/bubble-blue.png?v=build-a",
+      assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png"),
+      "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a",
     );
   });
 });

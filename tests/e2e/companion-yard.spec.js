@@ -312,13 +312,16 @@ test.describe("Cozy Yard movement and assets", () => {
     expect(await page.locator(".yard-pet-layer-front .yard-visitor").count()).toBeGreaterThan(0);
     const cottageBox = await page.getByRole("button", { name: /Cardboard Cottage placed goodie/ }).boundingBox();
     expect(cottageBox).not.toBeNull();
+    const cottageVisitorCenters = {};
     for (const visitorName of ["Mika visitor", "Mochi visitor"]) {
-      const visitorBox = await page.getByRole("button", { name: visitorName }).boundingBox();
+      const visitor = page.getByRole("button", { name: visitorName });
+      const visitorBox = await visitor.boundingBox();
       expect(visitorBox, `${visitorName} should render near the cottage`).not.toBeNull();
       const visitorCenter = {
         x: visitorBox.x + visitorBox.width / 2,
         y: visitorBox.y + visitorBox.height / 2,
       };
+      cottageVisitorCenters[visitorName] = visitorCenter;
       const cottageCenter = {
         x: cottageBox.x + cottageBox.width / 2,
         y: cottageBox.y + cottageBox.height / 2,
@@ -326,6 +329,12 @@ test.describe("Cozy Yard movement and assets", () => {
       expect(Math.abs(visitorCenter.x - cottageCenter.x), `${visitorName} should stay horizontally attached to the decor`).toBeLessThan(cottageBox.width * 0.7);
       expect(Math.abs(visitorCenter.y - cottageCenter.y), `${visitorName} should stay vertically attached to the decor`).toBeLessThan(cottageBox.height * 0.9);
     }
+    await expect(page.getByRole("button", { name: "Mika visitor" })).toHaveAttribute("data-visual-anchor-x", /^(6[4-9]|[78]\d)\./);
+    await expect(page.getByRole("button", { name: "Mochi visitor" })).toHaveAttribute("data-visual-anchor-x", /^([12]\d|3[0-6])\./);
+    expect(
+      cottageVisitorCenters["Mochi visitor"].x - cottageVisitorCenters["Mika visitor"].x,
+      "cottage visitors should occupy distinct left/right decor targets instead of clustering at the center",
+    ).toBeGreaterThan(cottageBox.width * 0.35);
 
     const mochiVisitor = page.getByRole("button", { name: "Mochi visitor" });
     const labelState = await mochiVisitor.locator("b").evaluate((node) => {
@@ -666,18 +675,26 @@ test.describe("Cozy Yard movement and assets", () => {
           const copy = row.querySelector(".yard-shop-copy small")?.getBoundingClientRect();
           const price = row.querySelector(".yard-price-chip")?.getBoundingClientRect();
           const action = row.querySelector(".yard-row-actions")?.getBoundingClientRect();
+          const thumb = row.querySelector(".yard-shop-thumb")?.getBoundingClientRect();
           return {
             priceText: row.querySelector(".yard-price-chip")?.textContent?.trim() || "",
             copyRight: copy?.right || 0,
+            copyBottom: copy?.bottom || 0,
             priceLeft: price?.left || 0,
+            priceTop: price?.top || 0,
             priceRight: price?.right || 0,
             actionLeft: action?.left || 0,
+            thumbRight: thumb?.right || 0,
             sameRow: Math.abs((price?.top || 0) - (action?.top || 0)) < 12,
           };
         });
         expect(shopLayout.priceText.length).toBeGreaterThan(0);
-        if (shopLayout.sameRow) {
+        expect(await contrastRatioFor(page, ".yard-price-chip b", ".yard-price-chip")).toBeGreaterThanOrEqual(4.5);
+        expect(shopLayout.actionLeft).toBeGreaterThanOrEqual(shopLayout.thumbRight);
+        if (shopLayout.copyBottom > shopLayout.priceTop + 1) {
           expect(shopLayout.copyRight).toBeLessThanOrEqual(shopLayout.priceLeft + 1);
+        }
+        if (shopLayout.sameRow) {
           expect(shopLayout.priceRight).toBeLessThanOrEqual(shopLayout.actionLeft + 1);
         }
         await page.keyboard.press("Escape");

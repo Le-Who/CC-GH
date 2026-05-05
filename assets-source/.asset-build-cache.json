@@ -36,16 +36,16 @@
       ]
     },
     "bubbo.balls.sheet": {
-      "signature": "73e3745926ac3f7d2dd2188f1bb56db5b1c1eac1e73cd3bc02606f13b732973f",
+      "signature": "09f826b5e78739037c76d9d9eb5d19e01777b75720244b2f124b0e2b56affcee",
       "item": {
         "type": "image",
         "width": 1672,
         "height": 941,
-        "src": "/assets-runtime/bubbo/assets_bubbo_balls.b1f99080.webp",
+        "src": "/assets-runtime/bubbo/assets_bubbo_balls.38bde4c0.webp",
         "fallback": "/assets-runtime/bubbo/assets_bubbo_balls.c5c3ef79.png"
       },
       "written": [
-        "/assets-runtime/bubbo/assets_bubbo_balls.b1f99080.webp",
+        "/assets-runtime/bubbo/assets_bubbo_balls.38bde4c0.webp",
         "/assets-runtime/bubbo/assets_bubbo_balls.c5c3ef79.png"
       ]
     },
@@ -61,62 +61,6 @@
       "written": [
         "/assets-runtime/bubbo/bottom-tray.43d047fd.webp",
         "/assets-runtime/bubbo/bottom-tray.bed8e5c1.png"
-      ]
-    },
-    "bubbo.bubble.blue": {
-      "signature": "e2425cdf5b92c637525dfeedcc957b092fd3ef029172c6baf3954d576072a487",
-      "item": {
-        "type": "image",
-        "width": 142,
-        "height": 141,
-        "src": "/assets-runtime/bubbo/bubble-blue.3f58275b.webp",
-        "fallback": "/assets-runtime/bubbo/bubble-blue.1ad60939.png"
-      },
-      "written": [
-        "/assets-runtime/bubbo/bubble-blue.3f58275b.webp",
-        "/assets-runtime/bubbo/bubble-blue.1ad60939.png"
-      ]
-    },
-    "bubbo.bubble.green": {
-      "signature": "371f720bd68f19323093cb3fd4d1a1de59aaf5d1988544c6e63bbb88cf560761",
-      "item": {
-        "type": "image",
-        "width": 142,
-        "height": 141,
-        "src": "/assets-runtime/bubbo/bubble-green.3538108d.webp",
-        "fallback": "/assets-runtime/bubbo/bubble-green.8e23d6c7.png"
-      },
-      "written": [
-        "/assets-runtime/bubbo/bubble-green.3538108d.webp",
-        "/assets-runtime/bubbo/bubble-green.8e23d6c7.png"
-      ]
-    },
-    "bubbo.bubble.red": {
-      "signature": "b1a0515ceb6d9ec0f87396a135c314b4011b3f77a673f9cd814f2107aa7f37c3",
-      "item": {
-        "type": "image",
-        "width": 142,
-        "height": 142,
-        "src": "/assets-runtime/bubbo/bubble-red.f2588032.webp",
-        "fallback": "/assets-runtime/bubbo/bubble-red.e93400b5.png"
-      },
-      "written": [
-        "/assets-runtime/bubbo/bubble-red.f2588032.webp",
-        "/assets-runtime/bubbo/bubble-red.e93400b5.png"
-      ]
-    },
-    "bubbo.bubble.yellow": {
-      "signature": "ad9e4acc78112d3a3545acad8c752277e320b4768113f416b881e6349d85b21f",
-      "item": {
-        "type": "image",
-        "width": 142,
-        "height": 142,
-        "src": "/assets-runtime/bubbo/bubble-yellow.8c719194.webp",
-        "fallback": "/assets-runtime/bubbo/bubble-yellow.226765ab.png"
-      },
-      "written": [
-        "/assets-runtime/bubbo/bubble-yellow.8c719194.webp",
-        "/assets-runtime/bubbo/bubble-yellow.226765ab.png"
       ]
     },
     "bubbo.cannon.main": {
@@ -1922,135 +1866,135 @@
       ]
     },
     "gardenShelf.bottomPlank": {
-      "signature": "634bb28d9ddbabdd3b5525a3752bfb821bafc4501bb3f3306c3393ea1d4bffaf",
+      "signature": "32796b700b299535b52c922538ba3159c78487b11bfc36c47c89e11eecacafcc",
       "item": {
         "type": "image",
         "width": 310,
         "height": 58,
-        "src": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.6c819bbc.webp"
+        "src": "/assets-runtime/garden-shelf/assets_garden_bottom_plank.dc180e53.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/assets_garden_bottom_plank.6c819bbc.webp"
+        "/assets-runtime/garden-shelf/assets_garden_bottom_plank.dc180e53.webp"
       ]
     },
     "gardenShelf.fx.care-sprout": {
-      "signature": "ebce9488a59932903d6a833b84763614238ff532daab389525d8ca9496ecca00",
+      "signature": "ce0e718b87350e4ca786bd2620404eca32a1215d8bd76e8b14c0ff7b1e8ea86d",
       "item": {
         "type": "image",
         "width": 128,
         "height": 128,
-        "src": "/assets-runtime/garden-shelf/fx/care-sprout.b3c99c63.webp"
+        "src": "/assets-runtime/garden-shelf/fx/care-sprout.e80be697.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/fx/care-sprout.b3c99c63.webp"
+        "/assets-runtime/garden-shelf/fx/care-sprout.e80be697.webp"
       ]
     },
     "gardenShelf.fx.coin-glint": {
-      "signature": "9a3b3dfe5b1b30806b63ccc29dec038d3df052def0c7c83debd8cc8f645b1bc4",
+      "signature": "391c7078b29af3afe27d7493d1c83c78bc2f2acfeb1613971f60afab3d7398df",
       "item": {
         "type": "image",
         "width": 128,
         "height": 128,
-        "src": "/assets-runtime/garden-shelf/fx/coin-glint.055bd070.webp"
+        "src": "/assets-runtime/garden-shelf/fx/coin-glint.6b38ea33.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/fx/coin-glint.055bd070.webp"
+        "/assets-runtime/garden-shelf/fx/coin-glint.6b38ea33.webp"
       ]
     },
     "gardenShelf.fx.gold-sparkle": {
-      "signature": "0c1b371395f55347394a2c55bcd894ac55ff27e85b0ea8d78128e13087c51e19",
+      "signature": "45b5c491553505af51bf48f3b95c31b3668e52549e51705dee453bfec22544c4",
       "item": {
         "type": "image",
         "width": 128,
         "height": 128,
-        "src": "/assets-runtime/garden-shelf/fx/gold-sparkle.7485d4ec.webp"
+        "src": "/assets-runtime/garden-shelf/fx/gold-sparkle.c1274b03.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/fx/gold-sparkle.7485d4ec.webp"
+        "/assets-runtime/garden-shelf/fx/gold-sparkle.c1274b03.webp"
       ]
     },
     "gardenShelf.fx.leaf-glint": {
-      "signature": "e672226826595f57e28038ece3f7ebd0fc7cdf33e7191c3d62185ad1279038a3",
+      "signature": "0407535fadf8dac6420537d38b4678ca10efadacd75aaffe2152a8ddc8e89c93",
       "item": {
         "type": "image",
         "width": 128,
         "height": 128,
-        "src": "/assets-runtime/garden-shelf/fx/leaf-glint.cd3adb03.webp"
+        "src": "/assets-runtime/garden-shelf/fx/leaf-glint.6eeacff2.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/fx/leaf-glint.cd3adb03.webp"
+        "/assets-runtime/garden-shelf/fx/leaf-glint.6eeacff2.webp"
       ]
     },
     "gardenShelf.fx.water-splash": {
-      "signature": "f8fd07b59094743458cdaa22ea5f9fcd281ac95679030e3a882ac6c1451d729a",
+      "signature": "8427ca2568e510d6148dbd8cc1b49fe8229fe1a82ada6ed38346d53a8d14a75c",
       "item": {
         "type": "image",
         "width": 128,
         "height": 128,
-        "src": "/assets-runtime/garden-shelf/fx/water-splash.35c6e312.webp"
+        "src": "/assets-runtime/garden-shelf/fx/water-splash.e7484d5b.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/fx/water-splash.35c6e312.webp"
+        "/assets-runtime/garden-shelf/fx/water-splash.e7484d5b.webp"
       ]
     },
     "gardenShelf.fx.xp-leaf-sparkle": {
-      "signature": "aae79bd59f01f1ecfb0007804fe7a9351f69eb9d76f5c9559ef353270e176438",
+      "signature": "020cfd0c04e6c45598cd15272df9fc0efa8c29611bc529065429b93427b457af",
       "item": {
         "type": "image",
         "width": 128,
         "height": 128,
-        "src": "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.dd71862c.webp"
+        "src": "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.8946e30b.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.dd71862c.webp"
+        "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.8946e30b.webp"
       ]
     },
     "gardenShelf.settingsCog": {
-      "signature": "b51a393baa33d7f9ed7fd0ce61f909f7ee218eef97061e5f943358cd7f4f0391",
+      "signature": "3ae63445942b63bcb994b28552c42c5b1d41035d387394f127775344f1339c91",
       "item": {
         "type": "image",
         "width": 63,
         "height": 69,
-        "src": "/assets-runtime/garden-shelf/assets_garden_cog.8fc375b0.webp"
+        "src": "/assets-runtime/garden-shelf/assets_garden_cog.76215909.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/assets_garden_cog.8fc375b0.webp"
+        "/assets-runtime/garden-shelf/assets_garden_cog.76215909.webp"
       ]
     },
     "gardenShelf.sheet.transparent": {
-      "signature": "729a7316d447140d7db2042c117dc48aeba3e264d43633285a8781865a9cc5b6",
+      "signature": "4ed68ce4c15fa8c774232a76158c143c408e2575a4bfde16ce60ce0859ee70bc",
       "item": {
         "type": "image",
         "width": 1672,
         "height": 1645,
-        "src": "/assets-runtime/garden-shelf/assets_transparent.7407e2cb.webp"
+        "src": "/assets-runtime/garden-shelf/assets_transparent.92361610.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/assets_transparent.7407e2cb.webp"
+        "/assets-runtime/garden-shelf/assets_transparent.92361610.webp"
       ]
     },
     "gardenShelf.shelf": {
-      "signature": "a40a72cadeada636634b6fd85d0094d6c3530ab8bda9670224c614780c68b5b4",
+      "signature": "fe78206d32a3dc7586a6e0dda0d8df903e28a87a0e16b69e5982499d58ebc7ed",
       "item": {
         "type": "image",
         "width": 385,
         "height": 77,
-        "src": "/assets-runtime/garden-shelf/assets_shelf.bf005800.webp"
+        "src": "/assets-runtime/garden-shelf/assets_shelf.af977980.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/assets_shelf.bf005800.webp"
+        "/assets-runtime/garden-shelf/assets_shelf.af977980.webp"
       ]
     },
     "gardenShelf.sign": {
-      "signature": "93dc815e18ec3cec91f74179e33d3a87c63964e2f4b25f3cf20fa588c1b156f6",
+      "signature": "88b2c439e8293a36d8c564621970cadf11185eed390862d9770b6c6c9eb7556e",
       "item": {
         "type": "image",
         "width": 370,
         "height": 139,
-        "src": "/assets-runtime/garden-shelf/assets_garden_sign.97058d31.webp"
+        "src": "/assets-runtime/garden-shelf/assets_garden_sign.63d158f8.webp"
       },
       "written": [
-        "/assets-runtime/garden-shelf/assets_garden_sign.97058d31.webp"
+        "/assets-runtime/garden-shelf/assets_garden_sign.63d158f8.webp"
       ]
     },
     "icons.icon192": {
@@ -2218,59 +2162,59 @@
       ]
     },
     "match3.piece.newt": {
-      "signature": "5847db900b2a049106ef4385c354abdf9a509420257b3dfb1f982813f338d5fd",
+      "signature": "81678ab01de6163cee34bc251aa8157c15b27585463d6f4966b2cd189e6a8acc",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-newt.7aa8d8db.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-newt.ffa95b9c.png"
+        "src": "/assets-runtime/puzzling-potions/piece-newt.9b1fe0f9.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-newt.c101c5cd.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-newt.7aa8d8db.webp",
-        "/assets-runtime/puzzling-potions/piece-newt.ffa95b9c.png"
+        "/assets-runtime/puzzling-potions/piece-newt.9b1fe0f9.webp",
+        "/assets-runtime/puzzling-potions/piece-newt.c101c5cd.png"
       ]
     },
     "match3.piece.snake": {
-      "signature": "9e6db6843a2aef4a6d86f1753c3278eae6c50a036e23aec8377557927d0234dc",
+      "signature": "acf27c8e4ffc4a25fd2937a1b29002481c36c5aa4c7f92052adc1b61fb30627b",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-snake.fc0bbc1b.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-snake.c7ea4de6.png"
+        "src": "/assets-runtime/puzzling-potions/piece-snake.b9855ed9.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-snake.98129c0d.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-snake.fc0bbc1b.webp",
-        "/assets-runtime/puzzling-potions/piece-snake.c7ea4de6.png"
+        "/assets-runtime/puzzling-potions/piece-snake.b9855ed9.webp",
+        "/assets-runtime/puzzling-potions/piece-snake.98129c0d.png"
       ]
     },
     "match3.piece.spider": {
-      "signature": "de9f274519a60988f5ef5b9cc9d8c9d683896c95fa2c8b7e40f4ee428b720b9f",
+      "signature": "af49e941b21264f553bd6de7d36ff884734ae6f42489f785d210220ce0e5b1cf",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-spider.2c57fa05.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-spider.8cdcfd8e.png"
+        "src": "/assets-runtime/puzzling-potions/piece-spider.a1f16dfc.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-spider.1a5d1e9d.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-spider.2c57fa05.webp",
-        "/assets-runtime/puzzling-potions/piece-spider.8cdcfd8e.png"
+        "/assets-runtime/puzzling-potions/piece-spider.a1f16dfc.webp",
+        "/assets-runtime/puzzling-potions/piece-spider.1a5d1e9d.png"
       ]
     },
     "match3.piece.yeti": {
-      "signature": "e935bfebf672d85edf7d5d9b4ae83ce9a33f7c8edfe21e3aa6eb2a8a25419b16",
+      "signature": "410c3570a2e162ec44233230f1a3d5beb8322bf094e47ff5bc1aa14a27557937",
       "item": {
         "type": "image",
         "width": 144,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/piece-yeti.35298566.webp",
-        "fallback": "/assets-runtime/puzzling-potions/piece-yeti.75a96a5d.png"
+        "src": "/assets-runtime/puzzling-potions/piece-yeti.97900160.webp",
+        "fallback": "/assets-runtime/puzzling-potions/piece-yeti.0d91d866.png"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/piece-yeti.35298566.webp",
-        "/assets-runtime/puzzling-potions/piece-yeti.75a96a5d.png"
+        "/assets-runtime/puzzling-potions/piece-yeti.97900160.webp",
+        "/assets-runtime/puzzling-potions/piece-yeti.0d91d866.png"
       ]
     },
     "match3.shelf.block": {

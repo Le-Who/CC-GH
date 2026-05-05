@@ -233,9 +233,11 @@ function YardShopRow({ imageSrc, title, description, priceParts, children }) {
         <strong>{title}</strong>
         <small>{description}</small>
       </div>
-      <YardPriceChip parts={priceParts} />
-      <div className="yard-row-actions">
-        {children}
+      <div className="yard-shop-purchase">
+        <YardPriceChip parts={priceParts} />
+        <div className="yard-row-actions">
+          {children}
+        </div>
       </div>
     </div>
   );

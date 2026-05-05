@@ -1751,39 +1751,6 @@ button.stat-chip {
     grid-template-columns: 1fr;
   }
 
-  .companion-yard-stage {
-    min-height: 420px;
-  }
-
-  .yard-slot {
-    width: 68px;
-    height: 68px;
-  }
-
-  .yard-slot-large {
-    width: 94px;
-    height: 78px;
-  }
-
-  .yard-visitor {
-    transform: translate(-50%, -92%) scale(0.86);
-    transform-origin: center bottom;
-  }
-
-  .yard-visitor.selected {
-    transform: translate(-50%, -92%) scale(0.94);
-  }
-
-  .yard-companion {
-    transform: scale(0.86);
-    transform-origin: right bottom;
-  }
-
-  .yard-bowls {
-    left: 8px;
-    top: 8px;
-  }
-
   .yard-bowl {
     min-width: 84px;
     grid-template-columns: 28px minmax(0, 1fr);
