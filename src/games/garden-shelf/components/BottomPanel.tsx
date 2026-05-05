@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../lib/GameContext';
 import {
@@ -36,6 +37,7 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   const { state } = useGame();
   const { t } = useGardenI18n();
   const sheetRef = React.useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = React.useRef<HTMLButtonElement | null>(null);
   const [activePlantId, setActivePlantId] = useState(spot?.plantId || '');
   const placedPlants = React.useMemo(
     () => [...state.plants]
@@ -55,6 +57,13 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   React.useEffect(() => {
     setActivePlantId(spot?.plantId || '');
   }, [spot?.plantId]);
+  React.useEffect(() => {
+    if (!spot) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [spot]);
   useEscapeDismiss(!!spot, onClose);
   useOutsideDismiss(!!spot, sheetRef, onClose);
 
@@ -66,18 +75,30 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
 
   if (!spot) return null;
 
-  return (
+  const isPlantDetail = !!activeSpot.plantId;
+  const closeLabel = t(isPlantDetail ? 'plantDetail.close' : 'shop.close');
+
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <>
-      <motion.div 
+      <motion.button
+        type="button"
+        aria-hidden="true"
+        tabIndex={-1}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="glass-scrim fixed inset-0 z-[180]"
+        className="glass-scrim garden-sheet-scrim fixed inset-0 z-[180]"
       />
       
       <motion.div
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t(isPlantDetail ? 'plantDetail.details' : 'shop.seedShop')}
+        tabIndex={-1}
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
@@ -88,7 +109,8 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
         
         <button
           type="button"
-          aria-label={t(activeSpot.plantId ? 'plantDetail.close' : 'shop.close')}
+          aria-label={closeLabel}
+          ref={closeButtonRef}
           onClick={onClose}
           className="garden-icon-button garden-sheet-close absolute right-4 top-4 z-[200] h-14 w-14 transition"
         >
@@ -110,7 +132,8 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
           )}
         </div>
       </motion.div>
-    </>
+    </>,
+    document.body,
   );
 }
 

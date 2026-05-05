@@ -119,7 +119,12 @@ test.describe("Garden Shelf flow", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("keeps mature plant detail dismissible and reward feedback readable on short mobile screens", async ({ page }) => {
+  test("keeps mature plant detail fitted and dismissible on phone-sized high-DPI layouts", async ({ browser }) => {
+    const viewports = [
+      { width: 320, height: 568, deviceScaleFactor: 2 },
+      { width: 390, height: 844, deviceScaleFactor: 2 },
+      { width: 414, height: 896, deviceScaleFactor: 2 },
+    ];
     const now = Date.now();
     const player = createDefaultPlayer(`garden_mature_feedback_${now}`, "Garden Feedback", now);
     player.garden = {
@@ -145,107 +150,161 @@ test.describe("Garden Shelf flow", () => {
       offlineEarnings: null,
       offlineXp: null,
     };
-    let snapshot = buildSnapshot(player);
 
-    await page.route("**/api/player/snapshot", async (route) => {
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify(snapshot),
+    for (const viewport of viewports) {
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        deviceScaleFactor: viewport.deviceScaleFactor,
+        isMobile: true,
+        hasTouch: true,
       });
-    });
-    await page.route("**/api/player/mutate", async (route) => {
-      const body = parsePlayerActionRequest(route.request()) || {};
-      if (body.action === "garden.goldDelta") {
-        snapshot = {
-          ...snapshot,
-          resources: {
-            ...snapshot.resources,
-            gold: Math.max(0, Math.floor(Number(snapshot.resources?.gold) || 0) + Math.trunc(Number(body.payload?.amount) || 0)),
-          },
-        };
+      const page = await context.newPage();
+      let snapshot = buildSnapshot(player);
+
+      await page.addInitScript(() => {
+        window.localStorage.setItem("gh_dev_user_id", `garden_sheet_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+        window.localStorage.removeItem("terrarium_save");
+        window.localStorage.removeItem("garden_shelf_language");
+        window.localStorage.removeItem("garden_shelf_name");
+      });
+      await page.route("**/api/player/snapshot", async (route) => {
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify(snapshot),
+        });
+      });
+      await page.route("**/api/player/mutate", async (route) => {
+        const body = parsePlayerActionRequest(route.request()) || {};
+        if (body.action === "garden.goldDelta") {
+          snapshot = {
+            ...snapshot,
+            resources: {
+              ...snapshot.resources,
+              gold: Math.max(0, Math.floor(Number(snapshot.resources?.gold) || 0) + Math.trunc(Number(body.payload?.amount) || 0)),
+            },
+          };
+        }
+        if (body.action === "garden.sync") {
+          snapshot = {
+            ...snapshot,
+            garden: body.payload?.state || snapshot.garden,
+          };
+        }
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({
+            action: body.action,
+            snapshot,
+            goldDelta: body.payload?.amount || 0,
+          }),
+        });
+      });
+
+      const openDetailSheet = async () => {
+        await page.getByRole("button", { name: "Plant details" }).first().tap();
+        const sheet = page.locator(".garden-glass-sheet").last();
+        await expect(sheet).toBeVisible();
+        await expect(sheet).toHaveAttribute("role", "dialog");
+        await expect(sheet).toHaveAttribute("aria-modal", "true");
+        await expect.poll(async () => sheet.evaluate((node) => {
+          const rect = node.getBoundingClientRect();
+          const visual = window.visualViewport;
+          return rect.bottom <= ((visual?.offsetTop || 0) + (visual?.height || window.innerHeight)) + 1
+            && rect.top >= (visual?.offsetTop || 0) - 1;
+        })).toBe(true);
+        return sheet;
+      };
+
+      const assertSheetContract = async (sheet) => {
+        const layout = await sheet.evaluate((node) => {
+          const visual = window.visualViewport;
+          const viewport = {
+            left: visual?.offsetLeft || 0,
+            top: visual?.offsetTop || 0,
+            width: visual?.width || window.innerWidth,
+            height: visual?.height || window.innerHeight,
+            scrollWidth: document.documentElement.scrollWidth,
+            innerWidth: window.innerWidth,
+          };
+          const rect = node.getBoundingClientRect();
+          const close = node.querySelector('[aria-label="Close plant detail"]')?.getBoundingClientRect();
+          const content = node.querySelector(".garden-sheet-content");
+          const visible = (el) => {
+            const styles = getComputedStyle(el);
+            const box = el.getBoundingClientRect();
+            return styles.display !== "none" && styles.visibility !== "hidden" && box.width > 0 && box.height > 0;
+          };
+          const smallButtons = [...node.querySelectorAll("button")]
+            .filter(visible)
+            .filter((button) => {
+              const box = button.getBoundingClientRect();
+              return box.width < 44 || box.height < 44;
+            })
+            .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
+          if (content) content.scrollTop = content.scrollHeight;
+          const closeAfterScroll = node.querySelector('[aria-label="Close plant detail"]')?.getBoundingClientRect();
+          return {
+            viewport,
+            sheet: { top: rect.top, bottom: rect.bottom, right: rect.right, left: rect.left },
+            close: close ? { x: close.x, y: close.y, right: close.right, bottom: close.bottom } : null,
+            closeAfterScroll: closeAfterScroll ? { x: closeAfterScroll.x, y: closeAfterScroll.y, right: closeAfterScroll.right, bottom: closeAfterScroll.bottom } : null,
+            activeLabel: document.activeElement?.getAttribute("aria-label"),
+            smallButtons,
+          };
+        });
+        expect(layout.viewport.scrollWidth).toBeLessThanOrEqual(layout.viewport.innerWidth + 1);
+        expect(layout.sheet.left).toBeGreaterThanOrEqual(layout.viewport.left - 1);
+        expect(layout.sheet.right).toBeLessThanOrEqual(layout.viewport.left + layout.viewport.width + 1);
+        expect(layout.sheet.top).toBeGreaterThanOrEqual(layout.viewport.top - 1);
+        expect(layout.sheet.bottom).toBeLessThanOrEqual(layout.viewport.top + layout.viewport.height + 1);
+        for (const close of [layout.close, layout.closeAfterScroll]) {
+          expect(close).not.toBeNull();
+          expect(close.x).toBeGreaterThanOrEqual(layout.viewport.left - 1);
+          expect(close.y).toBeGreaterThanOrEqual(layout.viewport.top - 1);
+          expect(close.right).toBeLessThanOrEqual(layout.viewport.left + layout.viewport.width + 1);
+          expect(close.bottom).toBeLessThanOrEqual(layout.viewport.top + layout.viewport.height + 1);
+        }
+        expect(layout.activeLabel).toBe("Close plant detail");
+        expect(layout.smallButtons).toEqual([]);
+      };
+
+      try {
+        await page.goto("/");
+        await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+
+        const plantBox = await page.locator('[data-garden-plant="true"]').first().boundingBox();
+        expect(plantBox).not.toBeNull();
+        await page.touchscreen.tap(plantBox.x + plantBox.width / 2, plantBox.y + plantBox.height / 2);
+        const shelfNote = page.locator(".garden-floating-note.reward").first();
+        await expect(shelfNote).toBeVisible();
+        await expect(shelfNote).toContainText(/G .* XP/);
+        const shelfNoteFontSize = await shelfNote.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+        expect(shelfNoteFontSize).toBeGreaterThanOrEqual(14);
+        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+
+        let sheet = await openDetailSheet();
+        await assertSheetContract(sheet);
+        await sheet.getByRole("button", { name: "Care water" }).click();
+        const detailNote = page.locator(".garden-detail-floating-note.reward").first();
+        await expect(detailNote).toBeVisible();
+        await expect(detailNote).toContainText(/G .* XP/);
+        const detailNoteFontSize = await detailNote.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
+        expect(detailNoteFontSize).toBeGreaterThanOrEqual(14);
+        await sheet.locator(".garden-sheet-close").click();
+        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+
+        sheet = await openDetailSheet();
+        await assertSheetContract(sheet);
+        await page.keyboard.press("Escape");
+        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+
+        sheet = await openDetailSheet();
+        await assertSheetContract(sheet);
+        await page.touchscreen.tap(8, 8);
+        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+      } finally {
+        await context.close();
       }
-      if (body.action === "garden.sync") {
-        snapshot = {
-          ...snapshot,
-          garden: body.payload?.state || snapshot.garden,
-        };
-      }
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({
-          action: body.action,
-          snapshot,
-          goldDelta: body.payload?.amount || 0,
-        }),
-      });
-    });
-
-    for (const viewport of [
-      { width: 320, height: 568 },
-      { width: 360, height: 640 },
-      { width: 390, height: 844 },
-    ]) {
-      snapshot = buildSnapshot(player);
-      await page.setViewportSize(viewport);
-      await page.goto("/");
-      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      await page.locator('[data-garden-plant="true"]').first().click({ force: true });
-      await expect(page.locator(".garden-floating-note.gold")).toBeVisible();
-      await expect(page.locator(".garden-floating-note.xp")).toBeVisible();
-      const shelfNoteFontSize = await page.locator(".garden-floating-note.gold").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
-      expect(shelfNoteFontSize).toBeGreaterThanOrEqual(14);
-
-      await page.getByRole("button", { name: "Plant details" }).first().click();
-      const sheet = page.locator(".garden-glass-sheet").last();
-      await expect(sheet).toBeVisible();
-      await expect.poll(async () => sheet.evaluate((node) => node.getBoundingClientRect().bottom)).toBeLessThanOrEqual(viewport.height + 1);
-      const closeButton = page.getByRole("button", { name: "Close plant detail" });
-      await expect(closeButton).toBeVisible();
-
-      const layout = await sheet.evaluate((node) => {
-        const rect = node.getBoundingClientRect();
-        const visible = (el) => {
-          const styles = getComputedStyle(el);
-          const box = el.getBoundingClientRect();
-          return styles.display !== "none" && styles.visibility !== "hidden" && box.width > 0 && box.height > 0;
-        };
-        const smallButtons = [...node.querySelectorAll("button")]
-          .filter(visible)
-          .filter((button) => {
-            const box = button.getBoundingClientRect();
-            return box.width < 44 || box.height < 44;
-          })
-          .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
-        const close = node.querySelector('[aria-label="Close plant detail"]')?.getBoundingClientRect();
-        return {
-          top: rect.top,
-          bottom: rect.bottom,
-          close: close ? { x: close.x, y: close.y, right: close.right, bottom: close.bottom } : null,
-          smallButtons,
-        };
-      });
-      expect(layout.top).toBeGreaterThanOrEqual(0);
-      expect(layout.bottom).toBeLessThanOrEqual(viewport.height + 1);
-      expect(layout.close).not.toBeNull();
-      expect(layout.close.x).toBeGreaterThanOrEqual(0);
-      expect(layout.close.y).toBeGreaterThanOrEqual(0);
-      expect(layout.close.right).toBeLessThanOrEqual(viewport.width + 1);
-      expect(layout.close.bottom).toBeLessThanOrEqual(viewport.height + 1);
-      expect(layout.smallButtons).toEqual([]);
-
-      await page.getByRole("button", { name: "Care water" }).click();
-      await expect(page.locator(".garden-detail-floating-note.gold")).toBeVisible();
-      await expect(page.locator(".garden-detail-floating-note.care")).toBeVisible();
-      const detailNoteFontSize = await page.locator(".garden-detail-floating-note.gold").first().evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
-      expect(detailNoteFontSize).toBeGreaterThanOrEqual(14);
-
-      await page.keyboard.press("Escape");
-      await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
-
-      await page.getByRole("button", { name: "Plant details" }).first().click();
-      await expect(page.locator(".garden-glass-sheet").last()).toBeVisible();
-      await page.mouse.click(12, 12);
-      await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
     }
   });
 
