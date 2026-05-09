@@ -309,17 +309,28 @@ describe("asset runtime pipeline", () => {
     await writePixelPng(path.join(root, "public/games/bubbo-bubbo/assets_bubbo_balls.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/assets_shelf.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/fx/gold-sparkle.png"));
+    await writePixelPng(path.join(root, "public/games/blox/block_tile_blue.png"));
+    await writePixelPng(path.join(root, "public/games/farm/crops/strawberry_ready.png"));
+    await writePixelPng(path.join(root, "public/games/trivia/panel-menu.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/foods/kibble.png"));
+    await writePixelPng(path.join(root, "public/games/companion-yard/expressions/happy.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/ui/cozy-price-chip.png"));
     await writePixelPng(path.join(root, "public/icons/icon-192.png"));
 
-    const formatsByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry.formats]));
+    const entriesByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry]));
+    const formatsByKey = new Map([...entriesByKey].map(([key, entry]) => [key, entry.formats]));
 
     assert.deepEqual(formatsByKey.get("bubbo.balls.sheet"), ["webp", "png"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.fx.gold-sparkle"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("blox.block_tile_blue"), ["webp", "png"]);
+    assert.equal(entriesByKey.get("blox.block_tile_blue")?.bundle, "pixi.blox");
+    assert.deepEqual(formatsByKey.get("farm.crops.strawberry_ready"), ["webp", "png"]);
+    assert.equal(entriesByKey.get("farm.crops.strawberry_ready")?.bundle, "pixi.farm");
+    assert.deepEqual(formatsByKey.get("trivia.panel-menu"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);
-    assert.equal(formatsByKey.has("companionYard.ui.cozy-price-chip"), false);
+    assert.deepEqual(formatsByKey.get("companionYard.expressions.happy"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("companionYard.ui.cozy-price-chip"), ["webp"]);
     assert.deepEqual(formatsByKey.get("icons.icon192"), ["webp"]);
   });
 

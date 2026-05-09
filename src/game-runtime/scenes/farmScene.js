@@ -1,26 +1,36 @@
 import {
   Container,
-  Graphics,
-  CROPS,
   createPointerSession,
-  FARM_SOIL,
   PANEL,
   MUTED,
   MINT,
   AMBER,
   CORAL,
+  viewWidth,
+  viewHeight,
   clear,
   label,
   rect,
-  strokedRect,
+  spriteFit,
+  coverSprite,
+  gameAsset,
   makeInteractive,
   fit,
   cellFromPoint,
   cropProgress,
   makeSparkles,
   setupStage,
+  FARM_CROP_SLUGS,
+  FARM_ASSET_KEYS,
   tickParticles,
 } from './shared/runtime.js';
+
+const FARM_THEME_ASSET_BY_ID = {
+  default: "default",
+  neon: "moon",
+  autumn: "flower",
+  crystal: "stone",
+};
 
 export function buildFarmScene(app, initial = {}) {
   const root = new Container();
@@ -51,6 +61,14 @@ export function buildFarmScene(app, initial = {}) {
       }
       const item = done.data || {};
       data.onFarmPlot?.(item.index, item.plot);
+      const effectKey = item.ready
+        ? FARM_ASSET_KEYS.harvestPop
+        : item.plot?.crop && !item.plot?.watered
+          ? FARM_ASSET_KEYS.waterSplash
+          : FARM_ASSET_KEYS.plantPuff;
+      const fx = spriteFit(gameAsset(effectKey), item.x, item.y, item.ready ? 58 : 44, item.ready ? 58 : 44, 0.76);
+      fx._tween = { fromX: fx.x, fromY: fx.y, toX: fx.x, toY: fx.y - 16, duration: 20, fade: true, scaleFrom: 0.72, scaleTo: 1.18 };
+      effects.addChild(fx);
       makeSparkles(effects, item.x, item.y, item.ready ? AMBER : MINT, 6);
       draw();
     },
@@ -58,19 +76,44 @@ export function buildFarmScene(app, initial = {}) {
     onCancel: () => finishHold(true),
   });
 
+  function cropSlug(cropId) {
+    return FARM_CROP_SLUGS[cropId] || cropId;
+  }
+
+  function cropPhase(progress) {
+    if (progress >= 1) return "ready";
+    if (progress >= 0.62) return "growing";
+    if (progress >= 0.24) return "sprout";
+    return "seed";
+  }
+
+  function cropAssetKey(cropId, progress) {
+    return `farm.crops.${cropSlug(cropId)}_${cropPhase(progress)}`;
+  }
+
+  function plotThemeAsset(farm) {
+    const active = farm?.cosmetics?.activePlotTheme || "default";
+    const theme = FARM_THEME_ASSET_BY_ID[active] || "default";
+    return FARM_ASSET_KEYS.plotThemes[theme] || FARM_ASSET_KEYS.plotEmpty;
+  }
+
   function draw() {
     clear(root);
     const snapshot = data.snapshot || {};
     const farm = snapshot.farm || {};
     const plots = farm.plots || [];
     const labels = data.farmLabels || {};
-    const now = Date.now();
+    const now = Number(snapshot.serverTime) || Date.now();
     const cols = 4;
     const rows = Math.max(2, Math.ceil(Math.max(plots.length, 6) / cols));
     const fitted = fit(app, cols, rows, 16, 10);
     layout = { ...fitted, cols, rows };
     const { cell, left, top } = fitted;
-    root.addChild(rect(left - 10, top - 10, cell * cols + 20, cell * rows + 20, PANEL, 14));
+    const stageWidth = viewWidth(app);
+    const stageHeight = viewHeight(app);
+    root.addChild(coverSprite(gameAsset(FARM_ASSET_KEYS.backgroundField), stageWidth / 2, stageHeight / 2, stageWidth, stageHeight, 1536 / 1024, 0.96));
+    root.addChild(rect(left - 10, top - 10, cell * cols + 20, cell * rows + 20, PANEL, 14, 0.16));
+    const themeAsset = plotThemeAsset(farm);
 
     for (let i = 0; i < rows * cols; i++) {
       const plot = plots[i];
@@ -83,9 +126,9 @@ export function buildFarmScene(app, initial = {}) {
       const planted = !!plot?.crop;
       const ready = planted && progress >= 1;
       const isHolding = hold?.index === i;
-      const tile = isHolding
-        ? strokedRect(x, y, w, w, CORAL, 12, planted ? 0x234b2f : FARM_SOIL[i % FARM_SOIL.length])
-        : rect(x, y, w, w, planted ? 0x234b2f : FARM_SOIL[i % FARM_SOIL.length], 12);
+      root.addChild(spriteFit(gameAsset(FARM_ASSET_KEYS.plotShadow), x + w / 2, y + w / 2 + w * 0.07, w * 1.02, w * 0.88, 0.42));
+      const baseAsset = !plot ? FARM_ASSET_KEYS.plotLocked : planted ? themeAsset : FARM_ASSET_KEYS.plotEmpty;
+      const tile = spriteFit(gameAsset(baseAsset), x + w / 2, y + w / 2, w, w, !plot ? 0.72 : 1);
       makeInteractive(tile, {
         pointerdown: (event) => {
           if (!plot) return;
@@ -103,19 +146,27 @@ export function buildFarmScene(app, initial = {}) {
         },
       });
       root.addChild(tile);
+      if (isHolding) {
+        root.addChild(spriteFit(gameAsset(FARM_ASSET_KEYS.plotSelected), x + w / 2, y + w / 2, w, w, 0.88));
+      }
 
       if (!plot) {
-        root.addChild(label("+", x + w / 2, y + w / 2, 22, MUTED));
         continue;
       }
       if (!planted) {
-        root.addChild(label(labels.soil || "soil", x + w / 2, y + w / 2, Math.max(10, cell * 0.13), 0xc69b61));
+        root.addChild(label(labels.soil || "soil", x + w / 2, y + w * 0.55, Math.max(10, cell * 0.12), 0x7b5a33));
         continue;
       }
 
-      const cfg = CROPS[plot.crop] || {};
-      root.addChild(new Graphics().roundRect(x + w * 0.42, y + w * 0.38, w * 0.16, w * 0.34, 4).fill(0x61bd62));
-      root.addChild(label(cfg.emoji || labels.seed || "seed", x + w / 2, y + w * 0.34, Math.max(18, cell * 0.28)));
+      const cropView = spriteFit(gameAsset(cropAssetKey(plot.crop, progress)), x + w / 2, y + w * 0.5, w * 0.84, w * 0.76, 0.98);
+      root.addChild(cropView);
+      if (plot.watered && !ready) {
+        root.addChild(spriteFit(gameAsset(FARM_ASSET_KEYS.plotWateredOverlay), x + w / 2, y + w / 2, w, w, 0.76));
+      }
+      if (ready) {
+        root.addChild(spriteFit(gameAsset(FARM_ASSET_KEYS.plotReadyOverlay), x + w / 2, y + w / 2, w, w, 0.82));
+        root.addChild(spriteFit(gameAsset(FARM_ASSET_KEYS.growthGlow), x + w / 2, y + w * 0.46, w * 0.86, w * 0.86, 0.46));
+      }
       root.addChild(rect(x + w * 0.15, y + w * 0.78, w * 0.7, 6, 0x17231d, 6));
       root.addChild(rect(x + w * 0.15, y + w * 0.78, w * 0.7 * progress, 6, ready ? AMBER : MINT, 6));
       root.addChild(label(ready ? labels.ready || "READY" : isHolding ? labels.uproot || "UPROOT" : plot.watered ? labels.watered || "watered" : `${Math.round(progress * 100)}%`, x + w / 2, y + w * 0.9, Math.max(8, cell * 0.1), ready ? AMBER : isHolding ? CORAL : MUTED));

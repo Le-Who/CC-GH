@@ -4,11 +4,16 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  bloxBoardFrameLayout,
   bloxAnchorCellFromDrag,
   bloxGhostOrigin,
   createBloxDragState,
   tickParticles,
 } from "../src/game-runtime/sceneGeometry.js";
+import {
+  GAME_ASSET_BUNDLES,
+  LEGACY_ASSET_PATHS,
+} from "../src/game-runtime/assetBundles.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -116,6 +121,35 @@ describe("Pixi scene geometry helpers", () => {
     assert.ok(scenes.includes("falling._gravity = reduce ? 0.18 : 0.07"), "Bubbo island drops should use slow gravity instead of instant removal");
     assert.ok(bubboGame.includes("bottomHudReserve: true"), "Bubbo scene should reserve launcher space above the bottom HUD");
     assert.ok(assetBundles.includes("assets_bubbo_balls"), "Bubbo should preload the corrected sheet artwork");
+  });
+
+  it("wires final-state Blox and Farm art through asset keys instead of shape-only placeholders", () => {
+    const scenes = readSceneRuntimeText();
+    const bloxScene = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "scenes", "bloxScene.js"), "utf-8");
+
+    assert.equal(LEGACY_ASSET_PATHS["blox.cell_empty"], "/games/blox/cell_empty.png");
+    assert.equal(LEGACY_ASSET_PATHS["farm.crops.strawberry_ready"], "/games/farm/crops/strawberry_ready.png");
+    assert.ok(GAME_ASSET_BUNDLES.blox.includes("blox.cell_empty"), "Blox preload fallback should include generated cell art");
+    assert.ok(GAME_ASSET_BUNDLES.farm.includes("farm.crops.strawberry_ready"), "Farm preload fallback should include generated crop art");
+    assert.ok(scenes.includes("BLOX_TILE_ASSET_BY_COLOR"), "Blox should map placed block colors to generated block tile sprites");
+    assert.ok(scenes.includes("BLOX_ASSET_KEYS.rowWipe"), "Blox clear effects should use generated row/column wipe art");
+    assert.ok(bloxScene.includes("drawTrayPiece"), "Blox tray previews should render from live piece cells");
+    assert.ok(!bloxScene.includes("BLOX_PIECE_ASSET_BY_ID"), "Blox tray previews should not use mismatched fixed preview sprites");
+    assert.ok(scenes.includes("FARM_CROP_SLUGS"), "Farm should map crop ids to generated crop sprite paths");
+    assert.ok(scenes.includes("FARM_ASSET_KEYS.backgroundField"), "Farm should render the generated field background");
+  });
+
+  it("fits Blox cells inside the generated board frame opening instead of over its border", () => {
+    const fitted = { left: 14, top: 164, size: 584 };
+    const layout = bloxBoardFrameLayout(fitted, 10);
+
+    assert.equal(layout.cols, 10);
+    assert.equal(layout.rows, 10);
+    assert.ok(layout.left > layout.frame.left + layout.frame.width * 0.14);
+    assert.ok(layout.top > layout.frame.top + layout.frame.height * 0.14);
+    assert.ok(layout.left + layout.size < layout.frame.left + layout.frame.width * 0.86);
+    assert.ok(layout.top + layout.size < layout.frame.top + layout.frame.height * 0.86);
+    assert.ok(layout.cell < fitted.size / 10, "cell size should be derived from the inner opening, not the outer frame");
   });
 
   it("starts delayed Match-3 effect tweens instead of leaving them stuck above the board", () => {

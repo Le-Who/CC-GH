@@ -1,20 +1,21 @@
 import {
   Container,
-  Graphics,
   createPointerSession,
   GRID,
   canPlaceBloxPiece,
   PANEL,
-  PANEL_2,
   MINT,
   AMBER,
   CORAL,
   viewWidth,
+  viewHeight,
   clear,
   label,
   rect,
+  spriteFit,
+  coverSprite,
+  gameAsset,
   strokedRect,
-  colorNumber,
   makeInteractive,
   fitWithTopReserve,
   centeredPieceOrigin,
@@ -22,6 +23,9 @@ import {
   makeRipple,
   makeRafScheduler,
   setupStage,
+  bloxBoardFrameLayout,
+  BLOX_ASSET_KEYS,
+  BLOX_TILE_ASSET_BY_COLOR,
   bloxAnchorCellFromDrag,
   bloxGhostOrigin,
   createBloxDragState,
@@ -39,16 +43,31 @@ export function buildBloxScene(app, initial = {}) {
   let lastTraySignature = "";
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
 
-  function drawPiece(piece, x, y, unit, alpha = 1) {
+  function tileAssetForPiece(piece) {
+    return gameAsset(BLOX_TILE_ASSET_BY_COLOR[String(piece?.color || "").toLowerCase()] || BLOX_ASSET_KEYS.cellSelected);
+  }
+
+  function tileVisualSize(unit, scale = 1.1) {
+    return unit * scale;
+  }
+
+  function drawPiece(piece, x, y, unit, alpha = 1, options = {}) {
     const group = new Container();
     group.eventMode = "none";
     group.interactiveChildren = false;
+    const tileAsset = tileAssetForPiece(piece);
+    const visualSize = options.visualSize || tileVisualSize(unit);
     for (const [r, c] of piece.cells || []) {
-      const cell = rect(x + c * unit, y + r * unit, unit - 2, unit - 2, colorNumber(piece.color), 4, alpha);
+      const cell = spriteFit(tileAsset, x + c * unit + unit / 2, y + r * unit + unit / 2, visualSize, visualSize, alpha);
       cell.eventMode = "none";
       group.addChild(cell);
     }
     return group;
+  }
+
+  function drawTrayPiece(piece, x, y, width, height, unit, alpha = 1) {
+    const origin = centeredPieceOrigin(piece, x, y, width, height, unit);
+    return drawPiece(piece, origin.x, origin.y, unit, alpha, { visualSize: tileVisualSize(unit, 1.12) });
   }
 
   function updateDragVisualNow() {
@@ -80,7 +99,7 @@ export function buildBloxScene(app, initial = {}) {
         if (row < 0 || row >= GRID || col < 0 || col >= GRID) continue;
         const x = layout.left + col * layout.cell + 1;
         const y = layout.top + row * layout.cell + 1;
-        dragLayer.addChild(strokedRect(x, y, layout.cell - 2, layout.cell - 2, valid ? MINT : CORAL, 6, 0xf7efe0, 0.58, 3));
+        dragLayer.addChild(spriteFit(gameAsset(valid ? BLOX_ASSET_KEYS.cellValid : BLOX_ASSET_KEYS.cellInvalid), x + layout.cell / 2 - 1, y + layout.cell / 2 - 1, layout.cell - 2, layout.cell - 2, valid ? 0.78 : 0.68));
       }
     }
   }
@@ -120,11 +139,7 @@ export function buildBloxScene(app, initial = {}) {
     }
     for (const row of rows) {
       const y = layout.top + row * layout.cell + layout.cell / 2;
-      const wipe = new Graphics()
-        .roundRect(-layout.size / 2 - 4, -layout.cell * 0.26, layout.size + 8, layout.cell * 0.52, 8)
-        .fill({ color: AMBER, alpha: 0.74 });
-      wipe.x = layout.left + layout.size / 2;
-      wipe.y = y;
+      const wipe = spriteFit(gameAsset(BLOX_ASSET_KEYS.rowWipe), layout.left + layout.size / 2, y, layout.size + 16, layout.cell * 1.35, 0.74);
       wipe.scale.x = 0.08;
       wipe._delay = row % 3;
       wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
@@ -137,11 +152,7 @@ export function buildBloxScene(app, initial = {}) {
     }
     for (const col of cols) {
       const x = layout.left + col * layout.cell + layout.cell / 2;
-      const wipe = new Graphics()
-        .roundRect(-layout.cell * 0.26, -layout.size / 2 - 4, layout.cell * 0.52, layout.size + 8, 8)
-        .fill({ color: MINT, alpha: 0.7 });
-      wipe.x = x;
-      wipe.y = layout.top + layout.size / 2;
+      const wipe = spriteFit(gameAsset(BLOX_ASSET_KEYS.columnWipe), x, layout.top + layout.size / 2, layout.cell * 1.35, layout.size + 16, 0.7);
       wipe.scale.y = 0.08;
       wipe._delay = col % 3;
       wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
@@ -153,6 +164,18 @@ export function buildBloxScene(app, initial = {}) {
       }
     }
     if (clearedCells.size) {
+      const burst = spriteFit(gameAsset(BLOX_ASSET_KEYS.multiClearBurst), layout.left + layout.size / 2, layout.top + layout.size / 2, layout.cell * 3.1, layout.cell * 3.1, 0.78);
+      burst._tween = {
+        fromX: burst.x,
+        fromY: burst.y,
+        toX: burst.x,
+        toY: burst.y,
+        duration: 24,
+        fade: true,
+        scaleFrom: 0.66,
+        scaleTo: 1.22,
+      };
+      effects.addChild(burst);
       const text = label(data.bloxClearText || "CLEAR", layout.left + layout.size / 2, layout.top + layout.size / 2, Math.max(18, layout.cell * 0.48), AMBER, "1000");
       text._tween = {
         fromX: text.x,
@@ -179,6 +202,9 @@ export function buildBloxScene(app, initial = {}) {
     if (target && data.blox?.gameActive) {
       data.onBloxDrop?.(current.pieceIdx, target.row, target.col)?.then?.((result) => {
         if (!result?.error) {
+          const settle = spriteFit(gameAsset(BLOX_ASSET_KEYS.placeSettle), point.x, point.y, 52, 52, 0.7);
+          settle._tween = { fromX: point.x, fromY: point.y, toX: point.x, toY: point.y, duration: 18, fade: true, scaleFrom: 0.68, scaleTo: 1.12 };
+          effects.addChild(settle);
           const clearColor = result.clear?.cleared ? AMBER : MINT;
           makeSparkles(effects, point.x, point.y, clearColor, result.clear?.cleared ? 18 : 13);
           makeRipple(effects, point.x, point.y, clearColor, result.clear?.cleared ? 42 : 24);
@@ -223,16 +249,22 @@ export function buildBloxScene(app, initial = {}) {
     const state = data.blox || {};
     const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
     const tray = state.tray || state.savedState?.tray || [];
-    const fitted = fitWithTopReserve(app, GRID, GRID, 14, data.bloxHudReserve || 132, 112, { verticalAnchor: 0.1 });
-    layout = { ...fitted, cols: GRID, rows: GRID };
-    const { size, cell, left, top } = fitted;
-    root.addChild(rect(left - 8, top - 8, size + 16, size + 16, PANEL, 14));
+    const fitted = fitWithTopReserve(app, GRID, GRID, 14, data.bloxHudReserve || 132, 112, { verticalAnchor: 0.04 });
+    layout = bloxBoardFrameLayout(fitted, GRID);
+    const { size, cell, left, top, frame } = layout;
+    const stageWidth = viewWidth(app);
+    const stageHeight = viewHeight(app);
+    root.addChild(coverSprite(gameAsset(BLOX_ASSET_KEYS.background), stageWidth / 2, stageHeight / 2, stageWidth, stageHeight, 1024 / 1536, 0.92));
+    root.addChild(rect(frame.left - 8, frame.top - 8, frame.width + 16, frame.height + 16, PANEL, 14, 0.14));
+    root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.boardFrame), frame.left + frame.width / 2, frame.top + frame.height / 2, frame.width, frame.height, 0.98));
 
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
         const value = board[r]?.[c];
-        const color = value ? colorNumber(value) : 0xe4ebd7;
-        const tile = rect(left + c * cell + 2, top + r * cell + 2, cell - 4, cell - 4, color, 5, value ? 1 : 0.88);
+        const tileAsset = value
+          ? gameAsset(BLOX_TILE_ASSET_BY_COLOR[String(value).toLowerCase()] || BLOX_ASSET_KEYS.cellSelected)
+          : gameAsset(BLOX_ASSET_KEYS.cellEmpty);
+        const tile = spriteFit(tileAsset, left + c * cell + cell / 2, top + r * cell + cell / 2, tileVisualSize(cell), tileVisualSize(cell), value ? 1 : 0.86);
         makeInteractive(tile, {
           pointerdown: (event) => {
             if (!state.gameActive) return;
@@ -250,9 +282,10 @@ export function buildBloxScene(app, initial = {}) {
       root.addChild(predicted);
     }
 
-    const trayTop = top + size + 16;
+    const trayTop = frame.top + frame.height + Math.max(8, cell * 0.18);
     const trayUnit = Math.min(18, Math.max(10, (viewWidth(app) - 70) / 18));
     const slotW = (viewWidth(app) - 36) / 3;
+    root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, viewWidth(app) - 18, 74, 0.76));
     const traySignature = tray.map((item) => `${item?.piece?.id || "empty"}:${item?.placed ? 1 : 0}`).join("|");
     const trayChanged = lastTraySignature && lastTraySignature !== traySignature;
     lastTraySignature = traySignature;
@@ -262,7 +295,7 @@ export function buildBloxScene(app, initial = {}) {
       const slotWidth = slotW - 8;
       const slotHeight = 58;
       const pieceOrigin = centeredPieceOrigin(t?.piece, x, trayTop, slotWidth, slotHeight, trayUnit);
-      const slot = rect(x, trayTop, slotWidth, slotHeight, i === data.selectedBloxPiece ? 0xdbeccf : PANEL_2, 10, t?.placed ? 0.45 : 1);
+      const slot = spriteFit(gameAsset(i === data.selectedBloxPiece ? BLOX_ASSET_KEYS.traySlotSelected : BLOX_ASSET_KEYS.traySlotEmpty), x + slotWidth / 2, trayTop + slotHeight / 2, slotWidth, slotHeight, t?.placed ? 0.45 : 0.98);
       makeInteractive(slot, {
         pointerdown: (event) => {
           if (!t?.piece || t.placed || !state.gameActive) {
@@ -283,7 +316,9 @@ export function buildBloxScene(app, initial = {}) {
         },
       });
       root.addChild(slot);
-      if (t?.piece && drag?.pieceIdx !== i) root.addChild(drawPiece(t.piece, pieceOrigin.x, pieceOrigin.y, trayUnit, t.placed ? 0.35 : 1));
+      if (t?.piece && drag?.pieceIdx !== i) {
+        root.addChild(drawTrayPiece(t.piece, x, trayTop, slotWidth, slotHeight, trayUnit, t.placed ? 0.35 : 1));
+      }
       if (trayChanged && t?.piece && !t.placed) {
         makeRipple(effects, x + slotWidth / 2, trayTop + slotHeight / 2, MINT, 18);
       }

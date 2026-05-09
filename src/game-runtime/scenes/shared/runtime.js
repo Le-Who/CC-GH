@@ -17,6 +17,7 @@ import { GRID } from "../../../game-core/blox/pieces.js";
 import { canPlace as canPlaceBloxPiece } from "../../../game-core/blox/engine.js";
 import { resolveAssetUrl } from "../../assetBundles.js";
 import {
+  bloxBoardFrameLayout,
   bloxAnchorCellFromDrag,
   bloxGhostOrigin,
   bloxPieceBounds,
@@ -45,6 +46,59 @@ const BUBBO_ASSET_KEYS = {
   backgroundTile: "bubbo.background.tile",
   bottomTray: "bubbo.bottomTray",
   cannonMain: "bubbo.cannon.main",
+};
+const BLOX_ASSET_KEYS = {
+  background: "blox.background",
+  boardFrame: "blox.board_frame",
+  cellEmpty: "blox.cell_empty",
+  cellValid: "blox.cell_valid",
+  cellInvalid: "blox.cell_invalid",
+  cellSelected: "blox.cell_selected",
+  rowWipe: "blox.fx.row_wipe",
+  columnWipe: "blox.fx.column_wipe",
+  multiClearBurst: "blox.fx.multi_clear_burst",
+  placeSettle: "blox.fx.place_settle",
+  trayPanel: "blox.tray_panel",
+  traySlotEmpty: "blox.tray_slot_empty",
+  traySlotSelected: "blox.tray_slot_selected",
+};
+const BLOX_TILE_ASSET_BY_COLOR = {
+  "#94a3b8": "blox.block_tile_gray",
+  "#60a5fa": "blox.block_tile_blue",
+  "#f97316": "blox.block_tile_orange",
+  "#22c55e": "blox.block_tile_green",
+  "#fbbf24": "blox.block_tile_yellow",
+  "#a78bfa": "blox.block_tile_purple",
+  "#ef4444": "blox.block_tile_red",
+  "#06b6d4": "blox.block_tile_cyan",
+  "#e879f9": "blox.block_tile_pink",
+};
+const BLOX_PIECE_ASSET_BY_ID = Object.fromEntries(
+  ["dot", "h2", "v2", "l3", "l3r", "h3", "v3", "sq", "t4", "s4", "i4", "i5"].map((id) => [id, `blox.piece_${id}`]),
+);
+const FARM_CROP_SLUGS = {
+  golden: "golden_rose",
+  golden_rose: "golden_rose",
+};
+const FARM_ASSET_KEYS = {
+  backgroundField: "farm.background-field",
+  plotEmpty: "farm.plot-empty",
+  plotLocked: "farm.plot-locked",
+  plotPending: "farm.plot-pending",
+  plotReadyOverlay: "farm.plot-ready-overlay",
+  plotSelected: "farm.plot-selected",
+  plotShadow: "farm.plot-shadow",
+  plotWateredOverlay: "farm.plot-watered-overlay",
+  growthGlow: "farm.fx.growth_glow",
+  plantPuff: "farm.fx.plant_puff",
+  waterSplash: "farm.fx.water_splash",
+  harvestPop: "farm.fx.harvest_pop",
+  plotThemes: {
+    default: "farm.plot-theme-default",
+    flower: "farm.plot-theme-flower",
+    moon: "farm.plot-theme-moon",
+    stone: "farm.plot-theme-stone",
+  },
 };
 const BUBBO_BALL_SHEET_WIDTH = 1672;
 const BUBBO_BALL_SHEET_HEIGHT = 941;
@@ -260,6 +314,50 @@ function sprite(path, x, y, width, height, alpha = 1) {
   item.height = height;
   item.alpha = alpha;
   item.eventMode = "none";
+  return item;
+}
+
+function textureDimensions(item, fallbackWidth = 1, fallbackHeight = 1) {
+  const texture = item?.texture || {};
+  const width = texture.orig?.width || texture.frame?.width || texture.width || fallbackWidth;
+  const height = texture.orig?.height || texture.frame?.height || texture.height || fallbackHeight;
+  return {
+    width: Math.max(1, width || fallbackWidth),
+    height: Math.max(1, height || fallbackHeight),
+  };
+}
+
+function spriteFit(path, x, y, maxWidth, maxHeight, alpha = 1) {
+  const item = Sprite.from(path);
+  item.anchor.set(0.5);
+  item.x = x;
+  item.y = y;
+  item.alpha = alpha;
+  item.eventMode = "none";
+  const dimensions = textureDimensions(item, maxWidth, maxHeight);
+  const scale = Math.min(maxWidth / dimensions.width, maxHeight / dimensions.height);
+  item.width = dimensions.width * scale;
+  item.height = dimensions.height * scale;
+  return item;
+}
+
+function coverSprite(path, x, y, width, height, aspect = null, alpha = 1) {
+  const item = Sprite.from(path);
+  item.anchor.set(0.5);
+  item.x = x;
+  item.y = y;
+  item.alpha = alpha;
+  item.eventMode = "none";
+  const dimensions = textureDimensions(item, width, height);
+  const sourceAspect = aspect || dimensions.width / dimensions.height || width / height;
+  const targetAspect = width / height;
+  if (targetAspect > sourceAspect) {
+    item.width = width;
+    item.height = width / sourceAspect;
+  } else {
+    item.height = height;
+    item.width = height * sourceAspect;
+  }
   return item;
 }
 
@@ -585,5 +683,7 @@ export {
   GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
   FARM_SOIL, PANEL, PANEL_2, FIELD, TEXT, MUTED, MINT, AMBER, CORAL, SKY, BUBBO_NUMBERS, BUBBO_BACKGROUND_THEMES,
   viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
+  spriteFit, coverSprite, BLOX_ASSET_KEYS, BLOX_TILE_ASSET_BY_COLOR, BLOX_PIECE_ASSET_BY_ID, FARM_CROP_SLUGS, FARM_ASSET_KEYS,
+  bloxBoardFrameLayout,
   bloxAnchorCellFromDrag, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,
 };

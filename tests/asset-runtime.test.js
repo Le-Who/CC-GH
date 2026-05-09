@@ -64,6 +64,40 @@ describe("runtime asset URL resolution", () => {
     );
   });
 
+  it("keeps final-state Blox and Farm asset keys on generated runtime paths with legacy fallbacks", () => {
+    const runtimeManifest = {
+      assets: {
+        "blox.cell_empty": {
+          type: "image",
+          src: "/assets-runtime/blox/cell_empty.1234abcd.webp",
+          fallback: "/assets-runtime/blox/cell_empty.5678abcd.png",
+        },
+        "farm.crops.strawberry_ready": {
+          type: "image",
+          src: "/assets-runtime/farm/crops/strawberry_ready.1234abcd.webp",
+          fallback: "/assets-runtime/farm/crops/strawberry_ready.5678abcd.png",
+        },
+      },
+    };
+
+    assert.equal(
+      resolveAssetUrl("blox.cell_empty", { runtimeManifest }),
+      "/assets-runtime/blox/cell_empty.1234abcd.webp",
+    );
+    assert.equal(
+      resolveAssetUrl("farm.crops.strawberry_ready", { runtimeManifest }),
+      "/assets-runtime/farm/crops/strawberry_ready.1234abcd.webp",
+    );
+    assert.equal(
+      resolveAssetUrl("blox.fx.row_wipe", { runtimeManifest }),
+      "/games/blox/fx/row_wipe.png?v=build-a",
+    );
+    assert.equal(
+      resolveAssetUrl("farm.plot-empty", { runtimeManifest }),
+      "/games/farm/plot-empty.png?v=build-a",
+    );
+  });
+
   it("applies the optional asset base URL to generated runtime assets", () => {
     globalThis.__ASSET_BASE_URL__ = "https://assets.example.test";
 

@@ -37,6 +37,14 @@ async function existingEntries(rootDir, assetEntries) {
   return assetEntries.filter((_, index) => exists[index]);
 }
 
+function assetIdFromRelativePath(relativePath) {
+  return relativePath
+    .replace(/\.[^.]+$/i, "")
+    .split("/")
+    .filter(Boolean)
+    .join(".");
+}
+
 async function walkFiles(rootDir, relativeDir, extensions) {
   const absoluteDir = path.resolve(rootDir, relativeDir);
   const files = [];
@@ -57,6 +65,17 @@ async function walkFiles(rootDir, relativeDir, extensions) {
   }
 
   return files.sort();
+}
+
+async function collectPngDirectoryEntries(rootDir, { root, keyPrefix, outputPrefix, bundle = null, formats = WEBP_ONLY_FORMATS, options = {}, exclude = new Set() }) {
+  const files = await walkFiles(rootDir, root, PNG_EXTENSIONS);
+  return files
+    .filter((file) => !exclude.has(file))
+    .map((file) => {
+      const relative = file.slice(`${root}/`.length);
+      const outputDir = path.posix.join(outputPrefix, path.posix.dirname(relative)).replace(/\/\.$/, "");
+      return entry(`${keyPrefix}.${assetIdFromRelativePath(relative)}`, file, outputDir, bundle, formats, options);
+    });
 }
 
 async function collectPixiEntries(rootDir) {
@@ -93,10 +112,41 @@ async function collectPixiEntries(rootDir) {
     entry("match3.drop.energy", "public/games/puzzling-potions/images/drop-energy.png", "puzzling-potions", "pixi.match3"),
   ];
 
+  const existingSources = new Set(pixiEntries.map((assetEntry) => assetEntry.source));
+  const [bubboImageEntries, bubboFxEntries, match3ImageEntries] = await Promise.all([
+    collectPngDirectoryEntries(rootDir, {
+      root: "public/games/bubbo-bubbo/images",
+      keyPrefix: "bubbo.images",
+      outputPrefix: "bubbo/images",
+      bundle: "pixi.bubbo",
+      formats: ["webp", "png"],
+      exclude: existingSources,
+    }),
+    collectPngDirectoryEntries(rootDir, {
+      root: "public/games/bubbo-bubbo/fx",
+      keyPrefix: "bubbo.fx",
+      outputPrefix: "bubbo/fx",
+      bundle: "pixi.bubbo",
+      formats: ["webp", "png"],
+      exclude: existingSources,
+    }),
+    collectPngDirectoryEntries(rootDir, {
+      root: "public/games/puzzling-potions/images",
+      keyPrefix: "match3.images",
+      outputPrefix: "puzzling-potions",
+      bundle: "pixi.match3",
+      formats: ["webp", "png"],
+      exclude: existingSources,
+    }),
+  ]);
+
+  pixiEntries.push(...bubboImageEntries, ...bubboFxEntries, ...match3ImageEntries);
+
   return existingEntries(rootDir, pixiEntries);
 }
 
 async function collectGardenEntries(rootDir) {
+  const root = "public/games/garden-shelf";
   const fxFiles = await walkFiles(rootDir, "public/games/garden-shelf/fx", PNG_EXTENSIONS);
   const compactRuntimeImage = runtimeWebpOnly();
   const gardenEntries = [
@@ -111,6 +161,16 @@ async function collectGardenEntries(rootDir) {
     }),
   ];
 
+  const existingSources = new Set(gardenEntries.map((assetEntry) => assetEntry.source));
+  const generatedFiles = (await walkFiles(rootDir, root, PNG_EXTENSIONS))
+    .filter((file) => !existingSources.has(file))
+    .filter((file) => !file.endsWith("/plants_sheet.png") && !file.endsWith("/plants_sheet_clean.png"));
+  for (const file of generatedFiles) {
+    const relative = file.slice(`${root}/`.length);
+    const outputDir = path.posix.join("garden-shelf", path.posix.dirname(relative)).replace(/\/\.$/, "");
+    gardenEntries.push(entry(`gardenShelf.${assetIdFromRelativePath(relative)}`, file, outputDir, null, WEBP_ONLY_FORMATS, compactRuntimeImage));
+  }
+
   return existingEntries(rootDir, gardenEntries);
 }
 
@@ -123,7 +183,7 @@ async function collectCompanionYardEntries(rootDir) {
     const parts = file.slice(`${root}/`.length).split("/");
     if (parts.length !== 2) continue;
     const [type, fileName] = parts;
-    if (!["backgrounds", "foods", "goodies", "visitors", "companions"].includes(type)) continue;
+    if (!["backgrounds", "foods", "goodies", "visitors", "companions", "expressions", "mementos", "ui", "fx"].includes(type)) continue;
     const id = path.basename(fileName, path.extname(fileName));
     entries.push(entry(`companionYard.${type}.${id}`, file, `companion-yard/${type}`, null, compactRuntimeImage.formats, {
       raster: compactRuntimeImage.raster,
@@ -161,6 +221,37 @@ async function collectGachaMergeEntries(rootDir) {
   return entries;
 }
 
+async function collectBloxEntries(rootDir) {
+  return collectPngDirectoryEntries(rootDir, {
+    root: "public/games/blox",
+    keyPrefix: "blox",
+    outputPrefix: "blox",
+    bundle: "pixi.blox",
+    formats: ["webp", "png"],
+  });
+}
+
+async function collectTriviaEntries(rootDir) {
+  const compactRuntimeImage = runtimeWebpOnly();
+  return collectPngDirectoryEntries(rootDir, {
+    root: "public/games/trivia",
+    keyPrefix: "trivia",
+    outputPrefix: "trivia",
+    formats: compactRuntimeImage.formats,
+    options: { raster: compactRuntimeImage.raster },
+  });
+}
+
+async function collectFarmEntries(rootDir) {
+  return collectPngDirectoryEntries(rootDir, {
+    root: "public/games/farm",
+    keyPrefix: "farm",
+    outputPrefix: "farm",
+    bundle: "pixi.farm",
+    formats: ["webp", "png"],
+  });
+}
+
 async function collectSvgEntries(rootDir) {
   const [petFiles, assetFiles] = await Promise.all([
     walkFiles(rootDir, "public/pets", SVG_EXTENSIONS),
@@ -196,6 +287,9 @@ export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
   const entriesPromise = Promise.all([
     collectPixiEntries(resolvedRoot),
     collectGardenEntries(resolvedRoot),
+    collectBloxEntries(resolvedRoot),
+    collectTriviaEntries(resolvedRoot),
+    collectFarmEntries(resolvedRoot),
     collectCompanionYardEntries(resolvedRoot),
     collectGachaMergeEntries(resolvedRoot),
     collectSvgEntries(resolvedRoot),

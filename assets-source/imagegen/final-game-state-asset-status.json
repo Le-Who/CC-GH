@@ -1,0 +1,5114 @@
+{
+  "generatedAt": "2026-05-09T19:40:23.720Z",
+  "writtenCount": 337,
+  "skippedCells": [
+    {
+      "sheet": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "row": 2,
+      "col": 4
+    },
+    {
+      "sheet": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "row": 4,
+      "col": 4
+    },
+    {
+      "sheet": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "sheet": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "row": 0,
+      "col": 1
+    },
+    {
+      "sheet": "assets-source/imagegen/match3/raw/cells-2x2.png",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "sheet": "assets-source/imagegen/match3/raw/cells-2x2.png",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "sheet": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "row": 3,
+      "col": 4
+    },
+    {
+      "sheet": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "row": 2,
+      "col": 2
+    },
+    {
+      "sheet": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "row": 2,
+      "col": 3
+    },
+    {
+      "sheet": "assets-source/imagegen/brain-blitz/raw/fx-2x2.png",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "sheet": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "row": 1,
+      "col": 3
+    },
+    {
+      "sheet": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "row": 1,
+      "col": 4
+    }
+  ],
+  "chromakey": {
+    "exactColor": "#FF00FF",
+    "rule": "border-connected chroma pixels plus strict near-exact chromakey pixels are made transparent",
+    "leakCount": 0,
+    "leaks": [],
+    "scrubbedPublicFallbacks": []
+  },
+  "written": [
+    {
+      "source": "assets-source/imagegen/blox/raw/background.png",
+      "output": "public/games/blox/background.png",
+      "width": 1024,
+      "height": 1536,
+      "chromaRemoved": 0,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 1572864,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/background-quiz-room.png",
+      "output": "public/games/trivia/background-quiz-room.png",
+      "width": 1024,
+      "height": 1536,
+      "chromaRemoved": 0,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 1572864,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/background-field.png",
+      "output": "public/games/farm/background-field.png",
+      "width": 1536,
+      "height": 1024,
+      "chromaRemoved": 0,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 1572864,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/tap-ring.png",
+      "output": "public/games/garden-shelf/fx/tap-ring.png",
+      "width": 1254,
+      "height": 1254,
+      "chromaRemoved": 1225442,
+      "strictChromaRemoved": 110403,
+      "opaquePixels": 347074,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/blox/block_tile_blue.png",
+      "width": 335,
+      "height": 347,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93490,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/blox/block_tile_green.png",
+      "width": 336,
+      "height": 347,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93694,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/blox/block_tile_orange.png",
+      "width": 335,
+      "height": 347,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93316,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/blox/block_tile_yellow.png",
+      "width": 334,
+      "height": 348,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93413,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/blox/block_tile_purple.png",
+      "width": 335,
+      "height": 347,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93152,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/blox/block_tile_red.png",
+      "width": 335,
+      "height": 348,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93506,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/blox/block_tile_cyan.png",
+      "width": 335,
+      "height": 347,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93520,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/blox/block_tile_pink.png",
+      "width": 335,
+      "height": 346,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93153,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/block-tiles-3x3.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/blox/block_tile_gray.png",
+      "width": 335,
+      "height": 347,
+      "chromaRemoved": 732072,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 93200,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/blox/cell_empty.png",
+      "width": 301,
+      "height": 311,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 74223,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/blox/cell_valid.png",
+      "width": 362,
+      "height": 365,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 103599,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/blox/cell_invalid.png",
+      "width": 369,
+      "height": 371,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 102763,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/blox/cell_selected.png",
+      "width": 335,
+      "height": 339,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 90959,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/blox/cell_clear_row.png",
+      "width": 308,
+      "height": 308,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 72612,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/blox/cell_clear_col.png",
+      "width": 299,
+      "height": 311,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 73199,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/blox/cell_pending.png",
+      "width": 299,
+      "height": 310,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 73504,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/blox/grid_shadow.png",
+      "width": 312,
+      "height": 333,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 81589,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/cells-3x3.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/blox/tray_slot_empty.png",
+      "width": 307,
+      "height": 320,
+      "chromaRemoved": 822184,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 77884,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/blox/piece_dot.png",
+      "width": 145,
+      "height": 150,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 14105,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/blox/piece_h2.png",
+      "width": 263,
+      "height": 149,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 28257,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/blox/piece_v2.png",
+      "width": 137,
+      "height": 260,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 25193,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/blox/piece_l3.png",
+      "width": 243,
+      "height": 249,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 36196,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/blox/piece_l3r.png",
+      "width": 235,
+      "height": 249,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 34967,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/blox/piece_h3.png",
+      "width": 349,
+      "height": 141,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 35950,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/blox/piece_v3.png",
+      "width": 133,
+      "height": 336,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 32260,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/blox/piece_sq.png",
+      "width": 221,
+      "height": 232,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 39019,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/blox/piece_t4.png",
+      "width": 312,
+      "height": 228,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 38290,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/blox/piece_s4.png",
+      "width": 272,
+      "height": 203,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 29469,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/blox/piece_i4.png",
+      "width": 314,
+      "height": 117,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 25304,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/pieces-3x4.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/blox/piece_i5.png",
+      "width": 394,
+      "height": 112,
+      "chromaRemoved": 1203050,
+      "strictChromaRemoved": 35,
+      "opaquePixels": 30468,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/blox/board_frame.png",
+      "width": 374,
+      "height": 368,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 46781,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/blox/tray_panel.png",
+      "width": 439,
+      "height": 222,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 73222,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/blox/tray_slot_selected.png",
+      "width": 262,
+      "height": 263,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 50556,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/blox/hud_bar.png",
+      "width": 498,
+      "height": 180,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 62188,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/blox/pause_panel.png",
+      "width": 383,
+      "height": 365,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 46464,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/blox/result_panel.png",
+      "width": 532,
+      "height": 373,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 147610,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/blox/button_primary.png",
+      "width": 343,
+      "height": 199,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 46834,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/panels-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/blox/button_secondary.png",
+      "width": 326,
+      "height": 199,
+      "chromaRemoved": 1056025,
+      "strictChromaRemoved": 126108,
+      "opaquePixels": 43858,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/icons-2x3.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/blox/icon_score.png",
+      "width": 368,
+      "height": 380,
+      "chromaRemoved": 1025783,
+      "strictChromaRemoved": 13804,
+      "opaquePixels": 90594,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/icons-2x3.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/blox/icon_lines.png",
+      "width": 360,
+      "height": 369,
+      "chromaRemoved": 1025783,
+      "strictChromaRemoved": 13804,
+      "opaquePixels": 103244,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/icons-2x3.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/blox/icon_reward.png",
+      "width": 368,
+      "height": 384,
+      "chromaRemoved": 1025783,
+      "strictChromaRemoved": 13804,
+      "opaquePixels": 98658,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/icons-2x3.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/blox/icon_restart.png",
+      "width": 358,
+      "height": 378,
+      "chromaRemoved": 1025783,
+      "strictChromaRemoved": 13804,
+      "opaquePixels": 70925,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/icons-2x3.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/blox/icon_settle.png",
+      "width": 369,
+      "height": 386,
+      "chromaRemoved": 1025783,
+      "strictChromaRemoved": 13804,
+      "opaquePixels": 92521,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/icons-2x3.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/blox/icon_exit.png",
+      "width": 394,
+      "height": 375,
+      "chromaRemoved": 1025783,
+      "strictChromaRemoved": 13804,
+      "opaquePixels": 91139,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/blox/fx/place_settle.png",
+      "width": 314,
+      "height": 321,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 38037,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/blox/fx/valid_glow.png",
+      "width": 330,
+      "height": 316,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 48802,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/blox/fx/invalid_pulse.png",
+      "width": 332,
+      "height": 333,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 49291,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/blox/fx/row_wipe.png",
+      "width": 439,
+      "height": 143,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 30637,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/blox/fx/column_wipe.png",
+      "width": 158,
+      "height": 406,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 33077,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/blox/fx/multi_clear_burst.png",
+      "width": 358,
+      "height": 355,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 50152,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/blox/fx/tray_refill.png",
+      "width": 318,
+      "height": 300,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 36826,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/blox/raw/fx-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/blox/fx/reward_spark.png",
+      "width": 347,
+      "height": 309,
+      "chromaRemoved": 1248323,
+      "strictChromaRemoved": 36263,
+      "opaquePixels": 38360,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/garden-shelf/shelf_slot_empty.png",
+      "width": 221,
+      "height": 217,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 31894,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/garden-shelf/shelf_slot_locked.png",
+      "width": 209,
+      "height": 218,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 30840,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/garden-shelf/shelf_unlock_glow.png",
+      "width": 195,
+      "height": 254,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 30311,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/garden-shelf/garden_shadow_soft.png",
+      "width": 155,
+      "height": 59,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 4210,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/garden-shelf/icon_plant.png",
+      "width": 212,
+      "height": 235,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 25386,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/garden-shelf/icon_water.png",
+      "width": 138,
+      "height": 198,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 14016,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/garden-shelf/icon_upgrade.png",
+      "width": 179,
+      "height": 204,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 16411,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/garden-shelf/icon_collect.png",
+      "width": 196,
+      "height": 205,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 22336,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/garden-shelf/icon_quest.png",
+      "width": 170,
+      "height": 201,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 15497,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/garden-shelf/icon_level_up.png",
+      "width": 204,
+      "height": 196,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 22977,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/garden-shelf/icon_offline.png",
+      "width": 197,
+      "height": 195,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 20683,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/garden-shelf/icon_language.png",
+      "width": 203,
+      "height": 203,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 24729,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/garden-shelf/icon_info.png",
+      "width": 184,
+      "height": 187,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 22310,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/garden-shelf/icon_close.png",
+      "width": 180,
+      "height": 185,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 21435,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/garden-shelf/detail_panel.png",
+      "width": 235,
+      "height": 209,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 39318,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/garden-shelf/quest_panel.png",
+      "width": 196,
+      "height": 214,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 32268,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/garden-shelf/level_reward_panel.png",
+      "width": 253,
+      "height": 221,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 40074,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/garden-shelf/offline_panel.png",
+      "width": 166,
+      "height": 208,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 26400,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 4
+      },
+      "output": "public/games/garden-shelf/button_primary.png",
+      "width": 234,
+      "height": 112,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 18638,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 0
+      },
+      "output": "public/games/garden-shelf/button_secondary.png",
+      "width": 189,
+      "height": 101,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 12816,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 1
+      },
+      "output": "public/games/garden-shelf/button_danger.png",
+      "width": 277,
+      "height": 176,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 13383,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 2
+      },
+      "output": "public/games/garden-shelf/fx/unlock-burst.png",
+      "width": 331,
+      "height": 201,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 19029,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/garden-shelf/raw/support-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 3
+      },
+      "output": "public/games/garden-shelf/fx/level-confetti.png",
+      "width": 285,
+      "height": 196,
+      "chromaRemoved": 1025491,
+      "strictChromaRemoved": 5331,
+      "opaquePixels": 15772,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/puzzling-potions/images/mode-card-classic.png",
+      "width": 221,
+      "height": 297,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 50587,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/puzzling-potions/images/mode-card-timed.png",
+      "width": 221,
+      "height": 297,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 51085,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/puzzling-potions/images/mode-card-drop.png",
+      "width": 226,
+      "height": 298,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 51496,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/puzzling-potions/images/timer-ring.png",
+      "width": 217,
+      "height": 221,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 19364,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/puzzling-potions/images/moves-badge.png",
+      "width": 204,
+      "height": 292,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 27532,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/puzzling-potions/images/combo-badge.png",
+      "width": 203,
+      "height": 209,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 23607,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/puzzling-potions/images/reward-badge.png",
+      "width": 216,
+      "height": 209,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 24849,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/puzzling-potions/images/button-primary.png",
+      "width": 286,
+      "height": 162,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 30882,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/puzzling-potions/images/button-secondary.png",
+      "width": 286,
+      "height": 164,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 31019,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/puzzling-potions/images/fx-swap-trail.png",
+      "width": 219,
+      "height": 210,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 8065,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/puzzling-potions/images/fx-invalid-swap.png",
+      "width": 211,
+      "height": 236,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 17815,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/puzzling-potions/images/fx-cascade-dust.png",
+      "width": 195,
+      "height": 214,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 6776,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 4
+      },
+      "output": "public/games/puzzling-potions/images/fx-row-clear.png",
+      "width": 342,
+      "height": 123,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 23372,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/puzzling-potions/images/fx-column-clear.png",
+      "width": 185,
+      "height": 292,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 22978,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/puzzling-potions/images/fx-blast-clear.png",
+      "width": 257,
+      "height": 228,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 31309,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/puzzling-potions/images/fx-colour-clear.png",
+      "width": 238,
+      "height": 226,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 27060,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/puzzling-potions/images/fx-drop-credit.png",
+      "width": 310,
+      "height": 208,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 19759,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 4
+      },
+      "output": "public/games/puzzling-potions/images/fx-combo-pop.png",
+      "width": 237,
+      "height": 215,
+      "chromaRemoved": 986693,
+      "strictChromaRemoved": 11389,
+      "opaquePixels": 27141,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/cells-2x2.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/puzzling-potions/images/cell-hint.png",
+      "width": 505,
+      "height": 521,
+      "chromaRemoved": 918291,
+      "strictChromaRemoved": 183,
+      "opaquePixels": 182258,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/match3/raw/cells-2x2.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/puzzling-potions/images/cell-invalid.png",
+      "width": 548,
+      "height": 526,
+      "chromaRemoved": 918291,
+      "strictChromaRemoved": 183,
+      "opaquePixels": 193867,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/gacha-merge/ui/cellInvalid.png",
+      "width": 209,
+      "height": 211,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 36102,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/gacha-merge/ui/cellTrashTarget.png",
+      "width": 210,
+      "height": 211,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 36292,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/gacha-merge/ui/itemShadow.png",
+      "width": 187,
+      "height": 58,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 5324,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/gacha-merge/fx/missPuff.png",
+      "width": 252,
+      "height": 216,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 25775,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/gacha-merge/fx/itemLiftGlow.png",
+      "width": 225,
+      "height": 243,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 23515,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/gacha-merge/fx/perfectReactionBurst.png",
+      "width": 251,
+      "height": 229,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 11736,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/gacha-merge/fx/discoveryBurst.png",
+      "width": 252,
+      "height": 222,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 24490,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/gacha-merge/ui/recipePanel.png",
+      "width": 375,
+      "height": 265,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 76555,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/gacha-merge/ui/itemPanel.png",
+      "width": 174,
+      "height": 261,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 34277,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/gacha-merge/ui/sourceChipFree.png",
+      "width": 199,
+      "height": 206,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 25241,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/gacha-merge/ui/sourceChipCrop.png",
+      "width": 215,
+      "height": 276,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 28103,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/gacha-merge/ui/sourceChipEmpty.png",
+      "width": 229,
+      "height": 275,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 28399,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/gacha-merge/ui/actionIconFreeTaps.png",
+      "width": 438,
+      "height": 228,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 47650,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/gacha-merge/ui/actionIconFuel.png",
+      "width": 176,
+      "height": 222,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 21546,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 4
+      },
+      "output": "public/games/gacha-merge/ui/actionIconClose.png",
+      "width": 190,
+      "height": 200,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 23229,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/gacha-merge/ui/actionIconBack.png",
+      "width": 192,
+      "height": 199,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 23562,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/gacha-merge/ui/exchangeIconTreats.png",
+      "width": 324,
+      "height": 196,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 24576,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/gacha-merge/ui/exchangeIconShinyTreat.png",
+      "width": 250,
+      "height": 222,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 32411,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/gacha-merge/raw/extras-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/gacha-merge/ui/exchangeIconFuture.png",
+      "width": 192,
+      "height": 199,
+      "chromaRemoved": 1012504,
+      "strictChromaRemoved": 2314,
+      "opaquePixels": 23659,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-mint.png",
+      "width": 300,
+      "height": 312,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 62149,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-amber.png",
+      "width": 301,
+      "height": 314,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 62863,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-coral.png",
+      "width": 301,
+      "height": 313,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 62730,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-sky.png",
+      "width": 300,
+      "height": 310,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 61919,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-berry.png",
+      "width": 298,
+      "height": 311,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 41238,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-shine.png",
+      "width": 133,
+      "height": 189,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 5009,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-shadow.png",
+      "width": 252,
+      "height": 100,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 13265,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-glow.png",
+      "width": 328,
+      "height": 308,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 26014,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-reserve-base.png",
+      "width": 286,
+      "height": 231,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 44214,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/bubbles-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/bubbo-bubbo/images/bubble-reserve-ring.png",
+      "width": 304,
+      "height": 252,
+      "chromaRemoved": 1165563,
+      "strictChromaRemoved": 77041,
+      "opaquePixels": 28504,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/background-tile.png",
+      "width": 274,
+      "height": 310,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 70846,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/game-side-border.png",
+      "width": 87,
+      "height": 328,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 13895,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/top-tray.png",
+      "width": 266,
+      "height": 121,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 16635,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/danger-line.png",
+      "width": 292,
+      "height": 78,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 6421,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/pressure-row-accent.png",
+      "width": 319,
+      "height": 92,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 16835,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/field-mask.png",
+      "width": 246,
+      "height": 290,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 55826,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/cannon-main.png",
+      "width": 253,
+      "height": 252,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 41030,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/cannon-barrel.png",
+      "width": 227,
+      "height": 194,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 28699,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/cannon-top.png",
+      "width": 203,
+      "height": 174,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 17823,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/cannon-arrow.png",
+      "width": 144,
+      "height": 285,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 11415,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/bottom-tray.png",
+      "width": 311,
+      "height": 126,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 26332,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/laser-line.png",
+      "width": 156,
+      "height": 192,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 1148,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/laser-line-glow.png",
+      "width": 207,
+      "height": 254,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 14310,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/shot-visualiser.png",
+      "width": 199,
+      "height": 218,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 1656,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/wall-bank-spark.png",
+      "width": 322,
+      "height": 192,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 7761,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/field-cannon-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/info-bg.png",
+      "width": 381,
+      "height": 233,
+      "chromaRemoved": 1210163,
+      "strictChromaRemoved": 13823,
+      "opaquePixels": 31502,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/pause-panel.png",
+      "width": 320,
+      "height": 431,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 109609,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/results-panel-base.png",
+      "width": 326,
+      "height": 474,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 111267,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/results-panel-points-total.png",
+      "width": 387,
+      "height": 226,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 56530,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/results-panel-points-breakdown.png",
+      "width": 305,
+      "height": 451,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 108938,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/button-flat.png",
+      "width": 388,
+      "height": 162,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 45263,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/button-flat-small.png",
+      "width": 247,
+      "height": 375,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 17148,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/images/icon-pause.png",
+      "width": 224,
+      "height": 229,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 31765,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/images/icon-back.png",
+      "width": 222,
+      "height": 228,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 31329,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/images/icon-sound-on.png",
+      "width": 228,
+      "height": 232,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 32966,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/ui-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/images/icon-sound-off.png",
+      "width": 230,
+      "height": 232,
+      "chromaRemoved": 945144,
+      "strictChromaRemoved": 12780,
+      "opaquePixels": 33138,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/fx/pop-mint.png",
+      "width": 285,
+      "height": 283,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 23196,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/fx/pop-amber.png",
+      "width": 275,
+      "height": 282,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 26858,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/fx/pop-coral.png",
+      "width": 281,
+      "height": 279,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 18328,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/fx/pop-sky.png",
+      "width": 274,
+      "height": 288,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 26055,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/bubbo-bubbo/fx/pop-berry.png",
+      "width": 285,
+      "height": 287,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 11186,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/bubbo-bubbo/fx/island-drop.png",
+      "width": 269,
+      "height": 311,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 33934,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/bubbo-bubbo/fx/pressure-shift.png",
+      "width": 319,
+      "height": 184,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 12472,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/bubbo-bubbo/fx/sparse-refill.png",
+      "width": 216,
+      "height": 288,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 17662,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/bubbo-bubbo/fx/score-pop.png",
+      "width": 347,
+      "height": 279,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 9387,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/bubbo-bubbo/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/bubbo-bubbo/fx/timed-finish.png",
+      "width": 305,
+      "height": 327,
+      "chromaRemoved": 1348786,
+      "strictChromaRemoved": 9517,
+      "opaquePixels": 45573,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/trivia/panel-menu.png",
+      "width": 245,
+      "height": 378,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 71608,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/trivia/panel-question.png",
+      "width": 329,
+      "height": 290,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 74367,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/trivia/panel-duel-room.png",
+      "width": 311,
+      "height": 377,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 93419,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/trivia/panel-results.png",
+      "width": 259,
+      "height": 360,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 75257,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/trivia/panel-history.png",
+      "width": 228,
+      "height": 312,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 55323,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/trivia/timer-ring-empty.png",
+      "width": 259,
+      "height": 279,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 23052,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/trivia/timer-urgent-glow.png",
+      "width": 286,
+      "height": 297,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 32392,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/trivia/answer-default.png",
+      "width": 287,
+      "height": 151,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 32198,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/trivia/answer-hover-focus.png",
+      "width": 306,
+      "height": 174,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 39915,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/trivia/answer-selected.png",
+      "width": 292,
+      "height": 156,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 33895,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/trivia/answer-correct.png",
+      "width": 290,
+      "height": 156,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 33752,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/trivia/answer-incorrect.png",
+      "width": 286,
+      "height": 157,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 33279,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/trivia/answer-disabled.png",
+      "width": 289,
+      "height": 159,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 34220,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/trivia/button-primary.png",
+      "width": 291,
+      "height": 159,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 34435,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/trivia/button-secondary.png",
+      "width": 289,
+      "height": 159,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 34152,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/panels-buttons-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/trivia/button-danger.png",
+      "width": 288,
+      "height": 159,
+      "chromaRemoved": 837273,
+      "strictChromaRemoved": 40222,
+      "opaquePixels": 33979,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/trivia/icon-solo.png",
+      "width": 209,
+      "height": 219,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 30410,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/trivia/icon-duel.png",
+      "width": 212,
+      "height": 221,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 30914,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/trivia/icon-ready.png",
+      "width": 197,
+      "height": 225,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 29607,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/trivia/icon-refresh.png",
+      "width": 211,
+      "height": 220,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 30687,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/trivia/icon-category.png",
+      "width": 217,
+      "height": 208,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 32002,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/trivia/icon-difficulty.png",
+      "width": 228,
+      "height": 174,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 26296,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/trivia/icon-streak.png",
+      "width": 175,
+      "height": 222,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 21491,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/trivia/icon-score.png",
+      "width": 218,
+      "height": 214,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 30386,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/trivia/icon-time.png",
+      "width": 150,
+      "height": 217,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 21560,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/trivia/badge-easy.png",
+      "width": 197,
+      "height": 207,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 26672,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/trivia/badge-medium.png",
+      "width": 199,
+      "height": 209,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 27364,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/trivia/badge-hard.png",
+      "width": 199,
+      "height": 211,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 27437,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/trivia/badge-all.png",
+      "width": 199,
+      "height": 211,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 27564,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/trivia/badge-winner.png",
+      "width": 213,
+      "height": 209,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 28273,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 4
+      },
+      "output": "public/games/trivia/badge-loser.png",
+      "width": 209,
+      "height": 216,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 28653,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/trivia/trophy-result.png",
+      "width": 200,
+      "height": 194,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 22643,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/trivia/duel-ticket.png",
+      "width": 224,
+      "height": 203,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 23640,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/trivia/category-general.png",
+      "width": 199,
+      "height": 210,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 27355,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/trivia/category-science.png",
+      "width": 203,
+      "height": 213,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 28495,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 4
+      },
+      "output": "public/games/trivia/category-history.png",
+      "width": 202,
+      "height": 213,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 28367,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 0
+      },
+      "output": "public/games/trivia/category-games.png",
+      "width": 205,
+      "height": 216,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 29275,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 1
+      },
+      "output": "public/games/trivia/category-nature.png",
+      "width": 207,
+      "height": 217,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 29787,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 2
+      },
+      "output": "public/games/trivia/category-culture.png",
+      "width": 205,
+      "height": 216,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 29325,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 3
+      },
+      "output": "public/games/trivia/fx-correct-pop.png",
+      "width": 237,
+      "height": 221,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 32353,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/icons-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 4
+      },
+      "output": "public/games/trivia/fx-incorrect-shake.png",
+      "width": 231,
+      "height": 217,
+      "chromaRemoved": 874378,
+      "strictChromaRemoved": 3688,
+      "opaquePixels": 27581,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/fx-2x2.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/trivia/fx-streak-flare.png",
+      "width": 527,
+      "height": 462,
+      "chromaRemoved": 1254780,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 99473,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/fx-2x2.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/trivia/fx-time-warning.png",
+      "width": 486,
+      "height": 504,
+      "chromaRemoved": 1254780,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 138616,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/brain-blitz/raw/fx-2x2.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/trivia/fx-result-confetti.png",
+      "width": 517,
+      "height": 517,
+      "chromaRemoved": 1254780,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 38722,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/farm/plot-empty.png",
+      "width": 345,
+      "height": 243,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 39836,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/farm/plot-selected.png",
+      "width": 351,
+      "height": 302,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 48628,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/farm/plot-locked.png",
+      "width": 344,
+      "height": 250,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 40613,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/farm/plot-pending.png",
+      "width": 343,
+      "height": 251,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 40505,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/farm/plot-watered-overlay.png",
+      "width": 344,
+      "height": 251,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 41298,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/farm/plot-ready-overlay.png",
+      "width": 342,
+      "height": 270,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 42856,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/farm/plot-disabled-overlay.png",
+      "width": 343,
+      "height": 272,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 41112,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/farm/plot-theme-default.png",
+      "width": 347,
+      "height": 267,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 42860,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/farm/plot-theme-stone.png",
+      "width": 341,
+      "height": 274,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 47270,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/farm/plot-theme-flower.png",
+      "width": 351,
+      "height": 273,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 47733,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/farm/plot-theme-moon.png",
+      "width": 345,
+      "height": 290,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 45678,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/plots-3x4.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/farm/plot-shadow.png",
+      "width": 114,
+      "height": 85,
+      "chromaRemoved": 1092456,
+      "strictChromaRemoved": 6,
+      "opaquePixels": 1559,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/strawberry_seed.png",
+      "width": 161,
+      "height": 89,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 4744,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/strawberry_sprout.png",
+      "width": 191,
+      "height": 163,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 9685,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/strawberry_growing.png",
+      "width": 258,
+      "height": 221,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 30312,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/strawberry_ready.png",
+      "width": 300,
+      "height": 264,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 46091,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/blueberry_seed.png",
+      "width": 128,
+      "height": 68,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 2124,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/blueberry_sprout.png",
+      "width": 141,
+      "height": 178,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 7358,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/blueberry_growing.png",
+      "width": 263,
+      "height": 234,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 26916,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/blueberry_ready.png",
+      "width": 294,
+      "height": 247,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 35808,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/tomato_seed.png",
+      "width": 136,
+      "height": 67,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 2658,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/tomato_sprout.png",
+      "width": 201,
+      "height": 187,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 8594,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/tomato_growing.png",
+      "width": 263,
+      "height": 269,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 31402,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/tomato_ready.png",
+      "width": 292,
+      "height": 283,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 38225,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/golden_rose_seed.png",
+      "width": 137,
+      "height": 84,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 3721,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/golden_rose_sprout.png",
+      "width": 154,
+      "height": 187,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 8128,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/golden_rose_growing.png",
+      "width": 268,
+      "height": 274,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 32819,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-berries-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/golden_rose_ready.png",
+      "width": 302,
+      "height": 294,
+      "chromaRemoved": 1234930,
+      "strictChromaRemoved": 5352,
+      "opaquePixels": 49000,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/corn_seed.png",
+      "width": 164,
+      "height": 112,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 8354,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/corn_sprout.png",
+      "width": 158,
+      "height": 174,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 9023,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/corn_growing.png",
+      "width": 224,
+      "height": 267,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 20486,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/corn_ready.png",
+      "width": 240,
+      "height": 287,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 29069,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/sunflower_seed.png",
+      "width": 155,
+      "height": 110,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 7835,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/sunflower_sprout.png",
+      "width": 166,
+      "height": 158,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 9717,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/sunflower_growing.png",
+      "width": 196,
+      "height": 294,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 25752,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/sunflower_ready.png",
+      "width": 208,
+      "height": 298,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 32663,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/watermelon_seed.png",
+      "width": 141,
+      "height": 104,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 6316,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/watermelon_sprout.png",
+      "width": 170,
+      "height": 143,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 8432,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/watermelon_growing.png",
+      "width": 301,
+      "height": 230,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 32621,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/watermelon_ready.png",
+      "width": 317,
+      "height": 252,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 43472,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/farm/crops/pumpkin_seed.png",
+      "width": 128,
+      "height": 98,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 5347,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/farm/crops/pumpkin_sprout.png",
+      "width": 175,
+      "height": 152,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 10394,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/farm/crops/pumpkin_growing.png",
+      "width": 288,
+      "height": 226,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 31051,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/crops-field-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/farm/crops/pumpkin_ready.png",
+      "width": 344,
+      "height": 238,
+      "chromaRemoved": 1244736,
+      "strictChromaRemoved": 5920,
+      "opaquePixels": 47248,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/farm/seeds/strawberry_packet.png",
+      "width": 212,
+      "height": 259,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37750,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/farm/seeds/blueberry_packet.png",
+      "width": 212,
+      "height": 258,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37561,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/farm/seeds/tomato_packet.png",
+      "width": 210,
+      "height": 259,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37363,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/farm/seeds/golden_rose_packet.png",
+      "width": 211,
+      "height": 259,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37852,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/farm/seeds/corn_packet.png",
+      "width": 210,
+      "height": 258,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37350,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/farm/seeds/sunflower_packet.png",
+      "width": 211,
+      "height": 260,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37742,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/farm/seeds/watermelon_packet.png",
+      "width": 212,
+      "height": 259,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37781,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/farm/seeds/pumpkin_packet.png",
+      "width": 212,
+      "height": 259,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37767,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/farm/harvest/strawberry.png",
+      "width": 226,
+      "height": 251,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 31944,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/farm/harvest/blueberry.png",
+      "width": 227,
+      "height": 248,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 31570,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/farm/harvest/tomato.png",
+      "width": 226,
+      "height": 249,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 31172,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/farm/harvest/golden_rose.png",
+      "width": 218,
+      "height": 251,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 29872,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/farm/harvest/corn.png",
+      "width": 233,
+      "height": 258,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 35529,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/farm/harvest/sunflower.png",
+      "width": 222,
+      "height": 257,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 30916,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 2,
+        "col": 4
+      },
+      "output": "public/games/farm/harvest/watermelon.png",
+      "width": 257,
+      "height": 248,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 38481,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/farm/harvest/pumpkin.png",
+      "width": 255,
+      "height": 255,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 37970,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/farm/boosters/watering_can.png",
+      "width": 249,
+      "height": 221,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 30344,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/farm/boosters/fertilizer.png",
+      "width": 233,
+      "height": 245,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 38357,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/farm/boosters/time_charm.png",
+      "width": 223,
+      "height": 268,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 31717,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/inventory-4x5.png",
+      "cell": {
+        "row": 3,
+        "col": 4
+      },
+      "output": "public/games/farm/ui/empty_slot_placeholder.png",
+      "width": 238,
+      "height": 243,
+      "chromaRemoved": 855626,
+      "strictChromaRemoved": 13997,
+      "opaquePixels": 47852,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/farm/ui/hud_bar.png",
+      "width": 304,
+      "height": 100,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 21130,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/farm/ui/side_panel.png",
+      "width": 200,
+      "height": 295,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 37371,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/farm/ui/shop_panel.png",
+      "width": 251,
+      "height": 249,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 48754,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/farm/ui/bag_panel.png",
+      "width": 228,
+      "height": 280,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 43677,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/farm/ui/badges_panel.png",
+      "width": 202,
+      "height": 292,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 38723,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/farm/ui/icon_gold.png",
+      "width": 260,
+      "height": 269,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 0,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/farm/ui/icon_xp.png",
+      "width": 257,
+      "height": 192,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 29150,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/farm/ui/icon_plot.png",
+      "width": 245,
+      "height": 225,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 28158,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/farm/ui/icon_seed.png",
+      "width": 221,
+      "height": 209,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 25452,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/farm/ui/icon_harvest.png",
+      "width": 224,
+      "height": 220,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 28399,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/farm/ui/icon_water.png",
+      "width": 213,
+      "height": 200,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 20881,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/farm/ui/icon_uproot.png",
+      "width": 210,
+      "height": 244,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 17446,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 2,
+        "col": 4
+      },
+      "output": "public/games/farm/ui/icon_buy_plot.png",
+      "width": 236,
+      "height": 213,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 26429,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/farm/ui/icon_theme.png",
+      "width": 199,
+      "height": 202,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 20544,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/farm/fx/plant_puff.png",
+      "width": 219,
+      "height": 196,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 22982,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/farm/fx/water_splash.png",
+      "width": 215,
+      "height": 195,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 17097,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/farm/fx/growth_glow.png",
+      "width": 217,
+      "height": 220,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 28403,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 3,
+        "col": 4
+      },
+      "output": "public/games/farm/fx/harvest_pop.png",
+      "width": 237,
+      "height": 212,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 27000,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 0
+      },
+      "output": "public/games/farm/fx/offline_report.png",
+      "width": 206,
+      "height": 188,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 23873,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 1
+      },
+      "output": "public/games/farm/fx/booster_flash.png",
+      "width": 214,
+      "height": 189,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 15368,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 2
+      },
+      "output": "public/games/farm/fx/level_up.png",
+      "width": 229,
+      "height": 248,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 27888,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 3
+      },
+      "output": "public/games/farm/ui/button_primary.png",
+      "width": 247,
+      "height": 109,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 17201,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/ui-fx-5x5.png",
+      "cell": {
+        "row": 4,
+        "col": 4
+      },
+      "output": "public/games/farm/ui/button_secondary.png",
+      "width": 250,
+      "height": 193,
+      "chromaRemoved": 961701,
+      "strictChromaRemoved": 5235,
+      "opaquePixels": 17708,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/journal-season-1x2.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/farm/ui/journal_panel.png",
+      "width": 800,
+      "height": 677,
+      "chromaRemoved": 743220,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 412119,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/farm/raw/journal-season-1x2.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/farm/ui/season_panel.png",
+      "width": 945,
+      "height": 682,
+      "chromaRemoved": 743220,
+      "strictChromaRemoved": 0,
+      "opaquePixels": 418197,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/expressions-2x3.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/expressions/ecstatic.png",
+      "width": 442,
+      "height": 435,
+      "chromaRemoved": 917634,
+      "strictChromaRemoved": 1,
+      "opaquePixels": 117575,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/expressions-2x3.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/expressions/happy.png",
+      "width": 439,
+      "height": 398,
+      "chromaRemoved": 917634,
+      "strictChromaRemoved": 1,
+      "opaquePixels": 114275,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/expressions-2x3.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/expressions/content.png",
+      "width": 455,
+      "height": 394,
+      "chromaRemoved": 917634,
+      "strictChromaRemoved": 1,
+      "opaquePixels": 123383,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/expressions-2x3.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/expressions/neutral.png",
+      "width": 404,
+      "height": 386,
+      "chromaRemoved": 917634,
+      "strictChromaRemoved": 1,
+      "opaquePixels": 94136,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/expressions-2x3.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/expressions/sad.png",
+      "width": 408,
+      "height": 383,
+      "chromaRemoved": 917634,
+      "strictChromaRemoved": 1,
+      "opaquePixels": 95884,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/expressions-2x3.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/expressions/miserable.png",
+      "width": 402,
+      "height": 446,
+      "chromaRemoved": 917634,
+      "strictChromaRemoved": 1,
+      "opaquePixels": 109972,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/mementos/mika_bell.png",
+      "width": 279,
+      "height": 324,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 47489,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/mementos/pebble_tag.png",
+      "width": 300,
+      "height": 382,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 59235,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/mementos/mochi_ribbon.png",
+      "width": 358,
+      "height": 335,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 62473,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/mementos/pip_seed.png",
+      "width": 275,
+      "height": 334,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 46104,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/mementos/willow_leaf.png",
+      "width": 233,
+      "height": 340,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 39389,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/mementos/basil_pebble.png",
+      "width": 293,
+      "height": 323,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 52106,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/mementos/starlit_charm.png",
+      "width": 296,
+      "height": 334,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 44639,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/mementos-2x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/mementos/sage_shell_chip.png",
+      "width": 273,
+      "height": 320,
+      "chromaRemoved": 1176621,
+      "strictChromaRemoved": 6102,
+      "opaquePixels": 45480,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/ui/gift_box.png",
+      "width": 236,
+      "height": 263,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 39476,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/ui/gift_ready.png",
+      "width": 270,
+      "height": 290,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 42652,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/ui/photo_frame.png",
+      "width": 250,
+      "height": 260,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 51169,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/ui/photo_favorite.png",
+      "width": 247,
+      "height": 259,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 49816,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/ui/stamp.png",
+      "width": 178,
+      "height": 262,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 28304,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/ui/daily_letter.png",
+      "width": 260,
+      "height": 225,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 47821,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/ui/panel_food.png",
+      "width": 294,
+      "height": 249,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 54990,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/ui/panel_goodies.png",
+      "width": 299,
+      "height": 263,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 56249,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/ui/panel_shop.png",
+      "width": 300,
+      "height": 284,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 66143,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/ui/panel_petbook.png",
+      "width": 244,
+      "height": 286,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 52571,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/ui/panel_album.png",
+      "width": 309,
+      "height": 277,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 65455,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 2,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/ui/panel_gifts.png",
+      "width": 278,
+      "height": 271,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 54064,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/ui/panel_settings.png",
+      "width": 239,
+      "height": 228,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 40492,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/ui/bottom_dock.png",
+      "width": 415,
+      "height": 185,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 49019,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/ui/activity_pill.png",
+      "width": 269,
+      "height": 157,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 29819,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/ui-4x4.png",
+      "cell": {
+        "row": 3,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/ui/button_small_empty.png",
+      "width": 182,
+      "height": 122,
+      "chromaRemoved": 830155,
+      "strictChromaRemoved": 7,
+      "opaquePixels": 14318,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/fx/visitor_arrive.png",
+      "width": 363,
+      "height": 329,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 75603,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/fx/visitor_leave.png",
+      "width": 313,
+      "height": 249,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 13046,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/fx/gift_pop.png",
+      "width": 340,
+      "height": 285,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 47034,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/fx/memento_glow.png",
+      "width": 340,
+      "height": 302,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 63415,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 0,
+        "col": 4
+      },
+      "output": "public/games/companion-yard/fx/photo_flash.png",
+      "width": 300,
+      "height": 314,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 36846,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 0
+      },
+      "output": "public/games/companion-yard/fx/repair_spark.png",
+      "width": 277,
+      "height": 291,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 35599,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 1
+      },
+      "output": "public/games/companion-yard/fx/place_goodie.png",
+      "width": 343,
+      "height": 296,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 57283,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 2
+      },
+      "output": "public/games/companion-yard/fx/move_goodie.png",
+      "width": 300,
+      "height": 280,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 38452,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 3
+      },
+      "output": "public/games/companion-yard/fx/remodel_transition.png",
+      "width": 369,
+      "height": 303,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 67314,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    },
+    {
+      "source": "assets-source/imagegen/companion-yard/raw/fx-2x5.png",
+      "cell": {
+        "row": 1,
+        "col": 4
+      },
+      "output": "public/games/companion-yard/fx/pending_sync.png",
+      "width": 311,
+      "height": 281,
+      "chromaRemoved": 1097742,
+      "strictChromaRemoved": 7321,
+      "opaquePixels": 40144,
+      "exactChromakeyPixels": 0,
+      "strictChromakeyPixels": 0
+    }
+  ]
+}

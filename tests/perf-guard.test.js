@@ -80,12 +80,20 @@ describe("perf:guard contract", () => {
       "match3.drop.gold",
       "match3.drop.seeds",
       "match3.drop.energy",
+      "blox.block_tile_blue",
+      "blox.piece_i5",
+      "blox.fx.row_wipe",
+      "farm.background-field",
+      "farm.crops.strawberry_ready",
+      "farm.fx.harvest_pop",
     ]) {
       assert.ok(ids.has(required), `missing pipeline entry: ${required}`);
     }
 
-    assert.equal(bundles.get("pixi.bubbo")?.size, 4);
-    assert.equal(bundles.get("pixi.match3")?.size, 21);
+    assert.ok((bundles.get("pixi.bubbo")?.size || 0) >= 40, "Bubbo bundle should include the generated field, UI, and FX assets");
+    assert.ok((bundles.get("pixi.match3")?.size || 0) >= 40, "Match-3 bundle should include generated mode, badge, and FX assets");
+    assert.ok((bundles.get("pixi.blox")?.size || 0) >= 50, "Blox bundle should include generated board, piece, tray, HUD, and FX assets");
+    assert.ok((bundles.get("pixi.farm")?.size || 0) >= 85, "Farm bundle should include generated plot, crop, inventory, UI, and FX assets");
     assert.equal(ids.size, entries.length, "asset pipeline entry keys must be unique");
   });
 

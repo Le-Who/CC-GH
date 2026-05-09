@@ -20,6 +20,54 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+const BLOX_BOARD_FRAME_SOURCE = {
+  width: 374,
+  height: 368,
+  innerLeft: 58,
+  innerTop: 57,
+  innerWidth: 259,
+  innerHeight: 255,
+};
+
+export function bloxBoardFrameLayout(fitted = {}, grid = 10) {
+  const boxSize = Math.max(1, Number(fitted.size) || 1);
+  const sourceAspect = BLOX_BOARD_FRAME_SOURCE.width / BLOX_BOARD_FRAME_SOURCE.height;
+  let frameWidth = boxSize;
+  let frameHeight = frameWidth / sourceAspect;
+  if (frameHeight > boxSize) {
+    frameHeight = boxSize;
+    frameWidth = frameHeight * sourceAspect;
+  }
+  const frameLeft = (Number(fitted.left) || 0) + (boxSize - frameWidth) / 2;
+  const frameTop = (Number(fitted.top) || 0) + (boxSize - frameHeight) / 2;
+  const innerLeft = frameLeft + frameWidth * (BLOX_BOARD_FRAME_SOURCE.innerLeft / BLOX_BOARD_FRAME_SOURCE.width);
+  const innerTop = frameTop + frameHeight * (BLOX_BOARD_FRAME_SOURCE.innerTop / BLOX_BOARD_FRAME_SOURCE.height);
+  const innerWidth = frameWidth * (BLOX_BOARD_FRAME_SOURCE.innerWidth / BLOX_BOARD_FRAME_SOURCE.width);
+  const innerHeight = frameHeight * (BLOX_BOARD_FRAME_SOURCE.innerHeight / BLOX_BOARD_FRAME_SOURCE.height);
+  const padding = Math.max(1.5, Math.min(innerWidth, innerHeight) * 0.012);
+  const gridSize = Math.max(grid * 12, Math.min(innerWidth, innerHeight) - padding * 2);
+  return {
+    size: gridSize,
+    cell: gridSize / grid,
+    left: innerLeft + (innerWidth - gridSize) / 2,
+    top: innerTop + (innerHeight - gridSize) / 2,
+    cols: grid,
+    rows: grid,
+    frame: {
+      left: frameLeft,
+      top: frameTop,
+      width: frameWidth,
+      height: frameHeight,
+    },
+    inner: {
+      left: innerLeft,
+      top: innerTop,
+      width: innerWidth,
+      height: innerHeight,
+    },
+  };
+}
+
 export function createBloxDragState({ pieceIdx, piece, event, originX, originY, unit }) {
   const bounds = bloxPieceBounds(piece);
   const source = event?.global || event || {};
