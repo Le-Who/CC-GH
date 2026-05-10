@@ -56,3 +56,13 @@ Reusable CC-GH-specific learnings from conservative perf loops. This is not an a
 **Learning:** Passing a pre-fetched Yard condition profile into `cachedVisitorCandidates()` regressed the long-idle guard.
 **Evidence:** `pnpm run perf:guard -- --suite yard.simulate-36h,yard.simulate-long-idle --repeat 4 --report artifacts/perf/2026-05-03-objective-epoch2-attempt5-yard-condition-profile-repeat4.json`; refreshed `yard.simulate-long-idle` p95 regressed from `0.661ms` to `0.942ms`.
 **Action:** Leave the current condition-profile cache lookup shape intact; do not force parameter threading for this path.
+
+## 2026-05-10 - Runtime Asset Manifest Compaction
+**Learning:** Generated runtime payloads can stay within the build guard by emitting only runtime-resolved generated art, WebP-only raster outputs, and a compact dir/hash manifest. Dynamic Merge art still needs a compact `pixi.merge` prefix bundle so Pixi prewarming loads table, board, UI, and item textures instead of falling back to uncached `Sprite.from()` warnings.
+**Evidence:** Baseline `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-10-indefinite-baseline-build-report.json` failed with runtime manifest `97561B` raw / `16508B` gzip, runtime assets `52074023B`, and max file `3062883B`. After compaction, `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-10-indefinite-attempt1-runtime-assets-build-report.json` passed with manifest `15665B` raw / `4748B` gzip and runtime assets `8363476B`; `pnpm run perf:guard:all` passed.
+**Action:** Prefer compact generated runtime manifests and pruned runtime asset entry lists. Keep dynamic scene bundle prefixes only where code-owned lists would be incomplete or duplicate large generated catalogs.
+
+## 2026-05-10 - Gacha Merge Runtime Art Prune
+**Learning:** Gacha Merge generated runtime output should include the concrete UI/background/fx ids resolved by `MergeGame` and `mergeScene`, plus dynamic item textures. Extra generated UI/fx art that has no resolver call adds manifest and payload cost without improving the live scene.
+**Evidence:** After the manifest compaction baseline, `pnpm run perf:guard:build -- --report artifacts/perf/2026-05-10-indefinite-attempt2-gacha-merge-prune-build-report.json` improved runtime manifest gzip from `4748B` to `4462B`, runtime assets from `339` files / `8363476B` to `320` files / `8139554B`; `pnpm run perf:guard:all` passed.
+**Action:** When adding Gacha Merge art, add it to the runtime pipeline only when a runtime resolver path uses that id, and keep the browser asset-runtime guard covering the live requested prefixes.

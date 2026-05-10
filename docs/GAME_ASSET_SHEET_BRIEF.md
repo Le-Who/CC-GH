@@ -164,9 +164,9 @@ Plant definitions:
 
 Level unlock curve:
 
-- Max level: `30`.
+- Authored plant unlocks end at level `30`; Garden Shelf level progression continues afterward with extrapolated XP requirements and level rewards.
 - Unlocks: level 1 `daisy`, level 4 `lavender`, level 7 `basil`, level 10 `rosemary`, level 13 `monstera`, level 16 `succulent`, level 19 `pothos`, level 22 `strawberry`, level 23 `bonsai`, level 24 `string_of_pearls`, level 25 `orchid`, level 26 `venus_flytrap`, level 28 `moon_cactus`, level 30 `fern`.
-- Level rewards start at 35 gold on level 1 and end at 27060 gold at level 30 definition.
+- Authored level rewards start at 35 gold on level 1 and reach 27060 gold at the level 30 definition; post-30 rewards continue from that curve.
 
 Quest groups:
 

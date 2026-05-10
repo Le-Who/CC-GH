@@ -215,14 +215,58 @@ function normalizeSlashes(value) {
   return String(value || "").replace(/\\/g, "/");
 }
 
-function runtimeFileBase(source) {
-  return path.basename(source, path.extname(source)).replace(/[^a-zA-Z0-9_-]+/g, "-");
+function runtimeKeyBase(key) {
+  const value = String(key || "");
+  const index = value.lastIndexOf(".");
+  return value.slice(index + 1).replace(/[^a-zA-Z0-9_-]+/g, "-");
 }
 
-function syntheticRuntimeUrl(entry, format) {
+function compactSyntheticRuntimeRef(entry, format, dirIndexes, dirs) {
   const outputDir = normalizeSlashes(entry.outputDir || path.dirname(entry.source));
-  const fileName = `${runtimeFileBase(entry.source)}.1234abcd.${format}`;
-  return `/${normalizeSlashes(path.posix.join("assets-runtime", outputDir, fileName))}`;
+  if (!dirIndexes.has(outputDir)) {
+    dirIndexes.set(outputDir, dirs.length);
+    dirs.push(outputDir);
+  }
+  return format === "webp"
+    ? [dirIndexes.get(outputDir), "1234abcd"]
+    : [dirIndexes.get(outputDir), "1234abcd", format];
+}
+
+function compactSyntheticRuntimeSources(manifest, key, item) {
+  if (manifest && typeof manifest === "object") {
+    let sourceCache = manifest.__sourceCache;
+    if (!sourceCache) {
+      sourceCache = new Map();
+      Object.defineProperty(manifest, "__sourceCache", { value: sourceCache });
+    } else if (sourceCache.has(key)) {
+      return sourceCache.get(key);
+    }
+    const sources = compactSyntheticRuntimeSourcesRaw(manifest, key, item);
+    sourceCache.set(key, sources);
+    return sources;
+  }
+  return compactSyntheticRuntimeSourcesRaw(manifest, key, item);
+}
+
+function compactSyntheticRuntimeSourcesRaw(manifest, key, item) {
+  if (!item) return [];
+  if (typeof item === "string") return [item];
+  if (Array.isArray(item)) {
+    const resolveRef = (ref) => {
+      if (!Array.isArray(ref)) return "";
+      const [dirIndex, hash, extension = "webp"] = ref;
+      const dir = manifest.dirs?.[dirIndex];
+      return typeof dir === "string" && hash
+        ? `/assets-runtime/${dir ? `${dir}/` : ""}${runtimeKeyBase(key)}.${hash}.${extension}`
+        : "";
+    };
+    return (Number.isInteger(item[0]) ? [resolveRef(item)] : item.map(resolveRef)).filter(Boolean);
+  }
+  const sources = [];
+  if (Array.isArray(item.src)) sources.push(...item.src);
+  else if (item.src) sources.push(item.src);
+  if (item.fallback) sources.push(item.fallback);
+  return sources.filter(Boolean);
 }
 
 async function scanAssetPipelineEntries() {
@@ -236,19 +280,15 @@ async function syntheticRuntimeManifest() {
   if (!syntheticRuntimeManifestPromise) {
     syntheticRuntimeManifestPromise = scanAssetPipelineEntries().then((entries) => {
       const manifest = {
-        version: 1,
-        generatedAt: new Date(0).toISOString(),
+        dirs: [],
         assets: {},
         bundles: {},
       };
+      const dirIndexes = new Map();
       for (const entry of entries) {
         const formats = entry.formats?.length ? entry.formats : ["webp", "png"];
-        const item = {
-          type: entry.type || (path.extname(entry.source).toLowerCase() === ".svg" ? "svg" : "image"),
-          src: syntheticRuntimeUrl(entry, formats[0]),
-        };
-        if (formats[1]) item.fallback = syntheticRuntimeUrl(entry, formats[1]);
-        manifest.assets[entry.key] = item;
+        const sources = formats.map((format) => compactSyntheticRuntimeRef(entry, format, dirIndexes, manifest.dirs));
+        manifest.assets[entry.key] = sources.length === 1 ? sources[0] : sources;
         if (entry.bundle) {
           manifest.bundles[entry.bundle] ||= [];
           manifest.bundles[entry.bundle].push(entry.key);
@@ -282,10 +322,24 @@ async function resolveSyntheticRuntimeBundles() {
   const manifest = await syntheticRuntimeManifest();
   let resolved = 0;
   for (const keys of Object.values(manifest.bundles)) {
+    if (typeof keys === "string") {
+      let bundleCache = manifest.__bundleCache;
+      if (!bundleCache) {
+        bundleCache = new Map();
+        Object.defineProperty(manifest, "__bundleCache", { value: bundleCache });
+      }
+      let bundleKeys = bundleCache.get(keys);
+      if (!bundleKeys) {
+        bundleKeys = Object.keys(manifest.assets).filter((candidate) => candidate.startsWith(keys));
+        bundleCache.set(keys, bundleKeys);
+      }
+      for (const key of bundleKeys) {
+        resolved += compactSyntheticRuntimeSources(manifest, key, manifest.assets[key]).length;
+      }
+      continue;
+    }
     for (const key of keys) {
-      const item = manifest.assets[key];
-      if (item?.src) resolved += 1;
-      if (item?.fallback) resolved += 1;
+      resolved += compactSyntheticRuntimeSources(manifest, key, manifest.assets[key]).length;
     }
   }
   if (resolved < 30) throw new Error(`Synthetic runtime bundle map resolved only ${resolved} sources`);

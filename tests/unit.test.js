@@ -383,9 +383,9 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(result.status, 200);
     assert.equal(garden.totalGoldEarned, 0);
     assert.equal(garden.economyVersion, GARDEN_ECONOMY_VERSION);
-    assert.equal(garden.level, 30);
+    assert.equal(garden.level, 999);
     assert.equal(garden.xp, 0);
-    assert.equal(garden.xpRequired, getGardenXpRequired(30));
+    assert.equal(garden.xpRequired, getGardenXpRequired(999));
     assert.equal(garden.levelReady, false);
     assert.equal(garden.shelvesUnlocked, 5);
     assert.equal(garden.plants[0].type, "daisy");
@@ -451,6 +451,48 @@ describe("Garden Shelf shared gold actions", () => {
     assert.equal(result.status, 200);
     assert.equal(result.body.snapshot.garden.level, 30);
     assert.equal(result.body.snapshot.garden.plants[0].type, "venus_flytrap");
+  });
+
+  it("keeps Garden Shelf garden and plant levels progressing past the authored unlock table", async () => {
+    assert.ok(getGardenXpRequired(31) > getGardenXpRequired(30));
+    assert.ok(getGardenLevelReward(31) > getGardenLevelReward(30));
+
+    const p = createDefaultPlayer("garden-uncapped-levels", "Garden");
+    p.garden = {
+      ...createGardenEconomyState(1_800_000_000_000),
+      level: 31,
+      xp: getGardenXpRequired(31),
+      xpRequired: getGardenXpRequired(31),
+      levelReady: true,
+      plants: [
+        {
+          id: "plant-beyond-30",
+          type: "fern",
+          level: 42,
+          shelfIndex: 0,
+          spotIndex: 0,
+          phase: 3,
+          phaseProgress: 0,
+        },
+      ],
+    };
+
+    const synced = await applyAction(p, "garden.sync", { state: p.garden });
+
+    assert.equal(synced.status, 200);
+    assert.equal(synced.body.snapshot.garden.level, 31);
+    assert.equal(synced.body.snapshot.garden.levelReady, true);
+    assert.equal(synced.body.snapshot.garden.plants[0].level, 42);
+
+    const leveled = await applyAction(p, "garden.levelUp");
+
+    assert.equal(leveled.status, 200);
+    assert.equal(leveled.body.reward, getGardenLevelReward(31));
+    assert.equal(p.garden.level, 32);
+    assert.equal(p.garden.xp, 0);
+    assert.equal(p.garden.xpRequired, getGardenXpRequired(32));
+    assert.equal(p.garden.levelReady, false);
+    assert.equal(p.garden.plants[0].level, 42);
   });
 
   it("marks legacy Garden progress for explicit economy reset", () => {

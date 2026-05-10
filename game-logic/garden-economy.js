@@ -6,7 +6,8 @@ export const GARDEN_OFFLINE_CAP_MS = 6 * 60 * 60 * 1000;
 export const GARDEN_OFFLINE_GOLD_RATIO = 0.35;
 export const GARDEN_OFFLINE_XP_RATIO = 0.25;
 export const GARDEN_TAP_REWARD_COOLDOWN_MS = 500;
-export const GARDEN_MAX_LEVEL = 30;
+export const GARDEN_AUTHORED_MAX_LEVEL = 30;
+export const GARDEN_LEVEL_SAFETY_CAP = 1_000_000;
 
 export const GARDEN_LEVELS = [
   { level: 1, xpRequired: 90, reward: 35, unlocks: ["daisy"] },
@@ -41,9 +42,47 @@ export const GARDEN_LEVELS = [
   { level: 30, xpRequired: 65400, reward: 27060, unlocks: ["fern"] },
 ];
 
+const LAST_AUTHORED_LEVEL = GARDEN_LEVELS[GARDEN_LEVELS.length - 1];
+const PREVIOUS_AUTHORED_LEVEL = GARDEN_LEVELS[GARDEN_LEVELS.length - 2];
+const EXTENDED_XP_BASE_STEP = LAST_AUTHORED_LEVEL.xpRequired - PREVIOUS_AUTHORED_LEVEL.xpRequired;
+const EXTENDED_REWARD_BASE_STEP = LAST_AUTHORED_LEVEL.reward - PREVIOUS_AUTHORED_LEVEL.reward;
+const EXTENDED_XP_STEP_GROWTH = 1_200;
+const EXTENDED_REWARD_STEP_GROWTH = 520;
+
+function finitePositiveInteger(value, fallback = 1) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return Math.max(1, Math.floor(Number(fallback) || 1));
+  return Math.max(1, Math.floor(number));
+}
+
+export function normalizeGardenLevel(level = 1, fallback = 1) {
+  return Math.min(GARDEN_LEVEL_SAFETY_CAP, finitePositiveInteger(level, fallback));
+}
+
+export function normalizeGardenPlantLevel(level = 1, fallback = 1) {
+  return normalizeGardenLevel(level, fallback);
+}
+
+function extrapolateGardenLevel(level) {
+  const steps = level - GARDEN_AUTHORED_MAX_LEVEL;
+  const xpRequired = LAST_AUTHORED_LEVEL.xpRequired
+    + (steps * EXTENDED_XP_BASE_STEP)
+    + Math.floor((steps * (steps + 1) * EXTENDED_XP_STEP_GROWTH) / 2);
+  const reward = LAST_AUTHORED_LEVEL.reward
+    + (steps * EXTENDED_REWARD_BASE_STEP)
+    + Math.floor((steps * (steps + 1) * EXTENDED_REWARD_STEP_GROWTH) / 2);
+  return {
+    level,
+    xpRequired: Math.min(Number.MAX_SAFE_INTEGER, xpRequired),
+    reward: Math.min(Number.MAX_SAFE_INTEGER, reward),
+    unlocks: [],
+  };
+}
+
 export function getGardenLevelDefinition(level = 1) {
-  const safeLevel = Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(Number(level) || 1)));
-  return GARDEN_LEVELS.find((entry) => entry.level === safeLevel) || GARDEN_LEVELS[0];
+  const safeLevel = normalizeGardenLevel(level);
+  const authored = GARDEN_LEVELS.find((entry) => entry.level === safeLevel);
+  return authored || extrapolateGardenLevel(safeLevel);
 }
 
 export function getGardenXpRequired(level = 1) {

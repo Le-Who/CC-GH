@@ -10,6 +10,8 @@ import {
   GARDEN_TAP_REWARD_COOLDOWN_MS,
   getGardenLevelReward,
   getGardenXpRequired,
+  normalizeGardenLevel,
+  normalizeGardenPlantLevel,
 } from '../../../game-logic/garden-economy.js';
 import {
   GARDEN_GOLD_DISPLAY_MULTIPLIER,
@@ -35,6 +37,8 @@ export {
   GARDEN_TAP_REWARD_COOLDOWN_MS,
   getGardenLevelReward,
   getGardenXpRequired,
+  normalizeGardenLevel,
+  normalizeGardenPlantLevel,
   GARDEN_GOLD_DISPLAY_MULTIPLIER,
   formatGardenGoldAmount,
   formatGardenRate,

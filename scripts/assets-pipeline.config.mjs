@@ -21,6 +21,50 @@ function runtimeWebpOnly(options = {}) {
 const PNG_EXTENSIONS = new Set([".png"]);
 const SVG_EXTENSIONS = new Set([".svg"]);
 const WEBP_ONLY_FORMATS = ["webp"];
+const FARM_RUNTIME_ROOT_KEYS = new Set([
+  "farm.background-field",
+  "farm.plot-empty",
+  "farm.plot-locked",
+  "farm.plot-pending",
+  "farm.plot-ready-overlay",
+  "farm.plot-selected",
+  "farm.plot-shadow",
+  "farm.plot-theme-default",
+  "farm.plot-theme-flower",
+  "farm.plot-theme-moon",
+  "farm.plot-theme-stone",
+  "farm.plot-watered-overlay",
+]);
+const FARM_RUNTIME_FX_KEYS = new Set([
+  "farm.fx.growth_glow",
+  "farm.fx.harvest_pop",
+  "farm.fx.plant_puff",
+  "farm.fx.water_splash",
+]);
+const GACHA_MERGE_RUNTIME_BACKGROUND_IDS = new Set(["table"]);
+const GACHA_MERGE_RUNTIME_UI_IDS = new Set([
+  "libraryRail",
+  "libraryPanel",
+  "exchangePanel",
+  "actionDock",
+  "hudBar",
+  "hudIconItems",
+  "hudIconRecipes",
+  "hudIconExchange",
+  "hudIconEssence",
+  "hudIconMode",
+  "hudIconPause",
+  "actionIconGenerate",
+  "actionIconDaily",
+  "actionIconTokens",
+  "actionIconTrash",
+  "boardFrame",
+  "cellEmpty",
+  "cellOccupied",
+  "cellSelected",
+  "cellTarget",
+]);
+const GACHA_MERGE_RUNTIME_FX_IDS = new Set(["essenceOrb", "recipeGlow"]);
 const assetEntryCache = new Map();
 
 async function fileExists(rootDir, source) {
@@ -79,75 +123,38 @@ async function collectPngDirectoryEntries(rootDir, { root, keyPrefix, outputPref
 }
 
 async function collectPixiEntries(rootDir) {
-  const bubboBallSheetRuntime = {
-    raster: {
-      webp: { quality: 90, effort: 6 },
-    },
-  };
+  const compactRuntimeImage = runtimeWebpOnly();
   const pixiEntries = [
-    entry("bubbo.background.tile", "public/games/bubbo-bubbo/images/background-tile.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.balls.sheet", "public/games/bubbo-bubbo/assets_bubbo_balls.png", "bubbo", "pixi.bubbo", undefined, bubboBallSheetRuntime),
-    entry("bubbo.bottomTray", "public/games/bubbo-bubbo/images/bottom-tray.png", "bubbo", "pixi.bubbo"),
-    entry("bubbo.cannon.main", "public/games/bubbo-bubbo/images/cannon-main.png", "bubbo", "pixi.bubbo"),
-    entry("match3.piece.dragon", "public/games/puzzling-potions/images/piece-dragon.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.piece.frog", "public/games/puzzling-potions/images/piece-frog.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.piece.newt", "public/games/puzzling-potions/images/piece-newt.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.piece.snake", "public/games/puzzling-potions/images/piece-snake.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.piece.spider", "public/games/puzzling-potions/images/piece-spider.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.piece.yeti", "public/games/puzzling-potions/images/piece-yeti.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.shelf.block", "public/games/puzzling-potions/images/shelf-block.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.special.blast", "public/games/puzzling-potions/images/special-blast.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.special.column", "public/games/puzzling-potions/images/special-column.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.special.colour", "public/games/puzzling-potions/images/special-colour.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.special.row", "public/games/puzzling-potions/images/special-row.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.background.table", "public/games/puzzling-potions/images/background-table.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.board.frame", "public/games/puzzling-potions/images/board-frame.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.board.cell", "public/games/puzzling-potions/images/cell-empty.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.board.cellSelected", "public/games/puzzling-potions/images/cell-selected.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.ui.hudBar", "public/games/puzzling-potions/images/hud-bar.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.ui.menuPanel", "public/games/puzzling-potions/images/menu-panel.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.fx.clearBurst", "public/games/puzzling-potions/images/fx-clear-burst.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.drop.gold", "public/games/puzzling-potions/images/drop-gold.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.drop.seeds", "public/games/puzzling-potions/images/drop-seeds.png", "puzzling-potions", "pixi.match3"),
-    entry("match3.drop.energy", "public/games/puzzling-potions/images/drop-energy.png", "puzzling-potions", "pixi.match3"),
+    entry("bubbo.background.tile", "public/games/bubbo-bubbo/images/background-tile.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("bubbo.balls.sheet", "public/games/bubbo-bubbo/assets_bubbo_balls.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("bubbo.bottomTray", "public/games/bubbo-bubbo/images/bottom-tray.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("bubbo.cannon.main", "public/games/bubbo-bubbo/images/cannon-main.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.piece.dragon", "public/games/puzzling-potions/images/piece-dragon.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.piece.frog", "public/games/puzzling-potions/images/piece-frog.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.piece.newt", "public/games/puzzling-potions/images/piece-newt.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.piece.snake", "public/games/puzzling-potions/images/piece-snake.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.piece.spider", "public/games/puzzling-potions/images/piece-spider.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.piece.yeti", "public/games/puzzling-potions/images/piece-yeti.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.shelf.block", "public/games/puzzling-potions/images/shelf-block.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.special.blast", "public/games/puzzling-potions/images/special-blast.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.special.column", "public/games/puzzling-potions/images/special-column.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.special.colour", "public/games/puzzling-potions/images/special-colour.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.special.row", "public/games/puzzling-potions/images/special-row.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.background.table", "public/games/puzzling-potions/images/background-table.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.board.frame", "public/games/puzzling-potions/images/board-frame.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.board.cell", "public/games/puzzling-potions/images/cell-empty.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.board.cellSelected", "public/games/puzzling-potions/images/cell-selected.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.ui.hudBar", "public/games/puzzling-potions/images/hud-bar.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.ui.menuPanel", "public/games/puzzling-potions/images/menu-panel.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.fx.clearBurst", "public/games/puzzling-potions/images/fx-clear-burst.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.drop.gold", "public/games/puzzling-potions/images/drop-gold.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.drop.seeds", "public/games/puzzling-potions/images/drop-seeds.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
+    entry("match3.drop.energy", "public/games/puzzling-potions/images/drop-energy.png", "puzzling-potions", "pixi.match3", compactRuntimeImage.formats, compactRuntimeImage),
   ];
-
-  const existingSources = new Set(pixiEntries.map((assetEntry) => assetEntry.source));
-  const [bubboImageEntries, bubboFxEntries, match3ImageEntries] = await Promise.all([
-    collectPngDirectoryEntries(rootDir, {
-      root: "public/games/bubbo-bubbo/images",
-      keyPrefix: "bubbo.images",
-      outputPrefix: "bubbo/images",
-      bundle: "pixi.bubbo",
-      formats: ["webp", "png"],
-      exclude: existingSources,
-    }),
-    collectPngDirectoryEntries(rootDir, {
-      root: "public/games/bubbo-bubbo/fx",
-      keyPrefix: "bubbo.fx",
-      outputPrefix: "bubbo/fx",
-      bundle: "pixi.bubbo",
-      formats: ["webp", "png"],
-      exclude: existingSources,
-    }),
-    collectPngDirectoryEntries(rootDir, {
-      root: "public/games/puzzling-potions/images",
-      keyPrefix: "match3.images",
-      outputPrefix: "puzzling-potions",
-      bundle: "pixi.match3",
-      formats: ["webp", "png"],
-      exclude: existingSources,
-    }),
-  ]);
-
-  pixiEntries.push(...bubboImageEntries, ...bubboFxEntries, ...match3ImageEntries);
-
   return existingEntries(rootDir, pixiEntries);
 }
 
 async function collectGardenEntries(rootDir) {
-  const root = "public/games/garden-shelf";
-  const fxFiles = await walkFiles(rootDir, "public/games/garden-shelf/fx", PNG_EXTENSIONS);
   const compactRuntimeImage = runtimeWebpOnly();
   const gardenEntries = [
     entry("gardenShelf.sheet.transparent", "public/games/garden-shelf/assets_transparent.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
@@ -155,21 +162,7 @@ async function collectGardenEntries(rootDir) {
     entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
     entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
     entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
-    ...fxFiles.map((file) => {
-      const id = path.basename(file, path.extname(file));
-      return entry(`gardenShelf.fx.${id}`, file, "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage);
-    }),
   ];
-
-  const existingSources = new Set(gardenEntries.map((assetEntry) => assetEntry.source));
-  const generatedFiles = (await walkFiles(rootDir, root, PNG_EXTENSIONS))
-    .filter((file) => !existingSources.has(file))
-    .filter((file) => !file.endsWith("/plants_sheet.png") && !file.endsWith("/plants_sheet_clean.png"));
-  for (const file of generatedFiles) {
-    const relative = file.slice(`${root}/`.length);
-    const outputDir = path.posix.join("garden-shelf", path.posix.dirname(relative)).replace(/\/\.$/, "");
-    gardenEntries.push(entry(`gardenShelf.${assetIdFromRelativePath(relative)}`, file, outputDir, null, WEBP_ONLY_FORMATS, compactRuntimeImage));
-  }
 
   return existingEntries(rootDir, gardenEntries);
 }
@@ -214,6 +207,13 @@ async function collectGachaMergeEntries(rootDir) {
     if (!section) continue;
     const extension = path.extname(fileName).toLowerCase();
     const id = path.basename(fileName, extension);
+    if (
+      (section === "background" && !GACHA_MERGE_RUNTIME_BACKGROUND_IDS.has(id)) ||
+      (section === "ui" && !GACHA_MERGE_RUNTIME_UI_IDS.has(id)) ||
+      (section === "fx" && !GACHA_MERGE_RUNTIME_FX_IDS.has(id))
+    ) {
+      continue;
+    }
     const formats = extension === ".svg" ? ["svg"] : compactRuntimeImage.formats;
     const options = extension === ".svg" ? {} : { raster: compactRuntimeImage.raster };
     entries.push(entry(`gachaMerge.${section}.${id}`, file, `gacha-merge/${folder}`, "pixi.merge", formats, options));
@@ -227,56 +227,25 @@ async function collectBloxEntries(rootDir) {
     keyPrefix: "blox",
     outputPrefix: "blox",
     bundle: "pixi.blox",
-    formats: ["webp", "png"],
-  });
-}
-
-async function collectTriviaEntries(rootDir) {
-  const compactRuntimeImage = runtimeWebpOnly();
-  return collectPngDirectoryEntries(rootDir, {
-    root: "public/games/trivia",
-    keyPrefix: "trivia",
-    outputPrefix: "trivia",
-    formats: compactRuntimeImage.formats,
-    options: { raster: compactRuntimeImage.raster },
+    formats: WEBP_ONLY_FORMATS,
+    options: runtimeWebpOnly(),
   });
 }
 
 async function collectFarmEntries(rootDir) {
-  return collectPngDirectoryEntries(rootDir, {
+  const entries = await collectPngDirectoryEntries(rootDir, {
     root: "public/games/farm",
     keyPrefix: "farm",
     outputPrefix: "farm",
     bundle: "pixi.farm",
-    formats: ["webp", "png"],
+    formats: WEBP_ONLY_FORMATS,
+    options: runtimeWebpOnly(),
   });
-}
-
-async function collectSvgEntries(rootDir) {
-  const [petFiles, assetFiles] = await Promise.all([
-    walkFiles(rootDir, "public/pets", SVG_EXTENSIONS),
-    walkFiles(rootDir, "public/assets", SVG_EXTENSIONS),
-  ]);
-  const files = [...petFiles, ...assetFiles];
-  const entries = [];
-  for (const file of files) {
-    const key = file
-      .replace(/^public\//, "")
-      .replace(/\.svg$/i, "")
-      .replace(/\//g, ".");
-    entries.push(entry(key, file, path.dirname(file).replace(/^public\//, ""), null, ["svg"]));
-  }
-  return entries;
-}
-
-async function collectIconEntries(rootDir) {
-  const files = await walkFiles(rootDir, "public/icons", PNG_EXTENSIONS);
-  const entries = [];
-  for (const file of files) {
-    const id = path.basename(file, path.extname(file)).replace(/-/g, "");
-    entries.push(entry(`icons.${id}`, file, "icons", null, WEBP_ONLY_FORMATS));
-  }
-  return entries;
+  return entries.filter((assetEntry) => (
+    FARM_RUNTIME_ROOT_KEYS.has(assetEntry.key) ||
+    FARM_RUNTIME_FX_KEYS.has(assetEntry.key) ||
+    assetEntry.key.startsWith("farm.crops.")
+  ));
 }
 
 export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
@@ -288,12 +257,9 @@ export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
     collectPixiEntries(resolvedRoot),
     collectGardenEntries(resolvedRoot),
     collectBloxEntries(resolvedRoot),
-    collectTriviaEntries(resolvedRoot),
     collectFarmEntries(resolvedRoot),
     collectCompanionYardEntries(resolvedRoot),
     collectGachaMergeEntries(resolvedRoot),
-    collectSvgEntries(resolvedRoot),
-    collectIconEntries(resolvedRoot),
   ]).then((groups) => groups.flat());
 
   assetEntryCache.set(resolvedRoot, entriesPromise);

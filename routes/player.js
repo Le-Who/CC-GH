@@ -48,10 +48,11 @@ import {
   createDefaultGardenState,
   createGardenEconomyState,
   GARDEN_ECONOMY_VERSION,
-  GARDEN_MAX_LEVEL,
   PLANT_TYPES as GARDEN_PLANT_TYPES,
   GARDEN_STARTER_GOLD,
   getGardenLevelReward,
+  normalizeGardenLevel,
+  normalizeGardenPlantLevel,
   normalizeGardenDailyQuestState,
   recordGardenDailyProgress,
   getGardenXpRequired,
@@ -252,7 +253,7 @@ function normalizeGardenPlant(raw = {}) {
   return {
     id,
     type,
-    level: Math.max(1, Math.min(30, Math.floor(finiteNumber(raw.level, 1)))),
+    level: normalizeGardenPlantLevel(raw.level),
     shelfIndex: Math.max(-1, Math.min(GARDEN_MAX_SHELVES - 1, Math.floor(finiteNumber(raw.shelfIndex, -1)))),
     spotIndex: Math.max(-1, Math.min(2, Math.floor(finiteNumber(raw.spotIndex, -1)))),
     phase: Math.max(0, Math.min(3, Math.floor(finiteNumber(raw.phase, 0)))),
@@ -268,7 +269,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
   const plants = Array.isArray(source.plants)
     ? source.plants.slice(0, GARDEN_MAX_PLANTS).map(normalizeGardenPlant)
     : [];
-  const level = Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(finiteNumber(source.level, fallback.level))));
+  const level = normalizeGardenLevel(source.level, fallback.level);
   const xpRequired = getGardenXpRequired(level);
   const xp = Math.max(0, Math.min(xpRequired, Math.floor(finiteNumber(source.xp, fallback.xp))));
 
@@ -283,7 +284,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
     level,
     xp,
     xpRequired,
-    levelReady: level < GARDEN_MAX_LEVEL && xp >= xpRequired,
+    levelReady: xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.min(GARDEN_MAX_SHELVES, Math.floor(finiteNumber(source.shelvesUnlocked, fallback.shelvesUnlocked)))),
     claimedQuests: normalizeGardenClaimedQuests(source.claimedQuests),
     dailyQuests: normalizeGardenDailyQuestState(source.dailyQuests, now),
@@ -718,9 +719,8 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     }
     case "garden.levelUp": {
       p.garden = normalizeGardenState(p.garden, Date.now());
-      const level = Math.max(1, Math.min(GARDEN_MAX_LEVEL, Math.floor(Number(p.garden.level) || 1)));
+      const level = normalizeGardenLevel(p.garden.level);
       const xpRequired = getGardenXpRequired(level);
-      if (level >= GARDEN_MAX_LEVEL) return fail(400, "max garden level");
       if (!p.garden.levelReady && Math.floor(Number(p.garden.xp) || 0) < xpRequired) {
         return fail(400, "garden level not ready", { xpRequired });
       }

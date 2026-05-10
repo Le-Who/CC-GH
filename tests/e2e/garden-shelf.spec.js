@@ -2,10 +2,13 @@ import { test, expect } from "@playwright/test";
 import {
   GARDEN_ECONOMY_VERSION,
   buildGardenDailyQuests,
+  createGardenEconomyState,
   createDefaultPlayer,
+  getGardenLevelReward,
   getGardenXpRequired,
 } from "../../game-logic.js";
-import { buildSnapshot } from "../../routes/player.js";
+import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
+import { applyAction, buildSnapshot } from "../../routes/player.js";
 
 function parsePlayerActionRequest(request) {
   try {
@@ -69,9 +72,9 @@ test.describe("Garden Shelf flow", () => {
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("My Garden")).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/assets_garden_sign."]')).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/assets_garden_bottom_plank."]')).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/assets_shelf."]').first()).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/sign."]')).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/bottomPlank."]')).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/shelf."]').first()).toBeVisible();
     await expect(page.getByText("Gold Balance")).toHaveCount(0);
     await expect(page.getByText("Garden Lv 1")).toBeVisible();
     await expect(page.locator(".stats-row")).toContainText("Garden XP");
@@ -305,6 +308,134 @@ test.describe("Garden Shelf flow", () => {
       } finally {
         await context.close();
       }
+    }
+  });
+
+  test("keeps post-30 Level Up reachable across Telegram-style viewports", async ({ browser }) => {
+    const viewports = [
+      { name: "small-mobile", width: 320, height: 568, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      { name: "common-mobile", width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      { name: "large-mobile", width: 414, height: 896, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      { name: "tablet-portrait", width: 768, height: 1024, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "tablet-landscape", width: 1024, height: 768, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "desktop-smoke", width: 1280, height: 720, deviceScaleFactor: 1, isMobile: false, hasTouch: false },
+    ];
+
+    for (const viewport of viewports) {
+      const now = Date.now();
+      const player = createDefaultPlayer(`garden_uncapped_${viewport.name}_${now}`, "Garden Uncapped", now);
+      const starterGarden = createGardenEconomyState(now);
+      player.garden = {
+        economyVersion: GARDEN_ECONOMY_VERSION,
+        totalGoldEarned: 0,
+        level: 31,
+        xp: getGardenXpRequired(31),
+        xpRequired: getGardenXpRequired(31),
+        levelReady: true,
+        shelvesUnlocked: 1,
+        claimedQuests: [],
+        dailyQuests: starterGarden.dailyQuests,
+        plants: [{
+          id: `fern-${viewport.name}`,
+          type: "fern",
+          level: 42,
+          shelfIndex: 0,
+          spotIndex: 0,
+          phase: 3,
+          phaseProgress: 0,
+          lastTapped: 0,
+        }],
+        passiveGoldBuffer: 0,
+        passiveXpBuffer: 0,
+        lastTick: now,
+        offlineEarnings: null,
+        offlineXp: null,
+      };
+
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        deviceScaleFactor: viewport.deviceScaleFactor,
+        isMobile: viewport.isMobile,
+        hasTouch: viewport.hasTouch,
+      });
+      const page = await context.newPage();
+      const pageErrors = [];
+      page.on("pageerror", (err) => pageErrors.push(err.message));
+
+      await page.addInitScript(() => {
+        window.localStorage.setItem("gh_dev_user_id", `garden_uncapped_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+        window.localStorage.removeItem("terrarium_save");
+        window.localStorage.removeItem("garden_shelf_language");
+        window.localStorage.removeItem("garden_shelf_name");
+      });
+      await page.route("**/api/player/snapshot", async (route) => {
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify(buildSnapshot(player)),
+        });
+      });
+      await page.route("**/api/player/mutate", async (route) => {
+        const body = parsePlayerActionRequest(route.request()) || {};
+        const result = await applyAction(player, body.action, body.payload || {});
+        await route.fulfill({
+          status: result.status,
+          contentType: "application/json",
+          body: JSON.stringify(result.body),
+        });
+      });
+
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("Garden Lv 31")).toBeVisible();
+      const levelButton = page.locator(".stats-row .stat-chip.clickable").filter({ hasText: "Level Up" });
+      await expect(levelButton).toContainText(`+${formatGardenGoldAmount(getGardenLevelReward(31))}`);
+
+      const fit = await page.evaluate(() => {
+        const chip = [...document.querySelectorAll(".stats-row .stat-chip")]
+          .find((node) => node.textContent?.includes("Level Up"));
+        const stats = document.querySelector(".stats-row");
+        const viewport = window.visualViewport || { width: window.innerWidth, height: window.innerHeight };
+        const chipRect = chip?.getBoundingClientRect();
+        const statsRect = stats?.getBoundingClientRect();
+        return {
+          canScrollX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+          chip: chipRect && {
+            x: chipRect.x,
+            y: chipRect.y,
+            width: chipRect.width,
+            height: chipRect.height,
+            right: chipRect.right,
+            bottom: chipRect.bottom,
+          },
+          stats: statsRect && {
+            x: statsRect.x,
+            y: statsRect.y,
+            width: statsRect.width,
+            height: statsRect.height,
+            right: statsRect.right,
+            bottom: statsRect.bottom,
+          },
+          viewportWidth: viewport.width,
+          viewportHeight: viewport.height,
+        };
+      });
+
+      expect(fit.canScrollX, `${viewport.name} should not create horizontal scroll`).toBe(false);
+      expect(fit.chip, `${viewport.name} Level Up chip should exist`).not.toBeNull();
+      expect(fit.chip.width, `${viewport.name} Level Up chip width`).toBeGreaterThanOrEqual(44);
+      expect(fit.chip.height, `${viewport.name} Level Up chip height`).toBeGreaterThanOrEqual(44);
+      expect(fit.chip.x, `${viewport.name} Level Up chip left`).toBeGreaterThanOrEqual(0);
+      expect(fit.chip.right, `${viewport.name} Level Up chip right`).toBeLessThanOrEqual(fit.viewportWidth + 1);
+      expect(fit.stats.bottom, `${viewport.name} HUD stats bottom`).toBeLessThanOrEqual(fit.viewportHeight + 1);
+
+      await levelButton.click();
+      await expect(page.getByText("Garden Lv 32")).toBeVisible();
+      await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(32)}`);
+      expect(player.garden.level).toBe(32);
+      expect(player.garden.plants[0].level).toBe(42);
+      expect(pageErrors).toEqual([]);
+
+      await context.close();
     }
   });
 

@@ -2,7 +2,6 @@ import React, { createContext, useCallback, useContext, useState, useEffect, Rea
 import { GameState, PlantData } from '../types';
 import {
   PLANT_TYPES,
-  LEVELS,
   getUpgradeCost,
   getProduction,
   getClickReward,
@@ -21,6 +20,8 @@ import {
   getGardenWaterCooldownMs,
   getGardenLevelReward,
   getGardenXpRequired,
+  normalizeGardenLevel,
+  normalizeGardenPlantLevel,
   getMatureWaterReward,
 } from '../constants';
 import { useInterval } from './useInterval';
@@ -131,7 +132,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
     ? source.plants.map((p: any) => ({
         ...p,
         type: p.type || 'daisy',
-        level: Math.max(1, Math.floor(Number(p.level) || 1)),
+        level: normalizeGardenPlantLevel(p.level),
         shelfIndex: Number.isFinite(Number(p.shelfIndex)) ? Math.floor(Number(p.shelfIndex)) : -1,
         spotIndex: Number.isFinite(Number(p.spotIndex)) ? Math.floor(Number(p.spotIndex)) : -1,
         phase: Math.max(0, Math.min(3, Math.floor(Number(p.phase ?? Math.min(3, Math.floor(((p.level || 1) - 1) / 3))) || 0))),
@@ -139,7 +140,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
         lastTapped: Math.max(0, Math.floor(Number(p.lastTapped) || 0)),
       }))
     : [];
-  const level = Math.max(1, Math.min(LEVELS[LEVELS.length - 1].level, Math.floor(Number(source.level) || 1)));
+  const level = normalizeGardenLevel(source.level);
   const xpRequired = getGardenXpRequired(level);
   const xp = Math.max(0, Math.min(xpRequired, Math.floor(Number(source.xp) || 0)));
 
@@ -153,7 +154,7 @@ function normalizePersistedGardenState(raw: any, hubGold: number): GameState {
     level,
     xp,
     xpRequired,
-    levelReady: level < LEVELS[LEVELS.length - 1].level && xp >= xpRequired,
+    levelReady: xp >= xpRequired,
     shelvesUnlocked: Math.max(1, Math.floor(Number(source.shelvesUnlocked) || 1)),
     claimedQuests: normalizeClaimedQuests(source.claimedQuests),
     dailyQuests: normalizeGardenDailyQuestState(source.dailyQuests),
@@ -191,10 +192,8 @@ function applyGardenRewards(prev: GameState, rewards: { gold?: number; xp?: numb
   const earnedXp = Math.max(0, Math.floor(Number(rewards.xp) || 0));
   if (!earnedGold && !earnedXp) return prev;
 
-  const maxLevel = LEVELS[LEVELS.length - 1].level;
   const xpRequired = getGardenXpRequired(prev.level);
-  const canAdvance = prev.level < maxLevel;
-  const newXp = canAdvance && !prev.levelReady
+  const newXp = !prev.levelReady
     ? Math.min(xpRequired, prev.xp + earnedXp)
     : prev.xp;
   return {
@@ -205,7 +204,7 @@ function applyGardenRewards(prev: GameState, rewards: { gold?: number; xp?: numb
     totalGoldEarned: prev.totalGoldEarned + earnedGold,
     xp: newXp,
     xpRequired,
-    levelReady: canAdvance && (prev.levelReady || newXp >= xpRequired),
+    levelReady: prev.levelReady || newXp >= xpRequired,
   };
 }
 
@@ -519,7 +518,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
 
   const levelUp = async () => {
     if (levelUpPendingRef.current) return;
-    if (!state.levelReady || state.level >= LEVELS[LEVELS.length - 1].level) return;
+    if (!state.levelReady) return;
     levelUpPendingRef.current = true;
     if (onGardenLevelUp) {
       try {
@@ -538,7 +537,7 @@ export function GameProvider({ children, hubGold, persistedState, onGoldDelta, o
 
     const reward = getGardenLevelReward(state.level);
     setState((prev) => {
-      if (!prev.levelReady || prev.level >= LEVELS[LEVELS.length - 1].level) return prev;
+      if (!prev.levelReady) return prev;
       const nextLevel = prev.level + 1;
       return {
         ...prev,

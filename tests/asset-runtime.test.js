@@ -98,6 +98,29 @@ describe("runtime asset URL resolution", () => {
     );
   });
 
+  it("resolves compact generated runtime manifest entries", () => {
+    const runtimeManifest = {
+      dirs: ["blox", "farm/crops"],
+      assets: {
+        "blox.cell_empty": [0, "1234abcd"],
+        "farm.crops.strawberry_ready": [1, "1234abcd"],
+      },
+    };
+
+    assert.equal(
+      runtimeAssetSrc(runtimeManifest, "blox.cell_empty"),
+      "/assets-runtime/blox/cell_empty.1234abcd.webp",
+    );
+    assert.equal(
+      resolveAssetUrl("farm.crops.strawberry_ready", { runtimeManifest }),
+      "/assets-runtime/farm/crops/strawberry_ready.1234abcd.webp",
+    );
+    assert.equal(
+      resolveAssetUrl("farm.plot-empty", { runtimeManifest }),
+      "/games/farm/plot-empty.png?v=build-a",
+    );
+  });
+
   it("applies the optional asset base URL to generated runtime assets", () => {
     globalThis.__ASSET_BASE_URL__ = "https://assets.example.test";
 

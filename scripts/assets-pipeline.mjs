@@ -8,8 +8,11 @@ import { optimize } from "svgo";
 
 const DEFAULT_OUTPUT_ROOT = "public/assets-runtime";
 const DEFAULT_CACHE_PATH = "assets-source/.asset-build-cache.json";
-const CACHE_VERSION = 1;
+const CACHE_VERSION = 2;
 const HASH_LENGTH = 8;
+const COMPACT_PREFIX_BUNDLES = {
+  "pixi.merge": "gachaMerge.",
+};
 
 function normalizeSlashes(value) {
   return String(value || "").replace(/\\/g, "/");
@@ -32,8 +35,62 @@ function withoutExtension(filePath) {
   return path.basename(filePath, path.extname(filePath)).replace(/[^a-zA-Z0-9_-]+/g, "-");
 }
 
+function runtimeFileBase(key) {
+  return String(key || "")
+    .split(".")
+    .pop()
+    .replace(/[^a-zA-Z0-9_-]+/g, "-");
+}
+
 function sortedObject(object) {
   return Object.fromEntries(Object.entries(object).sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function compactRuntimeUrl(url, dirIndexes, dirs) {
+  const normalized = normalizeSlashes(url).replace(/^\/+/, "");
+  if (!normalized.startsWith("assets-runtime/")) return url;
+  const relative = normalized.slice("assets-runtime/".length);
+  const dir = path.posix.dirname(relative).replace(/^\.$/, "");
+  const fileName = path.posix.basename(relative);
+  const match = fileName.match(/\.([a-f0-9]{8})\.([a-z0-9]+)$/i);
+  if (!match) return url;
+  if (!dirIndexes.has(dir)) {
+    dirIndexes.set(dir, dirs.length);
+    dirs.push(dir);
+  }
+  const [, hash, extension] = match;
+  return extension === "webp"
+    ? [dirIndexes.get(dir), hash]
+    : [dirIndexes.get(dir), hash, extension];
+}
+
+function compactAssetItem(item, dirIndexes, dirs) {
+  const sources = [];
+  if (Array.isArray(item.src)) sources.push(...item.src);
+  else if (item.src) sources.push(item.src);
+  if (item.fallback) sources.push(item.fallback);
+
+  const compactSources = sources.filter(Boolean).map((source) => compactRuntimeUrl(source, dirIndexes, dirs));
+  if (compactSources.length === 1) return compactSources[0];
+  return compactSources;
+}
+
+export function compactRuntimeManifest(manifest) {
+  const dirs = [];
+  const dirIndexes = new Map();
+  const assets = {};
+  for (const [key, item] of Object.entries(manifest.assets || {})) {
+    assets[key] = compactAssetItem(item, dirIndexes, dirs);
+  }
+  const bundles = {};
+  for (const [bundleKey, prefix] of Object.entries(COMPACT_PREFIX_BUNDLES)) {
+    if (manifest.bundles?.[bundleKey]?.length) bundles[bundleKey] = prefix;
+  }
+  return {
+    dirs,
+    assets: sortedObject(assets),
+    bundles,
+  };
 }
 
 function stableValue(value) {
@@ -140,9 +197,9 @@ async function pruneStaleOutputFiles({ rootDir, outputRoot, keepUrls = [], extra
   }
 }
 
-async function writeHashedAsset({ rootDir, outputRoot, outputDir, sourcePath, extension, buffer }) {
+async function writeHashedAsset({ rootDir, outputRoot, outputDir, sourcePath, extension, buffer, fileBase = withoutExtension(sourcePath) }) {
   const hash = assetHash(buffer);
-  const fileName = `${withoutExtension(sourcePath)}.${hash}.${extension}`;
+  const fileName = `${fileBase}.${hash}.${extension}`;
   const outputRelative = path.join(outputRoot, outputDir || "", fileName);
   const outputAbsolute = path.resolve(rootDir, outputRelative);
   await fs.mkdir(path.dirname(outputAbsolute), { recursive: true });
@@ -206,6 +263,7 @@ function entryCacheSignature(entry, formats, hash, outputRoot) {
     sourceHash: hash,
     outputRoot: normalizeSlashes(outputRoot),
     outputDir: normalizeSlashes(entry.outputDir || path.dirname(entry.source)),
+    fileBase: runtimeFileBase(entry.key),
     formats,
     raster: entry.raster || null,
     type: entry.type || null,
@@ -234,6 +292,7 @@ async function buildEntry({ rootDir, outputRoot, entry }) {
       sourcePath: entry.source,
       extension: "svg",
       buffer: svg,
+      fileBase: runtimeFileBase(entry.key),
     });
     item.src = url;
     written.push(url);
@@ -248,6 +307,7 @@ async function buildEntry({ rootDir, outputRoot, entry }) {
         sourcePath: entry.source,
         extension: format,
         buffer,
+        fileBase: runtimeFileBase(entry.key),
       });
       if (!item.src) item.src = url;
       else if (!item.fallback) item.fallback = url;
@@ -263,6 +323,7 @@ async function buildEntry({ rootDir, outputRoot, entry }) {
       sourcePath: entry.source,
       extension,
       buffer,
+      fileBase: runtimeFileBase(entry.key),
     });
     item.src = url;
     written.push(url);
@@ -343,10 +404,11 @@ export async function buildAssetRuntimeManifest({
   }
   manifest.assets = sortedObject(manifest.assets);
   manifest.bundles = sortedObject(manifest.bundles);
+  const runtimeManifest = compactRuntimeManifest(manifest);
 
   const manifestPath = path.resolve(rootDir, outputRoot, "manifest.json");
   await fs.mkdir(path.dirname(manifestPath), { recursive: true });
-  await fs.writeFile(manifestPath, `${JSON.stringify(manifest)}\n`);
+  await fs.writeFile(manifestPath, `${JSON.stringify(runtimeManifest)}\n`);
 
   if (cache) await writeBuildCache(rootDir, cacheFile, nextCacheEntries);
   if (clean) {
@@ -360,7 +422,7 @@ export async function buildAssetRuntimeManifest({
     });
   }
 
-  return { manifest, written, manifestPath };
+  return { manifest, runtimeManifest, written, manifestPath };
 }
 
 async function runCli() {

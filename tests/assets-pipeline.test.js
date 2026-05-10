@@ -254,6 +254,14 @@ describe("asset runtime pipeline", () => {
     assert.equal(first.manifest.assets["test.pixel"].width, 1);
     assert.equal(first.manifest.assets["test.pixel"].height, 1);
     assert.deepEqual(first.manifest.bundles["pixi.test"], ["test.pixel"]);
+
+    const runtimeManifest = JSON.parse(await fs.readFile(first.manifestPath, "utf-8"));
+    assert.deepEqual(runtimeManifest.dirs, ["test"]);
+    assert.deepEqual(runtimeManifest.assets["test.pixel"].map((source) => [runtimeManifest.dirs[source[0]], source[2] || "webp"]), [
+      ["test", "webp"],
+      ["test", "png"],
+    ]);
+    assert.deepEqual(runtimeManifest.bundles, {});
   });
 
   it("optimizes SVG assets without removing viewBox", async () => {
@@ -300,11 +308,32 @@ describe("asset runtime pipeline", () => {
     });
 
     const item = result.manifest.assets["test.pixel.compact"];
-    assert.match(item.src, /^\/assets-runtime\/test\/pixel\.[a-f0-9]{8}\.webp$/);
+    assert.match(item.src, /^\/assets-runtime\/test\/compact\.[a-f0-9]{8}\.webp$/);
     assert.equal(item.fallback, undefined);
   });
 
-  it("keeps non-Pixi runtime images WebP-only while Pixi assets retain PNG fallback", async () => {
+  it("keeps a compact Merge Pixi bundle prefix for dynamic runtime art", async () => {
+    const root = await makeTempRoot();
+    const result = await buildAssetRuntimeManifest({
+      rootDir: root,
+      outputRoot: "public/assets-runtime",
+      entries: [
+        {
+          key: "gachaMerge.background.table",
+          source: "source/pixel.png",
+          outputDir: "gacha-merge/backgrounds",
+          bundle: "pixi.merge",
+          formats: ["webp"],
+        },
+      ],
+      clean: true,
+    });
+
+    const runtimeManifest = JSON.parse(await fs.readFile(result.manifestPath, "utf-8"));
+    assert.equal(runtimeManifest.bundles["pixi.merge"], "gachaMerge.");
+  });
+
+  it("keeps generated runtime images WebP-only and skips unreferenced public art", async () => {
     const root = await makeTempRoot();
     await writePixelPng(path.join(root, "public/games/bubbo-bubbo/assets_bubbo_balls.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/assets_shelf.png"));
@@ -315,23 +344,27 @@ describe("asset runtime pipeline", () => {
     await writePixelPng(path.join(root, "public/games/companion-yard/foods/kibble.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/expressions/happy.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/ui/cozy-price-chip.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/actionIconBack.png"));
+    await writePixelPng(path.join(root, "public/games/gacha-merge/ui/hudBar.png"));
     await writePixelPng(path.join(root, "public/icons/icon-192.png"));
 
     const entriesByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry]));
     const formatsByKey = new Map([...entriesByKey].map(([key, entry]) => [key, entry.formats]));
 
-    assert.deepEqual(formatsByKey.get("bubbo.balls.sheet"), ["webp", "png"]);
+    assert.deepEqual(formatsByKey.get("bubbo.balls.sheet"), ["webp"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("gardenShelf.fx.gold-sparkle"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("blox.block_tile_blue"), ["webp", "png"]);
+    assert.equal(formatsByKey.has("gardenShelf.fx.gold-sparkle"), false);
+    assert.deepEqual(formatsByKey.get("blox.block_tile_blue"), ["webp"]);
     assert.equal(entriesByKey.get("blox.block_tile_blue")?.bundle, "pixi.blox");
-    assert.deepEqual(formatsByKey.get("farm.crops.strawberry_ready"), ["webp", "png"]);
+    assert.deepEqual(formatsByKey.get("farm.crops.strawberry_ready"), ["webp"]);
     assert.equal(entriesByKey.get("farm.crops.strawberry_ready")?.bundle, "pixi.farm");
-    assert.deepEqual(formatsByKey.get("trivia.panel-menu"), ["webp"]);
+    assert.equal(formatsByKey.has("trivia.panel-menu"), false);
     assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.expressions.happy"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.ui.cozy-price-chip"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("icons.icon192"), ["webp"]);
+    assert.equal(formatsByKey.has("gachaMerge.ui.actionIconBack"), false);
+    assert.deepEqual(formatsByKey.get("gachaMerge.ui.hudBar"), ["webp"]);
+    assert.equal(formatsByKey.has("icons.icon192"), false);
   });
 
   it("maps Alchemy Table runtime art into the Merge Pixi bundle", async () => {

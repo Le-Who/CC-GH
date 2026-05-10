@@ -4,6 +4,7 @@
 
 ### Client
 
+- Uncapped Garden Shelf garden progression after level 30 with an extrapolated XP/reward curve, kept the Level Up HUD action available beyond the authored plant-unlock table, and preserved plant evolution levels above 30 during sync.
 - Refined Cozy Yard mobile polish so stationary and lying visitors use decor-local visual anchors, live yard visitor names stay hidden until hover/focus, and shop rows keep description, price, and action controls aligned away from thumbnails on narrow screens with light/dark contrast coverage.
 - Corrected Puzzling Potions snake, spider, yeti, and newt token crops, regenerated their content-hashed runtime assets, and added alpha-component checks so neighboring-token slivers cannot return.
 - Removed stale global Companion Yard mobile overrides from the startup stylesheet so the lazy Yard CSS chunk remains the single source for yard visitor, slot, and shop layout rules.
@@ -81,6 +82,7 @@
 
 ### API
 
+- Removed the Garden Shelf level-30 server cap from `garden.sync` and `garden.levelUp`; normalization now keeps high garden and plant levels while retaining numeric safety bounds and one-time reward semantics.
 - Reworked Garden Shelf daily quest selection to rotate each 3x3 daily group by deterministic lanes across days, reducing adjacent-day repeats without changing rewards, ids, claim reset semantics, or the three-section unlock order.
 - Added shared Garden daily quest state normalization and progress recording to the player snapshot so daily quests reset by day while preserving same-day claimed ids across syncs.
 - Hardened `garden.sync` against stale post-level-up payloads so an older client cannot reopen a level reward that was already claimed.
@@ -100,6 +102,7 @@
 
 ### Operations
 
+- Compacted the generated `/assets-runtime` manifest into shared directory refs plus compact asset/prefix bundle records, pruned runtime asset generation to actively resolved game keys, and kept build/browser perf guards inside budget with WebP-only generated raster outputs where compatible.
 - Retired the unused Bubbo individual bubble PNG runtime/source paths after confirming the live scene uses the corrected Bubbo ball sheet, and updated the generated Pixi bundle contract to preload only the active sheet/tray/cannon/background assets.
 - Tightened generated runtime WebP encoding for oversized Bubbo and Garden Shelf sheets while preserving required Pixi PNG fallbacks, bringing `perf:guard:build` runtime payload size back under budget without loosening thresholds.
 - Ran an objective indefinite epoch perf loop using `perf:guard` as source of truth. Kept loop-based Cozy Yard visitor/activity selection, compact generated runtime manifest output, and a per-call Garden Shelf/Farm cheap-refuel id cache; rejected Yard, Bubbo, Merge, and Player micro-targets after repeat guard regressions or non-reproducible p95, and stopped only after the explicit finalization request without loosening budgets or changing gameplay semantics.
@@ -126,6 +129,7 @@
 
 ### Tests
 
+- Added Garden Shelf regression coverage proving garden levels, level rewards, XP requirements, and synced plant levels continue past the authored level-30 unlock table.
 - Added focused Cozy Yard Playwright coverage for multi-anchor visitor placement, hidden live-yard visitor labels, mobile shop spacing, dark-theme price contrast, and localized bottom-dock readability.
 - Added a mobile UI viewport matrix pass covering 320x568, 390x844 high-DPI, 414x896, tablet portrait/landscape, desktop smoke, touch contexts, horizontal-scroll checks, bottom dock clipping, dialog reachability, and Pixi resize/redraw behavior.
 - Extended asset pipeline tests to reject extra alpha components in Puzzling Potions token images and updated runtime asset tests for the current Bubbo sheet-only bundle contract.

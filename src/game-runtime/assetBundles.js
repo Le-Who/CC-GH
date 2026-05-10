@@ -187,17 +187,34 @@ const FARM_UI_ASSET_IDS = [
   "shop_panel",
   "side_panel",
 ];
+const FARM_RENDER_ROOT_ASSET_IDS = [
+  "background-field",
+  "plot-empty",
+  "plot-locked",
+  "plot-pending",
+  "plot-ready-overlay",
+  "plot-selected",
+  "plot-shadow",
+  "plot-theme-default",
+  "plot-theme-flower",
+  "plot-theme-moon",
+  "plot-theme-stone",
+  "plot-watered-overlay",
+];
+const FARM_RENDER_FX_ASSET_IDS = [
+  "growth_glow",
+  "harvest_pop",
+  "plant_puff",
+  "water_splash",
+];
 const BLOX_BUNDLE_KEYS = [
   ...BLOX_ROOT_ASSET_IDS.map((id) => `blox.${id}`),
   ...BLOX_FX_ASSET_IDS.map((id) => `blox.fx.${id}`),
 ];
 const FARM_BUNDLE_KEYS = [
-  ...FARM_ROOT_ASSET_IDS.map((id) => `farm.${id}`),
+  ...FARM_RENDER_ROOT_ASSET_IDS.map((id) => `farm.${id}`),
   ...FARM_CROP_ASSET_IDS.map((id) => `farm.crops.${id}`),
-  ...FARM_FX_ASSET_IDS.map((id) => `farm.fx.${id}`),
-  ...FARM_HARVEST_ASSET_IDS.map((id) => `farm.harvest.${id}`),
-  ...FARM_SEED_ASSET_IDS.map((id) => `farm.seeds.${id}`),
-  ...FARM_UI_ASSET_IDS.map((id) => `farm.ui.${id}`),
+  ...FARM_RENDER_FX_ASSET_IDS.map((id) => `farm.fx.${id}`),
 ];
 
 export const LEGACY_ASSET_PATHS = {
@@ -277,6 +294,7 @@ export const GAME_ASSET_BUNDLES = {
 
 let runtimeAssetManifest = null;
 let runtimeAssetManifestPromise = null;
+const runtimeAssetSourceCache = new WeakMap();
 
 export function setRuntimeAssetManifest(manifest) {
   runtimeAssetManifest = manifest || null;
@@ -287,14 +305,55 @@ export function getRuntimeAssetManifest() {
   return runtimeAssetManifest;
 }
 
+function compactRuntimeAssetSource(manifest, source, key) {
+  if (typeof source === "string") return source;
+  if (!Array.isArray(source)) return "";
+  const [dirIndex, hash, extension = "webp"] = source;
+  if (!Number.isInteger(dirIndex) || !hash) return "";
+  const dir = manifest?.dirs?.[dirIndex];
+  if (typeof dir !== "string") return "";
+  const base = runtimeFileBase(key);
+  return `/assets-runtime/${dir ? `${dir}/` : ""}${base}.${hash}.${extension}`;
+}
+
+function runtimeFileBase(key) {
+  return String(key || "")
+    .split(".")
+    .pop()
+    .replace(/[^a-zA-Z0-9_-]+/g, "-");
+}
+
 export function runtimeAssetSources(manifest, key) {
+  if (manifest && typeof manifest === "object") {
+    let sourceCache = runtimeAssetSourceCache.get(manifest);
+    if (!sourceCache) {
+      sourceCache = new Map();
+      runtimeAssetSourceCache.set(manifest, sourceCache);
+    } else if (sourceCache.has(key)) {
+      return sourceCache.get(key).map(withAssetBase);
+    }
+    const rawSources = runtimeAssetSourcesRaw(manifest, key);
+    sourceCache.set(key, rawSources);
+    return rawSources.map(withAssetBase);
+  }
+  return runtimeAssetSourcesRaw(manifest, key).map(withAssetBase);
+}
+
+function runtimeAssetSourcesRaw(manifest, key) {
   const item = manifest?.assets?.[key];
   if (!item) return [];
+  if (typeof item === "string") return [item].filter(Boolean);
+  if (Array.isArray(item)) {
+    const sources = Number.isInteger(item[0])
+      ? [compactRuntimeAssetSource(manifest, item, key)]
+      : item.map((source) => compactRuntimeAssetSource(manifest, source, key));
+    return sources.filter(Boolean);
+  }
   const sources = [];
   if (Array.isArray(item.src)) sources.push(...item.src);
   else if (item.src) sources.push(item.src);
   if (item.fallback) sources.push(item.fallback);
-  return sources.filter(Boolean).map(withAssetBase);
+  return sources.filter(Boolean);
 }
 
 export function runtimeAssetSrc(manifest, key) {

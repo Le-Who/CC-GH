@@ -26,7 +26,7 @@ import {
   getStoredGardenLanguage,
 } from "./games/garden-shelf/lib/language";
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from "./games/garden-shelf/events";
-import { LEVELS, formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
+import { formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { useGameEvents } from "./game-state/gameEvents.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
@@ -253,10 +253,8 @@ export default function App() {
   const gardenXpRequired = Math.max(1, Number(gardenHud?.xpRequired) || 1);
   const gardenXp = Math.max(0, Number(gardenHud?.xp) || 0);
   const gardenXpProgress = Math.min(100, (gardenXp / gardenXpRequired) * 100);
-  const gardenMaxLevel = LEVELS[LEVELS.length - 1]?.level ?? 1;
   const gardenLevel = Number(gardenHud?.level) || 1;
-  const gardenCanLevelUp = gardenLevel < gardenMaxLevel
-    && (!!gardenHud?.levelReady || gardenXp >= gardenXpRequired);
+  const gardenCanLevelUp = !!gardenHud?.levelReady || gardenXp >= gardenXpRequired;
   useEffect(() => {
     if (!gardenCanLevelUp) {
       gardenLevelUpPendingRef.current = false;
