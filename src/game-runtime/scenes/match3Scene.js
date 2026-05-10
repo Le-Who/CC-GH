@@ -23,6 +23,7 @@ import {
   label,
   rect,
   sprite,
+  spriteFit,
   gameAsset,
   tiledSprite,
   strokedRect,
@@ -102,6 +103,7 @@ export function buildMatch3Scene(app, initial = {}) {
     const gem = actual[drag.from.y]?.[drag.from.x];
     const color = GEM_COLORS[gem] || 0xa4af9a;
     const radius = Math.max(14, (layout?.cell || 44) * 0.33);
+    const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
     if (drag.target) {
       dragLayer.addChild(strokedRect(
         layout.left + drag.target.x * layout.cell + 3,
@@ -115,14 +117,21 @@ export function buildMatch3Scene(app, initial = {}) {
         3,
       ));
     }
+    if (pieceAsset) {
+      dragLayer.addChild(
+        new Graphics()
+          .circle(drag.x, drag.y + radius * 0.14, radius * 0.9)
+          .fill({ color: 0x11090a, alpha: 0.22 }),
+      );
+      dragLayer.addChild(spriteFit(pieceAsset, drag.x, drag.y, radius * 2.05, radius * 2.05, 0.94));
+      return;
+    }
     dragLayer.addChild(
       new Graphics()
         .circle(drag.x, drag.y, radius)
         .fill({ color, alpha: 0.8 })
         .stroke({ color: TEXT, width: 2, alpha: 0.7 }),
     );
-    const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
-    if (pieceAsset) dragLayer.addChild(sprite(pieceAsset, drag.x, drag.y, radius * 1.85, radius * 1.85, 0.92));
   }
 
   function updateDragVisual() {
@@ -147,6 +156,18 @@ export function buildMatch3Scene(app, initial = {}) {
     group.eventMode = "none";
     group.interactiveChildren = false;
     group.alpha = alpha;
+    const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
+    if (pieceAsset) {
+      group.addChild(
+        new Graphics()
+          .circle(0, radius * 0.12, radius * 0.9)
+          .fill({ color: 0x140b0d, alpha: 0.22 }),
+      );
+      const pieceSize = radius * 2.14;
+      const pieceAdjust = potionPieceVisual(gem, pieceSize);
+      group.addChild(spriteFit(pieceAsset, pieceAdjust.x, pieceAdjust.y, pieceSize * pieceAdjust.scale, pieceSize * pieceAdjust.scale, Math.min(0.98, alpha + 0.08)));
+      return group;
+    }
     group.addChild(
       new Graphics()
         .circle(0, 0, radius * 1.08)
@@ -159,23 +180,8 @@ export function buildMatch3Scene(app, initial = {}) {
         .fill({ color, alpha: Math.min(0.72, alpha * 0.78) })
         .stroke({ color: 0xfff3cb, width: 1.5, alpha: 0.28 }),
     );
-    const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
-    if (pieceAsset) {
-      const pieceSize = radius * 1.9;
-      const pieceAdjust = potionPieceVisual(gem, pieceSize);
-      group.addChild(sprite(pieceAsset, pieceAdjust.x, pieceAdjust.y, pieceSize * pieceAdjust.scale, pieceSize * pieceAdjust.scale, Math.min(0.98, alpha + 0.08)));
-    }
     const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
-    if (icon && !pieceAsset) group.addChild(label(icon, 0, 0, Math.max(13, radius * 0.88), TEXT));
-    if (icon && pieceAsset && (String(gem).startsWith("drop_") || String(gem).startsWith("special_"))) {
-      group.addChild(
-        new Graphics()
-          .circle(radius * 0.58, radius * 0.58, Math.max(8, radius * 0.28))
-          .fill({ color: 0x231515, alpha: 0.78 })
-          .stroke({ color: 0xfff3cb, width: 1.5, alpha: 0.7 }),
-      );
-      group.addChild(label(icon, radius * 0.58, radius * 0.58, Math.max(10, radius * 0.36), 0xfff7df));
-    }
+    if (icon) group.addChild(label(icon, 0, 0, Math.max(13, radius * 0.88), TEXT));
     return group;
   }
 
@@ -469,40 +475,33 @@ export function buildMatch3Scene(app, initial = {}) {
         const tokenX = left + x * cell + cell / 2;
         const tokenY = top + y * cell + cell / 2;
         const tokenRadius = cell * (selected ? 0.36 : 0.32);
-        root.addChild(
-          new Graphics()
-            .circle(tokenX, tokenY, tokenRadius * 1.12)
-            .fill({ color: 0x1a1112, alpha: dragging ? 0.18 : 0.36 })
-            .stroke({ color, width: Math.max(2, cell * 0.038), alpha: dragging ? 0.32 : 0.58 }),
-        );
-        const orb = new Graphics()
-          .circle(tokenX, tokenY, cell * (selected ? 0.31 : 0.27))
-          .fill({ color, alpha: dragging ? 0.22 : 0.58 })
-          .stroke({ color: 0xfff3cb, width: 1.5, alpha: dragging ? 0.14 : 0.24 });
-        makeInteractive(orb, {
-          pointerdown: (event) => {
-            if (!state.gameActive || matchInputLocked()) return;
-            drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y, target: null };
-            pointer.start(event, { kind: "match3-cell", from: { x, y } });
-          },
-        });
-        root.addChild(orb);
         const pieceAsset = gameAsset(POTION_PIECE_ASSETS[gem]);
-        if (pieceAsset && !dragging) {
-          const pieceSize = cell * 0.82;
-          const pieceAdjust = potionPieceVisual(gem, pieceSize);
-          root.addChild(sprite(pieceAsset, tokenX + pieceAdjust.x, tokenY + pieceAdjust.y, pieceSize * pieceAdjust.scale, pieceSize * pieceAdjust.scale, 0.98));
-        }
-        const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
-        if (icon && pieceAsset && !dragging && (String(gem).startsWith("drop_") || String(gem).startsWith("special_"))) {
+        if (pieceAsset) {
           root.addChild(
             new Graphics()
-              .circle(tokenX + cell * 0.21, tokenY + cell * 0.2, Math.max(8, cell * 0.12))
-              .fill({ color: 0x211312, alpha: 0.82 })
-              .stroke({ color: 0xfff3cb, width: 1.5, alpha: 0.74 }),
+              .circle(tokenX, tokenY + tokenRadius * 0.18, tokenRadius * 0.86)
+              .fill({ color: 0x120a0c, alpha: dragging ? 0.12 : 0.25 }),
           );
-          root.addChild(label(icon, tokenX + cell * 0.21, tokenY + cell * 0.2, Math.max(10, cell * 0.18), 0xfff7df));
+        } else {
+          root.addChild(
+            new Graphics()
+              .circle(tokenX, tokenY, tokenRadius * 1.12)
+              .fill({ color: 0x1a1112, alpha: dragging ? 0.18 : 0.36 })
+              .stroke({ color, width: Math.max(2, cell * 0.038), alpha: dragging ? 0.32 : 0.58 }),
+          );
+          root.addChild(
+            new Graphics()
+              .circle(tokenX, tokenY, cell * (selected ? 0.31 : 0.27))
+              .fill({ color, alpha: dragging ? 0.22 : 0.58 })
+              .stroke({ color: 0xfff3cb, width: 1.5, alpha: dragging ? 0.14 : 0.24 }),
+          );
         }
+        if (pieceAsset && !dragging) {
+          const pieceSize = cell * (selected ? 0.92 : 0.86);
+          const pieceAdjust = potionPieceVisual(gem, pieceSize);
+          root.addChild(spriteFit(pieceAsset, tokenX + pieceAdjust.x, tokenY + pieceAdjust.y, pieceSize * pieceAdjust.scale, pieceSize * pieceAdjust.scale, 0.98));
+        }
+        const icon = DROP_ICONS[gem] || GEM_ICONS[gem] || "";
         if (icon && !pieceAsset) {
           root.addChild(label(icon, tokenX, tokenY, Math.max(12, cell * 0.34)));
         }

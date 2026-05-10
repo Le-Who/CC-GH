@@ -13,10 +13,9 @@ public/games/puzzling-potions/images/
 Image-generated source and cutout files live under:
 
 ```text
-assets-source/imagegen/match3/pieces-keyed.png
-assets-source/imagegen/match3/pieces-transparent.png
-assets-source/imagegen/match3/specials-drops-keyed.png
-assets-source/imagegen/match3/specials-drops-transparent.png
+assets-source/imagegen/match3/readable/pieces-2x3-source.png
+assets-source/imagegen/match3/readable/specials-drops-2x4-source.png
+assets-source/imagegen/readability-cutouts/puzzling-potions/images/
 assets-source/imagegen/match3/ui-keyed.png
 assets-source/imagegen/match3/ui-transparent.png
 assets-source/imagegen/match3/background-table-keyed.png
@@ -51,12 +50,12 @@ match3.drop.seeds
 match3.drop.energy
 ```
 
-## Shared Chroma-Key Rule
+## Background And Cutout Rule
 
-Use keyed source art, then remove the key locally:
+Prefer transparent source sheets from image generation. If the model renders a visual checkerboard instead of real alpha, remove it locally by sampling the sheet border and flood-filling background-like pixels. Do not use a chroma-key color that appears in the generated subject art, and do not treat fixed grid boxes as the final crop.
 
 ```text
-The background must be one perfectly flat solid #123456 chroma-key color, with no shadows, gradients, texture, reflections, floor plane, lighting variation, vignette, checkerboard, or transparent-looking effect. Do not use #123456 anywhere in the subject, frame, panel, potion, creature, tile, glow, or decoration.
+The final runtime PNGs must be tight per-object alpha cutouts. Grid cells may be used only to locate the intended object on a source sheet; the exported asset bounds must come from connected visible pixels plus runtime-safe padding. Opaque #ff00ff and #123456 pixels are rejected as key-color leakage.
 ```
 
 ## Reference Art Prompt
@@ -68,7 +67,7 @@ Primary request: Create a cohesive alchemy-table art direction reference for a P
 
 Scene: warm tabletop alchemy workshop, compact board area, brass and wood frame, potion ingredient tokens, soft emerald highlights, amber reward light, cranberry accent details, no readable text. The game should feel standalone and handcrafted rather than generic glass UI. Visual tone: cozy, tactile, magical, readable on mobile, not dark horror, not neon sci-fi.
 
-Deliverable: one clean reference image showing board frame, cell tile style, HUD bar style, menu panel style, six normal pieces, four special pieces, three drop tokens, and clear-burst FX. Use a perfectly flat #123456 chroma-key background outside the objects. No labels, no typography, no UI copy.
+Deliverable: one clean reference image showing board frame, cell tile style, HUD bar style, menu panel style, six normal pieces, four special pieces, three drop tokens, and clear-burst FX. Use transparent background outside the objects. No labels, no typography, no UI copy.
 ```
 
 ## Normal Pieces Sheet Prompt
@@ -76,7 +75,7 @@ Deliverable: one clean reference image showing board frame, cell tile style, HUD
 ```text
 Use case: game-asset-sheet
 Asset type: transparent-centered Match-3 normal pieces
-Canvas and layout: one sheet on flat #123456 chroma-key, 2 rows x 3 columns, six centered circular potion-creature tokens, generous gutters, no labels.
+Canvas and layout: transparent sheet, 2 rows x 3 columns, six centered shape-coded potion-creature tokens, generous gutters, no labels.
 
 Pieces:
 1. Dragon fire token: warm red-orange orb, tiny dragon-wing silhouette, amber rim.
@@ -86,7 +85,7 @@ Pieces:
 5. Spider light token: golden orb, tiny web/spider motif, bright yellow rim.
 6. Yeti dark token: lavender-purple orb, soft yeti face/fur shape, pale violet rim.
 
-Style: crisp mobile sprites, readable at 48-72 px, centered, high contrast edges, consistent size and rim thickness, no letters, no numbers, no text, no shadows on the chroma-key background.
+Style: crisp mobile sprites, readable at 38-72 px, centered, high contrast edges, distinct silhouettes, no letters, no numbers, no text, no shadows baked into the source background.
 ```
 
 ## Specials And Drops Prompt
@@ -94,7 +93,7 @@ Style: crisp mobile sprites, readable at 48-72 px, centered, high contrast edges
 ```text
 Use case: game-asset-sheet
 Asset type: Match-3 special pieces and drop tokens
-Canvas and layout: one sheet on flat #123456 chroma-key, 2 rows x 4 columns, centered transparent-ready sprites.
+Canvas and layout: transparent sheet, 2 rows x 4 columns, centered transparent-ready sprites.
 
 Sprites:
 special_row: horizontal beam token with amber line and warm red base.
@@ -114,7 +113,7 @@ Constraints: no text, no labels, no chroma-key color inside sprites, clear alpha
 ```text
 Use case: game-ui-asset-sheet
 Asset type: standalone Match-3 board and HUD UI art
-Canvas and layout: flat #123456 chroma-key with separate UI objects, no text.
+Canvas and layout: transparent sheet with separate UI objects, no text.
 
 Objects:
 background-table: seamless warm wood/alchemy table tile, subtle grain and magic linework, no labels.
@@ -133,21 +132,20 @@ Mobile constraints: touch-first, no tiny ornate details that blur below 44 px, s
 ```text
 Use case: game-ui-texture
 Asset type: Match-3 background-table tile only for a standalone alchemy-table / Puzzling Potions mobile game
-Primary request: Create one square seamless warm wood and brass alchemy tabletop texture object on a perfectly flat solid #123456 chroma-key background.
+Primary request: Create one square seamless warm wood and brass alchemy tabletop texture object on transparent background.
 
 Object: a square tabletop tile with warm brown planks, subtle brass inlay lines, faint engraved alchemy circles and botanical marks, soft amber and emerald accent marks, no readable text. It must be repeatable enough for a mobile game background and readable behind an 8x8 Match-3 board.
 
-Constraints: no board frame, no cells, no HUD, no panels, no tokens, no plants, no labels, no text, no numbers, no filled bars, no screenshots, no scenery. Background outside the object must be exactly flat #123456, and #123456 must not appear inside the object.
+Constraints: no board frame, no cells, no HUD, no panels, no tokens, no plants, no labels, no text, no numbers, no filled bars, no screenshots, no scenery. The object must not include opaque #ff00ff or #123456 pixels.
 ```
 
 ## Local Generation And Cutout Workflow
 
-1. Generate keyed PNG sources with `#123456` background in separate calls: normal pieces, specials/drops, UI objects, background table.
-2. Save keyed source files under `assets-source/imagegen/match3/`.
-3. Remove the sampled border key locally with hard alpha and no despill; save alpha PNGs beside each keyed source.
-4. Run `node scripts/generate-themed-match3-garden-assets.mjs`; the script detects real alpha groups, filters stray neighboring components, adds runtime-safe internal padding, and writes the sliced images into `public/games/puzzling-potions/images/`.
-5. Run `pnpm run assets:build` so `public/assets-runtime/manifest.json` publishes the 21-key `pixi.match3` bundle.
-6. Verify Match-3 in browser on desktop and mobile-sized viewports.
+1. Generate source sheets in separate calls: normal pieces, specials/drops, UI objects, background table.
+2. Save readable source sheets under `assets-source/imagegen/match3/readable/`.
+3. Run `pnpm run assets:readability`; the script removes generated background artifacts, groups connected components, exports tight per-object cutouts, and rejects opaque key-color leaks.
+4. Run `pnpm run assets:build` so `public/assets-runtime/manifest.json` publishes the 21-key `pixi.match3` bundle.
+5. Verify Match-3 in browser on desktop and mobile-sized viewports.
 
 ## Acceptance Criteria
 

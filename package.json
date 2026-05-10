@@ -9,6 +9,7 @@
   },
   "scripts": {
     "assets:build": "node scripts/assets-pipeline.mjs",
+    "assets:readability": "node scripts/refine-readable-blox-match3-assets.mjs",
     "build": "pnpm run assets:build && vite build",
     "start": "node server.js",
     "dev:server": "node server.js",

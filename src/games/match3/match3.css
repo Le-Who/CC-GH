@@ -305,7 +305,7 @@
   }
 
   .match3-scene-hud .game-play-stats {
-    grid-column: 1 / -1;
+    grid-area: stats;
     width: 100%;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

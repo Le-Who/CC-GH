@@ -54,17 +54,21 @@ Machine-readable status:
 QC contact sheets:
 
 - `assets-source/imagegen/qc-contact-sheets/blox.png`
+- `assets-source/imagegen/qc-contact-sheets/blox-readable.png`
 - `assets-source/imagegen/qc-contact-sheets/bubbo-bubbo.png`
 - `assets-source/imagegen/qc-contact-sheets/companion-yard.png`
 - `assets-source/imagegen/qc-contact-sheets/farm.png`
 - `assets-source/imagegen/qc-contact-sheets/gacha-merge.png`
 - `assets-source/imagegen/qc-contact-sheets/garden-shelf.png`
 - `assets-source/imagegen/qc-contact-sheets/puzzling-potions.png`
+- `assets-source/imagegen/qc-contact-sheets/puzzling-potions-readable.png`
 - `assets-source/imagegen/qc-contact-sheets/trivia.png`
 
 ## Chromakey Status
 
-Key color: `#FF00FF`
+Legacy key color: `#FF00FF`
+
+Readable Blox/Match-3 correction pass: no fixed chroma-key export. Source sheets are background-cleaned with border sampling plus connected-component cutouts, and outputs reject opaque `#FF00FF` or `#123456` pixels.
 
 Processing rule:
 
@@ -93,6 +97,9 @@ Latest visual correction pass (2026-05-10):
 
 - tightened Blox board cell spacing and mapped grid placement to the board-frame inner opening so cells remain inside frame borders
 - normalized tray preview rendering to live piece-cell geometry and piece colors, removing mismatched fixed preview silhouettes
+- regenerated readable Blox block tiles/cells/clear FX and composed Blox piece previews from those generated block tiles
+- regenerated Match-3 normal pieces, special pieces, drops, and clear-burst art with distinct silhouettes, then switched runtime drawing to preserve source aspect ratio instead of forcing every piece into a square sprite
+- added `pnpm run assets:readability` as the reproducible pixel-component cutout pass for the readable Blox/Match-3 sources
 
 ## Verification
 

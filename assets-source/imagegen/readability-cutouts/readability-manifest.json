@@ -1,0 +1,394 @@
+{
+  "generatedAt": "2026-05-10T16:00:13.237Z",
+  "notes": [
+    "Raw art sources were generated as separate sheets, then cut from connected alpha pixels.",
+    "Uniform grid cells are used only to locate the intended object; runtime PNGs are tight per-object cutouts.",
+    "No opaque #ff00ff or #123456 pixels are allowed in outputs."
+  ],
+  "written": [
+    {
+      "output": "public/games/blox/block_tile_blue.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 140,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_green.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 138,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_orange.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 140,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_yellow.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 139,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_purple.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 139,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_red.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 140,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_cyan.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 139,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_pink.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 139,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/block_tile_gray.png",
+      "source": "assets-source/imagegen/blox/readable/block-tiles-3x3-source.png",
+      "width": 140,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 754238
+    },
+    {
+      "output": "public/games/blox/cell_empty.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 145,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/cell_valid.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 147,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/cell_invalid.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 145,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/cell_selected.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 145,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/cell_clear_row.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 146,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/cell_clear_col.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 144,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/cell_pending.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 146,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/grid_shadow.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 150,
+      "height": 141,
+      "components": 1,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/tray_slot_empty.png",
+      "source": "assets-source/imagegen/blox/readable/cells-3x3-source.png",
+      "width": 256,
+      "height": 150,
+      "components": 1,
+      "removedBackgroundPixels": 886719
+    },
+    {
+      "output": "public/games/blox/fx/place_settle.png",
+      "source": "assets-source/imagegen/blox/readable/fx-2x2-source.png",
+      "width": 150,
+      "height": 139,
+      "components": 9,
+      "removedBackgroundPixels": 1304404
+    },
+    {
+      "output": "public/games/blox/fx/row_wipe.png",
+      "source": "assets-source/imagegen/blox/readable/fx-2x2-source.png",
+      "width": 336,
+      "height": 104,
+      "components": 4,
+      "removedBackgroundPixels": 1304404
+    },
+    {
+      "output": "public/games/blox/fx/column_wipe.png",
+      "source": "assets-source/imagegen/blox/readable/fx-2x2-source.png",
+      "width": 104,
+      "height": 337,
+      "components": 3,
+      "removedBackgroundPixels": 1304404
+    },
+    {
+      "output": "public/games/blox/fx/multi_clear_burst.png",
+      "source": "assets-source/imagegen/blox/readable/fx-2x2-source.png",
+      "width": 230,
+      "height": 222,
+      "components": 5,
+      "removedBackgroundPixels": 1304404
+    },
+    {
+      "output": "public/games/puzzling-potions/images/piece-dragon.png",
+      "source": "assets-source/imagegen/match3/readable/pieces-2x3-source.png",
+      "width": 126,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1047523
+    },
+    {
+      "output": "public/games/puzzling-potions/images/piece-frog.png",
+      "source": "assets-source/imagegen/match3/readable/pieces-2x3-source.png",
+      "width": 116,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1047523
+    },
+    {
+      "output": "public/games/puzzling-potions/images/piece-newt.png",
+      "source": "assets-source/imagegen/match3/readable/pieces-2x3-source.png",
+      "width": 124,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1047523
+    },
+    {
+      "output": "public/games/puzzling-potions/images/piece-snake.png",
+      "source": "assets-source/imagegen/match3/readable/pieces-2x3-source.png",
+      "width": 143,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1047523
+    },
+    {
+      "output": "public/games/puzzling-potions/images/piece-spider.png",
+      "source": "assets-source/imagegen/match3/readable/pieces-2x3-source.png",
+      "width": 150,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1047523
+    },
+    {
+      "output": "public/games/puzzling-potions/images/piece-yeti.png",
+      "source": "assets-source/imagegen/match3/readable/pieces-2x3-source.png",
+      "width": 148,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1047523
+    },
+    {
+      "output": "public/games/puzzling-potions/images/special-row.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 180,
+      "height": 84,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/special-column.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 77,
+      "height": 180,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/special-blast.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 151,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/special-colour.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 151,
+      "height": 156,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/drop-gold.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 137,
+      "height": 144,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/drop-seeds.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 100,
+      "height": 144,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/drop-energy.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 94,
+      "height": 144,
+      "components": 1,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/puzzling-potions/images/fx-clear-burst.png",
+      "source": "assets-source/imagegen/match3/readable/specials-drops-2x4-source.png",
+      "width": 225,
+      "height": 230,
+      "components": 2,
+      "removedBackgroundPixels": 1138084
+    },
+    {
+      "output": "public/games/blox/piece_dot.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 86,
+      "height": 86,
+      "components": 1,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_h2.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 157,
+      "height": 86,
+      "components": 2,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_v2.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 86,
+      "height": 157,
+      "components": 2,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_l3.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 157,
+      "height": 157,
+      "components": 3,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_l3r.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 157,
+      "height": 157,
+      "components": 3,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_h3.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 228,
+      "height": 86,
+      "components": 3,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_v3.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 86,
+      "height": 228,
+      "components": 3,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_sq.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 157,
+      "height": 157,
+      "components": 4,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_t4.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 228,
+      "height": 157,
+      "components": 4,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_s4.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 228,
+      "height": 157,
+      "components": 4,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_i4.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 299,
+      "height": 86,
+      "components": 4,
+      "removedBackgroundPixels": 0
+    },
+    {
+      "output": "public/games/blox/piece_i5.png",
+      "source": "generated from readable Blox block tiles",
+      "width": 370,
+      "height": 86,
+      "components": 5,
+      "removedBackgroundPixels": 0
+    }
+  ]
+}

@@ -14,111 +14,111 @@
       ]
     },
     "blox.block_tile_blue": {
-      "signature": "1ff9172c4e23f1076f3dd1bce44fc87b273e4b679aceb1c879d2aac7e2143882",
+      "signature": "998392a40d0adb0158812c3f0e3327bf5f8872032c7d460c7990d10ca4daf1d8",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 347,
-        "src": "/assets-runtime/blox/block_tile_blue.1f807c0f.webp"
+        "width": 140,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_blue.2660aaf4.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_blue.1f807c0f.webp"
+        "/assets-runtime/blox/block_tile_blue.2660aaf4.webp"
       ]
     },
     "blox.block_tile_cyan": {
-      "signature": "0b0f80490dbf85ec05d839b1e45359f9aab8e305e8f726467a8e836f616cc0ad",
+      "signature": "0445951faa4dfc4879d5e38a4966fef1d7c28e645ce30152f0bfe615f293f8ec",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 347,
-        "src": "/assets-runtime/blox/block_tile_cyan.ef016da6.webp"
+        "width": 139,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_cyan.481309e3.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_cyan.ef016da6.webp"
+        "/assets-runtime/blox/block_tile_cyan.481309e3.webp"
       ]
     },
     "blox.block_tile_gray": {
-      "signature": "52426a33e6a0ff5fe62f6613b2fe86a6f9fb173c3c212f2917328b20d2ceaffc",
+      "signature": "f4c38dbea1dd4c05fd588f37896f352ed29524745b13bec951b3971278ce308f",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 347,
-        "src": "/assets-runtime/blox/block_tile_gray.f9a85e18.webp"
+        "width": 140,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_gray.3fa0b48c.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_gray.f9a85e18.webp"
+        "/assets-runtime/blox/block_tile_gray.3fa0b48c.webp"
       ]
     },
     "blox.block_tile_green": {
-      "signature": "ce43e8c96faea1ddf60ad2e1e0a22a5a153ee87175e765003f31e5d0ea9207cb",
+      "signature": "204dbf6a31e4df3589e507705eba4175bcf9bc78690e6df02c6c8d160052c2c9",
       "item": {
         "type": "image",
-        "width": 336,
-        "height": 347,
-        "src": "/assets-runtime/blox/block_tile_green.1dfd31ea.webp"
+        "width": 138,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_green.5fe05e43.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_green.1dfd31ea.webp"
+        "/assets-runtime/blox/block_tile_green.5fe05e43.webp"
       ]
     },
     "blox.block_tile_orange": {
-      "signature": "0587d9e7104c89c394ddf54db238207aad3791106fe130420feac79939675dc2",
+      "signature": "eb04d3e9ef6a9cd23148aa3a27d06bb5b558aa624eeebbf8386830a57fb2517b",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 347,
-        "src": "/assets-runtime/blox/block_tile_orange.d2fb5cf8.webp"
+        "width": 140,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_orange.3e8e0a0c.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_orange.d2fb5cf8.webp"
+        "/assets-runtime/blox/block_tile_orange.3e8e0a0c.webp"
       ]
     },
     "blox.block_tile_pink": {
-      "signature": "98b701c0bd8ec0c6e5f46bb944f18362bee409062773b932fbfb523e53102f63",
+      "signature": "5b1d9dcdf94497b0cd0110d92504dbafb531bc5c92a0ff368dae13f9e397898d",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 346,
-        "src": "/assets-runtime/blox/block_tile_pink.6cc7053b.webp"
+        "width": 139,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_pink.d1625a8d.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_pink.6cc7053b.webp"
+        "/assets-runtime/blox/block_tile_pink.d1625a8d.webp"
       ]
     },
     "blox.block_tile_purple": {
-      "signature": "99ccb54a8af77d4e8962d3232b06500711ee51b6aa924fb14728e7537e4d9a67",
+      "signature": "c552f0925819de3aec2ac80b2d81bb70c296511c43b3142075af2e8caa79761f",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 347,
-        "src": "/assets-runtime/blox/block_tile_purple.2e5e07b8.webp"
+        "width": 139,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_purple.e0a62450.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_purple.2e5e07b8.webp"
+        "/assets-runtime/blox/block_tile_purple.e0a62450.webp"
       ]
     },
     "blox.block_tile_red": {
-      "signature": "b6c5638cfb44a9c6749231591b5cbf49a6b4e0745169f1fda0b268f259f7aeea",
+      "signature": "c7c6bbd93e6d0761e5f5acf6c6747984bc29db95452a459ca3964cb9a8a1948b",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 348,
-        "src": "/assets-runtime/blox/block_tile_red.3f3bb8de.webp"
+        "width": 140,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_red.591703e7.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_red.3f3bb8de.webp"
+        "/assets-runtime/blox/block_tile_red.591703e7.webp"
       ]
     },
     "blox.block_tile_yellow": {
-      "signature": "d9d4df63a97d2999f18407b5085d46e0012ebb64925193b5925d0a0862654955",
+      "signature": "271cd2ef53eeb49fb21867fec8e67643e0e8ad4ec8d66b6aa4cf3df236867d01",
       "item": {
         "type": "image",
-        "width": 334,
-        "height": 348,
-        "src": "/assets-runtime/blox/block_tile_yellow.ddb596a5.webp"
+        "width": 139,
+        "height": 150,
+        "src": "/assets-runtime/blox/block_tile_yellow.3390b1b4.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_yellow.ddb596a5.webp"
+        "/assets-runtime/blox/block_tile_yellow.3390b1b4.webp"
       ]
     },
     "blox.board_frame": {
@@ -158,99 +158,99 @@
       ]
     },
     "blox.cell_clear_col": {
-      "signature": "c0ba1d66cc692950eb6f938803714904c0639ae3d5426289cc100008f903e33a",
+      "signature": "712af2237615e6da26ba702491a0a10f113c78b839ccaa9b9481514775c250bb",
       "item": {
         "type": "image",
-        "width": 299,
-        "height": 311,
-        "src": "/assets-runtime/blox/cell_clear_col.f2c718fb.webp"
+        "width": 144,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_clear_col.8cff89f4.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_clear_col.f2c718fb.webp"
+        "/assets-runtime/blox/cell_clear_col.8cff89f4.webp"
       ]
     },
     "blox.cell_clear_row": {
-      "signature": "5e66994290db7fe4f098206a7c6d47e24ff543d606ce0182261e72565a0b8de6",
+      "signature": "6526906bcbe1e79cc82dc6519e0e0fc2769a613ecd7c231cf87352f615f54ab7",
       "item": {
         "type": "image",
-        "width": 308,
-        "height": 308,
-        "src": "/assets-runtime/blox/cell_clear_row.b9c3096f.webp"
+        "width": 146,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_clear_row.70272022.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_clear_row.b9c3096f.webp"
+        "/assets-runtime/blox/cell_clear_row.70272022.webp"
       ]
     },
     "blox.cell_empty": {
-      "signature": "667cc5f6035c00a34b8eccebfce74c31dfc5e9e85b5a2de38d23b83a5b1d2709",
+      "signature": "70c3a80e96c8c61896b679efc21cd796b7fc5aaca3d8dba86879b6cd0dd9c08a",
       "item": {
         "type": "image",
-        "width": 301,
-        "height": 311,
-        "src": "/assets-runtime/blox/cell_empty.45cd64dc.webp"
+        "width": 145,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_empty.1d8960b6.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_empty.45cd64dc.webp"
+        "/assets-runtime/blox/cell_empty.1d8960b6.webp"
       ]
     },
     "blox.cell_invalid": {
-      "signature": "194f5d2a0c18f95677046ca40eeb1d299ff7f026fda2065486f78c34d68a0dea",
+      "signature": "3ec649bbfc93fd880db96d93f34424cc7fcc06008e99287c249fcbf979b9331c",
       "item": {
         "type": "image",
-        "width": 369,
-        "height": 371,
-        "src": "/assets-runtime/blox/cell_invalid.12ba530c.webp"
+        "width": 145,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_invalid.5012e7e8.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_invalid.12ba530c.webp"
+        "/assets-runtime/blox/cell_invalid.5012e7e8.webp"
       ]
     },
     "blox.cell_pending": {
-      "signature": "2f3f5aeb742cf8ebe13761d4cde5cfe73441f505021f322e4e4749366a144ebf",
+      "signature": "de0939b2e54acf7f322e5825899d62ee86ef8f61f5e9886322700c7f52c91c8d",
       "item": {
         "type": "image",
-        "width": 299,
-        "height": 310,
-        "src": "/assets-runtime/blox/cell_pending.5f53e5df.webp"
+        "width": 146,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_pending.a794d253.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_pending.5f53e5df.webp"
+        "/assets-runtime/blox/cell_pending.a794d253.webp"
       ]
     },
     "blox.cell_selected": {
-      "signature": "a019ae8141562e08d5880e7b5152648c18c90a5a37345321ccea797c359e1d31",
+      "signature": "b75298a5ebbf368017bbcfb839b4d025a0ad7518d01b2a1a0ec5ceb608e5f920",
       "item": {
         "type": "image",
-        "width": 335,
-        "height": 339,
-        "src": "/assets-runtime/blox/cell_selected.32e905e8.webp"
+        "width": 145,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_selected.bdf9849c.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_selected.32e905e8.webp"
+        "/assets-runtime/blox/cell_selected.bdf9849c.webp"
       ]
     },
     "blox.cell_valid": {
-      "signature": "75fab800627580aa43a2db8a2f948878ec430e9647a206d6a6c08550f88865d2",
+      "signature": "02e75d75063056a1561e27a8c9bbe6481129bca074538b55a953deeb59d84734",
       "item": {
         "type": "image",
-        "width": 362,
-        "height": 365,
-        "src": "/assets-runtime/blox/cell_valid.835444d5.webp"
+        "width": 147,
+        "height": 150,
+        "src": "/assets-runtime/blox/cell_valid.414fba82.webp"
       },
       "written": [
-        "/assets-runtime/blox/cell_valid.835444d5.webp"
+        "/assets-runtime/blox/cell_valid.414fba82.webp"
       ]
     },
     "blox.fx.column_wipe": {
-      "signature": "ba22bac7b932a11bfd14a15e94b2b1d6438d454bc8bbfe648b1ae6dc6096bce3",
+      "signature": "7969e4ec41fefa7083131a2bf8def078abedeb6e42e64ec46358c2aab7ac63c1",
       "item": {
         "type": "image",
-        "width": 158,
-        "height": 406,
-        "src": "/assets-runtime/blox/fx/column_wipe.7f3f289b.webp"
+        "width": 104,
+        "height": 337,
+        "src": "/assets-runtime/blox/fx/column_wipe.19be3917.webp"
       },
       "written": [
-        "/assets-runtime/blox/fx/column_wipe.7f3f289b.webp"
+        "/assets-runtime/blox/fx/column_wipe.19be3917.webp"
       ]
     },
     "blox.fx.invalid_pulse": {
@@ -266,27 +266,27 @@
       ]
     },
     "blox.fx.multi_clear_burst": {
-      "signature": "4b8f4c5dcb567a3ef317b705eb28004715ebcac72e34549e90946baafae7de3e",
+      "signature": "4a182912646734908870316c13a3a0bb51d1789b60dd9164550244186d154b7b",
       "item": {
         "type": "image",
-        "width": 358,
-        "height": 355,
-        "src": "/assets-runtime/blox/fx/multi_clear_burst.aeb2d647.webp"
+        "width": 230,
+        "height": 222,
+        "src": "/assets-runtime/blox/fx/multi_clear_burst.702e5a37.webp"
       },
       "written": [
-        "/assets-runtime/blox/fx/multi_clear_burst.aeb2d647.webp"
+        "/assets-runtime/blox/fx/multi_clear_burst.702e5a37.webp"
       ]
     },
     "blox.fx.place_settle": {
-      "signature": "3e182a263c2ccf5374ed5e39791317676851bcb3a6ee289f4a559b397235b462",
+      "signature": "8318c886886044210280cbc7a0732514ece66ba334dec2d10f7c98ee90a82a43",
       "item": {
         "type": "image",
-        "width": 314,
-        "height": 321,
-        "src": "/assets-runtime/blox/fx/place_settle.0eb35e15.webp"
+        "width": 150,
+        "height": 139,
+        "src": "/assets-runtime/blox/fx/place_settle.99a9e49d.webp"
       },
       "written": [
-        "/assets-runtime/blox/fx/place_settle.0eb35e15.webp"
+        "/assets-runtime/blox/fx/place_settle.99a9e49d.webp"
       ]
     },
     "blox.fx.reward_spark": {
@@ -302,15 +302,15 @@
       ]
     },
     "blox.fx.row_wipe": {
-      "signature": "98807eb50500fe4ad49949ce780947f0ce4a4d381a12822c59002076ac20a158",
+      "signature": "def4a4a86149137492372ad4257e348e5f1ec3ba8df558ee6c0154dd903cbb2b",
       "item": {
         "type": "image",
-        "width": 439,
-        "height": 143,
-        "src": "/assets-runtime/blox/fx/row_wipe.7557fc13.webp"
+        "width": 336,
+        "height": 104,
+        "src": "/assets-runtime/blox/fx/row_wipe.1baaf8d0.webp"
       },
       "written": [
-        "/assets-runtime/blox/fx/row_wipe.7557fc13.webp"
+        "/assets-runtime/blox/fx/row_wipe.1baaf8d0.webp"
       ]
     },
     "blox.fx.tray_refill": {
@@ -338,15 +338,15 @@
       ]
     },
     "blox.grid_shadow": {
-      "signature": "7b73a2becf9052e5c449392711612b4877a56cacdced399a90e24a2f0a025ce0",
+      "signature": "ea8827a8e8d90a61c0c8e10ca6ba462baf4938855fba04ecd6166207655d7aa4",
       "item": {
         "type": "image",
-        "width": 312,
-        "height": 333,
-        "src": "/assets-runtime/blox/grid_shadow.c71e0d96.webp"
+        "width": 150,
+        "height": 141,
+        "src": "/assets-runtime/blox/grid_shadow.ff46a5c8.webp"
       },
       "written": [
-        "/assets-runtime/blox/grid_shadow.c71e0d96.webp"
+        "/assets-runtime/blox/grid_shadow.ff46a5c8.webp"
       ]
     },
     "blox.hud_bar": {
@@ -446,147 +446,147 @@
       ]
     },
     "blox.piece_dot": {
-      "signature": "28ecd4dee1c6b241d720873d67b28b853aacbdd1fb1953bebeea6f3097d27ec7",
+      "signature": "69d3c5ce5b6a3ca359b92eff5bdbe19d4739dcc9ac8b37992a5c4f13413b2a45",
       "item": {
         "type": "image",
-        "width": 145,
-        "height": 150,
-        "src": "/assets-runtime/blox/piece_dot.247f1bf8.webp"
+        "width": 86,
+        "height": 86,
+        "src": "/assets-runtime/blox/piece_dot.7fd392ae.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_dot.247f1bf8.webp"
+        "/assets-runtime/blox/piece_dot.7fd392ae.webp"
       ]
     },
     "blox.piece_h2": {
-      "signature": "a97e406f524d803d39aa012bd098b2c984847a93cc129092b6bf9e9253b84032",
+      "signature": "109044949e681e4dd31ae14762470823e24acdc62619573fd4bdb3d000ae4ae3",
       "item": {
         "type": "image",
-        "width": 263,
-        "height": 149,
-        "src": "/assets-runtime/blox/piece_h2.67d2e6f6.webp"
+        "width": 157,
+        "height": 86,
+        "src": "/assets-runtime/blox/piece_h2.13ed1de5.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_h2.67d2e6f6.webp"
+        "/assets-runtime/blox/piece_h2.13ed1de5.webp"
       ]
     },
     "blox.piece_h3": {
-      "signature": "884d8d8d1ad7d73b237dd5ad049d44fb0f2f3d6bd8d5e6930aa38724c3114c5e",
+      "signature": "5407e9105df50526eeefbbc96fbfdcf804be193d41747997c09697a673ce3608",
       "item": {
         "type": "image",
-        "width": 349,
-        "height": 141,
-        "src": "/assets-runtime/blox/piece_h3.8cfd0149.webp"
+        "width": 228,
+        "height": 86,
+        "src": "/assets-runtime/blox/piece_h3.b5654fd0.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_h3.8cfd0149.webp"
+        "/assets-runtime/blox/piece_h3.b5654fd0.webp"
       ]
     },
     "blox.piece_i4": {
-      "signature": "fdb4e27c1c87fedd5b236e8973166b8e4cb0b45961d86d960c4b1078c537228b",
+      "signature": "a7d8545e2fc7c55c8fa34a49f45ede862b5eeb7c66d13dd35beac1b68add7a56",
       "item": {
         "type": "image",
-        "width": 314,
-        "height": 117,
-        "src": "/assets-runtime/blox/piece_i4.e303339c.webp"
+        "width": 299,
+        "height": 86,
+        "src": "/assets-runtime/blox/piece_i4.f17923fc.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_i4.e303339c.webp"
+        "/assets-runtime/blox/piece_i4.f17923fc.webp"
       ]
     },
     "blox.piece_i5": {
-      "signature": "4bfedf56d8a0107e292bd6f670818c77f4ae1a7a36fd8219ef52bc046a44491e",
+      "signature": "02604df1efb0ef0666941447f4ff45a8de09a67aee92b1e85ab28b3bbdb74759",
       "item": {
         "type": "image",
-        "width": 394,
-        "height": 112,
-        "src": "/assets-runtime/blox/piece_i5.716c589e.webp"
+        "width": 370,
+        "height": 86,
+        "src": "/assets-runtime/blox/piece_i5.fc5a7de4.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_i5.716c589e.webp"
+        "/assets-runtime/blox/piece_i5.fc5a7de4.webp"
       ]
     },
     "blox.piece_l3": {
-      "signature": "9c5d07deb26026a82938679dd3090da45bb456f2fe46966d247681c4fa545a69",
+      "signature": "cdcf07ea29c8fdab4ee77a425c396bf7a6ebff28753a1e6a7323691b53497605",
       "item": {
         "type": "image",
-        "width": 243,
-        "height": 249,
-        "src": "/assets-runtime/blox/piece_l3.d2dddd33.webp"
+        "width": 157,
+        "height": 157,
+        "src": "/assets-runtime/blox/piece_l3.d822f742.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_l3.d2dddd33.webp"
+        "/assets-runtime/blox/piece_l3.d822f742.webp"
       ]
     },
     "blox.piece_l3r": {
-      "signature": "8fe1b2f48c58025e4151341dd5a220ab947d83eddc60a5b0ac6d97ea24c1ecfa",
+      "signature": "cd4f4bd4f03a25916a476f733df8aa34f001e57cfa889255ca58233eb67a25d8",
       "item": {
         "type": "image",
-        "width": 235,
-        "height": 249,
-        "src": "/assets-runtime/blox/piece_l3r.38266c6f.webp"
+        "width": 157,
+        "height": 157,
+        "src": "/assets-runtime/blox/piece_l3r.b09ad8c9.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_l3r.38266c6f.webp"
+        "/assets-runtime/blox/piece_l3r.b09ad8c9.webp"
       ]
     },
     "blox.piece_s4": {
-      "signature": "655dc529bc6c3dfce50dfdc5992469110cf0b1b0bd6af5968b2e5f5e6894b2f4",
+      "signature": "1acd99bfb8352d8ca386305b70b8e61f25bd060904cf21ef158822c75677811e",
       "item": {
         "type": "image",
-        "width": 272,
-        "height": 203,
-        "src": "/assets-runtime/blox/piece_s4.d83e1bf2.webp"
+        "width": 228,
+        "height": 157,
+        "src": "/assets-runtime/blox/piece_s4.153e0176.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_s4.d83e1bf2.webp"
+        "/assets-runtime/blox/piece_s4.153e0176.webp"
       ]
     },
     "blox.piece_sq": {
-      "signature": "4ded97cd688bb98e718f86a6d9437b6556e37c91c87ae38b193a1947b27e5e49",
+      "signature": "a83decd9984d0e672e89fd04efad81e577d4004ea6bdf36fc04ac710c167e121",
       "item": {
         "type": "image",
-        "width": 221,
-        "height": 232,
-        "src": "/assets-runtime/blox/piece_sq.51913901.webp"
+        "width": 157,
+        "height": 157,
+        "src": "/assets-runtime/blox/piece_sq.f3cdf3ef.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_sq.51913901.webp"
+        "/assets-runtime/blox/piece_sq.f3cdf3ef.webp"
       ]
     },
     "blox.piece_t4": {
-      "signature": "e009c20de11bc332f338c9d03393db75167ab277180c8689fc5805b030d7884a",
+      "signature": "dddb95a096a733e6832a65c8c6e648abe29a9846f29108a643a5c019165e122b",
       "item": {
         "type": "image",
-        "width": 312,
-        "height": 228,
-        "src": "/assets-runtime/blox/piece_t4.99e6b578.webp"
+        "width": 228,
+        "height": 157,
+        "src": "/assets-runtime/blox/piece_t4.cdf672a5.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_t4.99e6b578.webp"
+        "/assets-runtime/blox/piece_t4.cdf672a5.webp"
       ]
     },
     "blox.piece_v2": {
-      "signature": "ae3ad8354dbf21991ee526f9fecf3a0452e07b6cf4f54e73080379eafa3c5e89",
+      "signature": "5e51ea533a912a759f4f6a5b715747b3aa619870dd6cb3380c64de7ce6f4429f",
       "item": {
         "type": "image",
-        "width": 137,
-        "height": 260,
-        "src": "/assets-runtime/blox/piece_v2.a0ea701c.webp"
+        "width": 86,
+        "height": 157,
+        "src": "/assets-runtime/blox/piece_v2.78aa6fcd.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_v2.a0ea701c.webp"
+        "/assets-runtime/blox/piece_v2.78aa6fcd.webp"
       ]
     },
     "blox.piece_v3": {
-      "signature": "2c9e4d0221e998cb22e2ee3c46f38c88e5ef776a3a68448b93e82280912c058e",
+      "signature": "fd1dfe33d96991a1866c0907cab3c774f9d923a6cedb6e7ed8f7baf43b2dda5e",
       "item": {
         "type": "image",
-        "width": 133,
-        "height": 336,
-        "src": "/assets-runtime/blox/piece_v3.9c9fb475.webp"
+        "width": 86,
+        "height": 228,
+        "src": "/assets-runtime/blox/piece_v3.3936e4aa.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_v3.9c9fb475.webp"
+        "/assets-runtime/blox/piece_v3.3936e4aa.webp"
       ]
     },
     "blox.result_panel": {
@@ -614,15 +614,15 @@
       ]
     },
     "blox.tray_slot_empty": {
-      "signature": "f43e36ea4175d5214676cb001967b87cf5f4ce6f10f79bd41b0cf87eb526da98",
+      "signature": "9fa253cdda4c2b0b5ff0f4ac5e8b105c24a0b11a2820d4437d5eb7ef0e831bec",
       "item": {
         "type": "image",
-        "width": 307,
-        "height": 320,
-        "src": "/assets-runtime/blox/tray_slot_empty.af2a5daa.webp"
+        "width": 256,
+        "height": 150,
+        "src": "/assets-runtime/blox/tray_slot_empty.6565cd09.webp"
       },
       "written": [
-        "/assets-runtime/blox/tray_slot_empty.af2a5daa.webp"
+        "/assets-runtime/blox/tray_slot_empty.6565cd09.webp"
       ]
     },
     "blox.tray_slot_selected": {
@@ -3638,123 +3638,123 @@
       ]
     },
     "match3.drop.energy": {
-      "signature": "1eb39cdc4a3ddbda69f0244387d2e98dd51e8f5964bdb946f27cbaba0a4a2518",
+      "signature": "ac1b6aefbd449a086d541fbc160b5b958ab890a6381c0be8b7555aa0830f4389",
       "item": {
         "type": "image",
-        "width": 144,
+        "width": 94,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/energy.0dd75a94.webp"
+        "src": "/assets-runtime/puzzling-potions/energy.b48f49ea.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/energy.0dd75a94.webp"
+        "/assets-runtime/puzzling-potions/energy.b48f49ea.webp"
       ]
     },
     "match3.drop.gold": {
-      "signature": "4af67deb026de413ea88beea0359daf93d1edf7bc59763ddd4a6dcdf557cc427",
+      "signature": "4d145f19ef550ebd2b479b5ceb695a10c5914d6d4fbc93d3b1644abdbca748b6",
       "item": {
         "type": "image",
-        "width": 144,
+        "width": 137,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/gold.8cf81385.webp"
+        "src": "/assets-runtime/puzzling-potions/gold.d7cf1d15.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/gold.8cf81385.webp"
+        "/assets-runtime/puzzling-potions/gold.d7cf1d15.webp"
       ]
     },
     "match3.drop.seeds": {
-      "signature": "ddfd4414988f78415ef46af1d0f1341e60ad90552754b042b2e9490a9ff91f84",
+      "signature": "6ccd7b0aadc7b4042f2360ac87a4288cc9824e148d56694853899379f204a245",
       "item": {
         "type": "image",
-        "width": 144,
+        "width": 100,
         "height": 144,
-        "src": "/assets-runtime/puzzling-potions/seeds.b337fb34.webp"
+        "src": "/assets-runtime/puzzling-potions/seeds.88e5978e.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/seeds.b337fb34.webp"
+        "/assets-runtime/puzzling-potions/seeds.88e5978e.webp"
       ]
     },
     "match3.fx.clearBurst": {
-      "signature": "7fd89f9903c96b898422f3405e5857ecc8175943dabdb44aaa67ce63db3607c2",
+      "signature": "7daee236ca2a9ac96251f2dd7f3127b1b7ff08bc4e53692e29f3201e936ec6a0",
       "item": {
         "type": "image",
-        "width": 256,
-        "height": 256,
-        "src": "/assets-runtime/puzzling-potions/clearBurst.222091e3.webp"
+        "width": 225,
+        "height": 230,
+        "src": "/assets-runtime/puzzling-potions/clearBurst.280e2ddf.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/clearBurst.222091e3.webp"
+        "/assets-runtime/puzzling-potions/clearBurst.280e2ddf.webp"
       ]
     },
     "match3.piece.dragon": {
-      "signature": "ff5260472b01d661ad9bb674007e33aeba93a965c3149d22949b521571a4670b",
+      "signature": "e63019e16efdccdf753311c1c05a103702afb3f9795df0eb285799d3da5cb381",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/dragon.edd79dba.webp"
+        "width": 126,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/dragon.f0ebdbad.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/dragon.edd79dba.webp"
+        "/assets-runtime/puzzling-potions/dragon.f0ebdbad.webp"
       ]
     },
     "match3.piece.frog": {
-      "signature": "eb23900e84c58e64ce61c646567da01cee8248d906af79f31722590822f6650a",
+      "signature": "ef16c48f72479c4e9ea6f63f26989a79d9be531f2eb92d3c6a32ef12af5099bf",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/frog.1b872b85.webp"
+        "width": 116,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/frog.3768f8e8.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/frog.1b872b85.webp"
+        "/assets-runtime/puzzling-potions/frog.3768f8e8.webp"
       ]
     },
     "match3.piece.newt": {
-      "signature": "985c305616c76890f28c9139bb67a5e36ffca9bd314d7d5cc2dc9d9fea479443",
+      "signature": "0b3a1f11a779e1b3b94fc044237e7e8d40d54492769ccbed178b03359aaab893",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/newt.5944784f.webp"
+        "width": 124,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/newt.52499e1d.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/newt.5944784f.webp"
+        "/assets-runtime/puzzling-potions/newt.52499e1d.webp"
       ]
     },
     "match3.piece.snake": {
-      "signature": "5d7a6beabb571e38b5ccc731bec45d8a100f6f93599612861caea014cc891a2d",
+      "signature": "dc1d640dd9772a665112a97c28107ebc744e25504663b47e851c266567a29594",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/snake.f65d0517.webp"
+        "width": 143,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/snake.7adf75e2.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/snake.f65d0517.webp"
+        "/assets-runtime/puzzling-potions/snake.7adf75e2.webp"
       ]
     },
     "match3.piece.spider": {
-      "signature": "81179bf5d63c66f7b6846b453e5b1f94073aaf86cc9b2525c191b259c6b23685",
+      "signature": "02e34fdcc97fc593ee3ff355e17c50e3ca0861230636a6904eb8938a1264fafc",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/spider.cc14021f.webp"
+        "width": 150,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/spider.e83eaffb.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/spider.cc14021f.webp"
+        "/assets-runtime/puzzling-potions/spider.e83eaffb.webp"
       ]
     },
     "match3.piece.yeti": {
-      "signature": "07eb94e94a4f8d797504ada2aacfa068cd6f07997408d5a3209fc880e66b46b5",
+      "signature": "07a4831e0c19ee80920ae9b9bea76e060722e6ff12c335265538b9cfbaf13831",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/yeti.14e3bb56.webp"
+        "width": 148,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/yeti.09f18257.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/yeti.14e3bb56.webp"
+        "/assets-runtime/puzzling-potions/yeti.09f18257.webp"
       ]
     },
     "match3.shelf.block": {
@@ -3770,51 +3770,51 @@
       ]
     },
     "match3.special.blast": {
-      "signature": "6e87c4b414bd6af36151ef0d55a7b704b5fa66f7e93484908696a16b6287d4dd",
+      "signature": "a22df9ca3c499979c3fc1d0511ea25433d3c9a77a6e815c8d26bd4d0598bd12b",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/blast.51b68560.webp"
+        "width": 151,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/blast.8786f51d.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/blast.51b68560.webp"
+        "/assets-runtime/puzzling-potions/blast.8786f51d.webp"
       ]
     },
     "match3.special.colour": {
-      "signature": "13bdcc09f3559ae0b02a5c6f3953998dfaa0e6cacc88a093135117118084feaf",
+      "signature": "bc8f87b7ad3681191f5b86bb01484d2b0ca3fd07ab85f4cade8a13322e8344b1",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/colour.69a766f9.webp"
+        "width": 151,
+        "height": 156,
+        "src": "/assets-runtime/puzzling-potions/colour.cfb2ae97.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/colour.69a766f9.webp"
+        "/assets-runtime/puzzling-potions/colour.cfb2ae97.webp"
       ]
     },
     "match3.special.column": {
-      "signature": "424cc8c9d7b309bbef02b1922cbbdee9ce234fa3256f6a8b8f07269f492ddd55",
+      "signature": "eb7dda1eb524043319a288998cfd91fb2515beb0d55801f2a00c47d4595580f8",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/column.f6b1d960.webp"
+        "width": 77,
+        "height": 180,
+        "src": "/assets-runtime/puzzling-potions/column.55189683.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/column.f6b1d960.webp"
+        "/assets-runtime/puzzling-potions/column.55189683.webp"
       ]
     },
     "match3.special.row": {
-      "signature": "d7da3a4e1f202110e827d68b4c09f1a040bf1519ce741e88122ed556d176198a",
+      "signature": "c9897662ebe7d86b6a32d8feb351d8b2d30288a70a8564905ac208216d4821b4",
       "item": {
         "type": "image",
-        "width": 144,
-        "height": 144,
-        "src": "/assets-runtime/puzzling-potions/row.d9bde1ec.webp"
+        "width": 180,
+        "height": 84,
+        "src": "/assets-runtime/puzzling-potions/row.07816ad8.webp"
       },
       "written": [
-        "/assets-runtime/puzzling-potions/row.d9bde1ec.webp"
+        "/assets-runtime/puzzling-potions/row.07816ad8.webp"
       ]
     },
     "match3.ui.hudBar": {
