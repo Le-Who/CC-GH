@@ -14,6 +14,8 @@ eslint.config.*
 eslint_output.txt
 eslint-errors.json
 concurrency_test.js
+temp/
+tmp/
 
 # testing
 playwright-report/
