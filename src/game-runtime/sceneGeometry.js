@@ -91,15 +91,25 @@ export function createBloxDragState({ pieceIdx, piece, event, originX, originY, 
     y: point.y,
     grabX: inside ? clamp(localX, bounds.minCol, bounds.maxCol + 1) : bounds.minCol + bounds.width / 2,
     grabY: inside ? clamp(localY, bounds.minRow, bounds.maxRow + 1) : bounds.minRow + bounds.height / 2,
+    visualOffsetX: Number(event?.visualOffsetX) || 0,
+    visualOffsetY: Number(event?.visualOffsetY) || 0,
     moved: false,
     overCell: null,
   };
 }
 
-export function bloxGhostOrigin(drag, unit) {
+export function bloxDragVisualPoint(drag) {
   return {
-    x: drag.x - drag.grabX * unit,
-    y: drag.y - drag.grabY * unit,
+    x: (Number(drag?.x) || 0) + (Number(drag?.visualOffsetX) || 0),
+    y: (Number(drag?.y) || 0) + (Number(drag?.visualOffsetY) || 0),
+  };
+}
+
+export function bloxGhostOrigin(drag, unit) {
+  const visual = bloxDragVisualPoint(drag);
+  return {
+    x: visual.x - drag.grabX * unit,
+    y: visual.y - drag.grabY * unit,
   };
 }
 

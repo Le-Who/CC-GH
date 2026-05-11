@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import {
   bloxBoardFrameLayout,
   bloxAnchorCellFromDrag,
+  bloxDragVisualPoint,
   bloxGhostOrigin,
   createBloxDragState,
   tickParticles,
@@ -104,6 +105,30 @@ describe("Pixi scene geometry helpers", () => {
     const origin = bloxGhostOrigin(drag, layout.cell);
     assert.equal(origin.x + drag.grabX * layout.cell, drag.x);
     assert.equal(origin.y + drag.grabY * layout.cell, drag.y);
+    assert.deepEqual(bloxAnchorCellFromDrag(layout, drag), { row: 4, col: 3 });
+  });
+
+  it("lifts touch Blox drag previews without losing the visible placement anchor", () => {
+    const layout = { left: 18, top: 52, cell: 34, rows: 10, cols: 10 };
+    const drag = createBloxDragState({
+      pieceIdx: 0,
+      piece: line3,
+      event: { pointerId: 1, global: { x: 76, y: 38 } },
+      originX: 28,
+      originY: 26,
+      unit: 16,
+    });
+
+    drag.visualOffsetY = -68;
+    drag.x = layout.left + 3 * layout.cell + drag.grabX * layout.cell + 7;
+    drag.y = layout.top + 6 * layout.cell + drag.grabY * layout.cell + 6;
+
+    const visual = bloxDragVisualPoint(drag);
+    const origin = bloxGhostOrigin(drag, layout.cell);
+
+    assert.equal(visual.y, drag.y - 68);
+    assert.equal(origin.x + drag.grabX * layout.cell, visual.x);
+    assert.equal(origin.y + drag.grabY * layout.cell, visual.y);
     assert.deepEqual(bloxAnchorCellFromDrag(layout, drag), { row: 4, col: 3 });
   });
 

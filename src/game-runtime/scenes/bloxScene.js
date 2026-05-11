@@ -23,10 +23,12 @@ import {
   makeRipple,
   makeRafScheduler,
   setupStage,
+  publishCanvasLayout,
   bloxBoardFrameLayout,
   BLOX_ASSET_KEYS,
   BLOX_TILE_ASSET_BY_COLOR,
   bloxAnchorCellFromDrag,
+  bloxDragVisualPoint,
   bloxGhostOrigin,
   createBloxDragState,
   tickParticles,
@@ -42,6 +44,10 @@ export function buildBloxScene(app, initial = {}) {
   let drag = null;
   let lastTraySignature = "";
   const dragVisual = makeRafScheduler(() => updateDragVisualNow());
+  dragLayer.eventMode = "none";
+  dragLayer.interactiveChildren = false;
+  effects.eventMode = "none";
+  effects.interactiveChildren = false;
 
   function tileAssetForPiece(piece) {
     return gameAsset(BLOX_TILE_ASSET_BY_COLOR[String(piece?.color || "").toLowerCase()] || BLOX_ASSET_KEYS.cellSelected);
@@ -68,6 +74,14 @@ export function buildBloxScene(app, initial = {}) {
   function drawTrayPiece(piece, x, y, width, height, unit, alpha = 1) {
     const origin = centeredPieceOrigin(piece, x, y, width, height, unit);
     return drawPiece(piece, origin.x, origin.y, unit, alpha, { visualSize: tileVisualSize(unit, 1.12) });
+  }
+
+  function touchDragLift(event) {
+    const pointerType = event?.pointerType || event?.pointer?.pointerType || "";
+    const coarse = typeof window !== "undefined"
+      && (window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0);
+    if (pointerType === "mouse" || (!coarse && pointerType !== "touch" && pointerType !== "pen")) return 0;
+    return -Math.max(52, Math.min(92, (layout?.cell || 24) * 2.15));
   }
 
   function updateDragVisualNow() {
@@ -193,9 +207,14 @@ export function buildBloxScene(app, initial = {}) {
 
   function dropDrag(done) {
     if (!drag) return;
-    const point = done || drag;
     const current = drag;
     const target = done?.cancelled ? null : current.overCell || bloxAnchorCellFromDrag(layout, current);
+    const point = target
+      ? {
+          x: layout.left + (target.col + 0.5) * layout.cell,
+          y: layout.top + (target.row + 0.5) * layout.cell,
+        }
+      : bloxDragVisualPoint(current);
     drag = null;
     dragVisual.cancel();
     clear(dragLayer);
@@ -285,6 +304,11 @@ export function buildBloxScene(app, initial = {}) {
     const trayTop = frame.top + frame.height + Math.max(8, cell * 0.18);
     const trayUnit = Math.min(18, Math.max(10, (viewWidth(app) - 70) / 18));
     const slotW = (viewWidth(app) - 36) / 3;
+    publishCanvasLayout(app, "blox", { top, left, size });
+    if (app.canvas?.dataset) {
+      app.canvas.dataset.bloxTrayTop = String(Math.round(trayTop * 100) / 100);
+      app.canvas.dataset.bloxTraySlotWidth = String(Math.round(slotW * 100) / 100);
+    }
     root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, viewWidth(app) - 18, 74, 0.76));
     const traySignature = tray.map((item) => `${item?.piece?.id || "empty"}:${item?.placed ? 1 : 0}`).join("|");
     const trayChanged = lastTraySignature && lastTraySignature !== traySignature;
@@ -310,6 +334,7 @@ export function buildBloxScene(app, initial = {}) {
             originY: pieceOrigin.y,
             unit: trayUnit,
           });
+          drag.visualOffsetY = touchDragLift(event);
           drag.overCell = bloxAnchorCellFromDrag(layout, drag);
           pointer.start(event, { kind: "blox-tray", pieceIdx: i });
           updateDragVisual();

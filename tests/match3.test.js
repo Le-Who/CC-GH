@@ -455,9 +455,10 @@ describe("current Match-3 engine resolution", () => {
 
 describe("Match-3 animation timing", () => {
   it("keeps cascade locks short enough for rapid mobile play", () => {
-    assert.equal(MATCH3_TIMING.motionFrames, 21);
-    assert.ok(estimateMatch3CascadeLockMs(1) <= 800);
-    assert.ok(estimateMatch3CascadeLockMs(3) <= 1600);
+    assert.equal(MATCH3_TIMING.motionFrames, 13);
+    assert.ok(estimateMatch3CascadeLockMs(1) <= 550);
+    assert.ok(estimateMatch3CascadeLockMs(3) <= 1250);
+    assert.ok(estimateMatch3CascadeLockMs(9) <= 1250);
   });
 
   it("starts each cascade stage from the shared timing plan", () => {

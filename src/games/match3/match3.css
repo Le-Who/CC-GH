@@ -339,8 +339,9 @@
 
   .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
     width: min(360px, calc(100% - 14px));
-    aspect-ratio: 620 / 540;
+    aspect-ratio: auto;
     padding: 42px 28px 32px;
+    max-height: min(88dvh, calc(100% - 12px));
   }
 
   .match3-menu-overlay .mode-grid {

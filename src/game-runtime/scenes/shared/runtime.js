@@ -19,6 +19,7 @@ import { resolveAssetUrl } from "../../assetBundles.js";
 import {
   bloxBoardFrameLayout,
   bloxAnchorCellFromDrag,
+  bloxDragVisualPoint,
   bloxGhostOrigin,
   bloxPieceBounds,
   createBloxDragState,
@@ -685,5 +686,5 @@ export {
   viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
   spriteFit, coverSprite, BLOX_ASSET_KEYS, BLOX_TILE_ASSET_BY_COLOR, BLOX_PIECE_ASSET_BY_ID, FARM_CROP_SLUGS, FARM_ASSET_KEYS,
   bloxBoardFrameLayout,
-  bloxAnchorCellFromDrag, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,
+  bloxAnchorCellFromDrag, bloxDragVisualPoint, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,
 };

@@ -53,6 +53,44 @@ async function match3BoardLayout(page) {
   return layout;
 }
 
+async function bloxBoardLayout(page) {
+  const canvas = page.locator('[data-game-shell="blox"] .pixi-host canvas');
+  await expect(canvas).toBeVisible();
+  let layout = null;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    layout = await canvas.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const boardLeft = Number(node.dataset.bloxBoardLeft);
+      const boardTop = Number(node.dataset.bloxBoardTop);
+      const boardSize = Number(node.dataset.bloxBoardSize);
+      const trayTop = Number(node.dataset.bloxTrayTop);
+      const traySlotWidth = Number(node.dataset.bloxTraySlotWidth);
+      if (
+        !Number.isFinite(boardLeft)
+        || !Number.isFinite(boardTop)
+        || !Number.isFinite(boardSize)
+        || !Number.isFinite(trayTop)
+        || !Number.isFinite(traySlotWidth)
+      ) {
+        return null;
+      }
+      return {
+        canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        left: rect.x + boardLeft,
+        top: rect.y + boardTop,
+        size: boardSize,
+        cell: boardSize / 10,
+        trayTop: rect.y + trayTop,
+        traySlotWidth,
+      };
+    });
+    if (layout?.size > 120) return layout;
+    await page.waitForTimeout(100);
+  }
+  expect(layout?.size || 0).toBeGreaterThan(120);
+  return layout;
+}
+
 async function match3HudBoardMetrics(page) {
   const hud = page.locator('[data-game-shell="match3"] .game-play-hud');
   const eventSlot = page.locator('[data-game-shell="match3"] .game-play-event-log');
@@ -100,6 +138,14 @@ async function waitForMatch3Sync(page, timeout = 3000) {
   const request = await page.waitForRequest((candidate) => {
     const body = parsePlayerActionRequest(candidate);
     return body?.action === "match3.syncMode";
+  }, { timeout });
+  return parsePlayerActionRequest(request);
+}
+
+async function waitForBloxPlace(page, timeout = 3000) {
+  const request = await page.waitForRequest((candidate) => {
+    const body = parsePlayerActionRequest(candidate);
+    return body?.action === "blox.place";
   }, { timeout });
   return parsePlayerActionRequest(request);
 }
@@ -161,6 +207,32 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.up();
 
     await expect(page.locator('[data-game-shell="blox"] .game-play-hud')).toContainText("Score");
+    await canvasIsNonBlank(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Blox accepts touch tray drags with a lifted placement anchor", async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.use?.hasTouch, "Lifted Blox drag is a touch-specific placement contract");
+    const pageErrors = await boot(page, "blox_touch_drag_lift");
+
+    await page.getByRole("button", { name: /Blox/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".game-play-hud")).toContainText("Building Blox");
+    await canvasIsNonBlank(page);
+
+    const layout = await bloxBoardLayout(page);
+    const start = {
+      x: layout.canvas.x + 14 + (layout.traySlotWidth - 8) / 2,
+      y: layout.trayTop + 30,
+    };
+    const end = {
+      x: layout.left + layout.cell * 5.5,
+      y: layout.top + layout.cell * 5.5 + Math.max(56, layout.cell * 2),
+    };
+
+    const place = waitForBloxPlace(page, 8000);
+    await touchDrag(page, start, end, 10);
+    await expect(place).resolves.toMatchObject({ action: "blox.place" });
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
