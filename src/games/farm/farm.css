@@ -66,6 +66,41 @@
   backdrop-filter: none;
 }
 
+.farm-layout .game-menu-overlay {
+  width: min(430px, calc(100% - 18px));
+  aspect-ratio: 200 / 295;
+  max-height: min(88dvh, calc(100% - 18px));
+  padding: clamp(22px, 6vw, 34px);
+  overflow: auto;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(103, 128, 58, 0.1)),
+    var(--farm-panel-art) center / 100% 100% no-repeat,
+    rgba(251, 241, 206, 0.98);
+  box-shadow: 0 22px 46px rgba(72, 86, 42, 0.28);
+}
+
+.farm-layout .panel-button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(75, 87, 34, 0.08)),
+    url("/games/farm/ui/button_primary.png") center / 100% 100% no-repeat,
+    linear-gradient(180deg, #bfe27c, #77ad58);
+  color: #26351c;
+}
+
+.farm-layout .panel-button.subtle {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(75, 87, 34, 0.06)),
+    url("/games/farm/ui/button_secondary.png") center / 100% 100% no-repeat,
+    linear-gradient(180deg, #f8df9c, #c89c56);
+  color: #3c2e1e;
+}
+
+.farm-layout .panel-button.danger {
+  background:
+    linear-gradient(180deg, #f69d7d, #d06958);
+  color: #3d1510;
+}
+
 :root[data-ui-theme="dark"] .farm-layout {
   --shell-soft: rgba(36, 43, 28, 0.92);
   --farm-ink: #f4edc9;

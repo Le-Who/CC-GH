@@ -1265,13 +1265,28 @@
   overflow: hidden;
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
+  --yard-screen-panel-art: url("/games/companion-yard/ui/panel_shop.png");
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 246, 225, 0.16)),
-    rgba(255, 249, 232, 0.96);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 246, 225, 0.26)),
+    var(--yard-screen-panel-art) center / cover no-repeat,
+    rgba(255, 249, 232, 0.99);
   color: var(--yard-hud-ink);
   box-shadow: 0 20px 58px rgba(64, 50, 34, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.76);
   outline: none;
 }
+
+.yard-game-screen[data-yard-screen="food"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_food.png"); }
+.yard-game-screen[data-yard-screen="goodies"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_goodies.png"); }
+.yard-game-screen[data-yard-screen="shop"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_shop.png"); }
+.yard-game-screen[data-yard-screen="petbook"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_petbook.png"); }
+.yard-game-screen[data-yard-screen="album"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_album.png"); }
+.yard-game-screen[data-yard-screen="gifts"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_gifts.png"); }
+.yard-game-screen[data-yard-screen="settings"],
+.yard-game-screen[data-yard-screen="repair"],
+.yard-game-screen[data-yard-screen="remodel"],
+.yard-game-screen[data-yard-screen="expansion"],
+.yard-game-screen[data-yard-screen="daily"],
+.yard-game-screen[data-yard-screen="companion"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_settings.png"); }
 
 .yard-screen-header {
   min-height: 60px;
@@ -1339,7 +1354,8 @@
   min-height: 44px;
   border-color: rgba(117, 88, 48, 0.2);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(223, 239, 178, 0.2)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(223, 239, 178, 0.2)),
+    url("/games/companion-yard/ui/button_small_empty.png") center / 100% 100% no-repeat,
     rgba(245, 251, 223, 0.9);
   color: var(--yard-hud-ink);
 }

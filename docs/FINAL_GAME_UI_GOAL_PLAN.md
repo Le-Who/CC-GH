@@ -137,3 +137,27 @@ Functional checks:
 - Open/close Trivia menu/question/pause surfaces where feasible.
 - Open/close Yard screen panels and verify focusable dialogs.
 - Verify no horizontal scroll at 320px and tap targets remain at least 44px where practical.
+
+## Screen Regeneration Follow-Up
+
+Date: 2026-05-11
+
+This pass completes the immediate screen-surface cleanup from the latest screenshots. The production rule is now stricter than the earlier plan: pause, result, setup, shop, inventory, and side-panel screens should read as purpose-made game UI surfaces, not as translucent glass over stretched playfield art.
+
+Implemented runtime targets:
+
+- Building Blox: top HUD remains horizontally centered during the entry animation, HUD reserve is measured from the actual DOM chrome, the board can grow on wider/taller WebView surfaces, and tray controls stay centered under the board instead of spanning the whole viewport.
+- Blox pause/result: generated `pause_panel`, `result_panel`, and button assets provide the visible screen surface.
+- Bubbo: pause and result screens use the generated pause/result panels and flat button art with opaque inner content.
+- Puzzling Potions: setup/pause/result overlays keep the generated menu panel and generated primary/secondary button chrome as the visible material.
+- Brain Blitz: pause/history/result screens use generated menu/result panels and button variants.
+- Gacha Merge: pause recovery uses the generated exchange/recipe/item panel family instead of generic glass.
+- Companion Yard: active yard sub-screens select the matching generated panel art for food, goodies, shop, petbook, album, gifts, settings, repair, remodel, expansion, daily, and companion views.
+- Garden Shelf: detail, quest, reward, and modal sheets use generated panel/button surfaces and opaque backing.
+- Farm: legacy farm menus use the generated side-panel and button assets, preserving hidden-game status.
+
+Acceptance additions:
+
+- Generated screen art must be kept at its intended aspect ratio or used as contained panel material; do not stretch it to arbitrary full-screen shapes.
+- Semi-transparent glass may only be used as a minor inner highlight. It must not be the primary pause/result/menu material.
+- Large screens should use available room for the active board where the game's play model allows it, while still preserving HUD and thumb-control clearance.

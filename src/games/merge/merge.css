@@ -8,6 +8,66 @@
   gap: 9px;
 }
 
+.game-shell .game-menu-overlay.merge-pause-overlay {
+  width: min(430px, calc(100% - 18px));
+  aspect-ratio: 640 / 960;
+  max-height: min(88dvh, calc(100% - 18px));
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  padding: clamp(32px, 7vw, 48px) clamp(24px, 6vw, 38px);
+  border: 0;
+  background: #241b20;
+  color: #f8ecdc;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.game-shell .game-menu-overlay.merge-pause-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 239, 198, 0.14), rgba(20, 12, 16, 0.16)),
+    var(--merge-pause-art, url("/games/gacha-merge/ui/exchangePanel.png")) center / 100% 100% no-repeat,
+    #241b20;
+  filter: drop-shadow(0 24px 48px rgba(16, 9, 12, 0.54));
+}
+
+.merge-pause-overlay .panel-header,
+.merge-pause-overlay .pause-menu-frame {
+  border-color: rgba(241, 214, 159, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 242, 205, 0.14), rgba(118, 211, 192, 0.08)),
+    rgba(35, 25, 29, 0.92);
+  color: #f8ecdc;
+}
+
+.merge-pause-overlay .panel-header span,
+.merge-pause-overlay .pause-menu-frame small,
+.merge-pause-overlay .pause-status-line {
+  color: rgba(248, 236, 220, 0.74);
+}
+
+.merge-pause-overlay .panel-button {
+  border: 1px solid rgba(241, 214, 159, 0.24);
+  background:
+    linear-gradient(180deg, rgba(126, 224, 176, 0.98), rgba(92, 184, 142, 0.94));
+  color: #251b20;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 10px 20px rgba(20, 12, 14, 0.22);
+}
+
+.merge-pause-overlay .panel-button.danger,
+.merge-pause-overlay .panel-button.active {
+  background:
+    linear-gradient(180deg, rgba(233, 135, 103, 0.98), rgba(183, 84, 67, 0.95));
+  color: #2b1111;
+}
+
 .merge-menu-overlay .generator-list {
   grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   gap: 8px;

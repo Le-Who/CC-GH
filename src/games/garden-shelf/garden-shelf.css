@@ -29,10 +29,10 @@
   color: var(--ink);
   border-color: var(--glass-border) !important;
   background:
-    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
-    var(--glass-surface-strong) !important;
-  -webkit-backdrop-filter: var(--glass-filter);
-  backdrop-filter: var(--glass-filter);
+    linear-gradient(180deg, rgba(255, 244, 214, 0.14), rgba(50, 30, 34, 0.08)),
+    color-mix(in srgb, rgba(44, 28, 34, 0.98) 94%, var(--glass-surface)) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: var(--glass-shadow-strong) !important;
 }
 
@@ -41,10 +41,11 @@
   max-width: min(560px, 100vw);
   margin-inline: auto;
   background:
-    linear-gradient(180deg, var(--garden-sheet-highlight), var(--garden-sheet-highlight-soft)),
-    var(--garden-sheet-surface) !important;
-  -webkit-backdrop-filter: var(--glass-filter-soft);
-  backdrop-filter: var(--glass-filter-soft);
+    linear-gradient(180deg, rgba(255, 236, 196, 0.16), rgba(38, 25, 31, 0.04)),
+    url("/games/garden-shelf/detail_panel.png") center top / min(88%, 420px) auto no-repeat,
+    rgba(43, 27, 33, 0.99) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   contain: layout paint;
   transform: translateZ(0);
   will-change: transform, opacity;
@@ -53,6 +54,18 @@
 .garden-glass-menu,
 .garden-modal-card {
   border-radius: 8px !important;
+  background:
+    linear-gradient(180deg, rgba(255, 236, 196, 0.16), rgba(38, 25, 31, 0.08)),
+    url("/games/garden-shelf/quest_panel.png") center top / min(94%, 360px) auto no-repeat,
+    rgba(43, 27, 33, 0.99) !important;
+  overflow: hidden;
+}
+
+.garden-modal-card {
+  background:
+    linear-gradient(180deg, rgba(255, 236, 196, 0.16), rgba(38, 25, 31, 0.08)),
+    url("/games/garden-shelf/level_reward_panel.png") center top / min(94%, 360px) auto no-repeat,
+    rgba(43, 27, 33, 0.99) !important;
 }
 
 .garden-card-row,
@@ -62,7 +75,7 @@
   border: 1px solid var(--glass-border-soft) !important;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06)),
-    var(--glass-card) !important;
+    rgba(64, 39, 43, 0.94) !important;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
@@ -77,9 +90,9 @@
 }
 
 .glass-scrim {
-  background: var(--glass-scrim) !important;
-  -webkit-backdrop-filter: var(--glass-filter-soft);
-  backdrop-filter: var(--glass-filter-soft);
+  background: rgba(18, 12, 16, 0.72) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .garden-sheet-scrim {
@@ -130,8 +143,11 @@
 .garden-choice-button.active,
 .garden-action-button.primary {
   border-color: color-mix(in srgb, var(--mint) 62%, transparent);
-  background: color-mix(in srgb, var(--mint) 18%, var(--glass-card-strong));
-  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(44, 23, 16, 0.08)),
+    url("/games/garden-shelf/button_primary.png") center / 100% 100% no-repeat,
+    color-mix(in srgb, var(--mint) 18%, var(--glass-card-strong));
+  color: #2f2019;
 }
 
 .garden-action-button {
@@ -145,14 +161,20 @@
 
 .garden-action-button.secondary {
   border-color: color-mix(in srgb, var(--amber) 58%, transparent);
-  background: color-mix(in srgb, var(--amber) 18%, var(--glass-card-strong));
-  color: var(--garden-action-secondary-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(44, 23, 16, 0.06)),
+    url("/games/garden-shelf/button_secondary.png") center / 100% 100% no-repeat,
+    color-mix(in srgb, var(--amber) 18%, var(--glass-card-strong));
+  color: #35261b;
 }
 
 .garden-action-button.danger {
   border-color: color-mix(in srgb, var(--coral) 58%, transparent);
-  background: color-mix(in srgb, var(--coral) 18%, var(--glass-card-strong));
-  color: var(--garden-action-danger-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(44, 12, 16, 0.08)),
+    url("/games/garden-shelf/button_danger.png") center / 100% 100% no-repeat,
+    color-mix(in srgb, var(--coral) 18%, var(--glass-card-strong));
+  color: #3a1214;
 }
 
 .garden-action-button.info {
@@ -388,6 +410,7 @@
   width: min(100vw, 560px);
   max-height: min(92dvh, calc(100dvh - max(8px, var(--safe-top)))) !important;
   max-height: min(92dvh, 100svh, calc(100dvh - max(8px, var(--safe-top)))) !important;
+  min-height: 0;
   overflow: hidden;
   padding-bottom: max(12px, var(--safe-bottom)) !important;
   touch-action: pan-y;
@@ -408,9 +431,12 @@
 }
 
 .garden-sheet-content {
+  flex: 1 1 auto;
   min-height: 0;
+  max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   padding: 0 clamp(14px, 4vw, 24px) clamp(16px, calc(var(--safe-bottom) + 16px), 32px) !important;
 }

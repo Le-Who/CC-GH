@@ -1111,6 +1111,7 @@ export default function CompanionYardGame() {
           <div
             ref={screenRef}
             className="yard-game-screen"
+            data-yard-screen={activeScreen}
             role="dialog"
             aria-modal="true"
             aria-label={text(screenMeta.titleKey, screenMeta.fallback)}

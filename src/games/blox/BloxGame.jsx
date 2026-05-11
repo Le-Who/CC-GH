@@ -122,7 +122,7 @@ export default function BloxGame() {
       blox: { ...state, gameActive: isPlaying },
       bloxStatusText: t("blox.status", { score: state.score || 0, lines: state.linesCleared || 0 }),
       bloxClearText: t("blox.clear"),
-      bloxHudReserve: 132,
+      bloxHudReserve: 88,
       bloxHideStatusText: true,
       bloxPredictedLines: optimisticState?.linesCleared ? Math.max(0, optimisticState.linesCleared - (serverState.linesCleared || 0)) : 0,
       selectedBloxPiece: selectedPiece,

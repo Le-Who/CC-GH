@@ -942,10 +942,10 @@ button.stat-chip {
   border: 1px solid var(--glass-border);
   border-color: var(--glass-border);
   background:
-    linear-gradient(180deg, var(--glass-highlight), var(--glass-highlight-soft)),
-    var(--shell-soft);
-  -webkit-backdrop-filter: var(--glass-filter-strong);
-  backdrop-filter: var(--glass-filter-strong);
+    linear-gradient(180deg, color-mix(in srgb, var(--shell-accent, var(--mint)) 12%, white), rgba(255, 255, 255, 0.04)),
+    color-mix(in srgb, var(--shell-soft) 88%, var(--field));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   box-shadow: var(--glass-shadow-strong);
   contain: paint;
   scrollbar-width: thin;
@@ -960,7 +960,7 @@ button.stat-chip {
   position: absolute;
   inset: 0;
   z-index: 3;
-  background: var(--glass-scrim);
+  background: color-mix(in srgb, var(--shell-accent, var(--mint)) 8%, rgba(7, 10, 18, 0.74));
   pointer-events: none;
 }
 

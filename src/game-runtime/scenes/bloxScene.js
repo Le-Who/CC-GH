@@ -18,6 +18,7 @@ import {
   strokedRect,
   makeInteractive,
   fitWithTopReserve,
+  reserveFromShellChrome,
   centeredPieceOrigin,
   makeSparkles,
   makeRipple,
@@ -268,7 +269,10 @@ export function buildBloxScene(app, initial = {}) {
     const state = data.blox || {};
     const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
     const tray = state.tray || state.savedState?.tray || [];
-    const fitted = fitWithTopReserve(app, GRID, GRID, 14, data.bloxHudReserve || 132, 112, { verticalAnchor: 0.04 });
+    const hudReserve = reserveFromShellChrome(app, ".blox-play-hud", data.bloxHudReserve || 88);
+    const bottomReserve = Math.max(72, Math.min(106, viewHeight(app) * 0.105));
+    const boardMargin = viewWidth(app) >= 900 && viewHeight(app) >= 700 ? 8 : 12;
+    const fitted = fitWithTopReserve(app, GRID, GRID, boardMargin, hudReserve, bottomReserve, { verticalAnchor: 0.06 });
     layout = bloxBoardFrameLayout(fitted, GRID);
     const { size, cell, left, top, frame } = layout;
     const stageWidth = viewWidth(app);
@@ -302,20 +306,22 @@ export function buildBloxScene(app, initial = {}) {
     }
 
     const trayTop = frame.top + frame.height + Math.max(8, cell * 0.18);
-    const trayUnit = Math.min(18, Math.max(10, (viewWidth(app) - 70) / 18));
-    const slotW = (viewWidth(app) - 36) / 3;
+    const trayWidth = Math.min(viewWidth(app) - 36, Math.max(frame.width * 1.16, 430));
+    const trayLeft = (viewWidth(app) - trayWidth) / 2;
+    const slotW = trayWidth / 3;
+    const trayUnit = Math.min(Math.max(12, slotW / 7.8), Math.max(18, cell * 0.62), 32);
     publishCanvasLayout(app, "blox", { top, left, size });
     if (app.canvas?.dataset) {
       app.canvas.dataset.bloxTrayTop = String(Math.round(trayTop * 100) / 100);
       app.canvas.dataset.bloxTraySlotWidth = String(Math.round(slotW * 100) / 100);
     }
-    root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, viewWidth(app) - 18, 74, 0.76));
+    root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, trayWidth + 18, 74, 0.76));
     const traySignature = tray.map((item) => `${item?.piece?.id || "empty"}:${item?.placed ? 1 : 0}`).join("|");
     const trayChanged = lastTraySignature && lastTraySignature !== traySignature;
     lastTraySignature = traySignature;
     for (let i = 0; i < 3; i++) {
       const t = tray[i];
-      const x = 14 + i * slotW;
+      const x = trayLeft + i * slotW;
       const slotWidth = slotW - 8;
       const slotHeight = 58;
       const pieceOrigin = centeredPieceOrigin(t?.piece, x, trayTop, slotWidth, slotHeight, trayUnit);

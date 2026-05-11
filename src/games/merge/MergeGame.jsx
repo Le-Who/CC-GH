@@ -55,6 +55,8 @@ function manualMergeAsset(manifest, section, id) {
 const MERGE_UI_ASSET_KEYS = [
   "libraryRail",
   "libraryPanel",
+  "itemPanel",
+  "recipePanel",
   "exchangePanel",
   "actionDock",
   "hudBar",
@@ -341,6 +343,7 @@ export default function MergeGame() {
     }),
     [alchemyEssence, isPlaying, onMergeCell, onMergeDrop, sceneMerge, selectedCell, trashMode, t],
   );
+  const mergePauseArt = uiAssets.exchangePanel || uiAssets.recipePanel || uiAssets.itemPanel || uiAssets.libraryPanel;
 
   const renderRecipeBook = () => (
     <div className="merge-recipe-book">
@@ -461,7 +464,9 @@ export default function MergeGame() {
       gameId="merge"
       phase={paused ? "paused" : "playing"}
       skin="meditation"
+      className="merge-shell"
       overlayClassName="merge-pause-overlay"
+      style={mergePauseArt ? { "--merge-pause-art": cssUrl(mergePauseArt) } : undefined}
       hud={(
         <>
           <div className="merge-scene-hud" data-no-nav-swipe="true" style={uiAssets.hudBar ? { "--merge-hud-art": cssUrl(uiAssets.hudBar) } : undefined}>
