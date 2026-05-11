@@ -6,18 +6,161 @@
 
 .bubbo-shell {
   --shell-art:
+    url("/games/bubbo-bubbo/images/background-tile.png"),
     linear-gradient(135deg, rgba(143, 207, 157, 0.18), transparent 42%),
     linear-gradient(315deg, rgba(139, 191, 217, 0.14), transparent 46%);
   --shell-accent: #76b98d;
   --shell-soft: rgba(239, 247, 229, 0.72);
+  background:
+    linear-gradient(180deg, rgba(244, 255, 242, 0.78), rgba(207, 238, 229, 0.82)),
+    url("/games/bubbo-bubbo/images/background-tile.png") center / 240px 240px repeat;
 }
 
 :root[data-ui-theme="dark"] .bubbo-shell {
   --shell-art:
+    url("/games/bubbo-bubbo/images/background-tile.png"),
     linear-gradient(135deg, rgba(115, 210, 160, 0.08), transparent 44%),
     linear-gradient(315deg, rgba(136, 199, 223, 0.07), transparent 48%);
   --shell-accent: #8ed7b0;
   --shell-soft: rgba(30, 42, 45, 0.94);
+  background:
+    linear-gradient(180deg, rgba(20, 32, 37, 0.9), rgba(17, 29, 33, 0.94)),
+    url("/games/bubbo-bubbo/images/background-tile.png") center / 240px 240px repeat;
+}
+
+.bubbo-shell::before {
+  background-size: 240px 240px, cover, cover;
+  background-repeat: repeat, no-repeat, no-repeat;
+  opacity: 0.3;
+}
+
+.bubbo-shell .pixi-host {
+  background:
+    linear-gradient(180deg, rgba(235, 252, 239, 0.22), rgba(120, 188, 177, 0.16)),
+    url("/games/bubbo-bubbo/images/field-mask.png") center / min(98%, 560px) 96% no-repeat,
+    url("/games/bubbo-bubbo/images/background-tile.png") center / 240px 240px repeat;
+}
+
+.bubbo-play-hud {
+  min-height: 78px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: #234650;
+  overflow: visible;
+}
+
+:root[data-ui-theme="dark"] .bubbo-play-hud {
+  color: #effdf7;
+}
+
+.bubbo-play-hud::before {
+  content: "";
+  position: absolute;
+  inset: -8px -10px -10px;
+  z-index: -1;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(30, 77, 87, 0.12)),
+    url("/games/bubbo-bubbo/images/bottom-tray.png") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 12px 22px rgba(48, 78, 84, 0.22));
+}
+
+.bubbo-play-hud .game-play-title strong,
+.bubbo-play-hud .game-play-stats strong,
+.bubbo-play-hud .game-play-event-log strong {
+  color: #236a78;
+}
+
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-title strong,
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-stats strong,
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-event-log strong {
+  color: #9be5dc;
+}
+
+.bubbo-play-hud .game-play-title span,
+.bubbo-play-hud .game-play-stats span {
+  color: rgba(35, 70, 80, 0.72);
+}
+
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-title span,
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-stats span {
+  color: rgba(239, 253, 247, 0.72);
+}
+
+.bubbo-play-hud .game-play-stats span,
+.bubbo-play-hud .game-play-event-log p {
+  border-color: rgba(73, 158, 170, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(194, 240, 220, 0.26)),
+    rgba(242, 255, 248, 0.64);
+}
+
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-stats span,
+:root[data-ui-theme="dark"] .bubbo-play-hud .game-play-event-log p {
+  background:
+    linear-gradient(180deg, rgba(155, 229, 220, 0.14), rgba(69, 107, 114, 0.24)),
+    rgba(20, 34, 38, 0.78);
+}
+
+.bubbo-play-hud .panel-button {
+  background:
+    linear-gradient(180deg, #9debd5, #65c8c6);
+  color: #12383f;
+  box-shadow: 0 8px 18px rgba(57, 106, 114, 0.18);
+}
+
+.bubbo-shell .game-menu-overlay {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: var(--ink);
+}
+
+.bubbo-shell .game-menu-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(59, 110, 118, 0.1)),
+    url("/games/bubbo-bubbo/images/pause-panel.png") center / 100% 100% no-repeat,
+    var(--shell-soft);
+  filter: drop-shadow(0 20px 36px rgba(29, 58, 66, 0.26));
+}
+
+.bubbo-shell .game-menu-overlay .panel-header,
+.bubbo-shell .game-menu-overlay .pause-menu-frame,
+.bubbo-shell .game-menu-overlay .leaderboard,
+.bubbo-shell .game-menu-overlay .metric-grid > * {
+  border-color: color-mix(in srgb, var(--shell-accent) 36%, var(--glass-border-soft));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.04)),
+    color-mix(in srgb, var(--shell-accent) 12%, var(--glass-card-strong));
+}
+
+.bubbo-result-card {
+  position: relative;
+  padding: clamp(10px, 2vw, 16px);
+  border-radius: 12px;
+  isolation: isolate;
+}
+
+.bubbo-result-card::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  z-index: -1;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent),
+    url("/games/bubbo-bubbo/images/results-panel-base.png") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 16px 28px rgba(47, 78, 85, 0.26));
 }
 
 .bubbo-resume-banner {

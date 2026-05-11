@@ -33,7 +33,8 @@ This segment is the asset checklist for final production work. Treat it as a sep
 - Built production runtime assets should be emitted through the existing asset pipeline into `public/assets-runtime/<game>/...` and referenced by `public/assets-runtime/manifest.json`.
 - Manual override paths should remain available through `public/assets/manifest.json`.
 - Transparent PNG is preferred for source sprites, icons, objects, and FX. Runtime WebP is preferred where the pipeline already emits it.
-- Chroma-key source sheets may use flat `#123456` only when the local cutout workflow needs keyed images. The key must not appear inside the subject.
+- Prefer transparent source sheets. If the generator paints a visual checkerboard or flat background instead of real alpha, remove it locally by sampling the sheet border and flood-filling background-like pixels. Do not require a fixed chroma-key color; if a temporary flat background is unavoidable, choose a per-sheet color that does not appear in the subject art.
+- Source-sheet grid cells may be used only to locate the intended object or animation phase. Final runtime sprites must be cropped from connected visible pixels plus safe padding, not from fixed equal boxes.
 - Do not bake readable UI text, numbers, prices, timers, counters, HP/XP bars, cooldown fills, labels, or language-specific copy into images.
 - Asset names must be stable and semantic. Avoid hash names in source paths; hashes are for generated runtime output.
 - Keep safe padding around every sprite. No alpha should touch crop edges unless the asset is intentionally full-bleed.

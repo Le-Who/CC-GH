@@ -8,11 +8,11 @@ This file marks the completed visual asset pass generated from `docs/FINAL_GAME_
 
 Included:
 
-- keyed raw source sheets under `assets-source/imagegen/`
+- raw/generated source sheets under `assets-source/imagegen/`
 - separated transparent runtime fallback PNGs under `public/games/`
 - rebuilt runtime assets under `public/assets-runtime/`
 - asset-pipeline coverage for the new visual sets
-- chromakey verification for generated and runtime PNG outputs
+- key-color leak verification for generated and runtime PNG outputs
 - Blox and Farm Pixi runtime bundle/fallback keys
 - Blox and Farm scene rendering against generated sprite assets instead of shape-only placeholders
 
@@ -64,23 +64,25 @@ QC contact sheets:
 - `assets-source/imagegen/qc-contact-sheets/puzzling-potions-readable.png`
 - `assets-source/imagegen/qc-contact-sheets/trivia.png`
 
-## Chromakey Status
+## Cutout And Key-Color Status
 
-Legacy key color: `#FF00FF`
+Legacy final-state pass used `#FF00FF` as a temporary key for older generated sheets. That is not the required method for new Blox, Match-3, or Garden Shelf source art.
 
 Readable Blox/Match-3 correction pass: no fixed chroma-key export. Source sheets are background-cleaned with border sampling plus connected-component cutouts, and outputs reject opaque `#FF00FF` or `#123456` pixels.
 
 Processing rule:
 
-- remove border-connected chroma pixels from keyed source sheets
-- remove strict near-exact chromakey pixels from generated keyed outputs
-- protect legitimate interior purple/magenta art by avoiding broad global scrubs on existing non-keyed runtime assets
+- prefer real alpha from image generation
+- if the generator paints a background, sample the sheet border and flood-fill background-like pixels instead of relying on one fixed key color
+- use source-sheet grid cells only to locate intended objects; final runtime bounds come from connected visible pixels plus safe padding
+- reject opaque `#FF00FF` and `#123456` pixels as key-color leakage in readability outputs
+- protect legitimate interior purple/magenta/blue art by avoiding broad global scrubs on existing non-keyed runtime assets
 
 Verified result:
 
 - generated asset status leak count: 0
-- generated grid-sliced outputs with opaque edge pixels: 0 of 333
-- post-build exact/strict chromakey scan across `public/games`, `public/assets-runtime`, and `dist/assets-runtime`: 0 leaks
+- generated legacy grid-sliced outputs with opaque edge pixels: 0 of 333
+- post-build exact/strict key-color scan across `public/games`, `public/assets-runtime`, and `dist/assets-runtime`: 0 leaks
 
 ## Runtime Wiring
 
@@ -112,8 +114,8 @@ Commands completed:
 - `pnpm run perf:guard -- --suite assets.pipeline-entry-scan`
 - `pnpm exec playwright test tests/e2e/mobile-ui-matrix.spec.js --project=chromium --workers=1`
 - `pnpm test`
-- strict chromakey scan across generated/runtime/dist PNG outputs
-- alpha-edge scan across generated grid-sliced outputs
+- strict key-color leak scan across generated/runtime/dist PNG outputs
+- alpha-edge scan across generated legacy grid-sliced outputs
 - visual screenshot QA across 320x568, 390x844 at DPR 2, 414x896, 768x1024, 1024x768, and 1280x720
 - `git diff --check`
 
@@ -125,10 +127,11 @@ Result:
 - asset perf guard: passed
 - mobile functional QA: passed
 - visual viewport QA: passed
-- chromakey scan: 0 exact/strict `#FF00FF` leaks
-- alpha-edge scan: 0 opaque border pixels in generated grid-sliced outputs
+- key-color scan: 0 exact/strict `#FF00FF` leaks in the legacy final-state outputs
+- readability key-color scan: 0 opaque `#FF00FF` or `#123456` leaks in the Blox/Match-3 component-cut outputs
+- alpha-edge scan: 0 opaque border pixels in generated legacy grid-sliced outputs
 - whitespace check: no errors; line-ending warnings only in generated/rewritten files
 
 ## Remaining Work
 
-The remaining prompt-pack asset category is audio. Audio is outside the `generate2dsprite` visual/chromakey workflow and should be handled as a separate pass against `src/services/audioManager.js` and `public/assets/manifest.json`.
+The remaining prompt-pack asset category is audio. Audio is outside the `generate2dsprite` visual cutout workflow and should be handled as a separate pass against `src/services/audioManager.js` and `public/assets/manifest.json`.

@@ -1,8 +1,87 @@
 /* Farm-specific styles are lazy-loaded with FarmGame. */
 
+.farm-layout {
+  --shell-art: url("/games/farm/background-field.png");
+  --shell-accent: #8fcf79;
+  --shell-soft: rgba(250, 242, 211, 0.86);
+  --farm-ink: #3c4224;
+  --farm-muted: rgba(60, 66, 36, 0.72);
+  --farm-panel-art: url("/games/farm/ui/side_panel.png");
+  --farm-hud-art: url("/games/farm/ui/hud_bar.png");
+  background:
+    linear-gradient(180deg, rgba(255, 248, 215, 0.72), rgba(168, 213, 126, 0.48)),
+    url("/games/farm/background-field.png") center / cover no-repeat;
+}
+
+.farm-layout.game-shell::before {
+  opacity: 0.34;
+}
+
+.farm-layout .pixi-host {
+  background:
+    linear-gradient(180deg, rgba(255, 248, 215, 0.22), rgba(100, 148, 78, 0.16)),
+    url("/games/farm/background-field.png") center / cover no-repeat;
+}
+
+.farm-layout .game-play-hud {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--farm-ink);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  overflow: visible;
+}
+
+.farm-layout .game-play-hud::before {
+  content: "";
+  position: absolute;
+  inset: -6px -8px -8px;
+  z-index: -1;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(108, 143, 63, 0.1)),
+    var(--farm-hud-art) center / 100% 100% no-repeat,
+    rgba(255, 244, 208, 0.86);
+  filter: drop-shadow(0 12px 24px rgba(81, 93, 49, 0.2));
+}
+
+.farm-layout .game-play-hud .game-play-title span,
+.farm-layout .game-play-hud .game-play-stats span {
+  color: var(--farm-muted);
+}
+
+.farm-layout .game-play-hud .game-play-stats strong {
+  color: #507434;
+}
+
+.farm-layout .side-panel {
+  border-color: rgba(94, 116, 49, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(103, 128, 58, 0.08)),
+    var(--farm-panel-art) center / 100% 100% no-repeat,
+    rgba(251, 241, 206, 0.92);
+  color: var(--farm-ink);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-ui-theme="dark"] .farm-layout {
+  --shell-soft: rgba(36, 43, 28, 0.92);
+  --farm-ink: #f4edc9;
+  --farm-muted: rgba(244, 237, 201, 0.72);
+}
+
+:root[data-ui-theme="dark"] .farm-layout .side-panel {
+  background:
+    linear-gradient(180deg, rgba(244, 237, 201, 0.08), rgba(103, 128, 58, 0.08)),
+    var(--farm-panel-art) center / 100% 100% no-repeat,
+    rgba(32, 39, 27, 0.94);
+}
+
 .item-card small,
 .progress-card span {
-  color: var(--muted);
+  color: var(--farm-muted, var(--muted));
   font-size: 0.8rem;
   font-weight: 800;
 }
@@ -32,12 +111,12 @@
 
 .item-card,
 .progress-card {
-  border: 1px solid var(--glass-border-soft);
+  border: 1px solid rgba(94, 116, 49, 0.2);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
-    color-mix(in srgb, var(--glass-card-strong) 70%, var(--field));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(137, 171, 89, 0.08)),
+    rgba(255, 247, 218, 0.68);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32);
 }
 
 .game-menu-overlay .progress-card,
@@ -90,7 +169,10 @@ button.item-card {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(138, 176, 92, 0.12)),
+    url("/games/farm/ui/empty_slot_placeholder.png") center / 100% 100% no-repeat,
+    color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
   font-size: 1.45rem;
 }
 

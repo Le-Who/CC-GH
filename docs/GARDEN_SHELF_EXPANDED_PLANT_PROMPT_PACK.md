@@ -9,22 +9,22 @@ This is the production prompt pack for the expanded Garden Shelf catalog. It pre
 - Clean transparent copy: `public/games/garden-shelf/plants_sheet_clean.png`
 - Sprite rectangles: `public/games/garden-shelf/sprites.json`
 - Existing eight-plant source: `assets-source/imagegen/garden-shelf/existing-8-transparent.png`
-- New family keyed sources: `assets-source/imagegen/garden-shelf/families/*-keyed.png`
+- New family source sheets: `assets-source/imagegen/garden-shelf/families/*-source.png` or legacy `*-keyed.png`
 - New family transparent sources: `assets-source/imagegen/garden-shelf/families/*-transparent.png`
 - Client resolver: `src/games/garden-shelf/lib/sprites.ts`
 - Plant order: `daisy`, `lavender`, `basil`, `rosemary`, `monstera`, `succulent`, `pothos`, `strawberry`, `bonsai`, `string_of_pearls`, `orchid`, `venus_flytrap`, `moon_cactus`, `fern`
 
 Generate Garden Shelf in its own image-generation calls. Never combine these sheets with Match-3, Merge/Alchemy Table, HUD parts, or reference art sheets.
 
-## Chroma-Key Rule
+## Cutout Rule
 
-Use keyed source art, then remove the key locally. The current key is dark desaturated blue `#123456`, chosen because pink/magenta appears in orchids, flowers, pot accents, and Match-3 pieces.
+Prefer source art with real transparency. If the generator paints a visual checkerboard or a flat background instead of alpha, remove that background locally by sampling the sheet border and flood-filling background-like pixels. Do not require a fixed chroma-key color such as `#123456`; if a temporary flat background is unavoidable, choose a per-sheet color that does not appear in the plant, pot, flowers, soil, cords, or accents.
 
 ```text
-The background must be one perfectly flat solid #123456 chroma-key color, with no shadows, gradients, texture, reflections, floor plane, lighting variation, vignette, checkerboard, or transparent-looking effect. Do not use #123456 anywhere in the plants, pots, strings, leaves, flowers, soil, or decorations. No cast shadow, no contact shadow, no glow bleeding into the background.
+Transparent background preferred. If transparency is not available, use one simple removable background color chosen for this sheet only, with no shadows, gradients, texture, reflections, floor plane, lighting variation, vignette, or fake transparent checkerboard. Do not use that removable background color anywhere in the plants, pots, strings, leaves, flowers, soil, or decorations. No cast shadow, no contact shadow, no glow bleeding into the background.
 ```
 
-Use hard chroma-key removal from the sampled border color. Do not use despill for these plant sheets; the key is intentionally far from plant colors and despill can shift internal colors.
+Use border-sampled background removal plus connected-component alpha cutouts. Source-sheet quarters may locate the four growth phases, but final phase bounds must come from visible pixels plus safe padding rather than fixed equal boxes. Avoid broad global color scrubs that can shift legitimate internal colors.
 
 ## Shared Family Prompt Template
 
@@ -33,15 +33,15 @@ Use this template once per new plant family.
 ```text
 Use case: game-asset-sheet
 Asset type: production Garden Shelf plant growth sprites
-Primary request: Create one potted plant family as a 1 row x 4 column growth sprite sheet on a perfectly flat solid #123456 chroma-key background for local background removal.
+Primary request: Create one potted plant family as a 1 row x 4 column growth sprite sheet with real transparency preferred. If real alpha is not available, use a simple removable background color chosen for this sheet only.
 
-Canvas and layout: exactly four separate sprites in one horizontal row. Left to right phases are sprout, young, growing, mature. Keep each phase fully inside its own quarter of the canvas with wide transparent-ready gutters. The plant and pot must be fully visible, centered, bottom anchored unless the family is a hanging plant. No labels, no numbers, no grid lines.
+Canvas and layout: exactly four separate sprites in one horizontal row. Left to right phases are sprout, young, growing, mature. The quarters are only placement guides; each exported phase will be cropped by connected visible pixels plus safe padding. Keep each phase fully separated with wide transparent-ready gutters. The plant and pot must be fully visible, centered, bottom anchored unless the family is a hanging plant. No labels, no numbers, no grid lines.
 
 Style: cozy indoor shelf garden, hand-painted storybook mobile game sprite, readable silhouette at 80x128 shelf scale, crisp edges, warm ceramic or glazed pot, gentle natural shading, no scenery, no shelf, no tools, no coins, no faces, no text, no watermark.
 
-Chroma-key background: one perfectly flat solid #123456 color. Do not use #123456 anywhere inside the sprite.
+Background: transparent preferred. If a removable flat background is used, choose a color absent from the sprite and keep it perfectly flat.
 
-Avoid: no 3-phase shortcuts, no duplicate phases, no cropped pot, no cropped leaves or vines, no objects touching another phase, no glow or shadow on the chroma-key background.
+Avoid: no 3-phase shortcuts, no duplicate phases, no cropped pot, no cropped leaves or vines, no objects touching another phase, no glow or shadow on the removable background.
 ```
 
 ## Family Prompts
@@ -61,7 +61,7 @@ Apply the shared Garden Shelf family prompt. Plant family: string of pearls hang
 ### Orchid
 
 ```text
-Apply the shared Garden Shelf family prompt. Plant family: orchid. Use broad base leaves, elegant upright stems, and pink orchid flowers in a purple or cream ceramic pot. Phase 1 has a bud and one leaf cluster, phase 4 has multiple open flowers and a readable mature orchid silhouette. Keep the pink flowers fully inside the plant, not in the chroma-key background.
+Apply the shared Garden Shelf family prompt. Plant family: orchid. Use broad base leaves, elegant upright stems, and pink orchid flowers in a purple or cream ceramic pot. Phase 1 has a bud and one leaf cluster, phase 4 has multiple open flowers and a readable mature orchid silhouette. Keep the pink flowers fully inside the plant silhouette, not bleeding into the removable background.
 ```
 
 ### Venus Flytrap
@@ -85,9 +85,9 @@ Apply the shared Garden Shelf family prompt. Plant family: fern. Use layered arc
 ## Local Generation And Cutout Workflow
 
 1. Generate each new family in a separate image-generation call.
-2. Save keyed files as `assets-source/imagegen/garden-shelf/families/<family>-keyed.png`.
-3. Remove the `#123456` key with border auto-key and hard alpha; save `assets-source/imagegen/garden-shelf/families/<family>-transparent.png`.
-4. Run `node scripts/generate-themed-match3-garden-assets.mjs`; the script detects the four real alpha groups in each family sheet, filters stray neighboring components, and composes the final `1672 x 1645` runtime sheet.
+2. Save source files as `assets-source/imagegen/garden-shelf/families/<family>-source.png`; keep `*-keyed.png` only for compatibility with older local scripts.
+3. Convert each family sheet to transparent alpha by sampling the sheet border, flood-filling background-like pixels, and cropping the four phase components from their connected visible pixels with safe padding; save `assets-source/imagegen/garden-shelf/families/<family>-transparent.png`.
+4. Run the local composer; it should consume the transparent family sheets, filter stray neighboring components, and compose the final `1672 x 1645` runtime sheet.
 5. Run `pnpm run assets:build` so `gardenShelf.sheet.transparent` points at the regenerated runtime WebP.
 
 ## Acceptance Criteria

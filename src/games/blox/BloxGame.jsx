@@ -10,6 +10,7 @@ import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { previewBloxPlacement } from "../../../game-logic/blox-engine.js";
 import "./i18n.js";
+import "./blox.css";
 export default function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -137,8 +138,11 @@ export default function BloxGame() {
       gameId="blox"
       phase={isPlaying ? "playing" : state.gameActive ? "paused" : "menu"}
       skin="meditation"
+      className="blox-shell"
+      overlayClassName="blox-menu-overlay"
       hud={(
         <GamePlayHud
+          className="blox-play-hud"
           gameId="blox"
           title={t("blox.title")}
           subtitle={t("blox.rewardLine", { best: state.highScore, reward: currentReward })}

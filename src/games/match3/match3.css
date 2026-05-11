@@ -246,13 +246,27 @@
 
 .match3-menu-overlay .mode-grid button {
   position: relative;
+  --match3-mode-card-art: none;
   min-height: 72px;
   overflow: hidden;
   border-color: rgba(244, 192, 93, 0.24);
   background:
     linear-gradient(135deg, rgba(113, 199, 161, 0.2), transparent 44%),
+    var(--match3-mode-card-art) center / 100% 100% no-repeat,
     linear-gradient(180deg, rgba(63, 43, 38, 0.88), rgba(33, 24, 24, 0.9));
   color: var(--match3-ink);
+}
+
+.match3-menu-overlay .mode-grid button:nth-child(1) {
+  --match3-mode-card-art: url("/games/puzzling-potions/images/mode-card-classic.png");
+}
+
+.match3-menu-overlay .mode-grid button:nth-child(2) {
+  --match3-mode-card-art: url("/games/puzzling-potions/images/mode-card-timed.png");
+}
+
+.match3-menu-overlay .mode-grid button:nth-child(3) {
+  --match3-mode-card-art: url("/games/puzzling-potions/images/mode-card-drop.png");
 }
 
 .match3-menu-overlay .mode-grid button::before {

@@ -158,7 +158,11 @@ export default function TriviaGame() {
   }
 
   return (
-    <div className={`trivia-shell${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}>
+    <div
+      className={`trivia-shell${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}
+      data-trivia-view={view}
+      data-trivia-playing={isPlaying ? "true" : undefined}
+    >
       <aside className="trivia-card">
         <div className="panel-header">
           <div>

@@ -199,7 +199,7 @@ Runtime keys:
 - `gardenShelf.bottomPlank`
 - `gardenShelf.settingsCog`
 
-Expanded plant generation uses isolated one-family sheets on the `#123456` chroma key. Keep the old eight plants in `existing-8-transparent.png`, generate only the six new families under `families/`, and let `scripts/generate-themed-match3-garden-assets.mjs` compose the final 14-plant runtime sheet.
+Expanded plant generation should use isolated one-family source sheets and the readability cutout method: prefer real alpha, otherwise sample the sheet border, remove background-like pixels, detect connected visible plant components, and crop each phase from its actual alpha bounds with safe padding. Keep the old eight plants in `existing-8-transparent.png`, generate only the six new families under `families/`, and let the local composer build the final 14-plant runtime sheet. Do not require a fixed `#123456` chroma key for new source art; if a temporary flat background is needed, choose a per-sheet color absent from the plant, pot, flowers, and accents.
 
 Manual manifest placeholders exist in `public/assets/manifest.json`, but the current Garden resolver does not read them:
 
