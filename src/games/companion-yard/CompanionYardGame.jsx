@@ -13,7 +13,7 @@ import { useGameHub } from "../../game-state/useGameHub.js";
 import { audioManager } from "../../services/audioManager.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
-import { loadCompanionYardManifest, resolveCompanionYardAsset } from "./assets.js";
+import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
 import "./i18n.js";
 import "./companion-yard.css";
@@ -143,6 +143,10 @@ function getPlacedPosition(placed = {}, slotMap = new Map()) {
 
 function YardIcon({ name }) {
   return <span className={`yard-hud-icon yard-hud-icon-${name}`} aria-hidden="true" />;
+}
+
+function cssImageUrl(value) {
+  return value ? `url(${JSON.stringify(value)})` : "none";
 }
 
 function YardIconButton({
@@ -304,7 +308,7 @@ export default function CompanionYardGame() {
   const [placementDraft, setPlacementDraft] = useState(null);
   const [selectedVisitId, setSelectedVisitId] = useState(null);
   const [companionName, setCompanionName] = useState(yard.companion?.name || "Buddy");
-  const [assetManifest, setAssetManifest] = useState(null);
+  const [assetManifest, setAssetManifest] = useState(undefined);
   const [renderNow, setRenderNow] = useState(snapshot?.serverTime || Date.now());
   const [soundEnabled, setSoundEnabled] = useState(() => audioManager.isEnabled());
   const [yardToolsOpen, setYardToolsOpen] = useState(false);
@@ -334,6 +338,9 @@ export default function CompanionYardGame() {
   const assetPath = useCallback((type, id) => (
     resolveCompanionYardAsset(assetManifest, type, id)
   ), [assetManifest]);
+  const runtimeArtStyle = useMemo(() => ({
+    "--yard-hud-sheet-art": cssImageUrl(resolveCompanionYardHudSheet(assetManifest)),
+  }), [assetManifest]);
 
   useEffect(() => {
     const updateNow = () => setRenderNow(Date.now());
@@ -1003,7 +1010,7 @@ export default function CompanionYardGame() {
   const draftGoodie = placementDraft ? goodies[placementDraft.goodieId] : null;
 
   return (
-    <div className="room-layout companion-yard-layout game-shell shell-skin-meditation shell-playing">
+    <div className="room-layout companion-yard-layout game-shell shell-skin-meditation shell-playing" style={runtimeArtStyle}>
       <section
         ref={stageRef}
         className={`room-stage companion-yard-stage ${selectedRemodel.themeClass || "yard-remodel-meadow"}${placementDraft ? " yard-placement-active" : ""}`}

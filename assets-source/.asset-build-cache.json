@@ -1597,6 +1597,18 @@
         "/assets-runtime/companion-yard/ui/gift_ready.829f1930.webp"
       ]
     },
+    "companionYard.ui.hudSheet": {
+      "signature": "cb391da07caec88d566e4b088a7aeef2d5f808a6519bcb07b9956aa3972b7b21",
+      "item": {
+        "type": "image",
+        "width": 1280,
+        "height": 1280,
+        "src": "/assets-runtime/companion-yard/ui/hudSheet.d00e86c0.webp"
+      },
+      "written": [
+        "/assets-runtime/companion-yard/ui/hudSheet.d00e86c0.webp"
+      ]
+    },
     "companionYard.ui.panel_album": {
       "signature": "97c8c5158561699c0518b3d5e98422167cfa235d77d4b476b3913f1e6e79a525",
       "item": {
@@ -3539,6 +3551,66 @@
       },
       "written": [
         "/assets-runtime/garden-shelf/bottomPlank.dc180e53.webp"
+      ]
+    },
+    "gardenShelf.fx.care-sprout": {
+      "signature": "f8d0272bd43323e9ed635281098dfb2b4b64bdf15ffc56b1e2bb6e512b245975",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/care-sprout.4af40005.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/care-sprout.4af40005.webp"
+      ]
+    },
+    "gardenShelf.fx.coin-glint": {
+      "signature": "b83cfac6a33769ca330b054b523d50503aeb71769fe616d77ecabd071d5591cb",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/coin-glint.55a75d44.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/coin-glint.55a75d44.webp"
+      ]
+    },
+    "gardenShelf.fx.leaf-glint": {
+      "signature": "622bebb3631c38e8bf736a3da8b1422440d5943b5513dbaf85686377d0f757dd",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/leaf-glint.908716d9.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/leaf-glint.908716d9.webp"
+      ]
+    },
+    "gardenShelf.fx.water-splash": {
+      "signature": "837b14df71f715bcb33c1d17f8969f1725cf7131bd47a5680cc0f63b89e7c412",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/water-splash.f27a7500.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/water-splash.f27a7500.webp"
+      ]
+    },
+    "gardenShelf.fx.xp-leaf-sparkle": {
+      "signature": "928f48f1175c73c216bd2268c5772e0984d5480865002157afb812c1f8ea777a",
+      "item": {
+        "type": "image",
+        "width": 128,
+        "height": 128,
+        "src": "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.38939c8a.webp"
+      },
+      "written": [
+        "/assets-runtime/garden-shelf/fx/xp-leaf-sparkle.38939c8a.webp"
       ]
     },
     "gardenShelf.settingsCog": {

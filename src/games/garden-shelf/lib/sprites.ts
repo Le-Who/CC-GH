@@ -5,6 +5,14 @@ export const GARDEN_SHELF_PATH = "/games/garden-shelf/assets_shelf.png";
 export const GARDEN_SIGN_PATH = "/games/garden-shelf/assets_garden_sign.png";
 export const GARDEN_COG_PATH = "/games/garden-shelf/assets_garden_cog.png";
 export const GARDEN_BOTTOM_PLANK_PATH = "/games/garden-shelf/assets_garden_bottom_plank.png";
+const GARDEN_FX_PATHS = {
+  coinGlint: "/games/garden-shelf/fx/coin-glint.png",
+  xpLeafSparkle: "/games/garden-shelf/fx/xp-leaf-sparkle.png",
+  waterSplash: "/games/garden-shelf/fx/water-splash.png",
+  careSprout: "/games/garden-shelf/fx/care-sprout.png",
+  leafGlint: "/games/garden-shelf/fx/leaf-glint.png",
+} as const;
+const TRANSPARENT_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
 export type GardenAssetPaths = {
   sheet: string;
@@ -12,15 +20,47 @@ export type GardenAssetPaths = {
   sign: string;
   settingsCog: string;
   bottomPlank: string;
+  fx: {
+    coinGlint: string;
+    xpLeafSparkle: string;
+    waterSplash: string;
+    careSprout: string;
+    leafGlint: string;
+  };
 };
 
 export function resolveGardenAssetPaths(runtimeManifest?: unknown): GardenAssetPaths {
+  if (runtimeManifest === undefined) {
+    const emptyFx = {
+      coinGlint: "",
+      xpLeafSparkle: "",
+      waterSplash: "",
+      careSprout: "",
+      leafGlint: "",
+    };
+    return {
+      sheet: TRANSPARENT_PLACEHOLDER,
+      shelf: TRANSPARENT_PLACEHOLDER,
+      sign: TRANSPARENT_PLACEHOLDER,
+      settingsCog: TRANSPARENT_PLACEHOLDER,
+      bottomPlank: TRANSPARENT_PLACEHOLDER,
+      fx: emptyFx,
+    };
+  }
+
   return {
     sheet: resolveAssetUrl("gardenShelf.sheet.transparent", { runtimeManifest, legacyPath: GARDEN_SHEET_PATH }),
     shelf: resolveAssetUrl("gardenShelf.shelf", { runtimeManifest, legacyPath: GARDEN_SHELF_PATH }),
     sign: resolveAssetUrl("gardenShelf.sign", { runtimeManifest, legacyPath: GARDEN_SIGN_PATH }),
     settingsCog: resolveAssetUrl("gardenShelf.settingsCog", { runtimeManifest, legacyPath: GARDEN_COG_PATH }),
     bottomPlank: resolveAssetUrl("gardenShelf.bottomPlank", { runtimeManifest, legacyPath: GARDEN_BOTTOM_PLANK_PATH }),
+    fx: {
+      coinGlint: resolveAssetUrl("gardenShelf.fx.coin-glint", { runtimeManifest, legacyPath: GARDEN_FX_PATHS.coinGlint }),
+      xpLeafSparkle: resolveAssetUrl("gardenShelf.fx.xp-leaf-sparkle", { runtimeManifest, legacyPath: GARDEN_FX_PATHS.xpLeafSparkle }),
+      waterSplash: resolveAssetUrl("gardenShelf.fx.water-splash", { runtimeManifest, legacyPath: GARDEN_FX_PATHS.waterSplash }),
+      careSprout: resolveAssetUrl("gardenShelf.fx.care-sprout", { runtimeManifest, legacyPath: GARDEN_FX_PATHS.careSprout }),
+      leafGlint: resolveAssetUrl("gardenShelf.fx.leaf-glint", { runtimeManifest, legacyPath: GARDEN_FX_PATHS.leafGlint }),
+    },
   };
 }
 

@@ -162,6 +162,11 @@ async function collectGardenEntries(rootDir) {
     entry("gardenShelf.sign", "public/games/garden-shelf/assets_garden_sign.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
     entry("gardenShelf.bottomPlank", "public/games/garden-shelf/assets_garden_bottom_plank.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
     entry("gardenShelf.settingsCog", "public/games/garden-shelf/assets_garden_cog.png", "garden-shelf", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.fx.coin-glint", "public/games/garden-shelf/fx/coin-glint.png", "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.fx.xp-leaf-sparkle", "public/games/garden-shelf/fx/xp-leaf-sparkle.png", "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.fx.water-splash", "public/games/garden-shelf/fx/water-splash.png", "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.fx.care-sprout", "public/games/garden-shelf/fx/care-sprout.png", "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
+    entry("gardenShelf.fx.leaf-glint", "public/games/garden-shelf/fx/leaf-glint.png", "garden-shelf/fx", null, WEBP_ONLY_FORMATS, compactRuntimeImage),
   ];
 
   return existingEntries(rootDir, gardenEntries);
@@ -172,6 +177,11 @@ async function collectCompanionYardEntries(rootDir) {
   const files = await walkFiles(rootDir, root, PNG_EXTENSIONS);
   const compactRuntimeImage = runtimeWebpOnly();
   const entries = [];
+  if (await fileExists(rootDir, `${root}/HUD.png`)) {
+    entries.push(entry("companionYard.ui.hudSheet", `${root}/HUD.png`, "companion-yard/ui", null, compactRuntimeImage.formats, {
+      raster: compactRuntimeImage.raster,
+    }));
+  }
   for (const file of files) {
     const parts = file.slice(`${root}/`.length).split("/");
     if (parts.length !== 2) continue;

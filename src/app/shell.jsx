@@ -125,7 +125,7 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
   );
 }
 
-export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "", onDismiss = null }) {
+export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "", onDismiss = null, style = undefined }) {
   const { t } = useAppI18n();
   const overlayRef = useRef(null);
   const canDismissOverlay = phase !== "playing" && typeof onDismiss === "function";
@@ -145,6 +145,7 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
     <div
       className={`game-layout game-shell shell-${phase} shell-skin-${skin}${className ? ` ${className}` : ""}`}
       data-game-shell={gameId}
+      style={style}
     >
       {children}
       {phase === "playing" && hud}

@@ -25,6 +25,10 @@ import './garden-shelf.css';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
 
+function cssImageUrl(value: string) {
+  return value ? `url(${JSON.stringify(value)})` : "none";
+}
+
 function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
   const { state, renameGarden } = useGame();
   const { t } = useGardenI18n();
@@ -424,9 +428,16 @@ function LevelUpRewardModal() {
 
 function GameContent() {
   const [selectedSpot, setSelectedSpot] = useState<{ shelfIndex: number, spotIndex: number, plantId?: string } | null>(null);
-  const [runtimeAssetManifest, setRuntimeAssetManifest] = useState<unknown>(null);
+  const [runtimeAssetManifest, setRuntimeAssetManifest] = useState<unknown>(undefined);
   const [mobileLiteDecor, setMobileLiteDecor] = useState(false);
   const assetPaths = React.useMemo(() => resolveGardenAssetPaths(runtimeAssetManifest), [runtimeAssetManifest]);
+  const runtimeArtStyle = React.useMemo(() => ({
+    "--garden-fx-coin-glint": cssImageUrl(assetPaths.fx.coinGlint),
+    "--garden-fx-xp-leaf-sparkle": cssImageUrl(assetPaths.fx.xpLeafSparkle),
+    "--garden-fx-water-splash": cssImageUrl(assetPaths.fx.waterSplash),
+    "--garden-fx-care-sprout": cssImageUrl(assetPaths.fx.careSprout),
+    "--garden-fx-leaf-glint": cssImageUrl(assetPaths.fx.leafGlint),
+  }), [assetPaths]);
 
   // Prevent default overscroll bounce on mobile
   React.useEffect(() => {
@@ -459,7 +470,7 @@ function GameContent() {
   }, []);
 
   return (
-    <div className={cn("garden-root mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg", mobileLiteDecor && "garden-root--mobile-lite")}>
+    <div className={cn("garden-root mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg", mobileLiteDecor && "garden-root--mobile-lite")} style={runtimeArtStyle}>
       {/* Background Atmosphere */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#ffeebb10,transparent_70%)]"></div>

@@ -11,6 +11,7 @@ import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../ap
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { selectMatch3InitialRun } from "./selectMatch3Run.js";
+import { loadRuntimeAssetManifest, resolveAssetUrl } from "../../game-runtime/assetBundles.js";
 import "./i18n.js";
 import "./match3.css";
 const MATCH3_MODES = [
@@ -25,6 +26,15 @@ function createSwappedMatch3Board(board, from, to) {
     [next[from.y][from.x], next[to.y][to.x]] = [next[to.y][to.x], next[from.y][from.x]];
   }
   return next;
+}
+
+function cssImageUrl(value) {
+  return value ? `url(${JSON.stringify(value)})` : "none";
+}
+
+function match3RuntimeCssArt(runtimeAssetManifest, key) {
+  if (runtimeAssetManifest === undefined) return "none";
+  return cssImageUrl(resolveAssetUrl(key, { runtimeManifest: runtimeAssetManifest }));
 }
 
 export default function Match3Game() {
@@ -43,6 +53,7 @@ export default function Match3Game() {
   const [inputLocked, setInputLocked] = useState(false);
   const [matchAnimation, setMatchAnimation] = useState(null);
   const [leaders, setLeaders] = useState([]);
+  const [runtimeAssetManifest, setRuntimeAssetManifest] = useState(undefined);
   const animationTimerRef = useRef(null);
   const restoredRunKeyRef = useRef("");
   const isPlaying = gameActive && !paused;
@@ -58,6 +69,22 @@ export default function Match3Game() {
     hudState: { score, movesLeft, combo, mode },
   }), [combo, gameActive, mode, movesLeft, pauseRun, score]);
   useImmersiveGame("match3", true, shellControls);
+
+  useEffect(() => {
+    let active = true;
+    loadRuntimeAssetManifest().then((manifest) => {
+      if (active) setRuntimeAssetManifest(manifest);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const runtimeArtStyle = useMemo(() => ({
+    "--match3-table-art": match3RuntimeCssArt(runtimeAssetManifest, "match3.background.table"),
+    "--match3-hud-art": match3RuntimeCssArt(runtimeAssetManifest, "match3.ui.hudBar"),
+    "--match3-menu-panel-art": match3RuntimeCssArt(runtimeAssetManifest, "match3.ui.menuPanel"),
+  }), [runtimeAssetManifest]);
 
   useEffect(() => {
     api("/api/leaderboard").then((data) => {
@@ -245,6 +272,7 @@ export default function Match3Game() {
       className="match3-shell"
       overlayClassName={`match3-menu-overlay${activePause ? " match3-pause-compact" : ""}`}
       onDismiss={activePause ? () => setPaused(false) : null}
+      style={runtimeArtStyle}
       hud={(
         <GamePlayHud
           className="match3-scene-hud"

@@ -42,7 +42,10 @@ export function Garden({ onSelectSpot, assetPaths }: GardenProps) {
   }, [state.plants]);
 
   return (
-    <div className="flex-1 h-full overflow-y-auto overflow-x-hidden p-6 space-y-20 pb-32 pt-36 no-scrollbar">
+    <div
+      className="flex-1 h-full overflow-y-auto overflow-x-hidden overscroll-contain touch-pan-y p-6 space-y-20 pb-32 pt-36 no-scrollbar"
+      data-no-nav-swipe="true"
+    >
       {GARDEN_SHELVES.map((shelfIndex) => {
         const isUnlocked = shelfIndex < state.shelvesUnlocked;
 
@@ -274,8 +277,9 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           onPointerDown={handlePointerDown}
           onPointerUp={cancelPress}
           onPointerLeave={cancelPress}
+          onPointerCancel={cancelPress}
           onContextMenu={(e) => e.preventDefault()}
-          className="relative flex flex-col items-center justify-end z-10 group w-20 h-32 touch-none"
+          className="relative flex flex-col items-center justify-end z-10 group w-20 h-32 touch-pan-y"
           data-garden-plant="true"
           data-plant-id={plant.id}
         >

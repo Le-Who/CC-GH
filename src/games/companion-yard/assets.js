@@ -1,6 +1,9 @@
 import { assetUrl, loadRuntimeAssetManifest, runtimeAssetSrc } from "../../game-runtime/assetBundles.js";
 
 const COMPANION_YARD_ROOT = "/games/companion-yard";
+const COMPANION_YARD_HUD_SHEET_KEY = "companionYard.ui.hudSheet";
+const COMPANION_YARD_HUD_SHEET_PATH = "/games/companion-yard/HUD.png";
+export const TRANSPARENT_ASSET_PLACEHOLDER = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
 
 function cleanId(id) {
   return String(id || "").replace(/[^a-zA-Z0-9_-]/g, "");
@@ -31,6 +34,8 @@ export function companionYardRuntimeAssetKey(type, id) {
 }
 
 export function resolveCompanionYardAsset(manifest, type, id, runtimeManifest = null) {
+  if (manifest === undefined && runtimeManifest == null) return TRANSPARENT_ASSET_PLACEHOLDER;
+
   const { manual, runtime } = splitManifests(manifest, runtimeManifest);
   const companionYard = manual?.graphics?.games?.companionYard || {};
   const bucket = companionYard?.[type];
@@ -48,6 +53,12 @@ export function resolveCompanionYardAsset(manifest, type, id, runtimeManifest = 
   if (generated) return generated;
 
   return assetUrl(companionYardFallbackAssetPath(type, id));
+}
+
+export function resolveCompanionYardHudSheet(manifest, runtimeManifest = null) {
+  if (manifest === undefined && runtimeManifest == null) return "";
+  const { runtime } = splitManifests(manifest, runtimeManifest);
+  return runtimeAssetSrc(runtime, COMPANION_YARD_HUD_SHEET_KEY) || assetUrl(COMPANION_YARD_HUD_SHEET_PATH);
 }
 
 export async function loadCompanionYardManifest(fetchImpl = globalThis.fetch) {

@@ -65,6 +65,136 @@ test.describe("Garden Shelf flow", () => {
     }, surfaceSelector);
   }
 
+  async function dragTouch(page, from, to, steps = 8) {
+    const client = await page.context().newCDPSession(page);
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x: from.x, y: from.y, id: 1 }],
+    });
+    for (let index = 1; index <= steps; index += 1) {
+      const progress = index / steps;
+      await client.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{
+          x: Math.round(from.x + (to.x - from.x) * progress),
+          y: Math.round(from.y + (to.y - from.y) * progress),
+          id: 1,
+        }],
+      });
+      await page.waitForTimeout(16);
+    }
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await client.detach();
+  }
+
+  test("scrolls shelves when a vertical drag starts on a plant", async ({ browser }) => {
+    const now = Date.now();
+    const player = createDefaultPlayer(`garden_plant_scroll_${now}`, "Garden Plant Scroll", now);
+    player.garden = {
+      economyVersion: GARDEN_ECONOMY_VERSION,
+      totalGoldEarned: 500,
+      level: 18,
+      xp: 120,
+      xpRequired: getGardenXpRequired(18),
+      levelReady: false,
+      shelvesUnlocked: 4,
+      plants: Array.from({ length: 8 }, (_, index) => ({
+        id: `scroll-daisy-${index}`,
+        type: index % 2 ? "basil" : "daisy",
+        level: 6 + index,
+        shelfIndex: Math.floor(index / 2),
+        spotIndex: index % 2,
+        phase: 3,
+        phaseProgress: 0,
+        lastTapped: now,
+        lastWatered: now,
+      })),
+      claimedQuests: [],
+      dailyQuests: buildGardenDailyQuests(createGardenEconomyState(now)),
+      passiveGoldBuffer: 0,
+      passiveXpBuffer: 0,
+      lastTick: now,
+      offlineEarnings: null,
+      offlineXp: null,
+    };
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `garden_plant_scroll_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+      window.localStorage.removeItem("terrarium_save");
+      window.localStorage.removeItem("garden_shelf_language");
+      window.localStorage.removeItem("garden_shelf_name");
+    });
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(buildSnapshot(player)),
+      });
+    });
+    await page.route("**/api/player/mutate", async (route) => {
+      const body = parsePlayerActionRequest(route.request()) || {};
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          action: body.action,
+          snapshot: buildSnapshot(player),
+          goldDelta: body.payload?.amount || 0,
+        }),
+      });
+    });
+
+    try {
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      const scroller = page.locator(".no-scrollbar").first();
+      await expect(scroller).toBeVisible();
+      await expect.poll(() => scroller.evaluate((node) => node.scrollHeight > node.clientHeight + 80)).toBe(true);
+      await scroller.evaluate((node) => { node.scrollTop = 0; });
+
+      const plantBox = await page.locator('[data-garden-plant="true"]').first().boundingBox();
+      expect(plantBox).not.toBeNull();
+      const detailsButtonBox = await page.locator('[data-plant-details-button="true"]').first().boundingBox();
+      expect(detailsButtonBox).not.toBeNull();
+      expect(detailsButtonBox.width).toBeGreaterThanOrEqual(44);
+      expect(detailsButtonBox.height).toBeGreaterThanOrEqual(44);
+      await dragTouch(
+        page,
+        { x: Math.round(plantBox.x + plantBox.width / 2), y: Math.round(plantBox.y + plantBox.height / 2) },
+        { x: Math.round(plantBox.x + plantBox.width / 2), y: Math.round(plantBox.y + plantBox.height / 2 - 180) },
+      );
+
+      await expect.poll(() => scroller.evaluate((node) => node.scrollTop)).toBeGreaterThan(40);
+      await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("does not fetch legacy Garden Shelf PNG base art when the runtime manifest is available", async ({ page }) => {
+    const legacyBasePngRequests = [];
+    page.on("request", (request) => {
+      const url = request.url();
+      if (/\/games\/garden-shelf\/assets_[^/?]+\.png(?:\?|$)/.test(url)) {
+        legacyBasePngRequests.push(url);
+      }
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/sign."]')).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/bottomPlank."]')).toBeVisible();
+    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/shelf."]').first()).toBeVisible();
+    await expect.poll(() => legacyBasePngRequests).toEqual([]);
+  });
+
   test("loads the Garden Shelf port and plants from the shelf panel", async ({ page }) => {
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));

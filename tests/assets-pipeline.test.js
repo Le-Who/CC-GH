@@ -337,12 +337,14 @@ describe("asset runtime pipeline", () => {
     const root = await makeTempRoot();
     await writePixelPng(path.join(root, "public/games/bubbo-bubbo/assets_bubbo_balls.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/assets_shelf.png"));
+    await writePixelPng(path.join(root, "public/games/garden-shelf/fx/coin-glint.png"));
     await writePixelPng(path.join(root, "public/games/garden-shelf/fx/gold-sparkle.png"));
     await writePixelPng(path.join(root, "public/games/blox/block_tile_blue.png"));
     await writePixelPng(path.join(root, "public/games/farm/crops/strawberry_ready.png"));
     await writePixelPng(path.join(root, "public/games/trivia/panel-menu.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/foods/kibble.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/expressions/happy.png"));
+    await writePixelPng(path.join(root, "public/games/companion-yard/HUD.png"));
     await writePixelPng(path.join(root, "public/games/companion-yard/ui/cozy-price-chip.png"));
     await writePixelPng(path.join(root, "public/games/gacha-merge/ui/actionIconBack.png"));
     await writePixelPng(path.join(root, "public/games/gacha-merge/ui/hudBar.png"));
@@ -353,6 +355,7 @@ describe("asset runtime pipeline", () => {
 
     assert.deepEqual(formatsByKey.get("bubbo.balls.sheet"), ["webp"]);
     assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("gardenShelf.fx.coin-glint"), ["webp"]);
     assert.equal(formatsByKey.has("gardenShelf.fx.gold-sparkle"), false);
     assert.deepEqual(formatsByKey.get("blox.block_tile_blue"), ["webp"]);
     assert.equal(entriesByKey.get("blox.block_tile_blue")?.bundle, "pixi.blox");
@@ -361,6 +364,7 @@ describe("asset runtime pipeline", () => {
     assert.equal(formatsByKey.has("trivia.panel-menu"), false);
     assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.expressions.happy"), ["webp"]);
+    assert.deepEqual(formatsByKey.get("companionYard.ui.hudSheet"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.ui.cozy-price-chip"), ["webp"]);
     assert.equal(formatsByKey.has("gachaMerge.ui.actionIconBack"), false);
     assert.deepEqual(formatsByKey.get("gachaMerge.ui.hudBar"), ["webp"]);

@@ -274,7 +274,7 @@
 
 .garden-floating-note.gold::before,
 .garden-detail-floating-note.gold::before {
-  background-image: url("/games/garden-shelf/fx/coin-glint.png");
+  background-image: var(--garden-fx-coin-glint, none);
 }
 
 .garden-floating-note.xp,
@@ -291,17 +291,17 @@
 
 .garden-floating-note.xp::before,
 .garden-detail-floating-note.xp::before {
-  background-image: url("/games/garden-shelf/fx/xp-leaf-sparkle.png");
+  background-image: var(--garden-fx-xp-leaf-sparkle, none);
 }
 
 .garden-floating-note.time::before,
 .garden-detail-floating-note.time::before {
-  background-image: url("/games/garden-shelf/fx/water-splash.png");
+  background-image: var(--garden-fx-water-splash, none);
 }
 
 .garden-floating-note.care::before,
 .garden-detail-floating-note.care::before {
-  background-image: url("/games/garden-shelf/fx/care-sprout.png");
+  background-image: var(--garden-fx-care-sprout, none);
 }
 
 .garden-floating-note.reward,
@@ -312,7 +312,7 @@
 
 .garden-floating-note.reward::before,
 .garden-detail-floating-note.reward::before {
-  background-image: url("/games/garden-shelf/fx/coin-glint.png");
+  background-image: var(--garden-fx-coin-glint, none);
 }
 
 .garden-plant-sprite {
@@ -331,7 +331,7 @@
   top: 18%;
   width: 34px;
   height: 34px;
-  background: url("/games/garden-shelf/fx/leaf-glint.png") center / contain no-repeat;
+  background: var(--garden-fx-leaf-glint, none) center / contain no-repeat;
   opacity: 0;
   pointer-events: none;
   animation: garden-leaf-glint 6.2s ease-in-out infinite;
@@ -688,12 +688,14 @@
 
 .plant-details-button {
   position: absolute;
-  right: -12px;
-  top: 4px;
+  right: -18px;
+  top: -2px;
   z-index: 50;
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--sky) 52%, transparent);
   border-radius: 999px;

@@ -835,7 +835,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("/games/companion-yard/HUD.png");
+  background-image: var(--yard-hud-sheet-art, none);
   background-repeat: no-repeat;
   background-size: 500% 500%;
   background-position: inherit;

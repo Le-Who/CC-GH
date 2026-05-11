@@ -11,6 +11,17 @@ function observeRuntimeAssetRequests(page) {
   return paths;
 }
 
+function observeLegacyGamePngRequests(page) {
+  const paths = new Set();
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (/^\/games\/.+\.png$/i.test(url.pathname)) {
+      paths.add(url.pathname);
+    }
+  });
+  return paths;
+}
+
 async function expectRuntimePath(paths, prefix) {
   await expect.poll(() => [...paths].some((path) => path.startsWith(prefix)), {
     message: `expected a runtime asset request starting with ${prefix}`,
@@ -37,6 +48,7 @@ test.describe("generated runtime asset manifest", () => {
   test("serves Garden Shelf, Bubbo, Gem Crush, Merge, and Cozy Yard art from assets-runtime", async ({ page }) => {
     test.setTimeout(60_000);
     const runtimePaths = observeRuntimeAssetRequests(page);
+    const legacyGamePngPaths = observeLegacyGamePngRequests(page);
 
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
@@ -72,5 +84,6 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.locator(".companion-yard-layout")).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", /\/assets-runtime\/companion-yard\/backgrounds\//);
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
+    expect([...legacyGamePngPaths].sort()).toEqual([]);
   });
 });
