@@ -954,7 +954,8 @@ button.stat-chip {
 }
 
 .game-shell.shell-paused::after,
-.game-shell.shell-menu::after {
+.game-shell.shell-menu::after,
+.game-shell.shell-result::after {
   content: "";
   position: absolute;
   inset: 0;

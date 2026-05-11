@@ -413,6 +413,23 @@ test.describe("Garden Shelf flow", () => {
         await expect(shelfNote).toContainText(/G .* XP/);
         const shelfNoteFontSize = await shelfNote.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
         expect(shelfNoteFontSize).toBeGreaterThanOrEqual(14);
+        const shelfNoteLayout = await shelfNote.evaluate((node) => {
+          const note = node.getBoundingClientRect();
+          const layer = node.closest(".garden-spot-floating-layer");
+          const root = node.closest(".garden-root")?.getBoundingClientRect();
+          return {
+            left: note.left,
+            right: note.right,
+            rootLeft: root?.left ?? 0,
+            rootRight: root?.right ?? window.innerWidth,
+            layerAfterPlant: layer?.previousElementSibling?.matches?.('[data-garden-plant="true"]') || false,
+            layerZIndex: Number.parseInt(getComputedStyle(layer).zIndex, 10),
+          };
+        });
+        expect(shelfNoteLayout.left).toBeGreaterThanOrEqual(shelfNoteLayout.rootLeft - 1);
+        expect(shelfNoteLayout.right).toBeLessThanOrEqual(shelfNoteLayout.rootRight + 1);
+        expect(shelfNoteLayout.layerAfterPlant).toBe(true);
+        expect(shelfNoteLayout.layerZIndex).toBeGreaterThanOrEqual(90);
         await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
 
         let sheet = await openDetailSheet();

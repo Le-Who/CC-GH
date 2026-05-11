@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { get as idbGet, set as idbSet } from "idb-keyval";
+import { VISIBLE_GAME_IDS } from "../app/gameRegistry.js";
 import { api } from "../services/apiClient.js";
 import { audioManager } from "../services/audioManager.js";
 import { haptic } from "../platform/telegram.js";
@@ -7,9 +8,53 @@ import { withNormalizedSnapshot } from "./inventory.js";
 import { createClientActionId, shouldUseDurableOutbox } from "./reliableActions.js";
 
 const YARD_OUTBOX_KEY = "game_hub_yard_outbox_v1";
+export const ACTIVE_TAB_STORAGE_KEY = "game_hub_active_tab_v1";
+export const ACTIVE_TAB_QUERY_PARAM = "tab";
+const ACTIVE_TAB_IDS = new Set(VISIBLE_GAME_IDS);
 const RETRY_DELAYS_MS = [0, 2000, 5000, 15000, 30000, 60000];
 let outboxDrainPromise = null;
 let outboxDrainTimer = null;
+
+export function normalizeActiveTab(value) {
+  const tab = String(value || "").trim();
+  return ACTIVE_TAB_IDS.has(tab) ? tab : "garden";
+}
+
+export function readInitialActiveTab() {
+  if (typeof window === "undefined") return "garden";
+  try {
+    const url = new URL(window.location.href);
+    const tab = url.searchParams.get(ACTIVE_TAB_QUERY_PARAM);
+    if (tab && ACTIVE_TAB_IDS.has(tab)) return tab;
+  } catch {
+    // Location parsing is best-effort; the app can always start from Garden.
+  }
+  try {
+    return normalizeActiveTab(window.sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY));
+  } catch {
+    return "garden";
+  }
+}
+
+function persistActiveTab(activeTab) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
+  } catch {
+    // Session persistence is only to survive in-place refreshes.
+  }
+  try {
+    const url = new URL(window.location.href);
+    if (activeTab === "garden") url.searchParams.delete(ACTIVE_TAB_QUERY_PARAM);
+    else url.searchParams.set(ACTIVE_TAB_QUERY_PARAM, activeTab);
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(window.history.state, "", next);
+    }
+  } catch {
+    // History writes are progressive enhancement for cache-busting reloads.
+  }
+}
 
 function actionLabel(action) {
   return action?.replace(".", " ") || "action";
@@ -98,7 +143,7 @@ function scheduleOutboxDrain(get, delayMs = 0) {
 }
 
 export const useGameHub = create((set, get) => ({
-  activeTab: "garden",
+  activeTab: readInitialActiveTab(),
   snapshot: null,
   status: "booting",
   message: "",
@@ -109,7 +154,11 @@ export const useGameHub = create((set, get) => ({
   activeGameShell: null,
   gardenHud: null,
 
-  setActiveTab: (activeTab) => set({ activeTab, message: "", activeGameShell: null }),
+  setActiveTab: (activeTab) => {
+    const nextTab = normalizeActiveTab(activeTab);
+    persistActiveTab(nextTab);
+    set({ activeTab: nextTab, message: "", activeGameShell: null });
+  },
   setActiveGameShell: (activeGameShell) => set({ activeGameShell }),
   setGardenHud: (gardenHud) => set({ gardenHud }),
 

@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { GAME_REGISTRY, PIXI_GAME_IDS, VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
 import { buildGameHudDescriptors } from "../src/app/useGameHudDescriptors.js";
 import { createClientActionId, shouldUseDurableOutbox } from "../src/game-state/reliableActions.js";
+import { normalizeActiveTab, readInitialActiveTab } from "../src/game-state/useGameHub.js";
 import { selectMatch3InitialRun } from "../src/games/match3/selectMatch3Run.js";
 import { deriveServerNow } from "../src/games/merge/useServerClock.js";
 import { getQuestionTiming } from "../src/games/trivia/useQuestionTimer.js";
@@ -25,6 +26,46 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(id, /^blox:/);
     assert.ok(id.includes("blox-place"));
     assert.ok(!id.includes("piece 1"));
+  });
+
+  it("restores the last active tab for refreshes and ignores invalid tabs", () => {
+    const originalWindow = globalThis.window;
+    const historyCalls = [];
+    const makeStorage = (entries = {}) => {
+      const data = new Map(Object.entries(entries));
+      return {
+        getItem(key) {
+          return data.has(key) ? data.get(key) : null;
+        },
+        setItem(key, value) {
+          data.set(key, String(value));
+        },
+      };
+    };
+
+    globalThis.window = {
+      location: new URL("https://example.test/?tab=merge"),
+      sessionStorage: makeStorage(),
+      history: {
+        state: null,
+        replaceState(_state, _title, url) {
+          historyCalls.push(String(url));
+        },
+      },
+    };
+
+    try {
+      assert.equal(readInitialActiveTab(), "merge");
+      assert.equal(normalizeActiveTab("bubbo"), "bubbo");
+      assert.equal(normalizeActiveTab("farm"), "garden");
+
+      globalThis.window.location = new URL("https://example.test/");
+      globalThis.window.sessionStorage = makeStorage({ game_hub_active_tab_v1: "match3" });
+      assert.equal(readInitialActiveTab(), "match3");
+    } finally {
+      globalThis.window = originalWindow;
+    }
+    assert.equal(historyCalls.length, 0);
   });
 
   it("uses semantic game HUD descriptors instead of generic currency chips", () => {

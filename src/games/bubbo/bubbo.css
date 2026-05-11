@@ -52,3 +52,75 @@
   align-self: start;
   height: 100%;
 }
+
+.bubbo-result-overlay {
+  display: grid;
+  gap: 10px;
+}
+
+.bubbo-result-card {
+  display: grid;
+  gap: 10px;
+  text-align: center;
+}
+
+.bubbo-result-card > span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bubbo-result-card > strong {
+  color: var(--ink);
+  font-size: clamp(1.35rem, 7vw, 2rem);
+  line-height: 1;
+}
+
+.bubbo-result-card > small {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.bubbo-result-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bubbo-result-metrics span {
+  min-width: 0;
+  min-height: 58px;
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  border: 1px solid color-mix(in srgb, var(--shell-accent) 36%, var(--glass-border-soft));
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07)),
+    color-mix(in srgb, var(--shell-accent) 12%, var(--glass-card-strong));
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.bubbo-result-metrics b {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: clamp(1rem, 4.6vw, 1.35rem);
+  line-height: 1;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 380px) {
+  .bubbo-result-metrics {
+    gap: 6px;
+  }
+
+  .bubbo-result-metrics span {
+    min-height: 54px;
+    font-size: 0.66rem;
+  }
+}

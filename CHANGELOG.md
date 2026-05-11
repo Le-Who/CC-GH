@@ -4,6 +4,7 @@
 
 ### Client
 
+- Kept the last active game tab through the query/session state so cache-busting reloads return the player to the same game, lifted Garden Shelf reward pills above the plant art while clamping them inside the garden root, restyled Gacha Merge's bottom dock into clearer Alchemy Table controls with a truthful generator badge/status, and replaced Bubbo's cluttered end-game menu with a compact result overlay.
 - Uncapped Garden Shelf garden progression after level 30 with an extrapolated XP/reward curve, kept the Level Up HUD action available beyond the authored plant-unlock table, and preserved plant evolution levels above 30 during sync.
 - Refined Cozy Yard mobile polish so stationary and lying visitors use decor-local visual anchors, live yard visitor names stay hidden until hover/focus, and shop rows keep description, price, and action controls aligned away from thumbnails on narrow screens with light/dark contrast coverage.
 - Corrected Puzzling Potions snake, spider, yeti, and newt token crops, regenerated their content-hashed runtime assets, and added alpha-component checks so neighboring-token slivers cannot return.
@@ -129,6 +130,7 @@
 
 ### Tests
 
+- Extended the browser smoke coverage for active-tab reload preservation, Garden Shelf floating reward placement, the Alchemy Table dock/readout, and Bubbo's compact result overlay across the mobile viewport matrix.
 - Added Garden Shelf regression coverage proving garden levels, level rewards, XP requirements, and synced plant levels continue past the authored level-30 unlock table.
 - Added focused Cozy Yard Playwright coverage for multi-anchor visitor placement, hidden live-yard visitor labels, mobile shop spacing, dark-theme price contrast, and localized bottom-dock readability.
 - Added a mobile UI viewport matrix pass covering 320x568, 390x844 high-DPI, 414x896, tablet portrait/landscape, desktop smoke, touch contexts, horizontal-scroll checks, bottom dock clipping, dialog reachability, and Pixi resize/redraw behavior.

@@ -219,7 +219,15 @@ export default function MergeGame() {
     }
     return ids;
   }, [merge.discoveredItems, merge.itemCounts]);
-  const generatorCostBadge = activeFuel ? "-1" : freeTapCharges > 0 ? "0" : "";
+  const generatorBadge = freeTapCharges > 0 ? String(freeTapCharges) : activeFuel ? "-1" : "";
+  const generatorStatus = generatorCoolingDown
+    ? t("merge.coolingDown")
+    : freeTapCharges > 0
+      ? t("merge.freeTapsReadyShort", { count: freeTapCharges })
+      : activeFuel
+        ? t("merge.cropFuelReady")
+        : t("merge.noFuelShort");
+  const gachaTokenBadge = t("merge.gachaTokenBadge", { count: tokenCount, cost: ECONOMY.GACHA_PULL_COST });
   const dailyDockDisabled = mergeActionPending || (!canClaimFreeTaps && !canFreePull);
   const dailyDockLabel = canClaimFreeTaps || canFreePull
     ? t("merge.claimDailyTokens")
@@ -520,22 +528,24 @@ export default function MergeGame() {
                 }}
               >
                 <MergeAssetIcon asset={uiAssets.actionIconTrash} icon={Trash2} />
-                <span>{trashMode ? t("merge.trashOn") : t("merge.trash")}</span>
+                <span>{trashMode ? t("merge.trashActiveShort") : t("merge.trashShort")}</span>
               </button>
               <button
                 type="button"
-                className="merge-dock-generate"
+                className={`merge-dock-generate${canTapGenerator ? " ready" : ""}`}
                 data-merge-action="generate"
                 disabled={!canTapGenerator}
-                aria-label={t("merge.generate")}
-                title={generatorCoolingDown ? t("merge.coolingDown") : undefined}
+                aria-label={t("merge.generateActionLabel", { status: generatorStatus })}
+                title={generatorStatus}
                 onClick={() => {
                   audioManager.play("tap");
                   performAction("merge.tap", { chainId: MERGE_WILD_GENERATOR_ID, cropId: activeFuel }, { key: "merge.tap.wild" });
                 }}
               >
                 <MergeAssetIcon asset={uiAssets.actionIconGenerate} icon={Zap} />
-                {generatorCostBadge && <b>{generatorCostBadge}</b>}
+                {generatorBadge && <b>{generatorBadge}</b>}
+                <span className="merge-dock-generate-label">{t("merge.generate")}</span>
+                <small>{generatorStatus}</small>
               </button>
               <button
                 type="button"
@@ -551,7 +561,7 @@ export default function MergeGame() {
               >
                 <MergeAssetIcon asset={uiAssets.actionIconTokens} icon={Sparkles} />
                 <span>{t("merge.gacha")}</span>
-                <b>{tokenCount}</b>
+                <b>{gachaTokenBadge}</b>
               </button>
             </div>
             <button

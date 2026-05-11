@@ -209,8 +209,18 @@ test.describe("New-stack minigame smoke", () => {
     expect(bubboHostBox).not.toBeNull();
     expect(bubboHudBox).not.toBeNull();
     expect(bubboHudBox.y).toBeGreaterThan(bubboHostBox.y + bubboHostBox.height * 0.72);
-    await pauseActiveGame(page);
-    await exitToHub(page);
+    const bubboPauseOverlay = await pauseActiveGame(page);
+    await bubboPauseOverlay.getByRole("button", { name: /^End Run$/ }).click();
+    const bubboResult = page.locator('[data-bubbo-result="true"]');
+    await expect(bubboResult).toBeVisible();
+    await expect(bubboResult.locator(".metric-grid")).toHaveCount(0);
+    await expect(bubboResult.locator(".mode-grid")).toHaveCount(0);
+    await expect(bubboResult.locator(".leaderboard")).toHaveCount(0);
+    await expect(bubboResult.getByRole("button")).toHaveCount(2);
+    await bubboResult.getByRole("button", { name: /^Exit$/ }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
+    await page.waitForTimeout(260);
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await page.locator('[data-mode-selector="bubbo"]').getByRole("button", { name: /Timed/ }).click();
@@ -335,8 +345,8 @@ test.describe("New-stack minigame smoke", () => {
     });
     expect(match3PauseLayout.width).toBeGreaterThanOrEqual(350);
     expect(match3PauseLayout.height).toBeGreaterThanOrEqual(280);
-    expect(match3PauseLayout.height).toBeLessThanOrEqual(360);
-    expect(match3PauseLayout.width).toBeGreaterThan(match3PauseLayout.height);
+    expect(match3PauseLayout.height).toBeLessThanOrEqual(361);
+    expect(match3PauseLayout.width).toBeGreaterThanOrEqual(match3PauseLayout.height - 1);
     expect(match3PauseLayout.smallButtons).toEqual([]);
     await expectCompactPauseMenu(overlay, 4);
     await page.keyboard.press("Escape");

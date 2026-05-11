@@ -29,6 +29,23 @@ interface GardenProps {
 
 const GARDEN_SHELVES = Array.from({ length: MAX_SHELVES }, (_, i) => i);
 const GARDEN_SPOTS = Array.from({ length: SPOTS_PER_SHELF }, (_, i) => i);
+const FLOATING_NOTE_WIDTH = 214;
+
+function clampFloatingNoteShift(anchor: HTMLElement | null, expectedWidth = FLOATING_NOTE_WIDTH) {
+  if (!anchor || typeof window === "undefined") return 0;
+  const anchorRect = anchor.getBoundingClientRect();
+  const bounds = anchor.closest(".garden-root")?.getBoundingClientRect() || {
+    left: 0,
+    right: window.innerWidth,
+    width: window.innerWidth,
+  };
+  const half = Math.min(expectedWidth / 2, Math.max(0, bounds.width - 16) / 2);
+  const center = anchorRect.left + anchorRect.width / 2;
+  const min = bounds.left + half + 8;
+  const max = bounds.right - half - 8;
+  const target = Math.max(min, Math.min(max, center));
+  return Math.round(target - center);
+}
 
 export function Garden({ onSelectSpot, assetPaths }: GardenProps) {
   const { state, unlockShelf } = useGame();
@@ -210,15 +227,16 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
             setTimeout(() => { btn.style.transform = ''; }, 120);
         }
 
+        const noteShift = clampFloatingNoteShift(e?.currentTarget as HTMLElement | null);
         if (plant.phase === 3) {
             const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy;
             const amount = getClickReward(def.baseClick, plant.level);
             const xp = getClickXpReward(def.baseXp, plant.level);
             setFloatingTexts([
-              { id: `${id}-reward`, text: `+${formatGardenGoldAmount(amount)} G · +${xp} XP`, type: 'reward', x: 0 },
+              { id: `${id}-reward`, text: `+${formatGardenGoldAmount(amount)} G · +${xp} XP`, type: 'reward', x: noteShift },
             ]);
         } else {
-            setFloatingTexts([{ id, text: `+${tapAccelerationSeconds}s`, type: 'time', x: 0 }]);
+            setFloatingTexts([{ id, text: `+${tapAccelerationSeconds}s`, type: 'time', x: noteShift }]);
         }
         
         setTimeout(() => {
@@ -390,24 +408,24 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           </motion.div>
         </div>
       )}
-      
-      {/* Floating text effects */}
-      <AnimatePresence>
-        {floatingTexts.map(ft => (
-          <motion.div
-            key={ft.id}
-            initial={{ opacity: 0, y: 10, scale: 0.78 }}
-            animate={{ opacity: [0, 1, 1, 0], y: -46, scale: [0.78, 1.08, 1] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.95, ease: "easeOut" }}
-            style={{ left: `calc(50% + ${ft.x}px)` }}
-            className={`garden-floating-note ${ft.type}`}
-          >
-            {ft.text}
-          </motion.div>
-        ))}
-      </AnimatePresence>
     </motion.button>
+        <div className="garden-spot-floating-layer" aria-hidden="true">
+          <AnimatePresence>
+            {floatingTexts.map(ft => (
+              <motion.div
+                key={ft.id}
+                initial={{ opacity: 0, y: 10, scale: 0.78 }}
+                animate={{ opacity: [0, 1, 1, 0], y: -44, scale: [0.78, 1.08, 1] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.95, ease: "easeOut" }}
+                style={{ left: `calc(50% + ${ft.x}px)` }}
+                className={`garden-floating-note ${ft.type}`}
+              >
+                {ft.text}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
         <button
           type="button"
           className="plant-details-button"

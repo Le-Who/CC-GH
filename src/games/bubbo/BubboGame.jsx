@@ -35,6 +35,7 @@ export default function BubboGame() {
   const [shotsFired, setShotsFired] = useState(0);
   const [gameActive, setGameActive] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [runResult, setRunResult] = useState(null);
   const [currentBubble, setCurrentBubble] = useState(() => randomBubboColor());
   const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
   const [lastShot, setLastShot] = useState(null);
@@ -104,6 +105,7 @@ export default function BubboGame() {
     setShotsFired(0);
     setGameActive(true);
     setPaused(false);
+    setRunResult(null);
     pressureClockRef.current = Date.now();
     const firstBubble = randomBubboColor(run.board);
     const queuedBubble = randomBubboColor(run.board);
@@ -134,6 +136,7 @@ export default function BubboGame() {
     setShotsFired(Number(savedRun.shotsFired) || 0);
     setGameActive(true);
     setPaused(false);
+    setRunResult(null);
     pressureClockRef.current = Date.now();
     const firstBubble = randomBubboColor(nextBoard);
     const queuedBubble = randomBubboColor(nextBoard);
@@ -146,11 +149,26 @@ export default function BubboGame() {
 
   const finish = useCallback(
     (finalScore = score, fromQuit = false) => {
+      const current = runRef.current;
+      const resultMode = current.mode || mode;
+      const resultPressure = getBubboPressureLabel({
+        dangerRows: getBubboDangerRows(current.board),
+        pressureStep: current.pressureStep,
+      });
+      setRunResult({
+        score: finalScore,
+        mode: resultMode,
+        limitLabelKey: resultMode === "timed" ? "common.time" : "common.shots",
+        limitValue: resultMode === "timed" ? Math.max(0, Number(current.timeLeft) || 0) : Math.max(0, Number(current.shotsLeft) || 0),
+        shotsFired: Math.max(0, Number(current.shotsFired) || 0),
+        bubbles: getBubboRemainingCount(current.board),
+        pressureTone: resultPressure.tone,
+      });
       setGameActive(false);
       setPaused(false);
       performAction("bubbo.end", { score: finalScore, fromQuit }, { key: "bubbo.end" });
     },
-    [performAction, score],
+    [mode, performAction, score],
   );
 
   useEffect(() => {
@@ -328,9 +346,10 @@ export default function BubboGame() {
   return (
     <GameShell
       gameId="bubbo"
-      phase={isPlaying ? "playing" : gameActive ? "paused" : "menu"}
+      phase={isPlaying ? "playing" : gameActive ? "paused" : runResult ? "result" : "menu"}
       skin="cycle"
       className="bubbo-shell"
+      overlayClassName={runResult ? "bubbo-result-overlay" : ""}
       hud={(
         <GamePlayHud
           gameId="bubbo"
@@ -346,85 +365,108 @@ export default function BubboGame() {
       )}
       overlay={(
         <>
-          <div className="panel-header pause-panel-header">
-            <div>
-              <strong>{t("bubbo.title")}</strong>
-              <span>{activePause ? t("pause.paused") : `${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${highScore} · ${primaryLimitLabel.toLowerCase()} ${primaryLimitValue}`}</span>
-            </div>
-            {!activePause && (
-              <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>
-                {gameActive ? t("common.restart") : t("common.start")}
-              </PanelButton>
-            )}
-          </div>
-          <PauseBrief
-            gameId="bubbo"
-            kicker={gameActive ? t("pause.paused") : t("pause.ready")}
-            title={gameActive ? t("pause.bubboFrozen") : t("pause.bubboReady")}
-            body={gameActive ? t("pause.bubboIntro") : t("pause.bubboPlan")}
-            status={gameActive ? [
-              { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.shots") },
-              { label: primaryLimitLabel, value: primaryLimitValue },
-              { label: t("bubbo.bubbles"), value: remainingBubbles },
-            ] : []}
-          />
-          {activePause && (
-            <div className="pause-action-stack">
-              <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
-              <div className="button-row">
-                <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.endRun")}</PanelButton>
-                <PanelButton icon={RotateCcw} subtle onClick={() => start(mode)}>{t("common.restart")}</PanelButton>
+          {runResult ? (
+            <div className="bubbo-result-card" data-bubbo-result="true">
+              <span>{t("bubbo.result.kicker")}</span>
+              <strong>{t("bubbo.result.title")}</strong>
+              <small>{t(`bubbo.mode.${runResult.mode}`)} · {t(`bubbo.pressure.${runResult.pressureTone}`)}</small>
+              <div className="bubbo-result-metrics">
+                <span>{t("common.score")}<b>{runResult.score}</b></span>
+                <span>{t(runResult.limitLabelKey)}<b>{runResult.limitValue}</b></span>
+                <span>{t("bubbo.bubbles")}<b>{runResult.bubbles}</b></span>
+              </div>
+              <div className="button-row two">
+                <PanelButton icon={Play} className="pause-primary" onClick={() => start(runResult.mode)}>{t("common.restart")}</PanelButton>
                 <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
               </div>
             </div>
-          )}
-          {!gameActive && (
+          ) : (
             <>
-              {savedRun?.board && (
-                <div className="bubbo-resume-banner">
-                  <span>{t("bubbo.resumeHint")}</span>
-                  <PanelButton icon={Play} onClick={resumeRun}>{t("common.resume")}</PanelButton>
+              <div className="panel-header pause-panel-header">
+                <div>
+                  <strong>{t("bubbo.title")}</strong>
+                  <span>{activePause ? t("pause.paused") : `${t(currentMode.labelKey)} · ${t("common.best").toLowerCase()} ${highScore} · ${primaryLimitLabel.toLowerCase()} ${primaryLimitValue}`}</span>
+                </div>
+                {!activePause && (
+                  <PanelButton icon={gameActive ? RotateCcw : Play} className={!gameActive ? "pause-primary" : ""} onClick={() => start(mode)}>
+                    {gameActive ? t("common.restart") : t("common.start")}
+                  </PanelButton>
+                )}
+              </div>
+              <PauseBrief
+                gameId="bubbo"
+                kicker={gameActive ? t("pause.paused") : t("pause.ready")}
+                title={gameActive ? t("pause.bubboFrozen") : t("pause.bubboReady")}
+                body={gameActive ? t("pause.bubboIntro") : t("pause.bubboPlan")}
+                status={gameActive ? [
+                  { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.shots") },
+                  { label: primaryLimitLabel, value: primaryLimitValue },
+                  { label: t("bubbo.bubbles"), value: remainingBubbles },
+                ] : []}
+              />
+              {activePause && (
+                <div className="pause-action-stack">
+                  <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>
+                  <div className="button-row">
+                    <PanelButton icon={Check} onClick={() => finish(score)}>{t("common.endRun")}</PanelButton>
+                    <PanelButton icon={RotateCcw} subtle onClick={() => start(mode)}>{t("common.restart")}</PanelButton>
+                    <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
+                  </div>
                 </div>
               )}
-              <div className="mode-grid bubbo-mode-grid" data-mode-selector="bubbo">
-                {BUBBO_MODES.map((item) => (
-                  <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => setMode(item.id)}>
-                    <span className="mode-choice-selected" aria-hidden="true" />
-                    <strong>{t(item.labelKey)}</strong>
-                    <small>{t(item.hintKey)}</small>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-          {!activePause && (
-            <>
-              <div className="metric-grid">
-                <Stat icon={Trophy} label={t("common.score")} value={score} />
-                <Stat icon={mode === "timed" ? Clock : Sparkles} label={primaryLimitLabel} value={primaryLimitValue} />
-                <Stat icon={Gem} label={t("bubbo.bubbles")} value={remainingBubbles} />
-              </div>
-              <div className="button-row">
-                <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
-                <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
-                  const run = createBubboRun("local-preview", { mode });
-                  setBoard(run.board);
-                  setPendingRow(run.pendingRow);
-                  setSeed(run.seed);
-                  setWaveIndex(run.waveIndex);
-                  setRowOffset(run.rowOffset || 0);
-                  setPressure(0);
-                  setPressureStep(0);
-                  setTimeLeft(run.timeLeft ?? BUBBO_TIMED_SECONDS);
-                  setShotsLeft(run.shotsLeft);
-                  setShotsFired(0);
-                }}>{t("bubbo.newField")}</PanelButton>
-                <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
-              </div>
-              <div className="leaderboard">
-                <strong>{t("bubbo.runStatus")}</strong>
-                <span>{danger ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
-              </div>
+              {!gameActive && (
+                <>
+                  {savedRun?.board && (
+                    <div className="bubbo-resume-banner">
+                      <span>{t("bubbo.resumeHint")}</span>
+                      <PanelButton icon={Play} onClick={resumeRun}>{t("common.resume")}</PanelButton>
+                    </div>
+                  )}
+                  <div className="mode-grid bubbo-mode-grid" data-mode-selector="bubbo">
+                    {BUBBO_MODES.map((item) => (
+                      <button key={item.id} className={mode === item.id ? "active" : ""} onClick={() => {
+                        setRunResult(null);
+                        setMode(item.id);
+                      }}>
+                        <span className="mode-choice-selected" aria-hidden="true" />
+                        <strong>{t(item.labelKey)}</strong>
+                        <small>{t(item.hintKey)}</small>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+              {!activePause && (
+                <>
+                  <div className="metric-grid">
+                    <Stat icon={Trophy} label={t("common.score")} value={score} />
+                    <Stat icon={mode === "timed" ? Clock : Sparkles} label={primaryLimitLabel} value={primaryLimitValue} />
+                    <Stat icon={Gem} label={t("bubbo.bubbles")} value={remainingBubbles} />
+                  </div>
+                  <div className="button-row">
+                    <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>
+                    <PanelButton icon={RotateCcw} subtle disabled={gameActive} onClick={() => {
+                      const run = createBubboRun("local-preview", { mode });
+                      setRunResult(null);
+                      setBoard(run.board);
+                      setPendingRow(run.pendingRow);
+                      setSeed(run.seed);
+                      setWaveIndex(run.waveIndex);
+                      setRowOffset(run.rowOffset || 0);
+                      setPressure(0);
+                      setPressureStep(0);
+                      setTimeLeft(run.timeLeft ?? BUBBO_TIMED_SECONDS);
+                      setShotsLeft(run.shotsLeft);
+                      setShotsFired(0);
+                    }}>{t("bubbo.newField")}</PanelButton>
+                    <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
+                  </div>
+                  <div className="leaderboard">
+                    <strong>{t("bubbo.runStatus")}</strong>
+                    <span>{danger ? t("bubbo.dangerLine") : t("bubbo.fieldStable")} · {t("bubbo.highScore", { score: highScore })}</span>
+                  </div>
+                </>
+              )}
             </>
           )}
         </>

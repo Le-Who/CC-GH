@@ -24,6 +24,8 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.highScore": "high score {score}",
     "bubbo.clearEvent": "Clear",
     "bubbo.resumeHint": "Saved Bubbo run found.",
+    "bubbo.result.kicker": "Run complete",
+    "bubbo.result.title": "Bubbo result",
   },
   ru: {
     "pause.bubboFrozen": "Пауза: стреляйте одинаковыми шарами",
@@ -48,6 +50,8 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.highScore": "рекорд {score}",
     "bubbo.clearEvent": "Чистка",
     "bubbo.resumeHint": "Найден сохраненный ран Bubbo.",
+    "bubbo.result.kicker": "Ран завершен",
+    "bubbo.result.title": "Итог Bubbo",
   },
 };
 
