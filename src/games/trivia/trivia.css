@@ -368,35 +368,31 @@
 }
 
 .trivia-shell .trivia-pause-overlay .panel-button {
-  background:
-    linear-gradient(180deg, rgba(255, 248, 220, 0.16), rgba(34, 22, 12, 0.08)),
-    url("/games/trivia/button-primary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #f8d674, #d4933f);
-  color: #1f2030;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff7d8;
+  text-shadow: 0 2px 0 rgba(10, 18, 38, 0.52);
 }
 
 .trivia-shell .trivia-pause-overlay .panel-button.subtle {
-  background:
-    linear-gradient(180deg, rgba(255, 248, 220, 0.12), rgba(7, 12, 24, 0.08)),
-    url("/games/trivia/button-secondary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #6f85af, #405273);
-  color: var(--trivia-ink);
+  background: transparent;
+  color: #fff7d8;
 }
 
 .trivia-shell .trivia-pause-overlay .panel-button.danger {
-  background:
-    linear-gradient(180deg, rgba(255, 248, 220, 0.12), rgba(55, 12, 18, 0.08)),
-    url("/games/trivia/button-danger.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #ff9a85, #cf6258);
-  color: #2c1112;
+  background: transparent;
+  color: #ffd8c6;
 }
 
 .trivia-card .panel-button {
-  background:
-    linear-gradient(180deg, rgba(255, 248, 220, 0.16), rgba(34, 22, 12, 0.08)),
-    url("/games/trivia/button-primary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #f8d674, #d4933f);
-  color: #1f2030;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff7d8;
+  text-shadow: 0 2px 0 rgba(10, 18, 38, 0.52);
 }
 
 @media (max-width: 980px) {

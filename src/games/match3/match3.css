@@ -252,33 +252,32 @@
   --match3-mode-card-art: none;
   min-height: 72px;
   overflow: hidden;
-  border-color: rgba(244, 192, 93, 0.24);
-  background:
-    linear-gradient(135deg, rgba(113, 199, 161, 0.2), transparent 44%),
-    var(--match3-mode-card-art) center / 100% 100% no-repeat,
-    linear-gradient(180deg, rgba(63, 43, 38, 0.88), rgba(33, 24, 24, 0.9));
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--match3-ink);
 }
 
 .match3-menu-overlay .mode-grid button:nth-child(1) {
-  --match3-mode-card-art: url("/games/puzzling-potions/images/mode-card-classic.png");
+  --match3-mode-card-art: none;
 }
 
 .match3-menu-overlay .mode-grid button:nth-child(2) {
-  --match3-mode-card-art: url("/games/puzzling-potions/images/mode-card-timed.png");
+  --match3-mode-card-art: none;
 }
 
 .match3-menu-overlay .mode-grid button:nth-child(3) {
-  --match3-mode-card-art: url("/games/puzzling-potions/images/mode-card-drop.png");
+  --match3-mode-card-art: none;
 }
 
 .match3-menu-overlay .mode-grid button::before {
-  background: linear-gradient(135deg, rgba(244, 192, 93, 0.16), transparent 42%);
+  background: none;
 }
 
 .match3-menu-overlay .mode-grid button.active {
-  border-color: rgba(244, 192, 93, 0.72);
-  box-shadow: 0 0 0 1px rgba(244, 192, 93, 0.28), 0 16px 30px rgba(22, 12, 8, 0.28);
+  outline: 2px solid rgba(113, 199, 161, 0.72);
+  outline-offset: -4px;
+  box-shadow: none;
 }
 
 .match3-menu-overlay .mode-grid small,
@@ -293,11 +292,10 @@
 
 .match3-menu-overlay .panel-button {
   min-height: 44px;
-  border-color: rgba(244, 192, 93, 0.32);
-  background:
-    linear-gradient(180deg, rgba(255, 241, 196, 0.14), rgba(55, 22, 18, 0.06)),
-    url("/games/puzzling-potions/images/button-secondary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, rgba(83, 54, 37, 0.98), rgba(42, 29, 25, 0.98));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   color: var(--match3-ink);
 }
 
@@ -313,18 +311,12 @@
 
 .match3-menu-overlay .panel-button.pause-primary,
 .match3-menu-overlay .panel-button:not(.subtle):not(.danger) {
-  background:
-    linear-gradient(180deg, rgba(255, 244, 210, 0.18), rgba(71, 29, 16, 0.06)),
-    url("/games/puzzling-potions/images/button-primary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #e9b957, #a96b3d);
-  color: #221411;
+  background: transparent;
+  color: var(--match3-ink);
 }
 
 .match3-menu-overlay .panel-button.danger {
-  background:
-    linear-gradient(180deg, rgba(255, 244, 210, 0.12), rgba(70, 15, 22, 0.08)),
-    url("/games/puzzling-potions/images/button-secondary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #d86f68, #8f3d42);
+  background: transparent;
   color: #fff6df;
 }
 
@@ -424,21 +416,17 @@
 }
 
 .match3-menu-overlay .mode-grid button {
-  border: 1px solid rgba(244, 192, 93, 0.48);
-  background:
-    linear-gradient(180deg, rgba(255, 238, 184, 0.95), rgba(174, 107, 51, 0.94)),
-    #e6bd72;
+  border: 0;
+  background: transparent;
   color: #321d15;
   text-shadow: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 8px 18px rgba(28, 15, 10, 0.22);
+  box-shadow: none;
 }
 
 .match3-menu-overlay .mode-grid button.active {
-  border-color: rgba(113, 199, 161, 0.86);
-  box-shadow:
-    0 0 0 2px rgba(113, 199, 161, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    0 10px 20px rgba(28, 15, 10, 0.26);
+  outline: 2px solid rgba(113, 199, 161, 0.72);
+  outline-offset: -4px;
+  box-shadow: none;
 }
 
 .match3-menu-overlay .mode-grid small {
@@ -446,26 +434,20 @@
 }
 
 .match3-menu-overlay .panel-button {
-  background:
-    linear-gradient(180deg, #69c9f4, #1974c7),
-    #2495dc;
-  color: #071a2c;
-  text-shadow: none;
+  background: transparent;
+  color: #fff6dc;
+  text-shadow: 0 2px 0 rgba(48, 18, 54, 0.52);
 }
 
 .match3-menu-overlay .panel-button.pause-primary,
 .match3-menu-overlay .panel-button:not(.subtle):not(.danger) {
-  background:
-    linear-gradient(180deg, #9edc36, #4aa02d),
-    #73bd34;
-  color: #17220e;
+  background: transparent;
+  color: #fff6dc;
 }
 
 .match3-menu-overlay .panel-button.danger {
-  background:
-    linear-gradient(180deg, #ff9788, #d85d56),
-    #e06a5d;
-  color: #2c1110;
+  background: transparent;
+  color: #ffe4ce;
 }
 
 @media (max-width: 430px) {

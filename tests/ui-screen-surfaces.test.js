@@ -25,6 +25,39 @@ function resolvePublicAsset(assetPath) {
   return path.join(publicRoot, assetPath.slice(1).replace(/\//g, path.sep));
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function findCssBlocksForSelector(css, selector) {
+  const blockPattern = new RegExp(`(?:^|\\n)[^{}]*${escapeRegExp(selector)}[^{}]*\\{([^{}]*)\\}`, "g");
+  return Array.from(css.matchAll(blockPattern), (match) => match[1]);
+}
+
+function assertTransparentSlotSelector(css, selector, filePath) {
+  const blocks = findCssBlocksForSelector(css, selector);
+  assert.ok(blocks.length > 0, `${filePath} is missing ${selector}`);
+
+  let sawTransparentBackground = false;
+  for (const block of blocks) {
+    assert.doesNotMatch(block, /url\s*\(/, `${filePath} ${selector} must not use a button-art background`);
+    assert.doesNotMatch(block, /linear-gradient\s*\(/, `${filePath} ${selector} must not use a CSS button fill`);
+
+    if (!/background(?:-image)?\s*:/.test(block)) {
+      continue;
+    }
+
+    assert.match(
+      block,
+      /background\s*:\s*(?:transparent(?:\s*!important)?|none)\s*;/,
+      `${filePath} ${selector} must be a transparent hitbox or disabled pseudo layer`,
+    );
+    sawTransparentBackground = true;
+  }
+
+  assert.ok(sawTransparentBackground, `${filePath} ${selector} must explicitly set a transparent background`);
+}
+
 test("screen surface asset map covers every game screen family", async () => {
   const modulePath = pathToFileURL(path.join(root, "src", "app", "screenSurfaceAssets.js")).href;
   const { SCREEN_SURFACE_ASSETS } = await import(modulePath);
@@ -80,5 +113,54 @@ test("screen mockup reference manifest remains complete", async () => {
 
   for (const id of Object.keys(requiredScreens)) {
     assert.ok(ids.has(id), `${id} is missing from the generated screen mockup manifest`);
+  }
+});
+
+test("screen slot controls stay transparent over generated panel art", async () => {
+  const slotSelectorsByFile = {
+    "src/games/trivia/trivia.css": [
+      ".trivia-shell .trivia-pause-overlay .panel-button",
+      ".trivia-shell .trivia-pause-overlay .panel-button.subtle",
+      ".trivia-shell .trivia-pause-overlay .panel-button.danger",
+      ".trivia-card .panel-button",
+      ".trivia-shell[data-trivia-view=\"menu\"] .trivia-card .panel-button",
+    ],
+    "src/games/blox/blox.css": [
+      ".blox-menu-overlay .panel-button",
+      ".blox-menu-overlay .panel-button.pause-primary",
+      ".blox-menu-overlay .panel-button:not(.subtle):not(.danger)",
+      ".blox-menu-overlay .panel-button.danger",
+      ".blox-menu-overlay .panel-button:disabled",
+      ".blox-menu-overlay[data-menu-phase=\"menu\"] .panel-button",
+    ],
+    "src/games/bubbo/bubbo.css": [
+      ".bubbo-shell .game-menu-overlay .panel-button",
+      ".bubbo-shell .game-menu-overlay .panel-button.danger",
+      ".bubbo-shell .game-menu-overlay .panel-button:disabled",
+      ".bubbo-shell .game-menu-overlay .mode-grid button",
+      ".bubbo-shell .game-menu-overlay[data-menu-phase=\"menu\"]:not(.bubbo-result-overlay) .panel-button",
+    ],
+    "src/games/match3/match3.css": [
+      ".match3-menu-overlay .panel-button",
+      ".match3-menu-overlay .panel-button.pause-primary",
+      ".match3-menu-overlay .panel-button:not(.subtle):not(.danger)",
+      ".match3-menu-overlay .panel-button.danger",
+      ".match3-menu-overlay .mode-grid button",
+      ".match3-menu-overlay[data-menu-phase=\"menu\"]:not(.match3-pause-compact) .panel-button",
+    ],
+    "src/games/merge/merge.css": [
+      ".merge-pause-overlay .panel-button",
+      ".merge-pause-overlay .panel-button.pause-primary",
+      ".merge-pause-overlay .panel-button:not(.subtle):not(.danger)",
+      ".merge-pause-overlay .panel-button.danger",
+      ".merge-pause-overlay .panel-button.active",
+    ],
+  };
+
+  for (const [filePath, selectors] of Object.entries(slotSelectorsByFile)) {
+    const css = await readFile(path.join(root, filePath), "utf8");
+    for (const selector of selectors) {
+      assertTransparentSlotSelector(css, selector, filePath);
+    }
   }
 });

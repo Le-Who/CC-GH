@@ -188,18 +188,15 @@
 
 .bubbo-shell .game-menu-overlay .panel-button {
   border: 0;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(30, 77, 87, 0.06)),
-    url("/games/bubbo-bubbo/images/button-flat.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #9debd5, #65c8c6);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  filter: none;
   color: #12383f;
 }
 
 .bubbo-shell .game-menu-overlay .panel-button.danger {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(74, 22, 28, 0.08)),
-    url("/games/bubbo-bubbo/images/button-flat.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, #ffa195, #df6b75);
+  background: transparent;
   color: #3a1518;
 }
 
@@ -399,29 +396,23 @@
 }
 
 .bubbo-shell .game-menu-overlay .mode-grid button {
-  border: 1px solid rgba(105, 200, 198, 0.42);
-  background:
-    linear-gradient(180deg, #fff5fb, #d8f3e7),
-    #eafaf2;
+  border: 0;
+  background: transparent;
   color: #173f45;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.64), 0 8px 18px rgba(29, 58, 66, 0.18);
+  box-shadow: none;
 }
 
 .bubbo-shell .game-menu-overlay .mode-grid button.active {
-  border-color: rgba(118, 185, 141, 0.9);
-  box-shadow:
-    0 0 0 2px rgba(118, 185, 141, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.64),
-    0 10px 20px rgba(29, 58, 66, 0.22);
+  outline: 2px solid rgba(118, 185, 141, 0.64);
+  outline-offset: -5px;
+  box-shadow: none;
 }
 
 .bubbo-shell .game-menu-overlay .panel-button:disabled {
   opacity: 1;
-  background:
-    linear-gradient(180deg, #b8c8c3, #81928f),
-    #91a39f;
+  background: transparent;
   color: rgba(18, 56, 63, 0.72);
-  filter: saturate(0.72);
+  filter: none;
 }
 
 @media (max-width: 430px) {
@@ -653,6 +644,9 @@
 }
 
 .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
