@@ -6,8 +6,8 @@
   --shell-soft: rgba(250, 242, 211, 0.86);
   --farm-ink: #3c4224;
   --farm-muted: rgba(60, 66, 36, 0.72);
-  --farm-panel-art: url("/games/farm/ui/side_panel.png");
-  --farm-hud-art: url("/games/farm/ui/hud_bar.png");
+  --farm-panel-art: url("/games/ui-surfaces/farm-panel.png");
+  --farm-hud-art: url("/games/ui-surfaces/farm-panel.png");
   background:
     linear-gradient(180deg, rgba(255, 248, 215, 0.72), rgba(168, 213, 126, 0.48)),
     url("/games/farm/background-field.png") center / cover no-repeat;

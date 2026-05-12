@@ -1,0 +1,65 @@
+{
+  "source": "assets-source/imagegen/ui-screen-surfaces/ccgh-screen-surface-atlas/raw-screen-surface-atlas.png",
+  "width": 1254,
+  "height": 1254,
+  "rows": 3,
+  "cols": 3,
+  "cellW": 418,
+  "cellH": 418,
+  "outputs": [
+    {
+      "name": "hub-panel",
+      "file": "hub-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "garden-panel",
+      "file": "garden-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "blox-panel",
+      "file": "blox-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "match3-panel",
+      "file": "match3-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "merge-panel",
+      "file": "merge-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "bubbo-panel",
+      "file": "bubbo-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "trivia-panel",
+      "file": "trivia-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "yard-panel",
+      "file": "yard-panel.png",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "name": "farm-panel",
+      "file": "farm-panel.png",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

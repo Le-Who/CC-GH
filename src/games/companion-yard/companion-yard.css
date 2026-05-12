@@ -729,40 +729,40 @@
 }
 
 .companion-yard-layout.game-shell {
-  --yard-hud-cream: rgba(255, 247, 225, 0.92);
-  --yard-hud-cream-strong: rgba(255, 250, 235, 0.98);
+  --yard-hud-cream: #fff7e1;
+  --yard-hud-cream-strong: #fffceb;
   --yard-hud-line: rgba(117, 88, 48, 0.28);
   --yard-hud-ink: #5a4630;
-  --yard-hud-muted: rgba(90, 70, 48, 0.72);
+  --yard-hud-muted: #715d45;
   --yard-hud-green: #4f7a3d;
   --yard-hud-shadow: 0 12px 28px rgba(68, 58, 34, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
   --yard-hud-active-border: rgba(83, 129, 54, 0.54);
   --yard-hud-active-bg:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(218, 239, 169, 0.28)),
-    rgba(248, 255, 226, 0.94);
+    linear-gradient(180deg, #ffffff, #eaf7c9),
+    #f8ffe2;
   --yard-hud-active-shadow: 0 0 0 3px rgba(126, 173, 72, 0.18), 0 10px 24px rgba(79, 116, 48, 0.16);
   --yard-hud-active-ink: #416a2f;
 }
 
 :root[data-ui-theme="dark"] .companion-yard-layout.game-shell {
-  --yard-hud-cream: rgba(37, 42, 29, 0.9);
-  --yard-hud-cream-strong: rgba(29, 33, 24, 0.96);
+  --yard-hud-cream: #252a1d;
+  --yard-hud-cream-strong: #1d2118;
   --yard-hud-line: rgba(228, 197, 128, 0.24);
   --yard-hud-ink: #f3dfbb;
-  --yard-hud-muted: rgba(243, 223, 187, 0.78);
+  --yard-hud-muted: #dbc698;
   --yard-hud-green: #c7d889;
   --yard-hud-shadow: 0 14px 34px rgba(7, 10, 9, 0.36), inset 0 1px 0 rgba(255, 232, 179, 0.12);
   --yard-hud-active-border: rgba(205, 226, 136, 0.5);
   --yard-hud-active-bg:
-    linear-gradient(180deg, rgba(211, 239, 153, 0.18), rgba(211, 239, 153, 0.06)),
-    rgba(45, 56, 32, 0.96);
+    linear-gradient(180deg, #394826, #2d3820),
+    #2d3820;
   --yard-hud-active-shadow: 0 0 0 3px rgba(199, 216, 137, 0.14), 0 10px 24px rgba(9, 13, 8, 0.26);
   --yard-hud-active-ink: var(--yard-hud-green);
-  --glass-card: rgba(35, 40, 30, 0.74);
-  --glass-card-strong: rgba(29, 34, 27, 0.92);
+  --glass-card: #23281e;
+  --glass-card-strong: #1d221b;
   --glass-border-soft: rgba(229, 199, 137, 0.2);
-  --glass-highlight: rgba(255, 236, 185, 0.1);
-  --glass-highlight-soft: rgba(255, 236, 185, 0.04);
+  --glass-highlight: #303927;
+  --glass-highlight-soft: #20271f;
   --muted: #d4bc90;
   --ink: #f5e3c3;
   --panel-2: #20271f;
@@ -1590,6 +1590,92 @@
   cursor: pointer;
 }
 
+/* Final screen-surface pass: all actionable Yard UI sits on opaque generated art. */
+.companion-yard-layout .yard-currency-chip,
+.companion-yard-layout .yard-side-tools.open,
+.companion-yard-layout .yard-bottom-dock,
+.companion-yard-layout .yard-activity-pill,
+.companion-yard-layout .yard-placement-dock {
+  background:
+    linear-gradient(180deg, #fffdf2, #f2e5c6),
+    var(--yard-hud-cream-strong);
+}
+
+.companion-yard-layout .yard-game-screen {
+  background:
+    linear-gradient(180deg, #fffdf2, #f3e5c4),
+    var(--yard-screen-panel-art) center / cover no-repeat,
+    #fff9e8;
+}
+
+.companion-yard-layout .yard-card,
+.companion-yard-layout .yard-petbook-card,
+.companion-yard-layout .yard-photo-card,
+.companion-yard-layout .yard-shop-row,
+.companion-yard-layout .yard-inventory-item,
+.companion-yard-layout .yard-stat,
+.companion-yard-layout .yard-choice-tile,
+.companion-yard-layout .yard-metric-grid span,
+.companion-yard-layout .yard-price-chip {
+  background:
+    linear-gradient(180deg, #fffdf2, #f2e5c6),
+    #fffaf0;
+}
+
+.companion-yard-layout .yard-price-part {
+  background: #fffdf4;
+}
+
+.companion-yard-layout .yard-icon-button {
+  background:
+    linear-gradient(180deg, #fffdf4, #efe0be),
+    url("/games/companion-yard/ui/button_small_empty.png") center / 100% 100% no-repeat,
+    #fff3cf;
+}
+
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-currency-chip,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-side-tools.open,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-bottom-dock,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-activity-pill,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-placement-dock {
+  background:
+    linear-gradient(180deg, #303927, #20271f),
+    var(--yard-hud-cream-strong);
+}
+
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-game-screen {
+  background:
+    linear-gradient(180deg, #3d4127, #1d221a),
+    var(--yard-screen-panel-art) center / cover no-repeat,
+    #20251d;
+}
+
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-card,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-shop-row,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-photo-card,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-petbook-card,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-inventory-item,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-stat,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-choice-tile,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-metric-grid span,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-price-chip {
+  background:
+    linear-gradient(180deg, #303927, #20271f),
+    #20271f;
+}
+
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-price-part {
+  background: #2c3425;
+}
+
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-icon-button,
+:root[data-ui-theme="dark"] .companion-yard-layout .yard-button {
+  background:
+    linear-gradient(180deg, #3a442d, #20271f),
+    url("/games/companion-yard/ui/button_small_empty.png") center / 100% 100% no-repeat,
+    #20271f;
+}
+
 @media (max-width: 780px) {
   .companion-yard-layout .yard-bowls {
     top: 84px;
@@ -1839,4 +1925,39 @@
   .yard-shop-purchase {
     grid-template-columns: 1fr;
   }
+}
+
+.companion-yard-layout {
+  --yard-generated-panel-art: url("/games/ui-surfaces/yard-panel.png");
+}
+
+.companion-yard-layout .yard-game-screen,
+.companion-yard-layout .yard-bottom-dock {
+  background:
+    var(--yard-generated-panel-art) center / 100% 100% no-repeat,
+    #f1c77f !important;
+  border: 0;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.companion-yard-layout .yard-currency-chip,
+.companion-yard-layout .yard-card,
+.companion-yard-layout .yard-petbook-card,
+.companion-yard-layout .yard-photo-card,
+.companion-yard-layout .yard-shop-row,
+.companion-yard-layout .yard-inventory-item,
+.companion-yard-layout .yard-stat {
+  background:
+    linear-gradient(180deg, #fff0c9, #e0ad65),
+    #e7ba78 !important;
+  color: #3d2818;
+}
+
+.companion-yard-layout .yard-icon-button,
+.companion-yard-layout .yard-button {
+  background:
+    url("/games/companion-yard/ui/button_small_empty.png") center / 100% 100% no-repeat,
+    #e8be78 !important;
+  color: #3d2818;
 }

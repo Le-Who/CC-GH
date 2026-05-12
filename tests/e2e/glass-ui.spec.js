@@ -70,7 +70,7 @@ test.describe("Glass UI rollout smoke", () => {
     expect(Math.max(...samples), `${label} should not keep a light panel background in dark mode`).toBeLessThan(150);
   }
 
-  async function expectPotionSurface(page, locator, label, testInfo) {
+  async function expectMatch3Surface(page, locator, label, testInfo) {
     await expect(locator).toBeVisible();
     await page.waitForTimeout(80);
     const surface = await locator.evaluate((node) => {
@@ -90,7 +90,11 @@ test.describe("Glass UI rollout smoke", () => {
     expect(surface.x, `${label} left edge stays inside viewport`).toBeGreaterThanOrEqual(0);
     expect(surface.x + surface.width, `${label} right edge stays inside viewport`).toBeLessThanOrEqual(viewport.width + 1);
     expect(surface.height, `${label} keeps readable height`).toBeGreaterThan(42);
-    expect(surface.backgroundImage, `${label} uses themed potion art`).toContain("/games/puzzling-potions/images/");
+    expect(
+      surface.backgroundImage.includes("/games/ui-surfaces/") ||
+        surface.backgroundImage.includes("/assets-runtime/puzzling-potions/"),
+      `${label} uses generated screen or runtime HUD art`,
+    ).toBe(true);
     expect(surface.backdrop, `${label} should not use the shared glass blur`).toMatch(/^$|none/);
     await page.screenshot({
       path: testInfo.outputPath(`${label.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`),
@@ -102,16 +106,16 @@ test.describe("Glass UI rollout smoke", () => {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
     const overlay = shellId
       ? page.locator(`[data-game-shell="${shellId}"] .game-menu-overlay`)
-      : page.locator(".game-menu-overlay").last();
+      : page.locator(".game-menu-overlay:visible").last();
     if (shellId === "match3") {
-      await expectPotionSurface(page, overlay, `${label} pause menu`, testInfo);
+        await expectMatch3Surface(page, overlay, `${label} pause menu`, testInfo);
     } else {
       await expectReadableGlass(page, overlay, `${label} pause menu`, testInfo);
     }
   }
 
   async function exitToHub(page) {
-    await page.locator(".game-menu-overlay").last().getByRole("button", { name: /^Exit$/ }).click();
+    await page.locator(".game-menu-overlay:visible").last().getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
   }
@@ -151,7 +155,7 @@ test.describe("Glass UI rollout smoke", () => {
       await page.waitForTimeout(260);
       if (game.start) {
         if (game.id === "match3") {
-          await expectPotionSurface(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
+          await expectMatch3Surface(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
         } else {
           await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
         }
@@ -167,7 +171,7 @@ test.describe("Glass UI rollout smoke", () => {
         await expectDarkUiSurface(page.locator(".merge-exchange-offer").first(), "Merge exchange offer");
         await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
       } else if (game.id === "match3") {
-        await expectPotionSurface(page, page.locator(`[data-game-shell="${game.id}"] .match3-scene-hud`), `${game.label} live HUD`, testInfo);
+        await expectMatch3Surface(page, page.locator(`[data-game-shell="${game.id}"] .match3-scene-hud`), `${game.label} live HUD`, testInfo);
       } else {
         await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       }

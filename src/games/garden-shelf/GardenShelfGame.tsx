@@ -149,7 +149,11 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
               onClick={closeSettings}
             />
             <motion.div
-              className="garden-glass-menu absolute right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
+              className="garden-glass-menu garden-settings-dialog absolute right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('settings.title')}
+              tabIndex={-1}
               initial={{ opacity: 0, y: -10, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.96 }}
@@ -271,7 +275,7 @@ function GardenQuestController() {
               onClick={closeQuests}
             />
             <motion.div
-              className="garden-glass-menu absolute inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
+              className="garden-glass-menu garden-quest-dialog absolute inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
               role="dialog"
               aria-modal="true"
               aria-label={t('quest.title')}

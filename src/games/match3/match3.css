@@ -1,6 +1,6 @@
 .match3-shell {
   --match3-ink: #fff8e9;
-  --match3-soft: rgba(255, 248, 233, 0.72);
+  --match3-soft: #f1dcc8;
   --match3-panel: #2a1f22;
   --match3-panel-2: #382629;
   --match3-amber: #f4c05d;
@@ -10,6 +10,8 @@
   --match3-table-art: none;
   --match3-hud-art: none;
   --match3-menu-panel-art: none;
+  --match3-dialog-art: url("/games/ui-surfaces/match3-dialog-panel.png");
+  --match3-surface-art: url("/games/ui-surfaces/match3-panel.png");
   background:
     linear-gradient(90deg, rgba(113, 199, 161, 0.08), transparent 32%, rgba(198, 92, 118, 0.08)),
     linear-gradient(145deg, #201719 0%, #2f201c 52%, #17271f 100%);
@@ -93,7 +95,7 @@
   min-height: 38px;
   padding: 4px 6px;
   border: 1px solid rgba(244, 192, 93, 0.24);
-  background: rgba(33, 23, 22, 0.58);
+  background: #211716;
 }
 
 .match3-scene-hud .game-play-stats strong {
@@ -113,17 +115,17 @@
 }
 
 .game-shell .game-menu-overlay.match3-menu-overlay {
-  width: min(414px, calc(100% - 18px));
-  aspect-ratio: 620 / 760;
-  max-height: min(88dvh, calc(100% - 16px));
+  width: min(356px, calc(100% - 14px));
+  aspect-ratio: 2 / 3;
+  max-height: min(88dvh, calc(100% - 14px));
   display: grid;
   align-content: start;
-  gap: 7px;
-  padding: clamp(58px, 10.5%, 74px) clamp(34px, 7%, 48px) clamp(30px, 5.6%, 42px);
+  gap: clamp(6px, 1.2dvh, 9px);
+  padding: clamp(78px, 12dvh, 100px) clamp(28px, 7vw, 42px) clamp(54px, 8dvh, 74px);
   box-sizing: border-box;
   overflow: hidden;
   border: 0;
-  background: #2a1f22;
+  background: transparent;
   box-shadow: none;
   color: var(--match3-ink);
   -webkit-backdrop-filter: none;
@@ -131,12 +133,12 @@
 }
 
 .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
-  width: min(500px, calc(100% - 18px));
-  aspect-ratio: 620 / 470;
-  max-height: min(76dvh, calc(100% - 18px));
+  width: min(356px, calc(100% - 14px));
+  aspect-ratio: 2 / 3;
+  max-height: min(88dvh, calc(100% - 14px));
   align-content: center;
-  gap: 11px;
-  padding: clamp(42px, 9%, 60px) clamp(44px, 8.6%, 58px) clamp(34px, 7%, 48px);
+  gap: 10px;
+  padding: clamp(82px, 13dvh, 106px) clamp(28px, 7vw, 42px) clamp(54px, 8dvh, 74px);
 }
 
 .match3-menu-overlay::before {
@@ -145,12 +147,13 @@
   inset: 0;
   z-index: -1;
   border-radius: 20px;
-  background: var(--match3-menu-panel-art) center / 100% 100% no-repeat;
+  background: var(--match3-dialog-art) center / 100% 100% no-repeat;
   filter: drop-shadow(0 18px 36px rgba(18, 9, 8, 0.46));
 }
 
 .match3-menu-overlay::after {
   content: "";
+  display: none;
   position: absolute;
   inset: 12.5% 8% 6.5%;
   z-index: -1;
@@ -168,7 +171,7 @@
 .match3-menu-overlay .metric-grid > *,
 .match3-menu-overlay .leaderboard {
   border-color: rgba(244, 192, 93, 0.2);
-  background: rgba(42, 24, 18, 0.24);
+  background: #2a1812;
   box-shadow: none;
 }
 
@@ -220,7 +223,7 @@
   border: 1px solid rgba(244, 192, 93, 0.18);
   border-radius: 999px;
   padding: 3px 7px;
-  background: rgba(25, 14, 12, 0.22);
+  background: #190e0c;
 }
 
 .match3-compact-pause-card {
@@ -362,15 +365,15 @@
 
 @media (max-width: 430px) {
   .game-shell .game-menu-overlay.match3-menu-overlay {
-    width: min(368px, calc(100% - 14px));
-    padding: 50px 28px 28px;
-    overflow: auto;
+    width: min(308px, calc(100% - 12px));
+    padding: 70px 23px 48px;
+    overflow: hidden;
   }
 
   .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
-    width: min(360px, calc(100% - 14px));
-    aspect-ratio: auto;
-    padding: 42px 28px 32px;
+    width: min(308px, calc(100% - 12px));
+    aspect-ratio: 2 / 3;
+    padding: 70px 23px 48px;
     max-height: min(88dvh, calc(100% - 12px));
   }
 
@@ -380,7 +383,7 @@
   }
 
   .match3-menu-overlay .mode-grid button {
-    min-height: 58px;
+    min-height: 54px;
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -411,4 +414,204 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+.match3-menu-overlay .mode-grid button,
+.match3-menu-overlay .mode-grid button:nth-child(1),
+.match3-menu-overlay .mode-grid button:nth-child(2),
+.match3-menu-overlay .mode-grid button:nth-child(3) {
+  --match3-mode-card-art: none;
+}
+
+.match3-menu-overlay .mode-grid button {
+  border: 1px solid rgba(244, 192, 93, 0.48);
+  background:
+    linear-gradient(180deg, rgba(255, 238, 184, 0.95), rgba(174, 107, 51, 0.94)),
+    #e6bd72;
+  color: #321d15;
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 8px 18px rgba(28, 15, 10, 0.22);
+}
+
+.match3-menu-overlay .mode-grid button.active {
+  border-color: rgba(113, 199, 161, 0.86);
+  box-shadow:
+    0 0 0 2px rgba(113, 199, 161, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 10px 20px rgba(28, 15, 10, 0.26);
+}
+
+.match3-menu-overlay .mode-grid small {
+  color: rgba(50, 29, 21, 0.78);
+}
+
+.match3-menu-overlay .panel-button {
+  background:
+    linear-gradient(180deg, #69c9f4, #1974c7),
+    #2495dc;
+  color: #071a2c;
+  text-shadow: none;
+}
+
+.match3-menu-overlay .panel-button.pause-primary,
+.match3-menu-overlay .panel-button:not(.subtle):not(.danger) {
+  background:
+    linear-gradient(180deg, #9edc36, #4aa02d),
+    #73bd34;
+  color: #17220e;
+}
+
+.match3-menu-overlay .panel-button.danger {
+  background:
+    linear-gradient(180deg, #ff9788, #d85d56),
+    #e06a5d;
+  color: #2c1110;
+}
+
+@media (max-width: 430px) {
+  .game-shell .game-menu-overlay.match3-menu-overlay {
+    align-content: center;
+    padding: 78px 24px 58px;
+  }
+
+  .match3-menu-overlay .panel-header {
+    min-height: 42px;
+  }
+
+  .match3-menu-overlay .panel-header strong {
+    font-size: 1rem;
+  }
+
+  .match3-menu-overlay .panel-header .panel-button {
+    width: 86px;
+    min-width: 74px;
+  }
+
+  .match3-menu-overlay .mode-grid button {
+    min-height: 52px;
+    padding: 7px 10px;
+  }
+}
+
+.game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) {
+  display: block;
+  overflow: hidden;
+  padding: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .pause-menu-frame,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .metric-grid > *,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .leaderboard {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header {
+  display: block;
+  min-height: 0;
+  padding: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header > div {
+  position: absolute;
+  left: 18%;
+  top: 15.8%;
+  width: 64%;
+  min-width: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header strong {
+  display: block;
+  overflow: hidden;
+  color: #fff6dc;
+  font-size: clamp(1rem, 5vw, 1.22rem);
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 0 rgba(48, 18, 54, 0.52);
+  white-space: nowrap;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header .panel-button {
+  position: absolute;
+  left: 26.6%;
+  top: 83.3%;
+  width: 46.8%;
+  height: 8.3%;
+  min-width: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid {
+  position: absolute;
+  left: 21.5%;
+  top: 25.5%;
+  width: 57%;
+  height: 36.6%;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 2.8%;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(1),
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(2),
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(3) {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #3b2417;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button.active {
+  outline: 2px solid rgba(113, 199, 161, 0.72);
+  outline-offset: -4px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid small {
+  color: rgba(59, 36, 23, 0.7);
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions {
+  position: absolute;
+  left: 21.5%;
+  top: 65.5%;
+  width: 57%;
+  height: 12.5%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions .panel-button {
+  height: 100%;
+  min-height: 44px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button {
+  border: 0;
+  border-radius: 0;
+  padding: 0 8px;
+  background: transparent !important;
+  box-shadow: none;
+  color: #fff6dc;
+  text-shadow: 0 2px 0 rgba(48, 18, 54, 0.52);
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button span {
+  display: inline;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button.danger {
+  color: #ffe4ce;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button:focus-visible {
+  outline: 2px solid rgba(244, 192, 93, 0.82);
+  outline-offset: -5px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-leaderboard {
+  display: none;
 }

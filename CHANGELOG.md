@@ -4,6 +4,7 @@
 
 ### Client
 
+- Added the generated screen-surface UI art pass for Hub, Garden Shelf, Blox, Gem Crush, Gacha Merge, Bubbo, Brain Blitz, Cozy Yard, and hidden Farm compatibility screens: committed textless panel/dialog assets under `public/games/ui-surfaces/`, mapped them through `src/app/screenSurfaceAssets.js`, removed remaining primary translucent-glass treatment from the affected shell/menu surfaces, and documented the generation/rejection rules in `docs/SCREEN_MOCKUP_REFERENCE_PACK.md`.
 - Kept the last active game tab through the query/session state so cache-busting reloads return the player to the same game, lifted Garden Shelf reward pills above the plant art while clamping them inside the garden root, restyled Gacha Merge's bottom dock into clearer Alchemy Table controls with a truthful generator badge/status, and replaced Bubbo's cluttered end-game menu with a compact result overlay.
 - Uncapped Garden Shelf garden progression after level 30 with an extrapolated XP/reward curve, kept the Level Up HUD action available beyond the authored plant-unlock table, and preserved plant evolution levels above 30 during sync.
 - Refined Cozy Yard mobile polish so stationary and lying visitors use decor-local visual anchors, live yard visitor names stay hidden until hover/focus, and shop rows keep description, price, and action controls aligned away from thumbnails on narrow screens with light/dark contrast coverage.

@@ -9,13 +9,13 @@
 }
 
 .game-shell .game-menu-overlay.merge-pause-overlay {
-  width: min(430px, calc(100% - 18px));
-  aspect-ratio: 640 / 960;
-  max-height: min(88dvh, calc(100% - 18px));
+  width: min(356px, calc(100% - 14px));
+  aspect-ratio: 2 / 3;
+  max-height: min(88dvh, calc(100% - 14px));
   display: grid;
   align-content: center;
   gap: 12px;
-  padding: clamp(32px, 7vw, 48px) clamp(24px, 6vw, 38px);
+  padding: clamp(72px, 11.5dvh, 98px) clamp(26px, 7vw, 40px) clamp(48px, 7.5dvh, 66px);
   border: 0;
   background: #241b20;
   color: #f8ecdc;
@@ -32,8 +32,7 @@
   z-index: -1;
   border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(255, 239, 198, 0.14), rgba(20, 12, 16, 0.16)),
-    var(--merge-pause-art, url("/games/gacha-merge/ui/exchangePanel.png")) center / 100% 100% no-repeat,
+    url("/games/ui-surfaces/merge-dialog-panel.png") center / 100% 100% no-repeat,
     #241b20;
   filter: drop-shadow(0 24px 48px rgba(16, 9, 12, 0.54));
 }
@@ -42,8 +41,8 @@
 .merge-pause-overlay .pause-menu-frame {
   border-color: rgba(241, 214, 159, 0.2);
   background:
-    linear-gradient(180deg, rgba(255, 242, 205, 0.14), rgba(118, 211, 192, 0.08)),
-    rgba(35, 25, 29, 0.92);
+    linear-gradient(180deg, #3e2d28, #23191d),
+    #23191d;
   color: #f8ecdc;
 }
 
@@ -56,7 +55,7 @@
 .merge-pause-overlay .panel-button {
   border: 1px solid rgba(241, 214, 159, 0.24);
   background:
-    linear-gradient(180deg, rgba(126, 224, 176, 0.98), rgba(92, 184, 142, 0.94));
+    linear-gradient(180deg, #7ee0b0, #5cb88e);
   color: #251b20;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), 0 10px 20px rgba(20, 12, 14, 0.22);
 }
@@ -64,7 +63,7 @@
 .merge-pause-overlay .panel-button.danger,
 .merge-pause-overlay .panel-button.active {
   background:
-    linear-gradient(180deg, rgba(233, 135, 103, 0.98), rgba(183, 84, 67, 0.95));
+    linear-gradient(180deg, #e98767, #b75443);
   color: #2b1111;
 }
 
@@ -157,8 +156,8 @@
   z-index: -1;
   border: 1px solid rgba(241, 214, 159, 0.24);
   background:
-    linear-gradient(90deg, rgba(40, 27, 30, 0.74), rgba(50, 36, 37, 0.54)),
-    rgba(30, 22, 26, 0.58);
+    linear-gradient(90deg, #281b1e, #322425),
+    #1e161a;
 }
 
 .merge-hud-title {
@@ -219,7 +218,7 @@
   gap: 1px 7px;
   background:
     linear-gradient(180deg, rgba(255, 242, 205, 0.12), rgba(118, 211, 192, 0.08)),
-    rgba(35, 25, 29, 0.58);
+    #23191d;
   color: #f8ecdc;
   font: inherit;
   text-align: left;
@@ -233,7 +232,7 @@
   border-color: rgba(233, 135, 103, 0.52);
   background:
     linear-gradient(180deg, rgba(233, 135, 103, 0.2), rgba(83, 38, 34, 0.18)),
-    rgba(35, 25, 29, 0.62);
+    #23191d;
 }
 
 .merge-hud-chip .merge-asset-icon {
@@ -269,7 +268,7 @@
   margin-top: 4px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(248, 236, 220, 0.18);
+  background: #423637;
 }
 
 .merge-hud-chip i b {
@@ -292,7 +291,7 @@
   justify-content: center;
   gap: 7px;
   background:
-    linear-gradient(180deg, rgba(126, 224, 176, 0.98), rgba(92, 184, 142, 0.94));
+    linear-gradient(180deg, #7ee0b0, #5cb88e);
   color: #251b20;
   cursor: pointer;
   font: inherit;
@@ -303,14 +302,14 @@
 
 .merge-art-button.subtle {
   background:
-    linear-gradient(180deg, rgba(102, 85, 87, 0.92), rgba(73, 56, 59, 0.94));
+    linear-gradient(180deg, #665557, #49383b);
   color: #f8ecdc;
 }
 
 .merge-art-button.active,
 .merge-art-button.danger {
   background:
-    linear-gradient(180deg, rgba(233, 135, 103, 0.98), rgba(183, 84, 67, 0.95));
+    linear-gradient(180deg, #e98767, #b75443);
   color: #2b1111;
 }
 
@@ -439,7 +438,7 @@
   border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(250, 244, 227, 0.72)),
+    linear-gradient(180deg, #fff7df, #faf4e3),
     var(--glass-card-strong);
   color: var(--ink);
   cursor: pointer;
@@ -460,7 +459,7 @@
 .merge-library-rail button.active {
   border-color: color-mix(in srgb, var(--accent) 50%, var(--glass-border));
   background:
-    linear-gradient(180deg, rgba(255, 247, 223, 0.9), rgba(230, 247, 238, 0.8)),
+    linear-gradient(180deg, #fff7df, #e6f7ee),
     var(--glass-surface-strong);
 }
 
@@ -496,7 +495,7 @@
   border: 0;
   border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(39, 28, 32, 0.78), rgba(25, 18, 22, 0.86)),
+    linear-gradient(180deg, #271c20, #191216),
     var(--glass-surface-strong);
   box-shadow: 0 22px 48px rgba(16, 9, 12, 0.42);
   overflow: hidden;
@@ -524,7 +523,7 @@
   z-index: -1;
   inset: 9.5% 7% 11%;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(38, 27, 31, 0.64), rgba(27, 20, 24, 0.54));
+  background: linear-gradient(180deg, #261b1f, #1b1418);
   pointer-events: none;
 }
 
@@ -566,7 +565,7 @@
   display: grid;
   place-items: center;
   border-color: rgba(241, 214, 159, 0.26);
-  background: rgba(38, 27, 31, 0.72);
+  background: #261b1f;
   color: #f8ecdc;
 }
 
@@ -582,7 +581,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(58, 42, 45, 0.88), rgba(35, 25, 29, 0.92)),
+    linear-gradient(180deg, #3a2a2d, #23191d),
     var(--glass-surface-strong);
   box-shadow: 0 14px 34px rgba(20, 12, 14, 0.28), inset 0 1px 0 rgba(241, 214, 159, 0.1);
   color: #f8ecdc;
@@ -626,7 +625,7 @@
   padding: 5px 6px 5px 10px;
   border: 1px solid rgba(241, 214, 159, 0.16);
   border-radius: 8px;
-  background: rgba(35, 25, 29, 0.58);
+  background: #23191d;
 }
 
 .merge-fuel-field span {
@@ -657,7 +656,7 @@
   align-items: center;
   gap: 5px;
   padding: 5px 8px;
-  background: rgba(248, 236, 220, 0.08);
+  background: #34262a;
   color: #f8ecdc;
   font-size: 0.76rem;
   font-weight: 900;
@@ -665,7 +664,7 @@
 
 .merge-source-chips button.active {
   border-color: color-mix(in srgb, var(--amber) 72%, transparent);
-  background: rgba(249, 212, 150, 0.16);
+  background: #4c3d2b;
 }
 
 .merge-source-chips small {
@@ -678,7 +677,7 @@
   border: 1px solid rgba(241, 214, 159, 0.14);
   border-radius: 8px;
   padding: 6px 8px;
-  background: rgba(35, 25, 29, 0.52);
+  background: #23191d;
   color: rgba(248, 236, 220, 0.72);
   font-size: 0.68rem;
   font-weight: 900;
@@ -706,7 +705,7 @@
   border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
   padding: 3px 8px;
-  background: color-mix(in srgb, var(--glass-card-strong) 70%, transparent);
+  background: color-mix(in srgb, var(--glass-card-strong) 70%, var(--field));
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -771,7 +770,7 @@
   border: 1px solid rgba(241, 214, 159, 0.16);
   border-radius: 8px;
   padding: 9px 10px;
-  background: rgba(58, 42, 45, 0.76);
+  background: #3a2a2d;
   color: #f8ecdc;
   text-align: left;
   white-space: normal;
@@ -836,7 +835,7 @@
   display: grid;
   align-content: center;
   gap: 2px;
-  background: rgba(58, 42, 45, 0.76);
+  background: #3a2a2d;
   color: #f8ecdc;
 }
 
@@ -877,8 +876,8 @@
   gap: 5px 8px;
   align-items: center;
   background:
-    linear-gradient(180deg, rgba(58, 42, 45, 0.84), rgba(44, 32, 35, 0.82)),
-    rgba(39, 28, 32, 0.74);
+    linear-gradient(180deg, #3a2a2d, #2c2023),
+    #271c20;
   color: #f8ecdc;
   cursor: pointer;
   font: inherit;
@@ -923,7 +922,7 @@
   justify-self: end;
   border-radius: 999px;
   padding: 5px 7px;
-  background: rgba(44, 68, 62, 0.86);
+  background: #2c443e;
   color: #c9f2df;
   font-size: 0.7rem;
 }
@@ -1398,7 +1397,7 @@
   gap: clamp(7px, 1.4vw, 12px);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(37, 36, 39, 0.95), rgba(27, 26, 29, 0.97));
+  background: linear-gradient(180deg, #252427, #1b1a1d);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 4px 10px rgba(0, 0, 0, 0.28);
   color: #fff;
 }
@@ -1441,7 +1440,7 @@
 }
 
 .merge-top-tool.active {
-  background: rgba(255, 214, 89, 0.16);
+  background: #483b20;
   box-shadow: inset 0 0 0 1px rgba(255, 222, 116, 0.2), 0 0 12px rgba(255, 214, 89, 0.18);
 }
 
@@ -1491,6 +1490,7 @@
 
 .merge-action-area .merge-action-dock::before {
   inset: 0;
+  background-image: url("/games/ui-surfaces/merge-panel.png");
   background-size: 100% 100%;
   background-repeat: no-repeat;
   opacity: 1;
@@ -1526,15 +1526,15 @@
   position: absolute;
   inset: clamp(6px, 1.2vw, 11px);
   border-radius: 14px;
-  background: rgba(71, 66, 66, 0.58);
+  background: #474242;
 }
 
 .merge-dock-gacha::before {
-  background: rgba(81, 97, 173, 0.58);
+  background: #5161ad;
 }
 
 .merge-dock-side.active::before {
-  background: rgba(167, 72, 51, 0.64);
+  background: #a74833;
 }
 
 .merge-dock-side .merge-asset-icon,
@@ -1600,7 +1600,7 @@
   border: 0;
   border-radius: 50%;
   padding: 0;
-  background: radial-gradient(circle, rgba(101, 92, 83, 0.7) 0 57%, rgba(101, 92, 83, 0.32) 58% 100%);
+  background: radial-gradient(circle, #655c53 0 57%, #342f2b 58% 100%);
   color: #f4d678;
   cursor: pointer;
   overflow: visible;
@@ -1838,8 +1838,8 @@
   border: 1px solid rgba(255, 234, 184, 0.2) !important;
   border-radius: 8px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(255, 206, 118, 0.18), transparent 42%),
-    linear-gradient(180deg, rgba(46, 34, 37, 0.92), rgba(27, 22, 25, 0.96)) !important;
+    radial-gradient(circle at 50% 0%, #5a4129, #2e2225 42%),
+    linear-gradient(180deg, #2e2225, #1b1619) !important;
   box-shadow: 0 16px 30px rgba(17, 10, 12, 0.42), inset 0 1px 0 rgba(255, 245, 218, 0.12) !important;
   overflow: visible;
 }
@@ -1866,7 +1866,7 @@
   padding: 7px 4px 8px;
   border: 1px solid rgba(255, 244, 212, 0.12);
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(87, 77, 71, 0.42), rgba(48, 42, 42, 0.58));
+  background: linear-gradient(180deg, #574d47, #302a2a);
 }
 
 .merge-dock-side::before,
@@ -1874,16 +1874,16 @@
 .merge-dock-side.active::before {
   inset: 5px;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 62%);
+  background: linear-gradient(180deg, #6a5b50, #443b39);
 }
 
 .merge-dock-side.active {
   border-color: rgba(255, 123, 91, 0.58);
-  background: linear-gradient(180deg, rgba(134, 60, 45, 0.72), rgba(72, 38, 33, 0.74));
+  background: linear-gradient(180deg, #863c2d, #482621);
 }
 
 .merge-dock-gacha {
-  background: linear-gradient(180deg, rgba(57, 82, 139, 0.72), rgba(39, 45, 82, 0.76));
+  background: linear-gradient(180deg, #39528b, #272d52);
 }
 
 .merge-dock-side .merge-asset-icon,
@@ -1931,7 +1931,7 @@
   padding: 5px 5px 7px;
   background:
     radial-gradient(circle at 50% 28%, rgba(255, 224, 117, 0.28), transparent 34%),
-    linear-gradient(180deg, rgba(93, 77, 57, 0.88), rgba(57, 47, 42, 0.94));
+    linear-gradient(180deg, #5d4d39, #392f2a);
   box-shadow: inset 0 1px 0 rgba(255, 247, 210, 0.18), 0 6px 16px rgba(12, 8, 7, 0.28);
 }
 
@@ -1984,11 +1984,11 @@
 
 .merge-library-panel,
 .merge-exchange-panel {
-  border: 1px solid rgba(255, 229, 175, 0.18);
+  border: 0;
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(40, 29, 32, 0.84), rgba(24, 19, 22, 0.92)),
-    var(--glass-surface-strong);
+    url("/games/ui-surfaces/merge-dialog-panel.png") center / 100% 100% no-repeat,
+    #241b20;
 }
 
 .merge-library-panel::after,
@@ -1998,7 +1998,7 @@
   border-radius: 8px;
   background:
     radial-gradient(circle at 20% 0%, rgba(255, 214, 120, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(36, 28, 30, 0.78), rgba(25, 21, 23, 0.72));
+    linear-gradient(180deg, #241c1e, #191517);
 }
 
 .merge-library-panel .merge-recipe-card,
@@ -2007,16 +2007,22 @@
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(255, 212, 116, 0.12), transparent 34%),
-    linear-gradient(180deg, rgba(63, 47, 44, 0.92), rgba(38, 31, 31, 0.9));
+    linear-gradient(180deg, #3f2f2c, #261f1f);
   box-shadow: inset 0 1px 0 rgba(255, 245, 218, 0.08);
 }
 
 .merge-library-panel .merge-recipe-card.locked,
 .merge-library-panel .merge-item-chain span.locked {
-  background: linear-gradient(180deg, rgba(53, 45, 45, 0.7), rgba(34, 30, 31, 0.72));
+  background: linear-gradient(180deg, #352d2d, #221e1f);
 }
 
 @media (max-width: 520px) {
+  .game-shell .game-menu-overlay.merge-pause-overlay {
+    width: min(308px, calc(100% - 12px));
+    padding: 66px 23px 46px;
+    overflow: hidden;
+  }
+
   .merge-action-area {
     width: min(344px, calc(100% - 12px));
     gap: 6px;
@@ -2055,4 +2061,158 @@
   .merge-daily-token-button {
     width: min(318px, 88%);
   }
+}
+
+.game-shell .game-menu-overlay.merge-pause-overlay {
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  background: transparent;
+}
+
+.game-shell .game-menu-overlay.merge-pause-overlay::before {
+  background: url("/games/ui-surfaces/merge-dialog-panel.png") center / 100% 100% no-repeat;
+}
+
+.merge-pause-overlay .panel-header,
+.merge-pause-overlay .pause-menu-frame {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.merge-pause-overlay .panel-header {
+  position: absolute;
+  left: 21%;
+  top: 13.8%;
+  width: 58%;
+  min-height: 0;
+  padding: 0;
+}
+
+.merge-pause-overlay .panel-header strong {
+  color: #fff4d8;
+  font-size: clamp(0.98rem, 4.8vw, 1.22rem);
+  line-height: 1;
+  text-shadow: 0 2px 0 rgba(70, 36, 15, 0.5);
+}
+
+.merge-pause-overlay .panel-header span {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: rgba(255, 244, 216, 0.86);
+  font-size: 0.68rem;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merge-pause-overlay .pause-menu-frame {
+  position: absolute;
+  left: 21%;
+  top: 24.2%;
+  width: 58%;
+  height: 50.6%;
+  padding: 0;
+  color: #3b2518;
+}
+
+.merge-pause-overlay .pause-menu-kicker {
+  color: #b05f85;
+}
+
+.merge-pause-overlay .pause-menu-frame > strong {
+  color: #3b2518;
+  font-size: clamp(1rem, 5vw, 1.24rem);
+  line-height: 1.1;
+  text-shadow: none;
+}
+
+.merge-pause-overlay .pause-menu-frame > small {
+  color: rgba(59, 37, 24, 0.76);
+  font-size: 0.78rem;
+  line-height: 1.18;
+}
+
+.merge-pause-overlay .pause-status-line {
+  color: rgba(59, 37, 24, 0.82);
+}
+
+.merge-pause-overlay .pause-status-line span {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.merge-pause-overlay .pause-action-stack {
+  position: absolute;
+  left: 12.8%;
+  top: 85.4%;
+  width: 74.4%;
+  height: 8.8%;
+  display: block;
+}
+
+.merge-pause-overlay .pause-action-stack > .panel-button {
+  position: absolute;
+  left: 34%;
+  top: 0;
+  width: 32%;
+  height: 100%;
+}
+
+.merge-pause-overlay .pause-action-stack .button-row {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.merge-pause-overlay .pause-action-stack .button-row .panel-button {
+  position: absolute;
+  top: 0;
+  width: 32%;
+  height: 100%;
+}
+
+.merge-pause-overlay .pause-action-stack .button-row .panel-button:nth-child(1) {
+  left: 0;
+}
+
+.merge-pause-overlay .pause-action-stack .button-row .panel-button:nth-child(2) {
+  right: 0;
+}
+
+.merge-pause-overlay .panel-button,
+.merge-pause-overlay .panel-button.pause-primary,
+.merge-pause-overlay .panel-button:not(.subtle):not(.danger),
+.merge-pause-overlay .panel-button.danger,
+.merge-pause-overlay .panel-button.active {
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  padding: 0 4px;
+  background: transparent !important;
+  box-shadow: none;
+  color: #fff1ce;
+  gap: 3px;
+  font-size: 0.58rem;
+  text-shadow: 0 2px 0 rgba(70, 36, 15, 0.5);
+}
+
+.merge-pause-overlay .panel-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merge-pause-overlay .panel-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.merge-pause-overlay .panel-button:focus-visible {
+  outline: 2px solid rgba(255, 210, 118, 0.86);
+  outline-offset: -5px;
 }

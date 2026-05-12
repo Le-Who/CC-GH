@@ -1,0 +1,65 @@
+{
+  "source": "assets-source/imagegen/ui-screen-surfaces/ccgh-portrait-panels/raw-portrait-panel-atlas.png",
+  "width": 1086,
+  "height": 1448,
+  "rows": 2,
+  "cols": 3,
+  "cellW": 362,
+  "cellH": 724,
+  "outputs": [
+    {
+      "name": "garden-dialog-panel",
+      "file": "garden-dialog-panel.png",
+      "width": 512,
+      "height": 768,
+      "components": 1,
+      "kept": 0,
+      "pixels": 210966
+    },
+    {
+      "name": "blox-dialog-panel",
+      "file": "blox-dialog-panel.png",
+      "width": 512,
+      "height": 768,
+      "components": 1,
+      "kept": 0,
+      "pixels": 207645
+    },
+    {
+      "name": "match3-dialog-panel",
+      "file": "match3-dialog-panel.png",
+      "width": 512,
+      "height": 768,
+      "components": 1,
+      "kept": 0,
+      "pixels": 207888
+    },
+    {
+      "name": "merge-dialog-panel",
+      "file": "merge-dialog-panel.png",
+      "width": 512,
+      "height": 768,
+      "components": 1,
+      "kept": 0,
+      "pixels": 195832
+    },
+    {
+      "name": "bubbo-dialog-panel",
+      "file": "bubbo-dialog-panel.png",
+      "width": 512,
+      "height": 768,
+      "components": 2,
+      "kept": 1,
+      "pixels": 197644
+    },
+    {
+      "name": "trivia-dialog-panel",
+      "file": "trivia-dialog-panel.png",
+      "width": 512,
+      "height": 768,
+      "components": 2,
+      "kept": 1,
+      "pixels": 196132
+    }
+  ]
+}

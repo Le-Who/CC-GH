@@ -321,6 +321,7 @@ export default function App() {
       <main
         className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}
         data-ui-theme={uiTheme}
+        data-active-tab={activeTab}
       >
         <header className="topbar">
           <div>

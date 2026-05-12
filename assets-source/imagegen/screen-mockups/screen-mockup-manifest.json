@@ -1,0 +1,76 @@
+{
+  "generatedAt": "2026-05-11",
+  "generator": "built-in image_gen",
+  "purpose": "Production reference atlases for per-game screen/interface asset generation. Use as visual references, not direct runtime assets.",
+  "rules": [
+    "No semi-transparent glass surfaces as primary UI material.",
+    "No baked localized text, counters, timers, prices, or dynamic labels.",
+    "Keep playfields clear of HUD and thumb controls.",
+    "Generate final runtime assets as separated backgrounds, panels, buttons, chips, icons, state badges, and FX."
+  ],
+  "atlases": [
+    {
+      "id": "gameHub",
+      "slug": "game-hub-shell",
+      "file": "game-hub-shell-screen-atlas.png",
+      "scope": "shared shell",
+      "screens": ["hub-shell", "active-game-shell", "profile-status", "global-settings"]
+    },
+    {
+      "id": "gardenShelf",
+      "slug": "garden-shelf",
+      "file": "garden-shelf-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["live-shelf", "plant-detail", "seed-shop-inventory", "quests", "settings", "offline-level-reward"]
+    },
+    {
+      "id": "blox",
+      "slug": "building-blox",
+      "file": "building-blox-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["menu", "live-playfield", "pause", "result-settle"]
+    },
+    {
+      "id": "match3",
+      "slug": "gem-crush",
+      "file": "gem-crush-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["mode-menu", "live-board", "pause", "result-end"]
+    },
+    {
+      "id": "merge",
+      "slug": "gacha-merge",
+      "file": "gacha-merge-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["live-board", "recipe-book", "item-book", "exchange", "pause"]
+    },
+    {
+      "id": "bubbo",
+      "slug": "bubbo-bubbo",
+      "file": "bubbo-bubbo-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["start-menu", "live-field", "pause", "result"]
+    },
+    {
+      "id": "trivia",
+      "slug": "brain-blitz",
+      "file": "brain-blitz-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["menu", "question", "answer-reveal", "duel-room", "results", "pause-history"]
+    },
+    {
+      "id": "cozyYard",
+      "slug": "cozy-yard",
+      "file": "cozy-yard-screen-atlas.png",
+      "scope": "visible game",
+      "screens": ["live-yard", "food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"]
+    },
+    {
+      "id": "farmLegacy",
+      "slug": "cozy-farm-legacy",
+      "file": "cozy-farm-legacy-screen-atlas.png",
+      "scope": "legacy hidden game",
+      "screens": ["live-field", "seed-shop", "bag-inventory", "plot-detail", "journal-season-badges"]
+    }
+  ]
+}
