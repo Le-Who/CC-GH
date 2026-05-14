@@ -55,6 +55,14 @@ export const GAME_REGISTRY = {
     pixiScene: false,
     shell: "game",
   },
+  settlement: {
+    id: "settlement",
+    labelKey: "tabs.settlement",
+    icon: "Home",
+    visible: true,
+    pixiScene: true,
+    shell: "game",
+  },
   farm: {
     id: "farm",
     labelKey: "tabs.farm",

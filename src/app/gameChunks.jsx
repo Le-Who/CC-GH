@@ -10,6 +10,7 @@ const gameLoaders = {
   bubbo: () => import("../games/bubbo/BubboGame.jsx"),
   trivia: () => import("../games/trivia/TriviaGame.jsx"),
   room: () => import("../games/companion-yard/CompanionYardGame.jsx"),
+  settlement: () => import("../games/settlement/SettlementGame.jsx"),
 };
 const gameComponents = Object.fromEntries(
   Object.entries(gameLoaders).map(([tabId, loader]) => [tabId, React.lazy(loader)]),

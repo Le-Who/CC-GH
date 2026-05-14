@@ -38,11 +38,11 @@ import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
 import { useEscapeDismiss } from "./app/useDismissableLayer.js";
 import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
 
-const TAB_ICONS = { garden: Leaf, blox: Blocks, match3: Gem, merge: PackageOpen, bubbo: Sparkles, trivia: Bot, room: Home };
+const TAB_ICONS = { garden: Leaf, blox: Blocks, match3: Gem, merge: PackageOpen, bubbo: Sparkles, trivia: Bot, room: Home, settlement: Home };
 const STAT_ICONS = { gold: Sparkles, energy: Zap, tokens: PackageOpen, score: Trophy, lines: Blocks, reward: Sparkles, moves: Gem, combo: Sparkles, essence: Sparkles, freeTaps: Zap, fuel: PackageOpen, shots: Sparkles, pressure: Timer, streak: Zap, time: Timer };
 const TABS = VISIBLE_GAME_IDS.map((id) => ({ id, labelKey: GAME_REGISTRY[id].labelKey, icon: TAB_ICONS[id] || Sparkles }));
 
-const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
+const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo", "settlement"]);
 const UI_THEME_KEY = "game_hub_ui_theme";
 
 function systemUiTheme() {

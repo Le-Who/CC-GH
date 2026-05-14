@@ -1,0 +1,1258 @@
+{
+  "contract": "settlement-processed-webp-v1",
+  "source": "/games/settlement/*.webp",
+  "output": "/games/settlement/processed/*.trim.webp",
+  "runtime": "Settlement runtime loads WebP directly and does not run canvas chroma-key or trim work on the client.",
+  "topLevelWebpOnly": true,
+  "trimSourceCount": 78,
+  "trimmedTextures": [
+    {
+      "source": "/games/settlement/building-common-garden-level-01.webp",
+      "output": "/games/settlement/processed/building-common-garden-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 834,
+      "width": 1006,
+      "height": 816,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-common-garden-level-04.webp",
+      "output": "/games/settlement/processed/building-common-garden-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 806,
+      "width": 1024,
+      "height": 790,
+      "trim": {
+        "left": 0,
+        "top": 8,
+        "right": 0,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-common-garden-level-08.webp",
+      "output": "/games/settlement/processed/building-common-garden-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 861,
+      "width": 1008,
+      "height": 845,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-common-garden-level-12.webp",
+      "output": "/games/settlement/processed/building-common-garden-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 928,
+      "width": 1008,
+      "height": 912,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-cottage-ring-level-01.webp",
+      "output": "/games/settlement/processed/building-cottage-ring-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 680,
+      "width": 1008,
+      "height": 664,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-cottage-ring-level-04.webp",
+      "output": "/games/settlement/processed/building-cottage-ring-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 797,
+      "width": 1008,
+      "height": 781,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-cottage-ring-level-08.webp",
+      "output": "/games/settlement/processed/building-cottage-ring-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 967,
+      "width": 1008,
+      "height": 951,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-cottage-ring-level-12.webp",
+      "output": "/games/settlement/processed/building-cottage-ring-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 894,
+      "width": 1008,
+      "height": 878,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-council-manor-level-01.webp",
+      "output": "/games/settlement/processed/building-council-manor-level-01.trim.webp",
+      "sourceWidth": 921,
+      "sourceHeight": 1024,
+      "width": 905,
+      "height": 1008,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-council-manor-level-04.webp",
+      "output": "/games/settlement/processed/building-council-manor-level-04.trim.webp",
+      "sourceWidth": 921,
+      "sourceHeight": 1024,
+      "width": 905,
+      "height": 1008,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-council-manor-level-08.webp",
+      "output": "/games/settlement/processed/building-council-manor-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 999,
+      "width": 1008,
+      "height": 983,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-council-manor-level-12.webp",
+      "output": "/games/settlement/processed/building-council-manor-level-12.trim.webp",
+      "sourceWidth": 997,
+      "sourceHeight": 1024,
+      "width": 981,
+      "height": 1008,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-craft-workshop-level-01.webp",
+      "output": "/games/settlement/processed/building-craft-workshop-level-01.trim.webp",
+      "sourceWidth": 951,
+      "sourceHeight": 936,
+      "width": 931,
+      "height": 916,
+      "trim": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-craft-workshop-level-04.webp",
+      "output": "/games/settlement/processed/building-craft-workshop-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 933,
+      "width": 1006,
+      "height": 915,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-craft-workshop-level-08.webp",
+      "output": "/games/settlement/processed/building-craft-workshop-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 946,
+      "width": 1008,
+      "height": 930,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-craft-workshop-level-12.webp",
+      "output": "/games/settlement/processed/building-craft-workshop-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 917,
+      "width": 1008,
+      "height": 901,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-hearth-hall-level-01.webp",
+      "output": "/games/settlement/processed/building-hearth-hall-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 905,
+      "width": 1006,
+      "height": 887,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-hearth-hall-level-04.webp",
+      "output": "/games/settlement/processed/building-hearth-hall-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 976,
+      "width": 1008,
+      "height": 960,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-hearth-hall-level-08.webp",
+      "output": "/games/settlement/processed/building-hearth-hall-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 999,
+      "width": 1008,
+      "height": 983,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-hearth-hall-level-12.webp",
+      "output": "/games/settlement/processed/building-hearth-hall-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 982,
+      "width": 1008,
+      "height": 966,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-lumber-camp-level-01.webp",
+      "output": "/games/settlement/processed/building-lumber-camp-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 766,
+      "width": 1008,
+      "height": 750,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-lumber-camp-level-04.webp",
+      "output": "/games/settlement/processed/building-lumber-camp-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 632,
+      "width": 1008,
+      "height": 616,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-lumber-camp-level-08.webp",
+      "output": "/games/settlement/processed/building-lumber-camp-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 1002,
+      "width": 1024,
+      "height": 986,
+      "trim": {
+        "left": 0,
+        "top": 8,
+        "right": 0,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-lumber-camp-level-12.webp",
+      "output": "/games/settlement/processed/building-lumber-camp-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 988,
+      "width": 1008,
+      "height": 972,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-market-green-level-01.webp",
+      "output": "/games/settlement/processed/building-market-green-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 842,
+      "width": 1006,
+      "height": 824,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-market-green-level-04.webp",
+      "output": "/games/settlement/processed/building-market-green-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 916,
+      "width": 1008,
+      "height": 900,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-market-green-level-08.webp",
+      "output": "/games/settlement/processed/building-market-green-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 978,
+      "width": 1008,
+      "height": 962,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-market-green-level-12.webp",
+      "output": "/games/settlement/processed/building-market-green-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 968,
+      "width": 1010,
+      "height": 952,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 6,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-river-bridge-level-01.webp",
+      "output": "/games/settlement/processed/building-river-bridge-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 681,
+      "width": 1010,
+      "height": 667,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-river-bridge-level-04.webp",
+      "output": "/games/settlement/processed/building-river-bridge-level-04.trim.webp",
+      "sourceWidth": 1023,
+      "sourceHeight": 670,
+      "width": 1009,
+      "height": 656,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-river-bridge-level-08.webp",
+      "output": "/games/settlement/processed/building-river-bridge-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 679,
+      "width": 1010,
+      "height": 665,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-river-bridge-level-12.webp",
+      "output": "/games/settlement/processed/building-river-bridge-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 690,
+      "width": 1010,
+      "height": 676,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-stone-quarry-level-01.webp",
+      "output": "/games/settlement/processed/building-stone-quarry-level-01.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 892,
+      "width": 1006,
+      "height": 874,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-stone-quarry-level-04.webp",
+      "output": "/games/settlement/processed/building-stone-quarry-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 843,
+      "width": 1008,
+      "height": 827,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-stone-quarry-level-08.webp",
+      "output": "/games/settlement/processed/building-stone-quarry-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 876,
+      "width": 1008,
+      "height": 860,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-stone-quarry-level-12.webp",
+      "output": "/games/settlement/processed/building-stone-quarry-level-12.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 851,
+      "width": 1008,
+      "height": 835,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-way-shrine-level-01.webp",
+      "output": "/games/settlement/processed/building-way-shrine-level-01.trim.webp",
+      "sourceWidth": 995,
+      "sourceHeight": 1024,
+      "width": 977,
+      "height": 1005,
+      "trim": {
+        "left": 9,
+        "top": 10,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-way-shrine-level-04.webp",
+      "output": "/games/settlement/processed/building-way-shrine-level-04.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 1015,
+      "width": 1006,
+      "height": 997,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-way-shrine-level-08.webp",
+      "output": "/games/settlement/processed/building-way-shrine-level-08.trim.webp",
+      "sourceWidth": 1024,
+      "sourceHeight": 998,
+      "width": 1008,
+      "height": 982,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/building-way-shrine-level-12.webp",
+      "output": "/games/settlement/processed/building-way-shrine-level-12.trim.webp",
+      "sourceWidth": 999,
+      "sourceHeight": 1024,
+      "width": 983,
+      "height": 1008,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-barrel-small.webp",
+      "output": "/games/settlement/processed/prop-barrel-small.trim.webp",
+      "sourceWidth": 563,
+      "sourceHeight": 768,
+      "width": 547,
+      "height": 752,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-barrel.webp",
+      "output": "/games/settlement/processed/prop-barrel.trim.webp",
+      "sourceWidth": 563,
+      "sourceHeight": 768,
+      "width": 547,
+      "height": 752,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-bench-small.webp",
+      "output": "/games/settlement/processed/prop-bench-small.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 715,
+      "width": 750,
+      "height": 697,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-bench.webp",
+      "output": "/games/settlement/processed/prop-bench.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 715,
+      "width": 750,
+      "height": 697,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-bush-round.webp",
+      "output": "/games/settlement/processed/prop-bush-round.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 696,
+      "width": 752,
+      "height": 680,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-cart-small.webp",
+      "output": "/games/settlement/processed/prop-cart-small.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 681,
+      "width": 754,
+      "height": 667,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-cart.webp",
+      "output": "/games/settlement/processed/prop-cart.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 681,
+      "width": 754,
+      "height": 667,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-crate-small.webp",
+      "output": "/games/settlement/processed/prop-crate-small.trim.webp",
+      "sourceWidth": 728,
+      "sourceHeight": 768,
+      "width": 710,
+      "height": 750,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-crate-stack.webp",
+      "output": "/games/settlement/processed/prop-crate-stack.trim.webp",
+      "sourceWidth": 728,
+      "sourceHeight": 768,
+      "width": 710,
+      "height": 750,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-fence-segment-small.webp",
+      "output": "/games/settlement/processed/prop-fence-segment-small.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 480,
+      "width": 750,
+      "height": 462,
+      "trim": {
+        "left": 9,
+        "top": 9,
+        "right": 9,
+        "bottom": 9
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-flower-bed.webp",
+      "output": "/games/settlement/processed/prop-flower-bed.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 625,
+      "width": 752,
+      "height": 609,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-flower-patch-blue.webp",
+      "output": "/games/settlement/processed/prop-flower-patch-blue.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 621,
+      "width": 752,
+      "height": 605,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-flower-patch-white.webp",
+      "output": "/games/settlement/processed/prop-flower-patch-white.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 625,
+      "width": 752,
+      "height": 609,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-flower-patch-yellow.webp",
+      "output": "/games/settlement/processed/prop-flower-patch-yellow.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 644,
+      "width": 752,
+      "height": 628,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-hedge-segment.webp",
+      "output": "/games/settlement/processed/prop-hedge-segment.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 529,
+      "width": 754,
+      "height": 515,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-lantern-post-small.webp",
+      "output": "/games/settlement/processed/prop-lantern-post-small.trim.webp",
+      "sourceWidth": 385,
+      "sourceHeight": 768,
+      "width": 369,
+      "height": 752,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-lantern-post.webp",
+      "output": "/games/settlement/processed/prop-lantern-post.trim.webp",
+      "sourceWidth": 385,
+      "sourceHeight": 768,
+      "width": 369,
+      "height": 752,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-rock-cluster-small.webp",
+      "output": "/games/settlement/processed/prop-rock-cluster-small.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 687,
+      "width": 752,
+      "height": 671,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-rock-large-1.webp",
+      "output": "/games/settlement/processed/prop-rock-large-1.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 687,
+      "width": 752,
+      "height": 671,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-rock-small-1.webp",
+      "output": "/games/settlement/processed/prop-rock-small-1.trim.webp",
+      "sourceWidth": 572,
+      "sourceHeight": 529,
+      "width": 552,
+      "height": 509,
+      "trim": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-sack-small.webp",
+      "output": "/games/settlement/processed/prop-sack-small.trim.webp",
+      "sourceWidth": 648,
+      "sourceHeight": 715,
+      "width": 628,
+      "height": 695,
+      "trim": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-sack.webp",
+      "output": "/games/settlement/processed/prop-sack.trim.webp",
+      "sourceWidth": 648,
+      "sourceHeight": 715,
+      "width": 628,
+      "height": 695,
+      "trim": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-signpost-small.webp",
+      "output": "/games/settlement/processed/prop-signpost-small.trim.webp",
+      "sourceWidth": 507,
+      "sourceHeight": 768,
+      "width": 493,
+      "height": 754,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-signpost.webp",
+      "output": "/games/settlement/processed/prop-signpost.trim.webp",
+      "sourceWidth": 507,
+      "sourceHeight": 768,
+      "width": 493,
+      "height": 754,
+      "trim": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-stone-small.webp",
+      "output": "/games/settlement/processed/prop-stone-small.trim.webp",
+      "sourceWidth": 572,
+      "sourceHeight": 529,
+      "width": 552,
+      "height": 509,
+      "trim": {
+        "left": 10,
+        "top": 10,
+        "right": 10,
+        "bottom": 10
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-birch-1.webp",
+      "output": "/games/settlement/processed/prop-tree-birch-1.trim.webp",
+      "sourceWidth": 414,
+      "sourceHeight": 768,
+      "width": 402,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-birch-small.webp",
+      "output": "/games/settlement/processed/prop-tree-birch-small.trim.webp",
+      "sourceWidth": 414,
+      "sourceHeight": 768,
+      "width": 402,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-oak-1.webp",
+      "output": "/games/settlement/processed/prop-tree-oak-1.trim.webp",
+      "sourceWidth": 720,
+      "sourceHeight": 768,
+      "width": 708,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-oak-large.webp",
+      "output": "/games/settlement/processed/prop-tree-oak-large.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 735,
+      "width": 756,
+      "height": 723,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-oak-small.webp",
+      "output": "/games/settlement/processed/prop-tree-oak-small.trim.webp",
+      "sourceWidth": 720,
+      "sourceHeight": 768,
+      "width": 708,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-pine-1.webp",
+      "output": "/games/settlement/processed/prop-tree-pine-1.trim.webp",
+      "sourceWidth": 469,
+      "sourceHeight": 768,
+      "width": 453,
+      "height": 752,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-pine-large.webp",
+      "output": "/games/settlement/processed/prop-tree-pine-large.trim.webp",
+      "sourceWidth": 525,
+      "sourceHeight": 768,
+      "width": 513,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-tree-pine-small.webp",
+      "output": "/games/settlement/processed/prop-tree-pine-small.trim.webp",
+      "sourceWidth": 469,
+      "sourceHeight": 768,
+      "width": 453,
+      "height": 752,
+      "trim": {
+        "left": 8,
+        "top": 8,
+        "right": 8,
+        "bottom": 8
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-well-small.webp",
+      "output": "/games/settlement/processed/prop-well-small.trim.webp",
+      "sourceWidth": 550,
+      "sourceHeight": 768,
+      "width": 538,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/prop-well.webp",
+      "output": "/games/settlement/processed/prop-well.trim.webp",
+      "sourceWidth": 550,
+      "sourceHeight": 768,
+      "width": 538,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/vfx-building-upgrade-glow.webp",
+      "output": "/games/settlement/processed/vfx-building-upgrade-glow.trim.webp",
+      "sourceWidth": 667,
+      "sourceHeight": 768,
+      "width": 655,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/vfx-levelup-rays.webp",
+      "output": "/games/settlement/processed/vfx-levelup-rays.trim.webp",
+      "sourceWidth": 602,
+      "sourceHeight": 768,
+      "width": 590,
+      "height": 756,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    },
+    {
+      "source": "/games/settlement/vfx-selection-ring.webp",
+      "output": "/games/settlement/processed/vfx-selection-ring.trim.webp",
+      "sourceWidth": 768,
+      "sourceHeight": 240,
+      "width": 756,
+      "height": 228,
+      "trim": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      },
+      "chromaRemoved": 0,
+      "changed": true
+    }
+  ]
+}

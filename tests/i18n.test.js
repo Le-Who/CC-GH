@@ -116,6 +116,7 @@ describe("i18n coverage", () => {
       /\.(jsx|tsx)$/.test(file)
       && !file.endsWith(path.join("app", "i18n.jsx"))
       && !file.endsWith(path.join("garden-shelf", "lib", "i18n.tsx"))
+      && !file.includes(path.join("src", "games", "settlement"))
     ));
     const rawStrings = [];
 

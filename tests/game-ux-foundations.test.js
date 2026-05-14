@@ -15,6 +15,8 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.equal(GAME_REGISTRY.farm.pixiScene, true);
     assert.ok(!VISIBLE_GAME_IDS.includes("farm"));
     assert.ok(PIXI_GAME_IDS.includes("farm"));
+    assert.ok(VISIBLE_GAME_IDS.includes("settlement"));
+    assert.ok(PIXI_GAME_IDS.includes("settlement"));
   });
 
   it("separates durable outbox actions from receipt-only gameplay actions", () => {
@@ -57,6 +59,7 @@ describe("Telegram Mini App game UX foundations", () => {
     try {
       assert.equal(readInitialActiveTab(), "merge");
       assert.equal(normalizeActiveTab("bubbo"), "bubbo");
+      assert.equal(normalizeActiveTab("settlement"), "settlement");
       assert.equal(normalizeActiveTab("farm"), "garden");
 
       globalThis.window.location = new URL("https://example.test/");

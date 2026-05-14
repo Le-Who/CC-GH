@@ -301,6 +301,53 @@ test.describe("New-stack minigame smoke", () => {
     expect(roomBox.width).toBeGreaterThanOrEqual(360);
   });
 
+  test("Settlement mounts as an isolated immersive game tab", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `settlement_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Town/ }).click();
+
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+    await expect(page.locator(".bottom-tabs")).toBeHidden();
+    await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
+    await expect(page.locator(".settlement-game-root .right-panel")).toBeVisible();
+    await expect(page.locator(".settlement-game-root .bottom-nav")).toBeVisible();
+
+    const metrics = await page.evaluate(() => {
+      const root = document.querySelector(".settlement-game-root");
+      const buttons = [...root.querySelectorAll(".left-dock button, .bottom-nav button")].filter((button) => {
+        const rect = button.getBoundingClientRect();
+        const style = getComputedStyle(button);
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      });
+      return {
+        bodyOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        canvas: root.querySelector(".settlement-canvas")?.getBoundingClientRect().toJSON(),
+        tinyButtons: buttons
+          .filter((button) => {
+            const rect = button.getBoundingClientRect();
+            return rect.width < 44 || rect.height < 44;
+          })
+          .map((button) => button.getAttribute("aria-label") || button.textContent.trim()),
+      };
+    });
+    expect(metrics.bodyOverflowX).toBeLessThanOrEqual(1);
+    expect(metrics.canvas.width).toBeGreaterThanOrEqual(370);
+    expect(metrics.canvas.height).toBeGreaterThanOrEqual(820);
+    expect(metrics.tinyButtons).toEqual([]);
+
+    await page.getByRole("button", { name: "Собрать" }).click();
+    await expect(page.locator(".settlement-game-root .notices-v2")).toContainText("ресурсы");
+
+    await page.getByRole("button", { name: "В сад" }).click();
+    await expect(page.locator(".bottom-tabs")).toBeVisible();
+    await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
+  });
+
   test("pause menus preserve per-game mechanics and expose game-specific recovery state", async ({ page }) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width: 420, height: 680 });

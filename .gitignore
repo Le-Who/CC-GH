@@ -21,7 +21,11 @@ tmp/
 playwright-report/
 test-results/
 playwright/.cache/
+artifacts/
 artifacts/perf/
+
+# local image-generation workspaces
+assets-source/imagegen/screen-redesign/
 
 package-lock.json
 .pnpm-store

@@ -1528,7 +1528,7 @@ button.stat-chip {
   z-index: 5;
   min-height: 64px;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   gap: 6px;
   padding: 6px;
   border: 0;
@@ -1581,6 +1581,13 @@ button.stat-chip {
 .bottom-tabs button > span:not(.nav-pill) {
   position: relative;
   z-index: 1;
+}
+
+.bottom-tabs button > span:not(.nav-pill) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-pill {
@@ -1782,6 +1789,7 @@ button.stat-chip {
 @media (max-width: 420px) {
   .telegram-app {
     padding-inline: 10px;
+    padding-bottom: calc(120px + var(--safe-bottom));
     gap: 9px;
   }
 
@@ -1824,6 +1832,8 @@ button.stat-chip {
   .bottom-tabs {
     left: 4px;
     right: 4px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: 104px;
     gap: 2px;
     padding: 4px;
   }
