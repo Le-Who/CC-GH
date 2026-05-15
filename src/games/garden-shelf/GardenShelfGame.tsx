@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useCallback, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { GameProvider, useGame } from './lib/GameContext';
 import { Garden } from './components/Garden';
 import { BottomPanel } from './components/BottomPanel';
@@ -24,6 +25,11 @@ import { ArrowUpCircle, CheckCircle2, Coins, Gift, X } from 'lucide-react';
 import './garden-shelf.css';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
+
+function renderGardenPortal(children: React.ReactNode) {
+  if (typeof document === 'undefined') return children;
+  return createPortal(children, document.body);
+}
 
 function cssImageUrl(value: string) {
   return value ? `url(${JSON.stringify(value)})` : "none";
@@ -136,20 +142,20 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
         <img src={assetPaths.settingsCog} alt="" draggable={false} className="h-full w-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.45)]" />
       </button>
 
-      <AnimatePresence>
+      {renderGardenPortal(<AnimatePresence>
         {open && (
           <>
             <motion.button
               type="button"
               aria-label={t('settings.close')}
-              className="glass-scrim absolute inset-0 z-[180]"
+              className="glass-scrim fixed inset-0 z-[180]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeSettings}
             />
             <motion.div
-              className="garden-glass-menu garden-settings-dialog absolute right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
+              className="garden-glass-menu garden-settings-dialog fixed right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
               role="dialog"
               aria-modal="true"
               aria-label={t('settings.title')}
@@ -208,7 +214,7 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>)}
     </>
   );
 }
@@ -262,20 +268,20 @@ function GardenQuestController() {
 
   return (
     <>
-      <AnimatePresence>
+      {renderGardenPortal(<AnimatePresence>
         {open && (
           <>
             <motion.button
               type="button"
-              aria-label={t('settings.close')}
-              className="glass-scrim absolute inset-0 z-[180]"
+              aria-label={t('quest.close')}
+              className="glass-scrim fixed inset-0 z-[180]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={closeQuests}
             />
             <motion.div
-              className="garden-glass-menu garden-quest-dialog absolute inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
+              className="garden-glass-menu garden-quest-dialog fixed inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
               role="dialog"
               aria-modal="true"
               aria-label={t('quest.title')}
@@ -293,7 +299,7 @@ function GardenQuestController() {
                   type="button"
                   className="garden-icon-button shrink-0"
                   onClick={closeQuests}
-                  aria-label={t('settings.close')}
+                  aria-label={t('quest.close')}
                 >
                   <X size={16} />
                 </button>
@@ -353,7 +359,7 @@ function GardenQuestController() {
             </motion.div>
           </>
         )}
-      </AnimatePresence>
+      </AnimatePresence>)}
     </>
   );
 }

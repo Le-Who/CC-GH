@@ -387,6 +387,185 @@ test.describe("New-stack minigame smoke", () => {
     expect(metrics.panelClearsBottomDock).toBe(true);
   });
 
+  test("Settlement recovery panels stay reachable at 320px mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `settlement_recovery_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Town/ }).click();
+    await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
+
+    async function expectPanelReachable({ panel, trigger, requiredSelectors }) {
+      await page.locator(trigger).click();
+      await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-active-panel", panel);
+
+      const metrics = await page.evaluate(({ requiredSelectors }) => {
+        const root = document.querySelector(".settlement-game-root");
+        const panelNode = root?.querySelector(".right-panel");
+        const bottomNav = root?.querySelector(".bottom-nav");
+        const isVisible = (node) => {
+          if (!node) return false;
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        };
+        const intersectsViewport = (node) => {
+          const rect = node.getBoundingClientRect();
+          return rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
+        };
+        const labelFor = (node) => node.getAttribute("aria-label") || node.textContent.trim().replace(/\s+/g, " ");
+        const viewportClipped = (node) => {
+          if (node.closest(".construction-card-grid-v2, .inventory-resource-list-v2, .world-expedition-list-v2")) {
+            return false;
+          }
+          const rect = node.getBoundingClientRect();
+          if (!intersectsViewport(node)) return false;
+          return rect.left < -1 || rect.right > window.innerWidth + 1 || rect.top < -1 || rect.bottom > window.innerHeight + 1;
+        };
+        const panelRect = panelNode?.getBoundingClientRect();
+        const navRect = bottomNav?.getBoundingClientRect();
+        const panelButtons = [...(panelNode?.querySelectorAll("button") ?? [])].filter(isVisible);
+        return {
+          bodyOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          panelVisible: isVisible(panelNode),
+          panelInsideViewport: Boolean(panelRect)
+            && panelRect.left >= -1
+            && panelRect.right <= window.innerWidth + 1
+            && panelRect.top >= -1
+            && panelRect.bottom <= window.innerHeight + 1,
+          panelClearsBottomDock: Boolean(panelRect && navRect) ? panelRect.bottom <= navRect.top + 1 : false,
+          clippedPanelButtons: panelButtons.filter(viewportClipped).map(labelFor),
+          required: requiredSelectors.map((selector) => ({
+            selector,
+            visibleCount: [...(root?.querySelectorAll(selector) ?? [])].filter((node) => isVisible(node) && intersectsViewport(node)).length,
+          })),
+        };
+      }, { requiredSelectors });
+
+      expect(metrics.bodyOverflowX).toBeLessThanOrEqual(1);
+      expect(metrics.panelVisible).toBe(true);
+      expect(metrics.panelInsideViewport).toBe(true);
+      expect(metrics.panelClearsBottomDock).toBe(true);
+      expect(metrics.clippedPanelButtons).toEqual([]);
+      for (const item of metrics.required) {
+        expect(item.visibleCount, `${panel} missing ${item.selector}`).toBeGreaterThan(0);
+      }
+    }
+
+    await expectPanelReachable({
+      panel: "construction",
+      trigger: ".settlement-game-root .primary-build",
+      requiredSelectors: [".construction-category-chip-v2", ".construction-card-v2", ".construction-placement-hint-v2"],
+    });
+
+    await expectPanelReachable({
+      panel: "inventory",
+      trigger: ".settlement-game-root .bottom-nav button[aria-label='Инвентарь']",
+      requiredSelectors: [".inventory-selected-summary-v2", ".inventory-resource-row-v2"],
+    });
+
+    await expectPanelReachable({
+      panel: "world",
+      trigger: ".settlement-game-root .bottom-nav button[aria-label='Карта мира']",
+      requiredSelectors: [".world-map-base-v2", ".world-map-marker", ".world-expedition-card-v2", ".world-expedition-action-v2"],
+    });
+  });
+
+  test("Settlement mobile inventory keeps warehouse controls inside the panel", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `settlement_inventory_mobile_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Town/ }).click();
+    await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
+    await page.locator(".settlement-game-root .bottom-nav button[aria-label='Инвентарь']").click();
+    await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-active-panel", "inventory");
+
+    const metrics = await page.evaluate(() => {
+      const root = document.querySelector(".settlement-game-root");
+      const panel = root?.querySelector(".right-panel")?.getBoundingClientRect();
+      const bottomNav = root?.querySelector(".bottom-nav")?.getBoundingClientRect();
+      const action = root?.querySelector(".inventory-action-button-v2")?.getBoundingClientRect();
+      const list = root?.querySelector(".inventory-resource-list-v2")?.getBoundingClientRect();
+      const style = root?.querySelector(".inventory-resource-list-v2")
+        ? getComputedStyle(root.querySelector(".inventory-resource-list-v2"))
+        : null;
+      return {
+        panel: panel?.toJSON(),
+        bottomNav: bottomNav?.toJSON(),
+        action: action?.toJSON(),
+        list: list?.toJSON(),
+        listOverflowY: style?.overflowY,
+        actionInsidePanel: Boolean(panel && action)
+          && action.left >= panel.left - 1
+          && action.right <= panel.right + 1
+          && action.top >= panel.top - 1
+          && action.bottom <= panel.bottom + 1,
+        actionClearsBottomDock: Boolean(action && bottomNav) ? action.bottom <= bottomNav.top + 1 : false,
+        actionInsideViewport: Boolean(action)
+          && action.left >= -1
+          && action.right <= window.innerWidth + 1
+          && action.top >= -1
+          && action.bottom <= window.innerHeight + 1,
+      };
+    });
+
+    expect(metrics.action.width).toBeGreaterThanOrEqual(44);
+    expect(metrics.action.height).toBeGreaterThanOrEqual(44);
+    expect(metrics.actionInsidePanel).toBe(true);
+    expect(metrics.actionClearsBottomDock).toBe(true);
+    expect(metrics.actionInsideViewport).toBe(true);
+    expect(metrics.list.height).toBeGreaterThan(120);
+    expect(metrics.listOverflowY).toBe("auto");
+  });
+
+  test("Settlement tablet landscape keeps the bottom dock tappable beside the right panel", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `settlement_tablet_landscape_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Town/ }).click();
+    await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
+
+    const dockMetrics = await page.evaluate(() => {
+      const root = document.querySelector(".settlement-game-root");
+      const nav = root?.querySelector(".bottom-nav");
+      const primaryBuild = root?.querySelector(".primary-build");
+      const visibleButtons = [...(root?.querySelectorAll(".bottom-nav button") ?? [])].filter((button) => {
+        const rect = button.getBoundingClientRect();
+        const style = getComputedStyle(button);
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      });
+      return {
+        nav: nav?.getBoundingClientRect().toJSON(),
+        primaryBuild: primaryBuild?.getBoundingClientRect().toJSON(),
+        tinyButtons: visibleButtons
+          .filter((button) => {
+            const rect = button.getBoundingClientRect();
+            return rect.width < 44 || rect.height < 44;
+          })
+          .map((button) => button.getAttribute("aria-label") || button.textContent.trim().replace(/\s+/g, " ")),
+      };
+    });
+
+    expect(dockMetrics.primaryBuild.width).toBeGreaterThanOrEqual(44);
+    expect(dockMetrics.primaryBuild.height).toBeGreaterThanOrEqual(44);
+    expect(dockMetrics.tinyButtons).toEqual([]);
+
+    await page.locator(".settlement-game-root .primary-build").click();
+    await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-active-panel", "construction");
+    await expect(page.locator(".settlement-game-root .construction-placement-hint-v2")).toBeVisible();
+  });
+
   test("pause menus preserve per-game mechanics and expose game-specific recovery state", async ({ page }) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width: 420, height: 680 });
