@@ -11,7 +11,7 @@ import {
   Text
 } from 'pixi.js';
 import { useImmersiveGame } from '../../app/gameHooks.js';
-import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA } from './gameData.js';
+import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, useSettlementStore } from './useSettlementStore.js';
 import './settlement.css';
@@ -228,6 +228,50 @@ const WORLD_DIFFICULTY_FRAMES = {
 
 function constructionItemAsset(item) {
   return buildingAsset(item.assetBuildingId, item.assetLevel ?? 1);
+}
+
+const CONSTRUCTION_ITEMS_BY_ID_UI = Object.fromEntries(CONSTRUCTION_PANEL_DATA.items.map((item) => [item.id, item]));
+const CONSTRUCTION_SLOTS_BY_ID_UI = Object.fromEntries(CONSTRUCTION_PANEL_DATA.placementSlots.map((slot) => [slot.id, slot]));
+
+function constructedBuildingId(slotId) {
+  return `built:${slotId}`;
+}
+
+function slotIdFromConstructedBuildingId(id) {
+  const value = String(id || '').trim();
+  return value.startsWith('built:') ? value.slice('built:'.length) : value;
+}
+
+function getConstructedBuildingView(record) {
+  if (!record) return null;
+  const item = CONSTRUCTION_ITEMS_BY_ID_UI[record.itemId];
+  const slot = CONSTRUCTION_SLOTS_BY_ID_UI[record.slotId];
+  if (!item || !slot) return null;
+  const category = item.category === 'storage' ? 'infrastructure' : item.category;
+  return {
+    id: record.id ?? constructedBuildingId(record.slotId),
+    name: item.name,
+    short: item.name,
+    category,
+    level: record.level ?? 1,
+    max: 1,
+    description: `Построено на площадке «${slot.label}». Эту постройку можно снести и освободить место под другой объект.`,
+    produces: item.produces ?? {},
+    cost: item.cost ?? {},
+    isConstructed: true,
+    constructionRecord: record,
+    constructionItem: item,
+    constructionSlot: slot,
+    detail: {
+      role: item.category === 'storage' ? 'склад' : 'новая постройка',
+      levelProgress: { current: 1, max: 1 },
+      productionPerMinute: item.produces ?? {},
+      upgradeCost: item.cost ?? {},
+      upgradeDurationMs: 0,
+      benefits: item.produces ? { passiveGoldPerMinute: item.produces.gold ?? 0, morale: item.category === 'decor' ? 2 : 0 } : { passiveGoldPerMinute: 0, morale: 0 },
+      body: `Готовая постройка: ${item.name}. Площадка: ${slot.label}.`
+    }
+  };
 }
 
 
@@ -595,18 +639,22 @@ function AssetIcon({ src, alt = '', className = '', size = 20 }) {
   return <img src={src} alt={alt} className={`asset-icon ${className}`.trim()} style={{ width: size, height: size }} draggable={false} />;
 }
 
-function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem, onBuildingSelect, onConfirmConstruction, devMode, onDevPointer }) {
+function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, onBuildingSelect, onConfirmConstruction, onConstructionSlotSelect, devMode, onDevPointer }) {
+  const [sceneRevision, setSceneRevision] = useState(0);
   const hostRef = useRef(null);
   const appRef = useRef(null);
   const worldRef = useRef(null);
-  const spritesRef = useRef({ buildings: new Map(), vfx: new Map() });
+  const spritesRef = useRef({ buildings: new Map(), constructionSlots: new Map(), vfx: new Map() });
   const cameraRef = useRef({ x: 0, y: 0, scale: 0.5 });
   const gestureRef = useRef({ pointers: new Map(), dragging: false, lastX: 0, lastY: 0, pinchStart: 0, pinchScale: 1 });
   const rafRef = useRef(0);
   const selectedRef = useRef(selectedBuildingId);
   const activePanelRef = useRef(activePanel);
   const selectedConstructionItemRef = useRef(selectedConstructionItem);
+  const selectedConstructionSlotIdRef = useRef(selectedConstructionSlotId);
+  const constructedBuildingsRef = useRef(constructedBuildings ?? {});
   const confirmConstructionRef = useRef(onConfirmConstruction);
+  const constructionSlotSelectRef = useRef(onConstructionSlotSelect);
   const devModeRef = useRef(Boolean(devMode));
   const devLatestInfoRef = useRef(null);
   const devInfoFrameRef = useRef(0);
@@ -627,8 +675,20 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   }, [selectedConstructionItem]);
 
   useEffect(() => {
+    selectedConstructionSlotIdRef.current = selectedConstructionSlotId;
+  }, [selectedConstructionSlotId]);
+
+  useEffect(() => {
+    constructedBuildingsRef.current = constructedBuildings ?? {};
+  }, [constructedBuildings]);
+
+  useEffect(() => {
     confirmConstructionRef.current = onConfirmConstruction;
   }, [onConfirmConstruction]);
+
+  useEffect(() => {
+    constructionSlotSelectRef.current = onConstructionSlotSelect;
+  }, [onConstructionSlotSelect]);
 
   useEffect(() => {
     devModeRef.current = Boolean(devMode);
@@ -683,6 +743,10 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         VFX_ASSETS.questReady,
         VFX_ASSETS.goldPop,
         VFX_ASSETS.foodPop,
+        UI_ASSETS.constructionPlotRingIdle,
+        UI_ASSETS.constructionPlotRingSelected,
+        UI_ASSETS.constructionGhostOverlay,
+        UI_ASSETS.constructionConfirmIdle,
       ];
       const trimmedTextureUrls = [
         ...BUILDINGS.map((building) => buildingAsset(building.id, levels[building.id] ?? 1)),
@@ -880,79 +944,127 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         spritesRef.current.buildings.set(building.id, { wrapper, sprite, ring, ringBaseScale, upgradeGlow, levelupRays, levelBadge, nameBadge, smokeAnchor });
       }
 
-      const placementSlot = CONSTRUCTION_PANEL_DATA.placementSlots[0];
+      const plotRingIdleTexture = await loadTexture(UI_ASSETS.constructionPlotRingIdle);
+      if (cancelled) return;
+      const plotRingSelectedTexture = await loadTexture(UI_ASSETS.constructionPlotRingSelected);
+      if (cancelled) return;
+      const ghostOverlayTexture = await loadTexture(UI_ASSETS.constructionGhostOverlay);
+      if (cancelled) return;
+      const confirmTexture = await loadTexture(UI_ASSETS.constructionConfirmIdle);
+      if (cancelled) return;
       const initialConstructionItem = selectedConstructionItemRef.current ?? CONSTRUCTION_PANEL_DATA.items[0];
-      if (placementSlot && initialConstructionItem) {
-        const placementPosition = regionPosition(placementSlot);
-        const ghostContainer = new Container();
-        ghostContainer.name = 'construction-placement-ghost';
-        ghostContainer.x = placementPosition.x;
-        ghostContainer.y = placementPosition.y;
-        ghostContainer.zIndex = placementPosition.y + 4;
-        ghostContainer.eventMode = 'static';
-        ghostContainer.cursor = 'pointer';
-        ghostContainer.hitArea = new Rectangle(-190, -270, 380, 320);
-        ghostContainer.visible = activePanelRef.current === 'construction';
-        ghostContainer.on('pointertap', () => {
-          confirmConstructionRef.current?.();
+      const initialConstructionTexture = initialConstructionItem ? await loadTexture(constructionItemAsset(initialConstructionItem), { trim: true }) : null;
+      if (cancelled) return;
+
+      for (const slot of CONSTRUCTION_PANEL_DATA.placementSlots) {
+        const placementPosition = regionPosition(slot);
+        const slotContainer = new Container();
+        slotContainer.name = `construction-slot-${slot.id}`;
+        slotContainer.x = placementPosition.x;
+        slotContainer.y = placementPosition.y;
+        slotContainer.zIndex = placementPosition.y + 4;
+        slotContainer.eventMode = 'static';
+        slotContainer.cursor = 'pointer';
+        slotContainer.hitArea = new Rectangle(-220, -300, 440, 360);
+        slotContainer.visible = false;
+        slotContainer.on('pointertap', () => {
+          const built = constructedBuildingsRef.current?.[slot.id];
+          if (built) {
+            storeSelect(built.id);
+            onBuildingSelect?.(built.id);
+            return;
+          }
+          constructionSlotSelectRef.current?.(slot.id);
         });
 
-        const pad = new Graphics();
-        pad.name = 'construction-pad';
-        pad.ellipse(0, 4, 150, 60)
-          .fill({ color: 0x66ff82, alpha: 0.18 })
-          .stroke({ color: 0xcfff9d, width: 6, alpha: 0.62 });
-        pad.zIndex = -3;
-        ghostContainer.addChild(pad);
+        const ringIdle = makeSafeSprite(plotRingIdleTexture);
+        ringIdle.name = 'construction-ring-idle';
+        ringIdle.anchor.set(0.5, 0.5);
+        ringIdle.y = 6;
+        ringIdle.scale.set(regionScale(slot.scale * 0.95));
+        ringIdle.alpha = 0.82;
+        ringIdle.zIndex = -4;
+        slotContainer.addChild(ringIdle);
 
-        const ghostRing = anchorBottom(makeSafeSprite(ringTexture));
-        ghostRing.name = 'construction-ring';
-        ghostRing.tint = 0xa5ff8d;
-        ghostRing.alpha = 0.84;
-        ghostRing.scale.set(0.25);
-        ghostRing.zIndex = -2;
-        ghostContainer.addChild(ghostRing);
+        const ringSelected = makeSafeSprite(plotRingSelectedTexture);
+        ringSelected.name = 'construction-ring-selected';
+        ringSelected.anchor.set(0.5, 0.5);
+        ringSelected.y = 6;
+        ringSelected.scale.set(regionScale(slot.scale * 1.03));
+        ringSelected.alpha = 0;
+        ringSelected.zIndex = -3;
+        slotContainer.addChild(ringSelected);
 
-        const ghostSprite = anchorBottom(makeSafeSprite(await loadTexture(constructionItemAsset(initialConstructionItem), { trim: true })));
+        const ghostOverlay = anchorBottom(makeSafeSprite(ghostOverlayTexture));
+        ghostOverlay.name = 'construction-ghost-overlay';
+        ghostOverlay.y = 2;
+        ghostOverlay.scale.set(regionScale(slot.scale * 0.92));
+        ghostOverlay.alpha = 0.7;
+        ghostOverlay.zIndex = -1;
+        slotContainer.addChild(ghostOverlay);
+
+        const ghostSprite = initialConstructionTexture ? anchorBottom(makeSafeSprite(initialConstructionTexture)) : new Sprite();
         ghostSprite.name = 'construction-preview';
-        ghostSprite.tint = 0xa8ff9a;
-        ghostSprite.alpha = 0.56;
-        ghostSprite.scale.set(regionScale(placementSlot.scale));
+        ghostSprite.tint = 0xd8ffbf;
+        ghostSprite.alpha = 0.78;
+        ghostSprite.scale.set(regionScale(slot.scale));
         ghostSprite.blendMode = 'screen';
-        ghostContainer.addChild(ghostSprite);
+        slotContainer.addChild(ghostSprite);
 
-        const check = new Container();
-        check.name = 'construction-confirm';
-        check.x = 82;
-        check.y = 8;
-        check.eventMode = 'static';
-        check.cursor = 'pointer';
-        const checkBg = new Graphics();
-        checkBg.circle(0, 0, 32)
-          .fill({ color: 0x4c9d20, alpha: 0.96 })
-          .stroke({ color: 0xf1e58d, width: 5, alpha: 0.9 });
+        const builtSprite = initialConstructionTexture ? anchorBottom(makeSafeSprite(initialConstructionTexture)) : new Sprite();
+        builtSprite.name = 'constructed-building';
+        builtSprite.scale.set(regionScale(slot.scale));
+        builtSprite.visible = false;
+        slotContainer.addChild(builtSprite);
+
+        const confirm = makeSafeSprite(confirmTexture);
+        confirm.name = 'construction-confirm';
+        confirm.anchor.set(0.5);
+        confirm.x = 96;
+        confirm.y = -28;
+        confirm.scale.set(0.48);
+        confirm.eventMode = 'static';
+        confirm.cursor = 'pointer';
+        confirm.visible = false;
+        confirm.on('pointertap', (event) => {
+          event.stopPropagation?.();
+          confirmConstructionRef.current?.(slot.id);
+        });
         const checkMark = new Text({
           text: '✓',
           style: {
             fontFamily: 'Georgia, serif',
-            fontSize: 44,
+            fontSize: 38,
             fontWeight: '900',
             fill: '#f7ffd1',
             stroke: { color: '#193900', width: 5 }
           }
         });
-        checkMark.anchor.set(0.5, 0.58);
-        check.addChild(checkBg, checkMark);
-        ghostContainer.addChild(check);
+        checkMark.anchor.set(0.5, 0.56);
+        confirm.addChild(checkMark);
+        slotContainer.addChild(confirm);
 
-        const ghostLabel = createTextLabel(initialConstructionItem.name, 0, 34, 'small');
-        ghostLabel.name = 'construction-label';
-        ghostLabel.alpha = 0.92;
-        ghostContainer.addChild(ghostLabel);
+        const slotLabel = createTextLabel(slot.label, 0, 42, 'small');
+        slotLabel.name = 'construction-label';
+        slotLabel.alpha = 0.95;
+        slotContainer.addChild(slotLabel);
 
-        buildingLayer.addChild(ghostContainer);
-        spritesRef.current.constructionGhost = { container: ghostContainer, sprite: ghostSprite, ring: ghostRing, label: ghostLabel, slot: placementSlot };
+        buildingLayer.addChild(slotContainer);
+        spritesRef.current.constructionSlots.set(slot.id, {
+          container: slotContainer,
+          ringIdle,
+          ringSelected,
+          ghostOverlay,
+          ghostSprite,
+          builtSprite,
+          confirm,
+          label: slotLabel,
+          slot,
+          ghostItemId: initialConstructionItem?.id ?? null,
+          builtItemId: null
+        });
       }
+      setSceneRevision((value) => value + 1);
 
       for (const villager of VILLAGERS) {
         const texture = await loadTexture(villager.image);
@@ -1252,14 +1364,19 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
             item.levelupRays.rotation -= selected ? 0.0015 : 0;
           }
         }
-        const ghost = spritesRef.current.constructionGhost;
-        if (ghost?.container) {
-          const visible = activePanelRef.current === 'construction';
-          ghost.container.visible = visible;
-          if (visible) {
-            ghost.container.alpha = 0.9 + Math.sin(t * 2.2) * 0.06;
-            ghost.ring.alpha = 0.74 + Math.sin(t * 2.8) * 0.08;
-            ghost.ring.rotation += 0.002;
+        for (const [slotId, slot] of spritesRef.current.constructionSlots ?? []) {
+          if (!slot.container.visible) continue;
+          const selectedSlot = selectedConstructionSlotIdRef.current === slotId;
+          const built = constructedBuildingsRef.current?.[slotId];
+          slot.container.alpha = built ? 1 : 0.92 + Math.sin(t * 2.2) * 0.04;
+          slot.ringSelected.rotation += selectedSlot ? 0.0025 : 0.001;
+          slot.ringSelected.alpha = selectedSlot ? 0.86 + Math.sin(t * 2.8) * 0.08 : slot.ringSelected.alpha;
+          if (slot.ghostSprite.visible) {
+            slot.ghostSprite.alpha = 0.72 + Math.sin(t * 2.5) * 0.06;
+          }
+          if (slot.confirm.visible) {
+            const scale = 0.48 + Math.sin(t * 3.1) * 0.018;
+            slot.confirm.scale.set(scale);
           }
         }
       });
@@ -1289,7 +1406,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       const app = appRef.current;
       destroyPixiAppSafely(app);
       appRef.current = null;
-      spritesRef.current = { buildings: new Map(), vfx: new Map(), devLayer: null };
+      spritesRef.current = { buildings: new Map(), constructionSlots: new Map(), vfx: new Map(), devLayer: null };
     };
   // Scene is intentionally initialized once. Live updates are handled by targeted effects below.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1320,29 +1437,62 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     for (const [id, item] of spritesRef.current.buildings) {
       item.ring.alpha = activePanel === 'construction' ? 0 : id === selectedBuildingId ? 0.88 : 0;
     }
-    const ghost = spritesRef.current.constructionGhost;
-    if (ghost?.container) ghost.container.visible = activePanel === 'construction';
   }, [activePanel, selectedBuildingId]);
 
   useEffect(() => {
-    const ghost = spritesRef.current.constructionGhost;
-    if (!ghost || !selectedConstructionItem) return;
+    const slotSprites = spritesRef.current.constructionSlots;
+    if (!slotSprites?.size) return;
     let cancelled = false;
-    loadTexture(constructionItemAsset(selectedConstructionItem), { trim: true }).then((texture) => {
-      if (cancelled || !texture) return;
-      ghost.sprite.texture = texture;
-      ghost.sprite.scale.set(regionScale(ghost.slot.scale));
-      if (ghost.label) ghost.label.destroy({ children: true });
-      const freshLabel = createTextLabel(selectedConstructionItem.name, 0, 34, 'small');
-      freshLabel.name = 'construction-label';
-      freshLabel.alpha = 0.92;
-      ghost.container.addChild(freshLabel);
-      ghost.label = freshLabel;
-    });
+    for (const [slotId, item] of slotSprites) {
+      const record = constructedBuildings?.[slotId] ?? null;
+      const builtItem = record ? CONSTRUCTION_ITEMS_BY_ID_UI[record.itemId] : null;
+      const previewItem = builtItem ?? selectedConstructionItem;
+      const isConstructionOpen = activePanel === 'construction';
+      const isSelectedSlot = selectedConstructionSlotId === slotId;
+      const isSelectedBuilt = record?.id === selectedBuildingId;
+      const showEmptySlot = isConstructionOpen && !record;
+      const showBuilt = Boolean(record && builtItem);
+      item.container.visible = showEmptySlot || showBuilt || isSelectedSlot || isSelectedBuilt;
+      item.container.cursor = showBuilt ? 'pointer' : isConstructionOpen ? 'pointer' : 'default';
+      item.ringIdle.visible = showEmptySlot || showBuilt || isSelectedBuilt;
+      item.ringIdle.alpha = showEmptySlot ? 0.72 : showBuilt ? 0.22 : 0;
+      item.ringSelected.visible = showEmptySlot || showBuilt || isSelectedBuilt;
+      item.ringSelected.alpha = isSelectedSlot || isSelectedBuilt ? 0.95 : showEmptySlot ? 0.2 : 0;
+      item.ghostOverlay.visible = showEmptySlot;
+      item.ghostSprite.visible = showEmptySlot;
+      item.confirm.visible = showEmptySlot && isSelectedSlot;
+      item.builtSprite.visible = showBuilt;
+
+      const labelText = showBuilt ? builtItem.name : isSelectedSlot ? `${item.slot.label}: выбрано` : item.slot.label;
+      if (item.labelText !== labelText) {
+        item.label?.destroy({ children: true });
+        const freshLabel = createTextLabel(labelText, 0, showBuilt ? 24 : 42, 'small');
+        freshLabel.name = 'construction-label';
+        freshLabel.alpha = showBuilt ? 0.88 : 0.95;
+        item.container.addChild(freshLabel);
+        item.label = freshLabel;
+        item.labelText = labelText;
+      }
+
+      if (!previewItem) continue;
+      const targetKey = showBuilt ? 'builtItemId' : 'ghostItemId';
+      if (item[targetKey] === previewItem.id) continue;
+      item[targetKey] = previewItem.id;
+      loadTexture(constructionItemAsset(previewItem), { trim: true }).then((texture) => {
+        if (cancelled || !texture) return;
+        if (showBuilt) {
+          item.builtSprite.texture = texture;
+          item.builtSprite.scale.set(regionScale(item.slot.scale));
+        } else {
+          item.ghostSprite.texture = texture;
+          item.ghostSprite.scale.set(regionScale(item.slot.scale));
+        }
+      });
+    }
     return () => {
       cancelled = true;
     };
-  }, [selectedConstructionItem]);
+  }, [activePanel, selectedBuildingId, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, sceneRevision]);
 
   return <div ref={hostRef} className="scene-host" />;
 }
@@ -1401,7 +1551,7 @@ function TopHud({ resources, population, stage }) {
 
       <div className="top-resource-zone">
         <div className="top-resources top-resources-core">
-          {RESOURCES.map((resource) => (
+          {RESOURCES.filter((resource) => TOP_HUD_RESOURCE_IDS.includes(resource.id)).map((resource) => (
             <ResourcePill
               key={resource.id}
               label={resource.label}
@@ -1512,15 +1662,15 @@ function BottomNav({ activePanel, setPanel, collect }) {
   );
 }
 
-function OverviewPanel({ resources, levels, population, stage, setPanel }) {
+function OverviewPanel({ resources, levels, population, stage, setPanel, constructedBuildings }) {
   const passiveRows = useMemo(() => {
-    const production = productionFrom(levels);
+    const production = productionFrom(levels, constructedBuildings);
     return ['food', 'wood', 'stone', 'goods', 'culture', 'gold'].map((key) => ({
       id: key,
       label: resourceLabel(key),
       value: Math.max(0, Math.round((production[key] ?? 0) * 60))
     }));
-  }, [levels]);
+  }, [levels, constructedBuildings]);
   const morale = Math.round(resources.morale ?? 0);
   const hallLevel = levels['hearth-hall'] ?? 1;
   const cottageProgress = Math.max(0, (levels['cottage-ring'] ?? 1) - 1);
@@ -1610,7 +1760,7 @@ function OverviewPanel({ resources, levels, population, stage, setPanel }) {
 }
 
 
-function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade }) {
+function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, onDemolish }) {
   const detail = building.detail ?? {};
   const cost = upgradeCost(building, level);
   const affordable = canPay(resources, cost);
@@ -1618,6 +1768,7 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
   const prod = detail.productionPerMinute ?? building.produces ?? {};
   const nextLevel = Math.min(building.max, level + 1);
   const isMax = level >= building.max;
+  const isConstructed = Boolean(building.isConstructed);
   const isUpgrading = activeUpgrade?.buildingId === building.id;
   const remainingMs = isUpgrading ? Math.max(0, activeUpgrade.completesAt - Date.now()) : (detail.upgradeDurationMs ?? 0);
 
@@ -1693,18 +1844,31 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
       </div>
 
       <div className="building-action-zone">
-        <button
-          className={`building-upgrade-button ${affordable && !isMax ? 'ready' : ''} ${isUpgrading ? 'in-progress' : ''}`}
-          style={frameStyle(upgradeFrame)}
-          disabled={!affordable || isMax || isUpgrading}
-          onClick={() => onUpgrade(building.id)}
-          type="button"
-        >
-          <AssetIcon src={ICONS.build} alt="" size={18} />
-          <span>{isMax ? 'Здание улучшено полностью' : affordable ? 'Улучшить здание' : 'Недостаточно ресурсов'}</span>
-          {!isMax ? <b>↑</b> : null}
-        </button>
-        {!isMax ? (
+        {isConstructed ? (
+          <button
+            className="building-upgrade-button demolition-ready"
+            style={frameStyle(UI_ASSETS.buildingUpgradeDisabled)}
+            onClick={() => onDemolish?.(building.id)}
+            type="button"
+          >
+            <AssetIcon src={ICONS.build} alt="" size={18} />
+            <span>Снести постройку и освободить площадку</span>
+            <b>×</b>
+          </button>
+        ) : (
+          <button
+            className={`building-upgrade-button ${affordable && !isMax ? 'ready' : ''} ${isUpgrading ? 'in-progress' : ''}`}
+            style={frameStyle(upgradeFrame)}
+            disabled={!affordable || isMax || isUpgrading}
+            onClick={() => onUpgrade(building.id)}
+            type="button"
+          >
+            <AssetIcon src={ICONS.build} alt="" size={18} />
+            <span>{isMax ? 'Здание улучшено полностью' : affordable ? 'Улучшить здание' : 'Недостаточно ресурсов'}</span>
+            {!isMax ? <b>↑</b> : null}
+          </button>
+        )}
+        {!isMax && !isConstructed ? (
           <div className="building-upgrade-timer" style={frameStyle(UI_ASSETS.buildingTimerPill)}>
             <span>◷</span>
             <strong>{formatDurationMs(remainingMs)}</strong>
@@ -1829,6 +1993,8 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
   const totalStored = resourceRows.reduce((sum, row) => sum + (resources[row.id] ?? 0), 0);
   const totalCap = resourceRows.reduce((sum, row) => sum + (inventoryCaps[row.id] ?? row.initialCap), 0);
   const selectedCap = inventoryCaps[selectedResource.id] ?? selectedResource.initialCap;
+  const selectedValue = resources[selectedResource.id] ?? 0;
+  const selectedFill = Math.max(0, Math.min(100, (selectedValue / Math.max(1, selectedCap)) * 100));
   const selectedAtMax = selectedCap >= selectedResource.maxCap;
 
   return (
@@ -1837,6 +2003,23 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
         <span>Ресурсы</span>
         <b>{formatNumber(totalStored)} / {formatNumber(totalCap)}</b>
       </div>
+
+      <HudFrame className="inventory-selected-summary-v2" frame={UI_ASSETS.inventorySummaryCard}>
+        <span className="inventory-resource-icon-slot" style={frameStyle(UI_ASSETS.inventoryResourceIconSlot)}>
+          <ResourceIcon type={selectedResource.id} size={26} />
+        </span>
+        <div className="inventory-selected-copy-v2">
+          <span>Выбранный ресурс</span>
+          <strong>{selectedResource.label}</strong>
+          <div className="inventory-capacity-bar-v2" aria-label={`${selectedResource.label}: ${formatNumber(selectedValue)} из ${formatNumber(selectedCap)}`}>
+            <i style={{ width: `${selectedFill}%` }} />
+          </div>
+        </div>
+        <div className="inventory-selected-values-v2">
+          <b>{formatNumber(selectedValue)}</b>
+          <span>из {formatNumber(selectedCap)}</span>
+        </div>
+      </HudFrame>
 
       <div className="inventory-resource-list inventory-resource-list-v2">
         {resourceRows.map((row) => {
@@ -1850,7 +2033,20 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
               ? UI_ASSETS.inventoryRowSelected
               : UI_ASSETS.inventoryRowIdle;
           return (
-            <HudFrame key={row.id} className={`inventory-resource-row inventory-resource-row-v2 ${isSelected ? 'selected' : ''} ${ratio >= 0.9 ? 'warning' : ''}`.trim()} frame={rowFrame}>
+            <HudFrame
+              key={row.id}
+              className={`inventory-resource-row inventory-resource-row-v2 ${isSelected ? 'selected' : ''} ${ratio >= 0.9 ? 'warning' : ''}`.trim()}
+              frame={rowFrame}
+              role="button"
+              tabIndex={0}
+              onClick={() => onFocusResource(row.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  onFocusResource(row.id);
+                }
+              }}
+            >
               <span className="inventory-resource-icon-slot" style={frameStyle(UI_ASSETS.inventoryResourceIconSlot)}>
                 <ResourceIcon type={row.id} size={22} />
               </span>
@@ -1858,17 +2054,21 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
                 <strong>{row.label}</strong>
                 <span>{formatNumber(value)} / {formatNumber(cap)}</span>
               </div>
-              <div className="inventory-row-controls">
-                <button type="button" className="inventory-row-control" style={frameStyle(cap <= row.minCap ? UI_ASSETS.inventoryMinusDisabled : UI_ASSETS.inventoryMinusIdle)} onClick={() => onAdjustCap(row.id, -row.step)} disabled={cap <= row.minCap} aria-label={`Уменьшить вместимость: ${row.label}`}>−</button>
-                <button type="button" className="inventory-row-control" style={frameStyle(cap >= row.maxCap ? UI_ASSETS.inventoryPlusDisabled : UI_ASSETS.inventoryPlusIdle)} onClick={() => onAdjustCap(row.id, row.step)} disabled={cap >= row.maxCap} aria-label={`Увеличить вместимость: ${row.label}`}>+</button>
-                <button type="button" className="inventory-row-control next" style={frameStyle(UI_ASSETS.inventorySelectIdle)} onClick={() => onFocusResource(row.id)} aria-label={`Выбрать ресурс: ${row.label}`}>›</button>
+              <div className={`inventory-row-controls ${isSelected ? 'selected-controls' : 'compact-controls'}`}>
+                {isSelected ? (
+                  <>
+                    <button type="button" className="inventory-row-control" style={frameStyle(cap <= row.minCap ? UI_ASSETS.inventoryMinusDisabled : UI_ASSETS.inventoryMinusIdle)} onClick={() => onAdjustCap(row.id, -row.step)} disabled={cap <= row.minCap} aria-label={`Уменьшить вместимость: ${row.label}`}>−</button>
+                    <button type="button" className="inventory-row-control" style={frameStyle(cap >= row.maxCap ? UI_ASSETS.inventoryPlusDisabled : UI_ASSETS.inventoryPlusIdle)} onClick={() => onAdjustCap(row.id, row.step)} disabled={cap >= row.maxCap} aria-label={`Увеличить вместимость: ${row.label}`}>+</button>
+                  </>
+                ) : null}
+                <button type="button" className="inventory-row-control next" style={frameStyle(UI_ASSETS.inventorySelectIdle)} onClick={() => onFocusResource(row.id)} aria-label={`Выбрать ресурс: ${row.label}`}>{isSelected ? 'Выбрано' : 'Выбрать'}</button>
               </div>
             </HudFrame>
           );
         })}
       </div>
 
-      <div className="inventory-section-head inventory-section-head-v2">Изделия и особые предметы</div>
+      <div className="inventory-section-head inventory-section-head-v2 inventory-special-head-v2">Изделия и особые предметы</div>
       <div className="inventory-item-grid inventory-item-grid-v2">
         {INVENTORY_PANEL_DATA.specialItems.map((item) => (
           <HudFrame key={item.id} className="inventory-item-card inventory-item-card-v2" frame={UI_ASSETS.inventoryItemCard}>
@@ -1961,7 +2161,7 @@ function CouncilScreen({ setPanel, selectBuilding }) {
 
 
 
-function ConstructionScreen({ resources, categoryId, page, selectedId, onCategoryChange, onPageChange, onSelectItem }) {
+function ConstructionScreen({ resources, categoryId, page, selectedId, selectedSlotId, constructedBuildings, onCategoryChange, onPageChange, onSelectItem }) {
   const pageSize = CONSTRUCTION_PANEL_DATA.pageSize;
   const categories = CONSTRUCTION_PANEL_DATA.categories;
   const activeCategory = categories.some((category) => category.id === categoryId) ? categoryId : categories[0]?.id;
@@ -1970,6 +2170,9 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, onCategor
   const safePage = Math.max(0, Math.min(pageCount - 1, page ?? 0));
   const visibleItems = categoryItems.slice(safePage * pageSize, safePage * pageSize + pageSize);
   const selectedItem = CONSTRUCTION_PANEL_DATA.items.find((item) => item.id === selectedId) ?? visibleItems[0];
+  const selectedSlot = CONSTRUCTION_SLOTS_BY_ID_UI[selectedSlotId] ?? CONSTRUCTION_PANEL_DATA.placementSlots[0];
+  const selectedSlotRecord = selectedSlot ? constructedBuildings?.[selectedSlot.id] : null;
+  const selectedSlotItem = selectedSlotRecord ? CONSTRUCTION_ITEMS_BY_ID_UI[selectedSlotRecord.itemId] : null;
 
   return (
     <div className="construction-screen construction-screen-v2">
@@ -1991,6 +2194,14 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, onCategor
             </button>
           );
         })}
+      </div>
+
+      <div className={`construction-slot-status-v2 ${selectedSlotRecord ? 'occupied' : 'empty'}`} style={frameStyle(UI_ASSETS.constructionPlacementHint)}>
+        <AssetIcon src={selectedSlotRecord ? ICONS.store : ICONS.map} alt="" size={18} />
+        <div>
+          <strong>{selectedSlot?.label ?? 'Площадка'}</strong>
+          <span>{selectedSlotRecord ? `Занято: ${selectedSlotItem?.name ?? 'постройка'}. Тапните постройку на карте, чтобы открыть снос.` : `Свободно: выбрано место для ${selectedItem?.name ?? 'постройки'}.`}</span>
+        </div>
       </div>
 
       <div className="construction-card-grid construction-card-grid-v2">
@@ -2037,7 +2248,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, onCategor
       {selectedItem ? (
         <div className="construction-placement-hint construction-placement-hint-v2" style={frameStyle(UI_ASSETS.constructionPlacementHint)}>
           <AssetIcon src={ICONS.map} alt="" size={16} />
-          <span>{selectedItem.name}: выберите подсвеченную площадку на карте и подтвердите зелёной кнопкой.</span>
+          <span>{selectedItem.name}: тапните свободную площадку на карте, затем подтвердите зелёной кнопкой на самой площадке.</span>
         </div>
       ) : null}
     </div>
@@ -2238,6 +2449,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
               title={filter.label}
             >
               <AssetIcon src={WORLD_MAP_ICON_SOURCES[filter.icon] ?? ICONS.world} alt="" size={23} />
+              <span>{filter.label}</span>
             </button>
           ))}
         </div>
@@ -2439,13 +2651,13 @@ function GenericPanel({ activePanel, stage, resources, population }) {
 
 
 
-function RightPanelContent({ activePanel, selected, level, resources, levels, population, stage, activeUpgrade, upgradeBuilding, setPanel, selectBuilding, claimedGoalRewardIds, claimGoalRewards, inventoryCaps, inventorySelectedResourceId, focusInventoryResource, adjustInventoryCap, boostInventoryCap, constructionCategoryId, constructionPage, selectedConstructionId, setConstructionCategory, setConstructionPage, selectConstructionItem, researchCategoryId, selectedResearchId, researchLevels, activeResearch, setResearchCategory, selectResearchNode, studySelectedResearch, worldMapFilterId, selectedExpeditionId, activeExpedition, setWorldMapFilter, selectExpedition, startSelectedExpedition }) {
+function RightPanelContent({ activePanel, selected, level, resources, levels, population, stage, activeUpgrade, upgradeBuilding, demolishConstructedBuilding, setPanel, selectBuilding, claimedGoalRewardIds, claimGoalRewards, inventoryCaps, inventorySelectedResourceId, focusInventoryResource, adjustInventoryCap, boostInventoryCap, constructionCategoryId, constructionPage, selectedConstructionId, selectedConstructionSlotId, constructedBuildings, setConstructionCategory, setConstructionPage, selectConstructionItem, researchCategoryId, selectedResearchId, researchLevels, activeResearch, setResearchCategory, selectResearchNode, studySelectedResearch, worldMapFilterId, selectedExpeditionId, activeExpedition, setWorldMapFilter, selectExpedition, startSelectedExpedition }) {
   const screen = getRightPanelScreen(activePanel);
   if (screen.kind === 'overview') {
-    return <OverviewPanel resources={resources} levels={levels} population={population} stage={stage} setPanel={setPanel} />;
+    return <OverviewPanel resources={resources} levels={levels} population={population} stage={stage} setPanel={setPanel} constructedBuildings={constructedBuildings} />;
   }
   if (screen.kind === 'building') {
-    return <BuildingPanel building={selected} level={level} resources={resources} activeUpgrade={activeUpgrade} onUpgrade={upgradeBuilding} />;
+    return <BuildingPanel building={selected} level={level} resources={resources} activeUpgrade={activeUpgrade} onUpgrade={upgradeBuilding} onDemolish={demolishConstructedBuilding} />;
   }
   if (screen.kind === 'goals') {
     return <GoalsPanel claimedGoalRewardIds={claimedGoalRewardIds} onClaimRewards={claimGoalRewards} />;
@@ -2477,6 +2689,8 @@ function RightPanelContent({ activePanel, selected, level, resources, levels, po
         categoryId={constructionCategoryId}
         page={constructionPage}
         selectedId={selectedConstructionId}
+        selectedSlotId={selectedConstructionSlotId}
+        constructedBuildings={constructedBuildings}
         onCategoryChange={setConstructionCategory}
         onPageChange={setConstructionPage}
         onSelectItem={selectConstructionItem}
@@ -2519,9 +2733,12 @@ function SidePanel() {
   const constructionCategoryId = useSettlementStore((s) => s.constructionCategoryId);
   const constructionPage = useSettlementStore((s) => s.constructionPage);
   const selectedConstructionId = useSettlementStore((s) => s.selectedConstructionId);
+  const selectedConstructionSlotId = useSettlementStore((s) => s.selectedConstructionSlotId);
+  const constructedBuildings = useSettlementStore((s) => s.constructedBuildings);
   const setConstructionCategory = useSettlementStore((s) => s.setConstructionCategory);
   const setConstructionPage = useSettlementStore((s) => s.setConstructionPage);
   const selectConstructionItem = useSettlementStore((s) => s.selectConstructionItem);
+  const demolishConstructedBuilding = useSettlementStore((s) => s.demolishConstructedBuilding);
   const researchCategoryId = useSettlementStore((s) => s.researchCategoryId);
   const selectedResearchId = useSettlementStore((s) => s.selectedResearchId);
   const researchLevels = useSettlementStore((s) => s.researchLevels);
@@ -2538,9 +2755,11 @@ function SidePanel() {
   const setPanel = useSettlementStore((s) => s.setPanel);
   const closePanel = useSettlementStore((s) => s.closePanel);
   const selectBuilding = useSettlementStore((s) => s.selectBuilding);
-  const selected = BUILDINGS.find((b) => b.id === selectedBuildingId) ?? BUILDINGS[0];
-  const level = levels[selected.id] ?? 1;
-  const prod = useMemo(() => productionFrom(levels), [levels]);
+  const constructedSlotId = slotIdFromConstructedBuildingId(selectedBuildingId);
+  const constructedSelected = getConstructedBuildingView(constructedBuildings?.[constructedSlotId]);
+  const selected = BUILDINGS.find((b) => b.id === selectedBuildingId) ?? constructedSelected ?? BUILDINGS[0];
+  const level = selected.isConstructed ? selected.level : levels[selected.id] ?? 1;
+  const prod = useMemo(() => productionFrom(levels, constructedBuildings), [levels, constructedBuildings]);
   const panelChrome = getRightPanelChrome({ activePanel, selected, level });
   const activeTabLabel = panelChrome.label;
   const headerEyebrow = panelChrome.eyebrow;
@@ -2583,7 +2802,11 @@ function SidePanel() {
     { id: 'wood', label: 'Дерево', value: prod.wood.toFixed(1) },
     { id: 'gold', label: 'Золото', value: prod.gold.toFixed(1) }
   ];
-  const buildingHeaderImage = isBuilding ? buildingAsset(selected.id, level) : null;
+  const buildingHeaderImage = isBuilding
+    ? selected.isConstructed
+      ? constructionItemAsset(selected.constructionItem)
+      : buildingAsset(selected.id, level)
+    : null;
 
   if (!rightPanelOpen) return null;
 
@@ -2626,6 +2849,7 @@ function SidePanel() {
           stage={stage}
           activeUpgrade={activeUpgrade}
           upgradeBuilding={upgradeBuilding}
+          demolishConstructedBuilding={demolishConstructedBuilding}
           setPanel={setPanel}
           selectBuilding={selectBuilding}
           claimedGoalRewardIds={claimedGoalRewardIds}
@@ -2638,6 +2862,8 @@ function SidePanel() {
           constructionCategoryId={constructionCategoryId}
           constructionPage={constructionPage}
           selectedConstructionId={selectedConstructionId}
+          selectedConstructionSlotId={selectedConstructionSlotId}
+          constructedBuildings={constructedBuildings}
           setConstructionCategory={setConstructionCategory}
           setConstructionPage={setConstructionPage}
           selectConstructionItem={selectConstructionItem}
@@ -2853,7 +3079,10 @@ export default function SettlementGame() {
   const activeUpgrade = useSettlementStore((s) => s.activeUpgrade);
   const claimedGoalRewardIds = useSettlementStore((s) => s.claimedGoalRewardIds);
   const selectedConstructionId = useSettlementStore((s) => s.selectedConstructionId);
+  const selectedConstructionSlotId = useSettlementStore((s) => s.selectedConstructionSlotId);
+  const constructedBuildings = useSettlementStore((s) => s.constructedBuildings);
   const confirmConstructionPlacement = useSettlementStore((s) => s.confirmConstructionPlacement);
+  const selectConstructionSlot = useSettlementStore((s) => s.selectConstructionSlot);
   const setPanel = useSettlementStore((s) => s.setPanel);
   const collect = useSettlementStore((s) => s.collect);
   const claimGoalRewards = useSettlementStore((s) => s.claimGoalRewards);
@@ -2890,8 +3119,11 @@ export default function SettlementGame() {
           selectedBuildingId={selectedBuildingId}
           activePanel={activePanel}
           selectedConstructionItem={selectedConstructionItem}
+          selectedConstructionSlotId={selectedConstructionSlotId}
+          constructedBuildings={constructedBuildings}
           onBuildingSelect={selectBuilding}
           onConfirmConstruction={confirmConstructionPlacement}
+          onConstructionSlotSelect={selectConstructionSlot}
           devMode={devMode}
           onDevPointer={setDevInfo}
         />

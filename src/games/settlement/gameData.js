@@ -12,6 +12,8 @@ export const RESOURCES = [
   { id: 'prestige', label: 'Престиж', icon: ICONS.prestige }
 ];
 
+export const TOP_HUD_RESOURCE_IDS = ['population', 'food', 'wood', 'stone', 'gold', 'gems'];
+
 export const SETTLEMENT_PROFILE = {
   mayorName: 'Мэр Александр',
   mayorLevel: 12,
@@ -180,7 +182,10 @@ export const CONSTRUCTION_PANEL_DATA = {
     { id: 'special', label: 'Особые', icon: 'special' }
   ],
   placementSlots: [
-    { id: 'southwest-terrace', label: 'Южная терраса', x: 760, y: 1458, scale: 0.46 }
+    { id: 'southwest-terrace', label: 'Южная терраса', x: 760, y: 1458, scale: 0.46 },
+    { id: 'west-meadow', label: 'Западный луг', x: 760, y: 920, scale: 0.42 },
+    { id: 'market-corner', label: 'Торговый угол', x: 2075, y: 790, scale: 0.4 },
+    { id: 'river-bend', label: 'Речной изгиб', x: 1720, y: 1425, scale: 0.4 }
   ],
   items: [
     {
@@ -189,7 +194,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'lumber-camp',
       assetLevel: 4,
-      cost: { wood: 150, stone: 80 }
+      cost: { wood: 150, stone: 80 },
+      produces: { wood: 0.72 }
     },
     {
       id: 'stonecutters-yard',
@@ -197,7 +203,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'stone-quarry',
       assetLevel: 4,
-      cost: { wood: 180, stone: 100 }
+      cost: { wood: 180, stone: 100 },
+      produces: { stone: 0.62 }
     },
     {
       id: 'farm',
@@ -205,7 +212,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'common-garden',
       assetLevel: 4,
-      cost: { wood: 120, stone: 60 }
+      cost: { wood: 120, stone: 60 },
+      produces: { food: 0.76 }
     },
     {
       id: 'mine',
@@ -213,7 +221,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'stone-quarry',
       assetLevel: 1,
-      cost: { wood: 180, stone: 120 }
+      cost: { wood: 180, stone: 120 },
+      produces: { stone: 0.68, gold: 0.08 }
     },
     {
       id: 'bakery',
@@ -221,7 +230,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'market-green',
       assetLevel: 4,
-      cost: { wood: 140, stone: 60 }
+      cost: { wood: 140, stone: 60 },
+      produces: { food: 0.38, gold: 0.06 }
     },
     {
       id: 'smithy',
@@ -229,7 +239,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'craft-workshop',
       assetLevel: 4,
-      cost: { wood: 200, stone: 120 }
+      cost: { wood: 200, stone: 120 },
+      produces: { goods: 0.24, stone: -0.03 }
     },
     {
       id: 'mill',
@@ -237,7 +248,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'craft-workshop',
       assetLevel: 1,
-      cost: { wood: 160, stone: 80 }
+      cost: { wood: 160, stone: 80 },
+      produces: { food: 0.42 }
     },
     {
       id: 'fishing-hut',
@@ -245,7 +257,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'river-bridge',
       assetLevel: 1,
-      cost: { wood: 130, stone: 60 }
+      cost: { wood: 130, stone: 60 },
+      produces: { food: 0.34 }
     },
     {
       id: 'brewery',
@@ -253,7 +266,8 @@ export const CONSTRUCTION_PANEL_DATA = {
       category: 'production',
       assetBuildingId: 'council-manor',
       assetLevel: 1,
-      cost: { wood: 220, stone: 150 }
+      cost: { wood: 220, stone: 150 },
+      produces: { culture: 0.12, gold: 0.1 }
     },
     {
       id: 'charcoal-kiln',

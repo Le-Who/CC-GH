@@ -11,6 +11,7 @@ describe("Settlement construction screen contract", () => {
 
   it("models the construction catalog first page from the sixth mockup", () => {
     assert.equal(CONSTRUCTION_PANEL_DATA.pageSize, 9);
+    assert.ok(CONSTRUCTION_PANEL_DATA.placementSlots.length >= 4);
     assert.deepEqual(
       CONSTRUCTION_PANEL_DATA.categories.map((category) => ({ id: category.id, label: category.label, icon: category.icon })),
       [
@@ -39,15 +40,17 @@ describe("Settlement construction screen contract", () => {
     );
   });
 
-  it("keeps construction selection in the construction panel and confirms the highlighted map slot", () => {
+  it("keeps construction selection in the construction panel and builds on the selected map slot", () => {
     const state = useSettlementStore.getState();
     state.setPanel("construction");
+    const slotId = CONSTRUCTION_PANEL_DATA.placementSlots[0].id;
 
     assert.equal(useSettlementStore.getState().activePanel, "construction");
     assert.equal(useSettlementStore.getState().rightPanelOpen, true);
     assert.equal(useSettlementStore.getState().constructionCategoryId, "production");
     assert.equal(useSettlementStore.getState().constructionPage, 0);
     assert.equal(useSettlementStore.getState().selectedConstructionId, "sawmill");
+    assert.equal(useSettlementStore.getState().selectedConstructionSlotId, slotId);
 
     useSettlementStore.getState().selectConstructionItem("smithy");
     const selected = useSettlementStore.getState();
@@ -67,9 +70,39 @@ describe("Settlement construction screen contract", () => {
     const confirmed = useSettlementStore.getState().confirmConstructionPlacement();
     const afterConfirm = useSettlementStore.getState();
     assert.equal(confirmed, true);
-    assert.equal(afterConfirm.activePanel, "construction");
+    assert.equal(afterConfirm.activePanel, "build");
     assert.equal(afterConfirm.rightPanelOpen, true);
+    assert.equal(afterConfirm.selectedBuildingId, `built:${slotId}`);
+    assert.deepEqual(afterConfirm.constructedBuildings[slotId], {
+      id: `built:${slotId}`,
+      slotId,
+      itemId: "warehouse",
+      level: 1,
+      builtAt: afterConfirm.constructedBuildings[slotId].builtAt,
+    });
+    assert.equal(Math.floor(afterConfirm.resources.wood), 730);
+    assert.equal(Math.floor(afterConfirm.resources.stone), 560);
     assert.equal(afterConfirm.notices[0].type, "upgrade");
-    assert.equal(afterConfirm.notices[0].text, "Склад: площадка выбрана");
+    assert.equal(afterConfirm.notices[0].text, "Склад построен: Южная терраса");
+  });
+
+  it("prevents double-building on occupied plots and supports demolition with a partial refund", () => {
+    const slotId = CONSTRUCTION_PANEL_DATA.placementSlots[0].id;
+    useSettlementStore.getState().setConstructionCategory("storage");
+
+    assert.equal(useSettlementStore.getState().confirmConstructionPlacement(slotId), true);
+    assert.equal(useSettlementStore.getState().confirmConstructionPlacement(slotId), false);
+    assert.equal(useSettlementStore.getState().notices[0].text, "Южная терраса: площадка уже занята");
+
+    const beforeDemolish = useSettlementStore.getState().resources;
+    assert.equal(useSettlementStore.getState().demolishConstructedBuilding(`built:${slotId}`), true);
+
+    const afterDemolish = useSettlementStore.getState();
+    assert.equal(afterDemolish.constructedBuildings[slotId], undefined);
+    assert.equal(afterDemolish.activePanel, "construction");
+    assert.equal(afterDemolish.selectedConstructionSlotId, slotId);
+    assert.equal(Math.floor(afterDemolish.resources.wood), Math.floor(beforeDemolish.wood + 60));
+    assert.equal(Math.floor(afterDemolish.resources.stone), Math.floor(beforeDemolish.stone + 55));
+    assert.equal(afterDemolish.notices[0].text, "Склад снесён: Южная терраса");
   });
 });

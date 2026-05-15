@@ -26,8 +26,12 @@ const INVENTORY_RESOURCE_PROFILES = Object.fromEntries(INVENTORY_PANEL_DATA.reso
 const startingInventoryCaps = Object.fromEntries(INVENTORY_PANEL_DATA.resourceRows.map((row) => [row.id, row.initialCap]));
 const CONSTRUCTION_CATEGORY_IDS = new Set(CONSTRUCTION_PANEL_DATA.categories.map((category) => category.id));
 const CONSTRUCTION_ITEM_IDS = new Set(CONSTRUCTION_PANEL_DATA.items.map((item) => item.id));
+const CONSTRUCTION_ITEMS_BY_ID = Object.fromEntries(CONSTRUCTION_PANEL_DATA.items.map((item) => [item.id, item]));
+const CONSTRUCTION_SLOTS_BY_ID = Object.fromEntries(CONSTRUCTION_PANEL_DATA.placementSlots.map((slot) => [slot.id, slot]));
+const CONSTRUCTION_SLOT_IDS = new Set(CONSTRUCTION_PANEL_DATA.placementSlots.map((slot) => slot.id));
 const DEFAULT_CONSTRUCTION_CATEGORY_ID = CONSTRUCTION_PANEL_DATA.categories[0]?.id ?? 'production';
 const DEFAULT_CONSTRUCTION_ITEM_ID = CONSTRUCTION_PANEL_DATA.items.find((item) => item.category === DEFAULT_CONSTRUCTION_CATEGORY_ID)?.id ?? CONSTRUCTION_PANEL_DATA.items[0]?.id ?? null;
+const DEFAULT_CONSTRUCTION_SLOT_ID = CONSTRUCTION_PANEL_DATA.placementSlots[0]?.id ?? null;
 const RESEARCH_CATEGORY_IDS = new Set(RESEARCH_PANEL_DATA.categories.map((category) => category.id));
 const RESEARCH_NODES_BY_ID = Object.fromEntries(RESEARCH_PANEL_DATA.nodes.map((node) => [node.id, node]));
 const DEFAULT_RESEARCH_CATEGORY_ID = RESEARCH_PANEL_DATA.categories[0]?.id ?? 'farming';
@@ -61,12 +65,63 @@ function addResources(resources, delta, caps = null) {
   return next;
 }
 
-function productionFrom(levels) {
+function constructedBuildingId(slotId) {
+  return `built:${slotId}`;
+}
+
+function slotIdFromConstructedBuildingId(id) {
+  const value = String(id || '').trim();
+  return value.startsWith('built:') ? value.slice('built:'.length) : value;
+}
+
+function normalizeConstructionSlotId(value) {
+  const slotId = String(value || '').trim();
+  return CONSTRUCTION_SLOT_IDS.has(slotId) ? slotId : DEFAULT_CONSTRUCTION_SLOT_ID;
+}
+
+function normalizeConstructedBuildings(value) {
+  if (!value || typeof value !== 'object') return {};
+  const out = {};
+  for (const [rawSlotId, rawRecord] of Object.entries(value)) {
+    const slotId = normalizeConstructionSlotId(rawRecord?.slotId ?? rawSlotId);
+    const itemId = String(rawRecord?.itemId || '').trim();
+    if (!slotId || !CONSTRUCTION_ITEMS_BY_ID[itemId]) continue;
+    out[slotId] = {
+      id: constructedBuildingId(slotId),
+      slotId,
+      itemId,
+      level: Math.max(1, Math.trunc(Number(rawRecord?.level) || 1)),
+      builtAt: Number.isFinite(Number(rawRecord?.builtAt)) ? Number(rawRecord.builtAt) : Date.now()
+    };
+  }
+  return out;
+}
+
+function selectedBuildingExists(id, constructedBuildings = {}) {
+  const buildingId = String(id || '').trim();
+  if (BUILDINGS.some((building) => building.id === buildingId)) return true;
+  const slotId = slotIdFromConstructedBuildingId(buildingId);
+  return Boolean(slotId && constructedBuildings[slotId]?.id === buildingId);
+}
+
+function constructionRefund(cost) {
+  return Object.fromEntries(Object.entries(cost ?? {}).map(([key, value]) => [key, Math.floor(value * 0.5)]));
+}
+
+function productionFrom(levels, constructedBuildings = {}) {
   const out = { food: 0, wood: 0, stone: 0, goods: 0, culture: 0, gold: 0, prestige: 0 };
   for (const building of BUILDINGS) {
     const level = levels[building.id] ?? 1;
     for (const [key, perMinute] of Object.entries(building.produces ?? {})) {
       out[key] = (out[key] ?? 0) + perMinute * (0.75 + level * 0.25);
+    }
+  }
+  for (const record of Object.values(constructedBuildings ?? {})) {
+    const item = CONSTRUCTION_ITEMS_BY_ID[record?.itemId];
+    if (!item?.produces) continue;
+    const level = Math.max(1, Number(record.level) || 1);
+    for (const [key, perMinute] of Object.entries(item.produces)) {
+      out[key] = (out[key] ?? 0) + perMinute * (0.9 + level * 0.1);
     }
   }
   out.prestige += Object.values(levels).reduce((sum, v) => sum + v, 0) * 0.016;
@@ -344,6 +399,8 @@ export const useSettlementStore = create(
       constructionCategoryId: DEFAULT_CONSTRUCTION_CATEGORY_ID,
       constructionPage: 0,
       selectedConstructionId: DEFAULT_CONSTRUCTION_ITEM_ID,
+      selectedConstructionSlotId: DEFAULT_CONSTRUCTION_SLOT_ID,
+      constructedBuildings: {},
       researchCategoryId: DEFAULT_RESEARCH_CATEGORY_ID,
       selectedResearchId: DEFAULT_RESEARCH_NODE_ID,
       researchLevels: { ...startingResearchLevels },
@@ -366,7 +423,7 @@ export const useSettlementStore = create(
         const elapsedMs = Math.max(0, now - (state.lastTick || now));
         if (elapsedMs < 500) return;
         const minutes = Math.min(elapsedMs / 60000, 60 * 12);
-        const prod = productionFrom(state.levels);
+        const prod = productionFrom(state.levels, state.constructedBuildings);
         const delta = Object.fromEntries(Object.entries(prod).map(([key, value]) => [key, value * minutes]));
         let resources = addResources(state.resources, delta, state.inventoryCaps);
         let levels = state.levels;
@@ -429,7 +486,7 @@ export const useSettlementStore = create(
 
       collect: () => {
         const levels = get().levels;
-        const prod = productionFrom(levels);
+        const prod = productionFrom(levels, get().constructedBuildings);
         const multiplier = 10 + (levels['market-green'] ?? 1) * 2;
         const delta = Object.fromEntries(Object.entries(prod).map(([key, value]) => [key, Math.max(0, value * multiplier)]));
         set((s) => ({
@@ -489,6 +546,16 @@ export const useSettlementStore = create(
         persistSettlementPanelState('construction', state.selectedBuildingId ?? 'hearth-hall');
         return { activePanel: 'construction', rightPanelOpen: true, constructionPage: nextPage };
       }),
+      selectConstructionSlot: (slotId) => set((state) => {
+        const nextSlotId = normalizeConstructionSlotId(slotId);
+        if (!nextSlotId) return {};
+        persistSettlementPanelState('construction', state.selectedBuildingId ?? 'hearth-hall');
+        return {
+          activePanel: 'construction',
+          rightPanelOpen: true,
+          selectedConstructionSlotId: nextSlotId
+        };
+      }),
       selectConstructionItem: (itemId) => set((state) => {
         const item = CONSTRUCTION_PANEL_DATA.items.find((candidate) => candidate.id === itemId);
         if (!item) return {};
@@ -504,19 +571,74 @@ export const useSettlementStore = create(
           selectedConstructionId: item.id
         };
       }),
-      confirmConstructionPlacement: () => {
+      confirmConstructionPlacement: (slotId = null) => {
         const state = get();
         const item = CONSTRUCTION_PANEL_DATA.items.find((candidate) => candidate.id === state.selectedConstructionId);
         if (!item) return false;
+        const targetSlotId = normalizeConstructionSlotId(slotId ?? state.selectedConstructionSlotId);
+        const slot = CONSTRUCTION_SLOTS_BY_ID[targetSlotId];
+        if (!slot) return false;
+        if (state.constructedBuildings?.[targetSlotId]) {
+          set((s) => ({
+            activePanel: 'construction',
+            rightPanelOpen: true,
+            selectedConstructionSlotId: targetSlotId,
+            notices: pushNotice(s.notices, { type: 'warn', key: `construction:occupied:${targetSlotId}`, text: `${slot.label}: площадка уже занята` })
+          }));
+          return false;
+        }
         if (!canPay(state.resources, item.cost)) {
           set((s) => ({ notices: pushNotice(s.notices, { type: 'warn', key: `construction:blocked:${item.id}`, text: `${item.name}: не хватает ресурсов` }) }));
           return false;
         }
+        const now = Date.now();
+        const builtId = constructedBuildingId(targetSlotId);
+        persistSettlementPanelState('build', builtId);
         set((s) => ({
-          activePanel: 'construction',
+          resources: pay(s.resources, item.cost),
+          constructedBuildings: {
+            ...(s.constructedBuildings ?? {}),
+            [targetSlotId]: {
+              id: builtId,
+              slotId: targetSlotId,
+              itemId: item.id,
+              level: 1,
+              builtAt: now
+            }
+          },
+          selectedConstructionSlotId: targetSlotId,
+          selectedBuildingId: builtId,
+          activePanel: 'build',
           rightPanelOpen: true,
-          notices: pushNotice(s.notices, { type: 'upgrade', key: `construction:placement:${item.id}`, text: `${item.name}: площадка выбрана` })
+          notices: pushNotice(s.notices, { type: 'upgrade', key: `construction:built:${targetSlotId}:${item.id}`, text: `${item.name} построен: ${slot.label}` })
         }));
+        return true;
+      },
+      demolishConstructedBuilding: (id = null) => {
+        const state = get();
+        const targetSlotId = normalizeConstructionSlotId(slotIdFromConstructedBuildingId(id ?? state.selectedBuildingId));
+        const record = targetSlotId ? state.constructedBuildings?.[targetSlotId] : null;
+        const slot = targetSlotId ? CONSTRUCTION_SLOTS_BY_ID[targetSlotId] : null;
+        const item = record ? CONSTRUCTION_ITEMS_BY_ID[record.itemId] : null;
+        if (!targetSlotId || !record || !slot || !item) return false;
+        const refund = constructionRefund(item.cost);
+        persistSettlementPanelState('construction', 'hearth-hall');
+        set((s) => {
+          const nextConstructed = { ...(s.constructedBuildings ?? {}) };
+          delete nextConstructed[targetSlotId];
+          return {
+            resources: addResources(s.resources, refund, s.inventoryCaps),
+            constructedBuildings: nextConstructed,
+            selectedBuildingId: 'hearth-hall',
+            activePanel: 'construction',
+            rightPanelOpen: true,
+            selectedConstructionSlotId: targetSlotId,
+            selectedConstructionId: item.id,
+            constructionCategoryId: item.category,
+            constructionPage: normalizeConstructionPage(0, item.category),
+            notices: pushNotice(s.notices, { type: 'warn', key: `construction:demolish:${targetSlotId}:${item.id}`, text: `${item.name} снесён: ${slot.label}` })
+          };
+        });
         return true;
       },
 
@@ -684,6 +806,8 @@ export const useSettlementStore = create(
         constructionCategoryId: DEFAULT_CONSTRUCTION_CATEGORY_ID,
         constructionPage: 0,
         selectedConstructionId: DEFAULT_CONSTRUCTION_ITEM_ID,
+        selectedConstructionSlotId: DEFAULT_CONSTRUCTION_SLOT_ID,
+        constructedBuildings: {},
         researchCategoryId: DEFAULT_RESEARCH_CATEGORY_ID,
         selectedResearchId: DEFAULT_RESEARCH_NODE_ID,
         researchLevels: { ...startingResearchLevels },
@@ -697,32 +821,41 @@ export const useSettlementStore = create(
     {
       name: 'village-ascend-v2-state',
       storage: createJSONStorage(() => localStorage),
-      version: 8,
-      migrate: (persisted) => ({
-        ...persisted,
-        resources: { ...startingResources, ...(persisted?.resources ?? {}) },
-        levels: { ...startingLevels, ...(persisted?.levels ?? {}) },
-        population: populationFromLevels({ ...startingLevels, ...(persisted?.levels ?? {}) }),
-        selectedBuildingId: persisted?.selectedBuildingId ?? readInitialSelectedBuildingId(),
-        activePanel: normalizeActivePanel(persisted?.activePanel ?? readInitialActivePanel()),
-        rightPanelOpen: true,
-        activeUpgrade: null,
-        claimedGoalRewardIds: persisted?.claimedGoalRewardIds ?? [],
-        inventoryCaps: { ...startingInventoryCaps, ...(persisted?.inventoryCaps ?? {}) },
-        inventorySelectedResourceId: INVENTORY_RESOURCE_PROFILES[persisted?.inventorySelectedResourceId] ? persisted.inventorySelectedResourceId : null,
-        constructionCategoryId: normalizeConstructionCategoryId(persisted?.constructionCategoryId),
-        constructionPage: normalizeConstructionPage(persisted?.constructionPage, persisted?.constructionCategoryId),
-        selectedConstructionId: normalizeConstructionItemId(persisted?.selectedConstructionId, persisted?.constructionCategoryId),
-        researchCategoryId: normalizeResearchCategoryId(persisted?.researchCategoryId),
-        selectedResearchId: normalizeResearchNodeId(persisted?.selectedResearchId, persisted?.researchCategoryId),
-        researchLevels: { ...startingResearchLevels, ...(persisted?.researchLevels ?? {}) },
-        activeResearch: null,
-        worldMapFilterId: normalizeWorldMapFilterId(persisted?.worldMapFilterId),
-        selectedExpeditionId: normalizeWorldExpeditionId(persisted?.selectedExpeditionId, persisted?.worldMapFilterId),
-        activeExpedition: persisted?.activeExpedition?.expeditionId && WORLD_EXPEDITIONS_BY_ID[persisted.activeExpedition.expeditionId] ? persisted.activeExpedition : null,
-        notices: []
-      }),
-      partialize: (s) => ({ resources: s.resources, levels: s.levels, population: s.population, lastTick: s.lastTick, selectedBuildingId: s.selectedBuildingId, activePanel: s.activePanel, rightPanelOpen: s.rightPanelOpen, activeUpgrade: s.activeUpgrade, claimedGoalRewardIds: s.claimedGoalRewardIds, inventoryCaps: s.inventoryCaps, inventorySelectedResourceId: s.inventorySelectedResourceId, constructionCategoryId: s.constructionCategoryId, constructionPage: s.constructionPage, selectedConstructionId: s.selectedConstructionId, researchCategoryId: s.researchCategoryId, selectedResearchId: s.selectedResearchId, researchLevels: s.researchLevels, activeResearch: s.activeResearch, worldMapFilterId: s.worldMapFilterId, selectedExpeditionId: s.selectedExpeditionId, activeExpedition: s.activeExpedition })
+      version: 9,
+      migrate: (persisted) => {
+        const levels = { ...startingLevels, ...(persisted?.levels ?? {}) };
+        const constructedBuildings = normalizeConstructedBuildings(persisted?.constructedBuildings);
+        const selectedBuildingId = selectedBuildingExists(persisted?.selectedBuildingId, constructedBuildings)
+          ? persisted.selectedBuildingId
+          : readInitialSelectedBuildingId();
+        return {
+          ...persisted,
+          resources: { ...startingResources, ...(persisted?.resources ?? {}) },
+          levels,
+          population: populationFromLevels(levels),
+          selectedBuildingId,
+          activePanel: normalizeActivePanel(persisted?.activePanel ?? readInitialActivePanel()),
+          rightPanelOpen: true,
+          activeUpgrade: null,
+          claimedGoalRewardIds: persisted?.claimedGoalRewardIds ?? [],
+          inventoryCaps: { ...startingInventoryCaps, ...(persisted?.inventoryCaps ?? {}) },
+          inventorySelectedResourceId: INVENTORY_RESOURCE_PROFILES[persisted?.inventorySelectedResourceId] ? persisted.inventorySelectedResourceId : null,
+          constructionCategoryId: normalizeConstructionCategoryId(persisted?.constructionCategoryId),
+          constructionPage: normalizeConstructionPage(persisted?.constructionPage, persisted?.constructionCategoryId),
+          selectedConstructionId: normalizeConstructionItemId(persisted?.selectedConstructionId, persisted?.constructionCategoryId),
+          selectedConstructionSlotId: normalizeConstructionSlotId(persisted?.selectedConstructionSlotId),
+          constructedBuildings,
+          researchCategoryId: normalizeResearchCategoryId(persisted?.researchCategoryId),
+          selectedResearchId: normalizeResearchNodeId(persisted?.selectedResearchId, persisted?.researchCategoryId),
+          researchLevels: { ...startingResearchLevels, ...(persisted?.researchLevels ?? {}) },
+          activeResearch: null,
+          worldMapFilterId: normalizeWorldMapFilterId(persisted?.worldMapFilterId),
+          selectedExpeditionId: normalizeWorldExpeditionId(persisted?.selectedExpeditionId, persisted?.worldMapFilterId),
+          activeExpedition: persisted?.activeExpedition?.expeditionId && WORLD_EXPEDITIONS_BY_ID[persisted.activeExpedition.expeditionId] ? persisted.activeExpedition : null,
+          notices: []
+        };
+      },
+      partialize: (s) => ({ resources: s.resources, levels: s.levels, population: s.population, lastTick: s.lastTick, selectedBuildingId: s.selectedBuildingId, activePanel: s.activePanel, rightPanelOpen: s.rightPanelOpen, activeUpgrade: s.activeUpgrade, claimedGoalRewardIds: s.claimedGoalRewardIds, inventoryCaps: s.inventoryCaps, inventorySelectedResourceId: s.inventorySelectedResourceId, constructionCategoryId: s.constructionCategoryId, constructionPage: s.constructionPage, selectedConstructionId: s.selectedConstructionId, selectedConstructionSlotId: s.selectedConstructionSlotId, constructedBuildings: s.constructedBuildings, researchCategoryId: s.researchCategoryId, selectedResearchId: s.selectedResearchId, researchLevels: s.researchLevels, activeResearch: s.activeResearch, worldMapFilterId: s.worldMapFilterId, selectedExpeditionId: s.selectedExpeditionId, activeExpedition: s.activeExpedition })
     }
   )
 );

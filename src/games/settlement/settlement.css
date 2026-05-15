@@ -7560,7 +7560,7 @@
     display: grid !important;
     left: 64px !important;
     right: 8px !important;
-    top: 92px !important;
+    top: 106px !important;
     bottom: 82px !important;
     width: auto !important;
     height: auto !important;
@@ -7768,5 +7768,499 @@
   .settlement-game-root .right-panel-overview .overview-stage-note,
   .settlement-game-root .right-panel-overview .overview-morale-row button {
     display: none !important;
+  }
+}
+
+/* Settlement recovery pass: core HUD, readable warehouse, durable construction/world layouts. */
+.settlement-game-root .top-hud-final {
+  min-height: 78px !important;
+  overflow: hidden !important;
+}
+
+.settlement-game-root .top-resources-core {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(78px, 1fr)) !important;
+  gap: 6px !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.settlement-game-root .top-resources-core .resource-pill,
+.settlement-game-root .top-resources-core .resource-pill:nth-child(n) {
+  display: grid !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 44px !important;
+  grid-template-columns: 23px minmax(0, 1fr) !important;
+  padding: 6px 7px !important;
+}
+
+.settlement-game-root .top-resources-core .resource-label {
+  display: block !important;
+  max-width: none !important;
+  color: #e9d29e !important;
+  font-size: 8px !important;
+  line-height: 1 !important;
+}
+
+.settlement-game-root .top-resources-core .resource-pill strong {
+  max-width: none !important;
+  color: #fff2b8 !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+}
+
+.settlement-game-root .inventory-screen-v2 {
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.settlement-game-root .inventory-selected-summary-v2 {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background-size: 100% 100%;
+}
+
+.settlement-game-root .inventory-selected-copy-v2 {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.settlement-game-root .inventory-selected-copy-v2 > span,
+.settlement-game-root .inventory-selected-values-v2 span {
+  color: #d9c79b;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.settlement-game-root .inventory-selected-copy-v2 strong,
+.settlement-game-root .inventory-selected-values-v2 b {
+  color: #fff0bd;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.settlement-game-root .inventory-selected-values-v2 {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.settlement-game-root .inventory-capacity-bar-v2 {
+  height: 10px;
+  padding: 2px;
+  border: 1px solid rgba(238, 194, 89, .42);
+  border-radius: 999px;
+  background: rgba(25, 11, 6, .62);
+  overflow: hidden;
+}
+
+.settlement-game-root .inventory-capacity-bar-v2 i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #74a934, #e8ca62);
+}
+
+.settlement-game-root .inventory-resource-list-v2 {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding-right: 2px;
+}
+
+.settlement-game-root .inventory-resource-row-v2 {
+  min-height: 68px !important;
+  grid-template-columns: 30px minmax(0, 1fr) minmax(126px, auto) !important;
+  align-items: center !important;
+}
+
+.settlement-game-root .inventory-row-controls {
+  display: grid !important;
+  grid-template-columns: 44px 44px minmax(76px, 1fr) !important;
+  gap: 5px !important;
+}
+
+.settlement-game-root .inventory-row-controls.compact-controls {
+  grid-template-columns: minmax(86px, 1fr) !important;
+}
+
+.settlement-game-root .inventory-row-control {
+  min-width: 44px !important;
+  width: auto !important;
+  min-height: 44px !important;
+  font-size: 13px !important;
+}
+
+.settlement-game-root .inventory-row-control.next {
+  padding-inline: 6px !important;
+  font-size: 10px !important;
+  white-space: nowrap !important;
+}
+
+.settlement-game-root .construction-slot-status-v2 {
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  background-size: 100% 100%;
+}
+
+.settlement-game-root .construction-slot-status-v2 strong {
+  display: block;
+  color: #fff0bd;
+  font-size: 13px;
+  line-height: 1.08;
+}
+
+.settlement-game-root .construction-slot-status-v2 span {
+  display: block;
+  margin-top: 3px;
+  color: #e5d3a4;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.settlement-game-root .construction-slot-status-v2.occupied strong {
+  color: #ffd884;
+}
+
+.settlement-game-root .construction-screen-v2 {
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto !important;
+  overflow: hidden !important;
+}
+
+.settlement-game-root .construction-category-row-v2 {
+  min-height: 72px !important;
+}
+
+.settlement-game-root .construction-card-grid-v2 {
+  min-height: 0 !important;
+  grid-template-rows: none !important;
+  grid-auto-rows: minmax(112px, auto) !important;
+  overflow-y: auto !important;
+  padding-right: 2px !important;
+}
+
+.settlement-game-root .construction-card-v2 {
+  min-height: 112px !important;
+  grid-template-rows: auto minmax(50px, 1fr) auto !important;
+}
+
+.settlement-game-root .world-screen-v2,
+.settlement-game-root .world-map-scroll-v2 {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.settlement-game-root .world-map-scroll-v2 {
+  grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+  gap: 8px !important;
+}
+
+.settlement-game-root .world-map-card-v2 {
+  min-height: 0 !important;
+}
+
+.settlement-game-root .world-map-visual-v2 {
+  height: auto !important;
+  min-height: 148px !important;
+  aspect-ratio: 2 / 1 !important;
+}
+
+.settlement-game-root .world-filter-row-v2 {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.settlement-game-root .world-filter-button-v2 {
+  min-width: 0 !important;
+  min-height: 44px !important;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 6px 8px !important;
+}
+
+.settlement-game-root .world-filter-button-v2 span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff0bd;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.settlement-game-root .world-expedition-list-v2 {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding-right: 2px;
+}
+
+.settlement-game-root .world-expedition-card-v2 {
+  min-height: 126px !important;
+  grid-template-columns: 58px minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  align-items: start !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.settlement-game-root .world-expedition-card-v2.locked {
+  min-height: 112px !important;
+}
+
+.settlement-game-root .world-expedition-action-v2 {
+  grid-column: 1 / -1 !important;
+  min-height: 44px !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.settlement-game-root .world-expedition-title-row-v2 {
+  min-width: 0 !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 5px !important;
+}
+
+.settlement-game-root .world-expedition-title-row-v2 strong {
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.05 !important;
+}
+
+.settlement-game-root .world-expedition-copy-v2 p,
+.settlement-game-root .world-expedition-copy-v2 em {
+  overflow: hidden !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+@media (max-width: 620px) {
+  .settlement-game-root .top-hud-final {
+    min-height: 84px !important;
+    padding: 7px 8px !important;
+  }
+
+  .settlement-game-root .top-resources-core {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-auto-rows: 35px !important;
+  }
+
+  .settlement-game-root .top-resources-core .resource-pill,
+  .settlement-game-root .top-resources-core .resource-pill:nth-child(n) {
+    display: grid !important;
+    height: 35px !important;
+    grid-template-columns: 18px minmax(0, 1fr) !important;
+    padding: 4px 5px !important;
+  }
+
+  .settlement-game-root .top-resources-core .resource-label {
+    font-size: 7px !important;
+  }
+
+  .settlement-game-root .top-resources-core .resource-pill strong {
+    font-size: 9.5px !important;
+  }
+
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) {
+    left: 56px !important;
+    right: 6px !important;
+    top: 106px !important;
+    bottom: 78px !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    min-width: 0 !important;
+    grid-template-rows: 50px minmax(0, 1fr) !important;
+    padding-inline: 14px !important;
+  }
+
+  .settlement-game-root .right-panel-inventory,
+  .settlement-game-root .right-panel-world-map,
+  .settlement-game-root .right-panel-construction {
+    grid-template-rows: 50px minmax(0, 1fr) !important;
+  }
+
+  .settlement-game-root .right-panel-inventory .panel-strip,
+  .settlement-game-root .right-panel-inventory .panel-tabs {
+    display: none !important;
+  }
+
+  .settlement-game-root .right-panel-inventory .fancy-panel-header {
+    padding-bottom: 0 !important;
+  }
+
+  .settlement-game-root .right-panel-inventory .panel-body-fancy {
+    overflow-y: auto !important;
+  }
+
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-body-fancy {
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 4px 10px 12px !important;
+  }
+
+  .settlement-game-root .inventory-selected-summary-v2 {
+    grid-template-columns: 30px minmax(0, 1fr);
+    min-height: 66px;
+  }
+
+  .settlement-game-root .inventory-screen-v2 {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    padding-bottom: 10px !important;
+  }
+
+  .settlement-game-root .inventory-screen-v2 > * + * {
+    margin-top: 8px !important;
+  }
+
+  .settlement-game-root .inventory-resource-list-v2 {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .settlement-game-root .inventory-selected-values-v2 {
+    grid-column: 2;
+    justify-items: start;
+    grid-template-columns: auto auto;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .settlement-game-root .inventory-resource-row-v2 {
+    grid-template-columns: 28px minmax(0, 1fr) !important;
+    min-height: 58px !important;
+    cursor: pointer;
+  }
+
+  .settlement-game-root .inventory-row-controls {
+    display: none !important;
+  }
+
+  .settlement-game-root .inventory-row-control {
+    min-height: 44px !important;
+  }
+
+  .settlement-game-root .inventory-item-grid-v2 {
+    display: none !important;
+  }
+
+  .settlement-game-root .inventory-special-head-v2 {
+    display: none !important;
+  }
+
+  .settlement-game-root .right-panel-inventory .panel-body-fancy {
+    overflow-y: auto !important;
+  }
+
+  .settlement-game-root .construction-card-grid-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(88px, auto) !important;
+    gap: 6px !important;
+  }
+
+  .settlement-game-root .construction-card-v2 {
+    min-height: 88px !important;
+    grid-template-rows: 14px minmax(34px, 1fr) 18px !important;
+  }
+
+  .settlement-game-root .construction-category-row-v2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    min-height: 54px !important;
+  }
+
+  .settlement-game-root .construction-category-chip-v2 {
+    min-height: 52px !important;
+    grid-template-rows: 24px auto !important;
+    padding: 4px 3px !important;
+  }
+
+  .settlement-game-root .construction-category-chip-v2 span {
+    font-size: 8px !important;
+    line-height: 1 !important;
+  }
+
+  .settlement-game-root .world-map-visual-v2 {
+    min-height: 128px !important;
+    aspect-ratio: 1.65 / 1 !important;
+  }
+
+  .settlement-game-root .world-filter-button-v2 {
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    padding-inline: 4px !important;
+  }
+
+  .settlement-game-root .world-filter-button-v2 span {
+    display: none !important;
+  }
+
+  .settlement-game-root .world-expedition-card-v2 {
+    min-height: 124px !important;
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+  }
+
+  .settlement-game-root .world-expedition-card-v2.locked {
+    min-height: 118px !important;
+  }
+
+  .settlement-game-root .overview-morale-row button {
+    min-height: 44px !important;
+  }
+}
+
+@media (min-width: 621px) and (max-width: 900px) {
+  .settlement-game-root .right-panel-inventory {
+    bottom: 118px !important;
+    max-height: none !important;
+  }
+}
+
+@media (min-width: 901px) {
+  .settlement-game-root[data-right-panel-open='true'] .bottom-nav {
+    left: 104px !important;
+    right: 470px !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    transform: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .settlement-game-root .top-resources-core {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .settlement-game-root .top-resources-core .resource-pill:nth-child(n) {
+    display: grid !important;
+  }
+
+  .settlement-game-root .top-resources-core .resource-label {
+    font-size: 6.5px !important;
+  }
+
+  .settlement-game-root .top-resources-core .resource-pill strong {
+    font-size: 9px !important;
   }
 }

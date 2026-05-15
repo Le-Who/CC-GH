@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { RESOURCES, BUILDINGS } from "../src/games/settlement/gameData.js";
+import { RESOURCES, TOP_HUD_RESOURCE_IDS, BUILDINGS } from "../src/games/settlement/gameData.js";
 import { productionFrom, useSettlementStore } from "../src/games/settlement/useSettlementStore.js";
 
 function startingLevels() {
@@ -41,10 +41,17 @@ describe("Settlement overview screen contract", () => {
     );
   });
 
-  it("keeps the top HUD resource order explicit for the overview mockup", () => {
+  it("keeps the full resource catalog available for the warehouse", () => {
     assert.deepEqual(
       RESOURCES.map((resource) => resource.id),
       ["population", "food", "wood", "stone", "goods", "culture", "gold", "gems", "prestige"]
+    );
+  });
+
+  it("limits the top HUD to a stable core resource set", () => {
+    assert.deepEqual(
+      TOP_HUD_RESOURCE_IDS,
+      ["population", "food", "wood", "stone", "gold", "gems"]
     );
   });
 
