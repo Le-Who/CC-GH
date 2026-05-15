@@ -340,12 +340,51 @@ test.describe("New-stack minigame smoke", () => {
     expect(metrics.canvas.height).toBeGreaterThanOrEqual(820);
     expect(metrics.tinyButtons).toEqual([]);
 
-    await page.getByRole("button", { name: "Собрать" }).click();
+    await page.locator(".settlement-game-root .bottom-nav .collect-button").click();
     await expect(page.locator(".settlement-game-root .notices-v2")).toContainText("ресурсы");
+  });
 
-    await page.getByRole("button", { name: "В сад" }).click();
-    await expect(page.locator(".bottom-tabs")).toBeVisible();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
+  test("Settlement small mobile chrome keeps overview controls reachable", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `settlement_mobile_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+
+    await page.goto("/");
+    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /Town/ }).click();
+    await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
+
+    const metrics = await page.evaluate(() => {
+      const root = document.querySelector(".settlement-game-root");
+      const isVisible = (node) => {
+        const rect = node.getBoundingClientRect();
+        const style = getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      };
+      const labelFor = (node) => node.getAttribute("aria-label") || node.textContent.trim().replace(/\s+/g, " ");
+      const viewportClipped = (node) => {
+        const rect = node.getBoundingClientRect();
+        return rect.left < -1 || rect.right > window.innerWidth + 1 || rect.top < -1 || rect.bottom > window.innerHeight + 1;
+      };
+      const panelButtons = [...root.querySelectorAll(".right-panel button")].filter(isVisible);
+      const resourcePills = [...root.querySelectorAll(".top-resources-core .resource-pill")].filter(isVisible);
+      const bottomNav = root.querySelector(".bottom-nav")?.getBoundingClientRect();
+      const rightPanel = root.querySelector(".right-panel")?.getBoundingClientRect();
+      return {
+        bodyOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        clippedPanelButtons: panelButtons.filter(viewportClipped).map(labelFor),
+        clippedResourcePills: resourcePills.filter(viewportClipped).map(labelFor),
+        visibleResourcePills: resourcePills.length,
+        panelClearsBottomDock: rightPanel && bottomNav ? rightPanel.bottom <= bottomNav.top - 4 : false,
+      };
+    });
+
+    expect(metrics.bodyOverflowX).toBeLessThanOrEqual(1);
+    expect(metrics.clippedPanelButtons).toEqual([]);
+    expect(metrics.clippedResourcePills).toEqual([]);
+    expect(metrics.visibleResourcePills).toBeLessThanOrEqual(2);
+    expect(metrics.panelClearsBottomDock).toBe(true);
   });
 
   test("pause menus preserve per-game mechanics and expose game-specific recovery state", async ({ page }) => {

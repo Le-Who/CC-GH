@@ -17,9 +17,11 @@ import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, u
 import './settlement.css';
 
 // ui-implementation-v18-step1: right-panel screen registry + router foundation
-const WORLD = { w: 4096, h: 3072 };
-const GROUND = { x: 640, y: 390, w: 2816, h: 2112 };
-const STAGE_ROAD_FADE_MS = 550;
+const SOURCE_GROUND = { w: 2816, h: 2112 };
+const WORLD = { w: 4096, h: 2304 };
+const GROUND = { x: 0, y: 0, w: WORLD.w, h: WORLD.h };
+const REGION_SCALE = { x: WORLD.w / SOURCE_GROUND.w, y: WORLD.h / SOURCE_GROUND.h };
+const REGION_OBJECT_SCALE = 1.14;
 const DEFAULT_FRAME_INSET = 3;
 const RUNTIME_TEXTURE_CACHE = new Map();
 const BUILDING_VISUALS = {
@@ -34,6 +36,26 @@ const BUILDING_VISUALS = {
   'river-bridge': { ringScale: 0.2, ringY: 3 },
   'council-manor': { ringScale: 0.24, ringY: 2, smoke: { x: 44, y: -192 } }
 };
+
+function regionX(x) {
+  return x * REGION_SCALE.x;
+}
+
+function regionY(y) {
+  return y * REGION_SCALE.y;
+}
+
+function regionPoint(point) {
+  return [regionX(point[0]), regionY(point[1])];
+}
+
+function regionPosition(source) {
+  return { x: regionX(source.x), y: regionY(source.y) };
+}
+
+function regionScale(scale) {
+  return scale * REGION_OBJECT_SCALE;
+}
 
 
 const RESOURCE_LABELS = {
@@ -65,7 +87,7 @@ const RESOURCE_ICONS = {
 const PANEL_TABS = [
   { id: 'build', label: 'Здание', icon: ICONS.build },
   { id: 'goals', label: 'Цели', icon: ICONS.quest },
-  { id: 'inventory', label: 'Инвентарь', icon: ICONS.inventory },
+  { id: 'inventory', label: 'Инвентарь', shortLabel: 'Склад', icon: ICONS.inventory },
   { id: 'council', label: 'Совет', icon: ICONS.research }
 ];
 
@@ -153,6 +175,55 @@ const WORLD_MAP_ICON_SOURCES = {
   forest: ICONS.wood,
   map: ICONS.map,
   world: ICONS.world
+};
+
+const CONSTRUCTION_CATEGORY_FRAMES = {
+  production: { idle: UI_ASSETS.constructionCategoryProductionIdle, active: UI_ASSETS.constructionCategoryProductionActive },
+  storage: { idle: UI_ASSETS.constructionCategoryStorageIdle, active: UI_ASSETS.constructionCategoryStorageActive },
+  decor: { idle: UI_ASSETS.constructionCategoryDecorIdle, active: UI_ASSETS.constructionCategoryDecorActive },
+  special: { idle: UI_ASSETS.constructionCategorySpecialIdle, active: UI_ASSETS.constructionCategorySpecialActive }
+};
+
+const RESEARCH_CATEGORY_FRAMES = {
+  farming: { idle: UI_ASSETS.researchCategoryFarmingIdle, active: UI_ASSETS.researchCategoryFarmingActive },
+  trade: { idle: UI_ASSETS.researchCategoryTradeIdle, active: UI_ASSETS.researchCategoryTradeActive },
+  culture: { idle: UI_ASSETS.researchCategoryCultureIdle, active: UI_ASSETS.researchCategoryCultureActive }
+};
+
+const RESEARCH_NODE_FRAMES = {
+  complete: UI_ASSETS.researchNodeComplete,
+  done: UI_ASSETS.researchNodeComplete,
+  available: UI_ASSETS.researchNodeAvailable,
+  selected: UI_ASSETS.researchNodeSelected,
+  researching: UI_ASSETS.researchNodeResearching,
+  locked: UI_ASSETS.researchNodeLocked
+};
+
+const WORLD_EXPEDITION_CARD_FRAMES = {
+  idle: UI_ASSETS.worldExpeditionCardIdle,
+  selected: UI_ASSETS.worldExpeditionCardSelected,
+  active: UI_ASSETS.worldExpeditionCardActive,
+  locked: UI_ASSETS.worldExpeditionCardLocked
+};
+
+const WORLD_THUMBNAILS = {
+  forest: UI_ASSETS.worldThumbForest,
+  nature: UI_ASSETS.worldThumbForest,
+  wood: UI_ASSETS.worldThumbForest,
+  ruins: UI_ASSETS.worldThumbRuins,
+  gems: UI_ASSETS.worldThumbRuins,
+  volcano: UI_ASSETS.worldThumbVolcano,
+  danger: UI_ASSETS.worldThumbVolcano,
+  prestige: UI_ASSETS.worldThumbVolcano,
+  world: UI_ASSETS.worldThumbIce,
+  locked: UI_ASSETS.worldThumbIce
+};
+
+const WORLD_DIFFICULTY_FRAMES = {
+  easy: UI_ASSETS.worldDifficultyEasy,
+  medium: UI_ASSETS.worldDifficultyMedium,
+  hard: UI_ASSETS.worldDifficultyHard,
+  locked: UI_ASSETS.worldDifficultyLocked
 };
 
 function constructionItemAsset(item) {
@@ -480,10 +551,13 @@ function PanelTabs({ activePanel, setPanel, variant = 'default' }) {
             type="button"
             className={`panel-tab ${isActive ? 'active' : ''} ${variant === 'fancy' ? 'panel-tab-fancy' : ''}`.trim()}
             onClick={() => setPanel(tab.id)}
-            style={variant === 'fancy' ? undefined : frameStyle(isActive ? UI_ASSETS.tabActive : UI_ASSETS.tabIdle)}
+            style={frameStyle(isActive ? UI_ASSETS.tabActive : UI_ASSETS.tabIdle)}
           >
             <AssetIcon src={tab.icon} alt="" size={16} />
-            <span>{tab.label}</span>
+            <span className="panel-tab-label">
+              <span className="panel-tab-label-full">{tab.label}</span>
+              <span className="panel-tab-label-short">{tab.shortLabel ?? tab.label}</span>
+            </span>
           </button>
         );
       })}
@@ -491,9 +565,9 @@ function PanelTabs({ activePanel, setPanel, variant = 'default' }) {
   );
 }
 
-function RewardBadge({ type = 'gold', amount, label }) {
+function RewardBadge({ type = 'gold', amount, label, frame = UI_ASSETS.rewardBadge }) {
   return (
-    <div className="reward-badge" style={frameStyle(UI_ASSETS.iconButton)}>
+    <div className="reward-badge" style={frameStyle(frame)}>
       <ResourceIcon type={type} size={18} />
       <strong>{amount}</strong>
       {label ? <span>{label}</span> : null}
@@ -525,8 +599,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   const hostRef = useRef(null);
   const appRef = useRef(null);
   const worldRef = useRef(null);
-  const roadRef = useRef(null);
-  const spritesRef = useRef({ buildings: new Map(), vfx: new Map(), roads: {} });
+  const spritesRef = useRef({ buildings: new Map(), vfx: new Map() });
   const cameraRef = useRef({ x: 0, y: 0, scale: 0.5 });
   const gestureRef = useRef({ pointers: new Map(), dragging: false, lastX: 0, lastY: 0, pinchStart: 0, pinchScale: 1 });
   const rafRef = useRef(0);
@@ -539,8 +612,6 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   const devInfoFrameRef = useRef(0);
 
   const levels = useSettlementStore((s) => s.levels);
-  const resources = useSettlementStore((s) => s.resources);
-  const stage = useMemo(() => getStage(resources, levels), [resources, levels]);
   const storeSelect = useSettlementStore((s) => s.selectBuilding);
 
   useEffect(() => {
@@ -605,9 +676,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       app.canvas.setAttribute('aria-label', 'Village Ascend playable map');
 
       const staticTextureUrls = [
-        MAP_ASSETS.background,
-        MAP_ASSETS.ground,
-        ...Object.values(MAP_ASSETS.roads),
+        MAP_ASSETS.region,
         VFX_ASSETS.marketSparkle,
         VFX_ASSETS.waterGlint,
         VFX_ASSETS.buildDust,
@@ -642,11 +711,11 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       worldRef.current = world;
       app.stage.addChild(world);
 
-      const bg = makeSafeSprite(await loadTexture(MAP_ASSETS.background));
-      bg.width = WORLD.w;
-      bg.height = WORLD.h;
-      bg.zIndex = 0;
-      world.addChild(bg);
+      const region = makeSafeSprite(await loadTexture(MAP_ASSETS.region));
+      region.width = WORLD.w;
+      region.height = WORLD.h;
+      region.zIndex = 0;
+      world.addChild(region);
 
       const groundLayer = new Container();
       groundLayer.x = GROUND.x;
@@ -654,30 +723,6 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       groundLayer.zIndex = 10;
       groundLayer.sortableChildren = true;
       world.addChild(groundLayer);
-
-      const ground = makeSafeSprite(await loadTexture(MAP_ASSETS.ground));
-      if (cancelled) return;
-      ground.width = GROUND.w;
-      ground.height = GROUND.h;
-      ground.zIndex = 0;
-      groundLayer.addChild(ground);
-
-      const roadContainer = new Container();
-      roadContainer.zIndex = 3;
-      groundLayer.addChild(roadContainer);
-      roadRef.current = roadContainer;
-
-      for (const [key, url] of Object.entries(MAP_ASSETS.roads)) {
-        const road = makeSafeSprite(await loadTexture(url));
-        if (cancelled) return;
-        road.width = GROUND.w;
-        road.height = GROUND.h;
-        road.alpha = key === stage.road ? 1 : 0;
-        road.zIndex = 1;
-        roadContainer.addChild(road);
-        spritesRef.current.roads[key] = road;
-      }
-
 
       const propLayer = new Container();
       propLayer.zIndex = 20;
@@ -733,15 +778,16 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       }
       const anchorGraphics = new Graphics();
       for (const building of BUILDINGS) {
-        anchorGraphics.circle(building.x, building.y, 9).fill({ color: 0xff5544, alpha: 0.9 });
-        anchorGraphics.moveTo(building.x - 18, building.y).lineTo(building.x + 18, building.y).stroke({ color: 0xffffff, alpha: 0.95, width: 3 });
-        anchorGraphics.moveTo(building.x, building.y - 18).lineTo(building.x, building.y + 18).stroke({ color: 0xffffff, alpha: 0.95, width: 3 });
+        const anchor = regionPosition(building);
+        anchorGraphics.circle(anchor.x, anchor.y, 9).fill({ color: 0xff5544, alpha: 0.9 });
+        anchorGraphics.moveTo(anchor.x - 18, anchor.y).lineTo(anchor.x + 18, anchor.y).stroke({ color: 0xffffff, alpha: 0.95, width: 3 });
+        anchorGraphics.moveTo(anchor.x, anchor.y - 18).lineTo(anchor.x, anchor.y + 18).stroke({ color: 0xffffff, alpha: 0.95, width: 3 });
         const label = new Text({
-          text: `${building.short} ${Math.round(building.x)},${Math.round(building.y)}`,
+          text: `${building.short} ${Math.round(anchor.x)},${Math.round(anchor.y)}`,
           style: { fontFamily: 'monospace', fontSize: 20, fontWeight: '800', fill: '#ffffff', stroke: { color: '#000000', width: 5 } }
         });
-        label.x = building.x + 22;
-        label.y = building.y - 30;
+        label.x = anchor.x + 22;
+        label.y = anchor.y - 30;
         devLayer.addChild(label);
       }
       devLayer.addChild(anchorGraphics);
@@ -752,11 +798,12 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         const texture = await loadTexture(prop.image, { trim: true });
         if (cancelled) return;
         if (!texture) continue;
+        const position = regionPosition(prop);
         const sprite = anchorBottom(makeSafeSprite(texture));
-        sprite.x = prop.x;
-        sprite.y = prop.y;
-        sprite.scale.set(prop.scale);
-        sprite.zIndex = prop.y;
+        sprite.x = position.x;
+        sprite.y = position.y;
+        sprite.scale.set(regionScale(prop.scale));
+        sprite.zIndex = position.y;
         propLayer.addChild(sprite);
       }
 
@@ -772,11 +819,12 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         if (cancelled) return;
         if (!texture) continue;
         const visual = BUILDING_VISUALS[building.id] ?? {};
+        const position = regionPosition(building);
 
         const wrapper = new Container();
-        wrapper.x = building.x;
-        wrapper.y = building.y;
-        wrapper.zIndex = building.y;
+        wrapper.x = position.x;
+        wrapper.y = position.y;
+        wrapper.zIndex = position.y;
         wrapper.eventMode = 'static';
         wrapper.cursor = 'pointer';
         wrapper.hitArea = new Rectangle(-210, -300, 420, 360);
@@ -787,13 +835,14 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
 
         const sprite = anchorBottom(makeSafeSprite(texture));
         sprite.name = 'building-sprite';
-        sprite.scale.set(building.scale);
+        sprite.scale.set(regionScale(building.scale));
         wrapper.addChild(sprite);
 
         const ring = anchorBottom(makeSafeSprite(ringTexture));
         ring.name = 'selection-ring';
         ring.y = visual.ringY ?? 4;
-        ring.scale.set(visual.ringScale ?? Math.max(0.18, building.scale * 0.55));
+        const ringBaseScale = regionScale(visual.ringScale ?? Math.max(0.18, building.scale * 0.55));
+        ring.scale.set(ringBaseScale);
         ring.alpha = building.id === selectedRef.current ? 0.88 : 0;
         ring.zIndex = -1;
         wrapper.addChildAt(ring, 0);
@@ -801,7 +850,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         const upgradeGlow = anchorBottom(makeSafeSprite(upgradeGlowTexture));
         upgradeGlow.name = 'upgrade-glow';
         upgradeGlow.y = visual.ringY ?? 4;
-        upgradeGlow.scale.set((visual.ringScale ?? Math.max(0.18, building.scale * 0.55)) * 1.16);
+        upgradeGlow.scale.set(ringBaseScale * 1.16);
         upgradeGlow.alpha = building.id === selectedRef.current ? 0.32 : 0;
         upgradeGlow.blendMode = 'add';
         wrapper.addChildAt(upgradeGlow, 1);
@@ -809,7 +858,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         const levelupRays = anchorBottom(makeSafeSprite(levelupRaysTexture));
         levelupRays.name = 'levelup-rays';
         levelupRays.y = -18;
-        levelupRays.scale.set((visual.ringScale ?? Math.max(0.18, building.scale * 0.55)) * 1.4);
+        levelupRays.scale.set(ringBaseScale * 1.4);
         levelupRays.alpha = building.id === selectedRef.current ? 0.22 : 0;
         levelupRays.blendMode = 'add';
         wrapper.addChild(levelupRays);
@@ -828,17 +877,18 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         wrapper.addChild(nameBadge);
 
         buildingLayer.addChild(wrapper);
-        spritesRef.current.buildings.set(building.id, { wrapper, sprite, ring, upgradeGlow, levelupRays, levelBadge, nameBadge, smokeAnchor });
+        spritesRef.current.buildings.set(building.id, { wrapper, sprite, ring, ringBaseScale, upgradeGlow, levelupRays, levelBadge, nameBadge, smokeAnchor });
       }
 
       const placementSlot = CONSTRUCTION_PANEL_DATA.placementSlots[0];
       const initialConstructionItem = selectedConstructionItemRef.current ?? CONSTRUCTION_PANEL_DATA.items[0];
       if (placementSlot && initialConstructionItem) {
+        const placementPosition = regionPosition(placementSlot);
         const ghostContainer = new Container();
         ghostContainer.name = 'construction-placement-ghost';
-        ghostContainer.x = placementSlot.x;
-        ghostContainer.y = placementSlot.y;
-        ghostContainer.zIndex = placementSlot.y + 4;
+        ghostContainer.x = placementPosition.x;
+        ghostContainer.y = placementPosition.y;
+        ghostContainer.zIndex = placementPosition.y + 4;
         ghostContainer.eventMode = 'static';
         ghostContainer.cursor = 'pointer';
         ghostContainer.hitArea = new Rectangle(-190, -270, 380, 320);
@@ -867,7 +917,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         ghostSprite.name = 'construction-preview';
         ghostSprite.tint = 0xa8ff9a;
         ghostSprite.alpha = 0.56;
-        ghostSprite.scale.set(placementSlot.scale);
+        ghostSprite.scale.set(regionScale(placementSlot.scale));
         ghostSprite.blendMode = 'screen';
         ghostContainer.addChild(ghostSprite);
 
@@ -910,16 +960,17 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         if (!texture) continue;
         const frames = splitTexture(texture, { ...(villager.layout ?? { frames: 4, cols: 4, rows: 1 }), inset: villager.layout?.inset ?? DEFAULT_FRAME_INSET });
         const anim = new AnimatedSprite(frames);
+        const position = regionPosition(villager);
         anim.anchor.set(0.5, 1);
-        anim.scale.set(villager.scale);
+        anim.scale.set(regionScale(villager.scale));
         anim.animationSpeed = 0.075;
         anim.play();
-        anim.x = villager.x;
-        anim.y = villager.y;
-        anim.zIndex = villager.y + 10;
+        anim.x = position.x;
+        anim.y = position.y;
+        anim.zIndex = position.y + 10;
         anim.eventMode = 'none';
         anim.roundPixels = false;
-        anim._vaPath = villager.path;
+        anim._vaPath = villager.path?.map(regionPoint);
         anim._vaSeed = Math.random() * 1000;
         villagerLayer.addChild(anim);
       }
@@ -929,13 +980,14 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         if (cancelled) return;
         if (!texture) continue;
         const anim = new AnimatedSprite(splitTexture(texture, { frames: 4, cols: 4, rows: 1, inset: DEFAULT_FRAME_INSET }));
+        const position = regionPosition(worker);
         anim.anchor.set(0.5, 1);
-        anim.scale.set(worker.scale);
+        anim.scale.set(regionScale(worker.scale));
         anim.animationSpeed = 0.065;
         anim.play();
-        anim.x = worker.x;
-        anim.y = worker.y;
-        anim.zIndex = worker.y + 12;
+        anim.x = position.x;
+        anim.y = position.y;
+        anim.zIndex = position.y + 12;
         anim.eventMode = 'none';
         villagerLayer.addChild(anim);
       }
@@ -957,26 +1009,27 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       const dustFrames = splitTexture(await loadTexture(VFX_ASSETS.buildDust), { frames: 6, cols: 6, rows: 1, inset: 2 });
       if (cancelled) return;
       for (const point of [[948, 505], [2348, 967], [1410, 1085]]) {
+        const [x, y] = regionPoint(point);
         const dust = new AnimatedSprite(dustFrames);
         dust.anchor.set(0.5, 1);
-        dust.x = point[0];
-        dust.y = point[1] + 12;
-        dust.scale.set(0.18);
+        dust.x = x;
+        dust.y = y + 12;
+        dust.scale.set(regionScale(0.18));
         dust.animationSpeed = 0.026 + Math.random() * 0.012;
         dust.alpha = 0.28;
         dust.play();
-        dust.zIndex = point[1] + 2;
+        dust.zIndex = y + 2;
         vfxLayer.addChild(dust);
       }
 
       const glintFrames = splitTexture(await loadTexture(VFX_ASSETS.waterGlint), { frames: 6, cols: 6, rows: 1, inset: 2 });
       if (cancelled) return;
-      for (const point of [[1810, 1430], [1760, 1530], [1880, 1270]]) {
+      for (const point of [[620, 620], [870, 1760], [3180, 1720]]) {
         const glint = new AnimatedSprite(glintFrames);
         glint.anchor.set(0.5);
         glint.x = point[0];
         glint.y = point[1];
-        glint.scale.set(0.2);
+        glint.scale.set(regionScale(0.2));
         glint.animationSpeed = 0.025 + Math.random() * 0.02;
         glint.alpha = 0.62;
         glint.play();
@@ -1188,7 +1241,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         for (const [id, item] of spritesRef.current.buildings) {
           const selected = activePanelRef.current !== 'construction' && id === selectedRef.current;
           item.ring.alpha = selected ? 0.88 + Math.sin(t * 3) * 0.07 : 0;
-          const baseScale = BUILDING_VISUALS[id]?.ringScale ?? 0.22;
+          const baseScale = item.ringBaseScale ?? regionScale(BUILDING_VISUALS[id]?.ringScale ?? 0.22);
           item.ring.scale.set(baseScale + pulse * 0.01, baseScale + pulse * 0.01);
           if (item.upgradeGlow) {
             item.upgradeGlow.alpha = selected ? 0.22 + Math.sin(t * 2.4) * 0.07 : 0;
@@ -1236,7 +1289,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       const app = appRef.current;
       destroyPixiAppSafely(app);
       appRef.current = null;
-      spritesRef.current = { buildings: new Map(), vfx: new Map(), roads: {}, devLayer: null };
+      spritesRef.current = { buildings: new Map(), vfx: new Map(), devLayer: null };
     };
   // Scene is intentionally initialized once. Live updates are handled by targeted effects below.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1253,7 +1306,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         const item = loadedBuildings.get(building.id);
         if (!item || !texture) continue;
         item.sprite.texture = texture;
-        item.sprite.scale.set(building.scale);
+        item.sprite.scale.set(regionScale(building.scale));
         item.levelBadge.destroy({ children: true });
         const freshBadge = createLevelBadge(levels[building.id] ?? 1, 0, -item.sprite.height * building.scale - 18);
         freshBadge.name = 'level-badge';
@@ -1262,20 +1315,6 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       }
     });
   }, [levels]);
-
-  useEffect(() => {
-    for (const [key, sprite] of Object.entries(spritesRef.current.roads)) {
-      const target = key === stage.road ? 1 : 0;
-      const start = sprite.alpha;
-      const started = performance.now();
-      const tick = () => {
-        const progress = Math.min(1, (performance.now() - started) / STAGE_ROAD_FADE_MS);
-        sprite.alpha = start + (target - start) * progress;
-        if (progress < 1) requestAnimationFrame(tick);
-      };
-      tick();
-    }
-  }, [stage.road]);
 
   useEffect(() => {
     for (const [id, item] of spritesRef.current.buildings) {
@@ -1292,7 +1331,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     loadTexture(constructionItemAsset(selectedConstructionItem), { trim: true }).then((texture) => {
       if (cancelled || !texture) return;
       ghost.sprite.texture = texture;
-      ghost.sprite.scale.set(ghost.slot.scale);
+      ghost.sprite.scale.set(regionScale(ghost.slot.scale));
       if (ghost.label) ghost.label.destroy({ children: true });
       const freshLabel = createTextLabel(selectedConstructionItem.name, 0, 34, 'small');
       freshLabel.name = 'construction-label';
@@ -1313,7 +1352,11 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
 function ResourcePill({ label, value, icon, type, showPlus = false }) {
   return (
     <div className={`resource-pill resource-pill-${type ?? 'generic'}`} style={frameStyle(UI_ASSETS.resourcePill)}>
-      {icon ? <AssetIcon src={icon} alt="" className="resource-pill-icon" size={19} /> : null}
+      {icon ? (
+        <span className="resource-pill-icon-slot" style={frameStyle(UI_ASSETS.resourceIconSlot)}>
+          <AssetIcon src={icon} alt="" className="resource-pill-icon" size={19} />
+        </span>
+      ) : null}
       <span className="resource-label">{label}</span>
       <strong>{formatNumber(value)}</strong>
       {showPlus ? (
@@ -1338,8 +1381,9 @@ function TopHud({ resources, population, stage }) {
   return (
     <header className="top-hud top-hud-final" style={frameStyle(UI_ASSETS.topbar)}>
       <div className="profile-card profile-card-final" style={frameStyle(UI_ASSETS.profile)}>
-        <div className="profile-avatar-wrap">
+        <div className="profile-avatar-wrap" style={frameStyle(UI_ASSETS.profileAvatarFrame)}>
           <AssetIcon src={ICONS.shield} alt="" className="profile-avatar" size={34} />
+          <b className="profile-level-badge" style={frameStyle(UI_ASSETS.profileLevelBadge)}>{SETTLEMENT_PROFILE.mayorLevel}</b>
         </div>
         <div className="profile-meta">
           <div className="profile-head">
@@ -1350,7 +1394,7 @@ function TopHud({ resources, population, stage }) {
         </div>
       </div>
 
-      <div className="settlement-title settlement-title-final">
+      <div className="settlement-title settlement-title-final" style={frameStyle(UI_ASSETS.settlementPlaque)}>
         <span>Поселение · {stage.title}</span>
         <strong>{SETTLEMENT_PROFILE.name}</strong>
       </div>
@@ -1385,15 +1429,17 @@ function DockButton({
   variant = 'dock',
   iconSize = 24,
   hideLabel = false,
-  pulse = false
+  pulse = false,
+  shortLabel = null,
+  frameOverride = null
 }) {
-  const frame = variant === 'bottom'
+  const frame = frameOverride ?? (variant === 'bottom'
     ? active
       ? UI_ASSETS.bottomButtonActive
       : UI_ASSETS.bottomButton
     : active
       ? UI_ASSETS.dockButtonActive
-      : UI_ASSETS.dockButton;
+      : UI_ASSETS.dockButton);
 
   return (
     <button
@@ -1407,7 +1453,12 @@ function DockButton({
     >
       {pulse ? <img className="dock-pulse" src={VFX_ASSETS.questReady} alt="" draggable={false} /> : null}
       {icon ? <AssetIcon src={icon} alt="" className="dock-icon" size={iconSize} /> : null}
-      {!hideLabel ? <span>{label}</span> : null}
+      {!hideLabel ? (
+        <span className="dock-label">
+          <span className="dock-label-full">{label}</span>
+          <span className="dock-label-short">{shortLabel ?? label}</span>
+        </span>
+      ) : null}
       {badge ? <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>{badge}</b> : null}
     </button>
   );
@@ -1434,28 +1485,26 @@ function BottomNav({ activePanel, setPanel, collect }) {
   const showGoalsSlot = activePanel === 'goals';
   return (
     <nav className="bottom-nav" style={frameStyle(UI_ASSETS.bottomFrame)}>
-      <DockButton active={activePanel === 'store'} icon={ICONS.store} label="Магазин" onClick={() => setPanel('store')} className="bottom-dock-button" variant="bottom" iconSize={30} />
-      <DockButton active={activePanel === 'inventory'} icon={ICONS.inventory} label="Инвентарь" onClick={() => setPanel('inventory')} className="bottom-dock-button" variant="bottom" iconSize={30} />
+      <DockButton active={activePanel === 'store'} icon={ICONS.store} label="Магазин" onClick={() => setPanel('store')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
+      <DockButton active={activePanel === 'inventory'} icon={ICONS.inventory} label="Инвентарь" onClick={() => setPanel('inventory')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
       <button
         className={`primary-build tooltip-control ${buildFamilyActive ? 'active' : ''}`}
         onClick={() => setPanel('construction')}
-        style={frameStyle(buildFamilyActive ? UI_ASSETS.dockButtonActive : UI_ASSETS.dockButton)}
+        style={frameStyle(buildFamilyActive ? UI_ASSETS.primaryBuildButtonActive : UI_ASSETS.primaryBuildButton)}
         title="Строить"
         aria-label="Строить"
         data-tooltip="Строить"
         type="button"
       >
         <AssetIcon src={ICONS.buildLarge} alt="" size={34} />
-        <span>Строить</span>
       </button>
-      <DockButton active={activePanel === 'research'} icon={ICONS.research} label="Исследования" onClick={() => setPanel('research')} className="bottom-dock-button" variant="bottom" iconSize={30} />
-      <DockButton active={activePanel === 'world'} icon={ICONS.world} label="Карта мира" onClick={() => setPanel('world')} className="bottom-dock-button" variant="bottom" iconSize={30} />
+      <DockButton active={activePanel === 'research'} icon={ICONS.research} label="Исследования" shortLabel="Наука" onClick={() => setPanel('research')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
+      <DockButton active={activePanel === 'world'} icon={ICONS.world} label="Карта мира" shortLabel="Карта" onClick={() => setPanel('world')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel frameOverride={activePanel === 'world' ? UI_ASSETS.bottomWorldButtonActive : UI_ASSETS.bottomWorldButton} />
       {showGoalsSlot ? (
-        <DockButton active icon={ICONS.rank} label="Цели" onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" />
+        <DockButton active icon={ICONS.rank} label="Цели" onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
       ) : (
-        <button className="collect-button tooltip-control" onClick={collect} title="Собрать" aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.bottomButtonPressed)}>
+        <button className="collect-button tooltip-control" onClick={collect} title="Собрать" aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
           <AssetIcon src={ICONS.starterPack} alt="" size={24} />
-          <span>Собрать</span>
           <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>4</b>
         </button>
       )}
@@ -1498,7 +1547,7 @@ function OverviewPanel({ resources, levels, population, stage, setPanel }) {
 
   return (
     <div className="overview-screen">
-      <HudFrame className="overview-intro-card" frame={UI_ASSETS.panel}>
+      <HudFrame className="overview-intro-card" frame={UI_ASSETS.overviewIntroCard}>
         <AssetIcon src={ICONS.shield} alt="" size={38} />
         <div>
           <strong>Наша деревня растёт и процветает!</strong>
@@ -1506,7 +1555,7 @@ function OverviewPanel({ resources, levels, population, stage, setPanel }) {
         </div>
       </HudFrame>
 
-      <section className="overview-section">
+      <section className="overview-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
         <h3>Пассивный доход</h3>
         <div className="overview-income-grid">
           {passiveRows.map((row) => (
@@ -1519,7 +1568,7 @@ function OverviewPanel({ resources, levels, population, stage, setPanel }) {
         </div>
       </section>
 
-      <section className="overview-section overview-morale-section">
+      <section className="overview-section overview-morale-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
         <h3>Мораль жителей</h3>
         <div className="overview-morale-row">
           <ResourceIcon type="morale" size={36} />
@@ -1532,11 +1581,11 @@ function OverviewPanel({ resources, levels, population, stage, setPanel }) {
         </div>
       </section>
 
-      <section className="overview-section overview-goals-section">
+      <section className="overview-section overview-goals-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
         <h3>Текущие цели</h3>
         <div className="overview-goal-list">
           {goals.map((goal) => (
-            <div key={goal.id} className="overview-goal-row">
+            <div key={goal.id} className="overview-goal-row" style={frameStyle(UI_ASSETS.overviewGoalRow)}>
               <AssetIcon src={goal.icon} alt="" size={22} />
               <div>
                 <span>{goal.title}</span>
@@ -1574,12 +1623,17 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
 
   const productionRows = Object.entries(prod);
   const costRows = Object.entries(cost);
+  const upgradeFrame = isUpgrading
+    ? UI_ASSETS.buildingUpgradeInProgress
+    : affordable && !isMax
+      ? UI_ASSETS.buildingUpgradeIdle
+      : UI_ASSETS.buildingUpgradeDisabled;
 
   return (
     <div className="building-screen">
-      <p className="building-description">{detail.body ?? building.description}</p>
+      <p className="building-description" style={frameStyle(UI_ASSETS.buildingDescription)}>{detail.body ?? building.description}</p>
 
-      <div className="building-level-row">
+      <div className="building-level-row" style={frameStyle(UI_ASSETS.buildingLevelRow)}>
         <span>Уровень {level}</span>
         <ProgressBar
           value={progress.current}
@@ -1592,19 +1646,19 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
       </div>
 
       <div className="building-data-grid">
-        <section className="building-data-card" style={frameStyle(UI_ASSETS.panel)}>
+        <section className="building-data-card" style={frameStyle(UI_ASSETS.buildingStatsCard)}>
           <div className="building-card-title">
             <span>Производство в минуту</span>
           </div>
           <div className="building-stat-list">
             {productionRows.length ? productionRows.map(([key, value]) => (
-              <div key={key} className="building-stat-row">
+              <div key={key} className="building-stat-row" style={frameStyle(UI_ASSETS.buildingStatRow)}>
                 <ResourceIcon type={key} size={16} />
                 <span>{resourceLabel(key)}</span>
                 <strong>{formatSignedPerMinute(value)}</strong>
               </div>
             )) : (
-              <div className="building-stat-row muted">
+              <div className="building-stat-row muted" style={frameStyle(UI_ASSETS.buildingStatRow)}>
                 <ResourceIcon type="prestige" size={16} />
                 <span>Эффект</span>
                 <strong>Пассивный</strong>
@@ -1613,13 +1667,13 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
           </div>
         </section>
 
-        <section className="building-data-card" style={frameStyle(UI_ASSETS.panel)}>
+        <section className="building-data-card" style={frameStyle(UI_ASSETS.buildingStatsCard)}>
           <div className="building-card-title">
             <span>Стоимость улучшения</span>
           </div>
           <div className="building-stat-list">
             {isMax ? (
-              <div className="building-stat-row complete">
+              <div className="building-stat-row complete" style={frameStyle(UI_ASSETS.buildingStatRow)}>
                 <ResourceIcon type="prestige" size={16} />
                 <span>Статус</span>
                 <strong>Максимум</strong>
@@ -1627,7 +1681,7 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
             ) : costRows.map(([key, value]) => {
               const hasEnough = (resources[key] ?? 0) >= value;
               return (
-                <div key={key} className={`building-stat-row ${hasEnough ? 'ok' : 'need'}`}>
+                <div key={key} className={`building-stat-row ${hasEnough ? 'ok' : 'need'}`} style={frameStyle(UI_ASSETS.buildingStatRow)}>
                   <ResourceIcon type={key} size={16} />
                   <span>{resourceLabel(key)}</span>
                   <strong>{formatNumber(resources[key] ?? 0)} / {formatNumber(value)}</strong>
@@ -1641,6 +1695,7 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
       <div className="building-action-zone">
         <button
           className={`building-upgrade-button ${affordable && !isMax ? 'ready' : ''} ${isUpgrading ? 'in-progress' : ''}`}
+          style={frameStyle(upgradeFrame)}
           disabled={!affordable || isMax || isUpgrading}
           onClick={() => onUpgrade(building.id)}
           type="button"
@@ -1650,7 +1705,7 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade })
           {!isMax ? <b>↑</b> : null}
         </button>
         {!isMax ? (
-          <div className="building-upgrade-timer">
+          <div className="building-upgrade-timer" style={frameStyle(UI_ASSETS.buildingTimerPill)}>
             <span>◷</span>
             <strong>{formatDurationMs(remainingMs)}</strong>
           </div>
@@ -1667,11 +1722,11 @@ function BuildingBenefitFooter({ building }) {
 
   return (
     <div className="panel-footer panel-footer-fancy building-footer-fancy">
-      <div className="building-benefit-card" style={frameStyle(UI_ASSETS.panel)}>
+      <div className="building-benefit-card" style={frameStyle(UI_ASSETS.buildingFooterCard)}>
         <span>Пассивный доход</span>
         <strong><ResourceIcon type="gold" size={18} /> +{formatNumber(passiveGold)}/мин</strong>
       </div>
-      <div className="building-benefit-card" style={frameStyle(UI_ASSETS.panel)}>
+      <div className="building-benefit-card" style={frameStyle(UI_ASSETS.buildingFooterCard)}>
         <span>Мораль</span>
         <strong><ResourceIcon type="morale" size={18} /> +{formatNumber(morale)}</strong>
       </div>
@@ -1695,14 +1750,14 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
 
   return (
     <div className="goals-screen goals-screen-v2">
-      <HudFrame className="goals-summary-card goals-summary-card-v2" frame={UI_ASSETS.panel}>
-        <div className="goals-summary-icon"><AssetIcon src={ICONS.quest} alt="" size={30} /></div>
+      <HudFrame className="goals-summary-card goals-summary-card-v2" frame={UI_ASSETS.goalsSummaryCard}>
+        <div className="goals-summary-icon" style={frameStyle(UI_ASSETS.goalsIconSlot)}><AssetIcon src={ICONS.quest} alt="" size={30} /></div>
         <div className="goals-summary-copy">
           <span>Цели поселения</span>
           <strong>{readyCount} награды готовы к сбору</strong>
           <ProgressBar value={readyCount} max={Math.max(1, GOAL_PANEL_DATA.dailyTasks.length)} fill="green" label={`${readyCount} / ${GOAL_PANEL_DATA.dailyTasks.length}`} className="goals-summary-progress" />
         </div>
-        <div className="goals-summary-reward">
+        <div className="goals-summary-reward" style={frameStyle(UI_ASSETS.goalsClaimCountBadge)}>
           <ResourceIcon type="prestige" size={15} />
           <b>{readyCount}</b>
         </div>
@@ -1714,8 +1769,8 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
       </div>
       <div className="goal-card-list goals-longterm-list">
         {longTermGoals.map((goal) => (
-          <HudFrame key={goal.id} className="goal-card goal-card-v2" frame={UI_ASSETS.panel}>
-            <div className="goal-card-icon">
+          <HudFrame key={goal.id} className="goal-card goal-card-v2" frame={UI_ASSETS.goalsLongtermRow}>
+            <div className="goal-card-icon" style={frameStyle(UI_ASSETS.goalsIconSlot)}>
               <GoalIcon icon={goal.icon} />
             </div>
             <div className="goal-card-copy">
@@ -1730,7 +1785,7 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
             </div>
             <div className="goal-card-reward">
               <span>Награда</span>
-              <RewardBadge type={goal.reward.type} amount={goal.reward.amount} />
+              <RewardBadge type={goal.reward.type} amount={goal.reward.amount} frame={UI_ASSETS.goalsRewardBadge} />
             </div>
           </HudFrame>
         ))}
@@ -1742,8 +1797,8 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
       </div>
       <div className="daily-task-list daily-task-list-v2">
         {dailyTasks.map((task) => (
-          <HudFrame key={task.id} className={`daily-task-card daily-task-card-v2 ${task.ready ? 'done' : ''} ${task.claimed ? 'claimed' : ''}`} frame={UI_ASSETS.panel}>
-            <div className="daily-task-icon">
+          <HudFrame key={task.id} className={`daily-task-card daily-task-card-v2 ${task.ready ? 'done' : ''} ${task.claimed ? 'claimed' : ''}`} frame={UI_ASSETS.goalsDailyRow}>
+            <div className="daily-task-icon" style={frameStyle(UI_ASSETS.goalsIconSlot)}>
               <GoalIcon icon={task.icon} size={20} />
             </div>
             <div className="daily-task-copy">
@@ -1753,16 +1808,16 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
             </div>
             <div className="daily-task-reward">
               <span>Награда</span>
-              <RewardBadge type={task.reward.type} amount={task.reward.amount} />
+              <RewardBadge type={task.reward.type} amount={task.reward.amount} frame={UI_ASSETS.goalsRewardBadge} />
             </div>
           </HudFrame>
         ))}
       </div>
 
-      <button className={`goals-claim-button ${readyCount > 0 ? 'ready' : ''}`} type="button" onClick={onClaimRewards} disabled={!readyCount}>
+      <button className={`goals-claim-button ${readyCount > 0 ? 'ready' : ''}`} type="button" onClick={onClaimRewards} disabled={!readyCount} style={frameStyle(readyCount > 0 ? UI_ASSETS.goalsClaimButtonIdle : UI_ASSETS.goalsClaimButtonDisabled)}>
         <AssetIcon src={ICONS.gift} alt="" size={18} />
         <span>Забрать награды</span>
-        <b>{readyCount}</b>
+        <b style={frameStyle(UI_ASSETS.goalsClaimCountBadge)}>{readyCount}</b>
       </button>
     </div>
   );
@@ -1789,17 +1844,24 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
           const cap = inventoryCaps[row.id] ?? row.initialCap;
           const ratio = value / Math.max(1, cap);
           const isSelected = selectedResource.id === row.id;
+          const rowFrame = ratio >= 0.9
+            ? UI_ASSETS.inventoryRowWarning
+            : isSelected
+              ? UI_ASSETS.inventoryRowSelected
+              : UI_ASSETS.inventoryRowIdle;
           return (
-            <HudFrame key={row.id} className={`inventory-resource-row inventory-resource-row-v2 ${isSelected ? 'selected' : ''} ${ratio >= 0.9 ? 'warning' : ''}`.trim()} frame={UI_ASSETS.panel}>
-              <ResourceIcon type={row.id} size={22} />
+            <HudFrame key={row.id} className={`inventory-resource-row inventory-resource-row-v2 ${isSelected ? 'selected' : ''} ${ratio >= 0.9 ? 'warning' : ''}`.trim()} frame={rowFrame}>
+              <span className="inventory-resource-icon-slot" style={frameStyle(UI_ASSETS.inventoryResourceIconSlot)}>
+                <ResourceIcon type={row.id} size={22} />
+              </span>
               <div className="inventory-resource-copy inventory-resource-copy-v2">
                 <strong>{row.label}</strong>
                 <span>{formatNumber(value)} / {formatNumber(cap)}</span>
               </div>
               <div className="inventory-row-controls">
-                <button type="button" className="inventory-row-control" onClick={() => onAdjustCap(row.id, -row.step)} disabled={cap <= row.minCap} aria-label={`Уменьшить вместимость: ${row.label}`}>−</button>
-                <button type="button" className="inventory-row-control" onClick={() => onAdjustCap(row.id, row.step)} disabled={cap >= row.maxCap} aria-label={`Увеличить вместимость: ${row.label}`}>+</button>
-                <button type="button" className="inventory-row-control next" onClick={() => onFocusResource(row.id)} aria-label={`Выбрать ресурс: ${row.label}`}>›</button>
+                <button type="button" className="inventory-row-control" style={frameStyle(cap <= row.minCap ? UI_ASSETS.inventoryMinusDisabled : UI_ASSETS.inventoryMinusIdle)} onClick={() => onAdjustCap(row.id, -row.step)} disabled={cap <= row.minCap} aria-label={`Уменьшить вместимость: ${row.label}`}>−</button>
+                <button type="button" className="inventory-row-control" style={frameStyle(cap >= row.maxCap ? UI_ASSETS.inventoryPlusDisabled : UI_ASSETS.inventoryPlusIdle)} onClick={() => onAdjustCap(row.id, row.step)} disabled={cap >= row.maxCap} aria-label={`Увеличить вместимость: ${row.label}`}>+</button>
+                <button type="button" className="inventory-row-control next" style={frameStyle(UI_ASSETS.inventorySelectIdle)} onClick={() => onFocusResource(row.id)} aria-label={`Выбрать ресурс: ${row.label}`}>›</button>
               </div>
             </HudFrame>
           );
@@ -1809,14 +1871,14 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
       <div className="inventory-section-head inventory-section-head-v2">Изделия и особые предметы</div>
       <div className="inventory-item-grid inventory-item-grid-v2">
         {INVENTORY_PANEL_DATA.specialItems.map((item) => (
-          <HudFrame key={item.id} className="inventory-item-card inventory-item-card-v2" frame={UI_ASSETS.iconButton}>
+          <HudFrame key={item.id} className="inventory-item-card inventory-item-card-v2" frame={UI_ASSETS.inventoryItemCard}>
             <AssetIcon src={SPECIAL_ITEM_ICON_SOURCES[item.icon] ?? ICONS.gift} alt="" size={30} />
-            <strong>{item.amount}</strong>
+            <strong style={frameStyle(UI_ASSETS.inventoryItemCountBadge)}>{item.amount}</strong>
           </HudFrame>
         ))}
       </div>
 
-      <button className="inventory-action-button inventory-action-button-v2" type="button" onClick={() => onBoostCap(selectedResource.id)} disabled={selectedAtMax}>
+      <button className="inventory-action-button inventory-action-button-v2" type="button" onClick={() => onBoostCap(selectedResource.id)} disabled={selectedAtMax} style={frameStyle(selectedAtMax ? UI_ASSETS.inventoryManageButtonDisabled : UI_ASSETS.inventoryManageButtonIdle)}>
         <AssetIcon src={ICONS.inventory} alt="" size={18} />
         <span>Управление складом</span>
       </button>
@@ -1841,18 +1903,18 @@ function CouncilScreen({ setPanel, selectBuilding }) {
       <div className="council-section-head council-section-head-v2">Рекомендации совета</div>
       <div className="council-recommendation-list">
         {COUNCIL_PANEL_DATA.recommendations.map((recommendation) => (
-          <HudFrame key={recommendation.id} className="council-recommendation-card" frame={UI_ASSETS.panel}>
-            <div className={`council-advisor-portrait ${recommendation.portrait}`}>
+          <HudFrame key={recommendation.id} className="council-recommendation-card" frame={UI_ASSETS.councilRecommendationCard}>
+            <div className={`council-advisor-portrait ${recommendation.portrait}`} style={frameStyle(UI_ASSETS.councilAdvisorPortraitSlot)}>
               <AssetIcon src={COUNCIL_ICON_SOURCES[recommendation.portrait] ?? ICONS.research} alt="" size={42} />
             </div>
-            <div className="council-recommendation-icon">
+            <div className="council-recommendation-icon" style={frameStyle(UI_ASSETS.councilRecommendationIconSlot)}>
               <AssetIcon src={COUNCIL_ICON_SOURCES[recommendation.icon] ?? ICONS.achievement} alt="" size={30} />
             </div>
             <div className="council-recommendation-copy">
               <strong>{recommendation.title}</strong>
               <span>{recommendation.description}</span>
             </div>
-            <button type="button" className="council-follow-button" onClick={() => followAdvice(recommendation)}>
+            <button type="button" className="council-follow-button" style={frameStyle(UI_ASSETS.councilFollowButtonIdle)} onClick={() => followAdvice(recommendation)}>
               {recommendation.action.label}
             </button>
           </HudFrame>
@@ -1860,10 +1922,12 @@ function CouncilScreen({ setPanel, selectBuilding }) {
       </div>
 
       <div className="council-bottom-grid">
-        <HudFrame className="council-stage-card council-stage-card-v2" frame={UI_ASSETS.panel}>
+        <HudFrame className="council-stage-card council-stage-card-v2" frame={UI_ASSETS.councilStageCard}>
           <div className="council-section-head council-section-head-v2">Стадия поселения</div>
           <div className="council-stage-main">
-            <AssetIcon src={ICONS.shield} alt="" size={42} />
+            <span className="council-stage-badge" style={frameStyle(UI_ASSETS.councilStageBadge)}>
+              <AssetIcon src={ICONS.shield} alt="" size={42} />
+            </span>
             <div className="council-stage-copy">
               <strong>{stage.title}</strong>
               <span>{stage.phaseLabel}</span>
@@ -1877,7 +1941,7 @@ function CouncilScreen({ setPanel, selectBuilding }) {
           <div className="council-section-head council-section-head-v2">Что построить дальше?</div>
           <div className="council-build-list">
             {COUNCIL_PANEL_DATA.buildPriorities.map((priority) => (
-              <button key={priority.id} type="button" className="council-build-row" onClick={() => priority.id === 'watchtower' ? setPanel('construction') : selectBuilding(priority.id)}>
+              <button key={priority.id} type="button" className="council-build-row" style={frameStyle(priority.trend === 'up' ? UI_ASSETS.councilPriorityRowActive : UI_ASSETS.councilPriorityRowIdle)} onClick={() => priority.id === 'watchtower' ? setPanel('construction') : selectBuilding(priority.id)}>
                 <AssetIcon src={COUNCIL_ICON_SOURCES[priority.icon] ?? ICONS.build} alt="" size={26} />
                 <span><strong>{priority.title}</strong><b>{priority.priority}</b></span>
                 <i>{priority.trend === 'up' ? '▲' : '−'}</i>
@@ -1887,7 +1951,7 @@ function CouncilScreen({ setPanel, selectBuilding }) {
         </HudFrame>
       </div>
 
-      <button className="council-action-button council-action-button-v2" type="button" onClick={() => setPanel('research')}>
+      <button className="council-action-button council-action-button-v2" type="button" onClick={() => setPanel('research')} style={frameStyle(UI_ASSETS.councilOpenResearchButtonIdle)}>
         <AssetIcon src={ICONS.research} alt="" size={18} />
         <span>Открыть исследования</span>
       </button>
@@ -1916,6 +1980,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, onCategor
             <button
               key={category.id}
               className={`construction-category-chip construction-category-chip-v2 ${active ? 'active' : ''}`.trim()}
+              style={frameStyle(CONSTRUCTION_CATEGORY_FRAMES[category.id]?.[active ? 'active' : 'idle'])}
               type="button"
               role="tab"
               aria-selected={active}
@@ -1932,20 +1997,25 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, onCategor
         {visibleItems.map((item) => {
           const affordable = canPay(resources, item.cost);
           const selected = item.id === selectedItem?.id;
+          const cardFrame = selected
+            ? UI_ASSETS.constructionCardSelected
+            : affordable
+              ? UI_ASSETS.constructionCardIdle
+              : UI_ASSETS.constructionCardLocked;
           return (
             <button
               key={item.id}
               type="button"
               className={`construction-card construction-card-v2 ${affordable ? 'available' : 'locked'} ${selected ? 'selected' : ''}`.trim()}
-              style={frameStyle(UI_ASSETS.panel)}
+              style={frameStyle(cardFrame)}
               onClick={() => onSelectItem(item.id)}
               aria-pressed={selected}
             >
               <div className="construction-card-name">{item.name}</div>
-              <div className="construction-card-art construction-card-art-v2">
+              <div className="construction-card-art construction-card-art-v2" style={frameStyle(UI_ASSETS.constructionCardArtGlow)}>
                 <img src={constructionItemAsset(item)} alt="" draggable={false} />
               </div>
-              <div className="construction-cost-row construction-cost-row-v2">
+              <div className="construction-cost-row construction-cost-row-v2" style={frameStyle(UI_ASSETS.constructionCostRow)}>
                 {Object.entries(item.cost).slice(0, 2).map(([key, value]) => (
                   <b key={key} className={(resources[key] ?? 0) >= value ? 'ok' : 'need'}>
                     <ResourceIcon type={key} size={14} />
@@ -1959,13 +2029,13 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, onCategor
       </div>
 
       <div className="construction-pager" aria-label="Страницы каталога">
-        <button type="button" onClick={() => onPageChange(safePage - 1)} disabled={safePage <= 0} aria-label="Предыдущая страница">‹</button>
-        <strong>{safePage + 1}/{pageCount}</strong>
-        <button type="button" onClick={() => onPageChange(safePage + 1)} disabled={safePage >= pageCount - 1} aria-label="Следующая страница">›</button>
+        <button type="button" style={frameStyle(safePage <= 0 ? UI_ASSETS.constructionPagerDisabled : UI_ASSETS.constructionPagerIdle)} onClick={() => onPageChange(safePage - 1)} disabled={safePage <= 0} aria-label="Предыдущая страница">‹</button>
+        <strong style={frameStyle(UI_ASSETS.constructionPageIndicator)}>{safePage + 1}/{pageCount}</strong>
+        <button type="button" style={frameStyle(safePage >= pageCount - 1 ? UI_ASSETS.constructionPagerDisabled : UI_ASSETS.constructionPagerIdle)} onClick={() => onPageChange(safePage + 1)} disabled={safePage >= pageCount - 1} aria-label="Следующая страница">›</button>
       </div>
 
       {selectedItem ? (
-        <div className="construction-placement-hint construction-placement-hint-v2">
+        <div className="construction-placement-hint construction-placement-hint-v2" style={frameStyle(UI_ASSETS.constructionPlacementHint)}>
           <AssetIcon src={ICONS.map} alt="" size={16} />
           <span>{selectedItem.name}: выберите подсвеченную площадку на карте и подтвердите зелёной кнопкой.</span>
         </div>
@@ -2005,7 +2075,7 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
 
   return (
     <div className="research-screen research-screen-v2">
-      <p className="research-intro">Исследуйте новые технологии, развивайте поселение и открывайте уникальные возможности.</p>
+      <p className="research-intro" style={frameStyle(UI_ASSETS.researchIntroStrip)}>Исследуйте новые технологии, развивайте поселение и открывайте уникальные возможности.</p>
 
       <div className="research-category-row" role="tablist" aria-label="Категории исследований">
         {categories.map((category) => {
@@ -2017,6 +2087,7 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
               role="tab"
               aria-selected={active}
               className={`research-category-tab ${active ? 'active' : ''}`.trim()}
+              style={frameStyle(RESEARCH_CATEGORY_FRAMES[category.id]?.[active ? 'active' : 'idle'])}
               onClick={() => onCategoryChange(category.id)}
             >
               {category.label}
@@ -2033,25 +2104,28 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
           const progress = node.progress;
           const progressPct = progress ? Math.max(0, Math.min(100, (progress.current / Math.max(1, progress.max)) * 100)) : 0;
           const nodeIcon = RESEARCH_ICON_SOURCES[node.icon] ?? ICONS.research;
+          const nodeFrame = isSelected ? UI_ASSETS.researchNodeSelected : (RESEARCH_NODE_FRAMES[state] ?? UI_ASSETS.researchNodeAvailable);
           return (
             <button
               key={node.id}
               type="button"
               className={`research-tech-node ${state} ${isSelected ? 'selected' : ''} ${node.connectors?.right ? 'connect-right' : ''} ${node.connectors?.down ? 'connect-down' : ''}`.trim()}
-              style={{ gridColumn: node.position.col, gridRow: node.position.row }}
+              style={{ ...frameStyle(nodeFrame), gridColumn: node.position.col, gridRow: node.position.row }}
               onClick={() => onSelectNode(node.id)}
               aria-pressed={isSelected}
             >
               <strong>{node.title}</strong>
               <span>Уровень {level}/{node.maxLevel}</span>
-              <AssetIcon src={nodeIcon} alt="" size={34} />
+              <span className="research-node-icon-slot" style={frameStyle(UI_ASSETS.researchNodeIconSlot)}>
+                <AssetIcon src={nodeIcon} alt="" size={34} />
+              </span>
               {state === 'locked' ? (
-                <div className="research-lock-badge" aria-hidden="true"><i /></div>
+                <div className="research-lock-badge" style={frameStyle(UI_ASSETS.researchLockBadge)} aria-hidden="true"><i /></div>
               ) : state === 'complete' || state === 'done' ? (
-                <div className="research-check-badge" aria-hidden="true">✓</div>
+                <div className="research-check-badge" style={frameStyle(UI_ASSETS.researchCheckBadge)} aria-hidden="true">✓</div>
               ) : progress ? (
-                <div className="research-node-progress">
-                  <div style={{ width: `${progressPct}%` }} />
+                <div className="research-node-progress" style={frameStyle(UI_ASSETS.researchNodeProgressFrame)}>
+                  <div style={{ ...frameStyle(UI_ASSETS.researchNodeProgressFill), width: `${progressPct}%` }} />
                   <b>{progress.current}/{progress.max}</b>
                   <ResourceIcon type={progress.type} size={11} />
                 </div>
@@ -2063,7 +2137,7 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
       </div>
 
       {selectedNode ? (
-        <HudFrame className="research-detail-card-v2" frame={UI_ASSETS.panel}>
+        <HudFrame className="research-detail-card-v2" frame={UI_ASSETS.researchDetailCard}>
           <div className="research-detail-copy">
             <strong>{selectedNode.title}</strong>
             <p>{selectedNode.description}</p>
@@ -2076,15 +2150,15 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
       ) : null}
 
       <div className="research-action-row">
-        <div className="research-cost-list" aria-label="Стоимость исследования">
+        <div className="research-cost-list" style={frameStyle(UI_ASSETS.researchCostRow)} aria-label="Стоимость исследования">
           {Object.entries(selectedCost).map(([key, value]) => (
-            <b key={key} className={(resources[key] ?? 0) >= value ? 'ok' : 'need'}>
+            <b key={key} className={(resources[key] ?? 0) >= value ? 'ok' : 'need'} style={frameStyle((resources[key] ?? 0) >= value ? UI_ASSETS.researchCostItemOk : UI_ASSETS.researchCostItemNeed)}>
               <ResourceIcon type={key} size={16} />
               <span>{formatNumber(value)}</span>
             </b>
           ))}
         </div>
-        <button className="research-action-button research-action-button-v2" type="button" disabled={actionDisabled} onClick={onStudy}>
+        <button className="research-action-button research-action-button-v2" type="button" disabled={actionDisabled} onClick={onStudy} style={frameStyle(actionDisabled ? UI_ASSETS.researchStudyButtonDisabled : UI_ASSETS.researchStudyButtonIdle)}>
           <span>{actionLabel}</span>
           {selectedNode?.durationMs ? <b>⌛ {formatClockDuration(remainingMs)}</b> : null}
         </button>
@@ -2119,24 +2193,28 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
   return (
     <div className="world-screen world-screen-v2">
       <div className="world-map-scroll-v2">
-        <HudFrame className="world-map-card world-map-card-v2" frame={UI_ASSETS.panel}>
+        <HudFrame className="world-map-card world-map-card-v2" frame={UI_ASSETS.worldMapParchmentFrame}>
           <div className="world-map-visual world-map-visual-v2" aria-label="Карта архипелага">
-            <span className="world-compass" aria-hidden="true" />
-            <span className="world-island world-island-a" aria-hidden="true" />
-            <span className="world-island world-island-b" aria-hidden="true" />
-            <span className="world-island world-island-c" aria-hidden="true" />
-            <span className="world-island world-island-d" aria-hidden="true" />
+            <img className="world-map-base-v2" src={UI_ASSETS.worldMapBase} alt="" draggable={false} />
+            <img className="world-compass" src={UI_ASSETS.worldMapCompass} alt="" draggable={false} />
             {WORLD_MAP_PANEL_DATA.mapMarkers.map((marker) => {
               const expedition = WORLD_MAP_PANEL_DATA.expeditions.find((item) => item.id === marker.expeditionId);
               const locked = expedition?.unlocked === false;
               const selected = marker.expeditionId === selectedExpedition?.id;
               const icon = locked ? WORLD_MAP_ICON_SOURCES.locked : WORLD_MAP_ICON_SOURCES[expedition?.icon] ?? ICONS.world;
+              const markerFrame = locked
+                ? UI_ASSETS.worldMapMarkerLocked
+                : selected
+                  ? UI_ASSETS.worldMapMarkerSelected
+                  : marker.id === 'home'
+                    ? UI_ASSETS.worldMapMarkerHome
+                    : UI_ASSETS.worldMapMarkerAvailable;
               return (
                 <button
                   key={marker.id}
                   type="button"
                   className={`world-map-marker ${marker.tone} ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}`.trim()}
-                  style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                  style={{ ...frameStyle(markerFrame), left: `${marker.x}%`, top: `${marker.y}%` }}
                   aria-label={`${expedition?.title ?? 'Маршрут'}${locked ? ', закрыто' : ''}`}
                   onClick={() => onSelectExpedition(marker.expeditionId)}
                 >
@@ -2155,6 +2233,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
               role="tab"
               aria-selected={filter.id === normalizedFilterId}
               className={`world-filter-button-v2 ${filter.id === normalizedFilterId ? 'active' : ''}`}
+              style={frameStyle(filter.id === normalizedFilterId ? UI_ASSETS.worldMapFilterActive : UI_ASSETS.worldMapFilterIdle)}
               onClick={() => onFilterChange(filter.id)}
               title={filter.label}
             >
@@ -2173,23 +2252,31 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
             const busy = Boolean(activeId && !active);
             const remainingMs = active ? Math.max(0, activeExpedition.completesAt - Date.now()) : expedition.durationMs;
             const rewards = Object.entries(expedition.rewards ?? {});
+            const cardFrame = locked
+              ? WORLD_EXPEDITION_CARD_FRAMES.locked
+              : active
+                ? WORLD_EXPEDITION_CARD_FRAMES.active
+                : selected
+                  ? WORLD_EXPEDITION_CARD_FRAMES.selected
+                  : WORLD_EXPEDITION_CARD_FRAMES.idle;
+            const thumb = WORLD_THUMBNAILS[expedition.icon] ?? WORLD_THUMBNAILS[expedition.category] ?? WORLD_THUMBNAILS.forest;
             return (
               <HudFrame
                 key={expedition.id}
                 className={`world-expedition-card-v2 ${selected ? 'selected' : ''} ${locked ? 'locked' : 'available'} ${active ? 'active' : ''}`.trim()}
-                frame={UI_ASSETS.panel}
+                frame={cardFrame}
                 role="button"
                 tabIndex={0}
                 onClick={() => onSelectExpedition(expedition.id)}
                 onKeyDown={(event) => handleCardKeyDown(event, expedition.id)}
               >
-                <div className="world-expedition-thumb-v2">
+                <div className="world-expedition-thumb-v2" style={frameStyle(thumb)}>
                   <AssetIcon src={WORLD_MAP_ICON_SOURCES[expedition.icon] ?? ICONS.world} alt="" size={36} />
                 </div>
                 <div className="world-expedition-copy-v2">
                   <div className="world-expedition-title-row-v2">
                     <strong>{expedition.title}</strong>
-                    <span className={`world-difficulty-badge-v2 ${expedition.difficultyTone}`}>{expedition.difficulty}</span>
+                    <span className={`world-difficulty-badge-v2 ${expedition.difficultyTone}`} style={frameStyle(WORLD_DIFFICULTY_FRAMES[expedition.difficultyTone] ?? UI_ASSETS.worldDifficultyEasy)}>{expedition.difficulty}</span>
                   </div>
                   <p>{expedition.description}</p>
                   {locked ? (
@@ -2198,7 +2285,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                     <div className="world-expedition-rewards-v2" aria-label="Награды">
                       <span>Награды:</span>
                       {rewards.map(([key, value]) => (
-                        <b key={key}>
+                        <b key={key} style={frameStyle(UI_ASSETS.worldRewardChip)}>
                           <ResourceIcon type={key} size={16} />
                           <span>{formatNumber(value)}</span>
                         </b>
@@ -2214,6 +2301,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                     className="world-expedition-action-v2"
                     disabled={busy || active}
                     onClick={(event) => startExpedition(event, expedition.id)}
+                    style={frameStyle((busy || active) ? UI_ASSETS.worldSendButtonDisabled : UI_ASSETS.worldSendButtonIdle)}
                   >
                     <span>{active ? 'В пути' : 'Отправить экспедицию'}</span>
                     <b>⌛ {formatClockDuration(remainingMs)}</b>
@@ -2330,10 +2418,10 @@ function GenericPanel({ activePanel, stage, resources, population }) {
     return (
       <div className="panel-body">
         <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.map} alt="" size={16} /><span>Карта</span></div>
-        <p>Текущая стадия дорог: {stage.road}. Дороги, остров и здания рендерятся раздельными слоями.</p>
+        <p>Стадия: {stage.title}. Поле, здания, жители и эффекты рендерятся отдельными runtime-слоями.</p>
         <div className="map-tags">
-          <span style={frameStyle(UI_ASSETS.tabActive)}>ground</span>
-          <span style={frameStyle(UI_ASSETS.tabIdle)}>roads</span>
+          <span style={frameStyle(UI_ASSETS.tabActive)}>field</span>
+          <span style={frameStyle(UI_ASSETS.tabIdle)}>buildings</span>
           <span style={frameStyle(UI_ASSETS.tabIdle)}>props</span>
           <span style={frameStyle(UI_ASSETS.tabIdle)}>vfx</span>
         </div>
@@ -2453,7 +2541,6 @@ function SidePanel() {
   const selected = BUILDINGS.find((b) => b.id === selectedBuildingId) ?? BUILDINGS[0];
   const level = levels[selected.id] ?? 1;
   const prod = useMemo(() => productionFrom(levels), [levels]);
-  const sidePanelFrame = UI_ASSETS.sidePanelFancy;
   const panelChrome = getRightPanelChrome({ activePanel, selected, level });
   const activeTabLabel = panelChrome.label;
   const headerEyebrow = panelChrome.eyebrow;
@@ -2468,7 +2555,29 @@ function SidePanel() {
   const isResearchTree = panelChrome.kind === 'research-tree';
   const isConstruction = panelChrome.kind === 'construction';
   const isWorldMap = panelChrome.kind === 'world-map';
+  const sidePanelFrame = isOverview
+    ? UI_ASSETS.rightPanelOverview
+    : isBuilding
+      ? UI_ASSETS.rightPanelBuilding
+      : isGoals
+        ? UI_ASSETS.rightPanelGoals
+        : isInventory
+          ? UI_ASSETS.rightPanelInventory
+          : isCouncil
+            ? UI_ASSETS.rightPanelCouncil
+            : isResearchTree
+              ? UI_ASSETS.rightPanelResearch
+              : isConstruction
+                ? UI_ASSETS.rightPanelConstruction
+                : isWorldMap
+                  ? UI_ASSETS.rightPanelWorldMap
+                  : UI_ASSETS.sidePanelFancy;
   const showGenericFooter = !isOverview && !isGoals && !isInventory && !isCouncil && !isResearchTree && !isConstruction && !isWorldMap;
+  const panelStripFrame = isGoals
+    ? UI_ASSETS.goalsTitleStrip
+    : isInventory
+      ? UI_ASSETS.inventoryTitleStrip
+      : UI_ASSETS.panelHeaderStrip;
   const footerRows = [
     { id: 'food', label: 'Еда', value: prod.food.toFixed(1) },
     { id: 'wood', label: 'Дерево', value: prod.wood.toFixed(1) },
@@ -2479,10 +2588,11 @@ function SidePanel() {
   if (!rightPanelOpen) return null;
 
   return (
-    <section className={`right-panel right-panel-fancy ${isOverview ? 'right-panel-overview' : ''} ${isBuilding ? 'right-panel-building' : ''} ${isInventory ? 'right-panel-inventory' : ''} ${isCouncil ? 'right-panel-council' : ''} ${isResearchTree ? 'right-panel-research-tree' : ''} ${isConstruction ? 'right-panel-construction' : ''} ${isWorldMap ? 'right-panel-world-map' : ''}`.trim()} style={frameStyle(sidePanelFrame)}>
+    <section className={`right-panel right-panel-fancy ${isOverview ? 'right-panel-overview' : ''} ${isBuilding ? 'right-panel-building' : ''} ${isGoals ? 'right-panel-goals' : ''} ${isInventory ? 'right-panel-inventory' : ''} ${isCouncil ? 'right-panel-council' : ''} ${isResearchTree ? 'right-panel-research-tree' : ''} ${isConstruction ? 'right-panel-construction' : ''} ${isWorldMap ? 'right-panel-world-map' : ''}`.trim()} style={frameStyle(sidePanelFrame)}>
       <div className="panel-header fancy-panel-header">
         {isBuilding ? (
-          <div className="building-header-icon">
+          <div className="building-header-icon" style={frameStyle(UI_ASSETS.buildingHeaderIconSlot)}>
+            <img className="building-header-glow" src={UI_ASSETS.buildingHeaderGlow} alt="" draggable={false} />
             <img src={buildingHeaderImage} alt="" draggable={false} />
           </div>
         ) : headerIcon ? (
@@ -2501,7 +2611,7 @@ function SidePanel() {
         ) : null}
       </div>
 
-      {!isOverview && !isConstruction && !isResearchTree && !isWorldMap ? <div className="panel-strip">{headerSubline}</div> : null}
+      {!isOverview && !isConstruction && !isResearchTree && !isWorldMap ? <div className="panel-strip" style={frameStyle(panelStripFrame)}>{headerSubline}</div> : null}
 
       {!isOverview && !isConstruction && !isResearchTree && !isWorldMap ? <PanelTabs activePanel={activePanel} setPanel={setPanel} variant="fancy" /> : null}
 
@@ -2620,8 +2730,11 @@ function NoticeStack() {
 }
 
 function CollectionToast({ collect }) {
+  const activePanel = useSettlementStore((s) => s.activePanel);
+  if (activePanel === 'build') return null;
+
   return (
-    <div className="collection-toast" style={frameStyle(UI_ASSETS.panel)} role="status" aria-live="polite">
+    <div className="collection-toast" style={frameStyle(UI_ASSETS.collectToast)} role="status" aria-live="polite">
       <AssetIcon src={ICONS.goods} alt="" size={24} />
       <div>
         <strong>Товары готовы к сбору!</strong>
@@ -2642,13 +2755,13 @@ function UpgradeToast({ activeUpgrade }) {
   const remainingMs = Math.max(0, activeUpgrade.completesAt - Date.now());
 
   return (
-    <div className="upgrade-toast" style={frameStyle(UI_ASSETS.panel)} role="status" aria-live="polite">
+    <div className="upgrade-toast" style={frameStyle(UI_ASSETS.upgradeToast)} role="status" aria-live="polite">
       <AssetIcon src={ICONS.shield} alt="" size={34} />
       <div>
         <strong>{building.name}: улучшение начато</strong>
         <span>Завершится через {formatDurationMs(remainingMs)}.</span>
       </div>
-      <button type="button" onClick={() => setDismissedKey(toastKey)} aria-label="Закрыть уведомление">×</button>
+      <button type="button" onClick={() => setDismissedKey(toastKey)} aria-label="Закрыть уведомление" style={frameStyle(UI_ASSETS.toastClose)}>×</button>
     </div>
   );
 }

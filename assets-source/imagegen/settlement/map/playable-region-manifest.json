@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-05-15T18:02:36.401Z",
+  "source": "assets-source/imagegen/settlement/map/map-region-settlement-playable-source.png",
+  "prompt": "assets-source/imagegen/settlement/map/map-region-settlement-playable-prompt.md",
+  "output": "public/games/settlement/map-region-settlement-playable.webp",
+  "sourceSha256": "39a6d6ff6608eea7385650b0187c1a825991c09d80c208126ded75ede070035d",
+  "sourceDimensions": {
+    "width": 1672,
+    "height": 941,
+    "format": "png"
+  },
+  "outputDimensions": {
+    "width": 4096,
+    "height": 2304
+  },
+  "composition": {
+    "singleRuntimeAsset": true,
+    "aspect": "16:9",
+    "edgeFill": "none"
+  },
+  "contract": [
+    "One cohesive Settlement region asset; no separate forest-valley background is used at runtime.",
+    "The generated map contains the terrain, rivers, waterfalls, cliffs, bridges, roads, plaza, and empty pads as one world plane.",
+    "No UI, text, characters, completed buildings, selection overlays, or resource icons are baked into the asset.",
+    "Runtime Pixi layers render buildings, props, villagers, VFX, selection rings, and HUD separately on top."
+  ],
+  "obsoleteAssetsReplaced": [
+    "map-background-forest-valley.webp",
+    "map-ground-settlement-base.webp",
+    "map-field-settlement-playable.webp",
+    "road-network-village.webp",
+    "road-network-town.webp",
+    "road-network-city.webp",
+    "road-network-capital.webp",
+    "road-main-isometric.webp",
+    "road-cross-isometric.webp",
+    "road-plaza-market.webp"
+  ]
+}

@@ -418,10 +418,10 @@ export const WORKERS = [
 ];
 
 export const STAGE_THRESHOLDS = [
-  { id: 'village', title: 'Деревня', prestige: 0, road: 'village' },
-  { id: 'town', title: 'Городок', prestige: 320, road: 'town' },
-  { id: 'city', title: 'Город', prestige: 900, road: 'city' },
-  { id: 'capital', title: 'Столица', prestige: 1700, road: 'capital' }
+  { id: 'village', title: 'Деревня', prestige: 0 },
+  { id: 'town', title: 'Городок', prestige: 320 },
+  { id: 'city', title: 'Город', prestige: 900 },
+  { id: 'capital', title: 'Столица', prestige: 1700 }
 ];
 
 export const GOALS = [

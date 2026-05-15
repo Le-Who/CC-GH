@@ -12,6 +12,8 @@
     "assets:readability": "node scripts/refine-readable-blox-match3-assets.mjs",
     "settlement:assets:process": "node scripts/settlement-assets.mjs process",
     "settlement:assets:audit": "node scripts/settlement-assets.mjs audit",
+    "settlement:region:prepare": "node scripts/prepare-settlement-region.mjs",
+    "settlement:ui:generate": "node scripts/generate-settlement-ui-chrome.mjs",
     "build": "pnpm run assets:build && vite build",
     "start": "node server.js",
     "dev:server": "node server.js",

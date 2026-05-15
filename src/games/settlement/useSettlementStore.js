@@ -455,7 +455,7 @@ export const useSettlementStore = create(
         return claimableTasks.length;
       },
 
-      selectBuilding: (id) => set((state) => {
+      selectBuilding: (id) => set((_state) => {
         const nextPanel = 'build';
         persistSettlementPanelState(nextPanel, id);
         return { selectedBuildingId: id, activePanel: nextPanel, rightPanelOpen: true };
@@ -466,7 +466,7 @@ export const useSettlementStore = create(
         return { activePanel: nextPanel, rightPanelOpen: true };
       }),
       closePanel: () => set({ rightPanelOpen: false }),
-      focusInventoryResource: (resourceId) => set((state) => {
+      focusInventoryResource: (resourceId) => set((_state) => {
         if (!INVENTORY_RESOURCE_PROFILES[resourceId]) return {};
         return { inventorySelectedResourceId: resourceId };
       }),

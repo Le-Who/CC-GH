@@ -817,7 +817,7 @@ function drawPlant(family, phase, index) {
   const potHeight = 34 + phase * 4;
   const stemTop = base - 62 - phase * 22;
   const stem = `<path d="M${cx} ${base - potHeight + 6} C${cx - 10} ${stemTop + 48} ${cx + 12} ${stemTop + 22} ${cx} ${stemTop}" stroke="#5d3b24" stroke-width="${4 + phase}" fill="none" stroke-linecap="round"/>`;
-  let crown = "";
+  let crown;
 
   switch (family.id) {
     case "daisy":

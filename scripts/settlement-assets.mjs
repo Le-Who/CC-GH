@@ -15,6 +15,9 @@ const settlementDir = path.join(rootDir, "public", "games", "settlement");
 const processedDir = path.join(settlementDir, "processed");
 const processedManifestPath = path.join(processedDir, "processed-manifest.json");
 const alphaThreshold = 10;
+const naturalColorOpaqueWebps = new Set([
+  "map-region-settlement-playable.webp",
+]);
 const lossyWebpOptions = {
   quality: 92,
   alphaQuality: 100,
@@ -90,6 +93,13 @@ function countChromaLeaks(data) {
     }
   }
   return leakCount;
+}
+
+function hasTransparentPixels(data) {
+  for (let index = 0; index < data.length; index += 4) {
+    if (data[index + 3] < 255) return true;
+  }
+  return false;
 }
 
 function alphaBounds(data, width, height) {
@@ -249,7 +259,8 @@ async function scanWebps(files, { requireTightBounds = false } = {}) {
 
   for (const file of files.sort()) {
     const raw = await readRawImage(file);
-    const leakCount = countChromaLeaks(raw.data);
+    const naturalOpaqueColor = naturalColorOpaqueWebps.has(path.basename(file)) && !hasTransparentPixels(raw.data);
+    const leakCount = naturalOpaqueColor ? 0 : countChromaLeaks(raw.data);
 
     const bounds = alphaBounds(raw.data, raw.width, raw.height);
     const tight = !bounds || (
@@ -294,6 +305,10 @@ async function audit() {
   const topLevelFiles = (await fs.readdir(settlementDir))
     .filter((file) => file.endsWith(".webp"))
     .map((file) => path.join(settlementDir, file));
+  const runtimeWebpFiles = await listFilesRecursive(settlementDir, (file) => (
+    file.endsWith(".webp")
+    && !file.includes(`${path.sep}processed${path.sep}`)
+  ));
   const processedFiles = await listFilesRecursive(processedDir, (file) => file.endsWith(".trim.webp"));
   const nonWebpRuntimeFiles = await listFilesRecursive(settlementDir, (file) => (
     /\.(png|jpe?g)$/i.test(file)
@@ -307,10 +322,11 @@ async function audit() {
     }
   }
 
-  const topLevel = await scanWebps(topLevelFiles);
+  const topLevel = await scanWebps(runtimeWebpFiles);
   const processed = await scanWebps(processedFiles, { requireTightBounds: true });
   const report = {
     topLevelWebpFiles: topLevelFiles.length,
+    runtimeWebpFiles: runtimeWebpFiles.length,
     processedTrimFiles: processedFiles.length,
     expectedProcessedTrimFiles: expectedProcessed.length,
     nonWebpRuntimeFiles: nonWebpRuntimeFiles.map((file) => path.relative(rootDir, file).replaceAll(path.sep, "/")),

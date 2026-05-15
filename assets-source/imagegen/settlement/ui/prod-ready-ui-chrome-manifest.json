@@ -1,0 +1,1279 @@
+{
+  "contract": "settlement-prod-ready-ui-chrome-v1",
+  "generatedAt": "2026-05-15T15:27:58.099Z",
+  "rules": {
+    "format": "webp",
+    "alpha": "direct alpha, no chroma-key source required",
+    "text": "none baked into generated UI chrome",
+    "fileShape": "one file per asset"
+  },
+  "assets": [
+    {
+      "key": "hud.topbar.frame",
+      "file": "public/games/settlement/ui/hud/top-hud-bar-frame.webp",
+      "width": 1920,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "hud.profile.frame",
+      "file": "public/games/settlement/ui/hud/profile-card-frame.webp",
+      "width": 512,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.profile.avatar",
+      "file": "public/games/settlement/ui/hud/profile-avatar-frame.webp",
+      "width": 256,
+      "height": 256,
+      "alpha": true
+    },
+    {
+      "key": "hud.profile.level-badge",
+      "file": "public/games/settlement/ui/hud/profile-level-badge.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "hud.settlement.plaque",
+      "file": "public/games/settlement/ui/hud/settlement-title-plaque.webp",
+      "width": 768,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.resource.pill.idle",
+      "file": "public/games/settlement/ui/hud/resource-pill-idle.webp",
+      "width": 256,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "hud.resource.pill.active",
+      "file": "public/games/settlement/ui/hud/resource-pill-active.webp",
+      "width": 256,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "hud.resource.icon.slot",
+      "file": "public/games/settlement/ui/hud/resource-icon-slot.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "hud.leftdock.button.idle",
+      "file": "public/games/settlement/ui/hud/leftdock-button-idle.webp",
+      "width": 160,
+      "height": 160,
+      "alpha": true
+    },
+    {
+      "key": "hud.leftdock.button.active",
+      "file": "public/games/settlement/ui/hud/leftdock-button-active.webp",
+      "width": 160,
+      "height": 160,
+      "alpha": true
+    },
+    {
+      "key": "hud.leftdock.badge",
+      "file": "public/games/settlement/ui/hud/notification-badge.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.frame",
+      "file": "public/games/settlement/ui/hud/bottom-nav-frame.webp",
+      "width": 1536,
+      "height": 256,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.button.idle",
+      "file": "public/games/settlement/ui/hud/bottom-nav-button-idle.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.button.active",
+      "file": "public/games/settlement/ui/hud/bottom-nav-button-active.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.primary-build.idle",
+      "file": "public/games/settlement/ui/hud/primary-build-button-idle.webp",
+      "width": 224,
+      "height": 224,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.primary-build.active",
+      "file": "public/games/settlement/ui/hud/primary-build-button-active.webp",
+      "width": 224,
+      "height": 224,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.collect.idle",
+      "file": "public/games/settlement/ui/hud/collect-button-idle.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.collect.active",
+      "file": "public/games/settlement/ui/hud/collect-button-active.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.overview",
+      "file": "public/games/settlement/ui/panel/right-panel-overview-shell.webp",
+      "width": 768,
+      "height": 1248,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.strip",
+      "file": "public/games/settlement/ui/panel/right-panel-header-strip.webp",
+      "width": 768,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.card.intro",
+      "file": "public/games/settlement/ui/panel/overview-intro-card.webp",
+      "width": 640,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.section.card",
+      "file": "public/games/settlement/ui/panel/overview-section-card.webp",
+      "width": 640,
+      "height": 160,
+      "alpha": true
+    },
+    {
+      "key": "panel.goal.row",
+      "file": "public/games/settlement/ui/panel/overview-goal-row.webp",
+      "width": 640,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.toast.collect",
+      "file": "public/games/settlement/ui/toast/collect-ready-toast.webp",
+      "width": 960,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.tab.idle",
+      "file": "public/games/settlement/ui/tabs/panel-tab-idle.webp",
+      "width": 192,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.tab.active",
+      "file": "public/games/settlement/ui/tabs/panel-tab-active.webp",
+      "width": 192,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "status.progress.frame",
+      "file": "public/games/settlement/ui/status/progress-frame.webp",
+      "width": 512,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "status.progress.fill.green",
+      "file": "public/games/settlement/ui/status/progress-fill-green.webp",
+      "width": 512,
+      "height": 32,
+      "alpha": true
+    },
+    {
+      "key": "status.progress.fill.gold",
+      "file": "public/games/settlement/ui/status/progress-fill-gold.webp",
+      "width": 512,
+      "height": 32,
+      "alpha": true
+    },
+    {
+      "key": "status.badge.reward",
+      "file": "public/games/settlement/ui/status/reward-badge-shell.webp",
+      "width": 128,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.building",
+      "file": "public/games/settlement/ui/panel/right-panel-building-shell.webp",
+      "width": 768,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.icon-slot",
+      "file": "public/games/settlement/ui/panel/right-panel-header-icon-slot.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.description",
+      "file": "public/games/settlement/ui/panel/building-description-block.webp",
+      "width": 640,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.level-row",
+      "file": "public/games/settlement/ui/panel/building-level-row.webp",
+      "width": 640,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.stats.card",
+      "file": "public/games/settlement/ui/panel/building-stats-card.webp",
+      "width": 320,
+      "height": 240,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.stats.row",
+      "file": "public/games/settlement/ui/panel/building-stat-row.webp",
+      "width": 288,
+      "height": 44,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.action.primary.idle",
+      "file": "public/games/settlement/ui/button/building-upgrade-idle.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.action.primary.disabled",
+      "file": "public/games/settlement/ui/button/building-upgrade-disabled.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.action.primary.in-progress",
+      "file": "public/games/settlement/ui/button/building-upgrade-in-progress.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.timer.pill",
+      "file": "public/games/settlement/ui/button/building-timer-pill.webp",
+      "width": 240,
+      "height": 56,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.footer.card",
+      "file": "public/games/settlement/ui/panel/building-footer-card.webp",
+      "width": 192,
+      "height": 104,
+      "alpha": true
+    },
+    {
+      "key": "panel.building.footer.small-icon",
+      "file": "public/games/settlement/ui/panel/building-footer-icon-slot.webp",
+      "width": 32,
+      "height": 32,
+      "alpha": true
+    },
+    {
+      "key": "panel.toast.upgrade",
+      "file": "public/games/settlement/ui/toast/upgrade-start-toast.webp",
+      "width": 560,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.toast.close",
+      "file": "public/games/settlement/ui/button/toast-close-button.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.header.building-glow",
+      "file": "public/games/settlement/ui/panel/building-header-glow.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.goals",
+      "file": "public/games/settlement/ui/panel/right-panel-goals-shell.webp",
+      "width": 768,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.goal-title",
+      "file": "public/games/settlement/ui/panel/right-panel-goals-title-strip.webp",
+      "width": 768,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.summary.card",
+      "file": "public/games/settlement/ui/panel/goals-summary-card.webp",
+      "width": 640,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.longterm.row",
+      "file": "public/games/settlement/ui/panel/goals-longterm-row.webp",
+      "width": 640,
+      "height": 104,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.daily.row",
+      "file": "public/games/settlement/ui/panel/goals-daily-row.webp",
+      "width": 640,
+      "height": 104,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.goal.icon-slot",
+      "file": "public/games/settlement/ui/panel/goals-icon-slot.webp",
+      "width": 72,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.reward.badge",
+      "file": "public/games/settlement/ui/status/goals-reward-badge.webp",
+      "width": 128,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.claim.button.idle",
+      "file": "public/games/settlement/ui/button/goals-claim-button-idle.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.claim.button.disabled",
+      "file": "public/games/settlement/ui/button/goals-claim-button-disabled.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.claim.count.badge",
+      "file": "public/games/settlement/ui/status/goals-claim-count-badge.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.refresh.chip",
+      "file": "public/games/settlement/ui/status/goals-refresh-chip.webp",
+      "width": 256,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.goals.progress.row",
+      "file": "public/games/settlement/ui/status/goals-progress-row.webp",
+      "width": 512,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.button.goals.active",
+      "file": "public/games/settlement/ui/hud/bottom-nav-button-goals-active.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.button.goals.idle",
+      "file": "public/games/settlement/ui/hud/bottom-nav-button-goals-idle.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.inventory",
+      "file": "public/games/settlement/ui/panel/right-panel-inventory-shell.webp",
+      "width": 768,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.inventory-strip",
+      "file": "public/games/settlement/ui/panel/right-panel-inventory-title-strip.webp",
+      "width": 768,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.summary.card",
+      "file": "public/games/settlement/ui/panel/inventory-summary-card.webp",
+      "width": 640,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.resource.row.idle",
+      "file": "public/games/settlement/ui/panel/inventory-resource-row-idle.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.resource.row.selected",
+      "file": "public/games/settlement/ui/panel/inventory-resource-row-selected.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.resource.row.warning",
+      "file": "public/games/settlement/ui/panel/inventory-resource-row-warning.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.resource.icon.slot",
+      "file": "public/games/settlement/ui/panel/inventory-resource-icon-slot.webp",
+      "width": 72,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.control.minus.idle",
+      "file": "public/games/settlement/ui/button/inventory-minus-idle.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.control.minus.disabled",
+      "file": "public/games/settlement/ui/button/inventory-minus-disabled.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.control.plus.idle",
+      "file": "public/games/settlement/ui/button/inventory-plus-idle.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.control.plus.disabled",
+      "file": "public/games/settlement/ui/button/inventory-plus-disabled.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.control.select.idle",
+      "file": "public/games/settlement/ui/button/inventory-select-idle.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.item.card.idle",
+      "file": "public/games/settlement/ui/panel/inventory-item-card-idle.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.item.card.count.badge",
+      "file": "public/games/settlement/ui/status/inventory-item-count-badge.webp",
+      "width": 96,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.action.button.idle",
+      "file": "public/games/settlement/ui/button/inventory-manage-button-idle.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.inventory.action.button.disabled",
+      "file": "public/games/settlement/ui/button/inventory-manage-button-disabled.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.council",
+      "file": "public/games/settlement/ui/panel/right-panel-council-shell.webp",
+      "width": 768,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.council-icon-slot",
+      "file": "public/games/settlement/ui/panel/right-panel-council-icon-slot.webp",
+      "width": 128,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.recommendation.card.idle",
+      "file": "public/games/settlement/ui/panel/council-recommendation-card-idle.webp",
+      "width": 640,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.recommendation.card.hovered",
+      "file": "public/games/settlement/ui/panel/council-recommendation-card-hovered.webp",
+      "width": 640,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.advisor.portrait.slot",
+      "file": "public/games/settlement/ui/panel/council-advisor-portrait-slot.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.recommendation.icon.slot",
+      "file": "public/games/settlement/ui/panel/council-recommendation-icon-slot.webp",
+      "width": 72,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.follow.button.idle",
+      "file": "public/games/settlement/ui/button/council-follow-button-idle.webp",
+      "width": 240,
+      "height": 56,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.follow.button.disabled",
+      "file": "public/games/settlement/ui/button/council-follow-button-disabled.webp",
+      "width": 240,
+      "height": 56,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.stage.card",
+      "file": "public/games/settlement/ui/panel/council-stage-card.webp",
+      "width": 640,
+      "height": 260,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.stage.badge",
+      "file": "public/games/settlement/ui/panel/council-stage-badge.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.priority.row.idle",
+      "file": "public/games/settlement/ui/panel/council-priority-row-idle.webp",
+      "width": 640,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.priority.row.active",
+      "file": "public/games/settlement/ui/panel/council-priority-row-active.webp",
+      "width": 640,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.open-research.button.idle",
+      "file": "public/games/settlement/ui/button/council-open-research-button-idle.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.council.open-research.button.disabled",
+      "file": "public/games/settlement/ui/button/council-open-research-button-disabled.webp",
+      "width": 640,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.construction",
+      "file": "public/games/settlement/ui/panel/right-panel-construction-shell.webp",
+      "width": 768,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.construction-strip",
+      "file": "public/games/settlement/ui/panel/right-panel-construction-title-strip.webp",
+      "width": 768,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.production.idle",
+      "file": "public/games/settlement/ui/panel/construction-category-production-idle.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.production.active",
+      "file": "public/games/settlement/ui/panel/construction-category-production-active.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.storage.idle",
+      "file": "public/games/settlement/ui/panel/construction-category-storage-idle.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.storage.active",
+      "file": "public/games/settlement/ui/panel/construction-category-storage-active.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.decor.idle",
+      "file": "public/games/settlement/ui/panel/construction-category-decor-idle.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.decor.active",
+      "file": "public/games/settlement/ui/panel/construction-category-decor-active.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.special.idle",
+      "file": "public/games/settlement/ui/panel/construction-category-special-idle.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.category.special.active",
+      "file": "public/games/settlement/ui/panel/construction-category-special-active.webp",
+      "width": 192,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.card.idle",
+      "file": "public/games/settlement/ui/panel/construction-card-idle.webp",
+      "width": 224,
+      "height": 256,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.card.selected",
+      "file": "public/games/settlement/ui/panel/construction-card-selected.webp",
+      "width": 224,
+      "height": 256,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.card.locked",
+      "file": "public/games/settlement/ui/panel/construction-card-locked.webp",
+      "width": 224,
+      "height": 256,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.card.art-glow",
+      "file": "public/games/settlement/ui/panel/construction-card-art-glow.webp",
+      "width": 192,
+      "height": 128,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.cost-row",
+      "file": "public/games/settlement/ui/panel/construction-cost-row.webp",
+      "width": 192,
+      "height": 40,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.pager.button.idle",
+      "file": "public/games/settlement/ui/button/construction-pager-idle.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.pager.button.disabled",
+      "file": "public/games/settlement/ui/button/construction-pager-disabled.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.page-indicator",
+      "file": "public/games/settlement/ui/status/construction-page-indicator.webp",
+      "width": 128,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.construction.placement.hint",
+      "file": "public/games/settlement/ui/panel/construction-placement-hint.webp",
+      "width": 640,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "scene.construction.plot.ring.idle",
+      "file": "public/games/settlement/ui/scene/construction-plot-ring-idle.webp",
+      "width": 384,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "scene.construction.plot.ring.selected",
+      "file": "public/games/settlement/ui/scene/construction-plot-ring-selected.webp",
+      "width": 384,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "scene.construction.ghost.overlay",
+      "file": "public/games/settlement/ui/scene/construction-building-ghost-overlay.webp",
+      "width": 512,
+      "height": 512,
+      "alpha": true
+    },
+    {
+      "key": "scene.construction.confirm.button.idle",
+      "file": "public/games/settlement/ui/button/construction-confirm-idle.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "scene.construction.confirm.button.pressed",
+      "file": "public/games/settlement/ui/button/construction-confirm-pressed.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "scene.construction.confirm.button.disabled",
+      "file": "public/games/settlement/ui/button/construction-confirm-disabled.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "toast.construction.confirm",
+      "file": "public/games/settlement/ui/toast/construction-confirm-toast.webp",
+      "width": 640,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.research",
+      "file": "public/games/settlement/ui/panel/right-panel-research-shell.webp",
+      "width": 960,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.research-strip",
+      "file": "public/games/settlement/ui/panel/right-panel-research-title-strip.webp",
+      "width": 960,
+      "height": 104,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.intro.strip",
+      "file": "public/games/settlement/ui/panel/research-intro-strip.webp",
+      "width": 832,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.category.farming.idle",
+      "file": "public/games/settlement/ui/tabs/research-category-farming-idle.webp",
+      "width": 288,
+      "height": 80,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.category.farming.active",
+      "file": "public/games/settlement/ui/tabs/research-category-farming-active.webp",
+      "width": 288,
+      "height": 80,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.category.trade.idle",
+      "file": "public/games/settlement/ui/tabs/research-category-trade-idle.webp",
+      "width": 288,
+      "height": 80,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.category.trade.active",
+      "file": "public/games/settlement/ui/tabs/research-category-trade-active.webp",
+      "width": 288,
+      "height": 80,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.category.culture.idle",
+      "file": "public/games/settlement/ui/tabs/research-category-culture-idle.webp",
+      "width": 288,
+      "height": 80,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.category.culture.active",
+      "file": "public/games/settlement/ui/tabs/research-category-culture-active.webp",
+      "width": 288,
+      "height": 80,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.complete",
+      "file": "public/games/settlement/ui/panel/research-node-complete.webp",
+      "width": 256,
+      "height": 168,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.available",
+      "file": "public/games/settlement/ui/panel/research-node-available.webp",
+      "width": 256,
+      "height": 168,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.selected",
+      "file": "public/games/settlement/ui/panel/research-node-selected.webp",
+      "width": 256,
+      "height": 168,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.researching",
+      "file": "public/games/settlement/ui/panel/research-node-researching.webp",
+      "width": 256,
+      "height": 168,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.locked",
+      "file": "public/games/settlement/ui/panel/research-node-locked.webp",
+      "width": 256,
+      "height": 168,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.icon-slot",
+      "file": "public/games/settlement/ui/panel/research-node-icon-slot.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.check-badge",
+      "file": "public/games/settlement/ui/status/research-node-check-badge.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.lock-badge",
+      "file": "public/games/settlement/ui/status/research-node-lock-badge.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.progress.frame",
+      "file": "public/games/settlement/ui/status/research-node-progress-frame.webp",
+      "width": 160,
+      "height": 32,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.node.progress.fill",
+      "file": "public/games/settlement/ui/status/research-node-progress-fill.webp",
+      "width": 160,
+      "height": 20,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.connector.horizontal",
+      "file": "public/games/settlement/ui/panel/research-connector-horizontal.webp",
+      "width": 96,
+      "height": 24,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.connector.vertical",
+      "file": "public/games/settlement/ui/panel/research-connector-vertical.webp",
+      "width": 24,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.connector.arrowhead",
+      "file": "public/games/settlement/ui/panel/research-connector-arrowhead.webp",
+      "width": 32,
+      "height": 32,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.detail.card",
+      "file": "public/games/settlement/ui/panel/research-detail-card.webp",
+      "width": 832,
+      "height": 176,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.detail.divider",
+      "file": "public/games/settlement/ui/panel/research-detail-divider.webp",
+      "width": 16,
+      "height": 152,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.cost.row",
+      "file": "public/games/settlement/ui/panel/research-cost-row.webp",
+      "width": 384,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.cost.item.ok",
+      "file": "public/games/settlement/ui/status/research-cost-item-ok.webp",
+      "width": 128,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.cost.item.need",
+      "file": "public/games/settlement/ui/status/research-cost-item-need.webp",
+      "width": 128,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.study.button.idle",
+      "file": "public/games/settlement/ui/button/research-study-button-idle.webp",
+      "width": 360,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.study.button.pressed",
+      "file": "public/games/settlement/ui/button/research-study-button-pressed.webp",
+      "width": 360,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.study.button.disabled",
+      "file": "public/games/settlement/ui/button/research-study-button-disabled.webp",
+      "width": 360,
+      "height": 88,
+      "alpha": true
+    },
+    {
+      "key": "panel.research.timer.icon",
+      "file": "public/games/settlement/ui/status/research-timer-hourglass.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "toast.research.started",
+      "file": "public/games/settlement/ui/toast/research-started-toast.webp",
+      "width": 640,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "toast.research.complete",
+      "file": "public/games/settlement/ui/toast/research-complete-toast.webp",
+      "width": 640,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.shell.world-map",
+      "file": "public/games/settlement/ui/panel/right-panel-world-map-shell.webp",
+      "width": 768,
+      "height": 1360,
+      "alpha": true
+    },
+    {
+      "key": "panel.right.header.world-map-strip",
+      "file": "public/games/settlement/ui/panel/right-panel-world-map-title-strip.webp",
+      "width": 768,
+      "height": 104,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.parchment.frame",
+      "file": "public/games/settlement/ui/panel/world-map-parchment-frame.webp",
+      "width": 672,
+      "height": 312,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.parchment.base",
+      "file": "public/games/settlement/ui/map/world-map-archipelago-base.webp",
+      "width": 1024,
+      "height": 512,
+      "alpha": false
+    },
+    {
+      "key": "panel.world-map.compass",
+      "file": "public/games/settlement/ui/map/world-map-compass.webp",
+      "width": 96,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.marker.home",
+      "file": "public/games/settlement/ui/map/world-map-marker-home.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.marker.available",
+      "file": "public/games/settlement/ui/map/world-map-marker-available.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.marker.selected",
+      "file": "public/games/settlement/ui/map/world-map-marker-selected.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.marker.locked",
+      "file": "public/games/settlement/ui/map/world-map-marker-locked.webp",
+      "width": 64,
+      "height": 64,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.filter.button.idle",
+      "file": "public/games/settlement/ui/tabs/world-map-filter-idle.webp",
+      "width": 96,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.filter.button.active",
+      "file": "public/games/settlement/ui/tabs/world-map-filter-active.webp",
+      "width": 96,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.filter.button.disabled",
+      "file": "public/games/settlement/ui/tabs/world-map-filter-disabled.webp",
+      "width": 96,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.expedition.card.idle",
+      "file": "public/games/settlement/ui/panel/world-expedition-card-idle.webp",
+      "width": 672,
+      "height": 144,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.expedition.card.selected",
+      "file": "public/games/settlement/ui/panel/world-expedition-card-selected.webp",
+      "width": 672,
+      "height": 144,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.expedition.card.active",
+      "file": "public/games/settlement/ui/panel/world-expedition-card-active.webp",
+      "width": 672,
+      "height": 144,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.expedition.card.locked",
+      "file": "public/games/settlement/ui/panel/world-expedition-card-locked.webp",
+      "width": 672,
+      "height": 96,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.expedition.thumbnail.forest",
+      "file": "public/games/settlement/ui/map/expedition-thumb-ancient-forest.webp",
+      "width": 128,
+      "height": 96,
+      "alpha": false
+    },
+    {
+      "key": "panel.world-map.expedition.thumbnail.ruins",
+      "file": "public/games/settlement/ui/map/expedition-thumb-drowned-ruins.webp",
+      "width": 128,
+      "height": 96,
+      "alpha": false
+    },
+    {
+      "key": "panel.world-map.expedition.thumbnail.volcano",
+      "file": "public/games/settlement/ui/map/expedition-thumb-volcanic-mountains.webp",
+      "width": 128,
+      "height": 96,
+      "alpha": false
+    },
+    {
+      "key": "panel.world-map.expedition.thumbnail.ice",
+      "file": "public/games/settlement/ui/map/expedition-thumb-ice-wastes.webp",
+      "width": 128,
+      "height": 96,
+      "alpha": false
+    },
+    {
+      "key": "panel.world-map.difficulty.easy",
+      "file": "public/games/settlement/ui/status/world-difficulty-easy.webp",
+      "width": 128,
+      "height": 40,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.difficulty.medium",
+      "file": "public/games/settlement/ui/status/world-difficulty-medium.webp",
+      "width": 128,
+      "height": 40,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.difficulty.hard",
+      "file": "public/games/settlement/ui/status/world-difficulty-hard.webp",
+      "width": 128,
+      "height": 40,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.difficulty.locked",
+      "file": "public/games/settlement/ui/status/world-difficulty-locked.webp",
+      "width": 128,
+      "height": 40,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.reward-chip",
+      "file": "public/games/settlement/ui/status/world-expedition-reward-chip.webp",
+      "width": 96,
+      "height": 44,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.send.button.idle",
+      "file": "public/games/settlement/ui/button/world-expedition-send-idle.webp",
+      "width": 288,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.send.button.pressed",
+      "file": "public/games/settlement/ui/button/world-expedition-send-pressed.webp",
+      "width": 288,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.send.button.disabled",
+      "file": "public/games/settlement/ui/button/world-expedition-send-disabled.webp",
+      "width": 288,
+      "height": 72,
+      "alpha": true
+    },
+    {
+      "key": "panel.world-map.timer.icon",
+      "file": "public/games/settlement/ui/status/world-expedition-hourglass.webp",
+      "width": 48,
+      "height": 48,
+      "alpha": true
+    },
+    {
+      "key": "toast.world-map.started",
+      "file": "public/games/settlement/ui/toast/world-expedition-started-toast.webp",
+      "width": 640,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "toast.world-map.complete",
+      "file": "public/games/settlement/ui/toast/world-expedition-complete-toast.webp",
+      "width": 640,
+      "height": 112,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.button.world.active",
+      "file": "public/games/settlement/ui/hud/bottom-nav-button-world-active.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    },
+    {
+      "key": "hud.bottomnav.button.world.idle",
+      "file": "public/games/settlement/ui/hud/bottom-nav-button-world-idle.webp",
+      "width": 192,
+      "height": 192,
+      "alpha": true
+    }
+  ]
+}
