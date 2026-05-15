@@ -164,3 +164,49 @@ test("screen slot controls stay transparent over generated panel art", async () 
     }
   }
 });
+
+test("Garden Shelf shell chrome uses garden assets without obscuring quest dialog art", async () => {
+  const app = await readFile(path.join(root, "src", "App.jsx"), "utf8");
+  const shell = await readFile(path.join(root, "src", "app", "shell.jsx"), "utf8");
+  const indexCss = await readFile(path.join(root, "src", "index.css"), "utf8");
+  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
+
+  assert.match(app, /image:\s*"\/games\/garden-shelf\/icon_collect\.png"/);
+  assert.match(app, /image:\s*"\/games\/garden-shelf\/icon_quest\.png"/);
+  assert.match(shell, /className="stat-icon-image"/);
+  assert.match(
+    indexCss,
+    /\.telegram-app\[data-active-tab="garden"\]\s+\.stat-chip\s*\{[^}]*\/games\/garden-shelf\/quest_panel\.png/s,
+  );
+  assert.doesNotMatch(
+    indexCss,
+    /\.telegram-app\[data-active-tab="garden"\]\s+\.stat-chip\s*\{[^}]*hub-panel\.png/s,
+    "Garden stats must not inherit the Game Hub panel art",
+  );
+  assert.match(gardenCss, /\.garden-quest-dialog \.garden-icon-button[\s\S]*\/games\/garden-shelf\/icon_close\.png/s);
+  assert.match(gardenCss, /\.garden-quest-card\s*\{[^}]*background:\s*transparent\s*!important/s);
+  assert.doesNotMatch(
+    gardenCss,
+    /\.garden-quest-card\s*\{[^}]*linear-gradient/s,
+    "Garden quest rows should not use CSS fill panels over the dialog art",
+  );
+  assert.match(gardenCss, /\.garden-quest-card \.garden-quest-claimable\s*\{/);
+});
+
+test("mini-game menus use neutral dialog art instead of blue slot panels", async () => {
+  const cssByFile = {
+    "src/games/blox/blox.css": "--blox-dialog-art",
+    "src/games/match3/match3.css": "--match3-dialog-art",
+    "src/games/bubbo/bubbo.css": "--bubbo-dialog-art",
+    "src/games/trivia/trivia.css": "--trivia-dialog-art",
+  };
+
+  for (const [filePath, variableName] of Object.entries(cssByFile)) {
+    const css = await readFile(path.join(root, filePath), "utf8");
+    assert.match(
+      css,
+      new RegExp(`${escapeRegExp(variableName)}:\\s*url\\("\\/games\\/ui-surfaces\\/merge-dialog-panel\\.png"\\)`),
+      `${filePath} should use the neutral wood/gold dialog frame for menu overlays`,
+    );
+  }
+});

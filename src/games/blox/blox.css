@@ -4,7 +4,7 @@
   --shell-art: url("/games/blox/background.png");
   --shell-accent: #76d9ff;
   --shell-soft: #121c2a;
-  --blox-dialog-art: url("/games/ui-surfaces/blox-dialog-panel.png");
+  --blox-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
   --blox-surface-art: url("/games/ui-surfaces/blox-panel.png");
   --blox-ink: #f6fbff;
   --blox-muted: rgba(220, 237, 255, 0.74);
@@ -132,16 +132,12 @@
   inset: 0;
   z-index: -1;
   border-radius: 18px;
-  background:
-    var(--blox-dialog-art) center / 100% 100% no-repeat,
-    rgba(13, 22, 36, 0.98);
+  background: var(--blox-dialog-art) center / 100% 100% no-repeat;
   filter: drop-shadow(0 22px 42px rgba(2, 6, 14, 0.46));
 }
 
 .blox-menu-overlay[data-menu-phase="menu"]::before {
-  background:
-    var(--blox-dialog-art) center / 100% 100% no-repeat,
-    rgba(12, 20, 34, 0.99);
+  background: var(--blox-dialog-art) center / 100% 100% no-repeat;
 }
 
 .blox-menu-overlay .panel-header,
@@ -545,4 +541,40 @@
 .blox-menu-overlay[data-menu-phase="menu"] .panel-button:focus-visible {
   outline: 2px solid rgba(118, 217, 255, 0.82);
   outline-offset: -5px;
+}
+
+.blox-menu-overlay .panel-header,
+.blox-menu-overlay .pause-menu-frame,
+.blox-menu-overlay .metric-grid > *,
+.blox-menu-overlay .leaderboard,
+.blox-menu-overlay .pause-status-line span {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.blox-menu-overlay .metric-grid svg,
+.blox-menu-overlay .pause-status-line b {
+  color: var(--blox-yellow);
+  filter: drop-shadow(0 2px 1px rgba(3, 12, 26, 0.42));
+}
+
+.blox-menu-overlay[data-menu-phase="menu"] .panel-header strong,
+.blox-menu-overlay[data-menu-phase="menu"] .pause-menu-frame strong,
+.blox-menu-overlay[data-menu-phase="menu"] .pause-menu-frame small,
+.blox-menu-overlay[data-menu-phase="menu"] .metric-grid span,
+.blox-menu-overlay[data-menu-phase="menu"] .metric-grid strong,
+.blox-menu-overlay[data-menu-phase="menu"] .leaderboard strong,
+.blox-menu-overlay[data-menu-phase="menu"] .leaderboard span {
+  color: #3b2417;
+  text-shadow: none;
+}
+
+.blox-menu-overlay[data-menu-phase="menu"] .pause-menu-kicker {
+  color: #5f8d54;
+}
+
+.blox-menu-overlay[data-menu-phase="menu"] .panel-button {
+  color: #fff6dc;
+  text-shadow: 0 2px 0 rgba(42, 19, 10, 0.48);
 }

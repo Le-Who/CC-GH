@@ -632,12 +632,10 @@
 }
 
 .garden-quest-card {
-  border: 1px solid var(--glass-border-soft);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
   padding: 12px;
-  background:
-    linear-gradient(180deg, #4f3936, #32252a),
-    #32252a;
+  background: transparent;
   color: var(--ink);
 }
 
@@ -948,10 +946,10 @@
 }
 
 .garden-quest-dialog {
-  width: min(340px, calc(100% - 20px)) !important;
+  width: min(380px, calc(100% - 20px)) !important;
   aspect-ratio: 2 / 3;
   max-height: min(84dvh, calc(100% - 22px)) !important;
-  padding: 78px 28px 42px !important;
+  padding: 78px 64px 42px !important;
   scrollbar-width: thin;
 }
 
@@ -979,6 +977,17 @@
   line-height: 1.2;
 }
 
+.garden-quest-dialog .space-y-3 {
+  max-height: min(260px, 42dvh);
+  overflow-y: auto;
+  padding-right: 3px;
+  scrollbar-width: thin;
+}
+
+.garden-quest-dialog .space-y-3 > * {
+  margin: 0 !important;
+}
+
 .garden-settings-dialog div,
 .garden-settings-dialog span,
 .garden-settings-dialog small {
@@ -995,46 +1004,71 @@
 
 .garden-quest-dialog .garden-icon-button,
 .garden-settings-dialog .garden-icon-button {
-  min-width: 44px;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(70, 40, 28, 0.24);
-  border-radius: 8px;
-  background: rgba(66, 42, 36, 0.9);
-  color: #ffe7ba;
+  min-width: 46px;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: url("/games/garden-shelf/icon_close.png") center / contain no-repeat !important;
+  color: transparent;
+}
+
+.garden-quest-dialog .garden-icon-button svg,
+.garden-settings-dialog .garden-icon-button svg {
+  opacity: 0;
 }
 
 .garden-quest-card {
-  border: 1px solid rgba(92, 58, 38, 0.24) !important;
-  border-radius: 8px;
-  padding: 10px;
-  background:
-    linear-gradient(180deg, rgba(82, 48, 36, 0.94), rgba(53, 34, 31, 0.96)),
-    #4d3028 !important;
-  color: #fff3d4 !important;
-  box-shadow: inset 0 1px 0 rgba(255, 232, 180, 0.12);
+  border: 0 !important;
+  border-bottom: 1px solid rgba(95, 58, 30, 0.24) !important;
+  border-radius: 0;
+  padding: 12px 0 14px;
+  background: transparent !important;
+  color: #3b2418 !important;
+  box-shadow: none;
+}
+
+.garden-quest-card:last-child {
+  border-bottom: 0 !important;
 }
 
 .garden-quest-dialog .garden-quest-card h3,
 .garden-quest-dialog .garden-quest-card p,
 .garden-quest-dialog .garden-quest-card span,
 .garden-quest-dialog .garden-quest-card em {
-  color: #fff3d4 !important;
+  color: #3b2418 !important;
 }
 
 .garden-quest-dialog .garden-quest-card p {
-  opacity: 0.76;
+  opacity: 0.82;
+}
+
+.garden-quest-card .mt-3 {
+  margin-top: 6px !important;
 }
 
 .garden-quest-reward {
   min-width: 66px;
-  border-color: rgba(241, 190, 92, 0.42) !important;
-  background: rgba(99, 70, 31, 0.78) !important;
-  color: #ffd977 !important;
+  border-color: rgba(122, 71, 28, 0.34) !important;
+  background: rgba(255, 229, 160, 0.46) !important;
+  color: #6a4118 !important;
 }
 
 .garden-quest-card .garden-action-button {
   min-width: 84px;
+}
+
+.garden-quest-card .garden-action-button.disabled {
+  background:
+    url("/games/garden-shelf/button_primary.png") center / 100% 100% no-repeat,
+    #9b7b43 !important;
+  color: rgba(60, 39, 26, 0.72) !important;
+  filter: grayscale(0.6) saturate(0.72);
+}
+
+.garden-quest-card .garden-quest-claimable {
+  color: #203414 !important;
+  text-shadow: 0 1px 0 rgba(234, 255, 192, 0.56);
 }
 
 @media (max-width: 420px) {
@@ -1056,7 +1090,7 @@
   }
 
   .garden-quest-card {
-    padding: 9px;
+    padding: 12px 0 14px;
   }
 
   .garden-quest-card h3 {
@@ -1066,6 +1100,10 @@
   .garden-quest-card p {
     font-size: 0.72rem !important;
     line-height: 1.18;
+  }
+
+  .garden-quest-dialog .space-y-3 {
+    max-height: 170px;
   }
 
   .garden-settings-dialog .space-y-4 {

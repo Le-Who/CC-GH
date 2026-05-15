@@ -30,7 +30,7 @@ export function PanelButton({ children, icon: Icon = Sparkles, onClick, disabled
   );
 }
 
-export function Stat({ icon: Icon, label, value, progress = null, onClick = null, active = false, title = "", id = "", dataGardenXp = false }) {
+export function Stat({ icon: Icon, image = "", label, value, progress = null, onClick = null, active = false, title = "", id = "", dataGardenXp = false }) {
   const Tag = onClick ? "button" : "div";
   const boundedProgress = progress == null ? null : Math.max(0, Math.min(100, Number(progress) || 0));
   return (
@@ -42,7 +42,11 @@ export function Stat({ icon: Icon, label, value, progress = null, onClick = null
       data-stat-id={id || undefined}
       data-garden-xp={dataGardenXp ? "true" : undefined}
     >
-      <Icon size={17} />
+      {image ? (
+        <img className="stat-icon-image" src={image} alt="" draggable={false} />
+      ) : (
+        <Icon size={17} />
+      )}
       <span>{label}</span>
       <strong>{value}</strong>
       {boundedProgress != null && (

@@ -5,7 +5,7 @@
 }
 
 .bubbo-shell {
-  --bubbo-dialog-art: url("/games/ui-surfaces/bubbo-dialog-panel.png");
+  --bubbo-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
   --bubbo-surface-art: url("/games/ui-surfaces/bubbo-panel.png");
   --shell-art:
     url("/games/bubbo-bubbo/images/background-tile.png"),
@@ -137,9 +137,7 @@
   inset: 0;
   z-index: -1;
   border-radius: 18px;
-  background:
-    var(--bubbo-dialog-art) center / 100% 100% no-repeat,
-    #eef8ee;
+  background: var(--bubbo-dialog-art) center / 100% 100% no-repeat;
   filter: drop-shadow(0 20px 36px rgba(29, 58, 66, 0.34));
 }
 
@@ -150,9 +148,7 @@
 }
 
 .bubbo-shell .game-menu-overlay.bubbo-result-overlay::before {
-  background:
-    var(--bubbo-dialog-art) center / 100% 100% no-repeat,
-    #eef8ee;
+  background: var(--bubbo-dialog-art) center / 100% 100% no-repeat;
 }
 
 .bubbo-shell .game-menu-overlay .panel-header,
@@ -668,4 +664,29 @@
 
 .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .leaderboard {
   display: none;
+}
+
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .panel-header,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .pause-menu-frame,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .metric-grid > *,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .leaderboard {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .panel-header strong,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .pause-menu-frame strong,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .metric-grid strong,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .leaderboard strong {
+  color: #173f45;
+  text-shadow: 0 1px 0 rgba(255, 244, 214, 0.58);
+}
+
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .panel-header span,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .pause-menu-frame small,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .pause-status-line,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .metric-grid span,
+.bubbo-shell .game-menu-overlay:not([data-menu-phase="menu"]) .leaderboard span {
+  color: rgba(23, 63, 69, 0.76);
 }

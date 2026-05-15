@@ -337,7 +337,7 @@ function GardenQuestController() {
                           type="button"
                           className={cn(
                             "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
-                            canClaim ? "secondary garden-quest-claimable" : "disabled",
+                            canClaim ? "primary garden-quest-claimable" : "disabled",
                           )}
                           disabled={!canClaim}
                           onClick={() => claimQuest(quest.id, quest.reward)}

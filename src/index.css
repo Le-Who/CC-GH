@@ -556,6 +556,17 @@ button.stat-chip {
   color: var(--amber);
 }
 
+.stat-icon-image {
+  grid-row: 1 / 3;
+  align-self: center;
+  justify-self: center;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px rgba(65, 35, 16, 0.32));
+  pointer-events: none;
+}
+
 .stat-chip span {
   color: var(--muted);
   font-size: 0.72rem;
@@ -587,6 +598,109 @@ button.stat-chip {
   transform-origin: left center;
   transition: transform 850ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
+}
+
+.telegram-app[data-active-tab="garden"] .stats-row {
+  gap: 6px;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip {
+  min-height: 60px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: 8px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: url("/games/garden-shelf/quest_panel.png") center / 100% 100% no-repeat;
+  color: #3a2416;
+  box-shadow: 0 10px 18px rgba(41, 20, 18, 0.14);
+}
+
+.telegram-app[data-active-tab="garden"] button.stat-chip {
+  border: 0;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip svg {
+  display: none;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-icon-image {
+  width: 36px;
+  height: 36px;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip span,
+.telegram-app[data-active-tab="garden"] .stat-chip strong {
+  color: #3a2416;
+  text-shadow: 0 1px 0 rgba(255, 240, 199, 0.68);
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip span {
+  overflow: hidden;
+  display: -webkit-box;
+  min-height: 1.18em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.62rem;
+  font-weight: 1000;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip strong {
+  grid-column: 2;
+  font-size: clamp(0.78rem, 2vw, 1rem);
+  line-height: 1.08;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-progress {
+  grid-column: 1 / -1;
+  height: 5px;
+  margin-top: 3px;
+  background: rgba(80, 48, 24, 0.2);
+  box-shadow: inset 0 1px 1px rgba(54, 28, 13, 0.24);
+}
+
+.telegram-app[data-active-tab="garden"] .stat-progress b {
+  background: linear-gradient(90deg, #5bb975, #8bd99f, #f0b64d);
+}
+
+@media (max-width: 420px) {
+  .telegram-app[data-active-tab="garden"] .stat-chip {
+    grid-template-columns: 30px minmax(0, 1fr);
+    min-height: 58px;
+    column-gap: 5px;
+    padding: 8px 8px;
+  }
+
+  .telegram-app[data-active-tab="garden"] .stat-icon-image {
+    width: 30px;
+    height: 30px;
+  }
+
+  .telegram-app[data-active-tab="garden"] .stat-chip span {
+    font-size: 0.56rem;
+  }
+
+  .telegram-app[data-active-tab="garden"] .stat-chip strong {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 340px) {
+  .telegram-app[data-active-tab="garden"] .stat-chip {
+    grid-template-columns: 27px minmax(0, 1fr);
+    column-gap: 4px;
+    padding: 8px 7px;
+  }
+
+  .telegram-app[data-active-tab="garden"] .stat-icon-image {
+    width: 27px;
+    height: 27px;
+  }
 }
 
 .notice {

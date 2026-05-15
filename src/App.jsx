@@ -281,9 +281,16 @@ export default function App() {
   const profileInitial = (user?.firstName || user?.first_name || user?.username || "G").slice(0, 1);
   const stats = activeTab === "garden"
     ? [
-        { icon: Sparkles, label: t("hud.gold"), value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)) },
+        {
+          icon: Sparkles,
+          image: "/games/garden-shelf/icon_collect.png",
+          label: t("hud.gold"),
+          value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)),
+          id: "garden-gold",
+        },
         {
           icon: Leaf,
+          image: gardenCanLevelUp ? "/games/garden-shelf/icon_level_up.png" : "/games/garden-shelf/icon_plant.png",
           label: gardenCanLevelUp ? t("level.up") : t("level.progress"),
           value: gardenCanLevelUp ? `+${formatGardenDisplayGold(getGardenLevelReward(gardenLevel))}` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
           progress: gardenXpProgress,
@@ -295,11 +302,13 @@ export default function App() {
         },
         {
           icon: ClipboardList,
+          image: "/games/garden-shelf/icon_quest.png",
           label: t("quest.title"),
           value: gardenHud?.questReadyCount > 0 ? gardenHud.questReadyCount : t("quest.openShort"),
           title: t("quest.open"),
           onClick: openGardenQuests,
           active: (gardenHud?.questReadyCount || 0) > 0,
+          id: "garden-quests",
         },
       ]
     : gameHudDescriptors?.length
@@ -375,6 +384,7 @@ export default function App() {
             <Stat
               key={item.label}
               icon={item.icon}
+              image={item.image}
               label={item.label}
               value={item.value}
               progress={item.progress}

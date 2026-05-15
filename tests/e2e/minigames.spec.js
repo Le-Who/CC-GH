@@ -383,7 +383,7 @@ test.describe("New-stack minigame smoke", () => {
     expect(metrics.bodyOverflowX).toBeLessThanOrEqual(1);
     expect(metrics.clippedPanelButtons).toEqual([]);
     expect(metrics.clippedResourcePills).toEqual([]);
-    expect(metrics.visibleResourcePills).toBeLessThanOrEqual(2);
+    expect(metrics.visibleResourcePills).toBe(6);
     expect(metrics.panelClearsBottomDock).toBe(true);
   });
 

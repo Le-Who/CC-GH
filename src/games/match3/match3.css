@@ -10,7 +10,7 @@
   --match3-table-art: none;
   --match3-hud-art: none;
   --match3-menu-panel-art: none;
-  --match3-dialog-art: url("/games/ui-surfaces/match3-dialog-panel.png");
+  --match3-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
   --match3-surface-art: url("/games/ui-surfaces/match3-panel.png");
   background:
     linear-gradient(90deg, rgba(113, 199, 161, 0.08), transparent 32%, rgba(198, 92, 118, 0.08)),
@@ -596,4 +596,20 @@
 
 .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-leaderboard {
   display: none;
+}
+
+.match3-menu-overlay .pause-menu-callout,
+.match3-menu-overlay .metric-grid > *,
+.match3-menu-overlay .leaderboard {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.match3-pause-compact .match3-compact-pause-card > span,
+.match3-pause-compact .match3-compact-pause-card > strong,
+.match3-pause-compact .pause-status-line,
+.match3-pause-compact .pause-status-line b {
+  color: #3b2417;
+  text-shadow: 0 1px 0 rgba(255, 238, 190, 0.58);
 }
