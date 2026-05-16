@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it, beforeEach } from "node:test";
 
-import { CONSTRUCTION_PANEL_DATA } from "../src/games/settlement/gameData.js";
+import {
+  CONSTRUCTION_PANEL_DATA,
+  getSettlementPlacementSlotLayout,
+  settlementConstructionSlotRegionId,
+} from "../src/games/settlement/gameData.js";
+import { HUD_LAYOUT_DEFAULTS } from "../src/app/hud-layout/defaultLayouts/index.js";
+import { getHudRegionDefinition } from "../src/app/hud-layout/registry.js";
 import { useSettlementStore } from "../src/games/settlement/useSettlementStore.js";
 
 describe("Settlement construction screen contract", () => {
@@ -38,6 +44,31 @@ describe("Settlement construction screen contract", () => {
         { id: "brewery", name: "Пивоварня", cost: { wood: 220, stone: 150 } },
       ]
     );
+  });
+
+  it("exposes construction placement slots as editable HUD map-coordinate regions", () => {
+    const baseRegions = HUD_LAYOUT_DEFAULTS.settlement.base.regions;
+    for (const slot of CONSTRUCTION_PANEL_DATA.placementSlots) {
+      const regionId = settlementConstructionSlotRegionId(slot.id);
+      const definition = getHudRegionDefinition("settlement", regionId);
+      const defaults = baseRegions[regionId];
+
+      assert.ok(definition, `${regionId} is registered`);
+      assert.equal(definition.capabilities.coordinateSpace, "settlementMap");
+      assert.deepEqual(
+        { mode: defaults.mode, x: defaults.x, y: defaults.y, scale: defaults.scale, visible: defaults.visible },
+        { mode: "custom", x: slot.x, y: slot.y, scale: slot.scale, visible: true },
+        `${regionId} defaults mirror the authored placement slot`,
+      );
+
+      const moved = getSettlementPlacementSlotLayout(slot, {
+        [regionId]: { mode: "custom", x: slot.x + 25, y: slot.y - 50, scale: slot.scale + 0.05, visible: true },
+      });
+      assert.equal(moved.x, slot.x + 25);
+      assert.equal(moved.y, slot.y - 50);
+      assert.equal(moved.scale, slot.scale + 0.05);
+      assert.equal(moved.regionId, regionId);
+    }
   });
 
   it("keeps construction selection in the construction panel and builds on the selected map slot", () => {

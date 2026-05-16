@@ -59,6 +59,22 @@
   background: #07130c;
 }
 
+.settlement-game-root .settlement-placement-region-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.settlement-game-root .settlement-placement-region-probe {
+  position: absolute;
+  border-radius: 12px;
+  pointer-events: none;
+  translate: none !important;
+  rotate: 0deg !important;
+  scale: 1 !important;
+}
+
 .settlement-game-root .settlement-canvas {
   display: block;
   width: 100%;

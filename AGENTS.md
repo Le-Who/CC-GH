@@ -74,6 +74,8 @@ If a UI region affects layout, safe area, bottom dock, playfield reserves, or pr
 
 If a visual asset, panel skin, Pixi frame, background, in-game image, or high-value button art needs pre-deploy positioning, scale, opacity, rotation, or visibility tuning, expose it as an asset-capable layout region or document why it is intentionally fixed.
 
+If gameplay-facing placement anchors need pre-deploy tuning, such as Settlement construction slots, building ghost anchors, built-building default positions, spawn anchors, or similar map coordinates, expose them as coordinate-space layout regions with a custom adapter. Do not leave these as unregistered one-off `x/y` constants when the editor is the intended calibration tool.
+
 Do not add one-off viewport magic numbers for HUD/playfield spacing when a layout default or profile should own the value.
 
 New visible games must add:
@@ -82,9 +84,12 @@ New visible games must add:
 - semantic orientation profiles or a documented fallback;
 - relevant region registrations/adapters;
 - at least one meaningful asset-capable region when the game has tunable visual assets;
+- coordinate-space placement regions for authored anchors that must be tuned in the editor;
 - validation tests.
 
 Pixi scenes should consume safe/reserve values through `sceneState`, `hudReserves`, or a clear adapter instead of directly depending on unrelated DOM measurements when avoidable. Pixi visual assets that need editor tuning should use the shared Pixi asset adapter or a documented custom adapter; do not add per-scene one-off debug handles.
+
+Map-coordinate adapters must keep their coordinate system explicit, for example `coordinateSpace: "settlementMap"`, and convert editor drag deltas back into that source coordinate space before writing overrides.
 
 The HUD editor must stay dev/admin/debug only. Local overrides must not affect ordinary production players.
 
@@ -102,7 +107,7 @@ If a future visual asset needs a new edit primitive, extend asset-region capabil
 
 ### How To Add A New HUD/UI Region
 
-1. Decide whether it is visual-only, asset-tunable, layout-affecting, safe-area-affecting, Pixi-affecting, or an intentional exception.
+1. Decide whether it is visual-only, asset-tunable, coordinate/anchor-tunable, layout-affecting, safe-area-affecting, Pixi-affecting, or an intentional exception.
 2. Register the region id and capabilities in `src/app/hud-layout/registry.js`.
 3. Add a base default in `src/app/hud-layout/defaultLayouts/{gameId}.json`.
 4. Add profile overrides only where the base default is not enough.

@@ -30,6 +30,15 @@ function movePatchForRegion(region, dx, dy, { snapEnabled, gridSize }) {
   };
 }
 
+function dragCoordinateDelta(record, dx, dy) {
+  const scaleX = Number(record?.capabilities?.dragCoordinateScaleX);
+  const scaleY = Number(record?.capabilities?.dragCoordinateScaleY);
+  return {
+    dx: dx * (Number.isFinite(scaleX) && scaleX > 0 ? scaleX : 1),
+    dy: dy * (Number.isFinite(scaleY) && scaleY > 0 ? scaleY : 1),
+  };
+}
+
 function HudRegionBox({ hud, regionId, record, locked, snapEnabled, gridSize, showLabels }) {
   const dragRef = useRef(null);
   const region = hud.resolvedLayout.regions?.[regionId];
@@ -64,9 +73,10 @@ function HudRegionBox({ hud, regionId, record, locked, snapEnabled, gridSize, sh
     event.stopPropagation();
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
+    const delta = dragCoordinateDelta(record, dx, dy);
     cancelAnimationFrame(drag.frame);
     drag.frame = requestAnimationFrame(() => {
-      hud.patchRegion(regionId, movePatchForRegion(drag.startRegion, dx, dy, { snapEnabled, gridSize }), { transient: true });
+      hud.patchRegion(regionId, movePatchForRegion(drag.startRegion, delta.dx, delta.dy, { snapEnabled, gridSize }), { transient: true });
     });
   };
 
@@ -78,7 +88,8 @@ function HudRegionBox({ hud, regionId, record, locked, snapEnabled, gridSize, sh
     cancelAnimationFrame(drag.frame);
     const dx = event.clientX - drag.startX;
     const dy = event.clientY - drag.startY;
-    hud.patchRegion(regionId, movePatchForRegion(drag.startRegion, dx, dy, { snapEnabled, gridSize }));
+    const delta = dragCoordinateDelta(record, dx, dy);
+    hud.patchRegion(regionId, movePatchForRegion(drag.startRegion, delta.dx, delta.dy, { snapEnabled, gridSize }));
     dragRef.current = null;
   };
 

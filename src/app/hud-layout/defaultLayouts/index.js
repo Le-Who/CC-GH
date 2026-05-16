@@ -6,6 +6,10 @@ import bubbo from "./bubbo.json" with { type: "json" };
 import trivia from "./trivia.json" with { type: "json" };
 import room from "./room.json" with { type: "json" };
 import settlement from "./settlement.json" with { type: "json" };
+import {
+  SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS,
+  settlementConstructionSlotRegionId,
+} from "../../../games/settlement/placementSlots.js";
 
 const BOTTOM_DOCK_BUTTON_DEFAULTS = Object.fromEntries(
   ["garden", "blox", "match3", "merge", "bubbo", "trivia", "room", "settlement"]
@@ -47,6 +51,12 @@ const GAME_ASSET_DEFAULTS = {
   settlement: {
     settlementPrimaryBuildAsset: { mode: "freeform", x: 0, y: 0, scale: 1, opacity: 1, rotation: 0, visible: true },
     settlementCollectAsset: { mode: "freeform", x: 0, y: 0, scale: 1, opacity: 1, rotation: 0, visible: true },
+    ...Object.fromEntries(
+      SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS.map((slot) => [
+        settlementConstructionSlotRegionId(slot.id),
+        { mode: "custom", x: slot.x, y: slot.y, scale: slot.scale, visible: true },
+      ]),
+    ),
   },
 };
 

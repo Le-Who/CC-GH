@@ -1,3 +1,8 @@
+import {
+  SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS,
+  settlementConstructionSlotRegionId,
+} from "../../games/settlement/placementSlots.js";
+
 const COMMON_REGIONS = {
   appTopbar: {
     id: "appTopbar",
@@ -86,6 +91,32 @@ function assetRegion(id, label, group, notes = "") {
   }, notes || "Editable visual asset region. This adjusts presentation values, not gameplay state.");
 }
 
+function settlementConstructionSlotRegion(slot) {
+  const id = settlementConstructionSlotRegionId(slot.id);
+  return region(
+    id,
+    `Settlement placement: ${slot.label}`,
+    "Settlement construction placement",
+    {
+      draggable: true,
+      resizable: false,
+      canChangeVisibility: true,
+      measured: true,
+      mode: "custom",
+      placement: true,
+      coordinateSpace: "settlementMap",
+      axisLocks: { x: false, y: false },
+      min: { x: 0, y: 0, scale: 0.2 },
+      max: { x: 2816, y: 2112, scale: 1.2 },
+    },
+    "Absolute Settlement map-coordinate slot. Dragging edits the source x/y used by both construction ghosts and built sprites.",
+  );
+}
+
+const SETTLEMENT_CONSTRUCTION_SLOT_REGIONS = Object.fromEntries(
+  SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS.map((slot) => [settlementConstructionSlotRegionId(slot.id), settlementConstructionSlotRegion(slot)]),
+);
+
 const BOTTOM_DOCK_BUTTONS = {
   "bottomDock.garden": region("bottomDock.garden", "Garden tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
   "bottomDock.blox": region("bottomDock.blox", "Blox tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
@@ -165,6 +196,7 @@ const GAME_REGIONS = {
     settlementNotices: region("settlementNotices", "Settlement notices", "Settlement", { draggable: true, resizable: true, mode: "stack" }),
     settlementPrimaryBuildAsset: assetRegion("settlementPrimaryBuildAsset", "Settlement primary build button asset", "Settlement DOM assets"),
     settlementCollectAsset: assetRegion("settlementCollectAsset", "Settlement collect button asset", "Settlement DOM assets"),
+    ...SETTLEMENT_CONSTRUCTION_SLOT_REGIONS,
   },
 };
 

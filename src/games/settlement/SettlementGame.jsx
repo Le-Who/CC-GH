@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Application,
   Assets,
@@ -11,8 +11,8 @@ import {
   Text
 } from 'pixi.js';
 import { useImmersiveGame } from '../../app/gameHooks.js';
-import { HudEditableRegion, HudRegion, useHudRegion } from '../../app/hud-layout/index.js';
-import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA } from './gameData.js';
+import { HudEditableRegion, HudRegion, useHudLayout, useHudRegion } from '../../app/hud-layout/index.js';
+import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, useSettlementStore } from './useSettlementStore.js';
 import './settlement.css';
@@ -56,6 +56,39 @@ function regionPosition(source) {
 
 function regionScale(scale) {
   return scale * REGION_OBJECT_SCALE;
+}
+
+const CONSTRUCTION_SLOT_HIT_AREA = { x: -220, y: -300, width: 440, height: 360 };
+
+function applyConstructionSlotLayout(item, slot) {
+  if (!item || !slot) return;
+  const placementPosition = regionPosition(slot);
+  item.container.x = placementPosition.x;
+  item.container.y = placementPosition.y;
+  item.container.zIndex = placementPosition.y + 4;
+  item.container.hitArea = new Rectangle(
+    CONSTRUCTION_SLOT_HIT_AREA.x,
+    CONSTRUCTION_SLOT_HIT_AREA.y,
+    CONSTRUCTION_SLOT_HIT_AREA.width,
+    CONSTRUCTION_SLOT_HIT_AREA.height,
+  );
+  item.ringIdle.scale.set(regionScale(slot.scale * 0.95));
+  item.ringSelected.scale.set(regionScale(slot.scale * 1.03));
+  item.ghostOverlay.scale.set(regionScale(slot.scale * 0.92));
+  item.ghostSprite.scale.set(regionScale(slot.scale));
+  item.builtSprite.scale.set(regionScale(slot.scale));
+  item.slot = slot;
+}
+
+function constructionSlotScreenBox(slot, camera) {
+  const scale = Number(camera?.scale) || 1;
+  const x = (Number(camera?.x) || 0) + regionX(slot.x) * scale;
+  const y = (Number(camera?.y) || 0) + regionY(slot.y) * scale;
+  const left = x + CONSTRUCTION_SLOT_HIT_AREA.x * scale;
+  const top = y + CONSTRUCTION_SLOT_HIT_AREA.y * scale;
+  const width = CONSTRUCTION_SLOT_HIT_AREA.width * scale;
+  const height = CONSTRUCTION_SLOT_HIT_AREA.height * scale;
+  return { left, top, width, height };
 }
 
 
@@ -642,7 +675,9 @@ function AssetIcon({ src, alt = '', className = '', size = 20 }) {
 
 function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, onBuildingSelect, onConfirmConstruction, onConstructionSlotSelect, devMode, onDevPointer }) {
   const [sceneRevision, setSceneRevision] = useState(0);
+  const [cameraSnapshot, setCameraSnapshot] = useState(() => ({ x: 0, y: 0, scale: 0.5, width: 1, height: 1 }));
   const hostRef = useRef(null);
+  const hudLayout = useHudLayout();
   const canvasRegion = useHudRegion('settlementCanvas', { ref: hostRef });
   const appRef = useRef(null);
   const worldRef = useRef(null);
@@ -658,11 +693,53 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   const confirmConstructionRef = useRef(onConfirmConstruction);
   const constructionSlotSelectRef = useRef(onConstructionSlotSelect);
   const devModeRef = useRef(Boolean(devMode));
+  const hudEditorEnabledRef = useRef(Boolean(hudLayout.editorEnabled));
   const devLatestInfoRef = useRef(null);
   const devInfoFrameRef = useRef(0);
 
   const levels = useSettlementStore((s) => s.levels);
   const storeSelect = useSettlementStore((s) => s.selectBuilding);
+  const slotLayouts = useMemo(() => (
+    CONSTRUCTION_PANEL_DATA.placementSlots.map((slot) => getSettlementPlacementSlotLayout(slot, hudLayout.resolvedLayout?.regions || {}))
+  ), [hudLayout.resolvedLayout]);
+  const slotRegions = useMemo(() => {
+    const cameraScale = Math.max(0.001, Number(cameraSnapshot.scale) || 1);
+    const dragCoordinateScaleX = 1 / (cameraScale * REGION_SCALE.x);
+    const dragCoordinateScaleY = 1 / (cameraScale * REGION_SCALE.y);
+    return slotLayouts.map((slot) => ({
+      slot,
+      box: constructionSlotScreenBox(slot, cameraSnapshot),
+      capabilities: {
+        draggable: true,
+        resizable: false,
+        canChangeVisibility: true,
+        measured: true,
+        mode: "custom",
+        placement: true,
+        coordinateSpace: "settlementMap",
+        dragCoordinateScaleX,
+        dragCoordinateScaleY,
+      },
+    }));
+  }, [cameraSnapshot, slotLayouts]);
+
+  const updateCameraSnapshot = useCallback(() => {
+    if (!hudEditorEnabledRef.current) return;
+    const host = hostRef.current;
+    const camera = cameraRef.current;
+    setCameraSnapshot((current) => {
+      const next = {
+        x: Math.round((Number(camera.x) || 0) * 100) / 100,
+        y: Math.round((Number(camera.y) || 0) * 100) / 100,
+        scale: Math.round((Number(camera.scale) || 1) * 1000) / 1000,
+        width: Math.max(1, Math.round(host?.clientWidth || 1)),
+        height: Math.max(1, Math.round(host?.clientHeight || 1)),
+      };
+      return current.x === next.x && current.y === next.y && current.scale === next.scale && current.width === next.width && current.height === next.height
+        ? current
+        : next;
+    });
+  }, []);
 
   useEffect(() => {
     selectedRef.current = selectedBuildingId;
@@ -698,6 +775,11 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     if (devLayer) devLayer.visible = Boolean(devMode);
     if (!devMode) onDevPointer?.(null);
   }, [devMode, onDevPointer]);
+
+  useEffect(() => {
+    hudEditorEnabledRef.current = Boolean(hudLayout.editorEnabled);
+    updateCameraSnapshot();
+  }, [hudLayout.editorEnabled, updateCameraSnapshot]);
 
   useEffect(() => {
     let cancelled = false;
@@ -958,7 +1040,8 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       const initialConstructionTexture = initialConstructionItem ? await loadTexture(constructionItemAsset(initialConstructionItem), { trim: true }) : null;
       if (cancelled) return;
 
-      for (const slot of CONSTRUCTION_PANEL_DATA.placementSlots) {
+      for (const authoredSlot of CONSTRUCTION_PANEL_DATA.placementSlots) {
+        const slot = getSettlementPlacementSlotLayout(authoredSlot, hudLayout.resolvedLayout?.regions || {});
         const placementPosition = regionPosition(slot);
         const slotContainer = new Container();
         slotContainer.name = `construction-slot-${slot.id}`;
@@ -967,7 +1050,12 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         slotContainer.zIndex = placementPosition.y + 4;
         slotContainer.eventMode = 'static';
         slotContainer.cursor = 'pointer';
-        slotContainer.hitArea = new Rectangle(-220, -300, 440, 360);
+        slotContainer.hitArea = new Rectangle(
+          CONSTRUCTION_SLOT_HIT_AREA.x,
+          CONSTRUCTION_SLOT_HIT_AREA.y,
+          CONSTRUCTION_SLOT_HIT_AREA.width,
+          CONSTRUCTION_SLOT_HIT_AREA.height,
+        );
         slotContainer.visible = false;
         slotContainer.on('pointertap', () => {
           const built = constructedBuildingsRef.current?.[slot.id];
@@ -1173,6 +1261,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       cameraRef.current = camera;
       world.position.set(camera.x, camera.y);
       world.scale.set(camera.scale);
+      updateCameraSnapshot();
 
       function applyCamera() {
         rafRef.current = 0;
@@ -1180,6 +1269,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         clampCamera(c, host.clientWidth, host.clientHeight);
         world.position.set(c.x, c.y);
         world.scale.set(c.scale);
+        updateCameraSnapshot();
       }
       function scheduleCameraApply() {
         if (rafRef.current) return;
@@ -1318,6 +1408,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       function onResize() {
         const { width, height } = syncRendererSize();
         clampCamera(cameraRef.current, width, height);
+        updateCameraSnapshot();
         scheduleCameraApply();
       }
 
@@ -1444,6 +1535,17 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   useEffect(() => {
     const slotSprites = spritesRef.current.constructionSlots;
     if (!slotSprites?.size) return;
+    for (const slot of slotLayouts) {
+      const item = slotSprites.get(slot.id);
+      if (!item) continue;
+      applyConstructionSlotLayout(item, slot);
+    }
+    updateCameraSnapshot();
+  }, [sceneRevision, slotLayouts, updateCameraSnapshot]);
+
+  useEffect(() => {
+    const slotSprites = spritesRef.current.constructionSlots;
+    if (!slotSprites?.size) return;
     let cancelled = false;
     for (const [slotId, item] of slotSprites) {
       const record = constructedBuildings?.[slotId] ?? null;
@@ -1454,7 +1556,8 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       const isSelectedBuilt = record?.id === selectedBuildingId;
       const showEmptySlot = isConstructionOpen && !record;
       const showBuilt = Boolean(record && builtItem);
-      item.container.visible = showEmptySlot || showBuilt || isSelectedSlot || isSelectedBuilt;
+      const slotVisible = item.slot?.visible !== false;
+      item.container.visible = slotVisible && (showEmptySlot || showBuilt || isSelectedSlot || isSelectedBuilt);
       item.container.cursor = showBuilt ? 'pointer' : isConstructionOpen ? 'pointer' : 'default';
       item.ringIdle.visible = showEmptySlot || showBuilt || isSelectedBuilt;
       item.ringIdle.alpha = showEmptySlot ? 0.72 : showBuilt ? 0.22 : 0;
@@ -1496,7 +1599,30 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     };
   }, [activePanel, selectedBuildingId, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, sceneRevision]);
 
-  return <div ref={canvasRegion.ref} className="scene-host" data-hud-region="settlementCanvas" />;
+  return (
+    <div ref={canvasRegion.ref} className="scene-host" data-hud-region="settlementCanvas">
+      {hudLayout.editorEnabled && (
+        <div className="settlement-placement-region-layer" aria-hidden="true">
+          {slotRegions.map(({ slot, box, capabilities }) => (
+            <HudEditableRegion
+              key={slot.regionId}
+              id={slot.regionId}
+              as="div"
+              applyLayout={false}
+              capabilities={capabilities}
+              className="settlement-placement-region-probe"
+              style={{
+                left: `${box.left}px`,
+                top: `${box.top}px`,
+                width: `${Math.max(44, box.width)}px`,
+                height: `${Math.max(44, box.height)}px`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 

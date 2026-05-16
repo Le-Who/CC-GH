@@ -1,4 +1,15 @@
 import { ICONS, PROP_ASSETS, VILLAGER_ASSETS } from './assetRegistry.js';
+import {
+  SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS,
+  getSettlementPlacementSlotLayout,
+  settlementConstructionSlotRegionId,
+} from './placementSlots.js';
+
+export {
+  SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS,
+  getSettlementPlacementSlotLayout,
+  settlementConstructionSlotRegionId,
+};
 
 export const RESOURCES = [
   { id: 'population', label: 'Жители', icon: ICONS.population },
@@ -181,12 +192,7 @@ export const CONSTRUCTION_PANEL_DATA = {
     { id: 'decor', label: 'Декор', icon: 'decor' },
     { id: 'special', label: 'Особые', icon: 'special' }
   ],
-  placementSlots: [
-    { id: 'southwest-terrace', label: 'Южная терраса', x: 760, y: 1458, scale: 0.46 },
-    { id: 'west-meadow', label: 'Западный луг', x: 760, y: 920, scale: 0.42 },
-    { id: 'market-corner', label: 'Торговый угол', x: 2075, y: 790, scale: 0.4 },
-    { id: 'river-bend', label: 'Речной изгиб', x: 1720, y: 1425, scale: 0.4 }
-  ],
+  placementSlots: SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS,
   items: [
     {
       id: 'sawmill',

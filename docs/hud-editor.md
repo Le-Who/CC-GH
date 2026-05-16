@@ -57,12 +57,13 @@ Use `Hide panels` when the toolbar or inspector covers the game. This hides the 
 4. Use the row/container region, such as `bottomDock`, only when you want to move or reserve the whole surface.
 5. Use individual sub-regions, such as `bottomDock.blox`, when you want to move one tab button without changing the whole dock.
 6. Use asset regions, such as `gardenSignAsset`, `bloxBoardFrameAsset`, `match3BoardFrameAsset`, `mergeActionGenerateAsset`, `yardCompanionAsset`, or `settlementPrimaryBuildAsset`, when you want to move, resize, scale, rotate, or fade a visual asset without changing the gameplay data behind it.
-7. Drag for coarse visual placement, then use inspector fields for exact values.
-8. Use arrow keys for nudging: plain arrows use the current step, `Shift` is coarse, `Alt` is fine.
-9. Use `Snap` and the grid size selector when aligning multiple regions.
-10. Toggle `Grid`, `Safe`, `Pixi`, `Thumb`, and `Labels` independently; visual QA is easier when only one guide layer is visible at a time.
-11. Use `Hide panels` for a clean inspection pass, then `Show editor` to continue editing.
-12. Export the game or all games after each meaningful tuning pass.
+7. Use coordinate-space regions, such as Settlement construction slots, when you need to tune authored map coordinates that drive ghosts, anchors, or built objects.
+8. Drag for coarse visual placement, then use inspector fields for exact values.
+9. Use arrow keys for nudging: plain arrows use the current step, `Shift` is coarse, `Alt` is fine.
+10. Use `Snap` and the grid size selector when aligning multiple regions.
+11. Toggle `Grid`, `Safe`, `Pixi`, `Thumb`, and `Labels` independently; visual QA is easier when only one guide layer is visible at a time.
+12. Use `Hide panels` for a clean inspection pass, then `Show editor` to continue editing.
+13. Export the game or all games after each meaningful tuning pass.
 
 ## Selecting The Right Target
 
@@ -88,12 +89,25 @@ The editor intentionally exposes different levels of control:
   `yardCompanionAsset`,
   `settlementPrimaryBuildAsset`,
   `settlementCollectAsset`.
+- Settlement construction placement anchors:
+  `settlementConstructionSlot.southwest-terrace`,
+  `settlementConstructionSlot.west-meadow`,
+  `settlementConstructionSlot.market-corner`,
+  `settlementConstructionSlot.river-bend`.
 - Safe/reserve adapters: `pixiPlayfieldReserve` and game-specific reserve regions.
 - Custom measured adapters: Settlement/Yard/Garden surfaces that should be measured or constrained without being rewritten into a generic DOM layout.
 
 If a drag changes inspector values but not the screen, first check the selected region mode and notes. `reserveOnly` regions intentionally do not move DOM; they affect Pixi/layout reserves. If the target is a row but you meant one button, select the corresponding `bottomDock.*` sub-region.
 
 Pixi asset regions are visual calibration handles. They move or scale visual sprites such as frames, table art, tray panels, or cannon art, but they do not move gameplay hit targets or rules. Keep Pixi frame assets aligned with the underlying playfield unless a deliberate visual offset is being tested.
+
+## Settlement Building Placement Coordinates
+
+Settlement construction slot regions are map-coordinate adapters, not generic DOM assets. Their `x`, `y`, and `scale` values are authored coordinates in the Settlement source map coordinate space. The same resolved values drive the construction ghost, the placement ring, the confirm affordance, and the built building sprite for that slot.
+
+Use `?hudEditor=1&panel=construction` and switch to Town/Settlement. Turn on labels, select a region like `settlementConstructionSlot.southwest-terrace`, and either drag the region box or type exact `x`, `y`, and `scale` values in the inspector. The editor converts drag movement from screen pixels back into `settlementMap` coordinates before saving overrides.
+
+When tuning these slots, keep `Grid` and `Labels` on until the right slot is selected, then use `Hide panels` for visual inspection. Export the Settlement layout and promote it like other HUD defaults. Do not edit only `CONSTRUCTION_PANEL_DATA.placementSlots` for deploy calibration unless the HUD default is updated too; repo defaults are the production layout contract.
 
 ## Pixi Safe/Reserve Values
 
@@ -103,7 +117,7 @@ Existing Pixi resize/update flow remains active. If reserves change without cont
 
 Pixi asset regions are published by scenes through the shared Pixi asset adapter. The editor shows DOM handles over those published bounds; the Pixi scene consumes the same resolved region values for x/y, scale, opacity, rotation, and visibility. This keeps the editor contract shared without turning gameplay nodes into DOM nodes.
 
-Settlement uses custom adapters for canvas/HUD/panel registrations rather than being rewritten into the shared Pixi host.
+Settlement uses custom adapters for canvas/HUD/panel registrations and construction-slot coordinate regions rather than being rewritten into the shared Pixi host.
 
 ## Local Overrides
 
@@ -152,11 +166,11 @@ Promotion validates schema, game ids, region ids, profiles, merge/fallback behav
 
 ## Adding A Region
 
-1. Decide whether the region is visual-only, layout-affecting, safe-area-affecting, Pixi-affecting, or custom.
+1. Decide whether the region is visual-only, layout-affecting, safe-area-affecting, Pixi-affecting, coordinate/anchor-tunable, or custom.
 2. Register id/capabilities in `src/app/hud-layout/registry.js`.
 3. Add a base default in the game JSON.
 4. Add semantic profile overrides only where needed.
-5. Connect through `HudRegion`, `HudEditableRegion`, `useHudRegion`, `data-hud-region`, the Pixi asset adapter, or a custom adapter.
+5. Connect through `HudRegion`, `HudEditableRegion`, `useHudRegion`, `data-hud-region`, the Pixi asset adapter, a coordinate-space adapter, or a custom adapter.
 6. Add validation/test coverage.
 7. Run portrait and landscape QA.
 
@@ -173,5 +187,7 @@ Layout differs in Telegram: check `visualViewport`, safe-area variables, stable 
 Orientation mismatch: verify actual dimensions; the resolver does not rely only on `screen.orientation`.
 
 Pixi scene not resizing: check `pixiPlayfieldReserve`, `data-hud-reserve-*`, and whether the scene reacts to resize/update.
+
+Settlement slot box not visible: open the construction panel with `panel=construction`, pan/zoom the Settlement map until the slot is in view, and keep labels enabled. Slot regions follow the camera and represent source map coordinates, so they can be offscreen when the map camera is elsewhere.
 
 Horizontal scroll at 320px: inspect bottom dock, max widths, transformed regions, and any game-specific panels that bypass the registry.

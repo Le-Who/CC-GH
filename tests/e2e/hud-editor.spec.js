@@ -99,6 +99,26 @@ test.describe("HUD layout editor", () => {
     expect(exported.games.blox.profiles["phone-landscape"].regions.bloxBoardFrameAsset.x).toBe(16);
   });
 
+  test("can tune Settlement construction slot map coordinates", async ({ page }) => {
+    await boot(page, "/?hudEditor=1&hudPreview=1&hudPreset=568x320&panel=construction");
+    await page.locator('[data-hud-region="bottomDock.settlement"]').evaluate((node) => node.click());
+    await expect(page.locator(".telegram-app")).toHaveAttribute("data-active-tab", "settlement");
+    const slotRegionId = "settlementConstructionSlot.southwest-terrace";
+    const slotBox = page.locator(`[data-hud-region-box="${slotRegionId}"]`);
+    await expect(slotBox).toBeVisible({ timeout: 30000 });
+    await slotBox.click({ force: true });
+    const inspector = page.locator('[data-testid="hud-editor-inspector"]');
+    await expect(inspector).toContainText(slotRegionId);
+    await inspector.getByRole("spinbutton", { name: "x", exact: true }).fill("784");
+    await inspector.getByRole("spinbutton", { name: "y", exact: true }).fill("1412");
+    await page.getByRole("button", { name: "Export game" }).click();
+    const exportedText = await page.locator(".hud-editor-json-panel textarea").first().inputValue();
+    const exported = JSON.parse(exportedText);
+    const moved = exported.games.settlement.profiles["phone-landscape"].regions[slotRegionId];
+    expect(moved.x).toBe(784);
+    expect(moved.y).toBe(1412);
+  });
+
   test("switches semantic profile with orientation and keeps 320px layout inside viewport", async ({ page }) => {
     await page.setViewportSize({ width: 568, height: 320 });
     await boot(page, "/?hudEditor=1");
