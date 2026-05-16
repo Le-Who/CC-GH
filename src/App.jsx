@@ -37,6 +37,10 @@ import { Stat, formatCount } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
 import { useEscapeDismiss } from "./app/useDismissableLayer.js";
 import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
+import { HudEditableRegion, HudLayoutProvider, HudPreviewSurface, HudRegion } from "./app/hud-layout/index.js";
+import { HudEditorOverlay } from "./app/hud-editor/index.js";
+import "./app/hud-layout/hud-layout.css";
+import "./app/hud-editor/hud-editor.css";
 
 const TAB_ICONS = { garden: Leaf, blox: Blocks, match3: Gem, merge: PackageOpen, bubbo: Sparkles, trivia: Bot, room: Home, settlement: Home };
 const STAT_ICONS = { gold: Sparkles, energy: Zap, tokens: PackageOpen, score: Trophy, lines: Blocks, reward: Sparkles, moves: Gem, combo: Sparkles, essence: Sparkles, freeTaps: Zap, fuel: PackageOpen, shots: Sparkles, pressure: Timer, streak: Zap, time: Timer };
@@ -327,106 +331,113 @@ export default function App() {
 
   return (
     <AppI18nContext.Provider value={i18nValue}>
-      <main
-        className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}
-        data-ui-theme={uiTheme}
-        data-active-tab={activeTab}
-      >
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">{t("app.eyebrow")}</p>
-            <h1>{t("app.title")}</h1>
-          </div>
-          <div className="topbar-actions">
-            <button
-              type="button"
-              className="profile-avatar-button"
-              aria-label={t("app.player")}
-              title={profileName}
-              onClick={() => setProfileOpen(true)}
-            >
-              {profileInitial}
-            </button>
-            <ThemeToggle theme={uiTheme} onToggle={toggleUiTheme} />
-            {activeTab !== "garden" && <AudioToggle />}
-            <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
-              {status}
-            </button>
-          </div>
-        </header>
-        {profileOpen && (
-          <section
-            className="profile-popover"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("app.player")}
+      <HudLayoutProvider gameId={activeTab} buildId={config?.buildId || ""}>
+        <HudPreviewSurface>
+          <main
+            className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}
+            data-ui-theme={uiTheme}
+            data-active-tab={activeTab}
           >
-            <button type="button" className="profile-popover-scrim" aria-label={t("common.close")} onClick={closeProfile} />
-            <div className="profile-popover-card">
-              <button type="button" className="profile-popover-close" aria-label={t("common.close")} onClick={closeProfile}>
-                <X size={18} />
-              </button>
-              <div className="profile-popover-avatar">{profileInitial}</div>
-              <div className="profile-popover-copy">
-                <strong>{profileName}</strong>
-                <span>{profileRuntime}</span>
+            <HudRegion id="appTopbar" as="header" className="topbar">
+              <div>
+                <p className="eyebrow">{t("app.eyebrow")}</p>
+                <h1>{t("app.title")}</h1>
               </div>
-              <div className="profile-popover-stats">
-                <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
-                <span>{t("common.energy")}<b>{energy.current ?? 0}/{energy.max ?? 0}</b></span>
-                <span>{t("common.tokens")}<b>{resources.gachaTokens || 0}</b></span>
+              <div className="topbar-actions">
+                <button
+                  type="button"
+                  className="profile-avatar-button"
+                  aria-label={t("app.player")}
+                  title={profileName}
+                  onClick={() => setProfileOpen(true)}
+                >
+                  {profileInitial}
+                </button>
+                <ThemeToggle theme={uiTheme} onToggle={toggleUiTheme} />
+                {activeTab !== "garden" && <AudioToggle />}
+                <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
+                  {status}
+                </button>
               </div>
-            </div>
-          </section>
-        )}
-        <section className="stats-row">
-          {stats.map((item) => (
-            <Stat
-              key={item.label}
-              icon={item.icon}
-              image={item.image}
-              label={item.label}
-              value={item.value}
-              progress={item.progress}
-              onClick={item.onClick}
-              active={item.active}
-              title={item.title}
-              id={item.id}
-              dataGardenXp={item.dataGardenXp}
-            />
-          ))}
-        </section>
-        <GameEventOverlay hidden={shellActive} />
-        {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
-        {!snapshot ? (
-          <div className="loading-panel">{t("app.loading")}</div>
-        ) : (
-          <section key={activeTab} className="active-game-frame">
-            <ActiveGame activeTab={activeTab} />
-          </section>
-        )}
-        <nav className="bottom-tabs">
-          {TABS.map(({ id, labelKey, icon: Icon }) => (
-            <button
-              type="button"
-              key={id}
-              className={activeTab === id ? "active" : ""}
-              onClick={() => {
-                startTransition(() => setActiveTab(id));
-                haptic("light");
-                audioManager.play("tap");
-              }}
-              onFocus={() => preloadGameTab(id)}
-              onPointerDown={() => preloadGameTab(id)}
-              onPointerEnter={() => preloadGameTab(id)}
-            >
-              {activeTab === id && <span className="nav-pill" aria-hidden="true" />}
-              <Icon size={19} />
-              <span>{t(labelKey)}</span>
-            </button>
-          ))}
-        </nav>
-      </main>
+            </HudRegion>
+            {profileOpen && (
+              <section
+                className="profile-popover"
+                role="dialog"
+                aria-modal="true"
+                aria-label={t("app.player")}
+              >
+                <button type="button" className="profile-popover-scrim" aria-label={t("common.close")} onClick={closeProfile} />
+                <div className="profile-popover-card">
+                  <button type="button" className="profile-popover-close" aria-label={t("common.close")} onClick={closeProfile}>
+                    <X size={18} />
+                  </button>
+                  <div className="profile-popover-avatar">{profileInitial}</div>
+                  <div className="profile-popover-copy">
+                    <strong>{profileName}</strong>
+                    <span>{profileRuntime}</span>
+                  </div>
+                  <div className="profile-popover-stats">
+                    <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
+                    <span>{t("common.energy")}<b>{energy.current ?? 0}/{energy.max ?? 0}</b></span>
+                    <span>{t("common.tokens")}<b>{resources.gachaTokens || 0}</b></span>
+                  </div>
+                </div>
+              </section>
+            )}
+            <HudEditableRegion id="globalStats" as="section" className="stats-row">
+              {stats.map((item) => (
+                <Stat
+                  key={item.label}
+                  icon={item.icon}
+                  image={item.image}
+                  label={item.label}
+                  value={item.value}
+                  progress={item.progress}
+                  onClick={item.onClick}
+                  active={item.active}
+                  title={item.title}
+                  id={item.id}
+                  dataGardenXp={item.dataGardenXp}
+                />
+              ))}
+            </HudEditableRegion>
+            <GameEventOverlay hidden={shellActive} />
+            {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
+            {!snapshot ? (
+              <div className="loading-panel">{t("app.loading")}</div>
+            ) : (
+              <HudRegion id="activeGameFrame" as="section" key={activeTab} className="active-game-frame">
+                <ActiveGame activeTab={activeTab} />
+              </HudRegion>
+            )}
+            <HudEditableRegion id="bottomDock" as="nav" className="bottom-tabs">
+              {TABS.map(({ id, labelKey, icon: Icon }) => (
+                <HudEditableRegion
+                  id={`bottomDock.${id}`}
+                  as="button"
+                  type="button"
+                  key={id}
+                  className={activeTab === id ? "active" : ""}
+                  onClick={() => {
+                    startTransition(() => setActiveTab(id));
+                    haptic("light");
+                    audioManager.play("tap");
+                  }}
+                  onFocus={() => preloadGameTab(id)}
+                  onPointerDown={() => preloadGameTab(id)}
+                  onPointerEnter={() => preloadGameTab(id)}
+                >
+                  {activeTab === id && <span className="nav-pill" aria-hidden="true" />}
+                  <Icon size={19} />
+                  <span>{t(labelKey)}</span>
+                </HudEditableRegion>
+              ))}
+            </HudEditableRegion>
+          </main>
+        </HudPreviewSurface>
+        <HudEditorOverlay />
+      </HudLayoutProvider>
     </AppI18nContext.Provider>
   );
 }

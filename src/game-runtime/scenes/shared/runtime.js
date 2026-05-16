@@ -228,29 +228,31 @@ function offsetTopWithin(container, element) {
 function reserveFromShellChrome(app, selector, fallback = 0) {
   const shell = shellElement(app);
   const chrome = shell?.querySelector?.(selector);
+  const layoutReserve = Number(app.canvas?.parentElement?.dataset?.hudReserveTop) || 0;
   const canvasRect = app.canvas?.getBoundingClientRect?.();
   const chromeRect = chrome?.getBoundingClientRect?.();
-  if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
+  if (!canvasRect || !chromeRect || chromeRect.height <= 0) return Math.max(fallback, layoutReserve);
   const canvasTop = offsetTopWithin(shell, app.canvas);
   const chromeTop = offsetTopWithin(shell, chrome);
   const reserve = canvasTop != null && chromeTop != null
     ? chromeTop + chrome.offsetHeight - canvasTop + 8
     : chromeRect.bottom - canvasRect.top + 8;
-  return Math.max(fallback, Math.ceil(reserve));
+  return Math.max(fallback, layoutReserve, Math.ceil(reserve));
 }
 
 function reserveBottomFromShellChrome(app, selector, fallback = 0) {
   const shell = shellElement(app);
   const chrome = shell?.querySelector?.(selector);
+  const layoutReserve = Number(app.canvas?.parentElement?.dataset?.hudReserveBottom) || 0;
   const canvasRect = app.canvas?.getBoundingClientRect?.();
   const chromeRect = chrome?.getBoundingClientRect?.();
-  if (!canvasRect || !chromeRect || chromeRect.height <= 0) return fallback;
+  if (!canvasRect || !chromeRect || chromeRect.height <= 0) return Math.max(fallback, layoutReserve);
   const canvasTop = offsetTopWithin(shell, app.canvas);
   const chromeTop = offsetTopWithin(shell, chrome);
   const reserve = canvasTop != null && chromeTop != null
     ? canvasTop + app.canvas.offsetHeight - chromeTop + 8
     : canvasRect.bottom - chromeRect.top + 8;
-  return Math.max(fallback, Math.ceil(reserve));
+  return Math.max(fallback, layoutReserve, Math.ceil(reserve));
 }
 
 function publishCanvasLayout(app, name, layout) {
@@ -260,6 +262,55 @@ function publishCanvasLayout(app, name, layout) {
   dataset[`${prefix}BoardTop`] = String(Math.round(layout.top * 100) / 100);
   dataset[`${prefix}BoardLeft`] = String(Math.round(layout.left * 100) / 100);
   dataset[`${prefix}BoardSize`] = String(Math.round(layout.size * 100) / 100);
+}
+
+function roundedRectForDataset(rectangle = {}) {
+  return {
+    left: Math.round((Number(rectangle.left) || 0) * 100) / 100,
+    top: Math.round((Number(rectangle.top) || 0) * 100) / 100,
+    width: Math.round(Math.max(1, Number(rectangle.width) || 1) * 100) / 100,
+    height: Math.round(Math.max(1, Number(rectangle.height) || 1) * 100) / 100,
+  };
+}
+
+function publishCanvasAssetLayout(app, regionId, rectangle) {
+  const dataset = app.canvas?.dataset;
+  if (!dataset || !regionId || !rectangle) return;
+  let layouts;
+  try {
+    layouts = dataset.hudAssetLayouts ? JSON.parse(dataset.hudAssetLayouts) : {};
+  } catch {
+    layouts = null;
+  }
+  if (!layouts || typeof layouts !== "object" || Array.isArray(layouts)) layouts = {};
+  layouts[regionId] = roundedRectForDataset(rectangle);
+  dataset.hudAssetLayouts = JSON.stringify(layouts);
+}
+
+function hudAssetRegion(data, regionId) {
+  return data?.hudLayout?.regions?.[regionId] || null;
+}
+
+function numberOr(value, fallback) {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : fallback;
+}
+
+function applyHudAssetRegion(item, data, regionId) {
+  const region = hudAssetRegion(data, regionId);
+  if (!item || !region) return item;
+  if (region.visible === false) {
+    item.visible = false;
+    return item;
+  }
+  item.x += numberOr(region.x, 0);
+  item.y += numberOr(region.y, 0);
+  const scale = Math.max(0.2, Math.min(4, numberOr(region.scale, 1)));
+  item.scale.x *= scale;
+  item.scale.y *= scale;
+  item.alpha *= Math.max(0, Math.min(1, numberOr(region.opacity, 1)));
+  item.rotation += (numberOr(region.rotation, 0) * Math.PI) / 180;
+  return item;
 }
 
 function currentUiTheme() {
@@ -683,7 +734,7 @@ export {
   BOARD_SIZE, DROP_ICONS, GEM_ICONS, MATCH3_TIMING, match3StepStartFrame, GRID, canPlaceBloxPiece, resolveAssetUrl,
   GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
   FARM_SOIL, PANEL, PANEL_2, FIELD, TEXT, MUTED, MINT, AMBER, CORAL, SKY, BUBBO_NUMBERS, BUBBO_BACKGROUND_THEMES,
-  viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
+  viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, publishCanvasAssetLayout, applyHudAssetRegion, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
   spriteFit, coverSprite, BLOX_ASSET_KEYS, BLOX_TILE_ASSET_BY_COLOR, BLOX_PIECE_ASSET_BY_ID, FARM_CROP_SLUGS, FARM_ASSET_KEYS,
   bloxBoardFrameLayout,
   bloxAnchorCellFromDrag, bloxDragVisualPoint, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,

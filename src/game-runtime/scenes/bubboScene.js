@@ -26,6 +26,8 @@ import {
   drawBubboBackground,
   makeRipple,
   setupStage,
+  publishCanvasAssetLayout,
+  applyHudAssetRegion,
   tickParticles,
 } from './shared/runtime.js';
 
@@ -90,6 +92,7 @@ export function buildBubboScene(app, initial = {}) {
       waveIndex: Number(state.waveIndex) || 0,
       statusText: state.statusText || "",
       bottomHudReserve: !!state.bottomHudReserve,
+      bottomReservePx: Number(next?.hudReserves?.bottom || next?.layoutSafeArea?.bottom || 0),
     });
   }
 
@@ -97,7 +100,8 @@ export function buildBubboScene(app, initial = {}) {
     const width = viewWidth(app);
     const height = viewHeight(app);
     const margin = 8;
-    const bottomReserve = data.bubbo?.bottomHudReserve ? Math.max(112, Math.min(154, height * 0.19)) : 0;
+    const layoutReserve = Number(data.hudReserves?.bottom || data.layoutSafeArea?.bottom || 0);
+    const bottomReserve = layoutReserve || (data.bubbo?.bottomHudReserve ? Math.max(112, Math.min(154, height * 0.19)) : 0);
     const playHeight = Math.max(260, height - bottomReserve);
     const cell = Math.max(28, Math.min((width - margin * 2) / (BUBBO_COLS + 0.08), (playHeight - 48) / (BUBBO_ROWS + 0.72)));
     const boardWidth = cell * (BUBBO_COLS + 0.5);
@@ -466,9 +470,17 @@ export function buildBubboScene(app, initial = {}) {
     }
 
     const cannonColor = state.current || BUBBO_COLORS[0];
-    root.addChild(sprite(gameAsset(BUBBO_ASSET_KEYS.bottomTray), layout.cannonX, Math.min(layout.playHeight - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45), Math.min(viewWidth(app) * 1.05, layout.cell * 7.5), layout.cell * 2.05, 0.54));
+    const trayWidth = Math.min(viewWidth(app) * 1.05, layout.cell * 7.5);
+    const trayHeight = layout.cell * 2.05;
+    const trayY = Math.min(layout.playHeight - layout.cell * 0.24, layout.cannonY + layout.cell * 0.45);
+    publishCanvasAssetLayout(app, "bubboBottomTrayAsset", { left: layout.cannonX - trayWidth / 2, top: trayY - trayHeight / 2, width: trayWidth, height: trayHeight });
+    const bottomTray = sprite(gameAsset(BUBBO_ASSET_KEYS.bottomTray), layout.cannonX, trayY, trayWidth, trayHeight, 0.54);
+    root.addChild(applyHudAssetRegion(bottomTray, data, "bubboBottomTrayAsset"));
     root.addChild(new Graphics().roundRect(layout.cannonX - 24, layout.cannonY - 8, 48, 54, 20).fill({ color: background.cannonPanel, alpha: 0.95 }).stroke({ color: SKY, width: 2, alpha: 0.38 }));
-    root.addChild(sprite(gameAsset(BUBBO_ASSET_KEYS.cannonMain), layout.cannonX, layout.cannonY + 14, layout.radius * 2.45, layout.radius * 2.45, 0.92));
+    const cannonSize = layout.radius * 2.45;
+    publishCanvasAssetLayout(app, "bubboCannonAsset", { left: layout.cannonX - cannonSize / 2, top: layout.cannonY + 14 - cannonSize / 2, width: cannonSize, height: cannonSize });
+    const cannon = sprite(gameAsset(BUBBO_ASSET_KEYS.cannonMain), layout.cannonX, layout.cannonY + 14, cannonSize, cannonSize, 0.92);
+    root.addChild(applyHudAssetRegion(cannon, data, "bubboCannonAsset"));
     root.addChild(drawBubble(layout.cannonX, layout.cannonY, layout.radius * 0.9, cannonColor));
     root.addChild(drawBubble(layout.cannonX + layout.radius * 1.65, layout.cannonY + layout.radius * 0.25, layout.radius * 0.52, state.next || BUBBO_COLORS[1], 0.86));
     if (!state.bottomHudReserve) {

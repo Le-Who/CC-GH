@@ -36,6 +36,22 @@
     linear-gradient(180deg, rgba(16, 22, 42, 0.38), rgba(16, 22, 42, 0.62)),
     url("/games/trivia/background-quiz-room.png") center / cover no-repeat;
   border-radius: 8px;
+  position: relative;
+}
+
+.trivia-background-asset {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: url("/games/trivia/background-quiz-room.png") center / cover no-repeat;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.trivia-shell > :not(.trivia-background-asset) {
+  position: relative;
+  z-index: 1;
 }
 
 .trivia-shell[data-trivia-view="solo"],
@@ -157,9 +173,28 @@
 }
 
 .question-panel {
+  position: relative;
   padding: 12px;
   display: grid;
   gap: 10px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.trivia-question-surface-asset {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 209, 102, 0.1), rgba(115, 211, 255, 0.06)),
+    #0d1222;
+  pointer-events: none;
+}
+
+.question-panel > :not(.trivia-question-surface-asset) {
+  position: relative;
+  z-index: 1;
 }
 
 .question-panel h2 {

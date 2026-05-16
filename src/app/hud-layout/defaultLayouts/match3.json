@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "layoutVersion": "initial",
+  "gameId": "match3",
+  "base": {
+    "regions": {
+      "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 48, "reserve": 56, "alignment": "center", "zIndex": 20, "visible": true },
+      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
+      "activeGameFrame": { "mode": "custom", "visible": true },
+      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
+      "gameShell": { "mode": "custom", "visible": true },
+      "gameplayHud": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": 8, "maxWidth": 520, "zIndex": 40, "visible": true },
+      "pauseOverlay": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 390, "zIndex": 45, "visible": true },
+      "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 84, "bottomReserve": 56, "leftReserve": 0, "rightReserve": 0 }
+    }
+  },
+  "profiles": {
+    "phone-small-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "regions": {
+        "gameplayHud": { "maxWidth": 308, "y": 6 },
+        "pixiPlayfieldReserve": { "topReserve": 92, "bottomReserve": 54 }
+      }
+    },
+    "phone-default-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "regions": {
+        "gameplayHud": { "maxWidth": 374, "y": 7 },
+        "pixiPlayfieldReserve": { "topReserve": 88, "bottomReserve": 54 }
+      }
+    },
+    "phone-landscape": {
+      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "regions": {
+        "gameplayHud": { "anchor": "top-left", "x": 10, "y": 8, "maxWidth": 310 },
+        "pixiPlayfieldReserve": { "topReserve": 48, "bottomReserve": 44, "leftReserve": 0, "rightReserve": 0 }
+      }
+    },
+    "tablet-portrait": {
+      "match": { "orientation": "portrait", "minWidth": 600 },
+      "regions": {
+        "gameplayHud": { "maxWidth": 560 },
+        "pixiPlayfieldReserve": { "topReserve": 90, "bottomReserve": 58 }
+      }
+    },
+    "tablet-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "regions": {
+        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 52 }
+      }
+    },
+    "desktop-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "regions": {
+        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 52 }
+      }
+    }
+  },
+  "editor": {
+    "notes": "Gem Crush keeps its Pixi board measured but the top HUD reserve is layout-owned."
+  }
+}

@@ -4,6 +4,7 @@ import { audioManager } from "../services/audioManager.js";
 import { useAppI18n } from "./i18n.jsx";
 import { useGameEvents } from "../game-state/gameEvents.js";
 import { useEscapeDismiss } from "./useDismissableLayer.js";
+import { HudEditableRegion, HudRegion } from "./hud-layout/index.js";
 
 export function formatCount(value) {
   if (value == null) return "0";
@@ -86,7 +87,10 @@ export function GameEventLog({ gameId = null, limit = 2, className = "" }) {
   ), [events, gameId, limit]);
 
   return (
-    <div
+    <HudEditableRegion
+      id="eventLog"
+      as="div"
+      applyLayout={false}
       className={`game-play-event-log${className ? ` ${className}` : ""}`}
       aria-live="polite"
       aria-atomic="false"
@@ -98,14 +102,16 @@ export function GameEventLog({ gameId = null, limit = 2, className = "" }) {
           {event.value && <strong>{event.value}</strong>}
         </p>
       ))}
-    </div>
+    </HudEditableRegion>
   );
 }
 
 export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, finishLabel = null, extraActions = null, className = "", gameId = null }) {
   const { t } = useAppI18n();
   return (
-    <div
+    <HudEditableRegion
+      id="gameplayHud"
+      as="div"
       className={`game-play-hud${gameId ? " has-event-log" : ""}${className ? ` ${className}` : ""}`.trim()}
     >
       <div className="game-play-title">
@@ -125,7 +131,7 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
         <PanelButton icon={Pause} subtle onClick={onPause}>{t("common.pause")}</PanelButton>
         {onFinish && <PanelButton icon={Check} onClick={onFinish}>{finishLabel || t("common.settle")}</PanelButton>}
       </div>
-    </div>
+    </HudEditableRegion>
   );
 }
 
@@ -146,7 +152,9 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
   }, [gameId, phase]);
 
   return (
-    <div
+    <HudRegion
+      id="gameShell"
+      as="div"
       className={`game-layout game-shell shell-${phase} shell-skin-${skin}${className ? ` ${className}` : ""}`}
       data-game-shell={gameId}
       style={style}
@@ -162,7 +170,9 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
         />
       )}
       {phase !== "playing" && (
-        <aside
+        <HudEditableRegion
+          id="pauseOverlay"
+          as="aside"
           key={`${gameId}-${phase}`}
           ref={overlayRef}
           className={`side-panel game-menu-overlay ${overlayClassName}`}
@@ -173,9 +183,9 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
           tabIndex={-1}
         >
           {overlay}
-        </aside>
+        </HudEditableRegion>
       )}
-    </div>
+    </HudRegion>
   );
 }
 

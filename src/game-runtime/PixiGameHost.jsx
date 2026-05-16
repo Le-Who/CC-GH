@@ -1,8 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Application } from "pixi.js";
 import { useAppI18n } from "../app/i18n.jsx";
+import { HudEditableRegion, useHudLayout, useHudRegion } from "../app/hud-layout/index.js";
 import { setGameGestureActive } from "../platform/telegram.js";
 import { warmPixiAssetBundle } from "./pixiAssetBundles.js";
+
+const PIXI_ASSET_REGION_IDS = {
+  blox: ["bloxBackgroundAsset", "bloxBoardFrameAsset", "bloxTrayPanelAsset"],
+  match3: ["match3BackgroundAsset", "match3BoardFrameAsset"],
+  merge: ["mergeTableAsset", "mergeBoardFrameAsset"],
+  bubbo: ["bubboBottomTrayAsset", "bubboCannonAsset"],
+};
 
 function destroyPixiApp(app) {
   if (!app) return;
@@ -13,12 +21,90 @@ function destroyPixiApp(app) {
   }
 }
 
+function readPublishedAssetLayouts(host) {
+  const raw = host?.querySelector?.("canvas")?.dataset?.hudAssetLayouts || "{}";
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function PixiAssetRegionLayer({ sceneKey, hostRef }) {
+  const hudLayout = useHudLayout();
+  const regionIds = PIXI_ASSET_REGION_IDS[sceneKey] || [];
+  const [assetLayouts, setAssetLayouts] = useState({});
+
+  useEffect(() => {
+    if (!hudLayout.editorEnabled || regionIds.length === 0) {
+      setAssetLayouts({});
+      return undefined;
+    }
+    let lastSignature = "";
+    const sync = () => {
+      const host = hostRef.current;
+      const raw = host?.querySelector?.("canvas")?.dataset?.hudAssetLayouts || "{}";
+      if (raw === lastSignature) return;
+      lastSignature = raw;
+      setAssetLayouts(readPublishedAssetLayouts(host));
+    };
+    sync();
+    const interval = window.setInterval(sync, 180);
+    window.addEventListener("resize", sync);
+    window.visualViewport?.addEventListener?.("resize", sync);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("resize", sync);
+      window.visualViewport?.removeEventListener?.("resize", sync);
+    };
+  }, [hostRef, hudLayout.editorEnabled, regionIds.length, sceneKey]);
+
+  if (!hudLayout.editorEnabled || regionIds.length === 0) return null;
+  return (
+    <div className="pixi-hud-asset-layer" aria-hidden="true">
+      {regionIds.map((regionId) => {
+        const rect = assetLayouts[regionId];
+        if (!rect) return null;
+        return (
+          <HudEditableRegion
+            key={regionId}
+            id={regionId}
+            as="div"
+            className="pixi-hud-asset-region"
+            style={{
+              left: `${rect.left}px`,
+              top: `${rect.top}px`,
+              width: `${rect.width}px`,
+              height: `${rect.height}px`,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export default function PixiGameHost({ sceneKey, buildScene, sceneState, className = "" }) {
   const { t } = useAppI18n();
   const containerRef = useRef(null);
+  const hudLayout = useHudLayout();
+  const pixiReserveRegion = useHudRegion("pixiPlayfieldReserve", { ref: containerRef });
+  const layoutSafeArea = hudLayout.pixiSafeArea || { top: 0, bottom: 0, left: 0, right: 0 };
+  const reserveSignature = `${layoutSafeArea.top}:${layoutSafeArea.bottom}:${layoutSafeArea.left}:${layoutSafeArea.right}`;
+  const effectiveSceneState = useMemo(() => ({
+    ...(sceneState || {}),
+    hudLayout: hudLayout.resolvedLayout,
+    layoutSafeArea,
+    hudReserves: layoutSafeArea,
+    topReserve: layoutSafeArea.top,
+    bottomReserve: layoutSafeArea.bottom,
+    leftReserve: layoutSafeArea.left,
+    rightReserve: layoutSafeArea.right,
+  }), [hudLayout.resolvedLayout, layoutSafeArea, sceneState]);
   const appRef = useRef(null);
   const sceneRef = useRef(null);
-  const stateRef = useRef(sceneState);
+  const stateRef = useRef(effectiveSceneState);
   const updateFrameRef = useRef(0);
   const activePointerRef = useRef(null);
   const captureTargetRef = useRef(null);
@@ -157,7 +243,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
   }, [sceneKey, buildScene]);
 
   useEffect(() => {
-    stateRef.current = sceneState;
+    stateRef.current = effectiveSceneState;
     if (!sceneRef.current) return undefined;
     window.cancelAnimationFrame(updateFrameRef.current);
     updateFrameRef.current = window.requestAnimationFrame(() => {
@@ -168,19 +254,40 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       window.cancelAnimationFrame(updateFrameRef.current);
       updateFrameRef.current = 0;
     };
-  }, [sceneState]);
+  }, [effectiveSceneState]);
+
+  useEffect(() => {
+    if (!sceneRef.current) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      if (typeof sceneRef.current?.resize === "function") sceneRef.current.resize(stateRef.current);
+      else sceneRef.current?.update?.(stateRef.current);
+      appRef.current?.render?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [reserveSignature]);
 
   return (
     <div
-      ref={containerRef}
+      ref={pixiReserveRegion.ref}
       className={`pixi-host ${className}`}
       data-no-nav-swipe="true"
+      data-hud-reserve-top={layoutSafeArea.top}
+      data-hud-reserve-bottom={layoutSafeArea.bottom}
+      data-hud-reserve-left={layoutSafeArea.left}
+      data-hud-reserve-right={layoutSafeArea.right}
+      style={{
+        "--hud-safe-top": `${layoutSafeArea.top}px`,
+        "--hud-safe-bottom": `${layoutSafeArea.bottom}px`,
+        "--hud-safe-left": `${layoutSafeArea.left}px`,
+        "--hud-safe-right": `${layoutSafeArea.right}px`,
+      }}
       onPointerDown={beginGesture}
       onPointerUp={endGesture}
       onPointerCancel={endGesture}
       onLostPointerCapture={endGesture}
     >
       {failed && <div className="pixi-fallback">{t("app.rendererUnavailable")}</div>}
+      <PixiAssetRegionLayer sceneKey={sceneKey} hostRef={containerRef} />
     </div>
   );
 }

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "layoutVersion": "initial",
+  "gameId": "trivia",
+  "base": {
+    "regions": {
+      "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 56, "reserve": 64, "alignment": "center", "zIndex": 20, "visible": true },
+      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
+      "activeGameFrame": { "mode": "custom", "visible": true },
+      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
+      "triviaShell": { "mode": "custom", "visible": true },
+      "triviaQuestionPanel": { "mode": "flow", "direction": "vertical", "gap": 10, "maxWidth": 620, "zIndex": 20, "visible": true },
+      "triviaPausePanel": { "mode": "anchored", "anchor": "center-right", "x": -10, "y": 0, "maxWidth": 340, "zIndex": 30, "visible": true },
+      "gameplayHud": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": 8, "maxWidth": 560, "zIndex": 40, "visible": true }
+    }
+  },
+  "profiles": {
+    "phone-small-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "regions": {
+        "triviaQuestionPanel": { "maxWidth": 304, "gap": 8 },
+        "triviaPausePanel": { "anchor": "bottom-center", "x": 0, "y": -8, "maxWidth": 304 },
+        "gameplayHud": { "maxWidth": 304 }
+      }
+    },
+    "phone-default-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "regions": {
+        "triviaQuestionPanel": { "maxWidth": 380 },
+        "triviaPausePanel": { "anchor": "bottom-center", "x": 0, "y": -10, "maxWidth": 360 },
+        "gameplayHud": { "maxWidth": 360 }
+      }
+    },
+    "phone-landscape": {
+      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "regions": {
+        "triviaQuestionPanel": { "maxWidth": 460 },
+        "triviaPausePanel": { "anchor": "center-right", "x": -8, "y": 0, "maxWidth": 300 },
+        "gameplayHud": { "anchor": "top-left", "x": 8, "y": 8, "maxWidth": 320 }
+      }
+    },
+    "tablet-portrait": {
+      "match": { "orientation": "portrait", "minWidth": 600 },
+      "regions": {
+        "triviaQuestionPanel": { "maxWidth": 620 },
+        "triviaPausePanel": { "maxWidth": 360 }
+      }
+    },
+    "tablet-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "regions": {
+        "triviaQuestionPanel": { "maxWidth": 640 },
+        "triviaPausePanel": { "maxWidth": 340 }
+      }
+    },
+    "desktop-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "regions": {
+        "triviaQuestionPanel": { "maxWidth": 700 },
+        "triviaPausePanel": { "maxWidth": 360 }
+      }
+    }
+  },
+  "editor": {
+    "notes": "Trivia is React/DOM-first and uses flow/custom regions rather than Pixi reserves."
+  }
+}

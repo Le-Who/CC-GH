@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronRight, Home, Play, RotateCcw, Trophy } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
+import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
 import { GamePlayHud, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
@@ -158,11 +159,14 @@ export default function TriviaGame() {
   }
 
   return (
-    <div
+    <HudRegion
+      id="triviaShell"
+      as="div"
       className={`trivia-shell${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}
       data-trivia-view={view}
       data-trivia-playing={isPlaying ? "true" : undefined}
     >
+      <HudEditableRegion id="triviaBackgroundAsset" as="div" className="trivia-background-asset" aria-hidden="true" />
       <aside className="trivia-card">
         <div className="panel-header">
           <div>
@@ -239,7 +243,7 @@ export default function TriviaGame() {
           </div>
         )}
       </aside>
-      <aside className={`side-panel${inShell ? " game-menu-overlay trivia-pause-overlay" : ""}`}>
+      <HudEditableRegion id="triviaPausePanel" as="aside" className={`side-panel${inShell ? " game-menu-overlay trivia-pause-overlay" : ""}`}>
         {inShell && (
           <div className="panel-header pause-panel-header">
             <div>
@@ -303,8 +307,8 @@ export default function TriviaGame() {
             </div>
           </>
         )}
-      </aside>
-    </div>
+      </HudEditableRegion>
+    </HudRegion>
   );
 }
 
@@ -312,7 +316,8 @@ function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing }
   const { t } = useAppI18n();
   const remainingSeconds = Math.ceil((timing?.remainingMs || 0) / 1000);
   return (
-    <div className={`question-panel${reveal ? " revealing" : ""}`}>
+    <HudEditableRegion id="triviaQuestionPanel" as="div" className={`question-panel${reveal ? " revealing" : ""}`}>
+      <HudEditableRegion id="triviaQuestionSurfaceAsset" as="div" className="trivia-question-surface-asset" aria-hidden="true" />
       <div className="question-meta">
         <span>{t("trivia.question", { current: (question.index ?? 0) + 1, total: question.total || "?" })}</span>
         <span>{t("common.score")} {score}</span>
@@ -344,6 +349,6 @@ function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing }
           {reveal.points > 0 && <b>+{reveal.points}</b>}
         </div>
       )}
-    </div>
+    </HudEditableRegion>
   );
 }

@@ -17,6 +17,7 @@ import {
   reserveFromShellChrome,
   reserveBottomFromShellChrome,
   publishCanvasLayout,
+  publishCanvasAssetLayout,
   clear,
   label,
   rect,
@@ -31,6 +32,7 @@ import {
   makeRipple,
   makeRafScheduler,
   setupStage,
+  applyHudAssetRegion,
   tickParticles,
 } from './shared/runtime.js';
 import { loadRuntimeAssetManifest } from '../assetBundles.js';
@@ -160,11 +162,13 @@ export function buildMergeScene(app, initial = {}) {
     const stageWidth = viewWidth(app);
     const stageHeight = viewHeight(app);
     const tableAsset = mergeSceneAsset("background", "table");
+    publishCanvasAssetLayout(app, "mergeTableAsset", { left: 0, top: 0, width: stageWidth, height: stageHeight });
     if (tableAsset) {
       const stageAspect = stageWidth / stageHeight;
       const drawWidth = stageAspect > MERGE_TABLE_ART_ASPECT ? stageWidth : stageHeight * MERGE_TABLE_ART_ASPECT;
       const drawHeight = stageAspect > MERGE_TABLE_ART_ASPECT ? stageWidth / MERGE_TABLE_ART_ASPECT : stageHeight;
-      root.addChild(sprite(tableAsset, stageWidth / 2, stageHeight / 2, drawWidth, drawHeight, 1));
+      const table = sprite(tableAsset, stageWidth / 2, stageHeight / 2, drawWidth, drawHeight, 1);
+      root.addChild(applyHudAssetRegion(table, data, "mergeTableAsset"));
       return;
     }
     root.addChild(
@@ -472,9 +476,10 @@ export function buildMergeScene(app, initial = {}) {
         app.canvas.dataset.mergeBoardFrameWidth = String(Math.round(frameWidth * 100) / 100);
         app.canvas.dataset.mergeBoardFrameHeight = String(Math.round(frameHeight * 100) / 100);
       }
+      publishCanvasAssetLayout(app, "mergeBoardFrameAsset", { left: left + width / 2 - frameWidth / 2, top: top + height / 2 - frameHeight / 2, width: frameWidth, height: frameHeight });
       const frame = sprite(boardFrameAsset, left + width / 2, top + height / 2, frameHeight, frameWidth, 1);
       frame.rotation = Math.PI / 2;
-      root.addChild(frame);
+      root.addChild(applyHudAssetRegion(frame, data, "mergeBoardFrameAsset"));
     } else {
       root.addChild(
         new Graphics()

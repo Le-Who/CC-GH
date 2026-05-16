@@ -1,0 +1,106 @@
+.hud-region {
+  --hud-region-x: 0px;
+  --hud-region-y: 0px;
+  --hud-region-z: auto;
+  --hud-region-max-width: none;
+  --hud-region-width: auto;
+  --hud-region-height: auto;
+  --hud-region-scale: 1;
+  --hud-region-rotation: 0deg;
+  --hud-dock-offset: 0px;
+  --hud-dock-thickness: auto;
+  max-width: var(--hud-region-max-width, none);
+}
+
+.hud-region[data-hud-mode="anchored"],
+.hud-region[data-hud-mode="freeform"],
+.hud-region[data-hud-mode="flow"],
+.hud-region[data-hud-mode="stack"],
+.hud-region[data-hud-mode="custom"] {
+  translate: var(--hud-region-x, 0px) var(--hud-region-y, 0px);
+  rotate: var(--hud-region-rotation, 0deg);
+  scale: var(--hud-region-scale, 1);
+}
+
+.hud-region[data-hud-mode="dock"] {
+  z-index: var(--hud-region-z, auto);
+}
+
+.game-play-hud.hud-region {
+  z-index: var(--hud-region-z, 4);
+  left: 50%;
+  right: auto;
+  width: min(calc(100% - 16px), var(--hud-region-max-width, 520px));
+  max-width: var(--hud-region-max-width, 520px);
+  top: max(6px, var(--safe-top));
+  transform: translateX(-50%);
+}
+
+.game-play-hud-bottom.hud-region {
+  top: auto;
+  bottom: max(6px, calc(var(--safe-bottom) + 8px));
+}
+
+.bottom-tabs.hud-region {
+  z-index: var(--hud-region-z, 5);
+  max-width: var(--hud-region-max-width, 1180px);
+  min-height: var(--hud-dock-thickness, 64px);
+  bottom: calc(10px + var(--safe-bottom) + var(--hud-dock-offset, 0px));
+}
+
+.active-game-frame.hud-region,
+.stats-row.hud-region,
+.topbar.hud-region {
+  z-index: var(--hud-region-z, auto);
+}
+
+.pixi-host {
+  --hud-safe-top: 0px;
+  --hud-safe-bottom: 0px;
+  --hud-safe-left: 0px;
+  --hud-safe-right: 0px;
+  position: relative;
+}
+
+.pixi-hud-asset-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.pixi-hud-asset-region {
+  position: absolute;
+  border-radius: 8px;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.hud-preview-stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 18px 390px 18px 18px;
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.08) 1px, transparent 1px),
+    #111827;
+  background-size: 24px 24px;
+}
+
+.hud-preview-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  background: var(--app-background);
+}
+
+.hud-preview-frame .telegram-app {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}

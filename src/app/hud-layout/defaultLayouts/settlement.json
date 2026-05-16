@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "layoutVersion": "initial",
+  "gameId": "settlement",
+  "base": {
+    "regions": {
+      "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 48, "reserve": 56, "alignment": "center", "zIndex": 20, "visible": true },
+      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
+      "activeGameFrame": { "mode": "custom", "visible": true },
+      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
+      "settlementCanvas": { "mode": "custom", "visible": true },
+      "settlementTopHud": { "mode": "dock", "edge": "top", "offset": 8, "thickness": 86, "reserve": 96, "alignment": "center", "zIndex": 40, "visible": true },
+      "settlementLeftDock": { "mode": "dock", "edge": "left", "offset": 10, "thickness": 74, "reserve": 88, "alignment": "center", "zIndex": 38, "visible": true },
+      "settlementRightPanel": { "mode": "dock", "edge": "right", "offset": 10, "thickness": 340, "reserve": 352, "alignment": "center", "zIndex": 38, "visible": true },
+      "settlementBottomNav": { "mode": "dock", "edge": "bottom", "offset": 8, "thickness": 92, "reserve": 106, "alignment": "center", "zIndex": 38, "visible": true },
+      "settlementNotices": { "mode": "stack", "direction": "vertical", "gap": 6, "x": 0, "y": 0, "zIndex": 48, "visible": true },
+      "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 96, "bottomReserve": 106, "leftReserve": 88, "rightReserve": 352 }
+    }
+  },
+  "profiles": {
+    "phone-small-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "regions": {
+        "settlementTopHud": { "thickness": 74, "reserve": 84 },
+        "settlementLeftDock": { "thickness": 0, "reserve": 0, "visible": false },
+        "settlementRightPanel": { "edge": "bottom", "thickness": 250, "reserve": 264, "maxWidth": 348 },
+        "settlementBottomNav": { "thickness": 74, "reserve": 88 },
+        "pixiPlayfieldReserve": { "topReserve": 84, "bottomReserve": 352, "leftReserve": 0, "rightReserve": 0 }
+      }
+    },
+    "phone-default-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "regions": {
+        "settlementTopHud": { "thickness": 78, "reserve": 88 },
+        "settlementLeftDock": { "thickness": 0, "reserve": 0, "visible": false },
+        "settlementRightPanel": { "edge": "bottom", "thickness": 270, "reserve": 284, "maxWidth": 398 },
+        "settlementBottomNav": { "thickness": 78, "reserve": 92 },
+        "pixiPlayfieldReserve": { "topReserve": 88, "bottomReserve": 376, "leftReserve": 0, "rightReserve": 0 }
+      }
+    },
+    "phone-landscape": {
+      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "regions": {
+        "settlementTopHud": { "thickness": 58, "reserve": 66 },
+        "settlementLeftDock": { "thickness": 58, "reserve": 66 },
+        "settlementRightPanel": { "thickness": 300, "reserve": 312 },
+        "settlementBottomNav": { "thickness": 62, "reserve": 72 },
+        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 72, "leftReserve": 66, "rightReserve": 312 }
+      }
+    },
+    "tablet-portrait": {
+      "match": { "orientation": "portrait", "minWidth": 600 },
+      "regions": {
+        "settlementRightPanel": { "thickness": 330, "reserve": 342 },
+        "pixiPlayfieldReserve": { "topReserve": 96, "bottomReserve": 106, "leftReserve": 74, "rightReserve": 342 }
+      }
+    },
+    "tablet-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "regions": {
+        "settlementRightPanel": { "thickness": 340, "reserve": 352 },
+        "pixiPlayfieldReserve": { "topReserve": 88, "bottomReserve": 96, "leftReserve": 80, "rightReserve": 352 }
+      }
+    },
+    "desktop-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "regions": {
+        "settlementRightPanel": { "thickness": 360, "reserve": 372 },
+        "pixiPlayfieldReserve": { "topReserve": 88, "bottomReserve": 96, "leftReserve": 84, "rightReserve": 372 }
+      }
+    }
+  },
+  "editor": {
+    "notes": "Settlement participates through custom adapters for its Pixi canvas and major HUD/panel surfaces. It is intentionally not rewritten into GameShell/PixiScene."
+  }
+}

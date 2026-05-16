@@ -12,6 +12,7 @@ import {
 import { audioManager } from "../../services/audioManager.js";
 import { listPositive } from "../../game-state/inventory.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
+import { HudEditableRegion } from "../../app/hud-layout/index.js";
 import { GameShell, PanelButton, PauseBrief } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
@@ -431,7 +432,9 @@ export default function MergeGame() {
         : t("merge.exchange.title");
     const drawerAsset = activePanel === "exchange" ? uiAssets.exchangePanel : uiAssets.libraryPanel;
     return (
-      <aside
+      <HudEditableRegion
+        id="mergeSceneDrawer"
+        as="aside"
         className={`merge-scene-drawer ${activePanel === "exchange" ? "merge-exchange-panel" : "merge-library-panel"}`}
         data-no-nav-swipe="true"
         aria-label={title}
@@ -455,7 +458,7 @@ export default function MergeGame() {
         {activePanel === "recipes" && renderRecipeBook()}
         {activePanel === "items" && renderItemBook()}
         {activePanel === "exchange" && renderExchangePanel()}
-      </aside>
+      </HudEditableRegion>
     );
   };
 
@@ -469,7 +472,7 @@ export default function MergeGame() {
       style={mergePauseArt ? { "--merge-pause-art": cssUrl(mergePauseArt) } : undefined}
       hud={(
         <>
-          <div className="merge-scene-hud" data-no-nav-swipe="true" style={uiAssets.hudBar ? { "--merge-hud-art": cssUrl(uiAssets.hudBar) } : undefined}>
+          <HudEditableRegion id="mergeSceneHud" as="div" className="merge-scene-hud" data-no-nav-swipe="true" style={uiAssets.hudBar ? { "--merge-hud-art": cssUrl(uiAssets.hudBar) } : undefined}>
             <button
               type="button"
               className="merge-hud-essence"
@@ -510,9 +513,11 @@ export default function MergeGame() {
                 onClick={pauseMerge}
               />
             </div>
-          </div>
+          </HudEditableRegion>
           {renderScenePanel()}
-          <div
+          <HudEditableRegion
+            id="mergeActionDock"
+            as="div"
             className="merge-action-area"
             data-no-nav-swipe="true"
           >
@@ -535,7 +540,9 @@ export default function MergeGame() {
                 <MergeAssetIcon asset={uiAssets.actionIconTrash} icon={Trash2} />
                 <span>{trashMode ? t("merge.trashActiveShort") : t("merge.trashShort")}</span>
               </button>
-              <button
+              <HudEditableRegion
+                id="mergeActionGenerateAsset"
+                as="button"
                 type="button"
                 className={`merge-dock-generate${canTapGenerator ? " ready" : ""}`}
                 data-merge-action="generate"
@@ -551,7 +558,7 @@ export default function MergeGame() {
                 {generatorBadge && <b>{generatorBadge}</b>}
                 <span className="merge-dock-generate-label">{t("merge.generate")}</span>
                 <small>{generatorStatus}</small>
-              </button>
+              </HudEditableRegion>
               <button
                 type="button"
                 className="merge-dock-side merge-dock-gacha"
@@ -582,7 +589,7 @@ export default function MergeGame() {
               <MergeAssetIcon asset="" icon={Sparkles} />
               <span>{dailyDockLabel}</span>
             </button>
-          </div>
+          </HudEditableRegion>
         </>
       )}
       overlay={(

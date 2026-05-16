@@ -18,6 +18,7 @@ import { resolveGardenAssetPaths } from './lib/sprites';
 import type { GardenAssetPaths } from './lib/sprites';
 import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
 import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
+import { HudEditableRegion, HudRegion } from '../../app/hud-layout/index.js';
 import { formatGardenGoldAmount } from './constants';
 import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
@@ -69,11 +70,13 @@ function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
   };
 
   return (
-    <div className="absolute top-[-18px] left-1/2 z-[110] w-[min(72%,310px)] -translate-x-1/2">
+    <HudEditableRegion id="gardenSign" as="div" className="absolute top-[-18px] left-1/2 z-[110] w-[min(72%,310px)] -translate-x-1/2">
       <div className="absolute left-[22%] top-0 h-[36px] w-1 rounded-full bg-gradient-to-b from-[#2a1a0b] to-[#3e2712]" />
       <div className="absolute right-[22%] top-0 h-[36px] w-1 rounded-full bg-gradient-to-b from-[#2a1a0b] to-[#3e2712]" />
       <div className="relative mt-5" style={{ aspectRatio: '370 / 139' }}>
-        <img
+        <HudEditableRegion
+          id="gardenSignAsset"
+          as="img"
           src={assetPaths.sign}
           alt=""
           draggable={false}
@@ -112,7 +115,7 @@ function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
           </div>
         )}
       </div>
-    </div>
+    </HudEditableRegion>
   );
 }
 
@@ -480,7 +483,7 @@ function GameContent() {
   }, []);
 
   return (
-    <div className={cn("garden-root mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg", mobileLiteDecor && "garden-root--mobile-lite")} style={runtimeArtStyle}>
+    <HudRegion id="gardenRoot" as="div" className={cn("garden-root mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg", mobileLiteDecor && "garden-root--mobile-lite")} style={runtimeArtStyle}>
       {/* Background Atmosphere */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#ffeebb10,transparent_70%)]"></div>
@@ -505,14 +508,15 @@ function GameContent() {
             src={assetPaths.bottomPlank}
             alt=""
             draggable={false}
+            data-hud-region="gardenBottomPlank"
             className="absolute -bottom-[12px] left-1/2 h-[clamp(52px,13vw,72px)] w-[calc(100%+24px)] max-w-none -translate-x-1/2 object-fill drop-shadow-[0_12px_16px_rgba(0,0,0,0.65)]"
           />
         </div>
 
         {/* We need the Garden to scroll inside but z-index it correctly behind the dome reflections */}
-        <div className="flex-1 overflow-hidden relative z-10 rounded-[140px_140px_0_0]">
+        <HudRegion id="gardenShelf" as="div" className="flex-1 overflow-hidden relative z-10 rounded-[140px_140px_0_0]" applyLayout={false}>
           <Garden assetPaths={assetPaths} onSelectSpot={(shelfIndex, spotIndex, plantId) => setSelectedSpot({ shelfIndex, spotIndex, plantId })} />
-        </div>
+        </HudRegion>
       </div>
       
       <AnimatePresence>
@@ -520,7 +524,7 @@ function GameContent() {
           <BottomPanel assetPaths={assetPaths} spot={selectedSpot} onClose={() => setSelectedSpot(null)} />
         )}
       </AnimatePresence>
-    </div>
+    </HudRegion>
   );
 }
 

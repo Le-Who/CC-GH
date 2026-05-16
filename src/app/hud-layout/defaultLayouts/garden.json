@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "layoutVersion": "initial",
+  "gameId": "garden",
+  "base": {
+    "regions": {
+      "appTopbar": { "mode": "custom", "x": 0, "y": 0, "zIndex": 20, "visible": true },
+      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "x": 0, "y": 0, "zIndex": 20, "visible": true },
+      "activeGameFrame": { "mode": "custom", "visible": true },
+      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 0, "thickness": 84, "reserve": 104, "zIndex": 50, "visible": true },
+      "gardenRoot": { "mode": "custom", "visible": true },
+      "gardenSign": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": -18, "maxWidth": 310, "zIndex": 110, "visible": true },
+      "gardenShelf": { "mode": "custom", "visible": true },
+      "gardenBottomPlank": { "mode": "reserveOnly", "topReserve": 0, "bottomReserve": 74, "leftReserve": 0, "rightReserve": 0 }
+    }
+  },
+  "profiles": {
+    "phone-small-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "regions": {
+        "globalStats": { "gap": 4 },
+        "bottomDock": { "thickness": 112, "reserve": 126 },
+        "gardenSign": { "y": -14, "maxWidth": 260 },
+        "gardenBottomPlank": { "bottomReserve": 68 }
+      }
+    },
+    "phone-default-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "regions": {
+        "bottomDock": { "thickness": 104, "reserve": 118 },
+        "gardenSign": { "y": -16, "maxWidth": 300 },
+        "gardenBottomPlank": { "bottomReserve": 72 }
+      }
+    },
+    "phone-tall-portrait": {
+      "match": { "orientation": "portrait", "maxWidth": 430, "minHeight": 880 },
+      "regions": {
+        "gardenSign": { "y": -18, "maxWidth": 310 },
+        "gardenBottomPlank": { "bottomReserve": 76 }
+      }
+    },
+    "phone-landscape": {
+      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "regions": {
+        "appTopbar": { "y": -4 },
+        "globalStats": { "y": -4 },
+        "bottomDock": { "thickness": 58, "reserve": 70 },
+        "gardenSign": { "y": -20, "maxWidth": 250 },
+        "gardenBottomPlank": { "bottomReserve": 54 }
+      }
+    },
+    "tablet-portrait": {
+      "match": { "orientation": "portrait", "minWidth": 600 },
+      "regions": {
+        "gardenSign": { "maxWidth": 340 },
+        "bottomDock": { "reserve": 96 }
+      }
+    },
+    "tablet-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "regions": {
+        "gardenSign": { "maxWidth": 320 },
+        "bottomDock": { "reserve": 86 }
+      }
+    },
+    "desktop-landscape": {
+      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "regions": {
+        "bottomDock": { "reserve": 84 },
+        "gardenSign": { "maxWidth": 340 }
+      }
+    }
+  },
+  "editor": {
+    "notes": "Garden Shelf keeps its own idle-game composition; the contract registers the major root/sign/shelf/bottom-plank regions without replacing Garden internals."
+  }
+}

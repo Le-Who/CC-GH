@@ -1,0 +1,400 @@
+.hud-editor-root {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  color: #eff6ff;
+  font-family: Nunito, Varela Round, system-ui, sans-serif;
+}
+
+.hud-editor-root button,
+.hud-editor-root input,
+.hud-editor-root select,
+.hud-editor-root textarea {
+  font: inherit;
+}
+
+.hud-editor-toolbar,
+.hud-editor-inspector,
+.hud-editor-restore,
+.hud-editor-message {
+  pointer-events: auto;
+}
+
+.hud-editor-toolbar {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top, 0px));
+  left: 8px;
+  right: 376px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+.hud-editor-restore {
+  position: fixed;
+  right: max(8px, env(safe-area-inset-right, 0px));
+  top: max(8px, env(safe-area-inset-top, 0px));
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: rgba(15, 23, 42, 0.94);
+  color: #eff6ff;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 1000;
+}
+
+.hud-editor-toolbar-meta,
+.hud-editor-toolbar-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hud-editor-toolbar-meta strong,
+.hud-editor-toolbar-meta span {
+  min-height: 28px;
+  display: inline-grid;
+  align-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 8px;
+  padding: 3px 8px;
+  background: rgba(30, 41, 59, 0.9);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.hud-editor-button,
+.hud-editor-primary,
+.hud-editor-inspector-header button {
+  min-height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  background: rgba(30, 41, 59, 0.92);
+  color: #eff6ff;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.hud-editor-button.active {
+  border-color: rgba(96, 165, 250, 0.72);
+  background: rgba(37, 99, 235, 0.72);
+}
+
+.hud-editor-button:disabled,
+.hud-editor-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hud-editor-field {
+  display: grid;
+  gap: 3px;
+  min-width: 92px;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.hud-editor-field.compact {
+  min-width: 160px;
+}
+
+.hud-editor-field.tiny {
+  min-width: 72px;
+}
+
+.hud-editor-field.wide {
+  min-width: 0;
+}
+
+.hud-editor-field input,
+.hud-editor-field select,
+.hud-editor-field textarea {
+  min-height: 36px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: rgba(2, 6, 23, 0.86);
+  color: #eff6ff;
+}
+
+.hud-editor-field textarea {
+  height: 112px;
+  resize: vertical;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.68rem;
+}
+
+.hud-editor-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hud-editor-inspector {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  width: min(360px, calc(100vw - 16px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.94);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.4);
+}
+
+.hud-editor-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hud-editor-inspector-header strong,
+.hud-editor-inspector-header span {
+  display: block;
+}
+
+.hud-editor-inspector-header span,
+.hud-editor-note,
+.hud-editor-region-meta dd {
+  color: #cbd5e1;
+  font-size: 0.74rem;
+}
+
+.hud-editor-region-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.hud-editor-region-meta div {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  padding: 7px;
+  background: rgba(30, 41, 59, 0.62);
+}
+
+.hud-editor-region-meta dt,
+.hud-editor-region-meta dd {
+  margin: 0;
+}
+
+.hud-editor-region-meta dt {
+  color: #93c5fd;
+  font-size: 0.62rem;
+  font-weight: 1000;
+  text-transform: uppercase;
+}
+
+.hud-editor-warnings {
+  display: grid;
+  gap: 5px;
+}
+
+.hud-editor-warnings span {
+  border: 1px solid rgba(251, 191, 36, 0.36);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: rgba(120, 53, 15, 0.58);
+  color: #fde68a;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.hud-editor-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hud-editor-toggle {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #eff6ff;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.hud-editor-toggle input {
+  width: 20px;
+  height: 20px;
+}
+
+.hud-editor-json-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.hud-editor-guides,
+.hud-editor-region-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hud-editor-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(59, 130, 246, 0.22) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(59, 130, 246, 0.22) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.hud-editor-safe {
+  position: absolute;
+  background: rgba(251, 191, 36, 0.18);
+}
+
+.hud-editor-safe.top {
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.hud-editor-safe.bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.hud-editor-safe.left {
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.hud-editor-safe.right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.hud-editor-pixi-reserve {
+  position: absolute;
+  border: 2px dashed rgba(34, 197, 94, 0.72);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.hud-editor-thumb-zone {
+  position: absolute;
+  bottom: 0;
+  width: min(42vw, 240px);
+  height: min(46vh, 360px);
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.hud-editor-thumb-zone.left {
+  left: 0;
+  border-top-right-radius: 100%;
+}
+
+.hud-editor-thumb-zone.right {
+  right: 0;
+  border-top-left-radius: 100%;
+}
+
+.hud-editor-region-box {
+  position: fixed;
+  z-index: 2147483001;
+  border: 2px solid rgba(96, 165, 250, 0.84);
+  border-radius: 8px;
+  display: block;
+  padding: 0;
+  background: rgba(37, 99, 235, 0.08);
+  color: #eff6ff;
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.hud-editor-region-box.draggable {
+  cursor: move;
+}
+
+.hud-editor-region-box.selected {
+  border-color: rgba(250, 204, 21, 0.95);
+  background: rgba(250, 204, 21, 0.12);
+  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.14);
+}
+
+.hud-editor-region-box span {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  max-width: min(220px, 80vw);
+  overflow: hidden;
+  border-radius: 7px 7px 0 0;
+  padding: 3px 6px;
+  background: rgba(15, 23, 42, 0.92);
+  color: #eff6ff;
+  font-size: 0.68rem;
+  font-weight: 1000;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud-editor-message {
+  position: fixed;
+  left: 8px;
+  bottom: 8px;
+  max-width: min(520px, calc(100vw - 384px));
+  border: 1px solid rgba(148, 163, 184, 0.36);
+  border-radius: 8px;
+  padding: 9px 11px;
+  background: rgba(15, 23, 42, 0.94);
+  color: #eff6ff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 760px) {
+  .hud-editor-toolbar {
+    right: 8px;
+    max-height: 34vh;
+    overflow: auto;
+  }
+
+  .hud-editor-inspector {
+    top: auto;
+    left: 8px;
+    width: auto;
+    max-height: 44vh;
+  }
+
+  .hud-editor-message {
+    max-width: calc(100vw - 16px);
+  }
+}

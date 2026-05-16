@@ -20,6 +20,8 @@ import {
   fitWithTopReserve,
   reserveFromShellChrome,
   centeredPieceOrigin,
+  publishCanvasAssetLayout,
+  applyHudAssetRegion,
   makeSparkles,
   makeRipple,
   makeRafScheduler,
@@ -277,9 +279,13 @@ export function buildBloxScene(app, initial = {}) {
     const { size, cell, left, top, frame } = layout;
     const stageWidth = viewWidth(app);
     const stageHeight = viewHeight(app);
-    root.addChild(coverSprite(gameAsset(BLOX_ASSET_KEYS.background), stageWidth / 2, stageHeight / 2, stageWidth, stageHeight, 1024 / 1536, 0.92));
+    publishCanvasAssetLayout(app, "bloxBackgroundAsset", { left: 0, top: 0, width: stageWidth, height: stageHeight });
+    const background = coverSprite(gameAsset(BLOX_ASSET_KEYS.background), stageWidth / 2, stageHeight / 2, stageWidth, stageHeight, 1024 / 1536, 0.92);
+    root.addChild(applyHudAssetRegion(background, data, "bloxBackgroundAsset"));
     root.addChild(rect(frame.left - 8, frame.top - 8, frame.width + 16, frame.height + 16, PANEL, 14, 0.14));
-    root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.boardFrame), frame.left + frame.width / 2, frame.top + frame.height / 2, frame.width, frame.height, 0.98));
+    publishCanvasAssetLayout(app, "bloxBoardFrameAsset", frame);
+    const boardFrame = spriteFit(gameAsset(BLOX_ASSET_KEYS.boardFrame), frame.left + frame.width / 2, frame.top + frame.height / 2, frame.width, frame.height, 0.98);
+    root.addChild(applyHudAssetRegion(boardFrame, data, "bloxBoardFrameAsset"));
 
     for (let r = 0; r < GRID; r++) {
       for (let c = 0; c < GRID; c++) {
@@ -315,7 +321,9 @@ export function buildBloxScene(app, initial = {}) {
       app.canvas.dataset.bloxTrayTop = String(Math.round(trayTop * 100) / 100);
       app.canvas.dataset.bloxTraySlotWidth = String(Math.round(slotW * 100) / 100);
     }
-    root.addChild(spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, trayWidth + 18, 74, 0.76));
+    publishCanvasAssetLayout(app, "bloxTrayPanelAsset", { left: (viewWidth(app) - trayWidth - 18) / 2, top: trayTop - 7, width: trayWidth + 18, height: 74 });
+    const trayPanel = spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, trayWidth + 18, 74, 0.76);
+    root.addChild(applyHudAssetRegion(trayPanel, data, "bloxTrayPanelAsset"));
     const traySignature = tray.map((item) => `${item?.piece?.id || "empty"}:${item?.placed ? 1 : 0}`).join("|");
     const trayChanged = lastTraySignature && lastTraySignature !== traySignature;
     lastTraySignature = traySignature;

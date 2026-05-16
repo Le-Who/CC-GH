@@ -20,6 +20,7 @@ import {
   viewHeight,
   reserveFromShellChrome,
   publishCanvasLayout,
+  publishCanvasAssetLayout,
   clear,
   label,
   rect,
@@ -38,6 +39,7 @@ import {
   makeRipple,
   makeRafScheduler,
   setupStage,
+  applyHudAssetRegion,
   tickParticles,
 } from './shared/runtime.js';
 
@@ -453,14 +455,18 @@ export function buildMatch3Scene(app, initial = {}) {
     const { size, cell, left, top } = fitted;
     publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });
     root.addChild(rect(0, 0, viewWidth(app), viewHeight(app), 0x1b1424, 0));
-    root.addChild(tiledSprite(gameAsset(MATCH3_ASSET_KEYS.backgroundTable), 0, 0, viewWidth(app), viewHeight(app), 0.78));
+    publishCanvasAssetLayout(app, "match3BackgroundAsset", { left: 0, top: 0, width: viewWidth(app), height: viewHeight(app) });
+    const background = tiledSprite(gameAsset(MATCH3_ASSET_KEYS.backgroundTable), 0, 0, viewWidth(app), viewHeight(app), 0.78);
+    root.addChild(applyHudAssetRegion(background, data, "match3BackgroundAsset"));
     const frameSize = size * 1.42;
     if (app.canvas?.dataset) {
       app.canvas.dataset.match3BoardFrameSize = String(Math.round(frameSize * 100) / 100);
       app.canvas.dataset.match3BoardFrameInnerSize = String(Math.round(frameSize * 0.76 * 100) / 100);
     }
     root.addChild(rect(left - cell * 0.12, top - cell * 0.12, size + cell * 0.24, size + cell * 0.24, PANEL, 18, 0.16));
-    root.addChild(sprite(gameAsset(MATCH3_ASSET_KEYS.boardFrame), left + size / 2, top + size / 2, frameSize, frameSize, 0.99));
+    publishCanvasAssetLayout(app, "match3BoardFrameAsset", { left: left + size / 2 - frameSize / 2, top: top + size / 2 - frameSize / 2, width: frameSize, height: frameSize });
+    const boardFrame = sprite(gameAsset(MATCH3_ASSET_KEYS.boardFrame), left + size / 2, top + size / 2, frameSize, frameSize, 0.99);
+    root.addChild(applyHudAssetRegion(boardFrame, data, "match3BoardFrameAsset"));
     queueMatch3Animation(data.match3Animation);
     const renderBoard = activeAnimationBoard(actual);
     for (let y = 0; y < BOARD_SIZE; y++) {

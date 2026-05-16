@@ -11,6 +11,7 @@ import {
   Text
 } from 'pixi.js';
 import { useImmersiveGame } from '../../app/gameHooks.js';
+import { HudEditableRegion, HudRegion, useHudRegion } from '../../app/hud-layout/index.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, useSettlementStore } from './useSettlementStore.js';
@@ -642,6 +643,7 @@ function AssetIcon({ src, alt = '', className = '', size = 20 }) {
 function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, onBuildingSelect, onConfirmConstruction, onConstructionSlotSelect, devMode, onDevPointer }) {
   const [sceneRevision, setSceneRevision] = useState(0);
   const hostRef = useRef(null);
+  const canvasRegion = useHudRegion('settlementCanvas', { ref: hostRef });
   const appRef = useRef(null);
   const worldRef = useRef(null);
   const spritesRef = useRef({ buildings: new Map(), constructionSlots: new Map(), vfx: new Map() });
@@ -1494,7 +1496,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     };
   }, [activePanel, selectedBuildingId, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, sceneRevision]);
 
-  return <div ref={hostRef} className="scene-host" />;
+  return <div ref={canvasRegion.ref} className="scene-host" data-hud-region="settlementCanvas" />;
 }
 
 
@@ -1529,7 +1531,7 @@ function TopHud({ resources, population, stage }) {
   };
 
   return (
-    <header className="top-hud top-hud-final" style={frameStyle(UI_ASSETS.topbar)}>
+    <HudEditableRegion id="settlementTopHud" as="header" applyLayout={false} className="top-hud top-hud-final" style={frameStyle(UI_ASSETS.topbar)}>
       <div className="profile-card profile-card-final" style={frameStyle(UI_ASSETS.profile)}>
         <div className="profile-avatar-wrap" style={frameStyle(UI_ASSETS.profileAvatarFrame)}>
           <AssetIcon src={ICONS.shield} alt="" className="profile-avatar" size={34} />
@@ -1563,7 +1565,7 @@ function TopHud({ resources, population, stage }) {
           ))}
         </div>
       </div>
-    </header>
+    </HudEditableRegion>
   );
 }
 
@@ -1618,13 +1620,13 @@ function DockButton({
 
 function LeftDock({ activePanel, setPanel }) {
   return (
-    <aside className="left-dock" style={frameStyle(UI_ASSETS.leftDock)}>
+    <HudEditableRegion id="settlementLeftDock" as="aside" applyLayout={false} className="left-dock" style={frameStyle(UI_ASSETS.leftDock)}>
       <DockButton active={activePanel === 'goals'} icon={ICONS.quest} label="Цели" badge="3" onClick={() => setPanel('goals')} iconSize={28} hideLabel pulse />
       <DockButton active={activePanel === 'inbox'} icon={ICONS.inbox} label="Вести" badge="2" onClick={() => setPanel('inbox')} iconSize={28} hideLabel />
       <DockButton active={activePanel === 'construction'} icon={ICONS.build} label="Строить" onClick={() => setPanel('construction')} iconSize={28} hideLabel />
       <DockButton active={activePanel === 'map'} icon={ICONS.map} label="Карта" onClick={() => setPanel('map')} iconSize={28} hideLabel />
       <DockButton active={activePanel === 'rank'} icon={ICONS.rank} label="Ранг" onClick={() => setPanel('rank')} iconSize={28} hideLabel />
-    </aside>
+    </HudEditableRegion>
   );
 }
 
@@ -1634,10 +1636,12 @@ function BottomNav({ activePanel, setPanel, collect }) {
   const buildFamilyActive = activePanel === 'construction' || activePanel === 'build';
   const showGoalsSlot = activePanel === 'goals';
   return (
-    <nav className="bottom-nav" style={frameStyle(UI_ASSETS.bottomFrame)}>
+    <HudEditableRegion id="settlementBottomNav" as="nav" applyLayout={false} className="bottom-nav" style={frameStyle(UI_ASSETS.bottomFrame)}>
       <DockButton active={activePanel === 'store'} icon={ICONS.store} label="Магазин" onClick={() => setPanel('store')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
       <DockButton active={activePanel === 'inventory'} icon={ICONS.inventory} label="Инвентарь" onClick={() => setPanel('inventory')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
-      <button
+      <HudEditableRegion
+        id="settlementPrimaryBuildAsset"
+        as="button"
         className={`primary-build tooltip-control ${buildFamilyActive ? 'active' : ''}`}
         onClick={() => setPanel('construction')}
         style={frameStyle(buildFamilyActive ? UI_ASSETS.primaryBuildButtonActive : UI_ASSETS.primaryBuildButton)}
@@ -1647,18 +1651,18 @@ function BottomNav({ activePanel, setPanel, collect }) {
         type="button"
       >
         <AssetIcon src={ICONS.buildLarge} alt="" size={34} />
-      </button>
+      </HudEditableRegion>
       <DockButton active={activePanel === 'research'} icon={ICONS.research} label="Исследования" shortLabel="Наука" onClick={() => setPanel('research')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
       <DockButton active={activePanel === 'world'} icon={ICONS.world} label="Карта мира" shortLabel="Карта" onClick={() => setPanel('world')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel frameOverride={activePanel === 'world' ? UI_ASSETS.bottomWorldButtonActive : UI_ASSETS.bottomWorldButton} />
       {showGoalsSlot ? (
         <DockButton active icon={ICONS.rank} label="Цели" onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
       ) : (
-        <button className="collect-button tooltip-control" onClick={collect} title="Собрать" aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
+        <HudEditableRegion id="settlementCollectAsset" as="button" className="collect-button tooltip-control" onClick={collect} title="Собрать" aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
           <AssetIcon src={ICONS.starterPack} alt="" size={24} />
           <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>4</b>
-        </button>
+        </HudEditableRegion>
       )}
-    </nav>
+    </HudEditableRegion>
   );
 }
 
@@ -2811,7 +2815,7 @@ function SidePanel() {
   if (!rightPanelOpen) return null;
 
   return (
-    <section className={`right-panel right-panel-fancy ${isOverview ? 'right-panel-overview' : ''} ${isBuilding ? 'right-panel-building' : ''} ${isGoals ? 'right-panel-goals' : ''} ${isInventory ? 'right-panel-inventory' : ''} ${isCouncil ? 'right-panel-council' : ''} ${isResearchTree ? 'right-panel-research-tree' : ''} ${isConstruction ? 'right-panel-construction' : ''} ${isWorldMap ? 'right-panel-world-map' : ''}`.trim()} style={frameStyle(sidePanelFrame)}>
+    <HudEditableRegion id="settlementRightPanel" as="section" applyLayout={false} className={`right-panel right-panel-fancy ${isOverview ? 'right-panel-overview' : ''} ${isBuilding ? 'right-panel-building' : ''} ${isGoals ? 'right-panel-goals' : ''} ${isInventory ? 'right-panel-inventory' : ''} ${isCouncil ? 'right-panel-council' : ''} ${isResearchTree ? 'right-panel-research-tree' : ''} ${isConstruction ? 'right-panel-construction' : ''} ${isWorldMap ? 'right-panel-world-map' : ''}`.trim()} style={frameStyle(sidePanelFrame)}>
       <div className="panel-header fancy-panel-header">
         {isBuilding ? (
           <div className="building-header-icon" style={frameStyle(UI_ASSETS.buildingHeaderIconSlot)}>
@@ -2910,7 +2914,7 @@ function SidePanel() {
           </div>
         </div>
       </div> : null}
-    </section>
+    </HudEditableRegion>
   );
 }
 
@@ -2935,7 +2939,7 @@ function NoticeStack() {
   const popForNotice = (notice) => notice.type === 'collect' ? VFX_ASSETS.goldPop : notice.type === 'warn' ? VFX_ASSETS.foodPop : VFX_ASSETS.levelupRays;
 
   return (
-    <div className="notices notices-v2" aria-live="polite">
+    <HudRegion id="settlementNotices" as="div" applyLayout={false} className="notices notices-v2" aria-live="polite">
       {visibleNotices.map((notice, index) => (
         <button
           key={notice.id}
@@ -2951,7 +2955,7 @@ function NoticeStack() {
           {(notice.count ?? 1) > 1 ? <b className="notice-count">×{notice.count}</b> : null}
         </button>
       ))}
-    </div>
+    </HudRegion>
   );
 }
 
@@ -3113,7 +3117,7 @@ export default function SettlementGame() {
   }, [tick]);
 
   return (
-    <div className="settlement-game-root" data-no-nav-swipe="true" data-active-panel={activePanel} data-selected-building={selectedBuildingId} data-selected-construction={selectedConstructionId ?? ''} data-right-panel-open={rightPanelOpen ? 'true' : 'false'}>
+    <HudRegion id="gameShell" as="div" applyLayout={false} className="settlement-game-root" data-no-nav-swipe="true" data-active-panel={activePanel} data-selected-building={selectedBuildingId} data-selected-construction={selectedConstructionId ?? ''} data-right-panel-open={rightPanelOpen ? 'true' : 'false'}>
       <main className="settlement-game-shell">
         <SceneCanvas
           selectedBuildingId={selectedBuildingId}
@@ -3139,6 +3143,6 @@ export default function SettlementGame() {
           {showDevTools ? <DevToolsOverlay enabled={devMode} setEnabled={setDevMode} info={devInfo} /> : null}
         </div>
       </main>
-    </div>
+    </HudRegion>
   );
 }
