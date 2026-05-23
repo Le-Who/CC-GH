@@ -33,7 +33,7 @@
     "phone-landscape": {
       "match": { "orientation": "landscape", "maxHeight": 480 },
       "regions": {
-        "gameplayHud": { "anchor": "bottom-right", "x": -10, "y": -8, "maxWidth": 360 },
+        "gameplayHud": { "anchor": "bottom-right", "x": -10, "y": -92, "maxWidth": 360 },
         "pixiPlayfieldReserve": { "topReserve": 10, "bottomReserve": 102 }
       }
     },

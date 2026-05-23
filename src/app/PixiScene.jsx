@@ -32,7 +32,7 @@ export class GameLoadBoundary extends React.Component {
           <div className="loading-panel game-load-error">
             <strong>{t("app.gameLoadErrorTitle")}</strong>
             <span>{t("app.gameLoadErrorBody")}</span>
-            <div className="button-row">
+            <div className="button-row two">
               <PanelButton icon={RotateCcw} onClick={() => this.setState({ failed: false })}>{t("common.retry")}</PanelButton>
               <PanelButton icon={Zap} subtle onClick={() => window.location.reload()}>{t("common.refresh")}</PanelButton>
             </div>

@@ -752,9 +752,9 @@
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button {
   position: absolute;
-  left: 36%;
+  left: 20%;
   top: 85.8%;
-  width: 28% !important;
+  width: 60% !important;
   height: 9.4%;
   min-height: 44px;
   pointer-events: auto;
