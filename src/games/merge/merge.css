@@ -12,20 +12,20 @@
   width: min(356px, calc(100% - 14px));
   aspect-ratio: 2 / 3;
   max-height: min(88dvh, calc(100% - 14px));
+}
+
+.game-shell .game-menu-overlay.merge-pause-overlay .game-menu-scaler {
   display: grid;
   align-content: center;
   gap: 12px;
-  padding: clamp(72px, 11.5dvh, 98px) clamp(26px, 7vw, 40px) clamp(48px, 7.5dvh, 66px);
+  padding: 98px 40px 66px;
   border: 0;
   background: #241b20;
   color: #f8ecdc;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
   box-shadow: none;
-  overflow: hidden;
 }
 
-.game-shell .game-menu-overlay.merge-pause-overlay::before {
+.game-shell .game-menu-overlay.merge-pause-overlay .game-menu-scaler::before {
   content: "";
   position: absolute;
   inset: 0;

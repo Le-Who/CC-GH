@@ -17,7 +17,7 @@
   --shell-accent: #ffd166;
   --shell-soft: #181c30;
   --trivia-panel-art: url("/games/trivia/panel-menu.png");
-  --trivia-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
+  --trivia-dialog-art: url("/games/ui-surfaces/trivia-dialog-panel.png");
   --trivia-answer-art: url("/games/trivia/answer-default.png");
   --trivia-answer-selected-art: url("/games/trivia/answer-selected.png");
   --trivia-answer-correct-art: url("/games/trivia/answer-correct.png");
@@ -345,35 +345,41 @@
   width: min(356px, calc(100% - 14px));
   aspect-ratio: 2 / 3;
   max-height: min(88dvh, calc(100% - 14px));
+}
+
+.trivia-shell .trivia-pause-overlay .game-menu-scaler {
   display: grid;
   align-content: center;
   gap: 10px;
-  padding: clamp(78px, 12dvh, 104px) clamp(26px, 7vw, 40px) clamp(48px, 7.5dvh, 66px);
+  padding: 104px 40px 66px;
   border: 0;
   background:
     var(--trivia-dialog-art) center / 100% 100% no-repeat,
     transparent;
   color: var(--trivia-ink);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
   box-shadow: 0 22px 46px rgba(5, 8, 16, 0.48);
   overflow: hidden;
 }
 
 .game-shell .game-menu-overlay.trivia-pause-overlay {
   isolation: isolate;
+}
+
+.game-shell .game-menu-overlay.trivia-pause-overlay .game-menu-scaler {
   border: 1px solid rgba(255, 209, 102, 0.24);
   background:
     var(--trivia-dialog-art) center / 100% 100% no-repeat,
     transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
   box-shadow: 0 24px 54px rgba(3, 6, 14, 0.66);
 }
 
 .trivia-shell[data-trivia-view="results"] .trivia-pause-overlay,
 .trivia-shell[data-trivia-view="duel-results"] .trivia-pause-overlay {
   aspect-ratio: 259 / 360;
+}
+
+.trivia-shell[data-trivia-view="results"] .trivia-pause-overlay .game-menu-scaler,
+.trivia-shell[data-trivia-view="duel-results"] .trivia-pause-overlay .game-menu-scaler {
   background:
     var(--trivia-dialog-art) center / 100% 100% no-repeat,
     transparent;
@@ -484,8 +490,6 @@
 
   .trivia-shell .trivia-pause-overlay {
     width: min(308px, calc(100% - 12px));
-    padding: 70px 23px 46px;
-    overflow: hidden;
   }
 }
 

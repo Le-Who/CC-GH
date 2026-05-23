@@ -1059,7 +1059,23 @@ button.stat-chip {
   width: min(440px, calc(100% - 18px));
   max-height: min(84dvh, calc(100% - 24px));
   transform: translate(-50%, -50%);
-  overflow: auto;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  contain: paint;
+  outline: none;
+  animation: shell-fade-in 220ms ease-out both;
+}
+
+.game-menu-scaler {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 356px;
+  height: 534px;
+  border-radius: 18px;
+  transform-origin: center center;
   border: 1px solid var(--glass-border);
   border-color: var(--glass-border);
   background:
@@ -1068,10 +1084,6 @@ button.stat-chip {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: var(--glass-shadow-strong);
-  contain: paint;
-  scrollbar-width: thin;
-  outline: none;
-  animation: shell-fade-in 220ms ease-out both;
 }
 
 .game-shell.shell-paused::after,

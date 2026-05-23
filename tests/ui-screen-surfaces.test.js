@@ -195,18 +195,18 @@ test("Garden Shelf shell chrome uses garden assets without obscuring quest dialo
 
 test("mini-game menus use neutral dialog art instead of blue slot panels", async () => {
   const cssByFile = {
-    "src/games/blox/blox.css": "--blox-dialog-art",
-    "src/games/match3/match3.css": "--match3-dialog-art",
-    "src/games/bubbo/bubbo.css": "--bubbo-dialog-art",
-    "src/games/trivia/trivia.css": "--trivia-dialog-art",
+    "src/games/blox/blox.css": ["--blox-dialog-art", "blox-dialog-panel.png"],
+    "src/games/match3/match3.css": ["--match3-dialog-art", "match3-dialog-panel.png"],
+    "src/games/bubbo/bubbo.css": ["--bubbo-dialog-art", "bubbo-dialog-panel.png"],
+    "src/games/trivia/trivia.css": ["--trivia-dialog-art", "trivia-dialog-panel.png"],
   };
 
-  for (const [filePath, variableName] of Object.entries(cssByFile)) {
+  for (const [filePath, [variableName, expectedAsset]] of Object.entries(cssByFile)) {
     const css = await readFile(path.join(root, filePath), "utf8");
     assert.match(
       css,
-      new RegExp(`${escapeRegExp(variableName)}:\\s*url\\("\\/games\\/ui-surfaces\\/merge-dialog-panel\\.png"\\)`),
-      `${filePath} should use the neutral wood/gold dialog frame for menu overlays`,
+      new RegExp(`${escapeRegExp(variableName)}:\\s*url\\("\\/games\\/ui-surfaces\\/${escapeRegExp(expectedAsset)}"\\)`),
+      `${filePath} should use the ${expectedAsset} dialog frame for menu overlays`,
     );
   }
 });

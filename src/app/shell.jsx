@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Pause, Sparkles } from "lucide-react";
 import { audioManager } from "../services/audioManager.js";
 import { useAppI18n } from "./i18n.jsx";
@@ -138,6 +138,7 @@ export function GamePlayHud({ title, subtitle, stats = [], onPause, onFinish, fi
 export function GameShell({ gameId, phase, skin = "cycle", children, hud, overlay, overlayClassName = "", className = "", onDismiss = null, style = undefined }) {
   const { t } = useAppI18n();
   const overlayRef = useRef(null);
+  const [overlaySize, setOverlaySize] = useState({ width: 356, height: 534 });
   const canDismissOverlay = phase !== "playing" && typeof onDismiss === "function";
 
   useEscapeDismiss(canDismissOverlay, onDismiss);
@@ -150,6 +151,24 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
     });
     return () => window.cancelAnimationFrame(frame);
   }, [gameId, phase]);
+
+  useEffect(() => {
+    if (!overlayRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+          setOverlaySize({
+            width: entry.contentRect.width,
+            height: entry.contentRect.height
+          });
+        }
+      }
+    });
+    observer.observe(overlayRef.current);
+    return () => observer.disconnect();
+  }, [phase]);
+
+  const scale = Math.min(overlaySize.width / 356, overlaySize.height / 534);
 
   return (
     <HudRegion
@@ -182,7 +201,9 @@ export function GameShell({ gameId, phase, skin = "cycle", children, hud, overla
           data-menu-phase={phase}
           tabIndex={-1}
         >
-          {overlay}
+          <div className="game-menu-scaler" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
+            {overlay}
+          </div>
         </HudEditableRegion>
       )}
     </HudRegion>

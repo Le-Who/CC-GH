@@ -10,7 +10,7 @@
   --match3-table-art: none;
   --match3-hud-art: none;
   --match3-menu-panel-art: none;
-  --match3-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
+  --match3-dialog-art: url("/games/ui-surfaces/match3-dialog-panel.png");
   --match3-surface-art: url("/games/ui-surfaces/match3-panel.png");
   background:
     linear-gradient(90deg, rgba(113, 199, 161, 0.08), transparent 32%, rgba(198, 92, 118, 0.08)),
@@ -118,30 +118,33 @@
   width: min(356px, calc(100% - 14px));
   aspect-ratio: 2 / 3;
   max-height: min(88dvh, calc(100% - 14px));
+}
+
+.match3-menu-overlay .game-menu-scaler {
   display: grid;
   align-content: start;
-  gap: clamp(6px, 1.2dvh, 9px);
-  padding: clamp(78px, 12dvh, 100px) clamp(28px, 7vw, 42px) clamp(54px, 8dvh, 74px);
+  gap: 9px;
+  padding: 100px 42px 74px;
   box-sizing: border-box;
-  overflow: hidden;
   border: 0;
   background: transparent;
   box-shadow: none;
   color: var(--match3-ink);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
 }
 
 .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
   width: min(356px, calc(100% - 14px));
   aspect-ratio: 2 / 3;
   max-height: min(88dvh, calc(100% - 14px));
-  align-content: center;
-  gap: 10px;
-  padding: clamp(82px, 13dvh, 106px) clamp(28px, 7vw, 42px) clamp(54px, 8dvh, 74px);
 }
 
-.match3-menu-overlay::before {
+.match3-menu-overlay.match3-pause-compact .game-menu-scaler {
+  align-content: center;
+  gap: 10px;
+  padding: 106px 42px 74px;
+}
+
+.match3-menu-overlay .game-menu-scaler::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -151,7 +154,7 @@
   filter: drop-shadow(0 18px 36px rgba(18, 9, 8, 0.46));
 }
 
-.match3-menu-overlay::after {
+.match3-menu-overlay .game-menu-scaler::after {
   content: "";
   display: none;
   position: absolute;
@@ -358,14 +361,11 @@
 @media (max-width: 430px) {
   .game-shell .game-menu-overlay.match3-menu-overlay {
     width: min(308px, calc(100% - 12px));
-    padding: 70px 23px 48px;
-    overflow: hidden;
   }
 
   .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
     width: min(308px, calc(100% - 12px));
     aspect-ratio: 2 / 3;
-    padding: 70px 23px 48px;
     max-height: min(88dvh, calc(100% - 12px));
   }
 
@@ -451,11 +451,6 @@
 }
 
 @media (max-width: 430px) {
-  .game-shell .game-menu-overlay.match3-menu-overlay {
-    align-content: center;
-    padding: 78px 24px 58px;
-  }
-
   .match3-menu-overlay .panel-header {
     min-height: 42px;
   }
@@ -475,7 +470,7 @@
   }
 }
 
-.game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) {
+.game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .game-menu-scaler {
   display: block;
   overflow: hidden;
   padding: 0;

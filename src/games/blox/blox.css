@@ -4,7 +4,7 @@
   --shell-art: url("/games/blox/background.png");
   --shell-accent: #76d9ff;
   --shell-soft: #121c2a;
-  --blox-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
+  --blox-dialog-art: url("/games/ui-surfaces/blox-dialog-panel.png");
   --blox-surface-art: url("/games/ui-surfaces/blox-panel.png");
   --blox-ink: #f6fbff;
   --blox-muted: rgba(220, 237, 255, 0.74);
@@ -107,26 +107,25 @@
   width: min(356px, calc(100% - 14px));
   aspect-ratio: 2 / 3;
   max-height: min(88dvh, calc(100% - 14px));
+}
+
+.blox-menu-overlay .game-menu-scaler {
   display: grid;
   align-content: center;
-  gap: clamp(6px, 1.4dvh, 10px);
-  padding: clamp(64px, 10.5dvh, 92px) clamp(26px, 7vw, 40px) clamp(48px, 8dvh, 66px);
+  gap: 10px;
+  padding: 92px 40px 66px;
   border: 0;
   background: transparent;
   box-shadow: none;
   color: var(--blox-ink);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
 }
 
-.game-shell .game-menu-overlay.blox-menu-overlay[data-menu-phase="menu"] {
-  width: min(356px, calc(100% - 14px));
-  aspect-ratio: 2 / 3;
+.blox-menu-overlay[data-menu-phase="menu"] .game-menu-scaler {
   align-content: center;
-  padding: clamp(64px, 10.5dvh, 92px) clamp(26px, 7vw, 40px) clamp(48px, 8dvh, 66px);
+  padding: 92px 40px 66px;
 }
 
-.blox-menu-overlay::before {
+.blox-menu-overlay .game-menu-scaler::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -136,7 +135,7 @@
   filter: drop-shadow(0 22px 42px rgba(2, 6, 14, 0.46));
 }
 
-.blox-menu-overlay[data-menu-phase="menu"]::before {
+.blox-menu-overlay[data-menu-phase="menu"] .game-menu-scaler::before {
   background: var(--blox-dialog-art) center / 100% 100% no-repeat;
 }
 
@@ -208,7 +207,7 @@
   color: #ffd8c6;
 }
 
-.game-shell .blox-menu-overlay[data-menu-phase="menu"] {
+.game-shell .blox-menu-overlay[data-menu-phase="menu"] .game-menu-scaler {
   display: block;
   overflow: hidden;
   padding: 0;
@@ -401,14 +400,10 @@
   .game-shell .game-menu-overlay.blox-menu-overlay {
     width: min(308px, calc(100% - 12px));
     max-height: min(88dvh, calc(100% - 12px));
-    padding: 58px 22px 46px;
-    gap: 6px;
-    overflow: hidden;
   }
 
   .game-shell .game-menu-overlay.blox-menu-overlay[data-menu-phase="menu"] {
     width: min(308px, calc(100% - 12px));
-    padding: 58px 22px 46px;
   }
 
   .blox-menu-overlay .panel-header {
@@ -461,7 +456,7 @@
 }
 
 @media (max-width: 420px) {
-  .game-shell .game-menu-overlay.blox-menu-overlay[data-menu-phase="menu"] {
+  .game-shell .game-menu-overlay.blox-menu-overlay[data-menu-phase="menu"] .game-menu-scaler {
     align-content: center;
     padding: 76px 28px 62px;
   }
@@ -484,7 +479,7 @@
   }
 }
 
-.game-shell .blox-menu-overlay[data-menu-phase="menu"] {
+.game-shell .blox-menu-overlay[data-menu-phase="menu"] .game-menu-scaler {
   display: block;
   align-content: initial;
   overflow: hidden;
@@ -579,10 +574,7 @@
   text-shadow: 0 2px 0 rgba(42, 19, 10, 0.48);
 }
 
-.telegram-app.play-mode .game-shell .game-menu-overlay.blox-menu-overlay {
-  width: min(336px, calc(100% - 12px));
-  aspect-ratio: 2 / 3;
-  max-height: min(88dvh, calc(100% - 12px));
+.telegram-app.play-mode .game-shell .game-menu-overlay.blox-menu-overlay .game-menu-scaler {
   display: block;
   overflow: hidden;
   padding: 0;
