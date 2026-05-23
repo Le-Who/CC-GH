@@ -57,7 +57,7 @@
   margin-inline: auto;
   color: #3b2418 !important;
   background:
-    url("/games/ui-surfaces/garden-dialog-panel.png") center / 100% 100% no-repeat,
+    url("/games/ui-surfaces/garden-dialog-panel.png") center / 132% 100% no-repeat,
     #f2c985 !important;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -949,7 +949,7 @@
   width: min(380px, calc(100% - 20px)) !important;
   aspect-ratio: 2 / 3;
   max-height: min(84dvh, calc(100% - 22px)) !important;
-  padding: 78px 64px 42px !important;
+  padding: 78px 64px 98px !important;
   scrollbar-width: thin;
 }
 
@@ -1086,7 +1086,7 @@
     width: min(304px, calc(100% - 18px)) !important;
     height: min(398px, calc(100dvh - 94px)) !important;
     max-height: min(398px, calc(100dvh - 94px)) !important;
-    padding: 82px 42px 52px !important;
+    padding: 82px 42px 76px !important;
   }
 
   .garden-quest-card {

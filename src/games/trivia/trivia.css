@@ -724,6 +724,10 @@
   }
 }
 
+.trivia-shell.shell-paused .trivia-pause-overlay .panel-header {
+  display: none;
+}
+
 .trivia-shell .trivia-pause-overlay .panel-header,
 .trivia-shell .trivia-pause-overlay .pause-menu-frame,
 .trivia-shell .trivia-pause-overlay .compact-list span {

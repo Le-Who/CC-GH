@@ -139,9 +139,69 @@
 }
 
 .match3-menu-overlay.match3-pause-compact .game-menu-scaler {
-  align-content: center;
-  gap: 10px;
-  padding: 106px 42px 74px;
+  display: block;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.match3-menu-overlay.match3-pause-compact .match3-compact-pause-card {
+  position: absolute;
+  left: 20%;
+  top: 32%;
+  width: 60%;
+  height: 25%;
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.match3-menu-overlay.match3-pause-compact .pause-action-stack {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button {
+  position: absolute;
+  left: 26.6%;
+  top: 83.3%;
+  width: 46.8% !important;
+  height: 8.3%;
+  min-width: 0;
+  pointer-events: auto;
+}
+
+.match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row {
+  position: absolute;
+  left: 12.5%;
+  top: 67%;
+  width: 75%;
+  height: 8.8%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
+  gap: 3%;
+  pointer-events: auto;
+}
+
+.match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  padding-inline: 4px;
+  border: 1px solid rgba(244, 192, 93, 0.28) !important;
+  background: linear-gradient(180deg, rgba(90, 58, 38, 0.94), rgba(47, 32, 27, 0.96)) !important;
+  color: var(--match3-ink) !important;
+  text-shadow: none !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
+  border-radius: 6px !important;
+}
+
+.match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button.danger {
+  filter: hue-rotate(330deg) !important;
 }
 
 .match3-menu-overlay .game-menu-scaler::before {

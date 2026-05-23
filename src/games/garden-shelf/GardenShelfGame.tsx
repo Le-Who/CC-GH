@@ -20,9 +20,8 @@ import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
 import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
 import { HudEditableRegion, HudRegion } from '../../app/hud-layout/index.js';
 import { formatGardenGoldAmount } from './constants';
-import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
-import { ArrowUpCircle, CheckCircle2, Coins, Gift, X } from 'lucide-react';
+import { CheckCircle2, Coins, Gift, X } from 'lucide-react';
 import './garden-shelf.css';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
@@ -84,7 +83,7 @@ function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
         />
         {editing ? (
           <form
-            className="absolute inset-x-[17%] top-[52%] -translate-y-1/2"
+            className="absolute inset-x-[17%] top-[52%] -translate-y-1/2 z-[120]"
             onSubmit={(event) => {
               event.preventDefault();
               commitName();
@@ -104,13 +103,13 @@ function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
             type="button"
             onClick={startEditing}
             aria-label={t('garden.rename')}
-            className="absolute inset-x-[15%] top-[45%] min-h-[44px] -translate-y-1/2 truncate text-center font-serif text-[clamp(0.82rem,3.3vw,1.12rem)] font-bold tracking-widest text-amber-50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]"
+            className="absolute inset-x-[15%] top-[45%] min-h-[44px] -translate-y-1/2 truncate text-center font-serif text-[clamp(0.82rem,3.3vw,1.12rem)] font-bold tracking-widest text-amber-50 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)] z-[120]"
           >
             {displayName}
           </button>
         )}
         {!editing && (
-          <div className="absolute inset-x-[18%] top-[68%] truncate text-center font-mono text-[10px] font-black uppercase tracking-[0.18em] text-amber-100/90 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)]">
+          <div className="absolute inset-x-[18%] top-[68%] truncate text-center font-mono text-[10px] font-black uppercase tracking-[0.18em] text-amber-100/90 drop-shadow-[0_2px_2px_rgba(0,0,0,0.65)] z-[120]">
             {t('hud.level')} {state.level}
           </div>
         )}
@@ -284,7 +283,7 @@ function GardenQuestController() {
               onClick={closeQuests}
             />
             <motion.div
-              className="garden-glass-menu garden-quest-dialog fixed inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-auto border p-4"
+              className="garden-glass-menu garden-quest-dialog fixed inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-hidden border p-4"
               role="dialog"
               aria-modal="true"
               aria-label={t('quest.title')}
