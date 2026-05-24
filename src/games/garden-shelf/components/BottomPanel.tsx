@@ -507,7 +507,7 @@ function PlantDetail({
           }}
           onPointerDown={handleMash}
           className={cn(
-            "garden-detail-plant-button relative w-48 h-48 rounded-full border border-white/10 bg-gradient-to-b from-white/5 to-transparent flex items-center justify-center transition-all shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]",
+            "garden-detail-plant-button relative w-48 h-48 rounded-full bg-gradient-to-b from-white/5 to-transparent flex items-center justify-center transition-all shadow-[inset_0_0_30px_rgba(255,255,255,0.02)]",
             def.color,
             isUpgrading && "shadow-[0_0_50px_rgba(251,113,133,0.5)]"
           )}

@@ -21,6 +21,7 @@ import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
 import { HudEditableRegion, HudRegion } from '../../app/hud-layout/index.js';
 import { formatGardenGoldAmount } from './constants';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
+import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
 import { CheckCircle2, Coins, Gift, X } from 'lucide-react';
 import './garden-shelf.css';
 

@@ -157,6 +157,20 @@
   color: var(--muted);
 }
 
+/* Inside the warm wooden bottom sheet, icon buttons should be borderless
+   and use the warm panel color palette */
+.garden-glass-sheet .garden-icon-button {
+  border: 0;
+  border-radius: 50%;
+  background: rgba(82, 48, 22, 0.14);
+  color: #4a2e1a;
+}
+
+.garden-glass-sheet .garden-icon-button:hover,
+.garden-glass-sheet .garden-icon-button:active {
+  background: rgba(82, 48, 22, 0.24);
+}
+
 .garden-segmented-control {
   border: 1px solid var(--glass-border-soft);
   border-radius: 8px;
@@ -936,10 +950,25 @@
   outline: none !important;
 }
 
-/* Hide child elements (icons and text) inside the transparent action buttons */
-.garden-detail-actions .garden-action-button * {
-  display: none !important;
+
+/* Show only SVG icons inside transparent action buttons. Text nodes are hidden via
+   font-size: 0 since CSS cannot target bare text nodes. SVG is given an explicit size. */
+.garden-detail-actions .garden-action-button {
+  font-size: 0 !important;
 }
+
+.garden-detail-actions .garden-action-button svg {
+  display: block !important;
+  width: 22px !important;
+  height: 22px !important;
+  color: #4a2e1a !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 240, 199, 0.48)) !important;
+}
+
+.garden-detail-actions .garden-action-button.danger svg {
+  color: #7a2010 !important;
+}
+
 
 /* Evolve button: Hide the static label but position the dynamic cost absolutely on the right slot */
 .garden-detail-evolve .garden-evolve-btn-label {
