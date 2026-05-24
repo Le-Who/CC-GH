@@ -167,20 +167,19 @@
 
 .match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button {
   position: absolute;
-  left: 12.5% !important;
+  left: 26.6%;
   top: 83.3%;
-  width: 75% !important;
+  width: 46.8% !important;
   height: 8.3%;
   min-width: 0;
+  pointer-events: auto;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   outline: none !important;
-  color: var(--match3-ink) !important;
-  text-shadow: 0 1px 1px rgba(32, 18, 12, 0.72) !important;
-  font-size: 0.78rem !important;
-  padding-inline: 4px !important;
-  pointer-events: auto;
+  color: transparent !important;
+  text-shadow: none !important;
+  font-size: 0 !important;
 }
 
 .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row {
@@ -199,19 +198,21 @@
   width: 100%;
   height: 100%;
   min-height: 44px;
+  padding-inline: 4px;
+  border: 1px solid rgba(244, 192, 93, 0.28) !important;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   outline: none !important;
-  color: var(--match3-ink) !important;
-  text-shadow: 0 1px 1px rgba(32, 18, 12, 0.72) !important;
-  font-size: 0.65rem !important; /* Shrunk font size to prevent Russian text truncation */
-  padding-inline: 2px !important;
-  gap: 3px !important;
+  color: transparent !important;
+  text-shadow: none !important;
+  font-size: 0 !important;
+  padding-inline: 0 !important;
+  gap: 0 !important;
 }
 
 .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button.danger {
-  filter: none !important;
+  filter: hue-rotate(330deg) !important;
 }
 
 .match3-menu-overlay .game-menu-scaler::before {
@@ -540,19 +541,135 @@
   }
 }
 
+.game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .game-menu-scaler {
+  display: block;
+  overflow: hidden;
+  padding: 0;
+}
 
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .pause-menu-frame,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .metric-grid > *,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .leaderboard {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header {
+  display: block;
+  min-height: 0;
+  padding: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header > div {
+  position: absolute;
+  left: 18%;
+  top: 15.8%;
+  width: 64%;
+  min-width: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header strong {
+  display: block;
+  overflow: hidden;
+  color: #fff6dc;
+  font-size: clamp(1rem, 5vw, 1.22rem);
+  line-height: 1;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 0 rgba(48, 18, 54, 0.52);
+  white-space: nowrap;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header .panel-button {
+  position: absolute;
+  left: 26.6%;
+  top: 83.3%;
+  width: 46.8%;
+  height: 8.3%;
+  min-width: 0;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid {
+  position: absolute;
+  left: 21.5%;
+  top: 25.5%;
+  width: 57%;
+  height: 36.6%;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 2.8%;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button,
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(1),
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(2),
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(3) {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #3b2417;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button.active {
+  outline: 2px solid rgba(113, 199, 161, 0.72);
+  outline-offset: -4px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid small {
+  color: rgba(59, 36, 23, 0.7);
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions {
+  position: absolute;
+  left: 21.5%;
+  top: 65.5%;
+  width: 57%;
+  height: 12.5%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions .panel-button {
+  height: 100%;
+  min-height: 44px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: transparent !important;
+  text-shadow: none !important;
+  font-size: 0 !important;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button span {
+  display: none !important;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button.danger {
+  color: transparent !important;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button:focus-visible {
+  outline: 2px solid rgba(244, 192, 93, 0.82);
+  outline-offset: -5px;
+}
+
+.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-leaderboard {
+  display: none;
+}
 
 .match3-menu-overlay .pause-menu-callout,
 .match3-menu-overlay .metric-grid > *,
 .match3-menu-overlay .leaderboard {
   border: 0;
   background: transparent;
-  box-shadow: none;
-}
-
-.match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-button {
-  background: transparent !important;
-  border: 0;
   box-shadow: none;
 }
 

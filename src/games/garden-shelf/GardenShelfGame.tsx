@@ -240,11 +240,17 @@ function GardenQuestController() {
   const quests = React.useMemo(() => {
     if (!open) return [];
     return buildGardenQuestSections(state)
-      .flatMap((section, sectionIndex) => section.quests.map((quest, questIndex) => ({
-        ...quest,
-        sectionIndex,
-        questIndex,
-      })))
+      .flatMap((section, sectionIndex) => {
+        if (!section || !section.quests) {
+          console.error("GARDEN QUESTS INVALID SECTION:", section);
+          return [];
+        }
+        return section.quests.map((quest, questIndex) => ({
+          ...quest,
+          sectionIndex,
+          questIndex,
+        }));
+      })
       .sort((left, right) => (
         gardenQuestPriority(left) - gardenQuestPriority(right) ||
         Number(!!right.complete) - Number(!!left.complete) ||
