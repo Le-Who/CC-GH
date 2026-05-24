@@ -677,8 +677,8 @@
   color: rgba(23, 63, 69, 0.76);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay {
+.bubbo-shell .game-menu-overlay,
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay {
   width: min(336px, calc(100% - 12px));
   aspect-ratio: 2 / 3;
   max-height: min(88dvh, calc(100% - 12px));
@@ -687,8 +687,8 @@
   padding: 0;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > div,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header > div {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > div,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header > div {
   position: absolute;
   left: 19.5%;
   top: 18.2%;
@@ -696,27 +696,27 @@
   min-width: 0;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header strong,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header strong {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header strong,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header strong {
   color: #fff7e5;
   font-size: clamp(1rem, 4.4vw, 1.28rem);
   line-height: 1;
   text-shadow: 0 2px 0 rgba(36, 10, 62, 0.48);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > div span,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header > div span {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > div span,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header > div span {
   color: rgba(255, 247, 229, 0.82);
   font-size: clamp(0.58rem, 2.9vw, 0.74rem);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > .panel-button span {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > .panel-button span {
   color: inherit;
   text-shadow: inherit;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-frame,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-frame,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame {
   position: absolute;
   left: 19.5%;
   top: 30.2%;
@@ -727,26 +727,26 @@
   overflow: visible;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame {
   top: 34%;
   height: 25%;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-kicker,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-kicker {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-kicker,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-kicker {
   color: #66b77f;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-frame > strong,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame > strong {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-frame > strong,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame > strong {
   color: #173f45;
   font-size: clamp(0.94rem, 4vw, 1.14rem);
   line-height: 1.1;
   text-shadow: 0 1px 0 rgba(255, 244, 214, 0.52);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-frame > small,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame > small {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .pause-menu-frame > small,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-menu-frame > small {
   display: -webkit-box;
   overflow: hidden;
   color: rgba(23, 63, 69, 0.76);
@@ -756,7 +756,7 @@
   -webkit-line-clamp: 2;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner {
   position: absolute;
   left: 17%;
   top: 52.5%;
@@ -769,23 +769,23 @@
   box-shadow: 0 10px 18px rgba(25, 42, 36, 0.18);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner span {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner span {
   color: #fff7e5;
   font-size: 0.68rem;
   line-height: 1.05;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner .panel-button {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner .panel-button {
   min-width: 44px;
   width: 44px;
   padding: 0;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner .panel-button span {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .bubbo-resume-banner .panel-button span {
   display: none;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid {
   position: absolute;
   left: 19.5%;
   top: 55.4%;
@@ -795,30 +795,30 @@
   gap: 7px;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay):has(.bubbo-resume-banner) .mode-grid {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay):has(.bubbo-resume-banner) .mode-grid {
   top: 63.5%;
   height: 13.8%;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button {
   min-height: 54px;
   padding: 4px;
   color: #173f45;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button strong {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button strong {
   font-size: clamp(0.78rem, 3.8vw, 1rem);
   line-height: 1.05;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button small {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button small {
   color: rgba(23, 63, 69, 0.66);
   font-size: clamp(0.62rem, 3vw, 0.76rem);
   line-height: 1.08;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .metric-grid,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .metric-grid,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line {
   position: absolute;
   left: 19.5%;
   top: 72.5%;
@@ -830,18 +830,18 @@
   gap: 5px;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay):has(.bubbo-resume-banner) .metric-grid {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay):has(.bubbo-resume-banner) .metric-grid {
   display: none;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line {
   left: 0;
   top: 105%;
   width: 100%;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .metric-grid > *,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line span {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .metric-grid > *,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line span {
   min-height: 44px;
   display: grid;
   place-items: center;
@@ -850,13 +850,13 @@
   text-align: center;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .metric-grid svg,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line b {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .metric-grid svg,
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-status-line b {
   color: #6f895b;
   filter: drop-shadow(0 1px 0 rgba(255, 244, 214, 0.6));
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > .panel-button {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-header > .panel-button {
   position: absolute;
   left: 36%;
   top: 85.8%;
@@ -866,7 +866,7 @@
   min-height: 44px;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row {
   position: absolute;
   left: 12.5%;
   top: 85.8%;
@@ -876,7 +876,7 @@
   pointer-events: none;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button {
   position: absolute;
   top: 0;
   width: 32%;
@@ -888,36 +888,44 @@
   pointer-events: auto;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button:nth-child(2) {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button:nth-child(2) {
   left: 0;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button:nth-child(3) {
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button:nth-child(3) {
   right: 0;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .panel-header {
   display: none;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack {
   position: absolute;
   inset: 0;
   display: block;
   pointer-events: none;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button {
   position: absolute;
-  left: 20%;
+  left: 12.5% !important;
   top: 85.8%;
-  width: 60% !important;
+  width: 75% !important;
   height: 9.4%;
   min-height: 44px;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #fff7e5 !important;
+  text-shadow: 0 1px 1px rgba(36, 10, 62, 0.72) !important;
+  font-size: 0.78rem !important;
+  padding-inline: 4px !important;
   pointer-events: auto;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row {
   position: absolute;
   left: 12.5%;
   top: 70.4%;
@@ -929,27 +937,26 @@
   pointer-events: auto;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
   width: 100%;
   height: 100%;
   min-height: 44px;
-  padding-inline: 4px;
-  border: 1px solid rgba(162, 209, 126, 0.24) !important;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(5, 12, 14, 0.1)),
-    url("/games/bubbo/button_secondary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, rgba(46, 78, 84, 0.94), rgba(24, 42, 45, 0.96)) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
   color: #fff7e5 !important;
-  text-shadow: none !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
-  border-radius: 6px !important;
+  text-shadow: 0 1px 1px rgba(36, 10, 62, 0.72) !important;
+  font-size: 0.68rem !important; /* Shrunk font size to prevent Russian text truncation */
+  padding-inline: 2px !important;
+  gap: 3px !important;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button.danger {
+.bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button.danger {
   filter: hue-rotate(330deg) !important;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card {
   position: absolute;
   left: 19.5%;
   top: 21%;
@@ -961,7 +968,7 @@
   color: #173f45;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card::before {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card::before {
   inset: -8px -10px;
   background:
     linear-gradient(180deg, rgba(255, 247, 229, 0.58), rgba(228, 183, 105, 0.24)),
@@ -970,46 +977,46 @@
   filter: none;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card > span,
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card > small {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card > span,
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card > small {
   color: rgba(23, 63, 69, 0.72);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card > strong {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-card > strong {
   color: #173f45;
   font-size: clamp(1.45rem, 7vw, 2rem);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-metrics {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-metrics {
   gap: 6px;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-metrics span {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-metrics span {
   min-height: 56px;
   background: rgba(255, 247, 229, 0.72);
   color: rgba(23, 63, 69, 0.72);
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-metrics b {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .bubbo-result-metrics b {
   color: #173f45;
 }
 
-.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row.two {
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row.two {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 @media (max-width: 340px) {
-  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button,
-  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button,
-  .telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row .panel-button {
+  .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button,
+  .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button,
+  .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row .panel-button {
     gap: 3px;
     font-size: 0.62rem;
   }
 
-  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button svg,
-  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button svg,
-  .telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row .panel-button svg {
+  .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button svg,
+  .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button svg,
+  .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row .panel-button svg {
     width: 14px;
     height: 14px;
   }

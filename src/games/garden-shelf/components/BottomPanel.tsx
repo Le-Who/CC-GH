@@ -603,10 +603,12 @@ function PlantDetail({
               canAfford ? "secondary" : "disabled",
             )}
           >
-            <ArrowUpCircle size={16} strokeWidth={1.5} className={isUpgrading ? "animate-bounce" : ""} />
-            <span>{isUpgrading ? t('plantDetail.evolving') : t('plantDetail.evolve')}</span>
-            <span className="mx-2 opacity-30">|</span>
-            <span className="flex items-center gap-1">
+            <span className="garden-evolve-btn-label flex items-center gap-3">
+              <ArrowUpCircle size={16} strokeWidth={1.5} className={isUpgrading ? "animate-bounce" : ""} />
+              <span>{isUpgrading ? t('plantDetail.evolving') : t('plantDetail.evolve')}</span>
+              <span className="mx-2 opacity-30">|</span>
+            </span>
+            <span className="flex items-center gap-1 garden-evolve-btn-cost">
               {formatGardenGoldAmount(upgradeCost)} <Coins size={14} className={canAfford ? "text-amber-400" : "text-slate-600"} />
             </span>
           </motion.button>

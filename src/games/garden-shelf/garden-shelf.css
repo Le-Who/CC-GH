@@ -908,7 +908,7 @@
   }
 
   .garden-detail-actions {
-    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-columns: minmax(46px, 0.34fr) minmax(0, 1fr) minmax(0, 1.08fr) !important;
     gap: 7px !important;
   }
 
@@ -919,16 +919,54 @@
     letter-spacing: 0.08em;
   }
 
-  .garden-detail-actions .garden-action-button:nth-child(3) {
-    grid-column: 1 / -1;
-  }
-
   .garden-detail-evolve {
     min-height: 48px;
     padding: 9px 8px !important;
     font-size: 0.62rem;
     letter-spacing: 0.08em;
   }
+}
+
+/* Make Garden detail panel buttons completely transparent over pre-drawn graphics */
+.garden-detail-actions .garden-action-button,
+.garden-detail-evolve {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Hide child elements (icons and text) inside the transparent action buttons */
+.garden-detail-actions .garden-action-button * {
+  display: none !important;
+}
+
+/* Evolve button: Hide the static label but position the dynamic cost absolutely on the right slot */
+.garden-detail-evolve .garden-evolve-btn-label {
+  display: none !important;
+}
+
+.garden-detail-evolve .garden-evolve-btn-cost {
+  position: absolute;
+  right: 14%;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  color: #3b2417 !important; /* Rich dark-brown color matching pre-drawn panel texts */
+  font-weight: 1000;
+  font-size: 1.05rem !important;
+  text-shadow: none !important;
+}
+
+.garden-detail-evolve .garden-evolve-btn-cost svg {
+  color: #c9853a !important; /* Gold accent color for dynamic coins icon */
+}
+
+.garden-detail-evolve:disabled .garden-evolve-btn-cost {
+  opacity: 0.62;
+  color: #5a4133 !important;
 }
 
 .garden-settings-dialog,
