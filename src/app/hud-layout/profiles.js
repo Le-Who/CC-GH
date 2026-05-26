@@ -45,10 +45,16 @@ export const HUD_PROFILE_DEFINITIONS = [
 
 export const EXACT_PREVIEW_PRESETS = [
   { id: "320x568", label: "320x568 portrait", width: 320, height: 568 },
-  { id: "568x320", label: "568x320 landscape", width: 568, height: 320 },
+  { id: "360x800", label: "360x800 portrait", width: 360, height: 800 },
+  { id: "375x812", label: "375x812 portrait", width: 375, height: 812 },
+  { id: "384x832", label: "384x832 portrait", width: 384, height: 832 },
   { id: "390x844", label: "390x844 portrait", width: 390, height: 844 },
-  { id: "844x390", label: "844x390 landscape", width: 844, height: 390 },
+  { id: "393x873", label: "393x873 portrait", width: 393, height: 873 },
+  { id: "412x915", label: "412x915 portrait", width: 412, height: 915 },
   { id: "414x896", label: "414x896 portrait", width: 414, height: 896 },
+  { id: "430x932", label: "430x932 portrait", width: 430, height: 932 },
+  { id: "568x320", label: "568x320 landscape", width: 568, height: 320 },
+  { id: "844x390", label: "844x390 landscape", width: 844, height: 390 },
   { id: "896x414", label: "896x414 landscape", width: 896, height: 414 },
   { id: "768x1024", label: "768x1024 tablet portrait", width: 768, height: 1024 },
   { id: "1024x768", label: "1024x768 tablet landscape", width: 1024, height: 768 },

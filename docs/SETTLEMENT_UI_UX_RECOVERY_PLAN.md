@@ -21,7 +21,7 @@ Bring the Settlement game to a playable, mobile-first UI/UX state where every vi
 
 ## Design Rules
 
-- Mobile first: 320x568, 390x844, 414x896, 768x1024, 1024x768, 1280x720.
+- Mobile first: core HUD/WebView matrix is 320x568, 360x800, 390x844, 414x896, 568x320, 844x390, 768x1024, 1024x768, 1280x720. Add a rotating extended phone pass such as 375x812, 384x832, 393x873, 412x915, or 430x932 for risky typography, dock, and HUD work.
 - At least one high-DPI pass with `deviceScaleFactor: 2`.
 - Touch QA must use `isMobile: true` and `hasTouch: true`.
 - No horizontal scroll at 320px.

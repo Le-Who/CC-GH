@@ -2,8 +2,11 @@ import { test, expect } from "@playwright/test";
 
 const VIEWPORTS = [
   { width: 320, height: 568, label: "small-mobile" },
+  { width: 360, height: 800, label: "common-android" },
   { width: 390, height: 844, label: "common-mobile", deviceScaleFactor: 2 },
   { width: 414, height: 896, label: "large-mobile" },
+  { width: 568, height: 320, label: "phone-landscape-compact" },
+  { width: 844, height: 390, label: "phone-landscape" },
   { width: 768, height: 1024, label: "tablet-portrait" },
   { width: 1024, height: 768, label: "tablet-landscape" },
   { width: 1280, height: 720, label: "desktop-smoke", isMobile: false, hasTouch: false },
@@ -90,15 +93,15 @@ async function expectMatch3BoardBelowHud(page) {
 test.describe.configure({ mode: "serial" });
 
 test.describe("mobile UI viewport matrix", () => {
-  test("visible games fit touch viewports without horizontal scroll or clipped primary controls", async ({ browser, baseURL }) => {
-    test.setTimeout(180_000);
+  for (const viewport of VIEWPORTS) {
+    test(`${viewport.label} fits without horizontal scroll or clipped primary controls`, async ({ browser, baseURL }) => {
+      test.setTimeout(120_000);
 
-    for (const viewport of VIEWPORTS) {
       const { context, page, pageErrors } = await bootMatrixPage(browser, baseURL, viewport);
       try {
         await expectNoHorizontalScroll(page);
         await expect(page.getByText("My Garden")).toBeVisible();
-        await expectVisibleButtonsReachable(page, ".bottom-tabs button", 0);
+        await expectVisibleButtonsReachable(page, ".bottom-tabs button");
 
         await page.getByRole("button", { name: /Blox/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
@@ -158,6 +161,6 @@ test.describe("mobile UI viewport matrix", () => {
       } finally {
         await context.close();
       }
-    }
-  });
+    });
+  }
 });

@@ -124,7 +124,8 @@ This document is the working map for how UI assets, runtime functions, and layou
 
 ## QA Checklist
 
-- 320x568, 390x844, 414x896, 768x1024, 1024x768, 1280x720.
+- Core HUD/WebView matrix: 320x568, 360x800, 390x844, 414x896, 568x320, 844x390, 768x1024, 1024x768, 1280x720.
+- Extended/rotating phone checks for risky typography, dock, and HUD work: 375x812, 384x832, 393x873, 412x915, 430x932.
 - At least one `deviceScaleFactor: 2` pass.
 - Mobile contexts use `isMobile: true` and `hasTouch: true`.
 - No horizontal scroll at 320px.

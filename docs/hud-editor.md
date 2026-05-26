@@ -15,8 +15,14 @@ The editor shows actual viewport, optional preview viewport, semantic profile, o
 Production runtime selects semantic profiles, not exact device defaults. Exact presets are QA aids:
 
 - 320x568 and 568x320
+- 360x800
+- 375x812
+- 384x832
 - 390x844 and 844x390
+- 393x873
+- 412x915
 - 414x896 and 896x414
+- 430x932
 - 768x1024
 - 1024x768
 - 1280x720

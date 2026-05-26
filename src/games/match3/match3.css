@@ -171,6 +171,7 @@
   top: 83.3%;
   width: 46.8% !important;
   height: 8.3%;
+  min-height: 55px;
   min-width: 0;
   pointer-events: auto;
   background: transparent !important;
@@ -197,7 +198,7 @@
 .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
   width: 100%;
   height: 100%;
-  min-height: 44px;
+  min-height: 55px;
   padding-inline: 4px;
   border: 1px solid rgba(244, 192, 93, 0.28) !important;
   background: transparent !important;
@@ -213,6 +214,42 @@
 
 .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button.danger {
   filter: hue-rotate(330deg) !important;
+}
+
+@media (max-width: 340px) {
+  .match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button {
+    height: 11%;
+    min-height: 58px;
+  }
+
+  .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row {
+    height: 10.8%;
+    grid-template-columns: repeat(3, minmax(52px, 1fr));
+  }
+
+  .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
+    min-height: 58px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button {
+    top: 81%;
+    min-height: 96px;
+  }
+
+  .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row {
+    left: 5%;
+    top: 65%;
+    width: 90%;
+    height: 17.2%;
+    grid-template-columns: repeat(3, minmax(92px, 1fr));
+    gap: 2%;
+  }
+
+  .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
+    min-height: 96px;
+  }
 }
 
 .match3-menu-overlay .game-menu-scaler::before {
@@ -663,6 +700,103 @@
 
 .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-leaderboard {
   display: none;
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) {
+    width: min(540px, calc(100% - 12px));
+    height: min(94dvh, calc(100% - 10px));
+    aspect-ratio: auto;
+    max-height: none;
+    display: block;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .game-menu-scaler {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 100%;
+    transform: none !important;
+    display: grid;
+    grid-template-columns: minmax(118px, 0.78fr) minmax(178px, 1.16fr) minmax(118px, 0.78fr);
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header,
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header > div,
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header .panel-button,
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid,
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions {
+    position: static;
+    left: auto;
+    top: auto;
+    width: auto;
+    height: auto;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 44px;
+    gap: 6px;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header > div {
+    display: grid;
+    align-content: center;
+    min-height: 0;
+    padding: 7px;
+    border: 1px solid rgba(244, 192, 93, 0.2);
+    border-radius: 8px;
+    background: rgba(45, 25, 18, 0.82);
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header strong {
+    color: #fff6dc;
+    font-size: 0.95rem;
+    white-space: normal;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .panel-header .panel-button {
+    min-height: 44px;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(44px, 1fr));
+    gap: 6px;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button,
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(1),
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(2),
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid button:nth-child(3),
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions .panel-button {
+    min-height: 44px;
+    border: 1px solid rgba(244, 192, 93, 0.2);
+    border-radius: 8px;
+    background: rgba(45, 25, 18, 0.82) !important;
+    color: #fff6dc;
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .mode-grid small {
+    color: rgba(255, 246, 220, 0.78);
+  }
+
+  .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .match3-menu-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(44px, 1fr);
+    gap: 6px;
+  }
 }
 
 .match3-menu-overlay .pause-menu-callout,

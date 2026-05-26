@@ -13,7 +13,7 @@ Every final game state must respect these project-level constraints:
 - Do not rely on hover-only affordances. Every important action must work with touch.
 - Keep transient live-game events in the lower HUD or action log unless a modal is intentional.
 - Keep thumb-reachable controls clear of the active playfield.
-- Use the explicit viewport QA matrix for UI, HUD, Pixi, dock, responsive, and touch changes: 320x568, 390x844, 414x896, 768x1024, 1024x768, 1280x720, plus at least one `deviceScaleFactor: 2` pass.
+- Use the explicit viewport QA matrix for UI, HUD, Pixi, dock, responsive, and touch changes: 320x568, 360x800, 390x844, 414x896, 568x320, 844x390, 768x1024, 1024x768, 1280x720, plus at least one `deviceScaleFactor: 2` pass. Add a rotating extended phone pass such as 375x812, 384x832, 393x873, 412x915, or 430x932 for risky typography, dock, and HUD work.
 - For touch QA, use `isMobile: true` and `hasTouch: true`.
 - For Telegram-like constraints, verify no horizontal scroll at 320px, no clipped dock labels/icons, no HUD overlap over Pixi playfields, reachable/focusable dialogs, practical 44x44 CSS px tap targets, pointer cleanup on blur/visibility changes, and resize/redraw after viewport changes.
 - Run visual QA separately from functional QA. Visible clipping, cut-off controls, unreadable labels, weak contrast, broken layering, or awkward motion are bugs even when tests pass.

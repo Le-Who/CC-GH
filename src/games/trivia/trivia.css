@@ -728,6 +728,123 @@
   display: none;
 }
 
+@media (orientation: landscape) and (max-height: 420px) {
+  .telegram-app[data-active-tab="trivia"] .trivia-shell[data-trivia-view="menu"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    place-items: center;
+    gap: 0;
+    padding: 4px;
+  }
+
+  .telegram-app[data-active-tab="trivia"] .trivia-shell[data-trivia-view="menu"] .side-panel:not(.trivia-card) {
+    display: none;
+  }
+
+  .telegram-app[data-active-tab="trivia"] .trivia-shell[data-trivia-view="menu"] .trivia-card {
+    width: min(620px, calc(100% - 8px));
+    height: min(100%, calc(100dvh - 74px));
+    min-height: 188px;
+    max-height: 296px;
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: minmax(118px, 0.75fr) minmax(190px, 1.1fr) minmax(126px, 0.75fr);
+    grid-template-rows: minmax(96px, 1fr) minmax(44px, auto);
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 209, 102, 0.24);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(16, 22, 42, 0.42), rgba(16, 22, 42, 0.62)),
+      var(--trivia-dialog-art) center / 100% 100% no-repeat;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .trivia-card > .panel-header,
+  .trivia-shell[data-trivia-view="menu"] .form-grid,
+  .trivia-shell[data-trivia-view="menu"] .button-row,
+  .trivia-shell[data-trivia-view="menu"] .join-row {
+    position: static;
+    left: auto;
+    top: auto;
+    width: auto;
+    height: auto;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .trivia-card > .panel-header {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0;
+    align-content: center;
+    padding: 10px;
+    border-radius: 6px;
+    background: rgba(10, 18, 38, 0.4);
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .trivia-card > .panel-header strong {
+    font-size: 0.92rem;
+    line-height: 1.04;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .trivia-card > .panel-header span {
+    font-size: 0.68rem;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .form-grid {
+    grid-column: 2;
+    grid-row: 1;
+    align-content: center;
+    gap: 8px;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .form-grid label {
+    min-height: 44px;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 8px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: rgba(10, 18, 38, 0.4);
+    font-size: 0.68rem;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .trivia-card input,
+  .trivia-shell[data-trivia-view="menu"] .trivia-card select {
+    min-height: 36px;
+    border-radius: 4px;
+    padding: 0 8px;
+    background: #fff0d2;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .button-row {
+    grid-column: 3;
+    grid-row: 1;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(2, minmax(44px, 1fr));
+    align-content: center;
+    gap: 8px;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .trivia-card .panel-button {
+    min-height: 44px;
+    padding-inline: 8px;
+    border-radius: 6px;
+    background: rgba(10, 18, 38, 0.36);
+    font-size: 0.78rem;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .join-row {
+    grid-column: 1 / 4;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr) minmax(96px, 0.28fr);
+    gap: 8px;
+  }
+
+  .trivia-shell[data-trivia-view="menu"] .join-row input {
+    padding-inline: 10px;
+  }
+}
+
 .trivia-shell .trivia-pause-overlay .panel-header,
 .trivia-shell .trivia-pause-overlay .pause-menu-frame,
 .trivia-shell .trivia-pause-overlay .compact-list span {

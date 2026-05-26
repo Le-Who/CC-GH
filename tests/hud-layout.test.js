@@ -49,8 +49,13 @@ describe("HUD layout viewport profiles", () => {
 
   it("maps exact editor presets to semantic runtime profiles", () => {
     assert.equal(EXACT_PREVIEW_PRESETS.some((preset) => preset.id === "320x568"), true);
+    assert.equal(EXACT_PREVIEW_PRESETS.some((preset) => preset.id === "360x800"), true);
+    assert.equal(EXACT_PREVIEW_PRESETS.some((preset) => preset.id === "412x915"), true);
     assert.equal(semanticProfileForPreviewPreset("320x568"), "phone-small-portrait");
+    assert.equal(semanticProfileForPreviewPreset("360x800"), "phone-small-portrait");
+    assert.equal(semanticProfileForPreviewPreset("412x915"), "phone-tall-portrait");
     assert.equal(semanticProfileForPreviewPreset("568x320"), "phone-landscape");
+    assert.equal(semanticProfileForPreviewPreset("844x390"), "phone-landscape");
     assert.equal(semanticProfileForPreviewPreset("1024x768"), "tablet-landscape");
   });
 

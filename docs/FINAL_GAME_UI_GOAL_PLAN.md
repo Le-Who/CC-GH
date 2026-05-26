@@ -123,11 +123,15 @@ Asset status: current Farm field, plot, crop, seed packet, UI panel, HUD, button
 Required viewport passes:
 
 - 320x568 mobile touch
+- 360x800 mobile touch
 - 390x844 mobile touch
 - 414x896 mobile touch
+- 568x320 phone landscape touch
+- 844x390 phone landscape touch
 - 768x1024 tablet portrait
 - 1024x768 tablet landscape
 - 1280x720 desktop smoke
+- one extended/rotating phone pass for risky typography, dock, and HUD work: 375x812, 384x832, 393x873, 412x915, or 430x932
 - At least one high-DPI pass with `deviceScaleFactor: 2`
 
 Functional checks:
