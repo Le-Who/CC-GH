@@ -1,0 +1,351 @@
+:root {
+  --hud-redesign-radius: 8px;
+  --hud-redesign-gap: clamp(6px, 2vw, 12px);
+  --hud-redesign-focus: #ffe071;
+  --hud-redesign-panel-art: url("/games/hud-redesign/garden/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/garden-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/garden/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/garden/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/garden/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/garden/icon-badge.png");
+  --hud-redesign-ink: #fff8dd;
+  --hud-redesign-muted: rgba(255, 248, 221, 0.76);
+  --hud-redesign-accent: #7cc46b;
+  --hud-redesign-surface: #10241a;
+}
+
+.telegram-app[data-active-tab="garden"] {
+  --hud-redesign-panel-art: url("/games/hud-redesign/garden/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/garden-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/garden/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/garden/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/garden/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/garden/icon-badge.png");
+  --hud-redesign-ink: #2d220f;
+  --hud-redesign-muted: #694b23;
+  --hud-redesign-accent: #7cc46b;
+  --hud-redesign-surface: #10241a;
+}
+
+.telegram-app[data-active-tab="blox"],
+[data-game-shell="blox"] {
+  --hud-redesign-panel-art: url("/games/hud-redesign/blox/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/blox-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/blox/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/blox/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/blox/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/blox/icon-badge.png");
+  --hud-redesign-ink: #efe9ff;
+  --hud-redesign-muted: rgba(239, 233, 255, 0.72);
+  --hud-redesign-accent: #7fe26b;
+  --hud-redesign-surface: #120d24;
+}
+
+.telegram-app[data-active-tab="match3"],
+[data-game-shell="match3"] {
+  --hud-redesign-panel-art: url("/games/hud-redesign/match3/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/match3-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/match3/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/match3/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/match3/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/match3/icon-badge.png");
+  --hud-redesign-ink: #fff4ff;
+  --hud-redesign-muted: rgba(255, 244, 255, 0.72);
+  --hud-redesign-accent: #ffce49;
+  --hud-redesign-surface: #1a0c24;
+}
+
+.telegram-app[data-active-tab="merge"],
+[data-game-shell="merge"] {
+  --hud-redesign-panel-art: url("/games/hud-redesign/merge/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/merge/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/merge/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/merge/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/merge/icon-badge.png");
+  --hud-redesign-ink: #fff0cf;
+  --hud-redesign-muted: rgba(255, 240, 207, 0.72);
+  --hud-redesign-accent: #72d06a;
+  --hud-redesign-surface: #24190f;
+}
+
+.telegram-app[data-active-tab="bubbo"],
+[data-game-shell="bubbo"] {
+  --hud-redesign-panel-art: url("/games/hud-redesign/bubbo/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/bubbo-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/bubbo/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/bubbo/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/bubbo/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/bubbo/icon-badge.png");
+  --hud-redesign-ink: #e8fbff;
+  --hud-redesign-muted: rgba(232, 251, 255, 0.74);
+  --hud-redesign-accent: #72dbff;
+  --hud-redesign-surface: #063053;
+}
+
+.telegram-app[data-active-tab="trivia"],
+.trivia-shell {
+  --hud-redesign-panel-art: url("/games/hud-redesign/trivia/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/trivia-dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/trivia/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/trivia/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/trivia/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/trivia/icon-badge.png");
+  --hud-redesign-ink: #f5f7ff;
+  --hud-redesign-muted: rgba(245, 247, 255, 0.72);
+  --hud-redesign-accent: #ffd257;
+  --hud-redesign-surface: #071127;
+}
+
+.telegram-app[data-active-tab="room"],
+.companion-yard-layout {
+  --hud-redesign-panel-art: url("/games/hud-redesign/room/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/yard-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/room/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/room/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/room/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/room/icon-badge.png");
+  --hud-redesign-ink: #2b220d;
+  --hud-redesign-muted: #62521f;
+  --hud-redesign-accent: #aacb49;
+  --hud-redesign-surface: #20320f;
+}
+
+.telegram-app[data-active-tab="settlement"],
+.settlement-game-root {
+  --hud-redesign-panel-art: url("/games/hud-redesign/settlement/hud-panel.png");
+  --hud-redesign-dialog-art: url("/games/hud-redesign/settlement/dialog-panel.png");
+  --hud-redesign-dock-art: url("/games/hud-redesign/settlement/dock-panel.png");
+  --hud-redesign-button-art: url("/games/hud-redesign/settlement/primary-button.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/settlement/metric-chip.png");
+  --hud-redesign-icon-art: url("/games/hud-redesign/settlement/icon-badge.png");
+  --hud-redesign-ink: #f6e4bb;
+  --hud-redesign-muted: rgba(246, 228, 187, 0.72);
+  --hud-redesign-accent: #f2ca62;
+  --hud-redesign-surface: #07130c;
+}
+
+.telegram-app.play-mode .active-game-frame,
+.telegram-app.play-mode .game-layout,
+.trivia-shell,
+.companion-yard-layout,
+.settlement-game-root {
+  border-radius: var(--hud-redesign-radius);
+  background-color: var(--hud-redesign-surface);
+}
+
+.game-play-hud,
+.game-play-hud-bottom,
+.merge-scene-hud,
+.yard-currency-stack,
+.settlement-game-root .top-hud {
+  border: 0 !important;
+  border-radius: var(--hud-redesign-radius) !important;
+  background: var(--hud-redesign-panel-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink) !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+  letter-spacing: 0;
+}
+
+.game-play-hud {
+  min-height: 56px;
+  padding: 9px 12px;
+}
+
+.game-play-title span,
+.game-play-stats > span,
+.game-play-event-log p,
+.yard-currency-chip span,
+.settlement-game-root .resource-label {
+  color: var(--hud-redesign-muted) !important;
+}
+
+.game-play-stats > span,
+.stat-chip,
+.yard-currency-chip,
+.settlement-game-root .resource-pill {
+  border: 0 !important;
+  border-radius: var(--hud-redesign-radius) !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  min-height: 44px;
+}
+
+.game-play-actions .panel-button,
+.game-play-hud-bottom .panel-button,
+.merge-action-area .panel-button,
+.yard-button,
+.yard-icon-button,
+.settlement-game-root .gold-button,
+.settlement-game-root .collect-button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0 !important;
+  border-radius: var(--hud-redesign-radius) !important;
+  background: var(--hud-redesign-button-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink) !important;
+  box-shadow: none !important;
+}
+
+.game-play-actions .panel-button {
+  min-width: 112px;
+  padding-inline: 20px;
+}
+
+.game-play-actions .panel-button.icon-only {
+  min-width: 46px;
+  width: 46px;
+  padding-inline: 0;
+  background: var(--hud-redesign-icon-art) center / 100% 100% no-repeat !important;
+}
+
+.game-play-stat-progress {
+  width: min(72px, 82%);
+  height: 4px;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.game-play-stat-progress b {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--hud-redesign-focus);
+  transform-origin: left center;
+}
+
+.game-shell .game-menu-overlay,
+.trivia-shell .trivia-card,
+.trivia-shell .trivia-pause-overlay,
+.yard-game-screen,
+.settlement-game-root .right-panel {
+  border: 0 !important;
+  border-radius: var(--hud-redesign-radius) !important;
+  background: var(--hud-redesign-dialog-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28) !important;
+}
+
+.blox-menu-overlay .panel-button,
+.bubbo-shell .game-menu-overlay .panel-button,
+.match3-menu-overlay .panel-button,
+.merge-pause-overlay .panel-button,
+.trivia-card .panel-button,
+.trivia-shell .trivia-pause-overlay .panel-button {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.merge-action-dock,
+.yard-bottom-dock,
+.settlement-game-root .bottom-nav,
+.settlement-game-root .left-dock {
+  border: 0 !important;
+  border-radius: var(--hud-redesign-radius) !important;
+  background: var(--hud-redesign-dock-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24) !important;
+}
+
+.game-play-event-log p {
+  border: 0;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat;
+  background-color: transparent;
+}
+
+.panel-button:focus-visible,
+.yard-button:focus-visible,
+.yard-icon-button:focus-visible,
+.settlement-game-root button:focus-visible,
+.answer-grid button:focus-visible {
+  outline: 3px solid var(--hud-redesign-focus) !important;
+  outline-offset: 2px !important;
+}
+
+.panel-button:active,
+.yard-button:active,
+.yard-icon-button:active,
+.settlement-game-root button:active,
+.answer-grid button:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.trivia-shell .question-panel,
+.trivia-shell .duel-box,
+.trivia-shell .results-box {
+  border-radius: var(--hud-redesign-radius);
+  background: var(--hud-redesign-panel-art) center / 100% 100% no-repeat;
+  background-color: transparent;
+}
+
+.trivia-shell .answer-grid button {
+  min-height: 48px;
+  border-radius: var(--hud-redesign-radius);
+  border: 1px solid color-mix(in srgb, var(--hud-redesign-accent) 44%, transparent);
+  background: color-mix(in srgb, var(--hud-redesign-surface) 82%, white);
+  color: var(--hud-redesign-ink);
+}
+
+.trivia-lifeline-dock {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.trivia-card .trivia-lifeline-dock .panel-button {
+  background: var(--hud-redesign-button-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink) !important;
+}
+
+.trivia-shell .answer-grid button.hidden-by-lifeline {
+  opacity: 0.42;
+  color: transparent;
+}
+
+.trivia-shell .answer-grid button.hinted {
+  border-color: var(--hud-redesign-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hud-redesign-focus) 34%, transparent);
+}
+
+@media (max-width: 430px) {
+  .game-play-hud,
+  .game-play-hud-bottom {
+    left: max(6px, env(safe-area-inset-left, 0px));
+    right: max(6px, env(safe-area-inset-right, 0px));
+    gap: 6px;
+    padding: 7px 8px;
+  }
+
+  .game-play-stats {
+    grid-auto-columns: minmax(54px, auto);
+  }
+
+  .game-play-stats > span {
+    padding-inline: 5px;
+  }
+
+  .game-play-actions .panel-button-label {
+    max-width: 72px;
+  }
+
+  .game-play-actions .panel-button {
+    width: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px;
+    padding-inline: 0 !important;
+    background: var(--hud-redesign-icon-art) center / 100% 100% no-repeat !important;
+    background-color: transparent !important;
+  }
+
+  .game-play-actions .panel-button-label {
+    display: none;
+  }
+}

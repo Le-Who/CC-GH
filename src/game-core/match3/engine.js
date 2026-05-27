@@ -1,3 +1,5 @@
+import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
+
 /* ═══════════════════════════════════════════════════
  *  Match-3 Engine — Pure Game Logic (v6.2.0)
  *  No DOM, no state — all functions are pure.
@@ -55,7 +57,7 @@ const REWARD_LOSE = 5;
 export function calcGoldReward(s) {
   if (typeof s !== "number" || s <= 0) return REWARD_LOSE;
   if (s < 1000)
-    return Math.max(REWARD_LOSE, Math.floor(REWARD_BASE * (s / 1000)));
+    return Math.max(REWARD_LOSE, Math.floor(REWARD_BASE * (s / 1000))) + getRewardChestProgress(s).bonus;
   let gold = REWARD_BASE;
   const tiers = [
     { min: 1000, max: 1999, r: 0.05 },
@@ -79,7 +81,7 @@ export function calcGoldReward(s) {
       rate = Math.min(rate * 2, 2.0);
     }
   }
-  return gold;
+  return gold + getRewardChestProgress(s).bonus;
 }
 
 // ─── Clone helpers (v4.16: eliminate JSON.parse/stringify GC pressure) ───

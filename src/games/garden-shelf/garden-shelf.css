@@ -190,12 +190,16 @@
 
 .garden-choice-button {
   width: 100%;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0 12px;
-  text-align: left;
+  text-align: center;
+  font-size: clamp(0.86rem, 2.7vw, 1rem);
+  line-height: 1.05;
   background:
-    linear-gradient(180deg, #f1c879, #c9853a),
-    url("/games/garden-shelf/button_secondary.png") center / 100% 100% no-repeat,
-    #d49a52;
+    url("/games/hud-redesign/garden/primary-button.png") center / 100% 100% no-repeat;
 }
 
 .garden-segmented-button.active,
@@ -203,9 +207,7 @@
 .garden-action-button.primary {
   border-color: color-mix(in srgb, var(--mint) 62%, transparent);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(44, 23, 16, 0.08)),
-    url("/games/garden-shelf/button_primary.png") center / 100% 100% no-repeat,
-    color-mix(in srgb, var(--mint) 18%, var(--glass-card-strong));
+    url("/games/hud-redesign/garden/primary-button.png") center / 100% 100% no-repeat;
   color: #2f2019;
 }
 
@@ -1013,7 +1015,7 @@
 .garden-quest-dialog {
   color: #3b2418 !important;
   background:
-    url("/games/ui-surfaces/garden-dialog-panel.png") center / 132% 100% no-repeat !important;
+    url("/games/hud-redesign/garden/dialog-panel.png") center / 132% 100% no-repeat !important;
   text-shadow: none;
 }
 
@@ -1073,11 +1075,17 @@
 }
 
 .garden-settings-dialog .garden-choice-button {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid rgba(92, 58, 38, 0.24);
   background:
-    linear-gradient(180deg, #f4c676, #d79b45),
-    #e3ad5b !important;
+    url("/games/hud-redesign/garden/primary-button.png") center / 100% 100% no-repeat !important;
   color: #3b2418 !important;
+  font-size: clamp(0.88rem, 2.7vw, 1rem) !important;
+  line-height: 1.05 !important;
+  text-align: center;
 }
 
 .garden-quest-dialog .garden-icon-button,
@@ -1138,8 +1146,7 @@
 
 .garden-quest-card .garden-action-button.disabled {
   background:
-    url("/games/garden-shelf/button_primary.png") center / 100% 100% no-repeat,
-    #9b7b43 !important;
+    url("/games/hud-redesign/garden/primary-button.png") center / 100% 100% no-repeat !important;
   color: rgba(60, 39, 26, 0.72) !important;
   filter: grayscale(0.6) saturate(0.72);
 }

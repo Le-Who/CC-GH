@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronRight, Home, Play, RotateCcw, Trophy } from "lucide-react";
+import { Check, ChevronRight, Eye, Home, Play, RotateCcw, Sparkles, Trophy } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
-import { GamePlayHud, PanelButton, PauseBrief } from "../../app/shell.jsx";
+import { GamePlayHud, PanelButton, PauseBrief, semanticHudIconPath } from "../../app/shell.jsx";
 import { useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { getQuestionTiming, useQuestionTimer } from "./useQuestionTimer.js";
@@ -27,6 +27,9 @@ export default function TriviaGame() {
   const [history, setHistory] = useState([]);
   const [paused, setPaused] = useState(false);
   const [reveal, setReveal] = useState(null);
+  const [lifelines, setLifelines] = useState({ fifty: 1, reveal: 1 });
+  const [hiddenAnswers, setHiddenAnswers] = useState([]);
+  const [hintAnswer, setHintAnswer] = useState("");
   const revealTimerRef = useRef(null);
   const inShell = view !== "menu";
   const questionActive = (view === "solo" || view === "duel-play") && question;
@@ -66,6 +69,9 @@ export default function TriviaGame() {
     setSessionScore(0);
     setStreak(0);
     setReveal(null);
+    setLifelines({ fifty: 1, reveal: 1 });
+    setHiddenAnswers([]);
+    setHintAnswer("");
     setPaused(false);
     setView("solo");
     await loadSnapshot();
@@ -73,6 +79,7 @@ export default function TriviaGame() {
 
   async function submitAnswer(answer) {
     if (reveal) return;
+    if (hiddenAnswers.includes(answer)) return;
     const path = view === "duel-play" ? "/api/trivia/duel/answer" : "/api/trivia/answer";
     const timing = getQuestionTiming(questionTiming.startedAt, Date.now(), (question?.timeLimit || 15) * 1000);
     const timeMs = Math.max(1, Math.round(timing.timeMs));
@@ -93,6 +100,8 @@ export default function TriviaGame() {
       setSessionScore(data.sessionScore ?? data.score ?? sessionScore);
       setStreak(data.streak || 0);
       setReveal(null);
+      setHiddenAnswers([]);
+      setHintAnswer("");
       if (data.nextQuestion) {
         setQuestion(data.nextQuestion);
       } else {
@@ -114,6 +123,8 @@ export default function TriviaGame() {
     setRoomId(data.roomId);
     setDuelStatus(data);
     setReveal(null);
+    setHiddenAnswers([]);
+    setHintAnswer("");
     setPaused(false);
     setView("duel-room");
   }
@@ -147,8 +158,23 @@ export default function TriviaGame() {
     }
     setQuestion(data.question);
     setReveal(null);
+    setLifelines({ fifty: 1, reveal: 1 });
+    setHiddenAnswers([]);
+    setHintAnswer("");
     setPaused(false);
     setView("duel-play");
+  }
+
+  async function useLifeline(type) {
+    if (!question || view !== "solo") return;
+    const data = await api("/api/trivia/lifeline", { type });
+    if (data.error) {
+      useGameHub.setState({ message: data.error });
+      return;
+    }
+    if (data.lifelines) setLifelines(data.lifelines);
+    if (Array.isArray(data.hiddenAnswers)) setHiddenAnswers(data.hiddenAnswers);
+    if (data.correctAnswer) setHintAnswer(data.correctAnswer);
   }
 
   async function pollDuelStatus(id = roomId) {
@@ -176,12 +202,13 @@ export default function TriviaGame() {
         </div>
         {isPlaying && (
           <GamePlayHud
+            gameId="trivia"
             title={t("trivia.title")}
             subtitle={`${question.category || t("trivia.fallbackCategory")} · ${question.difficulty || difficulty}`}
             stats={[
-              { label: t("common.score"), value: sessionScore },
-              { label: t("trivia.streakLabel"), value: streak || 0 },
-              { label: t("common.time"), value: Math.ceil(questionTiming.remainingMs / 1000) },
+              { id: "score", label: t("common.score"), value: sessionScore },
+              { id: "streak", label: t("trivia.streakLabel"), value: streak || 0 },
+              { id: "time", label: t("common.time"), value: Math.ceil(questionTiming.remainingMs / 1000) },
             ]}
             onPause={() => setPaused(true)}
           />
@@ -214,7 +241,19 @@ export default function TriviaGame() {
           </>
         )}
         {(view === "solo" || view === "duel-play") && question && (
-          <QuestionPanel question={question} score={sessionScore} streak={streak} submitAnswer={submitAnswer} reveal={reveal} timing={questionTiming} />
+          <QuestionPanel
+            question={question}
+            score={sessionScore}
+            streak={streak}
+            submitAnswer={submitAnswer}
+            reveal={reveal}
+            timing={questionTiming}
+            lifelines={view === "solo" ? lifelines : null}
+            hiddenAnswers={hiddenAnswers}
+            hintAnswer={hintAnswer}
+            onFifty={() => useLifeline("fifty")}
+            onReveal={() => useLifeline("reveal")}
+          />
         )}
         {view === "duel-room" && (
           <div className="duel-box">
@@ -312,7 +351,7 @@ export default function TriviaGame() {
   );
 }
 
-function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing }) {
+function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing, lifelines = null, hiddenAnswers = [], hintAnswer = "", onFifty, onReveal }) {
   const { t } = useAppI18n();
   const remainingSeconds = Math.ceil((timing?.remainingMs || 0) / 1000);
   return (
@@ -326,18 +365,26 @@ function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing }
       <h2>{question.question}</h2>
       <small>{question.category} · {question.difficulty} · {remainingSeconds}s</small>
       <i className="trivia-timer-bar" aria-hidden="true"><b style={{ transform: `scaleX(${timing?.progress ?? 1})` }} /></i>
+      {lifelines && (
+        <div className="trivia-lifeline-dock">
+          <PanelButton icon={Sparkles} image={semanticHudIconPath("trivia", "fifty")} subtle disabled={!!reveal || lifelines.fifty <= 0} onClick={onFifty}>50/50 {lifelines.fifty}</PanelButton>
+          <PanelButton icon={Eye} image={semanticHudIconPath("trivia", "reveal")} subtle disabled={!!reveal || lifelines.reveal <= 0} onClick={onReveal}>Hint {lifelines.reveal}</PanelButton>
+        </div>
+      )}
       <div className="answer-grid">
         {(question.answers || []).map((answer) => {
+          const isHidden = hiddenAnswers.includes(answer);
+          const isHinted = hintAnswer && answer === hintAnswer;
           const isCorrect = reveal && answer === reveal.correctAnswer;
           const isChosenWrong = reveal && answer === reveal.answer && !reveal.correct;
           return (
           <button
             key={answer}
-            className={`${isCorrect ? "correct" : ""}${isChosenWrong ? " incorrect" : ""}`.trim()}
-            disabled={!!reveal}
+            className={`${isCorrect ? "correct" : ""}${isChosenWrong ? " incorrect" : ""}${isHidden ? " hidden-by-lifeline" : ""}${isHinted ? " hinted" : ""}`.trim()}
+            disabled={!!reveal || isHidden}
             onClick={() => submitAnswer(answer)}
           >
-            {answer}
+            {isHidden ? "—" : answer}
           </button>
           );
         })}

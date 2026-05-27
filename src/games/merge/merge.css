@@ -32,8 +32,7 @@
   z-index: -1;
   border-radius: 18px;
   background:
-    url("/games/ui-surfaces/merge-dialog-panel.png") center / 100% 100% no-repeat,
-    #241b20;
+    url("/games/hud-redesign/merge/dialog-panel.png") center / 100% 100% no-repeat;
   filter: drop-shadow(0 24px 48px rgba(16, 9, 12, 0.54));
 }
 
@@ -1335,6 +1334,7 @@
 
 .merge-scene-hud::before {
   z-index: -1;
+  background-image: url("/games/hud-redesign/merge/hud-panel.png") !important;
   background-size: 100% 100%;
   opacity: 1;
 }
@@ -1432,14 +1432,16 @@
   border: 0;
   border-radius: 8px;
   padding: 0;
-  background: transparent;
+  background: url("/games/hud-redesign/merge/icon-badge.png") center / 100% 100% no-repeat;
   color: #fff;
   cursor: pointer;
   overflow: hidden;
 }
 
 .merge-top-tool.active {
-  background: #483b20;
+  background:
+    url("/games/hud-redesign/merge/icon-badge.png") center / 100% 100% no-repeat,
+    transparent;
   box-shadow: inset 0 0 0 1px rgba(255, 222, 116, 0.2), 0 0 12px rgba(255, 214, 89, 0.18);
 }
 
@@ -1489,7 +1491,7 @@
 
 .merge-action-area .merge-action-dock::before {
   inset: 0;
-  background-image: url("/games/ui-surfaces/merge-panel.png");
+  background-image: url("/games/hud-redesign/merge/dock-panel.png");
   background-size: 100% 100%;
   background-repeat: no-repeat;
   opacity: 1;
@@ -1986,8 +1988,7 @@
   border: 0;
   border-radius: 8px;
   background:
-    url("/games/ui-surfaces/merge-dialog-panel.png") center / 100% 100% no-repeat,
-    #241b20;
+    url("/games/hud-redesign/merge/dialog-panel.png") center / 100% 100% no-repeat;
 }
 
 .merge-library-panel::after,
@@ -2070,7 +2071,7 @@
 }
 
 .game-shell .game-menu-overlay.merge-pause-overlay::before {
-  background: url("/games/ui-surfaces/merge-dialog-panel.png") center / 100% 100% no-repeat;
+  background: url("/games/hud-redesign/merge/dialog-panel.png") center / 100% 100% no-repeat;
 }
 
 .merge-pause-overlay .panel-header,

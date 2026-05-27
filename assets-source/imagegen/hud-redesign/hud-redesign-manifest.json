@@ -1,0 +1,1789 @@
+{
+  "version": 1,
+  "generatedAt": "2026-05-27T15:07:50.906Z",
+  "generatedBy": "scripts/generate-hud-redesign-pack.mjs",
+  "chromaKeyPolicy": {
+    "allowedKeys": [
+      "#00ff00",
+      "#ff00ff"
+    ],
+    "rule": "Each standalone chromakey source asset uses a flat key color selected so the key does not appear in that asset. Runtime PNGs are transparent."
+  },
+  "assetProduction": {
+    "source": "imagegen-source-art-data-free",
+    "rule": "HUD runtime assets are extracted from individual production-quality imagegen source files, one source file per asset. They are not atlas/sheet crops, not crops from screenshot references, and not programmatic SVG/vector/placeholder drawings. They must not bake numbers, labels, semantic state icons, filled progress bars, or gameplay state into the art."
+  },
+  "references": {
+    "aiReferenceBoard": "assets-source/imagegen/hud-redesign/references/reference-board-ai.png"
+  },
+  "games": {
+    "garden": {
+      "id": "garden",
+      "label": "Garden Shelf",
+      "registry": {
+        "id": "garden",
+        "labelKey": "tabs.garden",
+        "icon": "Leaf",
+        "visible": true,
+        "pixiScene": false,
+        "shell": "hub"
+      },
+      "metrics": [
+        "gold",
+        "levelXp",
+        "growthStage",
+        "productionReady",
+        "cooldown",
+        "questClaim",
+        "inventoryShop"
+      ],
+      "layout": {
+        "mode": "terrarium-first portrait",
+        "regions": [
+          {
+            "id": "topMetricPlaque",
+            "anchor": "top",
+            "rect": "14,16,332,56",
+            "content": [
+              "gold",
+              "levelXp",
+              "settings"
+            ]
+          },
+          {
+            "id": "questBadge",
+            "anchor": "left-edge",
+            "rect": "18,92,44,44",
+            "content": [
+              "questClaim"
+            ]
+          },
+          {
+            "id": "shelfPlayfield",
+            "anchor": "center",
+            "rect": "14,82,332,506",
+            "content": [
+              "plants",
+              "growthStage",
+              "cooldown"
+            ]
+          },
+          {
+            "id": "lowerQuestSheet",
+            "anchor": "bottom",
+            "rect": "16,604,328,84",
+            "content": [
+              "questProgress",
+              "reward"
+            ]
+          },
+          {
+            "id": "bottomToolDock",
+            "anchor": "bottom",
+            "rect": "16,704,328,72",
+            "content": [
+              "shop",
+              "water",
+              "collect",
+              "pot",
+              "tasks"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/garden-hud-reference.png",
+        "width": 851,
+        "height": 1847
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/garden/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/garden/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#ff00ff"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-gold",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/garden/stat-gold.source.png",
+          "originalSourcePath": "public/games/garden-shelf/icon_collect.png",
+          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-gold.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-level-xp",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/garden/stat-level-xp.source.png",
+          "originalSourcePath": "public/games/garden-shelf/icon_plant.png",
+          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-level-xp.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-quest",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/garden/stat-quest.source.png",
+          "originalSourcePath": "public/games/garden-shelf/icon_quest.png",
+          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-quest.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "blox": {
+      "id": "blox",
+      "label": "Blox",
+      "registry": {
+        "id": "blox",
+        "labelKey": "tabs.blox",
+        "icon": "Blocks",
+        "visible": true,
+        "pixiScene": true,
+        "shell": "game"
+      },
+      "metrics": [
+        "score",
+        "lines",
+        "rewardTrack",
+        "trayAvailability",
+        "selectedPiece",
+        "placementValidity"
+      ],
+      "layout": {
+        "mode": "board-first portrait",
+        "regions": [
+          {
+            "id": "topScoreRail",
+            "anchor": "top",
+            "rect": "14,16,332,56",
+            "content": [
+              "score",
+              "stars",
+              "pause"
+            ]
+          },
+          {
+            "id": "boardField",
+            "anchor": "center",
+            "rect": "16,88,328,416",
+            "content": [
+              "grid",
+              "placementPreview"
+            ]
+          },
+          {
+            "id": "pieceTray",
+            "anchor": "lower",
+            "rect": "18,520,324,76",
+            "content": [
+              "threePieces",
+              "selectedPiece"
+            ]
+          },
+          {
+            "id": "rewardRail",
+            "anchor": "lower",
+            "rect": "18,610,324,62",
+            "content": [
+              "lines",
+              "rewardTrack"
+            ]
+          },
+          {
+            "id": "feedbackBand",
+            "anchor": "bottom-reserve",
+            "rect": "18,688,324,84",
+            "content": [
+              "validInvalid",
+              "comboToast"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/blox-hud-reference.png",
+        "width": 841,
+        "height": 1870
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/blox/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/blox/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#00ff00"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-score",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/blox/stat-score.source.png",
+          "originalSourcePath": "public/games/blox/icon_score.png",
+          "runtimePath": "public/games/hud-redesign/blox/semantic-icons/stat-score.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-lines",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/blox/stat-lines.source.png",
+          "originalSourcePath": "public/games/blox/icon_lines.png",
+          "runtimePath": "public/games/hud-redesign/blox/semantic-icons/stat-lines.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-reward",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/blox/stat-reward.source.png",
+          "originalSourcePath": "public/games/blox/icon_reward.png",
+          "runtimePath": "public/games/hud-redesign/blox/semantic-icons/stat-reward.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-pause",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/blox/action-pause.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/icon-pause.png",
+          "runtimePath": "public/games/hud-redesign/blox/semantic-icons/action-pause.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "match3": {
+      "id": "match3",
+      "label": "Gem Crush",
+      "registry": {
+        "id": "match3",
+        "labelKey": "tabs.gems",
+        "icon": "Gem",
+        "visible": true,
+        "pixiScene": true,
+        "shell": "game"
+      },
+      "metrics": [
+        "score",
+        "movesOrTime",
+        "combo",
+        "mode",
+        "selectedGem",
+        "cascadeLock",
+        "dropRewards"
+      ],
+      "layout": {
+        "mode": "potion-board portrait",
+        "regions": [
+          {
+            "id": "topPotionRail",
+            "anchor": "top",
+            "rect": "14,16,332,64",
+            "content": [
+              "score",
+              "moves",
+              "combo",
+              "pause"
+            ]
+          },
+          {
+            "id": "gemBoard",
+            "anchor": "center",
+            "rect": "18,94,324,414",
+            "content": [
+              "grid",
+              "selectedGem",
+              "cascade"
+            ]
+          },
+          {
+            "id": "boosterBar",
+            "anchor": "lower",
+            "rect": "18,524,324,74",
+            "content": [
+              "selectedGem",
+              "boosters",
+              "dropRewards"
+            ]
+          },
+          {
+            "id": "modeStrip",
+            "anchor": "lower",
+            "rect": "18,612,324,62",
+            "content": [
+              "mode",
+              "target"
+            ]
+          },
+          {
+            "id": "lowerActionReserve",
+            "anchor": "bottom",
+            "rect": "18,690,324,84",
+            "content": [
+              "pause",
+              "hint",
+              "reward"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/match3-hud-reference.png",
+        "width": 840,
+        "height": 1871
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/match3/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/match3/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#00ff00"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-score",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/match3/stat-score.source.png",
+          "originalSourcePath": "public/games/puzzling-potions/images/drop-gold.png",
+          "runtimePath": "public/games/hud-redesign/match3/semantic-icons/stat-score.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-moves",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/match3/stat-moves.source.png",
+          "originalSourcePath": "public/games/puzzling-potions/images/moves-badge.png",
+          "runtimePath": "public/games/hud-redesign/match3/semantic-icons/stat-moves.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-combo",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/match3/stat-combo.source.png",
+          "originalSourcePath": "public/games/puzzling-potions/images/combo-badge.png",
+          "runtimePath": "public/games/hud-redesign/match3/semantic-icons/stat-combo.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-reward",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/match3/stat-reward.source.png",
+          "originalSourcePath": "public/games/puzzling-potions/images/reward-badge.png",
+          "runtimePath": "public/games/hud-redesign/match3/semantic-icons/stat-reward.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-mix",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/match3/action-mix.source.png",
+          "originalSourcePath": "public/games/puzzling-potions/images/special-colour.png",
+          "runtimePath": "public/games/hud-redesign/match3/semantic-icons/action-mix.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-pause",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/match3/action-pause.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/icon-pause.png",
+          "runtimePath": "public/games/hud-redesign/match3/semantic-icons/action-pause.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "merge": {
+      "id": "merge",
+      "label": "Alchemy Merge",
+      "registry": {
+        "id": "merge",
+        "labelKey": "tabs.merge",
+        "icon": "PackageOpen",
+        "visible": true,
+        "pixiScene": true,
+        "shell": "game"
+      },
+      "metrics": [
+        "essence",
+        "freeTaps",
+        "fuelTokens",
+        "generatorCooldown",
+        "selectedCell",
+        "trashMode",
+        "drawerState"
+      ],
+      "layout": {
+        "mode": "workbench portrait",
+        "regions": [
+          {
+            "id": "topResourceRail",
+            "anchor": "top",
+            "rect": "14,16,332,56",
+            "content": [
+              "essence",
+              "fuel",
+              "cooldown",
+              "pause"
+            ]
+          },
+          {
+            "id": "mergeBoard",
+            "anchor": "center",
+            "rect": "18,92,324,418",
+            "content": [
+              "board",
+              "selectedCell"
+            ]
+          },
+          {
+            "id": "trashModeDock",
+            "anchor": "lower",
+            "rect": "18,524,324,72",
+            "content": [
+              "trashMode",
+              "generator"
+            ]
+          },
+          {
+            "id": "drawerStrip",
+            "anchor": "lower",
+            "rect": "18,610,324,72",
+            "content": [
+              "activeDrawer",
+              "inventory"
+            ]
+          },
+          {
+            "id": "bottomActionDock",
+            "anchor": "bottom",
+            "rect": "18,698,324,76",
+            "content": [
+              "generate",
+              "freeTaps",
+              "library"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/merge-hud-reference.png",
+        "width": 841,
+        "height": 1870
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/merge/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/merge/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#ff00ff"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-essence",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/merge/stat-essence.source.png",
+          "originalSourcePath": "public/games/gacha-merge/ui/hudIconEssence.png",
+          "runtimePath": "public/games/hud-redesign/merge/semantic-icons/stat-essence.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-free-taps",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/merge/stat-free-taps.source.png",
+          "originalSourcePath": "public/games/gacha-merge/ui/actionIconFreeTaps.png",
+          "runtimePath": "public/games/hud-redesign/merge/semantic-icons/stat-free-taps.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-fuel",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/merge/stat-fuel.source.png",
+          "originalSourcePath": "public/games/gacha-merge/ui/actionIconFuel.png",
+          "runtimePath": "public/games/hud-redesign/merge/semantic-icons/stat-fuel.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "bubbo": {
+      "id": "bubbo",
+      "label": "Bubbo",
+      "registry": {
+        "id": "bubbo",
+        "labelKey": "tabs.bubbo",
+        "icon": "Sparkles",
+        "visible": true,
+        "pixiScene": true,
+        "shell": "game"
+      },
+      "metrics": [
+        "score",
+        "shotsOrTime",
+        "pressureDanger",
+        "currentBubble",
+        "nextBubble",
+        "remainingBubbles",
+        "mode"
+      ],
+      "layout": {
+        "mode": "shooter-safe portrait",
+        "regions": [
+          {
+            "id": "topDangerRail",
+            "anchor": "top",
+            "rect": "14,16,332,56",
+            "content": [
+              "score",
+              "shots",
+              "danger",
+              "pause"
+            ]
+          },
+          {
+            "id": "bubbleField",
+            "anchor": "center",
+            "rect": "12,82,336,506",
+            "content": [
+              "bubbleCluster",
+              "aimLine"
+            ]
+          },
+          {
+            "id": "cannonZone",
+            "anchor": "lower-center",
+            "rect": "118,568,124,98",
+            "content": [
+              "currentBubble",
+              "nextBubble"
+            ]
+          },
+          {
+            "id": "bottomCommandBar",
+            "anchor": "bottom",
+            "rect": "18,688,324,88",
+            "content": [
+              "mode",
+              "powerups",
+              "remaining"
+            ]
+          },
+          {
+            "id": "feedbackPocket",
+            "anchor": "lower-right",
+            "rect": "248,608,82,58",
+            "content": [
+              "comboToast"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/bubbo-hud-reference.png",
+        "width": 851,
+        "height": 1849
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/bubbo/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#00ff00"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-score",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/bubbo/stat-score.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/fx/score-pop.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/semantic-icons/stat-score.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-shots",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/bubbo/stat-shots.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/cannon-arrow.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/semantic-icons/stat-shots.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-pressure",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/bubbo/stat-pressure.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/pressure-row-accent.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/semantic-icons/stat-pressure.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-reward",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/bubbo/stat-reward.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/bubble-glow.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/semantic-icons/stat-reward.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-swap",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/bubbo/action-swap.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/bubble-reserve-ring.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/semantic-icons/action-swap.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-pause",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/bubbo/action-pause.source.png",
+          "originalSourcePath": "public/games/bubbo-bubbo/images/icon-pause.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/semantic-icons/action-pause.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "trivia": {
+      "id": "trivia",
+      "label": "Trivia",
+      "registry": {
+        "id": "trivia",
+        "labelKey": "tabs.trivia",
+        "icon": "Bot",
+        "visible": true,
+        "pixiScene": false,
+        "shell": "game"
+      },
+      "metrics": [
+        "score",
+        "streak",
+        "timer",
+        "questionIndex",
+        "answerReveal",
+        "duelRoom",
+        "history"
+      ],
+      "layout": {
+        "mode": "quiz-card portrait",
+        "regions": [
+          {
+            "id": "topQuestionRail",
+            "anchor": "top",
+            "rect": "14,16,332,56",
+            "content": [
+              "timer",
+              "streak",
+              "questionIndex",
+              "pause"
+            ]
+          },
+          {
+            "id": "questionPanel",
+            "anchor": "center",
+            "rect": "18,98,324,196",
+            "content": [
+              "category",
+              "question"
+            ]
+          },
+          {
+            "id": "answerGrid",
+            "anchor": "center",
+            "rect": "18,312,324,224",
+            "content": [
+              "answers",
+              "revealState"
+            ]
+          },
+          {
+            "id": "helpDock",
+            "anchor": "lower",
+            "rect": "18,552,324,72",
+            "content": [
+              "ask",
+              "reveal",
+              "history"
+            ]
+          },
+          {
+            "id": "progressRail",
+            "anchor": "bottom",
+            "rect": "18,682,324,94",
+            "content": [
+              "score",
+              "rewardChests"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/trivia-hud-reference.png",
+        "width": 841,
+        "height": 1870
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#00ff00"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/trivia/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/trivia/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#00ff00"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-score",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/trivia/stat-score.source.png",
+          "originalSourcePath": "public/games/trivia/icon-score.png",
+          "runtimePath": "public/games/hud-redesign/trivia/semantic-icons/stat-score.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-streak",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/trivia/stat-streak.source.png",
+          "originalSourcePath": "public/games/trivia/icon-streak.png",
+          "runtimePath": "public/games/hud-redesign/trivia/semantic-icons/stat-streak.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-time",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/trivia/stat-time.source.png",
+          "originalSourcePath": "public/games/trivia/icon-time.png",
+          "runtimePath": "public/games/hud-redesign/trivia/semantic-icons/stat-time.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-fifty",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/trivia/action-fifty.source.png",
+          "originalSourcePath": "public/games/trivia/icon-ready.png",
+          "runtimePath": "public/games/hud-redesign/trivia/semantic-icons/action-fifty.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-reveal",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/trivia/action-reveal.source.png",
+          "originalSourcePath": "public/games/trivia/icon-category.png",
+          "runtimePath": "public/games/hud-redesign/trivia/semantic-icons/action-reveal.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "room": {
+      "id": "room",
+      "label": "Cozy Yard",
+      "registry": {
+        "id": "room",
+        "labelKey": "tabs.room",
+        "icon": "Home",
+        "visible": true,
+        "pixiScene": false,
+        "shell": "game"
+      },
+      "metrics": [
+        "treats",
+        "shinyTreats",
+        "gifts",
+        "visitors",
+        "pendingSync",
+        "activeTool",
+        "placementDraft"
+      ],
+      "layout": {
+        "mode": "yard-first portrait",
+        "regions": [
+          {
+            "id": "edgeCurrencyStack",
+            "anchor": "top",
+            "rect": "14,16,332,54",
+            "content": [
+              "treats",
+              "gifts",
+              "visitors",
+              "settings"
+            ]
+          },
+          {
+            "id": "yardStage",
+            "anchor": "center",
+            "rect": "12,82,336,536",
+            "content": [
+              "companions",
+              "decor",
+              "placementDraft"
+            ]
+          },
+          {
+            "id": "activeToolCard",
+            "anchor": "lower",
+            "rect": "76,594,208,72",
+            "content": [
+              "activeTool",
+              "cooldown"
+            ]
+          },
+          {
+            "id": "bottomDock",
+            "anchor": "bottom",
+            "rect": "14,696,332,80",
+            "content": [
+              "shop",
+              "care",
+              "home",
+              "camera",
+              "friends"
+            ]
+          },
+          {
+            "id": "syncNotice",
+            "anchor": "lower-left",
+            "rect": "18,626,108,48",
+            "content": [
+              "pendingSync"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/room-hud-reference.png",
+        "width": 852,
+        "height": 1846
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/room/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/room/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#ff00ff"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "dock-food",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/dock-food.source.png",
+          "originalSourcePath": "public/games/companion-yard/foods/kibble.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/dock-food.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "dock-goodies",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/dock-goodies.source.png",
+          "originalSourcePath": "public/games/companion-yard/goodies/yarn_mouse.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/dock-goodies.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "dock-shop",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/dock-shop.source.png",
+          "originalSourcePath": "public/games/companion-yard/ui/gift_box.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/dock-shop.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "dock-petbook",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/dock-petbook.source.png",
+          "originalSourcePath": "public/games/companion-yard/ui/daily_letter.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/dock-petbook.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "dock-album",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/dock-album.source.png",
+          "originalSourcePath": "public/games/companion-yard/ui/photo_frame.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/dock-album.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "dock-gifts",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/dock-gifts.source.png",
+          "originalSourcePath": "public/games/companion-yard/ui/gift_ready.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/dock-gifts.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-daily",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/action-daily.source.png",
+          "originalSourcePath": "public/games/companion-yard/ui/stamp.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/action-daily.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "action-close",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/action-close.source.png",
+          "originalSourcePath": "public/games/gacha-merge/ui/actionIconClose.png",
+          "runtimePath": "public/games/hud-redesign/room/semantic-icons/action-close.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    },
+    "settlement": {
+      "id": "settlement",
+      "label": "Settlement",
+      "registry": {
+        "id": "settlement",
+        "labelKey": "tabs.settlement",
+        "icon": "Home",
+        "visible": true,
+        "pixiScene": true,
+        "shell": "game"
+      },
+      "metrics": [
+        "coreResources",
+        "morale",
+        "population",
+        "prestige",
+        "collectReadiness",
+        "selectedBuilding",
+        "constructionState",
+        "researchWorldMap"
+      ],
+      "layout": {
+        "mode": "map-first adaptive",
+        "regions": [
+          {
+            "id": "topResourceRibbon",
+            "anchor": "top",
+            "rect": "10,12,340,58",
+            "content": [
+              "resources",
+              "morale",
+              "population"
+            ]
+          },
+          {
+            "id": "mapCanvas",
+            "anchor": "center",
+            "rect": "0,0,360,800",
+            "content": [
+              "map",
+              "coordinateAnchors"
+            ]
+          },
+          {
+            "id": "leftToolRail",
+            "anchor": "left",
+            "rect": "10,94,58,256",
+            "content": [
+              "build",
+              "goals",
+              "inventory",
+              "council"
+            ]
+          },
+          {
+            "id": "mobileBottomSheet",
+            "anchor": "bottom",
+            "rect": "16,578,328,122",
+            "content": [
+              "selectedBuilding",
+              "constructionState"
+            ]
+          },
+          {
+            "id": "bottomNav",
+            "anchor": "bottom",
+            "rect": "14,710,332,70",
+            "content": [
+              "build",
+              "research",
+              "world",
+              "shop"
+            ]
+          }
+        ]
+      },
+      "reference": {
+        "path": "assets-source/imagegen/hud-redesign/references/settlement-hud-reference.png",
+        "width": 853,
+        "height": 1844
+      },
+      "assets": [
+        {
+          "id": "hud-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/hud-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/hud-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/hud-panel.png",
+          "width": 512,
+          "height": 256,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dialog-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/dialog-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/dialog-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/dialog-panel.png",
+          "width": 512,
+          "height": 768,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "dock-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/dock-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/dock-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/dock-panel.png",
+          "width": 512,
+          "height": 144,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "screen-panel",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/screen-panel.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/screen-panel.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/screen-panel.png",
+          "width": 512,
+          "height": 512,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "primary-button",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/primary-button.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/primary-button.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/primary-button.png",
+          "width": 256,
+          "height": 96,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "metric-chip",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/metric-chip.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/metric-chip.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/metric-chip.png",
+          "width": 220,
+          "height": 86,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "icon-badge",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/icon-badge.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/icon-badge.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/icon-badge.png",
+          "width": 112,
+          "height": 112,
+          "chromaKey": "#ff00ff"
+        },
+        {
+          "id": "tool-slot",
+          "source": "imagegen-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/tool-slot.source.chromakey.png",
+          "path": "assets-source/imagegen/hud-redesign/assets/settlement/tool-slot.chromakey.png",
+          "runtimePath": "public/games/hud-redesign/settlement/tool-slot.png",
+          "width": 128,
+          "height": 128,
+          "chromaKey": "#ff00ff"
+        }
+      ],
+      "semanticIcons": [
+        {
+          "id": "stat-gold",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/settlement/stat-gold.source.webp",
+          "originalSourcePath": "public/games/settlement/icon-resource-gold.webp",
+          "runtimePath": "public/games/hud-redesign/settlement/semantic-icons/stat-gold.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-food",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/settlement/stat-food.source.webp",
+          "originalSourcePath": "public/games/settlement/icon-resource-food.webp",
+          "runtimePath": "public/games/hud-redesign/settlement/semantic-icons/stat-food.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-wood",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/settlement/stat-wood.source.webp",
+          "originalSourcePath": "public/games/settlement/icon-resource-wood.webp",
+          "runtimePath": "public/games/hud-redesign/settlement/semantic-icons/stat-wood.png",
+          "width": 96,
+          "height": 96
+        },
+        {
+          "id": "stat-stone",
+          "source": "production-source-art-data-free",
+          "dataFree": true,
+          "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/settlement/stat-stone.source.webp",
+          "originalSourcePath": "public/games/settlement/icon-resource-stone.webp",
+          "runtimePath": "public/games/hud-redesign/settlement/semantic-icons/stat-stone.png",
+          "width": 96,
+          "height": 96
+        }
+      ]
+    }
+  },
+  "hiddenLegacy": {
+    "farm": {
+      "visible": false,
+      "reason": "Farm remains hidden legacy in the registry; a new panel surface is kept for compatibility only."
+    }
+  }
+}

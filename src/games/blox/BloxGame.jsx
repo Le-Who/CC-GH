@@ -9,6 +9,8 @@ import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
 import { previewBloxPlacement } from "../../../game-logic/blox-engine.js";
+import { calcBloxReward } from "../../../game-logic/economy.js";
+import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
 import "./i18n.js";
 import "./blox.css";
 export default function BloxGame() {
@@ -34,7 +36,8 @@ export default function BloxGame() {
   const [leaders, setLeaders] = useState([]);
   const isPlaying = state.gameActive && !paused;
   const activePause = state.gameActive && paused;
-  const currentReward = state.score ? Math.min(400, Math.floor(state.score * 0.35)) : 0;
+  const rewardChest = getRewardChestProgress(state.score || 0);
+  const currentReward = state.score ? calcBloxReward(Number(state.score) || 0) : 0;
   const trayPieces = state.tray.filter((piece) => piece && !piece.placed).length;
   const pauseRun = useCallback(() => {
     if (state.gameActive) setPaused(true);
@@ -147,9 +150,9 @@ export default function BloxGame() {
           title={t("blox.title")}
           subtitle={t("blox.rewardLine", { best: state.highScore, reward: currentReward })}
           stats={[
-            { label: t("common.score"), value: state.score || 0 },
-            { label: t("common.lines"), value: state.linesCleared || 0 },
-            { label: t("common.reward"), value: currentReward },
+            { id: "score", label: t("common.score"), value: state.score || 0 },
+            { id: "lines", label: t("common.lines"), value: state.linesCleared || 0 },
+            { id: "reward", label: rewardChest.tier === "none" ? t("common.reward") : "Chest", value: rewardChest.tier === "none" ? currentReward : rewardChest.tier, progress: rewardChest.progress * 100 },
           ]}
           onPause={() => setPaused(true)}
         />
@@ -193,7 +196,7 @@ export default function BloxGame() {
               <div className="metric-grid">
                 <Stat icon={Trophy} label={t("common.score")} value={state.score || 0} />
                 <Stat icon={Blocks} label={t("common.lines")} value={state.linesCleared || 0} />
-                <Stat icon={Sparkles} label={t("common.reward")} value={currentReward} />
+                <Stat icon={Sparkles} label={rewardChest.tier === "none" ? t("common.reward") : "Chest"} value={rewardChest.tier === "none" ? currentReward : `+${rewardChest.bonus}`} progress={rewardChest.progress * 100} />
               </div>
               <div className="button-row two">
                 <PanelButton icon={Check} disabled={!state.gameActive} onClick={() => performAction("blox.end", { score: state.score })}>{t("common.settle")}</PanelButton>

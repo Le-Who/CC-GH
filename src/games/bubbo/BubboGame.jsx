@@ -3,10 +3,12 @@ import { Check, Clock, Gem, Home, Play, RotateCcw, Sparkles, Trophy } from "luci
 import { audioManager } from "../../services/audioManager.js";
 import { BUBBO_SHOTS, BUBBO_TIMED_SECONDS, advanceBubboPressure, createBubboRun, getBubboDangerRows, getBubboPressureLabel, getBubboRemainingCount, isBubboDanger, randomBubboColor, resolveBubboShot } from "../../game-core/bubbo/engine.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat } from "../../app/shell.jsx";
+import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat, semanticHudIconPath } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
+import { calcBubboReward } from "../../../game-logic/economy.js";
+import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
 import "./i18n.js";
 import "./bubbo.css";
 
@@ -38,6 +40,7 @@ export default function BubboGame() {
   const [runResult, setRunResult] = useState(null);
   const [currentBubble, setCurrentBubble] = useState(() => randomBubboColor());
   const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
+  const [swapCharges, setSwapCharges] = useState(1);
   const [lastShot, setLastShot] = useState(null);
   const pressureClockRef = useRef(Date.now());
   const runRef = useRef({ board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft, shotsFired, mode, timeLeft });
@@ -54,18 +57,21 @@ export default function BubboGame() {
   const currentMode = BUBBO_MODES.find((item) => item.id === mode) || BUBBO_MODES[0];
   const primaryLimitLabel = mode === "timed" ? t("common.time") : t("common.shots");
   const primaryLimitValue = mode === "timed" ? timeLeft : shotsLeft;
+  const rewardChest = getRewardChestProgress(score);
+  const currentReward = score > 0 ? calcBubboReward(Number(score) || 0) : 0;
   const pauseRun = useCallback(() => {
     if (gameActive) setPaused(true);
   }, [gameActive]);
   const shellControls = useMemo(() => ({
     activeRun: gameActive,
     pauseRun,
-    hudState: {
-      score,
-      shotsLeft,
-      pressureLabel: pressureValue,
-    },
-  }), [gameActive, pauseRun, pressureValue, score, shotsLeft]);
+      hudState: {
+        score,
+        shotsLeft,
+        pressureLabel: pressureValue,
+        currentReward,
+      },
+  }), [currentReward, gameActive, pauseRun, pressureValue, score, shotsLeft]);
   useImmersiveGame("bubbo", true, shellControls);
 
   useEffect(() => {
@@ -113,6 +119,7 @@ export default function BubboGame() {
     shotAdvanceRef.current = null;
     setCurrentBubble(firstBubble);
     setNextBubble(queuedBubble);
+    setSwapCharges(1);
     setLastShot(null);
   }, [mode, performAction]);
 
@@ -144,8 +151,21 @@ export default function BubboGame() {
     shotAdvanceRef.current = null;
     setCurrentBubble(firstBubble);
     setNextBubble(queuedBubble);
+    setSwapCharges(1);
     setLastShot(null);
   }, [mode, savedRun]);
+
+  const swapQueuedBubble = useCallback(() => {
+    if (!gameActive || swapCharges <= 0) return;
+    const current = bubbleRef.current.current;
+    const next = bubbleRef.current.next;
+    bubbleRef.current = { current: next, next: current };
+    setCurrentBubble(next);
+    setNextBubble(current);
+    setSwapCharges((value) => Math.max(0, value - 1));
+    audioManager.play("tap");
+    pushEvent({ game: "bubbo", title: "Bubble swap", value: `${swapCharges - 1}`, tone: "success" });
+  }, [gameActive, pushEvent, swapCharges]);
 
   const finish = useCallback(
     (finalScore = score, fromQuit = false) => {
@@ -355,10 +375,11 @@ export default function BubboGame() {
           gameId="bubbo"
           title={t("bubbo.title")}
           stats={[
-            { label: t("common.score"), value: score },
-            { label: primaryLimitLabel, value: primaryLimitValue },
-            { label: t("common.pressure"), value: pressureValue },
+            { id: "score", label: t("common.score"), value: score },
+            { id: mode === "timed" ? "time" : "shots", label: primaryLimitLabel, value: primaryLimitValue },
+            { id: rewardChest.tier === "none" ? "pressure" : "reward", label: rewardChest.tier === "none" ? t("common.pressure") : "Chest", value: rewardChest.tier === "none" ? pressureValue : rewardChest.tier, progress: rewardChest.tier === "none" ? null : rewardChest.progress * 100 },
           ]}
+          extraActions={<PanelButton icon={RotateCcw} image={semanticHudIconPath("bubbo", "swap")} iconOnly subtle disabled={!isPlaying || swapCharges <= 0} onClick={swapQueuedBubble}>Swap {swapCharges}</PanelButton>}
           onPause={() => setPaused(true)}
           className="game-play-hud-bottom bubbo-play-hud"
         />

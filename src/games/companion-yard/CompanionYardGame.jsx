@@ -14,6 +14,7 @@ import { audioManager } from "../../services/audioManager.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
 import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
+import { usePressTooltip } from "../../app/usePressTooltip.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
 import "./i18n.js";
@@ -158,10 +159,12 @@ function YardIconButton({
   active,
   danger,
   compact,
+  labelMode = compact ? "tooltip" : "visible",
   badge,
   className = "",
   children,
 }) {
+  const tip = usePressTooltip(labelMode === "tooltip" ? label : "");
   return (
     <button
       type="button"
@@ -172,11 +175,21 @@ function YardIconButton({
         onClick?.(event);
       }}
       aria-label={label}
+      aria-describedby={tip.visible ? tip.tooltipId : undefined}
       title={label}
+      data-label-mode={labelMode}
+      data-tooltip={labelMode === "tooltip" ? label : undefined}
+      onPointerDown={tip.handlers.onPointerDown}
+      onPointerUp={tip.handlers.onPointerUp}
+      onPointerCancel={tip.handlers.onPointerCancel}
+      onPointerLeave={tip.handlers.onPointerLeave}
+      onFocus={tip.handlers.onFocus}
+      onBlur={tip.handlers.onBlur}
     >
       <YardIcon name={icon} />
       <span className="yard-icon-label">{children || label}</span>
       {badge ? <b className="yard-badge">{badge}</b> : null}
+      {tip.visible && <em id={tip.tooltipId} role="tooltip" className="press-tooltip yard-press-tooltip">{label}</em>}
     </button>
   );
 }
@@ -210,7 +223,7 @@ function YardCurrencyChip({ icon, label, value }) {
   return (
     <div className="yard-currency-chip" title={label}>
       <YardIcon name={icon} />
-      <span>{label}</span>
+      <span className="yard-currency-label">{label}</span>
       <strong>{value}</strong>
     </div>
   );
@@ -1089,12 +1102,12 @@ export default function CompanionYardGame() {
             text={text}
           />
           <HudEditableRegion id="yardBottomDock" as="div" className="yard-bottom-dock">
-            <YardIconButton icon="food" label={text("yard.nav.food", "Food")} active={activeScreen === "food"} onClick={() => openScreen("food")} />
-            <YardIconButton icon="goodies" label={text("yard.nav.goodies", "Goodies")} active={activeScreen === "goodies"} onClick={() => openScreen("goodies")} />
-            <YardIconButton icon="shop" label={text("yard.nav.shop", "Shop")} active={activeScreen === "shop"} onClick={() => openScreen("shop")} />
-            <YardIconButton icon="petbook" label={text("yard.nav.petbook", "Petbook")} active={activeScreen === "petbook"} onClick={() => openScreen("petbook")} />
-            <YardIconButton icon="album" label={text("yard.nav.album", "Album")} active={activeScreen === "album"} onClick={() => openScreen("album")} />
-            <YardIconButton icon="gifts" label={text("yard.nav.gifts", "Gifts")} badge={pendingGiftCount || null} active={activeScreen === "gifts"} onClick={() => openScreen("gifts")} />
+            <YardIconButton labelMode="tooltip" icon="food" label={text("yard.nav.food", "Food")} active={activeScreen === "food"} onClick={() => openScreen("food")} />
+            <YardIconButton labelMode="tooltip" icon="goodies" label={text("yard.nav.goodies", "Goodies")} active={activeScreen === "goodies"} onClick={() => openScreen("goodies")} />
+            <YardIconButton labelMode="tooltip" icon="shop" label={text("yard.nav.shop", "Shop")} active={activeScreen === "shop"} onClick={() => openScreen("shop")} />
+            <YardIconButton labelMode="tooltip" icon="petbook" label={text("yard.nav.petbook", "Petbook")} active={activeScreen === "petbook"} onClick={() => openScreen("petbook")} />
+            <YardIconButton labelMode="tooltip" icon="album" label={text("yard.nav.album", "Album")} active={activeScreen === "album"} onClick={() => openScreen("album")} />
+            <YardIconButton labelMode="tooltip" icon="gifts" label={text("yard.nav.gifts", "Gifts")} badge={pendingGiftCount || null} active={activeScreen === "gifts"} onClick={() => openScreen("gifts")} />
           </HudEditableRegion>
         </HudRegion>
 

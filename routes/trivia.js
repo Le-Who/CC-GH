@@ -10,9 +10,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import {
   ECONOMY,
+  createTriviaLifelineState,
   calcRegen,
   pickQuestions,
   makeClientQuestion,
+  selectTriviaFiftyFiftyAnswers,
+  spendTriviaLifeline,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
@@ -52,6 +55,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         answers: [],
         score: 0,
         streak: 0,
+        lifelines: createTriviaLifelineState(),
         startedAt: Date.now(),
       };
 
@@ -65,6 +69,42 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         },
         question: makeClientQuestion(questions[0], 0, questions.length),
       });
+    }, username);
+    return sendRouteResult(res, result);
+  });
+
+  router.post("/api/trivia/lifeline", requireAuth, async (req, res) => {
+    const { userId, username } = resolveUser(req);
+    if (!userId) return res.status(400).json({ error: "userId required" });
+    const result = await withPlayerLock(userId, async (p) => {
+      const { type } = req.body;
+      const s = p.trivia.session;
+      if (!s) return routeFail(400, { error: "no session" });
+      const q = s.questions[s.index];
+      if (!q) return routeFail(400, { error: "done" });
+      if (type !== "fifty" && type !== "reveal") return routeFail(400, { error: "unknown lifeline" });
+
+      const spent = spendTriviaLifeline(s.lifelines, type);
+      s.lifelines = spent.next;
+      if (!spent.allowed) return routeFail(400, { error: "lifeline unavailable", lifelines: s.lifelines });
+
+      if (type === "fifty") {
+        return routeOk({
+          success: true,
+          type,
+          hiddenAnswers: selectTriviaFiftyFiftyAnswers(q),
+          lifelines: s.lifelines,
+        });
+      }
+      if (type === "reveal") {
+        return routeOk({
+          success: true,
+          type,
+          correctAnswer: q.correctAnswer,
+          lifelines: s.lifelines,
+        });
+      }
+      return routeFail(400, { error: "unknown lifeline", lifelines: s.lifelines });
     }, username);
     return sendRouteResult(res, result);
   });

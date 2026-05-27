@@ -594,18 +594,22 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.ok(match3Game.includes("t(\"common.endRun\")"), "Gem Crush pause menu should still expose End Run");
     });
 
-    it("keeps Gem Crush status in the HUD without rendering live event slots below the board", () => {
+    it("keeps Gem Crush status in the HUD without rendering empty live event slots below the board", () => {
       const match3ScenePath = path.join(__dirname, "..", "src", "game-runtime", "scenes", "match3Scene.js");
       const match3CssPath = path.join(__dirname, "..", "src", "games", "match3", "match3.css");
       const match3GamePath = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
+      const shellPath = path.join(__dirname, "..", "src", "app", "shell.jsx");
       const match3Scene = fs.readFileSync(match3ScenePath, "utf-8");
       const match3Css = fs.readFileSync(match3CssPath, "utf-8");
       const match3Game = fs.readFileSync(match3GamePath, "utf-8");
+      const shell = fs.readFileSync(shellPath, "utf-8");
       const match3Hud = match3Game.match(/<GamePlayHud[\s\S]*?\/>/)?.[0] || "";
 
       assert.ok(!match3Scene.includes("match3StatusText ||"), "Gem Crush should not draw a duplicate bottom status line in Pixi");
       assert.ok(!match3Game.includes("useGameEvents"), "Gem Crush should not push live score event chips");
-      assert.ok(!match3Hud.includes('gameId="match3"'), "Gem Crush should opt out of the shared event log");
+      assert.ok(match3Hud.includes('gameId="match3"'), "Gem Crush should pass a game id for semantic HUD icons");
+      assert.ok(shell.includes("const hasEventLog = Boolean(gameId && visibleEventCount)"), "Shared HUD should not reserve an event log without visible events");
+      assert.ok(shell.includes("{hasEventLog && <GameEventLog gameId={gameId} />}"), "Shared HUD should only render event log DOM when visible events exist");
       assert.ok(!match3Css.includes("game-play-event-log"), "Gem Crush HUD CSS should not reserve an event row");
     });
 

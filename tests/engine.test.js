@@ -59,33 +59,33 @@ describe("Match-3 Engine Tests", () => {
 
     it("scales correctly for score < 1000", () => {
       assert.equal(calcGoldReward(100), 5);
-      assert.equal(calcGoldReward(500), 20);
-      assert.equal(calcGoldReward(999), 39);
+      assert.equal(calcGoldReward(500), 45);
+      assert.equal(calcGoldReward(999), 64);
     });
 
     it("calculates correctly for 1000 <= score < 2000", () => {
-      assert.equal(calcGoldReward(1000), 40);
-      assert.equal(calcGoldReward(1500), 50);
-      assert.equal(calcGoldReward(1999), 58);
+      assert.equal(calcGoldReward(1000), 65);
+      assert.equal(calcGoldReward(1500), 125);
+      assert.equal(calcGoldReward(1999), 133);
     });
 
     it("calculates correctly for 2000 <= score < 3000", () => {
-      assert.equal(calcGoldReward(2000), 60);
-      assert.equal(calcGoldReward(2500), 80);
+      assert.equal(calcGoldReward(2000), 135);
+      assert.equal(calcGoldReward(2500), 155);
     });
 
     it("calculates correctly for 3000 <= score < 4000", () => {
-      assert.equal(calcGoldReward(3000), 100);
-      assert.equal(calcGoldReward(3500), 140);
+      assert.equal(calcGoldReward(3000), 250);
+      assert.equal(calcGoldReward(3500), 290);
     });
 
     it("calculates correctly for score >= 4000 (exponential scaling)", () => {
-      assert.equal(calcGoldReward(4000), 180);
-      assert.equal(calcGoldReward(4500), 260);
-      assert.equal(calcGoldReward(5000), 340);
-      assert.equal(calcGoldReward(6000), 660);
-      assert.equal(calcGoldReward(7000), 1300);
-      assert.equal(calcGoldReward(8000), 2100);
+      assert.equal(calcGoldReward(4000), 330);
+      assert.equal(calcGoldReward(4500), 410);
+      assert.equal(calcGoldReward(5000), 490);
+      assert.equal(calcGoldReward(6000), 810);
+      assert.equal(calcGoldReward(7000), 1450);
+      assert.equal(calcGoldReward(8000), 2250);
     });
   });
 

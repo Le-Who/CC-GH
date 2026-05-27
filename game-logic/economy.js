@@ -5,6 +5,8 @@
  * ═══════════════════════════════════════════════════
  */
 
+import { getRewardChestProgress } from "./hud-bonuses.js";
+
 export const ECONOMY = {
   ENERGY_MAX: 20,
   ENERGY_START: 20,
@@ -53,7 +55,7 @@ export function calcGoldReward(score) {
     return Math.max(
       ECONOMY.REWARD_MATCH3_LOSE,
       Math.floor(BASE * (score / 1000)),
-    );
+    ) + getRewardChestProgress(score).bonus;
 
   let gold = BASE; // 1000 points = full base reward
   const tiers = [
@@ -84,7 +86,7 @@ export function calcGoldReward(score) {
       rate = Math.min(rate * 2, 2.0);
     }
   }
-  return gold;
+  return gold + getRewardChestProgress(score).bonus;
 }
 
 /**
@@ -102,7 +104,7 @@ export function calcBloxReward(score) {
   if (score >= 300)
     gold += Math.floor(((Math.min(score, 600) - 300) / 50) * 0.15 * BASE);
   if (score >= 600) gold += Math.floor(((score - 600) / 50) * 0.25 * BASE);
-  return Math.min(gold, 400);
+  return Math.min(gold + getRewardChestProgress(score).bonus, 400);
 }
 
 export function calcBubboReward(score) {
@@ -115,7 +117,7 @@ export function calcBubboReward(score) {
   if (score >= 300) gold += Math.floor(((Math.min(score, 900) - 300) / 100) * 0.09 * BASE);
   if (score >= 900) gold += Math.floor(((Math.min(score, 1800) - 900) / 100) * 0.16 * BASE);
   if (score >= 1800) gold += Math.floor(((score - 1800) / 100) * 0.28 * BASE);
-  return Math.min(gold, 400);
+  return Math.min(gold + getRewardChestProgress(score).bonus, 400);
 }
 
 /**

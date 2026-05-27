@@ -1,65 +1,78 @@
 {
-  "source": "assets-source/imagegen/ui-screen-surfaces/ccgh-screen-surface-atlas/raw-screen-surface-atlas.png",
-  "width": 1254,
-  "height": 1254,
-  "rows": 3,
-  "cols": 3,
-  "cellW": 418,
-  "cellH": 418,
+  "source": "assets-source/imagegen/hud-redesign",
+  "generatedBy": "scripts/generate-hud-redesign-pack.mjs",
   "outputs": [
     {
       "name": "hub-panel",
       "file": "hub-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/hub/screen-panel.source.chromakey.png"
     },
     {
       "name": "garden-panel",
       "file": "garden-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/screen-panel.source.chromakey.png"
     },
     {
       "name": "blox-panel",
       "file": "blox-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/screen-panel.source.chromakey.png"
     },
     {
       "name": "match3-panel",
       "file": "match3-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/screen-panel.source.chromakey.png"
     },
     {
       "name": "merge-panel",
       "file": "merge-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/screen-panel.source.chromakey.png"
     },
     {
       "name": "bubbo-panel",
       "file": "bubbo-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/screen-panel.source.chromakey.png"
     },
     {
       "name": "trivia-panel",
       "file": "trivia-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/screen-panel.source.chromakey.png"
     },
     {
       "name": "yard-panel",
       "file": "yard-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/screen-panel.source.chromakey.png"
     },
     {
       "name": "farm-panel",
       "file": "farm-panel.png",
       "width": 512,
-      "height": 512
+      "height": 512,
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/farmLegacy/screen-panel.source.chromakey.png"
     }
   ]
 }

@@ -567,7 +567,7 @@ button.stat-chip {
   pointer-events: none;
 }
 
-.stat-chip span {
+.stat-chip-label {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 800;
@@ -588,6 +588,28 @@ button.stat-chip {
   overflow: hidden;
   border-radius: 999px;
   background: color-mix(in srgb, var(--line-soft) 82%, transparent);
+}
+
+.stat-chip[data-label-mode="tooltip"] {
+  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  overflow: visible;
+}
+
+.stat-chip[data-label-mode="tooltip"] .stat-chip-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.stat-chip[data-label-mode="tooltip"] strong {
+  grid-column: 2;
+  align-self: center;
+  justify-self: start;
 }
 
 .stat-progress b {
@@ -631,13 +653,13 @@ button.stat-chip {
   height: 36px;
 }
 
-.telegram-app[data-active-tab="garden"] .stat-chip span,
+.telegram-app[data-active-tab="garden"] .stat-chip-label,
 .telegram-app[data-active-tab="garden"] .stat-chip strong {
   color: #3a2416;
   text-shadow: 0 1px 0 rgba(255, 240, 199, 0.68);
 }
 
-.telegram-app[data-active-tab="garden"] .stat-chip span {
+.telegram-app[data-active-tab="garden"] .stat-chip-label {
   overflow: hidden;
   display: -webkit-box;
   min-height: 1.18em;
@@ -654,6 +676,16 @@ button.stat-chip {
   grid-column: 2;
   font-size: clamp(0.78rem, 2vw, 1rem);
   line-height: 1.08;
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip[data-label-mode="tooltip"] {
+  grid-template-columns: 38px minmax(0, 1fr);
+}
+
+.telegram-app[data-active-tab="garden"] .stat-chip[data-label-mode="tooltip"] strong {
+  align-self: center;
+  justify-self: start;
+  font-size: clamp(1rem, 3vw, 1.2rem);
 }
 
 .telegram-app[data-active-tab="garden"] .stat-progress {
@@ -681,7 +713,7 @@ button.stat-chip {
     height: 30px;
   }
 
-  .telegram-app[data-active-tab="garden"] .stat-chip span {
+  .telegram-app[data-active-tab="garden"] .stat-chip-label {
     font-size: 0.56rem;
   }
 
@@ -977,7 +1009,7 @@ button.stat-chip {
   padding: 6px 8px;
 }
 
-.telegram-app.play-mode .stat-chip span {
+.telegram-app.play-mode .stat-chip-label {
   font-size: 0.68rem;
 }
 
@@ -1167,7 +1199,7 @@ button.stat-chip {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   box-shadow: 0 12px 34px rgba(68, 54, 91, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.48);
-  contain: paint;
+  contain: layout;
   will-change: transform, opacity;
   pointer-events: auto;
   animation: shell-hud-in 200ms ease-out both;
@@ -1349,9 +1381,11 @@ button.stat-chip {
   gap: 6px;
 }
 
-.game-play-stats span {
+.game-play-stats > span {
+  position: relative;
   min-height: 40px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   padding: 5px 8px;
   border-radius: 8px;
@@ -1361,6 +1395,54 @@ button.stat-chip {
   font-size: 0.68rem;
   font-weight: 900;
   text-align: center;
+}
+
+.game-play-stat-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+}
+
+.game-play-stat-label {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.game-play-stat[data-label-mode="tooltip"] {
+  min-width: 72px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: minmax(24px, auto) auto;
+  column-gap: 4px;
+  padding-inline: 7px;
+}
+
+.game-play-stat[data-label-mode="tooltip"] .game-play-stat-icon {
+  grid-row: 1 / 2;
+  align-self: center;
+  justify-self: center;
+}
+
+.game-play-stat[data-label-mode="tooltip"] .game-play-stat-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.game-play-stat[data-label-mode="tooltip"] strong {
+  grid-column: 2;
+  align-self: center;
+  justify-self: start;
+}
+
+.game-play-stat:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
 }
 
 .game-play-stats strong {
@@ -1394,6 +1476,7 @@ button.stat-chip {
 }
 
 .panel-button {
+  position: relative;
   min-width: 0;
   min-height: 44px;
   border-radius: 8px;
@@ -1410,10 +1493,53 @@ button.stat-chip {
   transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
 }
 
-.panel-button span {
+.panel-button-label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.panel-button-icon-image {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.panel-button.icon-only {
+  width: 46px;
+  min-width: 46px;
+  padding-inline: 0;
+}
+
+.panel-button.icon-only .panel-button-label {
+  display: none;
+}
+
+.panel-button.icon-only .panel-button-icon-image,
+.panel-button.icon-only svg {
+  width: 26px;
+  height: 26px;
+}
+
+.press-tooltip {
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  max-width: min(220px, calc(100vw - 24px));
+  transform: translateX(-50%);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: rgba(24, 18, 22, 0.92);
+  color: #fff8dd;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .panel-button:active,
@@ -2028,8 +2154,19 @@ button.stat-chip {
     padding: 0;
   }
 
-  .game-play-actions .panel-button span {
+  .game-play-actions .panel-button-label {
     display: none;
+  }
+
+  .game-play-stat[data-label-mode="tooltip"] {
+    min-width: 0;
+    grid-template-columns: 22px minmax(0, 1fr);
+    padding-inline: 5px;
+  }
+
+  .game-play-stat[data-label-mode="tooltip"] .game-play-stat-icon {
+    width: 22px;
+    height: 22px;
   }
 }
 
@@ -2144,7 +2281,7 @@ button.stat-chip {
     align-content: end;
   }
 
-  .stat-chip span {
+  .stat-chip-label {
     font-size: 0.66rem;
     line-height: 1.05;
   }

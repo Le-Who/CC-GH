@@ -54,6 +54,17 @@ For CC-GH specifically:
 - Transient live-game feedback should stay in a reserved lower HUD/action area, or another tested non-overlapping surface. Use modal/dialog behavior only when intentional.
 - Validate Pixi canvas resizing after WebView viewport changes.
 
+## Production HUD/UI Asset Quality Gate
+
+For generated runtime HUD/UI art, screen surfaces, panel skins, icons, buttons, and game UI assets:
+
+- Do not ship hand-drawn, SVG-like, low-fidelity, outline-only, screenshot-cropped, or placeholder-looking assets as production assets.
+- Production HUD/UI assets must come from a production-quality image-generation or source-art pipeline, then be exported as clean runtime files. Vector drawings, rough layout boards, and simple programmatic shapes may be used only as planning references, masks, or test fixtures, never as final production art.
+- This is not a ban on WebP, PNG optimization, atlases, or other compression/runtime packaging. Compressed formats are acceptable when the underlying source art is production-grade.
+- When the request calls for separate generated assets, generate each production source asset as its own source file. Do not generate one shared sheet/atlas and crop it into final assets; image-generation sheets can drift, leak neighboring objects into crops, and reduce per-asset resolution.
+- Runtime assets must be data-free: no baked counters, numbers, labels, localized copy, filled progress values, selected states, or gameplay state. Dynamic content belongs in code.
+- If chromakey extraction is used, each asset must have a clean key background color that does not appear in the asset itself, and the exported object must be tightly and mechanically verified instead of manually cut from a screenshot.
+
 ## HUD/UI Layout Contract
 
 The shared HUD layout system owns viewport/orientation profiles, safe-area and reserve contracts, editor persistence, repo defaults, export/import, and validation.

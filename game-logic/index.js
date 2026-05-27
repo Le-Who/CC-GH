@@ -26,3 +26,4 @@ export * from "./farm.js";
 export * from "./merge-board-utils.js";
 export * from "./blox-pieces.js";
 export * from "./blox-engine.js";
+export * from "./hud-bonuses.js";

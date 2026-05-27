@@ -19,6 +19,7 @@ import {
   calcRegen,
   calcGoldReward,
   calcBloxReward,
+  getRewardChestProgress,
   processOfflineActions,
   getWateringMultiplier,
   getGrowthPct,
@@ -304,22 +305,20 @@ describe("Match-3: calcGoldReward correctness", () => {
     assert.equal(calcGoldReward(null), ECONOMY.REWARD_MATCH3_LOSE);
   });
 
-  it("score=500 → proportional (floor(40 × 0.5) = 20)", () => {
-    assert.equal(calcGoldReward(500), 20);
+  it("score=500 → proportional plus bronze chest bonus", () => {
+    assert.equal(calcGoldReward(500), 45);
   });
 
-  it("score=1000 → base reward (40)", () => {
-    assert.equal(calcGoldReward(1000), ECONOMY.REWARD_MATCH3_WIN);
+  it("score=1000 → base reward plus bronze chest bonus", () => {
+    assert.equal(calcGoldReward(1000), ECONOMY.REWARD_MATCH3_WIN + 25);
   });
 
-  it("score=1500 → base + tier1 bonus", () => {
-    // 1000-1500: 5 steps of 100, rate=0.05 → 5 × floor(0.05 × 40) = 5 × 2 = 10
-    assert.equal(calcGoldReward(1500), 40 + 10);
+  it("score=1500 → base + tier1 bonus + silver chest bonus", () => {
+    assert.equal(calcGoldReward(1500), 40 + 10 + 75);
   });
 
-  it("score=2000 → base + full tier1", () => {
-    // 1000-2000: 10 steps × 0.05 × 40 = 10 × 2 = 20
-    assert.equal(calcGoldReward(2000), 40 + 20);
+  it("score=2000 → base + full tier1 + silver chest bonus", () => {
+    assert.equal(calcGoldReward(2000), 40 + 20 + 75);
   });
 
   it("100 ascending scores → non-decreasing reward (monotonicity)", () => {
@@ -592,7 +591,7 @@ describe("Blox: calcBloxReward correctness", () => {
       if (s >= 300)
         gold += Math.floor(((Math.min(s, 600) - 300) / 50) * 0.15 * BASE);
       if (s >= 600) gold += Math.floor(((s - 600) / 50) * 0.25 * BASE);
-      return Math.min(gold, 400);
+      return Math.min(gold + getRewardChestProgress(s).bonus, 400);
     }
     for (let s = 0; s <= 3000; s += 10) {
       assert.equal(

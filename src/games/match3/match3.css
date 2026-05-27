@@ -82,7 +82,7 @@
   justify-self: center;
   min-width: 0;
   grid-auto-flow: initial;
-  grid-template-columns: repeat(3, minmax(54px, 1fr));
+  grid-template-columns: repeat(4, minmax(54px, 1fr));
 }
 
 .match3-scene-hud .game-play-title span,
@@ -134,7 +134,7 @@
 
 .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
   width: min(356px, calc(100% - 14px));
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1 / 1;
   max-height: min(88dvh, calc(100% - 14px));
 }
 
@@ -145,14 +145,15 @@
   padding: 0;
   width: 100%;
   height: 100%;
+  transform: translate(-50%, -50%) scale(1) !important;
 }
 
 .match3-menu-overlay.match3-pause-compact .match3-compact-pause-card {
   position: absolute;
-  left: 20%;
-  top: 32%;
-  width: 60%;
-  height: 25%;
+  left: 16%;
+  top: 19%;
+  width: 68%;
+  height: 28%;
   display: grid;
   gap: 8px;
   text-align: center;
@@ -168,10 +169,10 @@
 .match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button {
   position: absolute;
   left: 26.6%;
-  top: 83.3%;
+  top: 78%;
   width: 46.8% !important;
-  height: 8.3%;
-  min-height: 55px;
+  height: 15%;
+  min-height: 48px;
   min-width: 0;
   pointer-events: auto;
   background: transparent !important;
@@ -186,9 +187,9 @@
 .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row {
   position: absolute;
   left: 12.5%;
-  top: 67%;
+  top: 58%;
   width: 75%;
-  height: 8.8%;
+  height: 15%;
   display: grid;
   grid-template-columns: repeat(3, minmax(44px, 1fr));
   gap: 3%;
@@ -198,7 +199,7 @@
 .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
   width: 100%;
   height: 100%;
-  min-height: 55px;
+  min-height: 48px;
   padding-inline: 4px;
   border: 1px solid rgba(244, 192, 93, 0.28) !important;
   background: transparent !important;
@@ -233,22 +234,39 @@
 }
 
 @media (orientation: landscape) and (max-height: 420px) {
+  .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
+    width: min(420px, calc(100% - 12px));
+    height: min(260px, calc(100% - 12px));
+    aspect-ratio: auto;
+    max-height: calc(100% - 12px);
+  }
+
+  .match3-menu-overlay.match3-pause-compact .match3-compact-pause-card {
+    left: 8%;
+    top: 14%;
+    width: 38%;
+    height: 58%;
+  }
+
   .match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button {
-    top: 81%;
-    min-height: 96px;
+    left: 52%;
+    top: 58%;
+    width: 40% !important;
+    height: 24%;
+    min-height: 52px;
   }
 
   .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row {
-    left: 5%;
-    top: 65%;
-    width: 90%;
-    height: 17.2%;
-    grid-template-columns: repeat(3, minmax(92px, 1fr));
+    left: 52%;
+    top: 18%;
+    width: 40%;
+    height: 24%;
+    grid-template-columns: repeat(3, minmax(44px, 1fr));
     gap: 2%;
   }
 
   .match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
-    min-height: 96px;
+    min-height: 52px;
   }
 }
 
@@ -435,7 +453,7 @@
   .game-play-hud.match3-scene-hud {
     width: calc(100% - 12px);
     min-height: 62px;
-    grid-template-columns: minmax(0, 1fr) 48px;
+    grid-template-columns: minmax(0, 1fr) minmax(100px, auto);
     grid-template-areas: "stats actions";
     padding: 7px 9px;
   }
@@ -443,7 +461,7 @@
   .match3-scene-hud .game-play-stats {
     grid-area: stats;
     width: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .match3-scene-hud .game-play-stats span {
@@ -452,8 +470,9 @@
   }
 
   .match3-scene-hud .game-play-actions .panel-button {
-    width: 44px;
-    min-width: 44px;
+    width: 46px;
+    min-width: 46px;
+    min-height: 46px;
     padding-inline: 0;
   }
 
@@ -472,8 +491,8 @@
   }
 
   .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact {
-    width: min(308px, calc(100% - 12px));
-    aspect-ratio: 2 / 3;
+    width: min(356px, calc(100% - 12px));
+    aspect-ratio: 1 / 1;
     max-height: min(88dvh, calc(100% - 12px));
   }
 

@@ -1,65 +1,54 @@
 {
-  "source": "assets-source/imagegen/ui-screen-surfaces/ccgh-portrait-panels/raw-portrait-panel-atlas.png",
-  "width": 1086,
-  "height": 1448,
-  "rows": 2,
-  "cols": 3,
-  "cellW": 362,
-  "cellH": 724,
+  "source": "assets-source/imagegen/hud-redesign",
+  "generatedBy": "scripts/generate-hud-redesign-pack.mjs",
   "outputs": [
     {
       "name": "garden-dialog-panel",
       "file": "garden-dialog-panel.png",
       "width": 512,
       "height": 768,
-      "components": 1,
-      "kept": 0,
-      "pixels": 210966
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/dialog-panel.source.chromakey.png"
     },
     {
       "name": "blox-dialog-panel",
       "file": "blox-dialog-panel.png",
       "width": 512,
       "height": 768,
-      "components": 1,
-      "kept": 0,
-      "pixels": 207645
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/dialog-panel.source.chromakey.png"
     },
     {
       "name": "match3-dialog-panel",
       "file": "match3-dialog-panel.png",
       "width": 512,
       "height": 768,
-      "components": 1,
-      "kept": 0,
-      "pixels": 207888
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/dialog-panel.source.chromakey.png"
     },
     {
       "name": "merge-dialog-panel",
       "file": "merge-dialog-panel.png",
       "width": 512,
       "height": 768,
-      "components": 1,
-      "kept": 0,
-      "pixels": 195832
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/dialog-panel.source.chromakey.png"
     },
     {
       "name": "bubbo-dialog-panel",
       "file": "bubbo-dialog-panel.png",
       "width": 512,
       "height": 768,
-      "components": 2,
-      "kept": 1,
-      "pixels": 197644
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/dialog-panel.source.chromakey.png"
     },
     {
       "name": "trivia-dialog-panel",
       "file": "trivia-dialog-panel.png",
       "width": 512,
       "height": 768,
-      "components": 2,
-      "kept": 1,
-      "pixels": 196132
+      "source": "imagegen-source-art-data-free",
+      "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/dialog-panel.source.chromakey.png"
     }
   ]
 }

@@ -171,8 +171,11 @@ test("Garden Shelf shell chrome uses garden assets without obscuring quest dialo
   const indexCss = await readFile(path.join(root, "src", "index.css"), "utf8");
   const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
 
-  assert.match(app, /image:\s*"\/games\/garden-shelf\/icon_collect\.png"/);
-  assert.match(app, /image:\s*"\/games\/garden-shelf\/icon_quest\.png"/);
+  assert.match(app, /image:\s*semanticHudIconPath\("garden",\s*"gold"\)/);
+  assert.match(app, /image:\s*semanticHudIconPath\("garden",\s*"levelXp"\)/);
+  assert.match(app, /image:\s*semanticHudIconPath\("garden",\s*"quest"\)/);
+  assert.match(shell, /gold:\s*"stat-gold"/);
+  assert.match(shell, /quest:\s*"stat-quest"/);
   assert.match(shell, /className="stat-icon-image"/);
   assert.match(
     indexCss,

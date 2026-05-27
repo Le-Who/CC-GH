@@ -6,12 +6,14 @@ import { haptic } from "../../platform/telegram.js";
 import { generateBoard, hasValidMoves, attemptMatch3Move, seedDropTokens } from "../../game-core/match3/engine.js";
 import { estimateMatch3CascadeLockMs } from "../../game-core/match3/animation.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
-import { GamePlayHud, GameShell, PanelButton, Stat } from "../../app/shell.jsx";
+import { GamePlayHud, GameShell, PanelButton, Stat, semanticHudIconPath } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { selectMatch3InitialRun } from "./selectMatch3Run.js";
 import { loadRuntimeAssetManifest, resolveAssetUrl } from "../../game-runtime/assetBundles.js";
+import { calcGoldReward } from "../../../game-logic/economy.js";
+import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
 import "./i18n.js";
 import "./match3.css";
 const MATCH3_MODES = [
@@ -54,12 +56,14 @@ export default function Match3Game() {
   const [matchAnimation, setMatchAnimation] = useState(null);
   const [leaders, setLeaders] = useState([]);
   const [runtimeAssetManifest, setRuntimeAssetManifest] = useState(undefined);
+  const [shuffleCharges, setShuffleCharges] = useState(1);
   const animationTimerRef = useRef(null);
   const restoredRunKeyRef = useRef("");
   const isPlaying = gameActive && !paused;
   const activePause = gameActive && paused;
   const currentMode = MATCH3_MODES.find((item) => item.id === mode) || MATCH3_MODES[0];
-  const currentReward = score > 0 ? Math.max(5, Math.floor(score / 25)) : 0;
+  const rewardChest = getRewardChestProgress(score);
+  const currentReward = score > 0 ? calcGoldReward(Number(score) || 0) : 0;
   const pauseRun = useCallback(() => {
     if (gameActive) setPaused(true);
   }, [gameActive]);
@@ -138,6 +142,7 @@ export default function Match3Game() {
     setInputLocked(false);
     setSelected(null);
     setMatchAnimation(null);
+    setShuffleCharges(1);
   }, [gameActive, snapshot]);
 
   function start(nextMode = mode) {
@@ -150,6 +155,7 @@ export default function Match3Game() {
     setPaused(false);
     setInputLocked(false);
     setMatchAnimation(null);
+    setShuffleCharges(1);
     setMode(nextMode);
     performAction("match3.start", { mode: nextMode }, { key: "match3.start" }).then(() => {
       performAction("match3.syncMode", {
@@ -170,6 +176,19 @@ export default function Match3Game() {
   function maybeEnd(nextMoves, nextScore) {
     if (nextMoves <= 0 && mode !== "timed") finish(nextScore);
   }
+
+  const useShuffleBooster = useCallback(() => {
+    if (!gameActive || inputLocked || shuffleCharges <= 0) return;
+    const nextBoard = createModeBoard(mode);
+    setBoard(nextBoard);
+    setSelected(null);
+    setShuffleCharges((value) => Math.max(0, value - 1));
+    audioManager.play("tap");
+    performAction("match3.syncMode", {
+      game: { score, movesLeft, combo, mode },
+      savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score, movesLeft, combo } },
+    }, { silent: true, key: "match3.shuffleBooster" });
+  }, [combo, gameActive, inputLocked, mode, movesLeft, performAction, score, shuffleCharges, snapshot?.match3?.savedModes]);
 
   useEffect(() => {
     if (!gameActive || paused || mode !== "timed") return undefined;
@@ -276,12 +295,15 @@ export default function Match3Game() {
       hud={(
         <GamePlayHud
           className="match3-scene-hud"
+          gameId="match3"
           title={t("match3.title")}
           stats={[
-            { label: t("common.score"), value: score },
-            { label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
-            { label: t("common.combo"), value: combo || "-" },
+            { id: "score", label: t("common.score"), value: score },
+            { id: mode === "timed" ? "time" : "moves", label: mode === "timed" ? t("common.time") : t("common.moves"), value: movesLeft },
+            { id: "combo", label: t("common.combo"), value: combo || "-" },
+            { id: "reward", label: rewardChest.tier === "none" ? t("common.reward") : "Chest", value: rewardChest.tier === "none" ? currentReward : rewardChest.tier, progress: rewardChest.progress * 100 },
           ]}
+          extraActions={<PanelButton icon={RotateCcw} image={semanticHudIconPath("match3", "mix")} iconOnly subtle disabled={!gameActive || inputLocked || shuffleCharges <= 0} onClick={useShuffleBooster}>Mix {shuffleCharges}</PanelButton>}
           onPause={() => setPaused(true)}
         />
       )}
@@ -332,7 +354,7 @@ export default function Match3Game() {
               <div className="metric-grid">
                 <Stat icon={Trophy} label={t("common.score")} value={score} />
                 <Stat icon={Clock} label={mode === "timed" ? t("common.time") : t("common.moves")} value={movesLeft} />
-                <Stat icon={Gem} label={t("common.reward")} value={currentReward} />
+                <Stat icon={Gem} label={rewardChest.tier === "none" ? t("common.reward") : "Chest"} value={rewardChest.tier === "none" ? currentReward : `+${rewardChest.bonus}`} progress={rewardChest.progress * 100} />
               </div>
               <div className="button-row">
                 <PanelButton icon={Check} disabled={!gameActive} onClick={() => finish(score)}>{t("common.settle")}</PanelButton>

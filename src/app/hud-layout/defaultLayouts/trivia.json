@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "layoutVersion": "initial",
+  "layoutVersion": "hud-redesign-2026-05-26",
   "gameId": "trivia",
   "base": {
     "regions": {

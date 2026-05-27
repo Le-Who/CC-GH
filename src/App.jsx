@@ -33,7 +33,7 @@ import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
 import { AppI18nContext, appTranslate, useAppI18n } from "./app/i18n.jsx";
 import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
-import { Stat, formatCount } from "./app/shell.jsx";
+import { Stat, formatCount, semanticHudIconPath } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
 import { useEscapeDismiss } from "./app/useDismissableLayer.js";
 import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
@@ -287,14 +287,14 @@ export default function App() {
     ? [
         {
           icon: Sparkles,
-          image: "/games/garden-shelf/icon_collect.png",
+          image: semanticHudIconPath("garden", "gold"),
           label: t("hud.gold"),
           value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)),
           id: "garden-gold",
         },
         {
           icon: Leaf,
-          image: gardenCanLevelUp ? "/games/garden-shelf/icon_level_up.png" : "/games/garden-shelf/icon_plant.png",
+          image: semanticHudIconPath("garden", "levelXp"),
           label: gardenCanLevelUp ? t("level.up") : t("level.progress"),
           value: gardenCanLevelUp ? `+${formatGardenDisplayGold(getGardenLevelReward(gardenLevel))}` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
           progress: gardenXpProgress,
@@ -306,7 +306,7 @@ export default function App() {
         },
         {
           icon: ClipboardList,
-          image: "/games/garden-shelf/icon_quest.png",
+          image: semanticHudIconPath("garden", "quest"),
           label: t("quest.title"),
           value: gardenHud?.questReadyCount > 0 ? gardenHud.questReadyCount : t("quest.openShort"),
           title: t("quest.open"),
@@ -399,6 +399,7 @@ export default function App() {
                   title={item.title}
                   id={item.id}
                   dataGardenXp={item.dataGardenXp}
+                  labelMode={activeTab === "garden" ? "tooltip" : "visible"}
                 />
               ))}
             </HudEditableRegion>

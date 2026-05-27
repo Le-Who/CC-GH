@@ -8387,3 +8387,33 @@
     font-size: 12px !important;
   }
 }
+
+/* HUD redesign runtime kit overlay.
+   Settlement keeps its authored Pixi/layout adapters; these DOM surfaces use
+   the generated data-free HUD art from the shared redesign pack. */
+.settlement-game-root .top-hud-final {
+  background-image: url("/games/hud-redesign/settlement/hud-panel.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+}
+
+.settlement-game-root .bottom-nav {
+  background-image: url("/games/hud-redesign/settlement/dock-panel.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+}
+
+.settlement-game-root .right-panel-fancy {
+  background-image: url("/games/hud-redesign/settlement/dialog-panel.png") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+}
+
+@media (min-width: 621px) and (max-width: 980px) and (max-height: 480px) {
+  .settlement-game-root .right-panel-overview .overview-morale-row button {
+    display: none !important;
+  }
+}
