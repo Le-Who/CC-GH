@@ -45,6 +45,7 @@ import {
   clearBloxLines,
   DEFAULT_BLOX_ROTATE_CHARGES,
   calcBubboReward,
+  normalizeBubboPowerups,
   placePiece,
   rotateBloxPiece,
   createDefaultGardenState,
@@ -64,7 +65,6 @@ import {
   isMergeGeneratorChain,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
-import { normalizeBubboPowerups } from "../src/game-core/bubbo/engine.js";
 
 const MAX_PLOTS = 12;
 const BUY_PLOT_BASE_COST = 200;

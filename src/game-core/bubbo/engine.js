@@ -1,3 +1,6 @@
+export { BUBBO_POWERUP_CHARGES, normalizeBubboPowerups } from "../../../game-logic/bubbo-engine.js";
+import { BUBBO_POWERUP_CHARGES, normalizeBubboPowerups } from "../../../game-logic/bubbo-engine.js";
+
 export const BUBBO_ROWS = 11;
 export const BUBBO_COLS = 9;
 export const BUBBO_START_ROWS = 5;
@@ -8,11 +11,6 @@ export const BUBBO_PRESSURE_STEP = 1;
 
 export const BUBBO_COLORS = ["mint", "amber", "coral", "sky", "berry"];
 const BUBBO_COLOR_SET = new Set(BUBBO_COLORS);
-export const BUBBO_POWERUP_CHARGES = {
-  bomb: 3,
-  rainbow: 2,
-  lightning: 2,
-};
 const BUBBO_POWERUP_SET = new Set(Object.keys(BUBBO_POWERUP_CHARGES));
 
 export const BUBBO_PALETTE = {
@@ -47,15 +45,6 @@ function normalizeRowOffset(value = 0) {
 
 export function normalizeBubboMode(mode = "classic") {
   return mode === "timed" ? "timed" : "classic";
-}
-
-export function normalizeBubboPowerups(raw = null) {
-  const source = raw && typeof raw === "object" ? raw : {};
-  return Object.fromEntries(Object.entries(BUBBO_POWERUP_CHARGES).map(([key, max]) => {
-    const value = Math.floor(Number(source[key]));
-    if (!Number.isFinite(value)) return [key, max];
-    return [key, Math.max(0, Math.min(max, value))];
-  }));
 }
 
 export function cloneBubboBoard(board = []) {
