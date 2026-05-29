@@ -1,0 +1,114 @@
+{
+  "generatedAt": "2026-05-29",
+  "generatedBy": "built-in image_gen",
+  "purpose": "Production-quality keyed reference panels and transparent runtime panels for Yard and Garden internal menus.",
+  "backgroundKey": "#00ff00",
+  "postprocess": {
+    "tool": "C:/Users/user/.codex/skills/.system/imagegen/scripts/remove_chroma_key.py",
+    "mode": "auto-key border, soft matte, despill"
+  },
+  "games": {
+    "cozyYard": {
+      "keyedSourceDir": "assets-source/imagegen/menu-panels/keyed/cozyYard",
+      "publicDir": "/games/companion-yard/menu-panels",
+      "screens": {
+        "food": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/food.png",
+          "publicPath": "/games/companion-yard/menu-panels/food.png"
+        },
+        "goodies": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/goodies.png",
+          "publicPath": "/games/companion-yard/menu-panels/goodies.png"
+        },
+        "shop": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/shop.png",
+          "publicPath": "/games/companion-yard/menu-panels/shop.png"
+        },
+        "petbook": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/petbook.png",
+          "publicPath": "/games/companion-yard/menu-panels/petbook.png"
+        },
+        "album": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/album.png",
+          "publicPath": "/games/companion-yard/menu-panels/album.png"
+        },
+        "gifts": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/gifts.png",
+          "publicPath": "/games/companion-yard/menu-panels/gifts.png"
+        },
+        "repair": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/repair.png",
+          "publicPath": "/games/companion-yard/menu-panels/repair.png"
+        },
+        "remodel": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/remodel.png",
+          "publicPath": "/games/companion-yard/menu-panels/remodel.png"
+        },
+        "expansion": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/expansion.png",
+          "publicPath": "/games/companion-yard/menu-panels/expansion.png"
+        },
+        "daily": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/daily.png",
+          "publicPath": "/games/companion-yard/menu-panels/daily.png"
+        },
+        "companion": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/companion.png",
+          "publicPath": "/games/companion-yard/menu-panels/companion.png"
+        },
+        "settings": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/cozyYard/settings.png",
+          "publicPath": "/games/companion-yard/menu-panels/settings.png"
+        }
+      }
+    },
+    "gardenShelf": {
+      "keyedSourceDir": "assets-source/imagegen/menu-panels/keyed/gardenShelf",
+      "publicDir": "/games/garden-shelf/menu-panels",
+      "screens": {
+        "plant-detail": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/gardenShelf/plant-detail.png",
+          "publicPath": "/games/garden-shelf/menu-panels/plant-detail.png"
+        },
+        "seed-shop-inventory": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/gardenShelf/seed-shop-inventory.png",
+          "publicPath": "/games/garden-shelf/menu-panels/seed-shop-inventory.png"
+        },
+        "quests": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/gardenShelf/quests.png",
+          "publicPath": "/games/garden-shelf/menu-panels/quests.png"
+        },
+        "settings": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/gardenShelf/settings.png",
+          "publicPath": "/games/garden-shelf/menu-panels/settings.png"
+        },
+        "reward": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/gardenShelf/reward.png",
+          "publicPath": "/games/garden-shelf/menu-panels/reward.png"
+        },
+        "offline-reward": {
+          "generatedBy": "built-in image_gen",
+          "keyedSourcePath": "assets-source/imagegen/menu-panels/keyed/gardenShelf/offline-reward.png",
+          "publicPath": "/games/garden-shelf/menu-panels/offline-reward.png"
+        }
+      }
+    }
+  }
+}

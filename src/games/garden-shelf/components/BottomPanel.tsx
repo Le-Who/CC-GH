@@ -103,6 +103,7 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, bounce: 0 }}
+        data-garden-panel={isPlantDetail ? 'plant-detail' : 'seed-shop-inventory'}
         className="garden-glass-sheet garden-bottom-sheet fixed bottom-0 left-0 right-0 z-[190] max-h-[85vh] flex flex-col items-center pb-safe-offset-4 border-t"
       >
         <div className="garden-sheet-grabber my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />

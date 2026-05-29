@@ -162,10 +162,11 @@ test.describe("HUD redesign runtime asset coverage", () => {
     await expectBackgroundAsset(page.locator(".merge-top-tool").first(), "/games/hud-redesign/merge/icon-badge.png");
   });
 
-  test("Garden dialogs use the generated hud-redesign runtime kit", async ({ page }) => {
+  test("Garden dialogs use generated per-menu panel assets", async ({ page }) => {
     await boot(page);
     await page.getByRole("button", { name: /settings/i }).click();
-    await expectBackgroundAsset(page.locator(".garden-settings-dialog"), "/games/hud-redesign/garden/dialog-panel.png");
+    await expect(page.locator(".garden-settings-dialog")).toHaveAttribute("data-garden-panel", "settings");
+    await expectBackgroundAsset(page.locator(".garden-settings-dialog"), "/games/garden-shelf/menu-panels/settings.png");
     await expectBackgroundAsset(page.locator(".garden-settings-dialog .garden-choice-button").first(), "/games/hud-redesign/garden/primary-button.png");
     await expectVisibleControlsHealthy(page, ".garden-settings-dialog");
   });
@@ -180,7 +181,8 @@ test.describe("HUD redesign runtime asset coverage", () => {
     await expectBackgroundAsset(page.locator(".yard-icon-button.compact").first(), "/games/hud-redesign/room/icon-badge.png");
     await page.getByRole("button", { name: "Tools" }).click();
     await page.getByRole("button", { name: "Daily letter" }).click();
-    await expectBackgroundAsset(page.locator(".yard-game-screen"), "/games/hud-redesign/room/dialog-panel.png");
+    await expect(page.locator(".yard-game-screen")).toHaveAttribute("data-yard-screen", "daily");
+    await expectBackgroundAsset(page.locator(".yard-game-screen"), "/games/companion-yard/menu-panels/daily.png");
     await expectYardScreenContentInsideFrame(page);
     await expectVisibleControlsHealthy(page, ".companion-yard-layout");
   });

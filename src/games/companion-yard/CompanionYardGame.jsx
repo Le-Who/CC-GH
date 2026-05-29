@@ -681,9 +681,14 @@ export default function CompanionYardGame() {
   );
 
   const renderStarterGoodieHints = () => {
-    if (!starterGoodieHints.length) return null;
+    if (!starterGoodieHints.length || activeScreen || placementDraft) return null;
     return (
-      <div className="yard-starter-goodies" aria-label={text("yard.starterGoodies", "Starter goodies")}>
+      <div
+        className="yard-starter-goodies"
+        aria-label={text("yard.starterGoodies", "Starter goodies")}
+        aria-hidden={activeScreen || placementDraft ? "true" : undefined}
+        inert={activeScreen || placementDraft ? "" : undefined}
+      >
         {starterGoodieHints.map(({ goodieId, goodie, position }) => (
           <button
             key={goodieId}

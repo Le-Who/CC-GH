@@ -1106,60 +1106,96 @@
   }
 }
 
-/* Make Garden detail panel buttons completely transparent over pre-drawn graphics */
+/* Keep Garden detail panel actions readable over the generated panel art. */
+.garden-detail-actions {
+  position: static !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
 .garden-detail-actions .garden-action-button,
 .garden-detail-evolve {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  outline: none !important;
+  min-height: 52px;
+  border: 1px solid rgba(92, 58, 38, 0.22) !important;
+  box-shadow:
+    0 8px 14px rgba(82, 48, 22, 0.14),
+    inset 0 1px 0 rgba(255, 241, 207, 0.36) !important;
+  color: #3b2417 !important;
+  text-shadow: none !important;
 }
 
-
-/* Show only SVG icons inside transparent action buttons. Text nodes are hidden via
-   font-size: 0 since CSS cannot target bare text nodes. SVG is given an explicit size. */
 .garden-detail-actions .garden-action-button {
-  font-size: 0 !important;
+  font-size: clamp(0.68rem, 2.7vw, 0.78rem) !important;
+  line-height: 1.1 !important;
 }
 
-.garden-detail-actions .garden-action-button svg {
+.garden-detail-actions .garden-action-button.secondary,
+.garden-detail-actions .garden-action-button.info,
+.garden-detail-actions .garden-action-button.care,
+.garden-detail-evolve {
+  position: relative !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  background:
+    url("/games/garden-shelf/button_secondary.png") center / 100% 100% no-repeat,
+    #e7bf7f !important;
+}
+
+.garden-detail-actions .garden-action-button.danger {
+  background:
+    url("/games/garden-shelf/button_danger.png") center / 100% 100% no-repeat,
+    #e3aa86 !important;
+  color: #5a1c12 !important;
+}
+
+.garden-detail-actions .garden-action-button:disabled,
+.garden-detail-actions .garden-action-button.disabled,
+.garden-detail-evolve:disabled {
+  filter: grayscale(0.35) saturate(0.8);
+  opacity: 0.72;
+}
+
+.garden-detail-actions .garden-action-button svg,
+.garden-detail-evolve svg {
   display: block !important;
-  width: 22px !important;
-  height: 22px !important;
-  color: #4a2e1a !important;
-  filter: drop-shadow(0 1px 0 rgba(255, 240, 199, 0.48)) !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto;
+  color: currentColor !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 240, 199, 0.4)) !important;
 }
 
-.garden-detail-actions .garden-action-button.danger svg {
-  color: #7a2010 !important;
-}
-
-
-/* Evolve button: Hide the static label but position the dynamic cost absolutely on the right slot */
 .garden-detail-evolve .garden-evolve-btn-label {
-  display: none !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .garden-detail-evolve .garden-evolve-btn-cost {
-  position: absolute;
-  right: 14%;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex !important;
+  position: static;
+  transform: none;
+  display: inline-flex !important;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  color: #3b2417 !important; /* Rich dark-brown color matching pre-drawn panel texts */
+  min-width: 0;
+  color: #3b2417 !important;
   font-weight: 1000;
-  font-size: 1.05rem !important;
+  font-size: clamp(0.82rem, 3.1vw, 1rem) !important;
   text-shadow: none !important;
 }
 
 .garden-detail-evolve .garden-evolve-btn-cost svg {
-  color: #c9853a !important; /* Gold accent color for dynamic coins icon */
+  color: #c9853a !important;
 }
 
 .garden-detail-evolve:disabled .garden-evolve-btn-cost {
-  opacity: 0.62;
   color: #5a4133 !important;
 }
 
@@ -1169,6 +1205,42 @@
   background:
     url("/games/hud-redesign/garden/dialog-panel.png") center / 132% 100% no-repeat !important;
   text-shadow: none;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] {
+  --garden-menu-panel-art: url("/games/garden-shelf/menu-panels/plant-detail.png");
+}
+
+.garden-bottom-sheet[data-garden-panel="seed-shop-inventory"] {
+  --garden-menu-panel-art: url("/games/garden-shelf/menu-panels/seed-shop-inventory.png");
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] {
+  --garden-menu-panel-art: url("/games/garden-shelf/menu-panels/quests.png");
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] {
+  --garden-menu-panel-art: url("/games/garden-shelf/menu-panels/settings.png");
+}
+
+.garden-modal-card[data-garden-panel="reward"] {
+  --garden-menu-panel-art: url("/games/garden-shelf/menu-panels/reward.png");
+}
+
+.garden-modal-card[data-garden-panel="offline-reward"] {
+  --garden-menu-panel-art: url("/games/garden-shelf/menu-panels/offline-reward.png");
+}
+
+.garden-bottom-sheet[data-garden-panel],
+.garden-settings-dialog[data-garden-panel],
+.garden-quest-dialog[data-garden-panel],
+.garden-modal-card[data-garden-panel] {
+  border: 0 !important;
+  background:
+    var(--garden-menu-panel-art) center / 100% 100% no-repeat !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none !important;
 }
 
 .garden-settings-dialog {
@@ -1259,11 +1331,15 @@
 .garden-quest-card {
   border: 0 !important;
   border-bottom: 1px solid rgba(95, 58, 30, 0.24) !important;
-  border-radius: 0;
+  border-radius: 8px;
   padding: 12px 0 14px;
-  background: transparent !important;
+  background:
+    linear-gradient(180deg, rgba(255, 242, 205, 0.9), rgba(238, 200, 139, 0.78)),
+    rgba(250, 228, 177, 0.84) !important;
   color: #3b2418 !important;
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    0 6px 12px rgba(78, 46, 21, 0.08);
 }
 
 .garden-quest-card:last-child {

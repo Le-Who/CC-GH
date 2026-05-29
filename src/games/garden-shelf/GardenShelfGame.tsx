@@ -158,6 +158,7 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
               onClick={closeSettings}
             />
             <motion.div
+              data-garden-panel="settings"
               className="garden-glass-menu garden-settings-dialog fixed right-3 top-16 z-[190] w-[min(92%,320px)] border p-4"
               role="dialog"
               aria-modal="true"
@@ -290,6 +291,7 @@ function GardenQuestController() {
               onClick={closeQuests}
             />
             <motion.div
+              data-garden-panel="quests"
               className="garden-glass-menu garden-quest-dialog fixed inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-hidden border p-4"
               role="dialog"
               aria-modal="true"
@@ -417,6 +419,7 @@ function LevelUpRewardModal() {
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 20, opacity: 0 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+            data-garden-panel="reward"
             className="garden-modal-card relative flex w-full max-w-sm flex-col items-center overflow-hidden p-8 text-center"
             role="dialog"
             aria-modal="true"

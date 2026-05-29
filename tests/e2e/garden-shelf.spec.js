@@ -223,7 +223,7 @@ test.describe("Garden Shelf flow", () => {
     expect(viewport).not.toBeNull();
     expect(questBox.x).toBeGreaterThanOrEqual(0);
     expect(questBox.x + questBox.width).toBeLessThanOrEqual(viewport.width + 1);
-    await questDialog.getByRole("button", { name: "Close settings" }).click();
+    await questDialog.getByRole("button", { name: "Close garden quests" }).click();
 
     await page.getByRole("button", { name: "+" }).first().click();
     const panel = page.locator(".fixed.bottom-0").last();
@@ -608,7 +608,7 @@ test.describe("Garden Shelf flow", () => {
     });
     expect(questOverlayStyles.dialog.backdropFilter).toBe("none");
     expect(questOverlayStyles.scrim?.backdropFilter).toBe("none");
-    await questDialog.getByRole("button", { name: "Close settings" }).click();
+    await questDialog.getByRole("button", { name: "Close garden quests" }).click();
 
     await page.getByRole("button", { name: "+" }).first().click();
     const sheet = page.locator(".garden-glass-sheet").last();

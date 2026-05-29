@@ -1345,7 +1345,7 @@
   overflow: hidden;
   border: 1px solid var(--yard-hud-line);
   border-radius: 8px;
-  --yard-screen-panel-art: url("/games/companion-yard/ui/panel_shop.png");
+  --yard-screen-panel-art: url("/games/companion-yard/menu-panels/shop.png");
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.56), rgba(255, 246, 225, 0.26)),
     var(--yard-screen-panel-art) center / cover no-repeat,
@@ -1355,18 +1355,18 @@
   outline: none;
 }
 
-.yard-game-screen[data-yard-screen="food"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_food.png"); }
-.yard-game-screen[data-yard-screen="goodies"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_goodies.png"); }
-.yard-game-screen[data-yard-screen="shop"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_shop.png"); }
-.yard-game-screen[data-yard-screen="petbook"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_petbook.png"); }
-.yard-game-screen[data-yard-screen="album"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_album.png"); }
-.yard-game-screen[data-yard-screen="gifts"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_gifts.png"); }
-.yard-game-screen[data-yard-screen="settings"],
-.yard-game-screen[data-yard-screen="repair"],
-.yard-game-screen[data-yard-screen="remodel"],
-.yard-game-screen[data-yard-screen="expansion"],
-.yard-game-screen[data-yard-screen="daily"],
-.yard-game-screen[data-yard-screen="companion"] { --yard-screen-panel-art: url("/games/companion-yard/ui/panel_settings.png"); }
+.yard-game-screen[data-yard-screen="food"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/food.png"); }
+.yard-game-screen[data-yard-screen="goodies"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/goodies.png"); }
+.yard-game-screen[data-yard-screen="shop"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/shop.png"); }
+.yard-game-screen[data-yard-screen="petbook"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/petbook.png"); }
+.yard-game-screen[data-yard-screen="album"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/album.png"); }
+.yard-game-screen[data-yard-screen="gifts"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/gifts.png"); }
+.yard-game-screen[data-yard-screen="settings"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/settings.png"); }
+.yard-game-screen[data-yard-screen="repair"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/repair.png"); }
+.yard-game-screen[data-yard-screen="remodel"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/remodel.png"); }
+.yard-game-screen[data-yard-screen="expansion"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/expansion.png"); }
+.yard-game-screen[data-yard-screen="daily"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/daily.png"); }
+.yard-game-screen[data-yard-screen="companion"] { --yard-screen-panel-art: url("/games/companion-yard/menu-panels/companion.png"); }
 
 .yard-screen-header {
   min-height: 60px;
@@ -2025,7 +2025,7 @@
 
 .companion-yard-layout {
   --yard-generated-panel-art: url("/games/hud-redesign/room/screen-panel.png");
-  --yard-generated-dialog-art: url("/games/hud-redesign/room/dialog-panel.png");
+  --yard-generated-dialog-art: url("/games/ui-surfaces/yard-panel.png");
   --yard-generated-dock-art: url("/games/hud-redesign/room/dock-panel.png");
   --yard-generated-button-art: url("/games/hud-redesign/room/primary-button.png");
   --yard-generated-icon-art: url("/games/hud-redesign/room/icon-badge.png");
@@ -2042,7 +2042,7 @@
 
 .companion-yard-layout .yard-game-screen {
   background:
-    var(--yard-generated-dialog-art) center / 100% 100% no-repeat !important;
+    var(--yard-screen-panel-art, var(--yard-generated-dialog-art)) center / 100% 100% no-repeat !important;
   border: 0;
   padding: clamp(14px, 3vw, 20px);
   -webkit-backdrop-filter: none;
@@ -2064,7 +2064,6 @@
   padding: 14px;
 }
 
-.companion-yard-layout .yard-currency-chip,
 .companion-yard-layout .yard-card,
 .companion-yard-layout .yard-petbook-card,
 .companion-yard-layout .yard-photo-card,
@@ -2072,8 +2071,37 @@
 .companion-yard-layout .yard-inventory-item,
 .companion-yard-layout .yard-stat {
   background:
+    linear-gradient(180deg, rgba(255, 246, 218, 0.88), rgba(239, 201, 139, 0.66)),
+    rgba(250, 227, 178, 0.76) !important;
+  border: 1px solid rgba(99, 63, 32, 0.22) !important;
+  color: #3d2818;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 8px 16px rgba(90, 55, 22, 0.12) !important;
+}
+
+.companion-yard-layout .yard-currency-chip {
+  background:
     var(--yard-generated-metric-art) center / 100% 100% no-repeat !important;
   color: #3d2818;
+}
+
+.companion-yard-layout .yard-card > strong,
+.companion-yard-layout .yard-shop-row strong,
+.companion-yard-layout .yard-photo-card strong,
+.companion-yard-layout .yard-petbook-card strong,
+.companion-yard-layout .yard-inventory-item strong {
+  color: #342112 !important;
+  opacity: 1;
+  text-shadow: 0 1px 0 rgba(255, 244, 205, 0.48);
+}
+
+.companion-yard-layout .yard-shop-row small,
+.companion-yard-layout .yard-photo-card small,
+.companion-yard-layout .yard-petbook-card small,
+.companion-yard-layout .yard-inventory-item small {
+  color: #5b3a1e !important;
+  opacity: 1;
 }
 
 .companion-yard-layout .yard-icon-button,
@@ -2121,6 +2149,35 @@
   height: 44px !important;
   justify-self: center;
   align-self: center;
+}
+
+@media (max-height: 430px) and (orientation: landscape) {
+  .companion-yard-layout .yard-game-screen {
+    bottom: max(90px, calc(var(--safe-bottom) + 90px));
+    max-height: calc(100% - 90px);
+    padding: 10px 14px 12px;
+  }
+
+  .companion-yard-layout .yard-screen-header {
+    min-height: 42px;
+    padding-bottom: 4px;
+  }
+
+  .companion-yard-layout .yard-screen-content {
+    padding: 4px 2px 2px;
+  }
+
+  .yard-screen-grid {
+    gap: 6px;
+  }
+
+  .yard-shop-row,
+  .yard-photo-card,
+  .yard-petbook-card,
+  .yard-inventory-item {
+    min-height: 48px;
+    padding: 6px 8px;
+  }
 }
 
 .yard-press-tooltip {

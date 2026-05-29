@@ -39,6 +39,7 @@ export function OfflineWelcome() {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.9, y: 20, opacity: 0 }}
               transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              data-garden-panel="offline-reward"
               className="garden-modal-card relative flex w-full max-w-sm flex-col items-center overflow-hidden p-8 text-center"
             >
               <div className="relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[color:var(--glass-border-soft)] bg-[color:var(--glass-card)]">

@@ -20,6 +20,17 @@ const requiredScreens = {
   farmLegacy: ["hud", "shop", "bag", "plotDetail", "journal", "season"],
 };
 
+const requiredInternalMenuPanels = {
+  cozyYard: {
+    publicDir: "/games/companion-yard/menu-panels",
+    screens: ["food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"],
+  },
+  gardenShelf: {
+    publicDir: "/games/garden-shelf/menu-panels",
+    screens: ["plant-detail", "seed-shop-inventory", "quests", "settings", "reward", "offline-reward"],
+  },
+};
+
 function resolvePublicAsset(assetPath) {
   assert.equal(assetPath.startsWith("/"), true, `${assetPath} must be a public-root absolute path`);
   return path.join(publicRoot, assetPath.slice(1).replace(/\//g, path.sep));
@@ -173,6 +184,63 @@ test("screen containers use generated textless UI surfaces", async () => {
       );
     }
   }
+});
+
+test("Yard and Garden internal menus use one generated panel asset per screen", async () => {
+  const manifestPath = path.join(root, "assets-source", "imagegen", "menu-panels", "menu-panel-manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  const seenAssets = new Set();
+
+  for (const [gameId, config] of Object.entries(requiredInternalMenuPanels)) {
+    const game = manifest.games?.[gameId];
+    assert.ok(game, `${gameId} is missing from menu-panel-manifest.json`);
+
+    for (const screenId of config.screens) {
+      const entry = game.screens?.[screenId];
+      assert.ok(entry, `${gameId}.${screenId} is missing from menu-panel-manifest.json`);
+      assert.equal(
+        entry.publicPath,
+        `${config.publicDir}/${screenId}.png`,
+        `${gameId}.${screenId} should use its own public panel file`,
+      );
+      assert.ok(!seenAssets.has(entry.publicPath), `${entry.publicPath} is shared by more than one menu`);
+      seenAssets.add(entry.publicPath);
+      assert.ok(existsSync(resolvePublicAsset(entry.publicPath)), `${entry.publicPath} does not exist under public/`);
+      assert.equal(entry.generatedBy, "built-in image_gen", `${gameId}.${screenId} must come from the built-in image tool`);
+    }
+  }
+});
+
+test("Yard and Garden menu CSS binds screen-specific generated panels and keeps button labels visible", async () => {
+  const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
+  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
+
+  for (const screenId of requiredInternalMenuPanels.cozyYard.screens) {
+    assert.match(
+      yardCss,
+      new RegExp(`data-yard-screen="${escapeRegExp(screenId)}"[\\s\\S]*\\/games\\/companion-yard\\/menu-panels\\/${escapeRegExp(screenId)}\\.png`),
+      `Yard ${screenId} should bind to its own generated menu panel`,
+    );
+  }
+
+  for (const screenId of requiredInternalMenuPanels.gardenShelf.screens) {
+    assert.match(
+      gardenCss,
+      new RegExp(`data-garden-panel="${escapeRegExp(screenId)}"[\\s\\S]*\\/games\\/garden-shelf\\/menu-panels\\/${escapeRegExp(screenId)}\\.png`),
+      `Garden ${screenId} should bind to its own generated menu panel`,
+    );
+  }
+
+  assert.doesNotMatch(
+    gardenCss,
+    /\.garden-detail-actions \.garden-action-button\s*\{[\s\S]*?font-size:\s*0\s*!important/s,
+    "Garden detail action labels must remain visible and readable",
+  );
+  assert.doesNotMatch(
+    gardenCss,
+    /\.garden-detail-evolve \.garden-evolve-btn-label\s*\{[\s\S]*?display:\s*none\s*!important/s,
+    "Garden evolve label must remain visible and readable",
+  );
 });
 
 test("screen mockup reference manifest remains complete", async () => {
@@ -353,12 +421,12 @@ test("Garden Shelf shell chrome uses garden assets without obscuring quest dialo
     "Garden stats must not inherit the Game Hub panel art",
   );
   assert.match(gardenCss, /\.garden-quest-dialog \.garden-icon-button[\s\S]*\/games\/garden-shelf\/icon_close\.png/s);
-  assert.match(gardenCss, /\.garden-quest-card\s*\{[^}]*background:\s*transparent\s*!important/s);
-  assert.doesNotMatch(
+  assert.match(
     gardenCss,
-    /\.garden-quest-card\s*\{[^}]*linear-gradient/s,
-    "Garden quest rows should not use CSS fill panels over the dialog art",
+    /\.garden-quest-card\s*\{[\s\S]*rgba\(250,\s*228,\s*177,\s*0\.84\)[\s\S]*color:\s*#3b2418\s*!important/s,
+    "Garden quest rows should use a readable parchment row surface over the generated panel art",
   );
+  assert.doesNotMatch(gardenCss, /\.garden-quest-card\s*\{[^}]*url\(/s, "Garden quest rows must not add nested image art");
   assert.match(gardenCss, /\.garden-quest-card \.garden-quest-claimable\s*\{/);
 });
 
