@@ -132,12 +132,36 @@ test.describe("Glass UI rollout smoke", () => {
     });
   }
 
+  async function expectPauseContentChromeFree(overlay, label) {
+    const offenders = await overlay.locator(".game-menu-scaler").evaluate((scaler) => {
+      const isVisible = (node) => {
+        const rect = node.getBoundingClientRect();
+        const style = window.getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      };
+
+      return [...scaler.querySelectorAll("*")]
+        .filter((node) => isVisible(node) && !node.closest(".panel-button"))
+        .map((node) => {
+          const style = window.getComputedStyle(node);
+          return {
+            selector: `${node.tagName.toLowerCase()}${node.className ? `.${String(node.className).trim().replace(/\s+/g, ".")}` : ""}`,
+            backgroundImage: style.backgroundImage,
+          };
+        })
+        .filter((entry) => entry.backgroundImage.includes("metric-chip") || entry.backgroundImage.includes("linear-gradient"));
+    });
+
+    expect(offenders, `${label} should not paint nested metric/gradient panels inside the generated menu frame`).toEqual([]);
+  }
+
   async function pauseAndCheck(page, label, testInfo, shellId = null) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
     const overlay = shellId
       ? page.locator(`[data-game-shell="${shellId}"] .game-menu-overlay`)
       : page.locator(".game-menu-overlay:visible").last();
     await expectGeneratedChrome(page, overlay.locator(".game-menu-scaler"), `${label} pause menu`, testInfo);
+    await expectPauseContentChromeFree(overlay, `${label} pause menu`);
   }
 
   async function exitToHub(page) {

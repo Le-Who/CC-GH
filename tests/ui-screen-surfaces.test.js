@@ -172,6 +172,35 @@ function assertFinalSelectorUsesAssetChrome(css, selector, filePath, expectedAss
   );
 }
 
+function assertFinalSelectorKeepsContentChromeFree(css, selector, filePath, disallowedAssetPattern) {
+  const blocks = findCssBlocksForSelector(css, selector);
+  assert.ok(blocks.length > 0, `${filePath} is missing ${selector}`);
+  const finalBlock = blocks
+    .filter((block) => /background(?:-image)?\s*:|box-shadow\s*:|border\s*:/.test(block) || disallowedAssetPattern.test(block))
+    .at(-1) || blocks.at(-1);
+
+  assert.doesNotMatch(
+    finalBlock,
+    disallowedAssetPattern,
+    `${filePath} ${selector} must not stretch metric-chip art inside the generated menu frame`,
+  );
+  assert.doesNotMatch(
+    finalBlock,
+    /linear-gradient\s*\(/,
+    `${filePath} ${selector} must not fall back to old CSS-gradient panel chrome inside menu art`,
+  );
+  assert.match(
+    finalBlock,
+    /background(?:-image)?\s*:\s*(?:transparent|none)(?:\s*!important)?\s*;/,
+    `${filePath} ${selector} should leave the generated outer frame to own the menu surface`,
+  );
+  assert.match(
+    finalBlock,
+    /box-shadow\s*:\s*none(?:\s*!important)?\s*;/,
+    `${filePath} ${selector} should not add nested panel shadows inside menu art`,
+  );
+}
+
 test("screen surface asset map covers every game screen family", async () => {
   const modulePath = pathToFileURL(path.join(root, "src", "app", "screenSurfaceAssets.js")).href;
   const { SCREEN_SURFACE_ASSETS } = await import(modulePath);
@@ -408,61 +437,74 @@ test("visible mini-game menu chrome is owned by generated assets", async () => {
     "src/games/blox/blox.css": {
       dialog: /--hud-redesign-dialog-art|--blox-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/blox(?:-dialog-panel|\/dialog-panel)\.png/,
       metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/blox\/metric-chip\.png/,
-      selectors: [
-        [".blox-menu-overlay .game-menu-scaler", "dialog"],
-        [".blox-menu-overlay .panel-header", "metric"],
-        [".blox-menu-overlay .pause-menu-frame", "metric"],
-        [".blox-menu-overlay .metric-grid > *", "metric"],
+      dialogSelectors: [".blox-menu-overlay .game-menu-scaler"],
+      contentSelectors: [
+        ".blox-menu-overlay .panel-header",
+        ".blox-menu-overlay .pause-menu-frame",
+        ".blox-menu-overlay .metric-grid > *",
+        ".blox-menu-overlay .pause-status-line span",
       ],
     },
     "src/games/match3/match3.css": {
       dialog: /--hud-redesign-dialog-art|--match3-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/match3(?:-dialog-panel|\/dialog-panel)\.png/,
       metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/match3\/metric-chip\.png/,
       button: /--hud-redesign-button-art|\/games\/hud-redesign\/match3\/primary-button\.png/,
-      selectors: [
-        [".match3-menu-overlay .game-menu-scaler", "dialog"],
-        [".match3-menu-overlay .panel-header", "metric"],
-        [".match3-menu-overlay .pause-menu-frame", "metric"],
-        [".match3-menu-overlay .metric-grid > *", "metric"],
-        [".match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button", "button"],
-        [".match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button", "button"],
+      dialogSelectors: [".match3-menu-overlay .game-menu-scaler"],
+      buttonSelectors: [
+        ".match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button",
+        ".match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button",
+      ],
+      contentSelectors: [
+        ".match3-menu-overlay .panel-header",
+        ".match3-menu-overlay .pause-menu-frame",
+        ".match3-menu-overlay .metric-grid > *",
+        ".match3-menu-overlay .pause-status-line span",
       ],
     },
     "src/games/bubbo/bubbo.css": {
       dialog: /--hud-redesign-dialog-art|--bubbo-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/bubbo(?:-dialog-panel|\/dialog-panel)\.png/,
       metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/bubbo\/metric-chip\.png/,
-      selectors: [
-        [".bubbo-shell .game-menu-overlay .game-menu-scaler", "dialog"],
-        [".bubbo-shell .game-menu-overlay .panel-header", "metric"],
-        [".bubbo-shell .game-menu-overlay .pause-menu-frame", "metric"],
-        [".bubbo-shell .game-menu-overlay .metric-grid > *", "metric"],
+      dialogSelectors: [".bubbo-shell .game-menu-overlay .game-menu-scaler"],
+      contentSelectors: [
+        ".bubbo-shell .game-menu-overlay .panel-header",
+        ".bubbo-shell .game-menu-overlay .pause-menu-frame",
+        ".bubbo-shell .game-menu-overlay .metric-grid > *",
+        ".bubbo-shell .game-menu-overlay .pause-status-line span",
       ],
     },
     "src/games/merge/merge.css": {
       dialog: /--hud-redesign-dialog-art|--merge-pause-art|\/games\/hud-redesign\/merge\/dialog-panel\.png/,
       metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/merge\/metric-chip\.png/,
-      selectors: [
-        [".game-shell .game-menu-overlay.merge-pause-overlay .game-menu-scaler", "dialog"],
-        [".merge-pause-overlay .panel-header", "metric"],
-        [".merge-pause-overlay .pause-menu-frame", "metric"],
+      dialogSelectors: [".game-shell .game-menu-overlay.merge-pause-overlay .game-menu-scaler"],
+      contentSelectors: [
+        ".merge-pause-overlay .panel-header",
+        ".merge-pause-overlay .pause-menu-frame",
+        ".merge-pause-overlay .pause-status-line span",
       ],
     },
     "src/games/trivia/trivia.css": {
       dialog: /--hud-redesign-dialog-art|--trivia-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/trivia(?:-dialog-panel|\/dialog-panel)\.png/,
       metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/trivia\/metric-chip\.png/,
-      selectors: [
-        [".trivia-shell .trivia-pause-overlay .game-menu-scaler", "dialog"],
-        [".trivia-shell .trivia-pause-overlay .panel-header", "metric"],
-        [".trivia-shell .trivia-pause-overlay .pause-menu-frame", "metric"],
-        [".trivia-shell .trivia-pause-overlay .compact-list span", "metric"],
+      dialogSelectors: [".trivia-shell .trivia-pause-overlay .game-menu-scaler"],
+      contentSelectors: [
+        ".trivia-shell .trivia-pause-overlay .panel-header",
+        ".trivia-shell .trivia-pause-overlay .pause-menu-frame",
+        ".trivia-shell .trivia-pause-overlay .compact-list span",
+        ".trivia-shell .trivia-pause-overlay .pause-status-line span",
       ],
     },
   };
 
   for (const [filePath, config] of Object.entries(selectorsByFile)) {
     const css = await readFile(path.join(root, filePath), "utf8");
-    for (const [selector, assetKind] of config.selectors) {
-      assertFinalSelectorUsesAssetChrome(css, selector, filePath, config[assetKind]);
+    for (const selector of config.dialogSelectors) {
+      assertFinalSelectorUsesAssetChrome(css, selector, filePath, config.dialog);
+    }
+    for (const selector of config.buttonSelectors || []) {
+      assertFinalSelectorUsesAssetChrome(css, selector, filePath, config.button);
+    }
+    for (const selector of config.contentSelectors) {
+      assertFinalSelectorKeepsContentChromeFree(css, selector, filePath, config.metric);
     }
   }
 });

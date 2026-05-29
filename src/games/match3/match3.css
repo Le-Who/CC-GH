@@ -1164,8 +1164,8 @@
   }
 }
 
-/* Final asset-owned menu chrome. The generated dialog/button/metric PNGs are
-   the visible shapes; CSS only places dynamic text and controls. */
+/* Final asset-owned menu chrome. The generated dialog and button PNGs are the
+   visible shapes; inner copy stays transparent inside the menu art. */
 .match3-menu-overlay .game-menu-scaler,
 .game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .game-menu-scaler,
 .game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact .game-menu-scaler {
@@ -1188,7 +1188,8 @@
 .match3-menu-overlay .pause-status-line span {
   border: 0 !important;
   border-radius: 8px !important;
-  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background: transparent !important;
+  background-image: none !important;
   background-color: transparent !important;
   color: var(--hud-redesign-ink, var(--match3-ink)) !important;
   box-shadow: none !important;

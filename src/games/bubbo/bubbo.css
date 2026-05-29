@@ -1271,7 +1271,7 @@
 }
 
 /* Final asset-owned menu chrome. Earlier blocks keep Bubbo's placement logic;
-   these rules make the visible frame and inner surfaces use generated art. */
+   these rules keep inner copy from stretching HUD chip art. */
 .bubbo-shell .game-menu-overlay .game-menu-scaler,
 .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .game-menu-scaler,
 .bubbo-shell .game-menu-overlay.bubbo-result-overlay .game-menu-scaler {
@@ -1294,7 +1294,8 @@
 .bubbo-shell .game-menu-overlay .pause-status-line span {
   border: 0 !important;
   border-radius: 8px !important;
-  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background: transparent !important;
+  background-image: none !important;
   background-color: transparent !important;
   color: var(--hud-redesign-ink, #fff7e5) !important;
   box-shadow: none !important;

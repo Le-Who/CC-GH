@@ -2278,7 +2278,7 @@
 }
 
 /* Final asset-owned menu chrome. Merge keeps its custom live drawers; the pause
-   recovery dialog uses generated frame and chip art for all visible surfaces. */
+   recovery dialog uses generated frame art without nested HUD chip panels. */
 .game-shell .game-menu-overlay.merge-pause-overlay .game-menu-scaler {
   border: 0 !important;
   background: var(--hud-redesign-dialog-art, var(--merge-pause-art, url("/games/hud-redesign/merge/dialog-panel.png"))) center / 100% 100% no-repeat !important;
@@ -2297,7 +2297,8 @@
 .merge-pause-overlay .pause-status-line span {
   border: 0 !important;
   border-radius: 8px !important;
-  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background: transparent !important;
+  background-image: none !important;
   background-color: transparent !important;
   color: var(--hud-redesign-ink, #f8ecdc) !important;
   box-shadow: none !important;

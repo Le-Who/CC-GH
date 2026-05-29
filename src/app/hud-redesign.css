@@ -251,7 +251,8 @@
 .trivia-shell .trivia-pause-overlay .compact-list span {
   border: 0 !important;
   border-radius: var(--hud-redesign-radius) !important;
-  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background: transparent !important;
+  background-image: none !important;
   background-color: transparent !important;
   color: var(--hud-redesign-ink) !important;
   box-shadow: none !important;
@@ -260,9 +261,11 @@
 .game-shell .game-menu-overlay .pause-status-line span,
 .trivia-shell .trivia-pause-overlay .pause-status-line span {
   border: 0 !important;
-  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background: transparent !important;
+  background-image: none !important;
   background-color: transparent !important;
   color: var(--hud-redesign-ink) !important;
+  box-shadow: none !important;
 }
 
 .blox-menu-overlay .panel-button,
