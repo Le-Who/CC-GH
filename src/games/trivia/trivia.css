@@ -290,10 +290,8 @@
   min-height: 0;
   padding: clamp(18px, 4.4dvh, 34px) clamp(16px, 6vw, 28px);
   border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 209, 102, 0.1), rgba(115, 211, 255, 0.05)),
-    var(--trivia-panel-art) center / 100% 100% no-repeat,
-    #08173c;
+  background: var(--trivia-panel-art) center / 100% 100% no-repeat;
+  background-color: transparent;
   color: #fffdf3;
   text-align: center;
   text-wrap: balance;
@@ -522,9 +520,12 @@
 }
 
 .trivia-shell .trivia-pause-overlay .game-menu-scaler {
+  box-sizing: border-box;
   display: grid;
   align-content: center;
   gap: 10px;
+  width: 100%;
+  height: 100%;
   padding: 104px 40px 66px;
   border: 0;
   background:
@@ -1089,4 +1090,40 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Final asset-owned menu chrome for Brain Blitz overlays. */
+.trivia-shell .trivia-pause-overlay .game-menu-scaler,
+.game-shell .game-menu-overlay.trivia-pause-overlay .game-menu-scaler,
+.trivia-shell[data-trivia-view="results"] .trivia-pause-overlay .game-menu-scaler,
+.trivia-shell[data-trivia-view="duel-results"] .trivia-pause-overlay .game-menu-scaler {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+  border: 0 !important;
+  background: var(--hud-redesign-dialog-art, var(--trivia-dialog-art)) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, var(--trivia-ink)) !important;
+  box-shadow: 0 24px 54px rgba(3, 6, 14, 0.66) !important;
+}
+
+.trivia-shell .trivia-pause-overlay .game-menu-scaler::before,
+.trivia-shell .trivia-pause-overlay .game-menu-scaler::after {
+  content: none !important;
+}
+
+.trivia-shell .trivia-pause-overlay .panel-header,
+.trivia-shell .trivia-pause-overlay .pause-menu-frame,
+.trivia-shell .trivia-pause-overlay .compact-list span,
+.trivia-shell .trivia-pause-overlay .pause-status-line span {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, var(--trivia-ink)) !important;
+  box-shadow: none !important;
 }

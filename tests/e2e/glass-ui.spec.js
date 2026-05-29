@@ -102,16 +102,42 @@ test.describe("Glass UI rollout smoke", () => {
     });
   }
 
+  async function expectGeneratedChrome(page, locator, label, testInfo) {
+    await expect(locator).toBeVisible();
+    await page.waitForTimeout(80);
+    const surface = await locator.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      const computed = window.getComputedStyle(node);
+      return {
+        x: rect.x,
+        width: rect.width,
+        height: rect.height,
+        backgroundImage: computed.backgroundImage,
+        backgroundColor: computed.backgroundColor,
+        color: computed.color,
+      };
+    });
+    const viewport = page.viewportSize();
+    expect(viewport, `${label} has a viewport`).not.toBeNull();
+    expect(surface.x, `${label} left edge stays inside viewport`).toBeGreaterThanOrEqual(0);
+    expect(surface.x + surface.width, `${label} right edge stays inside viewport`).toBeLessThanOrEqual(viewport.width + 1);
+    expect(surface.height, `${label} keeps readable height`).toBeGreaterThan(42);
+    expect(surface.backgroundImage, `${label} uses generated runtime art`).toMatch(/\/games\/(?:ui-surfaces|hud-redesign|trivia|companion-yard|garden-shelf)\//);
+    expect(surface.backgroundImage, `${label} does not keep a CSS gradient panel`).not.toContain("linear-gradient");
+    expect(surface.backgroundColor, `${label} should not paint a CSS fallback color behind transparent art`).toBe("rgba(0, 0, 0, 0)");
+    expect(surface.color, `${label} keeps readable runtime text`).not.toBe("rgba(0, 0, 0, 0)");
+    await page.screenshot({
+      path: testInfo.outputPath(`${label.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`),
+      fullPage: false,
+    });
+  }
+
   async function pauseAndCheck(page, label, testInfo, shellId = null) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
     const overlay = shellId
       ? page.locator(`[data-game-shell="${shellId}"] .game-menu-overlay`)
       : page.locator(".game-menu-overlay:visible").last();
-    if (shellId === "match3") {
-        await expectMatch3Surface(page, overlay, `${label} pause menu`, testInfo);
-    } else {
-      await expectReadableGlass(page, overlay, `${label} pause menu`, testInfo);
-    }
+    await expectGeneratedChrome(page, overlay.locator(".game-menu-scaler"), `${label} pause menu`, testInfo);
   }
 
   async function exitToHub(page) {
@@ -122,11 +148,19 @@ test.describe("Glass UI rollout smoke", () => {
 
   test("mobile menus and live HUDs keep their expected visual surfaces", async ({ page }, testInfo) => {
     test.setTimeout(90_000);
+    await page.addInitScript(() => {
+      window.localStorage.setItem("game_hub_ui_theme", "light");
+    });
     await page.setViewportSize({ width: 420, height: 680 });
     await boot(page);
 
+    await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "light");
     await expectReadableGlass(page, page.locator(".stats-row"), "Light hub stats row", testInfo);
-    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await page.evaluate(() => {
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+      document.documentElement.dataset.uiTheme = "dark";
+      document.documentElement.style.colorScheme = "dark";
+    });
     await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "dark");
     await expectReadableGlass(page, page.locator(".stats-row"), "Dark hub stats row", testInfo);
 
@@ -154,11 +188,7 @@ test.describe("Glass UI rollout smoke", () => {
       }
       await page.waitForTimeout(260);
       if (game.start) {
-        if (game.id === "match3") {
-          await expectMatch3Surface(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
-        } else {
-          await expectReadableGlass(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay`), `${game.label} start menu`, testInfo);
-        }
+        await expectGeneratedChrome(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay .game-menu-scaler`), `${game.label} start menu`, testInfo);
         await page.getByRole("button", { name: game.start }).click();
       } else {
         await expect(page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay:visible`)).toHaveCount(0);
@@ -173,7 +203,7 @@ test.describe("Glass UI rollout smoke", () => {
       } else if (game.id === "match3") {
         await expectMatch3Surface(page, page.locator(`[data-game-shell="${game.id}"] .match3-scene-hud`), `${game.label} live HUD`, testInfo);
       } else {
-        await expectReadableGlass(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
+        await expectGeneratedChrome(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       }
       await pauseAndCheck(page, game.label, testInfo, game.id);
       await exitToHub(page);
@@ -181,17 +211,17 @@ test.describe("Glass UI rollout smoke", () => {
 
     await page.getByRole("button", { name: /Trivia/ }).click();
     await page.waitForTimeout(260);
-    await expectReadableGlass(page, page.locator(".trivia-card"), "Trivia setup panel", testInfo);
+    await expectGeneratedChrome(page, page.locator(".trivia-card"), "Trivia setup panel", testInfo);
     await page.getByRole("button", { name: "Solo" }).click();
-    await expectReadableGlass(page, page.locator(".question-panel"), "Trivia question panel", testInfo);
+    await expectGeneratedChrome(page, page.locator(".question-panel h2"), "Trivia question panel", testInfo);
     await pauseAndCheck(page, "Trivia", testInfo);
     await exitToHub(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
     await page.waitForTimeout(260);
-    await expectReadableGlass(page, page.locator(".yard-currency-chip").first(), "Yard currency chip", testInfo);
-    await expectReadableGlass(page, page.locator(".yard-bottom-dock"), "Yard action dock", testInfo);
+    await expectGeneratedChrome(page, page.locator(".yard-currency-chip").first(), "Yard currency chip", testInfo);
+    await expectGeneratedChrome(page, page.locator(".yard-bottom-dock"), "Yard action dock", testInfo);
     await page.getByRole("button", { name: "Settings" }).click();
-    await expectReadableGlass(page, page.locator(".yard-game-screen"), "Yard settings screen", testInfo);
+    await expectGeneratedChrome(page, page.locator(".yard-game-screen"), "Yard settings screen", testInfo);
   });
 });

@@ -196,8 +196,10 @@
 }
 
 .game-play-actions .panel-button.icon-only {
-  min-width: 46px;
-  width: 46px;
+  min-width: 48px;
+  width: 48px;
+  min-height: 46px;
+  height: 46px;
   padding-inline: 0;
   background: var(--hud-redesign-icon-art) center / 100% 100% no-repeat !important;
 }
@@ -237,6 +239,30 @@
   background: transparent !important;
   background-color: transparent !important;
   box-shadow: none !important;
+}
+
+.game-shell .game-menu-overlay .panel-header,
+.game-shell .game-menu-overlay .pause-menu-frame,
+.game-shell .game-menu-overlay .metric-grid > *,
+.game-shell .game-menu-overlay .leaderboard,
+.game-shell .game-menu-overlay .generator-card,
+.trivia-shell .trivia-pause-overlay .panel-header,
+.trivia-shell .trivia-pause-overlay .pause-menu-frame,
+.trivia-shell .trivia-pause-overlay .compact-list span {
+  border: 0 !important;
+  border-radius: var(--hud-redesign-radius) !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink) !important;
+  box-shadow: none !important;
+}
+
+.game-shell .game-menu-overlay .pause-status-line span,
+.trivia-shell .trivia-pause-overlay .pause-status-line span {
+  border: 0 !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink) !important;
 }
 
 .blox-menu-overlay .panel-button,

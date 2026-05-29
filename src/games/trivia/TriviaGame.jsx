@@ -53,6 +53,17 @@ export default function TriviaGame() {
   }), [pauseRun, questionActive, questionTiming.remainingMs, sessionScore, streak]);
   useImmersiveGame("trivia", inShell, shellControls);
 
+  const recentDuelsPanel = !activePause ? (
+    <>
+      <strong>{t("trivia.recentDuels")}</strong>
+      <div className="panel-scroll compact-list">
+        {history.length ? history.map((item, index) => (
+          <span key={item.roomId || index}>{item.roomId || t("trivia.duel")} · {item.status || item.result || t("trivia.played")}</span>
+        )) : <span>{t("trivia.noDuels")}</span>}
+      </div>
+    </>
+  ) : null;
+
   useEffect(() => () => window.clearTimeout(revealTimerRef.current), []);
 
   useEffect(() => {
@@ -319,69 +330,58 @@ export default function TriviaGame() {
         )}
       </aside>
       <HudEditableRegion id="triviaPausePanel" as="aside" className={`side-panel${inShell ? " game-menu-overlay trivia-pause-overlay" : ""}`}>
-        {inShell && (
-          <div className="panel-header pause-panel-header">
-            <div>
-              <strong>{view === "results" || view === "duel-results" ? t("trivia.result") : t("common.pause")}</strong>
-              <span>{activePause ? t("pause.paused") : `${t("common.score")} ${sessionScore} · ${t("trivia.streak", { streak: streak || 0 })}`}</span>
+        {inShell ? (
+          <div className="game-menu-scaler">
+            <div className="panel-header pause-panel-header">
+              <div>
+                <strong>{view === "results" || view === "duel-results" ? t("trivia.result") : t("common.pause")}</strong>
+                <span>{activePause ? t("pause.paused") : `${t("common.score")} ${sessionScore} · ${t("trivia.streak", { streak: streak || 0 })}`}</span>
+              </div>
             </div>
+            <PauseBrief
+              gameId="trivia"
+              kicker={paused ? t("pause.paused") : t("trivia.result")}
+              title={questionActive ? t("pause.triviaFrozen") : t("pause.triviaReady")}
+              body={questionActive ? t("pause.triviaIntro") : t("pause.triviaResults")}
+              status={questionActive ? [
+                { label: t("common.score"), value: sessionScore },
+                { label: t("trivia.streakLabel"), value: streak || 0 },
+                { label: t("common.questionShort"), value: question ? `${(question.index ?? 0) + 1}/${question.total || "?"}` : "-" },
+              ] : []}
+            />
+            <div className="pause-action-stack">
+              {activePause && <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
+              <div className="button-row two">
+                <PanelButton
+                  icon={RotateCcw}
+                  subtle
+                  onClick={() => {
+                    setPaused(false);
+                    setQuestion(null);
+                    setReveal(null);
+                    setView("menu");
+                  }}
+                >
+                  {t("common.setup")}
+                </PanelButton>
+                <PanelButton
+                  icon={Home}
+                  danger
+                  onClick={() => {
+                    setPaused(false);
+                    setQuestion(null);
+                    setReveal(null);
+                    setView("menu");
+                    exitToHub();
+                  }}
+                >
+                  {t("common.exit")}
+                </PanelButton>
+              </div>
+            </div>
+            {recentDuelsPanel}
           </div>
-        )}
-        {inShell && (
-          <PauseBrief
-            gameId="trivia"
-            kicker={paused ? t("pause.paused") : t("trivia.result")}
-            title={questionActive ? t("pause.triviaFrozen") : t("pause.triviaReady")}
-            body={questionActive ? t("pause.triviaIntro") : t("pause.triviaResults")}
-            status={questionActive ? [
-              { label: t("common.score"), value: sessionScore },
-              { label: t("trivia.streakLabel"), value: streak || 0 },
-              { label: t("common.questionShort"), value: question ? `${(question.index ?? 0) + 1}/${question.total || "?"}` : "-" },
-            ] : []}
-          />
-        )}
-        {inShell && (
-          <div className="pause-action-stack">
-            {activePause && <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
-            <div className="button-row two">
-              <PanelButton
-                icon={RotateCcw}
-                subtle
-                onClick={() => {
-                  setPaused(false);
-                  setQuestion(null);
-                  setReveal(null);
-                  setView("menu");
-                }}
-              >
-                {t("common.setup")}
-              </PanelButton>
-              <PanelButton
-                icon={Home}
-                danger
-                onClick={() => {
-                  setPaused(false);
-                  setQuestion(null);
-                  setReveal(null);
-                  setView("menu");
-                  exitToHub();
-                }}
-              >
-                {t("common.exit")}
-              </PanelButton>
-            </div>
-          </div>
-        )}
-        {!activePause && (
-          <>
-            <strong>{t("trivia.recentDuels")}</strong>
-            <div className="panel-scroll compact-list">
-              {history.length ? history.map((item, index) => (
-                <span key={item.roomId || index}>{item.roomId || t("trivia.duel")} · {item.status || item.result || t("trivia.played")}</span>
-              )) : <span>{t("trivia.noDuels")}</span>}
-            </div>
-          </>
-        )}
+        ) : recentDuelsPanel}
       </HudEditableRegion>
     </HudRegion>
   );

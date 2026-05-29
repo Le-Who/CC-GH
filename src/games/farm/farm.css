@@ -281,3 +281,37 @@ button.item-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Hidden legacy Farm still uses the same production-art rule: PNG assets own
+   the chrome, CSS only arranges dynamic text and controls. */
+.farm-layout .side-panel,
+.farm-layout .game-menu-overlay {
+  border: 0 !important;
+  background: var(--farm-panel-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  box-shadow: 0 22px 46px rgba(72, 86, 42, 0.28) !important;
+}
+
+.farm-layout .panel-button,
+.farm-layout .panel-button.subtle,
+.farm-layout .panel-button.danger {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: url("/games/farm/ui/button_primary.png") center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: #26351c !important;
+  box-shadow: none !important;
+}
+
+.farm-layout .panel-button.danger {
+  filter: hue-rotate(330deg) saturate(1.05);
+}
+
+.farm-layout .game-menu-overlay .progress-card,
+.farm-layout .game-menu-overlay .item-card,
+.farm-layout .item-card,
+.farm-layout .progress-card {
+  background: url("/games/farm/ui/side_panel.png") center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}

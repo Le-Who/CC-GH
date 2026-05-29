@@ -890,3 +890,32 @@
     min-height: 96px;
   }
 }
+
+/* Final asset-owned menu chrome: layout rules above may position content, but
+   generated UI art owns every visible panel and control surface. */
+.blox-menu-overlay .game-menu-scaler,
+.game-shell .game-menu-overlay.blox-menu-overlay[data-menu-phase="menu"] .game-menu-scaler {
+  border: 0 !important;
+  background: var(--hud-redesign-dialog-art, var(--blox-dialog-art)) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, var(--blox-ink)) !important;
+  box-shadow: 0 22px 42px rgba(2, 6, 14, 0.46) !important;
+}
+
+.blox-menu-overlay .game-menu-scaler::before,
+.blox-menu-overlay .game-menu-scaler::after {
+  content: none !important;
+}
+
+.blox-menu-overlay .panel-header,
+.blox-menu-overlay .pause-menu-frame,
+.blox-menu-overlay .metric-grid > *,
+.blox-menu-overlay .leaderboard,
+.blox-menu-overlay .pause-status-line span {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, var(--blox-ink)) !important;
+  box-shadow: none !important;
+}

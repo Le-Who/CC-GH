@@ -1163,3 +1163,44 @@
     min-height: 52px;
   }
 }
+
+/* Final asset-owned menu chrome. The generated dialog/button/metric PNGs are
+   the visible shapes; CSS only places dynamic text and controls. */
+.match3-menu-overlay .game-menu-scaler,
+.game-shell .match3-menu-overlay[data-menu-phase="menu"]:not(.match3-pause-compact) .game-menu-scaler,
+.game-shell .game-menu-overlay.match3-menu-overlay.match3-pause-compact .game-menu-scaler {
+  border: 0 !important;
+  background: var(--hud-redesign-dialog-art, var(--match3-dialog-art)) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, var(--match3-ink)) !important;
+  box-shadow: 0 20px 42px rgba(18, 9, 8, 0.48) !important;
+}
+
+.match3-menu-overlay .game-menu-scaler::before,
+.match3-menu-overlay .game-menu-scaler::after {
+  content: none !important;
+}
+
+.match3-menu-overlay .panel-header,
+.match3-menu-overlay .pause-menu-frame,
+.match3-menu-overlay .metric-grid > *,
+.match3-menu-overlay .leaderboard,
+.match3-menu-overlay .pause-status-line span {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, var(--match3-ink)) !important;
+  box-shadow: none !important;
+}
+
+.match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button,
+.match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button {
+  border: 0 !important;
+  background: var(--hud-redesign-button-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, #fff6dc) !important;
+  box-shadow: none !important;
+  font-size: clamp(0.62rem, 2.5vw, 0.82rem) !important;
+  text-shadow: 0 2px 0 rgba(48, 18, 54, 0.58) !important;
+}

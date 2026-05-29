@@ -1269,3 +1269,33 @@
     font-size: 0.82rem;
   }
 }
+
+/* Final asset-owned menu chrome. Earlier blocks keep Bubbo's placement logic;
+   these rules make the visible frame and inner surfaces use generated art. */
+.bubbo-shell .game-menu-overlay .game-menu-scaler,
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .game-menu-scaler,
+.bubbo-shell .game-menu-overlay.bubbo-result-overlay .game-menu-scaler {
+  border: 0 !important;
+  background: var(--hud-redesign-dialog-art, var(--bubbo-dialog-art)) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, #173f45) !important;
+  box-shadow: 0 20px 36px rgba(29, 58, 66, 0.34) !important;
+}
+
+.bubbo-shell .game-menu-overlay .game-menu-scaler::before,
+.bubbo-shell .game-menu-overlay .game-menu-scaler::after {
+  content: none !important;
+}
+
+.bubbo-shell .game-menu-overlay .panel-header,
+.bubbo-shell .game-menu-overlay .pause-menu-frame,
+.bubbo-shell .game-menu-overlay .leaderboard,
+.bubbo-shell .game-menu-overlay .metric-grid > *,
+.bubbo-shell .game-menu-overlay .pause-status-line span {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--hud-redesign-metric-art) center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: var(--hud-redesign-ink, #fff7e5) !important;
+  box-shadow: none !important;
+}

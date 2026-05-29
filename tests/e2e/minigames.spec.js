@@ -144,10 +144,7 @@ test.describe("New-stack minigame smoke", () => {
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Game Hub" })).toBeVisible();
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("My Garden")).toBeVisible();
+    await boot(page);
     await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
 
     await page.getByRole("button", { name: /Blox/ }).click();
@@ -693,7 +690,9 @@ test.describe("New-stack minigame smoke", () => {
     });
     const after = await expectMatch3BoardClearOfHud(page);
 
-    expect(after.board.width).toBeLessThan(before.board.width);
+    expect(after.board.canvas.width).toBeLessThan(before.board.canvas.width);
+    expect(after.board.width).toBeLessThanOrEqual(after.board.canvas.width + 1);
+    expect(after.board.height).toBeLessThanOrEqual(after.board.canvas.height + 1);
     expect(after.board.width).toBeGreaterThan(after.board.canvas.width * 0.72);
   });
 });

@@ -138,6 +138,40 @@ function assertModeSelectorCard(css, selector, filePath, actionButtonArtPath) {
   );
 }
 
+function assertFinalSelectorUsesAssetChrome(css, selector, filePath, expectedAssetPattern) {
+  const blocks = findCssBlocksForSelector(css, selector);
+  assert.ok(blocks.length > 0, `${filePath} is missing ${selector}`);
+  const finalBlock = blocks
+    .filter((block) => /background(?:-image)?\s*:/.test(block) || expectedAssetPattern.test(block))
+    .at(-1) || blocks.at(-1);
+
+  assert.match(
+    finalBlock,
+    expectedAssetPattern,
+    `${filePath} ${selector} should bind its visible chrome to generated asset art`,
+  );
+  assert.doesNotMatch(
+    finalBlock,
+    /linear-gradient\s*\(/,
+    `${filePath} ${selector} must not keep an old CSS-gradient panel over generated art`,
+  );
+  assert.doesNotMatch(
+    finalBlock,
+    /background(?:-image)?\s*:\s*(?:transparent|none)(?:\s*!important)?\s*;/,
+    `${filePath} ${selector} must not rely on a transparent hitbox while the art lives elsewhere`,
+  );
+  assert.doesNotMatch(
+    finalBlock,
+    /(?:^|[\n;])\s*color\s*:\s*transparent(?:\s*!important)?\s*;/,
+    `${filePath} ${selector} must keep runtime labels visible`,
+  );
+  assert.doesNotMatch(
+    finalBlock,
+    /(?:^|[\n;])\s*font-size\s*:\s*0(?:\s*!important)?\s*;/,
+    `${filePath} ${selector} must not hide runtime labels by zeroing type`,
+  );
+}
+
 test("screen surface asset map covers every game screen family", async () => {
   const modulePath = pathToFileURL(path.join(root, "src", "app", "screenSurfaceAssets.js")).href;
   const { SCREEN_SURFACE_ASSETS } = await import(modulePath);
@@ -365,6 +399,70 @@ test("mode selector choices use centered card layouts instead of action button a
     const css = await readFile(path.join(root, filePath), "utf8");
     for (const selector of selectors) {
       assertModeSelectorCard(css, selector, filePath, art);
+    }
+  }
+});
+
+test("visible mini-game menu chrome is owned by generated assets", async () => {
+  const selectorsByFile = {
+    "src/games/blox/blox.css": {
+      dialog: /--hud-redesign-dialog-art|--blox-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/blox(?:-dialog-panel|\/dialog-panel)\.png/,
+      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/blox\/metric-chip\.png/,
+      selectors: [
+        [".blox-menu-overlay .game-menu-scaler", "dialog"],
+        [".blox-menu-overlay .panel-header", "metric"],
+        [".blox-menu-overlay .pause-menu-frame", "metric"],
+        [".blox-menu-overlay .metric-grid > *", "metric"],
+      ],
+    },
+    "src/games/match3/match3.css": {
+      dialog: /--hud-redesign-dialog-art|--match3-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/match3(?:-dialog-panel|\/dialog-panel)\.png/,
+      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/match3\/metric-chip\.png/,
+      button: /--hud-redesign-button-art|\/games\/hud-redesign\/match3\/primary-button\.png/,
+      selectors: [
+        [".match3-menu-overlay .game-menu-scaler", "dialog"],
+        [".match3-menu-overlay .panel-header", "metric"],
+        [".match3-menu-overlay .pause-menu-frame", "metric"],
+        [".match3-menu-overlay .metric-grid > *", "metric"],
+        [".match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button", "button"],
+        [".match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button", "button"],
+      ],
+    },
+    "src/games/bubbo/bubbo.css": {
+      dialog: /--hud-redesign-dialog-art|--bubbo-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/bubbo(?:-dialog-panel|\/dialog-panel)\.png/,
+      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/bubbo\/metric-chip\.png/,
+      selectors: [
+        [".bubbo-shell .game-menu-overlay .game-menu-scaler", "dialog"],
+        [".bubbo-shell .game-menu-overlay .panel-header", "metric"],
+        [".bubbo-shell .game-menu-overlay .pause-menu-frame", "metric"],
+        [".bubbo-shell .game-menu-overlay .metric-grid > *", "metric"],
+      ],
+    },
+    "src/games/merge/merge.css": {
+      dialog: /--hud-redesign-dialog-art|--merge-pause-art|\/games\/hud-redesign\/merge\/dialog-panel\.png/,
+      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/merge\/metric-chip\.png/,
+      selectors: [
+        [".game-shell .game-menu-overlay.merge-pause-overlay .game-menu-scaler", "dialog"],
+        [".merge-pause-overlay .panel-header", "metric"],
+        [".merge-pause-overlay .pause-menu-frame", "metric"],
+      ],
+    },
+    "src/games/trivia/trivia.css": {
+      dialog: /--hud-redesign-dialog-art|--trivia-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/trivia(?:-dialog-panel|\/dialog-panel)\.png/,
+      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/trivia\/metric-chip\.png/,
+      selectors: [
+        [".trivia-shell .trivia-pause-overlay .game-menu-scaler", "dialog"],
+        [".trivia-shell .trivia-pause-overlay .panel-header", "metric"],
+        [".trivia-shell .trivia-pause-overlay .pause-menu-frame", "metric"],
+        [".trivia-shell .trivia-pause-overlay .compact-list span", "metric"],
+      ],
+    },
+  };
+
+  for (const [filePath, config] of Object.entries(selectorsByFile)) {
+    const css = await readFile(path.join(root, filePath), "utf8");
+    for (const [selector, assetKind] of config.selectors) {
+      assertFinalSelectorUsesAssetChrome(css, selector, filePath, config[assetKind]);
     }
   }
 });
