@@ -116,7 +116,6 @@ function MergeTopTool({ asset, icon, label, active, onClick, panel }) {
       type="button"
       className={`merge-top-tool${active ? " active" : ""}`}
       aria-label={label}
-      title={label}
       data-merge-panel={panel}
       onClick={(event) => {
         audioManager.play("tap");
@@ -232,8 +231,10 @@ export default function MergeGame() {
         : t("merge.noFuelShort");
   const gachaTokenBadge = t("merge.gachaTokenBadge", { count: tokenCount, cost: ECONOMY.GACHA_PULL_COST });
   const dailyDockDisabled = mergeActionPending || (!canClaimFreeTaps && !canFreePull);
-  const dailyDockLabel = canClaimFreeTaps || canFreePull
-    ? t("merge.claimDailyTokens")
+  const dailyDockLabel = canClaimFreeTaps
+    ? t("merge.dailyTaps", { count: freeTapClaim.claimable })
+    : canFreePull
+      ? t("merge.dailyDrop")
       : freeTapBankFull
         ? t("merge.freeTapBankFull", { count: MERGE_FREE_TAP_BANK_CAP })
         : t("merge.nextFreeTap", { minutes: freeTapWaitMinutes });
@@ -298,11 +299,16 @@ export default function MergeGame() {
         setSelectedCell(decision.selectedCell);
         return;
       }
+      if (decision.action === "miss") {
+        setSelectedCell(decision.selectedCell);
+        pushEvent({ game: "merge", title: t("merge.miss"), value: t("merge.statusMerge"), tone: "warning", ttlMs: 1200 });
+        return { miss: true, error: "invalid merge" };
+      }
       performAction("merge.merge", { fromR: decision.from.r, fromC: decision.from.c, toR: decision.to.r, toC: decision.to.c }, { key: `merge.merge.${decision.from.r}.${decision.from.c}.${decision.to.r}.${decision.to.c}` }).then((result) => {
         if (!result.error) setSelectedCell(null);
       });
     },
-    [isPlaying, merge.board, performAction, requestTrash, selectedCell, trashMode],
+    [isPlaying, merge.board, performAction, pushEvent, requestTrash, selectedCell, t, trashMode],
   );
 
   const onMergeDrop = useCallback(
@@ -479,7 +485,6 @@ export default function MergeGame() {
               data-merge-panel="exchange"
               onClick={() => openScenePanel("exchange")}
               aria-label={t("merge.exchange.title")}
-              title={t("merge.exchange.title")}
             >
               <MergeAssetIcon asset={uiAssets.hudIconEssence} icon={Sparkles} />
               <strong>{alchemyEssence}</strong>
@@ -530,7 +535,6 @@ export default function MergeGame() {
                 className={`merge-dock-side merge-dock-trash${trashMode ? " active" : ""}`}
                 data-merge-action="trash"
                 aria-label={trashMode ? t("merge.trashOn") : t("merge.trash")}
-                title={trashMode ? t("merge.disableTrash") : t("merge.enableTrash")}
                 onClick={() => {
                   audioManager.play("tap");
                   setTrashConfirmCell("");
@@ -548,7 +552,6 @@ export default function MergeGame() {
                 data-merge-action="generate"
                 disabled={!canTapGenerator}
                 aria-label={t("merge.generateActionLabel", { status: generatorStatus })}
-                title={generatorStatus}
                 onClick={() => {
                   audioManager.play("tap");
                   performAction("merge.tap", { chainId: MERGE_WILD_GENERATOR_ID, cropId: activeFuel }, { key: "merge.tap.wild" });
@@ -565,7 +568,6 @@ export default function MergeGame() {
                 data-merge-action="gacha"
                 disabled={tokenCount < ECONOMY.GACHA_PULL_COST}
                 aria-label={t("merge.tokenPull")}
-                title={t("merge.tokenPullHint", { cost: ECONOMY.GACHA_PULL_COST })}
                 onClick={() => {
                   audioManager.play("tap");
                   performAction("merge.gacha");

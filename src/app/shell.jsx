@@ -33,6 +33,15 @@ function mergeHandlers(first, second) {
   };
 }
 
+function labelFromChildren(children) {
+  if (typeof children === "string" || typeof children === "number") return String(children);
+  if (Array.isArray(children)) {
+    const label = children.map(labelFromChildren).filter(Boolean).join("").trim();
+    return label || undefined;
+  }
+  return undefined;
+}
+
 function Tooltip({ id, label, visible }) {
   if (!visible || !label) return null;
   return (
@@ -57,16 +66,19 @@ export function PanelButton({
   className = "",
   ...buttonProps
 }) {
-  const label = tooltip || title || (typeof children === "string" ? children : undefined);
-  const tip = usePressTooltip(label);
+  const visibleLabel = labelFromChildren(children);
+  const label = tooltip || title || visibleLabel;
+  const tooltipLabel = tooltip || title || (iconOnly ? visibleLabel : "");
+  const tip = usePressTooltip(tooltipLabel);
   return (
     <button
+      {...buttonProps}
       type="button"
       className={`panel-button${danger ? " danger" : ""}${subtle ? " subtle" : ""}${active ? " active" : ""}${iconOnly ? " icon-only" : ""}${className ? ` ${className}` : ""}`}
       disabled={disabled}
       aria-label={label}
       aria-describedby={tip.visible ? tip.tooltipId : undefined}
-      data-tooltip={label || undefined}
+      data-tooltip={tooltipLabel || undefined}
       data-icon-only={iconOnly ? "true" : undefined}
       onClick={(event) => {
         audioManager.play("tap");
@@ -78,11 +90,10 @@ export function PanelButton({
       onPointerLeave={mergeHandlers(buttonProps.onPointerLeave, tip.handlers.onPointerLeave)}
       onFocus={mergeHandlers(buttonProps.onFocus, tip.handlers.onFocus)}
       onBlur={mergeHandlers(buttonProps.onBlur, tip.handlers.onBlur)}
-      title={label}
     >
       {image ? <img className="panel-button-icon-image" src={image} alt="" draggable={false} /> : <Icon size={17} />}
       <span className="panel-button-label">{children}</span>
-      <Tooltip id={tip.tooltipId} label={label} visible={tip.visible} />
+      <Tooltip id={tip.tooltipId} label={tooltipLabel} visible={tip.visible} />
     </button>
   );
 }
@@ -91,20 +102,20 @@ export function Stat({ icon: Icon, image = "", label, value, progress = null, on
   const Tag = onClick ? "button" : "div";
   const boundedProgress = progress == null ? null : Math.max(0, Math.min(100, Number(progress) || 0));
   const accessibleLabel = `${label}: ${value}`;
-  const tip = usePressTooltip(labelMode === "tooltip" ? label : "");
+  const tooltipLabel = title || (labelMode === "tooltip" ? label : "");
+  const tip = usePressTooltip(tooltipLabel);
   return (
     <Tag
       type={onClick ? "button" : undefined}
       className={`stat-chip${onClick ? " clickable" : ""}${active ? " active" : ""}`}
       onClick={onClick || undefined}
-      title={title || label || undefined}
       aria-label={accessibleLabel}
       aria-describedby={tip.visible ? tip.tooltipId : undefined}
       data-stat-id={id || undefined}
       data-garden-xp={dataGardenXp ? "true" : undefined}
       data-label-mode={labelMode}
-      data-tooltip={labelMode === "tooltip" ? label : undefined}
-      tabIndex={labelMode === "tooltip" && !onClick ? 0 : undefined}
+      data-tooltip={tooltipLabel || undefined}
+      tabIndex={tooltipLabel && !onClick ? 0 : undefined}
       onPointerDown={tip.handlers.onPointerDown}
       onPointerUp={tip.handlers.onPointerUp}
       onPointerCancel={tip.handlers.onPointerCancel}
@@ -119,7 +130,7 @@ export function Stat({ icon: Icon, image = "", label, value, progress = null, on
       )}
       <span className="stat-chip-label">{label}</span>
       <strong>{value}</strong>
-      <Tooltip id={tip.tooltipId} label={label} visible={tip.visible} />
+      <Tooltip id={tip.tooltipId} label={tooltipLabel} visible={tip.visible} />
       {boundedProgress != null && (
         <i className="stat-progress" aria-hidden="true">
           <b style={{ transform: `scaleX(${boundedProgress / 100})` }} />
@@ -142,7 +153,6 @@ function GamePlayStat({ item, gameId }) {
       data-tooltip={label || undefined}
       aria-label={`${label}: ${item.value}`}
       aria-describedby={tip.visible ? tip.tooltipId : undefined}
-      title={label || undefined}
       onPointerDown={tip.handlers.onPointerDown}
       onPointerUp={tip.handlers.onPointerUp}
       onPointerCancel={tip.handlers.onPointerCancel}

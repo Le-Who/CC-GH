@@ -198,7 +198,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(layout.cell).toBeGreaterThan(30);
 
     const freeTapButton = page.locator('[data-merge-action="daily"]');
-    await expect(freeTapButton).toContainText(/Claim Daily Tokens/);
+    await expect(freeTapButton).toContainText(/Free Taps \+\d+/);
     await freeTapButton.click();
     await expect(page.locator(".merge-hud-energy")).toContainText(/[1-9]\d*\/30/);
     await expect(page.locator('[data-merge-action="generate"] b')).toHaveText(/^[1-9]\d*$/);

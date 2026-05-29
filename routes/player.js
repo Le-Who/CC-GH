@@ -43,8 +43,10 @@ import {
   canAnyPieceFit,
   canPlace,
   clearBloxLines,
+  DEFAULT_BLOX_ROTATE_CHARGES,
   calcBubboReward,
   placePiece,
+  rotateBloxPiece,
   createDefaultGardenState,
   createGardenEconomyState,
   GARDEN_ECONOMY_VERSION,
@@ -62,6 +64,7 @@ import {
   isMergeGeneratorChain,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { normalizeBubboPowerups } from "../src/game-core/bubbo/engine.js";
 
 const MAX_PLOTS = 12;
 const BUY_PLOT_BASE_COST = 200;
@@ -164,6 +167,8 @@ function normalizeBubboCurrentGame(raw = {}, previous = {}) {
     waveIndex,
     rowOffset: Math.abs(Math.floor(Number(raw.rowOffset ?? previous.rowOffset) || 0)) % 2,
     pressure: Math.max(0, Number(raw.pressure ?? previous.pressure) || 0),
+    pressureStep: Math.max(0, Math.min(1, Number(raw.pressureStep ?? previous.pressureStep) || 0)),
+    powerups: normalizeBubboPowerups(raw.powerups ?? previous.powerups),
   };
 }
 
@@ -653,9 +658,11 @@ function normalizeBloxSaved(savedState, p) {
   const saved = savedState && typeof savedState === "object" ? savedState : {};
   const board = Array.isArray(saved.board) ? saved.board : createEmptyBoard();
   const tray = Array.isArray(saved.tray) && saved.tray.length ? saved.tray : makeBloxTray();
+  const rotateCharges = Math.max(0, Math.min(DEFAULT_BLOX_ROTATE_CHARGES, Number.isFinite(Number(saved.rotateCharges)) ? Number(saved.rotateCharges) : DEFAULT_BLOX_ROTATE_CHARGES));
   return {
     board,
     tray,
+    rotateCharges,
     score: Number(saved.score) || 0,
     linesCleared: Number(saved.linesCleared) || 0,
     highScore: Math.max(Number(saved.highScore) || 0, Number(p.blox?.highScore) || 0),
@@ -1082,9 +1089,21 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       calcRegen(p);
       p.blox.totalGames = (p.blox.totalGames || 0) + 1;
       p.blox.activeGame = true;
-      const savedState = { board: createEmptyBoard(), tray: makeBloxTray(), score: 0, linesCleared: 0, highScore: p.blox.highScore || 0, gameActive: true };
+      const savedState = { board: createEmptyBoard(), tray: makeBloxTray(), rotateCharges: DEFAULT_BLOX_ROTATE_CHARGES, score: 0, linesCleared: 0, highScore: p.blox.highScore || 0, gameActive: true };
       p.blox.savedState = JSON.stringify(savedState);
       return ok(action, p, { savedState });
+    }
+    case "blox.rotate": {
+      const saved = normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p);
+      if (!saved.gameActive) return fail(400, "No active Blox session");
+      if (saved.rotateCharges <= 0) return fail(400, "rotate unavailable", { savedState: saved });
+      const pieceIdx = Number(payload.pieceIdx);
+      const trayItem = saved.tray[pieceIdx];
+      if (!Number.isInteger(pieceIdx) || !trayItem || trayItem.placed || !trayItem.piece) return fail(400, "invalid piece", { savedState: saved });
+      saved.tray[pieceIdx] = { ...trayItem, piece: rotateBloxPiece(trayItem.piece) };
+      saved.rotateCharges = Math.max(0, saved.rotateCharges - 1);
+      p.blox.savedState = JSON.stringify(saved);
+      return ok(action, p, { savedState: saved, pieceIdx });
     }
     case "blox.place": {
       let saved = normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p);

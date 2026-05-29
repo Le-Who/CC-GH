@@ -8,6 +8,7 @@ import {
 import {
   createTriviaLifelineState,
   getRewardChestProgress,
+  selectTriviaAudiencePoll,
   selectTriviaFiftyFiftyAnswers,
   spendTriviaLifeline,
 } from "../game-logic/hud-bonuses.js";
@@ -38,11 +39,11 @@ test("trivia lifelines spend once and keep remaining charges explicit", () => {
   const initial = createTriviaLifelineState();
   const spent = spendTriviaLifeline(initial, "fifty");
   assert.equal(spent.allowed, true);
-  assert.deepEqual(spent.next, { fifty: 0, reveal: 1 });
+  assert.deepEqual(spent.next, { fifty: 0, reveal: 1, audience: 1 });
 
   const blocked = spendTriviaLifeline(spent.next, "fifty");
   assert.equal(blocked.allowed, false);
-  assert.deepEqual(blocked.next, { fifty: 0, reveal: 1 });
+  assert.deepEqual(blocked.next, { fifty: 0, reveal: 1, audience: 1 });
 });
 
 test("50-50 lifeline hides deterministic wrong answers without exposing the correct one", () => {
@@ -52,4 +53,15 @@ test("50-50 lifeline hides deterministic wrong answers without exposing the corr
   });
   assert.deepEqual(hidden, ["Mercury", "Venus"]);
   assert.ok(!hidden.includes("Mars"));
+});
+
+test("audience lifeline returns a bounded poll weighted toward the correct answer", () => {
+  const poll = selectTriviaAudiencePoll({
+    correctAnswer: "Mars",
+    answers: ["Venus", "Jupiter", "Mars", "Saturn"],
+  });
+  assert.deepEqual(Object.keys(poll).sort(), ["Jupiter", "Mars", "Saturn", "Venus"]);
+  assert.equal(Object.values(poll).reduce((sum, value) => sum + value, 0), 100);
+  assert.ok(poll.Mars > poll.Venus);
+  assert.ok(poll.Mars < 100);
 });

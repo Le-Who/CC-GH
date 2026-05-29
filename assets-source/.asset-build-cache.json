@@ -649,6 +649,18 @@
         "/assets-runtime/bubbo/tile.56d23444.webp"
       ]
     },
+    "bubbo.background.underwater": {
+      "signature": "c8a4d7293dd8e4ded585547c208474fa524a131c0cf05e7a1a148eea4a51d6b5",
+      "item": {
+        "type": "image",
+        "width": 941,
+        "height": 1672,
+        "src": "/assets-runtime/bubbo/underwater.ac203dbd.webp"
+      },
+      "written": [
+        "/assets-runtime/bubbo/underwater.ac203dbd.webp"
+      ]
+    },
     "bubbo.balls.sheet": {
       "signature": "5af14194196761d215fc880e6bff27bc9995054d9c7ac73670920820949339d3",
       "item": {

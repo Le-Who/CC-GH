@@ -4,6 +4,8 @@
  * ═══════════════════════════════════════════════════ */
 import { GRID } from "./blox-pieces.js";
 
+export const DEFAULT_BLOX_ROTATE_CHARGES = 3;
+
 export function createEmptyBoard() {
   return Array.from({ length: GRID }, () => Array(GRID).fill(null));
 }
@@ -22,6 +24,21 @@ export function placePiece(board, piece, row, col) {
   for (const [dr, dc] of piece.cells) {
     board[row + dr][col + dc] = piece.color;
   }
+}
+
+export function rotateBloxPiece(piece = {}) {
+  const cells = Array.isArray(piece.cells) ? piece.cells : [];
+  if (!cells.length) return { ...piece, cells: [] };
+  const maxRow = Math.max(...cells.map(([row]) => Number(row) || 0));
+  const rotated = cells.map(([row, col]) => [Number(col) || 0, maxRow - (Number(row) || 0)]);
+  const minRow = Math.min(...rotated.map(([row]) => row));
+  const minCol = Math.min(...rotated.map(([, col]) => col));
+  return {
+    ...piece,
+    cells: rotated
+      .map(([row, col]) => [row - minRow, col - minCol])
+      .sort(([rowA, colA], [rowB, colB]) => rowA - rowB || colA - colB),
+  };
 }
 
 export function clearBloxLines(board) {

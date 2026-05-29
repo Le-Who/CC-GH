@@ -24,6 +24,7 @@ export function createTriviaLifelineState(value = {}) {
   return {
     fifty: Math.max(0, Number.isFinite(Number(value.fifty)) ? Number(value.fifty) : 1),
     reveal: Math.max(0, Number.isFinite(Number(value.reveal)) ? Number(value.reveal) : 1),
+    audience: Math.max(0, Number.isFinite(Number(value.audience)) ? Number(value.audience) : 1),
   };
 }
 
@@ -45,4 +46,31 @@ export function selectTriviaFiftyFiftyAnswers(question, alreadyHidden = []) {
   return wrongAnswers
     .filter((answer) => answer && answer !== question.correctAnswer && !hiddenSet.has(answer))
     .slice(0, 2);
+}
+
+export function selectTriviaAudiencePoll(question) {
+  if (!question) return {};
+  const answers = Array.isArray(question.answers) && question.answers.length
+    ? question.answers
+    : [question.correctAnswer, ...(question.wrongAnswers || [])].filter(Boolean);
+  const uniqueAnswers = [...new Set(answers.filter(Boolean))];
+  if (!uniqueAnswers.length) return {};
+  const correctAnswer = question.correctAnswer && uniqueAnswers.includes(question.correctAnswer)
+    ? question.correctAnswer
+    : uniqueAnswers[0];
+  const wrongAnswers = uniqueAnswers.filter((answer) => answer !== correctAnswer);
+  const correctShare = uniqueAnswers.length > 1 ? 62 : 100;
+  const remaining = Math.max(0, 100 - correctShare);
+  const poll = {};
+  poll[correctAnswer] = correctShare;
+  let assigned = 0;
+  wrongAnswers.forEach((answer, index) => {
+    const share = index === wrongAnswers.length - 1
+      ? remaining - assigned
+      : Math.max(1, Math.round(remaining / wrongAnswers.length) + (index === 0 ? 4 : index === 1 ? -1 : 0));
+    const bounded = Math.max(0, share);
+    poll[answer] = bounded;
+    assigned += bounded;
+  });
+  return Object.fromEntries(uniqueAnswers.map((answer) => [answer, poll[answer] || 0]));
 }

@@ -4,10 +4,12 @@ import {
   BUBBO_COLS,
   BUBBO_COLORS,
   BUBBO_PALETTE,
+  BUBBO_POWERUP_CHARGES,
   BUBBO_ROWS,
   BUBBO_START_ROWS,
   BUBBO_TIMED_SECONDS,
   advanceBubboPressure,
+  applyBubboPowerup,
   applyBubboShot,
   createBubboBoard,
   createBubboRun,
@@ -22,7 +24,9 @@ import {
   isBubboDanger,
   normalizeBubboMode,
   normalizeBubboBoard,
+  normalizeBubboPowerups,
   recoverSparseBubboField,
+  resolveBubboPowerup,
   resolveBubboShot,
   settleFloatingBubbo,
   shiftBubboPressure,
@@ -264,7 +268,66 @@ describe("Bubbo engine", () => {
     assert.equal(timed.mode, "timed");
     assert.equal(timed.timeLeft, BUBBO_TIMED_SECONDS);
     assert.equal(timed.shotsFired, 0);
+    assert.deepEqual(timed.powerups, BUBBO_POWERUP_CHARGES);
     assert.equal(normalizeBubboMode("bad-mode"), "classic");
+  });
+
+  it("normalizes Bubbo power-up charges for resume-safe runs", () => {
+    assert.deepEqual(normalizeBubboPowerups({ bomb: 1, rainbow: 9, lightning: -4 }), {
+      bomb: 1,
+      rainbow: BUBBO_POWERUP_CHARGES.rainbow,
+      lightning: 0,
+    });
+    assert.deepEqual(normalizeBubboPowerups(null), BUBBO_POWERUP_CHARGES);
+  });
+
+  it("uses bomb power-ups to clear a landed blast and neighboring bubbles", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[0][0] = "mint";
+    board[0][1] = "sky";
+    board[1][0] = "amber";
+
+    const result = applyBubboPowerup(board, "bomb", 1, 1);
+
+    assert.equal(result.error, null);
+    assert.equal(result.powerup, "bomb");
+    assert.deepEqual(result.landed, { row: 1, col: 1 });
+    assert.ok(result.popped.some((cell) => cell.row === 0 && cell.col === 0));
+    assert.ok(result.popped.some((cell) => cell.row === 0 && cell.col === 1));
+    assert.ok(result.popped.some((cell) => cell.row === 1 && cell.col === 0));
+    assert.ok(result.points >= 80);
+  });
+
+  it("uses rainbow power-ups as wild shots against the strongest adjacent color", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[0][0] = "mint";
+    board[0][1] = "mint";
+    board[0][2] = "sky";
+
+    const result = applyBubboPowerup(board, "rainbow", 1, 0, { fallbackColor: "berry" });
+
+    assert.equal(result.error, null);
+    assert.equal(result.powerup, "rainbow");
+    assert.equal(result.popped.some((cell) => cell.row === 0 && cell.col === 0), true);
+    assert.equal(result.popped.some((cell) => cell.row === 0 && cell.col === 1), true);
+    assert.equal(result.board[0][2], "sky");
+  });
+
+  it("uses lightning power-ups to cut a vertical lane and settle islands", () => {
+    const board = Array.from({ length: BUBBO_ROWS }, () => Array(BUBBO_COLS).fill(null));
+    board[0][3] = "sky";
+    board[1][3] = "berry";
+    board[2][3] = "coral";
+    board[4][4] = "mint";
+
+    const result = resolveBubboPowerup({ board, seed: "power-lane", waveIndex: BUBBO_START_ROWS }, "lightning", 3, 3);
+
+    assert.equal(result.error, null);
+    assert.equal(result.powerup, "lightning");
+    assert.equal(result.popped.some((cell) => cell.row === 0 && cell.col === 3), true);
+    assert.equal(result.popped.some((cell) => cell.row === 1 && cell.col === 3), true);
+    assert.equal(result.popped.some((cell) => cell.row === 2 && cell.col === 3), true);
+    assert.ok(result.dropped.some((cell) => cell.row === 4 && cell.col === 4 && cell.color === "mint"));
   });
 
   it("keeps sky and berry as distinct playable colors", () => {

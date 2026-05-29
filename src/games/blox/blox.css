@@ -1,7 +1,7 @@
 /* Blox-specific chrome is lazy-loaded with BloxGame. */
 
 .blox-shell {
-  --shell-art: url("/games/blox/background.png");
+  --shell-art: none;
   --shell-accent: #76d9ff;
   --shell-soft: #121c2a;
   --blox-dialog-art: url("/games/ui-surfaces/blox-dialog-panel.png");
@@ -20,15 +20,12 @@
 }
 
 .blox-shell::before {
-  opacity: 0.46;
-  filter: saturate(1.08) contrast(1.04);
+  opacity: 0;
+  filter: none;
 }
 
 .blox-shell .pixi-host {
-  background:
-    linear-gradient(180deg, rgba(12, 21, 34, 0.24), rgba(12, 21, 34, 0.54)),
-    url("/games/blox/background.png") center / cover no-repeat,
-    var(--blox-blueprint);
+  background: transparent;
 }
 
 .game-play-hud.blox-play-hud {
@@ -561,12 +558,13 @@
 .blox-menu-overlay[data-menu-phase="menu"] .metric-grid strong,
 .blox-menu-overlay[data-menu-phase="menu"] .leaderboard strong,
 .blox-menu-overlay[data-menu-phase="menu"] .leaderboard span {
-  color: #3b2417;
-  text-shadow: none;
+  color: #fff6dc;
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.56);
 }
 
 .blox-menu-overlay[data-menu-phase="menu"] .pause-menu-kicker {
-  color: #5f8d54;
+  color: #9fe885;
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.48);
 }
 
 .blox-menu-overlay[data-menu-phase="menu"] .panel-button {
@@ -592,17 +590,17 @@
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .panel-header strong,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .panel-header strong {
-  color: #3b2417;
+  color: #fff6dc;
   font-size: clamp(1rem, 4.4vw, 1.3rem);
   line-height: 1;
-  text-shadow: 0 1px 0 rgba(255, 241, 201, 0.48);
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.56);
 }
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .panel-header > div span,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .panel-header > div span {
-  color: rgba(59, 36, 23, 0.72);
+  color: rgba(255, 246, 220, 0.82);
   font-size: clamp(0.58rem, 2.9vw, 0.76rem);
-  text-shadow: none;
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.42);
 }
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .panel-header > .panel-button span {
@@ -618,26 +616,26 @@
   width: 60%;
   height: 31%;
   padding: 0;
-  color: #3b2417;
+  color: #fff6dc;
   overflow: visible;
 }
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .pause-menu-frame > strong,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-menu-frame > strong {
-  color: #3b2417;
+  color: #fff6dc;
   font-size: clamp(0.92rem, 4vw, 1.14rem);
   line-height: 1.12;
-  text-shadow: 0 1px 0 rgba(255, 241, 201, 0.46);
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.54);
 }
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .pause-menu-frame > small,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-menu-frame > small {
   display: -webkit-box;
   overflow: hidden;
-  color: rgba(59, 36, 23, 0.74);
+  color: rgba(255, 246, 220, 0.86);
   font-size: clamp(0.64rem, 2.9vw, 0.76rem);
   line-height: 1.16;
-  text-shadow: none;
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.4);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
@@ -648,7 +646,8 @@
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .pause-menu-kicker,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-menu-kicker {
-  color: #5f8d54;
+  color: #9fe885;
+  text-shadow: 0 2px 0 rgba(3, 12, 26, 0.44);
 }
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .metric-grid,
@@ -680,7 +679,7 @@
   display: grid;
   place-items: center;
   padding: 0 4px;
-  color: #3b2417;
+  color: #fff6dc;
   text-align: center;
 }
 
@@ -691,13 +690,13 @@
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .metric-grid svg,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-status-line b {
-  color: #ad7a21;
-  filter: drop-shadow(0 1px 0 rgba(255, 240, 190, 0.62));
+  color: #ffd76a;
+  filter: drop-shadow(0 2px 0 rgba(3, 12, 26, 0.44));
 }
 
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .metric-grid strong,
 .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-status-line b {
-  color: #3b2417;
+  color: #fff6dc;
   font-size: clamp(0.9rem, 4vw, 1.12rem);
 }
 
@@ -833,6 +832,60 @@
     gap: 2%;
   }
 
+  .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+    min-height: 96px;
+  }
+}
+
+.blox-menu-overlay .panel-button,
+.blox-menu-overlay .panel-button.pause-primary,
+.blox-menu-overlay .panel-button:not(.subtle):not(.danger),
+.blox-menu-overlay .panel-button.danger,
+.blox-menu-overlay[data-menu-phase="menu"] .panel-button,
+.telegram-app.play-mode .blox-menu-overlay[data-menu-phase="menu"] .button-row.two .panel-button,
+.telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+.telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+  min-height: 44px;
+  border: 0 !important;
+  border-radius: 8px !important;
+  padding: 0 8px !important;
+  background: url("/games/hud-redesign/blox/primary-button.png") center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: #fff8e4 !important;
+  box-shadow: none !important;
+  filter: none;
+  font-size: clamp(0.68rem, 2.7vw, 0.86rem) !important;
+  text-shadow: 0 2px 0 rgba(42, 19, 10, 0.58) !important;
+}
+
+.blox-menu-overlay .panel-button.danger,
+.telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button.danger {
+  filter: hue-rotate(330deg) saturate(1.05);
+}
+
+.blox-menu-overlay .panel-button span,
+.blox-menu-overlay[data-menu-phase="menu"] .panel-button span {
+  display: inline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+.telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+  min-height: 55px;
+}
+
+@media (max-width: 340px) {
+  .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+  .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+    min-height: 58px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
   .telegram-app.play-mode .blox-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
     min-height: 96px;
   }

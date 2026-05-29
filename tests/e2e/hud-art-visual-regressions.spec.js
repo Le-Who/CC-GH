@@ -16,7 +16,10 @@ async function bootPage(context, label) {
 
 async function startGame(page, tabName) {
   await page.getByRole("button", { name: tabName }).click();
-  await page.getByRole("button", { name: "Start" }).click();
+  const start = page.getByRole("button", { name: "Start" });
+  await expect(start).toBeVisible({ timeout: 10000 });
+  await start.click();
+  await expect(page.locator(".game-shell.shell-playing")).toBeVisible({ timeout: 10000 });
 }
 
 function visibleHudButtonMetrics(buttons) {
@@ -127,7 +130,7 @@ test.describe("HUD art visual regression guards", () => {
     }
   });
 
-  test("Gem Crush mobile HUD uses square icon art for icon-only actions and keeps reward progress visible", async ({ browser, baseURL }) => {
+  test("Gem Crush mobile HUD keeps boosters in a thumb-reachable bottom dock", async ({ browser, baseURL }) => {
     const context = await browser.newContext({
       baseURL,
       viewport: { width: 390, height: 844 },
@@ -139,6 +142,9 @@ test.describe("HUD art visual regression guards", () => {
     try {
       await startGame(page, "Gems");
       await expect(page.locator('[data-game-shell="match3"] canvas')).toBeVisible();
+      await expect(page.locator(".match3-action-dock")).toBeVisible();
+      await expect(page.locator(".match3-action-dock [data-match3-booster]")).toHaveCount(4);
+      await expect(page.locator(".match3-action-dock [data-match3-shuffle]")).toHaveCount(1);
 
       const stats = await page.locator(".match3-scene-hud .game-play-stat").evaluateAll(visibleHudStatMetrics);
       expect(stats.map((item) => item.id)).toEqual(["score", "moves", "combo", "reward"]);
@@ -148,17 +154,83 @@ test.describe("HUD art visual regression guards", () => {
         expect(item.overflows, `${item.id} compact stat should not overflow its art`).toBe(false);
       }
 
-      const metrics = await page.locator(".match3-scene-hud .game-play-actions .panel-button").evaluateAll(visibleHudButtonMetrics);
-      expect(metrics.length).toBeGreaterThanOrEqual(2);
+      const metrics = await page.locator(".match3-action-dock .panel-button").evaluateAll(visibleHudButtonMetrics);
+      expect(metrics.length).toBe(5);
       for (const item of metrics) {
-        expect(item.backgroundColor, `${item.text} must not expose a CSS fallback color behind transparent icon art`).toBe("rgba(0, 0, 0, 0)");
-        expect(item.backgroundImage, `${item.text} must use square icon badge art on compact HUD`).toContain("/icon-badge.png");
-        expect(item.ratio, `${item.text} compact action should stay square`).toBeGreaterThanOrEqual(0.9);
-        expect(item.ratio, `${item.text} compact action should stay square`).toBeLessThanOrEqual(1.1);
-        expect(item.spanVisible, `${item.text} compact action should not reserve hidden label space`).toBe(false);
+        expect(item.width, `${item.text} bottom action should keep a practical tap width`).toBeGreaterThanOrEqual(44);
+        expect(item.height, `${item.text} bottom action should keep a practical tap height`).toBeGreaterThanOrEqual(44);
+        expect(item.backgroundImage, `${item.text} must use square icon badge art in the bottom dock`).toContain("/icon-badge.png");
       }
+      const layout = await page.locator('[data-game-shell="match3"]').evaluate((shell) => {
+        const canvas = shell.querySelector("canvas");
+        const dock = shell.querySelector(".match3-action-dock");
+        const boardTop = Number(canvas?.dataset?.match3BoardTop);
+        const boardSize = Number(canvas?.dataset?.match3BoardSize);
+        const canvasRect = canvas?.getBoundingClientRect();
+        const dockRect = dock?.getBoundingClientRect();
+        return {
+          boardBottom: canvasRect && Number.isFinite(boardTop) && Number.isFinite(boardSize)
+            ? canvasRect.top + boardTop + boardSize
+            : 0,
+          dockTop: dockRect?.top ?? 0,
+          dockBottom: dockRect?.bottom ?? 0,
+          viewportHeight: window.innerHeight,
+        };
+      });
+      expect(layout.dockBottom).toBeLessThanOrEqual(layout.viewportHeight + 1);
+      expect(layout.boardBottom).toBeLessThanOrEqual(layout.dockTop - 4);
 
       await expect(page.locator('.match3-scene-hud .game-play-stats [data-stat-id="reward"] .game-play-stat-progress')).toHaveCount(1);
+      expect(pageErrors).toEqual([]);
+    } finally {
+      await context.close();
+    }
+  });
+
+  test("Bubbo mobile dock keeps controls and stats separated inside the tray art", async ({ browser, baseURL }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+      isMobile: true,
+      hasTouch: true,
+    });
+    const { page, pageErrors } = await bootPage(context, "bubbo_mobile");
+    try {
+      await startGame(page, "Bubbo");
+      await expect(page.locator('[data-game-shell="bubbo"] canvas')).toBeVisible();
+      await expect(page.locator(".bubbo-play-hud [data-bubbo-powerup]")).toHaveCount(3);
+
+      const metrics = await page.locator(".bubbo-play-hud").evaluate((hud) => {
+        const title = hud.querySelector(".game-play-title");
+        const actions = hud.querySelector(".game-play-actions")?.getBoundingClientRect();
+        const stats = hud.querySelector(".game-play-stats")?.getBoundingClientRect();
+        const titleStyles = title ? getComputedStyle(title) : null;
+        const buttons = [...hud.querySelectorAll(".game-play-actions .panel-button")].map((button) => {
+          const rect = button.getBoundingClientRect();
+          return {
+            label: button.getAttribute("aria-label") || button.textContent.trim(),
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            bottom: rect.bottom,
+          };
+        });
+        return {
+          titleHidden: !title || titleStyles?.display === "none",
+          actions: actions?.toJSON(),
+          stats: stats?.toJSON(),
+          buttons,
+          overflows: hud.scrollHeight > hud.clientHeight + 1 || hud.scrollWidth > hud.clientWidth + 1,
+        };
+      });
+      expect(metrics.titleHidden).toBe(true);
+      expect(metrics.overflows).toBe(false);
+      expect(metrics.actions.bottom).toBeLessThanOrEqual(metrics.stats.top + 1);
+      for (const button of metrics.buttons) {
+        expect(button.width, `${button.label} should keep a touch-sized width`).toBeGreaterThanOrEqual(44);
+        expect(button.height, `${button.label} should keep a touch-sized height`).toBeGreaterThanOrEqual(44);
+      }
       expect(pageErrors).toEqual([]);
     } finally {
       await context.close();

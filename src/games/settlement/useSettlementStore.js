@@ -258,6 +258,10 @@ function readInitialActivePanel() {
   }
 }
 
+function readInitialRightPanelOpen(activePanel = readInitialActivePanel()) {
+  return activePanel !== 'overview';
+}
+
 function readInitialSelectedBuildingId() {
   const fallback = 'hearth-hall';
   if (typeof window === 'undefined') return fallback;
@@ -391,7 +395,7 @@ export const useSettlementStore = create(
       lastTick: Date.now(),
       selectedBuildingId: readInitialSelectedBuildingId(),
       activePanel: readInitialActivePanel(),
-      rightPanelOpen: true,
+      rightPanelOpen: readInitialRightPanelOpen(),
       activeUpgrade: null,
       claimedGoalRewardIds: [],
       inventoryCaps: { ...startingInventoryCaps },
@@ -798,7 +802,7 @@ export const useSettlementStore = create(
         lastTick: Date.now(),
         selectedBuildingId: 'hearth-hall',
         activePanel: 'overview',
-        rightPanelOpen: true,
+        rightPanelOpen: false,
         activeUpgrade: null,
         claimedGoalRewardIds: [],
         inventoryCaps: { ...startingInventoryCaps },
@@ -821,21 +825,22 @@ export const useSettlementStore = create(
     {
       name: 'village-ascend-v2-state',
       storage: createJSONStorage(() => localStorage),
-      version: 9,
+      version: 10,
       migrate: (persisted) => {
         const levels = { ...startingLevels, ...(persisted?.levels ?? {}) };
         const constructedBuildings = normalizeConstructedBuildings(persisted?.constructedBuildings);
         const selectedBuildingId = selectedBuildingExists(persisted?.selectedBuildingId, constructedBuildings)
           ? persisted.selectedBuildingId
           : readInitialSelectedBuildingId();
+        const activePanel = normalizeActivePanel(persisted?.activePanel ?? readInitialActivePanel());
         return {
           ...persisted,
           resources: { ...startingResources, ...(persisted?.resources ?? {}) },
           levels,
           population: populationFromLevels(levels),
           selectedBuildingId,
-          activePanel: normalizeActivePanel(persisted?.activePanel ?? readInitialActivePanel()),
-          rightPanelOpen: true,
+          activePanel,
+          rightPanelOpen: activePanel === 'overview' ? false : persisted?.rightPanelOpen !== false,
           activeUpgrade: null,
           claimedGoalRewardIds: persisted?.claimedGoalRewardIds ?? [],
           inventoryCaps: { ...startingInventoryCaps, ...(persisted?.inventoryCaps ?? {}) },

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Clock, Gem, Home, Play, RotateCcw, Trophy } from "lucide-react";
+import { Bomb, Check, Clock, Gem, Hammer, Home, Play, RotateCcw, Sparkles, Trophy, Zap } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { audioManager } from "../../services/audioManager.js";
 import { haptic } from "../../platform/telegram.js";
-import { generateBoard, hasValidMoves, attemptMatch3Move, seedDropTokens } from "../../game-core/match3/engine.js";
+import { MATCH3_BOOSTER_CHARGES, applyMatch3Booster, attemptMatch3Move, generateBoard, hasValidMoves, normalizeMatch3Boosters, seedDropTokens } from "../../game-core/match3/engine.js";
 import { estimateMatch3CascadeLockMs } from "../../game-core/match3/animation.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
 import { GamePlayHud, GameShell, PanelButton, Stat, semanticHudIconPath } from "../../app/shell.jsx";
+import { HudEditableRegion } from "../../app/hud-layout/index.js";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
@@ -20,6 +21,13 @@ const MATCH3_MODES = [
   { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
   { id: "timed", labelKey: "match3.mode.timed", hintKey: "match3.mode.timedHint" },
   { id: "drop", labelKey: "match3.mode.drop", hintKey: "match3.mode.dropHint" },
+];
+
+const MATCH3_BOOSTER_ACTIONS = [
+  { id: "bomb", icon: Bomb, labelKey: "match3.booster.bomb" },
+  { id: "lightning", icon: Zap, labelKey: "match3.booster.lightning" },
+  { id: "rainbow", icon: Sparkles, labelKey: "match3.booster.rainbow" },
+  { id: "hammer", icon: Hammer, labelKey: "match3.booster.hammer" },
 ];
 
 function createSwappedMatch3Board(board, from, to) {
@@ -57,6 +65,8 @@ export default function Match3Game() {
   const [leaders, setLeaders] = useState([]);
   const [runtimeAssetManifest, setRuntimeAssetManifest] = useState(undefined);
   const [shuffleCharges, setShuffleCharges] = useState(1);
+  const [boosters, setBoosters] = useState(() => normalizeMatch3Boosters());
+  const [activeBooster, setActiveBooster] = useState("");
   const animationTimerRef = useRef(null);
   const restoredRunKeyRef = useRef("");
   const isPlaying = gameActive && !paused;
@@ -64,6 +74,7 @@ export default function Match3Game() {
   const currentMode = MATCH3_MODES.find((item) => item.id === mode) || MATCH3_MODES[0];
   const rewardChest = getRewardChestProgress(score);
   const currentReward = score > 0 ? calcGoldReward(Number(score) || 0) : 0;
+  const selectedGemType = selected ? board[selected.y]?.[selected.x] || "" : "";
   const pauseRun = useCallback(() => {
     if (gameActive) setPaused(true);
   }, [gameActive]);
@@ -108,6 +119,7 @@ export default function Match3Game() {
       movesLeft: nextMode === "timed" ? 90 : 30,
       combo: 0,
       mode: nextMode,
+      boosters: normalizeMatch3Boosters(),
     };
   }
 
@@ -143,10 +155,13 @@ export default function Match3Game() {
     setSelected(null);
     setMatchAnimation(null);
     setShuffleCharges(1);
+    setBoosters(normalizeMatch3Boosters(restored.boosters));
+    setActiveBooster("");
   }, [gameActive, snapshot]);
 
   function start(nextMode = mode) {
     const nextBoard = createModeBoard(nextMode);
+    const nextBoosters = normalizeMatch3Boosters();
     setBoard(nextBoard);
     setScore(0);
     setCombo(0);
@@ -156,11 +171,13 @@ export default function Match3Game() {
     setInputLocked(false);
     setMatchAnimation(null);
     setShuffleCharges(1);
+    setBoosters(nextBoosters);
+    setActiveBooster("");
     setMode(nextMode);
     performAction("match3.start", { mode: nextMode }, { key: "match3.start" }).then(() => {
       performAction("match3.syncMode", {
-        game: { score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, mode: nextMode },
-        savedModes: { ...(snapshot?.match3?.savedModes || {}), [nextMode]: { board: nextBoard, score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0 } },
+        game: { score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, mode: nextMode, boosters: nextBoosters },
+        savedModes: { ...(snapshot?.match3?.savedModes || {}), [nextMode]: { board: nextBoard, score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, boosters: nextBoosters } },
       }, { silent: true });
     });
   }
@@ -170,6 +187,7 @@ export default function Match3Game() {
     setPaused(false);
     setSelected(null);
     setInputLocked(false);
+    setActiveBooster("");
     performAction("match3.end", { score: finalScore, fromQuit });
   }
 
@@ -185,10 +203,10 @@ export default function Match3Game() {
     setShuffleCharges((value) => Math.max(0, value - 1));
     audioManager.play("tap");
     performAction("match3.syncMode", {
-      game: { score, movesLeft, combo, mode },
-      savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score, movesLeft, combo } },
+      game: { score, movesLeft, combo, mode, boosters },
+      savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score, movesLeft, combo, boosters } },
     }, { silent: true, key: "match3.shuffleBooster" });
-  }, [combo, gameActive, inputLocked, mode, movesLeft, performAction, score, shuffleCharges, snapshot?.match3?.savedModes]);
+  }, [boosters, combo, gameActive, inputLocked, mode, movesLeft, performAction, score, shuffleCharges, snapshot?.match3?.savedModes]);
 
   useEffect(() => {
     if (!gameActive || paused || mode !== "timed") return undefined;
@@ -245,29 +263,70 @@ export default function Match3Game() {
       haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
       performAction("match3.syncMode", {
-        game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode },
-        savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: result.combo } },
+        game: { score: nextScore, movesLeft: nextMoves, combo: result.combo, mode, boosters },
+        savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft: nextMoves, combo: result.combo, boosters } },
       }, { silent: true, key: "match3.sync" });
       maybeEnd(nextMoves, nextScore);
     },
-    [board, combo, gameActive, inputLocked, mode, movesLeft, performAction, queueMatchAnimation, score, snapshot?.match3?.savedModes],
+    [board, boosters, combo, gameActive, inputLocked, mode, movesLeft, performAction, queueMatchAnimation, score, snapshot?.match3?.savedModes],
   );
+
+  const useMatch3BoosterAt = useCallback((x, y) => {
+    if (!gameActive || inputLocked || !activeBooster || (boosters[activeBooster] || 0) <= 0) return false;
+    const target = { x, y };
+    const targetGem = board[y]?.[x];
+    const result = applyMatch3Booster(board, activeBooster, x, y, { collectDrops: mode === "drop" });
+    if (!result.valid) {
+      queueMatchAnimation({ type: "invalid", from: target, to: target, fromGem: targetGem, toGem: targetGem }, 90);
+      haptic("warning");
+      audioManager.play("warning");
+      return true;
+    }
+    let nextBoard = result.board;
+    if (!hasValidMoves(nextBoard)) {
+      nextBoard = createModeBoard(mode);
+    }
+    const nextScore = score + result.totalPoints;
+    const nextCombo = Math.max(combo, result.combo);
+    const nextBoosters = normalizeMatch3Boosters({
+      ...boosters,
+      [activeBooster]: Math.max(0, (Number(boosters[activeBooster]) || 0) - 1),
+    });
+    setBoard(nextBoard);
+    setScore(nextScore);
+    setCombo(nextCombo);
+    setSelected(null);
+    setBoosters(nextBoosters);
+    setActiveBooster("");
+    queueMatchAnimation(
+      { type: "cascade", from: target, to: target, fromGem: targetGem, toGem: targetGem, startBoard: board, swapBoard: board, steps: result.steps, booster: activeBooster },
+      estimateMatch3CascadeLockMs(result.steps.length),
+    );
+    haptic("success");
+    audioManager.play("clear");
+    performAction("match3.syncMode", {
+      game: { score: nextScore, movesLeft, combo: nextCombo, mode, boosters: nextBoosters },
+      savedModes: { ...(snapshot?.match3?.savedModes || {}), [mode]: { board: nextBoard, score: nextScore, movesLeft, combo: nextCombo, boosters: nextBoosters } },
+    }, { silent: true, key: `match3.booster.${activeBooster}` });
+    return true;
+  }, [activeBooster, board, boosters, combo, gameActive, inputLocked, mode, movesLeft, performAction, queueMatchAnimation, score, snapshot?.match3?.savedModes]);
 
   const onCell = useCallback(
     (x, y) => {
       if (!gameActive || inputLocked) return;
+      if (activeBooster && useMatch3BoosterAt(x, y)) return;
       if (!selected) {
         setSelected({ x, y });
         return;
       }
       attemptSwap(selected, { x, y });
     },
-    [attemptSwap, gameActive, inputLocked, selected],
+    [activeBooster, attemptSwap, gameActive, inputLocked, selected, useMatch3BoosterAt],
   );
 
   const sceneState = useMemo(
     () => ({
-      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked },
+      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked, boosters, activeBooster },
       match3Timer: mode === "timed" ? {
         label: `${Math.max(0, movesLeft)}s`,
         progress: Math.max(0, Math.min(1, movesLeft / 90)),
@@ -276,11 +335,12 @@ export default function Match3Game() {
       match3StatusText: `${t(currentMode.labelKey)} · ${score} ${t("common.score").toLowerCase()} · ${movesLeft} ${(mode === "timed" ? t("common.time") : t("common.moves")).toLowerCase()}`,
       selectedGem: selected,
       match3Animation: matchAnimation,
+      match3BottomReserve: 118,
       onMatch3Cell: onCell,
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [attemptSwap, board, combo, currentMode.labelKey, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected, t],
+    [activeBooster, attemptSwap, board, boosters, combo, currentMode.labelKey, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected, t],
   );
 
   return (
@@ -303,7 +363,6 @@ export default function Match3Game() {
             { id: "combo", label: t("common.combo"), value: combo || "-" },
             { id: "reward", label: rewardChest.tier === "none" ? t("common.reward") : "Chest", value: rewardChest.tier === "none" ? currentReward : rewardChest.tier, progress: rewardChest.progress * 100 },
           ]}
-          extraActions={<PanelButton icon={RotateCcw} image={semanticHudIconPath("match3", "mix")} iconOnly subtle disabled={!gameActive || inputLocked || shuffleCharges <= 0} onClick={useShuffleBooster}>Mix {shuffleCharges}</PanelButton>}
           onPause={() => setPaused(true)}
         />
       )}
@@ -379,6 +438,52 @@ export default function Match3Game() {
       )}
     >
       <PixiScene sceneKey="match3" sceneState={sceneState} />
+      {isPlaying && (
+        <HudEditableRegion id="match3ActionDock" as="div" className="match3-action-dock game-play-hud-bottom" aria-label={t("match3.actionDock")}>
+          <div className={`match3-selected-gem${selectedGemType ? "" : " empty"}`}>
+            <Gem size={24} />
+            <span>
+              <small>{t("match3.selectedGem")}</small>
+              <strong>{selectedGemType ? t(`match3.gem.${selectedGemType}`) : t("match3.noSelection")}</strong>
+            </span>
+          </div>
+          <div className="match3-booster-row">
+            <PanelButton
+              icon={RotateCcw}
+              image={semanticHudIconPath("match3", "mix")}
+              iconOnly
+              subtle
+              disabled={!gameActive || inputLocked || shuffleCharges <= 0}
+              tooltip={`${t("match3.booster.mix")} ${shuffleCharges}`}
+              onClick={useShuffleBooster}
+              data-match3-shuffle="true"
+              data-count={shuffleCharges}
+            >
+              {t("match3.booster.mix")} {shuffleCharges}
+            </PanelButton>
+            {MATCH3_BOOSTER_ACTIONS.map((item) => {
+              const count = boosters[item.id] ?? MATCH3_BOOSTER_CHARGES[item.id] ?? 0;
+              const Icon = item.icon;
+              return (
+                <PanelButton
+                  key={item.id}
+                  icon={Icon}
+                  iconOnly
+                  className="match3-booster-button"
+                  active={activeBooster === item.id}
+                  disabled={!gameActive || inputLocked || count <= 0}
+                  tooltip={t("match3.boosterTooltip", { booster: t(item.labelKey), count })}
+                  onClick={() => setActiveBooster((value) => (value === item.id ? "" : item.id))}
+                  data-match3-booster={item.id}
+                  data-count={count}
+                >
+                  {t(item.labelKey)} {count}
+                </PanelButton>
+              );
+            })}
+          </div>
+        </HudEditableRegion>
+      )}
     </GameShell>
   );
 }

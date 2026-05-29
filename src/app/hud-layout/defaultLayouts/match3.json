@@ -11,7 +11,8 @@
       "gameShell": { "mode": "custom", "visible": true },
       "gameplayHud": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": 8, "maxWidth": 520, "zIndex": 40, "visible": true },
       "pauseOverlay": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 390, "zIndex": 45, "visible": true },
-      "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 84, "bottomReserve": 56, "leftReserve": 0, "rightReserve": 0 }
+      "match3ActionDock": { "mode": "dock", "edge": "bottom", "offset": 8, "thickness": 102, "reserve": 122, "alignment": "center", "maxWidth": 520, "zIndex": 42, "visible": true },
+      "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 84, "bottomReserve": 122, "leftReserve": 0, "rightReserve": 0 }
     }
   },
   "profiles": {
@@ -19,44 +20,50 @@
       "match": { "orientation": "portrait", "maxWidth": 360 },
       "regions": {
         "gameplayHud": { "maxWidth": 308, "y": 6 },
-        "pixiPlayfieldReserve": { "topReserve": 92, "bottomReserve": 54 }
+        "match3ActionDock": { "thickness": 96, "reserve": 118, "maxWidth": 308 },
+        "pixiPlayfieldReserve": { "topReserve": 84, "bottomReserve": 118 }
       }
     },
     "phone-default-portrait": {
       "match": { "orientation": "portrait", "maxWidth": 430 },
       "regions": {
         "gameplayHud": { "maxWidth": 374, "y": 7 },
-        "pixiPlayfieldReserve": { "topReserve": 88, "bottomReserve": 54 }
+        "match3ActionDock": { "thickness": 102, "reserve": 122, "maxWidth": 386 },
+        "pixiPlayfieldReserve": { "topReserve": 84, "bottomReserve": 122 }
       }
     },
     "phone-landscape": {
       "match": { "orientation": "landscape", "maxHeight": 480 },
       "regions": {
         "gameplayHud": { "anchor": "top-left", "x": 10, "y": 8, "maxWidth": 310 },
-        "pixiPlayfieldReserve": { "topReserve": 48, "bottomReserve": 44, "leftReserve": 0, "rightReserve": 0 }
+        "match3ActionDock": { "thickness": 58, "reserve": 72, "maxWidth": 360 },
+        "pixiPlayfieldReserve": { "topReserve": 48, "bottomReserve": 72, "leftReserve": 0, "rightReserve": 0 }
       }
     },
     "tablet-portrait": {
       "match": { "orientation": "portrait", "minWidth": 600 },
       "regions": {
         "gameplayHud": { "maxWidth": 560 },
-        "pixiPlayfieldReserve": { "topReserve": 90, "bottomReserve": 58 }
+        "match3ActionDock": { "maxWidth": 560 },
+        "pixiPlayfieldReserve": { "topReserve": 90, "bottomReserve": 126 }
       }
     },
     "tablet-landscape": {
       "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
       "regions": {
-        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 52 }
+        "match3ActionDock": { "thickness": 68, "reserve": 84, "maxWidth": 520 },
+        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 84 }
       }
     },
     "desktop-landscape": {
       "match": { "orientation": "landscape", "minWidth": 1100 },
       "regions": {
-        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 52 }
+        "match3ActionDock": { "thickness": 72, "reserve": 88, "maxWidth": 560 },
+        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 88 }
       }
     }
   },
   "editor": {
-    "notes": "Gem Crush keeps its Pixi board measured but the top HUD reserve is layout-owned."
+    "notes": "Gem Crush keeps its Pixi board measured; top HUD and bottom booster dock reserves are layout-owned."
   }
 }

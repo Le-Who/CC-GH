@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Blocks, Check, Home, Play, RotateCcw, Sparkles, Trophy } from "lucide-react";
+import { Blocks, Check, Home, Play, RotateCcw, RotateCw, Sparkles, Trophy } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { audioManager } from "../../services/audioManager.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
@@ -8,7 +8,7 @@ import { useAction, useExitToHub, useImmersiveGame, useReliableAction, useSnapsh
 import { useAppI18n } from "../../app/i18n.jsx";
 import { Leaderboard } from "../../app/Leaderboard.jsx";
 import { useGameEvents } from "../../game-state/gameEvents.js";
-import { previewBloxPlacement } from "../../../game-logic/blox-engine.js";
+import { DEFAULT_BLOX_ROTATE_CHARGES, previewBloxPlacement, rotateBloxPiece } from "../../../game-logic/blox-engine.js";
 import { calcBloxReward } from "../../../game-logic/economy.js";
 import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
 import "./i18n.js";
@@ -29,6 +29,7 @@ export default function BloxGame() {
     tray: saved.tray || [],
     score: saved.score || 0,
     linesCleared: saved.linesCleared || 0,
+    rotateCharges: Number.isFinite(Number(saved.rotateCharges)) ? Math.max(0, Number(saved.rotateCharges)) : DEFAULT_BLOX_ROTATE_CHARGES,
     highScore: snapshot?.blox?.highScore || saved.highScore || 0,
     gameActive: saved.gameActive || snapshot?.blox?.activeGame || false,
   };
@@ -48,9 +49,10 @@ export default function BloxGame() {
     hudState: {
       score: state.score,
       linesCleared: state.linesCleared,
+      rotateCharges: state.rotateCharges,
       currentReward,
     },
-  }), [currentReward, pauseRun, state.gameActive, state.linesCleared, state.score]);
+  }), [currentReward, pauseRun, state.gameActive, state.linesCleared, state.rotateCharges, state.score]);
   useImmersiveGame("blox", true, shellControls);
 
   useEffect(() => {
@@ -65,7 +67,40 @@ export default function BloxGame() {
 
   useEffect(() => {
     setOptimisticState(null);
-  }, [saved.board, saved.gameActive, saved.linesCleared, saved.score, saved.tray]);
+  }, [saved.board, saved.gameActive, saved.linesCleared, saved.rotateCharges, saved.score, saved.tray]);
+
+  const rotateSelectedPiece = useCallback(() => {
+    if (!state.gameActive) return Promise.resolve({ error: "inactive" });
+    const pieceIdx = selectedPiece >= 0 && state.tray[selectedPiece]?.piece && !state.tray[selectedPiece]?.placed
+      ? selectedPiece
+      : state.tray.findIndex((item) => item?.piece && !item.placed);
+    if (pieceIdx < 0) return Promise.resolve({ error: "invalid piece" });
+    if ((state.rotateCharges || 0) <= 0) {
+      pushEvent({ game: "blox", title: t("blox.rotateEmpty"), value: "", tone: "warning" });
+      return Promise.resolve({ error: "rotate unavailable" });
+    }
+    const trayItem = state.tray[pieceIdx];
+    const nextTray = state.tray.map((item, index) => (
+      index === pieceIdx ? { ...item, piece: rotateBloxPiece(trayItem.piece) } : item
+    ));
+    const nextState = {
+      ...state,
+      tray: nextTray,
+      rotateCharges: Math.max(0, (Number(state.rotateCharges) || 0) - 1),
+    };
+    setSelectedPiece(pieceIdx);
+    setOptimisticState(nextState);
+    return performReliableAction("blox.rotate", { pieceIdx }, {
+      key: `blox.rotate.${pieceIdx}.${state.rotateCharges}`,
+      idParts: [pieceIdx, state.rotateCharges],
+    }).then((result) => {
+      if (result.error) {
+        setOptimisticState(null);
+        pushEvent({ game: "blox", title: result.error, value: "", tone: "warning" });
+      }
+      return result;
+    });
+  }, [performReliableAction, pushEvent, selectedPiece, state, t]);
 
   const submitPlacement = useCallback(
     (pieceIdx, row, col) => {
@@ -154,6 +189,19 @@ export default function BloxGame() {
             { id: "lines", label: t("common.lines"), value: state.linesCleared || 0 },
             { id: "reward", label: rewardChest.tier === "none" ? t("common.reward") : "Chest", value: rewardChest.tier === "none" ? currentReward : rewardChest.tier, progress: rewardChest.progress * 100 },
           ]}
+          extraActions={(
+            <PanelButton
+              icon={RotateCw}
+              subtle
+              iconOnly
+              disabled={!isPlaying || (state.rotateCharges || 0) <= 0}
+              tooltip={t("blox.rotateTooltip", { count: state.rotateCharges || 0 })}
+              onClick={rotateSelectedPiece}
+              data-blox-rotate="true"
+            >
+              {t("blox.rotate")} {state.rotateCharges || 0}
+            </PanelButton>
+          )}
           onPause={() => setPaused(true)}
         />
       )}

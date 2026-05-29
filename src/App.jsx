@@ -92,7 +92,6 @@ function ThemeToggle({ theme, onToggle }) {
       type="button"
       className={`theme-toggle ${isDark ? "dark" : "light"}`}
       aria-label={isDark ? t("theme.toggleToLight") : t("theme.toggleToDark")}
-      title={isDark ? t("theme.dark") : t("theme.light")}
       onClick={onToggle}
     >
       <Icon size={17} />
@@ -339,7 +338,7 @@ export default function App() {
             data-active-tab={activeTab}
           >
             <HudRegion id="appTopbar" as="header" className="topbar">
-              <div>
+              <div className="topbar-title">
                 <p className="eyebrow">{t("app.eyebrow")}</p>
                 <h1>{t("app.title")}</h1>
               </div>
@@ -348,7 +347,6 @@ export default function App() {
                   type="button"
                   className="profile-avatar-button"
                   aria-label={t("app.player")}
-                  title={profileName}
                   onClick={() => setProfileOpen(true)}
                 >
                   {profileInitial}

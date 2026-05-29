@@ -125,6 +125,7 @@ async function collectPngDirectoryEntries(rootDir, { root, keyPrefix, outputPref
 async function collectPixiEntries(rootDir) {
   const compactRuntimeImage = runtimeWebpOnly();
   const pixiEntries = [
+    entry("bubbo.background.underwater", "public/games/bubbo-bubbo/images/underwater-backdrop.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
     entry("bubbo.background.tile", "public/games/bubbo-bubbo/images/background-tile.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
     entry("bubbo.balls.sheet", "public/games/bubbo-bubbo/assets_bubbo_balls.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),
     entry("bubbo.bottomTray", "public/games/bubbo-bubbo/images/bottom-tray.png", "bubbo", "pixi.bubbo", compactRuntimeImage.formats, compactRuntimeImage),

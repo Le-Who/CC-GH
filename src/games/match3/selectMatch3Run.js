@@ -1,3 +1,5 @@
+import { normalizeMatch3Boosters } from "../../game-core/match3/engine.js";
+
 function hasBoard(run) {
   return Array.isArray(run?.board) && run.board.length > 0;
 }
@@ -11,6 +13,7 @@ export function selectMatch3InitialRun(snapshot, createDefaultRun) {
       movesLeft: Math.max(0, Number(current.movesLeft) || 0),
       combo: Math.max(0, Number(current.combo) || 0),
       mode: current.mode || current.gameMode || "classic",
+      boosters: normalizeMatch3Boosters(current.boosters),
       restored: true,
     };
   }

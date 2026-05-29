@@ -1658,16 +1658,18 @@
   align-items: center;
   justify-content: center;
   gap: clamp(9px, 1.6vw, 13px);
-  border: 3px solid #ffe464;
-  border-radius: 999px;
+  border: 0;
+  border-radius: 8px;
   padding: 0 clamp(18px, 3.8vw, 34px);
-  background: linear-gradient(180deg, #ffc600, #f2b200);
-  box-shadow: 0 12px 22px rgba(37, 23, 7, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.45);
-  color: #070707;
+  background:
+    url("/games/hud-redesign/merge/primary-button.png") center / 100% 100% no-repeat;
+  box-shadow: 0 12px 22px rgba(37, 23, 7, 0.28);
+  color: #fff1ce;
   cursor: pointer;
   font-weight: 1000;
   text-transform: uppercase;
   white-space: nowrap;
+  text-shadow: 0 2px 0 rgba(70, 36, 15, 0.5);
 }
 
 .merge-daily-token-button:not(:disabled) {
@@ -1678,7 +1680,7 @@
 .merge-daily-token-button svg {
   width: clamp(20px, 3.4vw, 27px);
   height: clamp(20px, 3.4vw, 27px);
-  color: #111;
+  color: #fff1ce;
 }
 
 @keyframes merge-ready-ring {
@@ -2219,4 +2221,58 @@
 .merge-pause-overlay .panel-button:focus-visible {
   outline: 2px solid rgba(255, 210, 118, 0.86);
   outline-offset: -5px;
+}
+
+.merge-pause-overlay .panel-button,
+.merge-pause-overlay .panel-button.pause-primary,
+.merge-pause-overlay .panel-button:not(.subtle):not(.danger),
+.merge-pause-overlay .panel-button.danger,
+.merge-pause-overlay .panel-button.active,
+.merge-pause-overlay .pause-action-stack > .panel-button,
+.merge-pause-overlay .pause-action-stack .button-row .panel-button {
+  min-height: 44px;
+  border: 0 !important;
+  border-radius: 8px !important;
+  padding: 0 8px !important;
+  background: url("/games/hud-redesign/merge/primary-button.png") center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: #fff1ce !important;
+  box-shadow: none !important;
+  filter: none;
+  font-size: clamp(0.68rem, 2.7vw, 0.86rem) !important;
+  text-shadow: 0 2px 0 rgba(70, 36, 15, 0.5) !important;
+}
+
+.merge-pause-overlay .panel-button.danger,
+.merge-pause-overlay .panel-button.active {
+  filter: hue-rotate(330deg) saturate(1.06);
+}
+
+.merge-pause-overlay .panel-button span {
+  display: inline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.merge-pause-overlay .pause-action-stack > .panel-button,
+.merge-pause-overlay .pause-action-stack .panel-button.pause-primary,
+.merge-pause-overlay .pause-action-stack .button-row .panel-button {
+  min-height: 58px;
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .merge-pause-overlay .pause-action-stack {
+    left: 5%;
+    top: 78%;
+    width: 90%;
+    height: 15.5%;
+  }
+
+  .merge-pause-overlay .pause-action-stack > .panel-button,
+  .merge-pause-overlay .pause-action-stack .panel-button.pause-primary,
+  .merge-pause-overlay .pause-action-stack .button-row .panel-button {
+    min-height: 88px;
+  }
 }

@@ -55,6 +55,7 @@ describe("perf:guard contract", () => {
     }
 
     for (const required of [
+      "bubbo.background.underwater",
       "bubbo.background.tile",
       "bubbo.balls.sheet",
       "bubbo.bottomTray",

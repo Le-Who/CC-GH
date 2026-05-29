@@ -54,6 +54,8 @@
   --hub-panel-art: url("/games/ui-surfaces/hub-panel.png");
   --hub-dock-art: url("/games/ui-surfaces/yard-panel.png");
   --safe-top: var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-left: var(--tg-viewport-safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --safe-right: var(--tg-viewport-safe-area-inset-right, env(safe-area-inset-right, 0px));
   --safe-bottom: var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   font-family: Nunito, Varela Round, system-ui, sans-serif;
 }
@@ -698,6 +700,62 @@ button.stat-chip {
 
 .telegram-app[data-active-tab="garden"] .stat-progress b {
   background: linear-gradient(90deg, #5bb975, #8bd99f, #f0b64d);
+}
+
+.telegram-app[data-active-tab="garden"] {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+  padding: calc(10px + var(--safe-top)) 10px calc(86px + var(--safe-bottom));
+  background:
+    linear-gradient(180deg, #233419 0%, #5f7f3b 42%, #2b1b0f 100%);
+}
+
+.telegram-app[data-active-tab="garden"] .topbar {
+  position: absolute;
+  left: auto;
+  right: max(8px, var(--safe-right));
+  top: max(8px, var(--safe-top));
+  width: auto;
+  z-index: 170;
+  min-height: 0;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.telegram-app[data-active-tab="garden"] .topbar-title {
+  display: none;
+}
+
+.telegram-app[data-active-tab="garden"] .topbar-actions {
+  pointer-events: auto;
+}
+
+.telegram-app[data-active-tab="garden"] .profile-avatar-button,
+.telegram-app[data-active-tab="garden"] .theme-toggle {
+  display: none;
+}
+
+.telegram-app[data-active-tab="garden"] .status-dot {
+  min-width: 18px;
+  width: 18px;
+  min-height: 18px;
+  height: 18px;
+  border-radius: 999px;
+  padding: 0;
+  border: 2px solid rgba(255, 245, 187, 0.84);
+  background: #75c468;
+  box-shadow: 0 0 0 2px rgba(69, 45, 17, 0.18), 0 4px 10px rgba(45, 24, 10, 0.26);
+  color: transparent;
+  font-size: 0;
+}
+
+.telegram-app[data-active-tab="garden"] .stats-row {
+  grid-row: 1;
+  padding-right: 28px;
+}
+
+.telegram-app[data-active-tab="garden"] .active-game-frame {
+  grid-row: 2;
 }
 
 @media (max-width: 420px) {

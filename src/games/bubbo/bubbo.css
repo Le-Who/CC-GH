@@ -7,44 +7,54 @@
 .bubbo-shell {
   --bubbo-dialog-art: url("/games/ui-surfaces/bubbo-dialog-panel.png");
   --bubbo-surface-art: url("/games/ui-surfaces/bubbo-panel.png");
-  --shell-art:
-    url("/games/bubbo-bubbo/images/background-tile.png"),
-    linear-gradient(135deg, rgba(143, 207, 157, 0.18), transparent 42%),
-    linear-gradient(315deg, rgba(139, 191, 217, 0.14), transparent 46%);
-  --shell-accent: #76b98d;
-  --shell-soft: #eff7e5;
+  --shell-art: none;
+  --shell-accent: #67d9ef;
+  --shell-soft: #073653;
   background:
-    linear-gradient(180deg, rgba(244, 255, 242, 0.78), rgba(207, 238, 229, 0.82)),
-    url("/games/bubbo-bubbo/images/background-tile.png") center / 240px 240px repeat;
+    radial-gradient(circle at 50% 8%, rgba(91, 219, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, #053b69 0%, #031830 60%, #010b18 100%);
+}
+
+.telegram-app.play-mode[data-active-tab="bubbo"] {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(91, 219, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, #053b69 0%, #031830 62%, #010b18 100%);
 }
 
 :root[data-ui-theme="dark"] .bubbo-shell {
-  --shell-art:
-    url("/games/bubbo-bubbo/images/background-tile.png"),
-    linear-gradient(135deg, rgba(115, 210, 160, 0.08), transparent 44%),
-    linear-gradient(315deg, rgba(136, 199, 223, 0.07), transparent 48%);
-  --shell-accent: #8ed7b0;
-  --shell-soft: #1e2a2d;
+  --shell-art: none;
+  --shell-accent: #84e8ff;
+  --shell-soft: #041f36;
   background:
-    linear-gradient(180deg, rgba(20, 32, 37, 0.9), rgba(17, 29, 33, 0.94)),
-    url("/games/bubbo-bubbo/images/background-tile.png") center / 240px 240px repeat;
+    radial-gradient(circle at 50% 8%, rgba(78, 211, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, #032e55 0%, #021427 58%, #000817 100%);
+}
+
+:root[data-ui-theme="dark"] .telegram-app.play-mode[data-active-tab="bubbo"] {
+  background:
+    radial-gradient(circle at 50% 10%, rgba(78, 211, 255, 0.12), transparent 34%),
+    linear-gradient(180deg, #032e55 0%, #021427 58%, #000817 100%);
 }
 
 .bubbo-shell::before {
-  background-size: 240px 240px, cover, cover;
-  background-repeat: repeat, no-repeat, no-repeat;
-  opacity: 0.3;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+  opacity: 0.22;
 }
 
 .bubbo-shell .pixi-host {
-  background:
-    linear-gradient(180deg, rgba(235, 252, 239, 0.22), rgba(120, 188, 177, 0.16)),
-    url("/games/bubbo-bubbo/images/field-mask.png") center / min(98%, 560px) 96% no-repeat,
-    url("/games/bubbo-bubbo/images/background-tile.png") center / 240px 240px repeat;
+  background: transparent;
 }
 
 .bubbo-play-hud {
-  min-height: 78px;
+  min-height: 116px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "actions"
+    "stats";
+  align-content: center;
+  gap: 5px;
+  padding: 9px 20px 10px;
   border: 0;
   background: transparent;
   box-shadow: none;
@@ -54,6 +64,10 @@
   overflow: visible;
 }
 
+.bubbo-play-hud .game-play-title {
+  display: none;
+}
+
 :root[data-ui-theme="dark"] .bubbo-play-hud {
   color: #effdf7;
 }
@@ -61,7 +75,7 @@
 .bubbo-play-hud::before {
   content: "";
   position: absolute;
-  inset: -8px -10px -10px;
+  inset: 0;
   z-index: -1;
   border-radius: 18px;
   background:
@@ -112,6 +126,71 @@
     linear-gradient(180deg, #9debd5, #65c8c6);
   color: #12383f;
   box-shadow: 0 8px 18px rgba(57, 106, 114, 0.18);
+}
+
+.bubbo-play-hud .game-play-stats {
+  grid-area: stats;
+  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.bubbo-play-hud .game-play-stats > span {
+  min-height: 34px;
+  padding: 5px 8px;
+  gap: 4px;
+}
+
+.bubbo-play-hud .game-play-stat-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.bubbo-play-hud .game-play-stats strong {
+  font-size: 0.9rem;
+}
+
+.bubbo-play-hud .game-play-actions {
+  grid-area: actions;
+  justify-self: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.bubbo-play-hud .game-play-actions .bubbo-power-button {
+  min-width: 54px;
+  padding-inline: 8px;
+}
+
+.bubbo-play-hud .game-play-actions .bubbo-power-button.active {
+  outline: 3px solid rgba(255, 232, 127, 0.94);
+  outline-offset: 2px;
+  filter: drop-shadow(0 0 12px rgba(255, 232, 127, 0.46));
+}
+
+.bubbo-play-hud .game-play-actions .bubbo-power-button .panel-button-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: none;
+}
+
+.bubbo-power-short {
+  font-size: 0.68rem;
+  font-weight: 1000;
+}
+
+.bubbo-power-count {
+  min-width: 18px;
+  min-height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #fff3a4;
+  color: #17434b;
+  font-size: 0.68rem;
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(13, 55, 61, 0.24);
 }
 
 .bubbo-shell .game-menu-overlay {
@@ -942,15 +1021,12 @@
   height: 100%;
   min-height: 55px;
   padding-inline: 4px;
-  border: 1px solid rgba(162, 209, 126, 0.24) !important;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(5, 12, 14, 0.1)),
-    url("/games/bubbo/button_secondary.png") center / 100% 100% no-repeat,
-    linear-gradient(180deg, rgba(46, 78, 84, 0.94), rgba(24, 42, 45, 0.96)) !important;
+  border: 0 !important;
+  background: transparent !important;
   color: #fff7e5 !important;
   text-shadow: none !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
-  border-radius: 6px !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
 }
 
 .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button.danger {
@@ -1055,5 +1131,141 @@
   .telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row .panel-button svg {
     width: 14px;
     height: 14px;
+  }
+}
+
+.bubbo-shell .game-menu-overlay .panel-button,
+.bubbo-shell .game-menu-overlay .panel-button.danger,
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-button,
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .button-row .panel-button,
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button,
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay.bubbo-result-overlay .button-row .panel-button {
+  min-height: 44px;
+  border: 0 !important;
+  border-radius: 8px !important;
+  padding: 0 8px !important;
+  background: url("/games/hud-redesign/bubbo/primary-button.png") center / 100% 100% no-repeat !important;
+  background-color: transparent !important;
+  color: #fff7e5 !important;
+  box-shadow: none !important;
+  filter: none;
+  font-size: clamp(0.68rem, 2.7vw, 0.86rem) !important;
+  text-shadow: 0 2px 0 rgba(36, 10, 62, 0.5) !important;
+}
+
+.bubbo-shell .game-menu-overlay .panel-button.danger,
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button.danger {
+  filter: hue-rotate(330deg) saturate(1.05);
+}
+
+.bubbo-shell .game-menu-overlay .panel-button span,
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .panel-button span {
+  display: inline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bubbo-shell .game-menu-overlay .mode-grid button,
+.bubbo-shell .game-menu-overlay[data-menu-phase="menu"]:not(.bubbo-result-overlay) .mode-grid button {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  min-height: 62px;
+  padding: 8px 10px;
+  border: 0 !important;
+  border-radius: 8px;
+  background: rgba(236, 255, 249, 0.18) !important;
+  color: #fff7e5 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 229, 0.22);
+  text-align: center;
+}
+
+.bubbo-shell .game-menu-overlay .mode-grid button strong,
+.bubbo-shell .game-menu-overlay .mode-grid button small {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.bubbo-shell .game-menu-overlay .mode-grid button small {
+  max-width: 18ch;
+  margin: 0 auto;
+  color: rgba(255, 247, 229, 0.76) !important;
+  line-height: 1.08;
+}
+
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+.telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+  min-height: 55px;
+}
+
+@media (max-width: 340px) {
+  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+    min-height: 58px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 420px) {
+  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack > .panel-button,
+  .telegram-app.play-mode .bubbo-shell .game-menu-overlay[data-menu-phase="paused"] .pause-action-stack .button-row .panel-button {
+    min-height: 96px;
+  }
+}
+
+@media (max-width: 430px) {
+  .bubbo-play-hud {
+    min-height: 112px;
+    padding: 9px 17px 10px;
+  }
+
+  .bubbo-play-hud .game-play-actions {
+    gap: 4px;
+  }
+
+  .bubbo-play-hud .game-play-actions .bubbo-power-button {
+    width: 46px !important;
+    min-width: 46px !important;
+    padding-inline: 0 !important;
+  }
+
+  .bubbo-play-hud .game-play-actions .bubbo-power-button .panel-button-label {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    display: inline-flex;
+  }
+
+  .bubbo-play-hud .game-play-actions .bubbo-power-button .bubbo-power-short {
+    display: none;
+  }
+
+  .bubbo-power-count {
+    min-width: 17px;
+    min-height: 17px;
+    font-size: 0.62rem;
+  }
+
+  .bubbo-play-hud .game-play-stats {
+    gap: 4px;
+  }
+
+  .bubbo-play-hud .game-play-stats > span {
+    min-height: 32px;
+    padding: 4px 6px;
+  }
+
+  .bubbo-play-hud .game-play-stat-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .bubbo-play-hud .game-play-stats strong {
+    font-size: 0.82rem;
   }
 }

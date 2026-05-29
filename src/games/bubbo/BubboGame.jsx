@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Clock, Gem, Home, Play, RotateCcw, Sparkles, Trophy } from "lucide-react";
+import { Check, Clock, Gem, Home, Play, RotateCcw, Sparkles, Trophy, Zap } from "lucide-react";
 import { audioManager } from "../../services/audioManager.js";
-import { BUBBO_SHOTS, BUBBO_TIMED_SECONDS, advanceBubboPressure, createBubboRun, getBubboDangerRows, getBubboPressureLabel, getBubboRemainingCount, isBubboDanger, randomBubboColor, resolveBubboShot } from "../../game-core/bubbo/engine.js";
+import { BUBBO_POWERUP_CHARGES, BUBBO_SHOTS, BUBBO_TIMED_SECONDS, advanceBubboPressure, createBubboRun, getBubboDangerRows, getBubboPressureLabel, getBubboRemainingCount, isBubboDanger, normalizeBubboPowerups, randomBubboColor, resolveBubboPowerup, resolveBubboShot } from "../../game-core/bubbo/engine.js";
 import { PixiScene } from "../../app/PixiScene.jsx";
 import { GamePlayHud, GameShell, PanelButton, PauseBrief, Stat, semanticHudIconPath } from "../../app/shell.jsx";
 import { useAction, useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
@@ -16,6 +16,13 @@ const BUBBO_MODES = [
   { id: "classic", labelKey: "bubbo.mode.classic", hintKey: "bubbo.mode.classicHint" },
   { id: "timed", labelKey: "bubbo.mode.timed", hintKey: "bubbo.mode.timedHint" },
 ];
+
+const BUBBO_POWERUP_ACTIONS = [
+  { id: "bomb", icon: Sparkles, labelKey: "bubbo.powerup.bomb", shortKey: "bubbo.powerupShort.bomb" },
+  { id: "rainbow", icon: Gem, labelKey: "bubbo.powerup.rainbow", shortKey: "bubbo.powerupShort.rainbow" },
+  { id: "lightning", icon: Zap, labelKey: "bubbo.powerup.lightning", shortKey: "bubbo.powerupShort.lightning" },
+];
+
 export default function BubboGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();
@@ -41,9 +48,11 @@ export default function BubboGame() {
   const [currentBubble, setCurrentBubble] = useState(() => randomBubboColor());
   const [nextBubble, setNextBubble] = useState(() => randomBubboColor());
   const [swapCharges, setSwapCharges] = useState(1);
+  const [powerups, setPowerups] = useState(() => normalizeBubboPowerups(initialRun.powerups));
+  const [activePowerup, setActivePowerup] = useState("");
   const [lastShot, setLastShot] = useState(null);
   const pressureClockRef = useRef(Date.now());
-  const runRef = useRef({ board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft, shotsFired, mode, timeLeft });
+  const runRef = useRef({ board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft, shotsFired, mode, timeLeft, powerups });
   const bubbleRef = useRef({ current: currentBubble, next: nextBubble });
   const shotAdvanceRef = useRef(null);
   const highScore = snapshot?.bubbo?.highScore || 0;
@@ -65,18 +74,18 @@ export default function BubboGame() {
   const shellControls = useMemo(() => ({
     activeRun: gameActive,
     pauseRun,
-      hudState: {
-        score,
-        shotsLeft,
-        pressureLabel: pressureValue,
-        currentReward,
-      },
+    hudState: {
+      score,
+      shotsLeft,
+      pressureLabel: pressureValue,
+      currentReward,
+    },
   }), [currentReward, gameActive, pauseRun, pressureValue, score, shotsLeft]);
   useImmersiveGame("bubbo", true, shellControls);
 
   useEffect(() => {
-    runRef.current = { board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft, shotsFired, mode, timeLeft };
-  }, [board, mode, pendingRow, pressure, pressureStep, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex]);
+    runRef.current = { board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep, score, shotsLeft, shotsFired, mode, timeLeft, powerups };
+  }, [board, mode, pendingRow, powerups, pressure, pressureStep, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex]);
 
   useEffect(() => {
     bubbleRef.current = { current: currentBubble, next: nextBubble };
@@ -95,6 +104,8 @@ export default function BubboGame() {
       waveIndex: run.waveIndex,
       rowOffset: run.rowOffset,
       pressure: 0,
+      pressureStep: 0,
+      powerups: run.powerups,
     }, { key: "bubbo.start" });
     if (result.error) return;
     setBoard(run.board);
@@ -120,6 +131,8 @@ export default function BubboGame() {
     setCurrentBubble(firstBubble);
     setNextBubble(queuedBubble);
     setSwapCharges(1);
+    setPowerups(normalizeBubboPowerups(run.powerups));
+    setActivePowerup("");
     setLastShot(null);
   }, [mode, performAction]);
 
@@ -129,6 +142,7 @@ export default function BubboGame() {
     const nextBoard = Array.isArray(savedRun.board) ? savedRun.board : fallback.board;
     const nextPendingRow = Array.isArray(savedRun.pendingRow) ? savedRun.pendingRow : fallback.pendingRow;
     const nextMode = savedRun.mode || fallback.mode;
+    const nextPowerups = normalizeBubboPowerups(savedRun.powerups ?? fallback.powerups);
     setBoard(nextBoard);
     setPendingRow(nextPendingRow);
     setSeed(savedRun.seed || fallback.seed);
@@ -152,6 +166,8 @@ export default function BubboGame() {
     setCurrentBubble(firstBubble);
     setNextBubble(queuedBubble);
     setSwapCharges(1);
+    setPowerups(nextPowerups);
+    setActivePowerup("");
     setLastShot(null);
   }, [mode, savedRun]);
 
@@ -229,6 +245,8 @@ export default function BubboGame() {
           waveIndex: advanced.waveIndex,
           rowOffset: advanced.rowOffset || 0,
           pressure: advanced.pressure,
+          pressureStep: advanced.pressureStep || 0,
+          powerups: current.powerups,
         },
       }, { silent: true, key: `bubbo.pressure.${now}` });
       if (advanced.danger || advanced.overflow) {
@@ -254,17 +272,21 @@ export default function BubboGame() {
     if (!gameActive) return;
     const queuedCurrent = bubbleRef.current.next || randomBubboColor(runRef.current.board);
     const queuedNext = randomBubboColor(runRef.current.board);
-    shotAdvanceRef.current = { color: shotColor || bubbleRef.current.current };
+    const queuedPowerup = activePowerup && (powerups[activePowerup] || 0) > 0 ? activePowerup : "";
+    shotAdvanceRef.current = { color: shotColor || bubbleRef.current.current, powerup: queuedPowerup };
     bubbleRef.current = { current: queuedCurrent, next: queuedNext };
     setCurrentBubble(queuedCurrent);
     setNextBubble(queuedNext);
-  }, [gameActive]);
+  }, [activePowerup, gameActive, powerups]);
 
   const onFire = useCallback(
     (row, col, path = [], shotColor = currentBubble) => {
       if (!gameActive) return;
       const firedColor = shotColor || currentBubble;
-      const result = resolveBubboShot({ board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep }, firedColor, row, col);
+      const shotPowerup = shotAdvanceRef.current?.powerup || (activePowerup && (powerups[activePowerup] || 0) > 0 ? activePowerup : "");
+      const result = shotPowerup
+        ? resolveBubboPowerup({ board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep }, shotPowerup, row, col, firedColor)
+        : resolveBubboShot({ board, pendingRow, seed, waveIndex, rowOffset, pressure, pressureStep }, firedColor, row, col);
       if (result.error) {
         shotAdvanceRef.current = null;
         return;
@@ -272,9 +294,13 @@ export default function BubboGame() {
       const nextScore = score + result.points;
       const nextShots = mode === "timed" ? shotsLeft : Math.max(0, shotsLeft - 1);
       const nextShotsFired = shotsFired + 1;
+      const nextPowerups = shotPowerup
+        ? normalizeBubboPowerups({ ...powerups, [shotPowerup]: Math.max(0, (Number(powerups[shotPowerup]) || 0) - 1) })
+        : powerups;
       const shotRecord = {
         id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
         color: firedColor,
+        powerup: shotPowerup || null,
         path,
         landed: result.landed,
         popped: result.popped,
@@ -291,6 +317,8 @@ export default function BubboGame() {
       setScore(nextScore);
       setShotsLeft(nextShots);
       setShotsFired(nextShotsFired);
+      setPowerups(nextPowerups);
+      if (shotPowerup) setActivePowerup("");
       setLastShot(shotRecord);
       if (!preAdvanced) {
         const fallbackCurrent = nextBubble;
@@ -303,7 +331,7 @@ export default function BubboGame() {
       if (result.popped.length || result.dropped.length) {
         pushEvent({
           game: "bubbo",
-          title: t("bubbo.clearEvent"),
+          title: shotPowerup ? t("bubbo.powerupEvent", { powerup: t(`bubbo.powerup.${shotPowerup}`) }) : t("bubbo.clearEvent"),
           value: `+${result.points}`,
           tone: "success",
         });
@@ -323,6 +351,8 @@ export default function BubboGame() {
             waveIndex: result.waveIndex,
             rowOffset: result.rowOffset || 0,
             pressure: result.pressure,
+            pressureStep: result.pressureStep || 0,
+            powerups: nextPowerups,
           },
         },
         { silent: true, key: `bubbo.sync.${shotRecord.id}` },
@@ -331,7 +361,7 @@ export default function BubboGame() {
         finish(nextScore);
       }
     },
-    [board, currentBubble, finish, gameActive, mode, nextBubble, pendingRow, performAction, pressure, pressureStep, pushEvent, rowOffset, score, seed, shotsFired, shotsLeft, t, timeLeft, waveIndex],
+    [activePowerup, board, currentBubble, finish, gameActive, mode, nextBubble, pendingRow, performAction, powerups, pressure, pressureStep, pushEvent, rowOffset, score, seed, shotsFired, shotsLeft, t, timeLeft, waveIndex],
   );
 
   const sceneState = useMemo(
@@ -347,6 +377,8 @@ export default function BubboGame() {
         gameActive: isPlaying,
         current: currentBubble,
         next: nextBubble,
+        powerups,
+        activePowerup,
         lastShot,
         pressureStep,
         pressureLabel: pressureValue,
@@ -360,7 +392,7 @@ export default function BubboGame() {
       onBubboFire: onFire,
       onBubboShotStart: onShotStart,
     }),
-    [board, currentBubble, currentMode.labelKey, isPlaying, lastShot, mode, nextBubble, onFire, onShotStart, pendingRow, pressureStep, pressureValue, primaryLimitLabel, primaryLimitValue, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex, t],
+    [activePowerup, board, currentBubble, currentMode.labelKey, isPlaying, lastShot, mode, nextBubble, onFire, onShotStart, pendingRow, powerups, pressureStep, pressureValue, primaryLimitLabel, primaryLimitValue, rowOffset, score, seed, shotsFired, shotsLeft, timeLeft, waveIndex, t],
   );
 
   return (
@@ -379,7 +411,30 @@ export default function BubboGame() {
             { id: mode === "timed" ? "time" : "shots", label: primaryLimitLabel, value: primaryLimitValue },
             { id: rewardChest.tier === "none" ? "pressure" : "reward", label: rewardChest.tier === "none" ? t("common.pressure") : "Chest", value: rewardChest.tier === "none" ? pressureValue : rewardChest.tier, progress: rewardChest.tier === "none" ? null : rewardChest.progress * 100 },
           ]}
-          extraActions={<PanelButton icon={RotateCcw} image={semanticHudIconPath("bubbo", "swap")} iconOnly subtle disabled={!isPlaying || swapCharges <= 0} onClick={swapQueuedBubble}>Swap {swapCharges}</PanelButton>}
+          extraActions={(
+            <>
+              <PanelButton icon={RotateCcw} image={semanticHudIconPath("bubbo", "swap")} iconOnly subtle disabled={!isPlaying || swapCharges <= 0} tooltip={`${t("bubbo.swap")} ${swapCharges}`} onClick={swapQueuedBubble}>Swap {swapCharges}</PanelButton>
+              {BUBBO_POWERUP_ACTIONS.map((item) => {
+                const count = powerups[item.id] ?? BUBBO_POWERUP_CHARGES[item.id] ?? 0;
+                const Icon = item.icon;
+                return (
+                  <PanelButton
+                    key={item.id}
+                    icon={Icon}
+                    className="bubbo-power-button"
+                    active={activePowerup === item.id}
+                    disabled={!isPlaying || count <= 0}
+                    tooltip={t("bubbo.powerupTooltip", { powerup: t(item.labelKey), count })}
+                    onClick={() => setActivePowerup((value) => (value === item.id ? "" : item.id))}
+                    data-bubbo-powerup={item.id}
+                  >
+                    <span className="bubbo-power-short">{t(item.shortKey)}</span>
+                    <b className="bubbo-power-count">{count}</b>
+                  </PanelButton>
+                );
+              })}
+            </>
+          )}
           onPause={() => setPaused(true)}
           className="game-play-hud-bottom bubbo-play-hud"
         />
@@ -479,6 +534,8 @@ export default function BubboGame() {
                       setTimeLeft(run.timeLeft ?? BUBBO_TIMED_SECONDS);
                       setShotsLeft(run.shotsLeft);
                       setShotsFired(0);
+                      setPowerups(normalizeBubboPowerups(run.powerups));
+                      setActivePowerup("");
                     }}>{t("bubbo.newField")}</PanelButton>
                     <PanelButton icon={Home} danger onClick={exitToHub}>{t("common.exit")}</PanelButton>
                   </div>

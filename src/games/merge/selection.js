@@ -33,5 +33,10 @@ export function resolveMergeTapSelection({
     };
   }
 
-  return { action: "select", selectedCell: { r, c } };
+  return {
+    action: "miss",
+    from: { r: selectedCell.r, c: selectedCell.c },
+    to: { r, c },
+    selectedCell: { r, c },
+  };
 }

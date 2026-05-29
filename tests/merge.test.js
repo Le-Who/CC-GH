@@ -447,7 +447,24 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       );
       assert.deepEqual(
         resolveMergeTapSelection({ board, selectedCell: { r: 0, c: 0 }, r: 0, c: 2, item: board[0][2] }),
-        { action: "select", selectedCell: { r: 0, c: 2 } },
+        { action: "miss", from: { r: 0, c: 0 }, to: { r: 0, c: 2 }, selectedCell: { r: 0, c: 2 } },
+      );
+    });
+
+    it("routes invalid tap-pair attempts through the miss feedback path", () => {
+      const scenes = readSceneRuntimeText();
+
+      assert.ok(
+        scenes.includes("const tapResult = data.onMergeCell?.(cell.r, cell.c, item);"),
+        "Merge taps should keep the result from React selection logic",
+      );
+      assert.ok(
+        scenes.includes("if (tapResult?.miss)"),
+        "Invalid tap-pair attempts should trigger the same miss feedback as drag-drop",
+      );
+      assert.ok(
+        scenes.includes('playMergeDropFeedback(done, { error: tapResult.error || "invalid merge" }, item);'),
+        "Tap miss feedback should use the runtime miss label and pulse path",
       );
     });
   });

@@ -44,6 +44,7 @@ const GEM_COLORS = {
 
 const BUBBO_ASSET_KEYS = {
   ballSheet: "bubbo.balls.sheet",
+  backgroundUnderwater: "bubbo.background.underwater",
   backgroundTile: "bubbo.background.tile",
   bottomTray: "bubbo.bottomTray",
   cannonMain: "bubbo.cannon.main",
@@ -180,24 +181,24 @@ const BUBBO_NUMBERS = Object.fromEntries(
 );
 const BUBBO_BACKGROUND_THEMES = {
   light: {
-    outer: 0xf6eee6,
-    panel: 0xeaf4df,
-    stroke: 0xb8c89d,
-    pattern: 0x6f9d78,
-    finish: 0xc97884,
-    cannonPanel: 0xf2eadb,
-    tileAlpha: 0.055,
-    lineAlpha: 0.085,
+    outer: 0x063f70,
+    panel: 0x0a5f87,
+    stroke: 0x8af0ff,
+    pattern: 0xb7f7ff,
+    finish: 0xff7d8d,
+    cannonPanel: 0x0d4361,
+    panelAlpha: 0.08,
+    lineAlpha: 0.18,
   },
   dark: {
-    outer: 0x101416,
-    panel: 0x162024,
-    stroke: 0x36595d,
-    pattern: 0x92c8af,
-    finish: 0xe08b93,
-    cannonPanel: 0x223036,
-    tileAlpha: 0.035,
-    lineAlpha: 0.09,
+    outer: 0x021124,
+    panel: 0x052c48,
+    stroke: 0x55dce8,
+    pattern: 0x9defff,
+    finish: 0xff8fa0,
+    cannonPanel: 0x061f33,
+    panelAlpha: 0.14,
+    lineAlpha: 0.16,
   },
 };
 
@@ -644,28 +645,30 @@ function makeTween(view, from, to, duration = 18, options = {}) {
 
 function drawBubboBackground(root, app, layout, frameBottom) {
   const palette = BUBBO_BACKGROUND_THEMES[currentUiTheme()] || BUBBO_BACKGROUND_THEMES.light;
-  root.addChild(rect(0, 0, viewWidth(app), viewHeight(app), palette.outer, 0, 1));
-  root.addChild(strokedRect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, palette.stroke, 16, palette.panel, 0.96, 2));
+  const width = viewWidth(app);
+  const height = viewHeight(app);
+  root.addChild(rect(0, 0, width, height, palette.outer, 0, 1));
+  root.addChild(coverSprite(gameAsset(BUBBO_ASSET_KEYS.backgroundUnderwater), width / 2, height / 2, width, height, 1024 / 1792, 1));
+  root.addChild(strokedRect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, palette.stroke, 16, palette.panel, palette.panelAlpha, 2));
   const stripes = new Graphics();
   const x0 = layout.left - 2;
   const y0 = layout.top - 2;
-  const width = layout.right - layout.left + 4;
-  const height = frameBottom - layout.top + 4;
-  for (let x = x0 - height; x < x0 + width; x += Math.max(24, layout.cell * 0.86)) {
-    stripes.moveTo(x, y0 + height);
-    stripes.lineTo(x + height, y0);
+  const fieldWidth = layout.right - layout.left + 4;
+  const fieldHeight = frameBottom - layout.top + 4;
+  for (let x = x0 - fieldHeight; x < x0 + fieldWidth; x += Math.max(24, layout.cell * 0.86)) {
+    stripes.moveTo(x, y0 + fieldHeight);
+    stripes.lineTo(x + fieldHeight, y0);
   }
   stripes.stroke({ color: palette.pattern, width: 1.4, alpha: palette.lineAlpha });
   root.addChild(stripes);
   const curves = new Graphics();
   for (let row = 0; row < 4; row += 1) {
-    const y = y0 + height * (0.18 + row * 0.2);
+    const y = y0 + fieldHeight * (0.18 + row * 0.2);
     curves.moveTo(x0 + 10, y);
-    curves.bezierCurveTo(x0 + width * 0.3, y - 12, x0 + width * 0.58, y + 10, x0 + width - 10, y - 4);
+    curves.bezierCurveTo(x0 + fieldWidth * 0.3, y - 12, x0 + fieldWidth * 0.58, y + 10, x0 + fieldWidth - 10, y - 4);
   }
   curves.stroke({ color: palette.pattern, width: 2, alpha: palette.lineAlpha * 0.7 });
   root.addChild(curves);
-  root.addChild(tiledSprite(gameAsset(BUBBO_ASSET_KEYS.backgroundTile), layout.left - 8, layout.top - 8, layout.right - layout.left + 16, frameBottom - layout.top + 8, palette.tileAlpha));
   return palette;
 }
 

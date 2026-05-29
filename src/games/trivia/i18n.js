@@ -37,6 +37,8 @@ export const TRIVIA_TRANSLATIONS = {
     "trivia.correct": "Correct",
     "trivia.incorrect": "Incorrect",
     "trivia.answerTime": "{ms} ms",
+    "trivia.lifeline.audience": "Audience",
+    "trivia.lifeline.reveal": "Reveal",
   },
   ru: {
     "pause.triviaFrozen": "Пауза: отвечайте, когда готовы",
@@ -74,6 +76,8 @@ export const TRIVIA_TRANSLATIONS = {
     "trivia.correct": "Верно",
     "trivia.incorrect": "Неверно",
     "trivia.answerTime": "{ms} мс",
+    "trivia.lifeline.audience": "Зал",
+    "trivia.lifeline.reveal": "Ответ",
   },
 };
 

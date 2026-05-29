@@ -8,6 +8,12 @@ export const BUBBO_PRESSURE_STEP = 1;
 
 export const BUBBO_COLORS = ["mint", "amber", "coral", "sky", "berry"];
 const BUBBO_COLOR_SET = new Set(BUBBO_COLORS);
+export const BUBBO_POWERUP_CHARGES = {
+  bomb: 3,
+  rainbow: 2,
+  lightning: 2,
+};
+const BUBBO_POWERUP_SET = new Set(Object.keys(BUBBO_POWERUP_CHARGES));
 
 export const BUBBO_PALETTE = {
   mint: "#6ee7b7",
@@ -41,6 +47,15 @@ function normalizeRowOffset(value = 0) {
 
 export function normalizeBubboMode(mode = "classic") {
   return mode === "timed" ? "timed" : "classic";
+}
+
+export function normalizeBubboPowerups(raw = null) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  return Object.fromEntries(Object.entries(BUBBO_POWERUP_CHARGES).map(([key, max]) => {
+    const value = Math.floor(Number(source[key]));
+    if (!Number.isFinite(value)) return [key, max];
+    return [key, Math.max(0, Math.min(max, value))];
+  }));
 }
 
 export function cloneBubboBoard(board = []) {
@@ -360,6 +375,7 @@ export function createBubboRun(seed = null, options = {}) {
     mode,
     timeLeft: mode === "timed" ? BUBBO_TIMED_SECONDS : null,
     score: 0,
+    powerups: normalizeBubboPowerups(config.powerups),
   };
 }
 
@@ -492,6 +508,124 @@ export function applyBubboShot(board, color, row, col, options = {}) {
   };
 }
 
+function normalizeBubboPowerupKind(powerup) {
+  const kind = String(powerup || "").trim();
+  return BUBBO_POWERUP_SET.has(kind) ? kind : null;
+}
+
+function collectBubboCells(cells = []) {
+  const seen = new Set();
+  const collected = [];
+  for (const cell of cells) {
+    const row = Array.isArray(cell) ? cell[0] : cell?.row;
+    const col = Array.isArray(cell) ? cell[1] : cell?.col;
+    if (!Number.isInteger(row) || !Number.isInteger(col)) continue;
+    if (row < -1 || row >= BUBBO_ROWS || col < 0 || col >= BUBBO_COLS) continue;
+    const key = cellId(row, col);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    collected.push([row, col]);
+  }
+  return collected;
+}
+
+function getBlastCells(row, col, includePendingRow = false) {
+  const minRow = includePendingRow ? -1 : 0;
+  const cells = [[row, col]];
+  for (let r = row - 1; r <= row + 1; r += 1) {
+    for (let c = col - 1; c <= col + 1; c += 1) {
+      if (r < minRow || r >= BUBBO_ROWS || c < 0 || c >= BUBBO_COLS) continue;
+      cells.push([r, c]);
+    }
+  }
+  return collectBubboCells(cells);
+}
+
+function chooseRainbowColor(board, pendingRow, row, col, rowOffset, fallbackColor) {
+  const neighbors = getBubboNeighbors(row, col, rowOffset, { includePendingRow: hasPendingRow(pendingRow) });
+  let best = null;
+  for (const [neighborRow, neighborCol] of neighbors) {
+    const color = getBubboCell(board, pendingRow, neighborRow, neighborCol);
+    if (!color) continue;
+    const cluster = sameColorCluster(board, neighborRow, neighborCol, rowOffset, pendingRow);
+    if (!best || cluster.length > best.cluster.length) best = { color, cluster };
+  }
+  return best?.color || (BUBBO_COLOR_SET.has(fallbackColor) ? fallbackColor : BUBBO_COLORS[0]);
+}
+
+export function applyBubboPowerup(board, powerup, row, col, options = {}) {
+  const kind = normalizeBubboPowerupKind(powerup);
+  const next = normalizeBubboBoard(board);
+  const rowOffset = normalizeRowOffset(typeof options === "number" ? options : options.rowOffset);
+  const usePendingRow = typeof options === "object" && Object.hasOwn(options, "pendingRow");
+  const pendingRow = usePendingRow
+    ? normalizeBubboPendingRow(options.pendingRow, options.seed || "bubbo", options.waveIndex ?? BUBBO_START_ROWS)
+    : null;
+  if (!kind) {
+    return {
+      board: next,
+      pendingRow: usePendingRow ? pendingRow : undefined,
+      landed: null,
+      popped: [],
+      dropped: [],
+      points: 0,
+      error: "invalid powerup",
+      powerup: powerup || null,
+    };
+  }
+
+  const target = nearestEmptyCell(next, row, col, rowOffset, pendingRow);
+  if (!target) {
+    return {
+      board: next,
+      pendingRow: usePendingRow ? pendingRow : undefined,
+      landed: null,
+      popped: [],
+      dropped: [],
+      points: 0,
+      error: "board full",
+      powerup: kind,
+    };
+  }
+
+  const [landedRow, landedCol] = target;
+  const fallbackColor = BUBBO_COLOR_SET.has(options.fallbackColor) ? options.fallbackColor : BUBBO_COLORS[0];
+  const landedColor = kind === "rainbow"
+    ? chooseRainbowColor(next, pendingRow, landedRow, landedCol, rowOffset, fallbackColor)
+    : fallbackColor;
+  setBubboCell(next, pendingRow, landedRow, landedCol, landedColor);
+
+  let poppedCells = [];
+  if (kind === "bomb") {
+    poppedCells = getBlastCells(landedRow, landedCol, hasPendingRow(pendingRow))
+      .filter(([r, c]) => !!getBubboCell(next, pendingRow, r, c));
+  } else if (kind === "rainbow") {
+    poppedCells = sameColorCluster(next, landedRow, landedCol, rowOffset, pendingRow);
+  } else if (kind === "lightning") {
+    const minRow = hasPendingRow(pendingRow) ? -1 : 0;
+    poppedCells = [];
+    for (let r = minRow; r < BUBBO_ROWS; r += 1) {
+      if (getBubboCell(next, pendingRow, r, landedCol)) poppedCells.push([r, landedCol]);
+    }
+  }
+
+  const popped = collectBubboCells(poppedCells).map(([r, c]) => ({ row: r, col: c, color: getBubboCell(next, pendingRow, r, c) }));
+  for (const cell of popped) setBubboCell(next, pendingRow, cell.row, cell.col, null);
+
+  const droppedCells = popped.length ? dropFloatingBubbo(next, rowOffset, { pendingRow }) : [];
+
+  return {
+    board: next,
+    pendingRow: usePendingRow ? pendingRow : undefined,
+    landed: { row: landedRow, col: landedCol },
+    popped,
+    dropped: droppedCells,
+    points: popped.length * 25 + droppedCells.length * 35,
+    error: null,
+    powerup: kind,
+  };
+}
+
 export function recoverSparseBubboField(state = {}, options = {}) {
   const minimumRows = Math.max(1, Number(options.minimumRows) || 3);
   const seed = state.seed || "bubbo";
@@ -548,6 +682,52 @@ export function resolveBubboShot(state = {}, color, row, col) {
     pendingRow: state.pendingRow,
     seed,
     waveIndex,
+  });
+  if (result.error) {
+    return {
+      ...result,
+      seed,
+      waveIndex,
+      rowOffset,
+      pressure: Math.max(0, Number(state.pressure) || 0),
+      pressureStep: Math.max(0, Number(state.pressureStep) || 0),
+      recovered: false,
+    };
+  }
+  const recovered = recoverSparseBubboField({
+    ...state,
+    board: result.board,
+    pendingRow: result.pendingRow,
+    seed,
+    waveIndex,
+    rowOffset,
+  });
+  return {
+    ...result,
+    board: recovered.board,
+    pendingRow: recovered.pendingRow,
+    seed,
+    waveIndex: recovered.waveIndex,
+    rowOffset,
+    pressure: recovered.pressure,
+    pressureStep: recovered.pressureStep,
+    dropped: [...(result.dropped || []), ...(recovered.dropped || [])],
+    recovered: recovered.recovered,
+    danger: recovered.danger || isBubboDanger(recovered.board),
+    overflow: !!recovered.overflow,
+  };
+}
+
+export function resolveBubboPowerup(state = {}, powerup, row, col, fallbackColor = null) {
+  const seed = state.seed || "bubbo";
+  const waveIndex = Number.isFinite(Number(state.waveIndex)) ? Number(state.waveIndex) : BUBBO_START_ROWS;
+  const rowOffset = normalizeRowOffset(state.rowOffset);
+  const result = applyBubboPowerup(state.board, powerup, row, col, {
+    rowOffset,
+    pendingRow: state.pendingRow,
+    seed,
+    waveIndex,
+    fallbackColor,
   });
   if (result.error) {
     return {

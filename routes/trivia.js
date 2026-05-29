@@ -14,6 +14,7 @@ import {
   calcRegen,
   pickQuestions,
   makeClientQuestion,
+  selectTriviaAudiencePoll,
   selectTriviaFiftyFiftyAnswers,
   spendTriviaLifeline,
 } from "../game-logic.js";
@@ -82,7 +83,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       if (!s) return routeFail(400, { error: "no session" });
       const q = s.questions[s.index];
       if (!q) return routeFail(400, { error: "done" });
-      if (type !== "fifty" && type !== "reveal") return routeFail(400, { error: "unknown lifeline" });
+      if (type !== "fifty" && type !== "reveal" && type !== "audience") return routeFail(400, { error: "unknown lifeline" });
 
       const spent = spendTriviaLifeline(s.lifelines, type);
       s.lifelines = spent.next;
@@ -101,6 +102,14 @@ export default function triviaRoutes(requireAuth, resolveUser) {
           success: true,
           type,
           correctAnswer: q.correctAnswer,
+          lifelines: s.lifelines,
+        });
+      }
+      if (type === "audience") {
+        return routeOk({
+          success: true,
+          type,
+          audiencePoll: selectTriviaAudiencePoll(q),
           lifelines: s.lifelines,
         });
       }

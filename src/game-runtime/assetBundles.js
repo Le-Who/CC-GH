@@ -220,6 +220,7 @@ const FARM_BUNDLE_KEYS = [
 export const LEGACY_ASSET_PATHS = {
   ...legacyPngEntries("blox", "/games/blox", BLOX_ROOT_ASSET_IDS),
   ...legacyPngEntries("blox.fx", "/games/blox/fx", BLOX_FX_ASSET_IDS),
+  "bubbo.background.underwater": "/games/bubbo-bubbo/images/underwater-backdrop.png",
   "bubbo.background.tile": "/games/bubbo-bubbo/images/background-tile.png",
   "bubbo.balls.sheet": "/games/bubbo-bubbo/assets_bubbo_balls.png",
   "bubbo.bottomTray": "/games/bubbo-bubbo/images/bottom-tray.png",
@@ -261,6 +262,7 @@ export const LEGACY_ASSET_PATHS = {
 export const GAME_ASSET_BUNDLES = {
   blox: BLOX_BUNDLE_KEYS,
   bubbo: [
+    "bubbo.background.underwater",
     "bubbo.background.tile",
     "bubbo.balls.sheet",
     "bubbo.bottomTray",

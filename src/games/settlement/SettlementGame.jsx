@@ -523,7 +523,10 @@ function clampCamera(camera, viewW, viewH) {
 function getInitialCamera(viewW, viewH) {
   const safeW = Math.max(360, viewW);
   const safeH = Math.max(420, viewH);
-  const scale = Math.min(safeW / 2350, safeH / 1650, 0.62);
+  const portrait = safeH > safeW;
+  const scale = portrait
+    ? Math.min(Math.max(safeW / 1550, safeH / WORLD.h), 0.62)
+    : Math.min(safeW / 2350, safeH / 1650, 0.62);
   const x = safeW / 2 - (GROUND.x + GROUND.w / 2) * scale;
   const y = safeH / 2 - (GROUND.y + GROUND.h / 2) * scale + 40;
   const camera = { x, y, scale };
@@ -1723,7 +1726,6 @@ function DockButton({
     <button
       className={`dock-button tooltip-control ${active ? 'active' : ''} ${hideLabel ? 'icon-only' : ''} ${pulse ? 'has-pulse' : ''} ${className}`.trim()}
       onClick={onClick}
-      title={label}
       aria-label={label}
       data-tooltip={label}
       style={frameStyle(frame)}
@@ -1771,7 +1773,6 @@ function BottomNav({ activePanel, setPanel, collect }) {
         className={`primary-build tooltip-control ${buildFamilyActive ? 'active' : ''}`}
         onClick={() => setPanel('construction')}
         style={frameStyle(buildFamilyActive ? UI_ASSETS.primaryBuildButtonActive : UI_ASSETS.primaryBuildButton)}
-        title="Строить"
         aria-label="Строить"
         data-tooltip="Строить"
         type="button"
@@ -1783,11 +1784,81 @@ function BottomNav({ activePanel, setPanel, collect }) {
       {showGoalsSlot ? (
         <DockButton active icon={ICONS.rank} label="Цели" onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
       ) : (
-        <HudEditableRegion id="settlementCollectAsset" as="button" className="collect-button tooltip-control" onClick={collect} title="Собрать" aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
+        <HudEditableRegion id="settlementCollectAsset" as="button" className="collect-button tooltip-control" onClick={collect} aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
           <AssetIcon src={ICONS.starterPack} alt="" size={24} />
           <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>4</b>
         </HudEditableRegion>
       )}
+    </HudEditableRegion>
+  );
+}
+
+function SettlementCompactDetail() {
+  const rightPanelOpen = useSettlementStore((s) => s.rightPanelOpen);
+  const selectedBuildingId = useSettlementStore((s) => s.selectedBuildingId);
+  const levels = useSettlementStore((s) => s.levels);
+  const resources = useSettlementStore((s) => s.resources);
+  const constructedBuildings = useSettlementStore((s) => s.constructedBuildings);
+  const selectBuilding = useSettlementStore((s) => s.selectBuilding);
+
+  const constructedSlotId = slotIdFromConstructedBuildingId(selectedBuildingId);
+  const constructedSelected = getConstructedBuildingView(constructedBuildings?.[constructedSlotId]);
+  const building = BUILDINGS.find((item) => item.id === selectedBuildingId) ?? constructedSelected ?? BUILDINGS[0];
+  const level = building.isConstructed ? building.level : levels[building.id] ?? building.level ?? 1;
+  const production = building.detail?.productionPerMinute ?? building.produces ?? {};
+  const productionEntry = Object.entries(production).find(([, value]) => Math.abs(Number(value) || 0) > 0);
+  const [productionType, productionValue] = productionEntry ?? ['prestige', 0];
+  const cost = building.isConstructed ? {} : upgradeCost(building, level);
+  const costEntries = Object.entries(cost).slice(0, 2);
+  const isMax = level >= building.max;
+  const affordable = !building.isConstructed && !isMax && canPay(resources, cost);
+  const art = building.isConstructed ? constructionItemAsset(building.constructionItem) : buildingAsset(building.id, level);
+
+  if (rightPanelOpen) return null;
+
+  const openDetail = () => {
+    selectBuilding(building.id);
+  };
+
+  return (
+    <HudEditableRegion
+      id="settlementCompactDetail"
+      as="section"
+      applyLayout={false}
+      className="settlement-compact-detail"
+      style={frameStyle(UI_ASSETS.smallPanel)}
+      aria-label={`Выбранное здание: ${building.name}`}
+    >
+      <div className="settlement-compact-detail-art" style={frameStyle(UI_ASSETS.buildingHeaderIconSlot)}>
+        <img src={art} alt="" draggable={false} />
+      </div>
+      <div className="settlement-compact-detail-copy">
+        <span>{CATEGORY_LABELS[building.category] ?? building.category}</span>
+        <strong>{building.name}</strong>
+        <p>{building.description}</p>
+        <div className="settlement-compact-detail-meta">
+          <b>Ур. {level}</b>
+          <span>
+            <ResourceIcon type={productionType} size={15} />
+            {productionValue ? `${formatNumber(productionValue * 60)} / ч` : 'Обзор'}
+          </span>
+          {costEntries.map(([type, value]) => (
+            <span key={type}>
+              <ResourceIcon type={type} size={15} />
+              {formatNumber(value)}
+            </span>
+          ))}
+        </div>
+      </div>
+      <button
+        type="button"
+        className={`settlement-compact-detail-open ${affordable ? 'ready' : ''}`}
+        style={frameStyle(affordable ? UI_ASSETS.buildingUpgradeIdle : UI_ASSETS.primaryBuildButton)}
+        onClick={openDetail}
+        aria-label={`Открыть здание ${building.name}`}
+      >
+        {isMax ? 'Открыть' : 'Улучшить'}
+      </button>
     </HudEditableRegion>
   );
 }
@@ -2576,7 +2647,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
               className={`world-filter-button-v2 ${filter.id === normalizedFilterId ? 'active' : ''}`}
               style={frameStyle(filter.id === normalizedFilterId ? UI_ASSETS.worldMapFilterActive : UI_ASSETS.worldMapFilterIdle)}
               onClick={() => onFilterChange(filter.id)}
-              title={filter.label}
+              aria-label={filter.label}
             >
               <AssetIcon src={WORLD_MAP_ICON_SOURCES[filter.icon] ?? ICONS.world} alt="" size={23} />
               <span>{filter.label}</span>
@@ -3073,7 +3144,7 @@ function NoticeStack() {
           className={`notice notice-v2 ${notice.type ?? 'info'}`}
           style={{ ...frameStyle(UI_ASSETS.panel), animationDelay: `${index * 45}ms` }}
           onClick={() => dismissNotice(notice.id)}
-          title="Закрыть уведомление"
+          aria-label="Закрыть уведомление"
         >
           <img className="notice-pop" src={popForNotice(notice)} alt="" draggable={false} />
           <AssetIcon src={iconForNotice(notice)} alt="" size={18} />
@@ -3173,7 +3244,7 @@ function DevToolsOverlay({ enabled, setEnabled, info }) {
         className={`dev-toggle ${enabled ? 'active' : ''}`}
         type="button"
         onClick={() => setEnabled((value) => !value)}
-        title="Включить координатную сетку разработчика"
+        aria-label="Включить координатную сетку разработчика"
       >
         DEV {enabled ? 'ON' : 'OFF'}
       </button>
@@ -3262,6 +3333,7 @@ export default function SettlementGame() {
           <LeftDock activePanel={activePanel} setPanel={setPanel} />
           <SidePanel />
           <BottomNav activePanel={activePanel} setPanel={setPanel} collect={collect} />
+          <SettlementCompactDetail />
           <CollectionToast collect={collect} />
           <UpgradeToast activeUpgrade={activeUpgrade} />
           <OrientationPrompt activePanel={activePanel} rightPanelOpen={rightPanelOpen} />

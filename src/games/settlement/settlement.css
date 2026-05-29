@@ -4304,6 +4304,123 @@
   min-height: 44px !important;
 }
 
+.settlement-game-root .settlement-compact-detail {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 92px);
+  z-index: 37;
+  min-height: 124px;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) minmax(92px, auto);
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  pointer-events: auto;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  color: #fff0bd;
+  text-shadow: 0 2px 2px rgba(20, 9, 4, 0.62);
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.38));
+}
+
+.settlement-game-root .settlement-compact-detail-art {
+  width: 70px;
+  height: 70px;
+  display: grid;
+  place-items: center;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+}
+
+.settlement-game-root .settlement-compact-detail-art img {
+  max-width: 88%;
+  max-height: 88%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 8px rgba(25, 11, 4, 0.48));
+}
+
+.settlement-game-root .settlement-compact-detail-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.settlement-game-root .settlement-compact-detail-copy > span {
+  color: #d9c79b;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.settlement-game-root .settlement-compact-detail-copy strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff2bd;
+  font-size: clamp(18px, 4.5vw, 24px);
+  line-height: 1.05;
+}
+
+.settlement-game-root .settlement-compact-detail-copy p {
+  min-width: 0;
+  margin: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #4c321b;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.18;
+  text-shadow: 0 1px 0 rgba(255, 240, 189, 0.54);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.settlement-game-root .settlement-compact-detail-meta {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.settlement-game-root .settlement-compact-detail-meta b,
+.settlement-game-root .settlement-compact-detail-meta span {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(52, 29, 11, 0.76);
+  color: #fff0bd;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.settlement-game-root .settlement-compact-detail-open {
+  min-width: 92px;
+  min-height: 52px;
+  border: 0;
+  padding: 6px 12px;
+  background-color: transparent !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  color: #fff3c4;
+  font-size: 14px;
+  font-weight: 1000;
+  line-height: 1;
+  text-shadow: 0 2px 2px rgba(32, 13, 5, 0.72);
+}
+
+.settlement-game-root .settlement-compact-detail-open.ready {
+  filter: drop-shadow(0 0 12px rgba(126, 207, 75, 0.38));
+}
+
 @media (max-width: 620px) {
   .settlement-game-root .resource-plus {
     display: none !important;
@@ -4311,6 +4428,36 @@
 
   .settlement-game-root .resource-pill {
     padding-right: 10px !important;
+  }
+
+  .settlement-game-root .settlement-compact-detail {
+    left: 10px;
+    right: 10px;
+    bottom: calc(max(10px, env(safe-area-inset-bottom)) + 78px);
+    min-height: 112px;
+    grid-template-columns: 58px minmax(0, 1fr) 86px;
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .settlement-game-root .settlement-compact-detail-art {
+    width: 56px;
+    height: 56px;
+  }
+
+  .settlement-game-root .settlement-compact-detail-copy p {
+    font-size: 11px;
+  }
+
+  .settlement-game-root .settlement-compact-detail-meta span:nth-child(n+4) {
+    display: none;
+  }
+
+  .settlement-game-root .settlement-compact-detail-open {
+    min-width: 82px;
+    min-height: 48px;
+    padding: 6px 8px;
+    font-size: 12px;
   }
 }
 
@@ -4335,6 +4482,14 @@
 
   .settlement-game-root .right-panel-building .panel-header-action {
     display: none !important;
+  }
+  .settlement-game-root .settlement-compact-detail {
+    grid-template-columns: 48px minmax(0, 1fr);
+    min-height: 128px;
+  }
+  .settlement-game-root .settlement-compact-detail-open {
+    grid-column: 1 / -1;
+    width: 100%;
   }
   .settlement-game-root .inventory-row-control {
     width: 44px;

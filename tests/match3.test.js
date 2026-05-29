@@ -9,7 +9,10 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   BOARD_SIZE as ENGINE_BOARD_SIZE,
+  MATCH3_BOOSTER_CHARGES,
+  applyMatch3Booster,
   attemptMatch3Move,
+  normalizeMatch3Boosters,
   resolveBoard as resolveEngineBoard,
 } from "../src/game-core/match3/engine.js";
 import {
@@ -418,6 +421,46 @@ describe("current Match-3 engine resolution", () => {
     assert.ok(result.steps[0].cleared.some((cell) => cell.x === 7 && cell.y === 0));
   });
 
+  it("creates the first line special at the active swap destination", () => {
+    const board = stableEngineBoard();
+    board[1][1] = "water";
+    board[3][1] = "earth";
+    board[1][4] = "air";
+    board[3][4] = "light";
+    board[1][3] = "fire";
+    board[2][0] = "water";
+    board[2][1] = "fire";
+    board[2][2] = "fire";
+    board[2][3] = "water";
+    board[2][4] = "fire";
+
+    const result = attemptMatch3Move(board, { x: 3, y: 1 }, { x: 3, y: 2 });
+
+    assert.equal(result.valid, true);
+    assert.ok(
+      result.steps[0].specials.some((cell) => cell.x === 3 && cell.y === 2 && cell.type === "special_row"),
+      "A 4-match should promote the gem the player moved, not the leftmost incidental cell",
+    );
+  });
+
+  it("creates blast specials from connected T/L match groups", () => {
+    const board = stableEngineBoard();
+    board[0][3] = "earth";
+    board[1][3] = "earth";
+    board[2][2] = "earth";
+    board[2][3] = "water";
+    board[2][4] = "earth";
+    board[3][3] = "earth";
+
+    const result = attemptMatch3Move(board, { x: 3, y: 3 }, { x: 3, y: 2 });
+
+    assert.equal(result.valid, true);
+    assert.ok(
+      result.steps[0].specials.some((cell) => cell.x === 3 && cell.y === 2 && cell.type === "special_blast"),
+      "A connected T/L match should create a blast special at the active swap destination",
+    );
+  });
+
   it("auto-credits Star Drop tokens that fall into the bottom during backfill", () => {
     const board = stableEngineBoard();
     board[0][0] = "special_row";
@@ -431,6 +474,56 @@ describe("current Match-3 engine resolution", () => {
     assert.ok(result.steps[0].triggeredSpecials.some((cell) => cell.type === "special_column"));
     assert.equal(result.dropCollected.length, 2);
     assert.equal(result.board[7][0].startsWith("drop_"), false);
+    assertFullyPopulated(result.board);
+  });
+
+  it("normalizes Match-3 booster charges for resume-safe runs", () => {
+    assert.deepEqual(normalizeMatch3Boosters({ bomb: 1, lightning: 99, rainbow: -5 }), {
+      bomb: 1,
+      lightning: MATCH3_BOOSTER_CHARGES.lightning,
+      rainbow: 0,
+      hammer: MATCH3_BOOSTER_CHARGES.hammer,
+    });
+    assert.deepEqual(normalizeMatch3Boosters(null), MATCH3_BOOSTER_CHARGES);
+  });
+
+  it("applies bomb boosters as a 3x3 clear around the selected gem", () => {
+    const board = stableEngineBoard();
+    const before = board[3][3];
+    const result = applyMatch3Booster(board, "bomb", 3, 3);
+
+    assert.equal(result.valid, true);
+    assert.equal(result.booster, "bomb");
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 3 && cell.y === 3 && cell.type === before));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 2 && cell.y === 2));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 4 && cell.y === 4));
+    assertFullyPopulated(result.board);
+  });
+
+  it("applies rainbow boosters to all gems matching the selected color", () => {
+    const board = stableEngineBoard();
+    board[1][1] = "fire";
+    board[4][4] = "fire";
+    board[6][6] = "water";
+
+    const result = applyMatch3Booster(board, "rainbow", 1, 1);
+
+    assert.equal(result.valid, true);
+    assert.equal(result.booster, "rainbow");
+    assert.ok(result.steps[0].cleared.filter((cell) => cell.type === "fire").length >= 2);
+    assert.equal(result.steps[0].cleared.some((cell) => cell.x === 6 && cell.y === 6 && cell.type === "water"), false);
+    assertFullyPopulated(result.board);
+  });
+
+  it("applies lightning boosters across the selected row and column", () => {
+    const board = stableEngineBoard();
+    const result = applyMatch3Booster(board, "lightning", 3, 4);
+
+    assert.equal(result.valid, true);
+    assert.equal(result.booster, "lightning");
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 0 && cell.y === 4));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 3 && cell.y === 0));
+    assert.ok(result.steps[0].cleared.some((cell) => cell.x === 3 && cell.y === 4));
     assertFullyPopulated(result.board);
   });
 

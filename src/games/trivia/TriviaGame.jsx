@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronRight, Eye, Home, Play, RotateCcw, Sparkles, Trophy } from "lucide-react";
+import { Check, ChevronRight, Eye, Home, Play, RotateCcw, Sparkles, Trophy, Users } from "lucide-react";
 import { api } from "../../services/apiClient.js";
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
@@ -27,15 +27,18 @@ export default function TriviaGame() {
   const [history, setHistory] = useState([]);
   const [paused, setPaused] = useState(false);
   const [reveal, setReveal] = useState(null);
-  const [lifelines, setLifelines] = useState({ fifty: 1, reveal: 1 });
+  const [lifelines, setLifelines] = useState({ fifty: 1, reveal: 1, audience: 1 });
   const [hiddenAnswers, setHiddenAnswers] = useState([]);
   const [hintAnswer, setHintAnswer] = useState("");
+  const [audiencePoll, setAudiencePoll] = useState({});
   const revealTimerRef = useRef(null);
+  const duelStartInFlightRef = useRef("");
+  const activeDuelRoomRef = useRef("");
   const inShell = view !== "menu";
   const questionActive = (view === "solo" || view === "duel-play") && question;
   const isPlaying = questionActive && !paused;
   const activePause = questionActive && paused;
-  const questionTiming = useQuestionTimer(question, (question?.timeLimit || 15) * 1000);
+  const questionTiming = useQuestionTimer(question, (question?.timeLimit || 15) * 1000, paused);
   const pauseRun = useCallback(() => {
     if (questionActive) setPaused(true);
   }, [questionActive]);
@@ -69,19 +72,24 @@ export default function TriviaGame() {
     setSessionScore(0);
     setStreak(0);
     setReveal(null);
-    setLifelines({ fifty: 1, reveal: 1 });
+    setLifelines({ fifty: 1, reveal: 1, audience: 1 });
     setHiddenAnswers([]);
     setHintAnswer("");
+    setAudiencePoll({});
+    setRoomId("");
+    setDuelStatus(null);
+    duelStartInFlightRef.current = "";
+    activeDuelRoomRef.current = "";
     setPaused(false);
     setView("solo");
     await loadSnapshot();
   }
 
   async function submitAnswer(answer) {
-    if (reveal) return;
+    if (paused || reveal) return;
     if (hiddenAnswers.includes(answer)) return;
     const path = view === "duel-play" ? "/api/trivia/duel/answer" : "/api/trivia/answer";
-    const timing = getQuestionTiming(questionTiming.startedAt, Date.now(), (question?.timeLimit || 15) * 1000);
+    const timing = getQuestionTiming(questionTiming.startedAt, Date.now(), (question?.timeLimit || 15) * 1000, questionTiming.pausedMs);
     const timeMs = Math.max(1, Math.round(timing.timeMs));
     const data = await api(path, view === "duel-play" ? { roomId, answer, timeMs } : { answer, timeMs });
     if (data.error) {
@@ -102,6 +110,7 @@ export default function TriviaGame() {
       setReveal(null);
       setHiddenAnswers([]);
       setHintAnswer("");
+      setAudiencePoll({});
       if (data.nextQuestion) {
         setQuestion(data.nextQuestion);
       } else {
@@ -125,6 +134,10 @@ export default function TriviaGame() {
     setReveal(null);
     setHiddenAnswers([]);
     setHintAnswer("");
+    setAudiencePoll({});
+    setQuestion(null);
+    duelStartInFlightRef.current = "";
+    activeDuelRoomRef.current = "";
     setPaused(false);
     setView("duel-room");
   }
@@ -138,7 +151,13 @@ export default function TriviaGame() {
     setRoomId(data.roomId);
     setDuelStatus(data);
     setPaused(false);
-    setView(data.status === "active" ? "duel-play" : "duel-room");
+    setQuestion(null);
+    activeDuelRoomRef.current = "";
+    if (data.status === "active") {
+      await startDuel(data.roomId);
+      return;
+    }
+    setView("duel-room");
   }
 
   async function readyDuel() {
@@ -150,17 +169,30 @@ export default function TriviaGame() {
     await pollDuelStatus(roomId);
   }
 
-  async function startDuel() {
-    const data = await api("/api/trivia/duel/start", { roomId });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
+  async function startDuel(targetRoomId = roomId) {
+    const nextRoomId = targetRoomId || roomId;
+    if (!nextRoomId) return;
+    if (duelStartInFlightRef.current === nextRoomId) return;
+    if (activeDuelRoomRef.current === nextRoomId && question) return;
+    duelStartInFlightRef.current = nextRoomId;
+    let data;
+    try {
+      data = await api("/api/trivia/duel/start", { roomId: nextRoomId });
+      if (data.error) {
+        useGameHub.setState({ message: data.error });
+        return;
+      }
+    } finally {
+      if (duelStartInFlightRef.current === nextRoomId) duelStartInFlightRef.current = "";
     }
+    setRoomId(nextRoomId);
+    activeDuelRoomRef.current = nextRoomId;
     setQuestion(data.question);
     setReveal(null);
-    setLifelines({ fifty: 1, reveal: 1 });
+    setLifelines({ fifty: 1, reveal: 1, audience: 1 });
     setHiddenAnswers([]);
     setHintAnswer("");
+    setAudiencePoll({});
     setPaused(false);
     setView("duel-play");
   }
@@ -175,13 +207,14 @@ export default function TriviaGame() {
     if (data.lifelines) setLifelines(data.lifelines);
     if (Array.isArray(data.hiddenAnswers)) setHiddenAnswers(data.hiddenAnswers);
     if (data.correctAnswer) setHintAnswer(data.correctAnswer);
+    if (data.audiencePoll) setAudiencePoll(data.audiencePoll);
   }
 
   async function pollDuelStatus(id = roomId) {
     if (!id) return;
     const data = await api(`/api/trivia/duel/status/${id}`);
     if (!data.error) setDuelStatus(data);
-    if (data.status === "active") await startDuel();
+    if (data.status === "active") await startDuel(data.roomId || id);
   }
 
   return (
@@ -251,8 +284,11 @@ export default function TriviaGame() {
             lifelines={view === "solo" ? lifelines : null}
             hiddenAnswers={hiddenAnswers}
             hintAnswer={hintAnswer}
+            audiencePoll={audiencePoll}
+            paused={activePause}
             onFifty={() => useLifeline("fifty")}
             onReveal={() => useLifeline("reveal")}
+            onAudience={() => useLifeline("audience")}
           />
         )}
         {view === "duel-room" && (
@@ -351,7 +387,7 @@ export default function TriviaGame() {
   );
 }
 
-function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing, lifelines = null, hiddenAnswers = [], hintAnswer = "", onFifty, onReveal }) {
+function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing, lifelines = null, hiddenAnswers = [], hintAnswer = "", audiencePoll = {}, paused = false, onFifty, onReveal, onAudience }) {
   const { t } = useAppI18n();
   const remainingSeconds = Math.ceil((timing?.remainingMs || 0) / 1000);
   return (
@@ -367,8 +403,9 @@ function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing, 
       <i className="trivia-timer-bar" aria-hidden="true"><b style={{ transform: `scaleX(${timing?.progress ?? 1})` }} /></i>
       {lifelines && (
         <div className="trivia-lifeline-dock">
+          <PanelButton icon={Users} subtle disabled={!!reveal || lifelines.audience <= 0} onClick={onAudience}>{t("trivia.lifeline.audience")} {lifelines.audience}</PanelButton>
           <PanelButton icon={Sparkles} image={semanticHudIconPath("trivia", "fifty")} subtle disabled={!!reveal || lifelines.fifty <= 0} onClick={onFifty}>50/50 {lifelines.fifty}</PanelButton>
-          <PanelButton icon={Eye} image={semanticHudIconPath("trivia", "reveal")} subtle disabled={!!reveal || lifelines.reveal <= 0} onClick={onReveal}>Hint {lifelines.reveal}</PanelButton>
+          <PanelButton icon={Eye} image={semanticHudIconPath("trivia", "reveal")} subtle disabled={!!reveal || lifelines.reveal <= 0} onClick={onReveal}>{t("trivia.lifeline.reveal")} {lifelines.reveal}</PanelButton>
         </div>
       )}
       <div className="answer-grid">
@@ -381,10 +418,11 @@ function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing, 
           <button
             key={answer}
             className={`${isCorrect ? "correct" : ""}${isChosenWrong ? " incorrect" : ""}${isHidden ? " hidden-by-lifeline" : ""}${isHinted ? " hinted" : ""}`.trim()}
-            disabled={!!reveal || isHidden}
+            disabled={paused || !!reveal || isHidden}
             onClick={() => submitAnswer(answer)}
           >
-            {isHidden ? "—" : answer}
+            <span>{isHidden ? "—" : answer}</span>
+            {audiencePoll?.[answer] != null && !isHidden && <small className="audience-poll">{audiencePoll[answer]}%</small>}
           </button>
           );
         })}

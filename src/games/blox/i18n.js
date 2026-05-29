@@ -14,6 +14,9 @@ export const BLOX_TRANSLATIONS = {
     "blox.status": "Score {score} · Lines {lines}",
     "blox.clear": "CLEAR",
     "blox.invalidPlacement": "No fit",
+    "blox.rotate": "Rotate",
+    "blox.rotateTooltip": "Rotate selected block · {count} left",
+    "blox.rotateEmpty": "No rotations left",
   },
   ru: {
     "pause.bloxFrozen": "Пауза: ставьте блоки, очищайте линии",
@@ -28,6 +31,9 @@ export const BLOX_TRANSLATIONS = {
     "blox.status": "Счет {score} · Линии {lines}",
     "blox.clear": "ЧИСТО",
     "blox.invalidPlacement": "Не влезает",
+    "blox.rotate": "Повернуть",
+    "blox.rotateTooltip": "Повернуть выбранный блок · осталось {count}",
+    "blox.rotateEmpty": "Повороты закончились",
   },
 };
 

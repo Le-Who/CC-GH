@@ -60,7 +60,7 @@ export function Garden({ onSelectSpot, assetPaths }: GardenProps) {
 
   return (
     <div
-      className="flex-1 h-full overflow-y-auto overflow-x-hidden overscroll-contain touch-pan-y p-6 space-y-20 pb-32 pt-36 no-scrollbar"
+      className="garden-shelf-list no-scrollbar"
       data-no-nav-swipe="true"
     >
       {GARDEN_SHELVES.map((shelfIndex) => {
@@ -291,7 +291,6 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.5 }}
           whileTap={{ scale: 0.95 }}
-          whileHover={{ y: -2 }}
           onPointerDown={handlePointerDown}
           onPointerUp={cancelPress}
           onPointerLeave={cancelPress}
@@ -430,7 +429,6 @@ const Spot: React.FC<{ plant?: PlantData, onClick: () => void, assetPaths: Garde
           type="button"
           className="plant-details-button"
           aria-label={detailsLabel}
-          title={detailsLabel}
           data-plant-details-button="true"
           onClick={onClick}
         >

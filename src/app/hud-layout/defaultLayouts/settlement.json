@@ -12,6 +12,7 @@
       "settlementTopHud": { "mode": "dock", "edge": "top", "offset": 8, "thickness": 86, "reserve": 96, "alignment": "center", "zIndex": 40, "visible": true },
       "settlementLeftDock": { "mode": "dock", "edge": "left", "offset": 10, "thickness": 74, "reserve": 88, "alignment": "center", "zIndex": 38, "visible": true },
       "settlementRightPanel": { "mode": "dock", "edge": "right", "offset": 10, "thickness": 340, "reserve": 352, "alignment": "center", "zIndex": 38, "visible": true },
+      "settlementCompactDetail": { "mode": "dock", "edge": "bottom", "offset": 106, "thickness": 124, "reserve": 0, "alignment": "center", "maxWidth": 720, "zIndex": 37, "visible": true },
       "settlementBottomNav": { "mode": "dock", "edge": "bottom", "offset": 8, "thickness": 92, "reserve": 106, "alignment": "center", "zIndex": 38, "visible": true },
       "settlementNotices": { "mode": "stack", "direction": "vertical", "gap": 6, "x": 0, "y": 0, "zIndex": 48, "visible": true },
       "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 96, "bottomReserve": 106, "leftReserve": 88, "rightReserve": 352 }
@@ -24,6 +25,7 @@
         "settlementTopHud": { "thickness": 74, "reserve": 84 },
         "settlementLeftDock": { "thickness": 0, "reserve": 0, "visible": false },
         "settlementRightPanel": { "edge": "bottom", "thickness": 250, "reserve": 264, "maxWidth": 348 },
+        "settlementCompactDetail": { "offset": 88, "thickness": 128, "maxWidth": 344 },
         "settlementBottomNav": { "thickness": 74, "reserve": 88 },
         "pixiPlayfieldReserve": { "topReserve": 84, "bottomReserve": 352, "leftReserve": 0, "rightReserve": 0 }
       }
@@ -34,6 +36,7 @@
         "settlementTopHud": { "thickness": 78, "reserve": 88 },
         "settlementLeftDock": { "thickness": 0, "reserve": 0, "visible": false },
         "settlementRightPanel": { "edge": "bottom", "thickness": 270, "reserve": 284, "maxWidth": 398 },
+        "settlementCompactDetail": { "offset": 92, "thickness": 112, "maxWidth": 410 },
         "settlementBottomNav": { "thickness": 78, "reserve": 92 },
         "pixiPlayfieldReserve": { "topReserve": 88, "bottomReserve": 376, "leftReserve": 0, "rightReserve": 0 }
       }
@@ -44,6 +47,7 @@
         "settlementTopHud": { "thickness": 58, "reserve": 66 },
         "settlementLeftDock": { "thickness": 58, "reserve": 66 },
         "settlementRightPanel": { "thickness": 300, "reserve": 312 },
+        "settlementCompactDetail": { "offset": 80, "thickness": 84, "maxWidth": 420 },
         "settlementBottomNav": { "thickness": 62, "reserve": 72 },
         "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 72, "leftReserve": 66, "rightReserve": 312 }
       }

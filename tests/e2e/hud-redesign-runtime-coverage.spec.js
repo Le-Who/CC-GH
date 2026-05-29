@@ -208,6 +208,8 @@ test.describe("HUD redesign runtime asset coverage", () => {
     await page.getByRole("button", { name: /Town/ }).click();
     await expectBackgroundAsset(page.locator(".settlement-game-root .top-hud-final"), "/games/hud-redesign/settlement/hud-panel.png");
     await expectBackgroundAsset(page.locator(".settlement-game-root .bottom-nav"), "/games/hud-redesign/settlement/dock-panel.png");
+    await expect(page.locator(".settlement-game-root .settlement-compact-detail")).toBeVisible();
+    await page.locator(".settlement-game-root .settlement-compact-detail-open").click();
     await expectBackgroundAsset(page.locator(".settlement-game-root .right-panel").first(), "/games/hud-redesign/settlement/dialog-panel.png");
   });
 

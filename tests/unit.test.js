@@ -76,6 +76,7 @@ import {
   getUnlockedPlantIds,
 } from "../game-logic/garden-shelf-plants.js";
 import { normalizeInventory, withNormalizedSnapshot } from "../src/game-state/inventory.js";
+import { BUBBO_POWERUP_CHARGES } from "../src/game-core/bubbo/engine.js";
 import { applyAction, applyActionWithReceipt, buildSnapshot } from "../routes/player.js";
 
 /* ─────────────────────────────────────────────────────
@@ -853,6 +854,7 @@ describe("temporary energy-free game starts", () => {
     assert.equal(p.bubbo.currentGame.timeLeft, 90);
     assert.equal(p.bubbo.currentGame.shotsFired, 0);
     assert.deepEqual(p.bubbo.currentGame.pendingRow, pendingRow);
+    assert.deepEqual(p.bubbo.currentGame.powerups, BUBBO_POWERUP_CHARGES);
 
     const reversedPending = pendingRow.toReversed();
     const synced = await applyAction(p, "bubbo.sync", {
@@ -862,6 +864,7 @@ describe("temporary energy-free game starts", () => {
         timeLeft: 73,
         shotsFired: 8,
         pendingRow: reversedPending,
+        powerups: { bomb: 1, rainbow: 99, lightning: -1 },
       },
     });
 
@@ -871,6 +874,11 @@ describe("temporary energy-free game starts", () => {
     assert.equal(p.bubbo.currentGame.shotsFired, 8);
     assert.deepEqual(p.bubbo.currentGame.pendingRow, reversedPending);
     assert.equal(p.bubbo.currentGame.shotsLeft, 36);
+    assert.deepEqual(p.bubbo.currentGame.powerups, {
+      bomb: 1,
+      rainbow: BUBBO_POWERUP_CHARGES.rainbow,
+      lightning: 0,
+    });
   });
 });
 

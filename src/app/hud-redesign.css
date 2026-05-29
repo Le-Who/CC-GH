@@ -220,9 +220,7 @@
   transform-origin: left center;
 }
 
-.game-shell .game-menu-overlay,
 .trivia-shell .trivia-card,
-.trivia-shell .trivia-pause-overlay,
 .yard-game-screen,
 .settlement-game-root .right-panel {
   border: 0 !important;
@@ -231,6 +229,14 @@
   background-color: transparent !important;
   color: var(--hud-redesign-ink) !important;
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.28) !important;
+}
+
+.game-shell .game-menu-overlay,
+.trivia-shell .trivia-pause-overlay {
+  border: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .blox-menu-overlay .panel-button,
@@ -295,7 +301,7 @@
 
 .trivia-lifeline-dock {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 

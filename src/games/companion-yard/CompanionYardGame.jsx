@@ -176,7 +176,6 @@ function YardIconButton({
       }}
       aria-label={label}
       aria-describedby={tip.visible ? tip.tooltipId : undefined}
-      title={label}
       data-label-mode={labelMode}
       data-tooltip={labelMode === "tooltip" ? label : undefined}
       onPointerDown={tip.handlers.onPointerDown}
@@ -221,7 +220,7 @@ function YardActionButton({
 
 function YardCurrencyChip({ icon, label, value }) {
   return (
-    <div className="yard-currency-chip" title={label}>
+    <div className="yard-currency-chip" aria-label={`${label}: ${value}`}>
       <YardIcon name={icon} />
       <span className="yard-currency-label">{label}</span>
       <strong>{value}</strong>
@@ -445,6 +444,20 @@ export default function CompanionYardGame() {
   const expansionPending = hasPending("expansion");
   const selectedRemodel = remodels[yard.remodel] || remodels.meadow || {};
   const staleGoodies = (yard.placedGoodies || []).filter((placed) => placed.condition !== "new");
+  const starterGoodieHints = useMemo(() => {
+    if ((yard.placedGoodies || []).length || placementDraft) return [];
+    return Object.entries(yard.goodieInventory || {})
+      .filter(([goodieId, qty]) => (Number(qty) || 0) > 0 && goodies[goodieId])
+      .slice(0, 2)
+      .map(([goodieId], index) => {
+        const rawPosition = index === 0 ? { x: 34, y: 68 } : { x: 66, y: 64 };
+        return {
+          goodieId,
+          goodie: goodies[goodieId],
+          position: clampYardPointToPlayzone(yard.remodel || "meadow", rawPosition, { margin: 1 }),
+        };
+      });
+  }, [goodies, placementDraft, yard.goodieInventory, yard.placedGoodies, yard.remodel]);
   const text = useCallback((key, fallback, values) => yardText(t, key, fallback, values), [t]);
   const foodName = useCallback((food) => catalogText(t, "foods", food?.id, "name", food?.name || ""), [t]);
   const foodDesc = useCallback((food) => catalogText(t, "foods", food?.id, "desc", food?.desc || ""), [t]);
@@ -613,7 +626,6 @@ export default function CompanionYardGame() {
               audioManager.play("tap");
               setSelectedVisitId(item.visit.visitId);
             }}
-            title={`${item.visitorInfo.name} · ${item.activity.pose}`}
             aria-label={`${item.visitorInfo.name} ${text("yard.visitor", "visitor")}`}
           >
             <img src={assetPath("visitors", visitorAssetId(item.visitorInfo, item.motion.pose))} alt="" />
@@ -655,7 +667,6 @@ export default function CompanionYardGame() {
                 startMoveGoodie(placed);
               }
             }}
-            title={slotPending ? text("yard.syncing", "Syncing") : `${goodieName(goodie)} (${text(`yard.condition.${placed.condition}`, placed.condition)})${slotVisitors.length ? ` · ${text("yard.visits", "{count} visits", { count: slotVisitors.length })}` : ""}`}
             aria-label={`${goodieName(goodie)} ${text("yard.placedGoodie", "placed goodie")}`}
           >
             <img src={assetPath("goodies", placed.condition === "new" ? placed.goodieId : `${placed.goodieId}_${placed.condition}`)} alt="" />
@@ -668,6 +679,30 @@ export default function CompanionYardGame() {
       })}
     </div>
   );
+
+  const renderStarterGoodieHints = () => {
+    if (!starterGoodieHints.length) return null;
+    return (
+      <div className="yard-starter-goodies" aria-label={text("yard.starterGoodies", "Starter goodies")}>
+        {starterGoodieHints.map(({ goodieId, goodie, position }) => (
+          <button
+            key={goodieId}
+            type="button"
+            className={`yard-starter-goodie yard-slot-${goodie.size}`}
+            style={goodieStageStyle(position, goodie)}
+            onClick={(event) => {
+              event.stopPropagation();
+              startPlaceGoodie(goodieId);
+            }}
+            aria-label={`${text("yard.place", "Place")} ${goodieName(goodie)}`}
+          >
+            <img src={assetPath("goodies", goodieId)} alt="" />
+            <span>{text("yard.place", "Place")}</span>
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   const renderPlacementPreview = () => {
     if (!placementDraft) return null;
@@ -1056,7 +1091,7 @@ export default function CompanionYardGame() {
                 className={`yard-bowl${food || pendingFood ? " filled" : ""}${bowlPending ? " pending" : ""}`}
                 disabled={!!bowlPending}
                 onClick={() => openScreen("food")}
-                title={bowlPending ? text("yard.syncingFood", "Syncing food") : food ? foodName(food) : text("yard.setFood", "Set food")}
+                aria-label={bowlPending ? text("yard.syncingFood", "Syncing food") : food ? foodName(food) : text("yard.setFood", "Set food")}
               >
                 <img src={assetPath("foods", pendingFood?.id || food?.id || "empty_bowl")} alt="" />
                 <span>{bowlPending ? text("yard.syncing", "Syncing") : food ? `${foodName(food)} (${bowl.servings})` : text("yard.empty", "Empty")}</span>
@@ -1066,6 +1101,7 @@ export default function CompanionYardGame() {
         </div>
         {renderPetLayer("back")}
         {renderPlacedGoodies()}
+        {renderStarterGoodieHints()}
         {placementDraft && <div className="yard-playzone-guide" aria-hidden="true" />}
         {renderPlacementPreview()}
         {renderPetLayer("front")}

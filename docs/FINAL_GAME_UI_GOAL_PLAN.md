@@ -165,3 +165,10 @@ Acceptance additions:
 - Generated screen art must be kept at its intended aspect ratio or used as contained panel material; do not stretch it to arbitrary full-screen shapes.
 - Semi-transparent glass may only be used as a minor inner highlight. It must not be the primary pause/result/menu material.
 - Large screens should use available room for the active board where the game's play model allows it, while still preserving HUD and thumb-control clearance.
+- A menu shell or hit-area wrapper must stay visually transparent when an inner scaler/frame already paints dialog art. Do not stack the same panel asset on parent and child surfaces.
+- Generated button art should be the visible button material by itself. Do not place linear-gradient fills, opaque backgrounds, or box-shadows underneath transparent button PNG/WebP art.
+- Mode selectors are choice cards, not primary action buttons. Keep title and helper text centered inside the card and do not skin multi-line choices with narrow action-button art.
+- Icon-only or compact HUD controls must use the shared press/focus tooltip pattern or visible labels. Do not add native browser `title` tooltips as the only user-facing affordance.
+- Pause-sensitive question/timed modes must pass pause state into their timer model. Paused time must not reduce player answer time or get submitted as real answer latency.
+- Duel/lobby polling must pass explicit room ids into start flows and guard duplicate active-room starts. Do not switch to live play from status alone without a loaded question.
+- Tap and drag variants of the same mechanic must share success and miss feedback paths. A failed tap-pair attempt should not silently behave differently from a failed drag-drop.

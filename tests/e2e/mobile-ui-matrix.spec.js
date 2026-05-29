@@ -42,34 +42,36 @@ async function expectNoHorizontalScroll(page) {
 }
 
 async function expectVisibleButtonsReachable(page, selector, minSide = 44) {
-  const smallButtons = await page.locator(selector).evaluateAll((buttons, side) => buttons
-    .filter((button) => {
-      const styles = getComputedStyle(button);
-      const rect = button.getBoundingClientRect();
-      return styles.display !== "none" && styles.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
-    })
-    .filter((button) => {
-      const rect = button.getBoundingClientRect();
-      return rect.width < side || rect.height < side || rect.left < -1 || rect.right > window.innerWidth + 1 || rect.top < -1 || rect.bottom > window.innerHeight + 1;
-    })
-    .map((button) => button.getAttribute("aria-label") || button.textContent.trim()), minSide);
-  expect(smallButtons).toEqual([]);
+  await expect.poll(async () => {
+    const smallButtons = await page.locator(selector).evaluateAll((buttons, side) => buttons
+      .filter((button) => {
+        const styles = getComputedStyle(button);
+        const rect = button.getBoundingClientRect();
+        return styles.display !== "none" && styles.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      })
+      .filter((button) => {
+        const rect = button.getBoundingClientRect();
+        return rect.width < side || rect.height < side || rect.left < -1 || rect.right > window.innerWidth + 1 || rect.top < -1 || rect.bottom > window.innerHeight + 1;
+      })
+      .map((button) => button.getAttribute("aria-label") || button.textContent.trim()), minSide);
 
-  const blockedButtons = await page.locator(selector).evaluateAll((buttons) => buttons
-    .filter((button) => {
-      const styles = getComputedStyle(button);
-      const rect = button.getBoundingClientRect();
-      return styles.display !== "none" && styles.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
-    })
-    .filter((button) => {
-      const rect = button.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const hit = document.elementFromPoint(centerX, centerY);
-      return !hit || !(button === hit || button.contains(hit));
-    })
-    .map((button) => button.getAttribute("aria-label") || button.textContent.trim()));
-  expect(blockedButtons).toEqual([]);
+    const blockedButtons = await page.locator(selector).evaluateAll((buttons) => buttons
+      .filter((button) => {
+        const styles = getComputedStyle(button);
+        const rect = button.getBoundingClientRect();
+        return styles.display !== "none" && styles.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      })
+      .filter((button) => {
+        const rect = button.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const hit = document.elementFromPoint(centerX, centerY);
+        return !hit || !(button === hit || button.contains(hit));
+      })
+      .map((button) => button.getAttribute("aria-label") || button.textContent.trim()));
+
+    return { smallButtons, blockedButtons };
+  }, { timeout: 5000 }).toEqual({ smallButtons: [], blockedButtons: [] });
 }
 
 async function expectCanvasNonBlank(page, shellSelector) {
@@ -176,12 +178,16 @@ test.describe("mobile UI viewport matrix", () => {
         await expectVisibleButtonsReachable(page, ".merge-action-dock button");
         await expectNoHorizontalScroll(page);
         await page.getByRole("button", { name: /Pause/ }).click();
+        await expect(page.locator(".merge-pause-overlay:visible")).toBeVisible();
+        await expectVisibleButtonsReachable(page, ".merge-pause-overlay:visible button");
         await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
         await expect(page.locator(".bottom-tabs")).toBeVisible();
 
         await page.getByRole("button", { name: /Bubbo/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expectCanvasNonBlank(page, '[data-game-shell="bubbo"]');
+        await expect(page.locator(".bubbo-play-hud [data-bubbo-powerup]")).toHaveCount(3);
+        await expectVisibleButtonsReachable(page, ".bubbo-play-hud .game-play-actions .panel-button");
         await expectNoHorizontalScroll(page);
         await exitViaPauseOrResult(page);
         await expect(page.locator(".bottom-tabs")).toBeVisible();
@@ -191,6 +197,10 @@ test.describe("mobile UI viewport matrix", () => {
         await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
         await expectNoHorizontalScroll(page);
         await page.getByRole("button", { name: /Pause/ }).click();
+        await expect(page.locator(".answer-grid button:not(:disabled)")).toHaveCount(0);
+        const pausedTimeLabel = await page.locator(".question-panel small").textContent();
+        await page.waitForTimeout(700);
+        await expect(page.locator(".question-panel small")).toHaveText(pausedTimeLabel || "");
         await expectVisibleButtonsReachable(page, ".game-menu-overlay:visible button");
         await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
         await expect(page.locator(".bottom-tabs")).toBeVisible();

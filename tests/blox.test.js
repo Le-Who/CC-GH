@@ -7,7 +7,7 @@
  */
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { ECONOMY, calcBloxReward, createDefaultPlayer, createEmptyBoard, previewBloxPlacement } from "../game-logic.js";
+import { ECONOMY, calcBloxReward, createDefaultPlayer, createEmptyBoard, previewBloxPlacement, rotateBloxPiece } from "../game-logic.js";
 import { PIECES as BLOX_PIECES } from "../src/game-core/blox/pieces.js";
 import { applyAction } from "../routes/player.js";
 
@@ -241,6 +241,60 @@ describe("Building Blox — Line Clearing", () => {
     assert.equal(preview.state.linesCleared, 1);
     assert.equal(state.board[0][9], null);
     assert.equal(state.tray[0].placed, false);
+  });
+
+  it("rotates a tray piece clockwise without mutating the source piece", () => {
+    const h3 = BLOX_PIECES.find((piece) => piece.id === "h3");
+    const rotated = rotateBloxPiece(h3);
+
+    assert.deepEqual(rotated.cells, [[0, 0], [1, 0], [2, 0]]);
+    assert.deepEqual(h3.cells, [[0, 0], [0, 1], [0, 2]]);
+    assert.equal(rotated.color, h3.color);
+  });
+
+  it("spends a limited rotate charge through blox.rotate", async () => {
+    const p = createDefaultPlayer("blox-rotate", "Blox");
+    const h3 = BLOX_PIECES.find((piece) => piece.id === "h3");
+    p.blox.activeGame = true;
+    p.blox.savedState = JSON.stringify({
+      board: createEmptyBoard(),
+      tray: [
+        { piece: h3, placed: false },
+        { piece: BLOX_PIECES.find((piece) => piece.id === "sq"), placed: false },
+        { piece: BLOX_PIECES.find((piece) => piece.id === "dot"), placed: false },
+      ],
+      rotateCharges: 3,
+      score: 0,
+      linesCleared: 0,
+      highScore: 0,
+      gameActive: true,
+    });
+
+    const result = await applyAction(p, "blox.rotate", { pieceIdx: 0 });
+
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.body.savedState.tray[0].piece.cells, [[0, 0], [1, 0], [2, 0]]);
+    assert.equal(result.body.savedState.rotateCharges, 2);
+  });
+
+  it("rejects blox.rotate when charges are gone", async () => {
+    const p = createDefaultPlayer("blox-rotate-empty", "Blox");
+    const h3 = BLOX_PIECES.find((piece) => piece.id === "h3");
+    p.blox.activeGame = true;
+    p.blox.savedState = JSON.stringify({
+      board: createEmptyBoard(),
+      tray: [{ piece: h3, placed: false }],
+      rotateCharges: 0,
+      score: 0,
+      linesCleared: 0,
+      highScore: 0,
+      gameActive: true,
+    });
+
+    const result = await applyAction(p, "blox.rotate", { pieceIdx: 0 });
+
+    assert.equal(result.status, 400);
+    assert.match(result.body.error, /rotate unavailable/);
   });
 });
 

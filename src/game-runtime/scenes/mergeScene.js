@@ -89,10 +89,14 @@ export function buildMergeScene(app, initial = {}) {
       dragVisual.cancel();
       clear(dragLayer);
       if (cell) {
-        data.onMergeCell?.(cell.r, cell.c, item);
-        const tone = item ? AMBER : MUTED;
-        makeRipple(effects, done.x, done.y, tone, item ? 24 : 14);
-        if (item) makeSparkles(effects, done.x, done.y, tone, 5);
+        const tapResult = data.onMergeCell?.(cell.r, cell.c, item);
+        if (tapResult?.miss) {
+          playMergeDropFeedback(done, { error: tapResult.error || "invalid merge" }, item);
+        } else {
+          const tone = item ? AMBER : MUTED;
+          makeRipple(effects, done.x, done.y, tone, item ? 24 : 14);
+          if (item) makeSparkles(effects, done.x, done.y, tone, 5);
+        }
         app.ticker.start();
       }
       draw();

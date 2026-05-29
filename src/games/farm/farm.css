@@ -1,7 +1,7 @@
 /* Farm-specific styles are lazy-loaded with FarmGame. */
 
 .farm-layout {
-  --shell-art: url("/games/farm/background-field.png");
+  --shell-art: none;
   --shell-accent: #8fcf79;
   --shell-soft: rgba(250, 242, 211, 0.86);
   --farm-ink: #3c4224;
@@ -9,18 +9,16 @@
   --farm-panel-art: url("/games/ui-surfaces/farm-panel.png");
   --farm-hud-art: url("/games/ui-surfaces/farm-panel.png");
   background:
-    linear-gradient(180deg, rgba(255, 248, 215, 0.72), rgba(168, 213, 126, 0.48)),
-    url("/games/farm/background-field.png") center / cover no-repeat;
+    radial-gradient(circle at 50% 12%, rgba(255, 248, 215, 0.4), transparent 34%),
+    linear-gradient(180deg, #c9dda0 0%, #83ae68 58%, #4e754a 100%);
 }
 
 .farm-layout.game-shell::before {
-  opacity: 0.34;
+  opacity: 0;
 }
 
 .farm-layout .pixi-host {
-  background:
-    linear-gradient(180deg, rgba(255, 248, 215, 0.22), rgba(100, 148, 78, 0.16)),
-    url("/games/farm/background-field.png") center / cover no-repeat;
+  background: transparent;
 }
 
 .farm-layout .game-play-hud {

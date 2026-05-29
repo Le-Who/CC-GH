@@ -9,10 +9,11 @@ function startingLevels() {
 }
 
 describe("Settlement overview screen contract", () => {
-  it("opens on the village overview with the mockup-aligned starting settlement state", () => {
+  it("opens map-first on the village overview with the mockup-aligned starting settlement state", () => {
     const state = useSettlementStore.getState();
 
     assert.equal(state.activePanel, "overview");
+    assert.equal(state.rightPanelOpen, false);
     assert.equal(state.selectedBuildingId, "hearth-hall");
     assert.equal(state.population, 520);
     assert.deepEqual(

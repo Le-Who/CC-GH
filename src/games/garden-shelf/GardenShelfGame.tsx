@@ -22,7 +22,7 @@ import { HudEditableRegion, HudRegion } from '../../app/hud-layout/index.js';
 import { formatGardenGoldAmount } from './constants';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
 import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
-import { CheckCircle2, Coins, Gift, X } from 'lucide-react';
+import { ArrowUpCircle, CheckCircle2, Coins, Gift, X } from 'lucide-react';
 import './garden-shelf.css';
 
 const GARDEN_NAME_KEY = 'garden_shelf_name';
@@ -489,38 +489,31 @@ function GameContent() {
   }, []);
 
   return (
-    <HudRegion id="gardenRoot" as="div" className={cn("garden-root mx-auto w-full max-w-md h-full min-h-0 flex flex-col bg-[#2e1d22] text-rose-50 overflow-hidden relative shadow-2xl ring-1 ring-black/5 font-sans touch-pan-y select-none rounded-lg", mobileLiteDecor && "garden-root--mobile-lite")} style={runtimeArtStyle}>
-      {/* Background Atmosphere */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#ffeebb10,transparent_70%)]"></div>
-        <div className="garden-ambient-blob absolute top-10 left-[-20%] w-[50%] h-[30%] bg-[#5c2a38] rounded-full blur-[40px] opacity-30"></div>
-        <div className="garden-ambient-blob absolute bottom-20 right-[-10%] w-[60%] h-[40%] bg-[#40232a] rounded-full blur-[50px] opacity-60"></div>
-        {/* Soft sunlight rays */}
-        <div className="garden-sparkle-layer absolute -top-[10%] left-1/4 w-[120%] h-[80%] bg-gradient-to-b from-[#ffd7b5] to-transparent blur-[80px] opacity-10 transform -rotate-[30deg]"></div>
+    <HudRegion id="gardenRoot" as="div" className={cn("garden-root garden-reference-stage mx-auto w-full h-full min-h-0 flex flex-col overflow-hidden relative font-sans touch-pan-y select-none", mobileLiteDecor && "garden-root--mobile-lite")} style={runtimeArtStyle}>
+      <div className="garden-scene-backdrop" aria-hidden="true">
+        <div className="garden-window-glow" />
+        <div className="garden-leaf-canopy garden-leaf-canopy-left" />
+        <div className="garden-leaf-canopy garden-leaf-canopy-right" />
       </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col relative z-10 w-full px-2 pt-2 pb-6">
+      <div className="garden-play-surface">
         <GardenSign assetPaths={assetPaths} />
         <GardenQuestController />
         <GardenSettingsButton assetPaths={assetPaths} />
 
-        {/* The Glass Dome Container */}
-        <div className="absolute inset-x-2 top-2 bottom-6 rounded-[140px_140px_10px_10px] border-[5px] border-white/20 bg-gradient-to-b from-white/10 to-transparent pointer-events-none shadow-[inset_0_20px_50px_rgba(255,255,255,0.1),0_0_20px_rgba(0,0,0,0.5)] flex flex-col z-20">
-          {/* Main Reflection */}
-          <div className="garden-dome-reflection absolute top-10 left-6 w-8 h-[60%] rounded-full bg-gradient-to-b from-white/20 to-transparent blur-[8px] transform -rotate-[10deg]"></div>
-          <div className="garden-dome-reflection absolute top-12 right-6 w-4 h-[40%] rounded-full bg-gradient-to-b from-white/10 to-transparent blur-[6px] transform rotate-[10deg]"></div>
-          
+        <div className="garden-greenhouse-frame" aria-hidden="true">
+          <span className="garden-vertical-frame garden-vertical-frame-left" />
+          <span className="garden-vertical-frame garden-vertical-frame-right" />
           <img
             src={assetPaths.bottomPlank}
             alt=""
             draggable={false}
             data-hud-region="gardenBottomPlank"
-            className="absolute -bottom-[12px] left-1/2 h-[clamp(52px,13vw,72px)] w-[calc(100%+24px)] max-w-none -translate-x-1/2 object-fill drop-shadow-[0_12px_16px_rgba(0,0,0,0.65)]"
+            className="garden-bottom-plank-art"
           />
         </div>
 
-        {/* We need the Garden to scroll inside but z-index it correctly behind the dome reflections */}
-        <HudRegion id="gardenShelf" as="div" className="flex-1 overflow-hidden relative z-10 rounded-[140px_140px_0_0]" applyLayout={false}>
+        <HudRegion id="gardenShelf" as="div" className="garden-shelf-viewport" applyLayout={false}>
           <Garden assetPaths={assetPaths} onSelectSpot={(shelfIndex, spotIndex, plantId) => setSelectedSpot({ shelfIndex, spotIndex, plantId })} />
         </HudRegion>
       </div>

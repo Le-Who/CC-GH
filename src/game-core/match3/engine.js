@@ -50,6 +50,14 @@ export const SPECIAL_LABELS = {
   special_colour: "Colour Clear",
 };
 
+export const MATCH3_BOOSTER_CHARGES = {
+  bomb: 3,
+  lightning: 3,
+  rainbow: 2,
+  hammer: 3,
+};
+const MATCH3_BOOSTER_SET = new Set(Object.keys(MATCH3_BOOSTER_CHARGES));
+
 // ─── Progressive gold reward (mirrors game-logic.js calcGoldReward) ───
 export const REWARD_BASE = 40;
 const REWARD_LOSE = 5;
@@ -197,6 +205,15 @@ export function isDropToken(type) {
 
 export function isSpecialType(type) {
   return SPECIAL_TYPES.includes(type);
+}
+
+export function normalizeMatch3Boosters(raw = null) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  return Object.fromEntries(Object.entries(MATCH3_BOOSTER_CHARGES).map(([key, max]) => {
+    const value = Math.floor(Number(source[key]));
+    if (!Number.isFinite(value)) return [key, max];
+    return [key, Math.max(0, Math.min(max, value))];
+  }));
 }
 
 function isMatchableGem(type) {
@@ -352,10 +369,52 @@ function groupSpecialType(group) {
   if (!group || group.length < 4) return null;
   const rows = new Set(group.map((idx) => Math.floor(idx / BOARD_SIZE)));
   const cols = new Set(group.map((idx) => idx % BOARD_SIZE));
+  if (rows.size > 1 && cols.size > 1) return "special_blast";
   if (group.length >= 5) return "special_colour";
   if (rows.size === 1) return "special_row";
   if (cols.size === 1) return "special_column";
-  return "special_blast";
+  return null;
+}
+
+function mergeConnectedMatchGroups(groups = []) {
+  const merged = [];
+  const used = new Uint8Array(groups.length);
+  for (let i = 0; i < groups.length; i++) {
+    if (used[i]) continue;
+    used[i] = 1;
+    const connected = new Set(groups[i]);
+    let expanded = true;
+    while (expanded) {
+      expanded = false;
+      for (let j = i + 1; j < groups.length; j++) {
+        if (used[j]) continue;
+        if (!groups[j].some((idx) => connected.has(idx))) continue;
+        for (const idx of groups[j]) connected.add(idx);
+        used[j] = 1;
+        expanded = true;
+      }
+    }
+    merged.push([...connected].sort((a, b) => a - b));
+  }
+  return merged;
+}
+
+function specialAnchorCandidates(options = {}) {
+  const raw = Array.isArray(options.specialAnchorCandidates) ? options.specialAnchorCandidates : [];
+  const anchors = [];
+  for (const cell of raw) {
+    const x = Math.floor(Number(cell?.x));
+    const y = Math.floor(Number(cell?.y));
+    if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) anchors.push(y * BOARD_SIZE + x);
+  }
+  return anchors;
+}
+
+function chooseSpecialAnchor(group, candidates = []) {
+  for (const idx of candidates) {
+    if (group.includes(idx)) return idx;
+  }
+  return group[0];
 }
 
 function mostCommonNormalGem(board) {
@@ -458,6 +517,92 @@ function clearCells(board, indices) {
   return cleared;
 }
 
+function normalizeMatch3BoosterKind(booster) {
+  const kind = String(booster || "").trim();
+  return MATCH3_BOOSTER_SET.has(kind) ? kind : null;
+}
+
+function collectBoosterIndices(board, booster, x, y) {
+  const cells = new Set();
+  const add = (cx, cy) => {
+    if (cx >= 0 && cx < BOARD_SIZE && cy >= 0 && cy < BOARD_SIZE) cells.add(cy * BOARD_SIZE + cx);
+  };
+  if (booster === "bomb") {
+    for (let cy = y - 1; cy <= y + 1; cy += 1) {
+      for (let cx = x - 1; cx <= x + 1; cx += 1) add(cx, cy);
+    }
+  } else if (booster === "lightning") {
+    for (let cx = 0; cx < BOARD_SIZE; cx += 1) add(cx, y);
+    for (let cy = 0; cy < BOARD_SIZE; cy += 1) add(x, cy);
+  } else if (booster === "rainbow") {
+    const target = isMatchableGem(board[y]?.[x]) ? board[y][x] : mostCommonNormalGem(board);
+    if (target) {
+      for (let cy = 0; cy < BOARD_SIZE; cy += 1) {
+        for (let cx = 0; cx < BOARD_SIZE; cx += 1) {
+          if (board[cy]?.[cx] === target) add(cx, cy);
+        }
+      }
+    }
+    add(x, y);
+  } else if (booster === "hammer") {
+    add(x, y);
+  }
+  return [...cells];
+}
+
+export function applyMatch3Booster(board, booster, x, y, options = {}) {
+  const kind = normalizeMatch3BoosterKind(booster);
+  const next = cloneBoard(board);
+  const targetX = Math.floor(Number(x));
+  const targetY = Math.floor(Number(y));
+  if (!kind || targetX < 0 || targetX >= BOARD_SIZE || targetY < 0 || targetY >= BOARD_SIZE || !next[targetY]?.[targetX]) {
+    return { valid: false, board: next, totalPoints: 0, combo: 0, steps: [], reason: kind ? "invalid target" : "invalid booster", booster: booster || null };
+  }
+
+  const indices = new Set(collectBoosterIndices(next, kind, targetX, targetY));
+  const specialSeeds = [...indices]
+    .map((idx) => ({ x: idx % BOARD_SIZE, y: Math.floor(idx / BOARD_SIZE) }))
+    .filter((cell) => isSpecialType(next[cell.y]?.[cell.x]));
+  const specialChain = collectSpecialChainClears(next, specialSeeds);
+  for (const idx of specialChain.indices) indices.add(idx);
+
+  const cleared = clearCells(next, [...indices]);
+  if (!cleared.length) {
+    return { valid: false, board: next, totalPoints: 0, combo: 0, steps: [], reason: "nothing cleared", booster: kind };
+  }
+
+  const dirtyMask = {
+    rows: new Uint8Array(BOARD_SIZE),
+    cols: new Uint8Array(BOARD_SIZE),
+  };
+  for (const { x: cx, y: cy } of cleared) {
+    dirtyMask.rows[cy] = 1;
+    dirtyMask.cols[cx] = 1;
+  }
+  const gravity = applyGravityAndFill(next, dirtyMask);
+  const dropResult = options.collectDrops ? collectAndBackfillDrops(next, dirtyMask) : null;
+  const resolved = resolveBoard(next, options);
+  const firstStep = {
+    cleared,
+    specials: [],
+    fallen: [...gravity.fallen, ...(dropResult?.fallen || [])],
+    filled: [...gravity.filled, ...(dropResult?.filled || [])],
+    dropCollected: dropResult?.dropCollected || [],
+    triggeredSpecials: specialChain.triggeredSpecials,
+    combo: 1,
+    boardSnapshot: cloneBoard(next),
+  };
+  return {
+    valid: true,
+    board: next,
+    totalPoints: cleared.length * 12 + (dropResult?.points || 0) + resolved.totalPoints,
+    combo: Math.max(1, resolved.combo),
+    steps: [firstStep, ...resolved.steps],
+    booster: kind,
+    dropCollected: [...(dropResult?.dropCollected || []), ...resolved.steps.flatMap((step) => step.dropCollected || [])],
+  };
+}
+
 function applyGravityAndFill(board, dirtyMask = null) {
   const fallen = [];
   const filled = [];
@@ -557,12 +702,14 @@ export function resolveBoard(b, optionsOrCallback) {
     nextDirtyMask.cols.fill(0);
 
     const groups = findMatchGroups(b, dirtyMask);
+    const connectedGroups = mergeConnectedMatchGroups(groups);
+    const preferredAnchors = cascadeCombo === 1 ? specialAnchorCandidates(options) : [];
     const protectedSpecials = new Map();
     const clearSet = new Set(matches);
-    for (const group of groups) {
+    for (const group of connectedGroups) {
       const special = groupSpecialType(group);
       if (!special) continue;
-      const anchor = group[0];
+      const anchor = chooseSpecialAnchor(group, preferredAnchors);
       protectedSpecials.set(anchor, special);
       clearSet.delete(anchor);
     }
@@ -701,7 +848,13 @@ export function attemptMatch3Move(board, from, to, options = {}) {
     return { valid: false, board: original, totalPoints: 0, combo: 0, steps: [], reason: "no match" };
   }
 
-  const resolved = resolveBoard(next, options);
+  const resolved = resolveBoard(next, {
+    ...options,
+    specialAnchorCandidates: [
+      { x: to.x, y: to.y },
+      { x: from.x, y: from.y },
+    ],
+  });
   return {
     valid: true,
     board: next,

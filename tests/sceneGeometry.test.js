@@ -164,6 +164,16 @@ describe("Pixi scene geometry helpers", () => {
     assert.ok(scenes.includes("FARM_ASSET_KEYS.backgroundField"), "Farm should render the generated field background");
   });
 
+  it("renders Blox predicted row and column clears during drag preview", () => {
+    const bloxScene = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "scenes", "bloxScene.js"), "utf-8");
+
+    assert.ok(bloxScene.includes("previewBloxPlacement"), "Blox drag preview should use the domain placement preview");
+    assert.ok(bloxScene.includes("dragPreview?.clear.rows"), "Blox drag preview should inspect predicted row clears");
+    assert.ok(bloxScene.includes("dragPreview?.clear.cols"), "Blox drag preview should inspect predicted column clears");
+    assert.ok(bloxScene.includes("BLOX_ASSET_KEYS.rowWipe"), "Blox drag preview should render generated row-clear art");
+    assert.ok(bloxScene.includes("BLOX_ASSET_KEYS.columnWipe"), "Blox drag preview should render generated column-clear art");
+  });
+
   it("fits Blox cells inside the generated board frame opening instead of over its border", () => {
     const fitted = { left: 14, top: 164, size: 584 };
     const layout = bloxBoardFrameLayout(fitted, 10);

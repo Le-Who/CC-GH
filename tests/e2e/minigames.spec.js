@@ -314,7 +314,9 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
     await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
-    await expect(page.locator(".settlement-game-root .right-panel")).toBeVisible();
+    await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-right-panel-open", "false");
+    await expect(page.locator(".settlement-game-root .right-panel")).toHaveCount(0);
+    await expect(page.locator(".settlement-game-root .settlement-compact-detail")).toBeVisible();
     await expect(page.locator(".settlement-game-root .bottom-nav")).toBeVisible();
 
     const metrics = await page.evaluate(() => {
@@ -327,6 +329,8 @@ test.describe("New-stack minigame smoke", () => {
       return {
         bodyOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         canvas: root.querySelector(".settlement-canvas")?.getBoundingClientRect().toJSON(),
+        compact: root.querySelector(".settlement-compact-detail")?.getBoundingClientRect().toJSON(),
+        bottomNav: root.querySelector(".bottom-nav")?.getBoundingClientRect().toJSON(),
         tinyButtons: buttons
           .filter((button) => {
             const rect = button.getBoundingClientRect();
@@ -338,6 +342,7 @@ test.describe("New-stack minigame smoke", () => {
     expect(metrics.bodyOverflowX).toBeLessThanOrEqual(1);
     expect(metrics.canvas.width).toBeGreaterThanOrEqual(370);
     expect(metrics.canvas.height).toBeGreaterThanOrEqual(820);
+    expect(metrics.compact.bottom).toBeLessThanOrEqual(metrics.bottomNav.top + 1);
     expect(metrics.tinyButtons).toEqual([]);
 
     await page.locator(".settlement-game-root .bottom-nav .collect-button").click();
@@ -367,24 +372,24 @@ test.describe("New-stack minigame smoke", () => {
         const rect = node.getBoundingClientRect();
         return rect.left < -1 || rect.right > window.innerWidth + 1 || rect.top < -1 || rect.bottom > window.innerHeight + 1;
       };
-      const panelButtons = [...root.querySelectorAll(".right-panel button")].filter(isVisible);
+      const compactButtons = [...root.querySelectorAll(".settlement-compact-detail button")].filter(isVisible);
       const resourcePills = [...root.querySelectorAll(".top-resources-core .resource-pill")].filter(isVisible);
       const bottomNav = root.querySelector(".bottom-nav")?.getBoundingClientRect();
-      const rightPanel = root.querySelector(".right-panel")?.getBoundingClientRect();
+      const compact = root.querySelector(".settlement-compact-detail")?.getBoundingClientRect();
       return {
         bodyOverflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        clippedPanelButtons: panelButtons.filter(viewportClipped).map(labelFor),
+        clippedCompactButtons: compactButtons.filter(viewportClipped).map(labelFor),
         clippedResourcePills: resourcePills.filter(viewportClipped).map(labelFor),
         visibleResourcePills: resourcePills.length,
-        panelClearsBottomDock: rightPanel && bottomNav ? rightPanel.bottom <= bottomNav.top - 4 : false,
+        compactClearsBottomDock: compact && bottomNav ? compact.bottom <= bottomNav.top + 1 : false,
       };
     });
 
     expect(metrics.bodyOverflowX).toBeLessThanOrEqual(1);
-    expect(metrics.clippedPanelButtons).toEqual([]);
+    expect(metrics.clippedCompactButtons).toEqual([]);
     expect(metrics.clippedResourcePills).toEqual([]);
     expect(metrics.visibleResourcePills).toBe(6);
-    expect(metrics.panelClearsBottomDock).toBe(true);
+    expect(metrics.compactClearsBottomDock).toBe(true);
   });
 
   test("Settlement recovery panels stay reachable at 320px mobile", async ({ page }) => {

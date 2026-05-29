@@ -36,6 +36,7 @@ import {
   createBloxDragState,
   tickParticles,
 } from './shared/runtime.js';
+import { previewBloxPlacement } from '../../../game-logic/blox-engine.js';
 
 export function buildBloxScene(app, initial = {}) {
   const root = new Container();
@@ -98,9 +99,40 @@ export function buildBloxScene(app, initial = {}) {
     const origin = bloxGhostOrigin(drag, unit);
     const ghost = drawPiece(drag.piece, origin.x, origin.y, unit, drag.overCell ? 0.72 : 0.76);
     const valid = drag.overCell && canPlaceBloxPiece(board, drag.piece, drag.overCell.row, drag.overCell.col);
+    const dragPreview = valid
+      ? previewBloxPlacement(
+        {
+          board,
+          tray: [{ piece: drag.piece, placed: false }],
+          score: state.score || 0,
+          linesCleared: state.linesCleared || 0,
+        },
+        { pieceIdx: 0, row: drag.overCell.row, col: drag.overCell.col },
+      )
+      : null;
     ghost.alpha = drag.overCell ? 0.78 : 0.66;
     dragLayer.addChild(ghost);
     if (drag.overCell) {
+      for (const row of dragPreview?.clear.rows || []) {
+        dragLayer.addChild(spriteFit(
+          gameAsset(BLOX_ASSET_KEYS.rowWipe),
+          layout.left + layout.size / 2,
+          layout.top + (row + 0.5) * layout.cell,
+          layout.size + 12,
+          layout.cell * 1.24,
+          0.42,
+        ));
+      }
+      for (const col of dragPreview?.clear.cols || []) {
+        dragLayer.addChild(spriteFit(
+          gameAsset(BLOX_ASSET_KEYS.columnWipe),
+          layout.left + (col + 0.5) * layout.cell,
+          layout.top + layout.size / 2,
+          layout.cell * 1.24,
+          layout.size + 12,
+          0.4,
+        ));
+      }
       const snap = drawPiece(
         drag.piece,
         layout.left + drag.overCell.col * layout.cell,

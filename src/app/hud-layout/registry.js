@@ -148,6 +148,7 @@ const GAME_REGIONS = {
   match3: {
     gameplayHud: COMMON_REGIONS.gameplayHud,
     pauseOverlay: COMMON_REGIONS.pauseOverlay,
+    match3ActionDock: region("match3ActionDock", "Gems booster dock", "Gems", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     pixiPlayfieldReserve: COMMON_REGIONS.pixiPlayfieldReserve,
     match3BackgroundAsset: assetRegion("match3BackgroundAsset", "Gems table background asset", "Gems Pixi assets", "Visual Pixi background calibration. It does not move board hit targets."),
     match3BoardFrameAsset: assetRegion("match3BoardFrameAsset", "Gems board frame asset", "Gems Pixi assets", "Visual Pixi frame calibration. Keep it aligned with the play grid."),
@@ -192,6 +193,7 @@ const GAME_REGIONS = {
     settlementTopHud: region("settlementTopHud", "Settlement top HUD", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     settlementLeftDock: region("settlementLeftDock", "Settlement left dock", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     settlementRightPanel: region("settlementRightPanel", "Settlement right panel", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
+    settlementCompactDetail: region("settlementCompactDetail", "Settlement compact building card", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: false, mode: "dock" }, "Contextual bottom card shown only while the full right panel is closed; it is an overlay control and does not reserve camera space."),
     settlementBottomNav: region("settlementBottomNav", "Settlement bottom nav", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     settlementNotices: region("settlementNotices", "Settlement notices", "Settlement", { draggable: true, resizable: true, mode: "stack" }),
     settlementPrimaryBuildAsset: assetRegion("settlementPrimaryBuildAsset", "Settlement primary build button asset", "Settlement DOM assets"),

@@ -19,6 +19,7 @@ import {
   viewWidth,
   viewHeight,
   reserveFromShellChrome,
+  reserveBottomFromShellChrome,
   publishCanvasLayout,
   publishCanvasAssetLayout,
   clear,
@@ -450,7 +451,8 @@ export function buildMatch3Scene(app, initial = {}) {
     const fallback = data.fallbackBoard || [];
     const actual = board.length ? board : fallback;
     const hudReserve = state.gameActive ? reserveFromShellChrome(app, ".game-play-hud", data.match3HudReserve || 0) + 4 : 0;
-    const fitted = fitWithTopReserve(app, BOARD_SIZE, BOARD_SIZE, 14, hudReserve, 44, { verticalAnchor: 0.46 });
+    const bottomReserve = state.gameActive ? reserveBottomFromShellChrome(app, ".match3-action-dock", data.match3BottomReserve || 112) + 4 : 44;
+    const fitted = fitWithTopReserve(app, BOARD_SIZE, BOARD_SIZE, 14, hudReserve, bottomReserve, { verticalAnchor: 0.42 });
     layout = { ...fitted, cols: BOARD_SIZE, rows: BOARD_SIZE };
     const { size, cell, left, top } = fitted;
     publishCanvasLayout(app, "match3", { top: top - 10, left: left - 10, size: size + 20 });

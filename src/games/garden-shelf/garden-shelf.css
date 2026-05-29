@@ -33,6 +33,134 @@
   --glass-surface-strong: #34242a;
 }
 
+.garden-reference-stage {
+  max-width: none;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(35, 50, 20, 0.2), rgba(58, 35, 15, 0.52)),
+    #2b1b0f;
+  color: #fff7d6;
+  box-shadow: none;
+  isolation: isolate;
+}
+
+.garden-scene-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(61, 36, 18, 0.94) 0 11px, transparent 11px calc(100% - 11px), rgba(61, 36, 18, 0.94) calc(100% - 11px)),
+    linear-gradient(180deg, #1f3219 0%, #7d9e5b 42%, #54331a 100%);
+}
+
+.garden-window-glow {
+  position: absolute;
+  inset: 54px 18px 92px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 198, 0.5), rgba(206, 229, 151, 0.3) 34%, rgba(83, 114, 61, 0.16)),
+    radial-gradient(circle at 50% 16%, rgba(255, 255, 211, 0.62), transparent 46%);
+  box-shadow: inset 0 0 0 1px rgba(255, 241, 181, 0.2);
+}
+
+.garden-leaf-canopy {
+  position: absolute;
+  top: -18px;
+  width: 46%;
+  height: 132px;
+  background:
+    radial-gradient(ellipse at 12% 48%, rgba(116, 166, 55, 0.9) 0 16%, transparent 17%),
+    radial-gradient(ellipse at 38% 24%, rgba(84, 138, 48, 0.88) 0 19%, transparent 20%),
+    radial-gradient(ellipse at 66% 42%, rgba(135, 179, 69, 0.84) 0 15%, transparent 16%),
+    radial-gradient(ellipse at 86% 18%, rgba(72, 118, 43, 0.78) 0 16%, transparent 17%);
+  filter: drop-shadow(0 10px 10px rgba(25, 31, 13, 0.26));
+}
+
+.garden-leaf-canopy-left {
+  left: -8%;
+}
+
+.garden-leaf-canopy-right {
+  right: -7%;
+  transform: scaleX(-1);
+}
+
+.garden-play-surface {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 4px 8px 10px;
+  overflow: hidden;
+}
+
+.garden-greenhouse-frame {
+  position: absolute;
+  inset: 62px 8px 10px;
+  z-index: 20;
+  border-radius: 8px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 3px rgba(108, 64, 28, 0.76),
+    inset 0 0 0 7px rgba(255, 210, 123, 0.28);
+}
+
+.garden-vertical-frame {
+  position: absolute;
+  top: 0;
+  bottom: 46px;
+  width: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #5b3618, #a4692c 48%, #3b210e);
+  box-shadow: inset 0 1px 0 rgba(255, 223, 153, 0.42);
+}
+
+.garden-vertical-frame-left {
+  left: 0;
+}
+
+.garden-vertical-frame-right {
+  right: 0;
+}
+
+.garden-bottom-plank-art {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: calc(100% + 24px);
+  height: clamp(52px, 13vw, 72px);
+  max-width: none;
+  object-fit: fill;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.5));
+}
+
+.garden-shelf-viewport {
+  position: relative;
+  z-index: 10;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.garden-shelf-list {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: clamp(112px, 18dvh, 152px) clamp(20px, 5.2vw, 30px) clamp(118px, 20dvh, 148px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(42px, 8.5dvh, 78px);
+}
+
 .garden-glass-menu,
 .garden-glass-sheet,
 .garden-glass-card,
@@ -263,9 +391,33 @@
 }
 
 .garden-spot-empty {
-  border: 1px dashed var(--glass-border-soft);
-  background: #32252a;
-  color: var(--muted);
+  position: relative;
+  width: 64px !important;
+  height: 58px !important;
+  border: 0;
+  border-radius: 0 !important;
+  background:
+    url("/games/garden-shelf/shelf_slot_empty.png") center / contain no-repeat;
+  color: #654522;
+  filter: drop-shadow(0 8px 10px rgba(42, 26, 12, 0.22));
+}
+
+.garden-spot-empty > div {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255, 245, 196, 0.88);
+  color: #6c8d2d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 3px 8px rgba(65, 41, 16, 0.22);
+  font-size: 1.15rem;
+  font-weight: 1000;
+  opacity: 0.92 !important;
+  transform: translate(-50%, -50%);
 }
 
 .garden-status-badge {
