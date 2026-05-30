@@ -90,6 +90,7 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
+        onPointerDown={onClose}
         className="glass-scrim garden-sheet-scrim fixed inset-0 z-[180]"
       />
       
@@ -420,7 +421,7 @@ function PlantDetail({
   return (
     <div className="garden-detail-panel flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className="garden-detail-header mb-4 flex w-full items-start justify-between gap-4 pr-12">
-        <div className="min-w-0">
+        <div className="garden-detail-title-copy min-w-0">
           <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
           <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
              {isFullyGrown
@@ -433,24 +434,24 @@ function PlantDetail({
             </div>
           )}
         </div>
-        
-        <div className="garden-detail-meta flex max-w-[48%] shrink-0 flex-col items-end text-right">
-          {isFullyGrown ? (
-            <>
-              <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
-              <span className="flex items-center gap-1 font-mono text-[color:var(--ink)]">
-                {formatGardenRate(production)} <small className="text-[10px] opacity-60">{t('unit.goldPerSecond')}</small>
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="mb-1 flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]"><div className="h-1.5 w-1.5 rounded-full bg-[color:var(--mint)] animate-pulse"/> {t('plantDetail.timeLeft')}</span>
-              <span className="font-mono tracking-widest text-[color:var(--leaf)]">
-                {timeStr}
-              </span>
-            </>
-          )}
-        </div>
+      </div>
+
+      <div className="garden-detail-meta flex max-w-[48%] shrink-0 flex-col items-end text-right">
+        {isFullyGrown ? (
+          <>
+            <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
+            <span className="flex items-center gap-1 font-mono text-[color:var(--ink)]">
+              {formatGardenRate(production)} <small className="text-[10px] opacity-60">{t('unit.goldPerSecond')}</small>
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="mb-1 flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]"><div className="h-1.5 w-1.5 rounded-full bg-[color:var(--mint)] animate-pulse"/> {t('plantDetail.timeLeft')}</span>
+            <span className="font-mono tracking-widest text-[color:var(--leaf)]">
+              {timeStr}
+            </span>
+          </>
+        )}
       </div>
 
       <div className="garden-detail-plant-stage">

@@ -42,7 +42,7 @@ export function OfflineWelcome() {
               data-garden-panel="offline-reward"
               className="garden-modal-card relative flex w-full max-w-sm flex-col items-center overflow-hidden p-8 text-center"
             >
-              <div className="relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[color:var(--glass-border-soft)] bg-[color:var(--glass-card)]">
+              <div className="garden-modal-reward-icon relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[color:var(--glass-border-soft)] bg-[color:var(--glass-card)]">
                 <Coins className="w-8 h-8 text-amber-400" strokeWidth={1.5} />
               </div>
               

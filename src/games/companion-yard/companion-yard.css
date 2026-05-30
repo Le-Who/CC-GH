@@ -203,6 +203,10 @@
   pointer-events: none;
 }
 
+.companion-yard-stage.yard-screen-open .yard-background-art {
+  pointer-events: auto;
+}
+
 .yard-remodel-tea-house {
   background:
     linear-gradient(180deg, rgba(236, 220, 188, 0.8), rgba(159, 113, 75, 0.24) 52%, rgba(111, 146, 94, 0.76)),
@@ -861,9 +865,7 @@
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-shop-row,
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-photo-card,
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-petbook-card {
-  background:
-    linear-gradient(180deg, rgba(255, 226, 170, 0.08), rgba(255, 226, 170, 0.02)),
-    rgba(35, 40, 30, 0.76);
+  background: transparent;
   color: var(--yard-hud-ink);
 }
 
@@ -1424,9 +1426,7 @@
 .companion-yard-layout .yard-inventory-item,
 .companion-yard-layout .yard-stat {
   border-color: rgba(117, 88, 48, 0.18);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.42), rgba(255, 244, 213, 0.18)),
-    rgba(255, 252, 241, 0.66);
+  background: transparent;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
@@ -1697,9 +1697,7 @@
 .companion-yard-layout .yard-choice-tile,
 .companion-yard-layout .yard-metric-grid span,
 .companion-yard-layout .yard-price-chip {
-  background:
-    linear-gradient(180deg, #fffdf2, #f2e5c6),
-    #fffaf0;
+  background: transparent;
 }
 
 .companion-yard-layout .yard-price-part {
@@ -1739,9 +1737,7 @@
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-choice-tile,
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-metric-grid span,
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-price-chip {
-  background:
-    linear-gradient(180deg, #303927, #20271f),
-    #20271f;
+  background: transparent;
 }
 
 :root[data-ui-theme="dark"] .companion-yard-layout .yard-price-part {
@@ -2070,14 +2066,10 @@
 .companion-yard-layout .yard-shop-row,
 .companion-yard-layout .yard-inventory-item,
 .companion-yard-layout .yard-stat {
-  background:
-    linear-gradient(180deg, rgba(255, 246, 218, 0.88), rgba(239, 201, 139, 0.66)),
-    rgba(250, 227, 178, 0.76) !important;
-  border: 1px solid rgba(99, 63, 32, 0.22) !important;
+  background: transparent !important;
+  border: 0 !important;
   color: #3d2818;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    0 8px 16px rgba(90, 55, 22, 0.12) !important;
+  box-shadow: none !important;
 }
 
 .companion-yard-layout .yard-currency-chip {
@@ -2149,6 +2141,259 @@
   height: 44px !important;
   justify-self: center;
   align-self: center;
+}
+
+/* Generated Yard menu panels: DOM content follows the painted panel slots. */
+.companion-yard-layout .yard-game-screen {
+  --yard-panel-title-top: 6.7%;
+  --yard-panel-content-inset: 17.8% 9.2% 8.4% 9.2%;
+  --yard-screen-bottom-reserve: calc(var(--safe-bottom) + clamp(84px, 11dvh, 104px));
+  --yard-screen-available-height: calc(100dvh - var(--yard-screen-bottom-reserve) - max(8px, var(--safe-top)));
+  width: min(580px, calc(100vw - 44px), calc(var(--yard-screen-available-height) * 0.6667)) !important;
+  height: auto !important;
+  max-height: var(--yard-screen-available-height) !important;
+  aspect-ratio: 2 / 3;
+  bottom: var(--yard-screen-bottom-reserve) !important;
+  padding: 0 !important;
+  overflow: visible;
+}
+
+.companion-yard-layout .yard-screen-header {
+  position: absolute;
+  top: var(--yard-panel-title-top);
+  left: 23%;
+  right: 21%;
+  height: 8.4%;
+  min-height: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+
+.companion-yard-layout .yard-screen-header > div {
+  width: 100%;
+  justify-content: center;
+}
+
+.companion-yard-layout .yard-screen-header > div > .yard-hud-icon {
+  display: none;
+}
+
+.companion-yard-layout .yard-screen-header strong {
+  max-width: 100%;
+  color: #3b2418 !important;
+  font-size: clamp(0.74rem, 3vw, 1.08rem);
+  line-height: 1.05;
+  text-align: center;
+  text-shadow: none;
+}
+
+.companion-yard-layout .yard-screen-header > .yard-icon-button.compact {
+  position: absolute;
+  top: -16%;
+  right: -27%;
+  width: 19%;
+  height: 92%;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.companion-yard-layout .yard-screen-content {
+  position: absolute;
+  inset: var(--yard-panel-content-inset);
+  min-height: 0;
+  padding: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.companion-yard-layout .yard-card,
+.companion-yard-layout .yard-petbook-card,
+.companion-yard-layout .yard-photo-card,
+.companion-yard-layout .yard-shop-row,
+.companion-yard-layout .yard-inventory-item,
+.companion-yard-layout .yard-stat,
+.companion-yard-layout .yard-choice-tile,
+.companion-yard-layout .yard-metric-grid span,
+.companion-yard-layout .yard-price-chip,
+.companion-yard-layout .yard-price-part {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.companion-yard-layout .yard-icon-button[data-label-mode="hidden"] .yard-icon-label {
+  display: none !important;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-screen-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 5.5% 4.8%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-card {
+  display: contents;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-card > strong,
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-bowl-preview {
+  display: none;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-choice-grid {
+  display: contents;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-choice-tile {
+  min-height: 0;
+  padding: 6% 8% 8%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: end;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-choice-tile img {
+  width: min(72%, 72px);
+  height: min(72%, 72px);
+  align-self: center;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="food"] .yard-choice-tile span {
+  max-width: 100%;
+  color: #3b2418;
+  font-size: clamp(0.58rem, 2.2vw, 0.78rem);
+  line-height: 1.05;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="shop"] {
+  --yard-panel-content-inset: 20.4% 10.4% 10.4% 10.4%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="shop"] .yard-screen-grid {
+  display: grid;
+  gap: 4.5%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="shop"] .yard-card {
+  padding: 0;
+  display: grid;
+  gap: 2.3%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="shop"] .yard-card > strong {
+  min-height: 24px;
+  padding-left: 8%;
+  color: #5a3515 !important;
+  font-size: clamp(0.62rem, 2.3vw, 0.76rem);
+  line-height: 1.05;
+}
+
+.companion-yard-layout .yard-shop-row-polished {
+  min-height: 72px;
+  grid-template-columns: 13% minmax(0, 1fr) 36%;
+  gap: 3%;
+  padding: 0;
+}
+
+.companion-yard-layout .yard-shop-copy {
+  gap: 2px;
+}
+
+.companion-yard-layout .yard-shop-copy small {
+  max-height: 2.35em;
+  overflow: hidden;
+}
+
+.companion-yard-layout .yard-shop-purchase {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
+  gap: 5px;
+}
+
+.companion-yard-layout .yard-price-chip {
+  min-width: 0;
+  max-width: none;
+  min-height: 24px;
+  padding: 0;
+}
+
+.companion-yard-layout .yard-row-actions {
+  justify-content: stretch;
+}
+
+.companion-yard-layout .yard-row-actions .yard-button,
+.companion-yard-layout .yard-shop-row-polished .yard-button {
+  width: 100%;
+  min-height: 44px;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="petbook"],
+.companion-yard-layout .yard-game-screen[data-yard-screen="album"] {
+  --yard-panel-content-inset: 17.4% 11.2% 9.2% 11.2%;
+}
+
+.companion-yard-layout .yard-petbook.yard-screen-grid.compact,
+.companion-yard-layout .yard-album.yard-screen-grid.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4.4% 6%;
+}
+
+.companion-yard-layout .yard-petbook-card,
+.companion-yard-layout .yard-photo-card {
+  min-height: 118px;
+  padding: 0;
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  align-items: end;
+  justify-items: center;
+  text-align: center;
+}
+
+.companion-yard-layout .yard-petbook-card img,
+.companion-yard-layout .yard-photo-card img {
+  width: min(70%, 86px);
+  height: min(70%, 86px);
+}
+
+.companion-yard-layout .yard-petbook-card span,
+.companion-yard-layout .yard-photo-card span {
+  width: 100%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="gifts"] {
+  --yard-panel-content-inset: 18.8% 11.2% 9.5% 11.2%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="gifts"] .yard-screen-grid {
+  display: grid;
+  gap: 4%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="gifts"] .yard-card:first-child {
+  min-height: 172px;
+  padding: 4% 6% 0;
+  display: grid;
+  align-content: center;
+  gap: 6%;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="gifts"] .yard-card:first-child > strong {
+  color: #3b2418 !important;
+  text-align: center;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="gifts"] .yard-metric-grid span {
+  min-height: 54px;
+  color: #3b2418;
 }
 
 @media (max-height: 430px) and (orientation: landscape) {

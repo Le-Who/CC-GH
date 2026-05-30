@@ -14,639 +14,639 @@
       ]
     },
     "blox.block_tile_blue": {
-      "signature": "998392a40d0adb0158812c3f0e3327bf5f8872032c7d460c7990d10ca4daf1d8",
+      "signature": "31405a6520bc3d61eabc0db1237099dfc30826caab31e72f4d4ffcea962ea824",
       "item": {
         "type": "image",
-        "width": 140,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_blue.2660aaf4.webp"
+        "width": 335,
+        "height": 346,
+        "src": "/assets-runtime/blox/block_tile_blue.8d8768a4.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_blue.2660aaf4.webp"
+        "/assets-runtime/blox/block_tile_blue.8d8768a4.webp"
       ]
     },
     "blox.block_tile_cyan": {
-      "signature": "0445951faa4dfc4879d5e38a4966fef1d7c28e645ce30152f0bfe615f293f8ec",
+      "signature": "765ea5fb45e846a68b5b983a695eb423ab132b5f8bd8fdafd63684ab817ab665",
       "item": {
         "type": "image",
-        "width": 139,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_cyan.481309e3.webp"
+        "width": 334,
+        "height": 345,
+        "src": "/assets-runtime/blox/block_tile_cyan.6f70ce9c.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_cyan.481309e3.webp"
+        "/assets-runtime/blox/block_tile_cyan.6f70ce9c.webp"
       ]
     },
     "blox.block_tile_gray": {
-      "signature": "f4c38dbea1dd4c05fd588f37896f352ed29524745b13bec951b3971278ce308f",
+      "signature": "33e7ab0af90e1a959e2ec163b798be2f676b68c4e2cc53e9e92d7b1719a1bbe5",
       "item": {
         "type": "image",
-        "width": 140,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_gray.3fa0b48c.webp"
+        "width": 333,
+        "height": 344,
+        "src": "/assets-runtime/blox/block_tile_gray.a12e08db.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_gray.3fa0b48c.webp"
+        "/assets-runtime/blox/block_tile_gray.a12e08db.webp"
       ]
     },
     "blox.block_tile_green": {
-      "signature": "204dbf6a31e4df3589e507705eba4175bcf9bc78690e6df02c6c8d160052c2c9",
+      "signature": "f845e66dcf4cb95e9da03938ed5c0934c8fe3a0ea303ffcd689981f8ebe8a2cb",
       "item": {
         "type": "image",
-        "width": 138,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_green.5fe05e43.webp"
+        "width": 334,
+        "height": 345,
+        "src": "/assets-runtime/blox/block_tile_green.6782fdbf.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_green.5fe05e43.webp"
+        "/assets-runtime/blox/block_tile_green.6782fdbf.webp"
       ]
     },
     "blox.block_tile_orange": {
-      "signature": "eb04d3e9ef6a9cd23148aa3a27d06bb5b558aa624eeebbf8386830a57fb2517b",
+      "signature": "1ae178eda6698b1274802f963f803cdf872657236e91badf1f8f3f40a5b09dcc",
       "item": {
         "type": "image",
-        "width": 140,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_orange.3e8e0a0c.webp"
+        "width": 334,
+        "height": 345,
+        "src": "/assets-runtime/blox/block_tile_orange.c0a3507a.webp"
       },
       "written": [
-        "/assets-runtime/blox/block_tile_orange.3e8e0a0c.webp"
+        "/assets-runtime/blox/block_tile_orange.c0a3507a.webp"
       ]
     },
     "blox.block_tile_pink": {
-      "signature": "5b1d9dcdf94497b0cd0110d92504dbafb531bc5c92a0ff368dae13f9e397898d",
-      "item": {
-        "type": "image",
-        "width": 139,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_pink.d1625a8d.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/block_tile_pink.d1625a8d.webp"
-      ]
-    },
-    "blox.block_tile_purple": {
-      "signature": "c552f0925819de3aec2ac80b2d81bb70c296511c43b3142075af2e8caa79761f",
-      "item": {
-        "type": "image",
-        "width": 139,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_purple.e0a62450.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/block_tile_purple.e0a62450.webp"
-      ]
-    },
-    "blox.block_tile_red": {
-      "signature": "c7c6bbd93e6d0761e5f5acf6c6747984bc29db95452a459ca3964cb9a8a1948b",
-      "item": {
-        "type": "image",
-        "width": 140,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_red.591703e7.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/block_tile_red.591703e7.webp"
-      ]
-    },
-    "blox.block_tile_yellow": {
-      "signature": "271cd2ef53eeb49fb21867fec8e67643e0e8ad4ec8d66b6aa4cf3df236867d01",
-      "item": {
-        "type": "image",
-        "width": 139,
-        "height": 150,
-        "src": "/assets-runtime/blox/block_tile_yellow.3390b1b4.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/block_tile_yellow.3390b1b4.webp"
-      ]
-    },
-    "blox.board_frame": {
-      "signature": "7cd94a565c3237cb1b9ba57a07339f02a6d0be3cc8881dfa3338ac696091469d",
-      "item": {
-        "type": "image",
-        "width": 374,
-        "height": 368,
-        "src": "/assets-runtime/blox/board_frame.67ef8a3b.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/board_frame.67ef8a3b.webp"
-      ]
-    },
-    "blox.button_primary": {
-      "signature": "afade168d751d02ba18ac7e0a58e7283be5905f60399506cfd7652751d10252d",
-      "item": {
-        "type": "image",
-        "width": 343,
-        "height": 199,
-        "src": "/assets-runtime/blox/button_primary.90572a3c.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/button_primary.90572a3c.webp"
-      ]
-    },
-    "blox.button_secondary": {
-      "signature": "edb27b77f4556775d9c5599c60b10e9cb41ed61f8ef12ecaa22af52950cea874",
-      "item": {
-        "type": "image",
-        "width": 326,
-        "height": 199,
-        "src": "/assets-runtime/blox/button_secondary.ff953ac3.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/button_secondary.ff953ac3.webp"
-      ]
-    },
-    "blox.cell_clear_col": {
-      "signature": "712af2237615e6da26ba702491a0a10f113c78b839ccaa9b9481514775c250bb",
-      "item": {
-        "type": "image",
-        "width": 144,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_clear_col.8cff89f4.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_clear_col.8cff89f4.webp"
-      ]
-    },
-    "blox.cell_clear_row": {
-      "signature": "6526906bcbe1e79cc82dc6519e0e0fc2769a613ecd7c231cf87352f615f54ab7",
-      "item": {
-        "type": "image",
-        "width": 146,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_clear_row.70272022.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_clear_row.70272022.webp"
-      ]
-    },
-    "blox.cell_empty": {
-      "signature": "70c3a80e96c8c61896b679efc21cd796b7fc5aaca3d8dba86879b6cd0dd9c08a",
-      "item": {
-        "type": "image",
-        "width": 145,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_empty.1d8960b6.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_empty.1d8960b6.webp"
-      ]
-    },
-    "blox.cell_invalid": {
-      "signature": "3ec649bbfc93fd880db96d93f34424cc7fcc06008e99287c249fcbf979b9331c",
-      "item": {
-        "type": "image",
-        "width": 145,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_invalid.5012e7e8.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_invalid.5012e7e8.webp"
-      ]
-    },
-    "blox.cell_pending": {
-      "signature": "de0939b2e54acf7f322e5825899d62ee86ef8f61f5e9886322700c7f52c91c8d",
-      "item": {
-        "type": "image",
-        "width": 146,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_pending.a794d253.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_pending.a794d253.webp"
-      ]
-    },
-    "blox.cell_selected": {
-      "signature": "b75298a5ebbf368017bbcfb839b4d025a0ad7518d01b2a1a0ec5ceb608e5f920",
-      "item": {
-        "type": "image",
-        "width": 145,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_selected.bdf9849c.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_selected.bdf9849c.webp"
-      ]
-    },
-    "blox.cell_valid": {
-      "signature": "02e75d75063056a1561e27a8c9bbe6481129bca074538b55a953deeb59d84734",
-      "item": {
-        "type": "image",
-        "width": 147,
-        "height": 150,
-        "src": "/assets-runtime/blox/cell_valid.414fba82.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/cell_valid.414fba82.webp"
-      ]
-    },
-    "blox.fx.column_wipe": {
-      "signature": "7969e4ec41fefa7083131a2bf8def078abedeb6e42e64ec46358c2aab7ac63c1",
-      "item": {
-        "type": "image",
-        "width": 104,
-        "height": 337,
-        "src": "/assets-runtime/blox/fx/column_wipe.19be3917.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/column_wipe.19be3917.webp"
-      ]
-    },
-    "blox.fx.invalid_pulse": {
-      "signature": "377adc511a153376dd8e491de82ab4ca434b246ef3ecc60f061a6ad1b4f028e6",
-      "item": {
-        "type": "image",
-        "width": 332,
-        "height": 333,
-        "src": "/assets-runtime/blox/fx/invalid_pulse.48d51c73.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/invalid_pulse.48d51c73.webp"
-      ]
-    },
-    "blox.fx.multi_clear_burst": {
-      "signature": "4a182912646734908870316c13a3a0bb51d1789b60dd9164550244186d154b7b",
-      "item": {
-        "type": "image",
-        "width": 230,
-        "height": 222,
-        "src": "/assets-runtime/blox/fx/multi_clear_burst.702e5a37.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/multi_clear_burst.702e5a37.webp"
-      ]
-    },
-    "blox.fx.place_settle": {
-      "signature": "8318c886886044210280cbc7a0732514ece66ba334dec2d10f7c98ee90a82a43",
-      "item": {
-        "type": "image",
-        "width": 150,
-        "height": 139,
-        "src": "/assets-runtime/blox/fx/place_settle.99a9e49d.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/place_settle.99a9e49d.webp"
-      ]
-    },
-    "blox.fx.reward_spark": {
-      "signature": "0b53fc28c85e939045360c4dc3b1b6199c3753397c500ec0c02871d26da91eb1",
-      "item": {
-        "type": "image",
-        "width": 347,
-        "height": 309,
-        "src": "/assets-runtime/blox/fx/reward_spark.81f804bc.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/reward_spark.81f804bc.webp"
-      ]
-    },
-    "blox.fx.row_wipe": {
-      "signature": "def4a4a86149137492372ad4257e348e5f1ec3ba8df558ee6c0154dd903cbb2b",
-      "item": {
-        "type": "image",
-        "width": 336,
-        "height": 104,
-        "src": "/assets-runtime/blox/fx/row_wipe.1baaf8d0.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/row_wipe.1baaf8d0.webp"
-      ]
-    },
-    "blox.fx.tray_refill": {
-      "signature": "5747faa46773449d4d0cf944b9b61de01712bc83ca0d92ff98d3255eaa47563c",
-      "item": {
-        "type": "image",
-        "width": 318,
-        "height": 300,
-        "src": "/assets-runtime/blox/fx/tray_refill.47115939.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/fx/tray_refill.47115939.webp"
-      ]
-    },
-    "blox.fx.valid_glow": {
-      "signature": "ec3cc8c4ad2fd86560518f8af31ef524380c3a35b6002bdd669c11c3ddefb71a",
+      "signature": "8b9371a28597d8e601fb8228babb30b7c89ba856be73c0f7bb568beb1b99b6b1",
       "item": {
         "type": "image",
         "width": 330,
-        "height": 316,
-        "src": "/assets-runtime/blox/fx/valid_glow.291ca9d6.webp"
+        "height": 344,
+        "src": "/assets-runtime/blox/block_tile_pink.90b0c749.webp"
       },
       "written": [
-        "/assets-runtime/blox/fx/valid_glow.291ca9d6.webp"
+        "/assets-runtime/blox/block_tile_pink.90b0c749.webp"
       ]
     },
-    "blox.grid_shadow": {
-      "signature": "ea8827a8e8d90a61c0c8e10ca6ba462baf4938855fba04ecd6166207655d7aa4",
+    "blox.block_tile_purple": {
+      "signature": "1e2402db14f9e6068d1a29b2ee0596e470e58671b5e5dcf87d7d75026549b882",
       "item": {
         "type": "image",
-        "width": 150,
-        "height": 141,
-        "src": "/assets-runtime/blox/grid_shadow.ff46a5c8.webp"
+        "width": 334,
+        "height": 344,
+        "src": "/assets-runtime/blox/block_tile_purple.e5034e37.webp"
       },
       "written": [
-        "/assets-runtime/blox/grid_shadow.ff46a5c8.webp"
+        "/assets-runtime/blox/block_tile_purple.e5034e37.webp"
       ]
     },
-    "blox.hud_bar": {
-      "signature": "a25299ebcb8ef364bb83ab71fac9ad2c93b289a259d93117724773f8888369ba",
+    "blox.block_tile_red": {
+      "signature": "84bef1b99893284c293efeccb396df579ad0a084a9821fab4242a9b78110b4d3",
       "item": {
         "type": "image",
-        "width": 498,
-        "height": 180,
-        "src": "/assets-runtime/blox/hud_bar.c7c8f5af.webp"
+        "width": 334,
+        "height": 344,
+        "src": "/assets-runtime/blox/block_tile_red.ef2d9d4c.webp"
       },
       "written": [
-        "/assets-runtime/blox/hud_bar.c7c8f5af.webp"
+        "/assets-runtime/blox/block_tile_red.ef2d9d4c.webp"
       ]
     },
-    "blox.icon_exit": {
-      "signature": "b1fc97b326e278d5fef2a2fef163f6a9370114538d6e8afceb9bea0b4a30eb9c",
+    "blox.block_tile_yellow": {
+      "signature": "0cb49f6e0ec81f85bd89b60c355c6f6edcd131dd89c7c01d1c1beb659fd339e7",
       "item": {
         "type": "image",
-        "width": 394,
-        "height": 375,
-        "src": "/assets-runtime/blox/icon_exit.8a50990b.webp"
+        "width": 334,
+        "height": 345,
+        "src": "/assets-runtime/blox/block_tile_yellow.6cc7d67a.webp"
       },
       "written": [
-        "/assets-runtime/blox/icon_exit.8a50990b.webp"
+        "/assets-runtime/blox/block_tile_yellow.6cc7d67a.webp"
       ]
     },
-    "blox.icon_lines": {
-      "signature": "7e6ff28384875bbd10708cd49470f5dc1765d548e7f9b7b2d20df4b4b544da00",
+    "blox.board_frame": {
+      "signature": "c2b6c146efa075b49e311fda46b5281537ef997d8ed82581d4c1d817736ee28b",
+      "item": {
+        "type": "image",
+        "width": 373,
+        "height": 366,
+        "src": "/assets-runtime/blox/board_frame.56a683d4.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/board_frame.56a683d4.webp"
+      ]
+    },
+    "blox.button_primary": {
+      "signature": "00872632ae797087fd4d390056287c0318d91e5f390d7f4c15ff2e31a29fe118",
+      "item": {
+        "type": "image",
+        "width": 342,
+        "height": 197,
+        "src": "/assets-runtime/blox/button_primary.8586c855.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/button_primary.8586c855.webp"
+      ]
+    },
+    "blox.button_secondary": {
+      "signature": "c6cd2ea2027c51daa182e1835323454d633ade0fbed63567e146179aa75c900d",
+      "item": {
+        "type": "image",
+        "width": 324,
+        "height": 197,
+        "src": "/assets-runtime/blox/button_secondary.a36cd6f8.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/button_secondary.a36cd6f8.webp"
+      ]
+    },
+    "blox.cell_clear_col": {
+      "signature": "2342964575aa16b2385b0be5c6de85aa189e3fe61846ca7509ac122bbf212c35",
+      "item": {
+        "type": "image",
+        "width": 298,
+        "height": 306,
+        "src": "/assets-runtime/blox/cell_clear_col.174e14e4.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/cell_clear_col.174e14e4.webp"
+      ]
+    },
+    "blox.cell_clear_row": {
+      "signature": "18b0faa797a8499af51dd9b63cb491f0e95d99d4e197f10c05c4c2f6bb229a6c",
+      "item": {
+        "type": "image",
+        "width": 308,
+        "height": 304,
+        "src": "/assets-runtime/blox/cell_clear_row.b4cf9cb2.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/cell_clear_row.b4cf9cb2.webp"
+      ]
+    },
+    "blox.cell_empty": {
+      "signature": "2f607ebeb06479d3dd1618876a98c44d4b81de82b28f13ecad506d38b26b49d2",
+      "item": {
+        "type": "image",
+        "width": 300,
+        "height": 305,
+        "src": "/assets-runtime/blox/cell_empty.7b2e7b7f.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/cell_empty.7b2e7b7f.webp"
+      ]
+    },
+    "blox.cell_invalid": {
+      "signature": "bae42f38e83304f1859e8cdf02bfe8f93ed166b9a858f2ce6fdfdd3d332e0ba9",
       "item": {
         "type": "image",
         "width": 360,
-        "height": 369,
-        "src": "/assets-runtime/blox/icon_lines.8c99a053.webp"
+        "height": 364,
+        "src": "/assets-runtime/blox/cell_invalid.17f4c5ed.webp"
       },
       "written": [
-        "/assets-runtime/blox/icon_lines.8c99a053.webp"
+        "/assets-runtime/blox/cell_invalid.17f4c5ed.webp"
       ]
     },
-    "blox.icon_restart": {
-      "signature": "545fb774799c5b0b948dee6e7ddffa608aefd7364de7ca9003c58a9844478e3a",
+    "blox.cell_pending": {
+      "signature": "ce1591e4216fb5672793d107509e09fa58289600c5541246f1733e15d4fc96c7",
       "item": {
         "type": "image",
-        "width": 358,
-        "height": 378,
-        "src": "/assets-runtime/blox/icon_restart.1b7fc0b4.webp"
+        "width": 298,
+        "height": 305,
+        "src": "/assets-runtime/blox/cell_pending.d98893d9.webp"
       },
       "written": [
-        "/assets-runtime/blox/icon_restart.1b7fc0b4.webp"
+        "/assets-runtime/blox/cell_pending.d98893d9.webp"
       ]
     },
-    "blox.icon_reward": {
-      "signature": "825fbd70d6f7ba27b44a83e3fa0130e8c454edc544f895e4751c444384b1f191",
+    "blox.cell_selected": {
+      "signature": "49da01dbba7e3bae2065cbee830b8687625e13e2814a3f2023d1d9e54c281972",
       "item": {
         "type": "image",
-        "width": 368,
-        "height": 384,
-        "src": "/assets-runtime/blox/icon_reward.2a290733.webp"
+        "width": 333,
+        "height": 337,
+        "src": "/assets-runtime/blox/cell_selected.cfadb8cf.webp"
       },
       "written": [
-        "/assets-runtime/blox/icon_reward.2a290733.webp"
+        "/assets-runtime/blox/cell_selected.cfadb8cf.webp"
       ]
     },
-    "blox.icon_score": {
-      "signature": "53229bdfe5a055fa3490ea28197ee6f919885e3038cbddf84c4e3c8ea7aa05b9",
+    "blox.cell_valid": {
+      "signature": "75fab800627580aa43a2db8a2f948878ec430e9647a206d6a6c08550f88865d2",
       "item": {
         "type": "image",
-        "width": 368,
-        "height": 380,
-        "src": "/assets-runtime/blox/icon_score.7544ca5b.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/icon_score.7544ca5b.webp"
-      ]
-    },
-    "blox.icon_settle": {
-      "signature": "cf6df5038746841a7b12a4e7243618418cf39fbcb0a05743d7d70fdfff0a1ed2",
-      "item": {
-        "type": "image",
-        "width": 369,
-        "height": 386,
-        "src": "/assets-runtime/blox/icon_settle.1b178f45.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/icon_settle.1b178f45.webp"
-      ]
-    },
-    "blox.pause_panel": {
-      "signature": "6a34b440b1b597839b6b84c7dada5292ba7faf98025194710f46241898fb7160",
-      "item": {
-        "type": "image",
-        "width": 383,
+        "width": 362,
         "height": 365,
-        "src": "/assets-runtime/blox/pause_panel.326856b0.webp"
+        "src": "/assets-runtime/blox/cell_valid.835444d5.webp"
       },
       "written": [
-        "/assets-runtime/blox/pause_panel.326856b0.webp"
+        "/assets-runtime/blox/cell_valid.835444d5.webp"
       ]
     },
-    "blox.piece_dot": {
-      "signature": "69d3c5ce5b6a3ca359b92eff5bdbe19d4739dcc9ac8b37992a5c4f13413b2a45",
+    "blox.fx.column_wipe": {
+      "signature": "3780c4c2f5da256266b79937a9510593c2554cbdad2c277cf6c977aea470f0c2",
       "item": {
         "type": "image",
-        "width": 86,
-        "height": 86,
-        "src": "/assets-runtime/blox/piece_dot.7fd392ae.webp"
+        "width": 136,
+        "height": 406,
+        "src": "/assets-runtime/blox/fx/column_wipe.8efea1a2.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_dot.7fd392ae.webp"
+        "/assets-runtime/blox/fx/column_wipe.8efea1a2.webp"
       ]
     },
-    "blox.piece_h2": {
-      "signature": "109044949e681e4dd31ae14762470823e24acdc62619573fd4bdb3d000ae4ae3",
+    "blox.fx.invalid_pulse": {
+      "signature": "e56db9b5554f5ed7e2001f39bcf37282965287a850d5cc238d7f87eccc1061dc",
       "item": {
         "type": "image",
-        "width": 157,
-        "height": 86,
-        "src": "/assets-runtime/blox/piece_h2.13ed1de5.webp"
+        "width": 328,
+        "height": 331,
+        "src": "/assets-runtime/blox/fx/invalid_pulse.d77cf402.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_h2.13ed1de5.webp"
+        "/assets-runtime/blox/fx/invalid_pulse.d77cf402.webp"
       ]
     },
-    "blox.piece_h3": {
-      "signature": "5407e9105df50526eeefbbc96fbfdcf804be193d41747997c09697a673ce3608",
+    "blox.fx.multi_clear_burst": {
+      "signature": "76d09c404b12b653a68692fb7757251192d7dfab42bab5bbb630ed469c85ad15",
       "item": {
         "type": "image",
-        "width": 228,
-        "height": 86,
-        "src": "/assets-runtime/blox/piece_h3.b5654fd0.webp"
+        "width": 357,
+        "height": 353,
+        "src": "/assets-runtime/blox/fx/multi_clear_burst.1ceb0f35.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_h3.b5654fd0.webp"
+        "/assets-runtime/blox/fx/multi_clear_burst.1ceb0f35.webp"
       ]
     },
-    "blox.piece_i4": {
-      "signature": "a7d8545e2fc7c55c8fa34a49f45ede862b5eeb7c66d13dd35beac1b68add7a56",
+    "blox.fx.place_settle": {
+      "signature": "dab9f2c34180b11a8c6cdd9cc5972038850f9b2e3213fcfedd1d82287eef65b8",
       "item": {
         "type": "image",
-        "width": 299,
-        "height": 86,
-        "src": "/assets-runtime/blox/piece_i4.f17923fc.webp"
+        "width": 314,
+        "height": 320,
+        "src": "/assets-runtime/blox/fx/place_settle.006916f6.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_i4.f17923fc.webp"
+        "/assets-runtime/blox/fx/place_settle.006916f6.webp"
       ]
     },
-    "blox.piece_i5": {
-      "signature": "02604df1efb0ef0666941447f4ff45a8de09a67aee92b1e85ab28b3bbdb74759",
+    "blox.fx.reward_spark": {
+      "signature": "042665bea9ffaf7d70870b561988a6b32d52c5de433abeba663623c1ede5f3f4",
       "item": {
         "type": "image",
-        "width": 370,
-        "height": 86,
-        "src": "/assets-runtime/blox/piece_i5.fc5a7de4.webp"
+        "width": 346,
+        "height": 306,
+        "src": "/assets-runtime/blox/fx/reward_spark.2acf397e.webp"
       },
       "written": [
-        "/assets-runtime/blox/piece_i5.fc5a7de4.webp"
+        "/assets-runtime/blox/fx/reward_spark.2acf397e.webp"
       ]
     },
-    "blox.piece_l3": {
-      "signature": "cdcf07ea29c8fdab4ee77a425c396bf7a6ebff28753a1e6a7323691b53497605",
-      "item": {
-        "type": "image",
-        "width": 157,
-        "height": 157,
-        "src": "/assets-runtime/blox/piece_l3.d822f742.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_l3.d822f742.webp"
-      ]
-    },
-    "blox.piece_l3r": {
-      "signature": "cd4f4bd4f03a25916a476f733df8aa34f001e57cfa889255ca58233eb67a25d8",
-      "item": {
-        "type": "image",
-        "width": 157,
-        "height": 157,
-        "src": "/assets-runtime/blox/piece_l3r.b09ad8c9.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_l3r.b09ad8c9.webp"
-      ]
-    },
-    "blox.piece_s4": {
-      "signature": "1acd99bfb8352d8ca386305b70b8e61f25bd060904cf21ef158822c75677811e",
-      "item": {
-        "type": "image",
-        "width": 228,
-        "height": 157,
-        "src": "/assets-runtime/blox/piece_s4.153e0176.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_s4.153e0176.webp"
-      ]
-    },
-    "blox.piece_sq": {
-      "signature": "a83decd9984d0e672e89fd04efad81e577d4004ea6bdf36fc04ac710c167e121",
-      "item": {
-        "type": "image",
-        "width": 157,
-        "height": 157,
-        "src": "/assets-runtime/blox/piece_sq.f3cdf3ef.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_sq.f3cdf3ef.webp"
-      ]
-    },
-    "blox.piece_t4": {
-      "signature": "dddb95a096a733e6832a65c8c6e648abe29a9846f29108a643a5c019165e122b",
-      "item": {
-        "type": "image",
-        "width": 228,
-        "height": 157,
-        "src": "/assets-runtime/blox/piece_t4.cdf672a5.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_t4.cdf672a5.webp"
-      ]
-    },
-    "blox.piece_v2": {
-      "signature": "5e51ea533a912a759f4f6a5b715747b3aa619870dd6cb3380c64de7ce6f4429f",
-      "item": {
-        "type": "image",
-        "width": 86,
-        "height": 157,
-        "src": "/assets-runtime/blox/piece_v2.78aa6fcd.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_v2.78aa6fcd.webp"
-      ]
-    },
-    "blox.piece_v3": {
-      "signature": "fd1dfe33d96991a1866c0907cab3c774f9d923a6cedb6e7ed8f7baf43b2dda5e",
-      "item": {
-        "type": "image",
-        "width": 86,
-        "height": 228,
-        "src": "/assets-runtime/blox/piece_v3.3936e4aa.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/piece_v3.3936e4aa.webp"
-      ]
-    },
-    "blox.result_panel": {
-      "signature": "2b7f5af3ad4e8f081b9c35d4472156775e98941c19d7c32f15329fa54972fcbf",
-      "item": {
-        "type": "image",
-        "width": 532,
-        "height": 373,
-        "src": "/assets-runtime/blox/result_panel.1cdf4220.webp"
-      },
-      "written": [
-        "/assets-runtime/blox/result_panel.1cdf4220.webp"
-      ]
-    },
-    "blox.tray_panel": {
-      "signature": "4b3b4dc630dde491ea4c72ddd595a4150ad6d4ab4ec3a5f57d1d8511e9f713a7",
+    "blox.fx.row_wipe": {
+      "signature": "8648782a9626a71cb7327a53894e95c6cd34188a17d06c4fc234b4d8820c901d",
       "item": {
         "type": "image",
         "width": 439,
-        "height": 222,
-        "src": "/assets-runtime/blox/tray_panel.abdb75ef.webp"
+        "height": 132,
+        "src": "/assets-runtime/blox/fx/row_wipe.ef2aa701.webp"
       },
       "written": [
-        "/assets-runtime/blox/tray_panel.abdb75ef.webp"
+        "/assets-runtime/blox/fx/row_wipe.ef2aa701.webp"
+      ]
+    },
+    "blox.fx.tray_refill": {
+      "signature": "d12bd2415067a269d58274a32b55dc79e7008d97cfe8aa8d3eaee3635f7229d5",
+      "item": {
+        "type": "image",
+        "width": 317,
+        "height": 300,
+        "src": "/assets-runtime/blox/fx/tray_refill.f0179036.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/fx/tray_refill.f0179036.webp"
+      ]
+    },
+    "blox.fx.valid_glow": {
+      "signature": "86034a0ba14351651cb60dfe3785ce9d793975e8632c8c7c63084f6ee011b31b",
+      "item": {
+        "type": "image",
+        "width": 330,
+        "height": 315,
+        "src": "/assets-runtime/blox/fx/valid_glow.4488ddc3.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/fx/valid_glow.4488ddc3.webp"
+      ]
+    },
+    "blox.grid_shadow": {
+      "signature": "18f362cd2f2436c38ab2371817febf2cc2159791244baa2a3e9ae9a1b27d274b",
+      "item": {
+        "type": "image",
+        "width": 296,
+        "height": 320,
+        "src": "/assets-runtime/blox/grid_shadow.ea28cc53.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/grid_shadow.ea28cc53.webp"
+      ]
+    },
+    "blox.hud_bar": {
+      "signature": "4492ade32378744893f637f05544f819413b5a9805a372806427ccdcd069daa4",
+      "item": {
+        "type": "image",
+        "width": 497,
+        "height": 178,
+        "src": "/assets-runtime/blox/hud_bar.834c7f41.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/hud_bar.834c7f41.webp"
+      ]
+    },
+    "blox.icon_exit": {
+      "signature": "e3ad087e26ba5648a91c4d9413e97aa7e4109bf4290b6051b363c1626ab25482",
+      "item": {
+        "type": "image",
+        "width": 394,
+        "height": 372,
+        "src": "/assets-runtime/blox/icon_exit.a8106d7c.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/icon_exit.a8106d7c.webp"
+      ]
+    },
+    "blox.icon_lines": {
+      "signature": "b14b778d50aa581170168a53afb52d530e8f692686896044d9bda94e40034c80",
+      "item": {
+        "type": "image",
+        "width": 359,
+        "height": 368,
+        "src": "/assets-runtime/blox/icon_lines.90ce2aec.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/icon_lines.90ce2aec.webp"
+      ]
+    },
+    "blox.icon_restart": {
+      "signature": "9a722451f41a450774c02fa11757239e64cb54ef850b12b362521b89ad799b54",
+      "item": {
+        "type": "image",
+        "width": 357,
+        "height": 376,
+        "src": "/assets-runtime/blox/icon_restart.143649d9.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/icon_restart.143649d9.webp"
+      ]
+    },
+    "blox.icon_reward": {
+      "signature": "08654e8ca47e1752d41a219636ce32496b77a1400970710c7f429b26b5bcce84",
+      "item": {
+        "type": "image",
+        "width": 367,
+        "height": 382,
+        "src": "/assets-runtime/blox/icon_reward.f4372898.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/icon_reward.f4372898.webp"
+      ]
+    },
+    "blox.icon_score": {
+      "signature": "4e9e1b2c567c9ed8e52787472d088e136f2ebb15567428c004e2acfdfd0c72e0",
+      "item": {
+        "type": "image",
+        "width": 367,
+        "height": 377,
+        "src": "/assets-runtime/blox/icon_score.a18d4998.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/icon_score.a18d4998.webp"
+      ]
+    },
+    "blox.icon_settle": {
+      "signature": "8a29f85c092dba5a1f628fbc614645492a7b1429785cea672a1b778f7d3517f6",
+      "item": {
+        "type": "image",
+        "width": 369,
+        "height": 384,
+        "src": "/assets-runtime/blox/icon_settle.79e7190d.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/icon_settle.79e7190d.webp"
+      ]
+    },
+    "blox.pause_panel": {
+      "signature": "cb80005c2c62a4816556014b3f6c66702adf92998f8cfec9e9c14853a95e8e5c",
+      "item": {
+        "type": "image",
+        "width": 383,
+        "height": 364,
+        "src": "/assets-runtime/blox/pause_panel.666b5122.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/pause_panel.666b5122.webp"
+      ]
+    },
+    "blox.piece_dot": {
+      "signature": "2c0e4964533181ef338d90e8ee7adef99c645ade8984dfba392d442844bba3a3",
+      "item": {
+        "type": "image",
+        "width": 144,
+        "height": 149,
+        "src": "/assets-runtime/blox/piece_dot.d6ca9d8a.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_dot.d6ca9d8a.webp"
+      ]
+    },
+    "blox.piece_h2": {
+      "signature": "2dc863fa43d37bb1e848b82888d603ef6ed683c1e27261e053e62b63c86c8ba6",
+      "item": {
+        "type": "image",
+        "width": 263,
+        "height": 148,
+        "src": "/assets-runtime/blox/piece_h2.166e939d.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_h2.166e939d.webp"
+      ]
+    },
+    "blox.piece_h3": {
+      "signature": "6f8f668820eb7d9e29985b618efb8030bd01c86f5e548130e355a237e1568f61",
+      "item": {
+        "type": "image",
+        "width": 347,
+        "height": 140,
+        "src": "/assets-runtime/blox/piece_h3.3b233dbd.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_h3.3b233dbd.webp"
+      ]
+    },
+    "blox.piece_i4": {
+      "signature": "0f787c01df5d1763ef707498877d84fdfcbaed686f8d88878e59e23873768f5e",
+      "item": {
+        "type": "image",
+        "width": 314,
+        "height": 116,
+        "src": "/assets-runtime/blox/piece_i4.12b2ae0e.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_i4.12b2ae0e.webp"
+      ]
+    },
+    "blox.piece_i5": {
+      "signature": "47e2de85c4041341be5000dd32fdec916f8e7b74cd9061e5d30d364acb742bc1",
+      "item": {
+        "type": "image",
+        "width": 394,
+        "height": 111,
+        "src": "/assets-runtime/blox/piece_i5.ea479d10.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_i5.ea479d10.webp"
+      ]
+    },
+    "blox.piece_l3": {
+      "signature": "163b3dde1e7f1883b96e11daff4fee0f433c3c6db796b55d60887bfabee84a11",
+      "item": {
+        "type": "image",
+        "width": 242,
+        "height": 249,
+        "src": "/assets-runtime/blox/piece_l3.dfe23581.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_l3.dfe23581.webp"
+      ]
+    },
+    "blox.piece_l3r": {
+      "signature": "6b71457dad8d4ff7a5fba939fcc240b7a2f1c2eed27b77d5ac5416bf5fe4181e",
+      "item": {
+        "type": "image",
+        "width": 235,
+        "height": 247,
+        "src": "/assets-runtime/blox/piece_l3r.ea41686a.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_l3r.ea41686a.webp"
+      ]
+    },
+    "blox.piece_s4": {
+      "signature": "fc9c8739791037c56fd40bf22bdbcbe8fed4014d2d08c49abb150924353ed883",
+      "item": {
+        "type": "image",
+        "width": 271,
+        "height": 202,
+        "src": "/assets-runtime/blox/piece_s4.7edaaa81.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_s4.7edaaa81.webp"
+      ]
+    },
+    "blox.piece_sq": {
+      "signature": "410c331c933420963085cbd8a367a87989448cc99dad4554fdfff309df4f2e01",
+      "item": {
+        "type": "image",
+        "width": 220,
+        "height": 231,
+        "src": "/assets-runtime/blox/piece_sq.ef757476.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_sq.ef757476.webp"
+      ]
+    },
+    "blox.piece_t4": {
+      "signature": "25ebfe7c17d27aff0b1ee51ef63bb12ebe6455750f2a19c6c3fe2e634de4e752",
+      "item": {
+        "type": "image",
+        "width": 312,
+        "height": 226,
+        "src": "/assets-runtime/blox/piece_t4.28769471.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_t4.28769471.webp"
+      ]
+    },
+    "blox.piece_v2": {
+      "signature": "540335d6a8d8c185b369f96b2ac6dfc5a4ca56676b0abb848f1a25ff74d9c6dd",
+      "item": {
+        "type": "image",
+        "width": 136,
+        "height": 260,
+        "src": "/assets-runtime/blox/piece_v2.93f836e6.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_v2.93f836e6.webp"
+      ]
+    },
+    "blox.piece_v3": {
+      "signature": "7b3ae8dc80c1ae0b1081f7aaa1ff1265b05cd11f6203cd2abcc8726378dc5b46",
+      "item": {
+        "type": "image",
+        "width": 133,
+        "height": 335,
+        "src": "/assets-runtime/blox/piece_v3.b8a93d2b.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/piece_v3.b8a93d2b.webp"
+      ]
+    },
+    "blox.result_panel": {
+      "signature": "725570a169cf56b103fc83570b9aa7483316baac956e47ad7c75a0be931ef3a5",
+      "item": {
+        "type": "image",
+        "width": 532,
+        "height": 370,
+        "src": "/assets-runtime/blox/result_panel.af5f1739.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/result_panel.af5f1739.webp"
+      ]
+    },
+    "blox.tray_panel": {
+      "signature": "57e34dc3c69e4b576cbdb5134776324712a05ea3c442efd5a4d1ebc4a804f669",
+      "item": {
+        "type": "image",
+        "width": 438,
+        "height": 221,
+        "src": "/assets-runtime/blox/tray_panel.f77ff17b.webp"
+      },
+      "written": [
+        "/assets-runtime/blox/tray_panel.f77ff17b.webp"
       ]
     },
     "blox.tray_slot_empty": {
-      "signature": "9fa253cdda4c2b0b5ff0f4ac5e8b105c24a0b11a2820d4437d5eb7ef0e831bec",
+      "signature": "a7229e202887b25a22f943f9e7bb58fc6ca86d8f56229af6590f40645b59fe75",
       "item": {
         "type": "image",
-        "width": 256,
-        "height": 150,
-        "src": "/assets-runtime/blox/tray_slot_empty.6565cd09.webp"
+        "width": 303,
+        "height": 314,
+        "src": "/assets-runtime/blox/tray_slot_empty.3f263e29.webp"
       },
       "written": [
-        "/assets-runtime/blox/tray_slot_empty.6565cd09.webp"
+        "/assets-runtime/blox/tray_slot_empty.3f263e29.webp"
       ]
     },
     "blox.tray_slot_selected": {
-      "signature": "93fc2ba0c2f8541668eb5e975f8651e495cb266ec74855b2cd82a50566984ebd",
+      "signature": "0fed5ca65e1be8c9677df861f28ed32ff484a91066ead8b0cf49d22c0ee2ce8f",
       "item": {
         "type": "image",
-        "width": 262,
-        "height": 263,
-        "src": "/assets-runtime/blox/tray_slot_selected.f6ffea4a.webp"
+        "width": 259,
+        "height": 259,
+        "src": "/assets-runtime/blox/tray_slot_selected.8003398d.webp"
       },
       "written": [
-        "/assets-runtime/blox/tray_slot_selected.f6ffea4a.webp"
+        "/assets-runtime/blox/tray_slot_selected.8003398d.webp"
       ]
     },
     "bubbo.background.tile": {
-      "signature": "7594bf7c49f7ef51154ebef5e2c218c85778462d8119c04c692b20fb5afbf5f3",
+      "signature": "540cd2b250896eceb94ef62977d2788f26962d030b700695b4001dd5e5f7f4b5",
       "item": {
         "type": "image",
-        "width": 274,
-        "height": 310,
-        "src": "/assets-runtime/bubbo/tile.56d23444.webp"
+        "width": 273,
+        "height": 309,
+        "src": "/assets-runtime/bubbo/tile.6797c4bc.webp"
       },
       "written": [
-        "/assets-runtime/bubbo/tile.56d23444.webp"
+        "/assets-runtime/bubbo/tile.6797c4bc.webp"
       ]
     },
     "bubbo.background.underwater": {
@@ -674,27 +674,27 @@
       ]
     },
     "bubbo.bottomTray": {
-      "signature": "ad31f971f01b1c71838b867e93a4800e89d90ba0e68952a0fbc942d08d543c1b",
+      "signature": "0181ebfc2fa7381bfcf2b7379ec8ba203723afb0cee56ddb7a13b4c47441d6e1",
       "item": {
         "type": "image",
         "width": 311,
-        "height": 126,
-        "src": "/assets-runtime/bubbo/bottomTray.fb8ab44b.webp"
+        "height": 123,
+        "src": "/assets-runtime/bubbo/bottomTray.44e6a2bc.webp"
       },
       "written": [
-        "/assets-runtime/bubbo/bottomTray.fb8ab44b.webp"
+        "/assets-runtime/bubbo/bottomTray.44e6a2bc.webp"
       ]
     },
     "bubbo.cannon.main": {
-      "signature": "3194c8b25b2f684f483bdcd0fdf5b60aa8b36c7235dd1252d49194bafcc1454b",
+      "signature": "eb8f226d03433468364774a8fccf5da6870fae67bd318b88ee5c3baf453519e6",
       "item": {
         "type": "image",
-        "width": 253,
-        "height": 252,
-        "src": "/assets-runtime/bubbo/main.3470ddad.webp"
+        "width": 252,
+        "height": 250,
+        "src": "/assets-runtime/bubbo/main.2ef8e31e.webp"
       },
       "written": [
-        "/assets-runtime/bubbo/main.3470ddad.webp"
+        "/assets-runtime/bubbo/main.2ef8e31e.webp"
       ]
     },
     "companionYard.backgrounds.meadow": {
@@ -806,75 +806,75 @@
       ]
     },
     "companionYard.expressions.content": {
-      "signature": "c19f04b0f2cc15e87a92604fc490bb16cce96a97f146c0e9e3c0c3a00f7a8c38",
+      "signature": "9c5d530cf4a464fc5e31bb1591114f2fbe49465c3b9f0da31262dbf84aa444d9",
       "item": {
         "type": "image",
         "width": 455,
-        "height": 394,
-        "src": "/assets-runtime/companion-yard/expressions/content.e0165c0f.webp"
+        "height": 393,
+        "src": "/assets-runtime/companion-yard/expressions/content.7f4dc6c9.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/expressions/content.e0165c0f.webp"
+        "/assets-runtime/companion-yard/expressions/content.7f4dc6c9.webp"
       ]
     },
     "companionYard.expressions.ecstatic": {
-      "signature": "7864009178fb3c3cc2a03f5a6c24d8d302b24f9fe4c04778317959b778f7db65",
+      "signature": "09d5710d8ca700a6c8e7af9d22f294149319c4cfb7c834f7e143b03c15451451",
       "item": {
         "type": "image",
         "width": 442,
-        "height": 435,
-        "src": "/assets-runtime/companion-yard/expressions/ecstatic.d70c8d4d.webp"
+        "height": 434,
+        "src": "/assets-runtime/companion-yard/expressions/ecstatic.0644b109.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/expressions/ecstatic.d70c8d4d.webp"
+        "/assets-runtime/companion-yard/expressions/ecstatic.0644b109.webp"
       ]
     },
     "companionYard.expressions.happy": {
-      "signature": "0ea419fc4032bb5ee90f14db292f6902bf91fb71860f9a2ead78abbe89d2ace2",
+      "signature": "b46088fc9976622b813a2b5aa31a5afef730dee880230995316c50056ab21bfa",
       "item": {
         "type": "image",
         "width": 439,
-        "height": 398,
-        "src": "/assets-runtime/companion-yard/expressions/happy.6dc3cd98.webp"
+        "height": 397,
+        "src": "/assets-runtime/companion-yard/expressions/happy.4d99e2b9.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/expressions/happy.6dc3cd98.webp"
+        "/assets-runtime/companion-yard/expressions/happy.4d99e2b9.webp"
       ]
     },
     "companionYard.expressions.miserable": {
-      "signature": "b906f3021a39da4dffd40cae3175db4af8b241af4e3367dbddf53025a93986a9",
+      "signature": "14e2db6182e58974cead1db79314747155ead02a2b12fe51c92f8d1e431fce74",
       "item": {
         "type": "image",
         "width": 402,
-        "height": 446,
-        "src": "/assets-runtime/companion-yard/expressions/miserable.63980a75.webp"
+        "height": 445,
+        "src": "/assets-runtime/companion-yard/expressions/miserable.c52a979c.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/expressions/miserable.63980a75.webp"
+        "/assets-runtime/companion-yard/expressions/miserable.c52a979c.webp"
       ]
     },
     "companionYard.expressions.neutral": {
-      "signature": "ba41ed11c039e48900262d878951ea8e2e88e46ea1f90044105d0b400e7612a8",
+      "signature": "db135c96d6e7f9dc426f2634850f18e17b73e2985474c090b7b57b11ddec678f",
       "item": {
         "type": "image",
         "width": 404,
-        "height": 386,
-        "src": "/assets-runtime/companion-yard/expressions/neutral.4c0a0b88.webp"
+        "height": 385,
+        "src": "/assets-runtime/companion-yard/expressions/neutral.e25e671d.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/expressions/neutral.4c0a0b88.webp"
+        "/assets-runtime/companion-yard/expressions/neutral.e25e671d.webp"
       ]
     },
     "companionYard.expressions.sad": {
-      "signature": "ff21f3b9fcce1ddb4d4055886250b0c123830df16128aaac206537e08f56f917",
+      "signature": "8ce7372a4ca008588c1b12fb537c751b9e73a24403d070974d79fc35247869bf",
       "item": {
         "type": "image",
         "width": 408,
         "height": 383,
-        "src": "/assets-runtime/companion-yard/expressions/sad.3af5c51b.webp"
+        "src": "/assets-runtime/companion-yard/expressions/sad.3c884982.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/expressions/sad.3af5c51b.webp"
+        "/assets-runtime/companion-yard/expressions/sad.3c884982.webp"
       ]
     },
     "companionYard.foods.berry_plate": {
@@ -926,123 +926,123 @@
       ]
     },
     "companionYard.fx.gift_pop": {
-      "signature": "88cc92fbaa1ab2b47c63fd59bfebed5eb9d3c5616033d7fccb2063b6aecd3631",
+      "signature": "3361eb4b88979fb47d2a277e1e780e3209be3c161d8b5101e116ae10ec4dd554",
       "item": {
         "type": "image",
-        "width": 340,
-        "height": 285,
-        "src": "/assets-runtime/companion-yard/fx/gift_pop.4ef063fa.webp"
+        "width": 339,
+        "height": 284,
+        "src": "/assets-runtime/companion-yard/fx/gift_pop.f0f9f8da.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/gift_pop.4ef063fa.webp"
+        "/assets-runtime/companion-yard/fx/gift_pop.f0f9f8da.webp"
       ]
     },
     "companionYard.fx.memento_glow": {
-      "signature": "13e6a276a55991116b3d65a60a9e846b852ff8812d5e1db6b98f5bb9acc9140b",
+      "signature": "ea73dd28ab58acb638cc9e6491ea358a7c6e424850eea44cbb6c0dd39a86ee49",
       "item": {
         "type": "image",
-        "width": 340,
-        "height": 302,
-        "src": "/assets-runtime/companion-yard/fx/memento_glow.5109314a.webp"
+        "width": 339,
+        "height": 299,
+        "src": "/assets-runtime/companion-yard/fx/memento_glow.cf0f08ae.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/memento_glow.5109314a.webp"
+        "/assets-runtime/companion-yard/fx/memento_glow.cf0f08ae.webp"
       ]
     },
     "companionYard.fx.move_goodie": {
-      "signature": "38e28109232e123730ec5f63d0525a9a342a65e76736afc84ed84dc2697fcc9c",
+      "signature": "0c7b7bb17a7be5804bdd9fc1f2d7eb2febf2c2ac1e14569823cb8aa7e0fc08af",
       "item": {
         "type": "image",
-        "width": 300,
-        "height": 280,
-        "src": "/assets-runtime/companion-yard/fx/move_goodie.bd43a07c.webp"
+        "width": 296,
+        "height": 276,
+        "src": "/assets-runtime/companion-yard/fx/move_goodie.61c43d3c.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/move_goodie.bd43a07c.webp"
+        "/assets-runtime/companion-yard/fx/move_goodie.61c43d3c.webp"
       ]
     },
     "companionYard.fx.pending_sync": {
-      "signature": "459c4a0b2e48c257a989f09bc78129efb4e6e3b536e4c0261452f47540b7f092",
+      "signature": "a5b3b279d13af5f0d7baa9f4edae924816b4ec48628c4eecf9eb52ac338002ec",
       "item": {
         "type": "image",
         "width": 311,
         "height": 281,
-        "src": "/assets-runtime/companion-yard/fx/pending_sync.ecc54c4c.webp"
+        "src": "/assets-runtime/companion-yard/fx/pending_sync.f5fa4925.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/pending_sync.ecc54c4c.webp"
+        "/assets-runtime/companion-yard/fx/pending_sync.f5fa4925.webp"
       ]
     },
     "companionYard.fx.photo_flash": {
-      "signature": "f046ef215fa987f3e09e7c221eaa1447575cfe01755563d1601990ac3da08977",
+      "signature": "e6a00ec92445b746328f8f590f14c4410d3e7ce13d6d64e6e665ed6f52ffbd95",
       "item": {
         "type": "image",
         "width": 300,
-        "height": 314,
-        "src": "/assets-runtime/companion-yard/fx/photo_flash.3808dcf8.webp"
+        "height": 312,
+        "src": "/assets-runtime/companion-yard/fx/photo_flash.ecbd482e.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/photo_flash.3808dcf8.webp"
+        "/assets-runtime/companion-yard/fx/photo_flash.ecbd482e.webp"
       ]
     },
     "companionYard.fx.place_goodie": {
-      "signature": "bfe366d1c105256d0740a67b8bdc9d3af36945db34a2e8a5d5d08ac9c3d0230d",
+      "signature": "2f6fba1c8ae964ba0452a52939f27f87635f021ae834112bea53150c865d1236",
       "item": {
         "type": "image",
         "width": 343,
-        "height": 296,
-        "src": "/assets-runtime/companion-yard/fx/place_goodie.74927a5d.webp"
+        "height": 294,
+        "src": "/assets-runtime/companion-yard/fx/place_goodie.3cd090fb.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/place_goodie.74927a5d.webp"
+        "/assets-runtime/companion-yard/fx/place_goodie.3cd090fb.webp"
       ]
     },
     "companionYard.fx.remodel_transition": {
-      "signature": "efb632512209e0acda107975e6cc3bea6642e1f43291c73f5a27262285ddef2e",
+      "signature": "e85800e5f99059cdab1bd08dbb0873c4fae5482309c870ae00ed334f86241abd",
       "item": {
         "type": "image",
         "width": 369,
         "height": 303,
-        "src": "/assets-runtime/companion-yard/fx/remodel_transition.713451e1.webp"
+        "src": "/assets-runtime/companion-yard/fx/remodel_transition.df75d757.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/remodel_transition.713451e1.webp"
+        "/assets-runtime/companion-yard/fx/remodel_transition.df75d757.webp"
       ]
     },
     "companionYard.fx.repair_spark": {
-      "signature": "264b376698d1500d44aad74428218574955beafe25e22b1e4fd79f1b2bc68926",
+      "signature": "043183aba7e5ea046928d4cefaf79ffa3402286715cffdb1d5d46fcaae58c31d",
       "item": {
         "type": "image",
-        "width": 277,
-        "height": 291,
-        "src": "/assets-runtime/companion-yard/fx/repair_spark.42a712da.webp"
+        "width": 276,
+        "height": 290,
+        "src": "/assets-runtime/companion-yard/fx/repair_spark.6b47ece8.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/repair_spark.42a712da.webp"
+        "/assets-runtime/companion-yard/fx/repair_spark.6b47ece8.webp"
       ]
     },
     "companionYard.fx.visitor_arrive": {
-      "signature": "d6edadd81d0dd9191bf985aed0df1f709370186f650bb998e2c3b5c728b9b44f",
+      "signature": "7ff71d65813dfb150d7867b06de72bc70d0f6ae5ba120c64bded4929dab6d219",
       "item": {
         "type": "image",
-        "width": 363,
+        "width": 361,
         "height": 329,
-        "src": "/assets-runtime/companion-yard/fx/visitor_arrive.32b10553.webp"
+        "src": "/assets-runtime/companion-yard/fx/visitor_arrive.5f2d065b.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/visitor_arrive.32b10553.webp"
+        "/assets-runtime/companion-yard/fx/visitor_arrive.5f2d065b.webp"
       ]
     },
     "companionYard.fx.visitor_leave": {
-      "signature": "4a07d949872c0f6cb6abb116843ea56a7315a534d7aea75830c17bc319905802",
+      "signature": "dffb8eb77d6bc5bd595b9fadaa5b7254212c51eba076ae64922d647373240ebc",
       "item": {
         "type": "image",
         "width": 313,
-        "height": 249,
-        "src": "/assets-runtime/companion-yard/fx/visitor_leave.50017f7a.webp"
+        "height": 246,
+        "src": "/assets-runtime/companion-yard/fx/visitor_leave.18ed00af.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/fx/visitor_leave.50017f7a.webp"
+        "/assets-runtime/companion-yard/fx/visitor_leave.18ed00af.webp"
       ]
     },
     "companionYard.goodies.book_nook": {
@@ -1442,171 +1442,171 @@
       ]
     },
     "companionYard.mementos.basil_pebble": {
-      "signature": "007c553b13def7f0652d323888d0c43834b46473b0f8c2af499ddfbf321f19a9",
+      "signature": "f2fa22aa4ee24f427faa2a69482f59bb09c066f6ee0859730e454d600337982b",
       "item": {
         "type": "image",
-        "width": 293,
-        "height": 323,
-        "src": "/assets-runtime/companion-yard/mementos/basil_pebble.744c7aac.webp"
+        "width": 291,
+        "height": 319,
+        "src": "/assets-runtime/companion-yard/mementos/basil_pebble.b5fac1e1.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/basil_pebble.744c7aac.webp"
+        "/assets-runtime/companion-yard/mementos/basil_pebble.b5fac1e1.webp"
       ]
     },
     "companionYard.mementos.mika_bell": {
-      "signature": "6f7688f3d5f875d6c4d65e0399d62cd406f576a4ba81bc905f7fe9dd89be2ac7",
+      "signature": "9ebf4061323b20a4726d93cada47d9ea8e3c2cc30f5c07472e7127d57243fdb4",
       "item": {
         "type": "image",
-        "width": 279,
-        "height": 324,
-        "src": "/assets-runtime/companion-yard/mementos/mika_bell.131a07db.webp"
+        "width": 278,
+        "height": 323,
+        "src": "/assets-runtime/companion-yard/mementos/mika_bell.70307f21.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/mika_bell.131a07db.webp"
+        "/assets-runtime/companion-yard/mementos/mika_bell.70307f21.webp"
       ]
     },
     "companionYard.mementos.mochi_ribbon": {
-      "signature": "72ab679c040617a796a1cd96ec4a56b140f84eb20293642e10ec099f929acfe2",
+      "signature": "fdd30d447041b78d4d789595ee84dbf1a87d08bf32718b2ae479019f551c9264",
       "item": {
         "type": "image",
-        "width": 358,
-        "height": 335,
-        "src": "/assets-runtime/companion-yard/mementos/mochi_ribbon.2ad0fcc9.webp"
+        "width": 357,
+        "height": 333,
+        "src": "/assets-runtime/companion-yard/mementos/mochi_ribbon.0b71028f.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/mochi_ribbon.2ad0fcc9.webp"
+        "/assets-runtime/companion-yard/mementos/mochi_ribbon.0b71028f.webp"
       ]
     },
     "companionYard.mementos.pebble_tag": {
-      "signature": "ac8fb618af9a6bdc1789a9ee72adc80b2551afb9d24176c5b10d32c08134093b",
+      "signature": "ff48c2816329b206586538efe17dc20617db058bb9997e2ccfb09d63accb39b7",
       "item": {
         "type": "image",
-        "width": 300,
-        "height": 382,
-        "src": "/assets-runtime/companion-yard/mementos/pebble_tag.b48f5543.webp"
+        "width": 298,
+        "height": 379,
+        "src": "/assets-runtime/companion-yard/mementos/pebble_tag.ae2ed553.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/pebble_tag.b48f5543.webp"
+        "/assets-runtime/companion-yard/mementos/pebble_tag.ae2ed553.webp"
       ]
     },
     "companionYard.mementos.pip_seed": {
-      "signature": "f76423d6e2599a1888d35688dbb8cc8054238134922d2c327aada8409f810525",
+      "signature": "55c157d53e4865e7ff7919d497f1270742bd80c9b9a7164ac407aa2ddcda3a47",
       "item": {
         "type": "image",
         "width": 275,
-        "height": 334,
-        "src": "/assets-runtime/companion-yard/mementos/pip_seed.28b27199.webp"
+        "height": 331,
+        "src": "/assets-runtime/companion-yard/mementos/pip_seed.ceaa7872.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/pip_seed.28b27199.webp"
+        "/assets-runtime/companion-yard/mementos/pip_seed.ceaa7872.webp"
       ]
     },
     "companionYard.mementos.sage_shell_chip": {
-      "signature": "c01cab878692ff503801073b3e4e770ef01845f9ad89e0e9bd083cada5280110",
+      "signature": "127dcc2ffac0fa0a250b402f222aa1a11680618e11883884099516fe5073fb6e",
       "item": {
         "type": "image",
-        "width": 273,
-        "height": 320,
-        "src": "/assets-runtime/companion-yard/mementos/sage_shell_chip.84adfed4.webp"
+        "width": 271,
+        "height": 319,
+        "src": "/assets-runtime/companion-yard/mementos/sage_shell_chip.2271eedc.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/sage_shell_chip.84adfed4.webp"
+        "/assets-runtime/companion-yard/mementos/sage_shell_chip.2271eedc.webp"
       ]
     },
     "companionYard.mementos.starlit_charm": {
-      "signature": "4264f6678e168322f3a9a61d786f12a21c544e1b6e59619ec41b502bb67a2085",
+      "signature": "01c63c68f20b9f19ee68347901b6aa5a69e7dd96d945ea054550fb97f9dd24a7",
       "item": {
         "type": "image",
         "width": 296,
-        "height": 334,
-        "src": "/assets-runtime/companion-yard/mementos/starlit_charm.bc189883.webp"
+        "height": 333,
+        "src": "/assets-runtime/companion-yard/mementos/starlit_charm.8efe1f90.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/starlit_charm.bc189883.webp"
+        "/assets-runtime/companion-yard/mementos/starlit_charm.8efe1f90.webp"
       ]
     },
     "companionYard.mementos.willow_leaf": {
-      "signature": "6f60a0e6f900726d2d5ba543c6c23a6cbea21557278c95721222abac4dbd7684",
+      "signature": "688e48c6f6d14c19b97b2e000747ff8ee8db802cdf5e7a85107c35d913add2f4",
       "item": {
         "type": "image",
         "width": 233,
         "height": 340,
-        "src": "/assets-runtime/companion-yard/mementos/willow_leaf.7d1439ee.webp"
+        "src": "/assets-runtime/companion-yard/mementos/willow_leaf.dacad5ce.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/mementos/willow_leaf.7d1439ee.webp"
+        "/assets-runtime/companion-yard/mementos/willow_leaf.dacad5ce.webp"
       ]
     },
     "companionYard.ui.activity_pill": {
-      "signature": "e9a515622c2a5c12c9ab4a7c9307a14efca784f2cc0a2c116be646aecca4778c",
+      "signature": "1af2f54cc34533a7674c81094bed9f7baa42df5cfa119aab56a3ef89b5b618e2",
       "item": {
         "type": "image",
-        "width": 269,
-        "height": 157,
-        "src": "/assets-runtime/companion-yard/ui/activity_pill.47f4d89e.webp"
+        "width": 267,
+        "height": 155,
+        "src": "/assets-runtime/companion-yard/ui/activity_pill.8650483a.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/activity_pill.47f4d89e.webp"
+        "/assets-runtime/companion-yard/ui/activity_pill.8650483a.webp"
       ]
     },
     "companionYard.ui.bottom_dock": {
-      "signature": "b5ed21f426f8325a4ba6b523f71bd34cf5716e17dc9165a0c6e54c4db10062e1",
+      "signature": "8eda475a7307518fbf7b943301528bbd917d2ef3947e249c4df1228020f1741c",
       "item": {
         "type": "image",
-        "width": 415,
-        "height": 185,
-        "src": "/assets-runtime/companion-yard/ui/bottom_dock.57d3e7bd.webp"
+        "width": 414,
+        "height": 183,
+        "src": "/assets-runtime/companion-yard/ui/bottom_dock.84ebfb32.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/bottom_dock.57d3e7bd.webp"
+        "/assets-runtime/companion-yard/ui/bottom_dock.84ebfb32.webp"
       ]
     },
     "companionYard.ui.button_small_empty": {
-      "signature": "7fca378906a992b5690c68d335e94c410d236ae0b4f30281867073234ef6fb90",
+      "signature": "231bbdb16cc3887af1b314a8c4b1adbfe263351fe4e7809c2d30ed76d253f941",
       "item": {
         "type": "image",
         "width": 182,
-        "height": 122,
-        "src": "/assets-runtime/companion-yard/ui/button_small_empty.2ae67052.webp"
+        "height": 121,
+        "src": "/assets-runtime/companion-yard/ui/button_small_empty.6c8d7981.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/button_small_empty.2ae67052.webp"
+        "/assets-runtime/companion-yard/ui/button_small_empty.6c8d7981.webp"
       ]
     },
     "companionYard.ui.daily_letter": {
-      "signature": "fb7a108d4cead68865cfe44d236da11e785813ff35eb75719e453bf31be50094",
+      "signature": "1c7892bf8254b026a4d3d828980b08e9f313257eeaf47b9ad3426e0cf1c41201",
       "item": {
         "type": "image",
         "width": 260,
-        "height": 225,
-        "src": "/assets-runtime/companion-yard/ui/daily_letter.f78cbb8d.webp"
+        "height": 223,
+        "src": "/assets-runtime/companion-yard/ui/daily_letter.9db01b1d.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/daily_letter.f78cbb8d.webp"
+        "/assets-runtime/companion-yard/ui/daily_letter.9db01b1d.webp"
       ]
     },
     "companionYard.ui.gift_box": {
-      "signature": "766b0d161aa59493851fcbeab5c917db9f51079ed88857fefcbaa152049789f0",
+      "signature": "4b82304665010f5a75f3a3bd7eeeac5ade8b389e0ee7f5ee98a795e4b900ecce",
       "item": {
         "type": "image",
-        "width": 236,
-        "height": 263,
-        "src": "/assets-runtime/companion-yard/ui/gift_box.dd3fbb8d.webp"
+        "width": 235,
+        "height": 262,
+        "src": "/assets-runtime/companion-yard/ui/gift_box.051f4067.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/gift_box.dd3fbb8d.webp"
+        "/assets-runtime/companion-yard/ui/gift_box.051f4067.webp"
       ]
     },
     "companionYard.ui.gift_ready": {
-      "signature": "5207ad9eac987cbd5b038c9da9e25a3590de475043b9708b51f7304db23fdd0f",
+      "signature": "7869d619d46cde8baf97793022e13cd8b61f189112094399c520ec8884013c89",
       "item": {
         "type": "image",
-        "width": 270,
-        "height": 290,
-        "src": "/assets-runtime/companion-yard/ui/gift_ready.829f1930.webp"
+        "width": 269,
+        "height": 289,
+        "src": "/assets-runtime/companion-yard/ui/gift_ready.89599398.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/gift_ready.829f1930.webp"
+        "/assets-runtime/companion-yard/ui/gift_ready.89599398.webp"
       ]
     },
     "companionYard.ui.hudSheet": {
@@ -1622,123 +1622,123 @@
       ]
     },
     "companionYard.ui.panel_album": {
-      "signature": "97c8c5158561699c0518b3d5e98422167cfa235d77d4b476b3913f1e6e79a525",
+      "signature": "583565d36db6d05b155a0e91f89549c5045d5e220d9451a64f46d5ce788ed4ce",
       "item": {
         "type": "image",
         "width": 309,
-        "height": 277,
-        "src": "/assets-runtime/companion-yard/ui/panel_album.0337d271.webp"
+        "height": 275,
+        "src": "/assets-runtime/companion-yard/ui/panel_album.d58ba8e7.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_album.0337d271.webp"
+        "/assets-runtime/companion-yard/ui/panel_album.d58ba8e7.webp"
       ]
     },
     "companionYard.ui.panel_food": {
-      "signature": "06ead6cedfa22b49eb7aca8117cdaf37985e6e6a5f57e9692039cda59a4f1396",
+      "signature": "d642ba580d008d57f5a7ab095e5a6d694ca02a29fe7c208cd72586451b797df7",
       "item": {
         "type": "image",
-        "width": 294,
-        "height": 249,
-        "src": "/assets-runtime/companion-yard/ui/panel_food.58c28a63.webp"
+        "width": 293,
+        "height": 248,
+        "src": "/assets-runtime/companion-yard/ui/panel_food.90a45508.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_food.58c28a63.webp"
+        "/assets-runtime/companion-yard/ui/panel_food.90a45508.webp"
       ]
     },
     "companionYard.ui.panel_gifts": {
-      "signature": "190bcadc13a20ffa3d9b1fe7f053274305054f88f4934b8588135951c086ac5a",
+      "signature": "841ed97fd48126f9a9aba4b4534d630bef62065ce3e5097dfd00d891f94bd1f7",
       "item": {
         "type": "image",
-        "width": 278,
-        "height": 271,
-        "src": "/assets-runtime/companion-yard/ui/panel_gifts.e30f20aa.webp"
+        "width": 277,
+        "height": 269,
+        "src": "/assets-runtime/companion-yard/ui/panel_gifts.af1d274d.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_gifts.e30f20aa.webp"
+        "/assets-runtime/companion-yard/ui/panel_gifts.af1d274d.webp"
       ]
     },
     "companionYard.ui.panel_goodies": {
-      "signature": "908de8f7e9bd138e9ecfe07f66885b9e0989f52c26f6df49815d309f9ca760ce",
+      "signature": "6dec8f4b6e2a087f3f9274e070593f1c47287cf64ce772c0273487503faedf17",
       "item": {
         "type": "image",
         "width": 299,
-        "height": 263,
-        "src": "/assets-runtime/companion-yard/ui/panel_goodies.8d2e446f.webp"
+        "height": 262,
+        "src": "/assets-runtime/companion-yard/ui/panel_goodies.6a25992c.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_goodies.8d2e446f.webp"
+        "/assets-runtime/companion-yard/ui/panel_goodies.6a25992c.webp"
       ]
     },
     "companionYard.ui.panel_petbook": {
-      "signature": "a5e5f3070f48e3a80701849580b1f1ff9af2d81f3e9bdb365bd4737dab60f4d7",
+      "signature": "ef3461d2e2b9735561bd06fb323b40c426b086d2181acc4ba2ad110f1a1e5478",
       "item": {
         "type": "image",
-        "width": 244,
-        "height": 286,
-        "src": "/assets-runtime/companion-yard/ui/panel_petbook.d1e7934e.webp"
+        "width": 243,
+        "height": 285,
+        "src": "/assets-runtime/companion-yard/ui/panel_petbook.70979def.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_petbook.d1e7934e.webp"
+        "/assets-runtime/companion-yard/ui/panel_petbook.70979def.webp"
       ]
     },
     "companionYard.ui.panel_settings": {
-      "signature": "ceed304b333b2e06c5e2b239855958a89d07bc0653517f334be687cb5a12ef58",
+      "signature": "08640dcde2dc1df2da8a0abea3da4656a4f222e8a3555d874fcee4296b3365cf",
       "item": {
         "type": "image",
-        "width": 239,
+        "width": 238,
         "height": 228,
-        "src": "/assets-runtime/companion-yard/ui/panel_settings.a7f72dde.webp"
+        "src": "/assets-runtime/companion-yard/ui/panel_settings.03cd23d0.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_settings.a7f72dde.webp"
+        "/assets-runtime/companion-yard/ui/panel_settings.03cd23d0.webp"
       ]
     },
     "companionYard.ui.panel_shop": {
-      "signature": "7456ee2cc4488f19f31a4469e098521e183e83b1be4eb6880bef62a4073f0460",
+      "signature": "865e55430cef4774a7a7c6fde7b20cefb558b1245a2f8ce792e5e11e08489c5f",
       "item": {
         "type": "image",
-        "width": 300,
-        "height": 284,
-        "src": "/assets-runtime/companion-yard/ui/panel_shop.49cc7f81.webp"
+        "width": 298,
+        "height": 282,
+        "src": "/assets-runtime/companion-yard/ui/panel_shop.019a5e4f.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/panel_shop.49cc7f81.webp"
+        "/assets-runtime/companion-yard/ui/panel_shop.019a5e4f.webp"
       ]
     },
     "companionYard.ui.photo_favorite": {
-      "signature": "ddea1b595a36379dccc84fdb0c6e636d84499a17a24966b588747fd56b687d2c",
+      "signature": "54436409da05e2c039f623d29a27ec1343d8633896e6317bdcba5ec67d6bd716",
       "item": {
         "type": "image",
-        "width": 247,
-        "height": 259,
-        "src": "/assets-runtime/companion-yard/ui/photo_favorite.8d812841.webp"
+        "width": 246,
+        "height": 258,
+        "src": "/assets-runtime/companion-yard/ui/photo_favorite.75b280d4.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/photo_favorite.8d812841.webp"
+        "/assets-runtime/companion-yard/ui/photo_favorite.75b280d4.webp"
       ]
     },
     "companionYard.ui.photo_frame": {
-      "signature": "590f41cbc673121c8769e7277ac0820a164d127659b62f261c054b14fe2a1244",
+      "signature": "74dd66b0e8d07d68d2de91efaa7c27b9656ba539d58956e6bd2adcf371907ee5",
       "item": {
         "type": "image",
-        "width": 250,
-        "height": 260,
-        "src": "/assets-runtime/companion-yard/ui/photo_frame.8b9b2a8e.webp"
+        "width": 249,
+        "height": 259,
+        "src": "/assets-runtime/companion-yard/ui/photo_frame.6d2e847d.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/photo_frame.8b9b2a8e.webp"
+        "/assets-runtime/companion-yard/ui/photo_frame.6d2e847d.webp"
       ]
     },
     "companionYard.ui.stamp": {
-      "signature": "b08332581d96051f399ae80b0b0fb6c072f13745f0fc036d6b270aa821593773",
+      "signature": "7dfb677bd43cae17287b55e0b5e19ca244ef966f82feb7bc78f2ab2cd7536a67",
       "item": {
         "type": "image",
-        "width": 178,
-        "height": 262,
-        "src": "/assets-runtime/companion-yard/ui/stamp.b7f30930.webp"
+        "width": 177,
+        "height": 261,
+        "src": "/assets-runtime/companion-yard/ui/stamp.6a76f6c8.webp"
       },
       "written": [
-        "/assets-runtime/companion-yard/ui/stamp.b7f30930.webp"
+        "/assets-runtime/companion-yard/ui/stamp.6a76f6c8.webp"
       ]
     },
     "companionYard.visitors.basil_turtle": {
@@ -2138,567 +2138,567 @@
       ]
     },
     "farm.crops.blueberry_growing": {
-      "signature": "36091b6073b506f5a2746fbfcba2f05949e5bd6ede7351e80ff97c08cee20d90",
+      "signature": "73045f183b3e038a818632e51a1f67e1fa1f7ea52bd6ac87c8ac4e490aaa120d",
       "item": {
         "type": "image",
         "width": 263,
         "height": 234,
-        "src": "/assets-runtime/farm/crops/blueberry_growing.933fc882.webp"
+        "src": "/assets-runtime/farm/crops/blueberry_growing.334591e3.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/blueberry_growing.933fc882.webp"
+        "/assets-runtime/farm/crops/blueberry_growing.334591e3.webp"
       ]
     },
     "farm.crops.blueberry_ready": {
-      "signature": "218322f6b68e9c3114da34470ba8c511d21a860b916c35c99271d0b9a91573dc",
+      "signature": "db14d397e119394a7899dec6bec95359acd51d0537b4d6f51b53597cd2919c53",
       "item": {
         "type": "image",
         "width": 294,
         "height": 247,
-        "src": "/assets-runtime/farm/crops/blueberry_ready.58581c97.webp"
+        "src": "/assets-runtime/farm/crops/blueberry_ready.7bae8b40.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/blueberry_ready.58581c97.webp"
+        "/assets-runtime/farm/crops/blueberry_ready.7bae8b40.webp"
       ]
     },
     "farm.crops.blueberry_seed": {
-      "signature": "3295c797650adfbf95b2dcad82da8f2024852bda71b9823424d557c85203eefb",
+      "signature": "30746fc6ffc8615e93c410b54734e3436575b7a55bbea0cdd325c62d23510c46",
       "item": {
         "type": "image",
         "width": 128,
         "height": 68,
-        "src": "/assets-runtime/farm/crops/blueberry_seed.185e3f53.webp"
+        "src": "/assets-runtime/farm/crops/blueberry_seed.26a13ab4.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/blueberry_seed.185e3f53.webp"
+        "/assets-runtime/farm/crops/blueberry_seed.26a13ab4.webp"
       ]
     },
     "farm.crops.blueberry_sprout": {
-      "signature": "7d3fa83e9d1468f223870d1255ff921d80462d21017060b28bf69916c3cc3ca6",
+      "signature": "7384b7bfc9767493dc15fcc06748ba6f2f6eba8ff1e249b43112acdbaecb8879",
       "item": {
         "type": "image",
         "width": 141,
         "height": 178,
-        "src": "/assets-runtime/farm/crops/blueberry_sprout.efc14292.webp"
+        "src": "/assets-runtime/farm/crops/blueberry_sprout.371db3c0.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/blueberry_sprout.efc14292.webp"
+        "/assets-runtime/farm/crops/blueberry_sprout.371db3c0.webp"
       ]
     },
     "farm.crops.corn_growing": {
-      "signature": "05f797110a7f23086c4e2ceeb1ab1b3bba4c6785db6dc3176dd8db1701904136",
+      "signature": "fc27e2b86bd87b907f3209da97761bf5ee475a07533e53acced9aed562c08cf8",
       "item": {
         "type": "image",
-        "width": 224,
-        "height": 267,
-        "src": "/assets-runtime/farm/crops/corn_growing.db2d4595.webp"
+        "width": 223,
+        "height": 266,
+        "src": "/assets-runtime/farm/crops/corn_growing.6eb1707b.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/corn_growing.db2d4595.webp"
+        "/assets-runtime/farm/crops/corn_growing.6eb1707b.webp"
       ]
     },
     "farm.crops.corn_ready": {
-      "signature": "313c1fcddf135e8bf3b4acf11fce1f4d3ccf2d3a6b713c32488a78f2043279d0",
+      "signature": "a65f82985f025eca86d00ef0f4c98bc0fc35b63c67f82e14100cac724f243a1b",
       "item": {
         "type": "image",
         "width": 240,
-        "height": 287,
-        "src": "/assets-runtime/farm/crops/corn_ready.092cce36.webp"
+        "height": 286,
+        "src": "/assets-runtime/farm/crops/corn_ready.2a1a7a2e.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/corn_ready.092cce36.webp"
+        "/assets-runtime/farm/crops/corn_ready.2a1a7a2e.webp"
       ]
     },
     "farm.crops.corn_seed": {
-      "signature": "e0d5278884a21775e0732e3dbef0d778cd317275daff495f6b780eec6a399af1",
+      "signature": "f69cc892638448d22218d7bfc31b129361057c034a8c31f26fa090cdf2555a76",
       "item": {
         "type": "image",
-        "width": 164,
-        "height": 112,
-        "src": "/assets-runtime/farm/crops/corn_seed.a6491965.webp"
+        "width": 163,
+        "height": 110,
+        "src": "/assets-runtime/farm/crops/corn_seed.f38f1ede.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/corn_seed.a6491965.webp"
+        "/assets-runtime/farm/crops/corn_seed.f38f1ede.webp"
       ]
     },
     "farm.crops.corn_sprout": {
-      "signature": "2a8349384c6b3b02081dd15598ae239a12bed42ca88d15b2eb7038ba01967c7d",
+      "signature": "319a651cb3990b2a41ec263c0a8720990c31e11f963aefab6a46f660735ecfd4",
       "item": {
         "type": "image",
-        "width": 158,
-        "height": 174,
-        "src": "/assets-runtime/farm/crops/corn_sprout.e75eba50.webp"
+        "width": 157,
+        "height": 172,
+        "src": "/assets-runtime/farm/crops/corn_sprout.e52fb4ac.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/corn_sprout.e75eba50.webp"
+        "/assets-runtime/farm/crops/corn_sprout.e52fb4ac.webp"
       ]
     },
     "farm.crops.golden_rose_growing": {
-      "signature": "4c6371145022e4d544bbd80ba4a5152a1a456095f1041c0f44967a08f30f068e",
+      "signature": "568c856a485e6df110d95b25766f07135dcfd4b96b125393ddf33a9327b0fc8b",
       "item": {
         "type": "image",
         "width": 268,
-        "height": 274,
-        "src": "/assets-runtime/farm/crops/golden_rose_growing.5d1a6c52.webp"
+        "height": 273,
+        "src": "/assets-runtime/farm/crops/golden_rose_growing.e52ee755.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/golden_rose_growing.5d1a6c52.webp"
+        "/assets-runtime/farm/crops/golden_rose_growing.e52ee755.webp"
       ]
     },
     "farm.crops.golden_rose_ready": {
-      "signature": "65ab79803df3af2b367e1f9a503fbdf318be0418837af097357ed9c515212ffc",
+      "signature": "6e6b68cb0d62d0f49d9e1560719d19c01be7fb426a4c103b9d90e5c2c53d1476",
       "item": {
         "type": "image",
         "width": 302,
-        "height": 294,
-        "src": "/assets-runtime/farm/crops/golden_rose_ready.170e725b.webp"
+        "height": 293,
+        "src": "/assets-runtime/farm/crops/golden_rose_ready.43a0e276.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/golden_rose_ready.170e725b.webp"
+        "/assets-runtime/farm/crops/golden_rose_ready.43a0e276.webp"
       ]
     },
     "farm.crops.golden_rose_seed": {
-      "signature": "8c0a51dbd2894a15b3a01dfd3e23332834aa5cc139704b068ea0ef7e96a9c21a",
+      "signature": "286abaa37e40d9ef1c78591e466a9138eae3b982c8307c1e788d6f52220d3533",
       "item": {
         "type": "image",
-        "width": 137,
-        "height": 84,
-        "src": "/assets-runtime/farm/crops/golden_rose_seed.577522c3.webp"
+        "width": 136,
+        "height": 83,
+        "src": "/assets-runtime/farm/crops/golden_rose_seed.ced0fdfe.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/golden_rose_seed.577522c3.webp"
+        "/assets-runtime/farm/crops/golden_rose_seed.ced0fdfe.webp"
       ]
     },
     "farm.crops.golden_rose_sprout": {
-      "signature": "45ee84f05d22de8825568017f2f7979af1793e5b9da71d19b26a584415c402d8",
+      "signature": "d66590fa2a267f858ff8f65e67a668f8cef1b24855d864dc09c05c2741e86bb9",
       "item": {
         "type": "image",
         "width": 154,
         "height": 187,
-        "src": "/assets-runtime/farm/crops/golden_rose_sprout.dbc843ec.webp"
+        "src": "/assets-runtime/farm/crops/golden_rose_sprout.a24c8584.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/golden_rose_sprout.dbc843ec.webp"
+        "/assets-runtime/farm/crops/golden_rose_sprout.a24c8584.webp"
       ]
     },
     "farm.crops.pumpkin_growing": {
-      "signature": "0bd48a16179cba73ab669a1cfbd0385c064721bec5b74ad72dddd1566027511e",
+      "signature": "6f626cd47c5f8e6def9c02954ccf3663e808cc3bee3265c7cd812c8356d31693",
       "item": {
         "type": "image",
         "width": 288,
-        "height": 226,
-        "src": "/assets-runtime/farm/crops/pumpkin_growing.5c5ad4c8.webp"
+        "height": 225,
+        "src": "/assets-runtime/farm/crops/pumpkin_growing.b7d35b38.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/pumpkin_growing.5c5ad4c8.webp"
+        "/assets-runtime/farm/crops/pumpkin_growing.b7d35b38.webp"
       ]
     },
     "farm.crops.pumpkin_ready": {
-      "signature": "7183d32b593ca554036c06d552152173ffffd2083390dfad4ef68ccac5456689",
+      "signature": "5aaa67f1f09a954a2a29cca62ae878a8c7772490936d970a4708904425526a0d",
       "item": {
         "type": "image",
-        "width": 344,
-        "height": 238,
-        "src": "/assets-runtime/farm/crops/pumpkin_ready.1fb3d295.webp"
+        "width": 343,
+        "height": 237,
+        "src": "/assets-runtime/farm/crops/pumpkin_ready.83c9ab13.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/pumpkin_ready.1fb3d295.webp"
+        "/assets-runtime/farm/crops/pumpkin_ready.83c9ab13.webp"
       ]
     },
     "farm.crops.pumpkin_seed": {
-      "signature": "0058decb3e06d732e285f9fed609c371dcacae1a647eb275f4b8074976d057b8",
+      "signature": "55b7c4c28300adc1774b58702e5e40ef64f7fc24fad358eba97c632d60d5340e",
       "item": {
         "type": "image",
         "width": 128,
-        "height": 98,
-        "src": "/assets-runtime/farm/crops/pumpkin_seed.2a828ff6.webp"
+        "height": 97,
+        "src": "/assets-runtime/farm/crops/pumpkin_seed.4df9be73.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/pumpkin_seed.2a828ff6.webp"
+        "/assets-runtime/farm/crops/pumpkin_seed.4df9be73.webp"
       ]
     },
     "farm.crops.pumpkin_sprout": {
-      "signature": "b63299a2283cda7e4100ff02506e642db11814a6074fc9bf61ac24a5be551da7",
+      "signature": "04ff5b5c01573afabd896e928ff3149b352eb5f54c8b5487550bef252d14a5a9",
       "item": {
         "type": "image",
         "width": 175,
         "height": 152,
-        "src": "/assets-runtime/farm/crops/pumpkin_sprout.6f3585a0.webp"
+        "src": "/assets-runtime/farm/crops/pumpkin_sprout.db57cc63.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/pumpkin_sprout.6f3585a0.webp"
+        "/assets-runtime/farm/crops/pumpkin_sprout.db57cc63.webp"
       ]
     },
     "farm.crops.strawberry_growing": {
-      "signature": "de8d17475403ac0419dc4a798978942a0ea13f4c315890c34dd8d1eb9b3c250a",
+      "signature": "4dc298f677577d4eadb68584ccb999dc5926737bf2b9ed95ccb5f61b1b2680bd",
       "item": {
         "type": "image",
-        "width": 258,
-        "height": 221,
-        "src": "/assets-runtime/farm/crops/strawberry_growing.c3ac68eb.webp"
+        "width": 257,
+        "height": 220,
+        "src": "/assets-runtime/farm/crops/strawberry_growing.868fbadd.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/strawberry_growing.c3ac68eb.webp"
+        "/assets-runtime/farm/crops/strawberry_growing.868fbadd.webp"
       ]
     },
     "farm.crops.strawberry_ready": {
-      "signature": "4653737f0f39a1e17bcdccd2efdb65339a810183b67570ef2eb1b3db16cf47b0",
+      "signature": "7f84276e8bf10497010ec88b61c79682509754667bece4b9dc6714bd67f0ef9b",
       "item": {
         "type": "image",
-        "width": 300,
+        "width": 299,
         "height": 264,
-        "src": "/assets-runtime/farm/crops/strawberry_ready.a598e7a1.webp"
+        "src": "/assets-runtime/farm/crops/strawberry_ready.0074f8ae.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/strawberry_ready.a598e7a1.webp"
+        "/assets-runtime/farm/crops/strawberry_ready.0074f8ae.webp"
       ]
     },
     "farm.crops.strawberry_seed": {
-      "signature": "a98bbc89ec0aa41d915f93e5bd4d46c126fca516c80c5eee3be5d1d2579c80a5",
+      "signature": "a3f61490b0804fb71289717c633c966be66abe09dfcb41b19de8ee67c1c33210",
       "item": {
         "type": "image",
         "width": 161,
         "height": 89,
-        "src": "/assets-runtime/farm/crops/strawberry_seed.4588a2c9.webp"
+        "src": "/assets-runtime/farm/crops/strawberry_seed.4fb5721a.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/strawberry_seed.4588a2c9.webp"
+        "/assets-runtime/farm/crops/strawberry_seed.4fb5721a.webp"
       ]
     },
     "farm.crops.strawberry_sprout": {
-      "signature": "b7131132f719877df4eff6e8cad9d7784fe4927be0af2b5143b19576e17461a3",
+      "signature": "a49789923c8906f436a3b1b156013c034e7f145290663eee53b2b2bc77c39bc7",
       "item": {
         "type": "image",
-        "width": 191,
-        "height": 163,
-        "src": "/assets-runtime/farm/crops/strawberry_sprout.45bcab57.webp"
+        "width": 190,
+        "height": 162,
+        "src": "/assets-runtime/farm/crops/strawberry_sprout.aedae5fb.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/strawberry_sprout.45bcab57.webp"
+        "/assets-runtime/farm/crops/strawberry_sprout.aedae5fb.webp"
       ]
     },
     "farm.crops.sunflower_growing": {
-      "signature": "c6cab8771ebae671564fb14d9c6fe0b2db1e4ee7b8ddfabc1f6ab559ad89a106",
+      "signature": "f2aff8b7e8e5cb46f14c7dbd7ae0b0c437aa8157216fad0507dfed5053977614",
       "item": {
         "type": "image",
-        "width": 196,
+        "width": 195,
         "height": 294,
-        "src": "/assets-runtime/farm/crops/sunflower_growing.7777a365.webp"
+        "src": "/assets-runtime/farm/crops/sunflower_growing.2016cc70.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/sunflower_growing.7777a365.webp"
+        "/assets-runtime/farm/crops/sunflower_growing.2016cc70.webp"
       ]
     },
     "farm.crops.sunflower_ready": {
-      "signature": "da2e150c6ab2247449122bb237387f0a09cf8ec1080ddbd90f01107bf1bffbb4",
+      "signature": "5c565c7e197262e1f5d322ca2475c63026f7b959d42791d24059e38997ec0cc7",
       "item": {
         "type": "image",
         "width": 208,
-        "height": 298,
-        "src": "/assets-runtime/farm/crops/sunflower_ready.48fc8797.webp"
+        "height": 297,
+        "src": "/assets-runtime/farm/crops/sunflower_ready.0359263f.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/sunflower_ready.48fc8797.webp"
+        "/assets-runtime/farm/crops/sunflower_ready.0359263f.webp"
       ]
     },
     "farm.crops.sunflower_seed": {
-      "signature": "e76cb7bc919c4ce32f015f8711bdf4f0256662299af444aa59625efcfc9f15d0",
+      "signature": "3d6bfb85f62ad6ac842e331d158901e54571ea03c3ecb373d5fc0b386528e0be",
       "item": {
         "type": "image",
-        "width": 155,
+        "width": 154,
         "height": 110,
-        "src": "/assets-runtime/farm/crops/sunflower_seed.dbeb49f7.webp"
+        "src": "/assets-runtime/farm/crops/sunflower_seed.8f967b4f.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/sunflower_seed.dbeb49f7.webp"
+        "/assets-runtime/farm/crops/sunflower_seed.8f967b4f.webp"
       ]
     },
     "farm.crops.sunflower_sprout": {
-      "signature": "f7e3f965f6e86a6baf99bad1c0c8786dc641d5e7107e1bec1b33c4bcea22aca9",
+      "signature": "5ed4718a3cf910d39c064c3c0c1d71ea0d2781038f11400e225d96cfd2a2ab63",
       "item": {
         "type": "image",
-        "width": 166,
+        "width": 165,
         "height": 158,
-        "src": "/assets-runtime/farm/crops/sunflower_sprout.882e72b3.webp"
+        "src": "/assets-runtime/farm/crops/sunflower_sprout.23ce4bf1.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/sunflower_sprout.882e72b3.webp"
+        "/assets-runtime/farm/crops/sunflower_sprout.23ce4bf1.webp"
       ]
     },
     "farm.crops.tomato_growing": {
-      "signature": "116e3983296c041b408931e38c9b6f62123d328ce8ae38b23575b4d956fc71d7",
+      "signature": "6dd0a40e89542e7dc631c7f5c960480f6c96a8bfda7625eb8f26dc959041554e",
       "item": {
         "type": "image",
         "width": 263,
-        "height": 269,
-        "src": "/assets-runtime/farm/crops/tomato_growing.4b44b1d4.webp"
+        "height": 268,
+        "src": "/assets-runtime/farm/crops/tomato_growing.f68a86ab.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/tomato_growing.4b44b1d4.webp"
+        "/assets-runtime/farm/crops/tomato_growing.f68a86ab.webp"
       ]
     },
     "farm.crops.tomato_ready": {
-      "signature": "a1f3af45384abfd54697421cf285991764f41db69eee09ff3efa3e6c9cd31475",
+      "signature": "120f1e7a1706019bca6f9d1f09ed26f20ce74968083163d0b9fefc7cd3f540ae",
       "item": {
         "type": "image",
-        "width": 292,
+        "width": 291,
         "height": 283,
-        "src": "/assets-runtime/farm/crops/tomato_ready.6aad3f9f.webp"
+        "src": "/assets-runtime/farm/crops/tomato_ready.50d47872.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/tomato_ready.6aad3f9f.webp"
+        "/assets-runtime/farm/crops/tomato_ready.50d47872.webp"
       ]
     },
     "farm.crops.tomato_seed": {
-      "signature": "006314bd9f7493bc73f8f92f592434dee1271998dd09f7fbfedc78304b8a0c5a",
+      "signature": "7c0ca82be81a64a9e4ed292dad5201bf2d48897f7015225b5994f14a0f4a3359",
       "item": {
         "type": "image",
-        "width": 136,
+        "width": 135,
         "height": 67,
-        "src": "/assets-runtime/farm/crops/tomato_seed.8c0a9f75.webp"
+        "src": "/assets-runtime/farm/crops/tomato_seed.b6412c9d.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/tomato_seed.8c0a9f75.webp"
+        "/assets-runtime/farm/crops/tomato_seed.b6412c9d.webp"
       ]
     },
     "farm.crops.tomato_sprout": {
-      "signature": "84935b85aef7d46160e847e5b25bed6562679fe38760d12ef260cea42380bea0",
+      "signature": "a84f51581916c4354d565a2ee06ec69890fd790789dde0635661d7982b091594",
       "item": {
         "type": "image",
         "width": 201,
         "height": 187,
-        "src": "/assets-runtime/farm/crops/tomato_sprout.aea98ddf.webp"
+        "src": "/assets-runtime/farm/crops/tomato_sprout.9d06cee4.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/tomato_sprout.aea98ddf.webp"
+        "/assets-runtime/farm/crops/tomato_sprout.9d06cee4.webp"
       ]
     },
     "farm.crops.watermelon_growing": {
-      "signature": "1792e9f79ba52f115e84704dc3f7c3e61c4e9d2ea7d01adb078fe20d8b569bcc",
+      "signature": "16d71497d764b29dc7cd21a9fbc5b0c95c4e0e287fd1c4a1aabac171a47a7849",
       "item": {
         "type": "image",
-        "width": 301,
+        "width": 300,
         "height": 230,
-        "src": "/assets-runtime/farm/crops/watermelon_growing.3fd6cfdd.webp"
+        "src": "/assets-runtime/farm/crops/watermelon_growing.f9fe2114.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/watermelon_growing.3fd6cfdd.webp"
+        "/assets-runtime/farm/crops/watermelon_growing.f9fe2114.webp"
       ]
     },
     "farm.crops.watermelon_ready": {
-      "signature": "48e0bd071b375973d537999150a21e8fcd0fcb997e998f794a216decf1cae170",
+      "signature": "bed9626fc223e0612f606d4243b23a3238b626eecb3ab17753ae79f5305594ce",
       "item": {
         "type": "image",
-        "width": 317,
-        "height": 252,
-        "src": "/assets-runtime/farm/crops/watermelon_ready.80962249.webp"
+        "width": 316,
+        "height": 251,
+        "src": "/assets-runtime/farm/crops/watermelon_ready.f4467faf.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/watermelon_ready.80962249.webp"
+        "/assets-runtime/farm/crops/watermelon_ready.f4467faf.webp"
       ]
     },
     "farm.crops.watermelon_seed": {
-      "signature": "88e60616b055bf128baa034a473684cbbaed5d2b0673b2b0eb8699cf1fbf3980",
+      "signature": "aa2b818e0dbcbeecfa99a39b0087276269ec80d9679c7d670b6736cd71ecd82f",
       "item": {
         "type": "image",
-        "width": 141,
-        "height": 104,
-        "src": "/assets-runtime/farm/crops/watermelon_seed.2e4d7c86.webp"
+        "width": 140,
+        "height": 103,
+        "src": "/assets-runtime/farm/crops/watermelon_seed.83b4afa5.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/watermelon_seed.2e4d7c86.webp"
+        "/assets-runtime/farm/crops/watermelon_seed.83b4afa5.webp"
       ]
     },
     "farm.crops.watermelon_sprout": {
-      "signature": "cf4bcbc539e98d416185e9fe7e4795899fd6705c62ec90cd7ec0e66a5b3cab4b",
+      "signature": "de1d7ede7a8820dcf6e442238b0253064f0b50cbd77bf94894ae22f11eaa0030",
       "item": {
         "type": "image",
         "width": 170,
         "height": 143,
-        "src": "/assets-runtime/farm/crops/watermelon_sprout.0f6ed9a6.webp"
+        "src": "/assets-runtime/farm/crops/watermelon_sprout.19f5bc8f.webp"
       },
       "written": [
-        "/assets-runtime/farm/crops/watermelon_sprout.0f6ed9a6.webp"
+        "/assets-runtime/farm/crops/watermelon_sprout.19f5bc8f.webp"
       ]
     },
     "farm.fx.growth_glow": {
-      "signature": "9fb80717ed38d4901d58291aa460d3df95f9283c09b3dd75e518151df1ec4754",
+      "signature": "3e1c7bec211ef4cf3d490a6b8e96407970580c8b9ccfe0367d7da128011335fc",
       "item": {
         "type": "image",
-        "width": 217,
-        "height": 220,
-        "src": "/assets-runtime/farm/fx/growth_glow.ac12a221.webp"
+        "width": 213,
+        "height": 218,
+        "src": "/assets-runtime/farm/fx/growth_glow.f673865e.webp"
       },
       "written": [
-        "/assets-runtime/farm/fx/growth_glow.ac12a221.webp"
+        "/assets-runtime/farm/fx/growth_glow.f673865e.webp"
       ]
     },
     "farm.fx.harvest_pop": {
-      "signature": "f9559fb10f42603fc68e32188f828eeea780e38c261dab9e46cb1c3760681915",
+      "signature": "3d053a0b6df538d38967d949bff831ad38841325af6a6d74cabeed34fc4160b2",
       "item": {
         "type": "image",
         "width": 237,
         "height": 212,
-        "src": "/assets-runtime/farm/fx/harvest_pop.156b3688.webp"
+        "src": "/assets-runtime/farm/fx/harvest_pop.cbcfeed0.webp"
       },
       "written": [
-        "/assets-runtime/farm/fx/harvest_pop.156b3688.webp"
+        "/assets-runtime/farm/fx/harvest_pop.cbcfeed0.webp"
       ]
     },
     "farm.fx.plant_puff": {
-      "signature": "8ad0647e435559275ab5a14517f7411d3cb554d32280b43cab51c8d1fb12d2ab",
+      "signature": "bc174501612f4b507dd2c84825c8ffd90fb4cad92b4bd0d4f891f9e6ae04bfe3",
       "item": {
         "type": "image",
-        "width": 219,
+        "width": 213,
         "height": 196,
-        "src": "/assets-runtime/farm/fx/plant_puff.ae644622.webp"
+        "src": "/assets-runtime/farm/fx/plant_puff.3038b02d.webp"
       },
       "written": [
-        "/assets-runtime/farm/fx/plant_puff.ae644622.webp"
+        "/assets-runtime/farm/fx/plant_puff.3038b02d.webp"
       ]
     },
     "farm.fx.water_splash": {
-      "signature": "97f61aca89db32900f9c4423c86d322d26fd5d081115e363a5499b116d499d00",
+      "signature": "0d6d2bae35d09bdd4fc06b1685a72bbf9130f21bbec04c980ef2b2ed6826d844",
       "item": {
         "type": "image",
         "width": 215,
         "height": 195,
-        "src": "/assets-runtime/farm/fx/water_splash.fbd23f39.webp"
+        "src": "/assets-runtime/farm/fx/water_splash.beddea63.webp"
       },
       "written": [
-        "/assets-runtime/farm/fx/water_splash.fbd23f39.webp"
+        "/assets-runtime/farm/fx/water_splash.beddea63.webp"
       ]
     },
     "farm.plot-empty": {
-      "signature": "2714e77e6c3c4589396484ad468fc55ed8f675e28bcfe0e23abc96a7f119773b",
-      "item": {
-        "type": "image",
-        "width": 345,
-        "height": 243,
-        "src": "/assets-runtime/farm/plot-empty.b7673351.webp"
-      },
-      "written": [
-        "/assets-runtime/farm/plot-empty.b7673351.webp"
-      ]
-    },
-    "farm.plot-locked": {
-      "signature": "62c603efccf45aa8f92d51a08503bb36ca49ef083b13acbea54860f71cb0033e",
+      "signature": "901de7e5eb541d4d482abf3ee1dcc88e6b160c45c13090078a45a9348a1960c4",
       "item": {
         "type": "image",
         "width": 344,
-        "height": 250,
-        "src": "/assets-runtime/farm/plot-locked.b2229c15.webp"
+        "height": 243,
+        "src": "/assets-runtime/farm/plot-empty.33d6363d.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-locked.b2229c15.webp"
+        "/assets-runtime/farm/plot-empty.33d6363d.webp"
+      ]
+    },
+    "farm.plot-locked": {
+      "signature": "cb1308d58161d912f6a4b8fffdcad308a3f486b9625d60c2bb51bf796946f8b6",
+      "item": {
+        "type": "image",
+        "width": 344,
+        "height": 249,
+        "src": "/assets-runtime/farm/plot-locked.5a7ad444.webp"
+      },
+      "written": [
+        "/assets-runtime/farm/plot-locked.5a7ad444.webp"
       ]
     },
     "farm.plot-pending": {
-      "signature": "851ba5976e3ba0ce9074c1eeefc4ade88263cc894487535fbd01eaaee64c4171",
+      "signature": "c6c4bb19339343e94867deaaa02c0c5950e388a9405c61ecd0e92cdd12ac3f03",
       "item": {
         "type": "image",
         "width": 343,
-        "height": 251,
-        "src": "/assets-runtime/farm/plot-pending.87bcba1a.webp"
+        "height": 249,
+        "src": "/assets-runtime/farm/plot-pending.5cf85588.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-pending.87bcba1a.webp"
+        "/assets-runtime/farm/plot-pending.5cf85588.webp"
       ]
     },
     "farm.plot-ready-overlay": {
-      "signature": "6054165f29b4bf2ef811a51fbbc722c71bb110015cbc7b6e62c1e369a730f370",
+      "signature": "fa465398928fa3c746c43d12be9e96c5bf09602a62557926dfcd749f0a336b92",
       "item": {
         "type": "image",
-        "width": 342,
-        "height": 270,
-        "src": "/assets-runtime/farm/plot-ready-overlay.d5226461.webp"
+        "width": 341,
+        "height": 269,
+        "src": "/assets-runtime/farm/plot-ready-overlay.9e198440.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-ready-overlay.d5226461.webp"
+        "/assets-runtime/farm/plot-ready-overlay.9e198440.webp"
       ]
     },
     "farm.plot-selected": {
-      "signature": "7a320bb69e2e19a4743d433ccdc5f4ab5493b5fe3e8b03bd3023ce08351fc008",
+      "signature": "237ce6b38664c673574c3f584cc2523c586fa0a00b12699b36344d63842b094b",
       "item": {
         "type": "image",
         "width": 351,
-        "height": 302,
-        "src": "/assets-runtime/farm/plot-selected.c2d347a6.webp"
+        "height": 301,
+        "src": "/assets-runtime/farm/plot-selected.fa765b3a.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-selected.c2d347a6.webp"
+        "/assets-runtime/farm/plot-selected.fa765b3a.webp"
       ]
     },
     "farm.plot-shadow": {
-      "signature": "8a7f5fc46be3e785dab91f6c7cc8d800408c3e32859614d846ce0c168217d63d",
+      "signature": "71103e3dbdd5287698dc22982a53e5c5dbf85ff0792b40efd76c3af7e89e09b0",
       "item": {
         "type": "image",
-        "width": 114,
-        "height": 85,
-        "src": "/assets-runtime/farm/plot-shadow.39b68581.webp"
+        "width": 375,
+        "height": 375,
+        "src": "/assets-runtime/farm/plot-shadow.cd76c11c.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-shadow.39b68581.webp"
+        "/assets-runtime/farm/plot-shadow.cd76c11c.webp"
       ]
     },
     "farm.plot-theme-default": {
-      "signature": "ffdd0f1994fc85206152e6cabbf718bcc5a6691dc66f8f55aa3070f0e6fdb6e9",
+      "signature": "1145242c28647b20a1c4fd2b065624a96236bdb0984ab71dd2ebf5251ed626c6",
       "item": {
         "type": "image",
         "width": 347,
         "height": 267,
-        "src": "/assets-runtime/farm/plot-theme-default.7ac73b7b.webp"
+        "src": "/assets-runtime/farm/plot-theme-default.dfe6c3e8.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-theme-default.7ac73b7b.webp"
+        "/assets-runtime/farm/plot-theme-default.dfe6c3e8.webp"
       ]
     },
     "farm.plot-theme-flower": {
-      "signature": "7e59e644d2a9e7b121e92a4e7de5d1e680b2a69aeecb1c827b636a43c81bd7e0",
+      "signature": "1fd78cccc3410a7fd81c65b81189499dfce993daccce52e67eb0b625dfec6ce6",
       "item": {
         "type": "image",
         "width": 351,
-        "height": 273,
-        "src": "/assets-runtime/farm/plot-theme-flower.05e55351.webp"
+        "height": 271,
+        "src": "/assets-runtime/farm/plot-theme-flower.c8ed2e53.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-theme-flower.05e55351.webp"
+        "/assets-runtime/farm/plot-theme-flower.c8ed2e53.webp"
       ]
     },
     "farm.plot-theme-moon": {
-      "signature": "df003377340136d1499710f55374f05152b0836bd016455c1f5785e6fbb38b9b",
+      "signature": "facbd72ee6856b207e9038fb0a7391f7046a81ead431fc9eb2cfe42508a420bb",
       "item": {
         "type": "image",
-        "width": 345,
-        "height": 290,
-        "src": "/assets-runtime/farm/plot-theme-moon.c51b5e74.webp"
+        "width": 344,
+        "height": 289,
+        "src": "/assets-runtime/farm/plot-theme-moon.fffebef9.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-theme-moon.c51b5e74.webp"
+        "/assets-runtime/farm/plot-theme-moon.fffebef9.webp"
       ]
     },
     "farm.plot-theme-stone": {
-      "signature": "019fc7290c6281c2b65fc94d035cb59bb2ee81508c4b4bc030608d195c434629",
+      "signature": "2146c5aba2ef895984388752d903f8b103df953b69b7512b00ee552ddcd6f006",
       "item": {
         "type": "image",
         "width": 341,
         "height": 274,
-        "src": "/assets-runtime/farm/plot-theme-stone.415ee8af.webp"
+        "src": "/assets-runtime/farm/plot-theme-stone.601e3a78.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-theme-stone.415ee8af.webp"
+        "/assets-runtime/farm/plot-theme-stone.601e3a78.webp"
       ]
     },
     "farm.plot-watered-overlay": {
-      "signature": "fb0cc1a88c658b49957f81661b59b79310e9483713460d99cdb2b4ad9fc44879",
+      "signature": "7f4d3ff7cdaf16d125943331626051fb614d87b5b3f827fb70c3d18f7708d08b",
       "item": {
         "type": "image",
-        "width": 344,
-        "height": 251,
-        "src": "/assets-runtime/farm/plot-watered-overlay.fb199c99.webp"
+        "width": 343,
+        "height": 249,
+        "src": "/assets-runtime/farm/plot-watered-overlay.3654765c.webp"
       },
       "written": [
-        "/assets-runtime/farm/plot-watered-overlay.fb199c99.webp"
+        "/assets-runtime/farm/plot-watered-overlay.3654765c.webp"
       ]
     },
     "gachaMerge.background.table": {

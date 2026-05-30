@@ -27,6 +27,41 @@ function hexToRgb(hex) {
   ];
 }
 
+function colorDistance(pixel, key) {
+  return Math.sqrt(
+    ((pixel[0] - key[0]) ** 2) +
+    ((pixel[1] - key[1]) ** 2) +
+    ((pixel[2] - key[2]) ** 2),
+  );
+}
+
+async function assertRuntimeHasNoChromaSpill(relativePath, chromaKey, label) {
+  const key = hexToRgb(chromaKey);
+  const assetPath = workspacePath(relativePath);
+  assert.ok(existsSync(assetPath), `${label} runtime asset is missing`);
+  const { data, info } = await sharp(assetPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const offenders = [];
+  for (let index = 0; index < data.length; index += 4) {
+    const alpha = data[index + 3];
+    if (alpha <= 2) continue;
+    const distance = colorDistance([data[index], data[index + 1], data[index + 2]], key);
+    if (distance <= 80) {
+      offenders.push({
+        x: (index / 4) % info.width,
+        y: Math.floor((index / 4) / info.width),
+        rgba: [data[index], data[index + 1], data[index + 2], alpha],
+        distance: Math.round(distance),
+      });
+      if (offenders.length >= 6) break;
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    `${label} runtime asset must not retain semi-transparent chromakey spill: ${JSON.stringify(offenders)}`,
+  );
+}
+
 test("HUD redesign reference pack covers every visible game", async () => {
   const manifest = await loadManifest();
   assert.equal(manifest.version, 1);
@@ -112,6 +147,32 @@ test("HUD redesign chromakey assets are separate files with clean removable keys
         const isLeakedKey = runtimeData[index] === key[0] && runtimeData[index + 1] === key[1] && runtimeData[index + 2] === key[2] && runtimeData[index + 3] > 16;
         assert.equal(isLeakedKey, false, `${gameId}.${asset.id} runtime asset must not contain opaque chromakey pixels`);
       }
+      await assertRuntimeHasNoChromaSpill(asset.runtimePath, asset.chromaKey, `${gameId}.${asset.id}`);
+    }
+  }
+});
+
+test("published HUD menu surfaces are free of chromakey spill", async () => {
+  const manifest = await loadManifest();
+  const keyBySource = new Map();
+  for (const [gameId, game] of Object.entries(manifest.games)) {
+    const key = game.assets?.[0]?.chromaKey;
+    if (key) keyBySource.set(gameId, key);
+  }
+  keyBySource.set("hub", "#ff00ff");
+  keyBySource.set("farmLegacy", "#ff00ff");
+
+  const surfaceManifests = [
+    "public/games/ui-surfaces/screen-surface-extract-manifest.json",
+    "public/games/ui-surfaces/portrait-panel-extract-manifest.json",
+  ];
+  for (const manifestFile of surfaceManifests) {
+    const surfaceManifest = JSON.parse(await readFile(workspacePath(manifestFile), "utf8"));
+    for (const output of surfaceManifest.outputs || []) {
+      const sourceId = output.sourcePath.match(/asset-sources\/([^/]+)\//)?.[1];
+      const key = keyBySource.get(sourceId);
+      assert.ok(key, `${output.file} must map to a known chromakey source`);
+      await assertRuntimeHasNoChromaSpill(`public/games/ui-surfaces/${output.file}`, key, output.file);
     }
   }
 });

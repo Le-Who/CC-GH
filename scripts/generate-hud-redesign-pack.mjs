@@ -405,6 +405,24 @@ function colorDistance(r, g, b, key) {
   return Math.sqrt(((r - key.r) ** 2) + ((g - key.g) ** 2) + ((b - key.b) ** 2));
 }
 
+function clampByte(value) {
+  return Math.max(0, Math.min(255, Math.round(value)));
+}
+
+function clearPixel(output, index) {
+  output[index] = 0;
+  output[index + 1] = 0;
+  output[index + 2] = 0;
+  output[index + 3] = 0;
+}
+
+function despillKeyBlend(output, index, key, coverage) {
+  const safeCoverage = Math.max(0.045, Math.min(1, coverage));
+  output[index] = clampByte((output[index] - (key.r * (1 - safeCoverage))) / safeCoverage);
+  output[index + 1] = clampByte((output[index + 1] - (key.g * (1 - safeCoverage))) / safeCoverage);
+  output[index + 2] = clampByte((output[index + 2] - (key.b * (1 - safeCoverage))) / safeCoverage);
+}
+
 function averageBorderKey(data, info, fallback) {
   const samples = [
     [0, 0],
@@ -456,7 +474,15 @@ function keyOutBackground(data, info, fallbackKey) {
       } else if (dist < 118) {
         alpha = Math.round(originalAlpha * ((dist - 38) / 80));
       }
-      output[index + 3] = alpha;
+      if (alpha <= 2) {
+        clearPixel(output, index);
+        alpha = 0;
+      } else if (alpha < originalAlpha && dist < 118) {
+        despillKeyBlend(output, index, detectedKey, alpha / Math.max(1, originalAlpha));
+        output[index + 3] = alpha;
+      } else {
+        output[index + 3] = alpha;
+      }
       if (alpha > 30) {
         minX = Math.min(minX, x);
         minY = Math.min(minY, y);
@@ -492,11 +518,14 @@ async function stripRuntimeKeyPixels(inputBuffer, outputPath, key) {
   const output = Buffer.from(data);
   for (let index = 0; index < output.length; index += 4) {
     const dist = colorDistance(output[index], output[index + 1], output[index + 2], key);
-    if (dist <= 28) {
-      output[index + 3] = 0;
-      output[index] = 0;
-      output[index + 1] = 0;
-      output[index + 2] = 0;
+    const alpha = output[index + 3];
+    if (alpha <= 2 || dist <= 28 || (alpha <= 18 && dist <= 90)) {
+      clearPixel(output, index);
+    } else if (alpha < 255 && dist <= 96) {
+      despillKeyBlend(output, index, key, alpha / 255);
+      if (colorDistance(output[index], output[index + 1], output[index + 2], key) <= 80) {
+        clearPixel(output, index);
+      }
     }
   }
   await sharp(output, { raw: { width: info.width, height: info.height, channels: 4 } })

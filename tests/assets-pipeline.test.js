@@ -108,6 +108,31 @@ async function alphaComponents(imagePath, threshold = 16) {
   return components.sort((a, b) => b.count - a.count);
 }
 
+async function chromakeySpillSamples(imagePath) {
+  const { data, info } = await sharp(imagePath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const samples = [];
+
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const offset = (y * info.width + x) * 4;
+      const r = data[offset];
+      const g = data[offset + 1];
+      const b = data[offset + 2];
+      const a = data[offset + 3];
+      if (a <= 2) continue;
+
+      const magentaLike = r >= 120 && b >= 120 && g <= 95 && Math.abs(r - b) <= 105 && r - g >= 72 && b - g >= 72;
+      const fragileEdge = a < 220 || x < 3 || y < 3 || x >= info.width - 3 || y >= info.height - 3;
+      if (magentaLike && fragileEdge) {
+        samples.push({ x, y, rgba: [r, g, b, a] });
+        if (samples.length >= 8) return samples;
+      }
+    }
+  }
+
+  return samples;
+}
+
 describe("asset runtime pipeline", () => {
   it("keeps Garden Shelf plant sprite frames wide enough for overhanging art", async () => {
     const sheetPath = path.resolve("public/games/garden-shelf/assets_transparent.png");
@@ -194,6 +219,24 @@ describe("asset runtime pipeline", () => {
           `HUD cell ${row}:${col} should contain one alpha component after mask-based slicing`,
         );
       }
+    }
+  });
+
+  it("keeps Garden Shelf button art free of semi-transparent chromakey fringe", async () => {
+    for (const fileName of ["button_primary.png", "button_secondary.png", "button_danger.png"]) {
+      const imagePath = path.resolve("public/games/garden-shelf", fileName);
+      const samples = await chromakeySpillSamples(imagePath);
+      const components = await alphaComponents(imagePath);
+      assert.deepEqual(
+        samples,
+        [],
+        `${fileName} should not retain semi-transparent magenta/chromakey edge pixels`,
+      );
+      assert.equal(
+        components.filter((component) => component.count > 32).length,
+        1,
+        `${fileName} should export one button object without neighboring sheet fragments`,
+      );
     }
   });
 

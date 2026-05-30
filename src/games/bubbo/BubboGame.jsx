@@ -475,7 +475,7 @@ export default function BubboGame() {
                 title={gameActive ? t("pause.bubboFrozen") : t("pause.bubboReady")}
                 body={gameActive ? t("pause.bubboIntro") : t("pause.bubboPlan")}
                 status={gameActive ? [
-                  { label: t(currentMode.labelKey), value: mode === "timed" ? t("common.time") : t("common.shots") },
+                  { label: t("common.score"), value: score },
                   { label: primaryLimitLabel, value: primaryLimitValue },
                   { label: t("bubbo.bubbles"), value: remainingBubbles },
                 ] : []}

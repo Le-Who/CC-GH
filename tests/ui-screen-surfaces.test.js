@@ -299,10 +299,130 @@ test("Yard and Garden menu CSS binds screen-specific generated panels and keeps 
     /\.garden-detail-actions \.garden-action-button\s*\{[\s\S]*?font-size:\s*0\s*!important/s,
     "Garden detail action labels must remain visible and readable",
   );
+  const evolveLabelBlocks = findCssBlocksForSelector(gardenCss, ".garden-detail-evolve .garden-evolve-btn-label");
+  assert.ok(evolveLabelBlocks.length > 0, "Garden evolve label CSS block must be present");
+  assert.ok(
+    evolveLabelBlocks.every((block) => !/display\s*:\s*none\s*!important/.test(block)),
+    "Garden evolve label must remain visible and readable",
+  );
+});
+
+test("Garden generated panels reserve authored content lanes instead of overlaying chrome", async () => {
+  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
+  const bottomPanel = await readFile(path.join(root, "src", "games", "garden-shelf", "components", "BottomPanel.tsx"), "utf8");
+  const gardenGame = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenShelfGame.tsx"), "utf8");
+  const offlineWelcome = await readFile(path.join(root, "src", "games", "garden-shelf", "components", "OfflineWelcome.tsx"), "utf8");
+
+  assert.match(
+    gardenCss,
+    /\.garden-bottom-sheet\[data-garden-panel\]\s*\{[\s\S]*?aspect-ratio:\s*2\s*\/\s*3/s,
+    "Garden bottom sheets should keep the 2:3 generated panel geometry instead of stretching to content height",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-bottom-sheet\[data-garden-panel\]\s+\.garden-sheet-grabber\s*\{[\s\S]*?display:\s*none\s*!important/s,
+    "Garden generated panels should not draw a generic sheet grabber over the carved header art",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-bottom-sheet\[data-garden-panel="plant-detail"\]\s+\.garden-detail-header\s*\{[\s\S]*?position:\s*absolute[\s\S]*?top:\s*var\(--garden-detail-title-top\)/s,
+    "Garden plant detail title must sit in the authored hanging label lane",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-bottom-sheet\[data-garden-panel="plant-detail"\]\s+\.garden-detail-plant-stage\s*\{[\s\S]*?position:\s*absolute[\s\S]*?top:\s*var\(--garden-detail-stage-top\)/s,
+    "Garden plant detail stage must be mapped to the generated arch opening",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-bottom-sheet\[data-garden-panel="plant-detail"\]\s+\.garden-detail-actions\s*\{[\s\S]*?position:\s*absolute[\s\S]*?bottom:\s*var\(--garden-detail-actions-bottom\)/s,
+    "Garden plant detail actions must sit in the authored action slots",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-modal-card\[data-garden-panel\]\s*\{[\s\S]*?aspect-ratio:\s*2\s*\/\s*3/s,
+    "Garden reward/offline panels should keep the generated portrait panel geometry",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-modal-card\[data-garden-panel\]\s+\.garden-card-row\s*\{[\s\S]*?background:\s*transparent\s*!important/s,
+    "Garden reward values should use the generated reward slots, not a nested CSS pill",
+  );
   assert.doesNotMatch(
     gardenCss,
-    /\.garden-detail-evolve \.garden-evolve-btn-label\s*\{[\s\S]*?display:\s*none\s*!important/s,
-    "Garden evolve label must remain visible and readable",
+    /\/games\/garden-shelf\/button_secondary\.png/,
+    "Garden generated panel controls should not use the old sheet-cropped blue button with chromakey fringe",
+  );
+  assert.match(
+    bottomPanel,
+    /<div className="garden-detail-header[\s\S]*?<div className="garden-detail-meta/s,
+    "Garden plant detail markup should expose title and metric lanes separately for the generated panel",
+  );
+  assert.match(
+    gardenGame,
+    /className="garden-modal-reward-icon/s,
+    "Garden level reward modal should expose a dedicated icon lane for the generated reward panel",
+  );
+  assert.match(
+    offlineWelcome,
+    /className="garden-modal-reward-icon/s,
+    "Garden offline reward modal should expose a dedicated icon lane for the generated reward panel",
+  );
+});
+
+test("Yard generated panels use asset slots and keep dismiss controls icon-only", async () => {
+  const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
+  const yardGame = await readFile(path.join(root, "src", "games", "companion-yard", "CompanionYardGame.jsx"), "utf8");
+
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-game-screen\s*\{[\s\S]*?aspect-ratio:\s*2\s*\/\s*3/s,
+    "Yard game screens should preserve the 2:3 generated menu-panel geometry",
+  );
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-game-screen\s*\{[\s\S]*?--yard-screen-bottom-reserve:[\s\S]*?bottom:\s*var\(--yard-screen-bottom-reserve\)\s*!important/s,
+    "Yard game screens should reserve the bottom dock instead of extending generated panels underneath it",
+  );
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-game-screen\s*\{[\s\S]*?width:\s*min\([^;]*var\(--yard-screen-available-height\)\s*\*\s*0\.6667/s,
+    "Yard game screens should size portrait panel width from the available height so 2:3 art is not squeezed",
+  );
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-screen-header\s*\{[\s\S]*?position:\s*absolute[\s\S]*?top:\s*var\(--yard-panel-title-top\)/s,
+    "Yard screen titles should sit in the generated ribbon lane",
+  );
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-screen-content\s*\{[\s\S]*?position:\s*absolute[\s\S]*?inset:\s*var\(--yard-panel-content-inset\)/s,
+    "Yard screen content should be constrained to the panel body lane",
+  );
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-game-screen\[data-yard-screen="food"\]\s+\.yard-card\s*\{[\s\S]*?display:\s*contents/s,
+    "Yard food mechanics should flatten into the six authored food slots instead of nesting cards over the panel",
+  );
+  const yardCardBlocks = findCssBlocksForSelector(yardCss, ".companion-yard-layout .yard-card");
+  assert.ok(yardCardBlocks.length > 0, "Yard generated card CSS block must be present");
+  assert.ok(
+    yardCardBlocks.some((block) => /background:\s*transparent\s*!important/.test(block)),
+    "Yard menu rows/cards should not repaint opaque CSS rectangles over generated row art",
+  );
+  assert.ok(
+    yardCardBlocks.every((block) => !/background:\s*linear-gradient/.test(block)),
+    "Yard generated menus must not keep the old final-pass rectangular card fills",
+  );
+  assert.match(
+    yardCss,
+    /\.companion-yard-layout\s+\.yard-icon-button\[data-label-mode="hidden"\]\s+\.yard-icon-label\s*\{[\s\S]*?display:\s*none\s*!important/s,
+    "Yard icon-only dismiss buttons should not show press tooltip text over panel art",
+  );
+  assert.match(
+    yardGame,
+    /<YardIconButton compact icon="close" label=\{text\("yard\.close", "Close"\)\} labelMode="hidden" onClick=\{closeScreen\}/,
+    "Yard screen close button should remain accessible by aria-label while visually icon-only",
   );
 });
 
@@ -513,6 +633,52 @@ test("Bubbo menu buttons do not keep stale unresolved button-skin URLs", async (
   const css = await readFile(path.join(root, "src", "games", "bubbo", "bubbo.css"), "utf8");
   assert.doesNotMatch(css, /\/games\/bubbo\//, "Bubbo CSS should use /games/bubbo-bubbo/ or hud-redesign assets, not stale /games/bubbo/ URLs");
   assert.doesNotMatch(css, /button_secondary\.png/, "Bubbo menu buttons should not retain obsolete secondary-button layers under generated button art");
+});
+
+test("Merge pause parchment keeps text in the generated reading lane", async () => {
+  const css = await readFile(path.join(root, "src", "games", "merge", "merge.css"), "utf8");
+  const positionedHeaderBlock = findCssBlocksForSelector(css, ".merge-pause-overlay .panel-header").find((block) => /top\s*:/.test(block)) || "";
+  assert.doesNotMatch(
+    positionedHeaderBlock,
+    /top\s*:\s*13\.8%/,
+    "Merge pause title must not sit on the top emblem/wood trim of the generated frame",
+  );
+  assert.match(
+    positionedHeaderBlock,
+    /top\s*:\s*(?:16|17|18)(?:\.\d+)?%/,
+    "Merge pause title should start inside the parchment reading lane",
+  );
+
+  const finalContentBlock = findCssBlocksForSelector(css, ".merge-pause-overlay .pause-menu-frame").at(-1) || "";
+  assert.doesNotMatch(
+    finalContentBlock,
+    /color\s*:\s*var\(--hud-redesign-ink/,
+    "Merge pause parchment content must not inherit the light HUD ink used for dark frames",
+  );
+  assert.match(
+    finalContentBlock,
+    /color\s*:\s*#3b2518\s*!important/,
+    "Merge pause parchment content should use dark ink over the light generated asset",
+  );
+});
+
+test("Bubbo pause status uses compact run metrics instead of mode-label duplication", async () => {
+  const source = await readFile(path.join(root, "src", "games", "bubbo", "BubboGame.jsx"), "utf8");
+  const statusStart = source.indexOf("status={gameActive ? [");
+  const statusEnd = source.indexOf("] : []}", statusStart);
+  assert.ok(statusStart > 0 && statusEnd > statusStart, "Bubbo pause status block must be present");
+  const statusBlock = source.slice(statusStart, statusEnd);
+
+  assert.doesNotMatch(
+    statusBlock,
+    /label:\s*t\(currentMode\.labelKey\)/,
+    "Bubbo paused status should not use the current mode title as a metric label",
+  );
+  assert.match(
+    statusBlock,
+    /label:\s*t\("common\.score"\),\s*value:\s*score/,
+    "Bubbo paused status should expose score as the first compact run metric",
+  );
 });
 
 test("shared shell HUD controls avoid native browser title tooltips", async () => {

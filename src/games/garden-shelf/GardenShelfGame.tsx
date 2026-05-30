@@ -425,7 +425,7 @@ function LevelUpRewardModal() {
             aria-modal="true"
             aria-label={t('level.rewardTitle')}
           >
-            <div className="relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[color:var(--glass-border-soft)] bg-[color:var(--glass-card)]">
+            <div className="garden-modal-reward-icon relative z-10 mb-6 flex h-16 w-16 items-center justify-center rounded-lg border border-[color:var(--glass-border-soft)] bg-[color:var(--glass-card)]">
               <ArrowUpCircle className="h-8 w-8 text-amber-400" strokeWidth={1.5} />
             </div>
             <h2 className="relative z-10 mb-2 text-xl font-black uppercase tracking-[0.1em]">{t('level.rewardTitle')}</h2>

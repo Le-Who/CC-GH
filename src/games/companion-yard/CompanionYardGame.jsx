@@ -1069,7 +1069,7 @@ export default function CompanionYardGame() {
         id="yardStage"
         as="section"
         ref={stageRef}
-        className={`room-stage companion-yard-stage ${selectedRemodel.themeClass || "yard-remodel-meadow"}${placementDraft ? " yard-placement-active" : ""}`}
+        className={`room-stage companion-yard-stage ${selectedRemodel.themeClass || "yard-remodel-meadow"}${placementDraft ? " yard-placement-active" : ""}${activeScreen || yardToolsOpen ? " yard-screen-open" : ""}`}
         onPointerDown={(event) => {
           if ((activeScreen || yardToolsOpen) && isPlacementSurfaceEvent(event)) {
             closeScreen();
@@ -1180,7 +1180,7 @@ export default function CompanionYardGame() {
                 <YardIcon name={screenMeta.icon} />
                 <strong>{text(screenMeta.titleKey, screenMeta.fallback)}</strong>
               </div>
-              <YardIconButton compact icon="close" label={text("yard.close", "Close")} onClick={closeScreen} />
+              <YardIconButton compact icon="close" label={text("yard.close", "Close")} labelMode="hidden" onClick={closeScreen} />
             </div>
             <div className="yard-screen-content">
               {renderScreenContent()}

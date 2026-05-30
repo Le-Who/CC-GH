@@ -22,9 +22,18 @@ function cellName(relativePath) {
   return `public/games/${asPosix(relativePath)}`;
 }
 
+const singleObjectSheetOutputs = new Set([
+  "garden-shelf/button_primary.png",
+  "garden-shelf/button_secondary.png",
+  "garden-shelf/button_danger.png",
+]);
+
 function isChromaLike(r, g, b, a) {
   if (a <= 8) return true;
-  return r >= 170 && b >= 165 && g <= 100 && Math.abs(r - b) <= 92 && r - g >= 70 && b - g >= 65;
+  return (
+    (r >= 170 && b >= 165 && g <= 100 && Math.abs(r - b) <= 92 && r - g >= 70 && b - g >= 65)
+    || isSoftChromakeySpill(r, g, b, a)
+  );
 }
 
 function isStrictChromakey(r, g, b, a) {
@@ -33,7 +42,15 @@ function isStrictChromakey(r, g, b, a) {
 
 function isResidualChromakey(r, g, b, a) {
   if (a <= 8) return false;
-  return r >= 210 && b >= 195 && g <= 90 && Math.abs(r - b) <= 80 && r - g >= 120 && b - g >= 110;
+  return (
+    (r >= 210 && b >= 195 && g <= 90 && Math.abs(r - b) <= 80 && r - g >= 120 && b - g >= 110)
+    || isSoftChromakeySpill(r, g, b, a)
+  );
+}
+
+function isSoftChromakeySpill(r, g, b, a) {
+  if (a <= 8) return false;
+  return r >= 120 && b >= 115 && g <= 100 && Math.abs(r - b) <= 112 && r - g >= 64 && b - g >= 58;
 }
 
 function removeChromakey(data, width, height) {
@@ -249,7 +266,12 @@ async function writeGridSheet({ input, cols, rows, outputs }) {
         continue;
       }
 
-      const cellComponents = componentsByCell.get(index) || [];
+      let cellComponents = componentsByCell.get(index) || [];
+      if (singleObjectSheetOutputs.has(relativeOutput) && cellComponents.length > 1) {
+        cellComponents = [cellComponents.reduce((largest, component) => (
+          component.count > largest.count ? component : largest
+        ), cellComponents[0])];
+      }
       const cellW = info.width / cols;
       const cellH = info.height / rows;
       const fallbackLeft = Math.round(col * cellW);
