@@ -17,6 +17,7 @@ import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
 import { usePressTooltip } from "../../app/usePressTooltip.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
+import { yardPanelGroupSlotStyle, yardPanelSlotStyle } from "./yardPanelSlots.js";
 import "./i18n.js";
 import "./companion-yard.css";
 
@@ -151,6 +152,21 @@ function cssImageUrl(value) {
   return value ? `url(${JSON.stringify(value)})` : "none";
 }
 
+function yardSlotAttrs(screenId, slotId) {
+  const style = yardPanelSlotStyle(screenId, slotId);
+  return style ? { "data-asset-slot": slotId, style } : { "data-asset-slot": slotId };
+}
+
+function yardGroupSlotAttrs(screenId, groupId, index) {
+  const style = yardPanelGroupSlotStyle(screenId, groupId, index);
+  if (!style) return {};
+  return {
+    "data-asset-slot-group": groupId,
+    "data-asset-slot-index": String(index),
+    style,
+  };
+}
+
 function YardIconButton({
   icon,
   label,
@@ -163,6 +179,7 @@ function YardIconButton({
   badge,
   className = "",
   children,
+  ...buttonProps
 }) {
   const tip = usePressTooltip(labelMode === "tooltip" ? label : "");
   return (
@@ -178,6 +195,7 @@ function YardIconButton({
       aria-describedby={tip.visible ? tip.tooltipId : undefined}
       data-label-mode={labelMode}
       data-tooltip={labelMode === "tooltip" ? label : undefined}
+      {...buttonProps}
       onPointerDown={tip.handlers.onPointerDown}
       onPointerUp={tip.handlers.onPointerUp}
       onPointerCancel={tip.handlers.onPointerCancel}
@@ -201,12 +219,14 @@ function YardActionButton({
   active,
   danger,
   className = "",
+  ...buttonProps
 }) {
   return (
     <button
       type="button"
       className={`yard-button${active ? " active" : ""}${danger ? " danger" : ""}${className ? ` ${className}` : ""}`}
       disabled={disabled}
+      {...buttonProps}
       onClick={(event) => {
         audioManager.play("tap");
         onClick?.(event);
@@ -242,9 +262,9 @@ function YardPriceChip({ parts }) {
   );
 }
 
-function YardShopRow({ imageSrc, title, description, priceParts, children }) {
+function YardShopRow({ imageSrc, title, description, priceParts, children, className = "", ...rowProps }) {
   return (
-    <div className="yard-shop-row yard-shop-row-polished">
+    <div className={`yard-shop-row yard-shop-row-polished${className ? ` ${className}` : ""}`} {...rowProps}>
       <img className="yard-shop-thumb" src={imageSrc} alt="" />
       <div className="yard-shop-copy">
         <strong>{title}</strong>
@@ -725,7 +745,7 @@ export default function CompanionYardGame() {
 
   const renderFoodScreen = () => (
     <div className="yard-screen-grid">
-      {(yard.bowls || []).map((bowl) => {
+      {(yard.bowls || []).map((bowl, bowlIndex) => {
         const food = foods[bowl.foodId];
         return (
           <div className="yard-card" key={bowl.id}>
@@ -735,11 +755,12 @@ export default function CompanionYardGame() {
               <span>{food ? `${foodName(food)} · ${bowl.servings}` : text("yard.empty", "Empty")}</span>
             </div>
             <div className="yard-choice-grid">
-              {Object.values(foods).map((candidate) => (
+              {Object.values(foods).map((candidate, candidateIndex) => (
                 <button
                   type="button"
                   key={candidate.id}
                   className="yard-choice-tile"
+                  {...(bowlIndex === 0 ? yardGroupSlotAttrs("food", "food-choice", candidateIndex) : {})}
                   disabled={(yard.foodInventory?.[candidate.id] || 0) <= 0 || hasPending(`bowl:${bowl.id}`)}
                   onClick={() => performAction("yard.setFood", { bowlId: bowl.id, foodId: candidate.id })}
                 >
@@ -760,43 +781,47 @@ export default function CompanionYardGame() {
     return (
       <div className="yard-screen-grid">
         <div className="yard-card">
-          <strong>{text("yard.inventory", "Inventory")}</strong>
-          {!owned.length && <div className="empty-state">{text("yard.empty", "Empty")}</div>}
-          {owned.map(([goodieId, qty]) => {
-            const goodie = goodies[goodieId];
-            if (!goodie) return null;
-            return (
-              <div className="yard-shop-row" key={goodieId}>
-                <img src={assetPath("goodies", goodieId)} alt="" />
-                <span><strong>{goodieName(goodie)}</strong><small>x{qty} · {text(`yard.size.${goodie.size}`, goodie.size)}</small></span>
-                <YardActionButton icon="placement" onClick={() => startPlaceGoodie(goodieId)}>{text("yard.place", "Place")}</YardActionButton>
-              </div>
-            );
-          })}
+          <strong {...yardSlotAttrs("goodies", "inventory-title")}>{text("yard.inventory", "Inventory")}</strong>
+          <div className="yard-slot-list" {...yardSlotAttrs("goodies", "inventory-list")}>
+            {!owned.length && <div className="empty-state">{text("yard.empty", "Empty")}</div>}
+            {owned.map(([goodieId, qty]) => {
+              const goodie = goodies[goodieId];
+              if (!goodie) return null;
+              return (
+                <div className="yard-shop-row" key={goodieId}>
+                  <img src={assetPath("goodies", goodieId)} alt="" />
+                  <span><strong>{goodieName(goodie)}</strong><small>x{qty} · {text(`yard.size.${goodie.size}`, goodie.size)}</small></span>
+                  <YardActionButton icon="placement" onClick={() => startPlaceGoodie(goodieId)}>{text("yard.place", "Place")}</YardActionButton>
+                </div>
+              );
+            })}
+          </div>
         </div>
         <div className="yard-card">
-          <strong>{text("yard.placed", "Placed")}</strong>
-          {!placed.length && <div className="empty-state">{text("yard.none", "None")}</div>}
-          {placed.map((item) => {
-            const goodie = goodies[item.goodieId];
-            const busy = (visitorsBySlot.get(item.slotId) || []).length > 0;
-            const pending = hasPending(`slot:${item.slotId}`);
-            if (!goodie) return null;
-            return (
-              <div className="yard-shop-row" key={item.slotId}>
-                <img src={assetPath("goodies", item.condition === "new" ? item.goodieId : `${item.goodieId}_${item.condition}`)} alt="" />
-                <span><strong>{goodieName(goodie)}</strong><small>{text(`yard.condition.${item.condition}`, item.condition)}{busy ? ` · ${text("yard.visitor", "visitor")}` : ""}</small></span>
-                <div className="yard-row-actions">
-                  <YardActionButton icon="placement" disabled={busy || pending} onClick={() => startMoveGoodie(item)}>{text("yard.move", "Move")}</YardActionButton>
-                  {item.condition !== "new" ? (
-                    <YardActionButton icon="repair" disabled={busy || pending} onClick={() => performAction("yard.fixGoodie", { slotId: item.slotId })}>{text("yard.fix", "Fix")}</YardActionButton>
-                  ) : (
-                    <YardActionButton icon="inventory" disabled={busy || pending} onClick={() => performAction("yard.pickupGoodie", { slotId: item.slotId })}>{text("yard.store", "Store")}</YardActionButton>
-                  )}
+          <strong {...yardSlotAttrs("goodies", "placed-title")}>{text("yard.placed", "Placed")}</strong>
+          <div className="yard-slot-list" {...yardSlotAttrs("goodies", "placed-list")}>
+            {!placed.length && <div className="empty-state">{text("yard.none", "None")}</div>}
+            {placed.map((item) => {
+              const goodie = goodies[item.goodieId];
+              const busy = (visitorsBySlot.get(item.slotId) || []).length > 0;
+              const pending = hasPending(`slot:${item.slotId}`);
+              if (!goodie) return null;
+              return (
+                <div className="yard-shop-row" key={item.slotId}>
+                  <img src={assetPath("goodies", item.condition === "new" ? item.goodieId : `${item.goodieId}_${item.condition}`)} alt="" />
+                  <span><strong>{goodieName(goodie)}</strong><small>{text(`yard.condition.${item.condition}`, item.condition)}{busy ? ` · ${text("yard.visitor", "visitor")}` : ""}</small></span>
+                  <div className="yard-row-actions">
+                    <YardActionButton icon="placement" disabled={busy || pending} onClick={() => startMoveGoodie(item)}>{text("yard.move", "Move")}</YardActionButton>
+                    {item.condition !== "new" ? (
+                      <YardActionButton icon="repair" disabled={busy || pending} onClick={() => performAction("yard.fixGoodie", { slotId: item.slotId })}>{text("yard.fix", "Fix")}</YardActionButton>
+                    ) : (
+                      <YardActionButton icon="inventory" disabled={busy || pending} onClick={() => performAction("yard.pickupGoodie", { slotId: item.slotId })}>{text("yard.store", "Store")}</YardActionButton>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     );
@@ -805,69 +830,75 @@ export default function CompanionYardGame() {
   const renderShopScreen = () => (
     <div className="yard-screen-grid">
       <div className="yard-card">
-        <strong>{text("yard.shop.food", "Food shop")}</strong>
-        {Object.values(foods).map((food) => (
-          <YardShopRow
-            key={food.id}
-            imageSrc={assetPath("foods", food.id)}
-            title={foodName(food)}
-            description={foodDesc(food)}
-            priceParts={costParts(food.cost, t)}
-          >
-            <YardActionButton icon="shop" disabled={hasPending(`shop:food:${food.id}`)} onClick={() => performAction("yard.buyFood", { foodId: food.id, qty: 1 })}>
-              {hasPending(`shop:food:${food.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
-            </YardActionButton>
-          </YardShopRow>
-        ))}
+        <strong {...yardSlotAttrs("shop", "food-title")}>{text("yard.shop.food", "Food shop")}</strong>
+        <div className="yard-slot-list" {...yardSlotAttrs("shop", "food-list")}>
+          {Object.values(foods).map((food) => (
+            <YardShopRow
+              key={food.id}
+              imageSrc={assetPath("foods", food.id)}
+              title={foodName(food)}
+              description={foodDesc(food)}
+              priceParts={costParts(food.cost, t)}
+            >
+              <YardActionButton icon="shop" disabled={hasPending(`shop:food:${food.id}`)} onClick={() => performAction("yard.buyFood", { foodId: food.id, qty: 1 })}>
+                {hasPending(`shop:food:${food.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
+              </YardActionButton>
+            </YardShopRow>
+          ))}
+        </div>
       </div>
       <div className="yard-card">
-        <strong>{text("yard.shop.goodies", "Goodies shop")}</strong>
-        {Object.values(goodies).map((goodie) => (
-          <YardShopRow
-            key={goodie.id}
-            imageSrc={assetPath("goodies", goodie.id)}
-            title={goodieName(goodie)}
-            description={goodieDesc(goodie)}
-            priceParts={costParts(goodie.cost, t)}
-          >
-            <YardActionButton icon="shop" disabled={hasPending(`shop:goodie:${goodie.id}`)} onClick={() => performAction("yard.buyGoodie", { goodieId: goodie.id })}>
-              {hasPending(`shop:goodie:${goodie.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
-            </YardActionButton>
-          </YardShopRow>
-        ))}
+        <strong {...yardSlotAttrs("shop", "goodies-title")}>{text("yard.shop.goodies", "Goodies shop")}</strong>
+        <div className="yard-slot-list" {...yardSlotAttrs("shop", "goodies-list")}>
+          {Object.values(goodies).map((goodie) => (
+            <YardShopRow
+              key={goodie.id}
+              imageSrc={assetPath("goodies", goodie.id)}
+              title={goodieName(goodie)}
+              description={goodieDesc(goodie)}
+              priceParts={costParts(goodie.cost, t)}
+            >
+              <YardActionButton icon="shop" disabled={hasPending(`shop:goodie:${goodie.id}`)} onClick={() => performAction("yard.buyGoodie", { goodieId: goodie.id })}>
+                {hasPending(`shop:goodie:${goodie.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
+              </YardActionButton>
+            </YardShopRow>
+          ))}
+        </div>
       </div>
       <div className="yard-card">
-        <strong>{text("yard.shop.backgrounds", "Backgrounds")}</strong>
-        {Object.values(remodels)
-          .filter((remodel) => !remodel.starterOwned)
-          .sort((a, b) => (a.shopOrder || 999) - (b.shopOrder || 999))
-          .map((remodel) => {
-            const owned = yard.ownedRemodels?.includes(remodel.id);
-            return (
-              <YardShopRow
-                key={remodel.id}
-                imageSrc={assetPath("backgrounds", remodel.id)}
-                title={remodelName(remodel)}
-                description={remodelDesc(remodel)}
-                priceParts={owned ? [{ label: text("yard.owned", "Owned"), plain: true }] : costParts(remodel.cost, t)}
-              >
-                <YardActionButton icon="remodel" active={owned} disabled={hasPending("remodel")} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>
-                  {hasPending("remodel") ? text("yard.syncing", "Syncing") : owned ? text("yard.set", "Set") : text("yard.buy", "Buy")}
-                </YardActionButton>
-              </YardShopRow>
-            );
-          })}
+        <strong {...yardSlotAttrs("shop", "backgrounds-title")}>{text("yard.shop.backgrounds", "Backgrounds")}</strong>
+        <div className="yard-slot-list" {...yardSlotAttrs("shop", "backgrounds-list")}>
+          {Object.values(remodels)
+            .filter((remodel) => !remodel.starterOwned)
+            .sort((a, b) => (a.shopOrder || 999) - (b.shopOrder || 999))
+            .map((remodel) => {
+              const owned = yard.ownedRemodels?.includes(remodel.id);
+              return (
+                <YardShopRow
+                  key={remodel.id}
+                  imageSrc={assetPath("backgrounds", remodel.id)}
+                  title={remodelName(remodel)}
+                  description={remodelDesc(remodel)}
+                  priceParts={owned ? [{ label: text("yard.owned", "Owned"), plain: true }] : costParts(remodel.cost, t)}
+                >
+                  <YardActionButton icon="remodel" active={owned} disabled={hasPending("remodel")} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>
+                    {hasPending("remodel") ? text("yard.syncing", "Syncing") : owned ? text("yard.set", "Set") : text("yard.buy", "Buy")}
+                  </YardActionButton>
+                </YardShopRow>
+              );
+            })}
+        </div>
       </div>
     </div>
   );
 
   const renderPetbookScreen = () => (
     <div className="yard-petbook yard-screen-grid compact">
-      {Object.values(visitors).map((visitor) => {
+      {Object.values(visitors).map((visitor, cardIndex) => {
         const entry = yard.petbook?.[visitor.id];
         const seen = !!entry;
         return (
-          <div key={visitor.id} className={`yard-petbook-card${seen ? " seen" : ""}`}>
+          <div key={visitor.id} className={`yard-petbook-card${seen ? " seen" : ""}`} {...yardGroupSlotAttrs("petbook", "petbook-card", cardIndex)}>
             <img src={assetPath("visitors", visitorPreviewAssetId(visitor))} alt="" />
             <span>
               <strong>{seen ? visitor.name : text("yard.unknownVisitor", "Unknown visitor")}</strong>
@@ -883,13 +914,13 @@ export default function CompanionYardGame() {
   const renderAlbumScreen = () => (
     <div className="yard-album yard-screen-grid compact">
       {activeVisitorCount > 0 && (
-        <YardActionButton icon="camera" onClick={captureFirstVisitor}>{text("yard.takePhoto", "Take photo")}</YardActionButton>
+        <YardActionButton icon="camera" onClick={captureFirstVisitor} {...yardSlotAttrs("album", "album-camera")}>{text("yard.takePhoto", "Take photo")}</YardActionButton>
       )}
       {!(yard.album?.photos || []).length && <div className="empty-state">{text("yard.noPhotos", "No photos")}</div>}
-      {(yard.album?.photos || []).map((photo) => {
+      {(yard.album?.photos || []).map((photo, cardIndex) => {
         const visitor = visitors[photo.visitorId];
         return (
-          <div className="yard-photo-card" key={photo.id}>
+          <div className="yard-photo-card" key={photo.id} {...yardGroupSlotAttrs("album", "album-card", cardIndex)}>
             <img src={assetPath("visitors", visitor ? visitorPreviewAssetId(visitor) : photo.visitorId)} alt="" />
             <span><strong>{visitor?.name || photo.visitorId}</strong><small>{photo.pose} · {photo.caption || text("yard.title", "Cozy Yard")}</small></span>
             <YardActionButton icon="favorite" active={yard.album.favoritePhotoId === photo.id} onClick={() => performAction("yard.favoritePhoto", { photoId: photo.id })}>{text("yard.favorite", "Favorite")}</YardActionButton>
@@ -902,20 +933,20 @@ export default function CompanionYardGame() {
   const renderGiftsScreen = () => (
     <div className="yard-screen-grid">
       <div className="yard-card">
-        <strong>{text("yard.pendingGifts", "Pending gifts")}</strong>
+        <strong {...yardSlotAttrs("gifts", "gifts-summary-title")}>{text("yard.pendingGifts", "Pending gifts")}</strong>
         <div className="yard-metric-grid">
-          <span><b>{pendingGiftCount}</b><small>{text("yard.gifts", "Gifts")}</small></span>
-          <span><b>{formatCount(yard.currencies?.treats || 0)}</b><small>{text("yard.treats", "Treats")}</small></span>
-          <span><b>{formatCount(yard.currencies?.shinyTreats || 0)}</b><small>{text("yard.shiny", "Shiny")}</small></span>
+          <span {...yardGroupSlotAttrs("gifts", "gifts-metric", 0)}><b>{pendingGiftCount}</b><small>{text("yard.gifts", "Gifts")}</small></span>
+          <span {...yardGroupSlotAttrs("gifts", "gifts-metric", 1)}><b>{formatCount(yard.currencies?.treats || 0)}</b><small>{text("yard.treats", "Treats")}</small></span>
+          <span {...yardGroupSlotAttrs("gifts", "gifts-metric", 2)}><b>{formatCount(yard.currencies?.shinyTreats || 0)}</b><small>{text("yard.shiny", "Shiny")}</small></span>
         </div>
-        <YardActionButton icon="gifts" disabled={!pendingGiftCount || giftsPending} onClick={() => performAction("yard.collectGifts")}>
+        <YardActionButton icon="gifts" disabled={!pendingGiftCount || giftsPending} onClick={() => performAction("yard.collectGifts")} {...yardSlotAttrs("gifts", "gifts-collect")}>
           {giftsPending ? text("yard.syncing", "Syncing") : text("yard.collect", "Collect")}
         </YardActionButton>
       </div>
-      {(yard.pendingGifts || []).map((gift) => {
+      {(yard.pendingGifts || []).map((gift, rowIndex) => {
         const visitor = visitors[gift.visitorId];
         return (
-          <div className="yard-photo-card" key={gift.id}>
+          <div className="yard-photo-card" key={gift.id} {...yardGroupSlotAttrs("gifts", "gifts-row", rowIndex)}>
             <img src={assetPath("visitors", visitor ? visitorPreviewAssetId(visitor) : gift.visitorId)} alt="" />
             <span><strong>{visitor?.name || gift.visitorId}</strong><small>{text("yard.cost.treats", "{count} treats", { count: gift.treats || 0 })} · {text("yard.cost.shiny", "{count} shiny", { count: gift.shinyTreats || 0 })}</small></span>
             {gift.mementoId && <b>{text("yard.memento", "Memento")}</b>}
@@ -928,12 +959,12 @@ export default function CompanionYardGame() {
   const renderRepairScreen = () => (
     <div className="yard-screen-grid">
       {!staleGoodies.length && <div className="empty-state">{text("yard.allFresh", "All fresh")}</div>}
-      {staleGoodies.map((placed) => {
+      {staleGoodies.map((placed, rowIndex) => {
         const goodie = goodies[placed.goodieId];
         const busy = (visitorsBySlot.get(placed.slotId) || []).length > 0;
         if (!goodie) return null;
         return (
-          <div className="yard-shop-row" key={placed.slotId}>
+          <div className="yard-shop-row" key={placed.slotId} {...yardGroupSlotAttrs("repair", "repair-row", rowIndex)}>
             <img src={assetPath("goodies", `${placed.goodieId}_${placed.condition}`)} alt="" />
             <span><strong>{goodieName(goodie)}</strong><small>{text(`yard.condition.${placed.condition}`, placed.condition)} · {costLabel(goodie.fixCost, t)}</small></span>
             <YardActionButton icon="repair" disabled={busy || hasPending(`slot:${placed.slotId}`)} onClick={() => performAction("yard.fixGoodie", { slotId: placed.slotId })}>{text("yard.fix", "Fix")}</YardActionButton>
@@ -945,8 +976,8 @@ export default function CompanionYardGame() {
 
   const renderRemodelScreen = () => (
     <div className="yard-screen-grid">
-      {Object.values(remodels).filter((remodel) => yard.ownedRemodels?.includes(remodel.id)).map((remodel) => (
-        <div className="yard-shop-row" key={remodel.id}>
+      {Object.values(remodels).filter((remodel) => yard.ownedRemodels?.includes(remodel.id)).map((remodel, rowIndex) => (
+        <div className="yard-shop-row" key={remodel.id} {...yardGroupSlotAttrs("remodel", "remodel-row", rowIndex)}>
           <img src={assetPath("backgrounds", remodel.id)} alt="" />
           <span><strong>{remodelName(remodel)}</strong><small>{remodelDesc(remodel)} · {text("yard.owned", "Owned")}</small></span>
           <YardActionButton icon="remodel" active={yard.remodel === remodel.id} disabled={hasPending("remodel")} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>
@@ -960,13 +991,13 @@ export default function CompanionYardGame() {
   const renderExpansionScreen = () => (
     <div className="yard-screen-grid">
       <div className="yard-card">
-        <strong>{yard.expansion?.level >= 2 ? text("yard.wideYard", "Wide yard") : text("yard.smallYard", "Small yard")}</strong>
+        <strong {...yardSlotAttrs("expansion", "expansion-title")}>{yard.expansion?.level >= 2 ? text("yard.wideYard", "Wide yard") : text("yard.smallYard", "Small yard")}</strong>
         <div className="yard-metric-grid">
-          <span><b>{yard.expansion?.level || 1}</b><small>{text("yard.level", "Level")}</small></span>
-          <span><b>{yard.bowls?.length || 0}</b><small>{text("yard.bowls", "Bowls")}</small></span>
-          <span><b>{yard.placedGoodies?.length || 0}</b><small>{text("yard.placed", "Placed")}</small></span>
+          <span {...yardGroupSlotAttrs("expansion", "expansion-metric", 0)}><b>{yard.expansion?.level || 1}</b><small>{text("yard.level", "Level")}</small></span>
+          <span {...yardGroupSlotAttrs("expansion", "expansion-metric", 1)}><b>{yard.bowls?.length || 0}</b><small>{text("yard.bowls", "Bowls")}</small></span>
+          <span {...yardGroupSlotAttrs("expansion", "expansion-metric", 2)}><b>{yard.placedGoodies?.length || 0}</b><small>{text("yard.placed", "Placed")}</small></span>
         </div>
-        <YardActionButton icon="expansion" disabled={yard.expansion?.level >= 2 || expansionPending} onClick={() => performAction("yard.buyExpansion")}>
+        <YardActionButton icon="expansion" disabled={yard.expansion?.level >= 2 || expansionPending} onClick={() => performAction("yard.buyExpansion")} {...yardSlotAttrs("expansion", "expansion-action")}>
           {expansionPending ? text("yard.syncing", "Syncing") : yard.expansion?.level >= 2 ? text("yard.unlocked", "Unlocked") : text("yard.buyWideYard", "Buy wide yard")}
         </YardActionButton>
       </div>
@@ -976,12 +1007,12 @@ export default function CompanionYardGame() {
   const renderDailyScreen = () => (
     <div className="yard-screen-grid">
       <div className="yard-card">
-        <strong>{text("yard.dailyLetter", "Daily letter")}</strong>
+        <strong {...yardSlotAttrs("daily", "daily-title")}>{text("yard.dailyLetter", "Daily letter")}</strong>
         <div className="yard-metric-grid">
-          <span><b>{yard.dailyLetter?.stamps || 0}</b><small>{text("yard.stamps", "Stamps")}</small></span>
-          <span><b>{yard.dailyLetter?.lastClaimedDate || "-"}</b><small>{text("yard.last", "Last")}</small></span>
+          <span {...yardGroupSlotAttrs("daily", "daily-metric", 0)}><b>{yard.dailyLetter?.stamps || 0}</b><small>{text("yard.stamps", "Stamps")}</small></span>
+          <span {...yardGroupSlotAttrs("daily", "daily-metric", 2)}><b>{yard.dailyLetter?.lastClaimedDate || "-"}</b><small>{text("yard.last", "Last")}</small></span>
         </div>
-        <YardActionButton icon="daily" disabled={dailyLetterPending} onClick={() => performAction("yard.claimDailyLetter")}>
+        <YardActionButton icon="daily" disabled={dailyLetterPending} onClick={() => performAction("yard.claimDailyLetter")} {...yardSlotAttrs("daily", "daily-action")}>
           {dailyLetterPending ? text("yard.syncing", "Syncing") : text("yard.claim", "Claim")}
         </YardActionButton>
       </div>
@@ -991,17 +1022,18 @@ export default function CompanionYardGame() {
   const renderCompanionScreen = () => (
     <div className="yard-screen-grid">
       <div className="yard-card">
-        <strong>{text("yard.companion", "Companion")}</strong>
+        <strong {...yardSlotAttrs("companion", "companion-title")}>{text("yard.companion", "Companion")}</strong>
         <div className="join-row">
-          <input ref={nameInputRef} value={companionName} maxLength={16} onChange={(event) => setCompanionName(event.target.value)} />
-          <YardActionButton icon="confirm" onClick={configureCompanion}>{companionPending ? text("yard.syncing", "Syncing") : text("yard.save", "Save")}</YardActionButton>
+          <input ref={nameInputRef} value={companionName} maxLength={16} onChange={(event) => setCompanionName(event.target.value)} {...yardSlotAttrs("companion", "companion-name")} />
+          <YardActionButton icon="confirm" onClick={configureCompanion} {...yardSlotAttrs("companion", "companion-save")}>{companionPending ? text("yard.syncing", "Syncing") : text("yard.save", "Save")}</YardActionButton>
         </div>
         <div className="yard-species-grid">
-          {Object.keys(SPECIES_LABELS).map((species) => (
+          {Object.keys(SPECIES_LABELS).map((species, speciesIndex) => (
             <button
               type="button"
               key={species}
               className={yard.companion?.species === species ? "active" : ""}
+              {...yardGroupSlotAttrs("companion", "companion-species", speciesIndex)}
               onClick={() => performAction("yard.configureCompanion", { name: companionName, species })}
             >
               <img src={assetPath("companions", species)} alt="" />
@@ -1013,6 +1045,7 @@ export default function CompanionYardGame() {
           icon="companion"
           disabled={!yard.helper?.unlocked}
           active={yard.helper?.autoRefill}
+          {...yardSlotAttrs("companion", "companion-helper")}
           onClick={() => performAction("yard.configureCompanion", {
             name: companionName,
             species: yard.companion?.species || "dog",
@@ -1028,18 +1061,18 @@ export default function CompanionYardGame() {
   const renderSettingsScreen = () => (
     <div className="yard-screen-grid">
       <div className="yard-card">
-        <strong>{text("yard.game", "Game")}</strong>
-        <div className="yard-row">
+        <strong {...yardSlotAttrs("settings", "settings-title")}>{text("yard.game", "Game")}</strong>
+        <div className="yard-row" {...yardGroupSlotAttrs("settings", "settings-row", 0)}>
           <span>{text("yard.sound", "Sound")}</span>
           <YardActionButton icon={soundEnabled ? "sound-on" : "sound-off"} active={soundEnabled} onClick={toggleSound}>
             {soundEnabled ? text("yard.on", "On") : text("yard.off", "Off")}
           </YardActionButton>
         </div>
-        <div className="yard-row">
+        <div className="yard-row" {...yardGroupSlotAttrs("settings", "settings-row", 1)}>
           <span>{text("yard.visitors", "Visitors")}</span>
           <b>{activeVisitorCount}</b>
         </div>
-        <YardActionButton icon="back" danger onClick={() => setActiveTab("garden")}>{text("yard.backToGarden", "Back to garden")}</YardActionButton>
+        <YardActionButton icon="back" danger onClick={() => setActiveTab("garden")} {...yardSlotAttrs("settings", "settings-action")}>{text("yard.backToGarden", "Back to garden")}</YardActionButton>
       </div>
     </div>
   );
@@ -1171,16 +1204,17 @@ export default function CompanionYardGame() {
             ref={screenRef}
             className="yard-game-screen"
             data-yard-screen={activeScreen}
+            data-asset-slot-surface={`yard-${activeScreen}`}
             role="dialog"
             aria-modal="true"
             aria-label={text(screenMeta.titleKey, screenMeta.fallback)}
           >
             <div className="yard-screen-header">
-              <div>
+              <div className="yard-screen-title" {...yardSlotAttrs(activeScreen, "panel-title")}>
                 <YardIcon name={screenMeta.icon} />
                 <strong>{text(screenMeta.titleKey, screenMeta.fallback)}</strong>
               </div>
-              <YardIconButton compact icon="close" label={text("yard.close", "Close")} labelMode="hidden" onClick={closeScreen} />
+              <YardIconButton compact icon="close" label={text("yard.close", "Close")} labelMode="hidden" onClick={closeScreen} {...yardSlotAttrs(activeScreen, "panel-close")} />
             </div>
             <div className="yard-screen-content">
               {renderScreenContent()}

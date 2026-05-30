@@ -19,6 +19,7 @@ import type { GardenAssetPaths } from './lib/sprites';
 import { loadRuntimeAssetManifest } from '../../game-runtime/assetBundles.js';
 import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
 import { HudEditableRegion, HudRegion } from '../../app/hud-layout/index.js';
+import { assetSlotStyle } from '../../app/assetSlots.js';
 import { formatGardenGoldAmount } from './constants';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
 import { buildGardenQuestSections } from '../../../game-logic/garden-quests.js';
@@ -35,6 +36,25 @@ function renderGardenPortal(children: React.ReactNode) {
 function cssImageUrl(value: string) {
   return value ? `url(${JSON.stringify(value)})` : "none";
 }
+
+const GARDEN_QUEST_PANEL_REFERENCE = { width: 1024, height: 1536 };
+const GARDEN_QUEST_ROW_REFERENCE = { width: 826, height: 176 };
+
+const GARDEN_QUEST_PANEL_SLOTS = {
+  title: { x: 272, y: 128, width: 492, height: 64 },
+  subtitle: { x: 294, y: 188, width: 448, height: 34 },
+  close: { x: 858, y: 100, width: 112, height: 112 },
+  list: { x: 101, y: 256, width: 826, height: 1112 },
+};
+
+const GARDEN_QUEST_ROW_SLOTS = {
+  type: { x: 36, y: 35, width: 108, height: 112 },
+  title: { x: 162, y: 54, width: 268, height: 32 },
+  body: { x: 162, y: 100, width: 198, height: 34 },
+  reward: { x: 453, y: 51, width: 64, height: 64 },
+  progress: { x: 454, y: 130, width: 181, height: 28 },
+  action: { x: 653, y: 59, width: 146, height: 72 },
+};
 
 function GardenSign({ assetPaths }: { assetPaths: GardenAssetPaths }) {
   const { state, renameGarden } = useGame();
@@ -300,6 +320,7 @@ function GardenQuestController() {
             />
             <motion.div
               data-garden-panel="quests"
+              data-asset-slot-surface="garden-quests"
               className="garden-glass-menu garden-quest-dialog fixed inset-x-3 top-16 z-[190] mx-auto max-h-[calc(100%-88px)] max-w-[380px] overflow-hidden border p-4"
               role="dialog"
               aria-modal="true"
@@ -311,11 +332,25 @@ function GardenQuestController() {
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.16em]">{t('quest.title')}</h2>
-                  <p className="mt-1 text-xs text-[color:var(--muted)]">{t('quest.subtitle')}</p>
+                  <h2
+                    data-asset-slot="panel-title"
+                    style={assetSlotStyle(GARDEN_QUEST_PANEL_SLOTS.title, GARDEN_QUEST_PANEL_REFERENCE)}
+                    className="text-sm font-semibold uppercase tracking-[0.16em]"
+                  >
+                    {t('quest.title')}
+                  </h2>
+                  <p
+                    data-asset-slot="panel-subtitle"
+                    style={assetSlotStyle(GARDEN_QUEST_PANEL_SLOTS.subtitle, GARDEN_QUEST_PANEL_REFERENCE)}
+                    className="mt-1 text-xs text-[color:var(--muted)]"
+                  >
+                    {t('quest.subtitle')}
+                  </p>
                 </div>
                 <button
                   type="button"
+                  data-asset-slot="panel-close"
+                  style={assetSlotStyle(GARDEN_QUEST_PANEL_SLOTS.close, GARDEN_QUEST_PANEL_REFERENCE)}
                   className="garden-icon-button shrink-0"
                   onClick={closeQuests}
                   aria-label={t('quest.close')}
@@ -324,53 +359,81 @@ function GardenQuestController() {
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div
+                className="space-y-3"
+                data-asset-slot="quest-list"
+                style={assetSlotStyle(GARDEN_QUEST_PANEL_SLOTS.list, GARDEN_QUEST_PANEL_REFERENCE)}
+              >
                 {quests.map((quest) => {
                   const canClaim = quest.unlocked && quest.complete && !quest.claimed;
                   return (
                     <article
                       key={quest.id}
                       className={cn("garden-quest-card", quest.kind === "daily" && "daily", quest.locked && "locked")}
+                      data-asset-slot-row="garden-quest"
                       data-quest-id={quest.id}
                       data-quest-kind={quest.kind}
                       data-quest-claimed={quest.claimed ? "true" : "false"}
                       data-quest-locked={quest.locked ? "true" : "false"}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3>{t(quest.titleKey, quest.titleVars)}</h3>
-                          <span className={`garden-quest-type ${quest.kind}`}>{t(quest.kind === 'daily' ? 'quest.daily' : 'quest.story')}</span>
-                          <p>{t(quest.bodyKey, quest.bodyVars)}</p>
-                        </div>
-                        <div className="garden-quest-reward">
-                          <Coins size={14} />
-                          {formatGardenGoldAmount(quest.reward)}
-                        </div>
+                      <span
+                        className={`garden-quest-type ${quest.kind}`}
+                        data-asset-slot="quest-kind"
+                        style={assetSlotStyle(GARDEN_QUEST_ROW_SLOTS.type, GARDEN_QUEST_ROW_REFERENCE)}
+                      >
+                        {t(quest.kind === 'daily' ? 'quest.daily' : 'quest.story')}
+                      </span>
+                      <h3
+                        data-asset-slot="quest-title"
+                        style={assetSlotStyle(GARDEN_QUEST_ROW_SLOTS.title, GARDEN_QUEST_ROW_REFERENCE)}
+                      >
+                        {t(quest.titleKey, quest.titleVars)}
+                      </h3>
+                      <p
+                        data-asset-slot="quest-body"
+                        style={assetSlotStyle(GARDEN_QUEST_ROW_SLOTS.body, GARDEN_QUEST_ROW_REFERENCE)}
+                      >
+                        {t(quest.bodyKey, quest.bodyVars)}
+                      </p>
+                      <div
+                        className="garden-quest-reward"
+                        data-asset-slot="quest-reward"
+                        style={assetSlotStyle(GARDEN_QUEST_ROW_SLOTS.reward, GARDEN_QUEST_ROW_REFERENCE)}
+                      >
+                        <Coins size={14} />
+                        {formatGardenGoldAmount(quest.reward)}
                       </div>
-                      <div className="garden-quest-progress" aria-label={t('quest.progress', { current: quest.current, target: quest.target })}>
+                      <div
+                        className="garden-quest-progress"
+                        data-asset-slot="quest-progress"
+                        style={assetSlotStyle(GARDEN_QUEST_ROW_SLOTS.progress, GARDEN_QUEST_ROW_REFERENCE)}
+                        aria-label={t('quest.progress', { current: quest.current, target: quest.target })}
+                      >
                         {quest.endowed > 0 && (
                           <i style={{ width: `${Math.min(100, (quest.endowed / quest.target) * 100)}%` }} aria-hidden="true" />
                         )}
                         <span style={{ width: `${quest.percent}%` }} />
-                      </div>
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <span className="font-mono text-[11px] text-[color:var(--muted)]">
+                        <b>
                           {t('quest.progress', { current: quest.current, target: quest.target })}
-                          {quest.endowed > 0 && <em>{t('quest.endowed', { count: quest.endowed })}</em>}
-                        </span>
-                        <button
-                          type="button"
-                          className={cn(
-                            "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
-                            canClaim ? "primary garden-quest-claimable" : "disabled",
-                          )}
-                          disabled={!canClaim}
-                          onClick={() => claimQuest(quest.id, quest.reward)}
-                        >
-                          {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
-                          {quest.claimed ? t('quest.claimed') : quest.locked ? t('quest.locked') : t('quest.claim')}
-                        </button>
+                        </b>
                       </div>
+                      {quest.endowed > 0 && (
+                        <em className="garden-quest-endowed">{t('quest.endowed', { count: quest.endowed })}</em>
+                      )}
+                      <button
+                        type="button"
+                        data-asset-slot="quest-action"
+                        style={assetSlotStyle(GARDEN_QUEST_ROW_SLOTS.action, GARDEN_QUEST_ROW_REFERENCE)}
+                        className={cn(
+                          "garden-action-button min-h-[38px] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em]",
+                          canClaim ? "primary garden-quest-claimable" : "disabled",
+                        )}
+                        disabled={!canClaim}
+                        onClick={() => claimQuest(quest.id, quest.reward)}
+                      >
+                        {quest.claimed ? <CheckCircle2 size={14} /> : <Gift size={14} />}
+                        {quest.claimed ? t('quest.claimed') : quest.locked ? t('quest.locked') : t('quest.claim')}
+                      </button>
                     </article>
                   );
                 })}

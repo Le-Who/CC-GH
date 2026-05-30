@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { YARD_PANEL_REFERENCE, YARD_SCREEN_SLOT_MAPS } from "../src/games/companion-yard/yardPanelSlots.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicRoot = path.join(root, "public");
@@ -490,6 +491,49 @@ test("Yard generated management screens declare screen-specific slot maps", asyn
       new RegExp(`\\.companion-yard-layout\\s+\\.yard-game-screen\\[data-yard-screen="${screen}"\\]\\s+\\.${selector}\\s*\\{[\\s\\S]*?${expectedRule}`, "s"),
       `Yard ${screen} panel should map .${selector} into generated asset slots`,
     );
+  }
+});
+
+test("Yard generated management screens use mechanical asset slot maps", async () => {
+  const yardGame = await readFile(path.join(root, "src", "games", "companion-yard", "CompanionYardGame.jsx"), "utf8");
+  const screens = requiredInternalMenuPanels.cozyYard.screens;
+
+  assert.match(
+    yardGame,
+    /data-asset-slot-surface=\{`yard-\$\{activeScreen\}`\}/,
+    "Yard generated panels must expose a screen-specific asset-slot surface",
+  );
+  assert.match(
+    yardGame,
+    /yardPanelSlotStyle/,
+    "Yard generated panels must use the shared slot style helper for fixed panel lanes",
+  );
+  assert.match(
+    yardGame,
+    /yardPanelGroupSlotStyle/,
+    "Yard generated panels must use the shared slot style helper for repeated row/card lanes",
+  );
+
+  for (const screen of screens) {
+    const map = YARD_SCREEN_SLOT_MAPS[screen];
+    assert.ok(map, `Yard ${screen} must have a mechanical panel slot map`);
+    assert.ok(map.slots["panel-title"], `Yard ${screen} must pin its title to the banner slot`);
+    assert.ok(map.slots["panel-close"], `Yard ${screen} must pin its close control to the painted close slot`);
+
+    for (const [slotId, slot] of Object.entries(map.slots)) {
+      assert.ok(slot.x >= 0 && slot.y >= 0, `Yard ${screen}.${slotId} must stay inside the panel origin`);
+      assert.ok(slot.x + slot.width <= YARD_PANEL_REFERENCE.width, `Yard ${screen}.${slotId} must not overflow panel width`);
+      assert.ok(slot.y + slot.height <= YARD_PANEL_REFERENCE.height, `Yard ${screen}.${slotId} must not overflow panel height`);
+    }
+
+    for (const [groupId, slots] of Object.entries(map.groups || {})) {
+      assert.ok(slots.length > 0, `Yard ${screen}.${groupId} must define at least one authored slot`);
+      for (const [index, slot] of slots.entries()) {
+        assert.ok(slot.x >= 0 && slot.y >= 0, `Yard ${screen}.${groupId}[${index}] must stay inside the panel origin`);
+        assert.ok(slot.x + slot.width <= YARD_PANEL_REFERENCE.width, `Yard ${screen}.${groupId}[${index}] must not overflow panel width`);
+        assert.ok(slot.y + slot.height <= YARD_PANEL_REFERENCE.height, `Yard ${screen}.${groupId}[${index}] must not overflow panel height`);
+      }
+    }
   }
 });
 

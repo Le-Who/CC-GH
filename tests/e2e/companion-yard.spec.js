@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
 import { buildSnapshot } from "../../routes/player.js";
 import { isPointInsideObstacle } from "../../src/games/companion-yard/movement.js";
+import { YARD_PANEL_REFERENCE, YARD_SCREEN_SLOT_MAPS } from "../../src/games/companion-yard/yardPanelSlots.js";
 
 function buildYardMovementSnapshot(now = Date.now()) {
   const player = createDefaultPlayer("yard-motion-user", "Yard Motion", now);
@@ -795,6 +796,20 @@ test.describe("Cozy Yard movement and assets", () => {
       ["Помощник", "Помощник", "companion"],
       ["Настройки", "Настройки", "settings"],
     ];
+    const slotRequirements = {
+      food: { slots: ["panel-title", "panel-close"], groups: { "food-choice": 3 } },
+      goodies: { slots: ["panel-title", "panel-close", "inventory-title", "inventory-list", "placed-title", "placed-list"], groups: {} },
+      shop: { slots: ["panel-title", "panel-close", "food-title", "food-list", "goodies-title", "goodies-list", "backgrounds-title", "backgrounds-list"], groups: {} },
+      petbook: { slots: ["panel-title", "panel-close"], groups: { "petbook-card": 6 } },
+      album: { slots: ["panel-title", "panel-close"], groups: { "album-card": 1 } },
+      gifts: { slots: ["panel-title", "panel-close", "gifts-summary-title", "gifts-collect"], groups: { "gifts-metric": 3, "gifts-row": 1 } },
+      repair: { slots: ["panel-title", "panel-close"], groups: { "repair-row": 1 } },
+      remodel: { slots: ["panel-title", "panel-close"], groups: { "remodel-row": 2 } },
+      expansion: { slots: ["panel-title", "panel-close", "expansion-title", "expansion-action"], groups: { "expansion-metric": 3 } },
+      daily: { slots: ["panel-title", "panel-close", "daily-title", "daily-action"], groups: { "daily-metric": 2 } },
+      companion: { slots: ["panel-title", "panel-close", "companion-title", "companion-name", "companion-save", "companion-helper"], groups: { "companion-species": 6 } },
+      settings: { slots: ["panel-title", "panel-close", "settings-title", "settings-action"], groups: { "settings-row": 2 } },
+    };
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => {
@@ -827,7 +842,22 @@ test.describe("Cozy Yard movement and assets", () => {
         const visible = (node) => {
           const rect = node.getBoundingClientRect();
           const style = getComputedStyle(node);
-          return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+          if (style.display === "none" || style.visibility === "hidden" || rect.width <= 0 || rect.height <= 0) return false;
+          const centerX = (rect.left + rect.right) / 2;
+          const centerY = (rect.top + rect.bottom) / 2;
+          for (let current = node.parentElement; current && current !== document.body; current = current.parentElement) {
+            const currentStyle = getComputedStyle(current);
+            const clips = `${currentStyle.overflow}${currentStyle.overflowX}${currentStyle.overflowY}`;
+            if (!/(auto|scroll|hidden|clip)/.test(clips)) continue;
+            const currentRect = current.getBoundingClientRect();
+            if (
+              centerX < currentRect.left
+              || centerX > currentRect.right
+              || centerY < currentRect.top
+              || centerY > currentRect.bottom
+            ) return false;
+          }
+          return true;
         };
         const labelFor = (node) => node.getAttribute("aria-label") || node.textContent.trim().replace(/\s+/g, " ");
         const centerInsideScreen = (rect) => screenRect
@@ -870,6 +900,77 @@ test.describe("Cozy Yard movement and assets", () => {
       expect(metrics.clippedControls).toEqual([]);
       expect(metrics.overflowingButtons).toEqual([]);
       expect(metrics.speciesOpaqueButtons).toEqual([]);
+
+      const slotAlignment = await page.evaluate(({ screenId, screenMap, reference, requirement }) => {
+        const screen = document.querySelector(".yard-game-screen");
+        const screenRect = screen?.getBoundingClientRect();
+        if (!screen || !screenRect || !screenMap) {
+          return { surface: null, missing: [`${screenId}:screen`], deviations: [] };
+        }
+
+        const expectedRect = (slot) => ({
+          left: screenRect.left + (slot.x / reference.width) * screenRect.width,
+          top: screenRect.top + (slot.y / reference.height) * screenRect.height,
+          width: (slot.width / reference.width) * screenRect.width,
+          height: (slot.height / reference.height) * screenRect.height,
+        });
+        const measure = (node, expected, id) => {
+          const rect = node.getBoundingClientRect();
+          const deviation = Math.max(
+            Math.abs(rect.left - expected.left),
+            Math.abs(rect.top - expected.top),
+            Math.abs(rect.width - expected.width),
+            Math.abs(rect.height - expected.height),
+          );
+          return { id, deviation };
+        };
+
+        const missing = [];
+        const deviations = [];
+        for (const slotId of requirement.slots || []) {
+          const target = screen.querySelector(`[data-asset-slot="${slotId}"]`);
+          const slot = screenMap.slots?.[slotId];
+          if (!target || !slot) {
+            missing.push(`${screenId}:${slotId}`);
+            continue;
+          }
+          deviations.push(measure(target, expectedRect(slot), `${screenId}:${slotId}`));
+        }
+
+        for (const [groupId, count] of Object.entries(requirement.groups || {})) {
+          const targets = [...screen.querySelectorAll(`[data-asset-slot-group="${groupId}"]`)]
+            .sort((a, b) => Number(a.dataset.assetSlotIndex || 0) - Number(b.dataset.assetSlotIndex || 0));
+          const slots = screenMap.groups?.[groupId] || [];
+          if (targets.length < count || slots.length < count) {
+            missing.push(`${screenId}:${groupId}:${targets.length}/${count}`);
+            continue;
+          }
+          for (let index = 0; index < count; index += 1) {
+            const slotIndex = Number(targets[index].dataset.assetSlotIndex || index);
+            const slot = slots[slotIndex];
+            if (!slot) {
+              missing.push(`${screenId}:${groupId}:${slotIndex}`);
+              continue;
+            }
+            deviations.push(measure(targets[index], expectedRect(slot), `${screenId}:${groupId}:${slotIndex}`));
+          }
+        }
+
+        return {
+          surface: screen.getAttribute("data-asset-slot-surface"),
+          missing,
+          deviations,
+        };
+      }, {
+        screenId,
+        screenMap: YARD_SCREEN_SLOT_MAPS[screenId],
+        reference: YARD_PANEL_REFERENCE,
+        requirement: slotRequirements[screenId],
+      });
+
+      expect(slotAlignment.surface).toBe(`yard-${screenId}`);
+      expect(slotAlignment.missing).toEqual([]);
+      expect(slotAlignment.deviations.filter((item) => item.deviation > 1.2)).toEqual([]);
 
       await page.keyboard.press("Escape");
       await expect(page.locator(".yard-game-screen")).toHaveCount(0);

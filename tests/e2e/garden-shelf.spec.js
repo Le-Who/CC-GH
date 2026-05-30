@@ -748,6 +748,174 @@ test.describe("Garden Shelf flow", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("aligns Garden quest DOM slots to the generated quest panel lanes", async ({ browser }) => {
+    const now = Date.now();
+    const player = createDefaultPlayer(`garden_quest_slots_${now}`, "Garden Quest Slots", now);
+    const gardenState = {
+      economyVersion: GARDEN_ECONOMY_VERSION,
+      totalGoldEarned: 240,
+      level: 3,
+      xp: 0,
+      xpRequired: getGardenXpRequired(3),
+      levelReady: false,
+      shelvesUnlocked: 1,
+      plants: [{
+        id: "slot-daisy",
+        type: "daisy",
+        level: 3,
+        shelfIndex: 0,
+        spotIndex: 0,
+        phase: 3,
+        phaseProgress: 0,
+        lastTapped: now,
+        lastWatered: now,
+      }],
+      claimedQuests: [],
+      dailyQuests: {
+        date: new Date(now).toISOString().slice(0, 10),
+        claimed: [],
+        stats: {
+          taps: 18,
+          waters: 12,
+          plantsBought: 5,
+          upgrades: 4,
+          goldEarned: 160,
+          xpEarned: 120,
+          levelUps: 2,
+        },
+      },
+      lastTick: now,
+      offlineEarnings: null,
+      offlineXp: null,
+    };
+    player.garden = gardenState;
+    const snapshot = buildSnapshot(player);
+    const viewports = [
+      { name: "small-phone", width: 320, height: 568, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      { name: "common-android", width: 360, height: 800, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "common-phone", width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      { name: "large-phone", width: 414, height: 896, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "phone-landscape", width: 568, height: 320, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
+      { name: "wide-phone-landscape", width: 844, height: 390, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "tablet-portrait", width: 768, height: 1024, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "tablet-landscape", width: 1024, height: 768, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
+      { name: "desktop-smoke", width: 1280, height: 720, deviceScaleFactor: 1, isMobile: false, hasTouch: false },
+    ];
+
+    for (const viewport of viewports) {
+      const context = await browser.newContext({
+        viewport: { width: viewport.width, height: viewport.height },
+        deviceScaleFactor: viewport.deviceScaleFactor,
+        isMobile: viewport.isMobile,
+        hasTouch: viewport.hasTouch,
+      });
+      const page = await context.newPage();
+      await page.addInitScript((label) => {
+        window.localStorage.setItem("gh_dev_user_id", `garden_quest_slots_${label}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+        window.localStorage.setItem("garden_shelf_language", "en");
+        window.localStorage.removeItem("terrarium_save");
+        window.localStorage.removeItem("garden_shelf_name");
+      }, viewport.name);
+      await page.route("**/api/player/snapshot", async (route) => {
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify(snapshot),
+        });
+      });
+      await page.route("**/api/player/mutate", async (route) => {
+        const body = parsePlayerActionRequest(route.request()) || {};
+        await route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({
+            action: body.action,
+            snapshot,
+            goldDelta: body.payload?.amount || 0,
+          }),
+        });
+      });
+
+      try {
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      await expect.poll(() => page.evaluate(() => typeof window.__openGardenQuests)).toBe("function");
+      await page.evaluate(() => window.__openGardenQuests());
+      const questDialog = page.getByRole("dialog", { name: "Garden quests" });
+      await expect(questDialog).toBeVisible();
+      await expect(questDialog).toHaveAttribute("data-asset-slot-surface", "garden-quests");
+
+      const measurements = await questDialog.evaluate((dialog) => {
+        const rectOf = (selector, scope = dialog) => {
+          const element = selector === ":scope" ? scope : scope.querySelector(selector);
+          if (!element) return null;
+          const rect = element.getBoundingClientRect();
+          const parent = dialog.getBoundingClientRect();
+          return {
+            x: (rect.left - parent.left) / parent.width,
+            y: (rect.top - parent.top) / parent.height,
+            width: rect.width / parent.width,
+            height: rect.height / parent.height,
+          };
+        };
+        const cards = Array.from(dialog.querySelectorAll("[data-asset-slot-row='garden-quest']"))
+          .slice(0, 6)
+          .map((card) => ({
+            row: rectOf(":scope", card),
+            title: rectOf("[data-asset-slot='quest-title']", card),
+            reward: rectOf("[data-asset-slot='quest-reward']", card),
+            progress: rectOf("[data-asset-slot='quest-progress']", card),
+            action: rectOf("[data-asset-slot='quest-action']", card),
+          }));
+        const hitTargets = Array.from(dialog.querySelectorAll("[data-asset-slot='panel-close'], [data-asset-slot='quest-action']")).map((target) => {
+          const rect = target.getBoundingClientRect();
+          const before = getComputedStyle(target, "::before");
+          const beforeX = Math.abs(parseFloat(before.left || "0")) + Math.abs(parseFloat(before.right || "0"));
+          const beforeY = Math.abs(parseFloat(before.top || "0")) + Math.abs(parseFloat(before.bottom || "0"));
+          return {
+            slot: target.getAttribute("data-asset-slot"),
+            hitWidth: rect.width + beforeX,
+            hitHeight: rect.height + beforeY,
+          };
+        });
+        return {
+          list: rectOf("[data-asset-slot='quest-list']"),
+          title: rectOf("[data-asset-slot='panel-title']"),
+          close: rectOf("[data-asset-slot='panel-close']"),
+          cards,
+          hitTargets,
+        };
+      });
+
+      const expectNear = (actual, expected, tolerance, label) => {
+        expect(actual, `${label} exists`).not.toBeNull();
+        expect(Math.abs(actual.x - expected.x), `${label} x`).toBeLessThanOrEqual(tolerance);
+        expect(Math.abs(actual.y - expected.y), `${label} y`).toBeLessThanOrEqual(tolerance);
+        expect(Math.abs(actual.width - expected.width), `${label} width`).toBeLessThanOrEqual(tolerance);
+        expect(Math.abs(actual.height - expected.height), `${label} height`).toBeLessThanOrEqual(tolerance);
+      };
+
+      expectNear(measurements.title, { x: 0.265, y: 0.083, width: 0.48, height: 0.042 }, 0.025, `${viewport.name} quest panel title`);
+      expectNear(measurements.close, { x: 0.835, y: 0.066, width: 0.112, height: 0.073 }, 0.04, `${viewport.name} quest panel close`);
+      expectNear(measurements.list, { x: 0.099, y: 0.167, width: 0.807, height: 0.724 }, 0.018, `${viewport.name} quest list viewport`);
+      expect(measurements.cards.length).toBeGreaterThanOrEqual(6);
+      for (const target of measurements.hitTargets) {
+        expect(target.hitWidth, `${viewport.name} ${target.slot} hit width`).toBeGreaterThanOrEqual(44);
+        expect(target.hitHeight, `${viewport.name} ${target.slot} hit height`).toBeGreaterThanOrEqual(44);
+      }
+
+      const rowY = [0.167, 0.292, 0.417, 0.541, 0.665, 0.789];
+      for (const [index, card] of measurements.cards.entries()) {
+        expectNear(card.row, { x: 0.099, y: rowY[index], width: 0.807, height: 0.115 }, 0.02, `${viewport.name} quest row ${index + 1}`);
+        expectNear(card.title, { x: 0.257, y: rowY[index] + 0.036, width: 0.26, height: 0.024 }, 0.03, `${viewport.name} quest row ${index + 1} title slot`);
+        expectNear(card.reward, { x: 0.543, y: rowY[index] + 0.035, width: 0.062, height: 0.041 }, 0.03, `${viewport.name} quest row ${index + 1} reward slot`);
+        expectNear(card.progress, { x: 0.542, y: rowY[index] + 0.085, width: 0.178, height: 0.018 }, 0.03, `${viewport.name} quest row ${index + 1} progress slot`);
+        expectNear(card.action, { x: 0.737, y: rowY[index] + 0.043, width: 0.142, height: 0.049 }, 0.03, `${viewport.name} quest row ${index + 1} action slot`);
+      }
+      } finally {
+        await context.close();
+      }
+    }
+  });
+
   test("restores Garden Shelf level and plants from the shared player state on another device", async ({ browser }) => {
     const userId = `garden_sync_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const openDevice = async () => {
