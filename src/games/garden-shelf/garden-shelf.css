@@ -1843,6 +1843,257 @@
   box-shadow: none !important;
 }
 
+/* Slot alignment pass: generated panel art defines the runtime lanes. */
+.garden-settings-dialog[data-garden-panel="settings"] {
+  width: min(380px, calc(100vw - 18px), 66.6dvh) !important;
+  height: min(570px, calc(100dvh - 20px), 150vw) !important;
+  aspect-ratio: 2 / 3;
+  top: max(10px, calc(var(--safe-top) + 8px)) !important;
+  right: max(6px, env(safe-area-inset-right, 0px)) !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] > .mb-4 {
+  display: contents !important;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] h2 {
+  position: absolute;
+  top: 8.2%;
+  left: 24%;
+  right: 22%;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent;
+  color: #3b2418 !important;
+  text-align: center;
+  font-size: clamp(0.72rem, 3vw, 1.02rem) !important;
+  line-height: 1.05;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-icon-button {
+  position: absolute;
+  top: 6%;
+  right: 6.8%;
+  width: 11%;
+  height: 7.4%;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-body {
+  position: absolute;
+  inset: 21.6% 13.8% 7.5% 13.8%;
+  color: #3b2418 !important;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 27% minmax(0, 1fr);
+  align-items: center;
+  gap: 4%;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-sound-row {
+  top: 1.2%;
+  height: 16%;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-language-row {
+  top: 44%;
+  height: 17%;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-label {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(59, 36, 24, 0.74) !important;
+  font-size: clamp(0.58rem, 2.1vw, 0.72rem);
+  font-weight: 1000;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-sound-row .garden-choice-button {
+  width: 100%;
+  height: 62%;
+  min-height: 48px;
+  padding: 0 6px !important;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-language-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8%;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-language-grid .garden-choice-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 5px !important;
+  font-size: clamp(0.66rem, 2.4vw, 0.84rem) !important;
+}
+
+.garden-settings-dialog[data-garden-panel="settings"] .garden-settings-close-button {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 0;
+  width: auto;
+  height: 9%;
+  min-height: 48px;
+  padding: 0 8px !important;
+  color: #203414 !important;
+  font-size: clamp(0.62rem, 2.4vw, 0.84rem) !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 16.8% minmax(0, 1fr) 24.4%;
+  grid-template-rows: 23% 27% 17% 26%;
+  column-gap: 2.5%;
+  align-items: center;
+  overflow: hidden;
+  background-color: rgba(250, 228, 177, 0.74) !important;
+  padding: 1.1% 3% 1.3% 0 !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card > .flex,
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card .mt-3 {
+  display: contents !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card > .flex {
+  display: contents !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card .mt-3 {
+  display: contents !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card > .flex > .min-w-0 {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  min-width: 0;
+  align-self: center;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card h3,
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card p,
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card .mt-3 > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card h3 {
+  display: block;
+  white-space: nowrap;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-type {
+  width: max-content;
+  max-width: 78%;
+  margin: 2px 0 1px;
+  padding: 1px 7px;
+  font-size: clamp(0.42rem, 1.55vw, 0.52rem) !important;
+  line-height: 1.15;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-reward {
+  grid-column: 3;
+  grid-row: 1 / 2;
+  justify-self: center;
+  align-self: center;
+  width: 100%;
+  justify-content: center;
+  gap: 3px;
+  font-size: clamp(0.5rem, 1.9vw, 0.64rem) !important;
+  white-space: nowrap;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-progress {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: center;
+  height: 8px;
+  margin: 0 !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card .mt-3 > span {
+  grid-column: 2;
+  grid-row: 4;
+  align-self: center;
+  color: rgba(59, 36, 24, 0.7) !important;
+  font-size: clamp(0.48rem, 1.65vw, 0.56rem) !important;
+  line-height: 1.05;
+  white-space: nowrap;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card .garden-action-button {
+  grid-column: 3;
+  grid-row: 3 / 5;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  align-self: center;
+  justify-self: stretch;
+  padding: 0 4px !important;
+  font-size: clamp(0.44rem, 1.6vw, 0.55rem) !important;
+  line-height: 1.05 !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-actions .garden-action-button.danger {
+  padding: 0 !important;
+  grid-template-rows: 1fr;
+  place-items: center;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-actions .garden-action-button svg {
+  margin: 0 !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-evolve {
+  left: 24.6% !important;
+  right: 24.6% !important;
+  bottom: 7.5% !important;
+  padding: 0 5% !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-evolve-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px !important;
+  white-space: nowrap;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-evolve-btn-label .mx-2 {
+  display: none;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-evolve-btn-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px !important;
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .garden-plant-grown,
   .garden-plant-grown::after {

@@ -118,6 +118,7 @@ This document is the working map for how UI assets, runtime functions, and layou
 
 - Prefer shared shell primitives (`GameShell`, `GamePlayHud`, `PanelButton`, `PauseBrief`) before inventing one-off game CSS.
 - When decorative art contains button slots, use transparent hitboxes, but anchor them with named phase selectors (`menu`, `paused`, `result`) and stronger play-mode selectors.
+- A generated menu panel is not a layout by itself: every visible panel with painted rows, cards, metric lanes, or action slots needs screen-specific semantic selectors or a layout adapter that pins dynamic text, controls, and hit areas to those authored slots.
 - Do not let global play-mode mobile CSS override game-specific frame geometry.
 - If text does not fit the authored lane, reduce copy length or clamp the secondary copy; do not push controls into the frame border.
 - If a generated asset forces bad text contrast or unusable slot geometry, regenerate or replace that asset. Do not compensate with random absolute offsets.

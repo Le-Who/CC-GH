@@ -181,9 +181,9 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
                 </button>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('settings.sound')}</div>
+              <div className="garden-settings-body">
+                <section className="garden-settings-row garden-settings-sound-row">
+                  <div className="garden-settings-label">{t('settings.sound')}</div>
                   <button
                     type="button"
                     onClick={toggleSound}
@@ -194,11 +194,11 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
                   >
                     {soundEnabled ? t('settings.soundOn') : t('settings.soundOff')}
                   </button>
-                </div>
+                </section>
 
-                <div>
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('settings.language')}</div>
-                  <div className="grid grid-cols-2 gap-2">
+                <section className="garden-settings-row garden-settings-language-row">
+                  <div className="garden-settings-label">{t('settings.language')}</div>
+                  <div className="garden-settings-language-grid">
                     {(['en', 'ru'] as GardenLanguage[]).map((option) => (
                       <button
                         type="button"
@@ -213,7 +213,15 @@ function GardenSettingsButton({ assetPaths }: { assetPaths: GardenAssetPaths }) 
                       </button>
                     ))}
                   </div>
-                </div>
+                </section>
+
+                <button
+                  type="button"
+                  className="garden-choice-button garden-settings-close-button"
+                  onClick={closeSettings}
+                >
+                  {t('settings.done')}
+                </button>
               </div>
             </motion.div>
           </>

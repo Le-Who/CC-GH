@@ -778,4 +778,101 @@ test.describe("Cozy Yard movement and assets", () => {
     await foodButton.dispatchEvent("pointerup");
     await expect(page.locator(".yard-bottom-dock .press-tooltip")).toHaveCount(0);
   });
+
+  test("keeps Russian management panels aligned to generated slots on mobile", async ({ page }) => {
+    const snapshot = buildHudAuditSnapshot();
+    const screens = [
+      ["Еда", "Миски с едой", "food"],
+      ["Декор", "Декорации", "goodies"],
+      ["Магазин", "Магазин", "shop"],
+      ["Питомцы", "Книга гостей", "petbook"],
+      ["Альбом", "Фотоальбом", "album"],
+      ["Подарки", "Коллекция подарков", "gifts"],
+      ["Починка декора", "Починка декора", "repair"],
+      ["Фон двора", "Фон двора", "remodel"],
+      ["Расширение", "Расширение", "expansion"],
+      ["Ежедневное письмо", "Ежедневное письмо", "daily"],
+      ["Помощник", "Помощник", "companion"],
+      ["Настройки", "Настройки", "settings"],
+    ];
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("garden_shelf_language", "ru");
+      window.localStorage.setItem("game_hub_ui_theme", "light");
+    });
+    await page.route("**/api/player/snapshot", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+    await page.getByRole("button", { name: /Двор|Yard/ }).click();
+
+    for (const [buttonName, dialogName, screenId] of screens) {
+      const button = page.getByRole("button", { name: buttonName, exact: true });
+      if (!await button.count() || !await button.first().isVisible()) {
+        await page.getByRole("button", { name: "Инструменты", exact: true }).click();
+      }
+      await button.first().click();
+      await expect(page.locator(".yard-game-screen")).toHaveAttribute("data-yard-screen", screenId);
+      await expect(page.getByRole("dialog", { name: dialogName })).toBeVisible();
+
+      const metrics = await page.evaluate(() => {
+        const screen = document.querySelector(".yard-game-screen");
+        const screenRect = screen?.getBoundingClientRect();
+        const visible = (node) => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+        };
+        const labelFor = (node) => node.getAttribute("aria-label") || node.textContent.trim().replace(/\s+/g, " ");
+        const centerInsideScreen = (rect) => screenRect
+          && ((rect.left + rect.right) / 2) >= screenRect.left
+          && ((rect.left + rect.right) / 2) <= screenRect.right
+          && ((rect.top + rect.bottom) / 2) >= screenRect.top
+          && ((rect.top + rect.bottom) / 2) <= screenRect.bottom;
+        const controls = [...(screen?.querySelectorAll("button, input") || [])]
+          .filter(visible)
+          .filter((node) => centerInsideScreen(node.getBoundingClientRect()));
+        const insideScreen = (rect) => screenRect
+          && rect.left >= screenRect.left - 1
+          && rect.right <= screenRect.right + 1
+          && rect.top >= screenRect.top - 1
+          && rect.bottom <= screenRect.bottom + 1;
+        return {
+          horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          tinyControls: controls
+            .filter((node) => {
+              const rect = node.getBoundingClientRect();
+              return rect.width < 44 || rect.height < 44;
+            })
+            .map(labelFor),
+          clippedControls: controls
+            .filter((node) => !insideScreen(node.getBoundingClientRect()))
+            .map(labelFor),
+          overflowingButtons: controls
+            .filter((node) => node.tagName === "BUTTON")
+            .filter((node) => node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1)
+            .map(labelFor),
+          speciesOpaqueButtons: [...(screen?.querySelectorAll(".yard-species-grid button") || [])]
+            .filter(visible)
+            .filter((node) => getComputedStyle(node).backgroundColor !== "rgba(0, 0, 0, 0)")
+            .map(labelFor),
+        };
+      });
+
+      expect(metrics.horizontalOverflow).toBeLessThanOrEqual(1);
+      expect(metrics.tinyControls).toEqual([]);
+      expect(metrics.clippedControls).toEqual([]);
+      expect(metrics.overflowingButtons).toEqual([]);
+      expect(metrics.speciesOpaqueButtons).toEqual([]);
+
+      await page.keyboard.press("Escape");
+      await expect(page.locator(".yard-game-screen")).toHaveCount(0);
+    }
+  });
 });

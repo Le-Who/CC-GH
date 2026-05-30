@@ -426,6 +426,73 @@ test("Yard generated panels use asset slots and keep dismiss controls icon-only"
   );
 });
 
+test("Garden generated panels pin runtime controls to authored slots", async () => {
+  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
+  const gardenGame = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenShelfGame.tsx"), "utf8");
+
+  assert.match(
+    gardenGame,
+    /className="garden-settings-body"/,
+    "Garden settings should expose a semantic body wrapper for the generated settings panel slots",
+  );
+  assert.match(
+    gardenGame,
+    /className="garden-settings-row garden-settings-sound-row"/,
+    "Garden settings sound control should be addressable as a painted row slot",
+  );
+  assert.match(
+    gardenGame,
+    /className="garden-settings-language-grid"/,
+    "Garden settings language buttons should be addressable as the painted two-button row",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-settings-dialog\[data-garden-panel="settings"\]\s+\.garden-settings-body\s*\{[\s\S]*?position:\s*absolute/s,
+    "Garden settings content should be absolutely pinned inside the authored panel slots",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-quest-dialog\[data-garden-panel="quests"\]\s+\.garden-quest-card\s*\{[\s\S]*?grid-template-columns:/s,
+    "Garden quest rows should map title, reward, progress, and action into the generated row lanes",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-quest-dialog\[data-garden-panel="quests"\]\s+\.garden-quest-card\s+>\s+\.flex\s*\{[\s\S]*?display:\s*contents/s,
+    "Garden quest card flex wrappers should flatten so inner content can occupy authored row slots",
+  );
+});
+
+test("Yard generated management screens declare screen-specific slot maps", async () => {
+  const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
+
+  const screens = ["food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"];
+  for (const screen of screens) {
+    assert.match(
+      yardCss,
+      new RegExp(`\\.companion-yard-layout\\s+\\.yard-game-screen\\[data-yard-screen="${screen}"\\]\\s*\\{[\\s\\S]*?--yard-panel-content-inset:`),
+      `Yard ${screen} panel should define its own body inset instead of inheriting a generic overlay lane`,
+    );
+  }
+
+  const slotSelectors = [
+    ['goodies', 'yard-card', 'grid-template-rows:'],
+    ['settings', 'yard-card', 'position:\\s*relative'],
+    ['daily', 'yard-card', 'position:\\s*relative'],
+    ['companion', 'yard-species-grid', 'grid-template-columns:\\s*repeat\\(3'],
+    ['remodel', 'yard-screen-grid', 'grid-template-columns:\\s*repeat\\(2'],
+    ['repair', 'yard-shop-row', 'grid-template-columns:'],
+    ['expansion', 'yard-card', 'position:\\s*relative'],
+  ];
+
+  for (const [screen, selector, expectedRule] of slotSelectors) {
+    assert.match(
+      yardCss,
+      new RegExp(`\\.companion-yard-layout\\s+\\.yard-game-screen\\[data-yard-screen="${screen}"\\]\\s+\\.${selector}\\s*\\{[\\s\\S]*?${expectedRule}`, "s"),
+      `Yard ${screen} panel should map .${selector} into generated asset slots`,
+    );
+  }
+});
+
 test("screen mockup reference manifest remains complete", async () => {
   const manifestPath = path.join(root, "assets-source", "imagegen", "screen-mockups", "screen-mockup-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
