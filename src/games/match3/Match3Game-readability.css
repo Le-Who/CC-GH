@@ -1,0 +1,101 @@
+.game-play-hud.match3-scene-hud {
+  min-height: 74px;
+  overflow: visible;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.match3-scene-hud .game-play-title {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.match3-scene-hud .game-play-title strong,
+.match3-scene-hud .game-play-title span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match3-scene-hud .game-play-title strong {
+  font-size: clamp(0.76rem, 2.25vw, 0.98rem) !important;
+}
+
+.match3-scene-hud .game-play-title span {
+  font-size: clamp(0.56rem, 1.65vw, 0.7rem) !important;
+}
+
+.match3-scene-hud .game-play-stats {
+  min-width: 0;
+  overflow: hidden;
+  grid-template-columns: repeat(4, minmax(52px, 1fr));
+  gap: 4px !important;
+}
+
+.match3-scene-hud .game-play-stat {
+  min-width: 52px;
+  min-height: 38px;
+  overflow: hidden;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px;
+  padding: 3px 5px !important;
+}
+
+.match3-scene-hud .game-play-stat-label {
+  display: none;
+}
+
+.match3-scene-hud .game-play-stat strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: clamp(0.66rem, 2vw, 0.86rem) !important;
+  line-height: 1 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match3-scene-hud .game-play-actions {
+  min-width: 44px;
+  justify-self: end;
+}
+
+.match3-scene-hud .game-play-actions .panel-button {
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  padding-inline: 0 !important;
+}
+
+.match3-scene-hud .game-play-actions .panel-button span {
+  display: none;
+}
+
+@media (max-width: 420px) {
+  .game-play-hud.match3-scene-hud {
+    min-height: 68px;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    padding: 7px 8px !important;
+  }
+
+  .match3-scene-hud .game-play-title {
+    display: none;
+  }
+
+  .match3-scene-hud .game-play-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px !important;
+  }
+
+  .match3-scene-hud .game-play-stat {
+    min-width: 0;
+    min-height: 40px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    padding: 3px 4px !important;
+  }
+}

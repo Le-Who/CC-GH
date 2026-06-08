@@ -17,6 +17,7 @@ import { calcGoldReward } from "../../../game-logic/economy.js";
 import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
 import "./i18n.js";
 import "./match3.css";
+import "./Match3Game-readability.css";
 const MATCH3_MODES = [
   { id: "classic", labelKey: "match3.mode.classic", hintKey: "match3.mode.classicHint" },
   { id: "timed", labelKey: "match3.mode.timed", hintKey: "match3.mode.timedHint" },

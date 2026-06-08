@@ -13,6 +13,7 @@ import { calcBloxReward } from "../../../game-logic/economy.js";
 import { getRewardChestProgress } from "../../../game-logic/hud-bonuses.js";
 import "./i18n.js";
 import "./blox.css";
+import "./BloxGame-readability.css";
 export default function BloxGame() {
   const snapshot = useSnapshot();
   const performAction = useAction();

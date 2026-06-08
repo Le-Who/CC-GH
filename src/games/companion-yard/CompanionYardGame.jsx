@@ -20,6 +20,7 @@ import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
 import { yardPanelGroupSlotStyle, yardPanelNestedGroupSlotStyle, yardPanelSlotStyle } from "./yardPanelSlots.js";
 import "./i18n.js";
 import "./companion-yard.css";
+import "./companion-yard-alignment.css";
 
 const SPECIES_LABELS = {
   cat: "Cat",

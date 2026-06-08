@@ -2143,7 +2143,7 @@
 
 .garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] {
   display: grid !important;
-  grid-template-columns: 14% minmax(0, 1fr) 28%;
+  grid-template-columns: minmax(44px, 18%) minmax(0, 1fr) minmax(86px, 30%);
   align-items: center;
   gap: 3%;
   contain: none !important;
@@ -2152,9 +2152,10 @@
 }
 
 .garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] > .flex {
+  grid-column: 1 / 3;
   min-width: 0;
   display: grid !important;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: minmax(44px, 18%) minmax(0, 1fr);
   align-items: center;
   gap: 8px !important;
 }
@@ -2177,13 +2178,13 @@
 }
 
 .garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] h3 {
-  font-size: clamp(0.58rem, 2.15vw, 0.76rem) !important;
+  font-size: clamp(0.66rem, 2.35vw, 0.84rem) !important;
   white-space: nowrap;
 }
 
 .garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] p {
   display: -webkit-box;
-  font-size: clamp(0.44rem, 1.6vw, 0.58rem) !important;
+  font-size: clamp(0.52rem, 1.8vw, 0.64rem) !important;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -2195,8 +2196,92 @@
   min-height: 44px;
   width: 100%;
   padding: 0 4px !important;
-  font-size: clamp(0.46rem, 1.7vw, 0.62rem) !important;
+  font-size: clamp(0.5rem, 1.85vw, 0.66rem) !important;
   line-height: 1.05;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-header {
+  top: 9.4% !important;
+  left: 29% !important;
+  right: 24% !important;
+  height: 6.5% !important;
+  align-content: center;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-header h2 {
+  font-size: clamp(0.92rem, 3.35vw, 1.16rem) !important;
+  line-height: 1 !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-header .mt-1 {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(0.48rem, 1.65vw, 0.58rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-meta {
+  top: 56.2% !important;
+  left: 28% !important;
+  right: 18% !important;
+  height: 5.2% !important;
+  gap: 6px !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-hint {
+  top: 63.4% !important;
+  left: 26% !important;
+  right: 20% !important;
+  max-height: 4.2%;
+  overflow: hidden;
+  font-size: clamp(0.46rem, 1.5vw, 0.56rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-actions {
+  bottom: 20.6% !important;
+  height: 12.4% !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-actions .garden-action-button {
+  padding: 10% 5% 6% !important;
+  font-size: clamp(0.5rem, 1.75vw, 0.64rem) !important;
+}
+
+.garden-bottom-sheet[data-garden-panel="plant-detail"] .garden-detail-evolve {
+  bottom: 8.2% !important;
+  height: 7.1% !important;
+  font-size: clamp(0.58rem, 2vw, 0.72rem) !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card {
+  grid-template-columns: 18% minmax(0, 1fr) 23% 26% !important;
+  column-gap: 2.5% !important;
+  padding: 2.3% 3.2% !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card h3 {
+  font-size: clamp(0.58rem, 1.95vw, 0.72rem) !important;
+  line-height: 1.05 !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-card p {
+  max-height: 2.2em;
+  overflow: hidden;
+  font-size: clamp(0.46rem, 1.5vw, 0.56rem) !important;
+  line-height: 1.1 !important;
+}
+
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-reward:not([data-asset-slot]),
+.garden-quest-dialog[data-garden-panel="quests"] .garden-quest-progress:not([data-asset-slot]),
+.garden-quest-dialog[data-garden-panel="quests"] .garden-action-button:not([data-asset-slot]) {
+  min-height: 36px;
+  font-size: clamp(0.46rem, 1.5vw, 0.56rem) !important;
+  line-height: 1.05 !important;
 }
 
 .garden-quest-dialog[data-asset-slot-surface="garden-quests"] {

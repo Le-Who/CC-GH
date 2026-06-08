@@ -1,0 +1,177 @@
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group],
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group],
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] {
+  min-height: 44px;
+  overflow: hidden;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 4px 8px !important;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] {
+  grid-template-columns: minmax(44px, 16%) minmax(0, 1fr) minmax(86px, 28%) !important;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] {
+  grid-template-columns: minmax(44px, 15%) minmax(0, 1fr) minmax(78px, 25%) !important;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] > img,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] > img,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] > img {
+  width: min(100%, 54px) !important;
+  height: min(100%, 54px) !important;
+  object-fit: contain;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] > span,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] .yard-shop-copy,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] > span {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] strong,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] strong,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: #4a2b16 !important;
+  font-size: clamp(0.68rem, 2.1vw, 0.86rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] small,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] small,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] small {
+  display: -webkit-box;
+  max-height: 2.25em;
+  overflow: hidden;
+  color: rgba(74, 43, 22, 0.78) !important;
+  font-size: clamp(0.52rem, 1.65vw, 0.66rem) !important;
+  line-height: 1.12 !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] .yard-button,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] .yard-button,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] .yard-button {
+  min-width: 44px;
+  min-height: 44px;
+  width: 100%;
+  max-width: 112px;
+  overflow: hidden;
+  padding: 0 6px !important;
+  font-size: clamp(0.52rem, 1.6vw, 0.66rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row[data-asset-slot-group] .yard-button > span,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-shop-row-polished[data-asset-slot-group] .yard-button > span,
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-photo-card[data-asset-slot-group] .yard-button > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="remodel"] .yard-shop-row[data-asset-slot-group] {
+  grid-template-columns: minmax(44px, 18%) minmax(0, 1fr) minmax(104px, 34%) !important;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="remodel"] .yard-shop-row[data-asset-slot-group] .yard-button {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="remodel"] .yard-shop-row[data-asset-slot-group] .yard-button .yard-hud-icon {
+  display: none;
+}
+
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-row-actions {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(44px, 1fr);
+  gap: 4px !important;
+  min-width: 0;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="petbook"] .yard-petbook-card[data-asset-slot-group],
+.companion-yard-layout .yard-game-screen[data-yard-screen="album"] .yard-photo-card[data-asset-slot-group] {
+  display: grid !important;
+  grid-template-rows: 42% 14% 13% 16%;
+  justify-items: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 5% 7% 6% !important;
+  text-align: center;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="petbook"] .yard-petbook-card[data-asset-slot-group] img,
+.companion-yard-layout .yard-game-screen[data-yard-screen="album"] .yard-photo-card[data-asset-slot-group] img {
+  max-width: 72%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="petbook"] .yard-petbook-card[data-asset-slot-group] span,
+.companion-yard-layout .yard-game-screen[data-yard-screen="album"] .yard-photo-card[data-asset-slot-group] span {
+  max-width: 100%;
+  overflow: hidden;
+  color: #4a2b16 !important;
+  font-size: clamp(0.62rem, 2vw, 0.78rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="petbook"] .yard-petbook-card[data-asset-slot-group] small,
+.companion-yard-layout .yard-game-screen[data-yard-screen="album"] .yard-photo-card[data-asset-slot-group] small {
+  max-width: 100%;
+  overflow: hidden;
+  color: rgba(74, 43, 22, 0.8) !important;
+  font-size: clamp(0.46rem, 1.5vw, 0.58rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="petbook"] .yard-petbook-card[data-asset-slot-group] .yard-trait-row,
+.companion-yard-layout .yard-game-screen[data-yard-screen="album"] .yard-photo-card[data-asset-slot-group] .yard-trait-row {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px !important;
+  width: 100%;
+  min-width: 0;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="companion"] [data-asset-slot],
+.companion-yard-layout .yard-game-screen[data-yard-screen="companion"] [data-asset-slot-group] {
+  overflow: hidden;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="companion"] input,
+.companion-yard-layout .yard-game-screen[data-yard-screen="companion"] .yard-input {
+  min-height: 44px;
+  overflow: hidden;
+  font-size: clamp(0.82rem, 2.6vw, 1rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+}
+
+.companion-yard-layout .yard-game-screen[data-yard-screen="companion"] label,
+.companion-yard-layout .yard-game-screen[data-yard-screen="companion"] small {
+  overflow: hidden;
+  font-size: clamp(0.54rem, 1.7vw, 0.68rem) !important;
+  line-height: 1.05 !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
