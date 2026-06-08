@@ -18,6 +18,156 @@ function parsePlayerActionRequest(request) {
   }
 }
 
+function collectAssetSlotCollisionProblems({ scopeSelector, rowSelector }) {
+  const scope = document.querySelector(scopeSelector);
+  if (!scope) return [`missing:${scopeSelector}`];
+  const visible = (node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  };
+  const rectOf = (node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
+  };
+  const fitsInside = (inner, outer, pad = 1) => inner.left >= outer.left - pad
+    && inner.right <= outer.right + pad
+    && inner.top >= outer.top - pad
+    && inner.bottom <= outer.bottom + pad;
+  const overlapArea = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+    * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  const labelFor = (node) => node.getAttribute("data-asset-slot")
+    || node.getAttribute("data-asset-slot-group")
+    || node.getAttribute("aria-label")
+    || (typeof node.className === "string" && node.className.trim().replace(/\s+/g, ".").slice(0, 48))
+    || node.textContent.trim().replace(/\s+/g, " ").slice(0, 48)
+    || node.tagName.toLowerCase();
+  const textRectFor = (node) => {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rect = range.getBoundingClientRect();
+    range.detach();
+    return rect.width > 0 && rect.height > 0 ? {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    } : null;
+  };
+  const problems = [];
+  for (const row of [...scope.querySelectorAll(rowSelector)].filter(visible)) {
+    const rowRect = rectOf(row);
+    const zones = [...row.querySelectorAll("[data-asset-slot], h3, p, button, .garden-card-row, .flex")]
+      .filter((node) => node !== row && visible(node))
+      .filter((node) => {
+        const closestRow = node.closest(rowSelector);
+        return closestRow === row;
+      });
+    for (const zone of zones) {
+      const zoneRect = rectOf(zone);
+      if (!fitsInside(zoneRect, rowRect, 1.5)) {
+        const delta = [
+          Math.round((zoneRect.left - rowRect.left) * 10) / 10,
+          Math.round((zoneRect.top - rowRect.top) * 10) / 10,
+          Math.round((zoneRect.right - rowRect.right) * 10) / 10,
+          Math.round((zoneRect.bottom - rowRect.bottom) * 10) / 10,
+        ].join(",");
+        problems.push(`${labelFor(row)}:${labelFor(zone)} escapes row ${delta}`);
+      }
+      if (/^(H[1-6]|P|SPAN|BUTTON)$/i.test(zone.tagName)) {
+        const style = getComputedStyle(zone);
+        const textRect = textRectFor(zone);
+        if (textRect && style.overflow === "visible" && !fitsInside(textRect, zoneRect, 1.5)) {
+          problems.push(`${labelFor(row)}:${labelFor(zone)} text escapes slot`);
+        }
+      }
+    }
+    for (let leftIndex = 0; leftIndex < zones.length; leftIndex += 1) {
+      for (let rightIndex = leftIndex + 1; rightIndex < zones.length; rightIndex += 1) {
+        const left = zones[leftIndex];
+        const right = zones[rightIndex];
+        if (left.contains(right) || right.contains(left)) continue;
+        const area = overlapArea(rectOf(left), rectOf(right));
+        if (area > 4) {
+          problems.push(`${labelFor(row)}:${labelFor(left)} overlaps ${labelFor(right)}`);
+        }
+      }
+    }
+  }
+  return problems;
+}
+
+function collectPlantDetailSlotProblems() {
+  const scope = document.querySelector('[data-asset-slot-surface="garden-plant-detail"]');
+  if (!scope) return ['missing:garden-plant-detail'];
+  const visible = (node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  };
+  const rectOf = (node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
+  };
+  const fitsInside = (inner, outer, pad = 1) => inner.left >= outer.left - pad
+    && inner.right <= outer.right + pad
+    && inner.top >= outer.top - pad
+    && inner.bottom <= outer.bottom + pad;
+  const overlapArea = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+    * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  const scopeRect = rectOf(scope);
+  const slots = [
+    ["plant-title", scope.querySelector('[data-asset-slot="plant-title"]')],
+    ["plant-meta", scope.querySelector('[data-asset-slot="plant-meta"]')],
+    ["plant-stage", scope.querySelector('[data-asset-slot="plant-stage"]')],
+    ["plant-button", scope.querySelector(".garden-detail-plant-button")],
+    ["plant-hint", scope.querySelector('[data-asset-slot="plant-hint"]')],
+    ["plant-action-row", scope.querySelector('[data-asset-slot-group="plant-action-row"]')],
+    ["plant-upgrade", scope.querySelector('[data-asset-slot="plant-upgrade"]')],
+  ].filter(([, node]) => node && visible(node));
+  const containOnly = new Set(["plant-stage"]);
+  const problems = [];
+  for (const [name, node] of slots) {
+    const slotRect = rectOf(node);
+    if (!fitsInside(slotRect, scopeRect, 1.5)) {
+      const delta = [
+        Math.round((slotRect.left - scopeRect.left) * 10) / 10,
+        Math.round((slotRect.top - scopeRect.top) * 10) / 10,
+        Math.round((slotRect.right - scopeRect.right) * 10) / 10,
+        Math.round((slotRect.bottom - scopeRect.bottom) * 10) / 10,
+      ].join(",");
+      problems.push(`${name} escapes panel ${delta}`);
+    }
+  }
+  for (let leftIndex = 0; leftIndex < slots.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < slots.length; rightIndex += 1) {
+      const [leftName, leftNode] = slots[leftIndex];
+      const [rightName, rightNode] = slots[rightIndex];
+      if (containOnly.has(leftName) || containOnly.has(rightName)) continue;
+      if (overlapArea(rectOf(leftNode), rectOf(rightNode)) > 4) {
+        problems.push(`${leftName} overlaps ${rightName}`);
+      }
+    }
+  }
+  return problems;
+}
+
 test.describe("Garden Shelf flow", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -323,6 +473,12 @@ test.describe("Garden Shelf flow", () => {
       expect(alignment.rows.filter((row) => row.deviation > 1.2)).toEqual([]);
       expect(alignment.rows.filter((row) => !row.heightCoversLane)).toEqual([]);
       expect(alignment.rows.filter((row) => !row.buttonReachable || !row.buttonWideEnough)).toEqual([]);
+
+      const collisionProblems = await page.evaluate(collectAssetSlotCollisionProblems, {
+        scopeSelector: '[data-asset-slot-surface="garden-seed-shop-inventory"]',
+        rowSelector: '[data-asset-slot-group="garden-seed-shop-row"]',
+      });
+      expect(collisionProblems).toEqual([]);
     }
   });
 
@@ -473,6 +629,13 @@ test.describe("Garden Shelf flow", () => {
         }
         expect(layout.activeLabel).toBe("Close plant detail");
         expect(layout.smallButtons).toEqual([]);
+        const collisionProblems = await page.evaluate(collectAssetSlotCollisionProblems, {
+          scopeSelector: '[data-asset-slot-surface="garden-plant-detail"]',
+          rowSelector: '[data-asset-slot-group="plant-action-row"]',
+        });
+        expect(collisionProblems).toEqual([]);
+        const slotProblems = await page.evaluate(collectPlantDetailSlotProblems);
+        expect(slotProblems).toEqual([]);
       };
 
       try {
@@ -984,6 +1147,12 @@ test.describe("Garden Shelf flow", () => {
         expectNear(card.progress, { x: 0.542, y: rowY[index] + 0.085, width: 0.178, height: 0.018 }, 0.03, `${viewport.name} quest row ${index + 1} progress slot`);
         expectNear(card.action, { x: 0.737, y: rowY[index] + 0.043, width: 0.142, height: 0.049 }, 0.03, `${viewport.name} quest row ${index + 1} action slot`);
       }
+
+      const collisionProblems = await page.evaluate(collectAssetSlotCollisionProblems, {
+        scopeSelector: '[data-asset-slot-surface="garden-quests"]',
+        rowSelector: '[data-asset-slot-row="garden-quest"]',
+      });
+      expect(collisionProblems).toEqual([]);
       } finally {
         await context.close();
       }

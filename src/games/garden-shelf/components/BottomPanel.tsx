@@ -129,7 +129,7 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, bounce: 0 }}
         data-garden-panel={isPlantDetail ? 'plant-detail' : 'seed-shop-inventory'}
-        data-asset-slot-surface={!isPlantDetail ? "garden-seed-shop-inventory" : undefined}
+        data-asset-slot-surface={isPlantDetail ? "garden-plant-detail" : "garden-seed-shop-inventory"}
         className="garden-glass-sheet garden-bottom-sheet fixed bottom-0 left-0 right-0 z-[190] max-h-[85vh] flex flex-col items-center pb-safe-offset-4 border-t"
       >
         <div className="garden-sheet-grabber my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />
@@ -445,7 +445,7 @@ function PlantDetail({
 
   return (
     <div className="garden-detail-panel flex flex-col items-center w-full" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="garden-detail-header mb-4 flex w-full items-start justify-between gap-4 pr-12">
+      <div className="garden-detail-header mb-4 flex w-full items-start justify-between gap-4 pr-12" data-asset-slot="plant-title">
         <div className="garden-detail-title-copy min-w-0">
           <h2 className="text-sm font-black uppercase tracking-[0.14em]">{t(`plant.${def.id}`)}</h2>
           <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
@@ -461,7 +461,7 @@ function PlantDetail({
         </div>
       </div>
 
-      <div className="garden-detail-meta flex max-w-[48%] shrink-0 flex-col items-end text-right">
+      <div className="garden-detail-meta flex max-w-[48%] shrink-0 flex-col items-end text-right" data-asset-slot="plant-meta">
         {isFullyGrown ? (
           <>
             <span className="mb-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">{t('plantDetail.production')}</span>
@@ -479,7 +479,7 @@ function PlantDetail({
         )}
       </div>
 
-      <div className="garden-detail-plant-stage">
+      <div className="garden-detail-plant-stage" data-asset-slot="plant-stage">
         {canNavigate && (
           <button
             type="button"
@@ -579,11 +579,11 @@ function PlantDetail({
         )}
       </div>
 
-      <p className="garden-detail-hint mb-4 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]">
+      <p className="garden-detail-hint mb-4 text-[10px] uppercase tracking-[0.14em] text-[color:var(--muted)]" data-asset-slot="plant-hint">
         {isFullyGrown ? t('plantDetail.tapGold') : t('plantDetail.tapGrowth')}
       </p>
 
-      <div className="garden-detail-actions w-full flex gap-3 mb-3">
+      <div className="garden-detail-actions w-full flex gap-3 mb-3" data-asset-slot-group="plant-action-row">
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => {
@@ -591,6 +591,7 @@ function PlantDetail({
             onClose();
           }}
           className="garden-action-button danger min-w-[54px] p-4 transition-colors"
+          data-asset-slot="plant-sell"
         >
           <Trash2 size={20} strokeWidth={1.5} />
         </motion.button>
@@ -602,6 +603,7 @@ function PlantDetail({
              onClose();
           }}
           className="garden-action-button secondary flex-1 p-4 font-mono text-xs uppercase tracking-[0.12em] transition-all"
+          data-asset-slot="plant-stash"
         >
           <Archive size={16} /> {t('plantDetail.stash')}
         </motion.button>
@@ -614,6 +616,7 @@ function PlantDetail({
             "garden-action-button flex-col px-6 py-2 font-mono text-xs uppercase tracking-[0.12em] transition-all",
             canWater ? (isFullyGrown ? "care" : "info") : "disabled",
           )}
+          data-asset-slot="plant-water"
         >
           <Droplets size={16} strokeWidth={1.5} className="mb-1" />
           {isFullyGrown ? t('plantDetail.careWater') : t('plantDetail.water')}
@@ -629,6 +632,7 @@ function PlantDetail({
               "garden-action-button garden-detail-evolve w-full gap-3 p-4 font-mono text-xs uppercase tracking-[0.12em] transition-all",
               canAfford ? "secondary" : "disabled",
             )}
+            data-asset-slot="plant-upgrade"
           >
             <span className="garden-evolve-btn-label flex items-center gap-3">
               <ArrowUpCircle size={16} strokeWidth={1.5} className={isUpgrading ? "animate-bounce" : ""} />

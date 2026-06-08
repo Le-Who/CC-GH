@@ -2526,6 +2526,203 @@
   filter: saturate(0.72);
 }
 
+/* Asset-slot readable content contract: visual DOM must stay inside the painted slot. */
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] {
+  grid-template-columns: minmax(34px, 15%) minmax(0, 1fr) minmax(64px, 24%) !important;
+  gap: 2.5% !important;
+  overflow: hidden;
+  padding: 0 3.6% !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] > .flex {
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  grid-template-columns: minmax(30px, 17%) minmax(0, 1fr) !important;
+  gap: 5px !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] > .flex > div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] .garden-card-row {
+  width: 30px !important;
+  height: 30px !important;
+  max-width: 100% !important;
+  max-height: calc(100% - 2px) !important;
+  align-self: center;
+  justify-self: center;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] h3 {
+  font-size: clamp(0.56rem, 2cqw, 0.72rem) !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] p {
+  max-height: 2.1em;
+  font-size: clamp(0.44rem, 1.55cqw, 0.56rem) !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] .garden-action-button {
+  position: relative;
+  align-self: center;
+  height: 44px;
+  min-height: 44px;
+  overflow: hidden;
+  padding: 0 3px !important;
+  font-size: clamp(0.42rem, 1.45cqw, 0.54rem) !important;
+  letter-spacing: 0.02em !important;
+  white-space: nowrap;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] .garden-action-button::before {
+  content: "";
+  position: absolute;
+  inset: -7px -4px;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] {
+  container-type: inline-size;
+  contain: layout paint;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] [data-asset-slot],
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] [data-asset-slot-group] {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-panel {
+  overflow: hidden;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-header,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-meta,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-plant-stage,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-hint,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions {
+  width: auto !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-plant-stage {
+  top: 20.6% !important;
+  height: 31.4% !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-meta {
+  top: 56.8% !important;
+  height: 4.8% !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-title-copy,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-meta span,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-evolve-btn-label,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-evolve-btn-cost {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-header h2,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-header .mt-1,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-meta span,
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-hint {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-hint {
+  top: 62.1% !important;
+  left: 27% !important;
+  right: 21% !important;
+  max-height: 3.1% !important;
+  display: block;
+  font-size: clamp(0.42rem, 1.42cqw, 0.52rem) !important;
+  line-height: 1 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions {
+  bottom: 20.2% !important;
+  height: 12.1% !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions .garden-action-button {
+  position: relative;
+  min-height: 0 !important;
+  max-height: 100%;
+  overflow: hidden;
+  padding: 9% 5% 5% !important;
+  font-size: clamp(0.44rem, 1.48cqw, 0.56rem) !important;
+  line-height: 1 !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions .garden-action-button::before {
+  content: "";
+  position: absolute;
+  inset: -7px -3px;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions .garden-action-button svg {
+  width: min(42%, 18px);
+  height: min(42%, 18px);
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-plant-button {
+  width: min(82%, 188px) !important;
+  height: min(82%, 188px) !important;
+  overflow: hidden;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-evolve {
+  min-height: 44px !important;
+  overflow: hidden;
+  font-size: clamp(0.5rem, 1.8cqw, 0.66rem) !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-evolve::before {
+  content: "";
+  position: absolute;
+  inset: -7px -4px;
+}
+
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-quest-card {
+  overflow: hidden;
+}
+
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-quest-type {
+  overflow: hidden;
+  padding: 0 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-quest-type::before {
+  content: "";
+  width: min(68%, 42px);
+  height: min(68%, 42px);
+  display: block;
+  background: url("/games/garden-shelf/icon_quest.png") center / contain no-repeat;
+  filter: drop-shadow(0 1px 1px rgba(83, 50, 20, 0.28));
+}
+
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-quest-type.story::before {
+  opacity: 0.78;
+  filter: sepia(0.18) saturate(0.78) drop-shadow(0 1px 1px rgba(83, 50, 20, 0.22));
+}
+
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-quest-card h3,
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-quest-card p,
+.garden-quest-dialog[data-asset-slot-surface="garden-quests"] .garden-action-button[data-asset-slot="quest-action"] {
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .garden-plant-grown,
   .garden-plant-grown::after {

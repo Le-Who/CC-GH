@@ -263,6 +263,114 @@ async function expectAppReady(page) {
   await expect(page.locator(".status-dot.ready")).toHaveCount(1, { timeout: 15000 });
 }
 
+function collectYardAssetSlotCollisionProblems() {
+  const screen = document.querySelector(".yard-game-screen");
+  if (!screen) return ["missing:.yard-game-screen"];
+  const visible = (node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  };
+  const rectOf = (node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
+  };
+  const fitsInside = (inner, outer, pad = 1) => inner.left >= outer.left - pad
+    && inner.right <= outer.right + pad
+    && inner.top >= outer.top - pad
+    && inner.bottom <= outer.bottom + pad;
+  const overlapArea = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+    * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  const labelFor = (node) => node.getAttribute("data-asset-slot-group")
+    || node.getAttribute("data-asset-slot")
+    || node.getAttribute("aria-label")
+    || (typeof node.className === "string" && node.className.trim().replace(/\s+/g, ".").slice(0, 48))
+    || node.textContent.trim().replace(/\s+/g, " ").slice(0, 48)
+    || node.tagName.toLowerCase();
+  const textRectFor = (node) => {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rect = range.getBoundingClientRect();
+    range.detach();
+    return rect.width > 0 && rect.height > 0 ? {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    } : null;
+  };
+  const rowSelectors = [
+    ".yard-shop-row[data-asset-slot-group]",
+    ".yard-shop-row-polished[data-asset-slot-group]",
+    ".yard-photo-card[data-asset-slot-group]",
+    ".yard-petbook-card[data-asset-slot-group]",
+    ".yard-choice-tile[data-asset-slot-group]",
+    ".yard-row[data-asset-slot-group]",
+    ".yard-metric-grid > span[data-asset-slot-group]",
+    ".yard-species-grid button[data-asset-slot-group]",
+  ];
+  const childSelector = [
+    ":scope > img",
+    ":scope > span",
+    ":scope > strong",
+    ":scope > small",
+    ":scope > b",
+    ":scope > button",
+    ":scope > input",
+    ":scope > .yard-shop-copy",
+    ":scope > .yard-shop-purchase",
+    ":scope > .yard-row-actions",
+    ":scope > .yard-price-chip",
+  ].join(",");
+  const problems = [];
+  for (const rowSelector of rowSelectors) {
+    for (const row of [...screen.querySelectorAll(rowSelector)].filter(visible)) {
+      const rowRect = rectOf(row);
+      const zones = [...row.querySelectorAll(childSelector)].filter(visible);
+      for (const zone of zones) {
+        const zoneRect = rectOf(zone);
+        if (!fitsInside(zoneRect, rowRect, 1.5)) {
+          const delta = [
+            Math.round((zoneRect.left - rowRect.left) * 10) / 10,
+            Math.round((zoneRect.top - rowRect.top) * 10) / 10,
+            Math.round((zoneRect.right - rowRect.right) * 10) / 10,
+            Math.round((zoneRect.bottom - rowRect.bottom) * 10) / 10,
+          ].join(",");
+          problems.push(`${labelFor(row)}:${labelFor(zone)} escapes row ${delta}`);
+        }
+        for (const textNode of [...zone.querySelectorAll("strong, small, b, span")].filter(visible)) {
+          const style = getComputedStyle(textNode);
+          const textRect = textRectFor(textNode);
+          if (textRect && style.overflow === "visible" && !fitsInside(textRect, rectOf(textNode), 1.5)) {
+            problems.push(`${labelFor(row)}:${labelFor(textNode)} text escapes slot`);
+          }
+        }
+      }
+      for (let leftIndex = 0; leftIndex < zones.length; leftIndex += 1) {
+        for (let rightIndex = leftIndex + 1; rightIndex < zones.length; rightIndex += 1) {
+          const left = zones[leftIndex];
+          const right = zones[rightIndex];
+          if (left.contains(right) || right.contains(left)) continue;
+          const area = overlapArea(rectOf(left), rectOf(right));
+          if (area > 4) {
+            problems.push(`${labelFor(row)}:${labelFor(left)} overlaps ${labelFor(right)}`);
+          }
+        }
+      }
+    }
+  }
+  return problems;
+}
+
 test.describe("Cozy Yard movement and assets", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -659,10 +767,21 @@ test.describe("Cozy Yard movement and assets", () => {
       const layout = await page.evaluate(() => {
         const screen = document.querySelector(".yard-game-screen")?.getBoundingClientRect();
         const dock = document.querySelector(".yard-bottom-dock")?.getBoundingClientRect();
+        const hitSize = (node) => {
+          const rect = node.getBoundingClientRect();
+          const before = getComputedStyle(node, "::before");
+          const beforeX = Math.abs(parseFloat(before.left || "0")) + Math.abs(parseFloat(before.right || "0"));
+          const beforeY = Math.abs(parseFloat(before.top || "0")) + Math.abs(parseFloat(before.bottom || "0"));
+          return {
+            width: rect.width + beforeX,
+            height: rect.height + beforeY,
+          };
+        };
         const smallButtons = [...document.querySelectorAll(".yard-game-screen button")]
           .filter((button) => {
             const rect = button.getBoundingClientRect();
-            return rect.width > 0 && rect.height > 0 && (rect.width < 44 || rect.height < 44);
+            const hit = hitSize(button);
+            return rect.width > 0 && rect.height > 0 && (hit.width < 44 || hit.height < 44);
           })
           .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
         return {
@@ -833,6 +952,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await expectAppReady(page);
     await page.getByRole("button", { name: /Двор|Yard/ }).click();
 
+    const allCollisionProblems = [];
     for (const [buttonName, dialogName, screenId] of screens) {
       const button = page.getByRole("button", { name: buttonName, exact: true });
       if (!await button.count() || !await button.first().isVisible()) {
@@ -879,12 +999,22 @@ test.describe("Cozy Yard movement and assets", () => {
           && rect.right <= screenRect.right + 1
           && rect.top >= screenRect.top - 1
           && rect.bottom <= screenRect.bottom + 1;
+        const hitSize = (node) => {
+          const rect = node.getBoundingClientRect();
+          const before = getComputedStyle(node, "::before");
+          const beforeX = Math.abs(parseFloat(before.left || "0")) + Math.abs(parseFloat(before.right || "0"));
+          const beforeY = Math.abs(parseFloat(before.top || "0")) + Math.abs(parseFloat(before.bottom || "0"));
+          return {
+            width: rect.width + beforeX,
+            height: rect.height + beforeY,
+          };
+        };
         return {
           horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           tinyControls: controls
             .filter((node) => {
-              const rect = node.getBoundingClientRect();
-              return rect.width < 44 || rect.height < 44;
+              const hit = hitSize(node);
+              return hit.width < 44 || hit.height < 44;
             })
             .map(labelFor),
           clippedControls: controls
@@ -892,6 +1022,16 @@ test.describe("Cozy Yard movement and assets", () => {
             .map(labelFor),
           overflowingButtons: controls
             .filter((node) => node.tagName === "BUTTON")
+            .filter((node) => {
+              const style = getComputedStyle(node);
+              const hiddenLabel = style.fontSize === "0px" || [...node.querySelectorAll("span")]
+                .some((span) => {
+                  const spanStyle = getComputedStyle(span);
+                  const spanRect = span.getBoundingClientRect();
+                  return spanStyle.fontSize === "0px" || spanRect.width <= 1 || spanRect.height <= 1;
+                });
+              return !hiddenLabel;
+            })
             .filter((node) => node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1)
             .map(labelFor),
           speciesOpaqueButtons: [...(screen?.querySelectorAll(".yard-species-grid button") || [])]
@@ -978,8 +1118,13 @@ test.describe("Cozy Yard movement and assets", () => {
       expect(slotAlignment.missing).toEqual([]);
       expect(slotAlignment.deviations.filter((item) => item.deviation > 1.2)).toEqual([]);
 
+      const collisionProblems = await page.evaluate(collectYardAssetSlotCollisionProblems);
+      allCollisionProblems.push(...collisionProblems.map((problem) => `${screenId}:${problem}`));
+
       await page.keyboard.press("Escape");
       await expect(page.locator(".yard-game-screen")).toHaveCount(0);
     }
+
+    expect(allCollisionProblems).toEqual([]);
   });
 });

@@ -295,9 +295,13 @@ test("Yard and Garden menu CSS binds screen-specific generated panels and keeps 
     );
   }
 
-  assert.doesNotMatch(
+  const gardenDetailActionBlocks = findCssBlocksForSelector(
     gardenCss,
-    /\.garden-detail-actions \.garden-action-button\s*\{[\s\S]*?font-size:\s*0\s*!important/s,
+    '.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions .garden-action-button',
+  );
+  assert.ok(gardenDetailActionBlocks.length > 0, "Garden detail actions must have asset-surface slot safeguards");
+  assert.ok(
+    gardenDetailActionBlocks.every((block) => !/font-size\s*:\s*0\s*!important/.test(block)),
     "Garden detail action labels must remain visible and readable",
   );
   const evolveLabelBlocks = findCssBlocksForSelector(gardenCss, ".garden-detail-evolve .garden-evolve-btn-label");
@@ -464,8 +468,8 @@ test("Garden generated panels pin runtime controls to authored slots", async () 
   );
   assert.match(
     gardenBottomPanel,
-    /data-asset-slot-surface=\{!isPlantDetail \? "garden-seed-shop-inventory" : undefined\}/,
-    "Garden seed shop/inventory must expose a mechanical asset slot surface",
+    /data-asset-slot-surface=\{isPlantDetail \? "garden-plant-detail" : "garden-seed-shop-inventory"\}/,
+    "Garden seed shop/inventory and plant detail must expose mechanical asset slot surfaces",
   );
   assert.match(
     gardenBottomPanel,
