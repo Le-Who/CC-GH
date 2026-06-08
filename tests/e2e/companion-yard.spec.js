@@ -798,8 +798,14 @@ test.describe("Cozy Yard movement and assets", () => {
     ];
     const slotRequirements = {
       food: { slots: ["panel-title", "panel-close"], groups: { "food-choice": 3 } },
-      goodies: { slots: ["panel-title", "panel-close", "inventory-title", "inventory-list", "placed-title", "placed-list"], groups: {} },
-      shop: { slots: ["panel-title", "panel-close", "food-title", "food-list", "goodies-title", "goodies-list", "backgrounds-title", "backgrounds-list"], groups: {} },
+      goodies: {
+        slots: ["panel-title", "panel-close", "inventory-title", "inventory-list", "placed-title", "placed-list"],
+        groups: { "inventory-row": 3, "placed-row": 2 },
+      },
+      shop: {
+        slots: ["panel-title", "panel-close", "food-title", "food-list", "goodies-title", "goodies-list", "backgrounds-title", "backgrounds-list"],
+        groups: { "shop-food-row": 3, "shop-goodies-row": 2, "shop-background-row": 1 },
+      },
       petbook: { slots: ["panel-title", "panel-close"], groups: { "petbook-card": 6 } },
       album: { slots: ["panel-title", "panel-close"], groups: { "album-card": 1 } },
       gifts: { slots: ["panel-title", "panel-close", "gifts-summary-title", "gifts-collect"], groups: { "gifts-metric": 3, "gifts-row": 1 } },

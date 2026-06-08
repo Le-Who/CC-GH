@@ -198,3 +198,19 @@ export function yardPanelGroupSlotStyle(screenId, groupId, index) {
   const target = yardPanelGroupSlot(screenId, groupId, index);
   return target ? assetSlotStyle(target, YARD_PANEL_REFERENCE) : undefined;
 }
+
+export function yardPanelNestedGroupSlotStyle(screenId, groupId, index, parentSlotId) {
+  const parent = yardPanelSlot(screenId, parentSlotId);
+  const target = yardPanelGroupSlot(screenId, groupId, index);
+  if (!parent || !target || parent.width <= 0 || parent.height <= 0) return undefined;
+
+  return assetSlotStyle({
+    x: target.x - parent.x,
+    y: target.y - parent.y,
+    width: target.width,
+    height: target.height,
+  }, {
+    width: parent.width,
+    height: parent.height,
+  });
+}

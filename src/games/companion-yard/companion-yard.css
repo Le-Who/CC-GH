@@ -3194,7 +3194,7 @@
   font-weight: 900;
 }
 
-.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-slot-list[data-asset-slot] .yard-shop-row {
+.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-slot-list[data-asset-slot] .yard-shop-row:not([data-asset-slot-group]) {
   position: relative !important;
   left: auto !important;
   top: auto !important;

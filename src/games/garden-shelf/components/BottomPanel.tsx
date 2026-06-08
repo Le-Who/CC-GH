@@ -24,6 +24,7 @@ import type { GardenAssetPaths } from '../lib/sprites';
 import { useGardenI18n } from '../lib/i18n';
 import { runGardenConfetti } from '../lib/effects';
 import { useEscapeDismiss, useOutsideDismiss } from '../../../app/useDismissableLayer.js';
+import { assetSlotStyle } from '../../../app/assetSlots.js';
 
 interface BottomPanelProps {
   spot: { shelfIndex: number, spotIndex: number, plantId?: string } | null;
@@ -32,6 +33,29 @@ interface BottomPanelProps {
 }
 
 const AVAILABLE_PLANTS = Object.values(PLANT_TYPES);
+const GARDEN_SEED_PANEL_REFERENCE = { width: 1024, height: 1536 };
+
+function panelSlot(x: number, y: number, width: number, height: number) {
+  return { x, y, width, height };
+}
+
+function panelRows(count: number) {
+  return Array.from({ length: count }, (_item, index) => panelSlot(118, 444 + index * 138, 788, 138));
+}
+
+const GARDEN_SEED_SHOP_ROW_SLOTS = panelRows(AVAILABLE_PLANTS.length);
+const GARDEN_INVENTORY_ROW_SLOTS = panelRows(AVAILABLE_PLANTS.length);
+
+function gardenSeedRowAttrs(groupId: 'garden-seed-shop-row' | 'garden-inventory-row', index: number) {
+  const slots = groupId === 'garden-seed-shop-row' ? GARDEN_SEED_SHOP_ROW_SLOTS : GARDEN_INVENTORY_ROW_SLOTS;
+  const slot = slots[index];
+  if (!slot) return {};
+  return {
+    'data-asset-slot-group': groupId,
+    'data-asset-slot-index': String(index),
+    style: assetSlotStyle(slot, GARDEN_SEED_PANEL_REFERENCE),
+  };
+}
 
 export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
   const { state } = useGame();
@@ -105,6 +129,7 @@ export function BottomPanel({ spot, onClose, assetPaths }: BottomPanelProps) {
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300, bounce: 0 }}
         data-garden-panel={isPlantDetail ? 'plant-detail' : 'seed-shop-inventory'}
+        data-asset-slot-surface={!isPlantDetail ? "garden-seed-shop-inventory" : undefined}
         className="garden-glass-sheet garden-bottom-sheet fixed bottom-0 left-0 right-0 z-[190] max-h-[85vh] flex flex-col items-center pb-safe-offset-4 border-t"
       >
         <div className="garden-sheet-grabber my-4 h-1 w-12 rounded-full bg-[color:var(--line-strong)]" />
@@ -155,7 +180,7 @@ function Shop({ shelfIndex, spotIndex, onClose, assetPaths }: { shelfIndex: numb
   const inventoryPlants = React.useMemo(() => state.plants.filter((plant) => plant.spotIndex === -1), [state.plants]);
 
   return (
-    <div className="flex flex-col w-full h-full max-h-[60vh]">
+    <div className="garden-seed-panel flex flex-col w-full h-full max-h-[60vh]">
       <div className="garden-segmented-control mb-6 flex w-full p-1">
         <button 
           onClick={() => setTab('shop')} 
@@ -172,15 +197,15 @@ function Shop({ shelfIndex, spotIndex, onClose, assetPaths }: { shelfIndex: numb
         </button>
       </div>
       
-      <div className="overflow-y-auto w-full space-y-3 pb-8 pr-2 -mr-2">
-        {tab === 'shop' && AVAILABLE_PLANTS.map((plant) => {
+      <div className="garden-seed-panel-list overflow-y-auto w-full space-y-3 pb-8 pr-2 -mr-2">
+        {tab === 'shop' && AVAILABLE_PLANTS.map((plant, rowIndex) => {
           const isUnlocked = unlockedPlants.includes(plant.id);
           const canAfford = state.gold >= plant.baseCost;
           const canBuy = isUnlocked && canAfford;
           const unlockLevel = getPlantUnlockLevel(plant.id);
 
           return (
-            <div key={plant.id} className={cn(
+            <div key={plant.id} {...gardenSeedRowAttrs('garden-seed-shop-row', rowIndex)} className={cn(
               "garden-card-row flex items-center justify-between gap-3 rounded-lg p-4",
               !isUnlocked && "opacity-70",
             )}>
@@ -233,11 +258,11 @@ function Shop({ shelfIndex, spotIndex, onClose, assetPaths }: { shelfIndex: numb
            </div>
         )}
 
-        {tab === 'inventory' && inventoryPlants.map((p) => {
+        {tab === 'inventory' && inventoryPlants.map((p, rowIndex) => {
            const def = PLANT_TYPES[p.type] || PLANT_TYPES.daisy;
            
            return (
-            <div key={p.id} className="garden-card-row flex items-center justify-between gap-3 rounded-lg p-4">
+            <div key={p.id} {...gardenSeedRowAttrs('garden-inventory-row', rowIndex)} className="garden-card-row flex items-center justify-between gap-3 rounded-lg p-4">
               <div className="flex items-center gap-4">
                 <PlantThumb spriteIndex={def.spriteIndex} phase={p.phase} assetPaths={assetPaths} />
                 <div>

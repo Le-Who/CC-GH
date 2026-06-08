@@ -252,6 +252,80 @@ test.describe("Garden Shelf flow", () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test("aligns seed shop DOM rows to the generated shop panel lanes", async ({ page }) => {
+    const viewports = [
+      { width: 320, height: 568 },
+      { width: 390, height: 844 },
+      { width: 844, height: 390 },
+    ];
+    const reference = { width: 1024, height: 1536 };
+    const rows = [
+      { x: 118, y: 444, width: 788, height: 138 },
+      { x: 118, y: 582, width: 788, height: 138 },
+      { x: 118, y: 720, width: 788, height: 138 },
+    ];
+
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      await page.getByRole("button", { name: "+" }).first().click();
+      const panel = page.locator('[data-asset-slot-surface="garden-seed-shop-inventory"]');
+      await expect(panel).toBeVisible();
+      await page.waitForFunction(() => {
+        const node = document.querySelector('[data-asset-slot-surface="garden-seed-shop-inventory"]');
+        if (!node) return false;
+        const rect = node.getBoundingClientRect();
+        const transform = getComputedStyle(node).transform;
+        const matrix = transform === "none" ? new DOMMatrixReadOnly() : new DOMMatrixReadOnly(transform);
+        return Math.abs(window.innerHeight - rect.bottom) <= 1 && Math.abs(matrix.m42) <= 1;
+      });
+
+      const alignment = await panel.evaluate((node, { expectedRows, ref }) => {
+        const panelRect = node.getBoundingClientRect();
+        const expectedRect = (slot) => ({
+          left: panelRect.left + (slot.x / ref.width) * panelRect.width,
+          top: panelRect.top + (slot.y / ref.height) * panelRect.height,
+          width: (slot.width / ref.width) * panelRect.width,
+          height: (slot.height / ref.height) * panelRect.height,
+        });
+        const targets = [...node.querySelectorAll('[data-asset-slot-group="garden-seed-shop-row"]')]
+          .sort((a, b) => Number(a.dataset.assetSlotIndex || 0) - Number(b.dataset.assetSlotIndex || 0))
+          .slice(0, expectedRows.length);
+        return {
+          horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          rows: targets.map((target, index) => {
+            const rect = target.getBoundingClientRect();
+            const expected = expectedRect(expectedRows[index]);
+            const button = target.querySelector("button");
+            const buttonRect = button?.getBoundingClientRect();
+            const hit = buttonRect
+              ? document.elementFromPoint(buttonRect.left + buttonRect.width / 2, buttonRect.top + buttonRect.height / 2)
+              : null;
+            const heightDeviation = expected.height >= 43.5 ? Math.abs(rect.height - expected.height) : 0;
+            return {
+              deviation: Math.max(
+                Math.abs(rect.left - expected.left),
+                Math.abs(rect.top - expected.top),
+                Math.abs(rect.width - expected.width),
+                heightDeviation,
+              ),
+              heightCoversLane: rect.height + 0.5 >= expected.height,
+              buttonReachable: !!button && !!hit && (button === hit || button.contains(hit)),
+              buttonWideEnough: !!buttonRect && buttonRect.width >= 43.5 && buttonRect.height >= 43.5,
+            };
+          }),
+        };
+      }, { expectedRows: rows, ref: reference });
+
+      expect(alignment.horizontalOverflow).toBeLessThanOrEqual(1);
+      expect(alignment.rows).toHaveLength(rows.length);
+      expect(alignment.rows.filter((row) => row.deviation > 1.2)).toEqual([]);
+      expect(alignment.rows.filter((row) => !row.heightCoversLane)).toEqual([]);
+      expect(alignment.rows.filter((row) => !row.buttonReachable || !row.buttonWideEnough)).toEqual([]);
+    }
+  });
+
   test("keeps mature plant detail fitted and dismissible on phone-sized high-DPI layouts", async ({ browser }) => {
     const viewports = [
       { width: 320, height: 568, deviceScaleFactor: 2 },

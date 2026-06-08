@@ -2094,6 +2094,111 @@
   white-space: nowrap;
 }
 
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] {
+  contain: layout paint;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-sheet-content,
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-seed-panel,
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-seed-panel-list {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-segmented-control {
+  position: absolute;
+  top: 21.4%;
+  left: 15.4%;
+  right: 15.4%;
+  height: 6.8%;
+  min-height: 44px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-segmented-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 6px !important;
+  font-size: clamp(0.54rem, 2vw, 0.72rem) !important;
+  line-height: 1.05;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] [data-asset-slot-group] {
+  position: absolute;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] {
+  display: grid !important;
+  grid-template-columns: 14% minmax(0, 1fr) 28%;
+  align-items: center;
+  gap: 3%;
+  contain: none !important;
+  padding: 0 4.5% !important;
+  color: #3b2418 !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] > .flex {
+  min-width: 0;
+  display: grid !important;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] .garden-card-row {
+  width: 48px;
+  height: 48px;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] h3,
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] p {
+  min-width: 0;
+  overflow: hidden;
+  color: #3b2418 !important;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] h3 {
+  font-size: clamp(0.58rem, 2.15vw, 0.76rem) !important;
+  white-space: nowrap;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] p {
+  display: -webkit-box;
+  font-size: clamp(0.44rem, 1.6vw, 0.58rem) !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.garden-bottom-sheet[data-asset-slot-surface="garden-seed-shop-inventory"] .garden-card-row[data-asset-slot-group] .garden-action-button {
+  position: relative;
+  z-index: 2;
+  min-width: 44px;
+  min-height: 44px;
+  width: 100%;
+  padding: 0 4px !important;
+  font-size: clamp(0.46rem, 1.7vw, 0.62rem) !important;
+  line-height: 1.05;
+}
+
 .garden-quest-dialog[data-asset-slot-surface="garden-quests"] {
   container-type: inline-size;
   contain: layout paint;

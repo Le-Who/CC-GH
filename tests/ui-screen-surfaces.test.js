@@ -430,6 +430,7 @@ test("Yard generated panels use asset slots and keep dismiss controls icon-only"
 test("Garden generated panels pin runtime controls to authored slots", async () => {
   const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
   const gardenGame = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenShelfGame.tsx"), "utf8");
+  const gardenBottomPanel = await readFile(path.join(root, "src", "games", "garden-shelf", "components", "BottomPanel.tsx"), "utf8");
 
   assert.match(
     gardenGame,
@@ -460,6 +461,26 @@ test("Garden generated panels pin runtime controls to authored slots", async () 
     gardenCss,
     /\.garden-quest-dialog\[data-garden-panel="quests"\]\s+\.garden-quest-card\s+>\s+\.flex\s*\{[\s\S]*?display:\s*contents/s,
     "Garden quest card flex wrappers should flatten so inner content can occupy authored row slots",
+  );
+  assert.match(
+    gardenBottomPanel,
+    /data-asset-slot-surface=\{!isPlantDetail \? "garden-seed-shop-inventory" : undefined\}/,
+    "Garden seed shop/inventory must expose a mechanical asset slot surface",
+  );
+  assert.match(
+    gardenBottomPanel,
+    /gardenSeedRowAttrs\('garden-seed-shop-row',\s*rowIndex\)/,
+    "Garden seed shop rows must be pinned to authored row slots instead of flowing between painted cells",
+  );
+  assert.match(
+    gardenBottomPanel,
+    /gardenSeedRowAttrs\('garden-inventory-row',\s*rowIndex\)/,
+    "Garden inventory rows must be pinned to authored row slots instead of flowing between painted cells",
+  );
+  assert.match(
+    gardenCss,
+    /\.garden-bottom-sheet\[data-asset-slot-surface="garden-seed-shop-inventory"\]\s+\[data-asset-slot-group\]\s*\{[\s\S]*?position:\s*absolute/s,
+    "Garden seed shop/inventory row slots should use absolute panel coordinates",
   );
 });
 
@@ -513,6 +534,19 @@ test("Yard generated management screens use mechanical asset slot maps", async (
     /yardPanelGroupSlotStyle/,
     "Yard generated panels must use the shared slot style helper for repeated row/card lanes",
   );
+  const requiredRenderedGroups = {
+    goodies: ["inventory-row", "placed-row"],
+    shop: ["shop-food-row", "shop-goodies-row", "shop-background-row"],
+  };
+  for (const [screen, groupIds] of Object.entries(requiredRenderedGroups)) {
+    for (const groupId of groupIds) {
+      assert.match(
+        yardGame,
+        new RegExp(`yardGroupSlotAttrs\\("${screen}",\\s*"${groupId}"`),
+        `Yard ${screen}.${groupId} must be applied to rendered rows, not only declared in the slot map`,
+      );
+    }
+  }
 
   for (const screen of screens) {
     const map = YARD_SCREEN_SLOT_MAPS[screen];

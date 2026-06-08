@@ -17,7 +17,7 @@ import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
 import { usePressTooltip } from "../../app/usePressTooltip.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
-import { yardPanelGroupSlotStyle, yardPanelSlotStyle } from "./yardPanelSlots.js";
+import { yardPanelGroupSlotStyle, yardPanelNestedGroupSlotStyle, yardPanelSlotStyle } from "./yardPanelSlots.js";
 import "./i18n.js";
 import "./companion-yard.css";
 
@@ -157,8 +157,10 @@ function yardSlotAttrs(screenId, slotId) {
   return style ? { "data-asset-slot": slotId, style } : { "data-asset-slot": slotId };
 }
 
-function yardGroupSlotAttrs(screenId, groupId, index) {
-  const style = yardPanelGroupSlotStyle(screenId, groupId, index);
+function yardGroupSlotAttrs(screenId, groupId, index, parentSlotId) {
+  const style = parentSlotId
+    ? yardPanelNestedGroupSlotStyle(screenId, groupId, index, parentSlotId)
+    : yardPanelGroupSlotStyle(screenId, groupId, index);
   if (!style) return {};
   return {
     "data-asset-slot-group": groupId,
@@ -784,11 +786,11 @@ export default function CompanionYardGame() {
           <strong {...yardSlotAttrs("goodies", "inventory-title")}>{text("yard.inventory", "Inventory")}</strong>
           <div className="yard-slot-list" {...yardSlotAttrs("goodies", "inventory-list")}>
             {!owned.length && <div className="empty-state">{text("yard.empty", "Empty")}</div>}
-            {owned.map(([goodieId, qty]) => {
+            {owned.map(([goodieId, qty], rowIndex) => {
               const goodie = goodies[goodieId];
               if (!goodie) return null;
               return (
-                <div className="yard-shop-row" key={goodieId}>
+                <div className="yard-shop-row" key={goodieId} {...yardGroupSlotAttrs("goodies", "inventory-row", rowIndex, "inventory-list")}>
                   <img src={assetPath("goodies", goodieId)} alt="" />
                   <span><strong>{goodieName(goodie)}</strong><small>x{qty} · {text(`yard.size.${goodie.size}`, goodie.size)}</small></span>
                   <YardActionButton icon="placement" onClick={() => startPlaceGoodie(goodieId)}>{text("yard.place", "Place")}</YardActionButton>
@@ -801,13 +803,13 @@ export default function CompanionYardGame() {
           <strong {...yardSlotAttrs("goodies", "placed-title")}>{text("yard.placed", "Placed")}</strong>
           <div className="yard-slot-list" {...yardSlotAttrs("goodies", "placed-list")}>
             {!placed.length && <div className="empty-state">{text("yard.none", "None")}</div>}
-            {placed.map((item) => {
+            {placed.map((item, rowIndex) => {
               const goodie = goodies[item.goodieId];
               const busy = (visitorsBySlot.get(item.slotId) || []).length > 0;
               const pending = hasPending(`slot:${item.slotId}`);
               if (!goodie) return null;
               return (
-                <div className="yard-shop-row" key={item.slotId}>
+                <div className="yard-shop-row" key={item.slotId} {...yardGroupSlotAttrs("goodies", "placed-row", rowIndex, "placed-list")}>
                   <img src={assetPath("goodies", item.condition === "new" ? item.goodieId : `${item.goodieId}_${item.condition}`)} alt="" />
                   <span><strong>{goodieName(goodie)}</strong><small>{text(`yard.condition.${item.condition}`, item.condition)}{busy ? ` · ${text("yard.visitor", "visitor")}` : ""}</small></span>
                   <div className="yard-row-actions">
@@ -832,13 +834,14 @@ export default function CompanionYardGame() {
       <div className="yard-card">
         <strong {...yardSlotAttrs("shop", "food-title")}>{text("yard.shop.food", "Food shop")}</strong>
         <div className="yard-slot-list" {...yardSlotAttrs("shop", "food-list")}>
-          {Object.values(foods).map((food) => (
+          {Object.values(foods).map((food, rowIndex) => (
             <YardShopRow
               key={food.id}
               imageSrc={assetPath("foods", food.id)}
               title={foodName(food)}
               description={foodDesc(food)}
               priceParts={costParts(food.cost, t)}
+              {...yardGroupSlotAttrs("shop", "shop-food-row", rowIndex, "food-list")}
             >
               <YardActionButton icon="shop" disabled={hasPending(`shop:food:${food.id}`)} onClick={() => performAction("yard.buyFood", { foodId: food.id, qty: 1 })}>
                 {hasPending(`shop:food:${food.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
@@ -850,13 +853,14 @@ export default function CompanionYardGame() {
       <div className="yard-card">
         <strong {...yardSlotAttrs("shop", "goodies-title")}>{text("yard.shop.goodies", "Goodies shop")}</strong>
         <div className="yard-slot-list" {...yardSlotAttrs("shop", "goodies-list")}>
-          {Object.values(goodies).map((goodie) => (
+          {Object.values(goodies).map((goodie, rowIndex) => (
             <YardShopRow
               key={goodie.id}
               imageSrc={assetPath("goodies", goodie.id)}
               title={goodieName(goodie)}
               description={goodieDesc(goodie)}
               priceParts={costParts(goodie.cost, t)}
+              {...yardGroupSlotAttrs("shop", "shop-goodies-row", rowIndex, "goodies-list")}
             >
               <YardActionButton icon="shop" disabled={hasPending(`shop:goodie:${goodie.id}`)} onClick={() => performAction("yard.buyGoodie", { goodieId: goodie.id })}>
                 {hasPending(`shop:goodie:${goodie.id}`) ? text("yard.syncing", "Syncing") : text("yard.buy", "Buy")}
@@ -871,7 +875,7 @@ export default function CompanionYardGame() {
           {Object.values(remodels)
             .filter((remodel) => !remodel.starterOwned)
             .sort((a, b) => (a.shopOrder || 999) - (b.shopOrder || 999))
-            .map((remodel) => {
+            .map((remodel, rowIndex) => {
               const owned = yard.ownedRemodels?.includes(remodel.id);
               return (
                 <YardShopRow
@@ -880,6 +884,7 @@ export default function CompanionYardGame() {
                   title={remodelName(remodel)}
                   description={remodelDesc(remodel)}
                   priceParts={owned ? [{ label: text("yard.owned", "Owned"), plain: true }] : costParts(remodel.cost, t)}
+                  {...yardGroupSlotAttrs("shop", "shop-background-row", rowIndex, "backgrounds-list")}
                 >
                   <YardActionButton icon="remodel" active={owned} disabled={hasPending("remodel")} onClick={() => performAction("yard.setRemodel", { remodelId: remodel.id })}>
                     {hasPending("remodel") ? text("yard.syncing", "Syncing") : owned ? text("yard.set", "Set") : text("yard.buy", "Buy")}
