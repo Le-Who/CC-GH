@@ -125,7 +125,7 @@ test.describe('Garden Living production-source flow',()=>{
       const trigger=page.locator('[data-plant-details-button]').first();await trigger.scrollIntoViewIfNeeded();await tapOrClick(trigger,touch);
       await assertDialogFit(page,panel(page,'plant-detail'));await expect(page.getByTestId('garden-care-level')).toContainText('42');await shot(page,testInfo,'care');
       await closePanel(page);await expect(trigger).toBeFocused();
-      await tapOrClick(trigger,touch);await page.keyboard.press('Escape');await expect(page.locator('.gs2-dialog')).toHaveCount(0);
+      await tapOrClick(trigger,touch);await page.keyboard.press('Escape');await expect(page.locator('.gs2-dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
       await page.locator('.gs2-stage button[aria-label="Garden quests"]').click();await assertDialogFit(page,panel(page,'quests'));await assertFlowRows(page,'.gs2-quest-card');await shot(page,testInfo,'quests');await closePanel(page);
       await page.locator('.gs2-empty-target').first().click();await assertDialogFit(page,panel(page,'seed-shop-inventory'));await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await assertFlowRows(page,'.gs2-catalog-row');await shot(page,testInfo,'shop');await closePanel(page);
       // The host and its state remain intact after dismissals and tab changes.

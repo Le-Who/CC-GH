@@ -28,7 +28,7 @@
 .m3-turns{position:absolute;left:49%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;background-position:center;background-repeat:no-repeat;background-size:contain;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px}
 .m3-turns>span{font-size:12px;line-height:14px;color:#fff3d9;max-width:58px;white-space:nowrap}
 .m3-turns>strong{font-size:34px;line-height:36px;color:#fff9e7;font-weight:900;font-variant-numeric:tabular-nums}
-.m3-combo-reward{position:absolute;left:64%;top:13%;width:22%;height:74%;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.m3-combo-reward{position:absolute;left:64%;top:9%;width:22%;height:82%;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
 .m3-combo-reward>span{font-size:12px;line-height:14px;white-space:nowrap;color:#f5e5d3}
 .m3-combo-reward>span b{color:#fff3d9}
 .m3-pause{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;padding:10px 12px;border:0;border-radius:50%;background-color:transparent;background-position:center;background-size:contain;background-repeat:no-repeat}
@@ -85,3 +85,8 @@
 .m3-stage button:focus-visible{outline:3px solid #fff6b9;outline-offset:-4px}
 .m3-stage[data-m3-tight=true] .m3-stat-grid{gap:0 4px}
 .m3-stage[data-m3-tight=true] .m3-stat-grid .m3-metric{flex-direction:row;justify-content:space-between;gap:3px}
+
+/* Keep the compact combo and reward lines inside the authored HUD lane. */
+.m3-stage[data-m3-compact=true] .m3-combo-reward .m3-metric{gap:0}
+
+.m3-combo-reward .m3-combo>strong{line-height:1.2}

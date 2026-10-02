@@ -33,11 +33,11 @@ async function installRuntimeProbe(page) {
   });
 }
 
-function observeRuntimeAssetRequests(page) {
+function observeGameAssetRequests(page) {
   const paths = new Set();
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.pathname.startsWith("/assets-runtime/")) paths.add(url.pathname);
+    if (url.pathname.startsWith("/assets-runtime/") || url.pathname.startsWith("/games/")) paths.add(url.pathname);
   });
   return paths;
 }
@@ -76,17 +76,24 @@ test.describe("runtime perf guard", () => {
 
   test("keeps startup lazy and Merge live play within frame/long-task smoke budgets", async ({ page }) => {
     await installRuntimeProbe(page);
-    const runtimeAssetPaths = observeRuntimeAssetRequests(page);
+    const assetPaths = observeGameAssetRequests(page);
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+
+    // Garden Living owns source-art URLs and no longer loads the Pixi asset manifest.
+    // Wait for the real startup scene to decode before checking what was loaded lazily.
+    const gardenBackdrop = page.locator('.gs2-backdrop img');
+    await expect(gardenBackdrop).toBeVisible();
+    await expect(gardenBackdrop).toHaveAttribute('src', '/games/garden-v2/background.webp');
+    await expect.poll(() => gardenBackdrop.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+    await expect.poll(() => assetPaths.has('/games/garden-v2/background.webp')).toBe(true);
 
     const startupResources = await page.evaluate(() =>
       performance.getEntriesByType("resource").map((entry) => entry.name),
     );
     expect(startupResources.some((name) => /LazyPixiSceneHost|pixi/i.test(name))).toBe(false);
-    await expect.poll(() => runtimeAssetPaths.has("/assets-runtime/manifest.json")).toBe(true);
     expect(
-      [...runtimeAssetPaths].some((path) => /^\/assets-runtime\/(?:bubbo|puzzling-potions)\//.test(path)),
+      [...assetPaths].some((path) => /^\/assets-runtime\/(?:bubbo|puzzling-potions)\/|^\/games\/(?:bubbo-v2|match3-v2|blox-v2|merge-lab-v3)\//.test(path)),
     ).toBe(false);
 
     await page.getByRole("button", { name: /Merge/ }).click();

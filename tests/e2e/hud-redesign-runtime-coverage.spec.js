@@ -134,19 +134,26 @@ test.describe("HUD redesign runtime asset coverage", () => {
   async function expectYardScreenContentInsideFrame(page) {
     const layout = await page.evaluate(() => {
       const screen = document.querySelector(".yard-game-screen")?.getBoundingClientRect();
-      const header = document.querySelector(".yard-screen-header")?.getBoundingClientRect();
-      const content = document.querySelector(".yard-screen-content")?.getBoundingClientRect();
-      const card = document.querySelector(".yard-screen-content .yard-card")?.getBoundingClientRect();
+      const header = document.querySelector(".yard-screen-header");
+      const content = document.querySelector(".yard-screen-content");
+      const card = document.querySelector(".yard-screen-content .yard-card");
       const close = document.querySelector(".yard-screen-header .yard-icon-button")?.getBoundingClientRect();
       const inside = (rect, inset = 0) => !!screen && !!rect
+        && rect.width > 0 && rect.height > 0
         && rect.left >= screen.left + inset
         && rect.right <= screen.right - inset
         && rect.top >= screen.top + inset
         && rect.bottom <= screen.bottom - inset;
+      // Header/content span the panel's authored coordinate space; cards use
+      // display: contents. Check the painted slots, retaining the frame insets.
+      const slotsInside = (root, inset, count) => {
+        const slots = [...(root?.querySelectorAll("[data-asset-slot], [data-asset-slot-group]") || [])];
+        return slots.length === count && slots.every((slot) => inside(slot.getBoundingClientRect(), inset));
+      };
       return {
-        headerInside: inside(header, 10),
-        contentInside: inside(content, 10),
-        cardInside: inside(card, 14),
+        headerInside: slotsInside(header, 10, 2),
+        contentInside: slotsInside(content, 10, 4),
+        cardInside: slotsInside(card, 14, 4),
         closeInside: inside(close, 8),
       };
     });
@@ -167,13 +174,22 @@ test.describe("HUD redesign runtime asset coverage", () => {
     await page.screenshot({ path: testInfo.outputPath('merge-v3-projects.png'), fullPage: false });
   });
 
-  test("Garden dialogs use generated per-menu panel assets", async ({ page }) => {
+  test("Garden dialogs use generated R3 panel and button assets", async ({ page }) => {
     await boot(page);
-    await page.getByRole("button", { name: /settings/i }).click();
-    await expect(page.locator(".garden-settings-dialog")).toHaveAttribute("data-garden-panel", "settings");
-    await expectBackgroundAsset(page.locator(".garden-settings-dialog"), "/games/garden-shelf/menu-panels/settings.png");
-    await expectBackgroundAsset(page.locator(".garden-settings-dialog .garden-choice-button").first(), "/games/hud-redesign/garden/primary-button.png");
-    await expectVisibleControlsHealthy(page, ".garden-settings-dialog");
+    await page.locator(".gs2-settings").click();
+    const dialog = page.locator('.gs2-dialog[data-garden-panel="settings"]');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute("role", "dialog");
+    await expect(dialog).toHaveAttribute("aria-modal", "true");
+    await expect(dialog).toHaveAttribute("data-hud-region", "gardenSheet");
+    await expect(dialog).toHaveCSS("border-image-source", /\/games\/garden-v2\/panel\.webp/);
+    await expect(dialog.locator(".gs2-primary").first()).toHaveCSS("border-image-source", /\/games\/garden-v2\/button\.webp/);
+    await expect(dialog).not.toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(dialog.locator(".gs2-dialog-scroll")).toHaveCSS("overflow-y", "auto");
+    await expectVisibleControlsHealthy(page, '.gs2-dialog[data-garden-panel="settings"]');
+    await dialog.locator(".gs2-close").click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.locator(".gs2-settings")).toBeFocused();
   });
 
   test("Cozy Yard HUD uses the generated hud-redesign runtime kit", async ({ page }) => {

@@ -109,6 +109,9 @@ test.describe("HUD layout editor", () => {
     const slotRegionId = "settlementConstructionSlot.southwest-terrace";
     const slotBox = page.locator(`[data-hud-region-box="${slotRegionId}"]`);
     await expect(slotBox).toBeVisible({ timeout: 30000 });
+    // Slot probes register before Pixi finishes loading and applies its camera.
+    // A visible editor box can still be outside the viewport during that load.
+    await expect(slotBox).toBeInViewport({ ratio: 1, timeout: 30000 });
     await slotBox.click({ force: true });
     const inspector = page.locator('[data-testid="hud-editor-inspector"]');
     await expect(inspector).toContainText(slotRegionId);

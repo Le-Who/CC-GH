@@ -6,11 +6,12 @@ const focusManager = createDialogFocusManager();
 /** A mounted dialog stays at natural size; its siblings stay mounted but inert.
  * Put data-menu-blocker on a sibling scrim that must still receive dismiss taps.
  * Escape/Back and the visible close action remain the caller's responsibility. */
-export function useDialogFocus(dialogRef, { active = true, resetKey = "", inertSiblings = true } = {}) {
+export function useDialogFocus(dialogRef, { active = true, resetKey = "", inertSiblings = true, returnFocusRef = null } = {}) {
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!active || !dialog) return undefined;
-    const previousFocus = document.activeElement;
+    // The opener may already be disabled by the commit that mounted this dialog.
+    const previousFocus = returnFocusRef?.current || document.activeElement;
     const stage = dialog.parentElement;
     const ownership = focusManager.begin(dialog);
     const restoreSiblings = inertSiblings ? makeDialogSiblingsInert(dialog) : () => {};
@@ -34,5 +35,5 @@ export function useDialogFocus(dialogRef, { active = true, resetKey = "", inertS
         if (mayRestore(target, focused) && !target.closest?.("[inert]")) target.focus?.({ preventScroll: true });
       });
     };
-  }, [active, dialogRef, inertSiblings, resetKey]);
+  }, [active, dialogRef, inertSiblings, resetKey, returnFocusRef]);
 }

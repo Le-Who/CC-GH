@@ -66,14 +66,16 @@ test('quest credit and claimed marker survive a lost response together',async({b
 });
 
 test('two real clients cannot both buy with one affordable balance or erase the winner',async({browser})=>{
+ // Five real page boots/reloads plus teardown of two rendering contexts.
+ test.setTimeout(60000);
  const userId=uid(),a=await browser.newContext({baseURL:test.info().project.use.baseURL}),b=await browser.newContext({baseURL:test.info().project.use.baseURL});
  try{
   const first=await a.newPage(),second=await b.newPage();await setup(first,userId);await setup(second,userId);await boot(first);
   await first.evaluate(async()=>{const response=await fetch('/api/player/mutate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`dev ${localStorage.getItem('gh_dev_user_id')}`},body:JSON.stringify({action:'garden.goldDelta',payload:{amount:-75,reason:'disposable-test-fixture'}})});if(!response.ok)throw Error('fixture debit failed');});
-  await first.reload();await boot(second);await Promise.all([buy(first),buy(second)]);
+  await first.reload();await boot(second);await Promise.all([buy(first),buy(second)]);await Promise.all([waitLedgerSettled(first),waitLedgerSettled(second)]);
   await expect.poll(async()=>(await serverSnapshot(first)).garden.plants.length).toBe(1);const saved=await serverSnapshot(first);expect(saved.resources.gold).toBe(0);expect(saved.garden.plants).toHaveLength(1);
   await Promise.all([first.reload(),second.reload()]);await expect(first.locator('[data-plant-id]')).toHaveCount(1);await expect(second.locator('[data-plant-id]')).toHaveCount(1);expect((await serverSnapshot(second)).resources.gold).toBe(0);
- }finally{await a.close();await b.close();}
+ }finally{await Promise.all([a.close(),b.close()]);}
 });
 
 test('missing Web Locks leaves growth and Care usable while economic buttons fail closed',async({page})=>{
@@ -94,9 +96,9 @@ test('ambiguous expired pending action can be explicitly archived against server
   localStorage.setItem(`game_hub_garden_intents_v1:${encodeURIComponent(accountId)}`,JSON.stringify({version:1,accountId,streamId,nextSequence:1,pending:{action:'garden.buyPlant',payload:{type:'daisy',shelfIndex:0,spotIndex:0,expectedRevision:revision,intent},clientActionId}}));
  },{accountId:before.player.id,revision:before.garden.economicRevision});
  await page.reload();await expect(page.locator('.gs2-status')).toContainText('Pending action needs review');
- page.once('dialog',dialog=>dialog.dismiss());await page.getByRole('button',{name:'Review',exact:true}).click();
+ await Promise.all([page.waitForEvent('dialog').then(async dialog=>{expect(dialog.type()).toBe('confirm');await dialog.dismiss();}),page.getByRole('button',{name:'Review',exact:true}).click()]);
  expect(await page.evaluate(()=>Object.keys(localStorage).some(k=>k.startsWith('game_hub_garden_intents_v1:')&&!k.includes(':archive:')&&JSON.parse(localStorage.getItem(k)).pending))).toBe(true);
- page.once('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Review',exact:true}).click();await waitLedgerSettled(page);
+ await Promise.all([page.waitForEvent('dialog').then(async dialog=>{expect(dialog.type()).toBe('confirm');await dialog.accept();}),page.getByRole('button',{name:'Review',exact:true}).click()]);await waitLedgerSettled(page);
  const after=await serverSnapshot(page);expect(after.resources.gold).toBe(before.resources.gold);expect(after.garden.plants).toEqual(before.garden.plants);
  expect(await page.evaluate(()=>Object.keys(localStorage).some(k=>k.includes(':archive:garden:expired_browser_stream_0123456:1')))).toBe(true);
  await buy(page);await expect.poll(async()=>(await serverSnapshot(page)).garden.plants.length).toBe(1);expect((await serverSnapshot(page)).resources.gold).toBe(before.resources.gold-25);

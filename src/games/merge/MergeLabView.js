@@ -6,6 +6,8 @@ import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 import {BookOpen, ChevronLeft, CircleQuestionMark, FlaskConical, House, Leaf, PackageOpen, Pause, Search, Sparkles, Star, Volume2, VolumeX, X as LabCloseIcon} from 'lucide-react';
 import {audioManager} from '../../services/audioManager.js';
+import {createDialogFocusManager} from '../../app/dialogFocus.js';
+const mergeDialogFocusManager=createDialogFocusManager();
 import {MERGE_LAB_CATALOG, mergeLabName} from '../../../game-logic/merge-lab-catalog.js';
 // All displayed economic quotes must come from the authenticated server.
 function estimateServerTime(s,r=Date.now()){
@@ -655,9 +657,24 @@ function LabDialog({
   t:y,
   id:m
 }){
-  const E=React.useId(),A=m||E,v=React.useRef(null);
+  const E=React.useId(),A=m||E,v=React.useRef(null),opener=React.useRef(null);
+  // Keep one opener for this mounted dialog through Supplies → Quote → Back.
+  // Title changes refresh the focus trap but must not replace the outside return target.
+  React.useEffect(()=>{
+    const dialog=v.current;
+    opener.current??=document.activeElement;
+    const ownership=mergeDialogFocusManager.begin(dialog);
+    return()=>{
+      const mayRestore=ownership.end();
+      // Parent cleanup releases workspace inertness after the child unmounts.
+      window.requestAnimationFrame(()=>{
+        const target=opener.current,focused=document.activeElement===document.body?null:document.activeElement;
+        if(mayRestore(target,focused)&&!target.closest?.('[inert]'))target.focus({preventScroll:true});
+      });
+    };
+  },[]);
   return React.useEffect(()=>{
-    const p=document.activeElement,g=v.current,_=()=>[...g.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]')].filter(X=>!X.hidden&&!X.closest("[hidden]"));
+    const g=v.current,_=()=>[...g.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]')].filter(X=>!X.hidden&&!X.closest("[hidden]"));
     (_()[0]||g).focus({
       preventScroll:!0
     });
@@ -682,9 +699,7 @@ function LabDialog({
     }
     ;
     return document.addEventListener("focusin",Z),()=>{
-      document.removeEventListener("keydown",M,!0),document.removeEventListener("focusin",Z),p?.isConnected&&p.focus({
-        preventScroll:!0
-      })
+      document.removeEventListener("keydown",M,!0),document.removeEventListener("focusin",Z)
     }
   }
   ,[f,s]),jsxRuntime.jsx("div",{

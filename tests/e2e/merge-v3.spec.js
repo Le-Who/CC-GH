@@ -181,11 +181,14 @@ test('V3 dialogs trap/restore focus, quote Back preserves state, and remount doe
   await tabbable.last().focus(); await page.keyboard.press('Tab');
   await expect(tabbable.first()).toBeFocused();
   await page.keyboard.press('Shift+Tab'); await expect(tabbable.last()).toBeFocused();
-  await page.getByTestId('ml-starter-kit').click();
-  await expect(page.getByTestId('ml-quote')).toBeVisible();
-  await page.getByTestId('ml-drawer').getByRole('button', { name: 'Back', exact: true }).click();
-  await expect(page.getByTestId('ml-supplies')).toBeVisible();
-  expect((await mergeSnapshot(page)).merge.mergeRevision).toBe(before.merge.mergeRevision);
+  for (let i = 0; i < 2; i++) {
+    await page.getByTestId('ml-starter-kit').click();
+    await expect(page.getByTestId('ml-quote')).toBeVisible();
+    await page.getByTestId('ml-drawer').getByRole('button', { name: 'Back', exact: true }).click();
+    await expect(page.getByTestId('ml-supplies')).toBeVisible();
+    await expect.poll(() => dialog.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    expect((await mergeSnapshot(page)).merge.mergeRevision).toBe(before.merge.mergeRevision);
+  }
   await closeMergePanel(page, 'escape');
   await expect(page.getByTestId('ml-open-supplies')).toBeFocused();
   for (let i = 0; i < 3; i++) {

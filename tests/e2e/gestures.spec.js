@@ -138,12 +138,35 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await expect(page.getByText("My Garden")).toBeVisible();
     await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
-    await page.getByRole("button", { name: "+" }).first().click();
-    const panel = page.locator(".fixed.bottom-0").last();
-    await expect(panel).toContainText("Seed Shop");
-    await panel.locator("button").filter({ hasText: "2,500" }).click();
-    await expect(page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId("garden-phase-badge")).toHaveCount(0);
+    await page.locator(".gs2-empty-target").first().click();
+    const shop = page.locator('.gs2-dialog[data-garden-panel="seed-shop-inventory"]');
+    await expect(shop).toContainText("Seed Shop");
+    const purchase = page.waitForResponse(response => response.url().includes("/api/player/mutate") && response.request().postDataJSON()?.action === "garden.buyPlant");
+    await shop.locator(".gs2-catalog-row").filter({ has: page.getByRole("heading", { name: "Daisy", exact: true }) }).getByRole("button").click();
+    const bought = await (await purchase).json();
+    expect(bought.receiptConfirmed).toBe(true);expect(bought.goldDelta).toBe(-25);
+    await expect(page.locator('.gs2-dialog[data-garden-panel="plant-detail"]')).toBeVisible();
+    await page.locator(".gs2-close").click();
+    await expect(page.locator(".gs2-dialog")).toHaveCount(0);
+    const readPlant = () => page.evaluate(id => {
+      const key = Object.keys(localStorage).find(key => key.startsWith("game_hub_garden_state_v1:"));
+      return JSON.parse(localStorage.getItem(key)).state.plants.find(plant => plant.id === id);
+    }, bought.plantId);
+    const before = await readPlant();
+    const viewportBefore = await page.evaluate(() => ({ x:scrollX, y:scrollY }));
+    const plantTarget = page.locator(`[data-plant-id="${bought.plantId}"] .gs2-plant-target`);
+    await plantTarget.scrollIntoViewIfNeeded();
+    const box = await plantTarget.boundingBox();expect(box).not.toBeNull();
+    // Real Chromium touch events exercise the shelf's pointer session.
+    const client = await page.context().newCDPSession(page);
+    await client.send("Input.dispatchTouchEvent", {type:"touchStart",touchPoints:[{x:box.x+box.width/2,y:box.y+box.height/2,id:1}]});
+    await client.send("Input.dispatchTouchEvent", {type:"touchEnd",touchPoints:[]});
+    await client.detach();
+    await expect.poll(async () => (await readPlant()).lastTapped).toBeGreaterThan(before.lastTapped || 0);
+    await expect.poll(async () => (await readPlant()).phaseProgress).toBeGreaterThan(before.phaseProgress);
+    await expect(page.locator(".gs2-dialog")).toHaveCount(0);
+    expect(await page.evaluate(() => ({ x:scrollX, y:scrollY }))).toEqual(viewportBefore);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
 
     expect(pageErrors).toEqual([]);
   });
@@ -214,17 +237,25 @@ test.describe("Pixi touch and drag interactions", () => {
     const pageErrors = await boot(page, "blox_reentry");
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await expectBloxCanvas(page);
+    const savedBoardLabels = await page.locator('.bx-keyboard-board [role="gridcell"]').evaluateAll(cells => cells.map(cell => cell.getAttribute('aria-label')));
+    const savedTrayLabels = await page.locator('.bx-keyboard-slot').evaluateAll(slots => slots.map(slot => slot.getAttribute('aria-label')));
     await pauseBlox(page);
     await exitBlox(page);
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
+    await expect(page.locator('.bx-keyboard-board [role="gridcell"]')).toHaveCount(100);
+    expect(await page.locator('.bx-keyboard-board [role="gridcell"]').evaluateAll(cells => cells.map(cell => cell.getAttribute('aria-label')))).toEqual(savedBoardLabels);
+    expect(await page.locator('.bx-keyboard-slot').evaluateAll(slots => slots.map(slot => slot.getAttribute('aria-label')))).toEqual(savedTrayLabels);
     const layout = await expectBloxLayout(page);
     const slot = layout.slots[0];
     await page.mouse.click(slot.left + slot.width / 2, slot.top + slot.height / 2);
+    // Selection is a React/Pixi update; do not race the next canvas tap against it.
+    await expect(page.locator('.bx-keyboard-slot').first()).toHaveAttribute('aria-pressed', 'true');
     const place = waitForBloxPlace(page, 8000);
     await page.mouse.click(layout.left + layout.cell * 0.5, layout.top + layout.cell * 0.5);
-    await expect(place).resolves.toMatchObject({ action: "blox.place" });
+    await expect(place).resolves.toMatchObject({ action: "blox.place", payload: { pieceIdx: 0, row: 0, col: 0 } });
     await expectBloxCanvas(page);
     expect(pageErrors).toEqual([]);
   });

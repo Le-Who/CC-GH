@@ -605,7 +605,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       assert.match(gardenPresentation, /import ['"]\.\/garden-presentation\.css['"]/, "Garden presentation must load its route-local styles");
       assert.match(gardenPresentation, /role="dialog" aria-modal="true"/, "Garden sheets retain accessible dialog semantics");
       assert.ok(gardenPresentation.includes("data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}"), "Garden sheets retain registered HUD regions");
-      assert.ok(gardenPresentation.includes("useDialogFocus(ref)") && gardenPresentation.includes("makeDialogSiblingsInert(layer)"), "Garden portal dialogs retain focus and underlying Hub isolation");
+      assert.ok(gardenPresentation.includes("useDialogFocus(ref, { returnFocusRef: feedback.returnFocusRef })") && gardenPresentation.includes("makeDialogSiblingsInert(layer)"), "Garden portal dialogs retain focus and underlying Hub isolation");
       const gardenDialogStyle = gardenCss.match(/\.gs2-dialog\s*\{([^}]+)\}/)?.[1] || "";
       assert.match(gardenDialogStyle, /border-image:var\(--gs2-panel-image\)/, "Garden dialogs use the authored panel skin");
       assert.match(gardenDialogStyle, /background:#[0-9a-f]{6}/i, "Garden dialogs keep an opaque readable paper surface");

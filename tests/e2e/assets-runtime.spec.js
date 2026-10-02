@@ -6,7 +6,7 @@ function observeRuntimeAssetRequests(page) {
   const paths = new Set();
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:bubbo-v2|match3-v2|blox-v2)\//.test(url.pathname)) {
+    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:bubbo-v2|match3-v2|blox-v2|garden-v2|garden-living)\//.test(url.pathname)) {
       paths.add(url.pathname);
     }
   });
@@ -55,7 +55,9 @@ test.describe("generated runtime asset manifest", () => {
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("My Garden")).toBeVisible();
-    await expectRuntimePath(runtimePaths, "/assets-runtime/garden-shelf/");
+    await expectRuntimePath(runtimePaths, "/games/garden-v2/");
+    await expect(page.locator('.gs2-stage .gs2-art').first()).toBeVisible();
+    await expect.poll(() => page.locator('.gs2-stage img').evaluateAll(images => images.length > 0 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
 
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.getByText("Building Blox")).toBeVisible();

@@ -144,6 +144,8 @@ test.describe("HUD art visual regression guards", () => {
         const rect = node.getBoundingClientRect();
         const value = node.querySelector("strong, b")?.getBoundingClientRect();
         return {text: node.textContent, width: rect.width, height: rect.height,
+          clientWidth: node.clientWidth, scrollWidth: node.scrollWidth, clientHeight: node.clientHeight, scrollHeight: node.scrollHeight,
+          lines: [...node.children].map(child => ({ text: child.textContent, font: getComputedStyle(child).font, lineHeight: getComputedStyle(child).lineHeight, height: child.getBoundingClientRect().height })),
           overflows: node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1,
           valueInside: !!value && value.left >= rect.left - 1 && value.right <= rect.right + 1 && value.top >= rect.top - 1 && value.bottom <= rect.bottom + 1};
       }));
@@ -151,7 +153,7 @@ test.describe("HUD art visual regression guards", () => {
       for (const item of stats) {
         expect(item.width, `${item.text} remains visible`).toBeGreaterThan(0);
         expect(item.valueInside, `${item.text} value stays within its metric`).toBe(true);
-        expect(item.overflows, `${item.text} remains readable`).toBe(false);
+        expect(item.overflows, `${item.text} remains readable: ${JSON.stringify(item)}`).toBe(false);
       }
       const metrics = await page.locator(".m3-tools .m3-tool").evaluateAll(buttons => buttons.map(button => {
         const box = button.getBoundingClientRect();

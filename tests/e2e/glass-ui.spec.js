@@ -55,6 +55,24 @@ test.describe("Glass UI rollout smoke", () => {
     });
   }
 
+  async function expectGardenPaper(page, locator, label, testInfo) {
+    await expect(locator).toBeVisible();
+    const metrics = await locator.evaluate(node => {
+      const box = node.getBoundingClientRect(), style = getComputedStyle(node);
+      const channel = value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+      const luminance = value => { const rgb = value.match(/[\d.]+/g).slice(0, 3).map(Number).map(v => channel(v / 255)); return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]; };
+      const ink = luminance(style.color), paper = luminance(style.backgroundColor);
+      return { left: box.left, right: box.right, height: box.height, skin: style.borderImageSource,
+        contrast: (Math.max(ink, paper) + 0.05) / (Math.min(ink, paper) + 0.05) };
+    });
+    expect(metrics.left).toBeGreaterThanOrEqual(0);
+    expect(metrics.right).toBeLessThanOrEqual(page.viewportSize().width + 1);
+    expect(metrics.height).toBeGreaterThan(42);
+    expect(metrics.skin).toContain('/games/garden-v2/panel.webp');
+    expect(metrics.contrast, `${label} ink must remain readable on its paper backing`).toBeGreaterThanOrEqual(4.5);
+    await page.screenshot({ path: testInfo.outputPath(`${label.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.png`), fullPage: false });
+  }
+
   async function expectDarkUiSurface(locator, label) {
     const samples = await locator.evaluate((node) => {
       const style = window.getComputedStyle(node);
@@ -184,22 +202,26 @@ test.describe("Glass UI rollout smoke", () => {
     await boot(page);
 
     await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "light");
-    await expectReadableGlass(page, page.locator(".stats-row"), "Light hub stats row", testInfo);
+    await expectGardenPaper(page, page.locator("[data-garden-gold]"), "Light Garden gold metric", testInfo);
     await page.evaluate(() => {
       window.localStorage.setItem("game_hub_ui_theme", "dark");
       document.documentElement.dataset.uiTheme = "dark";
       document.documentElement.style.colorScheme = "dark";
     });
     await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "dark");
-    await expectReadableGlass(page, page.locator(".stats-row"), "Dark hub stats row", testInfo);
+    await expectGardenPaper(page, page.locator("[data-garden-gold]"), "Dark Garden gold metric", testInfo);
 
     await page.getByRole("button", { name: "Garden settings" }).click();
-    await expectReadableGlass(page, page.locator(".garden-glass-menu"), "Garden settings menu", testInfo);
-    await page.locator(".garden-glass-menu").getByRole("button", { name: "Close settings" }).click();
+    const gardenSettings = page.locator('[data-garden-panel="settings"]');
+    await expectGardenPaper(page, gardenSettings, "Garden settings menu", testInfo);
+    await gardenSettings.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(gardenSettings).toHaveCount(0);
 
-    await page.getByRole("button", { name: "+" }).first().click();
-    await expectReadableGlass(page, page.locator(".garden-glass-sheet"), "Garden seed shop sheet", testInfo);
-    await page.getByRole("button", { name: "Close seed shop" }).click();
+    await page.locator('.gs2-empty-target').first().click();
+    const gardenShop = page.locator('[data-garden-panel="seed-shop-inventory"]');
+    await expectGardenPaper(page, gardenShop, "Garden seed shop sheet", testInfo);
+    await gardenShop.getByRole("button", { name: "Close", exact: true }).click();
+    await expect(gardenShop).toHaveCount(0);
 
     const gameCases = [
       { id: "blox", tab: /Blox/, menuText: "Building Blox", start: /^Start$/, label: "Blox" },

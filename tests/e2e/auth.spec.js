@@ -12,7 +12,10 @@ test.describe("Telegram-first auth shell", () => {
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Game Hub" })).toBeVisible();
+    // Garden intentionally hides the global title; authenticate against the live shell.
+    await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab', 'garden');
+    await expect(page.locator('.gs2-stage')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Player', exact: true })).toBeVisible();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("My Garden")).toBeVisible();
     await expect(page.locator("#auth-dialog")).toHaveCount(0);

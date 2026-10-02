@@ -124,7 +124,7 @@ async function exitViaPauseOrResult(page, resultSelector = ":is(.game-menu-overl
         .some((node) => isVisible(node));
       if (hasResult) return "result";
       const hasPause = Array.from(document.querySelectorAll("button"))
-        .some((button) => isVisible(button) && /Pause/.test(button.textContent || button.getAttribute("aria-label") || ""));
+        .some((button) => isVisible(button) && /Pause/.test(`${button.getAttribute("aria-label") || ""} ${button.textContent || ""}`));
       return hasPause ? "pause" : "";
     });
     if (state) break;

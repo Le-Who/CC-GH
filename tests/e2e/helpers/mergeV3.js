@@ -27,7 +27,8 @@ export async function bootMergeV3(page, prefix = 'merge_v3', language = 'en') {
     localStorage.setItem('garden_shelf_language', language);
   }, { id, language });
   await page.goto('/?tab=merge');
-  await expect(page.locator('.status-dot.ready')).toBeVisible({ timeout: 15000 });
+  // Ready remains mounted when the immersive shell intentionally hides the Hub header.
+  await expect(page.locator('.status-dot.ready')).toHaveCount(1, { timeout: 15000 });
   await expectMergeV3(page);
   return id;
 }

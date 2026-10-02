@@ -603,7 +603,8 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay).toContainText("Gem Crush");
+    await expect(page.locator('[data-game-shell="match3"] .m3-dialog')).toBeVisible();
+    await expect(overlay).toHaveAccessibleName("Paused");
     await expect(overlay).toContainText("Paused");
     await expect(overlay.locator('[data-mode-selector="match3"]')).toHaveCount(0);
     await expect(overlay.locator(".leaderboard")).toHaveCount(0);

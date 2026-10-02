@@ -21,6 +21,7 @@ import './garden-presentation.css';
 const FeedbackContext = createContext({
   error: '',
   busy: false,
+  returnFocusRef: null as React.RefObject<HTMLElement | null> | null,
   onDismiss: () => {}
 });
 const art = (name: string) => `/games/garden-v2/${name}.webp`;
@@ -86,7 +87,7 @@ export function Dialog({
     {
       t
     } = useGardenI18n();
-  useDialogFocus(ref);
+  useDialogFocus(ref, { returnFocusRef: feedback.returnFocusRef });
   // The dialog is portaled to body. Its immediate sibling is only the scrim;
   // protect the real Hub (including dock shortcuts) at the portal-layer level.
   useEffect(() => {
@@ -306,6 +307,7 @@ export default function GardenPresentation({
       viewport
     } = useHudLayout(),
     stage = useRef<HTMLDivElement>(null),
+    dialogOpener = useRef<HTMLElement | null>(null),
     shelf = useRef<HTMLDivElement>(null),
     placementRequest = useRef<any>(null),
     placementFocus = useRef<string | null>(null),
@@ -343,13 +345,21 @@ export default function GardenPresentation({
     }
   }, [accountingReady, t, onDismissError]);
   const close = useCallback(() => {
+      dialogOpener.current = null;
       placementRequest.current = null;
       placementFocus.current = null;
       setPlacement(null);
       setPanel(null);
       setSpot(null);
     }, []),
-    openSpot = (s: number, p: number, id?: string) => {
+    openPanel = (kind: string, opener?: HTMLElement) => {
+      dialogOpener.current = opener || document.activeElement as HTMLElement;
+      setPanel(kind);
+      setSpot(null);
+    },
+    openSpot = (s: number, p: number, id?: string, opener?: HTMLElement) => {
+      // Capture before setPanel disables the shelf controls and the browser blurs them.
+      dialogOpener.current = opener || (id ? stage.current?.querySelector<HTMLElement>(`[data-plant-id="${CSS.escape(id)}"] [data-plant-details-button]`) : null) || document.activeElement as HTMLElement;
       placementFocus.current = null;
       placementRequest.current = null;
       setPlacement(null);
@@ -396,8 +406,7 @@ export default function GardenPresentation({
   }), [size, resolvedLayout]);
   useEffect(() => {
     const q = () => {
-        setPanel('quests');
-        setSpot(null);
+        openPanel('quests');
         return true;
       },
       up = () => void run(levelUp);
@@ -540,7 +549,8 @@ export default function GardenPresentation({
   return <FeedbackContext.Provider value={{
     error,
     busy,
-    onDismiss: dismissError
+    onDismiss: dismissError,
+    returnFocusRef: dialogOpener
   }}><HudRegion id="gardenRoot" ref={stage} applyLayout={false} className="gs2-stage" data-gs2-arrangement={layout.landscape ? 'side' : 'stack'} data-gs2-compact={String(layout.compact)} style={{
       '--gs2-padding': `${layout.padding}px`,
       '--gs2-gap': `${layout.gap}px`,
@@ -562,7 +572,7 @@ export default function GardenPresentation({
                 }} /></form> : <button type="button" onClick={() => {
                 setDraft(state.name || t('garden.defaultName'));
                 setRenaming(true);
-              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={() => setPanel('settings')}><Settings size={24} /></Button></div><div className="gs2-metrics"><div className="gs2-metric" data-garden-gold="true" title={`${t('hud.gold')}: ${goldFull}`} aria-label={`${t('hud.gold')}: ${goldFull}`}><span><Art name="coin" />{t('hud.gold')}</span><strong>{goldShort}</strong></div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} title={`${t('level.progress')}: ${xpFull}`} aria-label={`${t(state.levelReady ? 'level.up' : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" />{t('label.levelShort')} {state.level}</span><strong>{state.levelReady ? `+${shortGold(getGardenLevelReward(state.level))}` : xpShort}</strong><Progress value={state.xp / state.xpRequired * 100} />{state.levelReady && <small>{t('level.up')}</small>}</button><button type="button" className="gs2-metric" onClick={() => setPanel('quests')} aria-label={t('quest.open')}><span><Art name="quest" />{t('ui.quests')}</span><strong>{readyCount > 0 ? readyCount : t('quest.openShort')}</strong></button></div><p className="gs2-rail-help">{t('ui.help')}</p></HudRegion>
+              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics"><div className="gs2-metric" data-garden-gold="true" title={`${t('hud.gold')}: ${goldFull}`} aria-label={`${t('hud.gold')}: ${goldFull}`}><span><Art name="coin" />{t('hud.gold')}</span><strong>{goldShort}</strong></div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} title={`${t('level.progress')}: ${xpFull}`} aria-label={`${t(state.levelReady ? 'level.up' : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" />{t('label.levelShort')} {state.level}</span><strong>{state.levelReady ? `+${shortGold(getGardenLevelReward(state.level))}` : xpShort}</strong><Progress value={state.xp / state.xpRequired * 100} />{state.levelReady && <small>{t('level.up')}</small>}</button><button type="button" className="gs2-metric" onClick={event => openPanel('quests', event.currentTarget)} aria-label={t('quest.open')}><span><Art name="quest" />{t('ui.quests')}</span><strong>{readyCount > 0 ? readyCount : t('quest.openShort')}</strong></button></div><p className="gs2-rail-help">{t('ui.help')}</p></HudRegion>
  <HudRegion id="gardenShelf" ref={shelf} applyLayout={false} className="gs2-shelf-viewport" role="region" aria-label={t('ui.shelves')} tabIndex={0} data-no-nav-swipe="true" data-gs2-dragging={String(dragging)} onPointerDown={e => {
           if (!blocked) drag.start(e);
         }} onPointerMove={e => drag.move(e)} onPointerUp={e => drag.end(e)} onPointerCancel={e => drag.cancel(e)} onLostPointerCapture={e => drag.cancel(e)} onPointerLeave={e => drag.cancel(e)} onMouseLeave={() => drag.cancel()} onWheel={() => drag.cancel()} onDragStart={() => drag.cancel()} onClickCapture={e => drag.click(e)}><div className="gs2-rack">{Array.from({
@@ -573,7 +583,7 @@ export default function GardenPresentation({
                   length: SPOTS_PER_SHELF
                 }, (_, p) => {
                   const plant = placed.get(`${s}:${p}`);
-                  return <PlantSpot key={p} plant={plant} highlighted={highlighted === plant?.id} spotWidth={layout.spotWidth} compact={layout.compact} blocked={blocked} onFeedback={setFeedback} onDetails={() => openSpot(s, p, plant?.id)} />;
+                  return <PlantSpot key={p} plant={plant} highlighted={highlighted === plant?.id} spotWidth={layout.spotWidth} compact={layout.compact} blocked={blocked} onFeedback={setFeedback} onDetails={(event: any) => openSpot(s, p, plant?.id, event?.currentTarget)} />;
                 })}</div><img className="gs2-shelf-art" data-hud-region="gardenShelfAsset" src={art('shelf')} alt="" draggable={false} /></section>)}{state.shelvesUnlocked < MAX_SHELVES && <section className="gs2-expansion"><Lock size={24} /><div><h3>{t('garden.expand')}</h3><p>{t('ui.expandHelp')}</p></div><Button primary disabled={busy || !accountingReady || state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked]} onClick={() => run(unlockShelf)}><Art name="coin" />{formatGardenGoldAmount(SHELF_UNLOCK_COSTS[state.shelvesUnlocked])}</Button>{state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked] && <small>{t('ui.notEnoughGold')}</small>}</section>}</div></HudRegion></div>
  <div className="gs2-status" role={error ? 'alert' : 'status'} aria-live="polite">{error ? <><span>{error}</span>{accountingNeedsReview && onReviewPending && <Button onClick={() => onReviewPending(t('ui.accountingConfirm', { gold: '[[GOLD]]' }))}>{t('ui.accountingReviewButton')}</Button>}<Button onClick={dismissError} aria-label={t('ui.close')}><X size={16} /></Button></> : busy ? t('ui.pending') : feedback || t('ui.help')}</div>
  {!offline && !notice && panel === 'settings' && <SettingsDialog onClose={close} />} {!offline && !notice && panel === 'quests' && <Quests onClose={close} run={run} busy={busy} />} {!offline && !notice && panel === 'spot' && spot && (activePlant && !placementRequest.current ? <Detail plantId={activePlant.id} onClose={close} onSelect={(p: any) => setSpot({

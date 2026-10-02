@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { containDialogTab, createDialogFocusManager, makeDialogSiblingsInert } from '../src/app/dialogFocus.js';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { containDialogTab, createDialogFocusManager, getDialogFocusableElements, makeDialogSiblingsInert } from '../src/app/dialogFocus.js';
 
 test('Tab stays inside the dialog and handles a dialog with no controls', () => {
   const focused = [], element = id => ({closest:()=>null,getClientRects:()=>[{}],focus:()=>focused.push(id)});
@@ -39,4 +41,75 @@ test('closing a nested dialog may restore only inside its still-open parent', ()
   const parent=manager.begin({isConnected:true,contains:node=>node===target});
   const child=manager.begin({isConnected:true,contains:()=>false});const restore=child.end();
   assert.equal(restore(target),true);assert.equal(restore(outside),false);assert.equal(restore(target,outside),false);parent.end();
+});
+
+
+function gardenPortalHookHarness() {
+  const frames = new Map(), effects = [], focusCalls = [];
+  let sequence = 0;
+  const body = { children: [] }, document = { body, activeElement: body };
+  const hub = { inert: false, hasAttribute: () => false };
+  const layer = { parentElement: body, children: [], hasAttribute: () => false };
+  body.children = [hub, layer];
+  const trigger = {
+    isConnected: true, disabled: true,
+    closest: () => hub.inert ? hub : null,
+    focus() { if (!this.disabled && !hub.inert) { focusCalls.push('trigger'); document.activeElement = this; } },
+  };
+  const close = {
+    isConnected: true, closest: () => null, getClientRects: () => [{}],
+    focus() { focusCalls.push('close'); document.activeElement = this; },
+  };
+  const dialog = {
+    isConnected: true, parentElement: layer, hasAttribute: () => false,
+    querySelectorAll: () => [close], contains: node => node === close,
+    addEventListener() {}, removeEventListener() {},
+  };
+  const scrim = { hasAttribute: name => name === 'data-menu-blocker' };
+  layer.children = [dialog, scrim];layer.querySelector = () => null;
+  const window = { requestAnimationFrame: fn => { frames.set(++sequence, fn); return sequence; }, cancelAnimationFrame: id => frames.delete(id) };
+  const source = fs.readFileSync(new URL('../src/app/useDialogFocus.js', import.meta.url), 'utf8')
+    .replace(/^import .*;\n/gm, '').replace('export function useDialogFocus', 'function useDialogFocus');
+  const context = { useEffect: fn => effects.push(fn), containDialogTab, createDialogFocusManager, getDialogFocusableElements, makeDialogSiblingsInert, window, document };
+  vm.createContext(context);vm.runInContext(source + '\nthis.hook = useDialogFocus;', context);
+  return {
+    trigger, dialog, document, focusCalls,
+    open(returnFocusRef) {
+      context.hook({ current: dialog }, { returnFocusRef });
+      const cleanup = effects.pop()(), restoreHub = makeDialogSiblingsInert(layer);
+      return () => { cleanup(); restoreHub(); };
+    },
+    detach() { dialog.isConnected = false; close.isConnected = false; trigger.disabled = false; document.activeElement = body; },
+    flush() { const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn()); },
+  };
+}
+
+test('explicit pre-commit Garden opener restores after disable blur and portal inert cleanup', () => {
+  const h = gardenPortalHookHarness(), opener = { current: h.trigger };
+  // Browser already blurred the disabled trigger before the dialog's passive effect.
+  const close = h.open(opener);h.flush();
+  assert.equal(h.focusCalls.at(-1), 'close');
+  opener.current = null; // Garden close clears its ref; the hook owns the captured element.
+  h.detach();close();
+  assert.equal(h.focusCalls.filter(value => value === 'trigger').length, 0);
+  h.flush();assert.equal(h.document.activeElement, h.trigger);
+});
+
+test('Garden opener survives Strict Mode effect replay without stale return-focus work', () => {
+  const h = gardenPortalHookHarness(), opener = { current: h.trigger };
+  const first = h.open(opener);h.flush();first();
+  const second = h.open(opener);h.flush();
+  assert.equal(h.focusCalls.filter(value => value === 'trigger').length, 0);
+  h.detach();second();h.flush();
+  assert.equal(h.focusCalls.filter(value => value === 'trigger').length, 1);
+  assert.equal(h.document.activeElement, h.trigger);
+});
+
+test('without pre-commit capture the disabled opener loss is reproduced, and Garden wires the capture', () => {
+  const h = gardenPortalHookHarness(), close = h.open(null);h.flush();h.detach();close();h.flush();
+  assert.notEqual(h.document.activeElement, h.trigger);
+  const source = fs.readFileSync(new URL('../src/games/garden-shelf/GardenPresentation.tsx', import.meta.url), 'utf8');
+  assert.match(source, /useDialogFocus\(ref, \{ returnFocusRef: feedback.returnFocusRef \}\)/);
+  assert.match(source, /openSpot = [\s\S]*?dialogOpener.current = opener[\s\S]*?setPanel\('spot'\)/);
+  assert.match(source, /onDetails=\{\(event: any\) => openSpot\(s, p, plant\?\.id, event\?\.currentTarget\)\}/);
 });

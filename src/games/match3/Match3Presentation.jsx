@@ -424,7 +424,7 @@ function Match3Presentation(props){
               label:t("common.combo"),
               value:combo?`×${combo}`:"—",
               className:"m3-combo",
-              size:composition.compact?22:26
+              size:composition.compact?18:26
             }), jsxRuntime.jsxs("span", {
               children:[t("common.reward"), " ", jsxRuntime.jsx("b", {
                 children:currentReward

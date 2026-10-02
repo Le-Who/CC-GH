@@ -148,7 +148,8 @@ test.describe("CC-GH multi-game logic smoke", () => {
       localStorage.setItem('garden_shelf_language', 'ru');
     });
     await page.goto('/?tab=merge');
-    await expect(page.locator('.status-dot.ready')).toBeVisible({ timeout: 15000 });
+    // Ready remains mounted when the immersive shell intentionally hides the Hub header.
+    await expect(page.locator('.status-dot.ready')).toHaveCount(1, { timeout: 15000 });
     await expectMergeV3(page);
     await expect(page.locator('.ml-root')).toHaveAttribute('lang', 'ru');
     for (const panel of ['samples', 'journal', 'projects', 'supplies']) {
@@ -200,24 +201,26 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" })).toContainText("12,000");
+    await expect(page.locator(".gs2-stage [data-garden-gold]")).toContainText(formatGardenGoldAmount(GARDEN_STARTER_GOLD));
     const resetSnapshot = await snapshot(page);
     expect(resetSnapshot.resources.gold).toBe(GARDEN_STARTER_GOLD);
     expect(resetSnapshot.garden.economyVersion).toBe(GARDEN_ECONOMY_VERSION);
     expect(resetSnapshot.garden.plants).toHaveLength(1);
-    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" })).toBeVisible();
-    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(1)}`);
+    await expect(page.locator('.gs2-stage button[aria-label="Garden quests"]')).toBeVisible();
+    await expect(page.locator(".gs2-stage [data-garden-xp]")).toHaveAttribute("aria-label", `Garden XP: 0/${getGardenXpRequired(1)}`);
 
     await mutate(page, "garden.sync", {
       state: {
+        ...resetSnapshot.garden,
         economyVersion: GARDEN_ECONOMY_VERSION,
-        totalGoldEarned: 0,
         level: 1,
         xp: getGardenXpRequired(1),
         xpRequired: getGardenXpRequired(1),
         levelReady: true,
         shelvesUnlocked: 1,
-        plants: [],
+        // Keep the migrated economic roster/revision; park the starter so
+        // passive earnings do not interfere with the exact level reward check.
+        plants: resetSnapshot.garden.plants.map(plant => ({...plant,shelfIndex:-1,spotIndex:-1})),
         passiveGoldBuffer: 0,
         passiveXpBuffer: 0,
         lastTick: Date.now(),
@@ -228,8 +231,9 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
     await page.reload();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole("button", { name: /Garden quests/ })).toBeVisible();
-    const levelButton = page.locator(".stats-row .stat-chip.clickable").filter({ hasText: "Level Up" });
+    await expect(page.locator('.gs2-stage button[aria-label="Garden quests"]')).toBeVisible();
+    const levelButton = page.locator(".gs2-stage [data-garden-xp]");
+    await expect(levelButton).toBeEnabled();
     await expect(levelButton).toContainText(`+${formatGardenGoldAmount(getGardenLevelReward(1))}`);
     let levelUpRequests = 0;
     await page.route("**/api/player/mutate", async (route) => {
@@ -249,8 +253,11 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(levelBody.reward).toBe(getGardenLevelReward(1));
     expect(levelBody.garden.level).toBe(2);
     expect(levelUpRequests).toBe(1);
-    await expect(page.locator(".garden-modal-card")).toContainText(formatGardenGoldAmount(getGardenLevelReward(1)));
-    await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(2)}`);
+    await expect(page.locator('.gs2-dialog[data-garden-panel="reward"]')).toContainText(formatGardenGoldAmount(getGardenLevelReward(1)));
+    await expect(page.locator(".gs2-stage [data-garden-xp]")).toHaveAttribute("aria-label", `Garden XP: 0/${getGardenXpRequired(2)}`);
+    expect(levelBody.receiptConfirmed).toBe(true);
+    expect(levelBody.snapshot.resources.gold).toBe(resetSnapshot.resources.gold + getGardenLevelReward(1));
+    expect(levelBody.snapshot.garden.plants.map(plant => plant.id)).toEqual(resetSnapshot.garden.plants.map(plant => plant.id));
     expect(pageErrors).toEqual([]);
   });
 });
