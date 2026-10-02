@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub } from './helpers/triviaR3.js';
 import { mergePanel, closeMergePanel } from './helpers/mergeV3.js';
+import { readScrollableControlGeometry } from './helpers/scrollGeometry.js';
 
 // Full-game browser checks use the integrated application and configured test server.
 // No synthetic rewards, fake successful requests, or alternate game implementation.
@@ -121,9 +122,24 @@ for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], 
     await mergePanel(page, 'supplies');
     await page.getByTestId('ml-starter-kit').click();
     const confirm = page.getByTestId('ml-quote-confirm');
-    await expect(confirm).toBeVisible();
+    await expect(confirm).toBeEnabled();
+    await page.evaluate(() => document.fonts.ready);
     const drawer = page.getByTestId('ml-drawer');
-    const beforeDrawer = await drawer.boundingBox(), beforeConfirm = await confirm.boundingBox();
+    // toBeVisible() permits offscreen controls. Native Playwright click scrolls them
+    // into view, which is not a layout shift. Record both coordinate systems, then
+    // finish that deliberate scroll before taking the strict viewport baseline.
+    const unprepared = await readScrollableControlGeometry(confirm);
+    await confirm.scrollIntoViewIfNeeded();
+    await expect(confirm).toBeInViewport({ ratio: 1 });
+    const prepared = await readScrollableControlGeometry(confirm);
+    expect(prepared.content).toEqual(unprepared.content);
+    expect(prepared.pane).toEqual(unprepared.pane);
+    const beforeDrawer = await drawer.boundingBox(), beforeConfirm = prepared.control;
+    const geometry = { unprepared, prepared };
+    const attachGeometry = phase => testInfo.attach(`merge-confirm-${phase}-diagnostics.json`, {
+      body: Buffer.from(JSON.stringify(geometry, null, 2)), contentType: 'application/json',
+    });
+    await attachGeometry('prepared');
     let releaseMerge, enterMerge;
     const seenMerge = new Promise(resolve => { enterMerge = resolve; });
     const pendingMerge = new Promise(resolve => { releaseMerge = resolve; });
@@ -134,12 +150,18 @@ for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], 
     await page.route('**/api/player/mutate', failMerge);
     await confirm.click(); await seenMerge;
     await expect(confirm).toHaveAttribute('aria-busy', 'true');
+    geometry.pending = await readScrollableControlGeometry(confirm);
+    await attachGeometry('pending');
+    expect(geometry.pending).toEqual(prepared);
     expect(await confirm.boundingBox()).toEqual(beforeConfirm);
     const close = page.getByTestId('ml-drawer-close');
     await close.focus(); releaseMerge();
     const error = drawer.locator('.ml-notice-error');
     await expectBoundedFeedback(error, page);
     await expect(close).toBeFocused();
+    geometry.failed = await readScrollableControlGeometry(confirm);
+    await attachGeometry('failed');
+    expect(geometry.failed).toEqual(prepared);
     expect(await drawer.boundingBox()).toEqual(beforeDrawer);
     expect(await confirm.boundingBox()).toEqual(beforeConfirm);
     await expect(error.getByRole('button', { name: language === 'ru' ? 'Проверить результат' : 'Check result', exact: true })).toBeEnabled();

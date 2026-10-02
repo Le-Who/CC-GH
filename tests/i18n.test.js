@@ -226,3 +226,30 @@ it("important failures stay visible in bounded overlays without new focus traps 
   assert.match(notice, /onClick:r/);
   assert.doesNotMatch(notice, /focus\(|setTimeout|role:"dialog"|aria-modal/);
 });
+
+
+it("copy geometry distinguishes deliberate scrolling from control and content reflow", async () => {
+  const { scrollContentRect } = await import('./e2e/helpers/scrollGeometry.js');
+  const before = { control: { x: 36, y: 572.65625, width: 135, height: 44 }, pane: { x: 24, y: 94, width: 272, height: 450 }, scrollLeft: 0, scrollTop: 0 };
+  const scrolled = { ...before, control: { ...before.control, y: 487.65625 }, scrollTop: 85 };
+  assert.deepEqual(scrollContentRect(scrolled), scrollContentRect(before));
+  // Negative controls: never normalize away a real inserted row or a resized button.
+  const insertedRow = { ...scrolled, control: { ...scrolled.control, y: scrolled.control.y + 12 } };
+  const changedHeight = { ...scrolled, control: { ...scrolled.control, height: 64 } };
+  assert.notDeepEqual(scrollContentRect(insertedRow), scrollContentRect(before));
+  assert.notDeepEqual(scrollContentRect(changedHeight), scrollContentRect(before));
+  const source = readRepoFile('tests', 'e2e', 'player-copy.spec.js');
+  assert.ok(source.indexOf('confirm.scrollIntoViewIfNeeded()') < source.indexOf('beforeConfirm = prepared.control'));
+  assert.match(source, /expect\(geometry\.pending\)\.toEqual\(prepared\)/);
+  assert.match(source, /expect\(geometry\.failed\)\.toEqual\(prepared\)/);
+  assert.match(source, /beforeConfirm\);/);
+});
+
+it("the lost-reply replay browser regression follows the current concise retry label", () => {
+  const spec = readRepoFile('tests', 'e2e', 'merge-v3.spec.js');
+  assert.doesNotMatch(spec, /name: 'Check the same request'/);
+  assert.equal((spec.match(/name: 'Check result'/g) || []).length, 3);
+  for (const guard of ['requests[1]).toEqual(requests[0])', 'mergeLab.replayed).toBe(true)', 'after.merge.stock).toEqual(once.merge.stock)', 'after.merge.freeTapCharges).toBe(once.merge.freeTapCharges)']) {
+    assert.ok(spec.includes(guard), guard);
+  }
+});

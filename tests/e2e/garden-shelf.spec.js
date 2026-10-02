@@ -311,13 +311,31 @@ test.describe('Garden quiet feedback and visible motion',()=>{
     const art=page.locator('.gs2-spot .gs2-live-plant').first();
     await expect.poll(()=>art.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
     await expect(art).toHaveAttribute('data-living-mode',fallback?'static-fallback':reduced?'reduced':'animated');
+    // In compact landscape, the shelf initially clips the bottom of the target.
+    // Establish the same visible target position before baseline and tap samples;
+    // otherwise locator.tap scrolls it after the baseline and invalidates crops.
+    await page.locator('.gs2-plant-target').first().scrollIntoViewIfNeeded();
+    if(!fallback)await expect.poll(()=>page.evaluate(()=>{
+      const node=document.querySelector('[data-plant-id="motion-daisy"] .gs2-live-plant');
+      const entry=window.__GARDEN_LIVING_QA__.snapshot().surfaces.find(surface=>surface.rootKind==='shelf')?.plants.find(plant=>plant.id==='motion-daisy');
+      return !!entry?.slot&&Math.abs(entry.slot.top-node.getBoundingClientRect().top)<.01;
+    })).toBe(true);
     return art;
   }
   async function regions(page,art){
     const box=await art.boundingBox(),aspect=await art.locator('img').evaluate(img=>img.naturalWidth/img.naturalHeight);
     const fit=fitArtwork({left:box.x,top:box.y,right:box.x+box.width,bottom:box.y+box.height,width:box.width,height:box.height},aspect);
     const rect=(x,y,w,h)=>({x:fit.left+fit.width*x,y:fit.top+fit.height*y,width:fit.width*w,height:fit.height*h});
-    return {blossom:rect(.34,0,.4,.32),foliage:rect(.12,.05,.76,.55),pot:rect(.43,.78,.14,.08),control:await page.locator('.gs2-details').first().boundingBox()};
+    const crops={blossom:rect(.34,0,.4,.32),foliage:rect(.12,.05,.76,.55),pot:rect(.43,.78,.14,.08),control:await page.getByRole('button',{name:'Garden settings',exact:true}).boundingBox()};
+    const shelf=await page.locator('.gs2-shelf-viewport').boundingBox(),viewport=page.viewportSize();
+    for(const [name,crop] of Object.entries(crops)){
+      const bounds=name==='control'?{x:0,y:0,width:viewport.width,height:viewport.height}:shelf;
+      expect(crop.x,`${name} crop left`).toBeGreaterThanOrEqual(bounds.x);
+      expect(crop.y,`${name} crop top`).toBeGreaterThanOrEqual(bounds.y);
+      expect(crop.x+crop.width,`${name} crop right`).toBeLessThanOrEqual(bounds.x+bounds.width);
+      expect(crop.y+crop.height,`${name} crop bottom`).toBeLessThanOrEqual(bounds.y+bounds.height);
+    }
+    return crops;
   }
   async function capture(page,testInfo,label,crops){
     const png=await page.screenshot({path:testInfo.outputPath(`${label}.png`),animations:'allow'});
@@ -333,12 +351,13 @@ test.describe('Garden quiet feedback and visible motion',()=>{
     for(let i=0;i<a.length;i+=3)if(Math.max(Math.abs(a[i]-b[i]),Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]))>8)count++;
     return count;
   }
-  function stableReference(a,b){expect(changedPixels(a.pot,b.pot),'opaque pot remains fixed').toBe(0);expect(changedPixels(a.control,b.control),'Details control remains fixed').toBe(0);}
+  function stableReference(a,b){expect(changedPixels(a.pot,b.pot),'opaque pot remains fixed').toBe(0);expect(changedPixels(a.control,b.control),'visible Settings control remains fixed').toBe(0);}
   const diagnostics=page=>page.evaluate(()=>window.__GARDEN_LIVING_QA__.snapshot());
   for(const [width,height] of [[320,568],[390,844],[568,320],[1280,720]])test.describe(`visible idle ${width}x${height}`,()=>{
    test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:width<1100,hasTouch:width<1100});
    test('normal motion changes real foliage pixels at idle and after a tap while pot and UI stay fixed',async({page},testInfo)=>{
     const errors=[];page.on('pageerror',error=>errors.push(error.message));const art=await seedMotion(page),crops=await regions(page,art);
+    const initialScroll=await page.locator('.gs2-shelf-viewport').evaluate(node=>node.scrollTop);
     const initial=await capture(page,testInfo,'normal-idle-before',crops),started=(await diagnostics(page)).surfaces[0].presentationSeconds;
     const shifts=[0],measurements=[];let idle=initial,maxChanged=0;
     // Sample more than one primary5.8s cycle in actual presentation time. Wall
@@ -361,6 +380,8 @@ test.describe('Garden quiet feedback and visible motion',()=>{
     await expect.poll(async()=>(await state(page)).plants[0].lastTapped).toBeGreaterThan(lastTapped);
     // Let the stationary acknowledgement disappear before comparing motion pixels.
     await expect(page.locator('.gs2-spot').first()).not.toHaveAttribute('data-gs2-tapped','true');
+    expect(await page.locator('.gs2-shelf-viewport').evaluate(node=>node.scrollTop),'tap must not move the sampling viewport').toBe(initialScroll);
+    expect(await regions(page,art),'tap must not move the plant or UI sampling rectangles').toEqual(crops);
     const tapped=await capture(page,testInfo,'normal-after-tap',crops);
     expect(changedPixels(idle.foliage,tapped.foliage),'foliage still moves after the actual plant tap').toBeGreaterThan(5);stableReference(idle,tapped);expect(errors).toEqual([]);
     await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('[data-garden-motion="on"]')).toContainText('device settings');
@@ -398,11 +419,12 @@ for(const [width,height] of [[320,568],[390,844],[568,320]])test.describe(`Garde
     await page.locator('[data-plant-details-button]').first().click();const care=panel(page,'plant-detail');
     const boxes=()=>page.evaluate(()=>Object.fromEntries(['.gs2-shelf-viewport','.gs2-status','.gs2-dialog-heading','.gs2-detail-stage','.gs2-detail-stat','.gs2-close'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}];})));
     const upgrade=care.getByRole('button',{name:/Increase income/});await upgrade.scrollIntoViewIfNeeded();
-    const before=await boxes();let release,arrived;const held=new Promise(resolve=>{release=resolve;}),submitted=new Promise(resolve=>{arrived=resolve;});
+    const primaryGeometry=()=>care.locator('.gs2-primary').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect(),css=getComputedStyle(button);return {width:r.width,height:r.height,borderTop:css.borderTopWidth,borderBottom:css.borderBottomWidth};}));
+    const before=await boxes(),buttonsBefore=await primaryGeometry();let release,arrived;const held=new Promise(resolve=>{release=resolve;}),submitted=new Promise(resolve=>{arrived=resolve;});
     await page.route('**/api/player/mutate',async route=>{if(parse(route.request()).action==='garden.upgradePlant'){arrived();await held;await route.abort('failed');}else await route.fallback();});
     try{
       await upgrade.click();await submitted;
-      await expect(care.locator('.gs2-pending')).toHaveText('Saving…');expect(await boxes()).toEqual(before);
+      await expect(care.locator('.gs2-pending')).toHaveText('Saving…');expect(await primaryGeometry()).toEqual(buttonsBefore);expect(await boxes()).toEqual(before);
       await expect(page.locator('.gs2-status')).not.toContainText('Saving');
       await shot(page,testInfo,'saving-reserved');release();
       await expect(care.locator('[role="alert"]')).toBeVisible();expect(await boxes()).toEqual(before);

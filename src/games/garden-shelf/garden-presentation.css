@@ -21,7 +21,7 @@
 .gs2-button{position:relative;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;padding:8px 12px;border:8px solid transparent;border-image:var(--gs2-panel-image) 48 fill / 8px stretch;border-radius:11px;background:#f1e7c9;color:var(--gs2-ink);font-weight:800!important;line-height:1.2!important;text-align:center;text-decoration:none;overflow-wrap:anywhere}
 .gs2-button.gs2-primary{background-color:#3b5b2a;color:#fff8e0;border:12px solid transparent;border-image:var(--gs2-button-image) 64 fill / 12px stretch;padding:0 4px}
 .gs2-button:active:not(:disabled){transform:translateY(1px);filter:brightness(.94)}
-.gs2-primary:disabled{border-image:none;border:1px solid #adb095;background:#d4d6c2;color:#56614d}
+.gs2-primary:disabled{border-image:none;border-color:transparent;background:#d4d6c2;color:#56614d;box-shadow:inset 0 0 0 1px #adb095}
 .gs2-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
 .gs2-metric{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:76px;border:14px solid transparent;border-image:var(--gs2-panel-image) 48 fill / 14px stretch;border-radius:12px;background:#fff4d9;padding:0;text-align:left;color:var(--gs2-ink)}
 .gs2-metric>span{display:flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap}.gs2-metric>.gs2-art{width:20px;height:20px}

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { expectMergeV3, closeMergePanel, pauseMerge, exitMerge, expectMergeControlsReachable, exerciseMergePanels, researchMergePair } from "./helpers/mergeV3.js";
+import { expectMergeV3, mergeSnapshot, closeMergePanel, pauseMerge, exitMerge, expectMergeControlsReachable, exerciseMergePanels, researchMergePair } from "./helpers/mergeV3.js";
 import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
 import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
@@ -584,7 +584,7 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     let overlay = await pauseBlox(page);
-    await expect(overlay.locator(".bx-intro")).toContainText("Place blocks from the tray");
+    await expect(overlay.locator(".bx-intro")).toContainText("Complete rows or columns to clear them and score points.");
     await expect(overlay.locator(".bx-retained")).toContainText("Board saved");
     await expect(overlay.locator(".bx-dialog-metrics .bx-metric")).toHaveCount(3);
     await expect(overlay.locator(".bx-leaders")).toHaveCount(0);
@@ -640,7 +640,8 @@ test.describe("New-stack minigame smoke", () => {
 
     await page.getByRole("button", { name: /Merge/ }).click();
     const mergeDialog = await pauseMerge(page);
-    await expect(mergeDialog).toContainText('alchemy-v3.1');
+    await expect(mergeDialog).toContainText('Your experiment is safe. Supply timers keep running');
+    expect((await mergeSnapshot(page)).merge.catalogVersion).toBe('alchemy-v3.1');
     await expectMergeControlsReachable(page, mergeDialog.getByRole('button'));
     await page.getByTestId('ml-resume').click();
     await expect(page.getByTestId('ml-drawer')).toHaveCount(0);

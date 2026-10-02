@@ -98,7 +98,7 @@ test('a real committed supply debit with a lost reply reloads and retries the id
   });
   await page.getByTestId('ml-quote-confirm').dblclick();
   await committed;
-  await expect(page.getByRole('button', { name: 'Check the same request', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Check result', exact: true })).toBeVisible();
   const saved = await page.evaluate(() => Object.entries(localStorage).filter(([key]) => key.startsWith('game_hub_merge_pending_v1:')));
   expect(saved).toHaveLength(1);
   expect(JSON.parse(saved[0][1]).payload).toEqual(requests[0].payload);
@@ -108,11 +108,11 @@ test('a real committed supply debit with a lost reply reloads and retries the id
   expect(once.merge.mergeRevision).toBe(before.merge.mergeRevision + 1);
   expect(requests).toHaveLength(1);
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Check the same request', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Check result', exact: true })).toBeVisible();
   await expect(page.getByTestId('ml-laboratory')).toHaveCount(0);
   const [reply] = await Promise.all([
     page.waitForResponse(r => isMergeMutation(r, 'claimSupply')),
-    page.getByRole('button', { name: 'Check the same request', exact: true }).click(),
+    page.getByRole('button', { name: 'Check result', exact: true }).click(),
   ]);
   expect((await reply.json()).mergeLab.replayed).toBe(true);
   await expectMergeV3(page);
