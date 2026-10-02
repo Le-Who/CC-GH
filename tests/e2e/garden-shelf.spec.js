@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { gardenDiagnostics } from "./helpers/gardenDiagnostics.js";
+import { exitBlox } from "./helpers/blox-v2.js";
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
 import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
@@ -57,6 +58,13 @@ async function closePanel(page) {
   await expect.poll(()=>page.locator('.telegram-app').evaluate(node=>!!node.closest('[inert]'))).toBe(false);
 }
 async function assertShellFit(page) {
+  // The keyed frame slides in on every tab return. Measure its settled bounds,
+  // including reduced-motion mode, without changing the geometry tolerance.
+  await page.locator('.active-game-frame').evaluate(async node => {
+    await Promise.all(node.getAnimations().filter(animation =>
+      animation.effect?.getTiming().iterations !== Infinity
+    ).map(animation => animation.finished.catch(() => {})));
+  });
   const result=await page.evaluate(()=>{
     const rect=node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
     const stage=rect(document.querySelector('.gs2-stage')),dock=rect(document.querySelector('.bottom-tabs'));
@@ -134,8 +142,19 @@ test.describe('Garden Living production-source flow',()=>{
       await page.locator('.gs2-stage button[aria-label="Garden quests"]').click();await assertDialogFit(page,panel(page,'quests'));await assertFlowRows(page,'.gs2-quest-card');await shot(page,testInfo,'quests');await closePanel(page);diagnostics.mark('quests-verified');
       await page.locator('.gs2-empty-target').first().click();await assertDialogFit(page,panel(page,'seed-shop-inventory'));await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await assertFlowRows(page,'.gs2-catalog-row');await shot(page,testInfo,'shop');await closePanel(page);diagnostics.mark('shop-verified');
       // The host and its state remain intact after dismissals and tab changes.
-      diagnostics.mark('exit-to-blox');await page.locator('[data-hud-region="bottomDock.blox"]').click();await expect(page.locator('.telegram-app')).not.toHaveAttribute('data-garden-presentation','living');
-      diagnostics.mark('return-to-garden');await page.locator('[data-hud-region="bottomDock.garden"]').click();await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
+      diagnostics.mark('exit-to-blox');await page.locator('[data-hud-region="bottomDock.blox"]').click();
+      await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab','blox');
+      await expect(page.locator('[data-game-shell="blox"] .bx-dialog')).toBeVisible();
+      await expect(page.locator('.bottom-tabs')).toBeHidden();
+      await expect(page.locator('.gs2-stage')).toHaveCount(0);
+      await expect(page.locator('.telegram-app')).not.toHaveAttribute('data-garden-presentation','living');
+      // Blox owns an immersive shell; its visible Exit action returns to Garden.
+      // Clicking the global dock here races entry and eventually targets hidden UI.
+      diagnostics.mark('return-to-garden');await exitBlox(page);
+      await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab','garden');
+      await expect(page.locator('.telegram-app')).toHaveAttribute('data-garden-presentation','living');
+      await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
+      await expect(page.locator('.gs2-stage [data-garden-xp]')).toContainText('32');
       expect(player.garden.plants.find(p=>p.id===originalPlant.id)?.level).toBe(42);expect(errors).toEqual([]);diagnostics.complete();
     }catch(error){diagnostics.fail(error);throw error;}finally{diagnostics.dispose();}
    });

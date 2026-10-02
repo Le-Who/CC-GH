@@ -99,7 +99,9 @@
   background: var(--app-background);
 }
 
-.hud-preview-frame .telegram-app {
+/* Preview bounds must outrank the full-window play/immersive shell rules. */
+.hud-preview-frame .telegram-app,
+.hud-preview-frame .telegram-app.play-mode.immersive-mode {
   width: 100%;
   height: 100%;
   max-width: none;

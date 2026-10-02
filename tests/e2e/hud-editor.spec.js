@@ -134,6 +134,17 @@ test.describe("HUD layout editor", () => {
     const slotRegionId = "settlementConstructionSlot.southwest-terrace";
     const slotBox = page.locator(`[data-hud-region-box="${slotRegionId}"]`);
     await expect(slotBox).toBeVisible({ timeout: 30000 });
+    await expect.poll(() => page.evaluate(() => {
+      const frame = document.querySelector(".hud-preview-frame")?.getBoundingClientRect();
+      const app = document.querySelector(".telegram-app")?.getBoundingClientRect();
+      const canvas = document.querySelector(".scene-host")?.getBoundingClientRect();
+      const inside = (rect) => !!frame && !!rect && rect.width > 0 && rect.height > 0
+        && rect.left >= frame.left && rect.right <= frame.right
+        && rect.top >= frame.top && rect.bottom <= frame.bottom;
+      return { frameWidth: frame?.width, frameHeight: frame?.height, appInside: inside(app), canvasInside: inside(canvas) };
+    }), { message: "Settlement must render inside the selected HUD preview dimensions" }).toEqual({
+      frameWidth: 568, frameHeight: 320, appInside: true, canvasInside: true,
+    });
     // Slot probes register before Pixi finishes loading and applies its camera.
     // A visible editor box can still be outside the viewport during that load.
     await expect(slotBox).toBeInViewport({ ratio: 1, timeout: 30000 });

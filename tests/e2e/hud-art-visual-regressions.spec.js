@@ -176,6 +176,16 @@ test.describe("HUD art visual regression guards", () => {
         expect(item.iconReady && item.iconInside && item.countReadable).toBe(true);
         expect(item.labelClipped).toBe(false);
       }
+      // Pixi mounts its canvas before asset loading and the first scene layout finish.
+      // A visible canvas alone is not proof that its published board geometry is ready.
+      const canvas = page.locator('[data-game-shell="match3"] canvas');
+      await expect.poll(() => canvas.evaluate(node => {
+        const top = Number(node.dataset.match3BoardTop);
+        const left = Number(node.dataset.match3BoardLeft);
+        const size = Number(node.dataset.match3BoardSize);
+        return Number.isFinite(top) && Number.isFinite(left) && Number.isFinite(size) && size > 0;
+      })).toBe(true);
+      await expect(page.locator('.m3-runtime-status')).toHaveCount(0);
       const layout = await page.locator('[data-game-shell="match3"]').evaluate(shell => {
         const canvas = shell.querySelector("canvas"), dock = shell.querySelector(".m3-tools");
         const canvasRect = canvas.getBoundingClientRect(), dockRect = dock.getBoundingClientRect();

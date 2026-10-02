@@ -95,3 +95,12 @@
 .bb-stats>.bb-metric:first-child{border-right:1px solid #b8cfb54d;padding-right:5px}
 .bb-stats>.bb-metric:nth-child(2){padding-left:5px}
 .bb-stats{-moz-column-gap:10px;column-gap:10px}
+
+/* Keep the four pause actions in view on short landscape screens. Help remains scrollable. */
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] .bb-dialog{padding:14px;gap:8px}
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] .bb-dialog-scroll{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] .bb-dialog-scroll>:is(.bb-dialog-metrics,p,.bb-two-actions,.bb-help){grid-column:1/-1}
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] .bb-dialog-metrics{grid-row:1;padding:4px 0}
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] [data-testid=bb-resume]{grid-row:3;grid-column:1}
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] [data-testid=bb-exit]{grid-row:3;grid-column:2}
+.bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] .bb-two-actions{grid-row:4;gap:8px}
