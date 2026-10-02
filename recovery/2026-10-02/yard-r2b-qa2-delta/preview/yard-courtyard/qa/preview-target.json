@@ -1,0 +1,13 @@
+{
+  "kind": "cc-gh-yard-user-run-qa",
+  "previewVersion": "yard-courtyard-qa-r2b-qa2",
+  "syntheticPreviewOnly": true,
+  "productionCompatible": false,
+  "storage": "fresh-owned-browser-context-only",
+  "actionPolicy": "Real visible controls and CDP pointer/keyboard only; read-only window.__yardQA.snapshot() observations; no injected gameplay or production saves",
+  "reusedCore": "cc-gh-bubbo-v2-20261002-r1-qa2-preview/qa core+actor+run pattern; nested evaluate fix retained; no pressure exemptions",
+  "actualBrowserRunByBuildAssistant": false,
+  "r1UserRun": "7/8 passed; sole placement tolerance corrected; r2 browser run still required",
+  "r2aUserRun": "7/8 cases; 141 recorded assertions passed; only explicit replay navigation readiness failed. New release requires a fresh actual run.",
+  "runtimeRevision": "unchanged r2b cadence"
+}

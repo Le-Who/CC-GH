@@ -1,0 +1,5 @@
+/** User-invoked launcher; never run by the build assistant. Opens only after local server readiness. */
+import {spawn} from 'node:child_process';import {fileURLToPath} from 'node:url';
+const server=spawn(process.execPath,[fileURLToPath(new URL('./server.mjs',import.meta.url))],{stdio:['inherit','pipe','inherit']});let opened=false;
+server.stdout.on('data',bytes=>{process.stdout.write(bytes);const url=String(bytes).match(/http:\/\/127\.0\.0\.1:\d+\/preview\/yard-courtyard\//)?.[0];if(!opened&&url){opened=true;if(process.argv.includes('--no-open'))return;const command=process.platform==='win32'?['cmd.exe',['/d','/c','start','',url]]:process.platform==='darwin'?['open',[url]]:['xdg-open',[url]];const child=spawn(command[0],command[1],{stdio:'ignore',windowsHide:true});child.on('error',()=>console.log('Open the local URL above in an already installed browser.'));}});
+server.on('error',e=>{console.error(e.message);process.exitCode=1});server.on('exit',code=>{process.exitCode=code||0});process.once('SIGINT',()=>server.kill('SIGTERM'));process.once('SIGTERM',()=>server.kill('SIGTERM'));

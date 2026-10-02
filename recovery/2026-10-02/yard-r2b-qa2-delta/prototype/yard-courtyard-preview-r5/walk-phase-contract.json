@@ -1,0 +1,4443 @@
+{
+  "version": 1,
+  "id": "ground-walk-dense-r1",
+  "sourcePosePack": "ground-walk-dense-poses.json",
+  "baselinePosePackSha256": "ebd891d99e907b298fb9639da02991ceb71d32ee2f126dd0cd1f254f19226c02",
+  "canonicalSolverSha256": "2858f3f0e209c302da48a02153c441be14dafa2bab9d82a06400fea65908ef79",
+  "stride": 0.64,
+  "phases": [
+    0,
+    0.010416666666666666,
+    0.020833333333333332,
+    0.041666666666666664,
+    0.08333333333333333,
+    0.125,
+    0.16666666666666666,
+    0.20833333333333334,
+    0.25,
+    0.2916666666666667,
+    0.3333333333333333,
+    0.375,
+    0.4166666666666667,
+    0.4583333333333333,
+    0.5,
+    0.5416666666666666,
+    0.5833333333333334,
+    0.625,
+    0.6666666666666666,
+    0.7083333333333334,
+    0.75,
+    0.7916666666666666,
+    0.8333333333333334,
+    0.875,
+    0.9166666666666666,
+    0.9583333333333334,
+    0.9791666666666666,
+    0.9895833333333334
+  ],
+  "phaseNumerators": [
+    0,
+    1,
+    2,
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    40,
+    44,
+    48,
+    52,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    94,
+    95
+  ],
+  "phaseDenominator": 96,
+  "frameCount": 28,
+  "facings": [
+    0,
+    2,
+    4,
+    6
+  ],
+  "rootClock": "Cycle=floor(distance/.64), including negative distances. Lookup greatest phase<=fract(distance/.64); root=(cycle+phase)*.64. Rotate local paw and root by heading; add route origin. Sprite index is this table index. Contact support cycle=cycle+supportCycleOffset; do not compare base support strings across wrap without adding cycle.",
+  "projection": {
+    "canvas": [
+      210,
+      168
+    ],
+    "pixelsPerWorld": 50,
+    "rootPivotPx": [
+      105,
+      121.07336545
+    ],
+    "cameraOffset": [
+      5.66,
+      -8,
+      3.97
+    ],
+    "cameraTarget": [
+      0,
+      0,
+      0.8
+    ]
+  },
+  "existingAssetsReused": 96,
+  "newAssetsRendered": 16,
+  "entries": [
+    {
+      "frameIndex": 0,
+      "phaseNumerator": 0,
+      "phaseDenominator": 96,
+      "phase": 0,
+      "baselineFrameIndex": 0,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7976,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.7276,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.67
+          ],
+          "knee": [
+            0.38995779378444867,
+            -0.265,
+            0.3899954811229497
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.8939234375,
+            0.265,
+            0.0420570373535156
+          ],
+          "ankle": [
+            -0.9839234375,
+            0.265,
+            0.1920570373535156
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.65
+          ],
+          "knee": [
+            -0.6857147384517279,
+            0.265,
+            0.39022759977875854
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.3976,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.3276,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.67
+          ],
+          "knee": [
+            0.16837788131747122,
+            0.265,
+            0.46364844650059245
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.6524,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7424,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.65
+          ],
+          "knee": [
+            -0.5662288818948351,
+            -0.265,
+            0.4617109833573018
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 1,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-000.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 29,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-048.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 57,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-096.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 85,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-144.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 1,
+      "phaseNumerator": 1,
+      "phaseDenominator": 96,
+      "phase": 0.010416666666666666,
+      "baselineFrameIndex": null,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7909333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.7209333333333332,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6698135730131173
+          ],
+          "knee": [
+            0.3826469801154876,
+            -0.265,
+            0.3891231487167962
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.8781275418882019,
+            0.265,
+            0.05097625414944351
+          ],
+          "ankle": [
+            -0.9681275418882018,
+            0.265,
+            0.2009762541494435
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6498135730131173
+          ],
+          "knee": [
+            -0.6677611070929573,
+            0.265,
+            0.39586084781552633
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.39093333333333335,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.32093333333333335,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6698135730131173
+          ],
+          "knee": [
+            0.165980836704267,
+            0.265,
+            0.46571417498846923
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.6590666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7490666666666667,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6498135730131173
+          ],
+          "knee": [
+            -0.5685186732903096,
+            -0.265,
+            0.45919641344584017
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 2,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw000-phase-01-of96.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 30,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw090-phase-01-of96.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 58,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw180-phase-01-of96.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 86,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw270-phase-01-of96.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 2,
+      "phaseNumerator": 2,
+      "phaseDenominator": 96,
+      "phase": 0.020833333333333332,
+      "baselineFrameIndex": null,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7842666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.7142666666666666,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6692856867283951
+          ],
+          "knee": [
+            0.3752255886590954,
+            -0.265,
+            0.3880950370794708
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.8603077374493633,
+            0.265,
+            0.05950534509287939
+          ],
+          "ankle": [
+            -0.9503077374493633,
+            0.265,
+            0.20950534509287938
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.649285686728395
+          ],
+          "knee": [
+            -0.6490115457166012,
+            0.265,
+            0.4029494063802053
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.3842666666666667,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.3142666666666667,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6692856867283951
+          ],
+          "knee": [
+            0.16343094080384632,
+            0.265,
+            0.4676409373131449
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.6657333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7557333333333333,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.649285686728395
+          ],
+          "knee": [
+            -0.5706803247785416,
+            -0.265,
+            0.4565214250665363
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 3,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw000-phase-02-of96.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 31,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw090-phase-02-of96.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 59,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw180-phase-02-of96.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 87,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw270-phase-02-of96.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 3,
+      "phaseNumerator": 4,
+      "phaseDenominator": 96,
+      "phase": 0.041666666666666664,
+      "baselineFrameIndex": 1,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7709333333333334,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.7009333333333334,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.3602126901833681,
+            -0.265,
+            0.38578332598342396
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.8196560402199075,
+            0.265,
+            0.07432368066575788
+          ],
+          "ankle": [
+            -0.9096560402199074,
+            0.265,
+            0.22432368066575786
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.6110828784653856,
+            0.265,
+            0.4219446994869049
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.37093333333333334,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.30093333333333333,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.15801171842354098,
+            0.265,
+            0.4711697630997991
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.6790666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7690666666666666,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.5747330826438511,
+            -0.265,
+            0.45072322511047835
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 4,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-001.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 32,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-049.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 60,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-097.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 88,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-145.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 4,
+      "phaseNumerator": 8,
+      "phaseDenominator": 96,
+      "phase": 0.08333333333333333,
+      "baselineFrameIndex": 2,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7442666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.6742666666666666,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.33036945602812356,
+            -0.265,
+            0.38131868662627355
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.7257217592592594,
+            0.265,
+            0.08968777126736112
+          ],
+          "ankle": [
+            -0.8157217592592594,
+            0.265,
+            0.23968777126736113
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.5465152709609884,
+            0.265,
+            0.47575527571918724
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.34426666666666667,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.27426666666666666,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.14677778788732443,
+            0.265,
+            0.47741159699628916
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.7057333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7957333333333333,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.5825167173167549,
+            -0.265,
+            0.4376433115065237
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 5,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-002.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 33,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-050.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 61,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-098.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 89,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-146.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 5,
+      "phaseNumerator": 12,
+      "phaseDenominator": 96,
+      "phase": 0.125,
+      "baselineFrameIndex": 3,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7176,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.6476,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.65425
+          ],
+          "knee": [
+            0.3018862846837885,
+            -0.265,
+            0.37870908454070495
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.6290748046875,
+            0.265,
+            0.08159279823303224
+          ],
+          "ankle": [
+            -0.7190748046875,
+            0.265,
+            0.23159279823303225
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.5131189164197413,
+            0.265,
+            0.5244787352252999
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.3176,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.2476,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.65425
+          ],
+          "knee": [
+            0.13636565257777336,
+            0.265,
+            0.48311356713710896
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.7323999999999999,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.8223999999999999,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.5911307826497489,
+            -0.265,
+            0.42333962227639516
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 6,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-003.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 34,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-051.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 62,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-099.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 90,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-147.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 6,
+      "phaseNumerator": 16,
+      "phaseDenominator": 96,
+      "phase": 0.16666666666666666,
+      "baselineFrameIndex": 4,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.6909333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.6209333333333333,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6478765432098765
+          ],
+          "knee": [
+            0.27557746870633715,
+            -0.265,
+            0.3792265176934613
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.5466693865740742,
+            0.265,
+            0.05341635810004345
+          ],
+          "ankle": [
+            -0.6366693865740741,
+            0.265,
+            0.20341635810004344
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6278765432098765
+          ],
+          "knee": [
+            -0.5056829859123826,
+            0.265,
+            0.5366468531656885
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.2909333333333334,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.22093333333333337,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6478765432098765
+          ],
+          "knee": [
+            0.1278539479054324,
+            0.265,
+            0.48847701216631817
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:-1",
+          "supportCycleOffset": -1
+        },
+        "hindNear": {
+          "paw": [
+            -0.7590666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.8490666666666666,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6278765432098765
+          ],
+          "knee": [
+            -0.6017354986535663,
+            -0.265,
+            0.40889629840782893
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 7,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-004.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 35,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-052.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 63,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-100.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 91,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-148.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 7,
+      "phaseNumerator": 20,
+      "phaseDenominator": 96,
+      "phase": 0.20833333333333334,
+      "baselineFrameIndex": 5,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.6642666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.5942666666666667,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.2519115449784222,
+            -0.265,
+            0.3835014797774899
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.4954597149884259,
+            0.265,
+            0.018470154868231944
+          ],
+          "ankle": [
+            -0.5854597149884259,
+            0.265,
+            0.16847015486823194
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.5109865680761945,
+            0.265,
+            0.5186897294053917
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.27843025896990725,
+            0.265,
+            0.009378459718492224
+          ],
+          "ankle": [
+            0.20843025896990724,
+            0.265,
+            0.14937845971849223
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.11850808786023839,
+            0.265,
+            0.49868348851556454
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.7857333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.8757333333333333,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.615094157900538,
+            -0.265,
+            0.39549382931086613
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 8,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-005.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 36,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-053.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 64,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-101.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 92,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-149.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 8,
+      "phaseNumerator": 24,
+      "phaseDenominator": 96,
+      "phase": 0.25,
+      "baselineFrameIndex": 6,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.6376,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.5675999999999999,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.642
+          ],
+          "knee": [
+            0.23115392445573016,
+            -0.265,
+            0.3916029376832861
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.49239999999999995,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.5823999999999999,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.622
+          ],
+          "knee": [
+            -0.5178359704332933,
+            0.265,
+            0.5021810416335745
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.31607656249999994,
+            0.265,
+            0.0420570373535156
+          ],
+          "ankle": [
+            0.24607656249999993,
+            0.265,
+            0.1820570373535156
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.642
+          ],
+          "knee": [
+            0.1084322992651024,
+            0.265,
+            0.5154547829945476
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.8124,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.9024,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.622
+          ],
+          "knee": [
+            -0.6316215891375667,
+            -0.265,
+            0.38426278451946927
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 9,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-006.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 37,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-054.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 65,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-102.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 93,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-150.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 9,
+      "phaseNumerator": 28,
+      "phaseDenominator": 96,
+      "phase": 0.2916666666666667,
+      "baselineFrameIndex": 7,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.6109333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.5409333333333333,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.21339973692120764,
+            -0.265,
+            0.4031002531761207
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.5190666666666666,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.6090666666666665,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.521219582320448,
+            0.265,
+            0.4971064530830108
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.39034395978009273,
+            0.265,
+            0.07432368066575795
+          ],
+          "ankle": [
+            0.3203439597800927,
+            0.265,
+            0.21432368066575797
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.11253678119012148,
+            0.265,
+            0.5091391764024574
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.8390666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.9290666666666666,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.6514477601278889,
+            -0.265,
+            0.3761144460935953
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 10,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-007.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 38,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-055.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 66,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-103.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 94,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-151.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 10,
+      "phaseNumerator": 32,
+      "phaseDenominator": 96,
+      "phase": 0.3333333333333333,
+      "baselineFrameIndex": 8,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.5842666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.5142666666666666,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6478765432098765
+          ],
+          "knee": [
+            0.19854033239191635,
+            -0.265,
+            0.4171585860936453
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.5457333333333332,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.6357333333333332,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6278765432098765
+          ],
+          "knee": [
+            -0.5269740724191472,
+            0.265,
+            0.4911325595210754
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.4842782407407405,
+            0.265,
+            0.08968777126736112
+          ],
+          "ankle": [
+            0.4142782407407405,
+            0.265,
+            0.22968777126736112
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6478765432098765
+          ],
+          "knee": [
+            0.14342646141467114,
+            0.265,
+            0.4678879258346961
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.8657333333333332,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.9557333333333332,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6278765432098765
+          ],
+          "knee": [
+            -0.6744835294397638,
+            -0.265,
+            0.3715819212161245
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 11,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-008.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 39,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-056.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 67,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-104.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 95,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-152.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 11,
+      "phaseNumerator": 36,
+      "phaseDenominator": 96,
+      "phase": 0.375,
+      "baselineFrameIndex": 9,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.5576,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.4876,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.65425
+          ],
+          "knee": [
+            0.18620296869905592,
+            -0.265,
+            0.4326770054564892
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.5723999999999999,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.6623999999999999,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.5350261044219599,
+            0.265,
+            0.48462798855635886
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.5809251953125,
+            0.265,
+            0.08159279823303224
+          ],
+          "ankle": [
+            0.5109251953125,
+            0.265,
+            0.22159279823303224
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.65425
+          ],
+          "knee": [
+            0.20791029526056734,
+            0.265,
+            0.4172505871056382
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.8924,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.9823999999999999,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.7004625319143857,
+            -0.265,
+            0.3707062846623838
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 12,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-009.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 40,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-057.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 68,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-105.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 96,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-153.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 12,
+      "phaseNumerator": 40,
+      "phaseDenominator": 96,
+      "phase": 0.4166666666666667,
+      "baselineFrameIndex": 10,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.5309333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.46093333333333325,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.1756946773667045,
+            -0.265,
+            0.44844595822015765
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.5990666666666666,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.6890666666666666,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.5449655681520129,
+            0.265,
+            0.47777259404481964
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.6633306134259258,
+            0.265,
+            0.05341635810004345
+          ],
+          "ankle": [
+            0.5933306134259257,
+            0.265,
+            0.19341635810004346
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.29000555363533354,
+            0.265,
+            0.3885929655688527
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.9190666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -1.0090666666666668,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.7289137834182464,
+            -0.265,
+            0.3729671769736456
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:-1",
+          "supportCycleOffset": -1
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 13,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-010.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 41,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-058.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 69,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-106.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 97,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-154.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 13,
+      "phaseNumerator": 44,
+      "phaseDenominator": 96,
+      "phase": 0.4583333333333333,
+      "baselineFrameIndex": 11,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.5042666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.43426666666666663,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.16597335426405727,
+            -0.265,
+            0.46329351759668164
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.6257333333333333,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.7157333333333332,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.5558698400539255,
+            0.265,
+            0.4703804980277433
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.714540285011574,
+            0.265,
+            0.018470154868231944
+          ],
+          "ankle": [
+            0.644540285011574,
+            0.265,
+            0.15847015486823196
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.36451836328664755,
+            0.265,
+            0.3858194969686199
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindNear": {
+          "paw": [
+            -0.9315697410300927,
+            -0.265,
+            0.009378459718492224
+          ],
+          "ankle": [
+            -1.0215697410300928,
+            -0.265,
+            0.1593784597184922
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.7380829080460583,
+            -0.265,
+            0.3780910920118331
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 14,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-011.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 42,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-059.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 70,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-107.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 98,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-155.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 14,
+      "phaseNumerator": 48,
+      "phaseDenominator": 96,
+      "phase": 0.5,
+      "baselineFrameIndex": 12,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.47759999999999997,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.40759999999999996,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.67
+          ],
+          "knee": [
+            0.155682455806594,
+            -0.265,
+            0.4762105752762149
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.6523999999999999,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.7423999999999998,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.65
+          ],
+          "knee": [
+            -0.5662288818948351,
+            0.265,
+            0.4617109833573019
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.7176,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.6476,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.67
+          ],
+          "knee": [
+            0.38733835816976026,
+            0.265,
+            0.38972760718796806
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.8939234375,
+            -0.265,
+            0.0420570373535156
+          ],
+          "ankle": [
+            -0.9839234375,
+            -0.265,
+            0.1920570373535156
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.65
+          ],
+          "knee": [
+            -0.6857147384517279,
+            -0.265,
+            0.39022759977875854
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 15,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-012.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 43,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-060.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 71,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-108.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 99,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-156.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 15,
+      "phaseNumerator": 52,
+      "phaseDenominator": 96,
+      "phase": 0.5416666666666666,
+      "baselineFrameIndex": 13,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.45093333333333335,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.38093333333333335,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.14388090831848424,
+            -0.265,
+            0.4868517663131893
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.6790666666666665,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.7690666666666665,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.5747330826438511,
+            0.265,
+            0.4507232251104784
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.6909333333333334,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.6209333333333333,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.35695885824059803,
+            0.265,
+            0.38579966741131866
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.8196560402199076,
+            -0.265,
+            0.07432368066575788
+          ],
+          "ankle": [
+            -0.9096560402199075,
+            -0.265,
+            0.22432368066575786
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.6110828784653857,
+            -0.265,
+            0.42194469948690483
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 16,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-013.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 44,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-061.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 72,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-109.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 100,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-157.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 16,
+      "phaseNumerator": 56,
+      "phaseDenominator": 96,
+      "phase": 0.5833333333333334,
+      "baselineFrameIndex": 14,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.4242666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.3542666666666666,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.13178810271865496,
+            -0.265,
+            0.4963752075883372
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.7057333333333333,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.7957333333333333,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.5825167173167549,
+            0.265,
+            0.4376433115065237
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.6642666666666668,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.5942666666666667,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.3265750949547481,
+            0.265,
+            0.381746194250091
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.7257217592592593,
+            -0.265,
+            0.0896877712673611
+          ],
+          "ankle": [
+            -0.8157217592592593,
+            -0.265,
+            0.2396877712673611
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.5465152709609884,
+            -0.265,
+            0.4757552757191873
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 17,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-014.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 45,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-062.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 73,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-110.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 101,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-158.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 17,
+      "phaseNumerator": 60,
+      "phaseDenominator": 96,
+      "phase": 0.625,
+      "baselineFrameIndex": 15,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.39759999999999995,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.32759999999999995,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.65425
+          ],
+          "knee": [
+            0.12077656682461005,
+            -0.265,
+            0.5056830150410941
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.7323999999999999,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.8223999999999999,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.5911307826497489,
+            0.265,
+            0.42333962227639516
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.6376000000000001,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.5676000000000001,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.65425
+          ],
+          "knee": [
+            0.297956642467164,
+            0.265,
+            0.3795672342755143
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.6290748046875001,
+            -0.265,
+            0.08159279823303224
+          ],
+          "ankle": [
+            -0.7190748046875001,
+            -0.265,
+            0.23159279823303225
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.5131189164197414,
+            -0.265,
+            0.5244787352252998
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 18,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-015.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 46,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-063.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 74,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-111.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 102,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-159.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 18,
+      "phaseNumerator": 64,
+      "phaseDenominator": 96,
+      "phase": 0.6666666666666666,
+      "baselineFrameIndex": 16,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.37093333333333334,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            0.30093333333333333,
+            -0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6478765432098766
+          ],
+          "knee": [
+            0.11167745092987796,
+            -0.265,
+            0.5150762735440478
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreNear:0",
+          "supportCycleOffset": 0
+        },
+        "hindFar": {
+          "paw": [
+            -0.7590666666666666,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.8490666666666665,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6278765432098766
+          ],
+          "knee": [
+            -0.6017354986535661,
+            0.265,
+            0.40889629840782904
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.6109333333333334,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.5409333333333335,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6478765432098766
+          ],
+          "knee": [
+            0.2720089726017941,
+            0.265,
+            0.3803740589271915
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.5466693865740742,
+            -0.265,
+            0.05341635810004345
+          ],
+          "ankle": [
+            -0.6366693865740741,
+            -0.265,
+            0.20341635810004344
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6278765432098766
+          ],
+          "knee": [
+            -0.5056829859123826,
+            -0.265,
+            0.5366468531656885
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 19,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-016.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 47,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-064.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 75,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-112.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 103,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-160.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 19,
+      "phaseNumerator": 68,
+      "phaseDenominator": 96,
+      "phase": 0.7083333333333334,
+      "baselineFrameIndex": 17,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.3584302589699073,
+            -0.265,
+            0.00937845971849229
+          ],
+          "ankle": [
+            0.2884302589699073,
+            -0.265,
+            0.1493784597184923
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.10376201261399667,
+            -0.265,
+            0.5267345763879225
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.7857333333333333,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.8757333333333333,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.615094157900538,
+            0.265,
+            0.39549382931086613
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.5842666666666667,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.5142666666666666,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.24921573412951287,
+            0.265,
+            0.38463851528568677
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.4954597149884259,
+            -0.265,
+            0.018470154868231864
+          ],
+          "ankle": [
+            -0.5854597149884259,
+            -0.265,
+            0.16847015486823186
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.5109865680761945,
+            -0.265,
+            0.5186897294053917
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 20,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-017.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 48,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-065.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 76,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-113.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 104,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-161.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 20,
+      "phaseNumerator": 72,
+      "phaseDenominator": 96,
+      "phase": 0.75,
+      "baselineFrameIndex": 18,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.3960765624999999,
+            -0.265,
+            0.0420570373535156
+          ],
+          "ankle": [
+            0.3260765624999999,
+            -0.265,
+            0.1820570373535156
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.642
+          ],
+          "knee": [
+            0.09924141419034549,
+            -0.265,
+            0.5356752149000569
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.8123999999999999,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.9023999999999999,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.622
+          ],
+          "knee": [
+            -0.6316215891375666,
+            0.265,
+            0.3842627845194693
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.5576000000000001,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.4876000000000001,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.642
+          ],
+          "knee": [
+            0.22982347906357717,
+            0.265,
+            0.39229202376197697
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.49239999999999995,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.5823999999999999,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.622
+          ],
+          "knee": [
+            -0.5178359704332933,
+            -0.265,
+            0.5021810416335745
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 21,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-018.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 49,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-066.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 77,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-114.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 105,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-162.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 21,
+      "phaseNumerator": 76,
+      "phaseDenominator": 96,
+      "phase": 0.7916666666666666,
+      "baselineFrameIndex": 19,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.47034395978009214,
+            -0.265,
+            0.07432368066575779
+          ],
+          "ankle": [
+            0.40034395978009213,
+            -0.265,
+            0.2143236806657578
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.10861083877023536,
+            -0.265,
+            0.5166344249436419
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.8390666666666665,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.9290666666666665,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.6514477601278889,
+            0.265,
+            0.37611444609359534
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.5309333333333335,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.4609333333333335,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.643533950617284
+          ],
+          "knee": [
+            0.21388422500982066,
+            0.265,
+            0.4028055137864449
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.5190666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.6090666666666665,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.623533950617284
+          ],
+          "knee": [
+            -0.521219582320448,
+            -0.265,
+            0.4971064530830108
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 22,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-019.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 50,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-067.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 78,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-115.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 106,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-163.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 22,
+      "phaseNumerator": 80,
+      "phaseDenominator": 96,
+      "phase": 0.8333333333333334,
+      "baselineFrameIndex": 20,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.5642782407407404,
+            -0.265,
+            0.08968777126736112
+          ],
+          "ankle": [
+            0.4942782407407404,
+            -0.265,
+            0.22968777126736112
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6478765432098765
+          ],
+          "knee": [
+            0.14607401103671286,
+            -0.265,
+            0.46474907054102893
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.8657333333333332,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.9557333333333332,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6278765432098765
+          ],
+          "knee": [
+            -0.6744835294397638,
+            0.265,
+            0.3715819212161245
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.5042666666666668,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.43426666666666675,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6478765432098765
+          ],
+          "knee": [
+            0.20122512508456136,
+            0.265,
+            0.4153028149093937
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.5457333333333333,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.6357333333333333,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6278765432098765
+          ],
+          "knee": [
+            -0.526974072419147,
+            -0.265,
+            0.4911325595210754
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 23,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-020.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 51,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-068.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 79,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-116.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 107,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-164.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 23,
+      "phaseNumerator": 84,
+      "phaseDenominator": 96,
+      "phase": 0.875,
+      "baselineFrameIndex": 21,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.6609251953125002,
+            -0.265,
+            0.08159279823303217
+          ],
+          "ankle": [
+            0.5909251953125001,
+            -0.265,
+            0.22159279823303218
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.65425
+          ],
+          "knee": [
+            0.21642950350240192,
+            -0.265,
+            0.4119949432200988
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.8924,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -0.9823999999999999,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.7004625319143857,
+            0.265,
+            0.3707062846623838
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.4776,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.4076,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.65425
+          ],
+          "knee": [
+            0.1913867438339283,
+            0.265,
+            0.42870716627417593
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.5724,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.6624,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.63425
+          ],
+          "knee": [
+            -0.5350261044219599,
+            -0.265,
+            0.4846279885563588
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 24,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-021.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 52,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-069.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 80,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-117.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 108,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-165.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 24,
+      "phaseNumerator": 88,
+      "phaseDenominator": 96,
+      "phase": 0.9166666666666666,
+      "baselineFrameIndex": 22,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.7433306134259257,
+            -0.265,
+            0.05341635810004345
+          ],
+          "ankle": [
+            0.6733306134259256,
+            -0.265,
+            0.19341635810004346
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.300059766472554,
+            -0.265,
+            0.38620866815081434
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.9190666666666666,
+            0.265,
+            0
+          ],
+          "ankle": [
+            -1.0090666666666666,
+            0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.7289137834182462,
+            0.265,
+            0.3729671769736457
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindFar:0",
+          "supportCycleOffset": 0
+        },
+        "foreFar": {
+          "paw": [
+            0.4509333333333334,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.3809333333333334,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6613580246913581
+          ],
+          "knee": [
+            0.18354872227932906,
+            0.265,
+            0.4418928871620852
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.5990666666666666,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.6890666666666666,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.641358024691358
+          ],
+          "knee": [
+            -0.5449655681520129,
+            -0.265,
+            0.47777259404481964
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 25,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-022.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 53,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-070.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 81,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-118.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 109,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-166.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 25,
+      "phaseNumerator": 92,
+      "phaseDenominator": 96,
+      "phase": 0.9583333333333334,
+      "baselineFrameIndex": 23,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.794540285011574,
+            -0.265,
+            0.018470154868231864
+          ],
+          "ankle": [
+            0.7245402850115741,
+            -0.265,
+            0.15847015486823188
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.37137718186905133,
+            -0.265,
+            0.3860131674586954
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.9315697410300926,
+            0.265,
+            0.00937845971849229
+          ],
+          "ankle": [
+            -1.0215697410300926,
+            0.265,
+            0.1593784597184923
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.7380829080460579,
+            0.265,
+            0.3780910920118331
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.4242666666666667,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.3542666666666667,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6673858024691358
+          ],
+          "knee": [
+            0.17645353263563343,
+            0.265,
+            0.45381919853008007
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.6257333333333334,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7157333333333333,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6473858024691358
+          ],
+          "knee": [
+            -0.5558698400539255,
+            -0.265,
+            0.4703804980277433
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 26,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-023.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 54,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-071.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 82,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-119.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 110,
+          "baseline": true,
+          "relativeToRepository": "preview/yard-courtyard/runtime-source/walk/frame-167.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 26,
+      "phaseNumerator": 94,
+      "phaseDenominator": 96,
+      "phase": 0.9791666666666666,
+      "baselineFrameIndex": null,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.8031485252097801,
+            -0.265,
+            0.005334657099511848
+          ],
+          "ankle": [
+            0.73314852520978,
+            -0.265,
+            0.14533465709951185
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6692856867283951
+          ],
+          "knee": [
+            0.39120780956352363,
+            -0.265,
+            0.3894177310381324
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.9183838641131365,
+            0.265,
+            0.02435052560435403
+          ],
+          "ankle": [
+            -1.0083838641131366,
+            0.265,
+            0.17435052560435402
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.649285686728395
+          ],
+          "knee": [
+            -0.7170756879987279,
+            0.265,
+            0.3825320486290854
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.4109333333333334,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.34093333333333337,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6692856867283951
+          ],
+          "knee": [
+            0.1726618943744138,
+            0.265,
+            0.45903718095340335
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.6390666666666667,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7290666666666666,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.649285686728395
+          ],
+          "knee": [
+            -0.5612331408027393,
+            -0.265,
+            0.466278212332248
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 27,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw000-phase-94-of96.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 55,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw090-phase-94-of96.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 83,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw180-phase-94-of96.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 111,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw270-phase-94-of96.png"
+        }
+      ]
+    },
+    {
+      "frameIndex": 27,
+      "phaseNumerator": 95,
+      "phaseDenominator": 96,
+      "phase": 0.9895833333333334,
+      "baselineFrameIndex": null,
+      "localPaws": {
+        "foreNear": {
+          "paw": [
+            0.8022763130470557,
+            -0.265,
+            0.0014281547110941329
+          ],
+          "ankle": [
+            0.7322763130470558,
+            -0.265,
+            0.14142815471109416
+          ],
+          "hip": [
+            0.36,
+            -0.265,
+            0.6698135730131173
+          ],
+          "knee": [
+            0.3937626349888662,
+            -0.265,
+            0.39024232184696367
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "hindFar": {
+          "paw": [
+            -0.9074305147524231,
+            0.265,
+            0.033063568278319404
+          ],
+          "ankle": [
+            -0.9974305147524231,
+            0.265,
+            0.1830635682783194
+          ],
+          "hip": [
+            -0.76,
+            0.265,
+            0.6498135730131173
+          ],
+          "knee": [
+            -0.7023427369060897,
+            0.265,
+            0.38585213641201144
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": false,
+          "supportId": null,
+          "supportCycleOffset": null
+        },
+        "foreFar": {
+          "paw": [
+            0.40426666666666666,
+            0.265,
+            0
+          ],
+          "ankle": [
+            0.33426666666666666,
+            0.265,
+            0.14
+          ],
+          "hip": [
+            0.36,
+            0.265,
+            0.6698135730131173
+          ],
+          "knee": [
+            0.17059776909006874,
+            0.265,
+            0.46142260649503347
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:foreFar:0",
+          "supportCycleOffset": 0
+        },
+        "hindNear": {
+          "paw": [
+            -0.6457333333333334,
+            -0.265,
+            0
+          ],
+          "ankle": [
+            -0.7357333333333334,
+            -0.265,
+            0.15
+          ],
+          "hip": [
+            -0.76,
+            -0.265,
+            0.6498135730131173
+          ],
+          "knee": [
+            -0.5637928289787135,
+            -0.265,
+            0.4640644248594213
+          ],
+          "pawForward": [
+            1,
+            0,
+            0
+          ],
+          "contact": true,
+          "supportId": "ground:hindNear:0",
+          "supportCycleOffset": 0
+        }
+      },
+      "assets": [
+        {
+          "facingIndex": 0,
+          "blenderFrame": 28,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw000-phase-95-of96.png"
+        },
+        {
+          "facingIndex": 2,
+          "blenderFrame": 56,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw090-phase-95-of96.png"
+        },
+        {
+          "facingIndex": 4,
+          "blenderFrame": 84,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw180-phase-95-of96.png"
+        },
+        {
+          "facingIndex": 6,
+          "blenderFrame": 112,
+          "baseline": false,
+          "relativeToRepository": "design/yard-v2/blender-style-probe/ground-walk-dense-r1/rendered/yaw270-phase-95-of96.png"
+        }
+      ]
+    }
+  ],
+  "sourcePosePackSha256": "cb92fb8cfd8361a6ea573f60fd2ba357a0f49bc5d3d8239e552d4efb11a05ea9"
+}
