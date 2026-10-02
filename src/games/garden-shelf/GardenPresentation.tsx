@@ -130,7 +130,8 @@ function PlantSpot({
   blocked,
   onFeedback,
   spotWidth,
-  highlighted
+  highlighted,
+  deferArt = false
 }: any) {
   const {
       tapPlant
@@ -171,7 +172,7 @@ function PlantSpot({
     canWater = !plant.lastWatered || Date.now() - plant.lastWatered >= getGardenWaterCooldownMs(plant.phase);
   return <article className="gs2-spot" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} data-plant-id={plant.id} data-gs2-placed={highlighted ? "true" : undefined}><button type="button" className="gs2-plant-target" disabled={blocked} aria-label={`${t(`plant.${def.id}`)}: ${t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}`} onPointerDown={e => press.start(e)} onPointerMove={e => press.move(e)} onPointerUp={e => press.end(e)} onPointerCancel={() => press.cancel()} onLostPointerCapture={() => press.cancel()} onPointerLeave={() => press.cancel()} onContextMenu={e => e.preventDefault()} onClick={e => {
       if (e.detail === 0) tapRef.current();
-    }}><PlantArt plant={plant} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant)}</span> : <span>{t('ui.mature')}</span>}<small>{t('label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
+    }}><PlantArt plant={plant} deferOffscreen={deferArt} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant)}</span> : <span>{t('ui.mature')}</span>}<small>{t('label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
 }
 export function SettingsDialog({
   onClose
@@ -613,7 +614,7 @@ export default function GardenPresentation({
                   length: SPOTS_PER_SHELF
                 }, (_, p) => {
                   const plant = placed.get(`${s}:${p}`);
-                  return <PlantSpot key={p} plant={plant} highlighted={highlighted === plant?.id} spotWidth={layout.spotWidth} compact={layout.compact} blocked={blocked} onFeedback={setFeedback} onDetails={(event: any) => openSpot(s, p, plant?.id, event?.currentTarget)} />;
+                  return <PlantSpot key={p} plant={plant} deferArt={s > 0} highlighted={highlighted === plant?.id} spotWidth={layout.spotWidth} compact={layout.compact} blocked={blocked} onFeedback={setFeedback} onDetails={(event: any) => openSpot(s, p, plant?.id, event?.currentTarget)} />;
                 })}</div><img className="gs2-shelf-art" data-hud-region="gardenShelfAsset" src={art('shelf')} alt="" draggable={false} /></section>)}{state.shelvesUnlocked < MAX_SHELVES && <section className="gs2-expansion"><Lock size={24} /><div><h3>{t('garden.expand')}</h3><p>{t('ui.expandHelp')}</p></div><Button primary disabled={busy || !accountingReady || state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked]} onClick={() => run(unlockShelf)}><Art name="coin" />{formatGardenGoldAmount(SHELF_UNLOCK_COSTS[state.shelvesUnlocked])}</Button>{state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked] && <small>{t('ui.notEnoughGold')}</small>}</section>}</div></HudRegion></div>
  {/* This reserved feedback row is internal to gardenRoot/gardenComposition. Status changes never resize the shelf. */}
  <div className="gs2-status" role={error ? 'alert' : 'status'} aria-live="polite"><span className="gs2-status-reserve" aria-hidden="true">{t('ui.help')}</span><div className="gs2-status-content">{error ? <><span className="gs2-status-error" tabIndex={0}>{error}</span>{accountingNeedsReview && onReviewPending && <Button onClick={() => onReviewPending(t('ui.accountingConfirm', { gold: '[[GOLD]]' }))}>{t('ui.accountingReviewButton')}</Button>}<Button onClick={dismissError} aria-label={t('ui.close')}><X size={16} /></Button></> : <span>{feedback || t('ui.help')}</span>}</div></div>

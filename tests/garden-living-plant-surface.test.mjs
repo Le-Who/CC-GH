@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {PlantSurface,makeLivingPlantArt,getLivingPlantMotionState,listenToMotionPreference} from '../src/games/garden-shelf/living/living-plant-art.mjs';
+import {PlantSurface,makeLivingPlantArt,getLivingPlantMotionState,listenToMotionPreference,requestPlantArtNearShelf} from '../src/games/garden-shelf/living/living-plant-art.mjs';
 function environment(){
  const listeners=new Map(),deleted=[],draws=[],uniforms=[],vertices=[];let id=0;
  const events={addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);}};
@@ -82,4 +82,52 @@ test('failed texture decode reports static fallback and keeps the normal image v
 test('legacy embedded-browser media listeners preserve the same reduced-motion preference and cleanup',()=>{
  const calls=[],listener=()=>{};const media={matches:true,addListener(fn){calls.push(['add',fn]);},removeListener(fn){calls.push(['remove',fn]);}};
  const cleanup=listenToMotionPreference(media,listener);assert.equal(media.matches,true);cleanup();assert.deepEqual(calls,[['add',listener],['remove',listener]]);
+});
+
+
+test('later-shelf image waits for its scrollport, preloads nearby, and requests only once',()=>{
+ const root={getBoundingClientRect:()=>({left:0,top:100,right:320,bottom:400})};
+ let top=700,loaded=0,disconnected=0,observed=null,options=null,notify=null;
+ const node={closest:()=>root,getBoundingClientRect:()=>({left:20,top,right:120,bottom:top+100})};
+ class Observer{constructor(callback,value){notify=callback;options=value;}observe(value){observed=value;}disconnect(){disconnected++;}}
+ const cleanup=requestPlantArtNearShelf(node,()=>loaded++,Observer);
+ assert.equal(loaded,0);assert.equal(observed,node);assert.equal(options.root,root);assert.equal(options.rootMargin,'96px 0px');
+ notify([{target:node,isIntersecting:false}]);assert.equal(loaded,0);
+ notify([{target:node,isIntersecting:true}]);assert.equal(loaded,1);assert.equal(disconnected,1);
+ notify([{target:node,isIntersecting:true}]);assert.equal(loaded,1);cleanup();
+ top=420;let constructions=0;
+ requestPlantArtNearShelf(node,()=>loaded++,class{constructor(){constructions++;}});
+ assert.equal(loaded,2,'nearby lower shelves start immediately');assert.equal(constructions,0);
+});
+test('deferred image cleanup prevents a late visibility callback from requesting art',()=>{
+ let notify,loaded=0;
+ const root={getBoundingClientRect:()=>({left:0,top:0,right:320,bottom:400})},node={closest:()=>root,getBoundingClientRect:()=>({left:20,top:900,right:120,bottom:1000})};
+ class Observer{constructor(callback){notify=callback;}observe(){}disconnect(){}}
+ const cleanup=requestPlantArtNearShelf(node,()=>loaded++,Observer);cleanup();notify([{target:node,isIntersecting:true}]);assert.equal(loaded,0);
+});
+test('missing or broken IntersectionObserver preserves eager fallback art',()=>{
+ const root={getBoundingClientRect:()=>({left:0,top:0,right:320,bottom:400})},node={closest:()=>root,getBoundingClientRect:()=>({left:20,top:900,right:120,bottom:1000})};let loaded=0;
+ requestPlantArtNearShelf(node,()=>loaded++,null);assert.equal(loaded,1);
+ requestPlantArtNearShelf(node,()=>loaded++,class{constructor(){throw Error('unsupported');}});assert.equal(loaded,2);
+ requestPlantArtNearShelf({closest:()=>null},()=>loaded++,class{});assert.equal(loaded,3,'care/catalog outside the shelf are not deferred');
+});
+test('first shelf and detail art have an immediate src; deferred shelf art keeps dimensions',()=>{
+ const React={useRef:()=>({current:null}),useState:value=>[value,()=>{}],useEffect(){},createElement:(type,props,...children)=>({type,props,children})};
+ const Art=makeLivingPlantArt(React),plant={id:'fixture',type:'daisy',phase:3};
+ const first=Art({plant,size:112}),later=Art({plant,size:112,deferOffscreen:true});
+ assert.equal(first.children[0].props.src,'/games/garden-living/daisy-mature-r2.webp');assert.equal(first.props['data-art-requested'],'true');
+ assert.equal(later.children[0].props.src,undefined);assert.equal(later.props['data-art-requested'],'false');assert.deepEqual(first.props.style,later.props.style);
+});
+
+test('a revealed plant uses the current phase and retains legacy image-error fallback',()=>{
+ const state=[];let cursor=0;const effects=[];
+ const node={closest:()=>null};
+ const React={useRef:()=>({current:node}),useState:value=>{const index=cursor++;if(!(index in state))state[index]=value;return [state[index],next=>{state[index]=next;}];},useEffect:effect=>effects.push(effect),createElement:(type,props,...children)=>({type,props,children})};
+ const Legacy=()=>{},Art=makeLivingPlantArt(React,Legacy);
+ const render=phase=>{cursor=0;effects.length=0;return Art({plant:{id:'phase-change',type:'daisy',phase},deferOffscreen:true});};
+ assert.equal(render(0).children[0].props.src,undefined);
+ render(2);effects[0](); // Outside a shelf / no observer: eagerly reveal with compatibility fallback.
+ const visible=render(2);assert.equal(visible.children[0].props.src,'/games/garden-living/daisy-budding-r1.webp');
+ visible.children[0].props.onError();const failed=render(2);
+ assert.equal(failed.type,'span');assert.equal(failed.children[0].type,Legacy);assert.equal(failed.children[0].props.plant.phase,2);
 });

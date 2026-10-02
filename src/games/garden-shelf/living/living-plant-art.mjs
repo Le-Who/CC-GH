@@ -93,9 +93,29 @@ export class PlantSurface{
   const gl=this.gl;if(gl){for(const [,record]of this.ledger.clear())gl.deleteTexture(record.texture);gl.deleteBuffer(this.positions);gl.deleteBuffer(this.uv);gl.deleteBuffer(this.index);gl.deleteProgram(this.program);gl.deleteShader(this.vs);gl.deleteShader(this.fs);}this.canvas.remove();managers.delete(this.root);
  }
 }
+// First-shelf art stays eager. Other shelf images start near the real scrollport,
+// rather than the much larger browser lazy-image heuristic. Never unload requested art.
+export function requestPlantArtNearShelf(node, request, Observer = globalThis.IntersectionObserver) {
+ const root=node?.closest?.('.gs2-shelf-viewport');let done=false,observer=null;
+ const reveal=()=>{if(done)return;done=true;observer?.disconnect();request();};
+ const cleanup=()=>{done=true;observer?.disconnect();};
+ if(!root||typeof Observer!=='function'){reveal();return cleanup;}
+ const rect=root.getBoundingClientRect(),near={left:rect.left,right:rect.right,top:rect.top-96,bottom:rect.bottom+96};
+ if(intersectRects(node.getBoundingClientRect(),near)){reveal();return cleanup;}
+ try{
+  observer=new Observer(entries=>{if(entries.some(entry=>entry.target===node&&entry.isIntersecting))reveal();},{root,rootMargin:'96px 0px',threshold:0});
+  observer.observe(node);
+ }catch{reveal();}
+ return cleanup;
+}
+
 export function makeLivingPlantArt(React,Legacy=null){
- return function LivingPlantArt({plant,size=112}){
-  const ref=React.useRef(null),binding=React.useRef(null),[failed,setFailed]=React.useState(false),phase=normalizePhase(plant.phase),spec=species[plant.type];
+ return function LivingPlantArt({plant,size=112,deferOffscreen=false}){
+  const ref=React.useRef(null),binding=React.useRef(null),[failed,setFailed]=React.useState(false),[requested,setRequested]=React.useState(!deferOffscreen),shouldLoad=requested||!deferOffscreen,phase=normalizePhase(plant.phase),spec=species[plant.type];
+  React.useEffect(()=>{
+   if(shouldLoad)return;
+   return requestPlantArtNearShelf(ref.current,()=>setRequested(true));
+  },[shouldLoad,plant.id]);
   React.useEffect(()=>{
    const node=ref.current,root=node?.closest('.gs2-modal-layer,.gs2-stage');if(!root||!spec)return;
    const catalog=!!node.closest('.gs2-catalog');
@@ -109,7 +129,7 @@ export function makeLivingPlantArt(React,Legacy=null){
    }catch(error){setPlantMode(node,'static-fallback','unavailable');console.warn('Garden live art unavailable; static fallback retained',String(error));}
   },[plant.id,plant.type,failed]);
   React.useEffect(()=>{binding.current?.manager.update(binding.current.item,plant);},[plant.id,plant.phase,plant.lastWatered]);
-  return React.createElement('span',{ref,className:'gs2-plant-art gs2-live-plant','data-living-species':plant.type,'data-living-phase':phase,style:{width:size,height:size}},failed&&Legacy?React.createElement(Legacy,{plant,size}):React.createElement('img',{src:BASE+spec.files[phase],alt:'',draggable:false,onError:()=>setFailed(true),style:{display:'block',width:'92%',height:'92%',objectFit:'contain',objectPosition:'center bottom',marginBottom:'4%'}}));
+  return React.createElement('span',{ref,className:'gs2-plant-art gs2-live-plant','data-living-species':plant.type,'data-living-phase':phase,'data-art-requested':String(shouldLoad),style:{width:size,height:size}},failed&&Legacy?React.createElement(Legacy,{plant,size}):React.createElement('img',{src:shouldLoad?BASE+spec.files[phase]:undefined,alt:'',draggable:false,onError:()=>setFailed(true),style:{display:'block',width:'92%',height:'92%',objectFit:'contain',objectPosition:'center bottom',marginBottom:'4%'}}));
  };
 }
 

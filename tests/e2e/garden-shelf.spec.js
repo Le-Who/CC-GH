@@ -5,7 +5,7 @@ import { fitArtwork } from "../../src/games/garden-shelf/living/plant-presentati
 import { gardenDiagnostics } from "./helpers/gardenDiagnostics.js";
 import { exitBlox } from "./helpers/blox-v2.js";
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
-import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
+import { formatGardenGoldAmount, PLANT_TYPES } from "../../game-logic/garden-shelf-plants.js";
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
 
 // These tests mount the production App through the normal Playwright web server.
@@ -431,5 +431,42 @@ for(const [width,height] of [[320,568],[390,844],[568,320]])test.describe(`Garde
       await care.locator('[role="alert"]').getByRole('button',{name:'Close',exact:true}).click();
       await expect(care.locator('[role="alert"]')).toHaveCount(0);expect(await boxes()).toEqual(before);
     }finally{release();}
+  });
+});
+
+
+test.describe('Garden shelf image demand loading',()=>{
+  for(const mode of ['animated','reduced','static-fallback'])test(`keeps first shelf eager and loads distant art on scroll in ${mode} mode`,async({page},testInfo)=>{
+    await page.setViewportSize({width:390,height:844});
+    if(mode==='reduced')await page.emulateMedia({reducedMotion:'reduce'});
+    if(mode==='static-fallback')await page.addInitScript(()=>{
+      const original=HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext=function(kind,...args){return /^(webgl|experimental-webgl|webgl2)$/.test(kind)?null:original.call(this,kind,...args);};
+    });
+    const paths=new Set();page.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/games/garden-living/'))paths.add(path);});
+    const species=Object.keys(PLANT_TYPES);
+    const plants=Array.from({length:15},(_,i)=>plant(`load-${i}`,i,{type:species[i%species.length],shelfIndex:Math.floor(i/3),spotIndex:i%3,phase:i===14?0:3}));
+    await initialize(page);await mountFixture(page,makePlayer({levelReady:false,xp:0,shelvesUnlocked:5,plants}));await boot(page);
+    const first=page.locator('[data-plant-id="load-0"] .gs2-live-plant'),last=page.locator('[data-plant-id="load-14"] .gs2-live-plant');
+    await expect(first).toHaveAttribute('data-art-requested','true');
+    await expect.poll(()=>first.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+    await expect(last).toHaveAttribute('data-art-requested','false');
+    expect(await last.locator('img').getAttribute('src')).toBeNull();
+    const lastPath='/games/garden-living/daisy-seedling-r1.webp';
+    expect(paths.has(lastPath)).toBe(false);
+    const before=[...paths];
+    await last.scrollIntoViewIfNeeded();
+    await expect(last).toHaveAttribute('data-art-requested','true');
+    await expect(last.locator('img')).toHaveAttribute('src',lastPath);
+    await expect.poll(()=>last.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+    await expect(last).toHaveAttribute('data-living-mode',mode);
+    expect(paths.has(lastPath)).toBe(true);
+    await page.context().setOffline(true);
+    await first.scrollIntoViewIfNeeded();
+    await expect(last).toHaveAttribute('data-art-requested','true');
+    await last.scrollIntoViewIfNeeded();
+    await expect.poll(()=>last.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+    await page.context().setOffline(false);
+    await testInfo.attach('garden-image-loading-diagnostics',{body:JSON.stringify({mode,before,after:[...paths],firstShelfEager:true,lastShelfDeferred:true}),contentType:'application/json'});
   });
 });
