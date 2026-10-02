@@ -1,0 +1,9 @@
+{
+  "routes/trivia.js": "f60d18fb7b0b7eeb03c008e3066bf3a3dc2ab80160709a2197c74d3a8b5ffa85",
+  "routes/mutationResults.js": "5fec2cec2c855712a520e4239cb58c98cbddd863fc8078015b2d82f4dd758719",
+  "game-logic/farm.js": "73e8c564e0d26dbd7b8452129db6f92d213f8fada7fb32256c6b2d1747e58816",
+  "game-logic/hud-bonuses.js": "ba5810e2d7c8bf16141c040802fc073b93451883a5280880bab8461bec6f2b2b",
+  "game-logic/economy.js": "51e904f98d30e657ce0a5302d8075a79a59dae5954888361c112f8c705ec2668",
+  "game-logic/player.js": "5256eca2b2bb6262777d6428cb3d536ec62b68a79e52d607a804f49bde0576a3",
+  "data/questions.json": "214fe29913b4c12ee0842e54c18b5657da70d502534fe5663aa3939279213b54"
+}

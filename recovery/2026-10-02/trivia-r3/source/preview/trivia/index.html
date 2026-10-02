@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' blob:; frame-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Trivia · OFFLINE LOCAL PREVIEW</title>
+  <link rel="stylesheet" href="./launcher.css">
+</head>
+<body>
+  <header class="preview-header">
+    <div><strong>Trivia · OFFLINE DEMO</strong><span id="preview-version" aria-label="Preview version"></span><p id="notice">Local simulation only. Scores, rewards and saves stay in memory. Reload resets the demo.</p></div>
+    <button type="button" id="toggle-controls" aria-controls="demo-controls" aria-expanded="true">Hide controls</button>
+  </header>
+  <section id="demo-controls" class="preview-controls" aria-label="Demo controls">
+    <label><span id="language-label">Language</span><select id="language"><option value="en">English</option><option value="ru">Русский</option></select></label>
+    <label><span id="fixture-label">Local fixture</span><select id="fixture"><option value="starter">New player</option><option value="progress">Sample progress</option><option value="long-text">Long text stress</option><option value="retry-start">Start error / retry</option><option value="uncertain-answer">Uncertain answer</option></select></label>
+    <label><span id="viewport-label">Game viewport</span><select id="viewport"></select></label>
+    <label><span id="chrome-label">Optional chrome simulation</span><select id="chrome" aria-describedby="simulation-note"><option value="clean">Clean game area</option><option value="telegram">Simulated header · 56 CSS px</option><option value="telegram-safe">Test header + notch/insets · 28 + 56 + 20; landscape sides 24 CSS px</option></select></label>
+    <button type="button" id="reset">Reset local demo</button>
+    <button type="button" id="sound" aria-pressed="false">Sound: off</button>
+  </section>
+  <div class="preview-measurement"><output id="local-size" aria-live="polite">Measuring local game area…</output><span id="size-note">CSS pixels · no scaling</span></div>
+  <p class="simulation-note" id="simulation-note">Arbitrary test rectangles only, not Telegram/device specifications or a real-device result.</p>
+  <main class="preview-stage" id="preview-stage" aria-label="Trivia game preview">
+    <section id="preview-shell" class="preview-shell" aria-label="Simulated viewport shell" data-chrome="clean">
+      <div id="simulated-status" class="simulated-status" aria-hidden="true" hidden><span class="simulated-notch"></span></div>
+      <div id="simulated-header" class="simulated-header" hidden><strong id="simulation-badge">SIMULATED CHROME</strong><span id="simulated-header-label">Telegram-like header · 56 CSS px</span></div>
+      <div class="preview-game-row">
+        <div id="simulated-left" class="simulated-side" aria-hidden="true" hidden></div>
+        <iframe id="game-frame" title="Trivia offline local simulation" sandbox="allow-scripts allow-same-origin allow-forms allow-modals" allow="autoplay" referrerpolicy="no-referrer"></iframe>
+        <div id="simulated-right" class="simulated-side" aria-hidden="true" hidden></div>
+      </div>
+      <div id="simulated-bottom" class="simulated-bottom" aria-hidden="true" hidden><span></span></div>
+    </section>
+  </main>
+  <script type="module" src="./launcher.js"></script>
+</body>
+</html>
