@@ -5,3 +5,5 @@ test('default deployment requires reusable CI before publishing image',()=>{cons
 test('pre-release database backup is checked before switching app',()=>{const s=read('.github/workflows/deploy.yml');assert.ok(s.indexOf('pg_dump')<s.indexOf('compose -p ccgh up'));assert.match(s,/pg_restore --list/);assert.doesNotMatch(s,/rm.*BACKUP_PATH/);assert.doesNotMatch(s,/if docker inspect ccgh-postgres/);assert.match(s,/docker inspect ccgh-postgres >\/dev\/null/);});
 
 test('CI actually includes the release gate and default validation is not duplicated',()=>{const p=JSON.parse(read('package.json'));assert.ok(p.scripts.test.includes('tests/release-gate.test.js'));assert.doesNotMatch(read('.github/workflows/ci.yml'),/\n  push:/);assert.equal((read('.github/workflows/deploy.yml').match(/--connect-timeout 5 --max-time 10/g)||[]).length,2);});
+
+test('touch gesture project is a mandatory release gate',()=>{const ci=read('.github/workflows/ci.yml');assert.match(ci,/tests\/e2e\/gestures\.spec\.js --project=mobile-chrome --workers=1/);assert.match(ci,/needs: \[test, touch\]/);assert.doesNotMatch(ci,/continue-on-error/);});
