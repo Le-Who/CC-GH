@@ -28,6 +28,7 @@ import {
 import { HUD_LAYOUT_DEFAULTS } from "../src/app/hud-layout/defaultLayouts/index.js";
 import {
   applyRegionPatch,
+  getHudRegionBoxZIndex,
   resetGameOverrides,
   resetProfileOverrides,
   resetRegionOverride,
@@ -313,5 +314,30 @@ describe("HUD layout defaults and editor state", () => {
     assert.equal(isHudEditorEnabled({ search: "", localStorageValue: "true", dev: false }), true);
     assert.equal(shouldRenderHudEditor({ enabled: false }), false);
     assert.equal(shouldRenderHudEditor({ enabled: true }), true);
+  });
+});
+
+
+describe("HUD editor map-placement selection", () => {
+  it("keeps a construction handle above overlapping artwork independently of registration order", () => {
+    const slot = getHudRegionDefinition("settlement", "settlementConstructionSlot.southwest-terrace");
+    const art = getHudRegionDefinition("settlement", "settlementPrimaryBuildAsset");
+    assert.equal(slot.capabilities.coordinateSpace, "settlementMap");
+    // CI clicked (278.41,458.93), inside both recorded boxes. The old layer chose art.
+    const records = [
+      { id: slot.id, definition: slot, rect: { left: 237.281, top: 425.281, width: 82.2656, height: 67.3125 } },
+      { id: art.id, definition: art, rect: { left: 252, top: 395.12, width: 44, height: 97.76 } },
+    ];
+    for (const order of [records, [...records].reverse()]) {
+      const atClick = order.filter(({ rect }) => 278.41 >= rect.left && 278.41 <= rect.left + rect.width
+        && 458.93 >= rect.top && 458.93 <= rect.top + rect.height);
+      assert.equal(atClick.length, 2);
+      const top = atClick.sort((a, b) => getHudRegionBoxZIndex(b.definition) - getHudRegionBoxZIndex(a.definition))[0];
+      assert.equal(top.id, slot.id);
+    }
+    assert.ok(getHudRegionBoxZIndex(slot, true) > getHudRegionBoxZIndex(art, true));
+    assert.equal(getHudRegionBoxZIndex(art), 2147483004);
+    assert.equal(getHudRegionBoxZIndex(art, true), 2147483006);
+    assert.equal(getHudRegionBoxZIndex({ capabilities: { mode: "custom" } }), 2147483001);
   });
 });

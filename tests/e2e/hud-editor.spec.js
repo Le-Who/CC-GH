@@ -148,7 +148,13 @@ test.describe("HUD layout editor", () => {
     // Slot probes register before Pixi finishes loading and applies its camera.
     // A visible editor box can still be outside the viewport during that load.
     await expect(slotBox).toBeInViewport({ ratio: 1, timeout: 30000 });
-    await slotBox.click({ force: true });
+    // The pointer must hit this map handle, not an overlapping DOM asset editor box.
+    await expect.poll(() => slotBox.evaluate(node => {
+      const rect = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return hit?.closest("[data-hud-region-box]")?.getAttribute("data-hud-region-box");
+    })).toBe(slotRegionId);
+    await slotBox.click();
     const inspector = page.locator('[data-testid="hud-editor-inspector"]');
     await expect(inspector).toContainText(slotRegionId);
     await inspector.getByRole("spinbutton", { name: "x", exact: true }).fill("784");

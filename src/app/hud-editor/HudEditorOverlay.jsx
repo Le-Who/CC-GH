@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useHudLayout } from "../hud-layout/index.js";
 import { HudEditorInspector } from "./HudEditorInspector.jsx";
 import { HudEditorToolbar } from "./HudEditorToolbar.jsx";
+import { getHudRegionBoxZIndex } from "./editorState.js";
 
 const TEXT = {
   showEditor: "Show editor",
@@ -46,10 +47,7 @@ function HudRegionBox({ hud, regionId, record, locked, snapEnabled, gridSize, sh
   const canDrag = !locked && regionCanDrag(record, region);
   const rect = record?.rect;
   if (!rect || region?.visible === false) return null;
-  const fineTarget = record?.capabilities?.mode === "freeform" || record?.capabilities?.asset;
-  const boxZ = fineTarget
-    ? selected ? 2147483006 : 2147483004
-    : selected ? 2147483003 : 2147483001;
+  const boxZ = getHudRegionBoxZIndex(record, selected);
 
   const beginDrag = (event) => {
     event.preventDefault();
