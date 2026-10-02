@@ -1,6 +1,6 @@
-/** Fourteen supplied runtime assets; tokens and cannon share physics geometry.
- * Recovered from the owned Bubbo v2 review build; see recovery manifest.
- * React and app services are imports from the production app, never bundled copies.
+/** Fourteen runtime assets; marine token art retains the original color IDs.
+ * Token source/export provenance: assets-source/imagegen/bubbo-marine/manifest.json.
+ * The remaining v2 art and all shared physics geometry are unchanged.
  */
 import {assetUrl} from '../../game-runtime/assetBundles.js';
 

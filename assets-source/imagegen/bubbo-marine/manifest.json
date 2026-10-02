@@ -1,0 +1,272 @@
+{
+  "status": "reviewed_art_exports_browser_candidate",
+  "tokens": [
+    {
+      "game": "bubbo",
+      "key": "mint",
+      "path": "/games/bubbo-v2/mint.webp",
+      "bytes": 92842,
+      "sha256": "b50e201aca4be12ffffac190cf5d566341ae95ea87db3578bbb8ae286511c0d4",
+      "width": 320,
+      "height": 320,
+      "sourceSha256": "e250bac74097bd0f69f4a9533e4073e6de369ee97712e37f9497a81a4367add4",
+      "exportSha256": "2b58e3b112d8f38bb6d47b518cf39948035277388b220a1d3d803a3d6b7f54c1",
+      "rgbaSha256": "821817f5cf919364d5f3d3ad8fd0062602c3a63ce29a3f864a0c6c4ff6e7768b",
+      "decodedRgbaSha256": "821817f5cf919364d5f3d3ad8fd0062602c3a63ce29a3f864a0c6c4ff6e7768b",
+      "rgbaBytesCompared": 409600,
+      "rgbaChangedBytes": 0,
+      "alphaBounds": [
+        4,
+        4,
+        316,
+        316
+      ],
+      "iccSha256": null,
+      "sourceBytes": 1553167,
+      "exportPngBytes": 140047,
+      "baselineWebpBytes": 92756,
+      "largerThanExportPng": false,
+      "largerThanBaselineToken": true,
+      "originReference": "Five separate built-in image generation calls on 2026-10-02; per-token reference and prompt recorded in generation-prompts.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified",
+      "reviewNote": "Metadata records declared provenance; it does not independently establish rights or visual approval.",
+      "sourceArtifactPath": "assets-source/imagegen/bubbo-marine/exports/mint.png",
+      "originalArtifactPath": "assets-source/imagegen/bubbo-marine/originals/mint.png",
+      "encoder": {
+        "format": "WebP",
+        "lossless": true,
+        "exact": true,
+        "method": 6,
+        "quality": 100
+      },
+      "exportRecipe": {
+        "masterPixels": [
+          1254,
+          1254
+        ],
+        "runtimePixels": [
+          320,
+          320
+        ],
+        "resample": "premultiplied-alpha Lanczos to 312x312; centered in transparent 320x320",
+        "losslessClaim": "WebP is RGBA-exact to the 320px PNG export, not to the resampled master"
+      }
+    },
+    {
+      "game": "bubbo",
+      "key": "amber",
+      "path": "/games/bubbo-v2/amber.webp",
+      "bytes": 104804,
+      "sha256": "fc43d1e659fe009d3dd791a65ad83b97c4f4ea92d242136a4582a24e38159791",
+      "width": 320,
+      "height": 320,
+      "sourceSha256": "b6791b7f743ecf8379eae88fe7da5eb45817195dbd63b768868988abd1d1207e",
+      "exportSha256": "e38655d701077deb413bd1f848ca6eb7c104146c691830e0f773c1f1d3c83303",
+      "rgbaSha256": "cc134a5e68815a86c06429faa5dff562bd48962622293b78f05b7cfe3aaf0b09",
+      "decodedRgbaSha256": "cc134a5e68815a86c06429faa5dff562bd48962622293b78f05b7cfe3aaf0b09",
+      "rgbaBytesCompared": 409600,
+      "rgbaChangedBytes": 0,
+      "alphaBounds": [
+        4,
+        5,
+        316,
+        313
+      ],
+      "iccSha256": null,
+      "sourceBytes": 1636765,
+      "exportPngBytes": 144532,
+      "baselineWebpBytes": 96904,
+      "largerThanExportPng": false,
+      "largerThanBaselineToken": true,
+      "originReference": "Five separate built-in image generation calls on 2026-10-02; per-token reference and prompt recorded in generation-prompts.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified",
+      "reviewNote": "Metadata records declared provenance; it does not independently establish rights or visual approval.",
+      "sourceArtifactPath": "assets-source/imagegen/bubbo-marine/exports/amber.png",
+      "originalArtifactPath": "assets-source/imagegen/bubbo-marine/originals/amber.png",
+      "encoder": {
+        "format": "WebP",
+        "lossless": true,
+        "exact": true,
+        "method": 6,
+        "quality": 100
+      },
+      "exportRecipe": {
+        "masterPixels": [
+          1254,
+          1254
+        ],
+        "runtimePixels": [
+          320,
+          320
+        ],
+        "resample": "premultiplied-alpha Lanczos to 312x312; centered in transparent 320x320",
+        "losslessClaim": "WebP is RGBA-exact to the 320px PNG export, not to the resampled master"
+      }
+    },
+    {
+      "game": "bubbo",
+      "key": "coral",
+      "path": "/games/bubbo-v2/coral.webp",
+      "bytes": 88076,
+      "sha256": "2b9ffd10795de111483363f13a4a223150de8c34d922b04260c4bbe4f58765d7",
+      "width": 320,
+      "height": 320,
+      "sourceSha256": "49be314028277948dff4af78f6825c48bbccab8a0f71686898901e79683b1fa4",
+      "exportSha256": "a637bacf468564f0c2d5a7ddf44233f6830af6520c5d93ca8f69f238d9ce4685",
+      "rgbaSha256": "a3123839a1ab5ccdb1a1beb6ff2ac90c2d9f220f41a3629f19aa26136d5bbd49",
+      "decodedRgbaSha256": "a3123839a1ab5ccdb1a1beb6ff2ac90c2d9f220f41a3629f19aa26136d5bbd49",
+      "rgbaBytesCompared": 409600,
+      "rgbaChangedBytes": 0,
+      "alphaBounds": [
+        4,
+        4,
+        315,
+        312
+      ],
+      "iccSha256": null,
+      "sourceBytes": 1461749,
+      "exportPngBytes": 129834,
+      "baselineWebpBytes": 86504,
+      "largerThanExportPng": false,
+      "largerThanBaselineToken": true,
+      "originReference": "Five separate built-in image generation calls on 2026-10-02; per-token reference and prompt recorded in generation-prompts.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified",
+      "reviewNote": "Metadata records declared provenance; it does not independently establish rights or visual approval.",
+      "sourceArtifactPath": "assets-source/imagegen/bubbo-marine/exports/coral.png",
+      "originalArtifactPath": "assets-source/imagegen/bubbo-marine/originals/coral.png",
+      "encoder": {
+        "format": "WebP",
+        "lossless": true,
+        "exact": true,
+        "method": 6,
+        "quality": 100
+      },
+      "exportRecipe": {
+        "masterPixels": [
+          1254,
+          1254
+        ],
+        "runtimePixels": [
+          320,
+          320
+        ],
+        "resample": "premultiplied-alpha Lanczos to 312x312; centered in transparent 320x320",
+        "losslessClaim": "WebP is RGBA-exact to the 320px PNG export, not to the resampled master"
+      }
+    },
+    {
+      "game": "bubbo",
+      "key": "sky",
+      "path": "/games/bubbo-v2/sky.webp",
+      "bytes": 92352,
+      "sha256": "f942c4b8340ebf0f742d98d535cfea78681003a8d37cc5de60a15a34303ccc4e",
+      "width": 320,
+      "height": 320,
+      "sourceSha256": "e12a2eb25c9de7e7f1e6e3902a38e276c636878ce84b9b38efaf96b2f1546a5b",
+      "exportSha256": "b62aecf14fa6daa8de2b050ab341670c2737295af11fa1685a55aa8d06a8a7c2",
+      "rgbaSha256": "593808002eeb714fd22df13158e3fe5124f30e6629fd188966704b827ccb99f5",
+      "decodedRgbaSha256": "593808002eeb714fd22df13158e3fe5124f30e6629fd188966704b827ccb99f5",
+      "rgbaBytesCompared": 409600,
+      "rgbaChangedBytes": 0,
+      "alphaBounds": [
+        4,
+        6,
+        316,
+        315
+      ],
+      "iccSha256": null,
+      "sourceBytes": 1518696,
+      "exportPngBytes": 131539,
+      "baselineWebpBytes": 83582,
+      "largerThanExportPng": false,
+      "largerThanBaselineToken": true,
+      "originReference": "Five separate built-in image generation calls on 2026-10-02; per-token reference and prompt recorded in generation-prompts.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified",
+      "reviewNote": "Metadata records declared provenance; it does not independently establish rights or visual approval.",
+      "sourceArtifactPath": "assets-source/imagegen/bubbo-marine/exports/sky.png",
+      "originalArtifactPath": "assets-source/imagegen/bubbo-marine/originals/sky.png",
+      "encoder": {
+        "format": "WebP",
+        "lossless": true,
+        "exact": true,
+        "method": 6,
+        "quality": 100
+      },
+      "exportRecipe": {
+        "masterPixels": [
+          1254,
+          1254
+        ],
+        "runtimePixels": [
+          320,
+          320
+        ],
+        "resample": "premultiplied-alpha Lanczos to 312x312; centered in transparent 320x320",
+        "losslessClaim": "WebP is RGBA-exact to the 320px PNG export, not to the resampled master"
+      }
+    },
+    {
+      "game": "bubbo",
+      "key": "berry",
+      "path": "/games/bubbo-v2/berry.webp",
+      "bytes": 94982,
+      "sha256": "73b954c68ffa613892176183d1e0ab1df138eb4a5b9fe6144a51c28ba9304492",
+      "width": 320,
+      "height": 320,
+      "sourceSha256": "e7f4418174371e5bd37f330a61fe2e04a61ef9d31e986b63c4db8ed0bc65b6fc",
+      "exportSha256": "a8f73e6dbbfcb19e06be3cb7c675f7241aa23bb9ec0c6d037b9f0506cf14e6a1",
+      "rgbaSha256": "7e1e7ae520bf013aeacff8c82ba61573afd23e362de2b23166eb0546bd045482",
+      "decodedRgbaSha256": "7e1e7ae520bf013aeacff8c82ba61573afd23e362de2b23166eb0546bd045482",
+      "rgbaBytesCompared": 409600,
+      "rgbaChangedBytes": 0,
+      "alphaBounds": [
+        4,
+        6,
+        316,
+        315
+      ],
+      "iccSha256": null,
+      "sourceBytes": 1668289,
+      "exportPngBytes": 141095,
+      "baselineWebpBytes": 88912,
+      "largerThanExportPng": false,
+      "largerThanBaselineToken": true,
+      "originReference": "Five separate built-in image generation calls on 2026-10-02; per-token reference and prompt recorded in generation-prompts.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified",
+      "reviewNote": "Metadata records declared provenance; it does not independently establish rights or visual approval.",
+      "sourceArtifactPath": "assets-source/imagegen/bubbo-marine/exports/berry.png",
+      "originalArtifactPath": "assets-source/imagegen/bubbo-marine/originals/berry.png",
+      "encoder": {
+        "format": "WebP",
+        "lossless": true,
+        "exact": true,
+        "method": 6,
+        "quality": 100
+      },
+      "exportRecipe": {
+        "masterPixels": [
+          1254,
+          1254
+        ],
+        "runtimePixels": [
+          320,
+          320
+        ],
+        "resample": "premultiplied-alpha Lanczos to 312x312; centered in transparent 320x320",
+        "losslessClaim": "WebP is RGBA-exact to the 320px PNG export, not to the resampled master"
+      }
+    }
+  ],
+  "totalRuntimeBytes": 473056,
+  "baselineTokenBytes": 448658,
+  "rgbaBytesCompared": 2048000,
+  "rgbaChangedBytes": 0,
+  "largerThanExportPng": [],
+  "largerThanBaselineToken": [
+    "mint",
+    "amber",
+    "coral",
+    "sky",
+    "berry"
+  ]
+}

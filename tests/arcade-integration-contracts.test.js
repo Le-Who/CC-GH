@@ -12,7 +12,40 @@ import {resolveAssetSourceList} from '../src/game-runtime/assetBundles.js';
 const root=new URL('../',import.meta.url);
 test('all 53 v2 runtime images match reviewed export hashes and preserve source provenance',()=>{
  assert.equal(assets.length,53);
- for(const asset of assets){const bytes=fs.readFileSync(new URL('public'+asset.path,root));assert.equal(bytes.length,asset.bytes,asset.path);assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),asset.sha256,asset.path);assert.match(asset.path,/\.webp$/);if(asset.sourcePath){const metadata=readLosslessWebpMetadata(bytes);assert.equal(metadata.width,asset.width);assert.equal(metadata.height,asset.height);assert.match(asset.sourceSha256,/^[a-f0-9]{64}$/);assert.match(asset.rgbaSha256,/^[a-f0-9]{64}$/)}}
+ const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+ for(const asset of assets){
+  const bytes=fs.readFileSync(new URL('public'+asset.path,root));
+  assert.equal(bytes.length,asset.bytes,asset.path);
+  assert.equal(digest(bytes),asset.sha256,asset.path);
+  assert.match(asset.path,/\.webp$/);
+  if(asset.sourcePath || asset.sourceArtifactPath){
+   const metadata=readLosslessWebpMetadata(bytes);
+   assert.equal(metadata.width,asset.width);
+   assert.equal(metadata.height,asset.height);
+   assert.match(asset.sourceSha256,/^[a-f0-9]{64}$/);
+   assert.match(asset.rgbaSha256,/^[a-f0-9]{64}$/);
+  }
+  if(asset.sourceArtifactPath){
+   assert.ok(asset.sourceArtifactPath.startsWith('assets-source/'));
+   assert.ok(asset.originalArtifactPath.startsWith('assets-source/'));
+   assert.equal(digest(fs.readFileSync(new URL(asset.sourceArtifactPath,root))),asset.sourceSha256);
+   assert.equal(digest(fs.readFileSync(new URL(asset.originalArtifactPath,root))),asset.originalSha256);
+  }
+ }
+});
+test('marine Bubbo art retains all five engine color IDs and the existing runtime URLs',async()=>{
+ const {BUBBO_COLORS}=await import('../src/game-core/bubbo/engine.js');
+ const {BUBBO_ART,BUBBO_TOKEN_ART}=await import('../src/games/bubbo/bubboArt.js');
+ assert.deepEqual(BUBBO_TOKEN_ART,BUBBO_COLORS);
+ const marine=assets.filter(asset=>asset.artGeneration==='bubbo-marine-2026-10-02');
+ assert.equal(marine.length,5);
+ for(const color of BUBBO_COLORS){
+  const token=marine.find(asset=>asset.path===BUBBO_ART[color]);
+  assert.ok(token,color+' keeps the same art lookup as board/current/next/projectile rendering');
+  assert.equal(token.path,'/games/bubbo-v2/'+color+'.webp');
+  assert.equal(token.width,320);
+  assert.equal(token.height,320);
+ }
 });
 test('Match3 preloads retained effects using the same production manifest that the scene resolves',()=>{
  assert.equal(MATCH3_RETAINED_ASSET_KEYS.length,8);assert.ok(MATCH3_RETAINED_ASSET_KEYS.includes('match3.fx.clearBurst'));
@@ -38,7 +71,7 @@ test('v2 host disposes scene objects while preserving shared Assets textures acr
 
 test('direct arcade WebP exports stay outside lossy asset-pipeline re-encoding and have no runtime PNG siblings',async()=>{
  const entries=await loadAssetPipelineEntries(new URL('../',import.meta.url).pathname);
- assert.equal(entries.some(entry=>/^public\/games\/(?:blox-v2|match3-v2)\//.test(entry.source)),false);
+ assert.equal(entries.some(entry=>/^public\/games\/(?:blox-v2|match3-v2|bubbo-v2)\//.test(entry.source)),false);
  for(const asset of assets.filter(asset=>asset.sourcePath)){
   assert.equal(fs.existsSync(new URL('public'+asset.sourcePath,root)),false,asset.sourcePath+' must remain only in the source checkpoint');
  }

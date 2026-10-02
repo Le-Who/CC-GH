@@ -1,0 +1,49 @@
+{
+  "tokens": [
+    {
+      "key": "mint",
+      "source": "originals/mint.png",
+      "export": "exports/mint.png",
+      "sourceSha256": "e250bac74097bd0f69f4a9533e4073e6de369ee97712e37f9497a81a4367add4",
+      "exportSha256": "2b58e3b112d8f38bb6d47b518cf39948035277388b220a1d3d803a3d6b7f54c1",
+      "originReference": "Built-in image generation 2026-10-02; generation-prompts.json and manifest.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified"
+    },
+    {
+      "key": "amber",
+      "source": "originals/amber.png",
+      "export": "exports/amber.png",
+      "sourceSha256": "b6791b7f743ecf8379eae88fe7da5eb45817195dbd63b768868988abd1d1207e",
+      "exportSha256": "e38655d701077deb413bd1f848ca6eb7c104146c691830e0f773c1f1d3c83303",
+      "originReference": "Built-in image generation 2026-10-02; generation-prompts.json and manifest.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified"
+    },
+    {
+      "key": "coral",
+      "source": "originals/coral.png",
+      "export": "exports/coral.png",
+      "sourceSha256": "49be314028277948dff4af78f6825c48bbccab8a0f71686898901e79683b1fa4",
+      "exportSha256": "a637bacf468564f0c2d5a7ddf44233f6830af6520c5d93ca8f69f238d9ce4685",
+      "originReference": "Built-in image generation 2026-10-02; generation-prompts.json and manifest.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified"
+    },
+    {
+      "key": "sky",
+      "source": "originals/sky.png",
+      "export": "exports/sky.png",
+      "sourceSha256": "e12a2eb25c9de7e7f1e6e3902a38e276c636878ce84b9b38efaf96b2f1546a5b",
+      "exportSha256": "b62aecf14fa6daa8de2b050ab341670c2737295af11fa1685a55aa8d06a8a7c2",
+      "originReference": "Built-in image generation 2026-10-02; generation-prompts.json and manifest.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified"
+    },
+    {
+      "key": "berry",
+      "source": "originals/berry.png",
+      "export": "exports/berry.png",
+      "sourceSha256": "e7f4418174371e5bd37f330a61fe2e04a61ef9d31e986b63c4db8ed0bc65b6fc",
+      "exportSha256": "a8f73e6dbbfcb19e06be3cb7c675f7241aa23bb9ec0c6d037b9f0506cf14e6a1",
+      "originReference": "Built-in image generation 2026-10-02; generation-prompts.json and manifest.json",
+      "reviewReference": "Source original and 22/26/64/160px visual review; token-size-review.png; browser candidate unverified"
+    }
+  ]
+}
