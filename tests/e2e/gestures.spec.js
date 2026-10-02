@@ -239,15 +239,17 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await expectBloxCanvas(page);
-    const savedBoardLabels = await page.locator('.bx-keyboard-board [role="gridcell"]').evaluateAll(cells => cells.map(cell => cell.getAttribute('aria-label')));
-    const savedTrayLabels = await page.locator('.bx-keyboard-slot').evaluateAll(slots => slots.map(slot => slot.getAttribute('aria-label')));
+    const readRunLabels = () => page.locator('.bx-stage').evaluate(stage => ({
+      board: Array.from(stage.querySelectorAll('.bx-keyboard-board [role="gridcell"]'), cell => cell.getAttribute('aria-label')),
+      tray: Array.from(stage.querySelectorAll('.bx-keyboard-slot'), slot => slot.getAttribute('aria-label')),
+    }));
+    const savedRunLabels = await readRunLabels();
     await pauseBlox(page);
     await exitBlox(page);
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await expect(page.locator('.bx-keyboard-board [role="gridcell"]')).toHaveCount(100);
-    expect(await page.locator('.bx-keyboard-board [role="gridcell"]').evaluateAll(cells => cells.map(cell => cell.getAttribute('aria-label')))).toEqual(savedBoardLabels);
-    expect(await page.locator('.bx-keyboard-slot').evaluateAll(slots => slots.map(slot => slot.getAttribute('aria-label')))).toEqual(savedTrayLabels);
+    expect(await readRunLabels()).toEqual(savedRunLabels);
     const layout = await expectBloxLayout(page);
     const slot = layout.slots[0];
     await page.mouse.click(slot.left + slot.width / 2, slot.top + slot.height / 2);
@@ -387,15 +389,18 @@ test.describe("Pixi touch and drag interactions", () => {
     const firstSync = waitForMatch3Sync(page, 8000);
     await dragMove(firstMove);
     const firstBody = await firstSync;
-    await page.waitForTimeout(1700);
+    await expect(page.locator('.m3-hud').getByLabel(`Moves: ${firstBody.payload.game.movesLeft}`, { exact: true })).toBeVisible();
+    await expect(page.locator('.m3-selection')).toHaveAttribute('aria-busy', 'false');
 
     const nextBoard = firstBody?.payload?.savedModes?.classic?.board;
     const secondMove = findValidMatch3Move(nextBoard);
     expect(secondMove).toBeTruthy();
     const secondSync = waitForMatch3Sync(page, 8000);
     await dragMove(secondMove);
-    await expect(secondSync).resolves.toMatchObject({ action: "match3.syncMode" });
-    await page.waitForTimeout(1700);
+    const secondBody = await secondSync;
+    expect(secondBody).toMatchObject({ action: "match3.syncMode", payload: { game: { movesLeft: firstBody.payload.game.movesLeft - 1 } } });
+    await expect(page.locator('.m3-hud').getByLabel(`Moves: ${secondBody.payload.game.movesLeft}`, { exact: true })).toBeVisible();
+    await expect(page.locator('.m3-selection')).toHaveAttribute('aria-busy', 'false');
     await page.screenshot({
       path: testInfo.outputPath("match3-after-consecutive-swaps.png"),
       fullPage: false,

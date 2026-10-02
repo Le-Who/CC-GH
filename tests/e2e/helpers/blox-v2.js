@@ -68,11 +68,12 @@ export async function expectBloxDialog(page) {
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
   // Compact landscape intentionally scrolls its dialog body. Every action must remain reachable.
   for (const button of await dialog.getByRole("button").all()) {
-    await button.scrollIntoViewIfNeeded();
+    // A trial click already waits for stability, scrolls, and verifies the hit target.
+    // Avoid a second stability/scroll pass for every action on mobile renderers.
+    await button.click({ trial: true });
     const rect = await button.boundingBox();
     expect(rect.width).toBeGreaterThanOrEqual(44);
     expect(rect.height).toBeGreaterThanOrEqual(44);
-    await button.click({ trial: true });
   }
   return dialog;
 }

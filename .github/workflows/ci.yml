@@ -151,6 +151,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Preserve touch traces
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-touch-traces-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results/**/*.zip
+          if-no-files-found: ignore
+          retention-days: 14
+
   docker:
     runs-on: ubuntu-latest
     needs: [test, touch]

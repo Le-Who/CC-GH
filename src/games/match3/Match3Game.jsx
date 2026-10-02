@@ -13,6 +13,7 @@ import {calcGoldReward} from '../../../game-logic/economy.js';
 import {getRewardChestProgress} from '../../../game-logic/hud-bonuses.js';
 import Match3Presentation from './Match3Presentation.jsx';
 import {createMatch3Clock,advanceMatch3Clock,match3ClockSeconds} from './match3Clock.js';
+import {getQueuedMatch3Action} from './match3ActionQueue.js';
 import './i18n.js';
 
 const MATCH3_MODES = [
@@ -31,7 +32,8 @@ function createSwappedMatch3Board(board, from, to) {
 
 export default function Match3Game() {
   const snapshot = useSnapshot();
-  const performAction = useAction();
+  const directAction = useAction();
+  const performAction = useMemo(() => getQueuedMatch3Action(directAction), [directAction]);
   const exitToHub = useExitToHub();
   const { t } = useAppI18n();
   const [mode, setMode] = useState("classic");
@@ -167,12 +169,12 @@ export default function Match3Game() {
     setBoosters(nextBoosters);
     setActiveBooster("");
     setMode(nextMode);
-    performAction("match3.start", { mode: nextMode }, { key: "match3.start" }).then(() => {
-      performAction("match3.syncMode", {
-        game: { score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, mode: nextMode, boosters: nextBoosters },
-        savedModes: { ...(snapshot?.match3?.savedModes || {}), [nextMode]: { board: nextBoard, score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, boosters: nextBoosters } },
-      }, { silent: true });
-    });
+    performAction("match3.start", { mode: nextMode }, { key: "match3.start" });
+    // Queue the initial board immediately, before a player can enqueue the first move.
+    performAction("match3.syncMode", {
+      game: { score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, mode: nextMode, boosters: nextBoosters },
+      savedModes: { ...(snapshot?.match3?.savedModes || {}), [nextMode]: { board: nextBoard, score: 0, movesLeft: nextMode === "timed" ? 90 : 30, combo: 0, boosters: nextBoosters } },
+    }, { silent: true });
   }
 
   function finish(finalScore = scoreRef.current, fromQuit = false) {
