@@ -25,6 +25,7 @@ describe("perf:guard contract", () => {
       "player.apply-migrations-current",
       "player.apply-migrations-legacy",
       "player.build-snapshot",
+      "player.build-first-snapshot",
       "assets.pipeline-entry-scan",
       "assets.runtime-manifest-parse",
       "assets.runtime-bundle-map",
@@ -174,4 +175,28 @@ describe("perf:guard contract", () => {
       .map((result) => `${result.id}: ${result.failures.join("; ")}`);
     assert.deepEqual(failures, []);
   });
+});
+
+it("benchmarks successful current Merge mutations and both first and steady snapshots", async () => {
+  const supply = await PERF_SUITES.find(suite => suite.id === "merge.apply-generator").fn();
+  assert.equal(supply.status, 200);
+  assert.equal(supply.body.mergeLab.ok, true);
+  assert.equal(supply.body.mergeLab.replayed, false);
+  assert.equal(supply.body.snapshot.merge.mergeRevision, 1);
+  assert.deepEqual(supply.body.snapshot.merge.stock, { seed: 1 });
+  assert.equal(supply.body.snapshot.merge.freeTapCharges, 29);
+  const craft = await PERF_SUITES.find(suite => suite.id === "merge.apply-recipe").fn();
+  assert.equal(craft.status, 200);
+  assert.equal(craft.body.mergeLab.ok, true);
+  assert.equal(craft.body.mergeLab.replayed, false);
+  assert.equal(craft.body.snapshot.merge.mergeRevision, 1);
+  assert.deepEqual(craft.body.snapshot.merge.stock, { sprout: 1 });
+  for (const id of ["player.build-first-snapshot", "player.build-snapshot"]) {
+    const suite = PERF_SUITES.find(suite => suite.id === id);
+    assert.deepEqual(suite.budget, { p95: 0.8, max: 4 });
+    const snapshot = await suite.fn();
+    assert.equal(snapshot.merge.schemaVersion, 3);
+    assert.equal(snapshot.merge.migration.mode, "clean-start");
+    assert.equal(snapshot.merge.actionLedger, undefined);
+  }
 });

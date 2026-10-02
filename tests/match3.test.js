@@ -10,6 +10,8 @@ import assert from "node:assert/strict";
 import {
   BOARD_SIZE as ENGINE_BOARD_SIZE,
   MATCH3_BOOSTER_CHARGES,
+  generateBoard as generatePlayableBoard,
+  hasValidMoves,
   applyMatch3Booster,
   attemptMatch3Move,
   normalizeMatch3Boosters,
@@ -560,4 +562,26 @@ describe("Match-3 animation timing", () => {
     assert.equal(match3StepStartFrame(0), MATCH3_TIMING.swapFrames + MATCH3_TIMING.swapSettleFrames);
     assert.equal(match3StepStartFrame(2), MATCH3_TIMING.swapFrames + MATCH3_TIMING.swapSettleFrames + stageFrames * 2);
   });
+});
+
+it("regenerates a deterministic match-free dead board before starting a run", (t) => {
+  const dead = Array.from({ length: 8 }, (_, row) => Array.from({ length: 8 }, (_, col) => GEM_TYPES[(row * 2 + col) % 6]));
+  assert.equal(findMatches(dead).size, 0);
+  assert.equal(hasValidMoves(dead), false);
+  let calls = 0, seed = 0x47519ad;
+  t.mock.method(Math, "random", () => {
+    if (calls < 64) {
+      const index = calls++;
+      return (GEM_TYPES.indexOf(dead[Math.floor(index / 8)][index % 8]) + 0.5) / GEM_TYPES.length;
+    }
+    calls++;
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
+  });
+  const board = generatePlayableBoard();
+  assert.ok(calls > 64, "the dead candidate must be rejected, rather than returned");
+  assert.notDeepEqual(board, dead);
+  assert.equal(findMatches(board).size, 0);
+  assert.equal(hasValidMoves(board), true);
+  assert.ok(board.flat().every(gem => GEM_TYPES.includes(gem)));
 });

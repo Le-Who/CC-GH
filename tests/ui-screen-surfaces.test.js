@@ -313,67 +313,35 @@ test("Yard and Garden menu CSS binds screen-specific generated panels and keeps 
   );
 });
 
-test("Garden generated panels reserve authored content lanes instead of overlaying chrome", async () => {
-  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
-  const bottomPanel = await readFile(path.join(root, "src", "games", "garden-shelf", "components", "BottomPanel.tsx"), "utf8");
-  const gardenGame = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenShelfGame.tsx"), "utf8");
-  const offlineWelcome = await readFile(path.join(root, "src", "games", "garden-shelf", "components", "OfflineWelcome.tsx"), "utf8");
+test("Garden living panels separate header chrome from scrollable runtime content", async () => {
+  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-presentation.css"), "utf8");
+  const presentation = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"), "utf8");
+  const rule = selector => {
+    // Match individual selectors in compact multi-rule CSS, not newline boundaries.
+    const blocks = [...gardenCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, selectors]) => selectors.split(",").some(value => value.trim() === selector))
+      .map(([, , body]) => body);
+    assert.ok(blocks.length, `${selector} must have runtime styles`);
+    return blocks.join(";");
+  };
 
-  assert.match(
-    gardenCss,
-    /\.garden-bottom-sheet\[data-garden-panel\]\s*\{[\s\S]*?aspect-ratio:\s*2\s*\/\s*3/s,
-    "Garden bottom sheets should keep the 2:3 generated panel geometry instead of stretching to content height",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-bottom-sheet\[data-garden-panel\]\s+\.garden-sheet-grabber\s*\{[\s\S]*?display:\s*none\s*!important/s,
-    "Garden generated panels should not draw a generic sheet grabber over the carved header art",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-bottom-sheet\[data-garden-panel="plant-detail"\]\s+\.garden-detail-header\s*\{[\s\S]*?position:\s*absolute[\s\S]*?top:\s*var\(--garden-detail-title-top\)/s,
-    "Garden plant detail title must sit in the authored hanging label lane",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-bottom-sheet\[data-garden-panel="plant-detail"\]\s+\.garden-detail-plant-stage\s*\{[\s\S]*?position:\s*absolute[\s\S]*?top:\s*var\(--garden-detail-stage-top\)/s,
-    "Garden plant detail stage must be mapped to the generated arch opening",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-bottom-sheet\[data-garden-panel="plant-detail"\]\s+\.garden-detail-actions\s*\{[\s\S]*?position:\s*absolute[\s\S]*?bottom:\s*var\(--garden-detail-actions-bottom\)/s,
-    "Garden plant detail actions must sit in the authored action slots",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-modal-card\[data-garden-panel\]\s*\{[\s\S]*?aspect-ratio:\s*2\s*\/\s*3/s,
-    "Garden reward/offline panels should keep the generated portrait panel geometry",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-modal-card\[data-garden-panel\]\s+\.garden-card-row\s*\{[\s\S]*?background:\s*transparent\s*!important/s,
-    "Garden reward values should use the generated reward slots, not a nested CSS pill",
-  );
-  assert.doesNotMatch(
-    gardenCss,
-    /\/games\/garden-shelf\/button_secondary\.png/,
-    "Garden generated panel controls should not use the old sheet-cropped blue button with chromakey fringe",
-  );
-  assert.match(
-    bottomPanel,
-    /<div className="garden-detail-header[\s\S]*?<div className="garden-detail-meta/s,
-    "Garden plant detail markup should expose title and metric lanes separately for the generated panel",
-  );
-  assert.match(
-    gardenGame,
-    /className="garden-modal-reward-icon/s,
-    "Garden level reward modal should expose a dedicated icon lane for the generated reward panel",
-  );
-  assert.match(
-    offlineWelcome,
-    /className="garden-modal-reward-icon/s,
-    "Garden offline reward modal should expose a dedicated icon lane for the generated reward panel",
-  );
+  assert.match(rule(".gs2-modal-layer"), /height:var\(--app-viewport-height,100dvh\)/, "Portals must use the stable WebView viewport");
+  assert.match(rule(".gs2-modal-layer"), /--gs2-modal-safe-top[\s\S]*--gs2-modal-safe-bottom/, "Portal chrome must respect host safe insets");
+  const dialog = rule(".gs2-dialog");
+  assert.match(dialog, /display:flex;flex-direction:column/, "Dialog chrome and content occupy separate flow rows");
+  assert.match(dialog, /max-height:100%/, "A tall panel must stay within its viewport");
+  assert.match(dialog, /border-image:var\(--gs2-panel-image\)/, "Generated border art remains outside the runtime content lane");
+  assert.match(rule(".gs2-dialog-heading"), /flex:none/, "Header and close controls must not shrink into scroll content");
+  assert.match(rule(".gs2-dialog-scroll"), /min-height:0;overflow:auto/, "Long runtime content remains scrollable below the header");
+  assert.match(presentation, /<header className="gs2-dialog-heading">[\s\S]*?<\/header><div className="gs2-dialog-scroll">/, "Header and content must be sibling lanes");
+  assert.match(presentation, /className="gs2-close" onClick=\{onClose\} aria-label=\{t\('ui.close'\)\}/, "Dismiss remains a labelled header control");
+  assert.match(rule(".gs2-detail-stage"), /display:flex/, "Plant art has a separate Care stage");
+  assert.match(rule(".gs2-detail-stat"), /justify-content:space-between/, "Care labels and runtime metric values occupy separate lanes");
+  for (const kind of ["offline-reward", "reward"]) {
+    assert.match(presentation, new RegExp(`kind="${kind}"[\\s\\S]*?className="gs2-reward"><Art name="coin" \\/><strong>\\{formatGardenGoldAmount\\(`), `${kind} must render separate runtime reward art and amount`);
+  }
+  assert.match(rule(".gs2-reward"), /flex-wrap:wrap/, "Reward content can wrap on narrow phones");
+  assert.doesNotMatch(gardenCss, /\/games\/garden-shelf\/button_secondary\.png/, "Live controls must not reintroduce the old cropped button fringe");
 });
 
 test("Yard generated panels use asset slots and keep dismiss controls icon-only", async () => {
@@ -432,61 +400,37 @@ test("Yard generated panels use asset slots and keep dismiss controls icon-only"
   );
 });
 
-test("Garden generated panels pin runtime controls to authored slots", async () => {
-  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
-  const gardenGame = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenShelfGame.tsx"), "utf8");
-  const gardenBottomPanel = await readFile(path.join(root, "src", "games", "garden-shelf", "components", "BottomPanel.tsx"), "utf8");
-
-  assert.match(
-    gardenGame,
-    /className="garden-settings-body"/,
-    "Garden settings should expose a semantic body wrapper for the generated settings panel slots",
-  );
-  assert.match(
-    gardenGame,
-    /className="garden-settings-row garden-settings-sound-row"/,
-    "Garden settings sound control should be addressable as a painted row slot",
-  );
-  assert.match(
-    gardenGame,
-    /className="garden-settings-language-grid"/,
-    "Garden settings language buttons should be addressable as the painted two-button row",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-settings-dialog\[data-garden-panel="settings"\]\s+\.garden-settings-body\s*\{[\s\S]*?position:\s*absolute/s,
-    "Garden settings content should be absolutely pinned inside the authored panel slots",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-quest-dialog\[data-garden-panel="quests"\]\s+\.garden-quest-card\s*\{[\s\S]*?grid-template-columns:/s,
-    "Garden quest rows should map title, reward, progress, and action into the generated row lanes",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-quest-dialog\[data-garden-panel="quests"\]\s+\.garden-quest-card\s+>\s+\.flex\s*\{[\s\S]*?display:\s*contents/s,
-    "Garden quest card flex wrappers should flatten so inner content can occupy authored row slots",
-  );
-  assert.match(
-    gardenBottomPanel,
-    /data-asset-slot-surface=\{isPlantDetail \? "garden-plant-detail" : "garden-seed-shop-inventory"\}/,
-    "Garden seed shop/inventory and plant detail must expose mechanical asset slot surfaces",
-  );
-  assert.match(
-    gardenBottomPanel,
-    /gardenSeedRowAttrs\('garden-seed-shop-row',\s*rowIndex\)/,
-    "Garden seed shop rows must be pinned to authored row slots instead of flowing between painted cells",
-  );
-  assert.match(
-    gardenBottomPanel,
-    /gardenSeedRowAttrs\('garden-inventory-row',\s*rowIndex\)/,
-    "Garden inventory rows must be pinned to authored row slots instead of flowing between painted cells",
-  );
-  assert.match(
-    gardenCss,
-    /\.garden-bottom-sheet\[data-asset-slot-surface="garden-seed-shop-inventory"\]\s+\[data-asset-slot-group\]\s*\{[\s\S]*?position:\s*absolute/s,
-    "Garden seed shop/inventory row slots should use absolute panel coordinates",
-  );
+test("Garden living controls use responsive semantic rows instead of fixed painted slots", async () => {
+  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-presentation.css"), "utf8");
+  const presentation = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"), "utf8");
+  const rule = selector => {
+    // Match individual selectors in compact multi-rule CSS, not newline boundaries.
+    const blocks = [...gardenCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+      .filter(([, selectors]) => selectors.split(",").some(value => value.trim() === selector))
+      .map(([, , body]) => body);
+    assert.ok(blocks.length, `${selector} must have runtime styles`);
+    return blocks.join(";");
+  };
+  for (const kind of ["settings", "quests", "seed-shop-inventory", "plant-detail"]) {
+    assert.match(presentation, new RegExp(`<Dialog[^>]*kind="${kind}"[^>]*onClose=\\{onClose\\}`), `${kind} must retain the shared dismissible panel`);
+  }
+  assert.match(presentation, /aria-pressed=\{sound\}[\s\S]*?setSound\(await audioManager.toggle\(\)\)/, "Sound toggles the real manager and exposes its selected state");
+  assert.match(presentation, /<fieldset className="gs2-setting"><legend>\{t\('settings.language'\)\}/, "Language choices retain an accessible group label");
+  assert.match(presentation, /aria-pressed=\{language === lang\}[^>]*onClick=\{\(\) => setLanguage\(lang\)\}/, "Language buttons select the requested language");
+  assert.match(rule(".gs2-action-row"), /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, "Paired actions must fit the available panel width");
+  assert.match(rule(".gs2-quest-card"), /display:grid/, "Quest labels, reward, progress and action use separate flow rows");
+  assert.match(presentation, /data-quest-id=\{q.id\}[\s\S]*?className="gs2-quest-reward"[\s\S]*?<Progress value=\{q.percent\}[\s\S]*?claimQuest\(q.id, q.reward\)/, "Quest cards retain real progress, reward and claim wiring");
+  assert.match(presentation, /disabled=\{busy \|\| !accountingReady \|\| !q.unlocked \|\| !q.complete \|\| q.claimed\}/, "Incomplete or already-claimed quests cannot be submitted");
+  assert.match(presentation, /role="tabpanel" className="gs2-catalog"/, "Shop and inventory content retain their semantic tab panel");
+  assert.match(presentation, /onClick=\{\(\) => run\(\(\) => buyPlant\(def.id, spot.shelfIndex, spot.spotIndex\)\)\}/);
+  assert.match(presentation, /onClick=\{\(\) => onPlace\(p, spot\)\}/, "Inventory placement must preserve the chosen plant and shelf spot");
+  const rows = rule(".gs2-catalog-row");
+  assert.match(rows, /grid-template-columns:58px minmax\(0,1fr\)/, "Catalog art and text get independent flexible columns");
+  assert.doesNotMatch(rows, /position:absolute/, "Repeated catalog rows must grow with text instead of overlaying fixed slots");
+  assert.match(gardenCss, /@media\(min-width:480px\)\{\.gs2-catalog-row\{grid-template-columns:58px minmax\(0,1fr\) minmax\(112px,auto\)/, "Wide panels place actions alongside text without squeezing narrow phones");
+  const buttons = rule(".gs2-button");
+  assert.match(buttons, /min-width:44px;min-height:44px/, "Actions preserve accessible tap targets");
+  assert.doesNotMatch(buttons, /font-size:0|color:transparent/, "Runtime action labels remain visible");
 });
 
 test("Yard generated management screens declare screen-specific slot maps", async () => {

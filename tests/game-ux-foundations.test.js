@@ -343,34 +343,40 @@ describe("Telegram Mini App game UX foundations", () => {
   it("wires shared overlay dismissal and mature Garden care watering through DOM text", () => {
     const dismissHook = readFileSync(new URL("../src/app/useDismissableLayer.js", import.meta.url), "utf8");
     const shell = readFileSync(new URL("../src/app/shell.jsx", import.meta.url), "utf8");
-    const gardenGame = readFileSync(new URL("../src/games/garden-shelf/GardenShelfGame.tsx", import.meta.url), "utf8");
+    const presentation = readFileSync(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url), "utf8");
     const gardenContext = readFileSync(new URL("../src/games/garden-shelf/lib/GameContext.tsx", import.meta.url), "utf8");
-    const bottomPanel = readFileSync(new URL("../src/games/garden-shelf/components/BottomPanel.tsx", import.meta.url), "utf8");
 
     assert.match(dismissHook, /event\.key !== "Escape"/);
     assert.match(dismissHook, /document\.addEventListener\("pointerdown"/);
     assert.match(shell, /useEscapeDismiss\(canDismissOverlay, onDismiss\)/);
-    assert.match(gardenGame, /useEscapeDismiss\(open, closeSettings\)/);
+    assert.match(presentation, /useEscapeDismiss\(true, onClose\)/, "Every mounted Garden dialog must support Escape dismissal");
+    assert.match(presentation, /className="gs2-scrim"[^>]*onClick=\{onClose\}/, "The visible scrim must dismiss its dialog");
+    assert.match(presentation, /className="gs2-close" onClick=\{onClose\} aria-label=\{t\('ui.close'\)\}/);
     assert.match(gardenContext, /getGardenWaterCooldownMs\(plant\.phase\)/);
     assert.match(gardenContext, /getMatureWaterReward\(def\.baseClick, def\.baseXp, plant\.level\)/);
-    assert.match(bottomPanel, /t\('plantDetail\.careWater'\)/);
+    assert.match(presentation, /disabled=\{busy \|\| !canWater\} onClick=\{\(\) => run\(\(\) => waterPlant\(p.id\)\)\}/, "Care watering keeps its cooldown and action handler");
+    assert.match(presentation, /t\(mature \? 'plantDetail\.careWater' : 'plantDetail\.water'\)/, "Mature Care labels remain real localized DOM text");
   });
 
   it("keeps Garden Shelf live screen-first with compact hub chrome", () => {
     const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
     const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
     const gardenGame = readFileSync(new URL("../src/games/garden-shelf/GardenShelfGame.tsx", import.meta.url), "utf8");
-    const gardenCss = readFileSync(new URL("../src/games/garden-shelf/garden-shelf.css", import.meta.url), "utf8");
+    const presentation = readFileSync(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url), "utf8");
+    const gardenCss = readFileSync(new URL("../src/games/garden-shelf/garden-presentation.css", import.meta.url), "utf8");
 
     assert.match(app, /className="topbar-title"/);
     assert.match(indexCss, /\.telegram-app\[data-active-tab="garden"\]\s+\.topbar\s*\{[\s\S]*position:\s*absolute/);
     assert.match(indexCss, /\.telegram-app\[data-active-tab="garden"\]\s+\.topbar-title\s*\{[\s\S]*display:\s*none/);
     assert.match(indexCss, /\.telegram-app\[data-active-tab="garden"\]\s+\.status-dot\s*\{[\s\S]*font-size:\s*0/);
-    assert.match(gardenGame, /className=\{cn\("garden-root garden-reference-stage/);
-    assert.match(gardenGame, /className="garden-greenhouse-frame"/);
-    assert.doesNotMatch(gardenGame, /Glass Dome Container/);
-    assert.match(gardenCss, /\.garden-reference-stage/);
-    assert.match(gardenCss, /\.garden-greenhouse-frame/);
+    assert.match(gardenGame, /<GardenPresentation\b/, "The account-bound game provider renders the live presentation");
+    assert.match(presentation, /<HudRegion id="gardenRoot"[^>]*className="gs2-stage"/);
+    assert.match(presentation, /<HudRegion id="gardenShelf"[^>]*className="gs2-shelf-viewport"/);
+    assert.match(presentation, /useLayoutEffect\(\(\) => applyGardenHostLayout\(/, "The live screen installs the registered host reserve adapter");
+    assert.match(gardenCss, /\.gs2-stage\s*\{[^}]*grid-template-rows:minmax\(0,1fr\) auto/, "Feedback owns a row outside the shelf playfield");
+    assert.match(gardenCss, /\.telegram-app\[data-active-tab="garden"\]\[data-garden-presentation="living"\]\s*\{[^}]*var\(--safe-bottom,0px\) \+ var\(--garden-dock-reserve\)/, "The host reserves the dock plus safe area");
+    assert.match(gardenCss, /grid-template-columns:repeat\(var\(--garden-dock-columns\),minmax\(0,1fr\)\)/, "Dock columns remain layout-owned");
+    assert.doesNotMatch(presentation, /Glass Dome Container/);
   });
 
   it("keeps Garden and Yard empty starts thematic instead of placeholder-empty", () => {

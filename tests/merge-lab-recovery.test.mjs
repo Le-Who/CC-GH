@@ -81,3 +81,14 @@ test('legacy migrations reproduce original parsing, mirroring, quarantine, and n
  for(const f of fixtures){const input={...clone(base),...f};const before=clone(input);const a=migrateMergeLabPlayer(input,catalog,{now});same(a,originalMigration(input,catalog,{now}));same(input,before);same(migrateMergeLabPlayer(a.player,catalog,{now:now+1}),originalMigration(a.player,catalog,{now:now+1}));}
 });
 test('differential coverage count',()=>{assert.ok(comparisons>1800,`comparisons: ${comparisons}`);console.log(`MERGE_RECOVERY_DIFFERENTIAL_COMPARISONS=${comparisons}`);});
+
+test('minimum-cost early exit preserves fixed-point results for reversed dependency order',()=>{
+ const reordered=clone(catalog);
+ reordered.recipes.reverse();
+ assert.deepEqual(recovered.compileMergeLabCatalog(reordered),original.compileMergeLabCatalog(reordered));
+ const disconnected=clone(catalog);
+ disconnected.items.push({id:'unreachable',names:{en:'Unreachable',ru:'Недостижимо'}});
+ for(const compiler of [original.compileMergeLabCatalog,recovered.compileMergeLabCatalog]){
+  assert.throws(()=>compiler(disconnected),{code:'INVALID_CATALOG'});
+ }
+});

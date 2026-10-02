@@ -4428,6 +4428,17 @@ export const MERGE_LAB_CATALOG = {
   ]
 };
 
+// The release catalog is static configuration. Freeze every nested value so the
+// server may retain its validated index without accepting stale mutable inputs.
+function freezeCatalogValue(value) {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    for (const nested of Object.values(value)) freezeCatalogValue(nested);
+    Object.freeze(value);
+  }
+  return value;
+}
+freezeCatalogValue(MERGE_LAB_CATALOG);
+
 export function mergeLabName(item, language = 'en') {
   return item?.names?.[language] || item?.names?.en || item?.name || item?.id || '';
 }

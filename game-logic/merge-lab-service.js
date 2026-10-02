@@ -15,6 +15,10 @@ export const MERGE_LAB_RELEASE_POLICY = Object.freeze({
   migrationMode: 'clean-start', // Approved release: archive pre-V3 Merge and start fresh.
   yardV3ProjectsEnabled: false,
 });
+// Kept private: callers cannot mutate the shared validated Map indexes.
+// Custom catalogs are still compiled and validated on every call.
+const releaseCatalogIndex = compileMergeLabCatalog(MERGE_LAB_CATALOG);
+
 const isObject = value => value && typeof value === 'object' && !Array.isArray(value);
 const own = (object,key) => Object.prototype.hasOwnProperty.call(object,key);
 const assert = (condition,code,message,status=409) => {if(!condition)throw new MergeLabError(code,message,status);};
@@ -47,7 +51,7 @@ export function ensureMergeLabState(player, {now=Date.now(),policy=MERGE_LAB_REL
   const release=labReleasePolicy(policy);
   assert(release.enabled,'MERGE_LAB_DISABLED','The new workshop is not enabled for this release',503);
   assert(isObject(player),'INVALID_PLAYER','Player data is missing',500);
-  const compiled=compileMergeLabCatalog(catalog);
+  const compiled=catalog===MERGE_LAB_CATALOG?releaseCatalogIndex:compileMergeLabCatalog(catalog);
   const fence=player._mergeLabFence;
   if(fence){
     assert(isObject(fence)&&validEpoch(fence.epoch)&&Number.isSafeInteger(fence.highWaterRevision)&&fence.highWaterRevision>=0,'INVALID_RESET_FENCE','Merge reset fence is invalid');

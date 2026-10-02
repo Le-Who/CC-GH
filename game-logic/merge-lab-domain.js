@@ -56,7 +56,8 @@ function plainObject(s,r){
   return assertLab(s&&typeof s=="object"&&!Array.isArray(s)&&(Object.getPrototypeOf(s)===Object.prototype||Object.getPrototypeOf(s)===null),"INVALID_DATA",`${r} must be a plain object`),s
 }
 function safeInteger(s,r,f=0,c=Number.MAX_SAFE_INTEGER){
-  return assertLab(Number.isSafeInteger(s)&&s>=f&&s<=c,"INVALID_INTEGER",`${r} must be an integer in ${f}..${c}`),s
+  if(!Number.isSafeInteger(s)||s<f||s>c)throw new MergeLabError("INVALID_INTEGER",`${r} must be an integer in ${f}..${c}`);
+  return s
 }
 function validId(s,r){
   return assertLab(typeof s=="string"&&LAB_ID_PATTERN.test(s)&&!["constructor","prototype","__proto__"].includes(s),"INVALID_ID",`Invalid ${r}`),s
@@ -68,7 +69,8 @@ function multiplyCounts(s,r){
   return safeInteger(s*r,"quantity product")
 }
 function pairKey(s,r){
-  return[validId(s,"item ID"),validId(r,"item ID")].sort().join("+")
+  const left=validId(s,"item ID"),right=validId(r,"item ID");
+  return left<right?`${left}+${right}`:`${right}+${left}`
 }
 function canonicalJson(s){
   return s===null||typeof s=="boolean"||typeof s=="string"?JSON.stringify(s):typeof s=="number"?(assertLab(Number.isFinite(s),"INVALID_DATA","Non-finite number"),JSON.stringify(s)):Array.isArray(s)?`[${s.map(canonicalJson).join(",")}]`:(plainObject(s,"JSON value"),assertLab(Object.getPrototypeOf(s)===Object.prototype||Object.getPrototypeOf(s)===null,"INVALID_DATA","Non-JSON object"),`{${Object.keys(s).sort().map(r=>`${JSON.stringify(r)}:${canonicalJson(s[r])}`).join(",")}}`)
@@ -201,11 +203,18 @@ function compileMergeLabCatalog(s){
   const g=arrayValue(s.baseSupplyItemIds??DEFAULT_BASE_SUPPLIES,"base supplies");
   g.forEach(b=>assertLab(c.has(b),"INVALID_CATALOG",`Unknown base supply ${b}`));
   const _=Object.fromEntries(g.map(b=>[b,1]));
-  for(let b=0
-  ;b<c.size;b++)for(const K
-  of y.values()){
-    const V=K.ingredients.reduce((te,w)=>te+(_[w]??1/0),0);
-    V<(_[K.result]??1/0)&&(_[K.result]=V)
+  // Positive ingredient costs form a monotone relaxation. Once a complete pass
+  // makes no improvement, further passes cannot change any minimum cost.
+  for(let b=0;b<c.size;b++){
+    let changed=false;
+    for(const K of y.values()){
+      const V=(_[K.ingredients[0]]??1/0)+(_[K.ingredients[1]]??1/0);
+      if(V<(_[K.result]??1/0)){
+        _[K.result]=V;
+        changed=true;
+      }
+    }
+    if(!changed)break;
   }
   assertLab([...c.keys()].every(b=>Number.isFinite(_[b])),"INVALID_CATALOG","Every item needs a deterministic base-supply path");
   const M=arrayValue(s.supplyItemIds??Object.keys(_).filter(b=>_[b]<=8),"common supplies");

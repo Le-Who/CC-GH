@@ -13,6 +13,10 @@ import {
 } from "../game-logic.js";
 import { applyMigrations } from "../playerManager.js";
 import { applyAction, buildSnapshot } from "../routes/player.js";
+import { ensureMergeLabState } from "../game-logic/merge-lab-service.js";
+import { createMergeLabAction, createMergeLabQuote } from "../game-logic/merge-lab-domain.js";
+import { MERGE_LAB_CATALOG } from "../game-logic/merge-lab-catalog.js";
+const MERGE_PERF_NOW = 1_800_000_000_000;
 import { createEmptyBoard, canAnyPieceFit, placePiece } from "../game-logic/blox-engine.js";
 import { PIECES } from "../game-logic/blox-pieces.js";
 import { BOARD_COLS, BOARD_ROWS, hydrateMergeBoard, getEmptyCells } from "../game-logic/merge-board-utils.js";
@@ -126,15 +130,35 @@ function makeMergePlayer() {
 
 function makeMergeGeneratorPlayer() {
   const player = createDefaultPlayer("merge_generator_perf", "MergeGeneratorPerf");
+  ensureMergeLabState(player, { now: MERGE_PERF_NOW });
   player.merge.freeTapCharges = 30;
   return player;
 }
 
 function makeMergeRecipePlayer() {
   const player = createDefaultPlayer("merge_recipe_perf", "MergeRecipePerf");
-  player.merge.board[0][0] = { id: "sand", chainId: "earth", level: 1 };
-  player.merge.board[0][1] = { id: "lightning", chainId: "storm", level: 3 };
+  ensureMergeLabState(player, { now: MERGE_PERF_NOW });
+  const recipe = MERGE_LAB_CATALOG.recipes.find(recipe => recipe.id === "seed_dew_sprout");
+  player.merge.knowledge.recipeIds = [...new Set([...player.merge.knowledge.recipeIds, recipe.id])];
+  player.merge.knowledge.itemIds = [...new Set([...player.merge.knowledge.itemIds, recipe.result])];
+  player.merge.stock = { seed: 1, dew: 1 };
   return player;
+}
+
+function makeMergePerfCommand(player, type, parameters) {
+  const quote = createMergeLabQuote(player, type, parameters, MERGE_LAB_CATALOG, { now: MERGE_PERF_NOW });
+  return {
+    expectedMergeEpoch: player.merge.serverEpoch,
+    command: createMergeLabAction(player, type, { ...parameters, quote }, MERGE_LAB_CATALOG, { actionId: "perf-current-action" }),
+  };
+}
+
+async function runMergePerfAction(player, command) {
+  const result = await applyAction(structuredClone(player), "merge.lab", command, { now: MERGE_PERF_NOW });
+  if (result.status !== 200 || !result.body.mergeLab?.ok || result.body.mergeLab.replayed) {
+    throw new Error(`Merge benchmark did not execute a fresh successful action: ${JSON.stringify(result.body)}`);
+  }
+  return result;
 }
 
 function makeAlmostFullBloxBoard() {
@@ -354,12 +378,16 @@ const stableQuestionPool = makeQuestionPool();
 const stableMergePlayer = makeMergePlayer();
 const stableMergeGeneratorPlayer = makeMergeGeneratorPlayer();
 const stableMergeRecipePlayer = makeMergeRecipePlayer();
+const stableMergeGeneratorCommand = makeMergePerfCommand(stableMergeGeneratorPlayer, "claimSupply", { itemId: "seed", quantity: 1 });
+const stableMergeRecipeCommand = makeMergePerfCommand(stableMergeRecipePlayer, "craft", { recipeId: "seed_dew_sprout", quantity: 1 });
 const stableAlmostFullBloxBoard = makeAlmostFullBloxBoard();
 const stableYard = makeYardFixture();
 const stableLongIdleYard = makeLongIdleYardFixture();
 const stableCurrentPlayer = createDefaultPlayer("current_perf_guard", "CurrentPerf");
 const stableLegacyPlayer = makeLegacyMigrationPlayer();
-const stableSnapshotPlayer = makeSnapshotPlayer();
+const stableFirstSnapshotPlayer = makeSnapshotPlayer();
+const stableSnapshotPlayer = structuredClone(stableFirstSnapshotPlayer);
+buildSnapshot(stableSnapshotPlayer); // Normal live snapshots start after the one-time migration.
 
 export const PERF_SUITES = [
   {
@@ -456,25 +484,20 @@ export const PERF_SUITES = [
   {
     id: "merge.apply-generator",
     group: "Gacha Merge",
-    description: "Apply a server-authoritative random generator tap including snapshot construction.",
+    description: "Claim a server-authoritative V3 seed supply with a validated quote, charge debit, receipt and snapshot.",
     budget: { p95: 1.2, max: 6 },
     iterations: 180,
     warmup: 30,
-    fn: () => applyAction(structuredClone(stableMergeGeneratorPlayer), "merge.tap", {}, { now: 1_800_000_000_000 }),
+    fn: () => runMergePerfAction(stableMergeGeneratorPlayer, stableMergeGeneratorCommand),
   },
   {
     id: "merge.apply-recipe",
     group: "Gacha Merge",
-    description: "Apply the sand plus lightning recipe merge with authoritative rewards and snapshot construction.",
+    description: "Craft a researched V3 seed plus dew recipe with stock debit, output, receipt and snapshot.",
     budget: { p95: 1.2, max: 6 },
     iterations: 180,
     warmup: 30,
-    fn: () => applyAction(
-      structuredClone(stableMergeRecipePlayer),
-      "merge.merge",
-      { fromR: 0, fromC: 0, toR: 0, toC: 1 },
-      { now: 1_800_000_000_000 },
-    ),
+    fn: () => runMergePerfAction(stableMergeRecipePlayer, stableMergeRecipeCommand),
   },
   {
     id: "bubbo.pressure-advance",
@@ -556,6 +579,15 @@ export const PERF_SUITES = [
     iterations: 420,
     warmup: 60,
     fn: () => applyMigrations(structuredClone(stableLegacyPlayer)),
+  },
+  {
+    id: "player.build-first-snapshot",
+    group: "Player JSON",
+    description: "Build the first authoritative snapshot, including one-time Merge V3 migration and preserved legacy archive.",
+    budget: { p95: 0.8, max: 4 },
+    iterations: 320,
+    warmup: 50,
+    fn: () => buildSnapshot(structuredClone(stableFirstSnapshotPlayer)),
   },
   {
     id: "player.build-snapshot",

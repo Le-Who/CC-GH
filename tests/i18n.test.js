@@ -40,11 +40,11 @@ function listSourceFiles(root) {
 }
 
 function extractTranslationKeys(source, language) {
-  const marker = new RegExp(`\\n\\s*${language}: \\{\\r?\\n`);
+  const marker = new RegExp(`\\n\\s*["']?${language}["']?:\\s*\\{\\r?\\n`);
   const match = marker.exec(source);
   assert.ok(match, `Missing ${language} translation block`);
   const start = match.index + match[0].length;
-  const end = source.indexOf("\n  },", start);
+  const end = source.indexOf("\n  }", start);
   assert.notEqual(end, -1, `Missing end of ${language} translation block`);
   const body = source.slice(start, end);
   return new Set([...body.matchAll(/["']([^"']+)["']\s*:/g)].map(([, key]) => key));
@@ -139,4 +139,12 @@ describe("i18n coverage", () => {
 
     assert.deepEqual(rawStrings.sort(), []);
   });
+});
+
+it("extracts quoted and unquoted language keys without requiring a final trailing comma", () => {
+  for (const quote of ["", '"', "'"]) {
+    const source = `const translations = {\n  ${quote}en${quote}: {\n    "example.key": "English {count}"\n  },\n  ${quote}ru${quote}: {\n    "example.key": "Русский {count}"\n  }\n};`;
+    assert.deepEqual([...extractTranslationKeys(source, "en")], ["example.key"]);
+    assert.deepEqual([...extractTranslationKeys(source, "ru")], ["example.key"]);
+  }
 });

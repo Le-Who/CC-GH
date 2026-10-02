@@ -221,22 +221,25 @@ function isMatchableGem(type) {
 }
 
 export function generateBoard() {
-  const b = [];
-  for (let y = 0; y < BOARD_SIZE; y++) {
-    b[y] = [];
-    for (let x = 0; x < BOARD_SIZE; x++) {
-      let gem;
-      do {
-        gem = randomGem();
-      } while (
-        (x >= 2 && b[y][x - 1] === gem && b[y][x - 2] === gem) ||
-        (y >= 2 && b[y - 1]?.[x] === gem && b[y - 2]?.[x] === gem)
-      );
-      b[y][x] = gem;
+  // A match-free board can still be a deadlock. Retry before exposing a new run.
+  while (true) {
+    const b = [];
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      b[y] = [];
+      for (let x = 0; x < BOARD_SIZE; x++) {
+        let gem;
+        do {
+          gem = randomGem();
+        } while (
+          (x >= 2 && b[y][x - 1] === gem && b[y][x - 2] === gem) ||
+          (y >= 2 && b[y - 1]?.[x] === gem && b[y - 2]?.[x] === gem)
+        );
+        b[y][x] = gem;
+      }
     }
-  }
 
-  return b;
+    if (hasValidMoves(b)) return b;
+  }
 }
 
 // v7.3: Early-exit fast detector for `hasValidMoves`.

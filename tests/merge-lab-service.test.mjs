@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MERGE_LAB_CATALOG as catalog} from '../game-logic/merge-lab-catalog.js';
-import {createMergeLabState,createMergeLabAction,createMergeLabQuote,hashMergeLabAction} from '../game-logic/merge-lab-domain.js';
+import {compileMergeLabCatalog,createMergeLabState,createMergeLabAction,createMergeLabQuote,hashMergeLabAction} from '../game-logic/merge-lab-domain.js';
 import {MERGE_LAB_RELEASE_POLICY,ensureMergeLabState,executeMergeLab,quoteMergeLab,planMergeCleanStart,publicMergeLabState} from '../game-logic/merge-lab-service.js';
 const now=1790928000000,epoch='epoch_test_123456789';
 // Preserve remains an explicitly selected compatibility option, independent of the release default.
@@ -36,4 +36,17 @@ test('policy changes block new future-project crafts but still confirm already-c
 test('unknown namespace metadata survives but malformed/newer schemas never auto-downgrade in either mode',()=>{
  const p=legacy();p.merge.projects={selectedId:'echo_chimes',extension:{custom:'keep'}};p.merge.supply={extension:{custom:'keep'}};ensureMergeLabState(p,options);assert.deepEqual(p.merge.projects.extension,{custom:'keep'});assert.deepEqual(p.merge.supply.extension,{custom:'keep'});
  for(const migrationMode of ['preserve','clean-start'])for(const schemaVersion of [4,'3',1.5]){const future=legacy();future.merge.schemaVersion=schemaVersion;const before=structuredClone(future);assert.throws(()=>ensureMergeLabState(future,{...options,policy:{...policy,migrationMode}}),{code:'MERGE_SCHEMA_REVIEW_REQUIRED'});assert.deepEqual(future,before);}
+});
+
+test('only immutable release configuration reuses private validated catalog indexes',()=>{
+ const visit=value=>{if(!value||typeof value!=='object')return;assert.equal(Object.isFrozen(value),true);Object.values(value).forEach(visit);};
+ visit(catalog);
+ assert.throws(()=>{catalog.economy.chargeCap=999;},TypeError);
+ const custom=structuredClone(catalog),p=legacy();
+ ensureMergeLabState(p,{...options,catalog:custom});
+ custom.recipes[0].ingredients[0]='missing_item';
+ assert.throws(()=>ensureMergeLabState(p,{...options,catalog:custom}));
+ // Public compilation returns independent indexes and cannot poison the service's private one.
+ const index=compileMergeLabCatalog(catalog);index.items.clear();
+ assert.doesNotThrow(()=>ensureMergeLabState(prepared(),options));
 });
