@@ -30,7 +30,7 @@ const initial = fixture();
 const report = { scope: 'Isolated pure-state foundation, not production/API/game integration', baselineSha: '47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86' };
 
 test('exact baseline blob provenance and real factories are available without editing source', async () => {
-  for (const filename of ['provenance.json', 'dependency-provenance.json']) {
+  for (const filename of ['provenance.json', 'dependency-provenance.json', 'integration-provenance.json']) {
     const root = new URL('../../design/yard-v2/baseline-47519/', import.meta.url);
     const manifest = JSON.parse(await readFile(new URL(filename, root), 'utf8'));
     for (const row of manifest.files) {

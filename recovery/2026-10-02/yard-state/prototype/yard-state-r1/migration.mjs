@@ -11,7 +11,7 @@ export function walletSnapshot(player = {}) {
   return { resources: clone(player.resources), yardCurrencies: clone(player.yard?.currencies),
     mergeAlchemyEssence: player.merge?.alchemyEssence };
 }
-function operationalIssues(yard) {
+export function operationalIssues(yard) {
   const issues = [];
   for (const key of ['placedGoodies', 'bowls', 'activeVisitors', 'pendingGifts']) if (!Array.isArray(yard[key])) issues.push({ code: 'MISSING_ARRAY', key });
   for (const key of ['currencies', 'foodInventory', 'goodieInventory', 'petbook', 'mementos']) if (!yard[key] || typeof yard[key] !== 'object' || Array.isArray(yard[key])) issues.push({ code: 'MISSING_OBJECT', key });
@@ -23,7 +23,7 @@ function operationalIssues(yard) {
 }
 export function migratePlayerSnapshot(input, { now, seed } = {}) {
   assertInteger(now, 'migration now');
-  if (input?.format === FOUNDATION_FORMAT && input.player && input.runtime && input.migration?.receipt) {
+  if (input?.format === FOUNDATION_FORMAT && input.player && input.runtime && (input.migration?.receipt || input.migration?.backupId)) {
     if (input.runtime.version !== 1) throw new Error('Unsupported future runtime version; preserve raw backup and quarantine');
     return workingCopy(input);
   }
@@ -87,6 +87,6 @@ export function migratePlayerSnapshot(input, { now, seed } = {}) {
 export function restoreRawInput(envelope, externalBackup = null) {
   const raw = envelope.migration.rawBackup ?? externalBackup?.rawSnapshot;
   if (raw === undefined) throw new Error('Original snapshot lives in the external immutable backup store');
-  if (digest(raw) !== envelope.migration.receipt.inputSha256) throw new Error('Backup integrity mismatch');
+  if (digest(raw) !== (envelope.migration.inputSha256 || envelope.migration.receipt?.inputSha256)) throw new Error('Backup integrity mismatch');
   return clone(raw);
 }
