@@ -1,0 +1,177 @@
+{
+  "qaHotfixVersion": "bubbo-r1-qa-hotfix-20261002",
+  "baseArchive": "cc-gh-bubbo-v2-20261001-r1-preview.zip",
+  "baseArchiveSha256": "8595c31ac48ffa7638dd7d736a7fd26e7f704529bb0550f8ae51421378cac0a4",
+  "gameVersionUnchanged": "bubbo-v2-20261001-r1",
+  "gameBundleChanged": false,
+  "browserRun": false,
+  "requiredUnchangedFiles": [
+    {
+      "path": "dist-bubbo-preview/THIRD-PARTY-NOTICES.txt",
+      "sha256": "1da2e59896e74aa10623c61f6060c224c9440355d3e3ed7192163240d04324a9"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/game-C9T55LZI.js",
+      "sha256": "1070137083e046a076560f917d5490cf0ffa1de3e8e0e3a7fd6093a3c89552be"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/host-CROXyAcs.css",
+      "sha256": "97a83a0ad899dd45de95abcd41d81464f8bf4be6e6cfc7544d567328f1abad48"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/host-bF7XYshW.js",
+      "sha256": "0a54b0b9182bca8046184cd9163d7390a58fc5eb3bc730b9a2488c4ba74188fc"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/index-BEReDF8Y.css",
+      "sha256": "9e3b99c7cf50fbdd48d42e949c5eab6170a00bbffdf8bd3efd9f311b8892253a"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/index-C-YNUxEY.js",
+      "sha256": "ea0811fc823c5dbdf09c6d6f0495654d25e56ec8b3330fa0038cd98d93697b3c"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/manifest.json",
+      "sha256": "a90b8a5b7be6ff065fc7bfa3ee7dc9bb51a10bad8a41be33b546c6d15679ad47"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/modulepreload-polyfill-B5Qt9EMX.js",
+      "sha256": "d2a32840421496e872ade591618d2fa5c33797605d1aec04301717e5a90757d0"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-cyrillic-400-normal-xAOo5cBP.woff2",
+      "sha256": "e44e669faccf46c6ea8d557f3a22116e118eb0a1b3062253a5f000a46b30be04"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-cyrillic-700-normal-DP36NgGt.woff2",
+      "sha256": "8fcefcc97082ecb18d51cb34a6ace6714a5ab4fa7bb6f890f280abf607e03579"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-cyrillic-800-normal-D3igD7Kl.woff2",
+      "sha256": "d80292de3776e71904944f257a235f5a30e2e61ade3e463a6f39d069e43eb367"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-cyrillic-900-normal-CWPcV0_V.woff2",
+      "sha256": "50f32003ea66176e5a07b9dc4a3292b02bb36f6a6660fad04b8e2af79a1af343"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-latin-400-normal-r8SDr6Up.woff2",
+      "sha256": "a5906e15ceb68f73d3b2c2076b4057c3f6ed401186d56283b45ce12944ca0735"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-latin-700-normal-Dort48En.woff2",
+      "sha256": "fa89300b9bbb3bd0f60d6991aa055965d98e2ccca27bf8688fe0c39cdc796846"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-latin-800-normal-Dz8SOQK_.woff2",
+      "sha256": "2363d3ed037283ebb961e8c4b4917e40a8bc8853cf9965cf1ea7b4daa1df630a"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/nunito-latin-900-normal-BVB1fGs6.woff2",
+      "sha256": "9ca32f5d8334579387361096944286df451272a557bb09bd906254a623aba99e"
+    },
+    {
+      "path": "dist-bubbo-preview/assets/version-B2xi2aCa.js",
+      "sha256": "0e5d0fd969b51427335caf59c3e2d77fa4a1db75f85ae6fc83469110516aff4a"
+    },
+    {
+      "path": "dist-bubbo-preview/assets-runtime/manifest.json",
+      "sha256": "f76004d0846deaaa474ac40cd03ddf8a4c01cb369d737e92b75c208cca35bc8b"
+    },
+    {
+      "path": "dist-bubbo-preview/bubbo-preview.json",
+      "sha256": "e6aab731a2db32bea62ca37c46d07dd3219c320095a0b9526f93d8b8ae57bb85"
+    },
+    {
+      "path": "dist-bubbo-preview/game.html",
+      "sha256": "1626283805f5c53dff3a99fc908171ab5e67ef97721bf3f1a7c2bc7387694e9e"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/amber.webp",
+      "sha256": "90f894e5e134d284f34a60317f60c9f8212fde0932249d0873736bc10fafbfde"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/background-portrait.webp",
+      "sha256": "4938aeec92a21242a3adf53fce83525940162f9bff87d48d04ced0e3ff931a93"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/background.webp",
+      "sha256": "d1a760ba3f48e15e781a399f83813d6b2ba531d1c41f3ae20b7b807a42fad565"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/berry.webp",
+      "sha256": "2a77ec9495d115e178ab03bd0b3957595c8fbb7faf1455da616a71d5e072cedd"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/bomb.webp",
+      "sha256": "e62a89a75819652ae820d2c2dcf0ff4ffbf5622777a6ce7e26901995c44bb8b4"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/button.webp",
+      "sha256": "bbbac3ef4c7c7b0a6276cf5f6c0b44608bb9e8bd2d2e8bb3701136c752ac0d4f"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/cannon.webp",
+      "sha256": "12b4889771e64b329490af984a5745ce3d94d532687a1c849ba34594ced7858b"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/coral.webp",
+      "sha256": "d2c5c9f35dcbf92cad5dc8929543aa7640ec8f1038eba464cd038e90b5d62ead"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/lightning.webp",
+      "sha256": "655c2eb0981d0632698351fe50a3454a47519122126818701ebf5956cf7c4eb8"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/mint.webp",
+      "sha256": "e10384147e20eebabd76afb7a79f73e0b1e7cde4e1d07289bff2445f1259e1e5"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/panel.webp",
+      "sha256": "8a5a568119b7fba4ae331ea5de94e348b0c2fa66848c67a3a92d4d7992d884f2"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/rainbow.webp",
+      "sha256": "0e37cfdf287bd473fb213cfe6d4e4877e1773a44e6bd8bf78a1e6eb336638fb5"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/sky.webp",
+      "sha256": "1e0a42f8dbb14518979b82e3d48a435d9ea5304c277852411d3116ca2c443f41"
+    },
+    {
+      "path": "dist-bubbo-preview/games/bubbo-v2/swap.webp",
+      "sha256": "18e41daac90247a310a4d28f7d32841e4b33fa17e9f3a7abda853c8b02e8370f"
+    },
+    {
+      "path": "dist-bubbo-preview/index.html",
+      "sha256": "1ad2814d8d0356e21e49fba8ecb0ab59c85c0b199ede03b4a7c593b069275b0a"
+    },
+    {
+      "path": "dist-bubbo-preview/offline-preview.json",
+      "sha256": "92d6165f4ff70e39b037840d16ced10b1108e54cbe8278aa615acf714d47496f"
+    },
+    {
+      "path": "qa/core.mjs",
+      "sha256": "d1785c3a88a997b36ba7d1d065783b20f7d91e6974b2c690afe1f9f6afba2884"
+    },
+    {
+      "path": "qa/bubbo-profile.mjs",
+      "sha256": "3b570cd653b091a644c4e28cb49191036bfb3c9679296b4aa04c18e2a9051673"
+    },
+    {
+      "path": "qa/profiles.mjs",
+      "sha256": "d07664c4266e52dbfbd5032f4f4825b43e3a1aa583b66ac567415584bc5cbb23"
+    },
+    {
+      "path": "qa/run-qa.mjs",
+      "sha256": "7f1fa6bb39a97d2d511654256ef7a72f56780d1220c9efc8946edd6a0709dd27"
+    },
+    {
+      "path": "RUN-QA.cmd",
+      "sha256": "f53091a3e267cecced333e344dc8285db357de36828d9ba6cc6460655ea977e1"
+    }
+  ],
+  "originalActorSha256": "d5bde5b8f00fa0a73b03c84292de4e41b1b220a8ea96b532df8bd138543aab78",
+  "patchedActorSha256": "ecad508fa37c0ec5f7b1f54a4ce41fd85ff9771ac10c4a6a848ab7606c093a8b",
+  "pairedModuleSha256": "d8e68e1b0669a0d50b32c09b937dd1855300155c8f2d19a8284cbbcc267013ac"
+}
