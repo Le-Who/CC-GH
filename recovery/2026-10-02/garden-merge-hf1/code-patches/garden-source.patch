@@ -1,0 +1,36 @@
+--- a/preview/garden/version.js
++++ b/preview/garden/version.js
+@@ -1 +1 @@
+-export const GARDEN_PREVIEW_VERSION = 'garden-v2-20261001-r2';
++export const GARDEN_PREVIEW_VERSION = 'garden-v2-20261002-hf1';
+--- a/src/games/garden-shelf/garden-presentation.css
++++ b/src/games/garden-shelf/garden-presentation.css
+@@ -89,3 +89,14 @@
+ .gs2-shelf-viewport::-webkit-scrollbar-track,.gs2-dialog-scroll::-webkit-scrollbar-track,.gs2-header::-webkit-scrollbar-track{background:#e7ead8;border-radius:8px}
+ @media(hover:hover) and (pointer:fine){.gs2-shelf-viewport{cursor:grab}.gs2-shelf-viewport[data-gs2-dragging=true],.gs2-shelf-viewport[data-gs2-dragging=true] *{cursor:grabbing}}
+ @media(hover:none) and (pointer:coarse){.gs2-shelf-viewport,.gs2-dialog-scroll,.gs2-header{scrollbar-width:none;scrollbar-gutter:auto}.gs2-shelf-viewport::-webkit-scrollbar,.gs2-dialog-scroll::-webkit-scrollbar,.gs2-header::-webkit-scrollbar{display:none;width:0;height:0}}
++
++/* Recovered preview hotfix: retain a 44px close route and a scrollable body at short heights. */
++@media (max-height:400px){
++ .gs2-dialog{border-width:8px;border-image-width:8px}
++ .gs2-dialog-heading{min-height:44px;padding:0 2px 4px;gap:8px}
++ .gs2-dialog-heading h2{font-size:18px}
++ .gs2-dialog-heading .gs2-close{width:44px;height:44px;min-height:44px;padding:0}
++ .gs2-dialog-scroll{padding:6px 2px 2px;gap:8px}
++ .gs2-dialog[data-garden-panel=quests] .gs2-dialog-scroll>.gs2-muted{display:none}
++ .gs2-quest-card{padding:10px;gap:6px}
++}
+--- a/src/games/garden-shelf/gardenComposition.js
++++ b/src/games/garden-shelf/gardenComposition.js
+@@ -17,7 +17,10 @@
+     gap = spec.gap;
+   const aw = Math.max(1, w - padding * 2),
+     ah = Math.max(1, h - padding * 2),
+-    landscape = w >= spec.landscapeMinWidth && w >= h;
++    // A short safe frame still uses the side rail if three 44px targets fit.
++    // Preserve the configured breakpoint for taller layouts.
++    sideFitWidth = spec.railMin + padding * 2 + gap + 3 * 44 + 2 * spec.spotGap,
++    landscape = w >= h && (w >= spec.landscapeMinWidth || (h < spec.compactHeight && w >= sideFitWidth));
+   const rail = landscape ? Math.max(spec.railMin, Math.min(spec.railMax, aw * spec.railRatio)) : aw;
+   const shelfWidth = landscape ? Math.max(1, aw - rail - gap) : aw,
+     rackWidth = Math.min(spec.rackMax, shelfWidth);
