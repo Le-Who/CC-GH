@@ -1,0 +1,44 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {createDefaultPlayer} from '../game-logic/player.js';
+import {createGardenEconomyState,getGardenXpRequired} from '../game-logic/garden-economy.js';
+import {applyAction,applyActionWithReceipt,buildSnapshot} from '../routes/player.js';
+const now=Date.UTC(2026,9,2,12),stream='route_stream_0123456789';
+function player(){const p=createDefaultPlayer('garden-route-test','test',now);p.garden={...createGardenEconomyState(now),level:30,xpRequired:getGardenXpRequired(30)};buildSnapshot(p);return p;}
+function body(p,fields={},sequence=1){return {...fields,expectedRevision:p.gardenAccounting.revision,intent:{accountId:p.id,streamId:stream,sequence,createdAt:now}};}
+const invoke=(p,action,payload)=>applyActionWithReceipt(p,action,payload,{clientActionId:`garden:${stream}:${payload.intent.sequence}`,serverNow:now});
+test('actual route commits purchase snapshot and refuses legacy split deltas after activation',async()=>{const p=player(),payload=body(p,{type:'daisy',shelfIndex:0,spotIndex:0});const a=await invoke(p,'garden.buyPlant',payload);assert.equal(a.status,200);assert.equal(a.body.receiptConfirmed,true);assert.equal(a.body.snapshot.resources.gold,75);assert.equal(a.body.snapshot.garden.plants.length,1);assert.equal(a.body.snapshot.garden.economicRevision,1);const old=await applyAction(p,'garden.goldDelta',{amount:-25,reason:'buyPlant'});assert.equal(old.status,409);assert.equal(old.body.error,'GARDEN_ATOMIC_COMMAND_REQUIRED');assert.equal(p.resources.gold,75);});
+test('actual route replay ignores expired generic receipt cache and retains authoritative entity',async()=>{const p=player(),payload=body(p,{type:'daisy',shelfIndex:0,spotIndex:0});const first=await invoke(p,'garden.buyPlant',payload);p.actionReceipts=[];const again=await applyActionWithReceipt(p,'garden.buyPlant',payload,{clientActionId:`garden:${stream}:1`,serverNow:now+10*86400000});assert.equal(again.body.duplicate,true);assert.equal(again.body.plantId,first.body.plantId);assert.equal(p.resources.gold,75);const reconciliation=await applyAction(p,'garden.reconcileIntent',{action:'garden.buyPlant',payload,clientActionId:`garden:${stream}:1`},{now:now+10*86400000});assert.equal(reconciliation.body.intentStatus,'applied');});
+test('actual route rejects stale snapshots and forged economic fields without changing gold',async()=>{const p=player(),old=structuredClone(p.garden);await invoke(p,'garden.buyPlant',body(p,{type:'daisy',shelfIndex:0,spotIndex:0}));const stale=await applyAction(p,'garden.sync',{state:old});assert.equal(stale.status,409);assert.equal(stale.body.error,'GARDEN_REVISION_CONFLICT');const forged={...p.garden,claimedQuests:['first_plant']};const claim=await applyAction(p,'garden.sync',{state:forged});assert.equal(claim.body.error,'GARDEN_ECONOMIC_STATE_CONFLICT');assert.deepEqual(p.garden.claimedQuests,[]);assert.equal(p.resources.gold,75);});
+test('actual route credit checkpoints state and acknowledges only the applied batch',async()=>{const p=player(),checkpoint={...p.garden,totalGoldEarned:12,lastTick:now+1000};const result=await invoke(p,'garden.creditEarned',body(p,{throughTotal:12,state:checkpoint}));assert.equal(result.status,200);assert.equal(result.body.snapshot.garden.acknowledgedEarnedTotal,12);assert.equal(result.body.snapshot.garden.totalGoldEarned,12);assert.equal(result.body.snapshot.resources.gold,112);assert.equal(result.body.snapshot.garden.lastTick,now+1000);});
+test('unidentified atomic commands and account-mismatched intents cannot mutate actual route state',async t=>{
+ // Error snapshots legitimately run energy regeneration; freeze the shared clock
+ // so exact state equality tests the rejected command, not elapsed wall time.
+ t.mock.method(Date,'now',()=>now);
+ const p=player(),beforeSnapshot=structuredClone(buildSnapshot(p));
+ const before=structuredClone({resources:p.resources,garden:p.garden,accounting:p.gardenAccounting});
+ const unchanged=()=>{
+  assert.deepEqual(p.resources,before.resources);
+  assert.deepEqual(p.garden,before.garden);
+  assert.deepEqual(p.gardenAccounting,before.accounting);
+ };
+ const unidentified=await applyAction(p,'garden.buyPlant',{type:'daisy'});
+ assert.equal(unidentified.status,400);
+ assert.equal(unidentified.body.error,'GARDEN_STABLE_INTENT_REQUIRED');
+ unchanged();
+ const missingIntent=await applyActionWithReceipt(p,'garden.buyPlant',{type:'daisy'},{serverNow:now});
+ assert.equal(missingIntent.status,400);
+ assert.equal(missingIntent.body.error,'GARDEN_INVALID_INTENT');
+ unchanged();
+ const bad=body(p,{type:'daisy',shelfIndex:0,spotIndex:0});bad.intent.accountId='wrong-account';
+ const result=await invoke(p,'garden.buyPlant',bad);
+ assert.equal(result.status,400);
+ assert.equal(result.body.error,'GARDEN_ACCOUNT_MISMATCH');
+ assert.notEqual(result.body.receiptConfirmed,true);
+ assert.deepEqual(result.body.snapshot.resources,beforeSnapshot.resources);
+ assert.equal(result.body.snapshot.player.id,p.id);
+ unchanged();
+ // Rejected intents must not consume this stream sequence or poison its receipt.
+ const valid=await invoke(p,'garden.buyPlant',body(p,{type:'daisy',shelfIndex:0,spotIndex:0}));
+ assert.equal(valid.status,200);assert.equal(valid.body.receiptConfirmed,true);
+ assert.equal(p.resources.gold,before.resources.gold-25);assert.equal(p.garden.plants.length,1);
+});

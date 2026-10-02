@@ -53,6 +53,14 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Validate inactive Yard candidate
+        env:
+          NODE_ENV: test
+          YARD_CANDIDATE_CI: '1'
+        run: |
+          node preview/yard-persistent-candidate/run-checks.mjs
+          node preview/yard-persistent-candidate/compile-check.mjs
+
       - name: Merge V3 real PostgreSQL15 persistence and OCC
         env:
           MERGE_LAB_PG_TEST: '1'

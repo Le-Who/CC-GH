@@ -1,0 +1,308 @@
+{
+  "baseCommit": "e5030d2028feeb7f65b1e6b317366b0fb8f910bf",
+  "productionFiles": [
+    {
+      "path": "routes/player.js",
+      "bytes": 56651,
+      "sha256": "2c7978293a8b77bb9e027bca8bfc64a597c5d726123928178665f510b9d81c3b"
+    },
+    {
+      "path": "routes/mergeRoutes.js",
+      "bytes": 21618,
+      "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb"
+    },
+    {
+      "path": "playerManager.js",
+      "bytes": 16658,
+      "sha256": "488b7868509f3191dc979316e68fafa01e23e794815dc8598e0a094e2e43bbc0"
+    },
+    {
+      "path": "game-logic/merge-lab-service.js",
+      "bytes": 11041,
+      "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "bytes": 16455,
+      "sha256": "c8a3cc5c86346e14e55670c4b18b3314b591690e452e0452fcc00de797620b6c"
+    },
+    {
+      "path": "src/app/gameChunks.jsx",
+      "bytes": 1486,
+      "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb"
+    },
+    {
+      "path": "src/app/hud-layout/registry.js",
+      "bytes": 19561,
+      "sha256": "fabf43a59a65af6c15e1e4551baeb6d10b5ccfc326e07488d1d60702cbe841d2"
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/room.json",
+      "bytes": 2866,
+      "sha256": "6aa164f0e0918822204c9ec19af6c0864d88244f2759701bd010a86b102eafb8"
+    },
+    {
+      "path": "package.json",
+      "bytes": 6338,
+      "sha256": "b32bdd6375c594b5d7bc853147b29f97cf2a55197e3479f7f65d1c59416135f3"
+    },
+    {
+      "path": "src/App.jsx",
+      "bytes": 19528,
+      "sha256": "edfc9be9b79eef6f79c46eb8f04ef5ea66fea66615f8f0da84038ce91baecad2"
+    },
+    {
+      "path": "src/app/i18n.jsx",
+      "bytes": 8249,
+      "sha256": "70e00e665534f37674186e2a30349330c6b2a19794cdc53c413ff3bc409d7891"
+    },
+    {
+      "path": "src/index.css",
+      "bytes": 52107,
+      "sha256": "8594518ce95a9bcf2dbaefc37f0aa86bce5bc7e3fd866763da34b630ab246a5d"
+    },
+    {
+      "path": "tests/unit.test.js",
+      "bytes": 91533,
+      "sha256": "8b0c2e20b422d8207cfa3cb579a912e5800619dc68e9e11978cb5a8d05227eaf"
+    },
+    {
+      "path": "tests/yard-inventory-only.test.mjs",
+      "bytes": 9800,
+      "sha256": "6330cb6ff575976f830097ef2dfc5200caf1455682ad0dcf9dcc8fc19ec7eadc"
+    },
+    {
+      "path": "tests/gameStore.test.js",
+      "bytes": 9831,
+      "sha256": "bcb619ea26985566efe7aa76846d210d509cb99f99058685f8cf9d16bdf20fef"
+    },
+    {
+      "path": "tests/asset-runtime.test.js",
+      "bytes": 5678,
+      "sha256": "d5ccda2a01a388775441fd0f8589ab235174260ec458b0336109c16496100b0d"
+    },
+    {
+      "path": "tests/perf-guard.test.js",
+      "bytes": 8162,
+      "sha256": "0edbb2b61cda2dc5816c8dbfc5fedbec50cffaa3b34f3d5841b4d37bf3f04507"
+    },
+    {
+      "path": "tests/perf-build-guard.test.js",
+      "bytes": 9136,
+      "sha256": "712dba8e0b138b5992b92efd091fd5409d3d7fc5a5c0e3a1bb25a0f49f959db0"
+    }
+  ],
+  "sourceInputs": [
+    {
+      "source": "routes/player.js",
+      "sourceSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
+      "candidate": "preview/yard-persistent-candidate/overrides/routes/player.js",
+      "candidateSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad"
+    },
+    {
+      "source": "routes/mergeRoutes.js",
+      "sourceSha256": "451df5cbdc9777e1f6ac3dd545e1f5cc79603a0c1356097b0fb0cc7ab222af18",
+      "candidate": "preview/yard-persistent-candidate/overrides/routes/mergeRoutes.js",
+      "candidateSha256": "451df5cbdc9777e1f6ac3dd545e1f5cc79603a0c1356097b0fb0cc7ab222af18"
+    },
+    {
+      "source": "playerManager.js",
+      "sourceSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598",
+      "candidate": "preview/yard-persistent-candidate/overrides/playerManager.js",
+      "candidateSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598"
+    },
+    {
+      "source": "game-logic/merge-lab-service.js",
+      "sourceSha256": "a7ba15b8caeefc62a8f14fd64ae752d07b0a115f5b8fea2284fd31272de0a2f7",
+      "candidate": "preview/yard-persistent-candidate/overrides/game-logic/merge-lab-service.js",
+      "candidateSha256": "a7ba15b8caeefc62a8f14fd64ae752d07b0a115f5b8fea2284fd31272de0a2f7"
+    },
+    {
+      "source": "src/game-state/useGameHub.js",
+      "sourceSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/game-state/useGameHub.js",
+      "candidateSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1"
+    },
+    {
+      "source": "src/app/gameChunks.jsx",
+      "sourceSha256": "7928bc8c4fe9f0be83065c939a96f082d0e3fefc539a722d2a59ec91a1427a37",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/app/gameChunks.jsx",
+      "candidateSha256": "7928bc8c4fe9f0be83065c939a96f082d0e3fefc539a722d2a59ec91a1427a37"
+    },
+    {
+      "source": "src/app/hud-layout/registry.js",
+      "sourceSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/app/hud-layout/registry.js",
+      "candidateSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb"
+    },
+    {
+      "source": "src/app/hud-layout/defaultLayouts/room.json",
+      "sourceSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/app/hud-layout/defaultLayouts/room.json",
+      "candidateSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b"
+    },
+    {
+      "source": "tests/yard-inventory-only-loader.mjs",
+      "sourceSha256": "c4bf9d0e467660ae889dfb7266c1730c448cb4cfe9f5ba9165d2661c58449777",
+      "candidate": "preview/yard-persistent-candidate/helpers/yard-inventory-only-loader.mjs",
+      "candidateSha256": "a7a29db1968ff0e9573439d7e37efaebadb0c6ec0de49b8a8816591f596328f5"
+    },
+    {
+      "source": "tests/yard-shared-store-loader.mjs",
+      "sourceSha256": "f75f603d99f727f98fbc00bbd71f28a1d79044b8776981de4cd34ec02a82ded8",
+      "candidate": "preview/yard-persistent-candidate/helpers/yard-shared-store-loader.mjs",
+      "candidateSha256": "407ef86246080b7d52091b982fc244a31db825a82d08268753000cc218b1ea41"
+    },
+    {
+      "source": "public/assets/yard-mika/runtime-media.json",
+      "sourceSha256": "63f303b923f0c045d854a8f7fc973f5ebbfcf6ea69728408680e7b5cac979110",
+      "candidate": "preview/yard-persistent-candidate/fixtures/runtime-media.json",
+      "candidateSha256": "63f303b923f0c045d854a8f7fc973f5ebbfcf6ea69728408680e7b5cac979110"
+    },
+    {
+      "source": "tests/unit.test.js",
+      "sourceSha256": "944e36022fde7ba66f09135142fcb140ad4a72719c3e92f02e0aa5c5b950a7b9",
+      "candidate": "preview/yard-persistent-candidate/checks-src/unit.source.mjs",
+      "candidateSha256": "944e36022fde7ba66f09135142fcb140ad4a72719c3e92f02e0aa5c5b950a7b9",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-v2-actions.test.mjs",
+      "sourceSha256": "cfd9fb7fa917c162550321529fb86641fe3ed2932c088cc45ece62714d8b01b1",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-v2-actions.source.mjs",
+      "candidateSha256": "cfd9fb7fa917c162550321529fb86641fe3ed2932c088cc45ece62714d8b01b1",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-v2-service.test.mjs",
+      "sourceSha256": "3388fa803c1ad41353fe09b532cb9a30512db066b585c9c26596c57d50c4c944",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-v2-service.source.mjs",
+      "candidateSha256": "82ae4048f08daabbbe6e3a65ecb61e3200c64806ead89743f32cb696e86a09fd",
+      "staticSourceAdapted": true
+    },
+    {
+      "source": "tests/yard-v2-occ.test.mjs",
+      "sourceSha256": "649c7c33810f90bc3a7d46425de7e79629153746a4e414aa6a5bc03c848e27c5",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-v2-occ.source.mjs",
+      "candidateSha256": "649c7c33810f90bc3a7d46425de7e79629153746a4e414aa6a5bc03c848e27c5",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-inventory-only.test.mjs",
+      "sourceSha256": "46c4dbd674c4cf8e23e764645acd588dfc6fd9d6e194c4496865095bdacabe69",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-inventory-only.source.mjs",
+      "candidateSha256": "46c4dbd674c4cf8e23e764645acd588dfc6fd9d6e194c4496865095bdacabe69",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-merge-v3-preservation.test.mjs",
+      "sourceSha256": "7652733ea49c890ef5aa8d741c00e6489b92f63ba6ea8fcff31a7e4fc689d1da",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-merge-v3-preservation.source.mjs",
+      "candidateSha256": "7652733ea49c890ef5aa8d741c00e6489b92f63ba6ea8fcff31a7e4fc689d1da",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/merge-lab-routes.test.mjs",
+      "sourceSha256": "2c4a2a67039cf4735e95b1b2605ac06b002eaf330183bf7a355066ff5fa4302c",
+      "candidate": "preview/yard-persistent-candidate/checks-src/merge-lab-routes.source.mjs",
+      "candidateSha256": "2c4a2a67039cf4735e95b1b2605ac06b002eaf330183bf7a355066ff5fa4302c",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/merge-lab-service.test.mjs",
+      "sourceSha256": "74c2a94793a9b1e0469042dffda4ccb027d88c8626cb51e368540523010e9727",
+      "candidate": "preview/yard-persistent-candidate/checks-src/merge-lab-service.source.mjs",
+      "candidateSha256": "74c2a94793a9b1e0469042dffda4ccb027d88c8626cb51e368540523010e9727",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/merge-lab-enabled-transition.test.mjs",
+      "sourceSha256": "c116a0cf07267e1c2de5a7aaa9fdcb5c4ef65ea5a4f5bd515a55c9ae2c6b7841",
+      "candidate": "preview/yard-persistent-candidate/checks-src/merge-lab-enabled-transition.source.mjs",
+      "candidateSha256": "c116a0cf07267e1c2de5a7aaa9fdcb5c4ef65ea5a4f5bd515a55c9ae2c6b7841",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/garden-transactions.test.js",
+      "sourceSha256": "630dca6abbfd8b19aeed54c72c0e402f43e01a98a38339656ab3cc5523339670",
+      "candidate": "preview/yard-persistent-candidate/checks-src/garden-transactions.source.mjs",
+      "candidateSha256": "630dca6abbfd8b19aeed54c72c0e402f43e01a98a38339656ab3cc5523339670",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/garden-transaction-ledger.test.js",
+      "sourceSha256": "0edb57ef60420c0cbcb4ca754db833b63f3e5d34d6a3aba8314791ea2939940b",
+      "candidate": "preview/yard-persistent-candidate/checks-src/garden-transaction-ledger.source.mjs",
+      "candidateSha256": "0edb57ef60420c0cbcb4ca754db833b63f3e5d34d6a3aba8314791ea2939940b",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/garden-accounting-routes.test.js",
+      "sourceSha256": "4f518e9ffc19007cdf24ae5fbbc00afde9b6ca3cf0e423d7337289e55b55fd38",
+      "candidate": "preview/yard-persistent-candidate/checks-src/garden-accounting-routes.source.mjs",
+      "candidateSha256": "4f518e9ffc19007cdf24ae5fbbc00afde9b6ca3cf0e423d7337289e55b55fd38",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/gameStore.test.js",
+      "sourceSha256": "bcb619ea26985566efe7aa76846d210d509cb99f99058685f8cf9d16bdf20fef",
+      "candidate": "preview/yard-persistent-candidate/checks-src/gameStore.source.mjs",
+      "candidateSha256": "bcb619ea26985566efe7aa76846d210d509cb99f99058685f8cf9d16bdf20fef",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/asset-runtime.test.js",
+      "sourceSha256": "d5ccda2a01a388775441fd0f8589ab235174260ec458b0336109c16496100b0d",
+      "candidate": "preview/yard-persistent-candidate/checks-src/asset-runtime.source.mjs",
+      "candidateSha256": "9ce53c591ffc9450f1cade0881338b5c3cc6aef69187dbbaded7af6172f8d6a6",
+      "staticSourceAdapted": true
+    },
+    {
+      "source": "tests/yard-rebase-shared.test.mjs",
+      "sourceSha256": "37b1d79640bc0a52eae3d8373a7606adef367a75c4f3e85c35b5d34ae8a61f42",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-rebase-shared.source.mjs",
+      "candidateSha256": "a8b0a608c408a1faef0cf10188249be3c97fe98dca487d0b20954cec5e91d804",
+      "staticSourceAdapted": true
+    },
+    {
+      "source": "tests/yard-ground-coverage.test.mjs",
+      "sourceSha256": "5e858839925f6cf4b91c5698653a74825c2022cf66b617927368931f1a20ac30",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-ground-coverage.source.mjs",
+      "candidateSha256": "5e858839925f6cf4b91c5698653a74825c2022cf66b617927368931f1a20ac30",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-presentation-compatibility.test.mjs",
+      "sourceSha256": "d9f26e35cbdad9328d6062ee5618d6a371cbd4dfb69e571d2b721c7ea9291fbe",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-presentation-compatibility.source.mjs",
+      "candidateSha256": "d9f26e35cbdad9328d6062ee5618d6a371cbd4dfb69e571d2b721c7ea9291fbe",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-persistent-presentation.test.mjs",
+      "sourceSha256": "8dc8cfd3b9309bb5657b166a24bafbf3a1c013a6598b7774512531f035174c01",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-persistent-presentation.source.mjs",
+      "candidateSha256": "ae68e935b0886f39b302e0b00fa7f33679fd399a68fd8fc3e4294194bd4d6292",
+      "explicitSkippedImageCheck": "actual media atlas pages exist and known aliases reference identical measured poses"
+    },
+    {
+      "source": "tests/yard-persistent-atlas.test.mjs",
+      "sourceSha256": "87d282574a72246593eea2e8465ad2b5b12f338a11034a63c81818a959556fc9",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-persistent-atlas.source.mjs",
+      "candidateSha256": "014bb9dab829ac80da0bbad0c6641bc5d6336544bad6dede1a6121c16abf8570",
+      "explicitSkippedImageCheck": "published atlas bytes match their declared source hashes after the bounded entry correction"
+    }
+  ],
+  "explicitSkippedChecks": [
+    {
+      "source": "tests/yard-persistent-presentation.test.mjs",
+      "name": "actual media atlas pages exist and known aliases reference identical measured poses",
+      "reason": "Source-only CI subset: real atlas files are verified in the separate art closure"
+    },
+    {
+      "source": "tests/yard-persistent-atlas.test.mjs",
+      "name": "published atlas bytes match their declared source hashes after the bounded entry correction",
+      "reason": "Source-only CI subset: real atlas files are verified in the separate art closure"
+    }
+  ]
+}
