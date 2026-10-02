@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { expectBloxLayout } from './helpers/blox-v2.js';
+import { expectBloxCanvas, expectBloxLayout } from './helpers/blox-v2.js';
 import { expectControlPainted, measureControlPaint } from './helpers/control-paint.js';
 
 test.use({ viewport:{width:495,height:772}, deviceScaleFactor:2, isMobile:false, hasTouch:true });
 
-test('Blox Pause paint regression detects the original non-interactive opaque HUD cover', async ({page},testInfo) => {
+async function startBlox(page, { fullLayout = false } = {}) {
   await page.addInitScript(() => {
     localStorage.setItem('gh_dev_user_id',`pause_paint_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     localStorage.setItem('garden_shelf_language','en');
@@ -13,44 +13,88 @@ test('Blox Pause paint regression detects the original non-interactive opaque HU
   await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});
   await page.getByRole('button',{name:/Blox/}).click();
   await page.getByRole('button',{name:/^Start$/}).click();
-  await expectBloxLayout(page);
+  if (fullLayout) await expectBloxLayout(page);
+  else await expectBloxCanvas(page);
   const actions=page.locator('[data-hud-region="bloxActions"]');
   const pause=actions.locator('[data-game-pause]');
   await expect(pause).toHaveAccessibleName('Pause');
-  const fixed=await test.step('capture corrected Pause and the empty panel reference',()=>expectControlPainted(page,pause,testInfo,'fixed-pause'));
-  const metrics=await page.locator('.bx-metric').allTextContents();
-  const old=await actions.evaluate(node=>({value:node.style.getPropertyValue('z-index'),priority:node.style.getPropertyPriority('z-index')}));
+  return { actions, pause };
+}
+
+async function coverActions(actions) {
+  const original=await actions.evaluate(node => {
+    const shell=node.closest('[data-game-shell="blox"]');
+    const pause=node.querySelector('[data-game-pause]');
+    const hud=shell.querySelector('.bx-hud');
+    const rect=pause.getBoundingClientRect();
+    const result={
+      style:{value:node.style.getPropertyValue('z-index'),priority:node.style.getPropertyPriority('z-index')},
+      zIndex:Number(getComputedStyle(node).zIndex),
+      hudZIndex:Number(getComputedStyle(hud).zIndex),
+      hudPointerEvents:getComputedStyle(hud).pointerEvents,
+      box:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},
+      metrics:[...shell.querySelectorAll('.bx-metric')].map(metric=>metric.textContent),
+    };
+    node.style.setProperty('z-index','0','important');
+    result.coveredZIndex=Number(getComputedStyle(node).zIndex);
+    return result;
+  });
+  expect(original.hudPointerEvents).toBe('none');
+  expect(original.coveredZIndex).toBeLessThan(original.hudZIndex);
+  return original;
+}
+
+async function restoreActions(actions, original) {
+  return actions.evaluate((node,style) => {
+    if (style.value) node.style.setProperty('z-index',style.value,style.priority);
+    else node.style.removeProperty('z-index');
+    return Number(getComputedStyle(node).zIndex);
+  },original.style);
+}
+
+// Each case has its own page and the existing 30s test deadline. A real
+// visible/hidden pair remains bounded to 20s and never reuses another test's
+// pixels. The matrix separately retains every dialog-action audit.
+test('Blox corrected Pause paints within the narrow-window gameplay layout', async ({page},testInfo) => {
+  const {pause}=await startBlox(page,{fullLayout:true});
+  await test.step('capture corrected Pause and its hidden reference',
+    ()=>expectControlPainted(page,pause,testInfo,'fixed-pause'),{timeout:20_000});
+});
+
+test('Blox opaque HUD cover defeats paint visibility despite a hittable Pause', async ({page},testInfo) => {
+  const {actions,pause}=await startBlox(page);
+  const original=await coverActions(actions);
   let comparisonError;
   try {
-    // Recreate the shipped ordering without changing layout, art or pointer input.
-    await actions.evaluate(node=>node.style.setProperty('z-index','0','important'));
-    await expect(page.locator('.bx-hud')).toHaveCSS('pointer-events','none');
-    // The empty panel is identical with either action stacking level: the
-    // action region itself has no background and this run has no player input.
-    // Reuse that exact crop, preserving both pixel assertions with fewer GPU
-    // captures. The matrix still captures independent visible/hidden pairs.
-    expect(await page.locator('.bx-metric').allTextContents()).toEqual(metrics);
-    const covered=await test.step('capture original covered Pause against the same empty panel',()=>measureControlPaint(page,pause,{hiddenReference:fixed.hidden}));
+    const covered=await test.step('capture covered Pause and its hidden reference',
+      ()=>measureControlPaint(page,pause),{timeout:20_000});
     await testInfo.attach('old-layer-visible-control',{body:covered.visible,contentType:'image/png'});
     await testInfo.attach('old-layer-hidden-control',{body:covered.hidden,contentType:'image/png'});
-    expect(covered.box).toEqual(fixed.box);
+    expect(covered.box).toEqual(original.box);
     expect(covered.changedPixels,'old hit-testing passes, but the action contributes no discernible pixels').toBeLessThanOrEqual(24);
+    expect(await page.locator('.bx-metric').allTextContents()).toEqual(original.metrics);
   } catch (error) {
     comparisonError=error;
     throw error;
   } finally {
     if (!page.isClosed()) {
-      try {
-        await actions.evaluate((node,style)=>style.value?node.style.setProperty('z-index',style.value,style.priority):node.style.removeProperty('z-index'),old);
-      } catch (error) { if (!comparisonError) throw error; }
+      try { await restoreActions(actions,original); }
+      catch (error) { if (!comparisonError) throw error; }
     }
   }
-  expect(await page.locator('.bx-metric').allTextContents()).toEqual(metrics);
-  const restored=await test.step('capture restored Pause and confirm it paints again',()=>expectControlPainted(page,pause,testInfo,'restored-pause',{hiddenReference:fixed.hidden}));
-  expect(restored.box).toEqual(fixed.box);
+});
+
+test('Blox restored Pause paints and opens the paused dialog', async ({page},testInfo) => {
+  const {actions,pause}=await startBlox(page);
+  const original=await coverActions(actions);
+  const restoredZIndex=await restoreActions(actions,original);
+  expect(restoredZIndex).toBe(original.zIndex);
+  expect(restoredZIndex).toBeGreaterThan(original.hudZIndex);
+  const restored=await test.step('capture restored Pause and its hidden reference',
+    ()=>expectControlPainted(page,pause,testInfo,'restored-pause'),{timeout:20_000});
+  expect(restored.box).toEqual(original.box);
+  expect(await page.locator('.bx-metric').allTextContents()).toEqual(original.metrics);
   await test.step('activate the restored Pause control', async () => {
-    // The viewport matrix and pause-menu suite audit every dialog action.
-    // This regression proves that the same restored control really pauses.
     await pause.click();
     await expect(page.locator('[data-game-shell="blox"]')).toHaveAttribute('data-bx-phase','paused');
     await expect(page.locator('.bottom-tabs')).toBeHidden();

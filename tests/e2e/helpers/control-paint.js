@@ -37,17 +37,20 @@ export async function measureControlPaint(page, control, { hiddenReference = nul
   const visible = await page.screenshot({ clip, scale: 'css', animations: 'disabled' });
   let hidden = hiddenReference;
   if (!hidden) {
-    const previous = await control.evaluate(node => ({ value: node.style.getPropertyValue('visibility'), priority: node.style.getPropertyPriority('visibility') }));
-    let captureError;
+    let previous, captureError;
     try {
-      await control.evaluate(node => node.style.setProperty('visibility','hidden','important'));
+      previous = await control.evaluate(node => {
+        const old={ value: node.style.getPropertyValue('visibility'), priority: node.style.getPropertyPriority('visibility') };
+        node.style.setProperty('visibility','hidden','important');
+        return old;
+      });
       hidden = await page.screenshot({ clip, scale: 'css', animations: 'disabled' });
     } catch (error) {
       captureError = error;
       throw error;
     } finally {
       // A timeout can close the page. Cleanup must not replace the capture error.
-      if (!page.isClosed()) {
+      if (previous && !page.isClosed()) {
         try {
           await control.evaluate((node,old) => old.value ? node.style.setProperty('visibility',old.value,old.priority) : node.style.removeProperty('visibility'),previous);
         } catch (error) { if (!captureError) throw error; }
