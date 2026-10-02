@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { expectBloxLayout, pauseBlox } from './helpers/blox-v2.js';
+import { expectBloxLayout } from './helpers/blox-v2.js';
 import { expectControlPainted, measureControlPaint } from './helpers/control-paint.js';
 
 test.use({ viewport:{width:495,height:772}, deviceScaleFactor:2, isMobile:false, hasTouch:true });
@@ -48,5 +48,14 @@ test('Blox Pause paint regression detects the original non-interactive opaque HU
   expect(await page.locator('.bx-metric').allTextContents()).toEqual(metrics);
   const restored=await test.step('capture restored Pause and confirm it paints again',()=>expectControlPainted(page,pause,testInfo,'restored-pause',{hiddenReference:fixed.hidden}));
   expect(restored.box).toEqual(fixed.box);
-  await pauseBlox(page);
+  await test.step('activate the restored Pause control', async () => {
+    // The viewport matrix and pause-menu suite audit every dialog action.
+    // This regression proves that the same restored control really pauses.
+    await pause.click();
+    await expect(page.locator('[data-game-shell="blox"]')).toHaveAttribute('data-bx-phase','paused');
+    await expect(page.locator('.bottom-tabs')).toBeHidden();
+    const dialog=page.locator('[data-game-shell="blox"] .bx-dialog[role="dialog"]');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute('aria-modal','true');
+  });
 });

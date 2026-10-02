@@ -5,8 +5,22 @@ import sharp from 'sharp';
 // sibling. Compare actual browser pixels with this control deliberately hidden.
 export async function measureControlPaint(page, control, { hiddenReference = null } = {}) {
   await expect(control).toBeVisible();
-  await expect.poll(() => control.evaluate(node => [...node.querySelectorAll('img')].every(image => image.complete && image.naturalWidth > 0))).toBe(true);
-  const box = await control.boundingBox();
+  // Read related paint prerequisites in one browser round trip. Repeating
+  // independent reads adds trace snapshots without exercising new behavior.
+  let layout;
+  await expect.poll(async () => {
+    layout = await control.evaluate(node => {
+      const rect=node.getBoundingClientRect();
+      const style=getComputedStyle(document.documentElement);
+      return {
+        imagesLoaded:[...node.querySelectorAll('img')].every(image => image.complete && image.naturalWidth > 0),
+        box:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},
+        safe:Object.fromEntries(['top','right','bottom','left'].map(edge=>[edge,Math.max(0,parseFloat(style.getPropertyValue(`--safe-${edge}`))||0)])),
+      };
+    });
+    return layout.imagesLoaded;
+  }).toBe(true);
+  const { box, safe } = layout;
   const viewport = page.viewportSize();
   expect(box.width).toBeGreaterThanOrEqual(44);
   expect(box.height).toBeGreaterThanOrEqual(44);
@@ -14,10 +28,6 @@ export async function measureControlPaint(page, control, { hiddenReference = nul
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width + 1);
   expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1);
-  const safe = await page.evaluate(() => {
-    const style=getComputedStyle(document.documentElement);
-    return Object.fromEntries(['top','right','bottom','left'].map(edge=>[edge,Math.max(0,parseFloat(style.getPropertyValue(`--safe-${edge}`))||0)]));
-  });
   expect(box.x).toBeGreaterThanOrEqual(safe.left);
   expect(box.y).toBeGreaterThanOrEqual(safe.top);
   expect(box.x+box.width).toBeLessThanOrEqual(viewport.width-safe.right+1);
