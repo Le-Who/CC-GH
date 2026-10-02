@@ -140,6 +140,7 @@ test.describe("HUD art visual regression guards", () => {
       await expect(page.locator(".m3-hud")).toContainText("Moves");
       await expect(page.locator(".m3-hud")).toContainText("Combo");
       await expect(page.locator(".m3-hud")).toContainText("Reward");
+      await page.evaluate(() => document.fonts.ready);
       const stats = await page.locator(".m3-score, .m3-turns, .m3-combo, .m3-combo-reward > span").evaluateAll(nodes => nodes.map(node => {
         const rect = node.getBoundingClientRect();
         const value = node.querySelector("strong, b")?.getBoundingClientRect();

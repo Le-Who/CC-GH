@@ -56,7 +56,7 @@ async function expectVisibleButtonsReachable(page, selector, minSide = 44) {
         const rect = button.getBoundingClientRect();
         return rect.width < side || rect.height < side || rect.left < -1 || rect.right > window.innerWidth + 1 || rect.top < -1 || rect.bottom > window.innerHeight + 1;
       })
-      .map((button) => button.getAttribute("aria-label") || button.textContent.trim()), minSide);
+      .map((button) => ({ label: button.getAttribute("aria-label") || button.textContent.trim(), rect: button.getBoundingClientRect().toJSON(), viewport: { width: innerWidth, height: innerHeight } })), minSide);
 
     const blockedButtons = await page.locator(selector).evaluateAll((buttons) => buttons
       .filter((button) => {
@@ -71,7 +71,11 @@ async function expectVisibleButtonsReachable(page, selector, minSide = 44) {
         const hit = document.elementFromPoint(centerX, centerY);
         return !hit || !(button === hit || button.contains(hit));
       })
-      .map((button) => button.getAttribute("aria-label") || button.textContent.trim()));
+      .map((button) => {
+        const rect = button.getBoundingClientRect();
+        const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return { label: button.getAttribute("aria-label") || button.textContent.trim(), rect: rect.toJSON(), hit: hit?.className || null };
+      }));
 
     return { smallButtons, blockedButtons };
   }, { timeout: 5000 }).toEqual({ smallButtons: [], blockedButtons: [] });

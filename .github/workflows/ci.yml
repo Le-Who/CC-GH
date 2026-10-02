@@ -77,6 +77,27 @@ jobs:
       - name: Run integrated browser regression tests
         run: pnpm exec playwright test --project=chromium --workers=1
 
+      - name: Preserve compact browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-browser-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            playwright-results.json
+            test-results/**/error-context.md
+            test-results/**/*-diagnostics.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-browser-screenshots-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results/**/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
       - name: Preserve browser evidence
         if: always()
         uses: actions/upload-artifact@v7

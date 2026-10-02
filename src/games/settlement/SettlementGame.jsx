@@ -522,7 +522,8 @@ function clampCamera(camera, viewW, viewH) {
 
 function getInitialCamera(viewW, viewH) {
   const safeW = Math.max(360, viewW);
-  const safeH = Math.max(420, viewH);
+  // Fit the actual host: a 420px floor pushes slots below compact landscape.
+  const safeH = Math.max(1, viewH);
   const portrait = safeH > safeW;
   const scale = portrait
     ? Math.min(Math.max(safeW / 1550, safeH / WORLD.h), 0.62)

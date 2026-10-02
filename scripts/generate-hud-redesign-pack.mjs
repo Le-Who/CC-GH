@@ -510,6 +510,18 @@ function keyOutBackground(data, info, fallbackKey) {
   };
 }
 
+function runtimeFormat(outputPath) {
+  return path.extname(outputPath) === ".webp"
+    ? ["webp", { lossless: true, effort: 6 }]
+    : ["png", { compressionLevel: 9 }];
+}
+
+function hudRuntimeExtension(gameId, kind) {
+  const metricGames = new Set(["blox", "bubbo", "match3", "merge", "room"]);
+  return (kind === "metric-chip" && metricGames.has(gameId))
+    || (gameId === "room" && ["dock-panel", "hud-panel", "icon-badge"].includes(kind)) ? "webp" : "png";
+}
+
 async function stripRuntimeKeyPixels(inputBuffer, outputPath, key) {
   const { data, info } = await sharp(inputBuffer)
     .ensureAlpha()
@@ -529,7 +541,7 @@ async function stripRuntimeKeyPixels(inputBuffer, outputPath, key) {
     }
   }
   await sharp(output, { raw: { width: info.width, height: info.height, channels: 4 } })
-    .png({ compressionLevel: 9 })
+    .toFormat(...runtimeFormat(outputPath))
     .toFile(outputPath);
 }
 
@@ -596,7 +608,7 @@ async function writeAssetSet(gameId, spec) {
   const assets = [];
   for (const kind of ASSET_KINDS) {
     const chromaPath = path.join(dir, `${kind.id}.chromakey.png`);
-    const runtimePath = path.join(runtimeDir, `${kind.id}.png`);
+    const runtimePath = path.join(runtimeDir, `${kind.id}.${hudRuntimeExtension(gameId, kind.id)}`);
     await renderAssetFromSourceAsset(gameId, kind.id, kind.width, kind.height, chromaPath, { chromakey: true });
     await renderAssetFromSourceAsset(gameId, kind.id, kind.width, kind.height, runtimePath, { chromakey: false });
     assets.push({
@@ -631,7 +643,7 @@ async function writeSemanticIcons(gameId) {
     const sourceCopyPath = semanticIconSourcePath(gameId, iconId, sourceExtension);
     await copyFile(absoluteSourcePath, sourceCopyPath);
 
-    const runtimePath = path.join(runtimeDir, `${iconId}.png`);
+    const runtimePath = path.join(runtimeDir, `${iconId}.${gameId === "garden" ? "webp" : "png"}`);
     await sharp(absoluteSourcePath)
       .ensureAlpha()
       .resize(SEMANTIC_ICON_SIZE, SEMANTIC_ICON_SIZE, {
@@ -639,7 +651,7 @@ async function writeSemanticIcons(gameId) {
         background: { r: 0, g: 0, b: 0, alpha: 0 },
         kernel: sharp.kernel.lanczos3,
       })
-      .png({ compressionLevel: 9 })
+      .toFormat(...runtimeFormat(runtimePath))
       .toFile(runtimePath);
 
     outputs.push({
@@ -657,13 +669,14 @@ async function writeSemanticIcons(gameId) {
 }
 
 async function writePublicSurface(fileName, sourceId, kind) {
+  if (fileName === "yard-panel.png") fileName = "yard-panel.webp";
   const config = kind === "dialog-panel"
     ? { width: 512, height: 768, id: "dialog-panel" }
     : { width: 512, height: 512, id: "screen-panel" };
   const outputPath = path.join(publicSurfaceRoot, fileName);
   await renderAssetFromSourceAsset(sourceId, config.id, config.width, config.height, outputPath, { chromakey: false });
   return {
-    name: fileName.replace(/\.png$/, ""),
+    name: fileName.replace(/\.(?:png|webp)$/, ""),
     file: fileName,
     width: config.width,
     height: config.height,

@@ -14,6 +14,31 @@ async function boot(page, path = "/?hudEditor=1&hudPreview=1&hudPreset=390x844")
 }
 
 test.describe("HUD layout editor", () => {
+  test.afterEach(async ({ page }, testInfo) => {
+    if (testInfo.title !== "can tune Settlement construction slot map coordinates" || testInfo.status === testInfo.expectedStatus) return;
+    const geometry = await page.evaluate(() => {
+      const slotRegionId = "settlementConstructionSlot.southwest-terrace";
+      const selectors = [".hud-preview-frame", ".telegram-app", ".active-game-frame", ".settlement-game-root", ".scene-host", `[data-hud-region="${slotRegionId}"]`, `[data-hud-region-box="${slotRegionId}"]`];
+      return {
+        viewport: { width: innerWidth, height: innerHeight },
+        regions: selectors.map((selector) => {
+          const node = document.querySelector(selector);
+          if (!node) return { selector, missing: true };
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          const hit = document.elementFromPoint(Math.max(0, Math.min(innerWidth - 1, rect.x + rect.width / 2)), Math.max(0, Math.min(innerHeight - 1, rect.y + rect.height / 2)));
+          return {
+            selector, rect: rect.toJSON(),
+            position: style.position, overflow: style.overflow, transform: style.transform, translate: style.translate, scale: style.scale,
+            hitAtClampedCenter: hit?.getAttribute("data-hud-region-box") || hit?.getAttribute("data-hud-region") || hit?.className || null,
+          };
+        }),
+      };
+    });
+    console.log(`Settlement slot geometry: ${JSON.stringify(geometry)}`);
+    await testInfo.attach("settlement-slot-geometry", { body: JSON.stringify(geometry, null, 2), contentType: "application/json" });
+  });
+
   test("is disabled by default and opens only through explicit editor mode", async ({ page }) => {
     await boot(page, "/");
     await expect(page.locator('[data-testid="hud-editor-root"]')).toHaveCount(0);

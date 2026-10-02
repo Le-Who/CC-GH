@@ -309,12 +309,6 @@
   line-height: 1 !important;
 }
 
-.companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-button::before {
-  content: "";
-  position: absolute;
-  inset: -8px -4px;
-}
-
 .companion-yard-layout .yard-game-screen[data-asset-slot-surface] .yard-button > span {
   min-width: 0;
   overflow: hidden;

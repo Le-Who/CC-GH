@@ -33,7 +33,7 @@
   --hud-redesign-dialog-art: url("/games/ui-surfaces/blox-dialog-panel.png");
   --hud-redesign-dock-art: url("/games/hud-redesign/blox/dock-panel.png");
   --hud-redesign-button-art: url("/games/hud-redesign/blox/primary-button.png");
-  --hud-redesign-metric-art: url("/games/hud-redesign/blox/metric-chip.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/blox/metric-chip.webp");
   --hud-redesign-icon-art: url("/games/hud-redesign/blox/icon-badge.png");
   --hud-redesign-ink: #efe9ff;
   --hud-redesign-muted: rgba(239, 233, 255, 0.72);
@@ -47,7 +47,7 @@
   --hud-redesign-dialog-art: url("/games/ui-surfaces/match3-dialog-panel.png");
   --hud-redesign-dock-art: url("/games/hud-redesign/match3/dock-panel.png");
   --hud-redesign-button-art: url("/games/hud-redesign/match3/primary-button.png");
-  --hud-redesign-metric-art: url("/games/hud-redesign/match3/metric-chip.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/match3/metric-chip.webp");
   --hud-redesign-icon-art: url("/games/hud-redesign/match3/icon-badge.png");
   --hud-redesign-ink: #fff4ff;
   --hud-redesign-muted: rgba(255, 244, 255, 0.72);
@@ -61,7 +61,7 @@
   --hud-redesign-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
   --hud-redesign-dock-art: url("/games/hud-redesign/merge/dock-panel.png");
   --hud-redesign-button-art: url("/games/hud-redesign/merge/primary-button.png");
-  --hud-redesign-metric-art: url("/games/hud-redesign/merge/metric-chip.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/merge/metric-chip.webp");
   --hud-redesign-icon-art: url("/games/hud-redesign/merge/icon-badge.png");
   --hud-redesign-ink: #fff0cf;
   --hud-redesign-muted: rgba(255, 240, 207, 0.72);
@@ -75,7 +75,7 @@
   --hud-redesign-dialog-art: url("/games/ui-surfaces/bubbo-dialog-panel.png");
   --hud-redesign-dock-art: url("/games/hud-redesign/bubbo/dock-panel.png");
   --hud-redesign-button-art: url("/games/hud-redesign/bubbo/primary-button.png");
-  --hud-redesign-metric-art: url("/games/hud-redesign/bubbo/metric-chip.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/bubbo/metric-chip.webp");
   --hud-redesign-icon-art: url("/games/hud-redesign/bubbo/icon-badge.png");
   --hud-redesign-ink: #e8fbff;
   --hud-redesign-muted: rgba(232, 251, 255, 0.74);
@@ -99,12 +99,12 @@
 
 .telegram-app[data-active-tab="room"],
 .companion-yard-layout {
-  --hud-redesign-panel-art: url("/games/hud-redesign/room/hud-panel.png");
-  --hud-redesign-dialog-art: url("/games/ui-surfaces/yard-panel.png");
-  --hud-redesign-dock-art: url("/games/hud-redesign/room/dock-panel.png");
+  --hud-redesign-panel-art: url("/games/hud-redesign/room/hud-panel.webp");
+  --hud-redesign-dialog-art: url("/games/ui-surfaces/yard-panel.webp");
+  --hud-redesign-dock-art: url("/games/hud-redesign/room/dock-panel.webp");
   --hud-redesign-button-art: url("/games/hud-redesign/room/primary-button.png");
-  --hud-redesign-metric-art: url("/games/hud-redesign/room/metric-chip.png");
-  --hud-redesign-icon-art: url("/games/hud-redesign/room/icon-badge.png");
+  --hud-redesign-metric-art: url("/games/hud-redesign/room/metric-chip.webp");
+  --hud-redesign-icon-art: url("/games/hud-redesign/room/icon-badge.webp");
   --hud-redesign-ink: #2b220d;
   --hud-redesign-muted: #62521f;
   --hud-redesign-accent: #aacb49;

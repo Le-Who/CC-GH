@@ -89,4 +89,13 @@
 /* Keep the compact combo and reward lines inside the authored HUD lane. */
 .m3-stage[data-m3-compact=true] .m3-combo-reward .m3-metric{gap:0}
 
-.m3-combo-reward .m3-combo>strong{line-height:1.2}
+/* Nunito's natural line box includes the ink descent that exceeded 1.2 leading. */
+.m3-combo-reward .m3-combo>strong{line-height:normal}
+
+/* A short side layout needs two action columns so Exit remains in the visible dialog. */
+.m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-dialog{padding:14px;gap:8px}
+.m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-dialog-scroll{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-pause-metrics{grid-column:1/-1;padding:2px 0 4px}
+.m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-dialog-scroll>.m3-primary{grid-row:2;grid-column:1}
+.m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-dialog-scroll>.m3-button:last-child{grid-row:2;grid-column:2}
+.m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-two-actions{grid-row:3;grid-column:1/-1;gap:8px}

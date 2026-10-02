@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gardenDiagnostics } from "./helpers/gardenDiagnostics.js";
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
 import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
@@ -108,31 +109,36 @@ async function dragTouch(page,from,to){
 }
 
 test.describe('Garden Living production-source flow',()=>{
-  for(const [width,height] of MATRIX)test(`full Hub ${width}x${height}: art, dock, dialogs, post-30 level and exits`,async({browser},testInfo)=>{
-    const touch=width<1100,context=await browser.newContext({baseURL:test.info().project.use.baseURL,viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:touch,hasTouch:touch});
-    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+  for(const [width,height] of MATRIX)test.describe(`viewport ${width}x${height}`,()=>{
+   const touch=width<1100;
+   test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:touch,hasTouch:touch});
+   // The built-in page/context fixture owns teardown after the test body, so
+   // context.close cannot overwrite a failed assertion in a finally block.
+   test(`full Hub ${width}x${height}: art, dock, dialogs, post-30 level and exits`,async({page},testInfo)=>{
+    const diagnostics=gardenDiagnostics(page,testInfo),errors=diagnostics.errors;
     const player=makePlayer();player.garden.plants[0].level=42;const originalPlant=structuredClone(player.garden.plants[0]);
     try{
-      await initialize(page);await mountFixture(page,player);await boot(page);await assertShellFit(page);
+      diagnostics.mark('boot');await initialize(page);await mountFixture(page,player);await boot(page);await assertShellFit(page);
       await expect(page.locator('.gs2-live-plant').first()).toBeVisible();
       await expect.poll(()=>page.locator('.gs2-live-plant img').first().evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
-      await shot(page,testInfo,'shelf');
+      await shot(page,testInfo,'shelf');diagnostics.mark('shelf-verified');
       const xp=page.locator('.gs2-stage [data-garden-xp]');await xp.scrollIntoViewIfNeeded();
       await expect(xp).toBeEnabled();await expect(xp).toHaveAttribute('aria-label',new RegExp('Level Up'));
       const reward=getGardenLevelReward(31);await tapOrClick(xp,touch);
       await expect(panel(page,'reward')).toContainText(formatGardenGoldAmount(reward));await assertDialogFit(page,panel(page,'reward'));await closePanel(page);
-      expect(player.garden.level).toBe(32);expect(player.garden.plants[0].level).toBe(42);await expect(xp).toContainText('32');
+      expect(player.garden.level).toBe(32);expect(player.garden.plants[0].level).toBe(42);await expect(xp).toContainText('32');diagnostics.mark('level-reward-verified');
       const trigger=page.locator('[data-plant-details-button]').first();await trigger.scrollIntoViewIfNeeded();await tapOrClick(trigger,touch);
       await assertDialogFit(page,panel(page,'plant-detail'));await expect(page.getByTestId('garden-care-level')).toContainText('42');await shot(page,testInfo,'care');
-      await closePanel(page);await expect(trigger).toBeFocused();
-      await tapOrClick(trigger,touch);await page.keyboard.press('Escape');await expect(page.locator('.gs2-dialog')).toHaveCount(0);await expect(trigger).toBeFocused();
-      await page.locator('.gs2-stage button[aria-label="Garden quests"]').click();await assertDialogFit(page,panel(page,'quests'));await assertFlowRows(page,'.gs2-quest-card');await shot(page,testInfo,'quests');await closePanel(page);
-      await page.locator('.gs2-empty-target').first().click();await assertDialogFit(page,panel(page,'seed-shop-inventory'));await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await assertFlowRows(page,'.gs2-catalog-row');await shot(page,testInfo,'shop');await closePanel(page);
+      await closePanel(page);await expect(trigger).toBeFocused();diagnostics.mark('care-close-focus-verified');
+      await tapOrClick(trigger,touch);await page.keyboard.press('Escape');await expect(page.locator('.gs2-dialog')).toHaveCount(0);await expect(trigger).toBeFocused();diagnostics.mark('care-escape-focus-verified');
+      await page.locator('.gs2-stage button[aria-label="Garden quests"]').click();await assertDialogFit(page,panel(page,'quests'));await assertFlowRows(page,'.gs2-quest-card');await shot(page,testInfo,'quests');await closePanel(page);diagnostics.mark('quests-verified');
+      await page.locator('.gs2-empty-target').first().click();await assertDialogFit(page,panel(page,'seed-shop-inventory'));await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await assertFlowRows(page,'.gs2-catalog-row');await shot(page,testInfo,'shop');await closePanel(page);diagnostics.mark('shop-verified');
       // The host and its state remain intact after dismissals and tab changes.
-      await page.locator('[data-hud-region="bottomDock.blox"]').click();await expect(page.locator('.telegram-app')).not.toHaveAttribute('data-garden-presentation','living');
-      await page.locator('[data-hud-region="bottomDock.garden"]').click();await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
-      expect(player.garden.plants.find(p=>p.id===originalPlant.id)?.level).toBe(42);expect(errors).toEqual([]);
-    }finally{await context.close();}
+      diagnostics.mark('exit-to-blox');await page.locator('[data-hud-region="bottomDock.blox"]').click();await expect(page.locator('.telegram-app')).not.toHaveAttribute('data-garden-presentation','living');
+      diagnostics.mark('return-to-garden');await page.locator('[data-hud-region="bottomDock.garden"]').click();await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
+      expect(player.garden.plants.find(p=>p.id===originalPlant.id)?.level).toBe(42);expect(errors).toEqual([]);diagnostics.complete();
+    }catch(error){diagnostics.fail(error);throw error;}finally{diagnostics.dispose();}
+   });
   });
 
   test('touch scrolling from plant cancels the tap and never opens Care',async({browser})=>{

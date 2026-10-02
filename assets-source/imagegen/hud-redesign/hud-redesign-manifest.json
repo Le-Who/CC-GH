@@ -193,7 +193,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/garden/stat-gold.source.png",
           "originalSourcePath": "public/games/garden-shelf/icon_collect.png",
-          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-gold.png",
+          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-gold.webp",
           "width": 96,
           "height": 96
         },
@@ -203,7 +203,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/garden/stat-level-xp.source.png",
           "originalSourcePath": "public/games/garden-shelf/icon_plant.png",
-          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-level-xp.png",
+          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-level-xp.webp",
           "width": 96,
           "height": 96
         },
@@ -213,7 +213,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/garden/stat-quest.source.png",
           "originalSourcePath": "public/games/garden-shelf/icon_quest.png",
-          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-quest.png",
+          "runtimePath": "public/games/hud-redesign/garden/semantic-icons/stat-quest.webp",
           "width": 96,
           "height": 96
         }
@@ -356,7 +356,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/blox/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/blox/metric-chip.png",
+          "runtimePath": "public/games/hud-redesign/blox/metric-chip.webp",
           "width": 220,
           "height": 86,
           "chromaKey": "#00ff00"
@@ -569,7 +569,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/match3/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/match3/metric-chip.png",
+          "runtimePath": "public/games/hud-redesign/match3/metric-chip.webp",
           "width": 220,
           "height": 86,
           "chromaKey": "#00ff00"
@@ -800,7 +800,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/merge/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/merge/metric-chip.png",
+          "runtimePath": "public/games/hud-redesign/merge/metric-chip.webp",
           "width": 220,
           "height": 86,
           "chromaKey": "#ff00ff"
@@ -1000,7 +1000,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/bubbo/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/bubbo/metric-chip.png",
+          "runtimePath": "public/games/hud-redesign/bubbo/metric-chip.webp",
           "width": 220,
           "height": 86,
           "chromaKey": "#00ff00"
@@ -1399,7 +1399,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/hud-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/room/hud-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/room/hud-panel.png",
+          "runtimePath": "public/games/hud-redesign/room/hud-panel.webp",
           "width": 512,
           "height": 256,
           "chromaKey": "#ff00ff"
@@ -1421,7 +1421,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/dock-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/room/dock-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/room/dock-panel.png",
+          "runtimePath": "public/games/hud-redesign/room/dock-panel.webp",
           "width": 512,
           "height": 144,
           "chromaKey": "#ff00ff"
@@ -1454,7 +1454,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/room/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/room/metric-chip.png",
+          "runtimePath": "public/games/hud-redesign/room/metric-chip.webp",
           "width": 220,
           "height": 86,
           "chromaKey": "#ff00ff"
@@ -1465,7 +1465,7 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/icon-badge.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/room/icon-badge.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/room/icon-badge.png",
+          "runtimePath": "public/games/hud-redesign/room/icon-badge.webp",
           "width": 112,
           "height": 112,
           "chromaKey": "#ff00ff"

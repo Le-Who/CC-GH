@@ -11,11 +11,14 @@ test.describe("Telegram-first auth shell", () => {
     const pageErrors = [];
     page.on("pageerror", (err) => pageErrors.push(err.message));
 
+    const snapshotResponse = page.waitForResponse(response => new URL(response.url()).pathname === "/api/player/snapshot" && response.request().method() === "GET");
     await page.goto("/");
+    const snapshot = await snapshotResponse;
+    expect(snapshot.ok()).toBe(true);
+    expect(await snapshot.json()).toHaveProperty("player");
     // Garden intentionally hides the global title; authenticate against the live shell.
     await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab', 'garden');
     await expect(page.locator('.gs2-stage')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Player', exact: true })).toBeVisible();
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("My Garden")).toBeVisible();
     await expect(page.locator("#auth-dialog")).toHaveCount(0);

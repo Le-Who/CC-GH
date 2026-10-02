@@ -2,11 +2,11 @@ export const SCREEN_SURFACE_ASSETS = {
   gameHub: {
     hub: {
       surface: "/games/ui-surfaces/hub-panel.png",
-      accent: "/games/ui-surfaces/yard-panel.png",
+      accent: "/games/ui-surfaces/yard-panel.webp",
     },
     navigation: {
       surface: "/games/ui-surfaces/hub-panel.png",
-      accent: "/games/ui-surfaces/yard-panel.png",
+      accent: "/games/ui-surfaces/yard-panel.webp",
     },
     settings: {
       surface: "/games/ui-surfaces/garden-dialog-panel.png",
@@ -196,59 +196,59 @@ export const SCREEN_SURFACE_ASSETS = {
   },
   cozyYard: {
     hud: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       icon: "/games/companion-yard/ui/activity_pill.png",
     },
     bottomDock: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     food: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     goodies: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     shop: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     petbook: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       frame: "/games/companion-yard/ui/photo_frame.png",
     },
     album: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       frame: "/games/companion-yard/ui/photo_frame.png",
     },
     settings: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     gifts: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     repair: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     remodel: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     expansion: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     daily: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
     companion: {
-      surface: "/games/ui-surfaces/yard-panel.png",
+      surface: "/games/ui-surfaces/yard-panel.webp",
       button: "/games/companion-yard/ui/button_small_empty.png",
     },
   },

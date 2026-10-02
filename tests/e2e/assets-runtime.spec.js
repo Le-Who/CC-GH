@@ -1,12 +1,13 @@
 import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-catalog.js";
 import { test, expect } from "@playwright/test";
 import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
+import sharedHudWebpProof from "../fixtures/shared-hud-webp-proof.json" with { type: "json" };
 
 function observeRuntimeAssetRequests(page) {
   const paths = new Set();
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:bubbo-v2|match3-v2|blox-v2|garden-v2|garden-living)\//.test(url.pathname)) {
+    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:bubbo-v2|match3-v2|blox-v2|garden-v2|garden-living|hud-redesign|ui-surfaces)\//.test(url.pathname)) {
       paths.add(url.pathname);
     }
   });
@@ -64,6 +65,7 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.locator(".bx-canvas canvas")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/games/blox-v2/");
     await page.getByRole("button", { name: /^Start$/ }).click();
+    await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await exitActiveGame(page);
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
@@ -91,6 +93,9 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.locator(".companion-yard-layout")).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", /\/assets-runtime\/companion-yard\/backgrounds\//);
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
+    for (const asset of sharedHudWebpProof.files) {
+      await expectRuntimePath(runtimePaths, asset.runtimePath.replace(/^public/, ""));
+    }
     expect([...runtimePaths].filter(path => /^\/games\/(?:bubbo-v2|blox-v2|match3-v2)\//.test(path)).every(path => path.endsWith(".webp"))).toBe(true);
     const approvedRetained = /^\/games\/puzzling-potions\/images\/(?:special-(?:blast|column|colour|row)|drop-(?:gold|seeds|energy)|fx-clear-burst)\.png$/;
     // V3 reuses exactly the owned source-art paths declared in its recovered catalog.

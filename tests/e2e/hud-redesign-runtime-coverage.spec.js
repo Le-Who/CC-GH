@@ -60,7 +60,19 @@ test.describe("HUD redesign runtime asset coverage", () => {
         overflowingButtons: [...root.querySelectorAll("button")]
           .filter(isVisible)
           .filter((node) => node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1)
-          .map(labelFor),
+          .map((node) => {
+            const before = getComputedStyle(node, "::before");
+            return {
+              label: labelFor(node), rect: node.getBoundingClientRect().toJSON(),
+              clientWidth: node.clientWidth, scrollWidth: node.scrollWidth,
+              clientHeight: node.clientHeight, scrollHeight: node.scrollHeight,
+              before: { content: before.content, left: before.left, right: before.right, top: before.top, bottom: before.bottom, width: before.width, height: before.height },
+              children: [...node.children].map((child) => ({
+                className: child.className, text: child.textContent.trim(), rect: child.getBoundingClientRect().toJSON(),
+                clientWidth: child.clientWidth, scrollWidth: child.scrollWidth, clientHeight: child.clientHeight, scrollHeight: child.scrollHeight,
+              })),
+            };
+          }),
       };
     }, scopeSelector);
     expect(metrics.overflowX).toBeLessThanOrEqual(1);
@@ -93,7 +105,7 @@ test.describe("HUD redesign runtime asset coverage", () => {
 
     expect(chips.length).toBeGreaterThanOrEqual(2);
     for (const chip of chips) {
-      expect(chip.backgroundImage, `${chip.text} must use generated metric-chip art`).toContain("/games/hud-redesign/room/metric-chip.png");
+      expect(chip.backgroundImage, `${chip.text} must use generated metric-chip art`).toContain("/games/hud-redesign/room/metric-chip.webp");
       expect(chip.backgroundColor, `${chip.text} must not paint a CSS fallback color behind transparent metric art`).toBe("rgba(0, 0, 0, 0)");
       expect(chip.imageLayerCount, `${chip.text} should use one generated metric art layer`).toBe(1);
       expect(chip.ratio, `${chip.text} metric chip art is visually squeezed`).toBeGreaterThanOrEqual(1.75);
@@ -196,10 +208,10 @@ test.describe("HUD redesign runtime asset coverage", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await boot(page);
     await page.getByRole("button", { name: /Yard/ }).click();
-    await expectBackgroundAsset(page.locator(".yard-bottom-dock"), "/games/hud-redesign/room/dock-panel.png");
+    await expectBackgroundAsset(page.locator(".yard-bottom-dock"), "/games/hud-redesign/room/dock-panel.webp");
     await expectYardMetricChipsAligned(page);
     await expectYardDockIconsCentered(page);
-    await expectBackgroundAsset(page.locator(".yard-icon-button.compact").first(), "/games/hud-redesign/room/icon-badge.png");
+    await expectBackgroundAsset(page.locator(".yard-icon-button.compact").first(), "/games/hud-redesign/room/icon-badge.webp");
     await page.getByRole("button", { name: "Tools" }).click();
     await page.getByRole("button", { name: "Daily letter" }).click();
     await expect(page.locator(".yard-game-screen")).toHaveAttribute("data-yard-screen", "daily");

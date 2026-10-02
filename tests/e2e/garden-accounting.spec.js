@@ -1,4 +1,13 @@
-import {test,expect} from '@playwright/test';
+import {test as baseTest,expect} from '@playwright/test';
+import { gardenDiagnostics } from './helpers/gardenDiagnostics.js';
+
+const test=baseTest.extend({
+ accountingClients:[async({browser},use)=>{
+  const options={baseURL:baseTest.info().project.use.baseURL};
+  const [a,b]=await Promise.all([browser.newContext(options),browser.newContext(options)]);
+  try{await use({a,b});}finally{await Promise.all([a.close(),b.close()]);}
+ },{timeout:30000}],
+});
 import {createGardenEconomyState,getGardenXpRequired} from '../../game-logic/garden-economy.js';
 
 // Real /api/player routes. Fault interception forwards the request to the
@@ -65,17 +74,38 @@ test('quest credit and claimed marker survive a lost response together',async({b
  }finally{await first?.close();await second?.close();}
 });
 
-test('two real clients cannot both buy with one affordable balance or erase the winner',async({browser})=>{
- // Five real page boots/reloads plus teardown of two rendering contexts.
+test('two real clients cannot both buy with one affordable balance or erase the winner',async({accountingClients},testInfo)=>{
  test.setTimeout(60000);
- const userId=uid(),a=await browser.newContext({baseURL:test.info().project.use.baseURL}),b=await browser.newContext({baseURL:test.info().project.use.baseURL});
+ const {a,b}=accountingClients,userId=uid();
+ const first=await a.newPage(),second=await b.newPage();
+ const firstDiagnostics=gardenDiagnostics(first,testInfo,'garden-client-a'),secondDiagnostics=gardenDiagnostics(second,testInfo,'garden-client-b');
+ const held=[];let release;const submitted=new Promise(resolve=>{release=resolve;});
+ const barrier=async route=>{
+  const request=route.request().postDataJSON();
+  if(request.action==='garden.buyPlant'){held.push(request);await submitted;}
+  // No fabricated response: both commands reach the real server after both
+  // clients have clicked against the same affordable balance.
+  await route.continue();
+ };
  try{
-  const first=await a.newPage(),second=await b.newPage();await setup(first,userId);await setup(second,userId);await boot(first);
+  firstDiagnostics.mark('boot-and-seed');await setup(first,userId);await setup(second,userId);await boot(first);
   await first.evaluate(async()=>{const response=await fetch('/api/player/mutate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`dev ${localStorage.getItem('gh_dev_user_id')}`},body:JSON.stringify({action:'garden.goldDelta',payload:{amount:-75,reason:'disposable-test-fixture'}})});if(!response.ok)throw Error('fixture debit failed');});
-  await first.reload();await boot(second);await Promise.all([buy(first),buy(second)]);await Promise.all([waitLedgerSettled(first),waitLedgerSettled(second)]);
+  await first.reload();await boot(second);
+  await Promise.all([first.route('**/api/player/mutate',barrier),second.route('**/api/player/mutate',barrier)]);
+  firstDiagnostics.mark('submit-concurrent-purchases');secondDiagnostics.mark('submit-concurrent-purchases');
+  await Promise.all([buy(first),buy(second)]);
+  await expect.poll(()=>held.length).toBe(2);
+  expect(new Set(held.map(request=>request.clientActionId)).size).toBe(2);
+  release();
+  await Promise.all([waitLedgerSettled(first),waitLedgerSettled(second)]);
+  firstDiagnostics.mark('verify-one-debit-and-plant');
   await expect.poll(async()=>(await serverSnapshot(first)).garden.plants.length).toBe(1);const saved=await serverSnapshot(first);expect(saved.resources.gold).toBe(0);expect(saved.garden.plants).toHaveLength(1);
+  firstDiagnostics.mark('reload-both-clients');secondDiagnostics.mark('reload-both-clients');
   await Promise.all([first.reload(),second.reload()]);await expect(first.locator('[data-plant-id]')).toHaveCount(1);await expect(second.locator('[data-plant-id]')).toHaveCount(1);expect((await serverSnapshot(second)).resources.gold).toBe(0);
- }finally{await Promise.all([a.close(),b.close()]);}
+  expect(firstDiagnostics.errors).toEqual([]);expect(secondDiagnostics.errors).toEqual([]);
+  firstDiagnostics.complete();secondDiagnostics.complete();
+ }catch(error){firstDiagnostics.fail(error);secondDiagnostics.fail(error);throw error;}
+ finally{release();firstDiagnostics.dispose();secondDiagnostics.dispose();}
 });
 
 test('missing Web Locks leaves growth and Care usable while economic buttons fail closed',async({page})=>{

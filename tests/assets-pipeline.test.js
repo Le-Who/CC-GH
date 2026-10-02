@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {createHash} from "node:crypto";
 import arcadeWebpProof from "./fixtures/arcade-webp-proof.json" with {type:"json"};
+import sharedHudWebpProof from "./fixtures/shared-hud-webp-proof.json" with {type:"json"};
 
 import sharp from "sharp";
 import { buildAssetRuntimeManifest } from "../scripts/assets-pipeline.mjs";
@@ -547,5 +548,19 @@ it('decodes all 39 arcade lossless WebP exports to exact original RGBA including
     assert.equal(info.channels,4,asset.runtimePath);
     assert.equal(data.length,asset.rgbaBytes,asset.runtimePath);
     assert.equal(createHash('sha256').update(data).digest('hex'),asset.rgbaSha256,asset.runtimePath);
+  }
+});
+
+it('decodes all 12 shared HUD WebP exports to exact original RGBA and retires their runtime PNGs', async () => {
+  assert.equal(sharedHudWebpProof.files.length, 12);
+  const entries = await loadAssetPipelineEntries(process.cwd());
+  for (const asset of sharedHudWebpProof.files) {
+    const { data, info } = await sharp(path.resolve(asset.runtimePath)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    assert.equal(info.width, asset.width, asset.runtimePath);
+    assert.equal(info.height, asset.height, asset.runtimePath);
+    assert.equal(data.length, asset.rgbaBytes, asset.runtimePath);
+    assert.equal(createHash('sha256').update(data).digest('hex'), asset.rgbaSha256, asset.runtimePath);
+    assert.equal(entries.some(entry => entry.source === asset.sourcePath || entry.source === asset.runtimePath), false, 'Direct-copy HUD exports must not be re-encoded by the asset pipeline');
+    await assert.rejects(fs.access(path.resolve(asset.sourcePath)), { code: 'ENOENT' });
   }
 });

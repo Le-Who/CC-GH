@@ -2021,11 +2021,11 @@
 
 .companion-yard-layout {
   --yard-generated-panel-art: url("/games/hud-redesign/room/screen-panel.png");
-  --yard-generated-dialog-art: url("/games/ui-surfaces/yard-panel.png");
-  --yard-generated-dock-art: url("/games/hud-redesign/room/dock-panel.png");
+  --yard-generated-dialog-art: url("/games/ui-surfaces/yard-panel.webp");
+  --yard-generated-dock-art: url("/games/hud-redesign/room/dock-panel.webp");
   --yard-generated-button-art: url("/games/hud-redesign/room/primary-button.png");
-  --yard-generated-icon-art: url("/games/hud-redesign/room/icon-badge.png");
-  --yard-generated-metric-art: url("/games/hud-redesign/room/metric-chip.png");
+  --yard-generated-icon-art: url("/games/hud-redesign/room/icon-badge.webp");
+  --yard-generated-metric-art: url("/games/hud-redesign/room/metric-chip.webp");
 }
 
 .companion-yard-layout .yard-bottom-dock {

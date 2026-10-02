@@ -23,7 +23,8 @@ const HUD_SEMANTIC_ICON_IDS = {
 
 export function semanticHudIconPath(gameId, id) {
   const iconId = HUD_SEMANTIC_ICON_IDS[gameId]?.[id];
-  return iconId ? `/games/hud-redesign/${gameId}/semantic-icons/${iconId}.png` : "";
+  const extension = gameId === "garden" ? "webp" : "png";
+  return iconId ? `/games/hud-redesign/${gameId}/semantic-icons/${iconId}.${extension}` : "";
 }
 
 function mergeHandlers(first, second) {
