@@ -17,6 +17,8 @@ const APP_TRANSLATIONS = {
     "app.status.syncing": "Updating…",
     "app.status.ready": "Connected",
     "app.status.offline": "Offline",
+    "app.error.network": "No reply received. Check your connection, then refresh to check the result before trying again.",
+    "app.error.timeout": "The reply is taking too long. Refresh to check the result before trying again.",
     "app.eyebrow": "Telegram Mini App",
     "app.title": "Game Hub",
     "app.loading": "Loading your games…",
@@ -95,6 +97,8 @@ const APP_TRANSLATIONS = {
     "app.status.syncing": "Обновляем…",
     "app.status.ready": "На связи",
     "app.status.offline": "Нет связи",
+    "app.error.network": "Ответ не получен. Проверьте соединение, затем обновите страницу и проверьте результат перед повторной попыткой.",
+    "app.error.timeout": "Ответ задерживается. Обновите страницу и проверьте результат перед повторной попыткой.",
     "app.eyebrow": "Telegram Mini App",
     "app.title": "Game Hub",
     "app.loading": "Загрузка игрока",
@@ -183,6 +187,14 @@ export function appTranslate(language, key, vars) {
     REGISTERED_TRANSLATIONS.en?.[key] ||
     key;
   return interpolateText(template, vars);
+}
+
+// Only translate transport codes at the display boundary. Keep domain warnings
+// and the original error in state/results intact for recovery and reconciliation.
+export function playerFeedbackText(language, message) {
+  if (message === "NETWORK_ERROR") return appTranslate(language, "app.error.network");
+  if (message === "TIMEOUT") return appTranslate(language, "app.error.timeout");
+  return message;
 }
 
 export const AppI18nContext = createContext({

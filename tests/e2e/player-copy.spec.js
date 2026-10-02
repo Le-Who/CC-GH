@@ -79,6 +79,25 @@ async function expectBoundedFeedback(locator, page) {
   expect(await locator.evaluate(node => getComputedStyle(node).overflowY)).toBe('auto');
 }
 
+async function settleGameEntry(page, testInfo, game) {
+  // Visibility/font readiness can precede the shell's entry animation finishing.
+  // Await only the frame itself; gameplay descendants can animate indefinitely.
+  const entry = await page.locator('.active-game-frame').evaluate(async frame => {
+    const snapshot = () => ({
+      transform: getComputedStyle(frame).transform,
+      animations: frame.getAnimations().map(animation => ({
+        name: animation.animationName, playState: animation.playState, currentTime: animation.currentTime,
+      })),
+    });
+    const before = snapshot();
+    await Promise.all(frame.getAnimations().map(animation => animation.finished));
+    return { before, settled: snapshot() };
+  });
+  await testInfo.attach(`${game}-entry-diagnostics.json`, {
+    body: Buffer.from(JSON.stringify(entry, null, 2)), contentType: 'application/json',
+  });
+}
+
 for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], [568, 320]]) {
   test(`${language} important failures overlay open dialogs without geometry or focus jumps at ${width}x${height}`, async ({ page }, testInfo) => {
     test.setTimeout(60000);
@@ -91,6 +110,7 @@ for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], 
     const start = page.locator('.bx-dialog').getByRole('button', { name: language === 'ru' ? 'Старт' : 'Start', exact: true });
     await expect(start).toBeVisible({ timeout: 15000 });
     await page.evaluate(() => document.fonts.ready);
+    await settleGameEntry(page, testInfo, 'blox');
     const menu = page.locator('.bx-dialog');
     const beforeMenu = await menu.boundingBox(), beforeStart = await start.boundingBox();
     let release;
@@ -103,9 +123,16 @@ for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], 
     };
     await page.route('**/api/player/mutate', failStart);
     await start.click(); await seen;
+    expect(await menu.boundingBox()).toEqual(beforeMenu);
+    expect(await start.boundingBox()).toEqual(beforeStart);
     await start.focus(); release();
     const shared = page.locator('.telegram-app > .notice');
     await expectBoundedFeedback(shared, page);
+    const networkMessage = language === 'ru'
+      ? 'Ответ не получен. Проверьте соединение, затем обновите страницу и проверьте результат перед повторной попыткой.'
+      : 'No reply received. Check your connection, then refresh to check the result before trying again.';
+    await expect(shared).toHaveText(networkMessage);
+    await expect(shared).toHaveAccessibleName(`${networkMessage} · ${language === 'ru' ? 'Закрыть' : 'Close'}`);
     expect(await menu.boundingBox()).toEqual(beforeMenu);
     expect(await start.boundingBox()).toEqual(beforeStart);
     await expect(start).toBeFocused();
@@ -118,6 +145,8 @@ for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], 
 
     await page.goto('/?tab=merge');
     await expect(page.getByTestId('ml-laboratory')).toBeVisible({ timeout: 15000 });
+    await page.evaluate(() => document.fonts.ready);
+    await settleGameEntry(page, testInfo, 'merge');
     const beforeLab = await page.getByTestId('ml-laboratory').boundingBox();
     await mergePanel(page, 'supplies');
     await page.getByTestId('ml-starter-kit').click();

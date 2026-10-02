@@ -31,7 +31,7 @@ import { useGameHub } from "./game-state/useGameHub.js";
 import { useGameEvents } from "./game-state/gameEvents.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
-import { AppI18nContext, appTranslate, useAppI18n } from "./app/i18n.jsx";
+import { AppI18nContext, appTranslate, playerFeedbackText, useAppI18n } from "./app/i18n.jsx";
 import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
 import { Stat, formatCount, semanticHudIconPath } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
@@ -145,6 +145,7 @@ export default function App() {
   const [isPending, startTransition] = useTransition();
   const user = useMemo(() => getTelegramUser(), [platform]);
   const t = useCallback((key, vars) => appTranslate(gardenLanguage, key, vars), [gardenLanguage]);
+  const playerMessage = playerFeedbackText(gardenLanguage, message);
   const i18nValue = useMemo(() => ({ language: gardenLanguage, t }), [gardenLanguage, t]);
   const uiTheme = uiThemePreference.theme;
   const toggleUiTheme = useCallback(() => {
@@ -401,7 +402,7 @@ export default function App() {
               ))}
             </HudEditableRegion>
             <GameEventOverlay hidden={shellActive} />
-            {message && <button type="button" className="notice" role="alert" aria-label={`${message} · ${t("common.close")}`} onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
+            {message && <button type="button" className="notice" role="alert" aria-label={`${playerMessage} · ${t("common.close")}`} onClick={() => useGameHub.setState({ message: "" })}>{playerMessage}</button>}
             {!snapshot ? (
               <div className="loading-panel">{t("app.loading")}</div>
             ) : (

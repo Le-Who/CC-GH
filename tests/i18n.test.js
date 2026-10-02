@@ -253,3 +253,33 @@ it("the lost-reply replay browser regression follows the current concise retry l
     assert.ok(spec.includes(guard), guard);
   }
 });
+
+it("shared transport failures use current RU/EN copy without replacing domain warnings", async () => {
+  // Exercise the actual translations and formatter without needing a React DOM.
+  const source = readRepoFile('src', 'app', 'i18n.jsx').replace(
+    'import { createContext, useContext } from "react";',
+    'const createContext = value => value; const useContext = value => value;',
+  );
+  const { playerFeedbackText } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+  const expected = {
+    en: {
+      NETWORK_ERROR: 'No reply received. Check your connection, then refresh to check the result before trying again.',
+      TIMEOUT: 'The reply is taking too long. Refresh to check the result before trying again.',
+    },
+    ru: {
+      NETWORK_ERROR: 'Ответ не получен. Проверьте соединение, затем обновите страницу и проверьте результат перед повторной попыткой.',
+      TIMEOUT: 'Ответ задерживается. Обновите страницу и проверьте результат перед повторной попыткой.',
+    },
+  };
+  for (const [language, messages] of Object.entries(expected)) {
+    for (const [code, text] of Object.entries(messages)) {
+      assert.equal(playerFeedbackText(language, code), text);
+    }
+    for (const message of ['', 'Insufficient gold', 'No confirmed reply yet. Check the result before trying another action', 'GARDEN_INTENT_AMBIGUOUS']) {
+      assert.equal(playerFeedbackText(language, message), message);
+    }
+  }
+  assert.equal(playerFeedbackText('unknown', 'NETWORK_ERROR'), expected.en.NETWORK_ERROR);
+  assert.equal(playerFeedbackText('en', 'NETWORK_ERROR'), expected.en.NETWORK_ERROR);
+  assert.equal(playerFeedbackText('ru', 'NETWORK_ERROR'), expected.ru.NETWORK_ERROR);
+});
