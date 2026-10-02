@@ -73,7 +73,9 @@ function anchored(name){return Object.fromEntries(ids.map(id=>[id,{paw:[...keys[
 function curlState(v){
   const c=REST_TIMELINE_CONFIG, normalized=clamp(v);
   const raw=normalized*4,scaled=Math.abs(raw-Math.round(raw))<1e-12?Math.round(raw):raw;
-  const stage=Math.min(3,Math.floor(scaled)),u=scaled-stage;
+  const stage=Math.min(3,Math.floor(scaled));
+  let u=scaled-stage;
+  for(const boundary of [c.liftEnd,c.landStart])if(Math.abs(u-boundary)<1e-12)u=boundary;
   const range=c.bodyCurlRanges[stage], amount=mix(range[0],range[1],smooth(u));
   const spec=blendSpec(specs.sit,specs.curl,amount);
   spec.pelvis[2]+=c.pelvisLiftArc*Math.sin(Math.PI*amount)**2;
@@ -147,7 +149,7 @@ export function sampleRestTimeline(timeSeconds){
     }
   }
   if(phase.name==='rest'){
-    const spec=blendSpec(specs.curl,specs.curl,0),breath=Math.sin(2*Math.PI*u)**2;
+    const spec=blendSpec(specs.curl,specs.curl,0),breath=Math.sin(Math.PI*REST_TIMELINE_CONFIG.breathing.cycles*u)**2;
     spec.yawPitch[1][1]+=rad(REST_TIMELINE_CONFIG.breathing.lumbarPitchDegrees)*breath;
     spec.yawPitch[2][1]+=rad(REST_TIMELINE_CONFIG.breathing.chestPitchDegrees)*breath;
     state={spec,paws:anchored('curl'),curlAmount:1,breathAmount:breath};
