@@ -1,7 +1,9 @@
 import React from "react";
 import { GameLoadBoundary, preloadPixiSceneHost } from "./PixiScene.jsx";
 import { useAppI18n } from "./i18n.jsx";
-export const PIXI_TABS = new Set(["blox", "match3", "merge", "bubbo"]);
+// Only these current game presentations use Pixi. Bubbo v2 uses Canvas 2D;
+// Merge v3 uses DOM. Legacy Merge still loads Pixi lazily when it renders.
+export const PIXI_TABS = new Set(["blox", "match3"]);
 const gameLoaders = {
   garden: () => import("../games/garden-shelf/GardenShelfGame"),
   blox: () => import("../games/blox/BloxGame.jsx"),

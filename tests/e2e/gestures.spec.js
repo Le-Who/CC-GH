@@ -3,7 +3,7 @@ import { exerciseMergePointerCleanup } from "./helpers/mergeV3.js";
 import { expectBloxCanvas, expectBloxLayout, readBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 import { attemptMatch3Move } from "../../src/game-core/match3/engine.js";
 
-async function boot(page, prefix = "gesture") {
+async function boot(page, prefix = "gesture", url = "/") {
   await page.addInitScript((value) => {
     window.localStorage.setItem("gh_dev_user_id", `${value}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     window.localStorage.removeItem("terrarium_save");
@@ -12,7 +12,7 @@ async function boot(page, prefix = "gesture") {
   }, prefix);
   const pageErrors = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
-  await page.goto("/");
+  await page.goto(url);
   await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
   return pageErrors;
 }
@@ -473,3 +473,114 @@ test.describe("Pixi touch and drag interactions", () => {
     expect(pageErrors).toEqual([]);
   });
 });
+
+// This models Telegram's native transport, while the production SDK and real
+// browser touch/pointer delivery remain in use. A physical Telegram host still
+// needs device verification; a browser cannot emulate its native sheet motion.
+async function bootWithTelegramSwipeBridge(page) {
+  await page.addInitScript(() => {
+    window.__telegramSwipe = { enabled: null, messages: [], pointerId: null };
+    // SDK 3.11.8 reloads this documented-by-source persisted component state.
+    // Starting enabled makes the regression fail if Bubbo never acquires it.
+    sessionStorage.setItem('tapps/swipeBehavior', 'true');
+    const emit = (eventType, eventData) => queueMicrotask(() => {
+      window.dispatchEvent(new MessageEvent('message', {
+        source: window.parent, data: JSON.stringify({ eventType, eventData }),
+      }));
+    });
+    window.TelegramWebviewProxy = {
+      postEvent(eventType, raw) {
+        const data = raw ? JSON.parse(raw) : {};
+        if (eventType === 'web_app_setup_swipe_behavior') {
+          window.__telegramSwipe.enabled = data.allow_vertical_swipe;
+          window.__telegramSwipe.messages.push(data.allow_vertical_swipe);
+        }
+        if (eventType === 'web_app_request_viewport') emit('viewport_changed', {
+          width: innerWidth, height: innerHeight, is_state_stable: true, is_expanded: true,
+        });
+        if (eventType === 'web_app_request_theme') emit('theme_changed', { theme_params: {
+          bg_color: '#ffffff', text_color: '#000000', button_color: '#3390ec', button_text_color: '#ffffff',
+        } });
+        if (eventType === 'web_app_request_safe_area') emit('safe_area_changed', { top: 0, right: 0, bottom: 0, left: 0 });
+        if (eventType === 'web_app_request_content_safe_area') emit('content_safe_area_changed', { top: 0, right: 0, bottom: 0, left: 0 });
+      },
+    };
+    document.addEventListener('pointerdown', event => {
+      if (event.target.matches('.bb-field')) window.__telegramSwipe.pointerId = event.pointerId;
+    });
+  });
+  const params = new URLSearchParams({
+    tgWebAppPlatform: 'android', tgWebAppVersion: '7.10',
+    tgWebAppThemeParams: JSON.stringify({ bg_color: '#ffffff', text_color: '#000000', button_color: '#3390ec', button_text_color: '#ffffff' }),
+  });
+  const errors = await boot(page, 'bubbo_host_swipe', `/#${params}`);
+  await page.reload();
+  await expect(page.locator('.status-dot.ready')).toBeVisible({ timeout: 15000 });
+  await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
+  return errors;
+}
+
+for (const [width, height] of [[320,568], [360,800], [390,844], [414,896], [568,320], [844,390], [768,1024], [1024,768], [1280,720], [375,812]]) {
+  test.describe(`Bubbo native swipe scope ${width}x${height}`, () => {
+    test.use({ viewport: { width, height }, deviceScaleFactor: 2, hasTouch: true, isMobile: width <= 1024 });
+    test('downward aim stays on the field and pause/exit restore host swipes', async ({ page }) => {
+      const errors = await bootWithTelegramSwipeBridge(page);
+      await page.getByRole('button', { name: /Bubbo/ }).click();
+      await expect(page.locator('.bb-stage')).toHaveAttribute('data-bb-phase', 'menu');
+      expect(await page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
+      await page.getByTestId('bb-start').click();
+      const field = page.getByTestId('bb-field');
+      await expect(field).toHaveAttribute('data-ready', 'true');
+      await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(false);
+      expect(await field.evaluate(node => getComputedStyle(node).touchAction)).toBe('none');
+      const box = await field.boundingBox();
+      expect(box).not.toBeNull();
+      const origin = await page.evaluate(() => ({ x: scrollX, y: scrollY, width: innerWidth, height: innerHeight }));
+      const client = await page.context().newCDPSession(page);
+      const point = (x, y) => ({ x, y, id: 1, radiusX: 7, radiusY: 7, force: 1 });
+      try {
+        await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point(box.x + box.width * .3, box.y + box.height * .35)] });
+        await expect.poll(() => field.evaluate(node => node.hasPointerCapture(window.__telegramSwipe.pointerId))).toBe(true);
+        await expect(page.locator('#bb-aim-help')).toContainText(/°/);
+        const initialAim = await page.locator('#bb-aim-help').textContent();
+        for (let step = 1; step <= 6; step++) {
+          await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [point(box.x + box.width * (.3 + .4 * step / 6), box.y + box.height * (.35 + .35 * step / 6))] });
+        }
+        await expect(page.locator('#bb-aim-help')).not.toHaveText(initialAim);
+        expect(await page.evaluate(() => window.__telegramSwipe.enabled)).toBe(false);
+        expect(await page.evaluate(() => ({ x: scrollX, y: scrollY, width: innerWidth, height: innerHeight }))).toEqual(origin);
+        const after = await field.boundingBox();
+        for (const key of ['x', 'y', 'width', 'height']) expect(after[key]).toBeCloseTo(box[key], 1);
+        await client.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+        await expect.poll(() => field.evaluate(node => node.hasPointerCapture(window.__telegramSwipe.pointerId))).toBe(false);
+        await expect(field).toHaveAttribute('data-shots', '0');
+        // A canceled touch must leave the next real downward aim usable.
+        await touchDrag(page, { x: box.x + box.width * .35, y: box.y + box.height * .4 }, { x: box.x + box.width * .6, y: box.y + box.height * .7 });
+        await expect.poll(async () => Number(await field.getAttribute('data-shots'))).toBe(1);
+      } finally {
+        await client.detach();
+      }
+      await page.locator('.bb-pause').click();
+      await expect(page.locator('.bb-stage')).toHaveAttribute('data-bb-phase', 'paused');
+      await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
+      const scroller = page.locator('.bb-dialog-scroll');
+      expect(await scroller.evaluate(node => getComputedStyle(node).touchAction)).not.toBe('none');
+      if (height <= 568) {
+        await page.locator('.bb-help summary').click();
+        await scroller.evaluate(node => { node.scrollTop = 0; });
+        const scrollBox = await scroller.boundingBox();
+        expect(await scroller.evaluate(node => node.scrollHeight - node.clientHeight)).toBeGreaterThan(0);
+        await touchDrag(page, { x: scrollBox.x + scrollBox.width - 8, y: scrollBox.y + scrollBox.height * .8 }, { x: scrollBox.x + scrollBox.width - 8, y: scrollBox.y + scrollBox.height * .2 });
+        await expect.poll(() => scroller.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+      }
+      await page.getByTestId('bb-resume').click();
+      await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(false);
+      await page.locator('.bb-pause').click();
+      await page.getByTestId('bb-exit').click();
+      await expect(page.locator('.bb-stage')).toHaveCount(0);
+      await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(errors).toEqual([]);
+    });
+  });
+}

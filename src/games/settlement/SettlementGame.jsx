@@ -335,7 +335,7 @@ const RIGHT_PANEL_SCREENS = {
     kind: 'goals',
     title: 'Цели поселения',
     eyebrow: 'Прогресс',
-    subline: 'Длинные цели без ускорения темпа'
+    subline: 'Цели и награды'
   },
   inventory: {
     id: 'inventory',
@@ -390,7 +390,7 @@ const RIGHT_PANEL_SCREENS = {
     kind: 'world-map',
     title: 'Карта мира',
     eyebrow: 'Мир',
-    subline: 'Слои карты, экспедиции и состояние дорог',
+    subline: 'Маршруты и экспедиции',
     headerIcon: ICONS.map
   },
   rank: {
@@ -2336,7 +2336,6 @@ function CouncilScreen({ setPanel, selectBuilding }) {
             </div>
           </div>
           <ProgressBar value={stage.progress.current} max={stage.progress.max} fill="green" label={`${formatNumber(stage.progress.current)} / ${formatNumber(stage.progress.max)}`} />
-          <p>{stage.description}</p>
         </HudFrame>
 
         <HudFrame className="council-build-card" frame={UI_ASSETS.panel}>
@@ -2777,12 +2776,12 @@ function GenericPanel({ activePanel, stage, resources, population }) {
         <div className="offer-list">
           <HudFrame className="offer-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.starterPack} alt="" size={32} />
-            <div className="card-copy"><strong>Starter pack</strong><span>Сундук, золото, товары</span></div>
+            <div className="card-copy"><strong>Стартовый набор</strong><span>Сундук, золото, товары</span></div>
             <button type="button" className="offer-action" style={frameStyle(UI_ASSETS.iconButton)}>+</button>
           </HudFrame>
           <HudFrame className="offer-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.gift} alt="" size={32} />
-            <div className="card-copy"><strong>Daily gift</strong><span>Бесплатная награда</span></div>
+            <div className="card-copy"><strong>Ежедневный подарок</strong><span>Бесплатная награда</span></div>
             <button type="button" className="offer-action" style={frameStyle(UI_ASSETS.iconButton)}>+</button>
           </HudFrame>
         </div>
@@ -2832,13 +2831,7 @@ function GenericPanel({ activePanel, stage, resources, population }) {
     return (
       <div className="panel-body">
         <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.map} alt="" size={16} /><span>Карта</span></div>
-        <p>Стадия: {stage.title}. Поле, здания, жители и эффекты рендерятся отдельными runtime-слоями.</p>
-        <div className="map-tags">
-          <span style={frameStyle(UI_ASSETS.tabActive)}>field</span>
-          <span style={frameStyle(UI_ASSETS.tabIdle)}>buildings</span>
-          <span style={frameStyle(UI_ASSETS.tabIdle)}>props</span>
-          <span style={frameStyle(UI_ASSETS.tabIdle)}>vfx</span>
-        </div>
+        <p>{stage.title}</p>
       </div>
     );
   }

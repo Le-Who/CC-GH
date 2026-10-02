@@ -104,3 +104,28 @@ test.describe("generated runtime asset manifest", () => {
     expect([...legacyGamePngPaths].some(path => ownedMergeArt.has(path))).toBe(true);
   });
 });
+
+
+// Block the service worker in this targeted test so its legacy eager precache
+// cannot hide which runtime the dock itself imports. Cache behavior is separate.
+test.describe("dock renderer loading", () => {
+  test.use({ serviceWorkers: "block" });
+  for (const game of ["Bubbo", "Merge"]) {
+    test(`does not load the obsolete Pixi renderer when opening ${game}`, async ({ page }) => {
+      const runtimeRequests = [];
+      page.on("request", request => {
+        const path = new URL(request.url()).pathname;
+        if (/LazyPixiSceneHost|PixiGameHost|(?:bubbo|merge)Scene|WebGLRenderer|WebGPURenderer/.test(path)) runtimeRequests.push(path);
+      });
+      await page.goto("/");
+      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+      const tab = page.locator(".bottom-tabs").getByRole("button", { name: new RegExp(game) });
+      await tab.focus();
+      await tab.click();
+      if (game === "Bubbo") await expect(page.getByTestId("bb-field")).toBeVisible();
+      else await expectMergeArt(page);
+      await page.waitForLoadState("networkidle");
+      expect(runtimeRequests).toEqual([]);
+    });
+  }
+});

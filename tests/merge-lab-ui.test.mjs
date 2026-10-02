@@ -93,3 +93,23 @@ test('Strict Mode effect replay preserves the opener and stale restore work cann
  const replaced=await dialogLifecycle();replaced.render('Supplies');replaced.unmount();
  const next=replaced.manager.begin({isConnected:true,contains:()=>false});replaced.flush();assert.equal(replaced.active(),'body');next.end();
 });
+
+
+test('RU and EN panels keep actionable costs and output while omitting recipe IDs and decorative copy',()=>{
+ for(const language of ['en','ru']){
+  const journal=JSON.stringify(MergeLabView({player,language,catalog,getQuote:async()=>{},initialViewState:{panel:{type:'journal',itemId:'vial'}}}));
+  const pause=JSON.stringify(MergeLabView({player,language,catalog,getQuote:async()=>{},initialViewState:{panel:{type:'pause'}}}));
+  const projects=JSON.stringify(MergeLabView({player,language,catalog,getQuote:async()=>{},initialViewState:{panel:{type:'projects'}}}));
+  assert.ok(!journal.includes('ml-provenance'));
+  assert.ok(!journal.includes('ml-item-use'));
+  assert.ok(!journal.includes(catalog.copy.alchemy[language]));
+  assert.ok(!pause.includes(`Catalog ${catalog.version}`));
+  assert.ok(!pause.includes(`Каталог ${catalog.version}`));
+  for(const project of catalog.projects){
+   assert.ok(projects.includes(project.use[language]), `actual output stays explained: ${project.id}`);
+   assert.ok(!projects.includes(project.description[language]), `decorative project description omitted: ${project.id}`);
+  }
+  assert.match(projects,language==='ru'?/Есть .*Нужно/:/Have .*Need/);
+  assert.match(projects,language==='ru'?/предмет в инвентарь двора/:/item in Yard inventory/);
+ }
+});

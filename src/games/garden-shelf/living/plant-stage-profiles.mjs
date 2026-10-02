@@ -47,4 +47,23 @@ STAGE_PROFILES.venus_flytrap=[
  create([.535,.604],[.289,.534,.761,.984],[[.495,.20,.115],[.244,.353,.11],[.80,.38,.11],[.548,.407,.075],[.32,.48,.085]],.7,.12),
  create([.538,.604],[.29,.537,.76,.984],[[.505,.18,.13],[.233,.30,.13],[.816,.385,.13],[.383,.51,.09]],.82,.16)];
 STAGE_PROFILES.venus_flytrap[2].zones.at(-1).responseGain=.35;
-export const stageProfile=(type,phase,mature)=>STAGE_PROFILES[type]?.[Math.max(0,Math.min(3,Math.floor(phase||0)))]??mature;
+// Peak idle amplitudes in authored image coordinates. Flexible foliage moves
+// visibly; woody crowns, fleshy leaves and cactus retain a quieter character.
+export const IDLE_AMPLITUDES=Object.freeze({
+ daisy:[.012,.018,.022,.022],monstera:[.010,.017,.018,.022],fern:[.012,.018,.022,.023],
+ basil:[.012,.018,.022,.022],lavender:[.010,.018,.022,.023],rosemary:[.010,.017,.020,.022],
+ pothos:[.012,.018,.022,.022],strawberry:[.010,.017,.016,.018],orchid:[.010,.016,.020,.022],
+ string_of_pearls:[.008,.008,.014,.016],venus_flytrap:[.010,.016,.020,.022],
+ bonsai:[.006,.009,.012,.014],succulent:[.005,.007,.009,.011],moon_cactus:[.002,.0025,.003,.004]
+});
+export function stageProfile(type,phase,mature){
+ const index=Math.max(0,Math.min(3,Math.floor(phase||0))),base=STAGE_PROFILES[type]?.[index]??mature;
+ const target=IDLE_AMPLITUDES[type]?.[index];if(!target)return base;
+ const peak=Math.max(...base.zones.map(zone=>zone.amplitude));
+ return {...base,
+  // These developing leaves have narrow joins. Bound combined tap/water/idle
+  // displacement there; their interaction amplitudes and timing are unchanged.
+  ...((type==='monstera'||type==='strawberry')&&index===2?{maxDisplacementX:.024}:{}),
+  zones:base.zones.map(zone=>({...zone,amplitude:zone.amplitude*target/peak}))
+ };
+}

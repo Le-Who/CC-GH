@@ -280,7 +280,7 @@ export default function App() {
     window.dispatchEvent(new Event(GARDEN_OPEN_QUESTS_EVENT));
   }, []);
   const profileName = user?.username || user?.firstName || user?.first_name || t("app.player");
-  const profileRuntime = config?.telegramBotUsername ? `@${config.telegramBotUsername}` : t("app.runtime");
+  const profileBotName = config?.telegramBotUsername ? `@${config.telegramBotUsername}` : "";
   const profileInitial = (user?.firstName || user?.first_name || user?.username || "G").slice(0, 1);
   const stats = activeTab === "garden"
     ? [
@@ -339,7 +339,6 @@ export default function App() {
           >
             <HudRegion id="appTopbar" as="header" className="topbar">
               <div className="topbar-title">
-                <p className="eyebrow">{t("app.eyebrow")}</p>
                 <h1>{t("app.title")}</h1>
               </div>
               <div className="topbar-actions">
@@ -353,8 +352,8 @@ export default function App() {
                 </button>
                 <ThemeToggle theme={uiTheme} onToggle={toggleUiTheme} />
                 {activeTab !== "garden" && <AudioToggle />}
-                <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()}>
-                  {status}
+                <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()} aria-label={`${t(`app.status.${status}`)} · ${t("common.refresh")}`} title={`${t(`app.status.${status}`)} · ${t("common.refresh")}`}>
+                  {["booting", "syncing", "ready", "offline"].map((state) => <span key={state} className="status-dot-label" data-current={state === status} aria-hidden={state !== status}>{t(`app.status.${state}`)}</span>)}
                 </button>
               </div>
             </HudRegion>
@@ -373,7 +372,7 @@ export default function App() {
                   <div className="profile-popover-avatar">{profileInitial}</div>
                   <div className="profile-popover-copy">
                     <strong>{profileName}</strong>
-                    <span>{profileRuntime}</span>
+                    {profileBotName && <span>{profileBotName}</span>}
                   </div>
                   <div className="profile-popover-stats">
                     <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
@@ -402,7 +401,7 @@ export default function App() {
               ))}
             </HudEditableRegion>
             <GameEventOverlay hidden={shellActive} />
-            {message && <button className="notice" onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
+            {message && <button type="button" className="notice" role="alert" aria-label={`${message} · ${t("common.close")}`} onClick={() => useGameHub.setState({ message: "" })}>{message}</button>}
             {!snapshot ? (
               <div className="loading-panel">{t("app.loading")}</div>
             ) : (

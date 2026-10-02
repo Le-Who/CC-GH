@@ -415,6 +415,18 @@ h1 {
   font-size: 0.76rem;
   font-weight: 900;
   text-transform: capitalize;
+  display: grid;
+  place-items: center;
+}
+
+/* All states share a cell: the longest label reserves the width without flicker. */
+.status-dot-label {
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+
+.status-dot-label[data-current="true"] {
+  visibility: visible;
 }
 
 .status-dot.ready {
@@ -793,6 +805,23 @@ button.stat-chip {
   }
 }
 
+/* Important failures overlay the current screen; they never add a main-grid row.
+   This intentionally uses the viewport safe area rather than a gameplay HUD region. */
+.telegram-app > .notice {
+  position: fixed;
+  z-index: 1500;
+  left: max(12px, var(--safe-left));
+  right: max(12px, var(--safe-right));
+  bottom: calc(var(--safe-bottom) + 12px);
+  width: auto;
+  max-width: 600px;
+  max-height: min(240px, 35dvh, calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px));
+  margin-inline: auto;
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+
 .notice {
   padding: 9px 11px;
   border: 1px solid color-mix(in srgb, var(--amber) 45%, transparent);
@@ -1101,7 +1130,6 @@ button.stat-chip {
 .telegram-app.immersive-mode .topbar,
 .telegram-app.immersive-mode .profile-strip,
 .telegram-app.immersive-mode .stats-row,
-.telegram-app.immersive-mode .notice,
 .telegram-app.immersive-mode .bottom-tabs {
   display: none;
 }
@@ -2321,6 +2349,7 @@ button.stat-chip {
   }
 
   .status-dot::before {
+    grid-area: 1 / 1;
     content: "";
     width: 10px;
     height: 10px;

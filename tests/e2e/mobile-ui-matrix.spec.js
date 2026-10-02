@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expectControlPainted } from "./helpers/control-paint.js";
 import { pauseMerge, exitMerge, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
 import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
 import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
@@ -8,6 +9,9 @@ const VIEWPORTS = [
   { width: 360, height: 800, label: "common-android" },
   { width: 390, height: 844, label: "common-mobile", deviceScaleFactor: 2 },
   { width: 414, height: 896, label: "large-mobile" },
+  { width: 495, height: 772, label: "telegram-desktop-narrow", isMobile: false, hasTouch: true, deviceScaleFactor: 2 },
+  { width: 375, height: 812, label: "extended-safe-phone", deviceScaleFactor: 2, safe: { top: 24, right: 12, bottom: 20, left: 12 } },
+  { width: 568, height: 320, label: "compact-landscape-safe", safe: { top: 8, right: 20, bottom: 8, left: 20 } },
   { width: 568, height: 320, label: "phone-landscape-compact" },
   { width: 844, height: 390, label: "phone-landscape" },
   { width: 768, height: 1024, label: "tablet-portrait" },
@@ -33,6 +37,12 @@ async function bootMatrixPage(browser, baseURL, viewport) {
   }, viewport.label);
   await page.goto("/");
   await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
+  if (viewport.safe) {
+    await page.evaluate((safe) => {
+      for (const [edge,value] of Object.entries(safe)) document.documentElement.style.setProperty(`--safe-${edge}`,`${value}px`);
+      window.dispatchEvent(new Event("resize"));
+    }, viewport.safe);
+  }
   return { context, page, pageErrors };
 }
 
@@ -148,7 +158,7 @@ test.describe.configure({ mode: "serial" });
 
 test.describe("mobile UI viewport matrix", () => {
   for (const viewport of VIEWPORTS) {
-    test(`${viewport.label} fits without horizontal scroll or clipped primary controls`, async ({ browser, baseURL }) => {
+    test(`${viewport.label} fits without horizontal scroll or clipped primary controls`, async ({ browser, baseURL }, testInfo) => {
       test.setTimeout(120_000);
 
       const { context, page, pageErrors } = await bootMatrixPage(browser, baseURL, viewport);
@@ -162,6 +172,8 @@ test.describe("mobile UI viewport matrix", () => {
         await expectBloxCanvas(page);
         await expectBloxLayout(page);
         await expectNoHorizontalScroll(page);
+        await expectControlPainted(page, page.locator('.bx-actions [data-game-pause]'), testInfo, 'Blox Pause');
+        await expectControlPainted(page, page.locator('.bx-actions [data-blox-rotate]'), testInfo, 'Blox Rotate');
         await pauseBlox(page);
         await exitBlox(page);
 
@@ -171,6 +183,7 @@ test.describe("mobile UI viewport matrix", () => {
         await expectCanvasNonBlank(page, '[data-game-shell="match3"]');
         await expectMatch3BoardBelowHud(page);
         await expectNoHorizontalScroll(page);
+        await expectControlPainted(page, page.locator('.m3-pause'), testInfo, 'Match3 Pause');
         await page.getByRole("button", { name: /Pause/ }).click();
         await expect(page.locator(".m3-dialog:visible")).toBeVisible();
         await expectVisibleButtonsReachable(page, ".m3-dialog:visible button");
@@ -179,6 +192,7 @@ test.describe("mobile UI viewport matrix", () => {
 
         await page.getByRole("button", { name: /Merge/ }).click();
         await expectMergeArt(page);
+        await expectControlPainted(page, page.getByTestId('ml-open-pause'), testInfo, 'Merge Pause');
         await expectMergeControlsReachable(page, page.locator('.ml-hud button, .ml-nav button, .ml-well-button, .ml-lab-action button'));
         await expectNoHorizontalScroll(page);
         const mergeDialog = await pauseMerge(page);
@@ -191,11 +205,13 @@ test.describe("mobile UI viewport matrix", () => {
         await expect(page.locator(".bb-powers [data-bubbo-powerup]")).toHaveCount(3);
         await expectVisibleButtonsReachable(page, ".bb-powers button");
         await expectNoHorizontalScroll(page);
+        await expectControlPainted(page, page.locator('.bb-pause'), testInfo, 'Bubbo Pause');
         await exitViaPauseOrResult(page);
         await expect(page.locator(".bottom-tabs")).toBeVisible();
 
         await page.getByRole("button", { name: /Trivia/ }).click();
         await startTriviaSolo(page);
+        await expectControlPainted(page, page.getByTestId('trv2-pause'), testInfo, 'Trivia Pause');
         await expectNoHorizontalScroll(page);
         await expectTriviaControlsReachable(page, page.locator(".trv2-answer, .trv2-lifeline"));
         const triviaDialog = await pauseTrivia(page);

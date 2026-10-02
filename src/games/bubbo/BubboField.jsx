@@ -3,6 +3,7 @@
  * React and app services are imports from the production app, never bundled copies.
  */
 import * as React from 'react';
+import {acquireGameGesture} from '../../platform/telegram.js';
 import * as jsxRuntime from 'react/jsx-runtime';
 import {bubboFieldGeometry} from './bubboComposition.js';
 import {BUBBO_TOKEN_ART, bubboArtUrl} from './bubboArt.js';
@@ -72,6 +73,16 @@ const BubboField=React.forwardRef(function({
     F.signature="";
     re!=null&&canvasRef.current?.hasPointerCapture?.(re)&&canvasRef.current.releasePointerCapture(re);
   }
+  // Arm the native host before the first touch: waiting for pointerdown can
+  // lose the initial downward gesture to Telegram's sheet recognizer.
+  React.useLayoutEffect(()=>{
+    if(!state.gameActive||loading||loadError)return;
+    const releaseGesture=acquireGameGesture();
+    return ()=>{
+      cancelPointer();
+      releaseGesture();
+    };
+  }, [state.gameActive, loading, loadError]);
   function fire(){
     const F=propsRef.current;
     const re=sessionRef.current;

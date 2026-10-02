@@ -1,3 +1,5 @@
+import { createGameGestureController } from "./gameGestures.js";
+
 let platformState = {
   initialized: false,
   inTelegram: false,
@@ -82,16 +84,21 @@ export function getTelegramUser() {
   return platformState.user || readUserFromWindow();
 }
 
+const gameGestures = createGameGestureController(loadTelegramSdk);
+let releaseLegacyGesture = null;
+
+export function acquireGameGesture() {
+  return gameGestures.acquire();
+}
+
+// Compatibility for Pixi hosts. Their pointer cleanup cannot release another
+// surface's longer-lived aiming scope.
 export function setGameGestureActive(active) {
-  void loadTelegramSdk().then((sdk) => {
-    try {
-      if (!sdk?.isSwipeBehaviorSupported?.()) return;
-      if (active) sdk.disableVerticalSwipes?.();
-      else sdk.enableVerticalSwipes?.();
-    } catch {
-      // Unsupported Telegram clients and local browsers can ignore this.
-    }
-  });
+  if (active) releaseLegacyGesture ||= acquireGameGesture();
+  else {
+    releaseLegacyGesture?.();
+    releaseLegacyGesture = null;
+  }
 }
 
 export function haptic(type = "light") {

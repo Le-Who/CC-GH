@@ -1,4 +1,4 @@
-import {makeLivingPlantArt,supportsLivingPlant,notifyPlantTouch} from './living/living-plant-art.mjs';
+import {makeLivingPlantArt,supportsLivingPlant,notifyPlantTouch,getLivingPlantMotionState,LIVING_MOTION_CHANGE,listenToMotionPreference} from './living/living-plant-art.mjs';
 import React, { createContext, useContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Settings, X, Plus, Info, ChevronLeft, ChevronRight, Archive, Trash2, Lock, ArrowUpCircle, Check } from 'lucide-react';
@@ -53,6 +53,32 @@ function Progress({
         width: `${clampGardenPercent(value)}%`
       }} /></span>{label && <b className="gs2-fraction">{label}</b>}</div>;
 }
+// A brief stationary highlight acknowledges input even when plants cannot move.
+function usePlantTapAcknowledgement() {
+  const [active, setActive] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  return { active, acknowledge: () => {
+    if (timer.current) clearTimeout(timer.current);
+    setActive(true);
+    timer.current = setTimeout(() => setActive(false), 450);
+  } };
+}
+function PlantMotionStatus() {
+  const { t } = useGardenI18n();
+  const [mode, setMode] = useState(() => getLivingPlantMotionState());
+  useEffect(() => {
+    const media = matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setMode(getLivingPlantMotionState());
+    document.addEventListener(LIVING_MOTION_CHANGE, update);
+    const removePreferenceListener = listenToMotionPreference(media, update);
+    update();
+    return () => { document.removeEventListener(LIVING_MOTION_CHANGE, update); removePreferenceListener(); };
+  }, []);
+  return <section className="gs2-motion-setting" data-garden-motion={mode}>
+    <strong>{t('settings.plantMotion')}</strong><p>{t(`settings.motion.${mode}`)}</p>
+  </section>;
+}
 const LivingPlantArt=makeLivingPlantArt(React,LegacyPlantArt);
 function PlantArt(props:any){return supportsLivingPlant(props.plant?.type)?<LivingPlantArt {...props}/>:<LegacyPlantArt {...props}/>;}
 function LegacyPlantArt({
@@ -95,7 +121,7 @@ export function Dialog({
     return layer?.parentElement === document.body ? makeDialogSiblingsInert(layer) : undefined;
   }, []);
   useEscapeDismiss(true, onClose);
-  return createPortal(<div className="gs2-modal-layer"><button type="button" tabIndex={-1} className="gs2-scrim" data-menu-blocker="true" aria-label={t('ui.close')} onClick={onClose} /><section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="gs2-dialog" data-garden-panel={kind} data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}><header className="gs2-dialog-heading"><h2>{title}</h2><Button className="gs2-close" onClick={onClose} aria-label={t('ui.close')}><X size={22} /></Button></header><div className="gs2-dialog-scroll">{feedback.error && <div className="gs2-error-banner" role="alert"><span>{feedback.error}</span><Button aria-label={t('ui.close')} onClick={feedback.onDismiss}><X size={18} /></Button></div>}{feedback.busy && <div className="gs2-pending" role="status">{t('ui.pending')}</div>}{children}</div></section></div>, document.body);
+  return createPortal(<div className="gs2-modal-layer"><button type="button" tabIndex={-1} className="gs2-scrim" data-menu-blocker="true" aria-label={t('ui.close')} onClick={onClose} /><section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="gs2-dialog" data-garden-panel={kind} data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}><header className="gs2-dialog-heading"><div className="gs2-dialog-title"><h2>{title}</h2><span className="gs2-pending" role="status" aria-live="polite">{feedback.busy ? t('ui.pending') : ''}</span></div><Button className="gs2-close" onClick={onClose} aria-label={t('ui.close')}><X size={22} /></Button></header><div className="gs2-dialog-scroll">{children}</div>{feedback.error && <div className="gs2-error-banner gs2-dialog-error" role="alert"><span tabIndex={0}>{feedback.error}</span><Button aria-label={t('ui.close')} onClick={feedback.onDismiss}><X size={18} /></Button></div>}</section></div>, document.body);
 }
 function PlantSpot({
   plant,
@@ -113,11 +139,13 @@ function PlantSpot({
       t
     } = useGardenI18n(),
     tapRef = useRef(() => {}),
-    detailsRef = useRef(onDetails);
+    detailsRef = useRef(onDetails),
+    tapAcknowledgement = usePlantTapAcknowledgement();
   tapRef.current = () => {
     if (blocked) return;
     tapPlant(plant.id);
     notifyPlantTouch(plant.id);
+    tapAcknowledgement.acknowledge();
     onFeedback(t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth'));
   };
   detailsRef.current = onDetails;
@@ -141,7 +169,7 @@ function PlantSpot({
   if (!plant) return <article className="gs2-spot gs2-empty"><button type="button" className="gs2-empty-target" aria-label={t('shop.seedShop')} onClick={onDetails} disabled={blocked}><Art name="pot" /><span><Plus size={20} />{t('ui.plant')}</span></button><p>{t('ui.emptySpot')}</p></article>;
   const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy,
     canWater = !plant.lastWatered || Date.now() - plant.lastWatered >= getGardenWaterCooldownMs(plant.phase);
-  return <article className="gs2-spot" data-plant-id={plant.id} data-gs2-placed={highlighted ? "true" : undefined}><button type="button" className="gs2-plant-target" disabled={blocked} aria-label={`${t(`plant.${def.id}`)}: ${t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}`} onPointerDown={e => press.start(e)} onPointerMove={e => press.move(e)} onPointerUp={e => press.end(e)} onPointerCancel={() => press.cancel()} onLostPointerCapture={() => press.cancel()} onPointerLeave={() => press.cancel()} onContextMenu={e => e.preventDefault()} onClick={e => {
+  return <article className="gs2-spot" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} data-plant-id={plant.id} data-gs2-placed={highlighted ? "true" : undefined}><button type="button" className="gs2-plant-target" disabled={blocked} aria-label={`${t(`plant.${def.id}`)}: ${t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}`} onPointerDown={e => press.start(e)} onPointerMove={e => press.move(e)} onPointerUp={e => press.end(e)} onPointerCancel={() => press.cancel()} onLostPointerCapture={() => press.cancel()} onPointerLeave={() => press.cancel()} onContextMenu={e => e.preventDefault()} onClick={e => {
       if (e.detail === 0) tapRef.current();
     }}><PlantArt plant={plant} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant)}</span> : <span>{t('ui.mature')}</span>}<small>{t('label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
 }
@@ -163,7 +191,7 @@ export function SettingsDialog({
         } finally {
           setBusy(false);
         }
-      }}>{t(sound ? 'settings.soundOn' : 'settings.soundOff')}</Button></div><fieldset className="gs2-setting"><legend>{t('settings.language')}</legend><div className="gs2-action-row">{(['en', 'ru'] as const).map(lang => <Button key={lang} aria-pressed={language === lang} primary={language === lang} onClick={() => setLanguage(lang)}>{t(lang === 'en' ? 'settings.english' : 'settings.russian')}</Button>)}</div></fieldset><Button primary onClick={onClose}>{t('settings.done')}</Button></Dialog>;
+      }}>{t(sound ? 'settings.soundOn' : 'settings.soundOff')}</Button></div><fieldset className="gs2-setting"><legend>{t('settings.language')}</legend><div className="gs2-action-row">{(['en', 'ru'] as const).map(lang => <Button key={lang} aria-pressed={language === lang} primary={language === lang} onClick={() => setLanguage(lang)}>{t(lang === 'en' ? 'settings.english' : 'settings.russian')}</Button>)}</div></fieldset><PlantMotionStatus /><Button primary onClick={onClose}>{t('settings.done')}</Button></Dialog>;
 }
 export function Quests({
   onClose,
@@ -230,6 +258,7 @@ export function Detail({
   busy,
   onFeedback
 }: any) {
+  const tapAcknowledgement = usePlantTapAcknowledgement();
   const {
       state,
       tapPlant,
@@ -276,9 +305,10 @@ export function Detail({
           level: p.level
         } : {
           phase: p.phase
-        })}</p><div className="gs2-detail-stage">{placed.length > 1 && <Button aria-label={t('plantDetail.previous')} onClick={() => nav(-1)}><ChevronLeft /></Button>}<button type="button" className="gs2-detail-tap" onClick={() => {
+        })}</p><div className="gs2-detail-stage">{placed.length > 1 && <Button aria-label={t('plantDetail.previous')} onClick={() => nav(-1)}><ChevronLeft /></Button>}<button type="button" className="gs2-detail-tap" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} onClick={() => {
           tapPlant(p.id);
           notifyPlantTouch(p.id);
+          tapAcknowledgement.acknowledge();
           onFeedback(t(mature ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth'));
         }} aria-label={t(mature ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}><PlantArt plant={p} size={128} /></button>{placed.length > 1 && <Button aria-label={t('plantDetail.next')} onClick={() => nav(1)}><ChevronRight /></Button>}</div>{placed.length > 1 && <p className="gs2-center">{t('plantDetail.position', {
           current: i + 1,
@@ -572,7 +602,7 @@ export default function GardenPresentation({
                 }} /></form> : <button type="button" onClick={() => {
                 setDraft(state.name || t('garden.defaultName'));
                 setRenaming(true);
-              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics"><div className="gs2-metric" data-garden-gold="true" title={`${t('hud.gold')}: ${goldFull}`} aria-label={`${t('hud.gold')}: ${goldFull}`}><span><Art name="coin" />{t('hud.gold')}</span><strong>{goldShort}</strong></div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} title={`${t('level.progress')}: ${xpFull}`} aria-label={`${t(state.levelReady ? 'level.up' : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" />{t('label.levelShort')} {state.level}</span><strong>{state.levelReady ? `+${shortGold(getGardenLevelReward(state.level))}` : xpShort}</strong><Progress value={state.xp / state.xpRequired * 100} />{state.levelReady && <small>{t('level.up')}</small>}</button><button type="button" className="gs2-metric" onClick={event => openPanel('quests', event.currentTarget)} aria-label={t('quest.open')}><span><Art name="quest" />{t('ui.quests')}</span><strong>{readyCount > 0 ? readyCount : t('quest.openShort')}</strong></button></div><p className="gs2-rail-help">{t('ui.help')}</p></HudRegion>
+              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics"><div className="gs2-metric" data-garden-gold="true" title={`${t('hud.gold')}: ${goldFull}`} aria-label={`${t('hud.gold')}: ${goldFull}`}><span><Art name="coin" />{t('hud.gold')}</span><strong>{goldShort}</strong></div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} title={`${t('level.progress')}: ${xpFull}`} aria-label={`${t(state.levelReady ? 'level.up' : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" />{t('label.levelShort')} {state.level}</span><strong>{state.levelReady ? `+${shortGold(getGardenLevelReward(state.level))}` : xpShort}</strong><Progress value={state.xp / state.xpRequired * 100} />{state.levelReady && <small>{t('level.up')}</small>}</button><button type="button" className="gs2-metric" onClick={event => openPanel('quests', event.currentTarget)} aria-label={t('quest.open')}><span><Art name="quest" />{t('ui.quests')}</span><strong>{readyCount > 0 ? readyCount : t('quest.openShort')}</strong></button></div></HudRegion>
  <HudRegion id="gardenShelf" ref={shelf} applyLayout={false} className="gs2-shelf-viewport" role="region" aria-label={t('ui.shelves')} tabIndex={0} data-no-nav-swipe="true" data-gs2-dragging={String(dragging)} onPointerDown={e => {
           if (!blocked) drag.start(e);
         }} onPointerMove={e => drag.move(e)} onPointerUp={e => drag.end(e)} onPointerCancel={e => drag.cancel(e)} onLostPointerCapture={e => drag.cancel(e)} onPointerLeave={e => drag.cancel(e)} onMouseLeave={() => drag.cancel()} onWheel={() => drag.cancel()} onDragStart={() => drag.cancel()} onClickCapture={e => drag.click(e)}><div className="gs2-rack">{Array.from({
@@ -585,7 +615,8 @@ export default function GardenPresentation({
                   const plant = placed.get(`${s}:${p}`);
                   return <PlantSpot key={p} plant={plant} highlighted={highlighted === plant?.id} spotWidth={layout.spotWidth} compact={layout.compact} blocked={blocked} onFeedback={setFeedback} onDetails={(event: any) => openSpot(s, p, plant?.id, event?.currentTarget)} />;
                 })}</div><img className="gs2-shelf-art" data-hud-region="gardenShelfAsset" src={art('shelf')} alt="" draggable={false} /></section>)}{state.shelvesUnlocked < MAX_SHELVES && <section className="gs2-expansion"><Lock size={24} /><div><h3>{t('garden.expand')}</h3><p>{t('ui.expandHelp')}</p></div><Button primary disabled={busy || !accountingReady || state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked]} onClick={() => run(unlockShelf)}><Art name="coin" />{formatGardenGoldAmount(SHELF_UNLOCK_COSTS[state.shelvesUnlocked])}</Button>{state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked] && <small>{t('ui.notEnoughGold')}</small>}</section>}</div></HudRegion></div>
- <div className="gs2-status" role={error ? 'alert' : 'status'} aria-live="polite">{error ? <><span>{error}</span>{accountingNeedsReview && onReviewPending && <Button onClick={() => onReviewPending(t('ui.accountingConfirm', { gold: '[[GOLD]]' }))}>{t('ui.accountingReviewButton')}</Button>}<Button onClick={dismissError} aria-label={t('ui.close')}><X size={16} /></Button></> : busy ? t('ui.pending') : feedback || t('ui.help')}</div>
+ {/* This reserved feedback row is internal to gardenRoot/gardenComposition. Status changes never resize the shelf. */}
+ <div className="gs2-status" role={error ? 'alert' : 'status'} aria-live="polite"><span className="gs2-status-reserve" aria-hidden="true">{t('ui.help')}</span><div className="gs2-status-content">{error ? <><span className="gs2-status-error" tabIndex={0}>{error}</span>{accountingNeedsReview && onReviewPending && <Button onClick={() => onReviewPending(t('ui.accountingConfirm', { gold: '[[GOLD]]' }))}>{t('ui.accountingReviewButton')}</Button>}<Button onClick={dismissError} aria-label={t('ui.close')}><X size={16} /></Button></> : <span>{feedback || t('ui.help')}</span>}</div></div>
  {!offline && !notice && panel === 'settings' && <SettingsDialog onClose={close} />} {!offline && !notice && panel === 'quests' && <Quests onClose={close} run={run} busy={busy} />} {!offline && !notice && panel === 'spot' && spot && (activePlant && !placementRequest.current ? <Detail plantId={activePlant.id} onClose={close} onSelect={(p: any) => setSpot({
         shelfIndex: p.shelfIndex,
         spotIndex: p.spotIndex,

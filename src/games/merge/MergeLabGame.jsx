@@ -30,15 +30,15 @@ export default function MergeLabGame(){
     if(recoveryBusy||transport.initializationError)return;
     setRecoveryBusy(true);setRecoveryError('');
     try{await transport.resumePending();setRecovering(transport.hasPending());}
-    catch{setRecoveryError(language==='ru'?'Ответ ещё не подтверждён. Можно проверить тот же запрос.':'No confirmed reply yet. You can check the same request.');}
+    catch{setRecoveryError(language==='ru'?'Результат пока не подтверждён. Проверьте ещё раз.':'The result is not confirmed yet. Check again.');}
     finally{setRecoveryBusy(false);}
   };
   const ru=language==='ru';
   return h(GameShell,{gameId:'merge',phase:'playing',skin:'meditation',className:'merge-lab-shell'},
     recovering?h('section',{className:'ml-root ml-unavailable','aria-live':'polite'},
-      h('p',null,transport.initializationError?(ru?'Не удалось открыть хранилище повторных запросов. Обновите страницу.':'Retry storage could not be opened. Reload this page.'):(ru?'Проверим результат незавершённого действия мастерской.':'Check the result of your pending workshop action.')),
+      h('p',null,transport.initializationError?(ru?'Не удалось восстановить незавершённое действие. Обновите страницу.':'The pending action could not be restored. Reload this page.'):(ru?'Проверим результат незавершённого действия мастерской.':'Check the result of your pending workshop action.')),
       recoveryError&&h('p',{role:'alert'},recoveryError),
-      !transport.initializationError&&h('button',{type:'button',className:'ml-button',disabled:recoveryBusy,onClick:recover},ru?'Проверить тот же запрос':'Check the same request'),
+      !transport.initializationError&&h('button',{type:'button',className:'ml-button',disabled:recoveryBusy,onClick:recover},ru?'Проверить результат':'Check result'),
       h('button',{type:'button',className:'ml-button',onClick:exit},ru?'Выйти':'Exit'))
     :h(MergeLabView,{player:snapshot,language,onExit:exit,onOpenYard:openYard,onAction:transport.onAction,getQuote:transport.getQuote,
       clockSnapshot:snapshot,safeInsets:viewport.safeAreaInsets,onShellStateChange:setShell,

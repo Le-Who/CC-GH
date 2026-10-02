@@ -1,7 +1,7 @@
 import {registerAppTranslations} from '../../app/i18n.jsx';
 export const BUBBO_TRANSLATIONS = {
   "en": {
-    "bubbo.lowHeight": "Low viewport: scroll or rotate your device",
+    "bubbo.lowHeight": "Scroll to see the field or launcher",
     "bubbo.showField": "↑ Field",
     "bubbo.showCannon": "↓ Launcher",
     "bubbo.scrollRegion": "Game area. Scroll vertically in short landscape view.",
@@ -18,7 +18,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.inFlight": "Bubble in flight…",
     "bubbo.starting": "Starting…",
     "bubbo.resumeSaved": "Continue saved run",
-    "bubbo.pauseHelp": "Take a breath. The bubbles, pressure and countdown are paused.",
+    "bubbo.pauseHelp": "Bubbles, descending rows and the timer are paused.",
     "bubbo.resultHelp": "Your run is complete. Try another angle and aim for a bigger drop.",
     "bubbo.how": "How to play & powers",
     "bubbo.ruleHelp": "Tap to shoot, or drag and release to aim. Walls bounce the bubble along the shown path. Avoid the coral danger line. A new row descends every 9.5 seconds. Swap exchanges the current and next colors once per run.",
@@ -27,7 +27,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.help.lightning": "Clears a vertical lane through the landing column.",
     "pause.bubboFrozen": "Paused: shoot matching bubbles",
     "pause.bubboReady": "Preview the field before the first shot",
-    "pause.bubboPlan": "Resume with the same shot, queue, and pressure phase; restart only when you want a fresh run.",
+    "pause.bubboPlan": "Resume to continue. Restart begins a new game.",
     "pause.bubboIntro": "Aim a bubble, match colors, and clear clusters before pressure pushes the field down.",
     "bubbo.title": "Bubbo Bubbo",
     "bubbo.mode.classic": "Classic",
@@ -60,7 +60,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.result.title": "Bubbo result"
   },
   "ru": {
-    "bubbo.lowHeight": "Мало высоты: прокрутите или поверните экран",
+    "bubbo.lowHeight": "Прокрутите к полю или пушке",
     "bubbo.showField": "↑ К полю",
     "bubbo.showCannon": "↓ К пушке",
     "bubbo.scrollRegion": "Игровая область. При малой высоте прокручивается по вертикали.",
@@ -77,7 +77,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.inFlight": "Шар летит…",
     "bubbo.starting": "Запускаем…",
     "bubbo.resumeSaved": "Продолжить сохранённую игру",
-    "bubbo.pauseHelp": "Можно выдохнуть. Шары, спуск рядов и таймер на паузе.",
+    "bubbo.pauseHelp": "Шары, спуск рядов и таймер на паузе.",
     "bubbo.resultHelp": "Игра завершена. Попробуйте другой угол и обрушьте ещё больше шаров.",
     "bubbo.how": "Правила и усилители",
     "bubbo.ruleHelp": "Нажмите для выстрела или потяните прицел и отпустите. Шар отражается от стен по показанной траектории. Не подпускайте шары к коралловой линии. Новый ряд спускается каждые 9,5 секунды. Замена один раз за игру меняет текущий и следующий цвета местами.",
@@ -86,7 +86,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.help.lightning": "Очищает вертикальную полосу через колонку попадания.",
     "pause.bubboFrozen": "Пауза: стреляйте одинаковыми шарами",
     "pause.bubboReady": "Осмотрите поле до первого выстрела",
-    "pause.bubboPlan": "Возврат сохраняет выстрел, очередь и фазу давления; перезапускайте только для нового рана.",
+    "pause.bubboPlan": "Продолжите игру или начните заново.",
     "pause.bubboIntro": "Цельтесь шаром, собирайте цвета и чистите группы до того, как давление опустит поле.",
     "bubbo.title": "Bubbo Bubbo",
     "bubbo.mode.classic": "Классика",
@@ -100,7 +100,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.pressure.warning": "Опасно",
     "bubbo.pressure.critical": "Критично",
     "bubbo.newField": "Новое поле",
-    "bubbo.runStatus": "Статус рана",
+    "bubbo.runStatus": "Состояние игры",
     "bubbo.dangerLine": "Опасная линия",
     "bubbo.fieldStable": "Поле стабильно",
     "bubbo.highScore": "рекорд {score}",
@@ -114,8 +114,8 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.powerupShort.lightning": "М",
     "bubbo.powerupTooltip": "{powerup}: осталось {count}",
     "bubbo.powerupEvent": "{powerup}",
-    "bubbo.resumeHint": "Найден сохраненный ран Bubbo.",
-    "bubbo.result.kicker": "Ран завершен",
+    "bubbo.resumeHint": "Есть сохранённая игра Bubbo.",
+    "bubbo.result.kicker": "Игра завершена",
     "bubbo.result.title": "Итог Bubbo"
   }
 };

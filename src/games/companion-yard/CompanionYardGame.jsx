@@ -1196,7 +1196,6 @@ export default function CompanionYardGame() {
             <div>
               <YardIcon name="placement" />
               <strong>{draftGoodie ? goodieName(draftGoodie) : text("yard.goodie", "Goodie")}</strong>
-              <span>{Math.round(placementDraft.x)} · {Math.round(placementDraft.y)}</span>
             </div>
             <YardIconButton compact icon="close" label={text("yard.cancelPlacement", "Cancel placement")} onClick={cancelPlacement} />
             <YardIconButton compact icon="confirm" label={text("yard.confirmPlacement", "Confirm placement")} onClick={confirmPlacement} />

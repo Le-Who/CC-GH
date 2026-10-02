@@ -136,7 +136,8 @@
         "y": 0,
         "scale": 1,
         "opacity": 1,
-        "rotation": 0
+        "rotation": 0,
+        "zIndex": 41
       },
       "bloxTitle": {
         "mode": "custom",
@@ -364,6 +365,6 @@
     }
   },
   "editor": {
-    "notes": "Blox v2 custom adapter owns all DOM/Pixi board/tray coordinates. Safe insets are consumed exactly once. Legacy puzzleComposition defaults are retained for compatibility tests only and are not consumed by the Blox v2 renderer. Dynamic state layers are intentionally fixed to gameplay cells, not separately editable."
+    "notes": "Blox v2 custom adapter owns all DOM/Pixi board/tray coordinates. Safe insets are consumed exactly once. Legacy puzzleComposition defaults are retained for compatibility tests only and are not consumed by the Blox v2 renderer. Dynamic state layers are intentionally fixed to gameplay cells, not separately editable. Portrait actions overlap the opaque gameplayHud (z-index 40); bloxActions must paint above it at 41. Both remain beneath pauseOverlay."
   }
 }

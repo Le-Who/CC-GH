@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs/promises";
 
 import {
   assetUrl,
@@ -132,5 +133,25 @@ describe("runtime asset URL resolution", () => {
       assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png"),
       "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a",
     );
+  });
+});
+
+
+describe("dock runtime preload policy", () => {
+  it("warms Pixi only for current Pixi presentations", async () => {
+    const chunks = await fs.readFile(new URL("../src/app/gameChunks.jsx", import.meta.url), "utf8");
+    const declaration = chunks.match(/export const PIXI_TABS = new Set\((\[[^;]+\])\);/);
+    assert.ok(declaration, "the dock preload set must be explicit");
+    assert.deepEqual(JSON.parse(declaration[1]), ["blox", "match3"]);
+    assert.match(chunks, /gameLoaders\[tabId\]\?\.\(\)/, "all games retain their own chunk preload");
+    assert.match(chunks, /if \(PIXI_TABS.has\(tabId\)\) preloadPixiSceneHost\(tabId\)/);
+  });
+
+  it("keeps the legacy Merge renderer available on demand", async () => {
+    const legacy = await fs.readFile(new URL("../src/games/merge/LegacyMergeGame.jsx", import.meta.url), "utf8");
+    const hosts = await fs.readFile(new URL("../src/game-runtime/LazyPixiSceneHost.jsx", import.meta.url), "utf8");
+    assert.match(legacy, /<PixiScene sceneKey="merge"/);
+    assert.match(hosts, /merge: \(\) => Promise.all/);
+    assert.match(hosts, /import\(".\/scenes\/mergeScene.js"\)/);
   });
 });

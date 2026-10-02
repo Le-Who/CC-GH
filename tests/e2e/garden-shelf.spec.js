@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import sharp from "sharp";
+import { measurePlantTranslation } from "./helpers/plantPixelMotion.js";
+import { fitArtwork } from "../../src/games/garden-shelf/living/plant-presentation-contract.mjs";
 import { gardenDiagnostics } from "./helpers/gardenDiagnostics.js";
 import { exitBlox } from "./helpers/blox-v2.js";
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
@@ -237,7 +240,7 @@ test.describe('Garden Living production-source flow',()=>{
   test('interrupted request releases busy state and lets the player dismiss and retry',async({page})=>{
     await initialize(page);const player=makePlayer({levelReady:false,xp:0});let fail=true;
     await mountFixture(page,player,{failAction:body=>body.action==='garden.upgradePlant'&&fail});await boot(page);
-    await page.locator('[data-plant-details-button]').first().click();const care=panel(page,'plant-detail'),upgrade=care.getByRole('button',{name:/Evolve Production/});
+    await page.locator('[data-plant-details-button]').first().click();const care=panel(page,'plant-detail'),upgrade=care.getByRole('button',{name:/Increase income/});
     const before=(await state(page)).plants[0].level;await upgrade.click();await expect(care.locator('[role="alert"]')).toBeVisible();await expect(upgrade).toBeDisabled();expect((await state(page)).plants[0].level).toBe(before);
     await closePanel(page);fail=false;await expect.poll(async()=>(await state(page)).plants[0].level).toBe(before+1);
   });
@@ -285,5 +288,126 @@ test.describe('Garden live server persistence',()=>{
       return {before,first:await send(),second:await send()};
     });
     expect(result.first.status).toBe(200);expect(result.second.status).toBe(200);expect(result.second.body.duplicate).toBe(true);expect(result.second.body.snapshot.resources.gold).toBe(result.before.resources.gold+7);expect(result.first.body.snapshot.resources.gold).toBe(result.second.body.snapshot.resources.gold);
+  });
+});
+
+
+// These compare composited browser pixels, including the real WebGL surface.
+// No frame/mode flag is accepted as evidence that the plant is visibly moving.
+test.describe('Garden quiet feedback and visible motion',()=>{
+  test.use({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  async function seedMotion(page,{fallback=false,reduced=false}={}) {
+    await page.emulateMedia({reducedMotion:reduced?'reduce':'no-preference'});
+    if(fallback)await page.addInitScript(()=>{
+      const original=HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext=function(type,...options){
+        if(type==='webgl'&&this.classList.contains('gs2-live-surface'))return null;
+        return original.call(this,type,...options);
+      };
+    });
+    await initialize(page);
+    await mountFixture(page,makePlayer({levelReady:false,xp:0,plants:[plant('motion-daisy',0,{level:2})],shelvesUnlocked:1}));
+    await boot(page);await assertShellFit(page);
+    const art=page.locator('.gs2-spot .gs2-live-plant').first();
+    await expect.poll(()=>art.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+    await expect(art).toHaveAttribute('data-living-mode',fallback?'static-fallback':reduced?'reduced':'animated');
+    return art;
+  }
+  async function regions(page,art){
+    const box=await art.boundingBox(),aspect=await art.locator('img').evaluate(img=>img.naturalWidth/img.naturalHeight);
+    const fit=fitArtwork({left:box.x,top:box.y,right:box.x+box.width,bottom:box.y+box.height,width:box.width,height:box.height},aspect);
+    const rect=(x,y,w,h)=>({x:fit.left+fit.width*x,y:fit.top+fit.height*y,width:fit.width*w,height:fit.height*h});
+    return {blossom:rect(.34,0,.4,.32),foliage:rect(.12,.05,.76,.55),pot:rect(.43,.78,.14,.08),control:await page.locator('.gs2-details').first().boundingBox()};
+  }
+  async function capture(page,testInfo,label,crops){
+    const png=await page.screenshot({path:testInfo.outputPath(`${label}.png`),animations:'allow'});
+    const {width}=await sharp(png).metadata(),scale=width/page.viewportSize().width,result={sizes:{}};
+    for(const [name,r] of Object.entries(crops)){
+      const crop={left:Math.round(r.x*scale),top:Math.round(r.y*scale),width:Math.floor(r.width*scale),height:Math.floor(r.height*scale)};
+      result[name]=await sharp(png).extract(crop).removeAlpha().raw().toBuffer();result.sizes[name]={width:crop.width,height:crop.height,scale};
+    }
+    return result;
+  }
+  function changedPixels(a,b){
+    expect(a.length).toBe(b.length);let count=0;
+    for(let i=0;i<a.length;i+=3)if(Math.max(Math.abs(a[i]-b[i]),Math.abs(a[i+1]-b[i+1]),Math.abs(a[i+2]-b[i+2]))>8)count++;
+    return count;
+  }
+  function stableReference(a,b){expect(changedPixels(a.pot,b.pot),'opaque pot remains fixed').toBe(0);expect(changedPixels(a.control,b.control),'Details control remains fixed').toBe(0);}
+  const diagnostics=page=>page.evaluate(()=>window.__GARDEN_LIVING_QA__.snapshot());
+  for(const [width,height] of [[320,568],[390,844],[568,320],[1280,720]])test.describe(`visible idle ${width}x${height}`,()=>{
+   test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:width<1100,hasTouch:width<1100});
+   test('normal motion changes real foliage pixels at idle and after a tap while pot and UI stay fixed',async({page},testInfo)=>{
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));const art=await seedMotion(page),crops=await regions(page,art);
+    const initial=await capture(page,testInfo,'normal-idle-before',crops),started=(await diagnostics(page)).surfaces[0].presentationSeconds;
+    const shifts=[0],measurements=[];let idle=initial,maxChanged=0;
+    // Sample more than one primary5.8s cycle in actual presentation time. Wall
+    // time and frame-count flags alone cannot prove visible plant movement.
+    for(let sample=1;sample<=7;sample++){
+      await expect.poll(async()=>(await diagnostics(page)).surfaces[0].presentationSeconds,{timeout:5000}).toBeGreaterThanOrEqual(started+sample*.9);
+      idle=await capture(page,testInfo,`normal-idle-${sample}`,crops);stableReference(initial,idle);
+      const shift=measurePlantTranslation(initial.blossom,idle.blossom,initial.sizes.blossom);shifts.push(shift.x);measurements.push(shift);
+      maxChanged=Math.max(maxChanged,changedPixels(initial.foliage,idle.foliage));
+    }
+    const excursion=Math.max(...shifts)-Math.min(...shifts);
+    await testInfo.attach('idle-pixel-measurements',{body:Buffer.from(JSON.stringify({width,height,excursion,measurements},null,2)),contentType:'application/json'});
+    expect(excursion,'visible flower excursion in CSS pixels').toBeGreaterThanOrEqual(2);
+    expect(excursion,'bounded flower excursion in CSS pixels').toBeLessThanOrEqual(5);
+    expect(maxChanged,'idle foliage has visible pixel movement').toBeGreaterThan(20);
+    const touches=(await diagnostics(page)).surfaces[0].touches,lastTapped=(await state(page)).plants[0].lastTapped;
+    await tapOrClick(page.locator('.gs2-plant-target').first(),width<1100);
+    await expect(page.locator('.gs2-spot').first()).toHaveAttribute('data-gs2-tapped','true');
+    await expect.poll(async()=>(await diagnostics(page)).surfaces[0].touches).toBe(touches+1);
+    await expect.poll(async()=>(await state(page)).plants[0].lastTapped).toBeGreaterThan(lastTapped);
+    // Let the stationary acknowledgement disappear before comparing motion pixels.
+    await expect(page.locator('.gs2-spot').first()).not.toHaveAttribute('data-gs2-tapped','true');
+    const tapped=await capture(page,testInfo,'normal-after-tap',crops);
+    expect(changedPixels(idle.foliage,tapped.foliage),'foliage still moves after the actual plant tap').toBeGreaterThan(5);stableReference(idle,tapped);expect(errors).toEqual([]);
+    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('[data-garden-motion="on"]')).toContainText('device settings');
+   });
+  });
+  for(const fallback of [false,true])test(`${fallback?'failed WebGL initialization':'device reduced motion'} keeps art still, explains it in Settings and acknowledges working taps`,async({page},testInfo)=>{
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));const art=await seedMotion(page,{fallback,reduced:!fallback}),crops=await regions(page,art);
+    const before=await capture(page,testInfo,fallback?'fallback-before':'reduced-before',crops);
+    await page.waitForTimeout(750);const idle=await capture(page,testInfo,fallback?'fallback-idle':'reduced-idle',crops);
+    expect(changedPixels(before.foliage,idle.foliage)).toBe(0);stableReference(before,idle);
+    const lastTapped=(await state(page)).plants[0].lastTapped;await page.locator('.gs2-plant-target').first().tap();
+    await expect(page.locator('.gs2-spot').first()).toHaveAttribute('data-gs2-tapped','true');
+    await expect.poll(async()=>(await state(page)).plants[0].lastTapped).toBeGreaterThan(lastTapped);
+    await expect(page.locator('.gs2-spot').first()).not.toHaveAttribute('data-gs2-tapped','true');
+    const after=await capture(page,testInfo,fallback?'fallback-after-tap':'reduced-after-tap',crops);
+    expect(changedPixels(before.foliage,after.foliage)).toBe(0);stableReference(before,after);
+    await page.getByRole('button',{name:'Garden settings',exact:true}).click();
+    await expect(page.locator(`[data-garden-motion="${fallback?'fallback':'reduced'}"]`)).toContainText(fallback?'this view':'reduced motion');
+    expect(errors).toEqual([]);
+  });
+  test('context loss restores visible fallback and a working non-motion tap response',async({page})=>{
+    const art=await seedMotion(page);await page.locator('.gs2-stage canvas.gs2-live-surface').evaluate(canvas=>{
+      const extension=canvas.getContext('webgl').getExtension('WEBGL_lose_context');if(!extension)throw Error('Context-loss test requires WEBGL_lose_context');extension.loseContext();
+    });
+    await expect(art).toHaveAttribute('data-living-mode','static-fallback');await expect(art.locator('img')).toHaveCSS('visibility','visible');
+    await page.locator('.gs2-plant-target').first().tap();await expect(page.locator('.gs2-spot').first()).toHaveAttribute('data-gs2-tapped','true');
+    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('[data-garden-motion="fallback"]')).toBeVisible();
+  });
+});
+
+for(const [width,height] of [[320,568],[390,844],[568,320]])test.describe(`Garden stable saving ${width}x${height}`,()=>{
+  test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:true,hasTouch:true});
+  test('saving and an actionable error do not move shelf, dialog contents or controls',async({page},testInfo)=>{
+    await initialize(page);await mountFixture(page,makePlayer({levelReady:false,xp:0}));await boot(page);await assertShellFit(page);
+    await page.locator('[data-plant-details-button]').first().click();const care=panel(page,'plant-detail');
+    const boxes=()=>page.evaluate(()=>Object.fromEntries(['.gs2-shelf-viewport','.gs2-status','.gs2-dialog-heading','.gs2-detail-stage','.gs2-detail-stat','.gs2-close'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}];})));
+    const upgrade=care.getByRole('button',{name:/Increase income/});await upgrade.scrollIntoViewIfNeeded();
+    const before=await boxes();let release,arrived;const held=new Promise(resolve=>{release=resolve;}),submitted=new Promise(resolve=>{arrived=resolve;});
+    await page.route('**/api/player/mutate',async route=>{if(parse(route.request()).action==='garden.upgradePlant'){arrived();await held;await route.abort('failed');}else await route.fallback();});
+    try{
+      await upgrade.click();await submitted;
+      await expect(care.locator('.gs2-pending')).toHaveText('Saving…');expect(await boxes()).toEqual(before);
+      await expect(page.locator('.gs2-status')).not.toContainText('Saving');
+      await shot(page,testInfo,'saving-reserved');release();
+      await expect(care.locator('[role="alert"]')).toBeVisible();expect(await boxes()).toEqual(before);
+      await care.locator('[role="alert"]').getByRole('button',{name:'Close',exact:true}).click();
+      await expect(care.locator('[role="alert"]')).toHaveCount(0);expect(await boxes()).toEqual(before);
+    }finally{release();}
   });
 });

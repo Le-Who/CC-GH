@@ -44,20 +44,20 @@ const EN_COPY={
   owned:"Owned",
   empty:"Choose two samples to begin",
   one:"Choose a second sample. You can use the same sample twice",
-  ready:"Two ideas. One experiment. Nothing to lose",
+  ready:"Ready to combine",
   tested:"You have tried this pair. You can test it again",
   failed:"This pair gives nothing new yet. Both samples are safe",
-  known:"A familiar connection",
+  known:"Already discovered",
   new:"New discovery",
   noStock:"Knowledge saved. No physical copy created",
   useMaterials:"To make a physical copy, use real materials",
   why:"Game alchemy",
   tryAgain:"Try again",
-  network:"No confirmed reply yet. Retry this same request to check its result",
+  network:"No confirmed reply yet. Check the result before trying another action",
   conflict:"Your stock or catalog changed. Review a fresh quote before continuing",
   genericError:"Could not complete this action. Your last confirmed stock is shown",
   pending:"Waiting for confirmation…",
-  retry:"Check the same request",
+  retry:"Check result",
   received:"Received in your stock",
   crafted:"Physical item created",
   projectMade:"Added to your Yard inventory",
@@ -93,7 +93,7 @@ const EN_COPY={
   connections:"Known connections",
   noConnections:"No connection recorded yet",
   testedTitle:"Experiments tried",
-  failedPair:"No reaction in this catalog",
+  failedPair:"No reaction",
   projectRecipe:"Material recipe",
   baseRecipe:"Base recipe",
   sameProjectOutput:"Every recipe creates the same owned Yard item, with the same appearance and interactions.",
@@ -127,7 +127,7 @@ const EN_COPY={
   openYard:"Open Yard",
   projectOwned:"In Yard inventory: {n}",
   madeCount:"Made: {n}",
-  hint:"A little help",
+  hint:"Hint",
   hintFree:"Hints are free and do not unlock or grant items",
   hintPropertyFallback:"Look for two known materials whose properties can work together",
   hint1:"Hint: a property",
@@ -180,7 +180,7 @@ const EN_COPY={
   effectUnavailable:"No visit or guest is created by crafting",
   itemDetails:"Details",
   settings:"Workshop settings",
-  firstGoal:"Give air a voice, then give sound a shape",
+  firstGoal:"Discover the materials for your goal",
   stage:"Step {n} of 3",
   tryKnown:"Use these samples",
   inventoryOnly:"Inventory item",
@@ -231,20 +231,20 @@ const EN_COPY={
   owned:"Есть",
   empty:"Выберите два образца для опыта",
   one:"Выберите второй образец. Можно взять тот же дважды",
-  ready:"Две идеи. Один опыт. Никакого расхода",
+  ready:"Можно смешать",
   tested:"Эта пара уже проверена. Можно повторить опыт",
   failed:"Пока ничего нового. Оба образца сохранены",
-  known:"Знакомая связь",
+  known:"Уже открыто",
   new:"Новое открытие",
   noStock:"Знание сохранено. Экземпляр ещё не изготовлен",
   useMaterials:"Для изготовления нужны настоящие материалы",
   why:"Игровая алхимия",
   tryAgain:"Попробовать ещё",
-  network:"Ответ ещё не подтверждён. Повторите тот же запрос, чтобы проверить результат",
+  network:"Ответ ещё не подтверждён. Проверьте результат перед новым действием",
   conflict:"Запасы или каталог изменились. Проверьте новую смету",
   genericError:"Не удалось завершить действие. Показаны последние подтверждённые запасы",
   pending:"Ждём подтверждения…",
-  retry:"Проверить тот же запрос",
+  retry:"Проверить результат",
   received:"Получено в запасы",
   crafted:"Экземпляр изготовлен",
   projectMade:"Добавлено в инвентарь двора",
@@ -280,7 +280,7 @@ const EN_COPY={
   connections:"Известные связи",
   noConnections:"Связи ещё не записаны",
   testedTitle:"Проверенные опыты",
-  failedPair:"Нет реакции в этом каталоге",
+  failedPair:"Нет реакции",
   projectRecipe:"Рецепт изготовления",
   baseRecipe:"Базовый рецепт",
   sameProjectOutput:"Все рецепты дают один и тот же предмет двора с тем же видом и взаимодействиями.",
@@ -314,7 +314,7 @@ const EN_COPY={
   openYard:"Открыть двор",
   projectOwned:"В инвентаре двора: {n}",
   madeCount:"Изготовлено: {n}",
-  hint:"Немного помощи",
+  hint:"Подсказка",
   hintFree:"Подсказки бесплатны, не открывают предметы и не выдают экземпляры",
   hintPropertyFallback:"Ищите два известных материала, свойства которых работают вместе",
   hint1:"Подсказка: свойство",
@@ -367,7 +367,7 @@ const EN_COPY={
   effectUnavailable:"Изготовление не вызывает визит и не создаёт гостя",
   itemDetails:"Подробнее",
   settings:"Настройки мастерской",
-  firstGoal:"Дайте воздуху голос, а звуку форму",
+  firstGoal:"Откройте материалы для своей цели",
   stage:"Шаг {n} из 3",
   tryKnown:"Взять эти образцы",
   inventoryOnly:"Предмет инвентаря",
@@ -908,7 +908,7 @@ function LabJournal({
     "data-testid":"ml-journal",
     children:[jsxRuntime.jsxs("p",{
       className:"ml-info",
-      children:[localizedText(r.copy?.alchemy,f)," ",p("stockKnowledge")]
+      children:p("stockKnowledge")
     }),jsxRuntime.jsxs("label",{
       className:"ml-field",
       children:[p("knowledge"),jsxRuntime.jsx("select",{
@@ -930,10 +930,6 @@ function LabJournal({
           children:g(Z.id)
         }),jsxRuntime.jsx("p",{
           children:itemPropertyText(Z,f)
-        }),Z.use&&jsxRuntime.jsx("p",{
-          className:"ml-item-use",
-          "data-testid":"ml-journal-use",
-          children:localizedText(Z.use,f)
         }),jsxRuntime.jsxs("p",{
           className:"ml-good",
           children:[p("opened")," · ",p("inStock",{
@@ -974,9 +970,6 @@ function LabJournal({
         children:[jsxRuntime.jsxs("strong",{
           children:[p("why"),": "]
         }),localizedText(b.why,f)]
-      }),jsxRuntime.jsxs("div",{
-        className:"ml-provenance",
-        children:[p("source"),": ",p("researchSource")," · ",b.id]
       }),jsxRuntime.jsxs("div",{
         className:"ml-actions",
         children:[jsxRuntime.jsx(LabButton,{
@@ -1080,7 +1073,7 @@ function LabProjects({
               })]
             })]
           }),jsxRuntime.jsx("p",{
-            children:localizedText(G.description||G.use,f)
+            children:localizedText(G.use,f)
           }),(G.variants||[]).length>0&&jsxRuntime.jsxs("div",{
             className:"ml-variant-choice",
             children:[jsxRuntime.jsxs("label",{
@@ -1612,7 +1605,8 @@ function LabQuote({
           expiresAt:g.expiresAt
         }
       }),
-      children:v(m?"pending":"confirm")
+      "aria-busy":m,
+      children:v("confirm")
     })]
   })
 }
@@ -1707,9 +1701,7 @@ function MergeLabView({
       }
       const Se=$.result||{
       };
-      return R.type==="researchPair"?(q(Se),Se.outcome==="new"&&Se.itemId&&H(we=>[...new Set([Se.itemId,...we])]),Se.itemId&&F(we=>[...new Set([Se.itemId,...we])]),sl&&audioManager.play(Se.outcome==="failed"?"tap":"merge").catch(noop)):R.type==="requestHint"||R.type==="selectProject"?dt(null):(dt({
-        text:M(R.type==="craftProject"?"projectMade":R.type==="craft"?"crafted":R.type==="claimFreeCharges"?"charges":"received")
-      }),R.origin&&Ee(we=>we?.type==="quote"?R.origin:we)),$
+      return R.type==="researchPair"?(q(Se),Se.outcome==="new"&&Se.itemId&&H(we=>[...new Set([Se.itemId,...we])]),Se.itemId&&F(we=>[...new Set([Se.itemId,...we])]),sl&&audioManager.play(Se.outcome==="failed"?"tap":"merge").catch(noop)):R.type==="requestHint"||R.type==="selectProject"?dt(null):(dt(null),R.origin&&Ee(we=>we?.type==="quote"?R.origin:we)),$
     }
     catch{
       return le.current=R,G.current&&dt({
@@ -2011,7 +2003,8 @@ function MergeLabView({
                 leftItemId:K[0],
                 rightItemId:K[1]
               }),
-              children:M(Je?"working":"mix")
+              "aria-busy":Je,
+              children:M("mix")
             })
           })]
         }),jsxRuntime.jsxs("div",{
@@ -2020,10 +2013,7 @@ function MergeLabView({
           children:[jsxRuntime.jsx("span",{
             className:"ml-status-copy",
             children:ue?.itemId?jsxRuntime.jsxs(jsxRuntime.Fragment,{
-              children:[jsxRuntime.jsx("span",{
-                className:"ml-status-why",
-                children:localizedText(fa?.why,c)
-              }),jsxRuntime.jsx("strong",{
+              children:[jsxRuntime.jsx("strong",{
                 children:M("noStock")
               })]
             }):rl
@@ -2223,11 +2213,6 @@ function MergeLabView({
             }),jsxRuntime.jsx("strong",{
               children:M(ia||Ut?"on":"off")
             })]
-          }),jsxRuntime.jsx("p",{
-            className:"ml-muted",
-            children:M("version",{
-              version:g.version
-            })
           }),jsxRuntime.jsx(LabButton,{
             "data-testid":"ml-resume",
             primary:!0,

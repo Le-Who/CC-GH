@@ -49,17 +49,18 @@ export function makeGrid(columns=32, rows=48) {
   }
   return {uv:Float32Array.from(uv),indices:Uint16Array.from(indices),columns,rows};
 }
-function zoneMotion(zone,time,config,{impulseAge,waterAge,seed}){
+export function idleScaleForWidth(width){return Number.isFinite(width)&&width>0?Math.min(1,92/width):1;}
+function zoneMotion(zone,time,config,{impulseAge,waterAge,seed,idleScale=1}){
  const phase=zone.phase+seed,delay=zone.responseDelay??0;
  const age=impulseAge-delay,waterTime=waterAge-delay*1.5;
  const tap=age>=0&&age<2.2?Math.sin(age*TAU*1.8)*Math.exp(-age*2.4)*(config.tapAmplitude??.055):0;
  const water=waterTime>=0&&waterTime<3.5?Math.sin(waterTime*TAU*.8)*Math.exp(-waterTime*.9)*(config.waterAmplitude??.038):0;
- const bend=zone.amplitude*(.7*Math.sin(time*TAU/5.8+phase)+.3*Math.sin(time*TAU/9.1+phase*1.3));
+ const bend=zone.amplitude*(Number.isFinite(idleScale)?clamp(idleScale,0,1):1)*(.7*Math.sin(time*TAU/5.8+phase)+.3*Math.sin(time*TAU/9.1+phase*1.3));
  // Seed changes calm idle phase only. Deliberate responses cannot disappear at unlucky phases.
  const direction=zone.tip[0]<config.root[0]?-1:1,gain=zone.responseGain??1;
  return [bend+direction*gain*(tap+water*.65),bend*.18*Math.sin(phase)+gain*water*.4];
 }
-export function sampleMotion(x,y,time,config=DAISY,{reduced=false,impulseAge=Infinity,waterAge=Infinity,seed=0}={}) {
+export function sampleMotion(x,y,time,config=DAISY,{reduced=false,impulseAge=Infinity,waterAge=Infinity,seed=0,idleScale=1}={}) {
   if (![x,y,time,seed].every(Number.isFinite)) throw new TypeError('finite motion coordinates required');
   if(reduced||isPinned(x,y,config)) return [x,y];
   let rooted=config.pinY!==null?smooth((config.pinY-y)/(config.pinFeather??.14)):smooth((Math.hypot(x-config.root[0],y-config.root[1])-(config.rootRadius??.035))/(config.rootFeather??.16));
@@ -72,12 +73,12 @@ export function sampleMotion(x,y,time,config=DAISY,{reduced=false,impulseAge=Inf
     const px=zone.base[0]+t*vx,py=zone.base[1]+t*vy;
     const dist=Math.hypot(x-px,y-py);
     const weight=Math.exp(-3*(dist/zone.radius)**2)*smooth(t);
-    const movement=zoneMotion(zone,time,config,{impulseAge,waterAge,seed});
+    const movement=zoneMotion(zone,time,config,{impulseAge,waterAge,seed,idleScale});
     dx+=weight*movement[0];dy+=weight*movement[1];
     total+=weight;
   }
   const norm=Math.max(1,total);
-  return [x+clamp(dx/norm,-0.035,0.035)*rooted,y+clamp(dy/norm,-0.012,0.012)*rooted];
+  return [x+clamp(dx/norm,-(config.maxDisplacementX??.035),config.maxDisplacementX??.035)*rooted,y+clamp(dy/norm,-0.012,0.012)*rooted];
 }
 export function deformGrid(grid,time,config=DAISY,options={}) {
   const output=new Float32Array(grid.uv.length);
@@ -99,15 +100,15 @@ export function prepareSkin(grid,config=DAISY){
  }
  return {grid,config,weights,output:new Float32Array(grid.uv.length)};
 }
-export function evaluateSkin(skin,time,{reduced=false,impulseAge=Infinity,waterAge=Infinity,seed=0}={}){
+export function evaluateSkin(skin,time,{reduced=false,impulseAge=Infinity,waterAge=Infinity,seed=0,idleScale=1}={}){
  if(!Number.isFinite(time)||!Number.isFinite(seed))throw new TypeError('finite motion time required');
  const {grid,config,weights,output}=skin;
  if(reduced){output.set(grid.uv);return output;}
- const zones=config.zones.map(z=>zoneMotion(z,time,config,{impulseAge,waterAge,seed}));
+ const zones=config.zones.map(z=>zoneMotion(z,time,config,{impulseAge,waterAge,seed,idleScale}));
  for(let j=0;j<weights.length;j++){
   const i=j*2,w=weights[j];if(!w){output[i]=grid.uv[i];output[i+1]=grid.uv[i+1];continue;}
   let dx=0,dy=0;for(let k=0;k<zones.length;k++){dx+=w.row[k]*zones[k][0];dy+=w.row[k]*zones[k][1];}
-  output[i]=grid.uv[i]+clamp(dx/w.normalizer,-.035,.035)*w.rooted;
+  output[i]=grid.uv[i]+clamp(dx/w.normalizer,-(config.maxDisplacementX??.035),config.maxDisplacementX??.035)*w.rooted;
   output[i+1]=grid.uv[i+1]+clamp(dy/w.normalizer,-.012,.012)*w.rooted;
  }
  return output;

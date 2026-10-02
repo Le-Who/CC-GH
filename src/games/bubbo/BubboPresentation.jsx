@@ -356,9 +356,9 @@ function BubboPresentation({
         tabIndex:-1,
         children:[jsxRuntime.jsxs("header", {
           children:[jsxRuntime.jsxs("div", {
-            children:[jsxRuntime.jsx("span", {
+            children:[phase!=="menu"&&jsxRuntime.jsx("span", {
               className:"bb-kicker",
-              children:t(phase==="paused"?"pause.paused":phase==="result"?"bubbo.result.kicker":"bubbo.welcome")
+              children:t(phase==="paused"?"pause.paused":"bubbo.result.kicker")
             }), jsxRuntime.jsx("h1", {
               id:"bb-title",
               children:t("bubbo.title")
@@ -399,7 +399,8 @@ function BubboPresentation({
               disabled:starting,
               "data-testid":"bb-start",
               onClick:()=>onStart(mode),
-              children:t(starting?"bubbo.starting":"common.start")
+              "aria-busy":starting,
+              children:t("common.start")
             }), savedRun?.board&&jsxRuntime.jsx(BubboButton, {
               "data-testid":"bb-resume-saved",
               onClick:onResumeSaved,
@@ -423,8 +424,8 @@ function BubboPresentation({
                 label:t("common.reward"),
                 value:currentReward
               })]
-            }), jsxRuntime.jsx("p", {
-              children:t(phase==="paused"?"bubbo.pauseHelp":"bubbo.resultHelp")
+            }), phase==="paused"&&jsxRuntime.jsx("p", {
+              children:t("bubbo.pauseHelp")
             }), phase==="paused"?jsxRuntime.jsxs(jsxRuntime.Fragment, {
               children:[jsxRuntime.jsx(BubboButton, {
                 primary:true,

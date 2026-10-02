@@ -42,6 +42,7 @@ export async function expectBloxLayout(page) {
     expect(slot.left + slot.width).toBeLessThanOrEqual(page.viewportSize().width + 1);
     expect(slot.top + slot.height).toBeLessThanOrEqual(page.viewportSize().height + 1);
   }
+  await expect(page.locator('.bx-actions button')).toHaveCount(2);
   const bad = await page.locator('.bx-actions button').evaluateAll((buttons) => buttons.filter((button) => {
     const rect = button.getBoundingClientRect();
     const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);

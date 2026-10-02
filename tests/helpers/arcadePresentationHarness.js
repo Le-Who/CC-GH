@@ -24,7 +24,7 @@ export const arcadeArt = {
   bubbo: { assets: bubboArt.BUBBO_ART, skin: bubboArt.bubboPanelSkin, button: "button", dialog: "panel", prefix: "bb" },
 };
 
-export function renderArcadePresentation(gameId, overrides = {}, viewport = { width: 390, height: 844 }) {
+export function renderArcadePresentation(gameId, overrides = {}, viewport = { width: 390, height: 844 }, resolvedLayout = { viewport: { safeAreaInsets: {} }, regions: {} }) {
   const name = classes[gameId];
   if (!name) throw new Error(`Unknown arcade game: ${gameId}`);
   const full = readFileSync(new URL(`../../src/games/${gameId}/${name}Presentation.jsx`, import.meta.url), "utf8");
@@ -64,7 +64,7 @@ export function renderArcadePresentation(gameId, overrides = {}, viewport = { wi
     React, jsxRuntime: { jsx, jsxs: jsx, Fragment: "fragment" },
     HudRegion: "hud-region", HudEditableRegion: "hud-editable-region", BubboField: "bubbo-field",
     useAppI18n: () => ({ language: "en", t: (key, values) => values ? `${key}:${JSON.stringify(values)}` : key }),
-    useHudLayout: () => ({ viewport, resolvedLayout: { viewport: { safeAreaInsets: {} }, regions: {} }, editorVisible: false }),
+    useHudLayout: () => ({ viewport, resolvedLayout, editorVisible: false }),
     useGameEvents, useDialogFocus: (_ref, options) => focus.push(options), useEscapeDismiss: (active, callback) => escapes.push({ active, callback }),
     composeBlox, composeMatch3, composeBubbo, bloxKeyboardIntent, remainingArcadeSafeInsets, remainingBubboSafeInsets, resolveAssetUrl,
     ...bloxArt, ...match3Art, ...bubboArt,

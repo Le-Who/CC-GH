@@ -47,7 +47,7 @@
 .gs2-empty{justify-content:center;gap:8px;padding:10px 4px;text-align:center}.gs2-empty-target{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:44px;min-height:144px;border:1px dashed #93a478;border-radius:12px;background:#ecedd7;color:#29412b;padding:8px 2px;gap:8px;font-weight:800!important}
 .gs2-empty-target>.gs2-art{width:62px;height:62px;max-width:100%}.gs2-empty-target>span{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px;font-size:12px}.gs2-empty>p{font-size:12px;color:var(--gs2-muted)}
 .gs2-expansion{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:18px 16px;border:1px dashed #9c9e7c;background:#f0e8ca;border-radius:14px}.gs2-expansion h3{font-size:17px}.gs2-expansion p{margin-top:5px;color:var(--gs2-muted)}.gs2-expansion .gs2-button{width:min(100%,280px)}
-.gs2-status{position:relative;min-height:36px;display:flex;align-items:center;justify-content:center;gap:8px;padding:5px 12px;background:#e4e9d5;color:#3b4d33;font-size:12px;text-align:center}.gs2-status[role=alert]{background:#fff0d4;color:#7a341a}.gs2-status .gs2-button{flex:none}
+.gs2-status{position:relative;min-height:54px;display:grid;place-items:center;padding:5px 12px;background:#e4e9d5;color:#3b4d33;font-size:12px;text-align:center}.gs2-status[role=alert]{background:#fff0d4;color:#7a341a}.gs2-status .gs2-button{flex:none;max-width:94px;min-height:44px;height:44px;padding:4px;border-width:0;font-size:11px!important}.gs2-status-reserve{visibility:hidden;pointer-events:none}.gs2-status-content{position:absolute;inset:5px 12px;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}.gs2-status-content>span{min-width:0;max-height:100%;overflow:auto}.gs2-status-error{flex:1;text-align:left;overflow-wrap:anywhere}
 .gs2-stage[data-gs2-arrangement=side] .gs2-layout{grid-template-columns:var(--gs2-rail) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 .gs2-stage[data-gs2-arrangement=side] .gs2-header{overflow:auto;overscroll-behavior:contain;padding:8px;background:#f5e7c9;border:1px solid #bba378;border-radius:14px;gap:12px}
 .gs2-stage[data-gs2-arrangement=side] .gs2-metrics{grid-template-columns:minmax(0,1fr)}
@@ -68,7 +68,7 @@
 @media(max-width:359px){.gs2-metric{padding:0;gap:3px}.gs2-metric>span{gap:2px;font-size:12px}.gs2-metric .gs2-art{width:14px;height:14px}.gs2-metric>strong{font-size:14px}.gs2-dialog-heading h2{font-size:19px}.gs2-dialog{border-width:14px;border-image-width:14px}.gs2-quest-card{padding:10px}.gs2-plant-state small{display:none}}
 @media(prefers-reduced-motion:reduce){.gs2-stage *,.gs2-modal-layer *{animation:none!important;transition:none!important;scroll-behavior:auto!important}.gs2-button:active:not(:disabled){transform:none}}
 
-.gs2-error-banner{display:flex;align-items:center;gap:8px;padding:10px;background:#fff0d4;border:1px solid #bb8b63;border-radius:10px;color:#703c22}.gs2-error-banner .gs2-button{flex:none}.gs2-pending{padding:8px;background:#e8edd6;border-radius:8px;color:#485b35}
+.gs2-error-banner{display:flex;align-items:center;gap:8px;padding:10px;background:#fff0d4;border:1px solid #bb8b63;border-radius:10px;color:#703c22}.gs2-error-banner .gs2-button{flex:none}.gs2-dialog-title{min-width:0;flex:1}.gs2-pending{display:block;min-height:1.35em;font-size:12px;color:#485b35}.gs2-motion-setting{display:grid;gap:6px}.gs2-motion-setting p{color:var(--gs2-muted)}
 
 .gs2-spot{border-image:var(--gs2-panel-image) 48 fill / 8px stretch}.gs2-details{border-image:var(--gs2-button-image) 64 fill / 10px stretch;color:#fff8e0;background:#3b5b2a}.gs2-details:disabled{border-image:none;color:#53604e;background:#d6d8c1}
 
@@ -134,3 +134,10 @@
  left:max(var(--garden-host-padding),var(--safe-left,0px));
  right:max(var(--garden-host-padding),var(--safe-right,0px));
 }
+
+/* Input acknowledgement is stationary, including device reduced-motion mode. */
+.gs2-spot[data-gs2-tapped=true] .gs2-plant-target,.gs2-detail-tap[data-gs2-tapped=true]{box-shadow:inset 0 0 0 3px #4c7e3f;background-color:#e1edc8!important;border-radius:12px}
+
+.gs2-dialog-error{position:absolute;z-index:4;bottom:10px;left:8px;right:8px;max-height:calc(100% - 80px);box-shadow:0 4px 18px #243e2b33}.gs2-dialog-error>span{min-width:0;max-height:120px;overflow:auto;overflow-wrap:anywhere}
+
+.gs2-status-error:focus-visible,.gs2-dialog-error>span:focus-visible{outline:2px solid var(--gs2-focus);outline-offset:-2px}

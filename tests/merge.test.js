@@ -546,12 +546,13 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const platformPath = path.join(__dirname, "..", "src", "platform", "telegram.js");
       const css = fs.readFileSync(cssPath, "utf-8");
       const platform = fs.readFileSync(platformPath, "utf-8");
+      const gestures = fs.readFileSync(path.join(__dirname, "..", "src", "platform", "gameGestures.js"), "utf-8");
       assert.ok(
         css.includes("overscroll-behavior: none"),
         "Game shell should prevent page swipe leakage",
       );
       assert.ok(
-        platform.includes("disableVerticalSwipes"),
+        platform.includes("createGameGestureController") && gestures.includes("disableVerticalSwipes"),
         "Telegram vertical swipes should be disabled while dragging a game surface",
       );
     });
