@@ -57,16 +57,18 @@ export function checkPlacement(snapshot, candidate, { placing = false, now = sna
   return validateLayout({ ...snapshot.yard, placedGoodies: placements }, MIKA_SCENE);
 }
 
-export function visibleStatus(view) {
-  if (!view.mutable) return 'Сохранение требует проверки · данные сохранены';
-  if (view.pendingGifts.length) return `Подарки ждут вас · ${view.pendingGifts.length}`;
-  if (view.legacy.length) return 'Прежний визит сохранён и завершится по своему времени';
-  if (view.pets.length) return ({ rest: 'Mika уютно спит', settle: 'Mika устраивается поудобнее',
-    wake: 'Mika просыпается', play: 'Mika играет', roam: 'Mika ищет тихое место', approach: 'К нам заглянула Mika', depart: 'Mika отправляется дальше' })[view.pets[0].role] || 'Mika во дворе';
-  if (view.issues.length) return 'Некоторые предметы нужно переставить · откройте «Предметы»';
-  if (view.props.some(p=>p.readiness?.status==='reposition-needed')) return 'К предмету нет безопасного подхода · выберите другое место';
-  if (view.yard.remodel && view.yard.remodel!=='meadow') return 'Оформление сохранено · для этой пробы выберите луг';
-  if (view.props.some(p=>!p.supported)) return 'Сохранены предметы следующего набора · откройте «Предметы»';
-  if (view.bowls.some(b => b.foodId && b.servings > 0)) return 'Корм ждёт гостей · визит может случиться со временем';
-  return 'Положите корм и устройте уютное место';
+export function visibleStatus(view,t=key=>key) {
+  if (!view.mutable) return t('yard.persistent.status.readOnly');
+  if (view.pendingGifts.length) return t('yard.persistent.status.gifts',{count:view.pendingGifts.length});
+  if (view.legacy.length) return t('yard.persistent.status.legacy');
+  if (view.pets.length) {
+    const role=view.pets[0].role;
+    return t(`yard.persistent.status.${['rest','settle','wake','play','roam','approach','depart'].includes(role)?role:'visiting'}`);
+  }
+  if (view.issues.length) return t('yard.persistent.status.items');
+  if (view.props.some(p=>p.readiness?.status==='reposition-needed')) return t('yard.persistent.status.path');
+  if (view.yard.remodel && view.yard.remodel!=='meadow') return t('yard.persistent.status.remodel');
+  if (view.props.some(p=>!p.supported)) return t('yard.persistent.status.unsupported');
+  if (view.bowls.some(b => b.foodId && b.servings > 0)) return t('yard.persistent.status.food');
+  return t('yard.persistent.status.empty');
 }
