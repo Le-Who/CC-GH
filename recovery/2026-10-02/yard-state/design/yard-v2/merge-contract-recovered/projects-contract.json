@@ -1,0 +1,458 @@
+{
+  "source": "/workspace/shared/cc-gh-merge-catalog-semantic-recovery/merge-lab-catalog.recovered.js",
+  "sourceSha256": "befaafc351dd5a2035817f1afd6956847e6ac18984b3991a4866b26bd6d0289c",
+  "catalogVersion": "alchemy-v3.1",
+  "projects": [
+    {
+      "id": "night_beacon",
+      "title": "Ночной маяк",
+      "output": {
+        "game": "yard",
+        "itemId": "moon_lamp"
+      },
+      "inputs": [
+        "glow_lantern",
+        "crystal"
+      ],
+      "optionalMasterwork": [
+        "solar_core",
+        "aurora"
+      ],
+      "use": {
+        "en": "Makes a Moon Lamp for your Yard inventory. Place it separately in the Yard; a guest visit is never guaranteed.",
+        "ru": "Создаёт Лунную лампу для инвентаря двора. Разместите её отдельно во дворе; визит гостя не гарантирован."
+      },
+      "names": {
+        "en": "Night Beacon",
+        "ru": "Ночной маяк"
+      },
+      "description": {
+        "en": "A small pool of gentle light for the Yard after dusk.",
+        "ru": "Маленький островок мягкого света для двора после заката."
+      },
+      "locked": {
+        "en": "Discover {items} to prepare the beacon’s gentle glow.",
+        "ru": "Откройте {items}, чтобы подготовить мягкое сияние маяка."
+      },
+      "missing": {
+        "en": "The beacon needs more supplies: {items}.",
+        "ru": "Маяку не хватает запасов: {items}."
+      },
+      "essenceCost": 30,
+      "variants": [
+        {
+          "id": "solar_core",
+          "names": {
+            "en": "Solar-core route",
+            "ru": "Путь солнечного ядра"
+          },
+          "description": {
+            "en": "A solar core replaces the crystal work and covers the essence cost.",
+            "ru": "Солнечное ядро заменяет работу с кристаллом и расход эссенции."
+          },
+          "inputs": [
+            "glow_lantern",
+            "solar_core"
+          ],
+          "essenceCost": 0
+        },
+        {
+          "id": "aurora",
+          "names": {
+            "en": "Aurora route",
+            "ru": "Путь сияния"
+          },
+          "description": {
+            "en": "A vial and aurora replace the lantern assembly and its essence cost.",
+            "ru": "Флакон и сияние заменяют сборку фонаря и расход эссенции."
+          },
+          "inputs": [
+            "vial",
+            "aurora"
+          ],
+          "essenceCost": 0
+        }
+      ],
+      "requiresYardV3": false,
+      "asset": "/games/companion-yard/goodies/moon_lamp.png"
+    },
+    {
+      "id": "listening_fountain",
+      "title": "Слушающий фонтан",
+      "output": {
+        "game": "yard",
+        "itemId": "fountain_bowl"
+      },
+      "inputs": [
+        "clay_bowl",
+        "charcoal_filter",
+        "spring"
+      ],
+      "optionalMasterwork": [
+        "monolith",
+        "ocean_heart"
+      ],
+      "use": {
+        "en": "Makes a Fountain Bowl for your Yard inventory. Place it separately in the Yard.",
+        "ru": "Создаёт Чашу-фонтан для инвентаря двора. Разместите её отдельно во дворе."
+      },
+      "names": {
+        "en": "Listening Fountain",
+        "ru": "Слушающий фонтан"
+      },
+      "description": {
+        "en": "A quiet water corner shaped around a little spring.",
+        "ru": "Тихий водный уголок вокруг маленького источника."
+      },
+      "locked": {
+        "en": "Discover {items} to give the fountain its basin and water.",
+        "ru": "Откройте {items}, чтобы у фонтана появились чаша и вода."
+      },
+      "missing": {
+        "en": "The fountain needs more supplies: {items}.",
+        "ru": "Фонтану не хватает запасов: {items}."
+      },
+      "essenceCost": 30,
+      "variants": [
+        {
+          "id": "monolith",
+          "names": {
+            "en": "Monolith route",
+            "ru": "Путь монолита"
+          },
+          "description": {
+            "en": "A monolith supplies the basin work; the spring and filter complete it without essence.",
+            "ru": "Монолит заменяет работу над чашей; источник и фильтр завершают её без эссенции."
+          },
+          "inputs": [
+            "monolith",
+            "spring",
+            "charcoal_filter"
+          ],
+          "essenceCost": 0
+        },
+        {
+          "id": "ocean_heart",
+          "names": {
+            "en": "Ocean-heart route",
+            "ru": "Путь сердца океана"
+          },
+          "description": {
+            "en": "An ocean heart replaces the spring and filter work, saving the essence cost.",
+            "ru": "Сердце океана заменяет работу над источником и фильтром, сберегая эссенцию."
+          },
+          "inputs": [
+            "clay_bowl",
+            "ocean_heart"
+          ],
+          "essenceCost": 0
+        }
+      ],
+      "requiresYardV3": false,
+      "asset": "/games/companion-yard/goodies/fountain_bowl.png"
+    },
+    {
+      "id": "dream_nest",
+      "title": "Гнездо для снов",
+      "output": {
+        "game": "yard",
+        "itemId": "cloud_bed"
+      },
+      "inputs": [
+        "cushion",
+        "lullaby"
+      ],
+      "optionalMasterwork": [
+        "phoenix_ash"
+      ],
+      "use": {
+        "en": "Makes a Cloud Bed for your Yard inventory. Place it separately in the Yard.",
+        "ru": "Создаёт Облачную лежанку для инвентаря двора. Разместите её отдельно во дворе."
+      },
+      "names": {
+        "en": "Dream Nest",
+        "ru": "Гнездо для снов"
+      },
+      "description": {
+        "en": "Cloud-soft comfort with the quiet mood of a lullaby.",
+        "ru": "Облачная мягкость с тихим настроением колыбельной."
+      },
+      "locked": {
+        "en": "Discover {items} to bring softness and calm to the nest.",
+        "ru": "Откройте {items}, чтобы подарить гнезду мягкость и покой."
+      },
+      "missing": {
+        "en": "The nest needs more supplies: {items}.",
+        "ru": "Гнезду не хватает запасов: {items}."
+      },
+      "essenceCost": 20,
+      "variants": [
+        {
+          "id": "phoenix_ash",
+          "names": {
+            "en": "Phoenix-ash route",
+            "ru": "Путь пепла феникса"
+          },
+          "description": {
+            "en": "Phoenix ash takes the lullaby’s place in the plan and removes the essence cost.",
+            "ru": "Пепел феникса занимает место колыбельной в чертеже и заменяет расход эссенции."
+          },
+          "inputs": [
+            "cushion",
+            "phoenix_ash"
+          ],
+          "essenceCost": 0
+        }
+      ],
+      "requiresYardV3": false,
+      "asset": "/games/companion-yard/goodies/cloud_bed.png"
+    },
+    {
+      "id": "living_arbor",
+      "title": "Живая беседка",
+      "output": {
+        "game": "yard",
+        "itemId": "alchemy_living_arbor",
+        "newId": true
+      },
+      "inputs": [
+        "grove",
+        "scent",
+        "nectar"
+      ],
+      "optionalMasterwork": [
+        "world_tree"
+      ],
+      "use": {
+        "en": "Crafting adds an owned arbor to your Yard inventory for preview. Placement and pet interactions await a Yard update.",
+        "ru": "Изготовление добавляет беседку в инвентарь двора для просмотра. Размещение и взаимодействия питомцев ждут обновления двора."
+      },
+      "names": {
+        "en": "Living Arbor",
+        "ru": "Живая беседка"
+      },
+      "description": {
+        "en": "A leafy shelter imagined with fragrance and a sweet garden detail.",
+        "ru": "Лиственное укрытие с ароматом и сладкой садовой деталью."
+      },
+      "locked": {
+        "en": "Discover {items} to complete the arbor’s leafy idea.",
+        "ru": "Откройте {items}, чтобы завершить зелёный замысел беседки."
+      },
+      "missing": {
+        "en": "The arbor needs more supplies: {items}.",
+        "ru": "Беседке не хватает запасов: {items}."
+      },
+      "essenceCost": 30,
+      "variants": [
+        {
+          "id": "world_tree",
+          "names": {
+            "en": "World-tree route",
+            "ru": "Путь мирового дерева"
+          },
+          "description": {
+            "en": "A world tree replaces the grove and scent work; nectar finishes the plan without essence.",
+            "ru": "Мировое дерево заменяет работу с рощей и ароматом; нектар завершает чертёж без эссенции."
+          },
+          "inputs": [
+            "world_tree",
+            "nectar"
+          ],
+          "essenceCost": 0
+        }
+      ],
+      "requiresYardV3": true,
+      "asset": "/games/merge-lab-v3/living-arbor.webp"
+    },
+    {
+      "id": "echo_chimes",
+      "title": "Голос ветра",
+      "output": {
+        "game": "yard",
+        "itemId": "alchemy_echo_chimes",
+        "newId": true
+      },
+      "inputs": [
+        "wind_chime"
+      ],
+      "optionalMasterwork": [
+        "echo",
+        "tempest_crown"
+      ],
+      "use": {
+        "en": "Crafting adds owned chimes to your Yard inventory for preview. Placement and pet interactions await a Yard update.",
+        "ru": "Изготовление добавляет подвеску в инвентарь двора для просмотра. Размещение и взаимодействия питомцев ждут обновления двора."
+      },
+      "names": {
+        "en": "Voice of the Wind",
+        "ru": "Голос ветра"
+      },
+      "description": {
+        "en": "A ringing ornament that gives a gentle breeze a voice.",
+        "ru": "Звонкое украшение, которое дарит лёгкому ветру голос."
+      },
+      "locked": {
+        "en": "Discover {items} to give the ornament its voice.",
+        "ru": "Откройте {items}, чтобы у украшения появился голос."
+      },
+      "missing": {
+        "en": "The ornament needs more supplies: {items}.",
+        "ru": "Украшению не хватает запасов: {items}."
+      },
+      "essenceCost": 0,
+      "variants": [
+        {
+          "id": "echo",
+          "names": {
+            "en": "Echo assembly",
+            "ru": "Сборка с эхом"
+          },
+          "description": {
+            "en": "Echo, crystal, and thread replace a ready-made wind chime. This route also costs no essence.",
+            "ru": "Эхо, кристалл и нить заменяют готовую музыку ветра. Этот путь тоже не требует эссенции."
+          },
+          "inputs": [
+            "echo",
+            "crystal",
+            "thread_fiber"
+          ],
+          "essenceCost": 0
+        },
+        {
+          "id": "tempest_crown",
+          "names": {
+            "en": "Tempest-crown route",
+            "ru": "Путь короны бури"
+          },
+          "description": {
+            "en": "A tempest crown and glass replace the wind-chime assembly, with no essence cost.",
+            "ru": "Корона бури и стекло заменяют сборку музыки ветра без расхода эссенции."
+          },
+          "inputs": [
+            "tempest_crown",
+            "glass"
+          ],
+          "essenceCost": 0
+        }
+      ],
+      "requiresYardV3": true,
+      "asset": "/games/merge-lab-v3/items/wind_chime.webp"
+    },
+    {
+      "id": "stargazer_nook",
+      "title": "Звёздный уголок",
+      "output": {
+        "game": "yard",
+        "itemId": "book_nook"
+      },
+      "inputs": [
+        "paper",
+        "paper",
+        "paper",
+        "ink",
+        "lens"
+      ],
+      "optionalMasterwork": [
+        "astrolabe",
+        "philosopher_stone"
+      ],
+      "use": {
+        "en": "Makes a Book Nook for your Yard inventory. Place it separately in the Yard.",
+        "ru": "Создаёт Книжный уголок для инвентаря двора. Разместите его отдельно во дворе."
+      },
+      "names": {
+        "en": "Stargazer Nook",
+        "ru": "Звёздный уголок"
+      },
+      "description": {
+        "en": "A place for pages, curious eyes, and stories about the sky.",
+        "ru": "Место для страниц, любопытных взглядов и историй о небе."
+      },
+      "locked": {
+        "en": "Discover {items} to prepare the nook’s pages and view.",
+        "ru": "Откройте {items}, чтобы подготовить страницы и обзор для уголка."
+      },
+      "missing": {
+        "en": "The nook needs more supplies: {items}.",
+        "ru": "Уголку не хватает запасов: {items}."
+      },
+      "essenceCost": 20,
+      "variants": [
+        {
+          "id": "astrolabe",
+          "names": {
+            "en": "Astrolabe route",
+            "ru": "Путь астролябии"
+          },
+          "description": {
+            "en": "An astrolabe replaces the lens work and saves two sheets of paper and the essence cost.",
+            "ru": "Астролябия заменяет работу с линзой, сберегая два листа бумаги и эссенцию."
+          },
+          "inputs": [
+            "paper",
+            "ink",
+            "astrolabe"
+          ],
+          "essenceCost": 0
+        },
+        {
+          "id": "philosopher_stone",
+          "names": {
+            "en": "Philosopher’s route",
+            "ru": "Путь философского камня"
+          },
+          "description": {
+            "en": "The philosopher’s stone replaces the ink and lens work, saving two sheets and the essence cost.",
+            "ru": "Философский камень заменяет работу с чернилами и линзой, сберегая два листа бумаги и эссенцию."
+          },
+          "inputs": [
+            "paper",
+            "philosopher_stone"
+          ],
+          "essenceCost": 0
+        }
+      ],
+      "requiresYardV3": false,
+      "asset": "/games/companion-yard/goodies/book_nook.png"
+    }
+  ],
+  "contract": {
+    "grantTarget": "player.yard.goodieInventory[project.output.itemId]",
+    "grantOperation": "add integer quantity",
+    "craftedTarget": "player.merge.projects.crafted[projectId]",
+    "placementRequired": true,
+    "visitorGranted": false
+  },
+  "evidence": {
+    "source": "/workspace/shared/recovered-games/cc-gh-merge-v3-20261001-r1-preview/dist-merge-preview/assets/host-BCxrcnPt.js",
+    "sourceSha256": "446be89f0490bfc73db996a570d9d73229957405a5d1aca0cc8f632ed4f698f3",
+    "inspection": "static only; host not executed",
+    "excerpts": [
+      {
+        "anchor": "const Yu={researchPair:",
+        "excerpt": "const Yu={researchPair:[\"leftItemId\",\"rightItemId\"],craft:[\"recipeId\",\"quantity\",\"quote\"],craftProject:[\"projectId\",\"variantId\",\"quantity\",\"quote\"],claimSupply:[\"itemId\",\"quantity\",\"quote\"],claimDailySupply:[\"quote\"],buySupply:[\"packId\",\"quote\"],useCropSupply:[\"cropId\",\"quote\"],distillStock:[\"itemId\",\"quantity\",\"quote\"],claimFreeCharges:[],claimStarterKit:[\"quote\"],requestHint:[\"recipeId\",\"stage\"],selectProject:[\"projectId\"],exchange:[\"offerId\",\"quote\"]};function gp(s,r,f,c){const y=s.merge,m={stockCost:{},stockGrant:{},essenceCost:0,tokenCost:0,freeChargeCost:0,cropCost:{},yardGrant:{},yardCurrencyGrant:{},essenceGrant:0};if(r===\"craft\"){con"
+      },
+      {
+        "anchor": "else if(r===\"craftProject\"){const E=c.projects.get(f.projectId)",
+        "excerpt": "else if(r===\"craftProject\"){const E=c.projects.get(f.projectId);Y(E,\"UNKNOWN_PROJECT\",\"Unknown project\"),Y(y.projects.unlockedIds.includes(E.id),\"PROJECT_LOCKED\",\"Project locked\");const A=f.variantId===void 0?\"base\":qt(f.variantId,\"project variant\"),v=A===\"base\"?E:E.variants.get(A);Y(v,\"VARIANT_UNAVAILABLE\",\"Choose an available project recipe\");const p=pe(f.quantity===void 0?1:f.quantity,\"quantity\",1,c.economy.maxBatch);for(const[g,_]of Object.entries(v.input))Y(y.knowledge.itemIds.includes(g),\"ITEM_LOCKED\",`Unknown project material ${g}`),m.stockCost[g]=Sn(_,p);m.essenceCost=Sn(v.essenceCost,p),m.yardGrant[E.output.itemId]=p}else if(r===\"claimSupply\"){Y(c.supplyItemIds.includes(f.itemId)&&y.knowledge.itemIds.includes(f.itemId),\"SUPPLY_UNAVAILABLE\",\"Choose a known common material\");const E=pe(f.quantity,\"quantity\",1,c.economy.maxBatch);m.freeChargeCost=E,m.stockGrant[f.itemId]=E}else if(r===\"claimDailySupply\")Y(Object.keys(c.dailySupply).every(E=>y.knowledge.itemIds.includes(E)),\"PACK_LOCKED\",\"All daily materials must be known\"),m.sto"
+      },
+      {
+        "anchor": "function mr(s,r)",
+        "excerpt": "function mr(s,r){Ce(s,\"count inventory\");for(const[f,c]of Object.entries(r))s[f]=Jt(pe(s[f]??0,`${f} count`),c)}function km(s,r,f){s!=null&&Ce(s,\"count inventory\");for(const[c,y]of Object.entries(r))Y(pe(s?.[c]??0,`${c} count`)>=y,f,`Not enough ${c}`);for(const[c,y]of Object.entries(r))s[c]-=y,s[c]||delete s[c]}function Sp(s,r){const f=s.merge;Y(f.alchemyEssence>=r.essenceCost,\"INSUFFICIENT_ESSENCE\",\"Not enough essence\"),Y(f.freeTapCharges>=r.freeChargeCost,\"SUPPLY_EXHAUSTED\",\"No free charges available; claim earned charges or choose another explicit source\"),r.tokenCost&&Y(pe(s.resources?.gachaTokens??0,\"tokens\")>=r.tokenCost,\"INSUFFICIENT_T"
+      },
+      {
+        "anchor": "function Sp(s,r)",
+        "excerpt": "function Sp(s,r){const f=s.merge;Y(f.alchemyEssence>=r.essenceCost,\"INSUFFICIENT_ESSENCE\",\"Not enough essence\"),Y(f.freeTapCharges>=r.freeChargeCost,\"SUPPLY_EXHAUSTED\",\"No free charges available; claim earned charges or choose another explicit source\"),r.tokenCost&&Y(pe(s.resources?.gachaTokens??0,\"tokens\")>=r.tokenCost,\"INSUFFICIENT_TOKENS\",\"Not enough tokens\"),km(f.stock,r.stockCost,\"INSUFFICIENT_STOCK\"),Object.keys(r.cropCost).length&&km(s.farm?.harvested,r.cropCost,\"INSUFFICIENT_CROPS\"),f.alchemyEssence=Jt(f.alchemyEssence-r.essenceCost,r.essenceGrant),f.freeTapCharges-=r.freeChargeCost,r.tokenCost&&(s.resources.gachaTokens-=r.tokenCost),mr(f.stock,r.stockGrant),(Object.keys(r.yardGrant).length||Object.keys(r.yardCurrencyGrant).length)&&(s.yard??={},s.yard.goodieInventory??={},s.yard.currencies??={},mr(s.yard.goodieInventory,r.yardGrant),mr(s.yard.currencies,r.yardCurrencyGrant))}function gi(s){return Y(s<=864e13,\"INVALID_INTEGER\",\"Server date out of range\"),new Date(s).toISOString().slice(0,10)}function Ap(s,r,f,c,y){const m=s.merge;if(r===\"researchPair\"){const{leftItemId:A,rightItemId:v}=f,p=Pm(A,v);Y(c.items.has(A)&&c.items.has(v),\"UNKNOWN_ITEM\",\"Unknown sample\"),Y(m.knowledge.itemIds.includes(A)&&m.knowledge.itemIds.includes(v),\"ITEM_LOCKED\",\"Both samples must be known\");"
+      },
+      {
+        "anchor": "r===\"craftProject\"){const A=f.projectId",
+        "excerpt": "r===\"craftProject\"){const A=f.projectId;m.projects.crafted[A]=Jt(m.projects.crafted[A]??0,f.quantity??1)}if(r===\"exchange\"){const A=gi(y);m.exchangeClaims[A]??={},m.exchangeClaims[A][f.offerId]=Jt(m.exchangeClaims[A][f.offerId]??0,1)}return{outcome:\"completed\",...E,...r===\"craftProject\"?{projectId:f.projectId,variantId:f.variantId??\"base\",placementRequired:!0,visitorGranted:!1}:{}}}function ch(s,r,f,{now:c=0}={}){try{const y=Qu(f),m=lh(s,y);pe(c,\"server time\"),Ce(r,\"action\"),jn(r,[\"type\",\"actionId\",\"expectedMergeRevision\",\"catalogVersion\",\"payload\",\"payloadHash\"]),Y(typeof r.actionId==\"string\"&&/^\\d+:[A-Za-z0-9_:.\\-]{1,120}$/.test(r.actionId)"
+      },
+      {
+        "anchor": "w>0&&!G.requiresYardV3&&A",
+        "excerpt": "w>0&&!G.requiresYardV3&&A&&d.jsx(oe,{onClick:A,children:g(\"openYard\")})]})]},G.id)})}),d.jsx(\"p\",{className:\"ml-muted\",children:g(\"effectUnavailable\")})]})}function Yp({player:s,catalog:r=tt,language:f=\"ru\",onQuote:c=ot,run:y=ot,busy:m=!1,now:E=Date.now()}){const A=Ma(f),v=s.merge,p=En(r,f),[g,_]=P.useState(\"breeze\"),[M,Z]=P.useState(\"\"),X=qp(v,r.economy,E),J=new Date(E).toISOString().slice(0,10),G=v.supply.dailyClaimDate===J||v.lastFreePull>0&&new Date(v.lastFreePull).toISOString().slice(0,10)===J,k=r.cropSupplies[M],ie=A(\"cropNames\");return d.jsxs(\"div\",{className:\"ml-panel-body\",\"data-testid\":\"ml-supplies\",children:[d.jsx(\"p\",{className:\"m"
+      }
+    ]
+  }
+}

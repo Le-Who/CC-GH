@@ -1,0 +1,91 @@
+{
+  "repository": "Le-Who/CC-GH",
+  "ref": "47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86",
+  "source": "Exact git show blobs from read-only recovered repository",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 8888,
+      "gitBlobSha": "9d4b5d2f5f6ceb23e2cadc03f652f7c41b112437",
+      "sha256": "8cf38891613c3cc4b6e4322d17d65b00cb78e22ff87c9e33049391648e982ec3",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/AGENTS.md"
+    },
+    {
+      "path": "game-logic/yard.js",
+      "bytes": 41732,
+      "gitBlobSha": "16addce07b9e73cbbe43f86d8ccaa1f9eaa33f72",
+      "sha256": "36b37b3ad6a24753d68830074cf6440b310e7d0951ead1625d7d802d440cf9e3",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/yard.js"
+    },
+    {
+      "path": "game-logic/yard-catalog.js",
+      "bytes": 20698,
+      "gitBlobSha": "4f3ded5d12e223979175d9d41c01f2bd9bd66df4",
+      "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/yard-catalog.js"
+    },
+    {
+      "path": "game-logic/yard-playzones.js",
+      "bytes": 4289,
+      "gitBlobSha": "0211bb7503d756f682cb09de7b98ded42f001960",
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/yard-playzones.js"
+    },
+    {
+      "path": "game-logic/pet-assets.js",
+      "bytes": 5366,
+      "gitBlobSha": "19edb87fc6612285243c8a39b531f8bb025034c1",
+      "sha256": "1c37f052e0f5e37750a5ddbaf259a151b5421c73b0c9c0cba3b8ec3c9c99d943",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/pet-assets.js"
+    },
+    {
+      "path": "game-logic/player.js",
+      "bytes": 7833,
+      "gitBlobSha": "e17f126ebdd93e3696935f5bb97090d8c249c330",
+      "sha256": "5256eca2b2bb6262777d6428cb3d536ec62b68a79e52d607a804f49bde0576a3",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/player.js"
+    },
+    {
+      "path": "routes/player.js",
+      "bytes": 52767,
+      "gitBlobSha": "ea9029418e7dbecfb2603b6fa34d25c346dd8c3d",
+      "sha256": "8f14b0f3e049364a698cb95ab4659553c015891dd08f38087e0093e2d29d828b",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/routes/player.js"
+    },
+    {
+      "path": "routes/mergeRoutes.js",
+      "bytes": 19559,
+      "gitBlobSha": "80e77fb53a43d09af0fa07704065505128400213",
+      "sha256": "3788aeefcaa895514e983816523a3ba85d67d0877aa96cf8e87eb51c470330fd",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/routes/mergeRoutes.js"
+    },
+    {
+      "path": "src/games/companion-yard/CompanionYardGame.jsx",
+      "bytes": 57741,
+      "gitBlobSha": "93815511428078bb918eed482f0253a5ef04607d",
+      "sha256": "48fd374bd8d111639a7799a46384c8646f2fa82941d52bbcbfe167cae85a1248",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/src/games/companion-yard/CompanionYardGame.jsx"
+    },
+    {
+      "path": "src/games/companion-yard/movement.js",
+      "bytes": 8725,
+      "gitBlobSha": "dcd745d4e00ac40ca2d8fa925f763345d18c58e4",
+      "sha256": "5dcdef21e59c9326905d679af866abc3566a516e5cb91af8aed1a0536ac74701",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/src/games/companion-yard/movement.js"
+    },
+    {
+      "path": "src/games/companion-yard/assets.js",
+      "bytes": 2777,
+      "gitBlobSha": "d7b7876cc67579460c94bfc82db9a2648d2ea417",
+      "sha256": "5d6350e883be313120f0a28c06476ef9425825c6ef8c66ab096bb94c9c1ec1fa",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/src/games/companion-yard/assets.js"
+    },
+    {
+      "path": "src/games/companion-yard/i18n.js",
+      "bytes": 14187,
+      "gitBlobSha": "19facc2a2ee09d3098cfb6da3645715434328f39",
+      "sha256": "adbd954890082ca1a4068b481039cdca472998ca538ecba839ea46511e222a3b",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/src/games/companion-yard/i18n.js"
+    }
+  ]
+}

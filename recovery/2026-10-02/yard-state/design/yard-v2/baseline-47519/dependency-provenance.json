@@ -1,0 +1,48 @@
+{
+  "ref": "47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86",
+  "purpose": "Minimal exact dependency closure to use the real createDefaultPlayer factory in tests",
+  "files": [
+    {
+      "path": "game-logic/economy.js",
+      "bytes": 4743,
+      "gitBlobSha": "25396e9ce19bfd4b58d3d3576e556c50098ae3f0",
+      "sha256": "51e904f98d30e657ce0a5302d8075a79a59dae5954888361c112f8c705ec2668",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/economy.js"
+    },
+    {
+      "path": "game-logic/garden-economy.js",
+      "bytes": 5717,
+      "gitBlobSha": "9888ed6dddb4f287b65c4bdbed050b1f6df16a6d",
+      "sha256": "0eaa8695f5c81aa27381c23230961883f2ae6fddc27f64c1d3e5912f6e09851d",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/garden-economy.js"
+    },
+    {
+      "path": "game-logic/garden-quests.js",
+      "bytes": 13789,
+      "gitBlobSha": "a50c22810354847c9ea13bde0968e27fbb6bd94f",
+      "sha256": "56ea2bfe35eddd095f422c6758bdfa2c89436ed230030c6efe035dc6e5228b26",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/garden-quests.js"
+    },
+    {
+      "path": "game-logic/hud-bonuses.js",
+      "bytes": 3309,
+      "gitBlobSha": "962c8464cdaa680c1255972c10c05f1fd3f361ea",
+      "sha256": "ba5810e2d7c8bf16141c040802fc073b93451883a5280880bab8461bec6f2b2b",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/hud-bonuses.js"
+    },
+    {
+      "path": "game-logic/merge-config.js",
+      "bytes": 16412,
+      "gitBlobSha": "e8743b26e706a1cf6ffd51f30cb32b7e872a3634",
+      "sha256": "581bd3b4e7a9bf7f12257e17c76ba5ba02d74cdcc892b12fa5f7d09570b54501",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/merge-config.js"
+    },
+    {
+      "path": "game-logic/merge-board-utils.js",
+      "bytes": 3237,
+      "gitBlobSha": "56db5c3f4696959ff6fb4f4c4e2c7461c96d1b04",
+      "sha256": "b4025bd957a487bc6f860a97dcd5f75659318f092ff0fd5eba1726b844a200d2",
+      "sourceUrl": "https://github.com/Le-Who/CC-GH/blob/47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86/game-logic/merge-board-utils.js"
+    }
+  ]
+}
