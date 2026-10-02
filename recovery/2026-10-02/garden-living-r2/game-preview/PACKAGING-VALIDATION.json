@@ -1,0 +1,19 @@
+{
+  "status": "LOCAL_CHECKS_PASS_BROWSER_PENDING",
+  "previewVersion": "garden-v2-20261002-living-r2",
+  "nodeTests": 35,
+  "collectorAdditionalNodeTests": 6,
+  "pythonLauncherTests": 4,
+  "pythonOverlayGuardTests": 4,
+  "assignedArtFilesDecoded": 56,
+  "quickBrowserCasesPrepared": 16,
+  "browserExecuted": false,
+  "priorPilotBrowserResult": "12/12 Windows cases; not R2 acceptance",
+  "unrun": [
+    "WebGL context loss",
+    "missing-image fault",
+    "all56states browser art sweep",
+    "GPU/compositor timing"
+  ],
+  "sourceBuild": "guarded recovered hf1 bundle plus equivalent source excerpts, no full repository build"
+}

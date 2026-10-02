@@ -1,0 +1,622 @@
+{
+  "kind": "56 individually generated transparent plant stages, source PNG retained; no asset-sheet slicing",
+  "method": "built-in image generator; alpha-preserving lossless WebP max768",
+  "rows": [
+    {
+      "species": "daisy",
+      "stage": "seedling",
+      "file": "daisy-seedling-r1.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 101832,
+      "sha256": "4a91ee9f0e75bf0cfa62b6edd31874136890973e93be1f6c8cdb591b66f677f9"
+    },
+    {
+      "species": "daisy",
+      "stage": "young",
+      "file": "daisy-young-r1.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 165742,
+      "sha256": "db62c668a4762a4503a8668f3b9c7055874180fced889ec5d11bb4f2e818f50a"
+    },
+    {
+      "species": "daisy",
+      "stage": "developing",
+      "file": "daisy-budding-r1.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 248596,
+      "sha256": "9bc8d0d50174a22fb3f48e13729052cb7df2946b1723b0d37bd2ccb5855ff8bb"
+    },
+    {
+      "species": "daisy",
+      "stage": "mature",
+      "file": "daisy-mature-r2.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 292106,
+      "sha256": "ff5d02d731f7eb55589f8270801e683ec5b4fd0756c45f639ead95b4aea4c90d"
+    },
+    {
+      "species": "lavender",
+      "stage": "seedling",
+      "file": "lavender-seedling-r2.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 112652,
+      "sha256": "31bdc076b63764e54044ecccb6ce35bb750e1fb5a6add61eb19f905035bf1e59"
+    },
+    {
+      "species": "lavender",
+      "stage": "young",
+      "file": "lavender-young-r1.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 205818,
+      "sha256": "5cb4c075b675712c17afb9940e4b25c8e6419a518f4c11f16bfd52cf5fd68ab2"
+    },
+    {
+      "species": "lavender",
+      "stage": "developing",
+      "file": "lavender-developing-r1.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 292030,
+      "sha256": "5d98dd104fe31be94997afeb6c6967c761de7e7a7c1e9dcdb8b3a647058e2024"
+    },
+    {
+      "species": "lavender",
+      "stage": "mature",
+      "file": "lavender-mature-r1.webp",
+      "dimensions": [
+        512,
+        768
+      ],
+      "bytes": 320126,
+      "sha256": "aa0719fe00e5dbffedce0d6044ef2b5d755f7c751c9dc2c7aa0766c33c6da994"
+    },
+    {
+      "species": "basil",
+      "stage": "seedling",
+      "file": "basil-seedling-r1.webp",
+      "dimensions": [
+        721,
+        768
+      ],
+      "bytes": 168402,
+      "sha256": "8aff00edf783cc84338f3c08afa5199b18386156ccd6c6d5fe0f87090236899d"
+    },
+    {
+      "species": "basil",
+      "stage": "young",
+      "file": "basil-young-r1.webp",
+      "dimensions": [
+        721,
+        768
+      ],
+      "bytes": 266732,
+      "sha256": "5bdc1d587ba14a479048572bbacb5250caa8e18d3c1d797149da4b3345de4890"
+    },
+    {
+      "species": "basil",
+      "stage": "developing",
+      "file": "basil-developing-r1.webp",
+      "dimensions": [
+        721,
+        768
+      ],
+      "bytes": 321094,
+      "sha256": "7e1ca14deb30cd248c8544677a064e68bf31f4f33458c28a6292b140e4233f4a"
+    },
+    {
+      "species": "basil",
+      "stage": "mature",
+      "file": "basil-mature-r1.webp",
+      "dimensions": [
+        720,
+        768
+      ],
+      "bytes": 491522,
+      "sha256": "e2042fd388a50a2831d4c3d7b6aa1dd5d7308221443130caac7176efb4de84b9"
+    },
+    {
+      "species": "rosemary",
+      "stage": "seedling",
+      "file": "rosemary-seedling-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 147290,
+      "sha256": "2a9ebfe6b7a4b77ce25014d3e728ad6bc1ca7736a46fdcf626a713a135195817"
+    },
+    {
+      "species": "rosemary",
+      "stage": "young",
+      "file": "rosemary-young-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 243364,
+      "sha256": "04993f0cfd5291bec1d34de953f8f441c26553b10318637fea38af17c449acdf"
+    },
+    {
+      "species": "rosemary",
+      "stage": "developing",
+      "file": "rosemary-developing-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 346448,
+      "sha256": "fafc5aa6acc6bc6f0cb46d387b6f074110352e2cdaa7399564c36c9217432201"
+    },
+    {
+      "species": "rosemary",
+      "stage": "mature",
+      "file": "rosemary-mature-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 505612,
+      "sha256": "8a1cced21287a0268e6bb49eeea6fe10d2b4e739ed617783607bb648eae2ea54"
+    },
+    {
+      "species": "monstera",
+      "stage": "seedling",
+      "file": "monstera-seedling-r1.webp",
+      "dimensions": [
+        721,
+        768
+      ],
+      "bytes": 173966,
+      "sha256": "5680eabc9f09f148126a923428132be26b41a4f09061e4e9e12cb09e6f4e5454"
+    },
+    {
+      "species": "monstera",
+      "stage": "young",
+      "file": "monstera-young-r1.webp",
+      "dimensions": [
+        721,
+        768
+      ],
+      "bytes": 225182,
+      "sha256": "fcd6331f49a0245400a4451a521b77b5aeba8b585ec247e7a71f5430ec9d1346"
+    },
+    {
+      "species": "monstera",
+      "stage": "developing",
+      "file": "monstera-developing-r1.webp",
+      "dimensions": [
+        721,
+        768
+      ],
+      "bytes": 326844,
+      "sha256": "4c98a3ba3f52b6dd72c6b8da49b783cb4f25cc09aaf373f1e4cb72ba23494bd2"
+    },
+    {
+      "species": "monstera",
+      "stage": "mature",
+      "file": "monstera-mature-r1.webp",
+      "dimensions": [
+        720,
+        768
+      ],
+      "bytes": 481600,
+      "sha256": "d5fcd75ebf4f5b058effa3b58a8c1b127cc24be85e6462b95539c833f61db8b4"
+    },
+    {
+      "species": "succulent",
+      "stage": "seedling",
+      "file": "succulent-seedling-r1.webp",
+      "dimensions": [
+        768,
+        755
+      ],
+      "bytes": 289360,
+      "sha256": "ad2d4e4b7fa1bfd48d9539b981af03a003a8ea2de70852857be0885f397c481e"
+    },
+    {
+      "species": "succulent",
+      "stage": "young",
+      "file": "succulent-young-r1.webp",
+      "dimensions": [
+        768,
+        755
+      ],
+      "bytes": 320822,
+      "sha256": "f1d0e2b0e8f8daf6a4e9cdb8dddc5689e5de73e984d42877e26594a13dfe6053"
+    },
+    {
+      "species": "succulent",
+      "stage": "developing",
+      "file": "succulent-developing-r1.webp",
+      "dimensions": [
+        768,
+        755
+      ],
+      "bytes": 348034,
+      "sha256": "eaa3dae4cb977c96b4d9539bc3e15d75b437ca0c75913eee457a848cba5452a8"
+    },
+    {
+      "species": "succulent",
+      "stage": "mature",
+      "file": "succulent-mature-r1.webp",
+      "dimensions": [
+        768,
+        755
+      ],
+      "bytes": 459046,
+      "sha256": "ee9498ca2f809e7bfdff577e82cf4618836795f27f1234ced1721ee5cfe280f6"
+    },
+    {
+      "species": "pothos",
+      "stage": "seedling",
+      "file": "pothos-seedling-r1.webp",
+      "dimensions": [
+        768,
+        742
+      ],
+      "bytes": 162452,
+      "sha256": "ed934541aea9d53dc2e4aa6606be625cdce96cf59225ab0ccf164cad37f49327"
+    },
+    {
+      "species": "pothos",
+      "stage": "young",
+      "file": "pothos-young-r1.webp",
+      "dimensions": [
+        768,
+        742
+      ],
+      "bytes": 224926,
+      "sha256": "c428dc676f4d51dc700a95c8e22ee9527c4e34907655eab757bb5bac9f63a5ca"
+    },
+    {
+      "species": "pothos",
+      "stage": "developing",
+      "file": "pothos-developing-r1.webp",
+      "dimensions": [
+        768,
+        742
+      ],
+      "bytes": 271750,
+      "sha256": "1928b5816988ce97da2d35f1b70ecd9235089769ae237c4fde23d55b1f537893"
+    },
+    {
+      "species": "pothos",
+      "stage": "mature",
+      "file": "pothos-mature-r1.webp",
+      "dimensions": [
+        768,
+        743
+      ],
+      "bytes": 401906,
+      "sha256": "5e76684b0337f98b6c9bea6724c8ba5a20a9ee254d13443b286d8e2e5fb3e963"
+    },
+    {
+      "species": "strawberry",
+      "stage": "seedling",
+      "file": "strawberry-seedling-r1.webp",
+      "dimensions": [
+        768,
+        690
+      ],
+      "bytes": 199118,
+      "sha256": "6b9e50d9e6b8c110d65ca908fd95c1af9be0b7d62eb5b332a2d6de9c976b5b2b"
+    },
+    {
+      "species": "strawberry",
+      "stage": "young",
+      "file": "strawberry-young-r1.webp",
+      "dimensions": [
+        768,
+        690
+      ],
+      "bytes": 354448,
+      "sha256": "149be50c4e84946874e1f9c609ab33a1d50a908c101e2446e9ad20e545ec3cf9"
+    },
+    {
+      "species": "strawberry",
+      "stage": "developing",
+      "file": "strawberry-developing-r1.webp",
+      "dimensions": [
+        768,
+        690
+      ],
+      "bytes": 435216,
+      "sha256": "7633cb17cae36bfe1ce3bc802137d9dc3534e6a7bf6e9743c85b5b4e18db55b5"
+    },
+    {
+      "species": "strawberry",
+      "stage": "mature",
+      "file": "strawberry-mature-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 481972,
+      "sha256": "fd7d26cae3021a2f6659363c60d617491a81bae9168a3e2c718a1ce2a4ef8a27"
+    },
+    {
+      "species": "bonsai",
+      "stage": "seedling",
+      "file": "bonsai-seedling-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 129478,
+      "sha256": "4b7fa2faa9b6b24bf598ecd9abcc0c4279f659cdfebabfadf10b5ba9d579bae8"
+    },
+    {
+      "species": "bonsai",
+      "stage": "young",
+      "file": "bonsai-young-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 219274,
+      "sha256": "bf460b3acb4d23b2be25f46876589370d4893908598e1d5499e0cc81207cbcf9"
+    },
+    {
+      "species": "bonsai",
+      "stage": "developing",
+      "file": "bonsai-developing-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 339052,
+      "sha256": "70dab70b166fab2d1084b698486a099551bde56db4f1be0e94f65e20af8b102b"
+    },
+    {
+      "species": "bonsai",
+      "stage": "mature",
+      "file": "bonsai-mature-r1.webp",
+      "dimensions": [
+        768,
+        692
+      ],
+      "bytes": 410356,
+      "sha256": "9b7a3178936355f468f043959912a155709367d4dab7442636df2de940de25ea"
+    },
+    {
+      "species": "string_of_pearls",
+      "stage": "seedling",
+      "file": "string-of-pearls-seedling-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 132318,
+      "sha256": "2da9d8dc296d8161cca0519effaad96be8aaa0b5952462859f8f4e0ebce9f06b"
+    },
+    {
+      "species": "string_of_pearls",
+      "stage": "young",
+      "file": "string-of-pearls-young-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 145690,
+      "sha256": "2123f2efe49c170a9fbdb132f6ef2ecf539e271ccb2e6948abde3f489095a740"
+    },
+    {
+      "species": "string_of_pearls",
+      "stage": "developing",
+      "file": "string-of-pearls-developing-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 204064,
+      "sha256": "e08d89281730997e88aec1abf1f91015438097eb3e5b220283069c03e1032a1d"
+    },
+    {
+      "species": "string_of_pearls",
+      "stage": "mature",
+      "file": "string-of-pearls-mature-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 266678,
+      "sha256": "084a565a7fc25a1e3d87a9bcd80d726f7a36c623cf4a3b1d6e52e48cb11e971e"
+    },
+    {
+      "species": "orchid",
+      "stage": "seedling",
+      "file": "orchid-seedling-r1.webp",
+      "dimensions": [
+        768,
+        702
+      ],
+      "bytes": 136256,
+      "sha256": "519ad3720fcaa43a885dff38582ecdacc19ddc605d4682ea15cdb25174359515"
+    },
+    {
+      "species": "orchid",
+      "stage": "young",
+      "file": "orchid-young-r1.webp",
+      "dimensions": [
+        768,
+        702
+      ],
+      "bytes": 249002,
+      "sha256": "b485eb4243a01306763ae98470f5ed28bb3fff121607c8da642eba6a468abb8d"
+    },
+    {
+      "species": "orchid",
+      "stage": "developing",
+      "file": "orchid-developing-r1.webp",
+      "dimensions": [
+        768,
+        702
+      ],
+      "bytes": 209804,
+      "sha256": "e79b6fbb7c67aada5c61a0b22dbed4b58aadc7aaf910060d72da0e923116fc3f"
+    },
+    {
+      "species": "orchid",
+      "stage": "mature",
+      "file": "orchid-mature-r1.webp",
+      "dimensions": [
+        768,
+        702
+      ],
+      "bytes": 299202,
+      "sha256": "132b6566106f156346043633d0cf5f8ee69ea260239904a5b4f672d155db5bbc"
+    },
+    {
+      "species": "venus_flytrap",
+      "stage": "seedling",
+      "file": "venus-flytrap-seedling-r1.webp",
+      "dimensions": [
+        768,
+        709
+      ],
+      "bytes": 216284,
+      "sha256": "17b04047d00112996a13583083dd7d4967af35a1cdddf36df31abf09341e77db"
+    },
+    {
+      "species": "venus_flytrap",
+      "stage": "young",
+      "file": "venus-flytrap-young-r1.webp",
+      "dimensions": [
+        768,
+        709
+      ],
+      "bytes": 292466,
+      "sha256": "4a998a8ad96c03c04c31fe9aba8b47b0f3d47cb4846a01e323a397779cee5abb"
+    },
+    {
+      "species": "venus_flytrap",
+      "stage": "developing",
+      "file": "venus-flytrap-developing-r1.webp",
+      "dimensions": [
+        768,
+        709
+      ],
+      "bytes": 350222,
+      "sha256": "0483a2a1b5a18a3d18c9ded397a38c0c0a530d31b5edae1455f8043d29220acf"
+    },
+    {
+      "species": "venus_flytrap",
+      "stage": "mature",
+      "file": "venus-flytrap-mature-r1.webp",
+      "dimensions": [
+        768,
+        709
+      ],
+      "bytes": 444404,
+      "sha256": "937fb5b0317558c6bb9ed25429b5afae27a1989009a6fbee6783c7a393c7bc25"
+    },
+    {
+      "species": "moon_cactus",
+      "stage": "seedling",
+      "file": "moon-cactus-seedling-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 221686,
+      "sha256": "53b818be8916cd7d73de8cb16760b8fe1ca37f230c672d3dcf2713bbd7531078"
+    },
+    {
+      "species": "moon_cactus",
+      "stage": "young",
+      "file": "moon-cactus-young-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 244420,
+      "sha256": "0fd35d13448444ae6098c007af2dbd5d9a9c165e733090a4c15cbfd5a558a448"
+    },
+    {
+      "species": "moon_cactus",
+      "stage": "developing",
+      "file": "moon-cactus-developing-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 272072,
+      "sha256": "73e59ab16641de5badea1abcaa142b9edc23397dca213fa60d427af3bf90d06e"
+    },
+    {
+      "species": "moon_cactus",
+      "stage": "mature",
+      "file": "moon-cactus-mature-r1.webp",
+      "dimensions": [
+        640,
+        768
+      ],
+      "bytes": 301224,
+      "sha256": "243d54eff02686ba6fb5d5d0b66d812a72cea3f5e89b1b0e1162d8f7221bad42"
+    },
+    {
+      "species": "fern",
+      "stage": "seedling",
+      "file": "fern-seedling-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 114142,
+      "sha256": "e6d7950956972a37caf73cb5b0df96a4a40dab1c869d40f9f13728a9004f5134"
+    },
+    {
+      "species": "fern",
+      "stage": "young",
+      "file": "fern-young-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 178686,
+      "sha256": "eb3f15cc9168a46191a9cf4a6cd58bab50f94cab68e3add2af5362cfa0904980"
+    },
+    {
+      "species": "fern",
+      "stage": "developing",
+      "file": "fern-developing-r1.webp",
+      "dimensions": [
+        768,
+        691
+      ],
+      "bytes": 303660,
+      "sha256": "8add6942ec4db93bd5366a9be442bc519dd9d02e4f3390b548ec7f270dcb79d7"
+    },
+    {
+      "species": "fern",
+      "stage": "mature",
+      "file": "fern-mature-r1.webp",
+      "dimensions": [
+        768,
+        692
+      ],
+      "bytes": 465988,
+      "sha256": "b59e399aad3b5752eed8370bdab2a3fb5a550bfc23c256f90255c488201bc75c"
+    }
+  ]
+}
