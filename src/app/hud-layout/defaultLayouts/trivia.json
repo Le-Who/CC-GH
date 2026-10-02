@@ -1,67 +1,203 @@
 {
   "schemaVersion": 1,
-  "layoutVersion": "hud-redesign-2026-05-26",
+  "layoutVersion": "trivia-r3-integrated-20261002",
   "gameId": "trivia",
   "base": {
     "regions": {
-      "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 56, "reserve": 64, "alignment": "center", "zIndex": 20, "visible": true },
-      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
-      "activeGameFrame": { "mode": "custom", "visible": true },
-      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
-      "triviaShell": { "mode": "custom", "visible": true },
-      "triviaQuestionPanel": { "mode": "flow", "direction": "vertical", "gap": 10, "maxWidth": 620, "zIndex": 20, "visible": true },
-      "triviaPausePanel": { "mode": "anchored", "anchor": "center-right", "x": -10, "y": 0, "maxWidth": 340, "zIndex": 30, "visible": true },
-      "gameplayHud": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": 8, "maxWidth": 560, "zIndex": 40, "visible": true }
+      "appTopbar": {
+        "mode": "dock",
+        "edge": "top",
+        "offset": 0,
+        "thickness": 56,
+        "reserve": 64,
+        "alignment": "center",
+        "zIndex": 20,
+        "visible": true
+      },
+      "globalStats": {
+        "mode": "stack",
+        "direction": "horizontal",
+        "gap": 6,
+        "zIndex": 20,
+        "visible": true
+      },
+      "activeGameFrame": {
+        "mode": "custom",
+        "visible": true
+      },
+      "bottomDock": {
+        "mode": "dock",
+        "edge": "bottom",
+        "offset": 10,
+        "thickness": 64,
+        "reserve": 84,
+        "alignment": "center",
+        "maxWidth": 1180,
+        "zIndex": 50,
+        "visible": true
+      },
+      "triviaShell": {
+        "mode": "custom",
+        "visible": true
+      },
+      "triviaQuestionPanel": {
+        "mode": "custom",
+        "padding": 12,
+        "gap": 12,
+        "visible": true
+      },
+      "triviaPausePanel": {
+        "mode": "custom",
+        "anchor": "center",
+        "x": 0,
+        "y": 0,
+        "maxWidth": 520,
+        "zIndex": 45,
+        "visible": true
+      },
+      "gameplayHud": {
+        "mode": "custom",
+        "height": 68,
+        "zIndex": 40,
+        "visible": true
+      },
+      "triviaAnswerGrid": {
+        "mode": "custom",
+        "visible": true
+      },
+      "triviaLifelineDock": {
+        "mode": "custom",
+        "visible": true
+      },
+      "triviaSetup": {
+        "mode": "custom",
+        "visible": true
+      },
+      "triviaResult": {
+        "mode": "custom",
+        "visible": true
+      },
+      "triviaFeedback": {
+        "mode": "custom",
+        "visible": true
+      }
     }
   },
   "profiles": {
     "phone-small-portrait": {
-      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "match": {
+        "orientation": "portrait",
+        "maxWidth": 360
+      },
       "regions": {
-        "triviaQuestionPanel": { "maxWidth": 304, "gap": 8 },
-        "triviaPausePanel": { "anchor": "bottom-center", "x": 0, "y": -8, "maxWidth": 304 },
-        "gameplayHud": { "maxWidth": 304 }
+        "triviaQuestionPanel": {
+          "mode": "custom",
+          "padding": 12,
+          "gap": 12
+        },
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 68
+        }
       }
     },
     "phone-default-portrait": {
-      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "match": {
+        "orientation": "portrait",
+        "maxWidth": 430
+      },
       "regions": {
-        "triviaQuestionPanel": { "maxWidth": 380 },
-        "triviaPausePanel": { "anchor": "bottom-center", "x": 0, "y": -10, "maxWidth": 360 },
-        "gameplayHud": { "maxWidth": 360 }
+        "triviaQuestionPanel": {
+          "mode": "custom",
+          "padding": 12,
+          "gap": 12
+        },
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 68
+        }
       }
     },
     "phone-landscape": {
-      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "match": {
+        "orientation": "landscape",
+        "maxHeight": 480
+      },
       "regions": {
-        "triviaQuestionPanel": { "maxWidth": 460 },
-        "triviaPausePanel": { "anchor": "center-right", "x": -8, "y": 0, "maxWidth": 300 },
-        "gameplayHud": { "anchor": "top-left", "x": 8, "y": 8, "maxWidth": 320 }
+        "triviaQuestionPanel": {
+          "mode": "custom",
+          "padding": 12,
+          "gap": 12
+        },
+        "triviaPausePanel": {
+          "maxWidth": 760
+        },
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 68
+        }
       }
     },
     "tablet-portrait": {
-      "match": { "orientation": "portrait", "minWidth": 600 },
+      "match": {
+        "orientation": "portrait",
+        "minWidth": 600
+      },
       "regions": {
-        "triviaQuestionPanel": { "maxWidth": 620 },
-        "triviaPausePanel": { "maxWidth": 360 }
+        "triviaQuestionPanel": {
+          "mode": "custom",
+          "padding": 12,
+          "gap": 12
+        },
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 68
+        }
       }
     },
     "tablet-landscape": {
-      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "match": {
+        "orientation": "landscape",
+        "minWidth": 760,
+        "maxHeight": 900
+      },
       "regions": {
-        "triviaQuestionPanel": { "maxWidth": 640 },
-        "triviaPausePanel": { "maxWidth": 340 }
+        "triviaQuestionPanel": {
+          "mode": "custom",
+          "padding": 12,
+          "gap": 12
+        },
+        "triviaPausePanel": {
+          "maxWidth": 760
+        },
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 68
+        }
       }
     },
     "desktop-landscape": {
-      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "match": {
+        "orientation": "landscape",
+        "minWidth": 1100
+      },
       "regions": {
-        "triviaQuestionPanel": { "maxWidth": 700 },
-        "triviaPausePanel": { "maxWidth": 360 }
+        "triviaQuestionPanel": {
+          "mode": "custom",
+          "padding": 12,
+          "gap": 12
+        },
+        "triviaPausePanel": {
+          "maxWidth": 760
+        },
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 68
+        }
       }
     }
   },
   "editor": {
-    "notes": "Trivia is React/DOM-first and uses flow/custom regions rather than Pixi reserves."
+    "notes": "Brain Blitz v2 owns unscaled DOM flow. Portrait uses four answer rows, landscape independent question/2x2 answers. Short and long content scroll inside a bounded local root. All controls >=44px. Repeated answer/primary/HUD skins and tiny semantic icons are intentionally fixed to their content boxes (nine-slice caps); question and background are asset-capable regions. No authored world coordinates. Host owns raw Telegram insets. Production integration subtracts the measured stage boundary from viewport safe insets; only the remaining portions pad local content and pause dialog."
   }
 }

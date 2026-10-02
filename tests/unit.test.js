@@ -7,6 +7,7 @@
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { applyLegacyMergeAction, buildLegacyMergeSnapshot } from "./helpers/legacy-merge-fixture.mjs";
 import {
   ECONOMY,
   CROPS,
@@ -572,7 +573,8 @@ describe("Garden Shelf shared gold actions", () => {
     const second = await applyAction(p, "garden.levelUp");
 
     assert.equal(first.status, 200);
-    assert.equal(staleSync.status, 200);
+    assert.equal(staleSync.status, 409);
+    assert.equal(staleSync.body.error, "GARDEN_REVISION_CONFLICT");
     assert.equal(p.garden.level, 2);
     assert.equal(p.garden.levelReady, false);
     assert.equal(second.status, 400);
@@ -627,7 +629,7 @@ describe("Gacha Merge shared generator and recipes", () => {
     const p = createDefaultPlayer("merge-wild", "Merge");
     p.merge.freeTapCharges = 1;
 
-    const result = await applyAction(p, "merge.tap", { chainId: MERGE_WILD_GENERATOR_ID });
+    const result = await applyLegacyMergeAction(p, "merge.tap", { chainId: MERGE_WILD_GENERATOR_ID });
 
     assert.equal(result.status, 200);
     assert.equal(p.merge.freeTapCharges, 0);
@@ -641,7 +643,7 @@ describe("Gacha Merge shared generator and recipes", () => {
     p.merge.board[0][0] = { id: "sand", chainId: "earth", level: 2 };
     p.merge.board[0][1] = { id: "flame", chainId: "fire", level: 1 };
 
-    const result = await applyAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
+    const result = await applyLegacyMergeAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
 
     assert.equal(result.status, 200);
     assert.deepEqual(p.merge.board[0][0], null);
@@ -665,7 +667,7 @@ describe("Gacha Merge shared generator and recipes", () => {
     p.merge.alchemyEssence = offer.cost;
     const treatsBefore = p.yard.currencies.treats;
 
-    const result = await applyAction(p, "merge.exchange", { offerId: offer.id });
+    const result = await applyLegacyMergeAction(p, "merge.exchange", { offerId: offer.id });
 
     assert.equal(result.status, 200);
     assert.equal(p.merge.alchemyEssence, 0);
@@ -692,7 +694,7 @@ describe("Gacha Merge shared generator and recipes", () => {
       "2026-04-28": { [offer.id]: 1 },
     };
 
-    const result = await applyAction(p, "merge.exchange", { offerId: offer.id }, { now: Date.UTC(2026, 4, 1, 12) });
+    const result = await applyLegacyMergeAction(p, "merge.exchange", { offerId: offer.id }, { now: Date.UTC(2026, 4, 1, 12) });
     const dates = Object.keys(p.merge.exchangeClaims);
 
     assert.equal(result.status, 200);
@@ -703,7 +705,7 @@ describe("Gacha Merge shared generator and recipes", () => {
 
   it("starts with known starter recipes and keeps advanced recipes locked until discovered", async () => {
     const p = createDefaultPlayer("merge-discovery", "Merge");
-    const initial = buildSnapshot(p).merge;
+    const initial = buildLegacyMergeSnapshot(p).merge;
 
     assert.ok(initial.discoveredRecipes.includes("seed_dew_sprout"));
     assert.ok(initial.discoveredRecipes.includes("dew_dust_mud"));
@@ -715,8 +717,8 @@ describe("Gacha Merge shared generator and recipes", () => {
       const p = createDefaultPlayer("merge-no-alchemy-drops", "Merge");
       p.resources.gachaTokens = ECONOMY.GACHA_PULL_COST;
 
-      const free = await applyAction(p, "merge.freePull", {}, { now: 1_800_000_000_000 });
-      const paid = await applyAction(p, "merge.gacha");
+      const free = await applyLegacyMergeAction(p, "merge.freePull", {}, { now: 1_800_000_000_000 });
+      const paid = await applyLegacyMergeAction(p, "merge.gacha");
 
       assert.equal(free.status, 200);
       assert.equal(paid.status, 200);
@@ -734,8 +736,8 @@ describe("Gacha Merge shared generator and recipes", () => {
       row.map(() => ({ id: "seed", chainId: "flora", level: 0 })),
     );
 
-    const paid = await applyAction(p, "merge.gacha");
-    const free = await applyAction(p, "merge.freePull", {}, { now: 1_800_000_000_000 });
+    const paid = await applyLegacyMergeAction(p, "merge.gacha");
+    const free = await applyLegacyMergeAction(p, "merge.freePull", {}, { now: 1_800_000_000_000 });
 
     assert.equal(paid.status, 400);
     assert.equal(paid.body.error, "board full");
@@ -753,11 +755,11 @@ describe("Gacha Merge shared generator and recipes", () => {
     p.merge.lastFreeTaps = start;
     p.merge.freeTapCharges = 0;
 
-    const sameDayPull = await applyAction(p, "merge.freePull", {}, { now: start + 60_000 });
-    const nextDayPull = await applyAction(p, "merge.freePull", {}, { now: nextDay });
-    const tooSoonTaps = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + 60_000 });
-    const firstRecharge = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + MERGE_FREE_TAP_RECHARGE_MS });
-    const laterRecharge = await applyAction(p, "merge.claimFreeTaps", {}, { now: start + 3 * MERGE_FREE_TAP_RECHARGE_MS });
+    const sameDayPull = await applyLegacyMergeAction(p, "merge.freePull", {}, { now: start + 60_000 });
+    const nextDayPull = await applyLegacyMergeAction(p, "merge.freePull", {}, { now: nextDay });
+    const tooSoonTaps = await applyLegacyMergeAction(p, "merge.claimFreeTaps", {}, { now: start + 60_000 });
+    const firstRecharge = await applyLegacyMergeAction(p, "merge.claimFreeTaps", {}, { now: start + MERGE_FREE_TAP_RECHARGE_MS });
+    const laterRecharge = await applyLegacyMergeAction(p, "merge.claimFreeTaps", {}, { now: start + 3 * MERGE_FREE_TAP_RECHARGE_MS });
 
     assert.equal(sameDayPull.status, 400);
     assert.equal(nextDayPull.status, 200);
@@ -774,7 +776,7 @@ describe("Gacha Merge shared generator and recipes", () => {
   it("grants a capped starter bank for first-time Merge free-tap claims", async () => {
     const p = createDefaultPlayer("merge-first-free-taps", "Merge", 1_800_000_000_000);
 
-    const result = await applyAction(p, "merge.claimFreeTaps", {}, { now: 1_800_000_060_000 });
+    const result = await applyLegacyMergeAction(p, "merge.claimFreeTaps", {}, { now: 1_800_000_060_000 });
 
     assert.equal(result.status, 200);
     assert.equal(p.merge.freeTapCharges, MERGE_FREE_TAP_BANK_CAP);
@@ -787,7 +789,7 @@ describe("Gacha Merge shared generator and recipes", () => {
       p.merge.board[0][0] = { id: "crystal", chainId: "earth", level: 5 };
       p.merge.board[0][1] = { id: "elixir", chainId: "alchemy", level: 4 };
 
-      const result = await applyAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
+      const result = await applyLegacyMergeAction(p, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
 
       assert.equal(result.status, 200);
       assert.equal(result.body.recipeId, "crystal_elixir_philosopher_stone");
@@ -802,7 +804,7 @@ describe("Gacha Merge shared generator and recipes", () => {
     p.merge.freeTapCharges = 4;
     p.merge.board[2][3] = { id: "seed", chainId: "flora", level: 0 };
 
-    const result = await applyAction(p, "merge.trash", { r: 2, c: 3 });
+    const result = await applyLegacyMergeAction(p, "merge.trash", { r: 2, c: 3 });
 
     assert.equal(result.status, 200);
     assert.deepEqual(result.body.trashedItem, { id: "seed", chainId: "flora", level: 0 });

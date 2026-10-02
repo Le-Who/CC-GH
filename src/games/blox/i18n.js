@@ -1,7 +1,17 @@
-import { registerAppTranslations } from "../../app/i18n.jsx";
-
-export const BLOX_TRANSLATIONS = {
-  en: {
+import {registerAppTranslations} from '../../app/i18n.jsx';
+export const BLOX_TRANSLATIONS={
+  "en": {
+    "blox.brandFirst": "Building",
+    "blox.brandLast": "Blox",
+    "blox.emptyCell": "Row {row}, column {col}, empty",
+    "blox.occupiedCell": "Row {row}, column {col}, occupied",
+    "blox.result": "Run complete",
+    "blox.menuHelp": "Place the three pieces. Complete a row or column to clear it. Rotate a piece when you need a better fit.",
+    "blox.savedTray": "Board saved · {count}/3 pieces remain",
+    "blox.selectHint": "Select a piece, then place it",
+    "blox.placeHint": "Choose a cell to place the selected piece",
+    "blox.keyboardBoard": "Board, row {row}, column {col}. Arrow keys move, Enter places, Escape pauses.",
+    "blox.selectPiece": "Select piece {number}, {cells} blocks",
     "pause.bloxFrozen": "Paused: place blocks to clear lines",
     "pause.bloxReady": "Plan the board before the first piece",
     "pause.bloxPlan": "Resume into the same board. Keep the center readable and end the run only when the reward is worth settling.",
@@ -16,9 +26,20 @@ export const BLOX_TRANSLATIONS = {
     "blox.invalidPlacement": "No fit",
     "blox.rotate": "Rotate",
     "blox.rotateTooltip": "Rotate selected block · {count} left",
-    "blox.rotateEmpty": "No rotations left",
+    "blox.rotateEmpty": "No rotations left"
   },
-  ru: {
+  "ru": {
+    "blox.brandFirst": "Building",
+    "blox.brandLast": "Blox",
+    "blox.emptyCell": "Строка {row}, столбец {col}, пусто",
+    "blox.occupiedCell": "Строка {row}, столбец {col}, занято",
+    "blox.result": "Игра завершена",
+    "blox.menuHelp": "Размещайте три фигуры. Заполненная строка или колонка исчезнет. Используйте поворот, чтобы найти место.",
+    "blox.savedTray": "Поле сохранено · осталось {count}/3 фигуры",
+    "blox.selectHint": "Выберите фигуру и место на поле",
+    "blox.placeHint": "Выберите клетку для выбранной фигуры",
+    "blox.keyboardBoard": "Поле, строка {row}, столбец {col}. Стрелки перемещают, Enter ставит, Escape открывает паузу.",
+    "blox.selectPiece": "Выбрать фигуру {number}, блоков: {cells}",
     "pause.bloxFrozen": "Пауза: ставьте блоки, очищайте линии",
     "pause.bloxReady": "Спланируйте поле до первого блока",
     "pause.bloxPlan": "Возврат идет в то же поле. Держите центр читаемым и завершайте ран только когда награда стоит фиксации.",
@@ -33,8 +54,7 @@ export const BLOX_TRANSLATIONS = {
     "blox.invalidPlacement": "Не влезает",
     "blox.rotate": "Повернуть",
     "blox.rotateTooltip": "Повернуть выбранный блок · осталось {count}",
-    "blox.rotateEmpty": "Повороты закончились",
-  },
+    "blox.rotateEmpty": "Повороты закончились"
+  }
 };
-
 registerAppTranslations(BLOX_TRANSLATIONS);

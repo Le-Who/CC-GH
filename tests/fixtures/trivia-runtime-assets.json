@@ -1,0 +1,75 @@
+{
+  "provenance": "Trivia R3 preserves R2 production-art exports; ten separately generated source images recorded in asset-audit.json.",
+  "assets": [
+    {
+      "name": "answer-panel",
+      "export": "public/games/trivia-v2/answer-panel.webp",
+      "bytes": 21778,
+      "sha256": "0c3d65766050a5b8a86932d3a8d3c49e59147f7109fdbc4561de4e802f2ec367",
+      "source": "assets-source/imagegen/trivia-v2/raw/answer-panel.png"
+    },
+    {
+      "name": "audience",
+      "export": "public/games/trivia-v2/audience.webp",
+      "bytes": 15944,
+      "sha256": "f20d6b55dc80d0a4e07d294f16567bba31db680e6e3da3d2850518ee8e87a608",
+      "source": "assets-source/imagegen/trivia-v2/raw/audience.png"
+    },
+    {
+      "name": "background",
+      "export": "public/games/trivia-v2/background.webp",
+      "bytes": 34630,
+      "sha256": "346403b27038614b873111262804adb451f3141b257c05bfc4825ce46848fbc8",
+      "source": "assets-source/imagegen/trivia-v2/raw/background.png"
+    },
+    {
+      "name": "emblem",
+      "export": "public/games/trivia-v2/emblem.webp",
+      "bytes": 19382,
+      "sha256": "6650eed403671182854c94779245a37715d6bb29f0cfb6f4a3c4ab949f2dbe92",
+      "source": "assets-source/imagegen/trivia-v2/raw/emblem.png"
+    },
+    {
+      "name": "fifty",
+      "export": "public/games/trivia-v2/fifty.webp",
+      "bytes": 21128,
+      "sha256": "b4f0c0d7cb6d98f162a05b77994f64629771f6041ae0fea06a657dc4bbcca1ef",
+      "source": "assets-source/imagegen/trivia-v2/raw/fifty.png"
+    },
+    {
+      "name": "hud-panel",
+      "export": "public/games/trivia-v2/hud-panel.webp",
+      "bytes": 21388,
+      "sha256": "3c63530c201254407d8d7dad813a387c4bfc9ce64aed5d5e0fa3c672db5c4019",
+      "source": "assets-source/imagegen/trivia-v2/raw/hud-panel.png"
+    },
+    {
+      "name": "primary-panel",
+      "export": "public/games/trivia-v2/primary-panel.webp",
+      "bytes": 27552,
+      "sha256": "ffb3febdd68401e6a12e2453160e3b473e4e7c243cf9f4270b4f1c25aec24bae",
+      "source": "assets-source/imagegen/trivia-v2/raw/primary-panel.png"
+    },
+    {
+      "name": "question-panel",
+      "export": "public/games/trivia-v2/question-panel.webp",
+      "bytes": 46290,
+      "sha256": "8deb0512e682a86e5b51c50d44262a22f58ce12a0d67f71f2e96394ffb1992b9",
+      "source": "assets-source/imagegen/trivia-v2/raw/question-panel.png"
+    },
+    {
+      "name": "reveal",
+      "export": "public/games/trivia-v2/reveal.webp",
+      "bytes": 13060,
+      "sha256": "aaa56f43adb152fd6f3469709602c977921cb356092261d7fa1fb17922ac9d8a",
+      "source": "assets-source/imagegen/trivia-v2/raw/reveal.png"
+    },
+    {
+      "name": "trophy",
+      "export": "public/games/trivia-v2/trophy.webp",
+      "bytes": 21856,
+      "sha256": "01d849959bbb779ce6ff3329142d67959581af57d4cf7d5ebac6fe476d7d2633",
+      "source": "assets-source/imagegen/trivia-v2/raw/trophy.png"
+    }
+  ]
+}

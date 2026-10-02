@@ -65,6 +65,8 @@ import {
   isMergeGeneratorChain,
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
+import { GARDEN_ACCOUNTING_ACTIONS, getGardenAccounting, gardenAccountingView, validateGardenSync, reconcileGardenIntent, applyGardenTransaction } from "../game-logic/garden-transactions.js";
+import {ensureMergeLabState,executeMergeLab,publicMergeLabState,MERGE_LAB_RELEASE_POLICY} from "../game-logic/merge-lab-service.js";
 
 const MAX_PLOTS = 12;
 const BUY_PLOT_BASE_COST = 200;
@@ -284,8 +286,10 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
       source.economyVersion,
       hasLegacyGardenProgress(source) ? 1 : (fallback.economyVersion || GARDEN_ECONOMY_VERSION),
     )))),
+    economicRevision: Math.max(0, Math.floor(finiteNumber(source.economicRevision, 0))),
+    acknowledgedEarnedTotal: Math.max(0, Math.floor(finiteNumber(source.acknowledgedEarnedTotal, 0))),
     name: normalizeGardenName(source.name),
-    totalGoldEarned: Math.max(0, Math.min(1_000_000_000, Math.floor(finiteNumber(source.totalGoldEarned, fallback.totalGoldEarned)))),
+    totalGoldEarned: Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, Math.floor(finiteNumber(source.totalGoldEarned, fallback.totalGoldEarned)))),
     level,
     xp,
     xpRequired,
@@ -336,7 +340,7 @@ function buildInventory(p, options = {}) {
     seeds: { ...(p.farm?.inventory || {}) },
     harvested: { ...(p.farm?.harvested || {}) },
     harvestedCrops: { ...(p.farm?.harvested || {}) },
-    mergeItems: countMergeItems(p.merge?.board || []),
+    mergeItems: p.merge?.schemaVersion === 3 ? { ...p.merge.stock } : countMergeItems(p.merge?.board || []),
     mergeInventory: Array.isArray(p.merge?.inventory) ? [...p.merge.inventory] : [],
     roomInventory: [...roomInventory],
     yardFood: { ...(yard.foodInventory || {}) },
@@ -393,7 +397,9 @@ function buildSeasonPass(p) {
 
 export function buildSnapshot(p, extras = {}) {
   const now = Date.now();
-  ensureMergeState(p);
+  p.gardenAccounting = getGardenAccounting(p);
+  if (MERGE_LAB_RELEASE_POLICY.enabled) ensureMergeLabState(p, { now });
+  if (p.merge?.schemaVersion !== 3) ensureMergeState(p);
   calcRegen(p, now);
   const yard = ensurePlayerYard(p, now);
   const farmStats = getFarmStats(p);
@@ -445,10 +451,10 @@ export function buildSnapshot(p, extras = {}) {
       highScore: p.match3?.highScore || 0,
       savedModes,
     },
-    garden: normalizeGardenState(p.garden, now),
+    garden: { ...normalizeGardenState(p.garden, now), ...gardenAccountingView(p) },
     merge: {
-      ...(p.merge || {}),
-      itemCounts: countMergeItems(p.merge?.board || []),
+      ...publicMergeLabState(p.merge || {}),
+      itemCounts: p.merge?.schemaVersion === 3 ? { ...p.merge.stock } : countMergeItems(p.merge?.board || []),
     },
     trivia: p.trivia || {},
     pet: p.pet || {},
@@ -671,8 +677,25 @@ function normalizeBloxSaved(savedState, p) {
 }
 
 export async function applyAction(p, action, payload = {}, options = {}) {
+  if (GARDEN_ACCOUNTING_ACTIONS.has(action) && action !== "garden.levelUp") return fail(400, "GARDEN_STABLE_INTENT_REQUIRED");
+  if (action === "garden.reconcileIntent") {
+    const result = reconcileGardenIntent(p, payload, options.now || Date.now());
+    return result.error ? fail(result.status, result.error, { snapshot: buildSnapshot(p) }) : ok(action, p, result);
+  }
+  if (action === "merge.lab") {
+    const outcome = executeMergeLab(p, payload, { now: options.now ?? Date.now() });
+    if (!outcome.ok) return { status: outcome.error.status, body: {
+      success: false, error: outcome.error.message, code: outcome.error.code,
+      mergeLab: { ok: false, error: outcome.error },
+    } };
+    return ok(action, p, { mergeLab: outcome });
+  }
+  if (p.merge?.schemaVersion === 3 && String(action).startsWith("merge.")) {
+    return fail(410, "Legacy Merge mutations are retired", { code: "LEGACY_MERGE_RETIRED" });
+  }
   switch (action) {
     case "garden.goldDelta": {
+      if (getGardenAccounting(p).active) return fail(409, "GARDEN_ATOMIC_COMMAND_REQUIRED", { snapshot: buildSnapshot(p) });
       const amount = Math.trunc(Number(payload.amount) || 0);
       if (!Number.isFinite(amount) || amount === 0) return fail(400, "invalid gold delta");
       if (Math.abs(amount) > 1_000_000_000) return fail(400, "gold delta too large");
@@ -691,6 +714,11 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       const now = Date.now();
       const previous = normalizeGardenState(p.garden, now);
       const incoming = normalizeGardenState(payload.state, now);
+      const accounting = getGardenAccounting(p);
+      const conflict = validateGardenSync(previous, incoming, accounting);
+      if (conflict) return fail(conflict.status, conflict.error, { snapshot: buildSnapshot(p) });
+      incoming.totalGoldEarned = Math.max(incoming.totalGoldEarned, accounting.creditedTotal);
+      Object.assign(incoming, gardenAccountingView(p));
       if (previous.level > incoming.level) {
         p.garden = {
           ...incoming,
@@ -707,6 +735,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, { garden: p.garden });
     }
     case "garden.resetEconomy": {
+      const accounting = getGardenAccounting(p);
       const previous = normalizeGardenState(p.garden, Date.now());
       const debit = Math.min(
         Math.max(0, Math.floor(Number(p.resources?.gold) || 0)),
@@ -715,6 +744,10 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       if (!p.resources) p.resources = {};
       p.resources.gold = Math.max(0, Math.floor(Number(p.resources.gold) || 0) - debit);
       p.garden = createGardenEconomyState(Date.now(), { starter: true });
+      accounting.revision++;
+      accounting.creditedTotal = p.garden.totalGoldEarned;
+      p.gardenAccounting = accounting;
+      Object.assign(p.garden, gardenAccountingView(p));
       p.resources.gold += GARDEN_STARTER_GOLD;
       if (p.stats) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + GARDEN_STARTER_GOLD;
       return ok(action, p, {
@@ -725,6 +758,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       });
     }
     case "garden.levelUp": {
+      const accounting = getGardenAccounting(p);
       p.garden = normalizeGardenState(p.garden, Date.now());
       const level = normalizeGardenLevel(p.garden.level);
       const xpRequired = getGardenXpRequired(level);
@@ -746,6 +780,10 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       if (!p.resources) p.resources = {};
       p.resources.gold = Math.max(0, Math.floor(Number(p.resources.gold) || 0)) + reward;
       if (p.stats) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + reward;
+      accounting.revision++;
+      accounting.creditedTotal += reward;
+      p.gardenAccounting = accounting;
+      Object.assign(p.garden, gardenAccountingView(p));
       return ok(action, p, { garden: p.garden, reward, goldDelta: reward });
     }
     case "farm.refresh": {
@@ -1217,8 +1255,23 @@ export async function applyAction(p, action, payload = {}, options = {}) {
 }
 
 export async function applyActionWithReceipt(p, action, payload = {}, meta = {}) {
+  // Domain receipts + monotonic revision/epoch are authoritative. Never let generic TTL receipts
+  // bypass catalog, policy, reset fencing or the mandatory Merge command envelope.
+  if (action === "merge.lab" || p.merge?.schemaVersion === 3 && String(action).startsWith("merge.")) {
+    return applyAction(p, action, payload, { now: meta.serverNow ?? Date.now() });
+  }
   const clientActionId = normalizeClientActionId(meta.clientActionId);
   const serverNow = Number.isFinite(Number(meta.serverNow)) ? Number(meta.serverNow) : Date.now();
+  if (GARDEN_ACCOUNTING_ACTIONS.has(action) && (action !== "garden.levelUp" || payload.intent)) {
+    const result = applyGardenTransaction({ ...p, garden: normalizeGardenState(p.garden, serverNow) }, action, payload, { clientActionId, now: serverNow, normalizeGarden: state => normalizeGardenState(state, serverNow) });
+    if (result.error) return fail(result.status, result.error, { snapshot: buildSnapshot(p) });
+    p.garden = result.garden;
+    p.gardenAccounting = result.accounting;
+    p.resources = { ...p.resources, gold: result.gold };
+    if (!result.duplicate && result.goldDelta > 0 && p.stats) p.stats.totalGoldEarned = (p.stats.totalGoldEarned || 0) + result.goldDelta;
+    const { accounting: _accounting, gold: _gold, ...extras } = result;
+    return ok(action, p, extras);
+  }
   const actionOptions = { yardNow: serverNow, now: serverNow };
 
   if (!clientActionId) return applyAction(p, action, payload, actionOptions);

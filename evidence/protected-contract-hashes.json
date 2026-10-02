@@ -1,0 +1,186 @@
+[
+  {
+    "path": "game-logic/blox-engine.js",
+    "sha256": "da7a8adf3f2e5f6ab1d446f444c75d6fa25d8a8a35a285675a3b9de806f4c653"
+  },
+  {
+    "path": "game-logic/blox-pieces.js",
+    "sha256": "90628cbd28af5dec395b2922aa5fc27e516fa169af18fdfcbd5209084ded709e"
+  },
+  {
+    "path": "game-logic/bubbo-engine.js",
+    "sha256": "88a22e05166e44698c36b10fbd0c41b371a42405b6b0535d1540406820a0dbe1"
+  },
+  {
+    "path": "game-logic/crops.js",
+    "sha256": "9aae6748fa23da0e8062bf74c383ae461ab106b60cc2601836269c10bb7a33ce"
+  },
+  {
+    "path": "game-logic/economy.js",
+    "sha256": "51e904f98d30e657ce0a5302d8075a79a59dae5954888361c112f8c705ec2668"
+  },
+  {
+    "path": "game-logic/farm.js",
+    "sha256": "73e8c564e0d26dbd7b8452129db6f92d213f8fada7fb32256c6b2d1747e58816"
+  },
+  {
+    "path": "game-logic/garden-economy.js",
+    "sha256": "0eaa8695f5c81aa27381c23230961883f2ae6fddc27f64c1d3e5912f6e09851d"
+  },
+  {
+    "path": "game-logic/garden-quests.js",
+    "sha256": "56ea2bfe35eddd095f422c6758bdfa2c89436ed230030c6efe035dc6e5228b26"
+  },
+  {
+    "path": "game-logic/garden-shelf-plants.js",
+    "sha256": "9c0e205d1a026f53b7eeba851cf2c505100d6a4ae91e2f69dcf44051813e6ad6"
+  },
+  {
+    "path": "game-logic/helpers.js",
+    "sha256": "a45953e65aeb9b18993d21b9608e16ed1310d1ab59c2210a80f9031d2ba4fc74"
+  },
+  {
+    "path": "game-logic/hud-bonuses.js",
+    "sha256": "ba5810e2d7c8bf16141c040802fc073b93451883a5280880bab8461bec6f2b2b"
+  },
+  {
+    "path": "game-logic/index.js",
+    "sha256": "7ffe63c5b4e7d7a0d836b5ecff4fd04fca23c7295a2b38794290416ae4c6a610"
+  },
+  {
+    "path": "game-logic/merge-board-utils.js",
+    "sha256": "b4025bd957a487bc6f860a97dcd5f75659318f092ff0fd5eba1726b844a200d2"
+  },
+  {
+    "path": "game-logic/merge-config.js",
+    "sha256": "581bd3b4e7a9bf7f12257e17c76ba5ba02d74cdcc892b12fa5f7d09570b54501"
+  },
+  {
+    "path": "game-logic/meta.js",
+    "sha256": "4e189cb8901ade6a0f533d307f57eda415074e1248b4bde9a6613f28837d9634"
+  },
+  {
+    "path": "game-logic/pet-assets.js",
+    "sha256": "1c37f052e0f5e37750a5ddbaf259a151b5421c73b0c9c0cba3b8ec3c9c99d943"
+  },
+  {
+    "path": "game-logic/player.js",
+    "sha256": "5256eca2b2bb6262777d6428cb3d536ec62b68a79e52d607a804f49bde0576a3"
+  },
+  {
+    "path": "game-logic/yard-catalog.js",
+    "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b"
+  },
+  {
+    "path": "game-logic/yard-playzones.js",
+    "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af"
+  },
+  {
+    "path": "game-logic/yard.js",
+    "sha256": "36b37b3ad6a24753d68830074cf6440b310e7d0951ead1625d7d802d440cf9e3"
+  },
+  {
+    "path": "routes/achievements.js",
+    "sha256": "78b6b693727324af6e6023e333f29e4b4fc8a1799444ded3280c62302263aa5e"
+  },
+  {
+    "path": "routes/batch.js",
+    "sha256": "edb3dd57f21b662b27479e5e96a3b2fc1cc357553c47cef04a274e4f6dba1f97"
+  },
+  {
+    "path": "routes/blox.js",
+    "sha256": "1772a2e3537a08ffc6fcde959fb31ef5a41bdff2dc9cac3f593e03fdd1cc3b7c"
+  },
+  {
+    "path": "routes/events.js",
+    "sha256": "5321a9d14745aa180e6608525ad1292b03631f418020c4431229944d3dd2ec17"
+  },
+  {
+    "path": "routes/farm.js",
+    "sha256": "bc072e8903d0515898df87fcbba37008bb94e57cabcf29d679ee312e1fb8f07c"
+  },
+  {
+    "path": "routes/leaderboard.js",
+    "sha256": "967d2617f47c65b43f18c13911399b3e5e3477bd7fc8ba436ec37612fba6de95"
+  },
+  {
+    "path": "routes/match3.js",
+    "sha256": "86acfbf65fa1f59c2aaebe6e05c2a187de0e593f26bff5d8c7fc53cc5b01ce1b"
+  },
+  {
+    "path": "routes/mergeRoutes.js",
+    "sha256": "3788aeefcaa895514e983816523a3ba85d67d0877aa96cf8e87eb51c470330fd"
+  },
+  {
+    "path": "routes/mutationResults.js",
+    "sha256": "5fec2cec2c855712a520e4239cb58c98cbddd863fc8078015b2d82f4dd758719"
+  },
+  {
+    "path": "routes/player.js",
+    "sha256": "8f14b0f3e049364a698cb95ab4659553c015891dd08f38087e0093e2d29d828b"
+  },
+  {
+    "path": "routes/questRoutes.js",
+    "sha256": "1c15209a3b29decf69636b20ba273a5fe6fbf49907e2f5a55d602cf87f9f74a8"
+  },
+  {
+    "path": "routes/resources.js",
+    "sha256": "064c2f444c74f5294f93f81586f9bdb01abe93c74d329934b9049b9350add7ae"
+  },
+  {
+    "path": "routes/seasonpass.js",
+    "sha256": "8cd8b681313dac2a1af72151c2530a5719007382ff3ac209a017d807484363ed"
+  },
+  {
+    "path": "routes/trivia.js",
+    "sha256": "f60d18fb7b0b7eeb03c008e3066bf3a3dc2ab80160709a2197c74d3a8b5ffa85"
+  },
+  {
+    "path": "src/game-core/blox/engine.js",
+    "sha256": "e878c1d64e665560a785ece6e9f3de4036e9e45c24f133a16e1df593d69f198b"
+  },
+  {
+    "path": "src/game-core/blox/pieces.js",
+    "sha256": "80aca48bff6c0199cfd2036247e384b0a03cddb679ebf3af61d35aaf1d233772"
+  },
+  {
+    "path": "src/game-core/bubbo/engine.js",
+    "sha256": "6b0e467aff84c761b712120bcf21cfaf66ba745d1177258066092e9585428f6b"
+  },
+  {
+    "path": "src/game-core/match3/animation.js",
+    "sha256": "e997433f555dd6b9a4d0080dced7fa25ba6bbd0e8bbcff2e93655708479ec672"
+  },
+  {
+    "path": "src/game-core/match3/engine.js",
+    "sha256": "7d709063397979eb9999d99b419f0a324611b21abbd298c5f09146606db6a19f"
+  },
+  {
+    "path": "src/game-state/useGameHub.js",
+    "sha256": "c8a3cc5c86346e14e55670c4b18b3314b591690e452e0452fcc00de797620b6c"
+  },
+  {
+    "path": "src/app/gameHooks.js",
+    "sha256": "75ed637c7602ca34a7b2f176cb15caa2cd4ab434607a20fb0b4f28bfa95a76f0"
+  },
+  {
+    "path": "src/services/apiClient.js",
+    "sha256": "36bcd76e93f647a94323c6a320102ffcdc493c0f9093c57d671d393fb799c644"
+  },
+  {
+    "path": "src/platform/telegram.js",
+    "sha256": "ccc0258d2bdad1e771dd7bc5a6df2bfed860d218c43d7813d1377928537bc36d"
+  },
+  {
+    "path": "src/game-runtime/scenes/shared/runtime.js",
+    "sha256": "e953c97abd9dc9a1c0d2c0db2b71edb4732ccb6e2c1bd404fd3bd038d29e3a74"
+  },
+  {
+    "path": "src/game-runtime/sceneGeometry.js",
+    "sha256": "da6ae5f2da3933099cf12115cd86a951f8ed4ce39c1fc974c8044ebffb6cd360"
+  },
+  {
+    "path": "src/game-runtime/pointerSession.js",
+    "sha256": "fc397bb60fd815ec456f45b0a32b6af016974680c688869b3743cf971044d1ef"
+  }
+]

@@ -8,6 +8,8 @@ import { normalizeActiveTab, readInitialActiveTab } from "../src/game-state/useG
 import { selectMatch3InitialRun } from "../src/games/match3/selectMatch3Run.js";
 import { deriveServerNow } from "../src/games/merge/useServerClock.js";
 import { getQuestionTiming } from "../src/games/trivia/useQuestionTimer.js";
+import { normalizeBubboPowerups } from "../src/game-core/bubbo/engine.js";
+import { renderArcadePresentation, findElements } from "./helpers/arcadePresentationHarness.js";
 
 describe("Telegram Mini App game UX foundations", () => {
   it("keeps Farm registered for runtime compatibility but hidden from navigation", () => {
@@ -100,47 +102,76 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(css, /\.telegram-app\[data-active-tab="garden"\]\s+\.topbar\s*\{[^}]*right:\s*max\(8px,\s*var\(--safe-right\)\)/s);
   });
 
-  it("wires Bubbo reference power-ups through live HUD state and sync", () => {
+  it("wires Bubbo v2 power-up charges through controller, presentation and sync", () => {
     const bubboGame = readFileSync(new URL("../src/games/bubbo/BubboGame.jsx", import.meta.url), "utf8");
-
-    assert.match(bubboGame, /BUBBO_POWERUP_CHARGES/);
+    assert.deepEqual(normalizeBubboPowerups(), { bomb: 3, rainbow: 2, lightning: 2 });
     assert.match(bubboGame, /resolveBubboPowerup/);
-    assert.match(bubboGame, /const \[powerups,\s*setPowerups\]/);
-    assert.match(bubboGame, /const \[activePowerup,\s*setActivePowerup\]/);
-    assert.match(bubboGame, /data-bubbo-powerup=\{item\.id\}/);
-    assert.match(bubboGame, /powerups:\s*nextPowerups/);
-    assert.match(bubboGame, /powerup:\s*shotPowerup \|\| null/);
+    assert.match(bubboGame, /const\s*\[powerups,\s*setPowerups\]/);
+    assert.match(bubboGame, /const\s*\[activePowerup,\s*setActivePowerup\]/);
+    const consumption = bubboGame.match(/const\s+(\w+)\s*=\s*(\w+)\s*\?\s*normalizeBubboPowerups\(\{\s*\.\.\.powerups,\s*\[\2\]:\s*Math\.max\(0,\s*\(Number\(powerups\[\2\]\)\s*\|\|\s*0\)\s*-\s*1\)/);
+    assert.ok(consumption, "a successful powered shot must consume one normalized charge");
+    assert.ok(bubboGame.includes(`setPowerups(${consumption[1]})`), "consumed charges must reach local state");
+    const shotSync = bubboGame.slice(bubboGame.lastIndexOf('performAction("bubbo.sync"'));
+    assert.match(shotSync, new RegExp(`powerups:\\s*${consumption[1]}\\b`), "shot sync must persist the consumed charge map");
+    assert.match(bubboGame, new RegExp(`powerup:\\s*${consumption[2]}\\s*\\|\\|\\s*null`), "shot animation retains the fired power-up");
+
+    const { tree, calls } = renderArcadePresentation("bubbo");
+    const powers = findElements(tree, (node) => node.props["data-bubbo-powerup"]);
+    assert.deepEqual(powers.map((node) => node.props["data-bubbo-powerup"]), ["bomb", "rainbow", "lightning"]);
+    assert.equal(powers[0].props["aria-pressed"], true);
+    assert.equal(powers[2].props.disabled, true, "empty power-ups cannot be selected");
+    powers[0].props.onClick();
+    assert.deepEqual(calls.at(-1), { name: "Power", args: ["bomb"] });
   });
 
-  it("keeps Bubbo live playfield on an underwater reference backdrop", () => {
-    const css = readFileSync(new URL("../src/games/bubbo/bubbo.css", import.meta.url), "utf8");
-    const runtime = readFileSync(new URL("../src/game-runtime/scenes/shared/runtime.js", import.meta.url), "utf8");
-    const assets = readFileSync(new URL("../src/game-runtime/assetBundles.js", import.meta.url), "utf8");
-    const pipeline = readFileSync(new URL("../scripts/assets-pipeline.config.mjs", import.meta.url), "utf8");
-
-    assert.doesNotMatch(css, /(?:field-mask|background-tile|underwater-backdrop)\.png/, "Bubbo CSS must not layer bitmap backdrops under the Pixi playfield");
-    assert.match(runtime, /backgroundUnderwater:\s*"bubbo\.background\.underwater"/);
-    assert.match(assets, /"bubbo\.background\.underwater":\s*"\/games\/bubbo-bubbo\/images\/underwater-backdrop\.png"/);
-    assert.match(pipeline, /entry\("bubbo\.background\.underwater",\s*"public\/games\/bubbo-bubbo\/images\/underwater-backdrop\.png"/);
+  it("keeps Bubbo v2 backgrounds owned by the presentation in both orientations", () => {
+    const presentation = readFileSync(new URL("../src/games/bubbo/BubboPresentation.jsx", import.meta.url), "utf8");
+    const css = readFileSync(new URL("../src/games/bubbo/bubbo-presentation.css", import.meta.url), "utf8");
+    assert.match(presentation, /id:\s*"bubboBackgroundAsset"/);
+    assert.doesNotMatch(css, /(?:field-mask|background-tile|underwater-backdrop)\.png/, "CSS must not add a second bitmap backdrop");
+    for (const [width, height, filename] of [[390, 844, "background-portrait"], [844, 390, "background"]]) {
+      const { tree } = renderArcadePresentation("bubbo", {}, { width, height });
+      const backgrounds = findElements(tree, (node) => node.props.className === "bb-background");
+      assert.equal(backgrounds.length, 1);
+      const images = findElements(backgrounds[0], (node) => node.type === "img");
+      assert.equal(images.length, 1);
+      assert.match(images[0].props.src, new RegExp(`/games/bubbo-v2/${filename}\\.webp(?:\\?|$)`));
+    }
   });
 
-  it("wires Building Blox reference rotate charges through live HUD and server state", () => {
+  it("wires Building Blox v2 rotate charges through live controls and reliable server state", () => {
     const bloxGame = readFileSync(new URL("../src/games/blox/BloxGame.jsx", import.meta.url), "utf8");
     const playerRoutes = readFileSync(new URL("../routes/player.js", import.meta.url), "utf8");
     assert.match(playerRoutes, /rotateCharges:\s*DEFAULT_BLOX_ROTATE_CHARGES/);
     assert.match(playerRoutes, /case "blox\.rotate"/);
     assert.match(playerRoutes, /rotateBloxPiece\(trayItem\.piece\)/);
-    assert.match(bloxGame, /rotateCharges/);
-    assert.match(bloxGame, /rotateSelectedPiece/);
-    assert.match(bloxGame, /data-blox-rotate/);
+    assert.match(bloxGame, /rotateCharges:\s*Math\.max\(0,\s*\(Number\(state\.rotateCharges\)\s*\|\|\s*0\)\s*-\s*1\)/);
+    assert.match(bloxGame, /performReliableAction\("blox\.rotate"/);
+    assert.match(bloxGame, /\.error\s*&&\s*\(setOptimisticState\(null\)/, "server rejection must roll back optimistic state");
+    assert.match(bloxGame, /savedState\.rotateCharges/, "authoritative rotate updates clear the optimistic state");
+    const { tree, calls, props } = renderArcadePresentation("blox");
+    const rotate = findElements(tree, (node) => node.props["data-blox-rotate"]);
+    assert.equal(rotate.length, 1);
+    assert.equal(rotate[0].props["data-count"], 2);
+    assert.equal(rotate[0].props.disabled, false);
+    rotate[0].props.onClick();
+    assert.deepEqual(calls.at(-1), { name: "Rotate", args: [] });
+    for (const overrides of [{ paused: true }, { state: { ...props.state, rotateCharges: 0 } }]) {
+      const blocked = renderArcadePresentation("blox", overrides);
+      assert.equal(findElements(blocked.tree, (node) => node.props["data-blox-rotate"])[0].props.disabled, true);
+    }
   });
 
-  it("keeps Pixi-owned playfield backgrounds out of CSS fallback layers", () => {
+  it("keeps playfield backgrounds with a single renderer owner", () => {
     const bloxCss = readFileSync(new URL("../src/games/blox/blox.css", import.meta.url), "utf8");
     const farmCss = readFileSync(new URL("../src/games/farm/farm.css", import.meta.url), "utf8");
     const bloxScene = readFileSync(new URL("../src/game-runtime/scenes/bloxScene.js", import.meta.url), "utf8");
     const farmScene = readFileSync(new URL("../src/game-runtime/scenes/farmScene.js", import.meta.url), "utf8");
-    assert.match(bloxScene, /coverSprite\(gameAsset\(BLOX_ASSET_KEYS\.background\)/);
+    const { tree } = renderArcadePresentation("blox");
+    const backgrounds = findElements(tree, (node) => node.props.className === "bx-background");
+    assert.equal(backgrounds.length, 1, "Blox v2 owns its background in the DOM presentation");
+    assert.match(findElements(backgrounds[0], (node) => node.type === "img")[0].props.src, /\/games\/blox-v2\/background\.webp(?:\?|$)/);
+    assert.doesNotMatch(bloxScene, /BLOX_ASSET_KEYS\.background|bloxArtUrl\("background"\)/, "Blox Pixi must not draw the presentation background twice");
     assert.match(farmScene, /coverSprite\(gameAsset\(FARM_ASSET_KEYS\.backgroundField\)/);
     assert.doesNotMatch(bloxCss, /\/games\/blox\/background\.png/);
     assert.doesNotMatch(farmCss, /\/games\/farm\/background-field\.png/);
@@ -167,22 +198,35 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.deepEqual(restored.boosters, { bomb: 1, lightning: 3, rainbow: 0, hammer: 3 });
   });
 
-  it("wires Match-3 reference boosters through live HUD state and sync", () => {
+  it("wires Match-3 v2 boosters through live presentation, charge consumption and sync", () => {
     const match3Game = readFileSync(new URL("../src/games/match3/Match3Game.jsx", import.meta.url), "utf8");
     const match3Layout = readFileSync(new URL("../src/app/hud-layout/defaultLayouts/match3.json", import.meta.url), "utf8");
     const hudRegistry = readFileSync(new URL("../src/app/hud-layout/registry.js", import.meta.url), "utf8");
 
-    assert.match(match3Game, /MATCH3_BOOSTER_CHARGES/);
+    assert.match(match3Game, /normalizeMatch3Boosters\(\)/);
     assert.match(match3Game, /applyMatch3Booster/);
     assert.match(match3Game, /const \[boosters,\s*setBoosters\]/);
     assert.match(match3Game, /const \[activeBooster,\s*setActiveBooster\]/);
-    assert.match(match3Game, /data-match3-booster=\{item\.id\}/);
-    assert.match(match3Game, /data-match3-shuffle="true"/);
-    assert.match(match3Game, /id="match3ActionDock"/);
     assert.match(match3Layout, /"match3ActionDock"/);
     assert.match(hudRegistry, /match3ActionDock/);
     assert.match(match3Game, /boosters:\s*nextBoosters/);
     assert.match(match3Game, /booster:\s*activeBooster/);
+    assert.match(match3Game, /\[activeBooster\]:\s*Math\.max\(0,\s*\(Number\(boosters\[activeBooster\]\)\s*\|\|\s*0\)\s*-\s*1\)/);
+    const { tree, calls } = renderArcadePresentation("match3");
+    assert.equal(findElements(tree, (node) => node.props.id === "match3ActionDock").length, 1);
+    const powers = findElements(tree, (node) => node.props["data-match3-booster"]);
+    assert.deepEqual(powers.map((node) => node.props["data-match3-booster"]), ["bomb", "lightning", "rainbow", "hammer"]);
+    assert.equal(powers[0].props["data-count"], 2);
+    assert.equal(powers[0].props["aria-pressed"], true);
+    assert.equal(powers[1].props.disabled, true);
+    powers[0].props.onClick();
+    assert.deepEqual(calls.at(-1), { name: "Booster", args: ["bomb"] });
+    const shuffle = findElements(tree, (node) => node.props["data-match3-shuffle"]);
+    assert.equal(shuffle.length, 1);
+    shuffle[0].props.onClick();
+    assert.deepEqual(calls.at(-1), { name: "Shuffle", args: [] });
+    const locked = renderArcadePresentation("match3", { inputLocked: true, shuffleCharges: 0 });
+    assert.ok(findElements(locked.tree, (node) => node.props["data-match3-booster"] || node.props["data-match3-shuffle"]).every((node) => node.props.disabled));
   });
 
   it("keeps Settlement startup map-first with a compact selected-building card", () => {
@@ -216,38 +260,58 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.ok(timing.progress < 0.75 && timing.progress > 0.7);
   });
 
-  it("wires Brain Blitz pause state into timer and answer locking", () => {
+  it("wires Brain Blitz pause state into its controller and answer locking", () => {
     const triviaGame = readFileSync(new URL("../src/games/trivia/TriviaGame.jsx", import.meta.url), "utf8");
-    assert.match(triviaGame, /useQuestionTimer\(question,\s*\(question\?\.timeLimit \|\| 15\) \* 1000,\s*paused\)/);
-    assert.match(triviaGame, /if\s*\(paused\s*\|\|\s*reveal\)\s*return;/);
-    assert.match(triviaGame, /<QuestionPanel[\s\S]*paused=\{activePause\}/);
-    assert.match(triviaGame, /disabled=\{paused\s*\|\|\s*!!reveal\s*\|\|\s*isHidden\}/);
+    const controller = readFileSync(new URL("../src/games/trivia/triviaController.js", import.meta.url), "utf8");
+    assert.match(triviaGame, /useSyncExternalStore\(controller\.subscribe, controller\.getSnapshot/);
+    assert.match(triviaGame, /s\.paused \|\| !!s\.feedback \|\| !!s\.busy \|\| s\.uncertain/);
+    assert.match(triviaGame, /disabled=\{disabled \|\| hidden\}/);
+    assert.match(controller, /pause\(\) \{[^\n]*this\.clock\.freeze\(\)/);
+    assert.match(controller, /answer\(answer\) \{[^\n]*s\.paused \|\| s\.feedback \|\| s\.uncertain/);
   });
 
   it("wires Brain Blitz audience lifeline through server response and answer HUD", () => {
     const triviaGame = readFileSync(new URL("../src/games/trivia/TriviaGame.jsx", import.meta.url), "utf8");
+    const controller = readFileSync(new URL("../src/games/trivia/triviaController.js", import.meta.url), "utf8");
     const triviaRoutes = readFileSync(new URL("../routes/trivia.js", import.meta.url), "utf8");
-    const triviaCss = readFileSync(new URL("../src/games/trivia/trivia.css", import.meta.url), "utf8");
+    const triviaCss = readFileSync(new URL("../src/games/trivia/trivia-presentation.css", import.meta.url), "utf8");
     assert.match(triviaRoutes, /type !== "fifty" && type !== "reveal" && type !== "audience"/);
     assert.match(triviaRoutes, /audiencePoll:\s*selectTriviaAudiencePoll\(q\)/);
-    assert.match(triviaGame, /const \[audiencePoll,\s*setAudiencePoll\] = useState\(\{\}\);/);
-    assert.match(triviaGame, /if \(data\.audiencePoll\) setAudiencePoll\(data\.audiencePoll\);/);
-    assert.match(triviaGame, /onAudience=\{\(\) => useLifeline\("audience"\)\}/);
-    assert.match(triviaGame, /trivia\.lifeline\.audience/);
-    assert.match(triviaGame, /className="audience-poll"/);
-    assert.match(triviaCss, /\.trivia-lifeline-dock\s*\{[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+    assert.match(controller, /audiencePoll: data\.audiencePoll \|\| s\.audiencePoll/);
+    assert.match(triviaGame, /\['audience', 'fifty', 'reveal'\]\.map/);
+    assert.match(triviaGame, /controller\.lifeline\(type\)/);
+    assert.match(triviaGame, /className="trv2-poll"/);
+    assert.match(triviaCss, /\.trv2-lifelines\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/);
   });
 
-  it("keeps Brain Blitz live answers in a reference-style 2x2 card grid", () => {
-    const triviaCss = readFileSync(new URL("../src/games/trivia/trivia.css", import.meta.url), "utf8");
-    assert.match(triviaCss, /\.trivia-shell\[data-trivia-playing="true"\] \.question-panel\s*\{[\s\S]*grid-template-areas:\s*"meta"[\s\S]*"question"[\s\S]*"answers"[\s\S]*"lifelines"/);
-    assert.match(triviaCss, /\.trivia-shell\[data-trivia-playing="true"\] \.answer-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-    assert.match(triviaCss, /\.trivia-shell\[data-trivia-playing="true"\] \.answer-grid\s*\{[\s\S]*grid-template-rows:\s*repeat\(2, minmax\(72px, 1fr\)\)/);
-    assert.match(triviaCss, /\.trivia-shell\[data-trivia-playing="true"\] \.answer-grid button::before\s*\{[\s\S]*content:\s*counter\(trivia-answer, upper-alpha\)/);
+  it("keeps Brain Blitz answers in portrait rows and an independent landscape 2x2 grid", () => {
+    const triviaCss = readFileSync(new URL("../src/games/trivia/trivia-presentation.css", import.meta.url), "utf8");
+    const triviaGame = readFileSync(new URL("../src/games/trivia/TriviaGame.jsx", import.meta.url), "utf8");
+    assert.match(triviaCss, /\.trv2-answers\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
+    assert.match(triviaCss, /\[data-trivia-layout='landscape'\] \.trv2-answers\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/);
+    assert.match(triviaCss, /\[data-trivia-layout='landscape'\] \.trv2-answer\s*\{[^}]*min-height:\s*80px/);
+    assert.match(triviaGame, /className="trv2-answer-letter"/);
+    assert.match(triviaGame, /'ABCD'\[index\]/);
+  });
+
+  it("routes confirmed V3 snapshots through the shared shell and authenticated exact-command transport", () => {
+    const wrapper = readFileSync(new URL("../src/games/merge/MergeGame.jsx", import.meta.url), "utf8");
+    const view = readFileSync(new URL("../src/games/merge/MergeLabGame.jsx", import.meta.url), "utf8");
+    const transport = readFileSync(new URL("../src/games/merge/mergeLabTransport.js", import.meta.url), "utf8");
+    assert.match(wrapper, /schemaVersion===3/);
+    assert.match(wrapper, /createElement\(MergeLabGame/);
+    assert.match(wrapper, /createElement\(LegacyMergeGame/);
+    assert.match(wrapper, /snapshot\.player\.id\+':'\+snapshot\.merge\.serverEpoch/);
+    assert.match(view, /h\(GameShell,\{gameId:'merge'/);
+    assert.match(view, /createMergeLabTransport\(\{api,accountId/);
+    assert.match(view, /transport\.resumePending\(\)/);
+    assert.match(transport, /api\('\/api\/player\/mutate',\{action:'merge\.lab',payload:record\.payload\}\)/);
+    assert.match(transport, /storage\.setItem\(key,JSON\.stringify\(record\)\)/);
+    assert.doesNotMatch(transport, /_optimistic|success:\s*true|apiBatched/);
   });
 
   it("keeps Merge free-tap claiming in the reference action dock language", () => {
-    const mergeGame = readFileSync(new URL("../src/games/merge/MergeGame.jsx", import.meta.url), "utf8");
+    const mergeGame = readFileSync(new URL("../src/games/merge/LegacyMergeGame.jsx", import.meta.url), "utf8");
     const mergeCss = readFileSync(new URL("../src/games/merge/merge.css", import.meta.url), "utf8");
     const mergeI18n = readFileSync(new URL("../src/games/merge/i18n.js", import.meta.url), "utf8");
 
@@ -257,19 +321,13 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(mergeI18n, /"merge\.dailyTaps":\s*"Free Taps \+\{count\}"/);
   });
 
-  it("starts Brain Blitz duels from explicit room ids without duplicate polling starts", () => {
-    const triviaGame = readFileSync(new URL("../src/games/trivia/TriviaGame.jsx", import.meta.url), "utf8");
-    assert.match(triviaGame, /const duelStartInFlightRef = useRef\(""\);/);
-    assert.match(triviaGame, /const activeDuelRoomRef = useRef\(""\);/);
-    assert.match(triviaGame, /async function startDuel\(targetRoomId = roomId\)/);
-    assert.match(triviaGame, /const nextRoomId = targetRoomId \|\| roomId;/);
-    assert.match(triviaGame, /if \(duelStartInFlightRef\.current === nextRoomId\) return;/);
-    assert.match(triviaGame, /if \(activeDuelRoomRef\.current === nextRoomId && question\) return;/);
-    assert.match(triviaGame, /data = await api\("\/api\/trivia\/duel\/start", \{ roomId: nextRoomId \}\);/);
-    assert.match(triviaGame, /if \(data\.status === "active"\) await startDuel\(data\.roomId \|\| id\);/);
-    assert.match(triviaGame, /if \(data\.status === "active"\) \{\s+await startDuel\(data\.roomId\);\s+return;\s+\}/);
-    assert.doesNotMatch(triviaGame, /if \(data\.status === "active"\) await startDuel\(\);/);
-    assert.doesNotMatch(triviaGame, /setView\(data\.status === "active" \? "duel-play" : "duel-room"\)/);
+  it("starts Brain Blitz duels only from the current active room without duplicate polling starts", () => {
+    const controller = readFileSync(new URL("../src/games/trivia/triviaController.js", import.meta.url), "utf8");
+    assert.match(controller, /if \(this\.lock \|\| this\.disposed\) return false/);
+    assert.match(controller, /serial !== this\.pollSerial \|\| this\.state\.roomId !== id/);
+    assert.match(controller, /data\.status === 'active' && this\.state\.view === 'duel-room' && !this\.lock/);
+    assert.match(controller, /s\.view !== 'duel-room' \|\| s\.duel\?\.status !== 'active'/);
+    assert.match(controller, /'\/api\/trivia\/duel\/start', \{ roomId: s\.roomId \}/);
   });
 
   it("keeps Garden Shelf confetti off the initial panel-open module path", () => {

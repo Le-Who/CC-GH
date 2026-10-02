@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GHCR_REPO:-user/game-hub}:latest
+    image: ghcr.io/${GHCR_REPO:-user/game-hub}${APP_IMAGE_SUFFIX:-:latest}
     container_name: ccgh-app
     restart: unless-stopped
     depends_on:

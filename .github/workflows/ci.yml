@@ -1,8 +1,7 @@
 name: Game Hub CI
 
 on:
-  push:
-    branches: [codex/telegram-pixi-vps-migration]
+  workflow_call:
   pull_request:
     branches: [codex/telegram-pixi-vps-migration]
 
@@ -12,6 +11,21 @@ jobs:
     strategy:
       matrix:
         node-version: [24.x]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+          POSTGRES_DB: ccgh_merge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
 
     steps:
       - uses: actions/checkout@v6
@@ -27,6 +41,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate HUD layout contracts
+        run: node scripts/hud-layout-validate.mjs
+
       - name: Build Telegram Mini App client
         run: pnpm run build
 
@@ -35,6 +52,48 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+      - name: Merge V3 real PostgreSQL15 persistence and OCC
+        env:
+          MERGE_LAB_PG_TEST: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+        run: node --test --test-concurrency=1 tests/merge-lab-postgres.test.mjs
+
+      - name: Garden atomic accounting PostgreSQL15 persistence and OCC
+        env:
+          GARDEN_ACCOUNTING_PG_TEST: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+        run: node --test --test-concurrency=1 tests/garden-accounting-postgres.test.mjs
+
+      - name: Install Chromium for browser regression tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run integrated browser regression tests
+        run: pnpm exec playwright test --project=chromium --workers=1
+
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-browser-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve verified client build
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-client-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/
+          retention-days: 14
 
   docker:
     runs-on: ubuntu-latest

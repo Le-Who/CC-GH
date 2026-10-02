@@ -1,9 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { expectMergeV3, mergePanel, closeMergePanel, expectMergeControlsReachable, researchMergePair, mergeSnapshot, confirmMergeQuote, confirmedMergeClick } from "./helpers/mergeV3.js";
 import {
   GARDEN_ECONOMY_VERSION,
   GARDEN_STARTER_GOLD,
-  MERGE_EXCHANGE_OFFERS,
-  MERGE_FREE_TAP_RECHARGE_MS,
   createDefaultPlayer,
   getGardenLevelReward,
   getGardenXpRequired,
@@ -73,8 +72,7 @@ async function snapshot(page) {
 }
 
 async function canvasIsNonBlank(page) {
-  const dataUrlLength = await page.locator(".pixi-host canvas").evaluate((canvas) => canvas.toDataURL("image/png").length);
-  expect(dataUrlLength).toBeGreaterThan(2000);
+  await expect.poll(() => page.locator(".active-game-frame canvas").evaluate((canvas) => canvas.toDataURL("image/png").length), { timeout: 15000 }).toBeGreaterThan(2000);
 }
 
 async function expectAbove(first, second, label, gap = 4) {
@@ -103,205 +101,63 @@ test.describe("CC-GH multi-game logic smoke", () => {
     const pageErrors = await boot(page, "match3_chain_smoke");
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator(".m3-hud")).toContainText("Score");
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
 
-  test("Merge resolves alchemy recipes and exposes the compact recipe book", async ({ page }) => {
-    const player = createDefaultPlayer("merge-recipe-smoke", "Merge");
-    player.merge.board[0][0] = { id: "sand", chainId: "earth", level: 2 };
-    player.merge.board[0][1] = { id: "flame", chainId: "fire", level: 1 };
-
-    const recipe = await applyAction(player, "merge.merge", { fromR: 0, fromC: 0, toR: 0, toC: 1 });
-
-    expect(recipe.status).toBe(200);
-    expect(recipe.body.recipeId).toBe("sand_flame_glass");
-    expect(player.merge.board[0][1]).toEqual({ id: "glass", chainId: "alchemy", level: 2 });
-
-    const pageErrors = await boot(page, "merge_recipe_book_smoke");
-    await page.getByRole("button", { name: /Merge/ }).click();
-    await page.locator('[data-merge-panel="recipes"]').click();
-    await expect(page.locator(".merge-recipe-book")).toContainText("Germination");
-    await expect(page.locator(".merge-recipe-book")).toContainText("Undiscovered reaction");
-    await expect(page.locator(".merge-recipe-book")).toContainText("??? + ??? -> ???");
-    await canvasIsNonBlank(page);
+  test("Merge V3 research records knowledge without consuming physical stock", async ({ page }) => {
+    const pageErrors = await boot(page, 'merge_v3_research');
+    await page.getByRole('button', { name: /Merge/ }).click();
+    const before = await mergeSnapshot(page);
+    const { body } = await researchMergePair(page, 'cloud', 'ember');
+    expect(body.mergeLab.result.itemId).toBe('spark');
+    const after = await mergeSnapshot(page);
+    expect(after.merge.knowledge.recipeIds).toContain('cloud_ember_spark');
+    expect(after.merge.alchemyEssence).toBe(before.merge.alchemyEssence + 4);
+    expect(after.merge.stock).toEqual(before.merge.stock);
+    await mergePanel(page, 'journal');
+    await page.getByTestId('ml-journal').locator('select').selectOption('spark');
+    await expect(page.getByTestId('ml-journal')).toContainText('Spark');
     expect(pageErrors).toEqual([]);
   });
 
-  test("Merge mobile tap selection keeps controls readable and updates discovery drawers", async ({ page }, testInfo) => {
-    await page.setViewportSize({ width: 360, height: 740 });
-    const now = Date.now();
-    const offer = MERGE_EXCHANGE_OFFERS.find((candidate) => candidate.id === "yard_treats_small");
-    expect(offer).toBeTruthy();
-    const player = createDefaultPlayer(`merge-mobile-live-${now}`, "Merge", now);
-    player.merge.board[0][0] = { id: "sand", chainId: "earth", level: 2 };
-    player.merge.board[0][1] = { id: "flame", chainId: "fire", level: 1 };
-    player.merge.discoveredItems = (player.merge.discoveredItems || []).filter((id) => id !== "glass");
-    player.merge.discoveredRecipes = (player.merge.discoveredRecipes || []).filter((id) => id !== "sand_flame_glass");
-    player.merge.alchemyEssence = offer.cost;
-    player.merge.freeTapCharges = 0;
-    player.merge.lastFreeTaps = now - MERGE_FREE_TAP_RECHARGE_MS;
-
-    await page.addInitScript((userId) => {
-      window.localStorage.setItem("gh_dev_user_id", userId);
-    }, player.id);
-    await page.route("**/api/player/snapshot", async (route) => {
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify(buildSnapshot(player, { now })),
-      });
-    });
-    await page.route("**/api/player/mutate", async (route) => {
-      const body = parsePlayerActionRequest(route.request()) || {};
-      const result = await applyAction(player, body.action, body.payload || {}, { now: Date.now() });
-      await route.fulfill({
-        status: result.status,
-        contentType: "application/json",
-        body: JSON.stringify(result.body),
-      });
-    });
-
-    const pageErrors = [];
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await expectAbove(page.locator(".merge-scene-hud"), page.locator(".merge-action-dock"), "Merge standalone top HUD and dock");
-    for (const action of ["generate", "daily", "gacha", "trash"]) {
-      await expect(page.locator(`[data-merge-action="${action}"]`)).toBeVisible();
-    }
-    await canvasIsNonBlank(page);
-
-    const canvas = page.locator(".pixi-host canvas");
-    await expect(canvas).toHaveAttribute("data-merge-board-size", /[0-9]/);
-    const layout = await canvas.evaluate((node) => ({
-      left: Number(node.dataset.mergeBoardLeft),
-      top: Number(node.dataset.mergeBoardTop),
-      rows: Number(node.dataset.mergeBoardRows),
-      cols: Number(node.dataset.mergeBoardCols),
-      size: Number(node.dataset.mergeBoardSize),
-      width: Number(node.dataset.mergeBoardWidth),
-      height: Number(node.dataset.mergeBoardHeight),
-      cell: Number(node.dataset.mergeBoardCell),
-      frameWidth: Number(node.dataset.mergeBoardFrameWidth),
-      frameHeight: Number(node.dataset.mergeBoardFrameHeight),
-    }));
-    expect(layout.rows).toBe(7);
-    expect(layout.cols).toBe(5);
-    expect(layout.height).toBeGreaterThan(layout.width);
-    expect(layout.height / layout.width).toBeCloseTo(7 / 5, 1);
-    expect(layout.frameHeight).toBeGreaterThan(layout.height);
-    expect(layout.frameWidth).toBeGreaterThan(layout.width);
-    expect(layout.size).toBeGreaterThan(250);
-    expect(layout.cell).toBeGreaterThan(30);
-
-    const freeTapButton = page.locator('[data-merge-action="daily"]');
-    await expect(freeTapButton).toContainText(/Free Taps \+\d+/);
-    await freeTapButton.click();
-    await expect(page.locator(".merge-hud-energy")).toContainText(/[1-9]\d*\/30/);
-    await expect(page.locator('[data-merge-action="generate"] b')).toHaveText(/^[1-9]\d*$/);
-    await expect(page.locator('[data-merge-action="generate"]')).toContainText(/free taps/i);
-    await page.locator('[data-merge-action="generate"]').click();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-
-    await page.locator('[data-merge-panel="exchange"]').click();
-    const exchangeDrawer = page.locator(".merge-scene-drawer");
-    await expectAbove(exchangeDrawer, page.locator(".merge-action-dock"), "Merge mobile exchange drawer and dock");
-    await expect(exchangeDrawer).toContainText("50 Essence ready");
-    const exchangeResponsePromise = page.waitForResponse((response) => {
-      if (!response.url().includes("/api/player/mutate")) return false;
-      return parsePlayerActionRequest(response.request())?.action === "merge.exchange";
-    });
-    await exchangeDrawer.getByRole("button", { name: /Treat bundle/ }).click();
-    const exchangeBody = await (await exchangeResponsePromise).json();
-    expect(exchangeBody.reward.treats).toBe(offer.reward.treats);
-    await expect(exchangeDrawer).toContainText("0 Essence ready");
-    await exchangeDrawer.getByRole("button", { name: /^Close$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator('[data-merge-panel="exchange"]').click();
-    await expect(page.locator(".merge-scene-drawer .merge-exchange-list")).toBeVisible();
-    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-
-    const box = await canvas.boundingBox();
-    expect(box).toBeTruthy();
-    const from = {
-      x: box.x + layout.left + layout.cell * 0.5,
-      y: box.y + layout.top + layout.cell * 0.5,
-    };
-    const to = {
-      x: box.x + layout.left + layout.cell * 1.5,
-      y: box.y + layout.top + layout.cell * 0.5,
-    };
-    const mergeResponsePromise = page.waitForResponse((response) => {
-      if (!response.url().includes("/api/player/mutate")) return false;
-      return parsePlayerActionRequest(response.request())?.action === "merge.merge";
-    });
-    await page.mouse.click(from.x, from.y);
-    await page.waitForTimeout(180);
-    await page.mouse.click(to.x, to.y);
-    const mergeBody = await (await mergeResponsePromise).json();
-    expect(mergeBody.recipeId).toBe("sand_flame_glass");
-    expect(mergeBody.recipeDiscovered).toBe(true);
-    expect(mergeBody.itemDiscovered).toBe(true);
-
-    await page.locator('[data-merge-panel="items"]').click();
-    await expect(page.locator(".merge-scene-drawer .merge-item-book")).toContainText("Glass");
-    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-    await page.locator('[data-merge-panel="recipes"]').click();
-    await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toContainText("Sand");
-    await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toContainText("Glass");
-    await page.screenshot({
-      path: testInfo.outputPath("merge-mobile-recipe-book.png"),
-      fullPage: false,
-    });
-    await canvasIsNonBlank(page);
+  test("Merge V3 mobile supply quote uses real stock and exact free-charge debit", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const pageErrors = await boot(page, 'merge_v3_supply');
+    await page.getByRole('button', { name: /Merge/ }).click();
+    await mergePanel(page, 'supplies');
+    await confirmedMergeClick(page, page.getByTestId('ml-claim-charges'), 'claimFreeCharges');
+    const before = await mergeSnapshot(page);
+    await page.getByTestId('ml-supply-material').selectOption('glass');
+    await page.getByTestId('ml-claim-material').click();
+    await confirmMergeQuote(page, 'claimSupply');
+    const after = await mergeSnapshot(page);
+    expect(after.merge.freeTapCharges).toBe(before.merge.freeTapCharges - 1);
+    expect(after.merge.stock.glass).toBe((before.merge.stock.glass || 0) + 1);
+    expect(after.resources.gachaTokens).toBe(before.resources.gachaTokens);
+    await expectMergeControlsReachable(page, page.getByTestId('ml-drawer').locator('.ml-dialog-heading button'));
+    await page.screenshot({ path: testInfo.outputPath('merge-v3-mobile-supply.png'), fullPage: false });
     expect(pageErrors).toEqual([]);
   });
 
-  test("Merge Russian dark drawers stay above the readable mobile dock", async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 740 });
+  test("Merge V3 Russian dialogs stay readable and return focus to the opener", async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => {
-      window.localStorage.setItem("gh_dev_user_id", `merge_ru_dark_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-      window.localStorage.setItem("garden_shelf_language", "ru");
-      window.localStorage.setItem("game_hub_ui_theme", "dark");
-      window.localStorage.removeItem("terrarium_save");
-      window.localStorage.removeItem("garden_shelf_name");
+      localStorage.setItem('gh_dev_user_id', `merge_v3_ru_${Date.now()}`);
+      localStorage.setItem('garden_shelf_language', 'ru');
     });
-    const pageErrors = [];
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "dark");
-    await page.locator(".bottom-tabs button").nth(3).click();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await expect(page.locator(".topbar")).toBeHidden();
-    await expect(page.locator(".stats-row")).toBeHidden();
-    await expect(page.locator(".bottom-tabs")).toBeHidden();
-    await expectAbove(page.locator(".merge-scene-hud"), page.locator(".merge-action-dock"), "Merge Russian standalone top HUD and dock");
-
-    for (const action of ["generate", "daily", "gacha", "trash"]) {
-      await expect(page.locator(`[data-merge-action="${action}"]`)).toBeVisible();
+    await page.goto('/?tab=merge');
+    await expect(page.locator('.status-dot.ready')).toBeVisible({ timeout: 15000 });
+    await expectMergeV3(page);
+    await expect(page.locator('.ml-root')).toHaveAttribute('lang', 'ru');
+    for (const panel of ['samples', 'journal', 'projects', 'supplies']) {
+      const dialog = await mergePanel(page, panel);
+      await expectMergeControlsReachable(page, dialog.locator('.ml-dialog-heading button'));
+      await page.screenshot({ path: testInfo.outputPath(`merge-v3-ru-${panel}.png`), fullPage: false });
+      await closeMergePanel(page, 'escape');
+      await expect(page.getByTestId(`ml-open-${panel}`)).toBeFocused();
     }
-
-    const drawerCases = [
-      { selector: '[data-merge-panel="exchange"]', text: "Обменная лавка" },
-      { selector: '[data-merge-panel="items"]', text: "Предметы" },
-      { selector: '[data-merge-panel="recipes"]', text: "Книга рецептов" },
-    ];
-    for (const drawerCase of drawerCases) {
-      await page.locator(drawerCase.selector).click();
-      const drawer = page.locator(".merge-scene-drawer");
-      await expect(drawer).toContainText(drawerCase.text);
-      await expectAbove(drawer, page.locator(".merge-action-dock"), `Merge Russian dark ${drawerCase.text} drawer and dock`);
-      await drawer.getByRole("button", { name: /^Закрыть$/ }).click();
-      await expect(drawer).toBeHidden();
-    }
-    await canvasIsNonBlank(page);
-    expect(pageErrors).toEqual([]);
   });
 
   test("Bubbo pressure settlement drops unsupported islands and the scene remains visible", async ({ page }) => {
@@ -322,7 +178,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     const pageErrors = await boot(page, "bubbo_drop_smoke");
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Bubbo Bubbo");
+    await expect(page.locator(".bb-stage")).toHaveAttribute("data-bb-phase", "playing");
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

@@ -1,7 +1,6 @@
-import { registerAppTranslations } from "../../app/i18n.jsx";
-
-export const MATCH3_TRANSLATIONS = {
-  en: {
+import {registerAppTranslations} from '../../app/i18n.jsx';
+export const MATCH3_TRANSLATIONS={
+  "en": {
     "pause.match3Frozen": "Paused: make a 3-gem match",
     "pause.match3Ready": "Pick a mode before the run starts",
     "pause.match3Locked": "Active runs keep their mode locked so a pause cannot change the rules by accident.",
@@ -9,6 +8,7 @@ export const MATCH3_TRANSLATIONS = {
     "pause.match3NoModeChange": "Mode changes and reshuffles are locked during an active run. Start a new board if you want different rules.",
     "pause.match3Intro": "Swap neighboring gems to make 3 or more. Your mode, timer, and board resume exactly here.",
     "match3.title": "Gem Crush",
+    "match3.selectMode": "Choose your game mode",
     "match3.mode.classic": "Classic",
     "match3.mode.classicHint": "30 moves",
     "match3.mode.timed": "Timed",
@@ -21,6 +21,7 @@ export const MATCH3_TRANSLATIONS = {
     "match3.actionDock": "Gem actions",
     "match3.selectedGem": "Selected gem",
     "match3.noSelection": "Pick one",
+    "match3.settling": "Settling…",
     "match3.gem.fire": "Fire",
     "match3.gem.water": "Water",
     "match3.gem.earth": "Earth",
@@ -39,9 +40,9 @@ export const MATCH3_TRANSLATIONS = {
     "match3.booster.lightning": "Lightning",
     "match3.booster.rainbow": "Rainbow",
     "match3.booster.hammer": "Hammer",
-    "match3.boosterTooltip": "{booster}: {count} left",
+    "match3.boosterTooltip": "{booster}: {count} left"
   },
-  ru: {
+  "ru": {
     "pause.match3Frozen": "Пауза: соберите 3 камня",
     "pause.match3Ready": "Выберите режим до старта рана",
     "pause.match3Locked": "В активном ране режим заблокирован, чтобы пауза случайно не меняла правила.",
@@ -49,6 +50,7 @@ export const MATCH3_TRANSLATIONS = {
     "pause.match3NoModeChange": "Смена режима и перемешивание заблокированы в активном ране. Начните новое поле, если нужны другие правила.",
     "pause.match3Intro": "Меняйте соседние камни, чтобы собрать 3 и больше. Режим, таймер и поле продолжатся ровно отсюда.",
     "match3.title": "Gem Crush",
+    "match3.selectMode": "Выберите режим игры",
     "match3.mode.classic": "Классика",
     "match3.mode.classicHint": "30 ходов",
     "match3.mode.timed": "На время",
@@ -61,6 +63,7 @@ export const MATCH3_TRANSLATIONS = {
     "match3.actionDock": "Действия камней",
     "match3.selectedGem": "Камень",
     "match3.noSelection": "Выберите",
+    "match3.settling": "Собираем…",
     "match3.gem.fire": "Огонь",
     "match3.gem.water": "Вода",
     "match3.gem.earth": "Земля",
@@ -79,8 +82,7 @@ export const MATCH3_TRANSLATIONS = {
     "match3.booster.lightning": "Молния",
     "match3.booster.rainbow": "Радуга",
     "match3.booster.hammer": "Молоток",
-    "match3.boosterTooltip": "{booster}: осталось {count}",
-  },
+    "match3.boosterTooltip": "{booster}: осталось {count}"
+  }
 };
-
 registerAppTranslations(MATCH3_TRANSLATIONS);

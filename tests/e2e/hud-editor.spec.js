@@ -82,6 +82,9 @@ test.describe("HUD layout editor", () => {
     await boot(page, "/?hudEditor=1&hudPreview=1&hudPreset=568x320");
     await page.locator('[data-hud-region="bottomDock.blox"]').evaluate((node) => node.click());
     await expect(page.locator(".telegram-app")).toHaveAttribute("data-active-tab", "blox");
+    const canvas = page.locator('[data-game-shell="blox"] .bx-canvas canvas');
+    await expect(canvas).toBeVisible();
+    await expect.poll(() => canvas.evaluate((node) => Object.keys(JSON.parse(node.dataset.hudAssetLayouts || "{}")))).toEqual(expect.arrayContaining(["bloxBoardFrameAsset", "bloxTrayPanelAsset"]));
     const assetBox = page.locator('[data-hud-region-box="bloxBoardFrameAsset"]');
     await expect(assetBox).toBeVisible({ timeout: 20000 });
     await page.getByRole("button", { name: "Hide panels" }).click();

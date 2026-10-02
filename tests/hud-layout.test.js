@@ -279,6 +279,14 @@ describe("HUD layout defaults and editor state", () => {
       for (const regionId of assetRegionIds) {
         const layout = HUD_LAYOUT_DEFAULTS[gameId].base.regions[regionId];
         assert.ok(layout, `${gameId}.${regionId} has base defaults`);
+        if (gameId === "garden" && regionId === "gardenShelfAsset") {
+          const definition = getHudRegionDefinition(gameId, regionId);
+          assert.equal(layout.mode, "custom", "repeated shelf art follows its flow row");
+          assert.equal(definition.capabilities.draggable, false);
+          assert.equal(definition.capabilities.resizable, false);
+          assert.match(definition.notes, /Repeated fixed-aspect/);
+          continue;
+        }
         assert.equal(layout.mode, "freeform", `${gameId}.${regionId} is freeform-editable`);
         assert.equal(layout.scale, 1, `${gameId}.${regionId} has a neutral scale default`);
         assert.equal(layout.opacity, 1, `${gameId}.${regionId} has a neutral opacity default`);

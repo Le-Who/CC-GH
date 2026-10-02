@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { YARD_PANEL_REFERENCE, YARD_SCREEN_SLOT_MAPS } from "../src/games/companion-yard/yardPanelSlots.js";
+import { arcadeGames, arcadeArt, renderArcadePresentation, findElements, textContent } from "./helpers/arcadePresentationHarness.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicRoot = path.join(root, "public");
@@ -597,34 +598,9 @@ test("mini-game menu controls use visible generated button chrome", async () => 
         ".trivia-shell[data-trivia-view=\"menu\"] .trivia-card .panel-button",
       ],
     },
-    "src/games/blox/blox.css": {
-      art: "/games/hud-redesign/blox/primary-button.png",
-      selectors: [
-        ".blox-menu-overlay .panel-button",
-        ".blox-menu-overlay .panel-button.pause-primary",
-        ".blox-menu-overlay .panel-button:not(.subtle):not(.danger)",
-        ".blox-menu-overlay .panel-button.danger",
-        ".blox-menu-overlay[data-menu-phase=\"menu\"] .panel-button",
-      ],
-    },
-    "src/games/bubbo/bubbo.css": {
-      art: "/games/hud-redesign/bubbo/primary-button.png",
-      selectors: [
-        ".bubbo-shell .game-menu-overlay .panel-button",
-        ".bubbo-shell .game-menu-overlay .panel-button.danger",
-        ".bubbo-shell .game-menu-overlay[data-menu-phase=\"menu\"]:not(.bubbo-result-overlay) .panel-button",
-      ],
-    },
-    "src/games/match3/match3.css": {
-      art: "/games/hud-redesign/match3/primary-button.png",
-      selectors: [
-        ".match3-menu-overlay .panel-button",
-        ".match3-menu-overlay .panel-button.pause-primary",
-        ".match3-menu-overlay .panel-button:not(.subtle):not(.danger)",
-        ".match3-menu-overlay .panel-button.danger",
-        ".match3-menu-overlay[data-menu-phase=\"menu\"]:not(.match3-pause-compact) .panel-button",
-      ],
-    },
+
+
+
     "src/games/merge/merge.css": {
       art: "/games/hud-redesign/merge/primary-button.png",
       selectors: [
@@ -641,6 +617,26 @@ test("mini-game menu controls use visible generated button chrome", async () => 
     const css = await readFile(path.join(root, filePath), "utf8");
     for (const selector of selectors) {
       assertVisibleButtonSelector(css, selector, filePath, art);
+    }
+  }
+
+  for (const gameId of arcadeGames) {
+    const { prefix, skin, button } = arcadeArt[gameId];
+    const cssPath = `src/games/${gameId}/${gameId}-presentation.css`;
+    const css = await readFile(path.join(root, cssPath), "utf8");
+    const buttonCss = findCssBlocksForSelector(css, `.${prefix}-button`).join("\n");
+    assert.match(buttonCss, /min-width:\s*44px/);
+    assert.match(buttonCss, /min-height:\s*48px/);
+    assert.doesNotMatch(buttonCss, /(?:color:\s*transparent|font-size:\s*0(?:px)?\s*;|linear-gradient\s*\()/);
+    for (const paused of [false, true]) {
+      const { tree } = renderArcadePresentation(gameId, { gameActive: paused, paused, state: { gameActive: paused, score: 420, tray: [], board: [] } });
+      const buttons = findElements(tree, (node) => node.type === "button" && node.props.className?.split(" ").includes(`${prefix}-button`));
+      assert.ok(buttons.length >= 2, `${gameId} must expose real menu/pause buttons`);
+      for (const control of buttons) {
+        assert.equal(control.props.style.borderImageSource, skin(button).borderImageSource, `${gameId} buttons use the active v2 skin`);
+        assert.ok(textContent(control).trim(), `${gameId} button labels must remain runtime text`);
+        assert.equal(typeof control.props.onClick, "function", `${gameId} menu controls must be wired`);
+      }
     }
   }
 });
@@ -676,71 +672,34 @@ test("Trivia live question content does not stack a second panel surface", async
   assert.match(liveSurfaceBlocks, /display:\s*none/);
 });
 
-test("mode selector choices use centered card layouts instead of action button art", async () => {
-  const modeSelectorsByFile = {
-    "src/games/match3/match3.css": {
-      art: "/games/hud-redesign/match3/primary-button.png",
-      selectors: [
-        ".match3-menu-overlay .mode-grid button",
-        ".match3-menu-overlay[data-menu-phase=\"menu\"]:not(.match3-pause-compact) .mode-grid button",
-      ],
-    },
-    "src/games/bubbo/bubbo.css": {
-      art: "/games/hud-redesign/bubbo/primary-button.png",
-      selectors: [
-        ".bubbo-shell .game-menu-overlay .mode-grid button",
-      ],
-    },
-  };
-
-  for (const [filePath, { art, selectors }] of Object.entries(modeSelectorsByFile)) {
-    const css = await readFile(path.join(root, filePath), "utf8");
-    for (const selector of selectors) {
-      assertModeSelectorCard(css, selector, filePath, art);
-    }
+test("arcade mode choices expose labeled cards, selection state and mode callbacks", async () => {
+  for (const gameId of ["match3", "bubbo"]) {
+    const { prefix } = arcadeArt[gameId];
+    const { tree, calls } = renderArcadePresentation(gameId, { gameActive: false, mode: "timed" });
+    const modes = findElements(tree, (node) => node.props.className === `${prefix}-modes`);
+    assert.equal(modes.length, 1, `${gameId} must render its mode selector`);
+    const buttons = findElements(modes[0], (node) => node.type === "button");
+    const ids = gameId === "match3" ? ["classic", "timed", "drop"] : ["classic", "timed"];
+    assert.equal(buttons.length, ids.length);
+    buttons.forEach((button, index) => {
+      assert.equal(button.props["aria-pressed"], ids[index] === "timed");
+      assert.match(textContent(button), new RegExp(`${gameId}\\.mode\\.${ids[index]}`));
+      assert.equal(findElements(button, (node) => node.type === "strong").length, 1, "mode title remains visible");
+      assert.equal(findElements(button, (node) => node.type === "span").length, 1, "mode hint remains visible");
+      button.props.onClick();
+      assert.deepEqual(calls.at(-1), { name: gameId === "match3" ? "ModeChange" : "Mode", args: [ids[index]] });
+    });
+    const css = await readFile(path.join(root, "src", "games", gameId, `${gameId}-presentation.css`), "utf8");
+    const selector = gameId === "match3" ? ".m3-mode" : ".bb-modes>.bb-button";
+    assert.match(findCssBlocksForSelector(css, selector).join("\n"), /flex-direction:\s*column/);
   }
 });
 
 test("visible mini-game menu chrome is owned by generated assets", async () => {
   const selectorsByFile = {
-    "src/games/blox/blox.css": {
-      dialog: /--hud-redesign-dialog-art|--blox-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/blox(?:-dialog-panel|\/dialog-panel)\.png/,
-      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/blox\/metric-chip\.png/,
-      dialogSelectors: [".blox-menu-overlay .game-menu-scaler"],
-      contentSelectors: [
-        ".blox-menu-overlay .panel-header",
-        ".blox-menu-overlay .pause-menu-frame",
-        ".blox-menu-overlay .metric-grid > *",
-        ".blox-menu-overlay .pause-status-line span",
-      ],
-    },
-    "src/games/match3/match3.css": {
-      dialog: /--hud-redesign-dialog-art|--match3-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/match3(?:-dialog-panel|\/dialog-panel)\.png/,
-      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/match3\/metric-chip\.png/,
-      button: /--hud-redesign-button-art|\/games\/hud-redesign\/match3\/primary-button\.png/,
-      dialogSelectors: [".match3-menu-overlay .game-menu-scaler"],
-      buttonSelectors: [
-        ".match3-menu-overlay.match3-pause-compact .pause-action-stack > .panel-button",
-        ".match3-menu-overlay.match3-pause-compact .pause-action-stack .button-row .panel-button",
-      ],
-      contentSelectors: [
-        ".match3-menu-overlay .panel-header",
-        ".match3-menu-overlay .pause-menu-frame",
-        ".match3-menu-overlay .metric-grid > *",
-        ".match3-menu-overlay .pause-status-line span",
-      ],
-    },
-    "src/games/bubbo/bubbo.css": {
-      dialog: /--hud-redesign-dialog-art|--bubbo-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/bubbo(?:-dialog-panel|\/dialog-panel)\.png/,
-      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/bubbo\/metric-chip\.png/,
-      dialogSelectors: [".bubbo-shell .game-menu-overlay .game-menu-scaler"],
-      contentSelectors: [
-        ".bubbo-shell .game-menu-overlay .panel-header",
-        ".bubbo-shell .game-menu-overlay .pause-menu-frame",
-        ".bubbo-shell .game-menu-overlay .metric-grid > *",
-        ".bubbo-shell .game-menu-overlay .pause-status-line span",
-      ],
-    },
+
+
+
     "src/games/merge/merge.css": {
       dialog: /--hud-redesign-dialog-art|--merge-pause-art|\/games\/hud-redesign\/merge\/dialog-panel\.png/,
       metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/merge\/metric-chip\.png/,
@@ -776,12 +735,32 @@ test("visible mini-game menu chrome is owned by generated assets", async () => {
       assertFinalSelectorKeepsContentChromeFree(css, selector, filePath, config.metric);
     }
   }
+
+  for (const gameId of arcadeGames) {
+    const { prefix, skin, dialog } = arcadeArt[gameId];
+    const cssPath = `src/games/${gameId}/${gameId}-presentation.css`;
+    const css = await readFile(path.join(root, cssPath), "utf8");
+    const { tree } = renderArcadePresentation(gameId, { paused: true });
+    const dialogs = findElements(tree, (node) => node.props.role === "dialog");
+    assert.equal(dialogs.length, 1, `${gameId} must have one owning dialog frame`);
+    assert.equal(dialogs[0].props.style.borderImageSource, skin(dialog).borderImageSource);
+    const nestedSkins = findElements(dialogs[0].props.children, (node) => node.type !== "button" && node.props.style?.borderImageSource);
+    assert.equal(nestedSkins.length, 0, `${gameId} content must not duplicate dialog/metric art`);
+    assert.match(findCssBlocksForSelector(css, `.${prefix}-skin`).join("\n"), /background:\s*none/);
+    assert.match(findCssBlocksForSelector(css, `.${prefix}-skin`).join("\n"), /box-shadow:\s*none/);
+    const dialogCss = findCssBlocksForSelector(css, `.${prefix}-dialog`).join("\n");
+    assert.doesNotMatch(dialogCss, /(?:linear-gradient\s*\(|background(?:-image)?:[^;]*url\()/);
+    assert.match(findCssBlocksForSelector(css, `.${prefix}-dialog-scroll`).join("\n"), /overflow:\s*auto/);
+  }
 });
 
-test("Bubbo menu buttons do not keep stale unresolved button-skin URLs", async () => {
-  const css = await readFile(path.join(root, "src", "games", "bubbo", "bubbo.css"), "utf8");
-  assert.doesNotMatch(css, /\/games\/bubbo\//, "Bubbo CSS should use /games/bubbo-bubbo/ or hud-redesign assets, not stale /games/bubbo/ URLs");
-  assert.doesNotMatch(css, /button_secondary\.png/, "Bubbo menu buttons should not retain obsolete secondary-button layers under generated button art");
+test("Bubbo active presentation assets have no stale button-skin URLs", async () => {
+  const files = ["bubbo-presentation.css", "BubboPresentation.jsx", "bubboArt.js"];
+  for (const file of files) {
+    const source = await readFile(path.join(root, "src", "games", "bubbo", file), "utf8");
+    assert.doesNotMatch(source, /\/games\/bubbo\//, `${file} must not use stale /games/bubbo/ URLs`);
+    assert.doesNotMatch(source, /button_secondary\.png/, `${file} must not retain obsolete button layers`);
+  }
 });
 
 test("Merge pause parchment keeps text in the generated reading lane", async () => {
@@ -811,23 +790,15 @@ test("Merge pause parchment keeps text in the generated reading lane", async () 
   );
 });
 
-test("Bubbo pause status uses compact run metrics instead of mode-label duplication", async () => {
-  const source = await readFile(path.join(root, "src", "games", "bubbo", "BubboGame.jsx"), "utf8");
-  const statusStart = source.indexOf("status={gameActive ? [");
-  const statusEnd = source.indexOf("] : []}", statusStart);
-  assert.ok(statusStart > 0 && statusEnd > statusStart, "Bubbo pause status block must be present");
-  const statusBlock = source.slice(statusStart, statusEnd);
-
-  assert.doesNotMatch(
-    statusBlock,
-    /label:\s*t\(currentMode\.labelKey\)/,
-    "Bubbo paused status should not use the current mode title as a metric label",
-  );
-  assert.match(
-    statusBlock,
-    /label:\s*t\("common\.score"\),\s*value:\s*score/,
-    "Bubbo paused status should expose score as the first compact run metric",
-  );
+test("Bubbo pause status exposes score, run limit and reward instead of mode-label duplication", () => {
+  for (const mode of ["classic", "timed"]) {
+    const { tree } = renderArcadePresentation("bubbo", { paused: true, mode });
+    const metrics = findElements(tree, (node) => node.props.className === "bb-dialog-metrics");
+    assert.equal(metrics.length, 1, "Bubbo pause metrics must be rendered");
+    const values = findElements(metrics[0], (node) => node.props.className === "bb-metric").map(textContent);
+    assert.deepEqual(values, ["common.score 420", mode === "timed" ? "common.time 31s" : "common.shots 17", "common.reward 12"]);
+    assert.doesNotMatch(textContent(metrics[0]), /bubbo\.mode\./);
+  }
 });
 
 test("shared shell HUD controls avoid native browser title tooltips", async () => {
@@ -851,6 +822,15 @@ test("mini-game direct controls avoid native browser title tooltips", async () =
   for (const filePath of gameFiles) {
     const source = await readFile(path.join(root, filePath), "utf8");
     assertNoNativeButtonTitles(source, filePath);
+  }
+
+  for (const gameId of arcadeGames) {
+    for (const paused of [false, true]) {
+      const { tree } = renderArcadePresentation(gameId, { paused });
+      const controls = findElements(tree, (node) => node.type === "button" || node.props.as === "button");
+      assert.ok(controls.length > 0, `${gameId} rendered controls must be inspected`);
+      for (const control of controls) assert.equal(control.props.title, undefined, `${gameId} controls must avoid native title tooltips`);
+    }
   }
 });
 
@@ -887,9 +867,6 @@ test("Garden Shelf shell chrome uses garden assets without obscuring quest dialo
 
 test("mini-game menus use neutral dialog art instead of blue slot panels", async () => {
   const cssByFile = {
-    "src/games/blox/blox.css": ["--blox-dialog-art", "blox-dialog-panel.png"],
-    "src/games/match3/match3.css": ["--match3-dialog-art", "match3-dialog-panel.png"],
-    "src/games/bubbo/bubbo.css": ["--bubbo-dialog-art", "bubbo-dialog-panel.png"],
     "src/games/trivia/trivia.css": ["--trivia-dialog-art", "trivia-dialog-panel.png"],
   };
 
@@ -900,5 +877,15 @@ test("mini-game menus use neutral dialog art instead of blue slot panels", async
       new RegExp(`${escapeRegExp(variableName)}:\\s*url\\("\\/games\\/ui-surfaces\\/${escapeRegExp(expectedAsset)}"\\)`),
       `${filePath} should use the ${expectedAsset} dialog frame for menu overlays`,
     );
+  }
+
+  for (const gameId of arcadeGames) {
+    const { assets, skin, dialog } = arcadeArt[gameId];
+    const frame = skin(dialog).borderImageSource;
+    assert.ok(frame.includes(`/games/${gameId}-v2/`), `${gameId} uses its neutral v2 panel/card frame`);
+    assert.doesNotMatch(frame, /(?:slot|metric-chip)/, `${gameId} dialogs must not stretch slot art`);
+    for (const assetPath of Object.values(assets)) {
+      assert.ok(existsSync(resolvePublicAsset(assetPath)), `${gameId} active asset ${assetPath} must exist`);
+    }
   }
 });

@@ -31,11 +31,31 @@ import {
 } from "../game-logic.js";
 import { withPlayerLock } from "../playerManager.js";
 import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
+import {quoteMergeLab} from "../game-logic/merge-lab-service.js";
+import {MergeLabError} from "../game-logic/merge-lab-domain.js";
 
 const MERGE_EXCHANGE_CLAIM_RETENTION_DAYS = 7;
 
 export default function mergeRoutes(requireAuth, resolveUser) {
   const router = Router();
+
+  router.post("/api/merge/lab/quote", requireAuth, async (req, res, next) => {
+    try {
+      const { userId, username } = resolveUser(req);
+      if (!userId) return res.status(400).json({ error: "userId required" });
+      const { type, parameters = {}, expectedMergeEpoch } = req.body || {};
+      const now = Date.now();
+      const result = await withPlayerLock(userId, (p) => {
+        try {
+          return routeOk({ quote: quoteMergeLab(p, type, parameters, { now, expectedMergeEpoch }) });
+        } catch (error) {
+          if (!(error instanceof MergeLabError)) throw error;
+          return routeFail(error.status, { error: error.message, code: error.code });
+        }
+      }, username);
+      return sendRouteResult(res, result);
+    } catch (error) { next(error); }
+  });
 
   function ensureMergeState(p) {
     hydrateMergeBoard(p);
@@ -164,6 +184,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       ensureMergeState(p);
       return routeOk({
         merge: p.merge,
@@ -178,6 +199,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       const { chainId = MERGE_WILD_GENERATOR_ID, cropId } = req.body;
 
       ensureMergeState(p);
@@ -293,6 +315,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       const { fromR, fromC, toR, toC } = req.body;
       hydrateMergeBoard(p);
       const board = p.merge.board;
@@ -343,6 +366,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       hydrateMergeBoard(p);
 
       if ((p.resources.gachaTokens || 0) < ECONOMY.GACHA_PULL_COST) {
@@ -385,6 +409,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       ensureMergeState(p);
       const now = Date.now();
 
@@ -427,6 +452,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     const { userId } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       const { r, c } = req.body;
       if (!validCoord(r, BOARD_ROWS) || !validCoord(c, BOARD_COLS)) {
         return routeFail(400, { error: "invalid coordinates" });
@@ -449,6 +475,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
 
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       const now = Date.now();
       ensureMergeState(p);
       const claim = getMergeFreeTapClaim(p.merge, now);
@@ -469,6 +496,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
 
     const result = await withPlayerLock(userId, async (p) => {
+      if (p.merge?.schemaVersion === 3) return routeFail(410, { error: "Legacy Merge mutations are retired", code: "LEGACY_MERGE_RETIRED" });
       ensureMergeState(p);
       const offer = findMergeExchangeOffer(req.body?.offerId);
       if (!offer) return routeFail(400, { error: "unknown exchange offer" });

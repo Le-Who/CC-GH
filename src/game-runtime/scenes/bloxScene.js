@@ -1,427 +1,428 @@
-import {
-  Container,
-  createPointerSession,
-  GRID,
-  canPlaceBloxPiece,
-  PANEL,
-  MINT,
-  AMBER,
-  CORAL,
-  viewWidth,
-  viewHeight,
-  clear,
-  label,
-  rect,
-  spriteFit,
-  coverSprite,
-  gameAsset,
-  strokedRect,
-  makeInteractive,
-  fitWithTopReserve,
-  reserveFromShellChrome,
-  centeredPieceOrigin,
-  publishCanvasAssetLayout,
-  applyHudAssetRegion,
-  makeSparkles,
-  makeRipple,
-  makeRafScheduler,
-  setupStage,
-  publishCanvasLayout,
-  bloxBoardFrameLayout,
-  BLOX_ASSET_KEYS,
-  BLOX_TILE_ASSET_BY_COLOR,
-  bloxAnchorCellFromDrag,
-  bloxDragVisualPoint,
-  bloxGhostOrigin,
-  createBloxDragState,
-  tickParticles,
-} from './shared/runtime.js';
-import { previewBloxPlacement } from '../../../game-logic/blox-engine.js';
+/** Recovered game-only source from the owned Blox v2 r2 preview. See recovery manifest. */
+import {Texture,NineSliceSprite,Rectangle} from 'pixi.js';
+import {spriteFit,Container,makeRafScheduler,centeredPieceOrigin,clear,GRID,bloxGhostOrigin,canPlaceBloxPiece,strokedRect,label,AMBER,makeSparkles,MINT,bloxAnchorCellFromDrag,bloxDragVisualPoint,makeRipple,CORAL,createPointerSession,viewWidth,viewHeight,rect,publishCanvasAssetLayout,applyHudAssetRegion,makeInteractive,publishCanvasLayout,PANEL,createBloxDragState,setupStage,tickParticles} from './shared/runtime.js';
+import {previewBloxPlacement} from '../../../game-logic/blox-engine.js';
+import {bloxArtUrl,bloxTileAsset,BLOX_NINE_SLICE} from '../../games/blox/bloxArt.js';
+import {composeBlox} from '../../games/blox/bloxComposition.js';
+import {bloxTrayPieceLayout} from '../../games/blox/bloxInteraction.js';
 
-export function buildBloxScene(app, initial = {}) {
-  const root = new Container();
-  const dragLayer = new Container();
-  const effects = new Container();
+function createBloxFrame(bounds, skin="frame"){
+  const texture=Texture.from(bloxArtUrl(skin));
+  const[left, top, right, bottom]=BLOX_NINE_SLICE[skin].source;
+  const scale=BLOX_NINE_SLICE[skin].destination[0]/left;
+  const frame=new NineSliceSprite({
+    texture:texture,
+    leftWidth:left,
+    topHeight:top,
+    rightWidth:right,
+    bottomHeight:bottom,
+    width:bounds.width/scale,
+    height:bounds.height/scale
+  });
+  return frame.scale.set(scale),
+  frame.anchor.set(.5),
+  frame.position.set(bounds.left+bounds.width/2, bounds.top+bounds.height/2),
+  frame.eventMode="none",
+  frame
+}
+function createBloxEnergyLine(x, y, width, height, alpha){
+  const sprite=spriteFit(bloxArtUrl("energy"), x, y, height, width, alpha);
+  return sprite.rotation=Math.PI/2,
+  sprite
+}
+function buildBloxScene(app, initial={
+}){
+  const root=new Container;
+  const dragLayer=new Container;
+  const effects=new Container;
   app.stage.addChild(root, dragLayer, effects);
-  let data = initial;
-  let layout = null;
-  let drag = null;
-  let lastTraySignature = "";
-  const dragVisual = makeRafScheduler(() => updateDragVisualNow());
-  dragLayer.eventMode = "none";
-  dragLayer.interactiveChildren = false;
-  effects.eventMode = "none";
-  effects.interactiveChildren = false;
-
-  function tileAssetForPiece(piece) {
-    return gameAsset(BLOX_TILE_ASSET_BY_COLOR[String(piece?.color || "").toLowerCase()] || BLOX_ASSET_KEYS.cellSelected);
+  let data=initial;
+  let layout=null;
+  let drag=null;
+  let lastTraySignature="";
+  const dragVisual=makeRafScheduler(()=>updateDragVisualNow());
+  dragLayer.eventMode="none";
+  dragLayer.interactiveChildren=false;
+  effects.eventMode="none";
+  effects.interactiveChildren=false;
+  function tileAssetForPiece(h){
+    return bloxTileAsset(h?.color)
   }
-
-  function tileVisualSize(unit, scale = 1.1) {
-    return unit * scale;
+  function tileVisualSize(h, T=.96){
+    return h*T
   }
-
-  function drawPiece(piece, x, y, unit, alpha = 1, options = {}) {
-    const group = new Container();
-    group.eventMode = "none";
-    group.interactiveChildren = false;
-    const tileAsset = tileAssetForPiece(piece);
-    const visualSize = options.visualSize || tileVisualSize(unit);
-    for (const [r, c] of piece.cells || []) {
-      const cell = spriteFit(tileAsset, x + c * unit + unit / 2, y + r * unit + unit / 2, visualSize, visualSize, alpha);
-      cell.eventMode = "none";
-      group.addChild(cell);
+  function drawPiece(h, T, _, f, x=1, d={
+  }){
+    const b=new Container;
+    b.eventMode="none";
+    b.interactiveChildren=false;
+    const C=tileAssetForPiece(h);
+    const S=d.visualSize||tileVisualSize(f);
+    for(const[U, B]of h.cells||[]){
+      const X=spriteFit(C, T+B*f+f/2, _+U*f+f/2, S, S, x);
+      X.eventMode="none";
+      b.addChild(X);
     }
-    return group;
+    return b
   }
-
-  function drawTrayPiece(piece, x, y, width, height, unit, alpha = 1) {
-    const origin = centeredPieceOrigin(piece, x, y, width, height, unit);
-    return drawPiece(piece, origin.x, origin.y, unit, alpha, { visualSize: tileVisualSize(unit, 1.12) });
+  function drawTrayPiece(h, T, _, f, x, d, b=1){
+    const C=centeredPieceOrigin(h, T, _, f, x, d);
+    return drawPiece(h, C.x, C.y, d, b, {
+      visualSize:tileVisualSize(d, .96)
+    })
   }
-
-  function touchDragLift(event) {
-    const pointerType = event?.pointerType || event?.pointer?.pointerType || "";
-    const coarse = typeof window !== "undefined"
-      && (window.matchMedia?.("(pointer: coarse)")?.matches || navigator.maxTouchPoints > 0);
-    if (pointerType === "mouse" || (!coarse && pointerType !== "touch" && pointerType !== "pen")) return 0;
-    return -Math.max(52, Math.min(92, (layout?.cell || 24) * 2.15));
+  function touchDragLift(h){
+    const T=h?.pointerType||h?.pointer?.pointerType||"";
+    const _=typeof window<"u"&&(window.matchMedia?.("(pointer: coarse)")?.matches||navigator.maxTouchPoints>0);
+    return T==="mouse"||!_&&T!=="touch"&&T!=="pen"?0:-Math.max(52, Math.min(92, (layout?.cell||24)*2.15))
   }
-
-  function updateDragVisualNow() {
-    clear(dragLayer);
-    if (!drag?.piece) return;
-    const state = data.blox || {};
-    const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
-    const boardUnit = layout?.cell || 22;
-    const trayUnit = Math.min(boardUnit, 28);
-    const unit = drag.overCell ? boardUnit : trayUnit;
-    const origin = bloxGhostOrigin(drag, unit);
-    const ghost = drawPiece(drag.piece, origin.x, origin.y, unit, drag.overCell ? 0.72 : 0.76);
-    const valid = drag.overCell && canPlaceBloxPiece(board, drag.piece, drag.overCell.row, drag.overCell.col);
-    const dragPreview = valid
-      ? previewBloxPlacement(
-        {
-          board,
-          tray: [{ piece: drag.piece, placed: false }],
-          score: state.score || 0,
-          linesCleared: state.linesCleared || 0,
-        },
-        { pieceIdx: 0, row: drag.overCell.row, col: drag.overCell.col },
-      )
-      : null;
-    ghost.alpha = drag.overCell ? 0.78 : 0.66;
-    dragLayer.addChild(ghost);
-    if (drag.overCell) {
-      for (const row of dragPreview?.clear.rows || []) {
-        dragLayer.addChild(spriteFit(
-          gameAsset(BLOX_ASSET_KEYS.rowWipe),
-          layout.left + layout.size / 2,
-          layout.top + (row + 0.5) * layout.cell,
-          layout.size + 12,
-          layout.cell * 1.24,
-          0.42,
-        ));
-      }
-      for (const col of dragPreview?.clear.cols || []) {
-        dragLayer.addChild(spriteFit(
-          gameAsset(BLOX_ASSET_KEYS.columnWipe),
-          layout.left + (col + 0.5) * layout.cell,
-          layout.top + layout.size / 2,
-          layout.cell * 1.24,
-          layout.size + 12,
-          0.4,
-        ));
-      }
-      const snap = drawPiece(
-        drag.piece,
-        layout.left + drag.overCell.col * layout.cell,
-        layout.top + drag.overCell.row * layout.cell,
-        layout.cell,
-        valid ? 0.34 : 0.24,
-      );
-      snap.alpha = valid ? 0.74 : 0.52;
-      dragLayer.addChild(snap);
-      for (const [dr, dc] of drag.piece.cells || []) {
-        const row = drag.overCell.row + dr;
-        const col = drag.overCell.col + dc;
-        if (row < 0 || row >= GRID || col < 0 || col >= GRID) continue;
-        const x = layout.left + col * layout.cell + 1;
-        const y = layout.top + row * layout.cell + 1;
-        dragLayer.addChild(spriteFit(gameAsset(valid ? BLOX_ASSET_KEYS.cellValid : BLOX_ASSET_KEYS.cellInvalid), x + layout.cell / 2 - 1, y + layout.cell / 2 - 1, layout.cell - 2, layout.cell - 2, valid ? 0.78 : 0.68));
+  function updateDragVisualNow(){
+    if(clear(dragLayer), !drag?.piece)return;
+    const h=data.blox||{
+    };
+    const T=h.board||h.savedState?.board||Array.from({
+      length:GRID
+    }, ()=>Array(GRID).fill(null));
+    const _=layout?.cell||22;
+    const f=Math.min(_, 28);
+    const x=drag.overCell?_:f;
+    const d=bloxGhostOrigin(drag, x);
+    const b=drawPiece(drag.piece, d.x, d.y, x, drag.overCell?.72:.76);
+    const C=drag.overCell&&canPlaceBloxPiece(T, drag.piece, drag.overCell.row, drag.overCell.col);
+    const S=C?previewBloxPlacement({
+      board:T,
+      tray:[{
+        piece:drag.piece,
+        placed:false
+      }],
+      score:h.score||0,
+      linesCleared:h.linesCleared||0
+    }, {
+      pieceIdx:0,
+      row:drag.overCell.row,
+      col:drag.overCell.col
+    }):null;
+    if(b.alpha=drag.overCell?.78:.66, dragLayer.addChild(b), drag.overCell){
+      for(const B of S?.clear.rows||[])dragLayer.addChild(spriteFit(bloxArtUrl("energy"), layout.left+layout.size/2, layout.top+(B+.5)*layout.cell, layout.size+12, layout.cell*1.24, .42));
+      for(const B of S?.clear.cols||[])dragLayer.addChild(createBloxEnergyLine(layout.left+(B+.5)*layout.cell, layout.top+layout.size/2, layout.cell*1.24, layout.size+12, .4));
+      const U=drawPiece(drag.piece, layout.left+drag.overCell.col*layout.cell, layout.top+drag.overCell.row*layout.cell, layout.cell, C?.34:.24);
+      U.alpha=C?.74:.52;
+      dragLayer.addChild(U);
+      for(const[B, X]of drag.piece.cells||[]){
+        const u=drag.overCell.row+B;
+        const M=drag.overCell.col+X;
+        if(u<0||u>=GRID||M<0||M>=GRID)continue;
+        const R=layout.left+M*layout.cell+1;
+        const H=layout.top+u*layout.cell+1;
+        dragLayer.addChild(strokedRect(R, H, layout.cell-2, layout.cell-2, C?5764563:16735608, 3, C?5764563:16735608, .12, 2));
+        C||dragLayer.addChild(label("×", R+layout.cell/2, H+layout.cell/2, Math.max(12, layout.cell*.6), 16763603, "800"));
       }
     }
   }
-
-  function updateDragVisual() {
-    dragVisual.request();
+  function g(){
+    dragVisual.request()
   }
-
-  function playBloxClearEffects(clearInfo = {}) {
-    if (!layout) return;
-    const rows = Array.isArray(clearInfo.rows) ? clearInfo.rows : [];
-    const cols = Array.isArray(clearInfo.cols) ? clearInfo.cols : [];
-    const clearedCells = new Set();
-    for (const row of rows) {
-      for (let col = 0; col < GRID; col += 1) clearedCells.add(`${row}:${col}`);
-    }
-    for (const col of cols) {
-      for (let row = 0; row < GRID; row += 1) clearedCells.add(`${row}:${col}`);
-    }
-    for (const key of clearedCells) {
-      const [row, col] = key.split(":").map(Number);
-      const x = layout.left + col * layout.cell + 2;
-      const y = layout.top + row * layout.cell + 2;
-      const flash = strokedRect(x, y, layout.cell - 4, layout.cell - 4, AMBER, 6, 0xfff4c7, 0.78, 2);
-      flash._delay = Math.min(10, (row + col) % 5);
-      flash._tween = {
-        fromX: x,
-        fromY: y,
-        toX: x,
-        toY: y,
-        duration: 18,
-        fade: true,
-        scaleFrom: 0.9,
-        scaleTo: 1.08,
+  function G(h={
+  }){
+    if(!layout)return;
+    const T=Array.isArray(h.rows)?h.rows:[];
+    const _=Array.isArray(h.cols)?h.cols:[];
+    const f=new Set;
+    for(const x of T)for(let d=0; d<GRID; d+=1)f.add(`${x}:${d}`);
+    for(const x of _)for(let d=0; d<GRID; d+=1)f.add(`${d}:${x}`);
+    for(const x of f){
+      const[d, b]=x.split(":").map(Number);
+      const C=layout.left+(b+.5)*layout.cell;
+      const S=layout.top+(d+.5)*layout.cell;
+      const U=strokedRect(-(layout.cell-4)/2, -(layout.cell-4)/2, layout.cell-4, layout.cell-4, AMBER, 6, 16774343, .78, 2);
+      U.position.set(C, S);
+      U._delay=Math.min(10, (d+b)%5);
+      U._tween={
+        fromX:C,
+        fromY:S,
+        toX:C,
+        toY:S,
+        duration:18,
+        fade:true,
+        scaleFrom:.9,
+        scaleTo:1.08
       };
-      effects.addChild(flash);
+      effects.addChild(U);
     }
-    for (const row of rows) {
-      const y = layout.top + row * layout.cell + layout.cell / 2;
-      const wipe = spriteFit(gameAsset(BLOX_ASSET_KEYS.rowWipe), layout.left + layout.size / 2, y, layout.size + 16, layout.cell * 1.35, 0.74);
-      wipe.scale.x = 0.08;
-      wipe._delay = row % 3;
-      wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
-      effects.addChild(wipe);
-      for (let col = 0; col < GRID; col += 2) {
-        const before = effects.children.length;
-        makeSparkles(effects, layout.left + (col + 0.5) * layout.cell, y, AMBER, 3);
-        for (const child of effects.children.slice(before)) child._delay = 4 + row % 3;
+    for(const x of T){
+      const d=layout.top+x*layout.cell+layout.cell/2;
+      const b=spriteFit(bloxArtUrl("energy"), layout.left+layout.size/2, d, layout.size+16, layout.cell*1.35, .74);
+      const C=b.scale.x;
+      b.scale.set(C*.08);
+      b._delay=x%3;
+      b._tween={
+        fromX:b.x,
+        fromY:b.y,
+        toX:b.x,
+        toY:b.y,
+        duration:20,
+        scaleFrom:C*.08,
+        scaleTo:C*1.08,
+        fade:true
+      };
+      effects.addChild(b);
+      for(let S=0; S<GRID; S+=2){
+        const U=effects.children.length;
+        makeSparkles(effects, layout.left+(S+.5)*layout.cell, d, AMBER, 3);
+        for(const B of effects.children.slice(U))B._delay=4+x%3
       }
     }
-    for (const col of cols) {
-      const x = layout.left + col * layout.cell + layout.cell / 2;
-      const wipe = spriteFit(gameAsset(BLOX_ASSET_KEYS.columnWipe), x, layout.top + layout.size / 2, layout.cell * 1.35, layout.size + 16, 0.7);
-      wipe.scale.y = 0.08;
-      wipe._delay = col % 3;
-      wipe._tween = { fromX: wipe.x, fromY: wipe.y, toX: wipe.x, toY: wipe.y, duration: 20, scaleFrom: 0.08, scaleTo: 1.08, fade: true };
-      effects.addChild(wipe);
-      for (let row = 0; row < GRID; row += 2) {
-        const before = effects.children.length;
-        makeSparkles(effects, x, layout.top + (row + 0.5) * layout.cell, MINT, 3);
-        for (const child of effects.children.slice(before)) child._delay = 6 + col % 3;
+    for(const x of _){
+      const d=layout.left+x*layout.cell+layout.cell/2;
+      const b=createBloxEnergyLine(d, layout.top+layout.size/2, layout.cell*1.35, layout.size+16, .7);
+      const C=b.scale.x;
+      b.scale.set(C*.08);
+      b._delay=x%3;
+      b._tween={
+        fromX:b.x,
+        fromY:b.y,
+        toX:b.x,
+        toY:b.y,
+        duration:20,
+        scaleFrom:C*.08,
+        scaleTo:C*1.08,
+        fade:true
+      };
+      effects.addChild(b);
+      for(let S=0; S<GRID; S+=2){
+        const U=effects.children.length;
+        makeSparkles(effects, d, layout.top+(S+.5)*layout.cell, MINT, 3);
+        for(const B of effects.children.slice(U))B._delay=6+x%3
       }
     }
-    if (clearedCells.size) {
-      const burst = spriteFit(gameAsset(BLOX_ASSET_KEYS.multiClearBurst), layout.left + layout.size / 2, layout.top + layout.size / 2, layout.cell * 3.1, layout.cell * 3.1, 0.78);
-      burst._tween = {
-        fromX: burst.x,
-        fromY: burst.y,
-        toX: burst.x,
-        toY: burst.y,
-        duration: 24,
-        fade: true,
-        scaleFrom: 0.66,
-        scaleTo: 1.22,
+    if(f.size){
+      const x=spriteFit(bloxArtUrl("burst"), layout.left+layout.size/2, layout.top+layout.size/2, layout.cell*3.1, layout.cell*3.1, .78);
+      x._tween={
+        fromX:x.x,
+        fromY:x.y,
+        toX:x.x,
+        toY:x.y,
+        duration:24,
+        fade:true,
+        scaleFrom:x.scale.x*.66,
+        scaleTo:x.scale.x*1.22
       };
-      effects.addChild(burst);
-      const text = label(data.bloxClearText || "CLEAR", layout.left + layout.size / 2, layout.top + layout.size / 2, Math.max(18, layout.cell * 0.48), AMBER, "1000");
-      text._tween = {
-        fromX: text.x,
-        fromY: text.y,
-        toX: text.x,
-        toY: text.y - layout.cell * 0.7,
-        duration: 30,
-        fade: true,
-        scaleFrom: 0.82,
-        scaleTo: 1.18,
+      effects.addChild(x);
+      const d=label(data.bloxClearText||"CLEAR", layout.left+layout.size/2, layout.top+layout.size/2, Math.max(18, layout.cell*.48), AMBER, "1000");
+      d._tween={
+        fromX:d.x,
+        fromY:d.y,
+        toX:d.x,
+        toY:d.y-layout.cell*.7,
+        duration:30,
+        fade:true,
+        scaleFrom:.82,
+        scaleTo:1.18
       };
-      effects.addChild(text);
+      effects.addChild(d);
     }
   }
-
-  function dropDrag(done) {
-    if (!drag) return;
-    const current = drag;
-    const target = done?.cancelled ? null : current.overCell || bloxAnchorCellFromDrag(layout, current);
-    const point = target
-      ? {
-          x: layout.left + (target.col + 0.5) * layout.cell,
-          y: layout.top + (target.row + 0.5) * layout.cell,
-        }
-      : bloxDragVisualPoint(current);
-    drag = null;
+  function F(h){
+    if(!drag)return;
+    const T=drag;
+    const _=h?.cancelled?null:T.overCell||bloxAnchorCellFromDrag(layout, T);
+    const f=_?{
+      x:layout.left+(_.col+.5)*layout.cell,
+      y:layout.top+(_.row+.5)*layout.cell
+    }:bloxDragVisualPoint(T);
+    drag=null;
     dragVisual.cancel();
     clear(dragLayer);
-    if (target && data.blox?.gameActive) {
-      data.onBloxDrop?.(current.pieceIdx, target.row, target.col)?.then?.((result) => {
-        if (!result?.error) {
-          const settle = spriteFit(gameAsset(BLOX_ASSET_KEYS.placeSettle), point.x, point.y, 52, 52, 0.7);
-          settle._tween = { fromX: point.x, fromY: point.y, toX: point.x, toY: point.y, duration: 18, fade: true, scaleFrom: 0.68, scaleTo: 1.12 };
-          effects.addChild(settle);
-          const clearColor = result.clear?.cleared ? AMBER : MINT;
-          makeSparkles(effects, point.x, point.y, clearColor, result.clear?.cleared ? 18 : 13);
-          makeRipple(effects, point.x, point.y, clearColor, result.clear?.cleared ? 42 : 24);
-          if (result.clear?.cleared) playBloxClearEffects(result.clear);
+    _&&data.blox?.gameActive?data.onBloxDrop?.(T.pieceIdx, _.row, _.col)?.then?.(x=>{
+      if(!x?.error){
+        const d=spriteFit(bloxArtUrl("burst"), f.x, f.y, 52, 52, .7);
+        d._tween={
+          fromX:f.x,
+          fromY:f.y,
+          toX:f.x,
+          toY:f.y,
+          duration:18,
+          fade:true,
+          scaleFrom:d.scale.x*.68,
+          scaleTo:d.scale.x*1.12
+        };
+        effects.addChild(d);
+        const b=x.clear?.cleared?AMBER:MINT;
+        makeSparkles(effects, f.x, f.y, b, x.clear?.cleared?18:13);
+        makeRipple(effects, f.x, f.y, b, x.clear?.cleared?42:24);
+        x.clear?.cleared&&G(x.clear);
+      }
+    }):T.moved||h?.moved?makeSparkles(effects, T.startX, T.startY, CORAL, 5):data.onBloxTray?.(T.pieceIdx);
+    k();
+  }
+  const O=createPointerSession({
+    onMove:h=>{
+      drag&&(drag.x=h.x, drag.y=h.y, drag.moved=h.moved, drag.overCell=bloxAnchorCellFromDrag(layout, drag), g())
+    },
+    onTap:h=>{
+      if(h.data?.kind==="blox-cell"){
+        data.onBloxCell?.(h.data.row, h.data.col);
+        return
+      }
+      drag&&(data.onBloxTray?.(drag.pieceIdx), drag=null, dragVisual.cancel(), clear(dragLayer), k())
+    },
+    onDragEnd:F,
+    onCancel:h=>F(h)
+  });
+  function k(){
+    clear(root);
+    const h=data.blox||{
+    };
+    const T=h.board||h.savedState?.board||Array.from({
+      length:GRID
+    }, ()=>Array(GRID).fill(null));
+    const _=h.tray||h.savedState?.tray||[];
+    const f=data.bloxComposition||composeBlox({
+      width:viewWidth(app),
+      height:viewHeight(app),
+      hudLayout:data.hudLayout
+    });
+    layout=f.board;
+    const{
+      size:x,
+      cell:d,
+      left:b,
+      top:C,
+      frame:S
+    }=layout;
+    root.addChild(rect(S.left, S.top, S.width, S.height, 463398, 6, 1));
+    publishCanvasAssetLayout(app, "bloxBoardFrameAsset", S);
+    root.addChild(applyHudAssetRegion(createBloxFrame(S), data, "bloxBoardFrameAsset"));
+    for(let u=0; u<GRID; u++)for(let M=0; M<GRID; M++){
+      const R=T[u]?.[M];
+      const H=R?bloxTileAsset(R):bloxArtUrl("cell");
+      const P=spriteFit(H, b+M*d+d/2, C+u*d+d/2, tileVisualSize(d), tileVisualSize(d), 1);
+      P.hitArea=new Rectangle(-d/(2*P.scale.x), -d/(2*P.scale.y), d/P.scale.x, d/P.scale.y);
+      makeInteractive(P, {
+        pointerdown:Y=>{
+          h.gameActive&&O.start(Y, {
+            kind:"blox-cell",
+            row:u,
+            col:M
+          })
         }
       });
-    } else if (current.moved || done?.moved) {
-      makeSparkles(effects, current.startX, current.startY, CORAL, 5);
-    } else {
-      data.onBloxTray?.(current.pieceIdx);
+      root.addChild(P);
     }
-    draw();
-  }
-
-  const pointer = createPointerSession({
-    onMove: (next) => {
-      if (!drag) return;
-      drag.x = next.x;
-      drag.y = next.y;
-      drag.moved = next.moved;
-      drag.overCell = bloxAnchorCellFromDrag(layout, drag);
-      updateDragVisual();
-    },
-    onTap: (done) => {
-      if (done.data?.kind === "blox-cell") {
-        data.onBloxCell?.(done.data.row, done.data.col);
-        return;
-      }
-      if (!drag) return;
-      data.onBloxTray?.(drag.pieceIdx);
-      drag = null;
-      dragVisual.cancel();
-      clear(dragLayer);
-      draw();
-    },
-    onDragEnd: dropDrag,
-    onCancel: (done) => dropDrag(done),
-  });
-
-  function draw() {
-    clear(root);
-    const state = data.blox || {};
-    const board = state.board || state.savedState?.board || Array.from({ length: GRID }, () => Array(GRID).fill(null));
-    const tray = state.tray || state.savedState?.tray || [];
-    const hudReserve = reserveFromShellChrome(app, ".blox-play-hud", data.bloxHudReserve || 88);
-    const bottomReserve = Math.max(72, Math.min(106, viewHeight(app) * 0.105));
-    const boardMargin = viewWidth(app) >= 900 && viewHeight(app) >= 700 ? 8 : 12;
-    const fitted = fitWithTopReserve(app, GRID, GRID, boardMargin, hudReserve, bottomReserve, { verticalAnchor: 0.06 });
-    layout = bloxBoardFrameLayout(fitted, GRID);
-    const { size, cell, left, top, frame } = layout;
-    const stageWidth = viewWidth(app);
-    const stageHeight = viewHeight(app);
-    publishCanvasAssetLayout(app, "bloxBackgroundAsset", { left: 0, top: 0, width: stageWidth, height: stageHeight });
-    const background = coverSprite(gameAsset(BLOX_ASSET_KEYS.background), stageWidth / 2, stageHeight / 2, stageWidth, stageHeight, 1024 / 1536, 0.92);
-    root.addChild(applyHudAssetRegion(background, data, "bloxBackgroundAsset"));
-    root.addChild(rect(frame.left - 8, frame.top - 8, frame.width + 16, frame.height + 16, PANEL, 14, 0.14));
-    publishCanvasAssetLayout(app, "bloxBoardFrameAsset", frame);
-    const boardFrame = spriteFit(gameAsset(BLOX_ASSET_KEYS.boardFrame), frame.left + frame.width / 2, frame.top + frame.height / 2, frame.width, frame.height, 0.98);
-    root.addChild(applyHudAssetRegion(boardFrame, data, "bloxBoardFrameAsset"));
-
-    for (let r = 0; r < GRID; r++) {
-      for (let c = 0; c < GRID; c++) {
-        const value = board[r]?.[c];
-        const tileAsset = value
-          ? gameAsset(BLOX_TILE_ASSET_BY_COLOR[String(value).toLowerCase()] || BLOX_ASSET_KEYS.cellSelected)
-          : gameAsset(BLOX_ASSET_KEYS.cellEmpty);
-        const tile = spriteFit(tileAsset, left + c * cell + cell / 2, top + r * cell + cell / 2, tileVisualSize(cell), tileVisualSize(cell), value ? 1 : 0.86);
-        makeInteractive(tile, {
-          pointerdown: (event) => {
-            if (!state.gameActive) return;
-            pointer.start(event, { kind: "blox-cell", row: r, col: c });
-          },
-        });
-        root.addChild(tile);
-      }
-    }
-
-    const predictedLines = Math.max(0, Number(data.bloxPredictedLines) || 0);
-    if (predictedLines > 0) {
-      const predicted = label(`+${predictedLines} ${predictedLines === 1 ? "line" : "lines"}`, left + size / 2, Math.max(18, top - 18), Math.max(14, cell * 0.32), AMBER, "900");
-      predicted.alpha = 0.94;
-      root.addChild(predicted);
-    }
-
-    const trayTop = frame.top + frame.height + Math.max(8, cell * 0.18);
-    const trayWidth = Math.min(viewWidth(app) - 36, Math.max(frame.width * 1.16, 430));
-    const trayLeft = (viewWidth(app) - trayWidth) / 2;
-    const slotW = trayWidth / 3;
-    const trayUnit = Math.min(Math.max(12, slotW / 7.8), Math.max(18, cell * 0.62), 32);
-    publishCanvasLayout(app, "blox", { top, left, size });
-    if (app.canvas?.dataset) {
-      app.canvas.dataset.bloxTrayTop = String(Math.round(trayTop * 100) / 100);
-      app.canvas.dataset.bloxTraySlotWidth = String(Math.round(slotW * 100) / 100);
-    }
-    publishCanvasAssetLayout(app, "bloxTrayPanelAsset", { left: (viewWidth(app) - trayWidth - 18) / 2, top: trayTop - 7, width: trayWidth + 18, height: 74 });
-    const trayPanel = spriteFit(gameAsset(BLOX_ASSET_KEYS.trayPanel), viewWidth(app) / 2, trayTop + 30, trayWidth + 18, 74, 0.76);
-    root.addChild(applyHudAssetRegion(trayPanel, data, "bloxTrayPanelAsset"));
-    const traySignature = tray.map((item) => `${item?.piece?.id || "empty"}:${item?.placed ? 1 : 0}`).join("|");
-    const trayChanged = lastTraySignature && lastTraySignature !== traySignature;
-    lastTraySignature = traySignature;
-    for (let i = 0; i < 3; i++) {
-      const t = tray[i];
-      const x = trayLeft + i * slotW;
-      const slotWidth = slotW - 8;
-      const slotHeight = 58;
-      const pieceOrigin = centeredPieceOrigin(t?.piece, x, trayTop, slotWidth, slotHeight, trayUnit);
-      const slot = spriteFit(gameAsset(i === data.selectedBloxPiece ? BLOX_ASSET_KEYS.traySlotSelected : BLOX_ASSET_KEYS.traySlotEmpty), x + slotWidth / 2, trayTop + slotHeight / 2, slotWidth, slotHeight, t?.placed ? 0.45 : 0.98);
-      makeInteractive(slot, {
-        pointerdown: (event) => {
-          if (!t?.piece || t.placed || !state.gameActive) {
-            data.onBloxTray?.(i);
-            return;
+    const U=f.tray.top;
+    publishCanvasLayout(app, "blox", {
+      top:C,
+      left:b,
+      size:x
+    });
+    app.canvas?.dataset&&(app.canvas.dataset.bloxTrayTop=String(U), app.canvas.dataset.bloxTraySlotWidth=String(f.slots[0].width), app.canvas.dataset.bloxTraySlots=JSON.stringify(f.slots), app.canvas.dataset.puzzleArrangement=f.landscape?"side":"stack");
+    publishCanvasAssetLayout(app, "bloxTrayPanelAsset", f.tray);
+    const B=_.map(u=>`${u?.piece?.id||"empty"}:${u?.placed?1:0}`).join("|");
+    const X=lastTraySignature&&lastTraySignature!==B;
+    lastTraySignature=B;
+    for(let u=0; u<3; u++){
+      const M=_[u];
+      const{
+        left:R,
+        top:H,
+        width:P,
+        height:Y
+      }=f.slots[u];
+      const I=bloxTrayPieceLayout(M?.piece, f.slots[u], d);
+      const L=I.unit;
+      const N={
+        x:I.left,
+        y:I.top
+      };
+      const z=rect(R, H, P, Y, PANEL, 8, .01);
+      const j=createBloxFrame({
+        left:R,
+        top:H,
+        width:P,
+        height:Y
+      }, "panel");
+      j.alpha=M?.placed?.65:1;
+      root.addChild(applyHudAssetRegion(j, data, "bloxTrayPanelAsset"));
+      u===data.selectedBloxPiece&&!M?.placed&&root.addChild(strokedRect(R+3, H+3, P-6, Y-6, MINT, 7, MINT, .08, 2));
+      makeInteractive(z, {
+        pointerdown:E=>{
+          if(!M?.piece||M.placed||!h.gameActive){
+            data.onBloxTray?.(u);
+            return
           }
-          drag = createBloxDragState({
-            pieceIdx: i,
-            piece: t.piece,
-            event,
-            originX: pieceOrigin.x,
-            originY: pieceOrigin.y,
-            unit: trayUnit,
+          drag=createBloxDragState({
+            pieceIdx:u,
+            piece:M.piece,
+            event:E,
+            originX:N.x,
+            originY:N.y,
+            unit:L
           });
-          drag.visualOffsetY = touchDragLift(event);
-          drag.overCell = bloxAnchorCellFromDrag(layout, drag);
-          pointer.start(event, { kind: "blox-tray", pieceIdx: i });
-          updateDragVisual();
-        },
+          drag.visualOffsetY=touchDragLift(E);
+          drag.overCell=bloxAnchorCellFromDrag(layout, drag);
+          O.start(E, {
+            kind:"blox-tray",
+            pieceIdx:u
+          });
+          g();
+        }
       });
-      root.addChild(slot);
-      if (t?.piece && drag?.pieceIdx !== i) {
-        root.addChild(drawTrayPiece(t.piece, x, trayTop, slotWidth, slotHeight, trayUnit, t.placed ? 0.35 : 1));
-      }
-      if (trayChanged && t?.piece && !t.placed) {
-        makeRipple(effects, x + slotWidth / 2, trayTop + slotHeight / 2, MINT, 18);
+      root.addChild(z);
+      M?.piece&&drag?.pieceIdx!==u&&root.addChild(drawTrayPiece(M.piece, R, H, P, Y, L, M.placed?.16:1));
+      X&&M?.piece&&!M.placed&&makeRipple(effects, R+P/2, H+Y/2, MINT, 18);
+    }
+    if(data.bloxKeyboardCell){
+      const{
+        row:u,
+        col:M
+      }=data.bloxKeyboardCell;
+      const R=_[data.selectedBloxPiece]?.piece;
+      const H=R&&!_[data.selectedBloxPiece]?.placed&&canPlaceBloxPiece(T, R, u, M);
+      const P=R?.cells||[[0, 0]];
+      for(const[Y, I]of P){
+        const L=u+Y;
+        const N=M+I;
+        L<0||L>=GRID||N<0||N>=GRID||root.addChild(strokedRect(b+N*d+1, C+L*d+1, d-2, d-2, H?5764563:16735608, 3, H?5764563:16735608, .08, 2))
       }
     }
-
-    updateDragVisual();
-    if (!data.bloxHideStatusText) {
-      root.addChild(label(data.bloxStatusText || `Score ${state.score || 0} · Lines ${state.linesCleared || 0}`, viewWidth(app) / 2, trayTop + 76, 14, AMBER));
-    }
+    g();
+    data.bloxHideStatusText||root.addChild(label(data.bloxStatusText||`Score ${h.score||0} · Lines ${h.linesCleared||0}`, viewWidth(app)/2, U+76, 14, AMBER));
   }
-
-  const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
-  const ticker = () => tickParticles(effects);
-  app.ticker.add(ticker);
-  draw();
-  return {
-    update(next) {
-      data = next || {};
-      if (drag) updateDragVisual();
-      else draw();
+  const A=setupStage(app, O.move, O.end, ()=>O.cancel("stage"));
+  const D=()=>tickParticles(effects);
+  return app.ticker.add(D),
+  k(),
+  {
+    resize(h){
+      O.cancel("resize");
+      data=h||{
+      };
+      k();
     },
-    destroy() {
-      cleanup();
-      app.ticker.remove(ticker);
+    update(h){
+      data=h||{
+      };
+      drag&&!data.blox?.gameActive?O.cancel("inactive"):drag?g():k();
+    },
+    destroy(){
+      A();
+      app.ticker.remove(D);
       dragVisual.cancel();
-      pointer.cancel("destroy");
+      O.cancel("destroy");
       clear(root);
       clear(dragLayer);
       clear(effects);
-      root.destroy({ children: true });
-      dragLayer.destroy({ children: true });
-      effects.destroy({ children: true });
-    },
-  };
+      root.destroy({
+        children:true
+      });
+      dragLayer.destroy({
+        children:true
+      });
+      effects.destroy({
+        children:true
+      });
+    }
+  }
 }
+
+export {buildBloxScene,createBloxFrame};

@@ -1,10 +1,12 @@
+import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-catalog.js";
 import { test, expect } from "@playwright/test";
+import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
 
 function observeRuntimeAssetRequests(page) {
   const paths = new Set();
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.pathname.startsWith("/assets-runtime/")) {
+    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:bubbo-v2|match3-v2|blox-v2)\//.test(url.pathname)) {
       paths.add(url.pathname);
     }
   });
@@ -30,11 +32,11 @@ async function expectRuntimePath(paths, prefix) {
 }
 
 async function exitActiveGame(page) {
-  const overlay = page.locator(".game-menu-overlay:visible").first();
+  const overlay = page.locator(":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible").first();
   if (await overlay.count() === 0) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
   }
-  await page.locator(".game-menu-overlay:visible").first().getByRole("button", { name: /^Exit$/ }).click();
+  await page.locator(":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible").first().getByRole("button", { name: /^Exit$/ }).click();
   await expect(page.locator(".bottom-tabs")).toBeVisible();
 }
 
@@ -45,7 +47,7 @@ test.describe("generated runtime asset manifest", () => {
     });
   });
 
-  test("serves Garden Shelf, Bubbo, Gem Crush, Merge, and Cozy Yard art from assets-runtime", async ({ page }) => {
+  test("serves Garden Shelf, Blox, Bubbo, Gem Crush, Merge, and Cozy Yard runtime art", async ({ page }) => {
     test.setTimeout(60_000);
     const runtimePaths = observeRuntimeAssetRequests(page);
     const legacyGamePngPaths = observeLegacyGamePngRequests(page);
@@ -55,35 +57,43 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.getByText("My Garden")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/assets-runtime/garden-shelf/");
 
+    await page.getByRole("button", { name: /Blox/ }).click();
+    await expect(page.getByText("Building Blox")).toBeVisible();
+    await expect(page.locator(".bx-canvas canvas")).toBeVisible();
+    await expectRuntimePath(runtimePaths, "/games/blox-v2/");
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await exitActiveGame(page);
+
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await expect(page.getByText("Bubbo Bubbo")).toBeVisible();
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
-    await expectRuntimePath(runtimePaths, "/assets-runtime/bubbo/");
+    await expect(page.locator(".active-game-frame canvas")).toBeVisible();
+    await expectRuntimePath(runtimePaths, "/games/bubbo-v2/");
     await exitActiveGame(page);
 
     await page.getByRole("button", { name: /Gems/ }).click();
     await expect(page.getByText("Gem Crush")).toBeVisible();
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
+    await expect(page.locator(".active-game-frame canvas")).toBeVisible();
+    await expectRuntimePath(runtimePaths, "/games/match3-v2/");
     await expectRuntimePath(runtimePaths, "/assets-runtime/puzzling-potions/");
     await exitActiveGame(page);
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.locator(".merge-scene-hud")).toBeVisible();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/backgrounds/table.");
-    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/hudBar.");
-    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/actionIconGenerate.");
-    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/boardFrame.");
-    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/cellEmpty.");
-    await page.locator('[data-merge-panel="recipes"]').click();
-    await expect(page.locator(".merge-scene-drawer")).toBeVisible();
-    await expectRuntimePath(runtimePaths, "/assets-runtime/gacha-merge/ui/libraryPanel.");
-    await exitActiveGame(page);
+    await expectMergeArt(page);
+    await mergePanel(page, 'samples');
+    const sampleArt = page.locator('[data-testid="ml-sample-list"] img');
+    await expect.poll(() => sampleArt.evaluateAll(images => images.length > 0 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
+    await closeMergePanel(page);
+    await exitMerge(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
     await expect(page.locator(".companion-yard-layout")).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", /\/assets-runtime\/companion-yard\/backgrounds\//);
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
-    expect([...legacyGamePngPaths].sort()).toEqual([]);
+    expect([...runtimePaths].filter(path => /^\/games\/(?:bubbo-v2|blox-v2|match3-v2)\//.test(path)).every(path => path.endsWith(".webp"))).toBe(true);
+    const approvedRetained = /^\/games\/puzzling-potions\/images\/(?:special-(?:blast|column|colour|row)|drop-(?:gold|seeds|energy)|fx-clear-burst)\.png$/;
+    // V3 reuses exactly the owned source-art paths declared in its recovered catalog.
+    const ownedMergeArt = new Set([...mergeCatalog.items, ...mergeCatalog.projects].map(entry => entry.asset));
+    expect([...legacyGamePngPaths].filter(path => !approvedRetained.test(path) && !ownedMergeArt.has(path)).sort()).toEqual([]);
+    expect([...legacyGamePngPaths].some(path => ownedMergeArt.has(path))).toBe(true);
   });
 });

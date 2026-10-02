@@ -1,68 +1,369 @@
 {
   "schemaVersion": 1,
-  "layoutVersion": "hud-redesign-2026-05-26",
+  "layoutVersion": "blox-v2-2026-10-01",
   "gameId": "blox",
   "base": {
     "regions": {
-      "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 48, "reserve": 56, "alignment": "center", "zIndex": 20, "visible": true },
-      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
-      "activeGameFrame": { "mode": "custom", "visible": true },
-      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
-      "gameShell": { "mode": "custom", "visible": true },
-      "gameplayHud": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": 10, "maxWidth": 560, "zIndex": 40, "visible": true },
-      "eventLog": { "mode": "anchored", "anchor": "bottom-center", "x": 0, "y": -104, "maxWidth": 360, "zIndex": 36, "visible": true },
-      "pauseOverlay": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 390, "zIndex": 45, "visible": true },
-      "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 88, "bottomReserve": 116, "leftReserve": 0, "rightReserve": 0 }
+      "appTopbar": {
+        "mode": "dock",
+        "edge": "top",
+        "offset": 0,
+        "thickness": 48,
+        "reserve": 56,
+        "alignment": "center",
+        "zIndex": 20,
+        "visible": true
+      },
+      "globalStats": {
+        "mode": "stack",
+        "direction": "horizontal",
+        "gap": 6,
+        "zIndex": 20,
+        "visible": true
+      },
+      "activeGameFrame": {
+        "mode": "custom",
+        "visible": true
+      },
+      "bottomDock": {
+        "mode": "dock",
+        "edge": "bottom",
+        "offset": 10,
+        "thickness": 64,
+        "reserve": 84,
+        "alignment": "center",
+        "maxWidth": 1180,
+        "zIndex": 50,
+        "visible": true
+      },
+      "gameShell": {
+        "mode": "custom",
+        "visible": true
+      },
+      "gameplayHud": {
+        "mode": "custom",
+        "height": 72,
+        "zIndex": 40,
+        "visible": true
+      },
+      "eventLog": {
+        "mode": "custom",
+        "height": 28,
+        "zIndex": 40,
+        "visible": true
+      },
+      "pauseOverlay": {
+        "mode": "anchored",
+        "anchor": "center",
+        "x": 0,
+        "y": 0,
+        "maxWidth": 460,
+        "zIndex": 45,
+        "visible": true
+      },
+      "pixiPlayfieldReserve": {
+        "mode": "reserveOnly",
+        "topReserve": 0,
+        "bottomReserve": 0,
+        "leftReserve": 0,
+        "rightReserve": 0
+      },
+      "puzzleComposition": {
+        "mode": "custom",
+        "arrangement": "stack",
+        "gutter": 8,
+        "gap": 8,
+        "frameInset": 12,
+        "maxBoardSize": 620,
+        "visible": true
+      },
+      "bloxTrayDock": {
+        "mode": "custom",
+        "height": 80,
+        "visible": true
+      },
+      "bloxComposition": {
+        "mode": "custom",
+        "gutter": 12,
+        "largeGutter": 24,
+        "largeGutterWidth": 900,
+        "gap": 10,
+        "compactGap": 8,
+        "frameInset": 8,
+        "maxBoard": 660,
+        "portraitMaxBoard": 560,
+        "portraitRows": [
+          30,
+          64,
+          118,
+          28
+        ],
+        "portraitCompactRows": [
+          24,
+          58,
+          92,
+          26
+        ],
+        "portraitCompactWidth": 340,
+        "portraitCompactHeight": 610,
+        "railWidth": 292,
+        "railCompactWidth": 240,
+        "railGap": 24,
+        "railCompactGap": 16,
+        "landscapeCompactHeight": 390,
+        "landscapeRows": [
+          30,
+          74,
+          50,
+          324,
+          30
+        ],
+        "landscapeCompactRows": [
+          0,
+          52,
+          44,
+          138,
+          30
+        ],
+        "slotGap": 8,
+        "slotInset": 8,
+        "visible": true
+      },
+      "bloxActions": {
+        "mode": "freeform",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "rotation": 0
+      },
+      "bloxTitle": {
+        "mode": "custom",
+        "visible": true
+      }
     }
   },
   "profiles": {
     "phone-small-portrait": {
-      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "match": {
+        "orientation": "portrait",
+        "maxWidth": 360
+      },
       "regions": {
-        "gameplayHud": { "y": 6, "maxWidth": 308 },
-        "eventLog": { "y": -112, "maxWidth": 304 },
-        "pixiPlayfieldReserve": { "topReserve": 96, "bottomReserve": 148 }
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 72
+        },
+        "eventLog": {
+          "mode": "custom",
+          "height": 28
+        },
+        "pixiPlayfieldReserve": {
+          "topReserve": 0,
+          "bottomReserve": 0,
+          "leftReserve": 0,
+          "rightReserve": 0
+        },
+        "pauseOverlay": {
+          "maxWidth": 460,
+          "anchor": "center",
+          "x": 0,
+          "y": 0
+        },
+        "puzzleComposition": {
+          "arrangement": "stack",
+          "frameInset": 8
+        },
+        "bloxTrayDock": {
+          "mode": "custom",
+          "height": 80
+        }
       }
     },
     "phone-default-portrait": {
-      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "match": {
+        "orientation": "portrait",
+        "maxWidth": 430
+      },
       "regions": {
-        "gameplayHud": { "y": 8, "maxWidth": 380 },
-        "eventLog": { "y": -108, "maxWidth": 344 },
-        "pixiPlayfieldReserve": { "topReserve": 92, "bottomReserve": 132 }
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 72
+        },
+        "eventLog": {
+          "mode": "custom",
+          "height": 28
+        },
+        "pixiPlayfieldReserve": {
+          "topReserve": 0,
+          "bottomReserve": 0,
+          "leftReserve": 0,
+          "rightReserve": 0
+        },
+        "pauseOverlay": {
+          "maxWidth": 460,
+          "anchor": "center",
+          "x": 0,
+          "y": 0
+        },
+        "puzzleComposition": {
+          "arrangement": "stack",
+          "frameInset": 12
+        },
+        "bloxTrayDock": {
+          "mode": "custom",
+          "height": 80
+        }
       }
     },
     "phone-landscape": {
-      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "match": {
+        "orientation": "landscape",
+        "maxHeight": 480
+      },
       "regions": {
-        "gameplayHud": { "anchor": "top-right", "x": -12, "y": 8, "maxWidth": 330 },
-        "eventLog": { "anchor": "bottom-left", "x": 12, "y": -12, "maxWidth": 300 },
-        "pixiPlayfieldReserve": { "topReserve": 52, "bottomReserve": 64 }
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 100
+        },
+        "eventLog": {
+          "mode": "custom",
+          "height": 28
+        },
+        "pixiPlayfieldReserve": {
+          "topReserve": 0,
+          "bottomReserve": 0,
+          "leftReserve": 0,
+          "rightReserve": 0
+        },
+        "pauseOverlay": {
+          "maxWidth": 460,
+          "anchor": "center",
+          "x": 0,
+          "y": 0
+        },
+        "puzzleComposition": {
+          "arrangement": "side",
+          "frameInset": 8
+        },
+        "bloxTrayDock": {
+          "mode": "custom",
+          "height": 80
+        }
       }
     },
     "tablet-portrait": {
-      "match": { "orientation": "portrait", "minWidth": 600 },
+      "match": {
+        "orientation": "portrait",
+        "minWidth": 600
+      },
       "regions": {
-        "gameplayHud": { "maxWidth": 620 },
-        "pixiPlayfieldReserve": { "topReserve": 90, "bottomReserve": 112 }
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 72
+        },
+        "pixiPlayfieldReserve": {
+          "topReserve": 0,
+          "bottomReserve": 0,
+          "leftReserve": 0,
+          "rightReserve": 0
+        },
+        "pauseOverlay": {
+          "maxWidth": 460,
+          "anchor": "center",
+          "x": 0,
+          "y": 0
+        },
+        "puzzleComposition": {
+          "arrangement": "stack",
+          "frameInset": 12
+        },
+        "eventLog": {
+          "mode": "custom",
+          "height": 28
+        },
+        "bloxTrayDock": {
+          "mode": "custom",
+          "height": 80
+        }
       }
     },
     "tablet-landscape": {
-      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "match": {
+        "orientation": "landscape",
+        "minWidth": 760,
+        "maxHeight": 900
+      },
       "regions": {
-        "gameplayHud": { "maxWidth": 560 },
-        "pixiPlayfieldReserve": { "topReserve": 72, "bottomReserve": 92 }
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 100
+        },
+        "pixiPlayfieldReserve": {
+          "topReserve": 0,
+          "bottomReserve": 0,
+          "leftReserve": 0,
+          "rightReserve": 0
+        },
+        "pauseOverlay": {
+          "maxWidth": 460,
+          "anchor": "center",
+          "x": 0,
+          "y": 0
+        },
+        "puzzleComposition": {
+          "arrangement": "side",
+          "frameInset": 12
+        },
+        "eventLog": {
+          "mode": "custom",
+          "height": 28
+        },
+        "bloxTrayDock": {
+          "mode": "custom",
+          "height": 80
+        }
       }
     },
     "desktop-landscape": {
-      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "match": {
+        "orientation": "landscape",
+        "minWidth": 1100
+      },
       "regions": {
-        "gameplayHud": { "maxWidth": 620 },
-        "pixiPlayfieldReserve": { "topReserve": 72, "bottomReserve": 88 }
+        "gameplayHud": {
+          "mode": "custom",
+          "height": 100
+        },
+        "pixiPlayfieldReserve": {
+          "topReserve": 0,
+          "bottomReserve": 0,
+          "leftReserve": 0,
+          "rightReserve": 0
+        },
+        "pauseOverlay": {
+          "maxWidth": 460,
+          "anchor": "center",
+          "x": 0,
+          "y": 0
+        },
+        "puzzleComposition": {
+          "arrangement": "side",
+          "frameInset": 12
+        },
+        "eventLog": {
+          "mode": "custom",
+          "height": 28
+        },
+        "bloxTrayDock": {
+          "mode": "custom",
+          "height": 80
+        }
       }
     }
   },
   "editor": {
-    "notes": "Blox uses shared GamePlayHud plus Pixi reserve values for the board/tray fit."
+    "notes": "Blox v2 custom adapter owns all DOM/Pixi board/tray coordinates. Safe insets are consumed exactly once. Legacy puzzleComposition defaults are retained for compatibility tests only and are not consumed by the Blox v2 renderer. Dynamic state layers are intentionally fixed to gameplay cells, not separately editable."
   }
 }

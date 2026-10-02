@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expectMergeV3, researchMergePair } from "./helpers/mergeV3.js";
 
 async function installRuntimeProbe(page) {
   await page.addInitScript(() => {
@@ -89,10 +90,8 @@ test.describe("runtime perf guard", () => {
     ).toBe(false);
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.locator(".merge-scene-hud")).toBeVisible();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator('[data-merge-action="daily"]').click();
-    await page.locator('[data-merge-action="generate"]').click();
+    await expectMergeV3(page);
+    await researchMergePair(page, 'cloud', 'ember');
     await page.bringToFront();
 
     const liveFrames = await sampleFrames(page);

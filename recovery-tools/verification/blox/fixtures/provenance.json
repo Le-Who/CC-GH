@@ -1,0 +1,13 @@
+{
+  "baselineCommit": "47519ad79796f4b3dfefd2a5f1bfb73cb08a6e86",
+  "description": "Exact test-only top-level declaration slices from the owned Blox v2 r2 preview and exact baseline controller; no generated/reformatted reference logic.",
+  "sourceBundles": {
+    "host-CwP89_oZ.js": "159a001a76c45129007cf1e3ee99af441a5e2e9a58fa847f538a44f74260ffa1",
+    "bloxScene-skG69G5D.js": "eeba5fc2797b6dbfcfc02283aa45c94fd7e9211cb28b5635bb59768ec34f6ad3"
+  },
+  "fixtureHashes": {
+    "preview/assets/host-CwP89_oZ.js": "78e803c7f1a712a5d116afef05ecf9b6aa609eb0bf7cf7543429ca1c461920b0",
+    "preview/assets/bloxScene-skG69G5D.js": "15682e4e8930258fe419b4fbcde0a48c0928d63f66cf2bc15d50721c64d38a30",
+    "baseline/src/games/blox/BloxGame.jsx": "f3e7944084cacab6f3b2e3320989ab22a9de77996dec958d028793e62c245128"
+  }
+}

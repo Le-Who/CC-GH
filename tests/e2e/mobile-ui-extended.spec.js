@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
 const EXTENDED_PHONE_VIEWPORTS = [
   { width: 375, height: 812, label: "iphone-x" },
@@ -53,16 +54,15 @@ async function expectVisibleButtonsReachable(page, selector, minSide = 44) {
 }
 
 async function expectCanvasNonBlank(page, shellSelector) {
-  const canvas = page.locator(`${shellSelector} .pixi-host canvas`).first();
+  const canvas = page.locator(`${shellSelector} canvas`).first();
   await expect(canvas).toBeVisible();
-  const length = await canvas.evaluate((node) => node.toDataURL("image/png").length);
-  expect(length).toBeGreaterThan(2000);
+  await expect.poll(() => canvas.evaluate((node) => node.toDataURL("image/png").length), { timeout: 15000 }).toBeGreaterThan(2000);
 }
 
 async function expectMatch3HudClearOfBoard(page) {
   const shell = page.locator('[data-game-shell="match3"]');
-  const hud = shell.locator(".game-play-hud");
-  const canvas = shell.locator(".pixi-host canvas");
+  const hud = shell.locator(".m3-hud");
+  const canvas = shell.locator("canvas");
   await expect(hud).toBeVisible();
   await expect(canvas).toBeVisible();
 
@@ -75,6 +75,7 @@ async function expectMatch3HudClearOfBoard(page) {
       if (!Number.isFinite(boardTop) || !Number.isFinite(boardSize)) return null;
       return {
         boardTop: rect.y + boardTop,
+        boardLeft: rect.x + Number(node.dataset.match3BoardLeft),
         boardSize,
       };
     });
@@ -85,7 +86,7 @@ async function expectMatch3HudClearOfBoard(page) {
   const hudBox = await hud.boundingBox();
   expect(hudBox).not.toBeNull();
   expect(layout?.boardSize ?? 0).toBeGreaterThan(160);
-  expect(layout.boardTop).toBeGreaterThanOrEqual(hudBox.y + hudBox.height + 4);
+  expect(layout.boardTop >= hudBox.y + hudBox.height + 4 || layout.boardLeft + layout.boardSize + 4 <= hudBox.x || hudBox.x + hudBox.width + 4 <= layout.boardLeft).toBe(true);
 }
 
 test.describe.configure({ mode: "serial" });
@@ -102,10 +103,11 @@ test.describe("extended phone HUD matrix", () => {
 
         await page.getByRole("button", { name: /Blox/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
-        await expectCanvasNonBlank(page, '[data-game-shell="blox"]');
+        await expectBloxCanvas(page);
+        await expectBloxLayout(page);
         await expectNoHorizontalScroll(page);
-        await page.getByRole("button", { name: /Pause/ }).click();
-        await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
+        await pauseBlox(page);
+        await exitBlox(page);
 
         await page.getByRole("button", { name: /Gems/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
@@ -114,7 +116,7 @@ test.describe("extended phone HUD matrix", () => {
         await expectMatch3HudClearOfBoard(page);
         await expectNoHorizontalScroll(page);
         await page.getByRole("button", { name: /Pause/ }).click();
-        await expectVisibleButtonsReachable(page, ".match3-pause-compact:visible button");
+        await expectVisibleButtonsReachable(page, ".m3-dialog:visible button");
 
         expect(pageErrors).toEqual([]);
       } finally {

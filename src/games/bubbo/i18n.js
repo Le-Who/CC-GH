@@ -1,7 +1,30 @@
-import { registerAppTranslations } from "../../app/i18n.jsx";
-
+import {registerAppTranslations} from '../../app/i18n.jsx';
 export const BUBBO_TRANSLATIONS = {
-  en: {
+  "en": {
+    "bubbo.lowHeight": "Low viewport: scroll or rotate your device",
+    "bubbo.showField": "↑ Field",
+    "bubbo.showCannon": "↓ Launcher",
+    "bubbo.scrollRegion": "Game area. Scroll vertically in short landscape view.",
+    "bubbo.brand": "BUBBO",
+    "bubbo.welcome": "Into the blue",
+    "bubbo.menuHelp": "Match 3 or more bubbles of the same color. Break clusters and let the loose bubbles fall.",
+    "bubbo.aimHint": "Drag to aim · Release to fire",
+    "bubbo.keyHint": "← → aim · Space fires",
+    "bubbo.keyboardField": "Bubble field. Left and right arrows aim, Space or Enter fires, Escape pauses.",
+    "bubbo.descent": "Next row in {seconds}s",
+    "bubbo.next": "Next",
+    "bubbo.fire": "Fire",
+    "bubbo.armed": "{name} ready · Aim and fire",
+    "bubbo.inFlight": "Bubble in flight…",
+    "bubbo.starting": "Starting…",
+    "bubbo.resumeSaved": "Continue saved run",
+    "bubbo.pauseHelp": "Take a breath. The bubbles, pressure and countdown are paused.",
+    "bubbo.resultHelp": "Your run is complete. Try another angle and aim for a bigger drop.",
+    "bubbo.how": "How to play & powers",
+    "bubbo.ruleHelp": "Tap to shoot, or drag and release to aim. Walls bounce the bubble along the shown path. Avoid the coral danger line. A new row descends every 9.5 seconds. Swap exchanges the current and next colors once per run.",
+    "bubbo.help.bomb": "Clears the landing spot and its neighbors.",
+    "bubbo.help.rainbow": "Chooses a nearby color and clears its connected cluster.",
+    "bubbo.help.lightning": "Clears a vertical lane through the landing column.",
     "pause.bubboFrozen": "Paused: shoot matching bubbles",
     "pause.bubboReady": "Preview the field before the first shot",
     "pause.bubboPlan": "Resume with the same shot, queue, and pressure phase; restart only when you want a fresh run.",
@@ -34,9 +57,33 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.powerupEvent": "{powerup}",
     "bubbo.resumeHint": "Saved Bubbo run found.",
     "bubbo.result.kicker": "Run complete",
-    "bubbo.result.title": "Bubbo result",
+    "bubbo.result.title": "Bubbo result"
   },
-  ru: {
+  "ru": {
+    "bubbo.lowHeight": "Мало высоты: прокрутите или поверните экран",
+    "bubbo.showField": "↑ К полю",
+    "bubbo.showCannon": "↓ К пушке",
+    "bubbo.scrollRegion": "Игровая область. При малой высоте прокручивается по вертикали.",
+    "bubbo.brand": "BUBBO",
+    "bubbo.welcome": "В глубину",
+    "bubbo.menuHelp": "Соединяйте от 3 шаров одного цвета. Разбивайте группы, чтобы шары без опоры падали.",
+    "bubbo.aimHint": "Тяните прицел · Отпустите для выстрела",
+    "bubbo.keyHint": "← → прицел · Пробел — выстрел",
+    "bubbo.keyboardField": "Поле шаров. Стрелки влево и вправо — прицел, Пробел или Enter — выстрел, Escape — пауза.",
+    "bubbo.descent": "Новый ряд через {seconds} с",
+    "bubbo.next": "Далее",
+    "bubbo.fire": "Огонь",
+    "bubbo.armed": "{name} готова · Прицельтесь",
+    "bubbo.inFlight": "Шар летит…",
+    "bubbo.starting": "Запускаем…",
+    "bubbo.resumeSaved": "Продолжить сохранённую игру",
+    "bubbo.pauseHelp": "Можно выдохнуть. Шары, спуск рядов и таймер на паузе.",
+    "bubbo.resultHelp": "Игра завершена. Попробуйте другой угол и обрушьте ещё больше шаров.",
+    "bubbo.how": "Правила и усилители",
+    "bubbo.ruleHelp": "Нажмите для выстрела или потяните прицел и отпустите. Шар отражается от стен по показанной траектории. Не подпускайте шары к коралловой линии. Новый ряд спускается каждые 9,5 секунды. Замена один раз за игру меняет текущий и следующий цвета местами.",
+    "bubbo.help.bomb": "Убирает место попадания и соседние шары.",
+    "bubbo.help.rainbow": "Подбирает соседний цвет и убирает связанную группу.",
+    "bubbo.help.lightning": "Очищает вертикальную полосу через колонку попадания.",
     "pause.bubboFrozen": "Пауза: стреляйте одинаковыми шарами",
     "pause.bubboReady": "Осмотрите поле до первого выстрела",
     "pause.bubboPlan": "Возврат сохраняет выстрел, очередь и фазу давления; перезапускайте только для нового рана.",
@@ -69,8 +116,7 @@ export const BUBBO_TRANSLATIONS = {
     "bubbo.powerupEvent": "{powerup}",
     "bubbo.resumeHint": "Найден сохраненный ран Bubbo.",
     "bubbo.result.kicker": "Ран завершен",
-    "bubbo.result.title": "Итог Bubbo",
-  },
+    "bubbo.result.title": "Итог Bubbo"
+  }
 };
-
 registerAppTranslations(BUBBO_TRANSLATIONS);

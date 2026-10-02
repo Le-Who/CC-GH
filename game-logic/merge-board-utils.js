@@ -61,7 +61,8 @@ function normalizeBoardShape(board) {
  * This restores the board to a proper 2D array.
  */
 export function hydrateMergeBoard(p) {
-  if (!p.merge) return;
+  // V3's legacy board is a frozen migration/rollback source, never rehydrated or truncated.
+  if (!p.merge || p.merge.schemaVersion === 3) return;
   let board = p.merge.board;
   // Case 1: JSON-stringified by sanitizeBoardData
   if (typeof board === "string") {

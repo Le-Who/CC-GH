@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { mergePanel, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
+import { startTriviaSolo, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
 
 test.describe("HUD redesign runtime asset coverage", () => {
   test.beforeEach(async ({ page }) => {
@@ -154,12 +156,15 @@ test.describe("HUD redesign runtime asset coverage", () => {
     expect(layout.closeInside).toBe(true);
   }
 
-  test("Merge HUD uses the generated hud-redesign runtime kit", async ({ page }) => {
+  test("Merge V3 uses the recovered generated workshop runtime art", async ({ page }, testInfo) => {
     await boot(page);
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expectBackgroundAsset(page.locator(".merge-scene-hud"), "/games/hud-redesign/merge/hud-panel.png", "::before");
-    await expectBackgroundAsset(page.locator(".merge-action-dock"), "/games/hud-redesign/merge/dock-panel.png", "::before");
-    await expectBackgroundAsset(page.locator(".merge-top-tool").first(), "/games/hud-redesign/merge/icon-badge.png");
+    await expectMergeArt(page, testInfo, 'merge-v3-runtime-art');
+    await expect(page.locator('.ml-hud .ml-button').first()).toHaveCSS('border-image-source', /\/games\/merge-lab-v3\/panel\.webp/);
+    await mergePanel(page, 'projects');
+    await expect(page.getByTestId('ml-drawer')).toHaveCSS('border-image-source', /\/games\/merge-lab-v3\/lab-panel\.webp/);
+    await expectMergeControlsReachable(page, page.getByTestId('ml-drawer').locator('.ml-dialog-heading button'));
+    await page.screenshot({ path: testInfo.outputPath('merge-v3-projects.png'), fullPage: false });
   });
 
   test("Garden dialogs use generated per-menu panel assets", async ({ page }) => {
@@ -191,18 +196,14 @@ test.describe("HUD redesign runtime asset coverage", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await boot(page);
     await page.getByRole("button", { name: /Trivia/ }).click();
-    await page.getByRole("button", { name: "Solo" }).click();
-    await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
-    const layout = await page.evaluate(() => {
-      const hud = document.querySelector(".trivia-shell .game-play-hud")?.getBoundingClientRect();
-      const question = document.querySelector(".trivia-shell .question-panel")?.getBoundingClientRect();
-      return {
-        hudBottom: hud?.bottom ?? 0,
-        questionTop: question?.top ?? 0,
-      };
-    });
-    expect(layout.questionTop).toBeGreaterThanOrEqual(layout.hudBottom + 6);
-    await expectVisibleControlsHealthy(page, ".trivia-shell");
+    await startTriviaSolo(page);
+    const hud = await page.locator(".trv2-hud").boundingBox();
+    const question = await page.locator(".trv2-question").boundingBox();
+    expect(hud).not.toBeNull(); expect(question).not.toBeNull();
+    expect(question.y).toBeGreaterThanOrEqual(hud.y + hud.height + 6);
+    await expect(page.locator(".trv2-question-surface")).toHaveCSS("border-image-source", /\/games\/trivia-v2\/question-panel\.webp/);
+    await expectTriviaControlsReachable(page, page.locator(".trv2-root button"));
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
   });
 
   test("Settlement HUD uses the generated hud-redesign runtime kit", async ({ page }) => {

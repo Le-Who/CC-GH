@@ -30,6 +30,8 @@ export interface GardenDailyQuestState {
 
 export interface GameState {
   economyVersion: number;
+  economicRevision?: number;
+  acknowledgedEarnedTotal?: number;
   name: string;
   gold: number;
   totalGoldEarned: number;

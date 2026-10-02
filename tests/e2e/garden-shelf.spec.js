@@ -1,1345 +1,264 @@
 import { test, expect } from "@playwright/test";
-import {
-  GARDEN_ECONOMY_VERSION,
-  buildGardenDailyQuests,
-  createGardenEconomyState,
-  createDefaultPlayer,
-  getGardenLevelReward,
-  getGardenXpRequired,
-} from "../../game-logic.js";
+import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
 import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
-import { applyAction, buildSnapshot } from "../../routes/player.js";
+import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
 
-function parsePlayerActionRequest(request) {
-  try {
-    return JSON.parse(request.postData() || "{}");
-  } catch {
-    return null;
-  }
+// These tests mount the production App through the normal Playwright web server.
+// Fixture-backed layout cases call production actions/receipts; live save cases
+// below do not intercept either player endpoint. No preview host is imported.
+const MATRIX = [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720],[393,873]];
+const uid = () => `garden_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+const plant = (id, index=0, extra={}) => ({id,type:index % 2 ? 'basil':'daisy',level:12,shelfIndex:Math.floor(index/2),spotIndex:index%2,phase:3,phaseProgress:0,lastTapped:0,lastWatered:0,...extra});
+const panel = (page,kind) => page.locator(`.gs2-dialog[data-garden-panel="${kind}"]`);
+const state = page => page.evaluate(() => {
+  const cache = Object.keys(localStorage).find(key => key.startsWith('game_hub_garden_state_v1:'));
+  return cache ? JSON.parse(localStorage.getItem(cache)).state : null;
+});
+function parse(request) { try { return request.postDataJSON() || {}; } catch { return {}; } }
+async function initialize(page, userId=uid(), language='en') {
+  await page.addInitScript(({userId,language}) => {
+    localStorage.setItem('gh_dev_user_id',userId);
+    if (!sessionStorage.getItem('garden-release-initialized')) {
+      localStorage.removeItem('terrarium_save');localStorage.removeItem('garden_shelf_name');
+      localStorage.setItem('garden_shelf_language',language);
+      sessionStorage.setItem('garden-release-initialized','true');
+    }
+  }, {userId,language});
+  return userId;
+}
+async function boot(page) {
+  await page.goto('/');
+  await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});
+  await expect(page.locator('.gs2-stage')).toBeVisible();
+  await expect(page.locator('.telegram-app')).toHaveAttribute('data-garden-presentation','living');
+}
+function makePlayer(overrides={}) {
+  const now=Date.now(),p=createDefaultPlayer(uid(),'Garden release',now);
+  p.resources.gold=100000;
+  p.garden={...createGardenEconomyState(now),level:31,xp:getGardenXpRequired(31),xpRequired:getGardenXpRequired(31),levelReady:true,shelvesUnlocked:4,plants:Array.from({length:8},(_,i)=>plant(`plant-${i}`,i)),...overrides};
+  return p;
+}
+async function mountFixture(page, player, {delayAction=()=>false,failAction=()=>false}={}) {
+  const requests=[];
+  await page.route('**/api/player/snapshot',route=>route.fulfill({contentType:'application/json',body:JSON.stringify(buildSnapshot(player))}));
+  await page.route('**/api/player/mutate',async route=>{
+    const body=parse(route.request());requests.push(body);
+    if(delayAction(body))await new Promise(resolve=>setTimeout(resolve,250));
+    if(failAction(body)){await route.abort('failed');return;}
+    const result=await applyActionWithReceipt(player,body.action,body.payload||{},{clientActionId:body.clientActionId});
+    await route.fulfill({status:result.status,contentType:'application/json',body:JSON.stringify(result.body)});
+  });
+  return requests;
+}
+async function closePanel(page) {
+  await page.locator('.gs2-dialog .gs2-close').click();
+  await expect(page.locator('.gs2-dialog')).toHaveCount(0);
+  await expect.poll(()=>page.locator('.telegram-app').evaluate(node=>!!node.closest('[inert]'))).toBe(false);
+}
+async function assertShellFit(page) {
+  const result=await page.evaluate(()=>{
+    const rect=node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    const stage=rect(document.querySelector('.gs2-stage')),dock=rect(document.querySelector('.bottom-tabs'));
+    const targets=[...document.querySelectorAll('.bottom-tabs button')].map(node=>({label:node.textContent,box:rect(node),scrollWidth:node.scrollWidth,clientWidth:node.clientWidth}));
+    return {stage,dock,targets,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth};
+  });
+  expect(result.scrollWidth).toBeLessThanOrEqual(result.width+1);
+  for(const r of [result.stage,result.dock]){expect(r.left).toBeGreaterThanOrEqual(-1);expect(r.right).toBeLessThanOrEqual(result.width+1);expect(r.top).toBeGreaterThanOrEqual(-1);expect(r.bottom).toBeLessThanOrEqual(result.height+1);}
+  expect(result.stage.bottom).toBeLessThanOrEqual(result.dock.top+1);
+  expect(result.stage.height).toBeGreaterThan(44);expect(result.targets).toHaveLength(8);
+  for(const target of result.targets){expect(target.box.width,target.label).toBeGreaterThanOrEqual(44);expect(target.box.height,target.label).toBeGreaterThanOrEqual(44);expect(target.scrollWidth,target.label).toBeLessThanOrEqual(target.clientWidth+1);}
+  await expect(page.locator('.stats-row')).not.toBeVisible();
+}
+async function assertDialogFit(page,dialog) {
+  await expect(dialog).toBeVisible();await expect(dialog).toHaveAttribute('aria-modal','true');
+  await expect.poll(()=>dialog.evaluate(node=>node.contains(document.activeElement))).toBe(true);
+  const result=await dialog.evaluate(node=>{
+    const rect=n=>{const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    const view=visualViewport||{offsetTop:0,offsetLeft:0,width:innerWidth,height:innerHeight};
+    const scroll=node.querySelector('.gs2-dialog-scroll'),close=node.querySelector('.gs2-close');
+    const before=rect(close);scroll.scrollTop=scroll.scrollHeight;const after=rect(close);scroll.scrollTop=0;
+    const small=[...node.querySelectorAll('button')].filter(n=>n.getClientRects().length).filter(n=>n.getBoundingClientRect().width<43.9||n.getBoundingClientRect().height<43.9).map(n=>n.getAttribute('aria-label')||n.textContent);
+    return {box:rect(node),before,after,view:{left:view.offsetLeft,top:view.offsetTop,width:view.width,height:view.height},small,scrollable:['auto','scroll'].includes(getComputedStyle(scroll).overflowY),hubInert:!!document.querySelector('.telegram-app').closest('[inert]'),focusInside:node.contains(document.activeElement),filter:getComputedStyle(node).backdropFilter};
+  });
+  expect(result.small).toEqual([]);expect(result.scrollable).toBe(true);expect(result.hubInert).toBe(true);expect(result.focusInside).toBe(true);expect(result.filter).toBe('none');
+  for(const r of [result.box,result.before,result.after]){expect(r.left).toBeGreaterThanOrEqual(result.view.left-1);expect(r.right).toBeLessThanOrEqual(result.view.left+result.view.width+1);expect(r.top).toBeGreaterThanOrEqual(result.view.top-1);expect(r.bottom).toBeLessThanOrEqual(result.view.top+result.view.height+1);}
+  expect(result.before).toEqual(result.after);
+  await page.keyboard.press('Shift+Tab');await expect.poll(()=>dialog.evaluate(node=>node.contains(document.activeElement))).toBe(true);
+  await page.keyboard.press('Tab');await expect.poll(()=>dialog.evaluate(node=>node.contains(document.activeElement))).toBe(true);
+}
+async function assertFlowRows(page, rowSelector) {
+  const errors=await page.locator(rowSelector).evaluateAll(rows=>{
+    const errors=[];
+    for(const row of rows){const r=row.getBoundingClientRect();
+      for(const child of row.children){const c=child.getBoundingClientRect();if(c.width&&c.height&&(c.left<r.left-1||c.right>r.right+1||c.top<r.top-1||c.bottom>r.bottom+1))errors.push(`${row.className}:child escapes row`);}
+      const children=[...row.children].filter(c=>c.getClientRects().length);
+      for(let i=0;i<children.length;i++)for(let j=i+1;j<children.length;j++){const a=children[i].getBoundingClientRect(),b=children[j].getBoundingClientRect();if(Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top))>4)errors.push(`${row.className}:siblings overlap`);}
+    }return errors;
+  });
+  expect(errors).toEqual([]);
+}
+async function tapOrClick(locator,touch) { if(touch)await locator.tap();else await locator.click(); }
+async function shot(page,testInfo,name){await testInfo.attach(name,{body:await page.screenshot({fullPage:false}),contentType:'image/png'});}
+async function dragTouch(page,from,to){
+  const client=await page.context().newCDPSession(page);
+  try{await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{...from,id:1}]});
+    for(let i=1;i<=10;i++){await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:Math.round(from.x+(to.x-from.x)*i/10),y:Math.round(from.y+(to.y-from.y)*i/10),id:1}]});await page.waitForTimeout(16);}
+    await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  }finally{await client.detach();}
 }
 
-function collectAssetSlotCollisionProblems({ scopeSelector, rowSelector }) {
-  const scope = document.querySelector(scopeSelector);
-  if (!scope) return [`missing:${scopeSelector}`];
-  const visible = (node) => {
-    const style = getComputedStyle(node);
-    const rect = node.getBoundingClientRect();
-    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
-  };
-  const rectOf = (node) => {
-    const rect = node.getBoundingClientRect();
-    return {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom,
-      width: rect.width,
-      height: rect.height,
-    };
-  };
-  const fitsInside = (inner, outer, pad = 1) => inner.left >= outer.left - pad
-    && inner.right <= outer.right + pad
-    && inner.top >= outer.top - pad
-    && inner.bottom <= outer.bottom + pad;
-  const overlapArea = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
-    * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-  const labelFor = (node) => node.getAttribute("data-asset-slot")
-    || node.getAttribute("data-asset-slot-group")
-    || node.getAttribute("aria-label")
-    || (typeof node.className === "string" && node.className.trim().replace(/\s+/g, ".").slice(0, 48))
-    || node.textContent.trim().replace(/\s+/g, " ").slice(0, 48)
-    || node.tagName.toLowerCase();
-  const textRectFor = (node) => {
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    const rect = range.getBoundingClientRect();
-    range.detach();
-    return rect.width > 0 && rect.height > 0 ? {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom,
-      width: rect.width,
-      height: rect.height,
-    } : null;
-  };
-  const problems = [];
-  for (const row of [...scope.querySelectorAll(rowSelector)].filter(visible)) {
-    const rowRect = rectOf(row);
-    const zones = [...row.querySelectorAll("[data-asset-slot], h3, p, button, .garden-card-row, .flex")]
-      .filter((node) => node !== row && visible(node))
-      .filter((node) => {
-        const closestRow = node.closest(rowSelector);
-        return closestRow === row;
-      });
-    for (const zone of zones) {
-      const zoneRect = rectOf(zone);
-      if (!fitsInside(zoneRect, rowRect, 1.5)) {
-        const delta = [
-          Math.round((zoneRect.left - rowRect.left) * 10) / 10,
-          Math.round((zoneRect.top - rowRect.top) * 10) / 10,
-          Math.round((zoneRect.right - rowRect.right) * 10) / 10,
-          Math.round((zoneRect.bottom - rowRect.bottom) * 10) / 10,
-        ].join(",");
-        problems.push(`${labelFor(row)}:${labelFor(zone)} escapes row ${delta}`);
-      }
-      if (/^(H[1-6]|P|SPAN|BUTTON)$/i.test(zone.tagName)) {
-        const style = getComputedStyle(zone);
-        const textRect = textRectFor(zone);
-        if (textRect && style.overflow === "visible" && !fitsInside(textRect, zoneRect, 1.5)) {
-          problems.push(`${labelFor(row)}:${labelFor(zone)} text escapes slot`);
-        }
-      }
+test.describe('Garden Living production-source flow',()=>{
+  for(const [width,height] of MATRIX)test(`full Hub ${width}x${height}: art, dock, dialogs, post-30 level and exits`,async({browser},testInfo)=>{
+    const touch=width<1100,context=await browser.newContext({baseURL:test.info().project.use.baseURL,viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:touch,hasTouch:touch});
+    const page=await context.newPage(),errors=[];page.on('pageerror',error=>errors.push(error.message));
+    const player=makePlayer();player.garden.plants[0].level=42;const originalPlant=structuredClone(player.garden.plants[0]);
+    try{
+      await initialize(page);await mountFixture(page,player);await boot(page);await assertShellFit(page);
+      await expect(page.locator('.gs2-live-plant').first()).toBeVisible();
+      await expect.poll(()=>page.locator('.gs2-live-plant img').first().evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+      await shot(page,testInfo,'shelf');
+      const xp=page.locator('.gs2-stage [data-garden-xp]');await xp.scrollIntoViewIfNeeded();
+      await expect(xp).toBeEnabled();await expect(xp).toHaveAttribute('aria-label',new RegExp('Level Up'));
+      const reward=getGardenLevelReward(31);await tapOrClick(xp,touch);
+      await expect(panel(page,'reward')).toContainText(formatGardenGoldAmount(reward));await assertDialogFit(page,panel(page,'reward'));await closePanel(page);
+      expect(player.garden.level).toBe(32);expect(player.garden.plants[0].level).toBe(42);await expect(xp).toContainText('32');
+      const trigger=page.locator('[data-plant-details-button]').first();await trigger.scrollIntoViewIfNeeded();await tapOrClick(trigger,touch);
+      await assertDialogFit(page,panel(page,'plant-detail'));await expect(page.getByTestId('garden-care-level')).toContainText('42');await shot(page,testInfo,'care');
+      await closePanel(page);await expect(trigger).toBeFocused();
+      await tapOrClick(trigger,touch);await page.keyboard.press('Escape');await expect(page.locator('.gs2-dialog')).toHaveCount(0);
+      await page.locator('.gs2-stage button[aria-label="Garden quests"]').click();await assertDialogFit(page,panel(page,'quests'));await assertFlowRows(page,'.gs2-quest-card');await shot(page,testInfo,'quests');await closePanel(page);
+      await page.locator('.gs2-empty-target').first().click();await assertDialogFit(page,panel(page,'seed-shop-inventory'));await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await assertFlowRows(page,'.gs2-catalog-row');await shot(page,testInfo,'shop');await closePanel(page);
+      // The host and its state remain intact after dismissals and tab changes.
+      await page.locator('[data-hud-region="bottomDock.blox"]').click();await expect(page.locator('.telegram-app')).not.toHaveAttribute('data-garden-presentation','living');
+      await page.locator('[data-hud-region="bottomDock.garden"]').click();await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
+      expect(player.garden.plants.find(p=>p.id===originalPlant.id)?.level).toBe(42);expect(errors).toEqual([]);
+    }finally{await context.close();}
+  });
+
+  test('touch scrolling from plant cancels the tap and never opens Care',async({browser})=>{
+    const context=await browser.newContext({baseURL:test.info().project.use.baseURL,viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});const page=await context.newPage();
+    try{await initialize(page);const player=makePlayer({levelReady:false,xp:0});await mountFixture(page,player);await boot(page);
+      const scroller=page.locator('.gs2-shelf-viewport');await expect.poll(()=>scroller.evaluate(n=>n.scrollHeight-n.clientHeight)).toBeGreaterThan(100);
+      const before=(await state(page)).plants[0].lastTapped;const box=await page.locator('.gs2-plant-target').first().boundingBox();expect(box).not.toBeNull();
+      await dragTouch(page,{x:Math.round(box.x+box.width/2),y:Math.round(box.y+box.height*.8)},{x:Math.round(box.x+box.width/2),y:Math.round(box.y-70)});
+      await expect.poll(()=>scroller.evaluate(n=>n.scrollTop)).toBeGreaterThan(40);await expect(page.locator('.gs2-dialog')).toHaveCount(0);expect((await state(page)).plants[0].lastTapped).toBe(before);
+    }finally{await context.close();}
+  });
+
+  test('new runtime art loads without legacy base PNG requests',async({page})=>{
+    await initialize(page);const requests=[];page.on('request',r=>{if(/\/games\/garden-shelf\/assets_[^/?]+\.png(?:\?|$)/.test(r.url()))requests.push(r.url());});
+    await boot(page);await expect(page.locator('.gs2-backdrop img')).toHaveAttribute('src','/games/garden-v2/background.webp');
+    await expect.poll(()=>page.locator('.gs2-shelf-art').first().evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+    await expect(page.locator('.gs2-name-art')).toHaveCSS('border-image-source',/garden-v2\/sign\.webp/);expect(requests).toEqual([]);
+  });
+
+  test('live purchase, shared gold, locked shop items, growth Care and localization',async({page})=>{
+    await initialize(page);await boot(page);await expect(page.locator('.gs2-name')).toContainText('My Garden');await expect(page.locator('.gs2-stage [data-garden-gold]')).toContainText('10,000');
+    await page.locator('.gs2-empty-target').first().click();const shop=panel(page,'seed-shop-inventory');
+    const lavender=shop.locator('.gs2-catalog-row').filter({has:page.getByRole('heading',{name:'Lavender',exact:true})});await expect(lavender).toContainText('Unlocks at Lv 4');await expect(lavender.locator('button')).toBeDisabled();
+    const sync=page.waitForResponse(r=>r.url().includes('/api/player/mutate')&&parse(r.request()).action==='garden.sync'&&parse(r.request()).payload?.state?.plants?.length>0);
+    await shop.locator('.gs2-catalog-row').filter({has:page.getByRole('heading',{name:'Daisy',exact:true})}).locator('button').click();await sync;
+    await expect(panel(page,'plant-detail')).toContainText('Growing');await expect(page.locator('.gs2-stage [data-garden-gold]')).toContainText('7,500');await closePanel(page);
+    await expect(page.locator('.gs2-water-ready').first()).toBeVisible();expect((await state(page)).plants).toHaveLength(1);
+    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await page.getByRole('button',{name:'Russian',exact:true}).click();
+    await expect(panel(page,'settings')).toContainText('Настройки');await panel(page,'settings').getByRole('button',{name:'Готово',exact:true}).click();
+    await expect(page.locator('.gs2-name')).toContainText('Мой сад');await expect(page.locator('[data-hud-region="bottomDock.blox"]')).toContainText('Блоки');await expect(page.locator('[data-hud-region="bottomDock.match3"]')).toContainText('Камни');
+  });
+
+  test('mature Care retains action feedback, water state, scrim exit and static inventory art',async({page},testInfo)=>{
+    await initialize(page);await mountFixture(page,makePlayer({levelReady:false,xp:0}));await boot(page);
+    await page.locator('.gs2-plant-target').first().click();await expect(page.locator('.gs2-status')).toContainText('Tap to collect gold');
+    await page.locator('[data-plant-details-button]').first().click();let care=panel(page,'plant-detail');await assertDialogFit(page,care);
+    const id=(await state(page)).plants[0].id;await care.getByRole('button',{name:'Care water',exact:false}).click();await expect.poll(async()=>(await state(page)).plants.find(p=>p.id===id).lastWatered).toBeGreaterThan(0);
+    await expect(care.getByRole('button',{name:/Care water/})).toBeDisabled();
+    await care.getByRole('button',{name:'Stash',exact:true}).click();await expect(page.locator('.gs2-dialog')).toHaveCount(0);
+    await page.locator('.gs2-empty-target').first().click();await page.getByRole('tab',{name:/Inventory/}).click();
+    const thumb=page.locator('.gs2-catalog .gs2-live-plant');await expect(thumb).toHaveCount(1);await expect(thumb).toHaveAttribute('data-living-mode','static-catalog');
+    await expect.poll(()=>thumb.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0&&getComputedStyle(img).visibility==='visible')).toBe(true);await shot(page,testInfo,'inventory-static');
+    await panel(page,'seed-shop-inventory').getByRole('button',{name:'Place',exact:true}).click();await expect(page.locator('.gs2-dialog')).toHaveCount(0);await expect(page.locator(`[data-plant-id="${id}"]`)).toBeVisible();
+    await page.locator(`[data-plant-id="${id}"] [data-plant-details-button]`).click();await page.mouse.click(2,2);await expect(page.locator('.gs2-dialog')).toHaveCount(0);
+  });
+
+  test('daily priority, readable quest text and immediate repeated-claim suppression',async({page})=>{
+    await initialize(page,uid(),'ru');const player=makePlayer({level:2,xp:0,xpRequired:getGardenXpRequired(2),levelReady:false,shelvesUnlocked:1,plants:[plant('daily-daisy',0,{level:2})],claimedQuests:['first_plant']});
+    player.garden.dailyQuests={date:new Date().toISOString().slice(0,10),claimed:[],stats:{taps:12,waters:12,plantsBought:4,upgrades:3,goldEarned:80,xpEarned:80,levelUps:2}};
+    const ready=buildGardenDailyQuests(player.garden).filter(q=>q.unlocked&&q.complete);expect(ready.length).toBeGreaterThan(1);player.garden.dailyQuests.claimed=[ready[0].id];const claim=ready[1],reason=`quest:${claim.id}`;
+    const requests=await mountFixture(page,player,{delayAction:body=>body.action==='garden.claimQuest'&&body.payload?.questId===claim.id});await boot(page);await page.getByRole('button',{name:'Квесты сада',exact:true}).click();
+    const cards=page.locator('.gs2-quest-card');const order=await cards.evaluateAll(cards=>cards.map(c=>({kind:c.dataset.questKind,claimed:c.dataset.questClaimed==='true',locked:c.dataset.questLocked==='true'})));
+    const index=fn=>order.findIndex(fn);expect(index(q=>q.kind==='daily'&&!q.claimed&&!q.locked)).toBeGreaterThanOrEqual(0);expect(index(q=>q.kind==='story'&&!q.claimed)).toBeGreaterThan(index(q=>q.kind==='daily'&&!q.claimed&&!q.locked));expect(index(q=>q.kind==='daily'&&q.claimed)).toBeGreaterThan(index(q=>q.kind==='story'&&!q.claimed));expect(index(q=>q.kind==='story'&&q.claimed)).toBeGreaterThan(index(q=>q.kind==='daily'&&q.claimed));
+    const contrast=await cards.first().evaluate(card=>{const rgb=v=>v.match(/[\d.]+/g).slice(0,3).map(Number),l=v=>rgb(v).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4}).reduce((s,n,i)=>s+n*[.2126,.7152,.0722][i],0),a=l(getComputedStyle(card.querySelector('h3')).color),b=l(getComputedStyle(card).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);});expect(contrast).toBeGreaterThanOrEqual(4.5);
+    const button=page.locator(`.gs2-quest-card[data-quest-id="${claim.id}"] button`);await button.dblclick();await expect(button).toHaveText('Получено');
+    await page.waitForTimeout(2200);expect(requests.filter(r=>r.action==='garden.claimQuest'&&r.payload?.questId===claim.id)).toHaveLength(1);
+    // The direct quest credit must not be duplicated through passive-earnings sync.
+    expect(player.garden.dailyQuests.claimed.filter(id=>id===claim.id)).toHaveLength(1);
+    expect(player.gardenAccounting.creditedTotal).toBeGreaterThanOrEqual(claim.reward);
+    expect(requests.filter(r=>r.action==='garden.goldDelta'&&r.payload?.reason===reason)).toHaveLength(0);
+  });
+
+  test('living surfaces draw, retain bounded resources, and dispose repeated Care views',async({page})=>{
+    await initialize(page);await mountFixture(page,makePlayer({levelReady:false,xp:0}));await boot(page);
+    const diagnostics=()=>page.evaluate(()=>window.__GARDEN_LIVING_QA__?.snapshot());
+    await expect.poll(async()=>((await diagnostics())?.surfaces||[]).some(surface=>surface.rootKind==='shelf'&&surface.frames>0&&surface.textures>0)).toBe(true);
+    const initial=await diagnostics(),shelfId=initial.surfaces.find(surface=>surface.rootKind==='shelf').id;
+    for(let i=0;i<3;i++){
+      await page.locator('[data-plant-details-button]').first().click();await expect.poll(async()=>((await diagnostics())?.surfaces||[]).some(surface=>surface.rootKind==='care'&&surface.frames>0)).toBe(true);
+      await closePanel(page);await expect.poll(async()=>(await diagnostics()).surfaces.length).toBe(1);
+      const current=await diagnostics();expect(current.surfaces[0].id).toBe(shelfId);expect(current.surfaces[0].textures).toBeLessThanOrEqual(16);expect(current.surfaces[0].failed).toEqual([]);
     }
-    for (let leftIndex = 0; leftIndex < zones.length; leftIndex += 1) {
-      for (let rightIndex = leftIndex + 1; rightIndex < zones.length; rightIndex += 1) {
-        const left = zones[leftIndex];
-        const right = zones[rightIndex];
-        if (left.contains(right) || right.contains(left)) continue;
-        const area = overlapArea(rectOf(left), rectOf(right));
-        if (area > 4) {
-          problems.push(`${labelFor(row)}:${labelFor(left)} overlaps ${labelFor(right)}`);
-        }
-      }
-    }
+    await page.emulateMedia({reducedMotion:'reduce'});await expect.poll(async()=>(await diagnostics()).surfaces.every(surface=>surface.reducedMotion)).toBe(true);
+    await page.locator('[data-hud-region="bottomDock.blox"]').click();await expect.poll(async()=>(await diagnostics()).surfaces.length).toBe(0);
+  });
+
+  test('interrupted request releases busy state and lets the player dismiss and retry',async({page})=>{
+    await initialize(page);const player=makePlayer({levelReady:false,xp:0});let fail=true;
+    await mountFixture(page,player,{failAction:body=>body.action==='garden.upgradePlant'&&fail});await boot(page);
+    await page.locator('[data-plant-details-button]').first().click();const care=panel(page,'plant-detail'),upgrade=care.getByRole('button',{name:/Evolve Production/});
+    const before=(await state(page)).plants[0].level;await upgrade.click();await expect(care.locator('[role="alert"]')).toBeVisible();await expect(upgrade).toBeDisabled();expect((await state(page)).plants[0].level).toBe(before);
+    await closePanel(page);fail=false;await expect.poll(async()=>(await state(page)).plants[0].level).toBe(before+1);
+  });
+});
+
+// Live server/save cases intentionally do not route or fake player endpoints.
+test.describe('Garden live server persistence',()=>{
+  test('purchase survives another device with the same identity and no local save',async({browser})=>{
+    const userId=uid();let first,second;
+    try{
+      first=await browser.newContext({baseURL:test.info().project.use.baseURL});const a=await first.newPage();await initialize(a,userId);await boot(a);await a.locator('.gs2-empty-target').first().click();
+      const sync=a.waitForResponse(r=>r.url().includes('/api/player/mutate')&&parse(r.request()).action==='garden.sync'&&parse(r.request()).payload?.state?.plants?.length>0);
+      await panel(a,'seed-shop-inventory').locator('.gs2-catalog-row').filter({has:a.getByRole('heading',{name:'Daisy',exact:true})}).locator('button').click();await sync;const purchased=(await state(a)).plants[0];await first.close();first=null;
+      second=await browser.newContext({baseURL:test.info().project.use.baseURL});const b=await second.newPage();await initialize(b,userId);await boot(b);await expect(b.locator(`[data-plant-id="${purchased.id}"]`)).toBeVisible();
+      await expect(b.locator('.gs2-stage [data-garden-gold]')).toContainText('7,500');expect((await state(b)).plants[0].type).toBe(purchased.type);expect((await state(b)).level).toBe(1);
+    }finally{await first?.close();await second?.close();}
+  });
+
+  async function seedLive(page,garden) {
+    const result=await page.evaluate(async state=>{
+      const id=localStorage.getItem('gh_dev_user_id');const response=await fetch('/api/player/mutate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`dev ${id}`},body:JSON.stringify({action:'garden.sync',payload:{state}})});
+      const body=await response.json();if(!response.ok)throw Error(JSON.stringify(body));localStorage.removeItem('terrarium_save');return body;
+    },garden);expect(result.snapshot?.garden||result.garden).toBeTruthy();await page.reload();await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});await expect(page.locator('.gs2-stage')).toBeVisible();
   }
-  return problems;
-}
-
-function collectPlantDetailSlotProblems() {
-  const scope = document.querySelector('[data-asset-slot-surface="garden-plant-detail"]');
-  if (!scope) return ['missing:garden-plant-detail'];
-  const visible = (node) => {
-    const style = getComputedStyle(node);
-    const rect = node.getBoundingClientRect();
-    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
-  };
-  const rectOf = (node) => {
-    const rect = node.getBoundingClientRect();
-    return {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom,
-      width: rect.width,
-      height: rect.height,
-    };
-  };
-  const fitsInside = (inner, outer, pad = 1) => inner.left >= outer.left - pad
-    && inner.right <= outer.right + pad
-    && inner.top >= outer.top - pad
-    && inner.bottom <= outer.bottom + pad;
-  const overlapArea = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
-    * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-  const scopeRect = rectOf(scope);
-  const slots = [
-    ["plant-title", scope.querySelector('[data-asset-slot="plant-title"]')],
-    ["plant-meta", scope.querySelector('[data-asset-slot="plant-meta"]')],
-    ["plant-stage", scope.querySelector('[data-asset-slot="plant-stage"]')],
-    ["plant-button", scope.querySelector(".garden-detail-plant-button")],
-    ["plant-hint", scope.querySelector('[data-asset-slot="plant-hint"]')],
-    ["plant-action-row", scope.querySelector('[data-asset-slot-group="plant-action-row"]')],
-    ["plant-upgrade", scope.querySelector('[data-asset-slot="plant-upgrade"]')],
-  ].filter(([, node]) => node && visible(node));
-  const containOnly = new Set(["plant-stage"]);
-  const problems = [];
-  for (const [name, node] of slots) {
-    const slotRect = rectOf(node);
-    if (!fitsInside(slotRect, scopeRect, 1.5)) {
-      const delta = [
-        Math.round((slotRect.left - scopeRect.left) * 10) / 10,
-        Math.round((slotRect.top - scopeRect.top) * 10) / 10,
-        Math.round((slotRect.right - scopeRect.right) * 10) / 10,
-        Math.round((slotRect.bottom - scopeRect.bottom) * 10) / 10,
-      ].join(",");
-      problems.push(`${name} escapes panel ${delta}`);
-    }
-  }
-  for (let leftIndex = 0; leftIndex < slots.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < slots.length; rightIndex += 1) {
-      const [leftName, leftNode] = slots[leftIndex];
-      const [rightName, rightNode] = slots[rightIndex];
-      if (containOnly.has(leftName) || containOnly.has(rightName)) continue;
-      if (overlapArea(rectOf(leftNode), rectOf(rightNode)) > 4) {
-        problems.push(`${leftName} overlaps ${rightName}`);
-      }
-    }
-  }
-  return problems;
-}
-
-test.describe("Garden Shelf flow", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem("gh_dev_user_id", `garden_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-      window.localStorage.removeItem("terrarium_save");
-      window.localStorage.removeItem("garden_shelf_language");
-      window.localStorage.removeItem("garden_shelf_name");
+  test('collected offline fields in shared state are never replayed',async({page})=>{
+    await initialize(page);await boot(page);await seedLive(page,{...createGardenEconomyState(Date.now()),level:2,xp:80,xpRequired:getGardenXpRequired(2),offlineEarnings:50,offlineXp:10});
+    await expect(panel(page,'offline-reward')).toHaveCount(0);await expect(page.locator('.gs2-stage [data-garden-xp]')).toBeVisible();
+  });
+  test('generated offline reward persists until collection and stays collected after reload',async({page})=>{
+    await initialize(page);await boot(page);await seedLive(page,{...createGardenEconomyState(Date.now()-31*60000),level:13,xp:100,xpRequired:getGardenXpRequired(13),plants:[plant('offline-daisy',0,{level:13})]});
+    await expect(panel(page,'offline-reward')).toBeVisible({timeout:8000});await page.waitForTimeout(4200);await expect(panel(page,'offline-reward')).toBeVisible();
+    await panel(page,'offline-reward').getByRole('button',{name:'Collect Gold',exact:true}).click();await expect(panel(page,'offline-reward')).toHaveCount(0);await page.reload();await expect(page.locator('.status-dot.ready')).toBeVisible();await expect(panel(page,'offline-reward')).toHaveCount(0);
+  });
+  test('short background pause produces no offline reward dialog',async({page})=>{
+    await initialize(page);await boot(page);await seedLive(page,{...createGardenEconomyState(Date.now()-2*60000),level:13,xp:100,xpRequired:getGardenXpRequired(13),plants:[plant('short-pause-daisy',0,{level:13})]});await expect(panel(page,'offline-reward')).toHaveCount(0);
+  });
+  // Verifies the receipt API with an explicit test-supplied ID. This does not
+  // prove GardenShelfGame currently supplies IDs or makes purchase/sync atomic.
+  test('live server receipt API deduplicates an explicitly identified gold action',async({page})=>{
+    await initialize(page);await boot(page);
+    const result=await page.evaluate(async()=>{
+      const auth=`dev ${localStorage.getItem('gh_dev_user_id')}`,headers={'Content-Type':'application/json',Authorization:auth};
+      const before=await (await fetch('/api/player/snapshot',{headers})).json();const body={action:'garden.goldDelta',payload:{amount:7,reason:'release-receipt-check'},clientActionId:`garden-release:${crypto.randomUUID()}`};
+      const send=async()=>{const r=await fetch('/api/player/mutate',{method:'POST',headers,body:JSON.stringify(body)});return {status:r.status,body:await r.json()};};
+      return {before,first:await send(),second:await send()};
     });
-  });
-
-  async function contrastRatioFor(page, textSelector, surfaceSelector) {
-    return page.locator(textSelector).first().evaluate((el, selector) => {
-      const parseRgb = (value) => {
-        const match = String(value).match(/rgba?\(([^)]+)\)/);
-        if (!match) return [0, 0, 0, 1];
-        const parts = match[1].split(",").map((part) => Number(part.trim()));
-        return [parts[0] || 0, parts[1] || 0, parts[2] || 0, parts[3] == null ? 1 : parts[3]];
-      };
-      const blend = (fg, bg) => {
-        const alpha = fg[3] + bg[3] * (1 - fg[3]);
-        return [
-          (fg[0] * fg[3] + bg[0] * bg[3] * (1 - fg[3])) / alpha,
-          (fg[1] * fg[3] + bg[1] * bg[3] * (1 - fg[3])) / alpha,
-          (fg[2] * fg[3] + bg[2] * bg[3] * (1 - fg[3])) / alpha,
-          alpha,
-        ];
-      };
-      const luminance = (rgb) => {
-        const channels = rgb.slice(0, 3).map((value) => {
-          const c = value / 255;
-          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-        });
-        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
-      };
-      const ratio = (fg, bg) => {
-        const a = luminance(fg);
-        const b = luminance(bg);
-        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-      };
-      const surface = selector ? el.closest(selector) : el.parentElement;
-      const base = document.documentElement.dataset.uiTheme === "dark" ? [0, 0, 0, 1] : [255, 255, 255, 1];
-      const bg = blend(parseRgb(getComputedStyle(surface || el).backgroundColor), base);
-      const fg = blend(parseRgb(getComputedStyle(el).color), bg);
-      return ratio(fg, bg);
-    }, surfaceSelector);
-  }
-
-  async function dragTouch(page, from, to, steps = 8) {
-    const client = await page.context().newCDPSession(page);
-    await client.send("Input.dispatchTouchEvent", {
-      type: "touchStart",
-      touchPoints: [{ x: from.x, y: from.y, id: 1 }],
-    });
-    for (let index = 1; index <= steps; index += 1) {
-      const progress = index / steps;
-      await client.send("Input.dispatchTouchEvent", {
-        type: "touchMove",
-        touchPoints: [{
-          x: Math.round(from.x + (to.x - from.x) * progress),
-          y: Math.round(from.y + (to.y - from.y) * progress),
-          id: 1,
-        }],
-      });
-      await page.waitForTimeout(16);
-    }
-    await client.send("Input.dispatchTouchEvent", {
-      type: "touchEnd",
-      touchPoints: [],
-    });
-    await client.detach();
-  }
-
-  test("scrolls shelves when a vertical drag starts on a plant", async ({ browser }) => {
-    const now = Date.now();
-    const player = createDefaultPlayer(`garden_plant_scroll_${now}`, "Garden Plant Scroll", now);
-    player.garden = {
-      economyVersion: GARDEN_ECONOMY_VERSION,
-      totalGoldEarned: 500,
-      level: 18,
-      xp: 120,
-      xpRequired: getGardenXpRequired(18),
-      levelReady: false,
-      shelvesUnlocked: 4,
-      plants: Array.from({ length: 8 }, (_, index) => ({
-        id: `scroll-daisy-${index}`,
-        type: index % 2 ? "basil" : "daisy",
-        level: 6 + index,
-        shelfIndex: Math.floor(index / 2),
-        spotIndex: index % 2,
-        phase: 3,
-        phaseProgress: 0,
-        lastTapped: now,
-        lastWatered: now,
-      })),
-      claimedQuests: [],
-      dailyQuests: buildGardenDailyQuests(createGardenEconomyState(now)),
-      passiveGoldBuffer: 0,
-      passiveXpBuffer: 0,
-      lastTick: now,
-      offlineEarnings: null,
-      offlineXp: null,
-    };
-    const context = await browser.newContext({
-      viewport: { width: 390, height: 844 },
-      deviceScaleFactor: 2,
-      isMobile: true,
-      hasTouch: true,
-    });
-    const page = await context.newPage();
-    await page.addInitScript(() => {
-      window.localStorage.setItem("gh_dev_user_id", `garden_plant_scroll_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-      window.localStorage.removeItem("terrarium_save");
-      window.localStorage.removeItem("garden_shelf_language");
-      window.localStorage.removeItem("garden_shelf_name");
-    });
-    await page.route("**/api/player/snapshot", async (route) => {
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify(buildSnapshot(player)),
-      });
-    });
-    await page.route("**/api/player/mutate", async (route) => {
-      const body = parsePlayerActionRequest(route.request()) || {};
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({
-          action: body.action,
-          snapshot: buildSnapshot(player),
-          goldDelta: body.payload?.amount || 0,
-        }),
-      });
-    });
-
-    try {
-      await page.goto("/");
-      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      const scroller = page.locator(".no-scrollbar").first();
-      await expect(scroller).toBeVisible();
-      await expect.poll(() => scroller.evaluate((node) => node.scrollHeight > node.clientHeight + 80)).toBe(true);
-      await scroller.evaluate((node) => { node.scrollTop = 0; });
-
-      const plantBox = await page.locator('[data-garden-plant="true"]').first().boundingBox();
-      expect(plantBox).not.toBeNull();
-      const detailsButtonBox = await page.locator('[data-plant-details-button="true"]').first().boundingBox();
-      expect(detailsButtonBox).not.toBeNull();
-      expect(detailsButtonBox.width).toBeGreaterThanOrEqual(44);
-      expect(detailsButtonBox.height).toBeGreaterThanOrEqual(44);
-      await dragTouch(
-        page,
-        { x: Math.round(plantBox.x + plantBox.width / 2), y: Math.round(plantBox.y + plantBox.height / 2) },
-        { x: Math.round(plantBox.x + plantBox.width / 2), y: Math.round(plantBox.y + plantBox.height / 2 - 180) },
-      );
-
-      await expect.poll(() => scroller.evaluate((node) => node.scrollTop)).toBeGreaterThan(40);
-      await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
-    } finally {
-      await context.close();
-    }
-  });
-
-  test("does not fetch legacy Garden Shelf PNG base art when the runtime manifest is available", async ({ page }) => {
-    const legacyBasePngRequests = [];
-    page.on("request", (request) => {
-      const url = request.url();
-      if (/\/games\/garden-shelf\/assets_[^/?]+\.png(?:\?|$)/.test(url)) {
-        legacyBasePngRequests.push(url);
-      }
-    });
-
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/sign."]')).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/bottomPlank."]')).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/shelf."]').first()).toBeVisible();
-    await expect.poll(() => legacyBasePngRequests).toEqual([]);
-  });
-
-  test("loads the Garden Shelf port and plants from the shelf panel", async ({ page }) => {
-    const pageErrors = [];
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("My Garden")).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/sign."]')).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/bottomPlank."]')).toBeVisible();
-    await expect(page.locator('img[src*="/assets-runtime/garden-shelf/shelf."]').first()).toBeVisible();
-    await expect(page.getByText("Gold Balance")).toHaveCount(0);
-    await expect(page.getByText("Garden Lv 1")).toBeVisible();
-    await expect(page.locator(".stats-row")).toContainText("Garden XP");
-    await expect(page.locator(".stats-row")).toContainText("Garden quests");
-    await expect(page.locator(".garden-level-panel")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /Farm/ })).toHaveCount(0);
-    const goldStat = page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
-    await expect(goldStat).toContainText("10,000");
-
-    await page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" }).click();
-    const questDialog = page.locator(".garden-glass-menu[role='dialog']").filter({ hasText: "Garden quests" });
-    await expect(questDialog).toBeVisible();
-    const questBox = await questDialog.boundingBox();
-    const viewport = page.viewportSize();
-    expect(questBox).not.toBeNull();
-    expect(viewport).not.toBeNull();
-    expect(questBox.x).toBeGreaterThanOrEqual(0);
-    expect(questBox.x + questBox.width).toBeLessThanOrEqual(viewport.width + 1);
-    await questDialog.getByRole("button", { name: "Close garden quests" }).click();
-
-    await page.getByRole("button", { name: "+" }).first().click();
-    const panel = page.locator(".fixed.bottom-0").last();
-    await expect(panel).toHaveClass(/garden-glass-sheet/);
-    await expect(panel).toContainText("Seed Shop");
-    await expect(panel).toContainText("Daisy");
-    await expect(panel).toContainText("Lavender");
-    await expect(panel).toContainText("Unlocks at Lv 4");
-    await panel.locator("button").filter({ hasText: "2,500" }).click();
-
-    await expect(page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
-    await expect(page.getByTestId("garden-phase-badge")).toHaveCount(0);
-    await expect(page.getByTestId("garden-water-ready")).toBeVisible();
-    await expect(goldStat).toContainText("7,500");
-
-    await page.getByRole("button", { name: "Garden settings" }).click();
-    await expect(page.locator(".garden-glass-menu")).toBeVisible();
-    await expect(page.getByText("Settings")).toBeVisible();
-    await page.getByRole("button", { name: "Russian" }).click();
-    await expect(page.getByText("Мой сад")).toBeVisible();
-    await expect(page.getByText("Ур. сада 1")).toBeVisible();
-    await expect(page.locator(".stats-row")).toContainText("Опыт сада");
-    await expect(page.getByRole("button", { name: /Блоки/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Камни/ })).toBeVisible();
-    await expect(page.getByText("Настройки")).toBeVisible();
-    expect(pageErrors).toEqual([]);
-  });
-
-  test("aligns seed shop DOM rows to the generated shop panel lanes", async ({ page }) => {
-    const viewports = [
-      { width: 320, height: 568 },
-      { width: 390, height: 844 },
-      { width: 844, height: 390 },
-    ];
-    const reference = { width: 1024, height: 1536 };
-    const rows = [
-      { x: 118, y: 444, width: 788, height: 138 },
-      { x: 118, y: 582, width: 788, height: 138 },
-      { x: 118, y: 720, width: 788, height: 138 },
-    ];
-
-    for (const viewport of viewports) {
-      await page.setViewportSize(viewport);
-      await page.goto("/");
-      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      await page.getByRole("button", { name: "+" }).first().click();
-      const panel = page.locator('[data-asset-slot-surface="garden-seed-shop-inventory"]');
-      await expect(panel).toBeVisible();
-      await page.waitForFunction(() => {
-        const node = document.querySelector('[data-asset-slot-surface="garden-seed-shop-inventory"]');
-        if (!node) return false;
-        const rect = node.getBoundingClientRect();
-        const transform = getComputedStyle(node).transform;
-        const matrix = transform === "none" ? new DOMMatrixReadOnly() : new DOMMatrixReadOnly(transform);
-        return Math.abs(window.innerHeight - rect.bottom) <= 1 && Math.abs(matrix.m42) <= 1;
-      });
-
-      const alignment = await panel.evaluate((node, { expectedRows, ref }) => {
-        const panelRect = node.getBoundingClientRect();
-        const expectedRect = (slot) => ({
-          left: panelRect.left + (slot.x / ref.width) * panelRect.width,
-          top: panelRect.top + (slot.y / ref.height) * panelRect.height,
-          width: (slot.width / ref.width) * panelRect.width,
-          height: (slot.height / ref.height) * panelRect.height,
-        });
-        const targets = [...node.querySelectorAll('[data-asset-slot-group="garden-seed-shop-row"]')]
-          .sort((a, b) => Number(a.dataset.assetSlotIndex || 0) - Number(b.dataset.assetSlotIndex || 0))
-          .slice(0, expectedRows.length);
-        return {
-          horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-          rows: targets.map((target, index) => {
-            const rect = target.getBoundingClientRect();
-            const expected = expectedRect(expectedRows[index]);
-            const button = target.querySelector("button");
-            const buttonRect = button?.getBoundingClientRect();
-            const hit = buttonRect
-              ? document.elementFromPoint(buttonRect.left + buttonRect.width / 2, buttonRect.top + buttonRect.height / 2)
-              : null;
-            const heightDeviation = expected.height >= 43.5 ? Math.abs(rect.height - expected.height) : 0;
-            return {
-              deviation: Math.max(
-                Math.abs(rect.left - expected.left),
-                Math.abs(rect.top - expected.top),
-                Math.abs(rect.width - expected.width),
-                heightDeviation,
-              ),
-              heightCoversLane: rect.height + 0.5 >= expected.height,
-              buttonReachable: !!button && !!hit && (button === hit || button.contains(hit)),
-              buttonWideEnough: !!buttonRect && buttonRect.width >= 43.5 && buttonRect.height >= 43.5,
-            };
-          }),
-        };
-      }, { expectedRows: rows, ref: reference });
-
-      expect(alignment.horizontalOverflow).toBeLessThanOrEqual(1);
-      expect(alignment.rows).toHaveLength(rows.length);
-      expect(alignment.rows.filter((row) => row.deviation > 1.2)).toEqual([]);
-      expect(alignment.rows.filter((row) => !row.heightCoversLane)).toEqual([]);
-      expect(alignment.rows.filter((row) => !row.buttonReachable || !row.buttonWideEnough)).toEqual([]);
-
-      const collisionProblems = await page.evaluate(collectAssetSlotCollisionProblems, {
-        scopeSelector: '[data-asset-slot-surface="garden-seed-shop-inventory"]',
-        rowSelector: '[data-asset-slot-group="garden-seed-shop-row"]',
-      });
-      expect(collisionProblems).toEqual([]);
-    }
-  });
-
-  test("keeps mature plant detail fitted and dismissible on phone-sized high-DPI layouts", async ({ browser }) => {
-    const viewports = [
-      { width: 320, height: 568, deviceScaleFactor: 2 },
-      { width: 390, height: 844, deviceScaleFactor: 2 },
-      { width: 414, height: 896, deviceScaleFactor: 2 },
-    ];
-    const now = Date.now();
-    const player = createDefaultPlayer(`garden_mature_feedback_${now}`, "Garden Feedback", now);
-    player.garden = {
-      economyVersion: GARDEN_ECONOMY_VERSION,
-      totalGoldEarned: 100,
-      level: 12,
-      xp: 120,
-      xpRequired: getGardenXpRequired(12),
-      levelReady: false,
-      shelvesUnlocked: 1,
-      plants: [{
-        id: "mature-feedback-basil",
-        type: "basil",
-        level: 12,
-        shelfIndex: 0,
-        spotIndex: 0,
-        phase: 3,
-        phaseProgress: 0,
-        lastTapped: 0,
-        lastWatered: 0,
-      }],
-      lastTick: now,
-      offlineEarnings: null,
-      offlineXp: null,
-    };
-
-    for (const viewport of viewports) {
-      const context = await browser.newContext({
-        viewport: { width: viewport.width, height: viewport.height },
-        deviceScaleFactor: viewport.deviceScaleFactor,
-        isMobile: true,
-        hasTouch: true,
-      });
-      const page = await context.newPage();
-      let snapshot = buildSnapshot(player);
-
-      await page.addInitScript(() => {
-        window.localStorage.setItem("gh_dev_user_id", `garden_sheet_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-        window.localStorage.removeItem("terrarium_save");
-        window.localStorage.removeItem("garden_shelf_language");
-        window.localStorage.removeItem("garden_shelf_name");
-      });
-      await page.route("**/api/player/snapshot", async (route) => {
-        await route.fulfill({
-          contentType: "application/json",
-          body: JSON.stringify(snapshot),
-        });
-      });
-      await page.route("**/api/player/mutate", async (route) => {
-        const body = parsePlayerActionRequest(route.request()) || {};
-        if (body.action === "garden.goldDelta") {
-          snapshot = {
-            ...snapshot,
-            resources: {
-              ...snapshot.resources,
-              gold: Math.max(0, Math.floor(Number(snapshot.resources?.gold) || 0) + Math.trunc(Number(body.payload?.amount) || 0)),
-            },
-          };
-        }
-        if (body.action === "garden.sync") {
-          snapshot = {
-            ...snapshot,
-            garden: body.payload?.state || snapshot.garden,
-          };
-        }
-        await route.fulfill({
-          contentType: "application/json",
-          body: JSON.stringify({
-            action: body.action,
-            snapshot,
-            goldDelta: body.payload?.amount || 0,
-          }),
-        });
-      });
-
-      const openDetailSheet = async () => {
-        await page.getByRole("button", { name: "Plant details" }).first().tap();
-        const sheet = page.locator(".garden-glass-sheet").last();
-        await expect(sheet).toBeVisible();
-        await expect(sheet).toHaveAttribute("role", "dialog");
-        await expect(sheet).toHaveAttribute("aria-modal", "true");
-        await expect.poll(async () => sheet.evaluate((node) => {
-          const rect = node.getBoundingClientRect();
-          const visual = window.visualViewport;
-          return rect.bottom <= ((visual?.offsetTop || 0) + (visual?.height || window.innerHeight)) + 1
-            && rect.top >= (visual?.offsetTop || 0) - 1;
-        })).toBe(true);
-        return sheet;
-      };
-
-      const assertSheetContract = async (sheet) => {
-        const layout = await sheet.evaluate((node) => {
-          const visual = window.visualViewport;
-          const viewport = {
-            left: visual?.offsetLeft || 0,
-            top: visual?.offsetTop || 0,
-            width: visual?.width || window.innerWidth,
-            height: visual?.height || window.innerHeight,
-            scrollWidth: document.documentElement.scrollWidth,
-            innerWidth: window.innerWidth,
-          };
-          const rect = node.getBoundingClientRect();
-          const close = node.querySelector('[aria-label="Close plant detail"]')?.getBoundingClientRect();
-          const content = node.querySelector(".garden-sheet-content");
-          const visible = (el) => {
-            const styles = getComputedStyle(el);
-            const box = el.getBoundingClientRect();
-            return styles.display !== "none" && styles.visibility !== "hidden" && box.width > 0 && box.height > 0;
-          };
-          const smallButtons = [...node.querySelectorAll("button")]
-            .filter(visible)
-            .filter((button) => {
-              const box = button.getBoundingClientRect();
-              return box.width < 44 || box.height < 44;
-            })
-            .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
-          if (content) content.scrollTop = content.scrollHeight;
-          const closeAfterScroll = node.querySelector('[aria-label="Close plant detail"]')?.getBoundingClientRect();
-          return {
-            viewport,
-            sheet: { top: rect.top, bottom: rect.bottom, right: rect.right, left: rect.left },
-            close: close ? { x: close.x, y: close.y, right: close.right, bottom: close.bottom } : null,
-            closeAfterScroll: closeAfterScroll ? { x: closeAfterScroll.x, y: closeAfterScroll.y, right: closeAfterScroll.right, bottom: closeAfterScroll.bottom } : null,
-            activeLabel: document.activeElement?.getAttribute("aria-label"),
-            smallButtons,
-          };
-        });
-        expect(layout.viewport.scrollWidth).toBeLessThanOrEqual(layout.viewport.innerWidth + 1);
-        expect(layout.sheet.left).toBeGreaterThanOrEqual(layout.viewport.left - 1);
-        expect(layout.sheet.right).toBeLessThanOrEqual(layout.viewport.left + layout.viewport.width + 1);
-        expect(layout.sheet.top).toBeGreaterThanOrEqual(layout.viewport.top - 1);
-        expect(layout.sheet.bottom).toBeLessThanOrEqual(layout.viewport.top + layout.viewport.height + 1);
-        for (const close of [layout.close, layout.closeAfterScroll]) {
-          expect(close).not.toBeNull();
-          expect(close.x).toBeGreaterThanOrEqual(layout.viewport.left - 1);
-          expect(close.y).toBeGreaterThanOrEqual(layout.viewport.top - 1);
-          expect(close.right).toBeLessThanOrEqual(layout.viewport.left + layout.viewport.width + 1);
-          expect(close.bottom).toBeLessThanOrEqual(layout.viewport.top + layout.viewport.height + 1);
-        }
-        expect(layout.activeLabel).toBe("Close plant detail");
-        expect(layout.smallButtons).toEqual([]);
-        const collisionProblems = await page.evaluate(collectAssetSlotCollisionProblems, {
-          scopeSelector: '[data-asset-slot-surface="garden-plant-detail"]',
-          rowSelector: '[data-asset-slot-group="plant-action-row"]',
-        });
-        expect(collisionProblems).toEqual([]);
-        const slotProblems = await page.evaluate(collectPlantDetailSlotProblems);
-        expect(slotProblems).toEqual([]);
-      };
-
-      try {
-        await page.goto("/");
-        await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-
-        const plantBox = await page.locator('[data-garden-plant="true"]').first().boundingBox();
-        expect(plantBox).not.toBeNull();
-        await page.touchscreen.tap(plantBox.x + plantBox.width / 2, plantBox.y + plantBox.height / 2);
-        const shelfNote = page.locator(".garden-floating-note.reward").first();
-        await expect(shelfNote).toBeVisible();
-        await expect(shelfNote).toContainText(/G .* XP/);
-        const shelfNoteFontSize = await shelfNote.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
-        expect(shelfNoteFontSize).toBeGreaterThanOrEqual(14);
-        const shelfNoteLayout = await shelfNote.evaluate((node) => {
-          const note = node.getBoundingClientRect();
-          const layer = node.closest(".garden-spot-floating-layer");
-          const root = node.closest(".garden-root")?.getBoundingClientRect();
-          return {
-            left: note.left,
-            right: note.right,
-            rootLeft: root?.left ?? 0,
-            rootRight: root?.right ?? window.innerWidth,
-            layerAfterPlant: layer?.previousElementSibling?.matches?.('[data-garden-plant="true"]') || false,
-            layerZIndex: Number.parseInt(getComputedStyle(layer).zIndex, 10),
-          };
-        });
-        expect(shelfNoteLayout.left).toBeGreaterThanOrEqual(shelfNoteLayout.rootLeft - 1);
-        expect(shelfNoteLayout.right).toBeLessThanOrEqual(shelfNoteLayout.rootRight + 1);
-        expect(shelfNoteLayout.layerAfterPlant).toBe(true);
-        expect(shelfNoteLayout.layerZIndex).toBeGreaterThanOrEqual(90);
-        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
-
-        let sheet = await openDetailSheet();
-        await assertSheetContract(sheet);
-        await sheet.getByRole("button", { name: "Care water" }).click();
-        const detailNote = page.locator(".garden-detail-floating-note.reward").first();
-        await expect(detailNote).toBeVisible();
-        await expect(detailNote).toContainText(/G .* XP/);
-        const detailNoteFontSize = await detailNote.evaluate((node) => parseFloat(getComputedStyle(node).fontSize));
-        expect(detailNoteFontSize).toBeGreaterThanOrEqual(14);
-        await sheet.locator(".garden-sheet-close").click();
-        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
-
-        sheet = await openDetailSheet();
-        await assertSheetContract(sheet);
-        await page.keyboard.press("Escape");
-        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
-
-        sheet = await openDetailSheet();
-        await assertSheetContract(sheet);
-        await page.touchscreen.tap(8, 8);
-        await expect(page.locator(".garden-glass-sheet")).toHaveCount(0);
-      } finally {
-        await context.close();
-      }
-    }
-  });
-
-  test("keeps post-30 Level Up reachable across Telegram-style viewports", async ({ browser }) => {
-    const viewports = [
-      { name: "small-mobile", width: 320, height: 568, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-      { name: "common-mobile", width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-      { name: "large-mobile", width: 414, height: 896, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-      { name: "tablet-portrait", width: 768, height: 1024, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "tablet-landscape", width: 1024, height: 768, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "desktop-smoke", width: 1280, height: 720, deviceScaleFactor: 1, isMobile: false, hasTouch: false },
-    ];
-
-    for (const viewport of viewports) {
-      const now = Date.now();
-      const player = createDefaultPlayer(`garden_uncapped_${viewport.name}_${now}`, "Garden Uncapped", now);
-      const starterGarden = createGardenEconomyState(now);
-      player.garden = {
-        economyVersion: GARDEN_ECONOMY_VERSION,
-        totalGoldEarned: 0,
-        level: 31,
-        xp: getGardenXpRequired(31),
-        xpRequired: getGardenXpRequired(31),
-        levelReady: true,
-        shelvesUnlocked: 1,
-        claimedQuests: [],
-        dailyQuests: starterGarden.dailyQuests,
-        plants: [{
-          id: `fern-${viewport.name}`,
-          type: "fern",
-          level: 42,
-          shelfIndex: 0,
-          spotIndex: 0,
-          phase: 3,
-          phaseProgress: 0,
-          lastTapped: 0,
-        }],
-        passiveGoldBuffer: 0,
-        passiveXpBuffer: 0,
-        lastTick: now,
-        offlineEarnings: null,
-        offlineXp: null,
-      };
-
-      const context = await browser.newContext({
-        viewport: { width: viewport.width, height: viewport.height },
-        deviceScaleFactor: viewport.deviceScaleFactor,
-        isMobile: viewport.isMobile,
-        hasTouch: viewport.hasTouch,
-      });
-      const page = await context.newPage();
-      const pageErrors = [];
-      page.on("pageerror", (err) => pageErrors.push(err.message));
-
-      await page.addInitScript(() => {
-        window.localStorage.setItem("gh_dev_user_id", `garden_uncapped_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-        window.localStorage.removeItem("terrarium_save");
-        window.localStorage.removeItem("garden_shelf_language");
-        window.localStorage.removeItem("garden_shelf_name");
-      });
-      await page.route("**/api/player/snapshot", async (route) => {
-        await route.fulfill({
-          contentType: "application/json",
-          body: JSON.stringify(buildSnapshot(player)),
-        });
-      });
-      await page.route("**/api/player/mutate", async (route) => {
-        const body = parsePlayerActionRequest(route.request()) || {};
-        const result = await applyAction(player, body.action, body.payload || {});
-        await route.fulfill({
-          status: result.status,
-          contentType: "application/json",
-          body: JSON.stringify(result.body),
-        });
-      });
-
-      await page.goto("/");
-      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      await expect(page.getByText("Garden Lv 31")).toBeVisible();
-      const levelButton = page.locator(".stats-row .stat-chip.clickable").filter({ hasText: "Level Up" });
-      await expect(levelButton).toContainText(`+${formatGardenGoldAmount(getGardenLevelReward(31))}`);
-
-      const fit = await page.evaluate(() => {
-        const chip = [...document.querySelectorAll(".stats-row .stat-chip")]
-          .find((node) => node.textContent?.includes("Level Up"));
-        const stats = document.querySelector(".stats-row");
-        const viewport = window.visualViewport || { width: window.innerWidth, height: window.innerHeight };
-        const chipRect = chip?.getBoundingClientRect();
-        const statsRect = stats?.getBoundingClientRect();
-        return {
-          canScrollX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-          chip: chipRect && {
-            x: chipRect.x,
-            y: chipRect.y,
-            width: chipRect.width,
-            height: chipRect.height,
-            right: chipRect.right,
-            bottom: chipRect.bottom,
-          },
-          stats: statsRect && {
-            x: statsRect.x,
-            y: statsRect.y,
-            width: statsRect.width,
-            height: statsRect.height,
-            right: statsRect.right,
-            bottom: statsRect.bottom,
-          },
-          viewportWidth: viewport.width,
-          viewportHeight: viewport.height,
-        };
-      });
-
-      expect(fit.canScrollX, `${viewport.name} should not create horizontal scroll`).toBe(false);
-      expect(fit.chip, `${viewport.name} Level Up chip should exist`).not.toBeNull();
-      expect(fit.chip.width, `${viewport.name} Level Up chip width`).toBeGreaterThanOrEqual(44);
-      expect(fit.chip.height, `${viewport.name} Level Up chip height`).toBeGreaterThanOrEqual(44);
-      expect(fit.chip.x, `${viewport.name} Level Up chip left`).toBeGreaterThanOrEqual(0);
-      expect(fit.chip.right, `${viewport.name} Level Up chip right`).toBeLessThanOrEqual(fit.viewportWidth + 1);
-      expect(fit.stats.bottom, `${viewport.name} HUD stats bottom`).toBeLessThanOrEqual(fit.viewportHeight + 1);
-
-      await levelButton.click();
-      await expect(page.getByText("Garden Lv 32")).toBeVisible();
-      await expect(page.locator(".stats-row .stat-chip").filter({ hasText: "Garden XP" })).toContainText(`0/${getGardenXpRequired(32)}`);
-      expect(player.garden.level).toBe(32);
-      expect(player.garden.plants[0].level).toBe(42);
-      expect(pageErrors).toEqual([]);
-
-      await context.close();
-    }
-  });
-
-  test("uses compositor-light mobile overlays for Garden Shelf panels", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "Mobile overlay budget is calibrated for coarse-pointer webviews.");
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect.poll(() => page.evaluate(() => typeof window.__openGardenQuests)).toBe("function");
-
-    await page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" }).click();
-    const questDialog = page.getByRole("dialog", { name: "Garden quests" });
-    await expect(questDialog).toBeVisible();
-    const questOverlayStyles = await questDialog.evaluate((dialog) => {
-      const scrim = document.querySelector(".glass-scrim");
-      const read = (element) => {
-        const styles = window.getComputedStyle(element);
-        return {
-          backdropFilter: styles.backdropFilter,
-          webkitBackdropFilter: styles.webkitBackdropFilter,
-        };
-      };
-      return { dialog: read(dialog), scrim: scrim ? read(scrim) : null };
-    });
-    expect(questOverlayStyles.dialog.backdropFilter).toBe("none");
-    expect(questOverlayStyles.scrim?.backdropFilter).toBe("none");
-    await questDialog.getByRole("button", { name: "Close garden quests" }).click();
-
-    await page.getByRole("button", { name: "+" }).first().click();
-    const sheet = page.locator(".garden-glass-sheet").last();
-    await expect(sheet).toBeVisible();
-    const sheetBackdrop = await sheet.evaluate((element) => window.getComputedStyle(element).backdropFilter);
-    expect(sheetBackdrop).toBe("none");
-  });
-
-  test("opens shell Garden quests with daily priority and protects repeated quest claims", async ({ page }) => {
-    const pageErrors = [];
-    page.on("pageerror", (err) => pageErrors.push(err.message));
-
-    const player = createDefaultPlayer(`garden_quest_${Date.now()}`, "Garden Quest");
-    const today = new Date().toISOString().slice(0, 10);
-    const gardenState = {
-      economyVersion: GARDEN_ECONOMY_VERSION,
-      totalGoldEarned: 120,
-      level: 2,
-      xp: 0,
-      xpRequired: getGardenXpRequired(2),
-      levelReady: false,
-      shelvesUnlocked: 1,
-      plants: [{
-        id: "daily-daisy",
-        type: "daisy",
-        level: 2,
-        shelfIndex: 0,
-        spotIndex: 0,
-        phase: 3,
-        phaseProgress: 0,
-        lastTapped: 0,
-      }],
-      claimedQuests: ["first_plant"],
-      dailyQuests: {
-        date: today,
-        claimed: [],
-        stats: {
-          taps: 12,
-          waters: 12,
-          plantsBought: 4,
-          upgrades: 3,
-          goldEarned: 80,
-          xpEarned: 80,
-          levelUps: 2,
-        },
-      },
-      lastTick: Date.now(),
-      offlineEarnings: null,
-      offlineXp: null,
-    };
-    const dailyQuests = buildGardenDailyQuests(gardenState);
-    const unlockedDaily = dailyQuests.filter((quest) => quest.unlocked && quest.complete);
-    const claimedDaily = unlockedDaily[0];
-    const claimableDaily = unlockedDaily.find((quest) => quest.id !== claimedDaily.id);
-    expect(claimedDaily).toBeTruthy();
-    expect(claimableDaily).toBeTruthy();
-    gardenState.dailyQuests.claimed = [claimedDaily.id];
-    player.garden = gardenState;
-    let snapshot = buildSnapshot(player);
-    let dailyClaimRequests = 0;
-
-    await page.addInitScript(() => {
-      window.localStorage.setItem("game_hub_ui_theme", "dark");
-      window.localStorage.setItem("garden_shelf_language", "ru");
-    });
-
-    await page.route("**/api/player/snapshot", async (route) => {
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify(snapshot),
-      });
-    });
-
-    await page.route("**/api/player/mutate", async (route) => {
-      const body = parsePlayerActionRequest(route.request()) || {};
-      if (body.action === "garden.goldDelta" && body.payload?.reason === `quest:${claimableDaily.id}`) {
-        dailyClaimRequests += 1;
-        await new Promise((resolve) => setTimeout(resolve, 250));
-      }
-      if (body.action === "garden.goldDelta") {
-        snapshot = {
-          ...snapshot,
-          resources: {
-            ...snapshot.resources,
-            gold: Math.max(0, Math.floor(Number(snapshot.resources?.gold) || 0) + Math.trunc(Number(body.payload?.amount) || 0)),
-          },
-        };
-      }
-      if (body.action === "garden.sync") {
-        snapshot = {
-          ...snapshot,
-          garden: body.payload?.state || snapshot.garden,
-        };
-      }
-      await route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({
-          action: body.action,
-          snapshot,
-          goldDelta: body.payload?.amount || 0,
-        }),
-      });
-    });
-
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.locator(".garden-quest-trigger")).toHaveCount(0);
-    await expect.poll(() => page.evaluate(() => typeof window.__openGardenQuests)).toBe("function");
-    await page.locator(".stats-row .stat-chip").filter({ hasText: "Квесты сада" }).click();
-    const questDialog = page.getByRole("dialog", { name: "Квесты сада" });
-    await expect(questDialog).toBeVisible();
-    await expect(questDialog).toContainText("Дневной");
-    await expect(questDialog).toContainText("Сюжетный");
-    expect(await contrastRatioFor(page, ".garden-quest-card h3", ".garden-quest-card")).toBeGreaterThanOrEqual(4.5);
-
-    const order = await page.locator(".garden-quest-card").evaluateAll((cards) => cards.map((card) => ({
-      kind: card.getAttribute("data-quest-kind"),
-      claimed: card.getAttribute("data-quest-claimed") === "true",
-      locked: card.getAttribute("data-quest-locked") === "true",
-    })));
-    const findIndex = (predicate) => order.findIndex(predicate);
-    const activeDailyIndex = findIndex((quest) => quest.kind === "daily" && !quest.claimed && !quest.locked);
-    const activeStoryIndex = findIndex((quest) => quest.kind === "story" && !quest.claimed);
-    const claimedDailyIndex = findIndex((quest) => quest.kind === "daily" && quest.claimed);
-    const claimedStoryIndex = findIndex((quest) => quest.kind === "story" && quest.claimed);
-    expect(activeDailyIndex).toBeGreaterThanOrEqual(0);
-    expect(activeStoryIndex).toBeGreaterThan(activeDailyIndex);
-    expect(claimedDailyIndex).toBeGreaterThan(activeStoryIndex);
-    expect(claimedStoryIndex).toBeGreaterThan(claimedDailyIndex);
-
-    const dailyQuest = page.locator(`.garden-quest-card[data-quest-id="${claimableDaily.id}"]`);
-    const claimButton = dailyQuest.getByRole("button", { name: "Забрать" });
-    await claimButton.click();
-    await claimButton.click({ force: true });
-    await expect(dailyQuest.getByRole("button", { name: "Получено" })).toBeVisible({ timeout: 10000 });
-    expect(dailyClaimRequests).toBe(1);
-    expect(pageErrors).toEqual([]);
-  });
-
-  test("aligns Garden quest DOM slots to the generated quest panel lanes", async ({ browser }) => {
-    const now = Date.now();
-    const player = createDefaultPlayer(`garden_quest_slots_${now}`, "Garden Quest Slots", now);
-    const gardenState = {
-      economyVersion: GARDEN_ECONOMY_VERSION,
-      totalGoldEarned: 240,
-      level: 3,
-      xp: 0,
-      xpRequired: getGardenXpRequired(3),
-      levelReady: false,
-      shelvesUnlocked: 1,
-      plants: [{
-        id: "slot-daisy",
-        type: "daisy",
-        level: 3,
-        shelfIndex: 0,
-        spotIndex: 0,
-        phase: 3,
-        phaseProgress: 0,
-        lastTapped: now,
-        lastWatered: now,
-      }],
-      claimedQuests: [],
-      dailyQuests: {
-        date: new Date(now).toISOString().slice(0, 10),
-        claimed: [],
-        stats: {
-          taps: 18,
-          waters: 12,
-          plantsBought: 5,
-          upgrades: 4,
-          goldEarned: 160,
-          xpEarned: 120,
-          levelUps: 2,
-        },
-      },
-      lastTick: now,
-      offlineEarnings: null,
-      offlineXp: null,
-    };
-    player.garden = gardenState;
-    const snapshot = buildSnapshot(player);
-    const viewports = [
-      { name: "small-phone", width: 320, height: 568, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-      { name: "common-android", width: 360, height: 800, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "common-phone", width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-      { name: "large-phone", width: 414, height: 896, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "phone-landscape", width: 568, height: 320, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
-      { name: "wide-phone-landscape", width: 844, height: 390, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "tablet-portrait", width: 768, height: 1024, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "tablet-landscape", width: 1024, height: 768, deviceScaleFactor: 1, isMobile: true, hasTouch: true },
-      { name: "desktop-smoke", width: 1280, height: 720, deviceScaleFactor: 1, isMobile: false, hasTouch: false },
-    ];
-
-    for (const viewport of viewports) {
-      const context = await browser.newContext({
-        viewport: { width: viewport.width, height: viewport.height },
-        deviceScaleFactor: viewport.deviceScaleFactor,
-        isMobile: viewport.isMobile,
-        hasTouch: viewport.hasTouch,
-      });
-      const page = await context.newPage();
-      await page.addInitScript((label) => {
-        window.localStorage.setItem("gh_dev_user_id", `garden_quest_slots_${label}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
-        window.localStorage.setItem("garden_shelf_language", "en");
-        window.localStorage.removeItem("terrarium_save");
-        window.localStorage.removeItem("garden_shelf_name");
-      }, viewport.name);
-      await page.route("**/api/player/snapshot", async (route) => {
-        await route.fulfill({
-          contentType: "application/json",
-          body: JSON.stringify(snapshot),
-        });
-      });
-      await page.route("**/api/player/mutate", async (route) => {
-        const body = parsePlayerActionRequest(route.request()) || {};
-        await route.fulfill({
-          contentType: "application/json",
-          body: JSON.stringify({
-            action: body.action,
-            snapshot,
-            goldDelta: body.payload?.amount || 0,
-          }),
-        });
-      });
-
-      try {
-      await page.goto("/");
-      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      await expect.poll(() => page.evaluate(() => typeof window.__openGardenQuests)).toBe("function");
-      await page.evaluate(() => window.__openGardenQuests());
-      const questDialog = page.getByRole("dialog", { name: "Garden quests" });
-      await expect(questDialog).toBeVisible();
-      await expect(questDialog).toHaveAttribute("data-asset-slot-surface", "garden-quests");
-
-      const measurements = await questDialog.evaluate((dialog) => {
-        const rectOf = (selector, scope = dialog) => {
-          const element = selector === ":scope" ? scope : scope.querySelector(selector);
-          if (!element) return null;
-          const rect = element.getBoundingClientRect();
-          const parent = dialog.getBoundingClientRect();
-          return {
-            x: (rect.left - parent.left) / parent.width,
-            y: (rect.top - parent.top) / parent.height,
-            width: rect.width / parent.width,
-            height: rect.height / parent.height,
-          };
-        };
-        const cards = Array.from(dialog.querySelectorAll("[data-asset-slot-row='garden-quest']"))
-          .slice(0, 6)
-          .map((card) => ({
-            row: rectOf(":scope", card),
-            title: rectOf("[data-asset-slot='quest-title']", card),
-            reward: rectOf("[data-asset-slot='quest-reward']", card),
-            progress: rectOf("[data-asset-slot='quest-progress']", card),
-            action: rectOf("[data-asset-slot='quest-action']", card),
-          }));
-        const hitTargets = Array.from(dialog.querySelectorAll("[data-asset-slot='panel-close'], [data-asset-slot='quest-action']")).map((target) => {
-          const rect = target.getBoundingClientRect();
-          const before = getComputedStyle(target, "::before");
-          const beforeX = Math.abs(parseFloat(before.left || "0")) + Math.abs(parseFloat(before.right || "0"));
-          const beforeY = Math.abs(parseFloat(before.top || "0")) + Math.abs(parseFloat(before.bottom || "0"));
-          return {
-            slot: target.getAttribute("data-asset-slot"),
-            hitWidth: rect.width + beforeX,
-            hitHeight: rect.height + beforeY,
-          };
-        });
-        return {
-          list: rectOf("[data-asset-slot='quest-list']"),
-          title: rectOf("[data-asset-slot='panel-title']"),
-          close: rectOf("[data-asset-slot='panel-close']"),
-          cards,
-          hitTargets,
-        };
-      });
-
-      const expectNear = (actual, expected, tolerance, label) => {
-        expect(actual, `${label} exists`).not.toBeNull();
-        expect(Math.abs(actual.x - expected.x), `${label} x`).toBeLessThanOrEqual(tolerance);
-        expect(Math.abs(actual.y - expected.y), `${label} y`).toBeLessThanOrEqual(tolerance);
-        expect(Math.abs(actual.width - expected.width), `${label} width`).toBeLessThanOrEqual(tolerance);
-        expect(Math.abs(actual.height - expected.height), `${label} height`).toBeLessThanOrEqual(tolerance);
-      };
-
-      expectNear(measurements.title, { x: 0.265, y: 0.083, width: 0.48, height: 0.042 }, 0.025, `${viewport.name} quest panel title`);
-      expectNear(measurements.close, { x: 0.835, y: 0.066, width: 0.112, height: 0.073 }, 0.04, `${viewport.name} quest panel close`);
-      expectNear(measurements.list, { x: 0.099, y: 0.167, width: 0.807, height: 0.724 }, 0.018, `${viewport.name} quest list viewport`);
-      expect(measurements.cards.length).toBeGreaterThanOrEqual(6);
-      for (const target of measurements.hitTargets) {
-        expect(target.hitWidth, `${viewport.name} ${target.slot} hit width`).toBeGreaterThanOrEqual(44);
-        expect(target.hitHeight, `${viewport.name} ${target.slot} hit height`).toBeGreaterThanOrEqual(44);
-      }
-
-      const rowY = [0.167, 0.292, 0.417, 0.541, 0.665, 0.789];
-      for (const [index, card] of measurements.cards.entries()) {
-        expectNear(card.row, { x: 0.099, y: rowY[index], width: 0.807, height: 0.115 }, 0.02, `${viewport.name} quest row ${index + 1}`);
-        expectNear(card.title, { x: 0.257, y: rowY[index] + 0.036, width: 0.26, height: 0.024 }, 0.03, `${viewport.name} quest row ${index + 1} title slot`);
-        expectNear(card.reward, { x: 0.543, y: rowY[index] + 0.035, width: 0.062, height: 0.041 }, 0.03, `${viewport.name} quest row ${index + 1} reward slot`);
-        expectNear(card.progress, { x: 0.542, y: rowY[index] + 0.085, width: 0.178, height: 0.018 }, 0.03, `${viewport.name} quest row ${index + 1} progress slot`);
-        expectNear(card.action, { x: 0.737, y: rowY[index] + 0.043, width: 0.142, height: 0.049 }, 0.03, `${viewport.name} quest row ${index + 1} action slot`);
-      }
-
-      const collisionProblems = await page.evaluate(collectAssetSlotCollisionProblems, {
-        scopeSelector: '[data-asset-slot-surface="garden-quests"]',
-        rowSelector: '[data-asset-slot-row="garden-quest"]',
-      });
-      expect(collisionProblems).toEqual([]);
-      } finally {
-        await context.close();
-      }
-    }
-  });
-
-  test("restores Garden Shelf level and plants from the shared player state on another device", async ({ browser }) => {
-    const userId = `garden_sync_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    const openDevice = async () => {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      await page.addInitScript((value) => {
-        window.localStorage.setItem("gh_dev_user_id", value);
-        window.localStorage.removeItem("terrarium_save");
-        window.localStorage.removeItem("garden_shelf_language");
-        window.localStorage.removeItem("garden_shelf_name");
-      }, userId);
-      await page.goto("/");
-      await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      return { context, page };
-    };
-
-    const first = await openDevice();
-    await first.page.getByRole("button", { name: "+" }).first().click();
-    const panel = first.page.locator(".fixed.bottom-0").last();
-    await expect(panel).toContainText("Seed Shop");
-    const syncAfterPlant = first.page.waitForResponse((response) => {
-      if (!response.url().includes("/api/player/mutate")) return false;
-      const body = parsePlayerActionRequest(response.request());
-      return body?.action === "garden.sync" && body?.payload?.state?.plants?.length > 0;
-    }, { timeout: 10000 });
-    await panel.locator("button").filter({ hasText: "2,500" }).click();
-    await expect(first.page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 10000 });
-    await syncAfterPlant;
-    await first.context.close();
-
-    const second = await openDevice();
-    await expect(second.page.getByTestId("garden-growth-timer")).toBeVisible({ timeout: 15000 });
-    await expect(second.page.locator(".stats-row .stat-chip").filter({ hasText: "Garden quests" })).toBeVisible();
-    const goldStat = second.page.locator(".stats-row .stat-chip").filter({ hasText: "Gold" });
-    await expect(goldStat).toContainText("7,500");
-    await second.context.close();
-  });
-
-  test("does not replay collected offline earnings from the shared player state", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    const userId = await page.evaluate(() => window.localStorage.getItem("gh_dev_user_id"));
-    await page.evaluate(async ({ value, economyVersion, xpRequired }) => {
-      const response = await fetch("/api/player/mutate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `dev ${value}`,
-        },
-        body: JSON.stringify({
-          action: "garden.sync",
-          payload: {
-            state: {
-              economyVersion,
-              totalGoldEarned: 80,
-              level: 2,
-              xp: 80,
-              xpRequired,
-              levelReady: false,
-              shelvesUnlocked: 1,
-              plants: [],
-              lastTick: Date.now(),
-              offlineEarnings: 50,
-              offlineXp: 10,
-            },
-          },
-        }),
-      });
-      if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
-    }, { value: userId, economyVersion: GARDEN_ECONOMY_VERSION, xpRequired: getGardenXpRequired(2) });
-
-    await page.reload();
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Welcome Back!")).toHaveCount(0);
-    await expect(page.getByText("Collect Gold")).toHaveCount(0);
-    await expect(page.locator(".stats-row")).toContainText("Garden XP");
-  });
-
-  test("keeps generated offline reward visible until the player collects it", async ({ page }) => {
-    const stableUserId = `garden_offline_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    await page.addInitScript((value) => {
-      window.localStorage.setItem("gh_dev_user_id", value);
-    }, stableUserId);
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await page.evaluate(async ({ value, economyVersion, xpRequired }) => {
-      const response = await fetch("/api/player/mutate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `dev ${value}`,
-        },
-        body: JSON.stringify({
-          action: "garden.sync",
-          payload: {
-            state: {
-              economyVersion,
-              totalGoldEarned: 100,
-              level: 13,
-              xp: 100,
-              xpRequired,
-              levelReady: false,
-              shelvesUnlocked: 1,
-              plants: [{
-                id: "offline-daisy",
-                type: "daisy",
-                level: 13,
-                shelfIndex: 0,
-                spotIndex: 0,
-                phase: 3,
-                phaseProgress: 0,
-                lastTapped: 0,
-              }],
-              lastTick: Date.now() - 31 * 60_000,
-              offlineEarnings: null,
-              offlineXp: null,
-            },
-          },
-        }),
-      });
-      if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
-    }, { value: stableUserId, economyVersion: GARDEN_ECONOMY_VERSION, xpRequired: getGardenXpRequired(13) });
-
-    await page.reload();
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Welcome Back!")).toBeVisible({ timeout: 8000 });
-    await expect(page.getByRole("button", { name: "Collect Gold" })).toBeVisible();
-    await page.waitForTimeout(4200);
-    await expect(page.getByText("Welcome Back!")).toBeVisible();
-    await page.getByRole("button", { name: "Collect Gold" }).click();
-    await expect(page.getByText("Welcome Back!")).toHaveCount(0);
-  });
-
-  test("does not show generated offline reward after a short background pause", async ({ page }) => {
-    const stableUserId = `garden_short_pause_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    await page.addInitScript((value) => {
-      window.localStorage.setItem("gh_dev_user_id", value);
-    }, stableUserId);
-    await page.goto("/");
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await page.evaluate(async ({ value, economyVersion, xpRequired }) => {
-      const response = await fetch("/api/player/mutate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `dev ${value}`,
-        },
-        body: JSON.stringify({
-          action: "garden.sync",
-          payload: {
-            state: {
-              economyVersion,
-              totalGoldEarned: 100,
-              level: 13,
-              xp: 100,
-              xpRequired,
-              levelReady: false,
-              shelvesUnlocked: 1,
-              plants: [{
-                id: "short-pause-daisy",
-                type: "daisy",
-                level: 13,
-                shelfIndex: 0,
-                spotIndex: 0,
-                phase: 3,
-                phaseProgress: 0,
-                lastTapped: 0,
-              }],
-              lastTick: Date.now() - 2 * 60_000,
-              offlineEarnings: null,
-              offlineXp: null,
-            },
-          },
-        }),
-      });
-      if (!response.ok) throw new Error(`garden sync failed: ${response.status}`);
-    }, { value: stableUserId, economyVersion: GARDEN_ECONOMY_VERSION, xpRequired: getGardenXpRequired(13) });
-
-    await page.reload();
-    await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByText("Welcome Back!")).toHaveCount(0);
-    await expect(page.getByText("Collect Gold")).toHaveCount(0);
+    expect(result.first.status).toBe(200);expect(result.second.status).toBe(200);expect(result.second.body.duplicate).toBe(true);expect(result.second.body.snapshot.resources.gold).toBe(result.before.resources.gold+7);expect(result.first.body.snapshot.resources.gold).toBe(result.second.body.snapshot.resources.gold);
   });
 });

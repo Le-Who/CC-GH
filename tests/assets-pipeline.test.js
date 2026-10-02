@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import {createHash} from "node:crypto";
+import arcadeWebpProof from "./fixtures/arcade-webp-proof.json" with {type:"json"};
 
 import sharp from "sharp";
 import { buildAssetRuntimeManifest } from "../scripts/assets-pipeline.mjs";
@@ -534,4 +536,16 @@ describe("asset runtime pipeline", () => {
     assert.deepEqual(second.manifest, first.manifest);
     assert.equal(secondStat.mtimeMs, cachedStat.mtimeMs);
   });
+});
+
+it('decodes all 39 arcade lossless WebP exports to exact original RGBA including transparent-edge RGB',async()=>{
+  assert.equal(arcadeWebpProof.files.length,39);
+  for(const asset of arcadeWebpProof.files){
+    const {data,info}=await sharp(path.resolve(asset.runtimePath)).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+    assert.equal(info.width,asset.width,asset.runtimePath);
+    assert.equal(info.height,asset.height,asset.runtimePath);
+    assert.equal(info.channels,4,asset.runtimePath);
+    assert.equal(data.length,asset.rgbaBytes,asset.runtimePath);
+    assert.equal(createHash('sha256').update(data).digest('hex'),asset.rgbaSha256,asset.runtimePath);
+  }
 });

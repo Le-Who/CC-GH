@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { mergePanel, closeMergePanel, pauseMerge, exitMerge, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
+import { startTriviaSolo, pauseTrivia, exitTriviaToHub, expectTriviaGeneratedSurface } from "./helpers/triviaR3.js";
+import { expectBloxArtSurface, expectBloxDialog, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
 test.describe("Glass UI rollout smoke", () => {
   test.beforeEach(async ({ page }) => {
@@ -112,7 +115,7 @@ test.describe("Glass UI rollout smoke", () => {
         x: rect.x,
         width: rect.width,
         height: rect.height,
-        backgroundImage: computed.backgroundImage,
+        backgroundImage: computed.borderImageSource !== "none" ? computed.borderImageSource : computed.backgroundImage,
         backgroundColor: computed.backgroundColor,
         color: computed.color,
       };
@@ -122,7 +125,7 @@ test.describe("Glass UI rollout smoke", () => {
     expect(surface.x, `${label} left edge stays inside viewport`).toBeGreaterThanOrEqual(0);
     expect(surface.x + surface.width, `${label} right edge stays inside viewport`).toBeLessThanOrEqual(viewport.width + 1);
     expect(surface.height, `${label} keeps readable height`).toBeGreaterThan(42);
-    expect(surface.backgroundImage, `${label} uses generated runtime art`).toMatch(/\/games\/(?:ui-surfaces|hud-redesign|trivia|companion-yard|garden-shelf)\//);
+    expect(surface.backgroundImage, `${label} uses generated runtime art`).toMatch(/\/games\/(?:ui-surfaces|hud-redesign|trivia|companion-yard|garden-shelf|bubbo-v2|match3-v2|blox-v2)\//);
     expect(surface.backgroundImage, `${label} does not keep a CSS gradient panel`).not.toContain("linear-gradient");
     expect(surface.backgroundColor, `${label} should not paint a CSS fallback color behind transparent art`).toBe("rgba(0, 0, 0, 0)");
     expect(surface.color, `${label} keeps readable runtime text`).not.toBe("rgba(0, 0, 0, 0)");
@@ -133,7 +136,8 @@ test.describe("Glass UI rollout smoke", () => {
   }
 
   async function expectPauseContentChromeFree(overlay, label) {
-    const offenders = await overlay.locator(".game-menu-scaler").evaluate((scaler) => {
+    const offenders = await overlay.evaluate((root) => {
+      const scaler = root.querySelector(".game-menu-scaler") || root;
       const isVisible = (node) => {
         const rect = node.getBoundingClientRect();
         const style = window.getComputedStyle(node);
@@ -158,14 +162,15 @@ test.describe("Glass UI rollout smoke", () => {
   async function pauseAndCheck(page, label, testInfo, shellId = null) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
     const overlay = shellId
-      ? page.locator(`[data-game-shell="${shellId}"] .game-menu-overlay`)
-      : page.locator(".game-menu-overlay:visible").last();
-    await expectGeneratedChrome(page, overlay.locator(".game-menu-scaler"), `${label} pause menu`, testInfo);
+      ? page.locator(`[data-game-shell="${shellId}"] :is(.game-menu-overlay,.bb-dialog,.m3-dialog,.bx-dialog)`)
+      : page.locator(":is(.game-menu-overlay,.bb-dialog,.m3-dialog,.bx-dialog):visible").last();
+    const skin = await overlay.locator(".game-menu-scaler").count() ? overlay.locator(".game-menu-scaler") : overlay;
+    await expectGeneratedChrome(page, skin, `${label} pause menu`, testInfo);
     await expectPauseContentChromeFree(overlay, `${label} pause menu`);
   }
 
   async function exitToHub(page) {
-    await page.locator(".game-menu-overlay:visible").last().getByRole("button", { name: /^Exit$/ }).click();
+    await page.locator(":is(.game-menu-overlay,.bb-dialog,.m3-dialog,.bx-dialog):visible").last().getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
   }
@@ -205,27 +210,45 @@ test.describe("Glass UI rollout smoke", () => {
 
     for (const game of gameCases) {
       await page.getByRole("button", { name: game.tab }).click();
+      if (game.id === "blox") {
+        await expectBloxDialog(page);
+        await expectBloxArtSurface(page, page.locator(".bx-dialog"), "Blox start menu", testInfo);
+        await page.getByRole("button", { name: /^Start$/ }).click();
+        await expectBloxLayout(page);
+        await expectBloxArtSurface(page, page.locator(".bx-hud"), "Blox live HUD", testInfo);
+        const dialog = await pauseBlox(page);
+        await expectBloxArtSurface(page, dialog, "Blox pause menu", testInfo);
+        await exitBlox(page);
+        continue;
+      }
       if (game.menuText) {
         await expect(page.getByText(game.menuText)).toBeVisible();
       } else {
-        await expect(page.locator(".merge-scene-hud")).toBeVisible();
+        await expectMergeArt(page, testInfo, "merge-v3-live-art");
       }
       await page.waitForTimeout(260);
       if (game.start) {
-        await expectGeneratedChrome(page, page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay .game-menu-scaler`), `${game.label} start menu`, testInfo);
+        await expectGeneratedChrome(page, page.locator(`[data-game-shell="${game.id}"] :is(.game-menu-overlay .game-menu-scaler,.bb-dialog,.m3-dialog,.bx-dialog)`), `${game.label} start menu`, testInfo);
         await page.getByRole("button", { name: game.start }).click();
       } else {
         await expect(page.locator(`[data-game-shell="${game.id}"] .game-menu-overlay:visible`)).toHaveCount(0);
       }
       if (game.id === "merge") {
-        await expect(page.locator(".merge-action-area")).toBeVisible();
-        await page.locator('[data-merge-panel="exchange"]').click();
-        await expectReadableGlass(page, page.locator(".merge-scene-drawer"), "Merge exchange drawer", testInfo);
-        await expectDarkUiSurface(page.locator(".merge-scene-drawer"), "Merge scene drawer");
-        await expectDarkUiSurface(page.locator(".merge-exchange-offer").first(), "Merge exchange offer");
-        await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
+        await mergePanel(page, 'supplies');
+        await expectReadableGlass(page, page.locator('.ml-dialog-scroll'), "Merge V3 supplies", testInfo);
+        await expectDarkUiSurface(page.locator('.ml-dialog-scroll'), "Merge V3 readable backing");
+        await expect(page.getByTestId('ml-drawer')).toHaveCSS('border-image-source', /\/games\/merge-lab-v3\/lab-panel\.webp/);
+        await expectMergeControlsReachable(page, page.getByTestId('ml-drawer').locator('.ml-dialog-heading button'));
+        await closeMergePanel(page);
+        const mergeDialog = await pauseMerge(page);
+        await expectReadableGlass(page, mergeDialog.locator('.ml-dialog-scroll'), "Merge V3 pause", testInfo);
+        await expectMergeControlsReachable(page, mergeDialog.getByRole('button'));
+        await exitMerge(page);
+        continue;
       } else if (game.id === "match3") {
-        await expectMatch3Surface(page, page.locator(`[data-game-shell="${game.id}"] .match3-scene-hud`), `${game.label} live HUD`, testInfo);
+        await expectGeneratedChrome(page, page.locator(".m3-hud"), `${game.label} live HUD`, testInfo);
+      } else if (game.id === "bubbo") {
+        await expectGeneratedChrome(page, page.locator(".bb-hud"), `${game.label} live HUD`, testInfo);
       } else {
         await expectGeneratedChrome(page, page.locator(".game-play-hud").last(), `${game.label} live HUD`, testInfo);
       }
@@ -234,12 +257,13 @@ test.describe("Glass UI rollout smoke", () => {
     }
 
     await page.getByRole("button", { name: /Trivia/ }).click();
-    await page.waitForTimeout(260);
-    await expectGeneratedChrome(page, page.locator(".trivia-card"), "Trivia setup panel", testInfo);
-    await page.getByRole("button", { name: "Solo" }).click();
-    await expectGeneratedChrome(page, page.locator(".question-panel h2"), "Trivia question panel", testInfo);
-    await pauseAndCheck(page, "Trivia", testInfo);
-    await exitToHub(page);
+    await expectTriviaGeneratedSurface(page, page.locator(".trv2-paper"), "question-panel", "Trivia setup panel", testInfo);
+    await startTriviaSolo(page);
+    await expectTriviaGeneratedSurface(page, page.locator(".trv2-question-surface"), "question-panel", "Trivia question panel", testInfo);
+    const triviaDialog = await pauseTrivia(page);
+    await expectTriviaGeneratedSurface(page, triviaDialog, "answer-panel", "Trivia pause dialog", testInfo);
+    await expect(triviaDialog.locator(".trv2-pause-metrics")).toHaveCSS("background-image", "none");
+    await exitTriviaToHub(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
     await page.waitForTimeout(260);

@@ -1,0 +1,182 @@
+[
+  {
+    "path": "/games/blox-v2/background.webp",
+    "width": 1024,
+    "height": 1024,
+    "bytes": 616548,
+    "sha256": "80def047f79d959b7174e94097496d84fe088d3aba8c9df5194e763a6bc4e01a",
+    "sourcePath": "/games/blox-v2/background.png",
+    "sourceSha256": "49668b54df03a9f56dca8a082662ebb4addb10af3ab775657b875758402ebdc1",
+    "rgbaSha256": "3a65936b67f1d7952dd7df1dc0a5c8af36806812d17059d843ce316cce4b13eb"
+  },
+  {
+    "path": "/games/blox-v2/board-frame.webp",
+    "width": 1024,
+    "height": 1018,
+    "bytes": 149906,
+    "sha256": "599c6f8e5665aa9d65f46136ffa0c77561ccb61fc79f263d2e30a100501c507e",
+    "sourcePath": "/games/blox-v2/board-frame.png",
+    "sourceSha256": "bce9f7f89f80bace3097014979d657a04ecf5c7f24258cd67e471d332825a704",
+    "rgbaSha256": "5d0d4fe2f2094b7f602374426d8d01adb51fb89de97fc151f9a53469ed2e5ec4"
+  },
+  {
+    "path": "/games/blox-v2/empty-cell.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 39870,
+    "sha256": "b003c146cc84d0eb7c072bce336c9af14b3693ff1d77ff502b4c727c0baa682e",
+    "sourcePath": "/games/blox-v2/empty-cell.png",
+    "sourceSha256": "18ad736db6f3477dfdb1c29f812551cb93f84b5d535b4f94fa68f8376085bd00",
+    "rgbaSha256": "517ffaa55cf483e0267898c9677fe2b79cbb6205decd19cd9261b2f36a58f7c5"
+  },
+  {
+    "path": "/games/blox-v2/panel.webp",
+    "width": 1024,
+    "height": 550,
+    "bytes": 290110,
+    "sha256": "2b646738a625a39e7580f301ff8936085865367ec95778adc5a02033f4aa580f",
+    "sourcePath": "/games/blox-v2/panel.png",
+    "sourceSha256": "7b44a77fa2ea301966c1d0d6a8afa08cdfb5e337ba63635a366f257b0884e64f",
+    "rgbaSha256": "5807e3db6ddf3aa9ecaba1ff4c98b09ced800a753a5852715b1c5d1cdd2fd849"
+  },
+  {
+    "path": "/games/blox-v2/button.webp",
+    "width": 512,
+    "height": 505,
+    "bytes": 176744,
+    "sha256": "edbd9371e81bc7d5b754b99603c81efb620c5756f779f9c8223a853115c0cb80",
+    "sourcePath": "/games/blox-v2/button.png",
+    "sourceSha256": "66e393f094dc9603d0e22897664ae8044f2cd5c7f923ebf91f153c121017461b",
+    "rgbaSha256": "6103afdb91e74e931e82fa23ac96f04fd871827a3775829847b2cf9da105abda"
+  },
+  {
+    "path": "/games/blox-v2/rotate-icon.webp",
+    "width": 256,
+    "height": 235,
+    "bytes": 39646,
+    "sha256": "5c6c4a061f95ab0fa09aa771e888ed792ea40f664a910867613eb4b68a2dd888",
+    "sourcePath": "/games/blox-v2/rotate-icon.png",
+    "sourceSha256": "d635aa749d5b962a757124edfdec5f0800da2e326f5e5eac8d50d18007ba32dd",
+    "rgbaSha256": "7f444dd0147e02d9f549baa6263b3b0f7eecac4276eb896778547428fc491de8"
+  },
+  {
+    "path": "/games/blox-v2/pause-icon.webp",
+    "width": 180,
+    "height": 256,
+    "bytes": 30502,
+    "sha256": "dcf953d81dcfca57c9cdb1ce2d3c63bf1a626d4de6add63b2a0fb6f13133562a",
+    "sourcePath": "/games/blox-v2/pause-icon.png",
+    "sourceSha256": "341e3dea756bad750d0cac65b5149009785e7b20a4b0b9ff6de0c762c2e1c499",
+    "rgbaSha256": "15b15a328938f7a20dd616d442401343bc889d9a4eba1f02af0d8c0b67f2c795"
+  },
+  {
+    "path": "/games/blox-v2/energy.webp",
+    "width": 1024,
+    "height": 109,
+    "bytes": 73132,
+    "sha256": "e3d3e405d4a88b1ef903eb895d6d231fd84299eac6af9ce2bfeaa7f8dde20fe0",
+    "sourcePath": "/games/blox-v2/energy.png",
+    "sourceSha256": "52bbe010340bd5e4bfd1e483c8ad9bcf9a6172585b019145a3389437d1e7ce29",
+    "rgbaSha256": "1ec712195d7a8ae09e9cd0f57f29f4836014ad4ea5500573405bee20e5ff2cf4"
+  },
+  {
+    "path": "/games/blox-v2/burst.webp",
+    "width": 512,
+    "height": 512,
+    "bytes": 168122,
+    "sha256": "7dcffbb644a399e43c3a77b108e3b943f28da1942894019e62b61ad11b46c31b",
+    "sourcePath": "/games/blox-v2/burst.png",
+    "sourceSha256": "81623c8599ddcf1ce5cb16c23a261df49fdc7f346d295ffe995d60d25512c44e",
+    "rgbaSha256": "b519adf13b62ca0cd10b734143a007bfc4b10323aeb23db2ddc5510b47740741"
+  },
+  {
+    "path": "/games/blox-v2/tiles/silver.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 49350,
+    "sha256": "d1ce997a187d1a1345371c69bfef0e60fb2e8bf4e63276a6d35be58256de8b59",
+    "sourcePath": "/games/blox-v2/tiles/silver.png",
+    "sourceSha256": "e7669d2c6c8aca4cf6d332182d1e3e754b2ea88aa1cebc9fc45938ae1e496268",
+    "rgbaSha256": "f4fd6a5bbcadba7e4063eadb90d1010eb1e59b90bfbbffc1c6cb1727e5acdbcb"
+  },
+  {
+    "path": "/games/blox-v2/tiles/blue.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 53098,
+    "sha256": "9d83d96a0dd050c4c66845306670105bec0ab82b6fd7ffb82642120f9b48bc1f",
+    "sourcePath": "/games/blox-v2/tiles/blue.png",
+    "sourceSha256": "ee86a6584ec9b30accc5b6975196d50c1816eb52b177db7825894e4374576946",
+    "rgbaSha256": "5775d684f69d50021fde07d5908b1409298a4de9ed93952fc89545716450ff30"
+  },
+  {
+    "path": "/games/blox-v2/tiles/orange.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 50476,
+    "sha256": "0e50994c8d643f03bea36d9df43ed11a3bb16d0860cf05d82ba2c81e1b2d2936",
+    "sourcePath": "/games/blox-v2/tiles/orange.png",
+    "sourceSha256": "b990a9352bb2d19d004ae5e536eb061726cc883a1fcbf48006c3e9a51679d1ae",
+    "rgbaSha256": "9269909e5d1d8ba6eb1e44e5fd8ce0f8ed8e50591b00bb30b6880145120ff205"
+  },
+  {
+    "path": "/games/blox-v2/tiles/green.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 51266,
+    "sha256": "a0124dfd6d0278f4be3dde5af341034526464e5a2cb6fcfdc2537a81794ff765",
+    "sourcePath": "/games/blox-v2/tiles/green.png",
+    "sourceSha256": "bc961f06d8966ea8204e145d04bbb762096e118d31819bf9ab793a94ac6e83c9",
+    "rgbaSha256": "0e878a41c486f1c59224307da6834ef935457984db56aa6debd78e359cd1c8ed"
+  },
+  {
+    "path": "/games/blox-v2/tiles/gold.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 46894,
+    "sha256": "0d0bba38c5334fcac2ed66de3ee3ee2e8f951b9e73e0c0fd8268deea31998209",
+    "sourcePath": "/games/blox-v2/tiles/gold.png",
+    "sourceSha256": "dfa09c9008f5070db693658ae9f7af15b93fcffb4689a3355f8521dffc19c88f",
+    "rgbaSha256": "602a7295f45de47ac55fafec5dadc1d79093c035a65779ef3aa8240597ce7728"
+  },
+  {
+    "path": "/games/blox-v2/tiles/violet.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 51136,
+    "sha256": "12a69490c950ffa598720bac77f65db9b22ffc7d195ad8241b7964c28c73c01c",
+    "sourcePath": "/games/blox-v2/tiles/violet.png",
+    "sourceSha256": "0928987433ff2e5e1f403c969c58cf56b40169941833ca3948c5ef26bcfcefc8",
+    "rgbaSha256": "2241cbc5044e9220e0ca6a190956e1436cc578b9c17647878248906c7aaa9334"
+  },
+  {
+    "path": "/games/blox-v2/tiles/red.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 51516,
+    "sha256": "0d30499a81a56ede6e44ccd536974e74c5d1996cc33568fdf0052d6a1d3a8dae",
+    "sourcePath": "/games/blox-v2/tiles/red.png",
+    "sourceSha256": "fe6a2016fd49e752a0022fd8473fbbd9b8cedae93d58c4568ce3d7dcc0fe4704",
+    "rgbaSha256": "c469f4dd260b50f7bbe343851df4a84de750ebb1ec17511e685309b98f53a05f"
+  },
+  {
+    "path": "/games/blox-v2/tiles/cyan.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 50148,
+    "sha256": "d7af553af2ee1ce4811e2644589094d1a00cae35bcdb5a52e00794bfe4b863f4",
+    "sourcePath": "/games/blox-v2/tiles/cyan.png",
+    "sourceSha256": "78b5d5c146f8bf46c7babed7974e8e36d7cc700cd54d76999e111f2e5f308fce",
+    "rgbaSha256": "3abd47e6e4e457bf00c08a23209aa93298fd8d4aa30d04b5fe4314fd421369b2"
+  },
+  {
+    "path": "/games/blox-v2/tiles/magenta.webp",
+    "width": 256,
+    "height": 256,
+    "bytes": 55592,
+    "sha256": "bf1c72cefed7d69b8bfeb9d60038d6fac0861586d3979c6ac3691eff3e0087e1",
+    "sourcePath": "/games/blox-v2/tiles/magenta.png",
+    "sourceSha256": "aeea7e667b4f418413de4c057003a70bfc1e662672dfde5657a009a762310445",
+    "rgbaSha256": "82cab80b7431737c2affce08615eca4f99561019bc0ffe7d6cc5bbc80c38b7c8"
+  }
+]

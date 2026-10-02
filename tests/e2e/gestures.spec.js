@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { exerciseMergePointerCleanup } from "./helpers/mergeV3.js";
+import { expectBloxCanvas, expectBloxLayout, readBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 import { attemptMatch3Move } from "../../src/game-core/match3/engine.js";
 
 async function boot(page, prefix = "gesture") {
@@ -16,18 +18,17 @@ async function boot(page, prefix = "gesture") {
 }
 
 async function canvasIsNonBlank(page) {
-  const dataUrlLength = await page.locator(".pixi-host canvas").evaluate((canvas) => canvas.toDataURL("image/png").length);
-  expect(dataUrlLength).toBeGreaterThan(2000);
+  await expect.poll(() => page.locator(".active-game-frame canvas").evaluate((canvas) => canvas.toDataURL("image/png").length), { timeout: 15000 }).toBeGreaterThan(2000);
 }
 
 async function hostBox(page) {
-  const box = await page.locator(".pixi-host").boundingBox();
+  const box = await page.locator(".active-game-frame canvas").boundingBox();
   expect(box).not.toBeNull();
   return box;
 }
 
 async function match3BoardLayout(page) {
-  const canvas = page.locator('[data-game-shell="match3"] .pixi-host canvas');
+  const canvas = page.locator('[data-game-shell="match3"] canvas');
   await expect(canvas).toBeVisible();
   let layout = null;
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -37,11 +38,11 @@ async function match3BoardLayout(page) {
       const boardTop = Number(node.dataset.match3BoardTop);
       const boardSize = Number(node.dataset.match3BoardSize);
       if (!Number.isFinite(boardLeft) || !Number.isFinite(boardTop) || !Number.isFinite(boardSize)) return null;
-      const gridSize = boardSize - 20;
+      const gridSize = boardSize;
       return {
         canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-        left: rect.x + boardLeft + 10,
-        top: rect.y + boardTop + 10,
+        left: rect.x + boardLeft,
+        top: rect.y + boardTop,
         size: gridSize,
         cell: gridSize / 8,
       };
@@ -54,45 +55,11 @@ async function match3BoardLayout(page) {
 }
 
 async function bloxBoardLayout(page) {
-  const canvas = page.locator('[data-game-shell="blox"] .pixi-host canvas');
-  await expect(canvas).toBeVisible();
-  let layout = null;
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    layout = await canvas.evaluate((node) => {
-      const rect = node.getBoundingClientRect();
-      const boardLeft = Number(node.dataset.bloxBoardLeft);
-      const boardTop = Number(node.dataset.bloxBoardTop);
-      const boardSize = Number(node.dataset.bloxBoardSize);
-      const trayTop = Number(node.dataset.bloxTrayTop);
-      const traySlotWidth = Number(node.dataset.bloxTraySlotWidth);
-      if (
-        !Number.isFinite(boardLeft)
-        || !Number.isFinite(boardTop)
-        || !Number.isFinite(boardSize)
-        || !Number.isFinite(trayTop)
-        || !Number.isFinite(traySlotWidth)
-      ) {
-        return null;
-      }
-      return {
-        canvas: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-        left: rect.x + boardLeft,
-        top: rect.y + boardTop,
-        size: boardSize,
-        cell: boardSize / 10,
-        trayTop: rect.y + trayTop,
-        traySlotWidth,
-      };
-    });
-    if (layout?.size > 120) return layout;
-    await page.waitForTimeout(100);
-  }
-  expect(layout?.size || 0).toBeGreaterThan(120);
-  return layout;
+  return readBloxLayout(page);
 }
 
 async function match3HudBoardMetrics(page) {
-  const hud = page.locator('[data-game-shell="match3"] .game-play-hud');
+  const hud = page.locator('[data-game-shell="match3"] .m3-hud');
   const eventSlot = page.locator('[data-game-shell="match3"] .game-play-event-log');
   await expect(hud).toBeVisible();
   const hudBox = await hud.boundingBox();
@@ -186,28 +153,19 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Building Blox");
-    await canvasIsNonBlank(page);
+    await expect(page.locator(".bx-hud")).toContainText("Score");
+    await expectBloxCanvas(page);
 
-    const box = await hostBox(page);
-    const size = Math.max(140, Math.min(box.width - 28, box.height - 116 - 28));
-    const left = box.x + (box.width - size) / 2;
-    const top = box.y + 14 + Math.max(0, box.height - 116 - size - 28) * 0.62;
-    const cell = size / 10;
-    const trayTop = top + size + 16;
-    const slotW = (box.width - 36) / 3;
-
-    await page.mouse.move(box.x + 14 + slotW / 2, trayTop + 30);
+    const layout = await expectBloxLayout(page);
+    const slot = layout.slots[0];
+    const place = waitForBloxPlace(page, 8000);
+    await page.mouse.move(slot.left + slot.width / 2, slot.top + slot.height / 2);
     await page.mouse.down();
-    await page.mouse.move(left + cell * 0.5, top + cell * 0.5, { steps: 8 });
+    await page.mouse.move(layout.left + layout.cell * 5.5, layout.top + layout.cell * 5.5, { steps: 8 });
     await page.mouse.up();
-    await page.mouse.move(box.x + 14 + slotW * 1.5, trayTop + 30);
-    await page.mouse.down();
-    await page.mouse.move(left + cell * 1.5, top + cell * 0.5, { steps: 8 });
-    await page.mouse.up();
-
-    await expect(page.locator('[data-game-shell="blox"] .game-play-hud')).toContainText("Score");
-    await canvasIsNonBlank(page);
+    await expect(place).resolves.toMatchObject({ action: "blox.place" });
+    await expect(page.locator(".bx-hud")).toContainText("Score");
+    await expectBloxCanvas(page);
     expect(pageErrors).toEqual([]);
   });
 
@@ -217,23 +175,57 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Building Blox");
-    await canvasIsNonBlank(page);
+    await expect(page.locator(".bx-hud")).toContainText("Score");
+    await expectBloxCanvas(page);
 
     const layout = await bloxBoardLayout(page);
     const start = {
-      x: layout.canvas.x + 14 + (layout.traySlotWidth - 8) / 2,
-      y: layout.trayTop + 30,
+      x: layout.slots[0].left + layout.slots[0].width / 2,
+      y: layout.slots[0].top + layout.slots[0].height / 2,
     };
     const end = {
       x: layout.left + layout.cell * 5.5,
-      y: layout.top + layout.cell * 5.5 + Math.max(56, layout.cell * 2),
+      y: layout.top + layout.cell * 5.5 + Math.max(52, Math.min(92, layout.cell * 2.15)),
     };
 
     const place = waitForBloxPlace(page, 8000);
     await touchDrag(page, start, end, 10);
     await expect(place).resolves.toMatchObject({ action: "blox.place" });
-    await canvasIsNonBlank(page);
+    await expectBloxCanvas(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Blox supports tray selection followed by a board-cell tap", async ({ page }) => {
+    const pageErrors = await boot(page, "blox_tap_place");
+    await page.getByRole("button", { name: /Blox/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    const layout = await expectBloxLayout(page);
+    const slot = layout.slots[0];
+    await page.mouse.click(slot.left + slot.width / 2, slot.top + slot.height / 2);
+    await expect(page.locator(".bx-keyboard-slot").first()).toHaveAttribute("aria-pressed", "true");
+    const place = waitForBloxPlace(page, 8000);
+    await page.mouse.click(layout.left + layout.cell * 0.5, layout.top + layout.cell * 0.5);
+    await expect(place).resolves.toMatchObject({ action: "blox.place", payload: { pieceIdx: 0, row: 0, col: 0 } });
+    await expectBloxCanvas(page);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test("Blox keeps its saved run and textures usable after exit and re-entry", async ({ page }) => {
+    const pageErrors = await boot(page, "blox_reentry");
+    await page.getByRole("button", { name: /Blox/ }).click();
+    await page.getByRole("button", { name: /^Start$/ }).click();
+    await expectBloxCanvas(page);
+    await pauseBlox(page);
+    await exitBlox(page);
+    await page.getByRole("button", { name: /Blox/ }).click();
+    await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
+    const layout = await expectBloxLayout(page);
+    const slot = layout.slots[0];
+    await page.mouse.click(slot.left + slot.width / 2, slot.top + slot.height / 2);
+    const place = waitForBloxPlace(page, 8000);
+    await page.mouse.click(layout.left + layout.cell * 0.5, layout.top + layout.cell * 0.5);
+    await expect(place).resolves.toMatchObject({ action: "blox.place" });
+    await expectBloxCanvas(page);
     expect(pageErrors).toEqual([]);
   });
 
@@ -242,7 +234,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator(".m3-hud")).toContainText("Score");
     await canvasIsNonBlank(page);
 
     const { left, top, cell } = await match3BoardLayout(page);
@@ -254,7 +246,7 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.mouse.click(left + cell * 2.5, top + cell * 0.5);
     await page.mouse.click(left + cell * 2.5, top + cell * 1.5);
 
-    await expect(page.locator(".game-play-hud")).toContainText(/Combo/);
+    await expect(page.locator(".m3-hud")).toContainText(/Combo/);
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
@@ -267,7 +259,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const initialSync = waitForMatch3Sync(page, 8000);
     await page.getByRole("button", { name: /^Start$/ }).click();
     const startBody = await initialSync;
-    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator(".m3-hud")).toContainText("Score");
 
     const board = startBody?.payload?.savedModes?.classic?.board;
     const move = findValidMatch3Move(board);
@@ -302,7 +294,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const initialSync = waitForMatch3Sync(page, 8000);
     await page.getByRole("button", { name: /^Start$/ }).click();
     const startBody = await initialSync;
-    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator(".m3-hud")).toContainText("Score");
     await page.waitForTimeout(260);
     const before = await match3HudBoardMetrics(page);
     expect(before.eventLogCount).toBe(0);
@@ -341,7 +333,7 @@ test.describe("Pixi touch and drag interactions", () => {
     const initialSync = waitForMatch3Sync(page, 8000);
     await page.getByRole("button", { name: /^Start$/ }).click();
     const startBody = await initialSync;
-    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator(".m3-hud")).toContainText("Score");
 
     const { left, top, cell } = await match3BoardLayout(page);
     const dragMove = async (move) => {
@@ -382,28 +374,10 @@ test.describe("Pixi touch and drag interactions", () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test("Merge item surface keeps gestures inside the game canvas", async ({ page }) => {
-    const pageErrors = await boot(page, "merge_drag");
-
+  test("Merge V3 sample drags cancel cleanly before another real research action", async ({ page }) => {
+    const pageErrors = await boot(page, "merge_v3_drag");
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.locator(".merge-scene-hud")).toBeVisible();
-    await canvasIsNonBlank(page);
-
-    const host = page.locator(".pixi-host");
-    await expect(host).toHaveAttribute("data-no-nav-swipe", "true");
-    const touchAction = await host.evaluate((node) => getComputedStyle(node).touchAction);
-    expect(touchAction).toBe("none");
-
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator('[data-merge-action="daily"]').click();
-    await page.locator('[data-merge-action="generate"]').click();
-    const box = await hostBox(page);
-    await page.mouse.move(box.x + box.width * 0.38, box.y + box.height * 0.35);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.52, box.y + box.height * 0.48, { steps: 8 });
-    await page.mouse.up();
-    await page.mouse.click(box.x + box.width * 0.44, box.y + box.height * 0.42);
-    await canvasIsNonBlank(page);
+    await exerciseMergePointerCleanup(page);
     expect(pageErrors).toEqual([]);
   });
 
@@ -412,7 +386,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Bubbo Bubbo");
+    await expect(page.locator(".bb-stage")).toHaveAttribute("data-bb-phase", "playing");
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
@@ -421,13 +395,15 @@ test.describe("Pixi touch and drag interactions", () => {
       await page.mouse.down();
       await page.mouse.move(box.x + box.width * offset, box.y + box.height * 0.45, { steps: 8 });
       await page.mouse.up();
+      await expect(page.locator(".bb-field")).toHaveAttribute("data-flight", "true");
     };
 
     await fire(0.43);
-    await page.waitForTimeout(750);
+    await expect(page.locator(".bb-field")).toHaveAttribute("data-flight", "false");
     await fire(0.57);
+    await expect.poll(async () => Number(await page.locator(".bb-field").getAttribute("data-shots"))).toBe(2);
 
-    await expect(page.locator(".game-play-hud")).toContainText(/Pressure|Shots/);
+    await expect(page.locator(".bb-hud")).toContainText(/Pressure|Shots/);
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });
@@ -436,9 +412,9 @@ test.describe("Pixi touch and drag interactions", () => {
     const pageErrors = await boot(page, "bubbo_timed_pending");
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
-    await page.locator('[data-mode-selector="bubbo"]').getByRole("button", { name: /Timed/ }).click();
+    await page.locator(".bb-modes").getByRole("button", { name: /Timed/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText(/Time/);
+    await expect(page.locator(".bb-hud")).toContainText(/Time/);
     await canvasIsNonBlank(page);
 
     const box = await hostBox(page);
@@ -447,14 +423,16 @@ test.describe("Pixi touch and drag interactions", () => {
       await page.mouse.down();
       await page.mouse.move(box.x + box.width * offset, box.y + box.height * 0.16, { steps: 10 });
       await page.mouse.up();
-      await page.waitForTimeout(700);
+      await expect(page.locator(".bb-field")).toHaveAttribute("data-flight", "true");
+      await expect(page.locator(".bb-field")).toHaveAttribute("data-flight", "false");
     };
 
     await fireTop(0.42);
     await fireTop(0.58);
     await fireTop(0.5);
+    await expect.poll(async () => Number(await page.locator(".bb-field").getAttribute("data-shots"))).toBe(3);
 
-    await expect(page.locator(".game-play-hud")).toContainText(/Time/);
+    await expect(page.locator(".bb-hud")).toContainText(/Time/);
     await canvasIsNonBlank(page);
     expect(pageErrors).toEqual([]);
   });

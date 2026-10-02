@@ -17,6 +17,13 @@ import {
 } from "./yard-catalog.js";
 import { clampYardPointToPlayzone } from "./yard-playzones.js";
 
+// Storage compatibility only: these Merge outputs are not playable legacy Yard goods.
+// Keep exact valid counts until a future authored Yard implementation supports them.
+export const YARD_INVENTORY_ONLY_GOODIE_IDS = Object.freeze([
+  "alchemy_living_arbor",
+  "alchemy_echo_chimes",
+]);
+
 const MAX_PENDING_GIFTS = 100;
 const MAX_ALBUM_PHOTOS = 80;
 const MAX_PLACEMENTS_BY_EXPANSION = {
@@ -377,6 +384,12 @@ export function normalizeYardState(raw = null, legacy = {}, now = Date.now()) {
   const goodieInventory = source.goodieInventory && typeof source.goodieInventory === "object"
     ? Object.fromEntries(Object.entries(cloneCounts(source.goodieInventory)).filter(([id]) => YARD_GOODIES[id]))
     : { ...fallback.goodieInventory };
+  // cloneCounts' legacy999 cap must not erase or truncate already-earned Merge outputs.
+  // Do not add these IDs to YARD_GOODIES: storage support is not placement/use support.
+  for (const id of YARD_INVENTORY_ONLY_GOODIE_IDS) {
+    const count = source.goodieInventory?.[id];
+    if (Number.isSafeInteger(count) && count > 0) goodieInventory[id] = count;
+  }
 
   return {
     currencies: {

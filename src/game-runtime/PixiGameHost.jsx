@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Application } from "pixi.js";
+import { Application, Assets } from "pixi.js";
+import { assetUrl, loadRuntimeAssetManifest, resolveAssetSourceList } from "./assetBundles.js";
 import { useAppI18n } from "../app/i18n.jsx";
 import { HudEditableRegion, useHudLayout, useHudRegion } from "../app/hud-layout/index.js";
 import { setGameGestureActive } from "../platform/telegram.js";
@@ -12,10 +13,12 @@ const PIXI_ASSET_REGION_IDS = {
   bubbo: ["bubboBottomTrayAsset", "bubboCannonAsset"],
 };
 
-function destroyPixiApp(app) {
+function destroyPixiApp(app, preserveSharedTextures = false) {
   if (!app) return;
   try {
-    app.destroy({ removeView: true }, { children: true, texture: true, textureSource: true });
+    // Assets owns cached textures across v2 game exits and remounts.
+    // Destroy scene objects without invalidating loader-cached texture promises.
+    app.destroy({ removeView: true }, { children: true, texture: !preserveSharedTextures, textureSource: !preserveSharedTextures });
   } catch (err) {
     console.warn("Pixi app destroy skipped", err);
   }
@@ -85,7 +88,7 @@ function PixiAssetRegionLayer({ sceneKey, hostRef }) {
   );
 }
 
-export default function PixiGameHost({ sceneKey, buildScene, sceneState, className = "" }) {
+export default function PixiGameHost({ sceneKey, buildScene, sceneState, className = "", isolated = false, assetUrls = null, assetKeys = null, loadingFallback = null, errorFallback = null }) {
   const { t } = useAppI18n();
   const containerRef = useRef(null);
   const hudLayout = useHudLayout();
@@ -109,6 +112,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
   const activePointerRef = useRef(null);
   const captureTargetRef = useRef(null);
   const [failed, setFailed] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const release = () => {
@@ -199,6 +203,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       if (!containerRef.current) return;
       try {
         setFailed(false);
+        setReady(false);
         app = new Application();
         await app.init({
           resizeTo: containerRef.current,
@@ -211,18 +216,26 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
         });
         app.ticker.maxFPS = 60;
         if (cancelled) {
-          destroyPixiApp(app);
+          destroyPixiApp(app, isolated);
           return;
         }
         appRef.current = app;
         containerRef.current.appendChild(app.canvas);
-        await warmPixiAssetBundle(sceneKey, { force: true });
+        if (assetUrls) await Assets.load(assetUrls.map(assetUrl));
+        else await warmPixiAssetBundle(sceneKey, { force: true });
+        // Retained semantic art must resolve through the same production manifest
+        // that scenes use, rather than preloading a mismatched legacy URL.
+        if (assetKeys?.length) {
+          const manifest = await loadRuntimeAssetManifest();
+          await Assets.load(assetKeys.map((key) => ({ alias: key, src: resolveAssetSourceList(key, manifest) })));
+        }
         if (cancelled) {
-          destroyPixiApp(app);
+          destroyPixiApp(app, isolated);
           return;
         }
         // Scene builders consume the initial state and draw once; avoid an immediate duplicate redraw.
         sceneRef.current = buildScene(app, stateRef.current);
+        setReady(true);
       } catch (err) {
         console.error(`Pixi scene ${sceneKey} failed`, err);
         setFailed(true);
@@ -237,10 +250,10 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       sceneRef.current?.destroy?.();
       sceneRef.current = null;
       appRef.current = null;
-      destroyPixiApp(app);
+      destroyPixiApp(app, isolated);
       setGameGestureActive(false);
     };
-  }, [sceneKey, buildScene]);
+  }, [sceneKey, buildScene, assetUrls, assetKeys, isolated]);
 
   useEffect(() => {
     stateRef.current = effectiveSceneState;
@@ -269,7 +282,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
   return (
     <div
       ref={pixiReserveRegion.ref}
-      className={`pixi-host ${className}`}
+      className={`${isolated ? "arcade-canvas" : "pixi-host"} ${className}`}
       data-no-nav-swipe="true"
       data-hud-reserve-top={layoutSafeArea.top}
       data-hud-reserve-bottom={layoutSafeArea.bottom}
@@ -286,7 +299,8 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       onPointerCancel={endGesture}
       onLostPointerCapture={endGesture}
     >
-      {failed && <div className="pixi-fallback">{t("app.rendererUnavailable")}</div>}
+      {!ready && !failed && loadingFallback}
+      {failed && (errorFallback || <div className="pixi-fallback">{t("app.rendererUnavailable")}</div>)}
       <PixiAssetRegionLayer sceneKey={sceneKey} hostRef={containerRef} />
     </div>
   );

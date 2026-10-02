@@ -20,6 +20,7 @@ import {
 } from "../game-logic.js";
 import { mergeStore, ITEM_LOOKUP } from "../src/hooks/useMergeEngine.js";
 import { resolveMergeTapSelection } from "../src/games/merge/selection.js";
+import { renderArcadePresentation, findElements, textContent } from "./helpers/arcadePresentationHarness.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -555,15 +556,16 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       );
     });
 
-    it("keeps migrated game menus in the shared overlay shell instead of external panels", () => {
+    it("keeps migrated game menus inside scene-owned registered overlay shells", () => {
       const appPath = path.join(__dirname, "..", "src", "App.jsx");
       const shellPath = path.join(__dirname, "..", "src", "app", "shell.jsx");
       const bloxPath = path.join(__dirname, "..", "src", "games", "blox", "BloxGame.jsx");
       const match3Path = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
-      const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
+      const mergePath = path.join(__dirname, "..", "src", "games", "merge", "LegacyMergeGame.jsx");
       const bubboPath = path.join(__dirname, "..", "src", "games", "bubbo", "BubboGame.jsx");
       const gardenGamePath = path.join(__dirname, "..", "src", "games", "garden-shelf", "GardenShelfGame.tsx");
-      const gardenCssPath = path.join(__dirname, "..", "src", "games", "garden-shelf", "garden-shelf.css");
+      const gardenPresentationPath = path.join(__dirname, "..", "src", "games", "garden-shelf", "GardenPresentation.tsx");
+      const gardenCssPath = path.join(__dirname, "..", "src", "games", "garden-shelf", "garden-presentation.css");
       const cssPath = path.join(__dirname, "..", "src", "index.css");
       const scenesPath = path.join(__dirname, "..", "src", "game-runtime", "scenes.js");
       const hostPath = path.join(__dirname, "..", "src", "game-runtime", "PixiGameHost.jsx");
@@ -574,23 +576,40 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const mergeGame = fs.readFileSync(mergePath, "utf-8");
       const bubboGame = fs.readFileSync(bubboPath, "utf-8");
       const gardenGame = fs.readFileSync(gardenGamePath, "utf-8");
+      const gardenPresentation = fs.readFileSync(gardenPresentationPath, "utf-8");
       const gardenCss = fs.readFileSync(gardenCssPath, "utf-8");
       const css = fs.readFileSync(cssPath, "utf-8");
       const scenes = readSceneRuntimeText();
       const host = fs.readFileSync(hostPath, "utf-8");
 
       assert.ok(shell.includes("export function GameShell"), "GameShell should centralize play/menu/pause states");
-      assert.ok(match3Game.includes('gameId="match3"'), "Match-3 should use the shared shell");
-      assert.ok(bloxGame.includes('gameId="blox"'), "Blox should use the shared shell");
+      assert.match(match3Game, /useImmersiveGame\("match3",\s*true,\s*shellControls\)/, "Match-3 must retain shared immersive lifecycle controls");
+      assert.match(bloxGame, /useImmersiveGame\("blox",\s*true,\s*shellControls\)/, "Blox must retain shared immersive lifecycle controls");
       assert.ok(mergeGame.includes('gameId="merge"'), "Merge should use the shared shell");
-      assert.ok(bubboGame.includes('gameId="bubbo"'), "Bubbo should use the shared shell");
+      assert.match(bubboGame, /useImmersiveGame\("bubbo",\s*true,\s*shellControls\)/, "Bubbo must retain shared immersive lifecycle controls");
+      for (const gameId of ["blox", "match3", "bubbo"]) {
+        const { tree, focus } = renderArcadePresentation(gameId, { paused: true });
+        assert.equal(tree.props.id, "gameShell", `${gameId} must use the registered shell region`);
+        assert.equal(tree.props["data-game-shell"], gameId);
+        const overlays = findElements(tree, (node) => node.props.id === "pauseOverlay");
+        assert.equal(overlays.length, 1, `${gameId} must render one registered pause overlay`);
+        assert.equal(overlays[0].props.role, "dialog");
+        assert.equal(overlays[0].props["aria-modal"], "true");
+        assert.equal(focus.at(-1).active, true, `${gameId} dialogs retain focus management`);
+      }
       assert.ok(css.includes("top: max(8px, calc(var(--safe-top) + 8px))"), "HUD should stay off the lower thumb zone");
       assert.ok(css.includes("--glass-surface"), "Shared glass tokens should own menu and HUD styling");
       assert.ok(css.includes(':root[data-ui-theme="dark"]'), "The Garden Shelf matte palette should exist as a global dark UI theme");
       assert.ok(app.includes("ThemeToggle"), "Players should be able to switch the global UI theme");
-      assert.ok(gardenGame.includes("garden-shelf.css"), "Garden Shelf should load its route-local shared-glass styling");
-      assert.ok(gardenCss.includes("garden-glass-sheet"), "Garden Shelf sheets should stay on the shared glass surface");
-      assert.ok(gardenCss.includes("--glass-surface"), "Garden Shelf sheets should keep using shared glass tokens");
+      assert.match(gardenGame, /import GardenPresentation from ['"]\.\/GardenPresentation['"]/, "Garden Shelf must load the production presentation");
+      assert.match(gardenPresentation, /import ['"]\.\/garden-presentation\.css['"]/, "Garden presentation must load its route-local styles");
+      assert.match(gardenPresentation, /role="dialog" aria-modal="true"/, "Garden sheets retain accessible dialog semantics");
+      assert.ok(gardenPresentation.includes("data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}"), "Garden sheets retain registered HUD regions");
+      assert.ok(gardenPresentation.includes("useDialogFocus(ref)") && gardenPresentation.includes("makeDialogSiblingsInert(layer)"), "Garden portal dialogs retain focus and underlying Hub isolation");
+      const gardenDialogStyle = gardenCss.match(/\.gs2-dialog\s*\{([^}]+)\}/)?.[1] || "";
+      assert.match(gardenDialogStyle, /border-image:var\(--gs2-panel-image\)/, "Garden dialogs use the authored panel skin");
+      assert.match(gardenDialogStyle, /background:#[0-9a-f]{6}/i, "Garden dialogs keep an opaque readable paper surface");
+      assert.match(gardenCss, /\.gs2-dialog-scroll\s*\{[^}]*overflow:auto/, "Garden sheets keep long content reachable by scrolling");
       assert.ok(css.includes("game-shell-cycle.svg"), "Cycle-inspired shell art should be wired");
       assert.ok(css.includes("game-shell-meditation.svg"), "Meditation-inspired shell art should be wired");
       assert.ok(scenes.includes('app.stage.on("pointercancel", cancel)'), "Pixi pointer cancellations must clear sessions");
@@ -598,33 +617,58 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("keeps accidental end-run controls out of Blox and Gem Crush live HUDs", () => {
-      const bloxPath = path.join(__dirname, "..", "src", "games", "blox", "BloxGame.jsx");
-      const match3Path = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
-      const bloxGame = fs.readFileSync(bloxPath, "utf-8");
-      const match3Game = fs.readFileSync(match3Path, "utf-8");
-      const bloxHud = bloxGame.match(/<GamePlayHud[\s\S]*?\/>/)?.[0] || "";
-      const match3Hud = match3Game.match(/<GamePlayHud[\s\S]*?\/>/)?.[0] || "";
+      for (const gameId of ["blox", "match3"]) {
+        const live = renderArcadePresentation(gameId);
+        const pauseButtons = findElements(live.tree, (node) => node.props["data-game-pause"]);
+        assert.equal(pauseButtons.length, 1, `${gameId} must expose a live pause control`);
+        pauseButtons[0].props.onClick();
+        assert.deepEqual(live.calls.at(-1), { name: "Pause", args: [] });
+        const liveButtons = findElements(live.tree, (node) => node.type === "button");
+        assert.ok(liveButtons.length > 0, "an absent HUD must never satisfy this check");
+        assert.ok(liveButtons.every((node) => node.props.onClick !== live.props.onFinish));
+        assert.doesNotMatch(textContent(live.tree), /common\.endRun/);
+        assert.equal(findElements(live.tree, (node) => node.props.role === "dialog").length, 0);
+        const hud = findElements(live.tree, (node) => node.props.id === "gameplayHud");
+        assert.equal(hud.length, 1);
+        assert.match(textContent(hud[0]), /common\.reward\s+12/, `${gameId} HUD keeps the current run reward`);
 
-      assert.ok(!bloxHud.includes("onFinish"), "Blox live HUD should only expose Pause, with End Run in the pause menu");
-      assert.ok(!match3Hud.includes("onFinish"), "Gem Crush live HUD should only expose Pause, with End Run in the pause menu");
-      assert.ok(bloxGame.includes("t(\"common.endRun\")"), "Blox pause menu should still expose End Run");
-      assert.ok(match3Game.includes("t(\"common.endRun\")"), "Gem Crush pause menu should still expose End Run");
+        const paused = renderArcadePresentation(gameId, { paused: true });
+        const dialogs = findElements(paused.tree, (node) => node.props.role === "dialog");
+        assert.equal(dialogs.length, 1);
+        for (const [label, callback] of [["endRun", "Finish"], ["resume", "Resume"], ["exit", "Exit"]]) {
+          const buttons = findElements(dialogs[0], (node) => node.type === "button" && textContent(node) === `common.${label}`);
+          assert.equal(buttons.length, 1, `${gameId} pause dialog retains ${label}`);
+          buttons[0].props.onClick();
+          assert.deepEqual(paused.calls.at(-1), { name: callback, args: [] });
+        }
+        assert.equal(paused.escapes.at(-1).active, true);
+        paused.escapes.at(-1).callback();
+        assert.deepEqual(paused.calls.at(-1), { name: "Resume", args: [] });
+      }
     });
 
     it("keeps Gem Crush status in the HUD without rendering empty live event slots below the board", () => {
       const match3ScenePath = path.join(__dirname, "..", "src", "game-runtime", "scenes", "match3Scene.js");
-      const match3CssPath = path.join(__dirname, "..", "src", "games", "match3", "match3.css");
+      const match3CssPath = path.join(__dirname, "..", "src", "games", "match3", "match3-presentation.css");
       const match3GamePath = path.join(__dirname, "..", "src", "games", "match3", "Match3Game.jsx");
       const shellPath = path.join(__dirname, "..", "src", "app", "shell.jsx");
       const match3Scene = fs.readFileSync(match3ScenePath, "utf-8");
       const match3Css = fs.readFileSync(match3CssPath, "utf-8");
       const match3Game = fs.readFileSync(match3GamePath, "utf-8");
       const shell = fs.readFileSync(shellPath, "utf-8");
-      const match3Hud = match3Game.match(/<GamePlayHud[\s\S]*?\/>/)?.[0] || "";
+      const { tree } = renderArcadePresentation("match3", { inputLocked: true });
+      const match3Hud = findElements(tree, (node) => node.props.id === "gameplayHud");
+      assert.equal(match3Hud.length, 1, "Gem Crush must render its live HUD");
 
       assert.ok(!match3Scene.includes("match3StatusText ||"), "Gem Crush should not draw a duplicate bottom status line in Pixi");
       assert.ok(!match3Game.includes("useGameEvents"), "Gem Crush should not push live score event chips");
-      assert.ok(match3Hud.includes('gameId="match3"'), "Gem Crush should pass a game id for semantic HUD icons");
+      assert.equal(tree.props["data-game-shell"], "match3");
+      assert.match(textContent(match3Hud[0]), /common\.score/);
+      assert.equal(findElements(tree, (node) => node.props.id === "eventLog").length, 0, "Gem Crush should not reserve an empty event row");
+      const selection = findElements(tree, (node) => node.props.id === "match3SelectionHud");
+      assert.equal(selection.length, 1);
+      assert.equal(selection[0].props["aria-busy"], true);
+      assert.match(textContent(selection[0]), /match3\.settling/);
       assert.ok(shell.includes("const hasEventLog = Boolean(gameId && visibleEventCount)"), "Shared HUD should not reserve an event log without visible events");
       assert.ok(shell.includes("{hasEventLog && <GameEventLog gameId={gameId} />}"), "Shared HUD should only render event log DOM when visible events exist");
       assert.ok(!match3Css.includes("game-play-event-log"), "Gem Crush HUD CSS should not reserve an event row");
@@ -639,7 +683,7 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
     });
 
     it("listens for Cozy Yard reward drops from the authoritative Merge action result", () => {
-      const mergePath = path.join(__dirname, "..", "src", "games", "merge", "MergeGame.jsx");
+      const mergePath = path.join(__dirname, "..", "src", "games", "merge", "LegacyMergeGame.jsx");
       const i18nPath = path.join(__dirname, "..", "src", "games", "merge", "i18n.js");
       const mergeGame = fs.readFileSync(mergePath, "utf-8");
       const i18n = fs.readFileSync(i18nPath, "utf-8");

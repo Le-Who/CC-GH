@@ -1,0 +1,105 @@
+/* Brain Blitz v2 owns only trv2-* surfaces. App/Telegram boundary owns insets. */
+.trv2-root { position: relative; isolation: isolate; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; background: #06152a; color: #fff9e6; font: 700 16px/1.4 Nunito, system-ui, sans-serif; --trv2-gutter: 12px; --trv2-gap: 12px; --trv2-min-height: 480px; }
+.trv2-root *, .trv2-root *::before, .trv2-root *::after { box-sizing: border-box; }
+.trv2-root h1,.trv2-root h2,.trv2-root p { margin: 0; }
+.trv2-root button,.trv2-root input,.trv2-root select { font: inherit; }
+.trv2-root button { touch-action: manipulation; cursor: pointer; }
+.trv2-root button:disabled { cursor: default; }
+.trv2-root :is(button,input,select,summary):focus-visible { outline: 3px solid #79e8e5; outline-offset: 3px; }
+.trv2-root :is(p,span,strong,h1,h2,li,button) { overflow-wrap: anywhere; }
+.trv2-root small { font-size: 12px; line-height: 1.4; }
+.trv2-background { position: absolute; inset: 0; pointer-events: none; z-index: -1; background: url('/games/trivia-v2/background.webp') center/cover; }
+.trv2-scroll { height: 100%; width: 100%; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; padding: calc(var(--trv2-gutter) + var(--trv2-inset-top,0px)) calc(var(--trv2-gutter) + var(--trv2-inset-right,0px)) calc(var(--trv2-gutter) + var(--trv2-inset-bottom,0px)) calc(var(--trv2-gutter) + var(--trv2-inset-left,0px)); scroll-padding: 16px; }
+.trv2-content { width: 100%; max-width: 1120px; min-height: min(100%,var(--trv2-min-height)); margin: 0 auto; display: flex; flex-direction: column; gap: var(--trv2-gap); padding-bottom: 8px; }
+.trv2-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.trv2-brand { display: flex; align-items: center; gap: 8px; font-size: clamp(18px,3.8vw,25px); color: #f9d891; }
+.trv2-brand .trv2-art { width: 36px; height: 36px; object-fit: contain; flex: 0 0 36px; }
+.trv2-art { display: block; object-fit: contain; pointer-events: none; }
+.trv2-button { border: 14px solid transparent; border-image: url('/games/trivia-v2/answer-panel.webp') 70 fill / 14px / 0 stretch; background: transparent; min-width: 44px; min-height: 44px; padding: 0 4px; color: #fff9e6; font-weight: 800; text-align: center; transition: filter .15s ease, transform .12s ease; }
+.trv2-button.trv2-primary { border-image-source: url('/games/trivia-v2/primary-panel.webp'); }
+.trv2-button:not(:disabled):active,.trv2-answer:not(:disabled):active { transform: translateY(1px); filter: brightness(1.12); }
+.trv2-button:disabled { color: #b5c2d4; filter: saturate(.35); }
+.trv2-paper { border: 20px solid transparent; border-image: url('/games/trivia-v2/question-panel.webp') 64 fill / 20px / 0 stretch; color: #112433; }
+.trv2-card { border: 20px solid transparent; border-image: url('/games/trivia-v2/answer-panel.webp') 70 fill / 20px / 0 stretch; }
+.trv2-setup { display: flex; flex-direction: column; gap: 18px; }
+.trv2-setup-intro { text-align: center; display: grid; gap: 6px; padding: 8px 0; }
+.trv2-setup-intro p { font-size: 20px; color: #ffe8b2; }
+.trv2-setup-intro span { font-size: 13px; color: #cfdef0; }
+.trv2-setup-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; }
+.trv2-setup-card { min-width: 0; display: flex; flex-direction: column; gap: 16px; padding: 8px; }
+.trv2-setup-card h1,.trv2-setup-card h2 { font-size: 23px; }
+.trv2-setup-card p { font-weight: 600; }
+.trv2-field { display: grid; gap: 7px; min-width: 0; }
+.trv2-field input,.trv2-field select { min-width: 44px; min-height: 48px; width: 100%; border: 1px solid #627f96; border-radius: 10px; background: #102c43; color: #fff9e6; padding: 10px 12px; }
+.trv2-paper .trv2-field select { background: #fff6df; color: #142d3f; }
+.trv2-join { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 8px; }
+.trv2-history { border-top: 1px solid #486078; padding: 18px 4px 12px; display: grid; gap: 10px; }
+.trv2-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.trv2-row h2 { font-size: 18px; }
+.trv2-history ul,.trv2-players { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.trv2-history li { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 10px; background: #102940; border-radius: 8px; }
+.trv2-history small { color: #c5d5e6; }
+.trv2-round { display: flex; flex-direction: column; gap: var(--trv2-gap); }
+.trv2-hud { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.8fr) minmax(0,1.6fr); align-items: stretch; min-height: 68px; border: 12px solid transparent; border-image: url('/games/trivia-v2/hud-panel.webp') 48 fill / 12px / 0 stretch; padding: 0 2px; }
+.trv2-hud > div { padding: 0 6px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.trv2-hud > div + div { border-left: 1px solid #345773; }
+.trv2-hud small { color: #d5e6f7; }
+.trv2-hud strong { font-size: 24px; line-height: 1; color: #ffe29d; font-variant-numeric: tabular-nums; }
+.trv2-speed { position: relative; }
+.trv2-speed progress { width: 100%; height: 5px; display: block; margin-top: 4px; border: none; border-radius: 8px; background: #26475c; accent-color: #82e5d6; }
+.trv2-speed progress::-webkit-progress-bar { background: #26475c; border-radius: 8px; }
+.trv2-speed progress::-webkit-progress-value { background: #82e5d6; border-radius: 8px; }
+.trv2-quiz { display: grid; grid-template-columns: minmax(0,1fr); gap: var(--trv2-gap); }
+.trv2-question { position: relative; min-width: 0; min-height: 160px; display: flex; align-items: center; padding: 24px; color: #112433; }
+.trv2-question-surface { position: absolute; inset: 0; z-index: 0; border: 20px solid transparent; border-image: url('/games/trivia-v2/question-panel.webp') 64 fill / 20px / 0 stretch; pointer-events: none; }
+.trv2-question-copy { z-index: 1; position: relative; width: 100%; display: grid; gap: 10px; }
+.trv2-question-number { font-size: 13px; font-weight: 900; }
+.trv2-question-meta { color: #3c5360; font-size: 12px; }
+.trv2-question h2 { font-size: 22px; line-height: 1.32; font-weight: 900; }
+.trv2-question .trv2-time-note { color: #3c5360; font-size: 11px; font-weight: 700; }
+.trv2-answers { display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; min-width: 0; }
+.trv2-answer { position: relative; display: flex; gap: 10px; align-items: center; width: 100%; min-width: 44px; min-height: 58px; padding: 2px 4px; border: 14px solid transparent; border-image: url('/games/trivia-v2/answer-panel.webp') 70 fill / 14px / 0 stretch; background: transparent; color: #fff9e6; text-align: left; line-height: 1.35; transition: transform .12s ease; }
+.trv2-answer-letter { width: 27px; flex: 0 0 27px; min-height: 27px; display: grid; place-items: center; color: #ffe3a0; font-size: 16px; font-weight: 900; border: 1px solid #798879; border-radius: 50%; }
+.trv2-answer-label { min-width: 0; flex: 1; font-size: 17px; font-weight: 800; display: grid; gap: 2px; }
+.trv2-answer small { font-size: 11px; }
+.trv2-answer[data-answer-state='correct'] { outline: 3px solid #72e4b5; outline-offset: -3px; }
+.trv2-answer[data-answer-state='correct'] .trv2-answer-letter { background: #72e4b5; color: #0b242b; }
+.trv2-answer[data-answer-state='wrong'] { outline: 3px solid #ffb6ad; outline-offset: -3px; }
+.trv2-answer[data-answer-state='wrong'] .trv2-answer-letter { background: #ffb6ad; color: #351816; }
+.trv2-answer[data-answer-state='removed'] { color: #b9cadb; filter: saturate(.3); }
+.trv2-answer[data-answer-state='hinted'] { outline: 2px dashed #f2d28c; outline-offset: -4px; }
+.trv2-poll { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.trv2-poll meter { flex: 1; width: 40px; height: 10px; }
+.trv2-lifelines { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
+.trv2-lifeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px 5px; min-height: 56px; font-size: 13px; padding: 0; border-width: 12px; border-image-width: 12px; }
+.trv2-lifeline .trv2-art { height: 24px; width: 24px; flex: 0 0 24px; }
+.trv2-lifeline b { color: #ffe29d; font-size: 13px; }
+.trv2-feedback { min-height: 42px; display: flex; flex-direction: column; gap: 10px; padding: 4px 4px 0; color: #d5e7f4; font-size: 13px; }
+.trv2-feedback > div { display: grid; gap: 3px; }
+.trv2-feedback strong { font-size: 19px; color: #fff1c6; }
+.trv2-demo { font-size: 11px; color: #9ce5df; text-align: center; padding: 2px; }
+.trv2-room,.trv2-results { width: 100%; max-width: 620px; margin: 0 auto; padding: 12px; display: grid; gap: 16px; text-align: center; }
+.trv2-room h1,.trv2-results h1 { font-size: 26px; }
+.trv2-invite { font-size: 28px; letter-spacing: .13em; color: #ffe39f; user-select: all; }
+.trv2-players li { display: flex; justify-content: space-between; gap: 12px; padding: 10px; border: 1px solid #365369; border-radius: 8px; }
+.trv2-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.trv2-actions > button { flex: 1 1 auto; }
+.trv2-results > .trv2-art { width: 90px; height: 90px; margin: auto; }
+.trv2-result-score { font-size: 48px; line-height: 1; color: #ffe29d; }
+.trv2-error { border: 1px solid #c88c76; background: #382a27; border-radius: 10px; padding: 12px; display: grid; gap: 8px; color: #fff1df; }
+.trv2-error summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+.trv2-error details p { font-size: 12px; }
+.trv2-scrim { position: absolute; inset: 0; background: #020817bd; z-index: 10; }
+.trv2-dialog { position: absolute; z-index: 11; top: calc(50% + (var(--trv2-inset-top,0px) - var(--trv2-inset-bottom,0px)) / 2); left: calc(50% + (var(--trv2-inset-left,0px) - var(--trv2-inset-right,0px)) / 2); transform: translate(-50%,-50%); width: min(480px,calc(100% - 24px - var(--trv2-inset-left,0px) - var(--trv2-inset-right,0px))); max-height: calc(100% - 24px - var(--trv2-inset-top,0px) - var(--trv2-inset-bottom,0px)); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 14px; padding: 8px; }
+.trv2-pause-metrics { display: flex; flex-wrap: wrap; gap: 20px; }
+.trv2-pause-metrics b { color: #ffe29d; }
+.trv2-root[data-trivia-layout='landscape'] .trv2-quiz { grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); align-items: stretch; }
+.trv2-root[data-trivia-layout='landscape'] .trv2-answers { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.trv2-root[data-trivia-layout='landscape'] .trv2-answer { align-items: center; min-height: 80px; }
+.trv2-root[data-trivia-layout='landscape'] .trv2-question h2 { font-size: clamp(20px,2.4vw,32px); }
+.trv2-root[data-trivia-layout='landscape'] .trv2-setup-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.trv2-root[data-trivia-layout='landscape'] .trv2-feedback { flex-direction: row; align-items: center; justify-content: space-between; }
+.trv2-root[data-trivia-layout='landscape'] .trv2-lifelines { width: min(650px,100%); align-self: center; }
+@media (min-width: 760px) { .trv2-setup-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .trv2-question { min-height: 260px; padding: 32px; } .trv2-answer { min-height: 72px; } .trv2-answer-label { font-size: 21px; } .trv2-content { padding: 10px; gap: 18px; } }
+@media (max-width: 360px) { .trv2-brand { font-size: 18px; } .trv2-brand .trv2-art { width: 28px; height: 28px; flex-basis: 28px; } .trv2-header .trv2-button { font-size: 12px; } .trv2-question { padding: 20px; } .trv2-question h2 { font-size: 20px; } .trv2-lifeline .trv2-art { width: 20px; height: 20px; flex-basis: 20px; } .trv2-lifeline { font-size: 12px; } }
+@media (prefers-reduced-motion: reduce) { .trv2-root * { transition: none !important; animation: none !important; } }

@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { pauseMerge, exitMerge, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
+import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
+import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
 const VIEWPORTS = [
   { width: 320, height: 568, label: "small-mobile" },
@@ -75,16 +78,15 @@ async function expectVisibleButtonsReachable(page, selector, minSide = 44) {
 }
 
 async function expectCanvasNonBlank(page, shellSelector) {
-  const canvas = page.locator(`${shellSelector} .pixi-host canvas`).first();
+  const canvas = page.locator(`${shellSelector} canvas`).first();
   await expect(canvas).toBeVisible();
-  const length = await canvas.evaluate((node) => node.toDataURL("image/png").length);
-  expect(length).toBeGreaterThan(2000);
+  await expect.poll(() => canvas.evaluate((node) => node.toDataURL("image/png").length), { timeout: 15000 }).toBeGreaterThan(2000);
 }
 
 async function expectMatch3BoardBelowHud(page) {
   const shell = page.locator('[data-game-shell="match3"]');
-  const hud = shell.locator(".game-play-hud");
-  const canvas = shell.locator(".pixi-host canvas");
+  const hud = shell.locator(".m3-hud");
+  const canvas = shell.locator("canvas");
   await expect(hud).toBeVisible();
   await expect(canvas).toBeVisible();
   let layout = null;
@@ -96,6 +98,7 @@ async function expectMatch3BoardBelowHud(page) {
       if (!Number.isFinite(boardTop) || !Number.isFinite(boardSize)) return null;
       return {
         boardTop: rect.y + boardTop,
+        boardLeft: rect.x + Number(node.dataset.match3BoardLeft),
         boardSize,
       };
     });
@@ -105,10 +108,10 @@ async function expectMatch3BoardBelowHud(page) {
   const hudBox = await hud.boundingBox();
   expect(hudBox).not.toBeNull();
   expect(layout?.boardSize ?? 0).toBeGreaterThan(160);
-  expect(layout.boardTop).toBeGreaterThanOrEqual(hudBox.y + hudBox.height + 4);
+  expect(layout.boardTop >= hudBox.y + hudBox.height + 4 || layout.boardLeft + layout.boardSize + 4 <= hudBox.x || hudBox.x + hudBox.width + 4 <= layout.boardLeft).toBe(true);
 }
 
-async function exitViaPauseOrResult(page, resultSelector = ".game-menu-overlay:visible") {
+async function exitViaPauseOrResult(page, resultSelector = ":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible") {
   let state = "";
   for (let attempt = 0; attempt < 40; attempt += 1) {
     state = await page.evaluate(() => {
@@ -117,7 +120,7 @@ async function exitViaPauseOrResult(page, resultSelector = ".game-menu-overlay:v
         const rect = node.getBoundingClientRect();
         return styles.display !== "none" && styles.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
       };
-      const hasResult = Array.from(document.querySelectorAll(".bubbo-result-overlay"))
+      const hasResult = Array.from(document.querySelectorAll('.bb-stage[data-bb-phase="result"] .bb-dialog'))
         .some((node) => isVisible(node));
       if (hasResult) return "result";
       const hasPause = Array.from(document.querySelectorAll("button"))
@@ -152,13 +155,11 @@ test.describe("mobile UI viewport matrix", () => {
 
         await page.getByRole("button", { name: /Blox/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
-        await expectCanvasNonBlank(page, '[data-game-shell="blox"]');
+        await expectBloxCanvas(page);
+        await expectBloxLayout(page);
         await expectNoHorizontalScroll(page);
-        await page.getByRole("button", { name: /Pause/ }).click();
-        await expect(page.locator(".game-menu-overlay:visible")).toBeVisible();
-        await expectVisibleButtonsReachable(page, ".game-menu-overlay:visible button");
-        await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
-        await expect(page.locator(".bottom-tabs")).toBeVisible();
+        await pauseBlox(page);
+        await exitBlox(page);
 
         await page.getByRole("button", { name: /Gems/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
@@ -167,43 +168,41 @@ test.describe("mobile UI viewport matrix", () => {
         await expectMatch3BoardBelowHud(page);
         await expectNoHorizontalScroll(page);
         await page.getByRole("button", { name: /Pause/ }).click();
-        await expect(page.locator(".match3-pause-compact:visible")).toBeVisible();
-        await expectVisibleButtonsReachable(page, ".match3-pause-compact:visible button");
-        await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
+        await expect(page.locator(".m3-dialog:visible")).toBeVisible();
+        await expectVisibleButtonsReachable(page, ".m3-dialog:visible button");
+        await page.locator(".m3-dialog:visible").getByRole("button", { name: /^Exit$/ }).click();
         await expect(page.locator(".bottom-tabs")).toBeVisible();
 
         await page.getByRole("button", { name: /Merge/ }).click();
-        await expectCanvasNonBlank(page, '[data-game-shell="merge"]');
-        await expect(page.locator(".merge-action-dock")).toBeVisible();
-        await expectVisibleButtonsReachable(page, ".merge-action-dock button");
+        await expectMergeArt(page);
+        await expectMergeControlsReachable(page, page.locator('.ml-hud button, .ml-nav button, .ml-well-button, .ml-lab-action button'));
         await expectNoHorizontalScroll(page);
-        await page.getByRole("button", { name: /Pause/ }).click();
-        await expect(page.locator(".merge-pause-overlay:visible")).toBeVisible();
-        await expectVisibleButtonsReachable(page, ".merge-pause-overlay:visible button");
-        await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
-        await expect(page.locator(".bottom-tabs")).toBeVisible();
+        const mergeDialog = await pauseMerge(page);
+        await expectMergeControlsReachable(page, mergeDialog.getByRole('button'));
+        await exitMerge(page);
 
         await page.getByRole("button", { name: /Bubbo/ }).click();
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expectCanvasNonBlank(page, '[data-game-shell="bubbo"]');
-        await expect(page.locator(".bubbo-play-hud [data-bubbo-powerup]")).toHaveCount(3);
-        await expectVisibleButtonsReachable(page, ".bubbo-play-hud .game-play-actions .panel-button");
+        await expect(page.locator(".bb-powers [data-bubbo-powerup]")).toHaveCount(3);
+        await expectVisibleButtonsReachable(page, ".bb-powers button");
         await expectNoHorizontalScroll(page);
         await exitViaPauseOrResult(page);
         await expect(page.locator(".bottom-tabs")).toBeVisible();
 
         await page.getByRole("button", { name: /Trivia/ }).click();
-        await page.getByRole("button", { name: "Solo" }).click();
-        await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
+        await startTriviaSolo(page);
         await expectNoHorizontalScroll(page);
-        await page.getByRole("button", { name: /Pause/ }).click();
-        await expect(page.locator(".answer-grid button:not(:disabled)")).toHaveCount(0);
-        const pausedTimeLabel = await page.locator(".question-panel small").textContent();
+        await expectTriviaControlsReachable(page, page.locator(".trv2-answer, .trv2-lifeline"));
+        const triviaDialog = await pauseTrivia(page);
+        const pausedTimeLabel = await page.getByTestId("trv2-time").textContent();
         await page.waitForTimeout(700);
-        await expect(page.locator(".question-panel small")).toHaveText(pausedTimeLabel || "");
-        await expectVisibleButtonsReachable(page, ".game-menu-overlay:visible button");
-        await page.locator(".game-menu-overlay:visible").getByRole("button", { name: /^Exit$/ }).click();
-        await expect(page.locator(".bottom-tabs")).toBeVisible();
+        await expect(page.getByTestId("trv2-time")).toHaveText(pausedTimeLabel);
+        await expectTriviaControlsReachable(page, triviaDialog.getByRole("button"));
+        await resumeTrivia(page, "escape");
+        await expect(page.getByTestId("trv2-answer-0")).toBeEnabled();
+        await pauseTrivia(page);
+        await exitTriviaToHub(page);
 
         await page.getByRole("button", { name: /Yard/ }).click();
         await expect(page.locator(".companion-yard-stage")).toBeVisible();

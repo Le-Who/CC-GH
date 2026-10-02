@@ -1,439 +1,87 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, ChevronRight, Eye, Home, Play, RotateCcw, Sparkles, Trophy, Users } from "lucide-react";
-import { api } from "../../services/apiClient.js";
-import { useGameHub } from "../../game-state/useGameHub.js";
-import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
-import { GamePlayHud, PanelButton, PauseBrief, semanticHudIconPath } from "../../app/shell.jsx";
-import { useExitToHub, useImmersiveGame, useSnapshot } from "../../app/gameHooks.js";
-import { useAppI18n } from "../../app/i18n.jsx";
-import { getQuestionTiming, useQuestionTimer } from "./useQuestionTimer.js";
-import "./i18n.js";
-import "./trivia.css";
-
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { api } from '../../services/apiClient.js';
+import { useGameHub } from '../../game-state/useGameHub.js';
+import { useExitToHub, useImmersiveGame, useSnapshot } from '../../app/gameHooks.js';
+import { useAppI18n } from '../../app/i18n.jsx';
+import { useDialogFocus } from '../../app/useDialogFocus.js';
+import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
+import { HudEditableRegion, HudRegion, useHudLayout } from '../../app/hud-layout/index.js';
+import { audioManager } from '../../services/audioManager.js';
+import { installTriviaExitGuard } from './triviaExitGuard.js';
+import { TriviaController } from './triviaController.js';
+import { triviaText, triviaCategory } from './triviaCopy.js';
+import { resolveTriviaLayout, resolveTriviaRemainingInsets } from './triviaLayout.js';
+import './i18n.js';
+import './trivia-presentation.css';
+const ART = '/games/trivia-v2/';
+function Art({ name, className = '' }) { return <img className={`trv2-art ${className}`} src={`${ART}${name}.webp`} alt="" draggable="false" />; }
+function Button({ children, primary = false, testid, ...props }) { return <button type="button" className={`trv2-button${primary ? ' trv2-primary' : ''}`} data-testid={testid} {...props}>{children}</button>; }
 export default function TriviaGame() {
   const snapshot = useSnapshot();
-  const loadSnapshot = useGameHub((state) => state.loadSnapshot);
-  const exitToHub = useExitToHub();
-  const { t } = useAppI18n();
-  const [view, setView] = useState("menu");
-  const [question, setQuestion] = useState(null);
-  const [sessionScore, setSessionScore] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [difficulty, setDifficulty] = useState("medium");
-  const [category, setCategory] = useState("");
-  const [roomId, setRoomId] = useState("");
-  const [joinCode, setJoinCode] = useState("");
-  const [duelStatus, setDuelStatus] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [paused, setPaused] = useState(false);
-  const [reveal, setReveal] = useState(null);
-  const [lifelines, setLifelines] = useState({ fifty: 1, reveal: 1, audience: 1 });
-  const [hiddenAnswers, setHiddenAnswers] = useState([]);
-  const [hintAnswer, setHintAnswer] = useState("");
-  const [audiencePoll, setAudiencePoll] = useState({});
-  const revealTimerRef = useRef(null);
-  const duelStartInFlightRef = useRef("");
-  const activeDuelRoomRef = useRef("");
-  const inShell = view !== "menu";
-  const questionActive = (view === "solo" || view === "duel-play") && question;
-  const isPlaying = questionActive && !paused;
-  const activePause = questionActive && paused;
-  const questionTiming = useQuestionTimer(question, (question?.timeLimit || 15) * 1000, paused);
-  const pauseRun = useCallback(() => {
-    if (questionActive) setPaused(true);
-  }, [questionActive]);
-  const shellControls = useMemo(() => ({
-    activeRun: !!questionActive,
-    pauseRun,
-    hudState: {
-      score: sessionScore,
-      streak,
-      timeLeft: Math.ceil(questionTiming.remainingMs / 1000),
-    },
-  }), [pauseRun, questionActive, questionTiming.remainingMs, sessionScore, streak]);
-  useImmersiveGame("trivia", inShell, shellControls);
-
-  const recentDuelsPanel = !activePause ? (
-    <>
-      <strong>{t("trivia.recentDuels")}</strong>
-      <div className="panel-scroll compact-list">
-        {history.length ? history.map((item, index) => (
-          <span key={item.roomId || index}>{item.roomId || t("trivia.duel")} · {item.status || item.result || t("trivia.played")}</span>
-        )) : <span>{t("trivia.noDuels")}</span>}
+  const exit = useExitToHub();
+  const { language } = useAppI18n();
+  const { viewport, resolvedLayout } = useHudLayout();
+  const stage = useRef(null);
+  const [size, setSize] = useState(null);
+  const [controller] = useState(() => new TriviaController({ request: api, onSnapshot: () => useGameHub.getState().loadSnapshot(), onExit: exit }));
+  const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
+  const c = useCallback((key, values) => triviaText(language, key, values), [language]);
+  const remainingInsets = resolveTriviaRemainingInsets(viewport, size);
+  const layout = resolveTriviaLayout({ ...viewport, ...(size || {}), safeAreaInsets: remainingInsets }, resolvedLayout.regions);
+  const active = !!state.question;
+  const pause = useCallback(() => controller.pause(), [controller]);
+  const controls = useMemo(() => ({ activeRun: active || !!state.roomId || !!state.busy, pauseRun: pause, openPanel: state.paused || !active, closePanel: () => controller.back(), hudState: { score: state.score, streak: state.streak, timeLeft: Math.ceil(state.timing.remainingMs / 1000) } }), [active, pause, controller, state.paused, state.roomId, state.busy, state.score, state.streak, state.timing.remainingMs]);
+  useImmersiveGame('trivia', state.view !== 'menu' || !!state.busy, controls);
+  useEffect(() => { controller.activate(); const removeExitGuard = installTriviaExitGuard(window, controller); controller.history(); const tick = window.setInterval(() => controller.tick(), 100); const hidden = () => controller.setBackground(document.hidden), blur = () => controller.setBackground(true), focus = () => controller.setBackground(false); hidden(); window.addEventListener('blur', blur); window.addEventListener('focus', focus); document.addEventListener('visibilitychange', hidden); return () => { window.clearInterval(tick); window.removeEventListener('blur', blur); window.removeEventListener('focus', focus); document.removeEventListener('visibilitychange', hidden); removeExitGuard(); controller.dispose(); }; }, [controller, pause]);
+  useEffect(() => { if (!['duel-room', 'duel-results'].includes(state.view) || state.duel?.status === 'finished' || state.error) return undefined; const timer = window.setInterval(() => { if (!document.hidden) controller.poll(); }, 3000); return () => window.clearInterval(timer); }, [controller, state.view, state.duel?.status, state.error]);
+  useEffect(() => { const node = stage.current; if (!node) return undefined; const measure = () => { const r = node.getBoundingClientRect(); setSize(before => before?.width === r.width && before?.height === r.height && before?.top === r.top && before?.left === r.left ? before : { width: r.width, height: r.height, top: r.top, right: r.right, bottom: r.bottom, left: r.left, orientation: r.width > r.height ? 'landscape' : 'portrait' }); }; const observer = new ResizeObserver(measure); observer.observe(node); measure(); return () => observer.disconnect(); }, [viewport.width, viewport.height, viewport.safeAreaInsets?.top, viewport.safeAreaInsets?.right, viewport.safeAreaInsets?.bottom, viewport.safeAreaInsets?.left]);
+  useEffect(() => { if (state.feedback) audioManager.play(state.feedback.correct ? 'success' : 'warning').catch(() => {}); }, [state.feedback]);
+  useEffect(() => { if (!state.question || document.hidden || state.paused) return; stage.current?.querySelector('.trv2-scroll')?.scrollTo({ top: 0, behavior: 'instant' }); stage.current?.querySelector('[data-testid=trv2-question]')?.focus({ preventScroll: true }); }, [state.question]);
+  useEscapeDismiss(active && !state.paused, pause);
+  return <HudRegion id="triviaShell" applyLayout={false} ref={stage} className="trv2-root" data-testid="trv2-root" data-trivia-view={state.view} data-paused={state.paused} data-trivia-layout={layout.landscape ? 'landscape' : 'portrait'} style={{ '--trv2-gutter': `${layout.gutter}px`, '--trv2-gap': `${layout.gap}px`, '--trv2-min-height': `${layout.minContentHeight}px`, ...Object.fromEntries(['top', 'right', 'bottom', 'left'].map(side => [`--trv2-inset-${side}`, `${Math.max(0, Number(remainingInsets[side]) || 0)}px`])) }}>
+    <HudEditableRegion id="triviaBackgroundAsset" as="div" className="trv2-background" aria-hidden="true" />
+    <div className="trv2-scroll" tabIndex={-1} inert={state.paused || undefined} data-dialog-focus-fallback="true">
+      <div className="trv2-content">
+        <header className="trv2-header"><div className="trv2-brand"><Art name="emblem" /><span>{c('title')}</span></div>{active ? <Button testid="trv2-pause" data-game-pause="true" onClick={pause} aria-label={c('pause')}>Ⅱ <span>{c('pause')}</span></Button> : <Button testid="trv2-exit" disabled={!!state.busy} onClick={() => controller.leave(true)}>{c('exit')}</Button>}</header>
+        {state.simulation && <p className="trv2-demo" data-testid="trv2-simulation">{c('simulation')} · {state.mode === 'duel' ? c('demoOpponent') : c('title')}</p>}
+        {state.error && !state.paused && <ErrorNotice state={state} controller={controller} c={c} />}
+        {state.view === 'menu' && <Setup state={state} controller={controller} snapshot={snapshot} c={c} />}
+        {active && <Quiz state={state} controller={controller} c={c} />}
+        {state.view === 'duel-room' && <DuelRoom state={state} controller={controller} c={c} />}
+        {['results', 'duel-results'].includes(state.view) && <Results state={state} controller={controller} c={c} />}
       </div>
-    </>
-  ) : null;
-
-  useEffect(() => () => window.clearTimeout(revealTimerRef.current), []);
-
-  useEffect(() => {
-    api("/api/trivia/duel/history").then((data) => {
-      if (data?.items) setHistory(data.items);
-      else if (Array.isArray(data?.history)) setHistory(data.history);
-    });
-  }, [view]);
-
-  async function startSolo() {
-    const data = await api("/api/trivia/start", { category, difficulty });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
-    }
-    setQuestion(data.question);
-    setSessionScore(0);
-    setStreak(0);
-    setReveal(null);
-    setLifelines({ fifty: 1, reveal: 1, audience: 1 });
-    setHiddenAnswers([]);
-    setHintAnswer("");
-    setAudiencePoll({});
-    setRoomId("");
-    setDuelStatus(null);
-    duelStartInFlightRef.current = "";
-    activeDuelRoomRef.current = "";
-    setPaused(false);
-    setView("solo");
-    await loadSnapshot();
-  }
-
-  async function submitAnswer(answer) {
-    if (paused || reveal) return;
-    if (hiddenAnswers.includes(answer)) return;
-    const path = view === "duel-play" ? "/api/trivia/duel/answer" : "/api/trivia/answer";
-    const timing = getQuestionTiming(questionTiming.startedAt, Date.now(), (question?.timeLimit || 15) * 1000, questionTiming.pausedMs);
-    const timeMs = Math.max(1, Math.round(timing.timeMs));
-    const data = await api(path, view === "duel-play" ? { roomId, answer, timeMs } : { answer, timeMs });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
-    }
-    setReveal({
-      answer,
-      correct: !!data.correct,
-      correctAnswer: data.correctAnswer,
-      points: Number(data.points) || 0,
-      timeMs,
-    });
-    window.clearTimeout(revealTimerRef.current);
-    revealTimerRef.current = window.setTimeout(async () => {
-      setSessionScore(data.sessionScore ?? data.score ?? sessionScore);
-      setStreak(data.streak || 0);
-      setReveal(null);
-      setHiddenAnswers([]);
-      setHintAnswer("");
-      setAudiencePoll({});
-      if (data.nextQuestion) {
-        setQuestion(data.nextQuestion);
-      } else {
-        setQuestion(null);
-        setPaused(false);
-        setView(data.results ? "duel-results" : "results");
-        setDuelStatus(data.results || data);
-        await loadSnapshot();
-      }
-    }, 1100);
-  }
-
-  async function createDuel() {
-    const data = await api("/api/trivia/duel/create", { category, difficulty });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
-    }
-    setRoomId(data.roomId);
-    setDuelStatus(data);
-    setReveal(null);
-    setHiddenAnswers([]);
-    setHintAnswer("");
-    setAudiencePoll({});
-    setQuestion(null);
-    duelStartInFlightRef.current = "";
-    activeDuelRoomRef.current = "";
-    setPaused(false);
-    setView("duel-room");
-  }
-
-  async function joinDuel() {
-    const data = await api("/api/trivia/duel/join", { inviteCode: joinCode.trim().toUpperCase() });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
-    }
-    setRoomId(data.roomId);
-    setDuelStatus(data);
-    setPaused(false);
-    setQuestion(null);
-    activeDuelRoomRef.current = "";
-    if (data.status === "active") {
-      await startDuel(data.roomId);
-      return;
-    }
-    setView("duel-room");
-  }
-
-  async function readyDuel() {
-    const data = await api("/api/trivia/duel/ready", { roomId });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
-    }
-    await pollDuelStatus(roomId);
-  }
-
-  async function startDuel(targetRoomId = roomId) {
-    const nextRoomId = targetRoomId || roomId;
-    if (!nextRoomId) return;
-    if (duelStartInFlightRef.current === nextRoomId) return;
-    if (activeDuelRoomRef.current === nextRoomId && question) return;
-    duelStartInFlightRef.current = nextRoomId;
-    let data;
-    try {
-      data = await api("/api/trivia/duel/start", { roomId: nextRoomId });
-      if (data.error) {
-        useGameHub.setState({ message: data.error });
-        return;
-      }
-    } finally {
-      if (duelStartInFlightRef.current === nextRoomId) duelStartInFlightRef.current = "";
-    }
-    setRoomId(nextRoomId);
-    activeDuelRoomRef.current = nextRoomId;
-    setQuestion(data.question);
-    setReveal(null);
-    setLifelines({ fifty: 1, reveal: 1, audience: 1 });
-    setHiddenAnswers([]);
-    setHintAnswer("");
-    setAudiencePoll({});
-    setPaused(false);
-    setView("duel-play");
-  }
-
-  async function useLifeline(type) {
-    if (!question || view !== "solo") return;
-    const data = await api("/api/trivia/lifeline", { type });
-    if (data.error) {
-      useGameHub.setState({ message: data.error });
-      return;
-    }
-    if (data.lifelines) setLifelines(data.lifelines);
-    if (Array.isArray(data.hiddenAnswers)) setHiddenAnswers(data.hiddenAnswers);
-    if (data.correctAnswer) setHintAnswer(data.correctAnswer);
-    if (data.audiencePoll) setAudiencePoll(data.audiencePoll);
-  }
-
-  async function pollDuelStatus(id = roomId) {
-    if (!id) return;
-    const data = await api(`/api/trivia/duel/status/${id}`);
-    if (!data.error) setDuelStatus(data);
-    if (data.status === "active") await startDuel(data.roomId || id);
-  }
-
-  return (
-    <HudRegion
-      id="triviaShell"
-      as="div"
-      className={`trivia-shell${inShell ? ` game-shell ${isPlaying ? "shell-playing" : "shell-paused"}` : ""}`}
-      data-trivia-view={view}
-      data-trivia-playing={isPlaying ? "true" : undefined}
-    >
-      <HudEditableRegion id="triviaBackgroundAsset" as="div" className="trivia-background-asset" aria-hidden="true" />
-      <aside className="trivia-card">
-        <div className="panel-header">
-          <div>
-            <strong>{t("trivia.title")}</strong>
-            <span>{t("trivia.total", { score: snapshot?.trivia?.totalScore || 0, streak: snapshot?.trivia?.bestStreak || 0 })}</span>
-          </div>
-        </div>
-        {isPlaying && (
-          <GamePlayHud
-            gameId="trivia"
-            title={t("trivia.title")}
-            subtitle={`${question.category || t("trivia.fallbackCategory")} · ${question.difficulty || difficulty}`}
-            stats={[
-              { id: "score", label: t("common.score"), value: sessionScore },
-              { id: "streak", label: t("trivia.streakLabel"), value: streak || 0 },
-              { id: "time", label: t("common.time"), value: Math.ceil(questionTiming.remainingMs / 1000) },
-            ]}
-            onPause={() => setPaused(true)}
-          />
-        )}
-        {view === "menu" && (
-          <>
-            <div className="form-grid">
-              <label>
-                {t("trivia.category")}
-                <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t("trivia.any")} />
-              </label>
-              <label>
-                {t("trivia.difficulty")}
-                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                  <option value="easy">{t("trivia.easy")}</option>
-                  <option value="medium">{t("trivia.medium")}</option>
-                  <option value="hard">{t("trivia.hard")}</option>
-                  <option value="all">{t("trivia.all")}</option>
-                </select>
-              </label>
-            </div>
-            <div className="button-row">
-              <PanelButton icon={Play} onClick={startSolo}>{t("trivia.solo")}</PanelButton>
-              <PanelButton icon={Trophy} onClick={createDuel}>{t("trivia.createDuel")}</PanelButton>
-            </div>
-            <div className="join-row">
-              <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={t("trivia.inviteCode")} />
-              <PanelButton icon={ChevronRight} onClick={joinDuel}>{t("trivia.join")}</PanelButton>
-            </div>
-          </>
-        )}
-        {(view === "solo" || view === "duel-play") && question && (
-          <QuestionPanel
-            question={question}
-            score={sessionScore}
-            streak={streak}
-            submitAnswer={submitAnswer}
-            reveal={reveal}
-            timing={questionTiming}
-            lifelines={view === "solo" ? lifelines : null}
-            hiddenAnswers={hiddenAnswers}
-            hintAnswer={hintAnswer}
-            audiencePoll={audiencePoll}
-            paused={activePause}
-            onFifty={() => useLifeline("fifty")}
-            onReveal={() => useLifeline("reveal")}
-            onAudience={() => useLifeline("audience")}
-          />
-        )}
-        {view === "duel-room" && (
-          <div className="duel-box">
-            <strong>{t("trivia.invite", { code: duelStatus?.inviteCode || roomId })}</strong>
-            <span>{t("trivia.status", { status: duelStatus?.status || t("trivia.waiting") })}</span>
-            <div className="button-row">
-              <PanelButton icon={Check} onClick={readyDuel}>{t("common.ready")}</PanelButton>
-              <PanelButton icon={RotateCcw} onClick={() => pollDuelStatus()}>{t("common.refresh")}</PanelButton>
-            </div>
-          </div>
-        )}
-        {(view === "results" || view === "duel-results") && (
-          <div className="results-box">
-            <Trophy size={42} />
-            <strong>{t("trivia.finished")}</strong>
-            <span>{t("common.score")} {sessionScore}</span>
-            <PanelButton
-              icon={RotateCcw}
-              onClick={() => {
-                setPaused(false);
-                setView("menu");
-              }}
-            >
-              {t("common.back")}
-            </PanelButton>
-          </div>
-        )}
-      </aside>
-      <HudEditableRegion id="triviaPausePanel" as="aside" className={`side-panel${inShell ? " game-menu-overlay trivia-pause-overlay" : ""}`}>
-        {inShell ? (
-          <div className="game-menu-scaler">
-            <div className="panel-header pause-panel-header">
-              <div>
-                <strong>{view === "results" || view === "duel-results" ? t("trivia.result") : t("common.pause")}</strong>
-                <span>{activePause ? t("pause.paused") : `${t("common.score")} ${sessionScore} · ${t("trivia.streak", { streak: streak || 0 })}`}</span>
-              </div>
-            </div>
-            <PauseBrief
-              gameId="trivia"
-              kicker={paused ? t("pause.paused") : t("trivia.result")}
-              title={questionActive ? t("pause.triviaFrozen") : t("pause.triviaReady")}
-              body={questionActive ? t("pause.triviaIntro") : t("pause.triviaResults")}
-              status={questionActive ? [
-                { label: t("common.score"), value: sessionScore },
-                { label: t("trivia.streakLabel"), value: streak || 0 },
-                { label: t("common.questionShort"), value: question ? `${(question.index ?? 0) + 1}/${question.total || "?"}` : "-" },
-              ] : []}
-            />
-            <div className="pause-action-stack">
-              {activePause && <PanelButton icon={Play} className="pause-primary" onClick={() => setPaused(false)}>{t("common.resume")}</PanelButton>}
-              <div className="button-row two">
-                <PanelButton
-                  icon={RotateCcw}
-                  subtle
-                  onClick={() => {
-                    setPaused(false);
-                    setQuestion(null);
-                    setReveal(null);
-                    setView("menu");
-                  }}
-                >
-                  {t("common.setup")}
-                </PanelButton>
-                <PanelButton
-                  icon={Home}
-                  danger
-                  onClick={() => {
-                    setPaused(false);
-                    setQuestion(null);
-                    setReveal(null);
-                    setView("menu");
-                    exitToHub();
-                  }}
-                >
-                  {t("common.exit")}
-                </PanelButton>
-              </div>
-            </div>
-            {recentDuelsPanel}
-          </div>
-        ) : recentDuelsPanel}
-      </HudEditableRegion>
-    </HudRegion>
-  );
+    </div>
+    {state.paused && <PauseDialog state={state} controller={controller} c={c} />}
+  </HudRegion>;
 }
-
-function QuestionPanel({ question, score, streak, submitAnswer, reveal, timing, lifelines = null, hiddenAnswers = [], hintAnswer = "", audiencePoll = {}, paused = false, onFifty, onReveal, onAudience }) {
-  const { t } = useAppI18n();
-  const remainingSeconds = Math.ceil((timing?.remainingMs || 0) / 1000);
-  return (
-    <HudEditableRegion id="triviaQuestionPanel" as="div" className={`question-panel${reveal ? " revealing" : ""}`}>
-      <HudEditableRegion id="triviaQuestionSurfaceAsset" as="div" className="trivia-question-surface-asset" aria-hidden="true" />
-      <div className="question-meta">
-        <span>{t("trivia.question", { current: (question.index ?? 0) + 1, total: question.total || "?" })}</span>
-        <span>{t("common.score")} {score}</span>
-        <span>{streak ? t("trivia.streak", { streak }) : t("trivia.noStreak")}</span>
-      </div>
-      <h2>{question.question}</h2>
-      <small>{question.category} · {question.difficulty} · {remainingSeconds}s</small>
-      <i className="trivia-timer-bar" aria-hidden="true"><b style={{ transform: `scaleX(${timing?.progress ?? 1})` }} /></i>
-      {lifelines && (
-        <div className="trivia-lifeline-dock">
-          <PanelButton icon={Users} subtle disabled={!!reveal || lifelines.audience <= 0} onClick={onAudience}>{t("trivia.lifeline.audience")} {lifelines.audience}</PanelButton>
-          <PanelButton icon={Sparkles} image={semanticHudIconPath("trivia", "fifty")} subtle disabled={!!reveal || lifelines.fifty <= 0} onClick={onFifty}>50/50 {lifelines.fifty}</PanelButton>
-          <PanelButton icon={Eye} image={semanticHudIconPath("trivia", "reveal")} subtle disabled={!!reveal || lifelines.reveal <= 0} onClick={onReveal}>{t("trivia.lifeline.reveal")} {lifelines.reveal}</PanelButton>
-        </div>
-      )}
-      <div className="answer-grid">
-        {(question.answers || []).map((answer) => {
-          const isHidden = hiddenAnswers.includes(answer);
-          const isHinted = hintAnswer && answer === hintAnswer;
-          const isCorrect = reveal && answer === reveal.correctAnswer;
-          const isChosenWrong = reveal && answer === reveal.answer && !reveal.correct;
-          return (
-          <button
-            key={answer}
-            className={`${isCorrect ? "correct" : ""}${isChosenWrong ? " incorrect" : ""}${isHidden ? " hidden-by-lifeline" : ""}${isHinted ? " hinted" : ""}`.trim()}
-            disabled={paused || !!reveal || isHidden}
-            onClick={() => submitAnswer(answer)}
-          >
-            <span>{isHidden ? "—" : answer}</span>
-            {audiencePoll?.[answer] != null && !isHidden && <small className="audience-poll">{audiencePoll[answer]}%</small>}
-          </button>
-          );
-        })}
-      </div>
-      {reveal && (
-        <div className={`trivia-reveal ${reveal.correct ? "correct" : "incorrect"}`}>
-          <strong>{reveal.correct ? t("trivia.correct") : t("trivia.incorrect")}</strong>
-          <span>{t("trivia.answerTime", { ms: reveal.timeMs })}</span>
-          {reveal.points > 0 && <b>+{reveal.points}</b>}
-        </div>
-      )}
-    </HudEditableRegion>
-  );
+export function Setup({ state, controller, snapshot, c }) {
+  const [difficulty, setDifficulty] = useState('medium');
+  const [code, setCode] = useState('');
+  return <div className="trv2-setup" data-hud-region="triviaSetup">
+    <div className="trv2-setup-intro"><p>{c('subtitle')}</p><span>{c('score')}: {snapshot?.trivia?.totalScore || 0} · {c('streak')}: {snapshot?.trivia?.bestStreak || 0}</span></div>
+    <div className="trv2-setup-grid">
+      <section className="trv2-paper trv2-setup-card"><h1>{c('setup')}</h1><p>{c('intro')}</p><label className="trv2-field">{c('difficulty')}<select data-testid="trv2-difficulty" value={difficulty} disabled={!!state.busy} onChange={e => setDifficulty(e.target.value)}>{['easy', 'medium', 'hard', 'all'].map(key => <option key={key} value={key}>{c(key)}</option>)}</select></label><Button primary testid="trv2-start" disabled={!!state.busy} onClick={() => controller.startSolo(difficulty)}>{state.busy === 'start' ? c('sending') : c('solo')}</Button><small>{c('questionsLanguage')}</small></section>
+      <section className="trv2-card trv2-setup-card"><h2>{c('duel')}</h2><p>{c('duelIntro')}</p><Button testid="trv2-create" disabled={!!state.busy} onClick={() => controller.createDuel(difficulty)}>{c('create')}</Button><form className="trv2-join" onSubmit={e => { e.preventDefault(); controller.joinDuel(code); }}><label className="trv2-field">{c('code')}<input data-testid="trv2-code" aria-label={c('code')} value={code} maxLength={32} autoComplete="off" autoCapitalize="characters" spellCheck="false" disabled={!!state.busy} onChange={e => setCode(e.target.value)} /></label><button className="trv2-button" data-testid="trv2-join" type="submit" disabled={!!state.busy || !code.trim()}>{c('join')}</button></form></section>
+    </div>
+    <History state={state} controller={controller} c={c} />
+  </div>;
 }
+function History({ state, controller, c }) { return <section className="trv2-history" data-testid="trv2-history"><div className="trv2-row"><h2>{c('history')}</h2><Button disabled={state.historyBusy} onClick={() => controller.history()}>{c('refresh')}</Button></div><small>{c('historyNote')}</small>{state.historyError ? <p role="status">{c('historyFail')}</p> : !state.history.length ? <p>{c('empty')}</p> : <ul>{state.history.map((entry, i) => <li key={`${entry.roomId}-${i}`}><strong>{entry.roomId}</strong><span>{entry.winner === 'Tie' ? c('tie') : c('winner', { name: entry.winner || '—' })}</span>{entry.players?.map((player, index) => <span key={index}>{player.username}: {player.score}</span>)}</li>)}</ul>}</section>; }
+export function Quiz({ state: s, controller, c }) {
+  const q = s.question;
+  const disabled = s.paused || !!s.feedback || !!s.busy || s.uncertain;
+  const seconds = Math.ceil(s.timing.remainingMs / 1000);
+  return <section className="trv2-round" data-testid="trv2-round" aria-label={c('progress')}>
+    <HudEditableRegion id="gameplayHud" applyLayout={false} className="trv2-hud"><div><small>{c('score')}</small><strong data-testid="trv2-score">{s.score}</strong></div><div><small>{c('streak')}</small><strong>{s.streak}</strong></div><div className="trv2-speed"><small>{c('speed')}</small><strong data-testid="trv2-time">{seconds}{c('seconds')}</strong><progress aria-label={c('speed')} value={s.timing.progress} max="1" /></div></HudEditableRegion>
+    <div className="trv2-quiz">
+      <HudEditableRegion id="triviaQuestionPanel" applyLayout={false} className="trv2-question"><HudEditableRegion id="triviaQuestionSurfaceAsset" className="trv2-question-surface" aria-hidden="true" /><div className="trv2-question-copy"><p className="trv2-question-number" data-testid="trv2-question-number">{c('question', { current: (q.index ?? 0) + 1, total: q.total || 5 })}</p><p className="trv2-question-meta">{triviaCategory(q.category, c)} · {c(q.difficulty || 'all')}</p><h2 tabIndex={-1} data-testid="trv2-question">{q.question}</h2><p className="trv2-time-note">{seconds === 0 ? c('expired') : c('questionsLanguage')}</p></div></HudEditableRegion>
+      <HudEditableRegion id="triviaAnswerGrid" applyLayout={false} className="trv2-answers">{q.answers.map((answer, index) => { const hidden = s.hiddenAnswers.includes(answer), correct = !!s.feedback && s.feedback.correctAnswer === answer, wrong = !!s.feedback && s.feedback.answer === answer && !s.feedback.correct, hinted = s.hintAnswer === answer; return <button type="button" className="trv2-answer" data-testid={`trv2-answer-${index}`} data-answer-state={correct ? 'correct' : wrong ? 'wrong' : hidden ? 'removed' : hinted ? 'hinted' : 'idle'} key={`${q.id}-${index}`} disabled={disabled || hidden} onClick={() => controller.answer(answer)} aria-label={`${answer}${correct ? ` · ${c('correctMark')}` : wrong ? ` · ${c('selectedMark')}` : hidden ? ` · ${c('removed')}` : hinted ? ` · ${c('hinted')}` : ''}`}><span className="trv2-answer-letter" aria-hidden="true">{correct ? '✓' : wrong ? '×' : hidden ? '−' : 'ABCD'[index]}</span><span className="trv2-answer-label">{hidden ? c('removed') : answer}{hinted && <small>{c('hinted')}</small>}{correct && <small>{c('correctMark')}</small>}{wrong && <small>{c('selectedMark')}</small>}{s.audiencePoll[answer] != null && !hidden && <span className="trv2-poll"><meter min="0" max="100" value={s.audiencePoll[answer]} aria-label={`${c('audience')}: ${answer}`} /><b>{s.audiencePoll[answer]}%</b></span>}</span></button>; })}</HudEditableRegion>
+    </div>
+    {s.mode === 'solo' && <HudEditableRegion id="triviaLifelineDock" applyLayout={false} className="trv2-lifelines">{['audience', 'fifty', 'reveal'].map(type => <button type="button" className="trv2-button trv2-lifeline" key={type} data-testid={`trv2-${type}`} disabled={disabled || s.uncertainLifeline || !(s.lifelines[type] > 0)} onClick={() => controller.lifeline(type)} aria-label={`${c(type)} · ${s.lifelines[type] > 0 ? s.lifelines[type] : c('used')}`}><Art name={type} /><span>{c(type)}</span><b>{s.lifelines[type]}</b></button>)}</HudEditableRegion>}
+    <div className="trv2-feedback" data-hud-region="triviaFeedback" data-testid="trv2-feedback" aria-live="polite" aria-atomic="true">{s.feedback ? <><div><strong>{s.feedback.correct ? `✓ ${c('correct')}` : `× ${c('wrong')}`}</strong><span>{c('correctAnswer', { answer: s.feedback.correctAnswer })}</span><span>{c('points', { points: s.feedback.points || 0 })} · {c('speed')}: {Math.round(s.feedback.timeMs / 100) / 10}{c('seconds')}</span></div><Button primary testid="trv2-next" disabled={s.paused} onClick={() => controller.next()}>{c(s.feedback.nextQuestion ? 'next' : 'result')} →</Button></> : <span>{s.busy === 'answer' ? c('pending') : s.busy ? c('sending') : s.mode === 'solo' ? c('once') : c('nextHint')}</span>}</div>
+  </section>;
+}
+export function DuelRoom({ state: s, controller, c }) { const status = s.duel?.status || 'waiting'; return <section className="trv2-card trv2-room"><h1>{c(status === 'lobby' ? 'lobby' : status === 'active' ? 'active' : 'waiting')}</h1>{s.simulation && <p className="trv2-demo-details">{c('simulationBody')}</p>}<span>{c('codeHint')}</span><strong className="trv2-invite" data-testid="trv2-invite">{s.duel?.inviteCode || s.roomId}</strong><ul className="trv2-players">{(s.duel?.players || []).map((player, index) => <li key={index}><span>{typeof player === 'string' ? player : player.username}</span><b>{typeof player === 'object' && player.ready ? `✓ ${c('readyLabel')}` : c('notReady')}</b></li>)}</ul>{s.simulation && <p>{c('demoReady')}</p>}<div className="trv2-actions"><Button primary testid="trv2-ready" disabled={!!s.busy || status === 'active'} onClick={() => controller.ready()}>{s.busy ? c('sending') : c('ready')}</Button><Button testid="trv2-refresh" disabled={!!s.busy} onClick={() => controller.poll()}>{c('refresh')}</Button><Button testid="trv2-leave" disabled={!!s.busy} onClick={() => controller.leave()}>{c('leave')}</Button></div></section>; }
+export function Results({ state: s, controller, c }) { const finished = s.mode !== 'duel' || s.duel?.status === 'finished'; return <section className="trv2-card trv2-results" data-hud-region="triviaResult" data-testid="trv2-results"><Art name="trophy" /><h1>{c('finished')}</h1>{s.simulation && <p>{c('simulatedResult')}</p>}<span>{c('score')}</span><strong className="trv2-result-score">{s.score}</strong><p>{c('totalCorrect', { correct: s.correctCount })}</p>{s.result?.goldReward != null && <p>{c('reward', { amount: s.result.goldReward })}</p>}{s.mode === 'duel' && (finished ? <div><h2>{s.duel?.winner === 'Tie' ? c('tie') : c('winner', { name: s.duel?.winner || '—' })}</h2><ul className="trv2-players">{s.duel?.players?.map((p, i) => <li key={i}>{p.username}<strong>{p.score ?? '…'}</strong></li>)}</ul></div> : <div role="status"><p>{c('resultWait')}</p><Button testid="trv2-refresh-result" onClick={() => controller.poll()}>{c('refresh')}</Button></div>)}<Button primary testid="trv2-another" disabled={!!s.busy} onClick={() => controller.leave()}>{c('another')}</Button></section>; }
+function ErrorNotice({ state: s, controller, c }) { const e = s.error; return <section className="trv2-error" role="alert" data-testid="trv2-error"><strong>{c('errorTitle')}</strong><p>{c(e.uncertain ? e.kind === 'answer' ? 'uncertainAnswer' : e.kind === 'lifeline' ? 'uncertainLifeline' : 'uncertainRequest' : 'requestError')}</p><details><summary>{c('errorDetail')}</summary><p>{e.code}</p></details><div className="trv2-actions">{e.canRetry && <Button testid="trv2-retry" disabled={!!s.busy} onClick={() => controller.retry()}>{c('retry')}</Button>}{s.uncertain && <Button testid="trv2-recover" disabled={!!s.busy} onClick={() => controller.leave()}>{c('finishRecovery')}</Button>}{!s.uncertain && <Button disabled={!!s.busy} onClick={() => controller.clearError()}>{c('close')}</Button>}</div></section>; }
+export function PauseDialog({ state: s, controller, c }) { const ref = useRef(null); const resume = useCallback(() => controller.resume(), [controller]); useDialogFocus(ref, { inertSiblings: false }); useEscapeDismiss(true, resume); return <><div className="trv2-scrim" aria-hidden="true" /><HudEditableRegion id="triviaPausePanel" applyLayout={false} ref={ref} className="trv2-dialog trv2-card" role="dialog" aria-modal="true" aria-labelledby="trv2-pause-title" tabIndex={-1}><div className="trv2-row"><h2 id="trv2-pause-title">{c('paused')}</h2><Button aria-label={c('close')} onClick={resume}>×</Button></div><p>{c('pauseBody')}</p>{s.error && <ErrorNotice state={s} controller={controller} c={c} />}<div className="trv2-pause-metrics"><span>{c('score')} <b>{s.score}</b></span><span>{c('streak')} <b>{s.streak}</b></span></div><Button primary testid="trv2-resume" onClick={resume}>{c('resume')}</Button><p>{c(s.mode === 'duel' ? 'leaveNote' : 'forfeitNote')}</p><Button testid="trv2-finish" disabled={!!s.busy} onClick={() => controller.leave()}>{c(s.mode === 'duel' ? 'leave' : 'forfeit')}</Button><Button testid="trv2-pause-exit" disabled={!!s.busy} onClick={() => controller.leave(true)}>{c('exit')}</Button></HudEditableRegion></>; }

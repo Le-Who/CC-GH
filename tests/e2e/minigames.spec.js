@@ -1,4 +1,7 @@
 import { test, expect } from "@playwright/test";
+import { expectMergeV3, closeMergePanel, pauseMerge, exitMerge, expectMergeControlsReachable, exerciseMergePanels, researchMergePair } from "./helpers/mergeV3.js";
+import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
+import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
 test.describe("New-stack minigame smoke", () => {
   test.beforeEach(async ({ page }) => {
@@ -11,12 +14,12 @@ test.describe("New-stack minigame smoke", () => {
     const pauseButton = page.getByRole("button", { name: /Pause/ });
     await expect(pauseButton).toBeVisible();
     await pauseButton.click({ force: true });
-    const overlay = page.locator(".game-menu-overlay:visible").first();
+    const overlay = page.locator(":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible").first();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await expect(page.locator(".bottom-tabs")).toBeHidden();
     await expect(overlay).toBeVisible();
     const overlayBox = await page.waitForFunction(() => {
-      const visibleOverlay = [...document.querySelectorAll(".game-menu-overlay")].find((element) => {
+      const visibleOverlay = [...document.querySelectorAll(".game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog")].find((element) => {
         const style = window.getComputedStyle(element);
         const rect = element.getBoundingClientRect();
         return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
@@ -43,7 +46,7 @@ test.describe("New-stack minigame smoke", () => {
   }
 
   async function exitToHub(page) {
-    await page.locator(".game-menu-overlay:visible").first().getByRole("button", { name: /^Exit$/ }).click();
+    await page.locator(":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible").first().getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
     await page.waitForTimeout(260);
@@ -57,8 +60,8 @@ test.describe("New-stack minigame smoke", () => {
 
   async function match3CanvasBounds(page) {
     const shell = page.locator('[data-game-shell="match3"]');
-    const hud = shell.locator(".game-play-hud");
-    const canvas = shell.locator(".pixi-host canvas");
+    const hud = shell.locator(".m3-hud");
+    const canvas = shell.locator("canvas");
     await expect(hud).toBeVisible();
     await expect(canvas).toBeVisible();
 
@@ -133,9 +136,9 @@ test.describe("New-stack minigame smoke", () => {
 
   async function expectMatch3BoardClearOfHud(page) {
     const { hud, board } = await match3CanvasBounds(page);
-    expect(board.y).toBeGreaterThanOrEqual(hud.y + hud.height + 6);
-    expect(board.x + board.width / 2).toBeGreaterThanOrEqual(board.canvas.x + board.canvas.width * 0.42);
-    expect(board.x + board.width / 2).toBeLessThanOrEqual(board.canvas.x + board.canvas.width * 0.58);
+    expect(board.y >= hud.y + hud.height + 4 || board.x + board.width + 4 <= hud.x || hud.x + hud.width + 4 <= board.x).toBe(true);
+    expect(board.x).toBeGreaterThanOrEqual(board.canvas.x);
+    expect(board.x + board.width).toBeLessThanOrEqual(board.canvas.x + board.canvas.width + 1);
     return { hud, board };
   }
 
@@ -150,65 +153,47 @@ test.describe("New-stack minigame smoke", () => {
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.getByText("Building Blox")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
+    await expect(page.locator(".bx-canvas canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator('[data-game-shell="blox"] .game-play-hud')).toContainText("Score");
-    await pauseActiveGame(page);
-    await exitToHub(page);
+    await expect(page.locator(".bx-hud")).toContainText("Score");
+    await expectBloxLayout(page);
+    await pauseBlox(page);
+    await exitBlox(page);
 
     await page.getByRole("button", { name: /Gems/ }).click();
     await expect(page.getByText("Gem Crush")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
+    await expect(page.locator(".m3-canvas canvas")).toBeVisible();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText(/Combo/);
+    await expect(page.locator(".m3-hud")).toContainText(/Combo/);
     await pauseActiveGame(page);
     await exitToHub(page);
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    await expect(page.locator(".merge-scene-hud")).toBeVisible();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator('[data-merge-panel="items"]').click();
-    await expect(page.locator(".merge-scene-drawer .merge-item-book")).toBeVisible();
-    await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
-    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator('[data-merge-panel="recipes"]').click();
-    await expect(page.locator(".merge-scene-drawer .merge-recipe-book")).toBeVisible();
-    await expect(page.locator(".game-menu-overlay:visible [data-pause-menu='merge']")).toHaveCount(0);
-    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-    await page.locator('[data-merge-panel="exchange"]').click();
-    await expect(page.locator(".merge-scene-drawer .merge-exchange-list")).toBeVisible();
-    await page.locator(".merge-scene-drawer").getByRole("button", { name: /^Close$/ }).click();
-    await expect(page.locator(".merge-action-dock")).toBeVisible();
-    await page.locator('[data-merge-action="daily"]').click();
-    await page.locator('[data-merge-action="generate"]').click();
-    await expect(page.locator(".merge-action-area")).toBeVisible();
-    await pauseActiveGame(page);
-    await exitToHub(page);
+    await exerciseMergePanels(page);
+    await researchMergePair(page, 'cloud', 'ember');
+    await pauseMerge(page);
+    await exitMerge(page);
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await expect(page.getByText("Bubbo Bubbo")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await expect(page.locator(".pixi-host canvas")).toBeVisible();
-    await expect(page.locator('[data-mode-selector="bubbo"]')).toContainText("Classic");
-    await expect(page.locator('[data-mode-selector="bubbo"]')).toContainText("Timed");
+    await expect(page.locator(".bb-field")).toBeVisible();
+    await expect(page.locator(".bb-modes")).toContainText("Classic");
+    await expect(page.locator(".bb-modes")).toContainText("Timed");
     await page.getByRole("button", { name: /^Start$/ }).click();
-    const bubboHud = page.locator(".bubbo-play-hud");
-    await expect(bubboHud.locator(".game-play-title")).toContainText("Bubbo Bubbo");
+    const bubboHud = page.locator(".bb-hud");
+    await expect(page.locator(".bb-stage")).toHaveAttribute("data-bb-phase", "playing");
     await expect(bubboHud).not.toContainText(/best|bubbles/i);
     await expect(bubboHud).toContainText(/Shots/);
-    const bubboHostBox = await page.locator(".active-game-frame .pixi-host").boundingBox();
+    const bubboHostBox = await page.locator(".bb-field").boundingBox();
     const bubboHudBox = await bubboHud.boundingBox();
     expect(bubboHostBox).not.toBeNull();
     expect(bubboHudBox).not.toBeNull();
-    expect(bubboHudBox.y).toBeGreaterThan(bubboHostBox.y + bubboHostBox.height * 0.72);
+    expect(bubboHudBox.y + bubboHudBox.height <= bubboHostBox.y || bubboHostBox.x + bubboHostBox.width <= bubboHudBox.x).toBe(true);
     const bubboPauseOverlay = await pauseActiveGame(page);
     await bubboPauseOverlay.getByRole("button", { name: /^End Run$/ }).click();
-    const bubboResult = page.locator('[data-bubbo-result="true"]');
+    const bubboResult = page.locator('.bb-stage[data-bb-phase="result"] .bb-dialog');
     await expect(bubboResult).toBeVisible();
     await expect(bubboResult.locator(".metric-grid")).toHaveCount(0);
     await expect(bubboResult.locator(".mode-grid")).toHaveCount(0);
@@ -220,20 +205,19 @@ test.describe("New-stack minigame smoke", () => {
     await page.waitForTimeout(260);
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
-    await page.locator('[data-mode-selector="bubbo"]').getByRole("button", { name: /Timed/ }).click();
+    await page.locator(".bb-modes").getByRole("button", { name: /Timed/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".bubbo-play-hud")).toContainText(/Time/);
+    await expect(page.locator(".bb-hud")).toContainText(/Time/);
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await pauseActiveGame(page);
     await exitToHub(page);
 
     await page.getByRole("button", { name: /Trivia/ }).click();
     await expect(page.getByText("Brain Blitz")).toBeVisible();
-    await page.getByRole("button", { name: "Solo" }).click();
-    await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
+    await startTriviaSolo(page);
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
-    await pauseActiveGame(page);
-    await exitToHub(page);
+    await pauseTrivia(page);
+    await exitTriviaToHub(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
     await expect(page.locator(".companion-yard-stage, .companion-yard-layout").first()).toBeVisible();
@@ -258,16 +242,27 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.getByText("My Garden")).toBeVisible();
 
     const pixiGames = [
-      { tab: /Blox/, start: /^Start$/ },
+      { tab: /Blox/, start: /^Start$/, id: "blox" },
       { tab: /Gems/, start: /^Start$/ },
-      { tab: /Merge/, id: "merge" },
       { tab: /Bubbo/, start: /^Start$/, id: "bubbo", minHostHeight: 620 },
     ];
 
     for (const game of pixiGames) {
       await page.getByRole("button", { name: game.tab }).click();
       if (game.start) await page.getByRole("button", { name: game.start }).click();
-      const host = page.locator(".active-game-frame .pixi-host").last();
+      if (game.id === "blox") {
+        await expectBloxCanvas(page);
+        await expectBloxLayout(page);
+        const hostBox = await page.locator(".bx-canvas").boundingBox();
+        expect(hostBox.height).toBeGreaterThanOrEqual(620);
+        expect(hostBox.width).toBeGreaterThanOrEqual(360);
+        await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
+        await expect(page.locator(".bottom-tabs")).toBeHidden();
+        await pauseBlox(page);
+        await exitBlox(page);
+        continue;
+      }
+      const host = page.locator(".active-game-frame [data-game-shell]").last();
       await expect(host).toBeVisible();
       await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
       await expect(page.locator(".bottom-tabs")).toBeHidden();
@@ -277,15 +272,24 @@ test.describe("New-stack minigame smoke", () => {
       expect(hostBox.width).toBeGreaterThanOrEqual(360);
       if (game.id === "bubbo") {
         const shellBox = await page.locator('[data-game-shell="bubbo"]').boundingBox();
-        const hudBox = await page.locator(".bubbo-play-hud").boundingBox();
+        const hudBox = await page.locator(".bb-hud").boundingBox();
         expect(shellBox).not.toBeNull();
         expect(hudBox).not.toBeNull();
         expect(shellBox.height).toBeGreaterThanOrEqual(620);
-        expect(hudBox.y).toBeGreaterThan(hostBox.y + hostBox.height * 0.72);
+        const field = await page.locator(".bb-field").evaluate(node => JSON.parse(node.dataset.bubboGeometry));
+        expect(field.cell).toBeGreaterThanOrEqual(20);
+        const fieldBox = await page.locator(".bb-field").boundingBox();
+        expect(hudBox.y + hudBox.height).toBeLessThanOrEqual(fieldBox.y + 1);
       }
       await pauseActiveGame(page);
       await exitToHub(page);
     }
+
+    await page.getByRole("button", { name: /Merge/ }).click();
+    await expectMergeV3(page);
+    await expectMergeControlsReachable(page, page.locator('.ml-hud button, .ml-nav button, .ml-well-button, .ml-lab-action button'));
+    await pauseMerge(page);
+    await exitMerge(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
     const roomStage = page.locator(".active-game-frame .room-stage");
@@ -579,20 +583,28 @@ test.describe("New-stack minigame smoke", () => {
 
     await page.getByRole("button", { name: /Blox/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    let overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="blox"]')).toContainText("Place blocks from the tray");
-    await expectCompactPauseMenu(overlay, 4);
+    let overlay = await pauseBlox(page);
+    await expect(overlay.locator(".bx-intro")).toContainText("Place blocks from the tray");
+    await expect(overlay.locator(".bx-retained")).toContainText("Board saved");
+    await expect(overlay.locator(".bx-dialog-metrics .bx-metric")).toHaveCount(3);
+    await expect(overlay.locator(".bx-leaders")).toHaveCount(0);
+    await expect(overlay.getByRole("button")).toHaveCount(5);
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
-    overlay = await pauseActiveGame(page);
-    await overlay.getByRole("button", { name: /^Exit$/ }).click();
-    await expect(page.locator(".bottom-tabs")).toBeVisible();
+    await expect(page.locator(".bx-dialog")).toHaveCount(0);
+    overlay = await pauseBlox(page);
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".bx-dialog")).toHaveCount(0);
+    overlay = await pauseBlox(page);
+    await overlay.getByRole("button", { name: /^End Run$/ }).click();
+    await expect(page.locator(".bx-dialog")).toBeVisible();
+    await expect(page.locator(".bx-dialog-metrics")).toContainText("Reward");
+    await exitBlox(page);
 
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-compact-pause="match3"]')).toContainText("Gem Crush");
-    await expect(overlay.locator('[data-compact-pause="match3"]')).toContainText("Paused");
+    await expect(overlay).toContainText("Gem Crush");
+    await expect(overlay).toContainText("Paused");
     await expect(overlay.locator('[data-mode-selector="match3"]')).toHaveCount(0);
     await expect(overlay.locator(".leaderboard")).toHaveCount(0);
     const match3PauseLayout = await overlay.evaluate((node) => {
@@ -610,55 +622,63 @@ test.describe("New-stack minigame smoke", () => {
         smallButtons,
       };
     });
-    expect(match3PauseLayout.width).toBeGreaterThanOrEqual(350);
+    expect(match3PauseLayout.width).toBeGreaterThanOrEqual(280);
     expect(match3PauseLayout.height).toBeGreaterThanOrEqual(280);
-    expect(match3PauseLayout.height).toBeLessThanOrEqual(361);
-    expect(match3PauseLayout.width).toBeGreaterThanOrEqual(match3PauseLayout.height - 1);
+    expect(match3PauseLayout.height).toBeLessThanOrEqual(page.viewportSize().height - 16);
+    expect(match3PauseLayout.width).toBeLessThanOrEqual(page.viewportSize().width - 16);
     expect(match3PauseLayout.smallButtons).toEqual([]);
-    await expectCompactPauseMenu(overlay, 4);
+    await expectCompactPauseMenu(overlay, 5);
     await page.keyboard.press("Escape");
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    await expect(page.locator(".m3-dialog:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
     await page.mouse.click(12, 12);
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    await expect(page.locator(".m3-dialog:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
     await overlay.getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
 
     await page.getByRole("button", { name: /Merge/ }).click();
-    overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="merge"]')).toContainText("Merge matching items");
-    await expectCompactPauseMenu(overlay, 3);
-    await expect(overlay.getByRole("button", { name: /^Resume$/ }).first()).toBeVisible();
-    await overlay.getByRole("button", { name: /^Resume$/ }).first().click();
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
-    overlay = await pauseActiveGame(page);
-    await overlay.getByRole("button", { name: /^Exit$/ }).click();
-    await expect(page.locator(".bottom-tabs")).toBeVisible();
+    const mergeDialog = await pauseMerge(page);
+    await expect(mergeDialog).toContainText('alchemy-v3.1');
+    await expectMergeControlsReachable(page, mergeDialog.getByRole('button'));
+    await page.getByTestId('ml-resume').click();
+    await expect(page.getByTestId('ml-drawer')).toHaveCount(0);
+    await pauseMerge(page);
+    await closeMergePanel(page, 'escape');
+    await expect(page.getByTestId('ml-open-pause')).toBeFocused();
+    await exitMerge(page);
 
     await page.getByRole("button", { name: /Bubbo/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="bubbo"]')).toContainText("Aim a bubble");
-    await expectCompactPauseMenu(overlay, 4);
+    await expect(overlay).toContainText("Paused");
+    await expect(overlay.locator(".bb-dialog-metrics")).toContainText("Score");
+    await expectCompactPauseMenu(overlay, 5);
     await overlay.getByRole("button", { name: /^Resume$/ }).click();
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
+    await expect(page.locator(".bb-dialog:visible")).toHaveCount(0);
     overlay = await pauseActiveGame(page);
     await overlay.getByRole("button", { name: /^Exit$/ }).click();
     await expect(page.locator(".bottom-tabs")).toBeVisible();
 
     await page.getByRole("button", { name: /Trivia/ }).click();
-    await page.getByRole("button", { name: "Solo" }).click();
-    await expect(page.locator(".question-panel")).toBeVisible({ timeout: 10000 });
-    overlay = await pauseActiveGame(page);
-    await expect(overlay.locator('[data-pause-menu="trivia"]')).toContainText("Choose one answer");
-    await expectCompactPauseMenu(overlay, 3);
-    await expect(page.locator(".answer-grid")).toBeVisible();
-    await overlay.getByRole("button", { name: /^Resume$/ }).click();
-    await expect(page.locator(".game-menu-overlay:visible")).toHaveCount(0);
-    overlay = await pauseActiveGame(page);
-    await overlay.getByRole("button", { name: /^Exit$/ }).click();
-    await expect(page.locator(".bottom-tabs")).toBeVisible();
+    await startTriviaSolo(page);
+    const questionBeforePause = await page.getByTestId("trv2-question").textContent();
+    for (const method of ["button", "escape", "close"]) {
+      overlay = await pauseTrivia(page);
+      await expectCompactPauseMenu(overlay, 4);
+      await expectTriviaControlsReachable(page, overlay.getByRole("button"));
+      const pausedTime = await page.getByTestId("trv2-time").textContent();
+      await page.waitForTimeout(700);
+      await expect(page.getByTestId("trv2-time")).toHaveText(pausedTime);
+      await resumeTrivia(page, method);
+      await expect(page.getByTestId("trv2-question")).toHaveText(questionBeforePause);
+      await expect(page.getByTestId("trv2-answer-0")).toBeEnabled();
+    }
+    await page.getByTestId("trv2-answer-0").click();
+    await expect(page.getByTestId("trv2-next")).toBeVisible();
+    await expect(page.locator('.trv2-answer[data-answer-state="correct"]')).toHaveCount(1);
+    await pauseTrivia(page);
+    await exitTriviaToHub(page);
 
     await page.getByRole("button", { name: /Yard/ }).click();
     await expect(page.locator(".companion-yard-stage")).toBeVisible();
@@ -678,14 +698,14 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /Gems/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
-    await expect(page.locator(".game-play-hud")).toContainText("Gem Crush");
+    await expect(page.locator(".m3-hud")).toContainText("Score");
     await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toHaveCount(0);
 
     const before = await expectMatch3BoardClearOfHud(page);
     await page.setViewportSize({ width: 420, height: 700 });
-    await expect(page.locator('[data-game-shell="match3"] .pixi-host canvas')).toBeVisible();
+    await expect(page.locator('[data-game-shell="match3"] canvas')).toBeVisible();
     await page.waitForFunction(() => {
-      const canvas = document.querySelector('[data-game-shell="match3"] .pixi-host canvas');
+      const canvas = document.querySelector('[data-game-shell="match3"] canvas');
       return canvas && canvas.getBoundingClientRect().width < 520;
     });
     const after = await expectMatch3BoardClearOfHud(page);

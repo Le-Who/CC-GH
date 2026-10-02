@@ -109,6 +109,8 @@ export function createGardenStarterPlant(now = Date.now()) {
 export function createGardenEconomyState(now = Date.now(), options = {}) {
   return {
     economyVersion: GARDEN_ECONOMY_VERSION,
+    economicRevision: 0,
+    acknowledgedEarnedTotal: 0,
     name: "",
     totalGoldEarned: 0,
     level: 1,

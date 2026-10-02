@@ -130,6 +130,13 @@ const BOTTOM_DOCK_BUTTONS = {
 
 const GAME_REGIONS = {
   garden: {
+    gardenComposition:region("gardenComposition","Garden responsive composition","Garden Shelf",{measured:true,mode:"custom"},"Measured local-area adapter owns both orientations and exactly three plant spots per shelf."),
+    gardenStatusRail:region("gardenStatusRail","Garden resource and action rail","Garden Shelf",{measured:true,mode:"custom"}),
+    gardenBackgroundAsset:region("gardenBackgroundAsset","Garden greenhouse background","Garden Shelf assets",{draggable:true,resizable:true,asset:true,mode:"freeform"}),
+    gardenShelfAsset:region("gardenShelfAsset","Garden repeated shelf art","Garden Shelf assets",{measured:true,asset:true,mode:"custom"},"Repeated fixed-aspect decorative planks belong to each flow shelf, not freely moved gameplay anchors."),
+    gardenSheet:region("gardenSheet","Garden detail/shop sheet","Garden Shelf",{measured:true,mode:"custom"},"Bounded modal flow adapter; sticky dismissal and content scrolling stay owned by Garden rather than transformed artwork slots."),
+    gardenQuestSheet:region("gardenQuestSheet","Garden quest sheet","Garden Shelf",{measured:true,mode:"custom"},"Bounded modal flow adapter for localized quest lists; content and dismissal remain reachable at every profile."),
+
     gardenRoot: region("gardenRoot", "Garden root", "Garden Shelf", { measured: true, mode: "custom" }),
     gardenSign: region("gardenSign", "Garden sign", "Garden Shelf", { draggable: true, resizable: true, mode: "anchored" }),
     gardenSignAsset: region("gardenSignAsset", "Garden sign image asset", "Garden Shelf assets", { draggable: true, resizable: true, mode: "freeform", asset: true }, "Editable visual asset inside the Garden sign. This moves/scales the image, not the gameplay data."),
@@ -137,6 +144,11 @@ const GAME_REGIONS = {
     gardenBottomPlank: region("gardenBottomPlank", "Garden bottom plank reserve", "Garden Shelf", { resizable: true, affectsPixiSafeArea: false, measured: true, mode: "reserveOnly" }),
   },
   blox: {
+    bloxComposition: region("bloxComposition", "Blox field composition", "Blox v2", { measured: true, mode: "custom", draggable: false, resizable: false }, "Pure composition adapter owns board/tray hit geometry."),
+    bloxActions: region("bloxActions", "Blox actions", "Blox v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
+    bloxTitle: region("bloxTitle", "Blox title", "Blox v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
+    bloxTrayDock: region("bloxTrayDock", "Blox tray", "Blox v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
+    puzzleComposition: region("puzzleComposition", "Legacy puzzle composition", "Blox v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
     gameplayHud: COMMON_REGIONS.gameplayHud,
     eventLog: COMMON_REGIONS.eventLog,
     pauseOverlay: COMMON_REGIONS.pauseOverlay,
@@ -146,6 +158,10 @@ const GAME_REGIONS = {
     bloxTrayPanelAsset: assetRegion("bloxTrayPanelAsset", "Blox tray panel asset", "Blox Pixi assets", "Visual Pixi tray panel calibration. Tray slot input remains owned by the Pixi scene."),
   },
   match3: {
+    match3Composition: region("match3Composition", "Match3 composition", "Match3 v2", { measured: true, mode: "custom", draggable: false, resizable: false }, "Pure adapter owns board, tool and hit geometry."),
+    match3TitleAsset: assetRegion("match3TitleAsset", "Match3 title plaque", "Match3 v2 assets"),
+    match3SelectionHud: region("match3SelectionHud", "Match3 selection", "Match3 v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
+    match3ModeLabel: region("match3ModeLabel", "Match3 mode label", "Match3 v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
     gameplayHud: COMMON_REGIONS.gameplayHud,
     pauseOverlay: COMMON_REGIONS.pauseOverlay,
     match3ActionDock: region("match3ActionDock", "Gems booster dock", "Gems", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
@@ -154,6 +170,12 @@ const GAME_REGIONS = {
     match3BoardFrameAsset: assetRegion("match3BoardFrameAsset", "Gems board frame asset", "Gems Pixi assets", "Visual Pixi frame calibration. Keep it aligned with the play grid."),
   },
   merge: {
+    mergeLabComposition: region("mergeLabComposition", "Merge Laboratory Composition", "Merge Laboratory", { draggable: false, resizable: false, canChangeVisibility: false, measured: true, mode: "custom" }),
+    mergeLabHud: region("mergeLabHud", "Merge Laboratory Hud", "Merge Laboratory", { draggable: false, resizable: false, canChangeVisibility: false, measured: true, mode: "custom" }),
+    mergeLabExperiment: region("mergeLabExperiment", "Merge Laboratory Experiment", "Merge Laboratory", { draggable: false, resizable: false, canChangeVisibility: false, measured: true, mode: "custom" }),
+    mergeLabSamples: region("mergeLabSamples", "Merge Laboratory Samples", "Merge Laboratory", { draggable: false, resizable: false, canChangeVisibility: false, measured: true, mode: "custom" }),
+    mergeLabDialog: region("mergeLabDialog", "Merge Laboratory Dialog", "Merge Laboratory", { draggable: false, resizable: false, canChangeVisibility: false, measured: true, mode: "custom" }),
+    mergeLabBackdropAsset: assetRegion("mergeLabBackdropAsset", "Merge Laboratory background", "Merge Laboratory assets", "Visual-only background; flow controls and sample wells stay fixed."),
     mergeSceneHud: region("mergeSceneHud", "Merge top HUD", "Merge", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "anchored" }),
     mergeActionDock: region("mergeActionDock", "Merge action dock", "Merge", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     mergeSceneDrawer: region("mergeSceneDrawer", "Merge in-scene drawer", "Merge", { draggable: true, resizable: true, mode: "anchored" }),
@@ -164,6 +186,10 @@ const GAME_REGIONS = {
     mergeActionGenerateAsset: assetRegion("mergeActionGenerateAsset", "Merge generate button asset", "Merge DOM assets", "Editable DOM asset/control inside the Merge action dock."),
   },
   bubbo: {
+    bubboComposition: region("bubboComposition", "Bubbo field composition", "Bubbo v2", { measured: true, mode: "custom", draggable: false, resizable: false }, "The pure composition adapter owns the field, cannon and hit geometry; edit shared layout configuration rather than independent token anchors."),
+    bubboActionDock: region("bubboActionDock", "Bubbo actions", "Bubbo v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
+    bubboCompactScroll: region("bubboCompactScroll", "Bubbo compact scroll navigation", "Bubbo v2", { measured: true, mode: "custom", draggable: false, resizable: false }),
+    bubboBackgroundAsset: assetRegion("bubboBackgroundAsset", "Bubbo scenic background", "Bubbo v2 assets", "Editable background. Cannon and bubbles intentionally remain tied to analytical shot geometry."),
     gameplayHud: COMMON_REGIONS.gameplayHud,
     eventLog: COMMON_REGIONS.eventLog,
     pauseOverlay: COMMON_REGIONS.pauseOverlay,
@@ -172,9 +198,14 @@ const GAME_REGIONS = {
     bubboCannonAsset: assetRegion("bubboCannonAsset", "Bubbo cannon asset", "Bubbo Pixi assets", "Visual Pixi cannon calibration. Keep it near the actual shot origin."),
   },
   trivia: {
-    triviaShell: region("triviaShell", "Trivia shell", "Trivia", { draggable: true, resizable: true, mode: "custom" }),
-    triviaQuestionPanel: region("triviaQuestionPanel", "Question panel", "Trivia", { draggable: true, resizable: true, mode: "flow" }),
-    triviaPausePanel: region("triviaPausePanel", "Trivia pause/history panel", "Trivia", { draggable: true, resizable: true, mode: "anchored" }),
+    triviaSetup: region("triviaSetup", "Trivia setup flow", "Trivia", { measured: true, mode: "custom" }),
+    triviaResult: region("triviaResult", "Trivia results flow", "Trivia", { measured: true, mode: "custom" }),
+    triviaFeedback: region("triviaFeedback", "Trivia reserved answer feedback", "Trivia", { measured: true, mode: "custom" }),
+    triviaAnswerGrid: region("triviaAnswerGrid", "Trivia answer grid", "Trivia", { measured: true, mode: "custom" }, "Flow adapter preserves four untruncated answers: one column in portrait, two in landscape with internal scrolling."),
+    triviaLifelineDock: region("triviaLifelineDock", "Trivia solo lifelines", "Trivia", { measured: true, mode: "custom" }, "Three real solo lifelines in a fixed 44px-minimum control row. Absent during duels."),
+    triviaShell: region("triviaShell", "Trivia shell", "Trivia", { measured: true, mode: "custom" }),
+    triviaQuestionPanel: region("triviaQuestionPanel", "Question panel", "Trivia", { measured: true, mode: "custom" }),
+    triviaPausePanel: region("triviaPausePanel", "Trivia bounded pause dialog", "Trivia", { measured: true, mode: "custom" }),
     gameplayHud: COMMON_REGIONS.gameplayHud,
     triviaBackgroundAsset: assetRegion("triviaBackgroundAsset", "Trivia room background asset", "Trivia DOM assets"),
     triviaQuestionSurfaceAsset: assetRegion("triviaQuestionSurfaceAsset", "Trivia question panel surface asset", "Trivia DOM assets"),

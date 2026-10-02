@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { expectBloxCanvas, expectBloxLayout } from "./helpers/blox-v2.js";
 
 async function bootPage(context, label) {
   const page = await context.newPage();
@@ -19,7 +20,7 @@ async function startGame(page, tabName) {
   const start = page.getByRole("button", { name: "Start" });
   await expect(start).toBeVisible({ timeout: 10000 });
   await start.click();
-  await expect(page.locator(".game-shell.shell-playing")).toBeVisible({ timeout: 10000 });
+  await expect(page.locator('.game-shell.shell-playing, [data-bb-phase="playing"], [data-m3-phase="playing"], [data-bx-phase="playing"]')).toBeVisible({ timeout: 10000 });
 }
 
 function visibleHudButtonMetrics(buttons) {
@@ -84,46 +85,36 @@ function visibleHudStatMetrics(stats) {
 }
 
 test.describe("HUD art visual regression guards", () => {
-  test("Blox live HUD uses generated stat icons and tooltip-only compact labels", async ({ browser, baseURL }) => {
-    const context = await browser.newContext({
-      baseURL,
-      viewport: { width: 1280, height: 720 },
-      isMobile: false,
-      hasTouch: false,
-    });
+  test("Blox v2 HUD keeps labels readable and generated actions intact", async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
     const { page, pageErrors } = await bootPage(context, "blox_desktop");
     try {
-      await startGame(page, "Blox");
-      await expect(page.locator('[data-game-shell="blox"] canvas')).toBeVisible();
-      await expect(page.locator(".blox-play-hud .game-play-stat")).toHaveCount(3);
-
-      const stats = await page.locator(".blox-play-hud .game-play-stat").evaluateAll(visibleHudStatMetrics);
-      expect(stats.map((item) => item.id)).toEqual(["score", "lines", "reward"]);
-      for (const item of stats) {
-        expect(item.labelVisible, `${item.id} label must not push the compact stat icon`).toBe(false);
-        expect(item.hasTooltipLabel, `${item.id} should retain a tooltip/accessibility label`).toBe(true);
-        expect(item.iconInside, `${item.id} icon should sit inside the generated chip`).toBe(true);
-        expect(item.valueInside, `${item.id} value should sit inside the generated chip`).toBe(true);
-        expect(item.overflows, `${item.id} compact stat should not overflow its art`).toBe(false);
+      await page.getByRole("button", { name: "Blox" }).click();
+      await page.getByRole("button", { name: "Start", exact: true }).click();
+      await expectBloxCanvas(page);
+      await expectBloxLayout(page);
+      const stats = page.locator(".bx-hud .bx-metric");
+      await expect(stats).toHaveCount(3);
+      await expect(stats.locator("span")).toHaveText(["Score", "Lines", "Reward"]);
+      await expect(page.locator(".bx-hud .bx-progress")).toHaveCount(1);
+      await expect.poll(() => page.locator(".bx-actions img").evaluateAll((images) => images.length === 2 && images.every((image) => image.complete && image.naturalWidth > 0))).toBe(true);
+      const actions = await page.locator(".bx-actions button").evaluateAll((buttons) => buttons.map((button) => {
+        const style = getComputedStyle(button), rect = button.getBoundingClientRect(), image = button.querySelector("img");
+        return { width: rect.width, height: rect.height, skin: style.borderImageSource, label: button.getAttribute("aria-label"), imageLoaded: !!image?.complete && image.naturalWidth > 0 };
+      }));
+      expect(actions).toHaveLength(2);
+      for (const action of actions) {
+        expect(action.width).toBeGreaterThanOrEqual(44);
+        expect(action.height).toBeGreaterThanOrEqual(44);
+        expect(action.skin).toContain("/games/blox-v2/button.webp");
+        expect(action.label).toBeTruthy();
+        expect(action.imageLoaded).toBe(true);
       }
-
-      const scoreStat = page.locator('.blox-play-hud .game-play-stat[data-stat-id="score"]');
-      await scoreStat.dispatchEvent("pointerdown");
-      await expect(page.locator(".blox-play-hud .press-tooltip", { hasText: "Score" })).toBeVisible();
-      await scoreStat.dispatchEvent("pointerup");
-      await expect(page.locator(".blox-play-hud .press-tooltip")).toHaveCount(0);
-
-      const metrics = await page.locator(".blox-play-hud .game-play-actions .panel-button").evaluateAll(visibleHudButtonMetrics);
-      expect(metrics.length).toBeGreaterThanOrEqual(1);
-      for (const item of metrics) {
-        expect(item.backgroundColor, `${item.text} must not expose a CSS fallback color behind transparent art`).toBe("rgba(0, 0, 0, 0)");
-        expect(item.imageLayerCount, `${item.text} should use exactly one art image layer`).toBe(1);
-        expect(item.ratio, `${item.text} compact action should stay square`).toBeGreaterThanOrEqual(0.9);
-        expect(item.ratio, `${item.text} compact action should stay square`).toBeLessThanOrEqual(1.1);
-        expect(item.spanVisible, `${item.text} compact action should not reserve hidden label space`).toBe(false);
-      }
-
-      await expect(page.locator('.blox-play-hud .game-play-stats [data-stat-id="reward"] .game-play-stat-progress')).toHaveCount(1);
+      await expect(page.locator(".bx-rotate-count")).toHaveText("3");
+      const rotate = page.waitForRequest((request) => request.url().includes("/api/player/mutate") && request.postDataJSON()?.action === "blox.rotate");
+      await page.locator('[data-blox-rotate="true"]').click();
+      await rotate;
+      await expect(page.locator(".bx-rotate-count")).toHaveText("2");
       expect(pageErrors).toEqual([]);
     } finally {
       await context.close();
@@ -142,45 +133,55 @@ test.describe("HUD art visual regression guards", () => {
     try {
       await startGame(page, "Gems");
       await expect(page.locator('[data-game-shell="match3"] canvas')).toBeVisible();
-      await expect(page.locator(".match3-action-dock")).toBeVisible();
-      await expect(page.locator(".match3-action-dock [data-match3-booster]")).toHaveCount(4);
-      await expect(page.locator(".match3-action-dock [data-match3-shuffle]")).toHaveCount(1);
-
-      const stats = await page.locator(".match3-scene-hud .game-play-stat").evaluateAll(visibleHudStatMetrics);
-      expect(stats.map((item) => item.id)).toEqual(["score", "moves", "combo", "reward"]);
+      await expect(page.locator(".m3-tools")).toBeVisible();
+      await expect(page.locator(".m3-tools [data-match3-booster]")).toHaveCount(4);
+      await expect(page.locator(".m3-tools [data-match3-shuffle]")).toHaveCount(1);
+      await expect(page.locator(".m3-hud")).toContainText("Score");
+      await expect(page.locator(".m3-hud")).toContainText("Moves");
+      await expect(page.locator(".m3-hud")).toContainText("Combo");
+      await expect(page.locator(".m3-hud")).toContainText("Reward");
+      const stats = await page.locator(".m3-score, .m3-turns, .m3-combo, .m3-combo-reward > span").evaluateAll(nodes => nodes.map(node => {
+        const rect = node.getBoundingClientRect();
+        const value = node.querySelector("strong, b")?.getBoundingClientRect();
+        return {text: node.textContent, width: rect.width, height: rect.height,
+          overflows: node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1,
+          valueInside: !!value && value.left >= rect.left - 1 && value.right <= rect.right + 1 && value.top >= rect.top - 1 && value.bottom <= rect.bottom + 1};
+      }));
+      expect(stats).toHaveLength(4);
       for (const item of stats) {
-        expect(item.labelVisible, `${item.id} label must not be visible in compact mobile HUD`).toBe(false);
-        expect(item.iconInside, `${item.id} icon should stay centered in the stat chip`).toBe(true);
-        expect(item.overflows, `${item.id} compact stat should not overflow its art`).toBe(false);
+        expect(item.width, `${item.text} remains visible`).toBeGreaterThan(0);
+        expect(item.valueInside, `${item.text} value stays within its metric`).toBe(true);
+        expect(item.overflows, `${item.text} remains readable`).toBe(false);
       }
-
-      const metrics = await page.locator(".match3-action-dock .panel-button").evaluateAll(visibleHudButtonMetrics);
-      expect(metrics.length).toBe(5);
+      const metrics = await page.locator(".m3-tools .m3-tool").evaluateAll(buttons => buttons.map(button => {
+        const box = button.getBoundingClientRect();
+        const icon = button.querySelector("img");
+        const label = button.querySelector(".m3-tool-label");
+        const count = button.querySelector(".m3-count");
+        const iconBox = icon?.getBoundingClientRect(), countBox = count?.getBoundingClientRect();
+        return {label: button.getAttribute("aria-label"), width: box.width, height: box.height,
+          skin: getComputedStyle(button).borderImageSource, iconReady: icon?.complete && icon.naturalWidth > 0,
+          labelClipped: label && label.scrollWidth > label.clientWidth + 1,
+          countReadable: !!countBox && countBox.width > 0 && countBox.height > 0 && countBox.right <= box.right + 1,
+          iconInside: !!iconBox && iconBox.left >= box.left && iconBox.right <= box.right};
+      }));
+      expect(metrics).toHaveLength(5);
       for (const item of metrics) {
-        expect(item.width, `${item.text} bottom action should keep a practical tap width`).toBeGreaterThanOrEqual(44);
-        expect(item.height, `${item.text} bottom action should keep a practical tap height`).toBeGreaterThanOrEqual(44);
-        expect(item.backgroundImage, `${item.text} must use square icon badge art in the bottom dock`).toContain("/icon-badge.png");
+        expect(item.width, item.label).toBeGreaterThanOrEqual(44);
+        expect(item.height, item.label).toBeGreaterThanOrEqual(44);
+        expect(item.skin).toContain("/games/match3-v2/tool-card-base.webp");
+        expect(item.iconReady && item.iconInside && item.countReadable).toBe(true);
+        expect(item.labelClipped).toBe(false);
       }
-      const layout = await page.locator('[data-game-shell="match3"]').evaluate((shell) => {
-        const canvas = shell.querySelector("canvas");
-        const dock = shell.querySelector(".match3-action-dock");
-        const boardTop = Number(canvas?.dataset?.match3BoardTop);
-        const boardSize = Number(canvas?.dataset?.match3BoardSize);
-        const canvasRect = canvas?.getBoundingClientRect();
-        const dockRect = dock?.getBoundingClientRect();
-        return {
-          boardBottom: canvasRect && Number.isFinite(boardTop) && Number.isFinite(boardSize)
-            ? canvasRect.top + boardTop + boardSize
-            : 0,
-          dockTop: dockRect?.top ?? 0,
-          dockBottom: dockRect?.bottom ?? 0,
-          viewportHeight: window.innerHeight,
-        };
+      const layout = await page.locator('[data-game-shell="match3"]').evaluate(shell => {
+        const canvas = shell.querySelector("canvas"), dock = shell.querySelector(".m3-tools");
+        const canvasRect = canvas.getBoundingClientRect(), dockRect = dock.getBoundingClientRect();
+        return {boardBottom: canvasRect.top + Number(canvas.dataset.match3BoardTop) + Number(canvas.dataset.match3BoardSize),
+          dockTop: dockRect.top, dockBottom: dockRect.bottom, viewportHeight: innerHeight};
       });
       expect(layout.dockBottom).toBeLessThanOrEqual(layout.viewportHeight + 1);
       expect(layout.boardBottom).toBeLessThanOrEqual(layout.dockTop - 4);
-
-      await expect(page.locator('.match3-scene-hud .game-play-stats [data-stat-id="reward"] .game-play-stat-progress')).toHaveCount(1);
+      await expect(page.locator(".m3-hud .m3-reward-progress")).toHaveCount(1);
       expect(pageErrors).toEqual([]);
     } finally {
       await context.close();
@@ -199,37 +200,27 @@ test.describe("HUD art visual regression guards", () => {
     try {
       await startGame(page, "Bubbo");
       await expect(page.locator('[data-game-shell="bubbo"] canvas')).toBeVisible();
-      await expect(page.locator(".bubbo-play-hud [data-bubbo-powerup]")).toHaveCount(3);
-
-      const metrics = await page.locator(".bubbo-play-hud").evaluate((hud) => {
-        const title = hud.querySelector(".game-play-title");
-        const actions = hud.querySelector(".game-play-actions")?.getBoundingClientRect();
-        const stats = hud.querySelector(".game-play-stats")?.getBoundingClientRect();
-        const titleStyles = title ? getComputedStyle(title) : null;
-        const buttons = [...hud.querySelectorAll(".game-play-actions .panel-button")].map((button) => {
-          const rect = button.getBoundingClientRect();
-          return {
-            label: button.getAttribute("aria-label") || button.textContent.trim(),
-            width: rect.width,
-            height: rect.height,
-            top: rect.top,
-            bottom: rect.bottom,
-          };
-        });
-        return {
-          titleHidden: !title || titleStyles?.display === "none",
-          actions: actions?.toJSON(),
-          stats: stats?.toJSON(),
-          buttons,
-          overflows: hud.scrollHeight > hud.clientHeight + 1 || hud.scrollWidth > hud.clientWidth + 1,
-        };
+      await expect(page.locator(".bb-powers [data-bubbo-powerup]")).toHaveCount(3);
+      await expect(page.locator(".bb-powers .bb-power")).toHaveCount(4);
+      const metrics = await page.locator(".bb-stage").evaluate(stage => {
+        const hud = stage.querySelector(".bb-hud"), actions = stage.querySelector(".bb-powers"), field = stage.querySelector(".bb-field");
+        const hudBox = hud.getBoundingClientRect(), actionsBox = actions.getBoundingClientRect(), fieldBox = field.getBoundingClientRect();
+        return {hud: hudBox.toJSON(), actions: actionsBox.toJSON(), field: fieldBox.toJSON(),
+          hudOverflow: hud.scrollWidth > hud.clientWidth + 1 || hud.scrollHeight > hud.clientHeight + 1,
+          buttons: [...actions.querySelectorAll("button")].map(button => {
+            const box = button.getBoundingClientRect(), icon = button.querySelector("img");
+            const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+            return {label: button.getAttribute("aria-label"), width: box.width, height: box.height,
+              hit: !!hit && (hit === button || button.contains(hit)), art: icon?.complete && icon.naturalWidth > 0};
+          })};
       });
-      expect(metrics.titleHidden).toBe(true);
-      expect(metrics.overflows).toBe(false);
-      expect(metrics.actions.bottom).toBeLessThanOrEqual(metrics.stats.top + 1);
+      expect(metrics.hudOverflow).toBe(false);
+      expect(metrics.hud.bottom).toBeLessThanOrEqual(metrics.field.top + 1);
+      expect(metrics.field.bottom).toBeLessThanOrEqual(metrics.actions.top + 1);
       for (const button of metrics.buttons) {
-        expect(button.width, `${button.label} should keep a touch-sized width`).toBeGreaterThanOrEqual(44);
-        expect(button.height, `${button.label} should keep a touch-sized height`).toBeGreaterThanOrEqual(44);
+        expect(button.width, button.label).toBeGreaterThanOrEqual(44);
+        expect(button.height, button.label).toBeGreaterThanOrEqual(44);
+        expect(button.hit && button.art, button.label).toBe(true);
       }
       expect(pageErrors).toEqual([]);
     } finally {

@@ -1,69 +1,269 @@
 {
   "schemaVersion": 1,
-  "layoutVersion": "hud-redesign-2026-05-26",
+  "layoutVersion": "match3-v2-generated-assets-2026-10-01",
   "gameId": "match3",
   "base": {
     "regions": {
-      "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 48, "reserve": 56, "alignment": "center", "zIndex": 20, "visible": true },
-      "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
-      "activeGameFrame": { "mode": "custom", "visible": true },
-      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
-      "gameShell": { "mode": "custom", "visible": true },
-      "gameplayHud": { "mode": "anchored", "anchor": "top-center", "x": 0, "y": 8, "maxWidth": 520, "zIndex": 40, "visible": true },
-      "pauseOverlay": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 390, "zIndex": 45, "visible": true },
-      "match3ActionDock": { "mode": "dock", "edge": "bottom", "offset": 8, "thickness": 102, "reserve": 122, "alignment": "center", "maxWidth": 520, "zIndex": 42, "visible": true },
-      "pixiPlayfieldReserve": { "mode": "reserveOnly", "topReserve": 84, "bottomReserve": 122, "leftReserve": 0, "rightReserve": 0 }
+      "appTopbar": {
+        "mode": "dock",
+        "edge": "top",
+        "offset": 0,
+        "thickness": 48,
+        "reserve": 56,
+        "alignment": "center",
+        "zIndex": 20,
+        "visible": true
+      },
+      "globalStats": {
+        "mode": "stack",
+        "direction": "horizontal",
+        "gap": 6,
+        "zIndex": 20,
+        "visible": true
+      },
+      "activeGameFrame": {
+        "mode": "custom",
+        "visible": true
+      },
+      "bottomDock": {
+        "mode": "dock",
+        "edge": "bottom",
+        "offset": 10,
+        "thickness": 64,
+        "reserve": 84,
+        "alignment": "center",
+        "maxWidth": 1180,
+        "zIndex": 50,
+        "visible": true
+      },
+      "gameShell": {
+        "mode": "custom",
+        "visible": true
+      },
+      "gameplayHud": {
+        "mode": "freeform",
+        "visible": true,
+        "zIndex": 20,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "rotation": 0
+      },
+      "pauseOverlay": {
+        "mode": "custom",
+        "maxWidth": 440,
+        "visible": true,
+        "zIndex": 40
+      },
+      "match3ActionDock": {
+        "mode": "freeform",
+        "visible": true,
+        "zIndex": 20,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "rotation": 0
+      },
+      "pixiPlayfieldReserve": {
+        "mode": "reserveOnly",
+        "topReserve": 0,
+        "bottomReserve": 0,
+        "leftReserve": 0,
+        "rightReserve": 0
+      },
+      "match3Composition": {
+        "mode": "custom",
+        "visible": true,
+        "gutter": 8,
+        "largeGutter": 12,
+        "largeGutterWidth": 768,
+        "frameInset": 12,
+        "portraitMaxBoard": 620,
+        "landscapeMaxBoard": 640,
+        "minChromeWidth": 304,
+        "portraitCompactWidth": 328,
+        "portraitCompactHeight": 680,
+        "landscapeCompactHeight": 420,
+        "portraitGap": 8,
+        "portraitCompactGap": 6,
+        "landscapeGap": 10,
+        "landscapeCompactGap": 8,
+        "landscapeTightGap": 4,
+        "railMin": 216,
+        "railMax": 288,
+        "railFraction": 0.3,
+        "railMaxFraction": 0.46,
+        "railGap": 20,
+        "railCompactGap": 12,
+        "toolGap": 8,
+        "toolCompactGap": 4,
+        "portraitRows": [
+          40,
+          92,
+          38,
+          86,
+          20
+        ],
+        "portraitCompactRows": [
+          0,
+          68,
+          30,
+          68,
+          0
+        ],
+        "landscapeRows": [
+          44,
+          156,
+          48,
+          180,
+          24
+        ],
+        "landscapeCompactRows": [
+          {
+            "minHeight": 294,
+            "rows": [
+              32,
+              82,
+              32,
+              124,
+              0
+            ]
+          },
+          {
+            "minHeight": 266,
+            "rows": [
+              24,
+              82,
+              32,
+              104,
+              0
+            ]
+          },
+          {
+            "minHeight": 234,
+            "rows": [
+              0,
+              82,
+              32,
+              104,
+              0
+            ]
+          },
+          {
+            "minHeight": 206,
+            "rows": [
+              0,
+              70,
+              28,
+              92,
+              0
+            ]
+          }
+        ],
+        "tightHudMin": 44,
+        "tightSelection": 24,
+        "tightTools": 92,
+        "tightRowsFixedHeight": 124
+      },
+      "match3TitleAsset": {
+        "mode": "freeform",
+        "visible": true,
+        "zIndex": 20,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "rotation": 0
+      },
+      "match3SelectionHud": {
+        "mode": "freeform",
+        "visible": true,
+        "zIndex": 20,
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "opacity": 1,
+        "rotation": 0
+      },
+      "match3ModeLabel": {
+        "mode": "custom",
+        "visible": true,
+        "zIndex": 20
+      }
     }
   },
   "profiles": {
     "phone-small-portrait": {
-      "match": { "orientation": "portrait", "maxWidth": 360 },
+      "match": {
+        "orientation": "portrait",
+        "maxWidth": 360
+      },
       "regions": {
-        "gameplayHud": { "maxWidth": 308, "y": 6 },
-        "match3ActionDock": { "thickness": 96, "reserve": 118, "maxWidth": 308 },
-        "pixiPlayfieldReserve": { "topReserve": 84, "bottomReserve": 118 }
+        "match3Composition": {
+          "mode": "custom"
+        }
       }
     },
     "phone-default-portrait": {
-      "match": { "orientation": "portrait", "maxWidth": 430 },
+      "match": {
+        "orientation": "portrait",
+        "maxWidth": 430
+      },
       "regions": {
-        "gameplayHud": { "maxWidth": 374, "y": 7 },
-        "match3ActionDock": { "thickness": 102, "reserve": 122, "maxWidth": 386 },
-        "pixiPlayfieldReserve": { "topReserve": 84, "bottomReserve": 122 }
+        "match3Composition": {
+          "mode": "custom"
+        }
       }
     },
     "phone-landscape": {
-      "match": { "orientation": "landscape", "maxHeight": 480 },
+      "match": {
+        "orientation": "landscape",
+        "maxHeight": 480
+      },
       "regions": {
-        "gameplayHud": { "anchor": "top-left", "x": 10, "y": 8, "maxWidth": 310 },
-        "match3ActionDock": { "thickness": 58, "reserve": 72, "maxWidth": 360 },
-        "pixiPlayfieldReserve": { "topReserve": 48, "bottomReserve": 72, "leftReserve": 0, "rightReserve": 0 }
+        "match3Composition": {
+          "mode": "custom"
+        }
       }
     },
     "tablet-portrait": {
-      "match": { "orientation": "portrait", "minWidth": 600 },
+      "match": {
+        "orientation": "portrait",
+        "minWidth": 600
+      },
       "regions": {
-        "gameplayHud": { "maxWidth": 560 },
-        "match3ActionDock": { "maxWidth": 560 },
-        "pixiPlayfieldReserve": { "topReserve": 90, "bottomReserve": 126 }
+        "match3Composition": {
+          "mode": "custom"
+        }
       }
     },
     "tablet-landscape": {
-      "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 },
+      "match": {
+        "orientation": "landscape",
+        "minWidth": 760,
+        "maxHeight": 900
+      },
       "regions": {
-        "match3ActionDock": { "thickness": 68, "reserve": 84, "maxWidth": 520 },
-        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 84 }
+        "match3Composition": {
+          "mode": "custom"
+        }
       }
     },
     "desktop-landscape": {
-      "match": { "orientation": "landscape", "minWidth": 1100 },
+      "match": {
+        "orientation": "landscape",
+        "minWidth": 1100
+      },
       "regions": {
-        "match3ActionDock": { "thickness": 72, "reserve": 88, "maxWidth": 560 },
-        "pixiPlayfieldReserve": { "topReserve": 66, "bottomReserve": 88 }
+        "match3Composition": {
+          "mode": "custom"
+        }
       }
     }
   },
   "editor": {
-    "notes": "Gem Crush keeps its Pixi board measured; top HUD and bottom booster dock reserves are layout-owned."
+    "notes": "Isolated Match3 v2 custom adapter uses measured local surface aspect and safe insets exactly once. All DOM chrome and Pixi 8x8 hit geometry share match3Composition. Profile-owned row sizes adapt to reduced iframe/toolbar height. Frame art uses audited 200px source cuts, fixed 14px caps and conservative 12px aperture. Main pieces/icons contain only. Title/background/selection/tool regions are registered; frame/background art tuning never changes game state. Menus use natural flow with contained scrolling."
   }
 }

@@ -1,10 +1,12 @@
+import {composeBubbo,bubboFieldGeometry} from "../src/games/bubbo/bubboComposition.js";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { composeBlox } from "../src/games/blox/bloxComposition.js";
+import { BLOX_ART, BLOX_BLOCK_ART, BLOX_PIXI_ASSETS, BLOX_NINE_SLICE } from "../src/games/blox/bloxArt.js";
 import {
-  bloxBoardFrameLayout,
   bloxAnchorCellFromDrag,
   bloxDragVisualPoint,
   bloxGhostOrigin,
@@ -132,20 +134,21 @@ describe("Pixi scene geometry helpers", () => {
     assert.deepEqual(bloxAnchorCellFromDrag(layout, drag), { row: 4, col: 3 });
   });
 
-  it("keeps Bubbo using corrected sheet frames and internal HUD reserve", () => {
-    const scenes = readSceneRuntimeText();
-    const assetBundles = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "assetBundles.js"), "utf-8");
-    const bubboGame = fs.readFileSync(path.join(__dirname, "..", "src", "games", "bubbo", "BubboGame.jsx"), "utf-8");
-
-    assert.ok(scenes.includes("BUBBO_BALL_FRAMES"), "Bubbo should crop the new ball sheet from measured transparent bounds");
-    assert.ok(scenes.includes("BUBBO_BALL_DRAW_SCALE"), "Bubbo should size the corrected sheet artwork to fill the hex grid");
-    assert.ok(scenes.includes("bubbo.balls.sheet"), "Bubbo runtime should resolve the new ball artwork through the runtime asset manifest");
-    assert.ok(scenes.includes("finishLineY"), "Bubbo danger/finish line should be independently positioned below the last row");
-    assert.ok(scenes.includes("boardLayer.enableRenderGroup"), "Bubbo board pressure motion should use a render group");
-    assert.ok(scenes.includes("falling._life = reduce ? 42 : 78"), "Bubbo island drops should stay visible long enough to read as falling");
-    assert.ok(scenes.includes("falling._gravity = reduce ? 0.18 : 0.07"), "Bubbo island drops should use slow gravity instead of instant removal");
-    assert.ok(bubboGame.includes("bottomHudReserve: true"), "Bubbo scene should reserve launcher space above the bottom HUD");
-    assert.ok(assetBundles.includes("assets_bubbo_balls"), "Bubbo should preload the corrected sheet artwork");
+  it("keeps Bubbo v2 token geometry, launch origin and non-overlapping HUD composition", () => {
+    const fieldSource = fs.readFileSync(path.join(__dirname, "..", "src/games/bubbo/BubboField.jsx"), "utf8");
+    const artSource = fs.readFileSync(path.join(__dirname, "..", "src/games/bubbo/bubboArt.js"), "utf8");
+    assert.ok(fieldSource.includes("traceBubboShot"), "guide and flight share analytical collision geometry");
+    assert.ok(fieldSource.includes("resizeBubboFlight"), "in-flight geometry follows resize");
+    assert.ok(fieldSource.includes("prefers-reduced-motion"), "fall effects honor reduced motion");
+    assert.ok(artSource.includes("/games/bubbo-v2/"), "individual v2 tokens replace the old sheet");
+    for (const [width,height] of [[320,568],[390,844],[568,320],[844,390],[768,1024],[1280,720]]) {
+      const layout = composeBubbo({width,height});
+      const geometry = bubboFieldGeometry(layout.field.width,layout.field.height);
+      assert.ok(geometry.cell >= 20, `${width}x${height} bubbles remain readable`);
+      assert.ok(geometry.cannonY > geometry.dangerY + geometry.radius, "launcher stays below danger cells");
+      const separated = layout.hud.top + layout.hud.height <= layout.field.top || layout.field.left + layout.field.width <= layout.hud.left;
+      assert.ok(separated, "HUD does not cover the shot field");
+    }
   });
 
   it("wires final-state Blox and Farm art through asset keys instead of shape-only placeholders", () => {
@@ -156,8 +159,11 @@ describe("Pixi scene geometry helpers", () => {
     assert.equal(LEGACY_ASSET_PATHS["farm.crops.strawberry_ready"], "/games/farm/crops/strawberry_ready.png");
     assert.ok(GAME_ASSET_BUNDLES.blox.includes("blox.cell_empty"), "Blox preload fallback should include generated cell art");
     assert.ok(GAME_ASSET_BUNDLES.farm.includes("farm.crops.strawberry_ready"), "Farm preload fallback should include generated crop art");
-    assert.ok(scenes.includes("BLOX_TILE_ASSET_BY_COLOR"), "Blox should map placed block colors to generated block tile sprites");
-    assert.ok(scenes.includes("BLOX_ASSET_KEYS.rowWipe"), "Blox clear effects should use generated row/column wipe art");
+    assert.equal(BLOX_BLOCK_ART["#60a5fa"], "/games/blox-v2/tiles/blue.webp");
+    assert.equal(Object.keys(BLOX_BLOCK_ART).length, 9, "Blox v2 should retain all color-to-generated-tile mappings");
+    assert.ok(BLOX_PIXI_ASSETS.includes(BLOX_ART.energy), "Blox v2 must preload generated row/column energy art");
+    assert.ok(BLOX_PIXI_ASSETS.includes(BLOX_ART.burst), "Blox v2 must preload generated clear burst art");
+    assert.ok(bloxScene.includes('bloxArtUrl("energy")'), "Blox clear effects should resolve generated energy art");
     assert.ok(bloxScene.includes("drawTrayPiece"), "Blox tray previews should render from live piece cells");
     assert.ok(!bloxScene.includes("BLOX_PIECE_ASSET_BY_ID"), "Blox tray previews should not use mismatched fixed preview sprites");
     assert.ok(scenes.includes("FARM_CROP_SLUGS"), "Farm should map crop ids to generated crop sprite paths");
@@ -168,23 +174,28 @@ describe("Pixi scene geometry helpers", () => {
     const bloxScene = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "scenes", "bloxScene.js"), "utf-8");
 
     assert.ok(bloxScene.includes("previewBloxPlacement"), "Blox drag preview should use the domain placement preview");
-    assert.ok(bloxScene.includes("dragPreview?.clear.rows"), "Blox drag preview should inspect predicted row clears");
-    assert.ok(bloxScene.includes("dragPreview?.clear.cols"), "Blox drag preview should inspect predicted column clears");
-    assert.ok(bloxScene.includes("BLOX_ASSET_KEYS.rowWipe"), "Blox drag preview should render generated row-clear art");
-    assert.ok(bloxScene.includes("BLOX_ASSET_KEYS.columnWipe"), "Blox drag preview should render generated column-clear art");
+    const dragPreview = bloxScene.slice(bloxScene.indexOf("function updateDragVisualNow"), bloxScene.indexOf("function g()"));
+    assert.match(dragPreview, /\?\.clear\.rows/, "Blox drag preview should inspect predicted row clears");
+    assert.match(dragPreview, /\?\.clear\.cols/, "Blox drag preview should inspect predicted column clears");
+    assert.ok(dragPreview.includes('bloxArtUrl("energy")'), "Blox row preview should use generated energy art");
+    assert.ok(dragPreview.includes("createBloxEnergyLine("), "Blox column preview should rotate the generated energy art");
+    assert.match(bloxScene, /rotation\s*=\s*Math\.PI\s*\/\s*2/, "Blox column-clear art must be vertical");
   });
 
-  it("fits Blox cells inside the generated board frame opening instead of over its border", () => {
-    const fitted = { left: 14, top: 164, size: 584 };
-    const layout = bloxBoardFrameLayout(fitted, 10);
-
-    assert.equal(layout.cols, 10);
-    assert.equal(layout.rows, 10);
-    assert.ok(layout.left > layout.frame.left + layout.frame.width * 0.14);
-    assert.ok(layout.top > layout.frame.top + layout.frame.height * 0.14);
-    assert.ok(layout.left + layout.size < layout.frame.left + layout.frame.width * 0.86);
-    assert.ok(layout.top + layout.size < layout.frame.top + layout.frame.height * 0.86);
-    assert.ok(layout.cell < fitted.size / 10, "cell size should be derived from the inner opening, not the outer frame");
+  it("fits Blox v2 cells inside the nine-slice frame without shrinking gameplay to the legacy opening", () => {
+    for (const [width, height] of [[320, 568], [390, 844], [568, 320], [844, 390], [768, 1024], [1024, 768]]) {
+      const composition = composeBlox({ width, height, safe: {} });
+      const { board, frame, frameInset } = composition;
+      assert.equal(board.cols, 10);
+      assert.equal(board.rows, 10);
+      assert.equal(board.left, frame.left + frameInset);
+      assert.equal(board.top, frame.top + frameInset);
+      assert.equal(board.size, frame.width - frameInset * 2);
+      assert.equal(board.cell, board.size / 10);
+      assert.ok(frameInset >= BLOX_NINE_SLICE.frame.destination[0], "board must clear the destination nine-slice border");
+      assert.ok(board.cell > 0);
+      assert.ok(board.left + board.size <= width && board.top + board.size <= height);
+    }
   });
 
   it("starts delayed Match-3 effect tweens instead of leaving them stuck above the board", () => {
