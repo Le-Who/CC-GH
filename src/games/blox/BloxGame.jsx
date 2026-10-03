@@ -152,7 +152,8 @@ function BloxGame(){
     }))
   }, [performReliableAction, pushEvent, state, t]);
   const selectCell=React.useCallback((V, X)=>{
-    selectedPiece<0||!state.gameActive||placePiece(selectedPiece, V, X)
+    if(selectedPiece<0||!state.gameActive)return;
+    return placePiece(selectedPiece, V, X)
   }, [selectedPiece, state.gameActive, placePiece]);
   const dropPiece=React.useCallback((V, X, be)=>placePiece(V, X, be), [placePiece]);
   const sceneState=React.useMemo(()=>({

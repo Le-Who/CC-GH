@@ -99,3 +99,8 @@
 .m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-dialog-scroll>.m3-primary{grid-row:2;grid-column:1}
 .m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-dialog-scroll>.m3-button:last-child{grid-row:2;grid-column:2}
 .m3-stage[data-m3-arrangement=side][data-m3-compact=true][data-m3-phase=paused] .m3-two-actions{grid-row:3;grid-column:1/-1;gap:8px}
+/* Crystal resonance stays inside the existing HUD; no board-covering combo banner. */
+.m3-metric strong[data-m3-pulse=true]{animation:m3-combo-resonance 240ms cubic-bezier(.2,.7,.2,1);transform-origin:center}
+.m3-stage[data-m3-phase=paused] strong[data-m3-pulse=true]{animation-play-state:paused}
+@keyframes m3-combo-resonance{0%{transform:scale(1)}35%{transform:scale(1.1);color:#fff6d5}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.m3-metric strong[data-m3-pulse=true]{animation:none}}

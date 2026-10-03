@@ -78,7 +78,8 @@ function Match3Metric({
   value:value,
   className:className="",
   size:size=28,
-  progress:progress=null
+  progress:progress=null,
+  pulseKey:pulseKey=null
 }){
   const length=String(value).length;
   return jsxRuntime.jsxs("div", {
@@ -87,11 +88,12 @@ function Match3Metric({
     children:[jsxRuntime.jsx("span", {
       children:label
     }), jsxRuntime.jsx("strong", {
+      "data-m3-pulse":pulseKey?"true":void 0,
       style:{
         fontSize:Math.max(14, Math.min(size, size*6/Math.max(6, length)))
       },
       children:value
-    }), progress!=null&&jsxRuntime.jsx("i", {
+    }, pulseKey), progress!=null&&jsxRuntime.jsx("i", {
       className:"m3-reward-progress",
       "aria-hidden":"true",
       children:jsxRuntime.jsx("b", {
@@ -394,6 +396,7 @@ function Match3Presentation(props){
             label:t("common.combo"),
             value:combo?`×${combo}`:"—",
             size:metricSize,
+            pulseKey:props.motionFeedback?.combo>1?`${props.motionFeedback.id}:${props.motionFeedback.phase}`:null,
             className:"m3-combo"
           }), jsxRuntime.jsx(Match3Metric, {
             label:t("common.reward"),
@@ -423,6 +426,7 @@ function Match3Presentation(props){
             children:[jsxRuntime.jsx(Match3Metric, {
               label:t("common.combo"),
               value:combo?`×${combo}`:"—",
+              pulseKey:props.motionFeedback?.combo>1?`${props.motionFeedback.id}:${props.motionFeedback.phase}`:null,
               className:"m3-combo",
               size:composition.compact?18:26
             }), jsxRuntime.jsxs("span", {

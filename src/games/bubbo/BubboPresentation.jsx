@@ -326,8 +326,9 @@ function BubboPresentation({
             "aria-live":"polite",
             "aria-atomic":"true",
             children:[jsxRuntime.jsx("span", {
+              className:latestEvent?"bb-reward-feedback":void 0,
               children:latestEvent?`${latestEvent.title} ${latestEvent.value}`:aimHint
-            }), jsxRuntime.jsxs("span", {
+            }, latestEvent?.id||"aim"), jsxRuntime.jsxs("span", {
               id:"bb-aim-help",
               children:[t("bubbo.keyHint"), aimDegrees?` · ${aimDegrees>0?"+":""}${aimDegrees}°`:""]
             })]

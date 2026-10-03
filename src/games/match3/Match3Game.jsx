@@ -4,7 +4,6 @@ import {api} from '../../services/apiClient.js';
 import {audioManager} from '../../services/audioManager.js';
 import {haptic} from '../../platform/telegram.js';
 import {applyMatch3Booster,attemptMatch3Move,generateBoard,hasValidMoves,normalizeMatch3Boosters,seedDropTokens} from '../../game-core/match3/engine.js';
-import {estimateMatch3CascadeLockMs} from '../../game-core/match3/animation.js';
 import {useAction,useExitToHub,useImmersiveGame,useSnapshot} from '../../app/gameHooks.js';
 import {useAppI18n} from '../../app/i18n.jsx';
 import {selectMatch3InitialRun} from './selectMatch3Run.js';
@@ -51,7 +50,13 @@ export default function Match3Game() {
   const [shuffleCharges, setShuffleCharges] = useState(1);
   const [boosters, setBoosters] = useState(() => normalizeMatch3Boosters());
   const [activeBooster, setActiveBooster] = useState("");
-  const animationTimerRef = useRef(null);
+  const animationIdRef = useRef(null);
+  const pendingFinishRef = useRef(null);
+  const inputLockRef = useRef(false);
+  const mountedRef = useRef(true);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  const [motionFeedback, setMotionFeedback] = useState(null);
   const restoredRunKeyRef = useRef("");
   const clockRef = useRef(createMatch3Clock(30));
   const tickClockRef = useRef(null);
@@ -67,6 +72,7 @@ export default function Match3Game() {
   const pauseRun = useCallback(() => {
     if (gameActive) {
       tickClockRef.current?.();
+      pausedRef.current = true;
       setPaused(true);
     }
   }, [gameActive]);
@@ -116,28 +122,52 @@ export default function Match3Game() {
     };
   }
 
-  const queueMatchAnimation = useCallback((animation, lockMs = 96) => {
-    window.clearTimeout(animationTimerRef.current);
-    if (lockMs > 0) setInputLocked(true);
-    setMatchAnimation({
-      ...animation,
-      id: `${animation.type}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-    });
-    animationTimerRef.current = window.setTimeout(() => {
-      setInputLocked(false);
-    }, Math.max(0, lockMs));
+  const queueMatchAnimation = useCallback((animation) => {
+    const id = `${animation.type}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    animationIdRef.current = id;
+    inputLockRef.current = true;
+    setInputLocked(true);
+    setMatchAnimation({ ...animation, id });
   }, []);
-
-  useEffect(() => () => window.clearTimeout(animationTimerRef.current), []);
+  const onAnimationComplete = useCallback((id) => {
+    if (!mountedRef.current || id !== animationIdRef.current) return;
+    animationIdRef.current = null;
+    inputLockRef.current = false;
+    setInputLocked(false);
+    setMatchAnimation(current => current?.id === id ? null : current);
+    const pending = pendingFinishRef.current;
+    if (pending?.id === id) { pendingFinishRef.current = null; finishRef.current?.(pending.score); }
+  }, []);
+  const onMotionPhase = useCallback((feedback) => {
+    if (mountedRef.current && feedback.id === animationIdRef.current) setMotionFeedback(feedback);
+  }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; animationIdRef.current = null; inputLockRef.current = false; };
+  }, []);
 
   useEffect(() => {
     const current = snapshot?.match3?.currentGame;
-    if (finishedRef.current || gameActive || !Array.isArray(current?.board) || current.board.length === 0) return;
+    if (finishedRef.current || gameActive) return;
+    // syncMode stores run metrics separately from savedModes.board. Recover a
+    // terminal accepted move even when the currentGame projection has no board.
+    if (current && Number(current.movesLeft) <= 0) {
+      const finalScore = Math.max(0, Number(current.score) || 0);
+      setMode(current.mode || "classic");
+      setScore(finalScore);
+      scoreRef.current = finalScore;
+      setMovesLeft(0);
+      setCombo(Math.max(0, Number(current.combo) || 0));
+      finish(finalScore);
+      return;
+    }
+    if (!Array.isArray(current?.board) || current.board.length === 0) return;
     const runKey = `${current.mode || "classic"}:${current.score || 0}:${current.movesLeft || 0}:${current.board.length}:${current.board[0]?.join("") || ""}`;
     if (restoredRunKeyRef.current === runKey) return;
     const restored = selectMatch3InitialRun(snapshot, createDefaultRun);
     restoredRunKeyRef.current = runKey;
     finishedRef.current = false;
+    pendingFinishRef.current = null;
     clockRef.current = createMatch3Clock(restored.movesLeft);
     scoreRef.current = restored.score;
     setMode(restored.mode);
@@ -146,7 +176,10 @@ export default function Match3Game() {
     setMovesLeft(restored.movesLeft);
     setCombo(restored.combo);
     setGameActive(true);
+    pausedRef.current = false;
     setPaused(false);
+    inputLockRef.current = false;
+    animationIdRef.current = null;
     setInputLocked(false);
     setSelected(null);
     setMatchAnimation(null);
@@ -157,6 +190,7 @@ export default function Match3Game() {
 
   function start(nextMode = mode) {
     finishedRef.current = false;
+    pendingFinishRef.current = null;
     clockRef.current = createMatch3Clock(nextMode === "timed" ? 90 : 30);
     clockRef.current.lastAt = performance.now();
     clockRef.current.hidden = typeof document !== "undefined" && document.hidden;
@@ -168,8 +202,12 @@ export default function Match3Game() {
     setCombo(0);
     setMovesLeft(nextMode === "timed" ? 90 : 30);
     setGameActive(true);
+    pausedRef.current = false;
     setPaused(false);
+    inputLockRef.current = false;
+    animationIdRef.current = null;
     setInputLocked(false);
+    setMotionFeedback(null);
     setMatchAnimation(null);
     setShuffleCharges(1);
     setBoosters(nextBoosters);
@@ -186,20 +224,27 @@ export default function Match3Game() {
   function finish(finalScore = scoreRef.current, fromQuit = false) {
     if (finishedRef.current) return;
     finishedRef.current = true;
+    pendingFinishRef.current = null;
     setGameActive(false);
     setPaused(false);
     setSelected(null);
+    inputLockRef.current = false;
+    animationIdRef.current = null;
     setInputLocked(false);
+    setMatchAnimation(null);
     setActiveBooster("");
     performAction("match3.end", { score: finalScore, fromQuit });
   }
 
   function maybeEnd(nextMoves, nextScore) {
-    if (nextMoves <= 0 && mode !== "timed") finish(nextScore);
+    if (nextMoves <= 0 && mode !== "timed") {
+      if (animationIdRef.current) pendingFinishRef.current = { id: animationIdRef.current, score: nextScore };
+      else finish(nextScore);
+    }
   }
 
   const useShuffleBooster = useCallback(() => {
-    if (!gameActive || finishedRef.current || inputLocked || shuffleCharges <= 0) return;
+    if (!gameActive || finishedRef.current || pausedRef.current || inputLockRef.current || inputLocked || shuffleCharges <= 0) return;
     const nextBoard = createModeBoard(mode);
     setBoard(nextBoard);
     setSelected(null);
@@ -237,7 +282,7 @@ export default function Match3Game() {
 
   const attemptSwap = useCallback(
     (from, to) => {
-      if (!gameActive || finishedRef.current || inputLocked) return;
+      if (!gameActive || finishedRef.current || pausedRef.current || inputLockRef.current || inputLocked || movesLeft <= 0) return;
       const adjacent = Math.abs(from.x - to.x) + Math.abs(from.y - to.y) === 1;
       if (!adjacent) {
         setSelected(to);
@@ -248,7 +293,7 @@ export default function Match3Game() {
       const result = attemptMatch3Move(board, from, to, { collectDrops: mode === "drop" });
       if (!result.valid) {
         setSelected(null);
-        queueMatchAnimation({ type: "invalid", from, to, fromGem, toGem }, 90);
+        queueMatchAnimation({ type: "invalid", from, to, fromGem, toGem, startBoard: board, finalBoard: board });
         haptic("warning");
         audioManager.play("warning");
         return;
@@ -267,8 +312,7 @@ export default function Match3Game() {
       setMovesLeft(nextMoves);
       setSelected(null);
       queueMatchAnimation(
-        { type: "cascade", from, to, fromGem, toGem, startBoard: board, swapBoard, steps: result.steps },
-        estimateMatch3CascadeLockMs(result.steps.length),
+        { type: "cascade", from, to, fromGem, toGem, startBoard: board, swapBoard, steps: result.steps, finalBoard: nextBoard },
       );
       haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
@@ -282,12 +326,12 @@ export default function Match3Game() {
   );
 
   const useMatch3BoosterAt = useCallback((x, y) => {
-    if (!gameActive || finishedRef.current || inputLocked || !activeBooster || (boosters[activeBooster] || 0) <= 0) return false;
+    if (!gameActive || finishedRef.current || pausedRef.current || inputLockRef.current || inputLocked || !activeBooster || (boosters[activeBooster] || 0) <= 0) return false;
     const target = { x, y };
     const targetGem = board[y]?.[x];
     const result = applyMatch3Booster(board, activeBooster, x, y, { collectDrops: mode === "drop" });
     if (!result.valid) {
-      queueMatchAnimation({ type: "invalid", from: target, to: target, fromGem: targetGem, toGem: targetGem }, 90);
+      queueMatchAnimation({ type: "invalid", from: target, to: target, fromGem: targetGem, toGem: targetGem, startBoard: board, finalBoard: board });
       haptic("warning");
       audioManager.play("warning");
       return true;
@@ -310,8 +354,7 @@ export default function Match3Game() {
     setBoosters(nextBoosters);
     setActiveBooster("");
     queueMatchAnimation(
-      { type: "cascade", from: target, to: target, fromGem: targetGem, toGem: targetGem, startBoard: board, swapBoard: board, steps: result.steps, booster: activeBooster },
-      estimateMatch3CascadeLockMs(result.steps.length),
+      { type: "cascade", from: target, to: target, fromGem: targetGem, toGem: targetGem, startBoard: board, swapBoard: board, steps: result.steps, booster: activeBooster, finalBoard: nextBoard },
     );
     haptic("success");
     audioManager.play("clear");
@@ -324,7 +367,7 @@ export default function Match3Game() {
 
   const onCell = useCallback(
     (x, y) => {
-      if (!gameActive || finishedRef.current || inputLocked) return;
+      if (!gameActive || finishedRef.current || pausedRef.current || inputLockRef.current || inputLocked) return;
       if (activeBooster && useMatch3BoosterAt(x, y)) return;
       if (!selected) {
         setSelected({ x, y });
@@ -346,15 +389,17 @@ export default function Match3Game() {
       match3StatusText: `${t(currentMode.labelKey)} · ${score} ${t("common.score").toLowerCase()} · ${movesLeft} ${(mode === "timed" ? t("common.time") : t("common.moves")).toLowerCase()}`,
       selectedGem: selected,
       match3Animation: matchAnimation,
+      onMatch3AnimationComplete: onAnimationComplete,
+      onMatch3MotionPhase: onMotionPhase,
       onMatch3Cell: onCell,
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [activeBooster, attemptSwap, board, boosters, combo, currentMode.labelKey, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onCell, score, selected, t],
+    [activeBooster, attemptSwap, board, boosters, combo, currentMode.labelKey, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onAnimationComplete, onMotionPhase, onCell, score, selected, t],
   );
 
   return jsxRuntime.jsx(Match3Presentation, {
-    gameActive,paused,inputLocked,score,movesLeft,combo,currentReward,
+    gameActive,paused,inputLocked,score,movesLeft,combo,currentReward,motionFeedback,
     rewardProgress:rewardChest.progress,mode,currentMode,modes:MATCH3_MODES,
     selectedGemType,activeBooster,shuffleCharges,boosters,leaders,sceneState,runtimeAssetManifest,
     onPause:pauseRun,onResume:()=>setPaused(false),

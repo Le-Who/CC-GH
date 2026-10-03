@@ -103,3 +103,20 @@
 @media (min-width: 760px) { .trv2-setup-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .trv2-question { min-height: 260px; padding: 32px; } .trv2-answer { min-height: 72px; } .trv2-answer-label { font-size: 21px; } .trv2-content { padding: 10px; gap: 18px; } }
 @media (max-width: 360px) { .trv2-brand { font-size: 18px; } .trv2-brand .trv2-art { width: 28px; height: 28px; flex-basis: 28px; } .trv2-header .trv2-button { font-size: 12px; } .trv2-question { padding: 20px; } .trv2-question h2 { font-size: 20px; } .trv2-lifeline .trv2-art { width: 20px; height: 20px; flex-basis: 20px; } .trv2-lifeline { font-size: 12px; } }
 @media (prefers-reduced-motion: reduce) { .trv2-root * { transition: none !important; animation: none !important; } }
+
+/* Short, non-blocking local acknowledgements; no countdown or score logic here. */
+.trv2-question-copy{animation:trv2-question-in 200ms ease-out both}
+.trv2-answer{animation:trv2-answer-in 220ms ease-out both;animation-delay:calc(var(--trv2-answer-order,0) * 28ms);transition:transform 120ms ease,filter 120ms ease}
+.trv2-answer[data-answer-state='pending']{outline:2px solid #f2d28c;outline-offset:-3px}
+.trv2-answer[data-answer-state='correct']{animation:trv2-confirm 300ms ease-out both}
+.trv2-answer[data-answer-state='wrong']{animation:trv2-reconsider 180ms ease-out both}
+.trv2-answer[data-answer-state='removed'] .trv2-answer-label{opacity:.65}
+.trv2-feedback[data-feedback='correct']>div,.trv2-feedback[data-feedback='wrong']>div{animation:trv2-question-in 180ms ease-out both}
+.trv2-results>.trv2-art{animation:trv2-trophy 440ms cubic-bezier(.18,.75,.3,1) both}
+.trv2-root[data-motion-suspended=true] *, .trv2-root[data-paused=true] .trv2-scroll *{animation-play-state:paused!important;transition:none!important}
+@keyframes trv2-question-in{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes trv2-answer-in{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes trv2-confirm{0%{transform:scale(1)}45%{transform:scale(1.018)}100%{transform:none}}
+@keyframes trv2-reconsider{40%{transform:scale(.99)}100%{transform:none}}
+@keyframes trv2-trophy{0%{opacity:.5;transform:translateY(7px) scale(.9)}65%{opacity:1;transform:translateY(-1px) scale(1.035)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.trv2-button:not(:disabled):active,.trv2-answer:not(:disabled):active{transform:none}}

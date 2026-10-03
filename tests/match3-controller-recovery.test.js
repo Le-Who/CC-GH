@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {createRequire} from 'node:module';
 import {normalizeMatch3Boosters} from '../src/game-core/match3/engine.js';
+import {createMatch3MotionPlan} from '../src/game-core/match3/motion.js';
 import {estimateMatch3CascadeLockMs} from '../src/game-core/match3/animation.js';
 import {selectMatch3InitialRun} from '../src/games/match3/selectMatch3Run.js';
 import {getRewardChestProgress} from '../game-logic/hud-bonuses.js';
@@ -19,7 +20,7 @@ const source=ast.body.filter(n=>n.type!=='ImportDeclaration').map(n=>full.slice(
 const plain=x=>JSON.parse(JSON.stringify(x,(_,v)=>typeof v==='function'?undefined:v));
 const generateBoard=()=>Array.from({length:8},(_,row)=>Array.from({length:8},(_,col)=>['fire','water','earth','air','light','dark'][(row*2+col)%6]));
 function harness(original,{saved=null,actionOverride=null}={}){
- let now=10000,index=0,id=0,tree,alive=true,writes=0;const slots=[],pending=[],timers=new Map(),actions=[],haptics=[];
+ let now=10000,index=0,id=0,tree,alive=true,writes=0,motionId=null,motionAge=0;const slots=[],pending=[],timers=new Map(),actions=[],haptics=[];
  const snapshot={match3:{highScore:123,currentGame:saved,savedModes:{}}};
  const sameDeps=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
  const React={useState(initial){const n=index++;if(!slots[n])slots[n]={value:typeof initial==='function'?initial():initial};return[slots[n].value,v=>{writes++;slots[n].value=typeof v==='function'?v(slots[n].value):v}]},useRef(value){const n=index++;return slots[n]??(slots[n]={current:value})},useMemo(fn,deps){const n=index++;if(!slots[n]||!sameDeps(slots[n].deps,deps))slots[n]={value:fn(),deps};return slots[n].value},useCallback(fn,deps){return React.useMemo(()=>fn,deps)},useEffect(fn,deps){const n=index++;if(!slots[n]||!sameDeps(slots[n].deps,deps)){const prev=slots[n];slots[n]={deps};pending.push(()=>{prev?.cleanup?.();slots[n].cleanup=fn()})}}};
@@ -37,17 +38,19 @@ function harness(original,{saved=null,actionOverride=null}={}){
  const component=vm.runInNewContext((original?raw:source)+`;${original?'l_':'Match3Game'}`,context);
  const render=()=>{index=0;tree=component();for(const fn of pending.splice(0))fn();return tree};render();
  return{get tree(){return tree},get writes(){return writes},get timerCount(){return timers.size},get listenerCount(){return visibilityListeners.size},actions,haptics,render,async settle(){for(let n=0;n<100;n++)await Promise.resolve();render()},
-  tick(ms){now+=ms;for(const[k,t]of[...timers])if(t.at<=now){if(t.interval)t.at=now+t.interval;else timers.delete(k);t.fn()}if(alive)render()},
+  tick(ms){if(!original&&alive&&tree.gameActive&&!tree.paused&&!document.hidden&&tree.sceneState.match3Animation){const a=tree.sceneState.match3Animation;if(a.id!==motionId){motionId=a.id;motionAge=0}motionAge+=ms;if(motionAge>=createMatch3MotionPlan(a,tree.sceneState.match3.board).duration)tree.sceneState.onMatch3AnimationComplete(a.id)}now+=ms;for(const[k,t]of[...timers])if(t.at<=now){if(t.interval)t.at=now+t.interval;else timers.delete(k);t.fn()}if(alive)render()},
   setHidden(hidden){document.hidden=hidden;for(const fn of [...visibilityListeners])fn();if(alive)render()},
   timerCallbacks(){return [...timers.values()].map(timer=>timer.fn)},
   unmount(){alive=false;for(const slot of slots)slot?.cleanup?.()}
  };
 }
-const same=(a,b)=>{assert.deepEqual(plain(a.tree),plain(b.tree));assert.deepEqual(a.actions,b.actions)};
+// Compare gameplay/save contracts; motion descriptors now intentionally use renderer completion.
+const logicalTree=tree=>{const value=plain(tree);delete value.motionFeedback;delete value.sceneState.match3Animation;return value};
+const same=(a,b)=>{assert.deepEqual(logicalTree(a.tree),logicalTree(b.tree));assert.deepEqual(a.actions,b.actions)};
 test('authored production controller matches frozen preview across classic/drop modes and action boundaries',async()=>{
  for(const mode of['classic','drop']){
   const pair=[harness(true),harness(false)];for(const h of pair){await h.settle();h.tree.onModeChange(mode);h.render();h.tree.onStart();await h.settle();await h.settle();}same(...pair);
-  for(const h of pair){h.tree.sceneState.onMatch3Swap({x:0,y:0},{x:1,y:0});h.render();h.tick(100);h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();h.tick(2000);await h.settle();}same(...pair);
+  for(const h of pair){h.tree.sceneState.onMatch3Swap({x:0,y:0},{x:1,y:0});h.render();h.tick(200);h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();h.tick(2000);await h.settle();}same(...pair);
   for(const h of pair){h.tree.onBooster('bomb');h.render();h.tree.sceneState.onMatch3Cell(3,3);h.render();h.tick(2000);h.tree.onShuffle();h.render();h.tree.onPause();h.render();h.tick(60000);await h.settle();}same(...pair);
   for(const h of pair){h.tree.onResume();h.render();h.tree.onFinish();h.render();await h.settle();}same(...pair);
   assert.deepEqual(pair[1].haptics,['warning','success','success'],'production haptics are retained although preview stubs removed them');
@@ -204,4 +207,41 @@ test('queue identity survives re-entry and a rejected command does not block the
   assert.equal(sent.length, 1);
   rejectFirst(new Error('transport failure')); await rejected; await second;
   assert.deepEqual(sent.map(command => command[1].game.movesLeft), [29, 28]);
+});
+
+test('last classic move presents its full cascade before ending, including pause and resume',async()=>{
+ const saved={board:generateBoard(),mode:'classic',score:0,movesLeft:1,combo:0};
+ const h=harness(false,{saved});await h.settle();
+ h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();
+ assert.equal(h.tree.movesLeft,0);assert.equal(h.tree.gameActive,true);assert.equal(h.tree.inputLocked,true);
+ assert.equal(h.actions.filter(x=>x.name==='match3.end').length,0);
+ h.tree.onPause();h.render();h.tick(60000);
+ assert.equal(h.tree.gameActive,true);assert.equal(h.tree.inputLocked,true);
+ h.tree.onResume();h.render();h.tick(2000);await h.settle();
+ assert.equal(h.tree.gameActive,false);assert.equal(h.tree.inputLocked,false);
+ assert.equal(h.actions.filter(x=>x.name==='match3.end').length,1);
+ assert.equal(h.actions.at(-1).payload.score,120);
+});
+
+test('same-frame repeated input and stale animation completions cannot accept a second move',async()=>{
+ const h=harness(false);await h.settle();h.tree.onStart();h.render();
+ const stale=h.tree.sceneState.onMatch3Swap;
+ stale({x:1,y:0},{x:2,y:0});stale({x:1,y:0},{x:2,y:0});h.render();
+ assert.equal(h.tree.movesLeft,29);assert.equal(h.tree.score,120);
+ h.tree.sceneState.onMatch3AnimationComplete('stale-id');h.render();assert.equal(h.tree.inputLocked,true);
+ h.tick(2000);assert.equal(h.tree.inputLocked,false);assert.equal(h.tree.sceneState.match3Animation,null);
+});
+
+test('reload before the final cascade completes restores zero-move runs as terminal and never scores an extra move',async()=>{
+ for(const mode of ['classic','drop','timed']) for(const hasBoard of [true,false]) {
+  const saved={...(hasBoard?{board:generateBoard()}:{}),mode,score:120,movesLeft:0,combo:2};
+  const h=harness(false,{saved});await h.settle();
+  assert.equal(h.tree.gameActive,false,mode+' cannot resume a terminal save');
+  assert.equal(h.tree.sceneState.match3.gameActive,false);
+  h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();
+  h.tree.sceneState.onMatch3Cell(3,3);h.tree.onShuffle();h.render();h.tick(2000);await h.settle();
+  assert.equal(h.tree.score,120);assert.equal(h.tree.movesLeft,0);
+  assert.equal(h.actions.filter(x=>x.name==='match3.syncMode').length,0);
+  const ends=h.actions.filter(x=>x.name==='match3.end');assert.equal(ends.length,1);assert.equal(ends[0].payload.score,120);
+ }
 });
