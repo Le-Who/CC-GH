@@ -10,6 +10,7 @@ import {getRewardChestProgress} from '../game-logic/hud-bonuses.js';
 import {calcGoldReward} from '../game-logic/economy.js';
 import {createMatch3Clock,advanceMatch3Clock,match3ClockSeconds} from '../src/games/match3/match3Clock.js';
 import {getQueuedMatch3Action} from '../src/games/match3/match3ActionQueue.js';
+import {isGardenR2Action} from '../src/game-state/gardenR2Snapshot.js';
 const require=createRequire(import.meta.url),{acorn}=require('../recovery-tools/ast-recovery.cjs');
 const raw=fs.readFileSync(new URL('./fixtures/match3-v2-controller-reference.txt',import.meta.url),'utf8');
 const full=fs.readFileSync(new URL('../src/games/match3/Match3Game.jsx',import.meta.url),'utf8');
@@ -110,6 +111,9 @@ function controlledActionStore(delay = body => body.action === 'match3.syncMode'
     get: () => state,
     set: update => { state = { ...state, ...(typeof update === 'function' ? update(state) : update) }; },
     isYardAction: () => false,
+    // The extracted production function now shares this real command guard.
+    // Omitting its import aborts before api(), hiding the queue behavior below.
+    isGardenR2Action,
     api: async (_url, body) => {
       sent.push(plain(body));
       return delay(body) ? new Promise(resolve => pending.push(resolve)) : { success: true };
@@ -118,6 +122,14 @@ function controlledActionStore(delay = body => body.action === 'match3.syncMode'
   });
   return { action, sent, resolveNext: () => { assert.ok(pending.length); pending.shift()({ success: true }); } };
 }
+
+test('controlled Match3 transport retains the real Garden command fence', async () => {
+  const store = controlledActionStore(() => false);
+  assert.equal((await store.action('garden.r2', { accountId: 'unverified-account' })).error, 'GARDEN_R2_ACCOUNT_MISMATCH');
+  assert.equal(store.sent.length, 0);
+  assert.equal((await store.action('match3.start', { mode: 'classic' })).success, true);
+  assert.deepEqual(store.sent.map(command => command.action), ['match3.start']);
+});
 
 test('overlapping accepted swaps retain the second save after the first request completes', async () => {
   for (const original of [true, false]) {

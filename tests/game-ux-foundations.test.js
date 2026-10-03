@@ -354,7 +354,8 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(presentation, /className="gs2-close" onClick=\{onClose\} aria-label=\{t\('ui.close'\)\}/);
     assert.match(gardenContext, /getGardenWaterCooldownMs\(plant\.phase\)/);
     assert.match(gardenContext, /getMatureWaterReward\(def\.baseClick, def\.baseXp, plant\.level\)/);
-    assert.match(presentation, /disabled=\{busy \|\| !canWater\} onClick=\{\(\) => run\(\(\) => waterPlant\(p.id\)\)\}/, "Care watering keeps its cooldown and action handler");
+    assert.match(presentation, /canWater = !p.lastWatered \|\| \(r2 \? r2.serverNow : Date.now\(\)\) - p.lastWatered >= getGardenWaterCooldownMs\(p.phase\)/, "Care uses authoritative R2 time and retains the legacy cooldown");
+    assert.match(presentation, /disabled=\{busy \|\| !canWater \|\| \(!!r2 && !accountingReady\)\} onClick=\{\(\) => run\(\(\) => waterPlant\(p.id\)\)\}/, "Care watering keeps its cooldown, R2 readiness fence and action handler");
     assert.match(presentation, /t\(mature \? 'plantDetail\.careWater' : 'plantDetail\.water'\)/, "Mature Care labels remain real localized DOM text");
   });
 
