@@ -63,10 +63,17 @@ export async function pauseMerge(page) {
 }
 export async function exitMerge(page) {
   if (!await page.getByTestId('ml-pause').count()) await pauseMerge(page);
+  const revision = (await mergeSnapshot(page)).merge.mergeRevision;
+  await page.getByTestId('ml-laboratory').evaluate(node => node.dataset.homeRetention = 'same-laboratory');
   await page.getByTestId('ml-exit').click();
   await expect(page.getByTestId('ml-laboratory')).toHaveCount(1);
+  await expect(page.getByTestId('ml-laboratory')).toHaveAttribute('data-home-retention', 'same-laboratory');
+  await expect(page.getByTestId('ml-pause')).toHaveCount(1);
   await expect(page.getByTestId('home-catalogue')).toBeVisible();
   await expect(page.locator('.telegram-app')).toHaveJSProperty('inert', true);
+  await expect(page.locator('.ml-workspace')).toHaveJSProperty('inert', true);
+  await page.getByTestId('home-catalogue').focus();await page.keyboard.press('r');
+  expect((await mergeSnapshot(page)).merge.mergeRevision).toBe(revision);
 }
 export async function expectMergeControlsReachable(page, controls) {
   expect(await controls.count()).toBeGreaterThan(0);

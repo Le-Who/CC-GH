@@ -1,4 +1,5 @@
-import { openHome, selectHomeGame } from './helpers/home.js';
+import { openHome, selectHomeGame, expectHomeCardsReachable } from './helpers/home.js';
+import { createHash } from 'node:crypto';
 import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-catalog.js";
 import { test, expect } from "@playwright/test";
 import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
@@ -9,7 +10,7 @@ function observeRuntimeAssetRequests(page) {
   const paths = new Set();
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:bubbo-v2|match3-v2|blox-v2|garden-v2|garden-living|hud-redesign|ui-surfaces)\//.test(url.pathname)) {
+    if (url.pathname.startsWith("/assets-runtime/") || /^\/games\/(?:home-thumbnails|bubbo-v2|match3-v2|blox-v2|garden-v2|garden-living|hud-redesign|ui-surfaces)\//.test(url.pathname)) {
       paths.add(url.pathname);
     }
   });
@@ -69,6 +70,10 @@ test.describe("generated runtime asset manifest", () => {
     await expectRuntimePath(runtimePaths, "/games/garden-v2/");
     await expect(page.locator('.gs2-stage .gs2-art').first()).toBeVisible();
     await expect.poll(() => page.locator('.gs2-stage img').evaluateAll(images => images.length > 0 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
+    await openHome(page);await expectHomeCardsReachable(page);
+    await expect.poll(() => page.locator('.home-thumbnail img').evaluateAll(images => images.length === 8 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
+    for (const id of ['garden','blox','match3','merge','bubbo','trivia','room','settlement']) await expectRuntimePath(runtimePaths, `/games/home-thumbnails/${id}.webp`);
+    expect(runtimePaths.has('/games/ui-surfaces/yard-panel.webp')).toBe(false);
 
     await selectHomeGame(page, 'blox');
     await expect(page.getByText("Building Blox")).toBeVisible();
@@ -104,7 +109,20 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", /\/assets-runtime\/companion-yard\/backgrounds\//);
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
     for (const asset of sharedHudWebpProof.files) {
-      await expectRuntimePath(runtimePaths, asset.runtimePath.replace(/^public/, ""));
+      const runtimePath = asset.runtimePath.replace(/^public/, '');
+      if (runtimePath === '/games/ui-surfaces/yard-panel.webp') {
+        // Historical12-request proof includes the removed global dock. Keep
+        // its compatibility asset healthy without demanding an unused fetch.
+        const response = await page.request.get(runtimePath);expect(response.status()).toBe(200);
+        const bytes = await response.body();expect(bytes.length).toBe(asset.runtimeBytes);
+        expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.runtimeSha256);
+        const decoded = await page.evaluate(async data => {
+          const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type:'image/webp'}));
+          try {const image = new Image();image.src = url;await image.decode();return {width:image.naturalWidth,height:image.naturalHeight};}
+          finally {URL.revokeObjectURL(url);}
+        }, [...bytes]);
+        expect(decoded).toEqual({width:asset.width,height:asset.height});
+      } else await expectRuntimePath(runtimePaths, runtimePath);
     }
     expect([...runtimePaths].filter(path => /^\/games\/(?:bubbo-v2|blox-v2|match3-v2)\//.test(path)).every(path => path.endsWith(".webp"))).toBe(true);
     const approvedRetained = /^\/games\/puzzling-potions\/images\/(?:special-(?:blast|column|colour|row)|drop-(?:gold|seeds|energy)|fx-clear-burst)\.png$/;

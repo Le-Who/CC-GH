@@ -206,6 +206,12 @@ test.describe("New-stack minigame smoke", () => {
     await page.waitForTimeout(260);
 
     await selectHomeGame(page, 'bubbo');
+    // Returning to the current game preserves its completed round. Change
+    // modes through an actual departure/remount rather than assuming a reset.
+    await expect(page.locator('.bb-stage')).toHaveAttribute('data-bb-phase', 'result');
+    await selectHomeGame(page, 'garden');
+    await selectHomeGame(page, 'bubbo');
+    await expect(page.locator('.bb-stage')).toHaveAttribute('data-bb-phase', 'menu');
     await page.locator(".bb-modes").getByRole("button", { name: /Timed/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bb-hud")).toContainText(/Time/);
@@ -670,7 +676,9 @@ test.describe("New-stack minigame smoke", () => {
     const questionBeforePause = await page.getByTestId("trv2-question").textContent();
     for (const method of ["button", "escape", "close"]) {
       overlay = await pauseTrivia(page);
-      await expectCompactPauseMenu(overlay, 4);
+      await expectCompactPauseMenu(overlay, 5);
+      await expect(overlay.getByRole('button', { name: 'All games', exact: true })).toHaveCount(1);
+      await expect(overlay.getByTestId('trv2-pause-exit')).toHaveCount(1);
       await expectTriviaControlsReachable(page, overlay.getByRole("button"));
       const pausedTime = await page.getByTestId("trv2-time").textContent();
       await page.waitForTimeout(700);
@@ -689,7 +697,14 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".companion-yard-stage")).toBeVisible();
     await expect(page.locator(".telegram-app.immersive-mode")).toBeVisible();
     await page.getByRole("button", { name: "Settings" }).click();
-    await expect(page.locator(".yard-game-screen")).toContainText("Back to garden");
+    await expect(page.locator('.yard-game-screen').getByRole('button', { name: 'All games', exact: true })).toBeVisible();
+    await page.locator('.yard-game-screen').getByRole('button', { name: 'All games', exact: true }).click();
+    await expect(page.getByTestId('home-catalogue')).toBeVisible();
+    await expect(page.locator('.telegram-app')).toHaveJSProperty('inert', true);
+    await expect(page.locator('.companion-yard-stage')).toHaveCount(1);
+    await selectHomeGame(page, 'garden');
+    await expect(page.locator('.companion-yard-stage')).toHaveCount(0);
+    await expect(page.locator('.gs2-stage')).toBeVisible();
   });
 
   test("Gem Crush live HUD stays clear and canvas redraws on viewport resize", async ({ page }) => {

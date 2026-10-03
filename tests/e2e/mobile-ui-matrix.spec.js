@@ -1,4 +1,4 @@
-import { openHome, selectHomeGame } from './helpers/home.js';
+import { openHome, selectHomeGame, expectHomeCardsReachable } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { expectControlPainted } from "./helpers/control-paint.js";
 import { pauseMerge, exitMerge, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
@@ -167,7 +167,7 @@ test.describe("mobile UI viewport matrix", () => {
         await expectNoHorizontalScroll(page);
         await expect(page.getByText("My Garden")).toBeVisible();
         await openHome(page);
-        await expectVisibleButtonsReachable(page, ".home-games button");
+        await expectHomeCardsReachable(page);
         await page.getByRole("button", { name: "Close Home" }).click();
 
         await selectHomeGame(page, 'blox');

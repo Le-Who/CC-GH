@@ -1,4 +1,4 @@
-import { openHome, selectHomeGame } from './helpers/home.js';
+import { openHome, selectHomeGame, expectBubboRetainedInHome } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { exerciseMergePointerCleanup } from "./helpers/mergeV3.js";
 import { expectBloxCanvas, expectBloxLayout, readBloxLayout, exitBlox } from "./helpers/blox-v2.js";
@@ -590,7 +590,20 @@ for (const [width, height] of [[320,568], [360,800], [390,844], [414,896], [568,
       await page.getByTestId('bb-resume').click();
       await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(false);
       await page.locator('.bb-pause').click();
+      await page.locator('.bb-stage').evaluate(node => node.dataset.retentionProof = 'same-bubbo');
       await page.getByTestId('bb-exit').click();
+      await expectBubboRetainedInHome(page);
+      await expect(page.locator('.bb-stage')).toHaveAttribute('data-retention-proof', 'same-bubbo');
+      const homeBox = await page.getByTestId('home-catalogue').boundingBox();
+      const pausedShots = await field.getAttribute('data-shots');
+      await touchDrag(page, {x:homeBox.x+homeBox.width-8,y:homeBox.y+homeBox.height*.8}, {x:homeBox.x+homeBox.width-8,y:homeBox.y+homeBox.height*.2});
+      await expect(field).toHaveAttribute('data-shots', pausedShots);
+      await expect(page.locator('.bb-stage')).toHaveAttribute('data-bb-phase', 'paused');
+      await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
+      const end = page.waitForResponse(response => response.url().endsWith('/api/player/mutate') && response.request().postDataJSON()?.action === 'bubbo.end');
+      await selectHomeGame(page, 'garden');
+      const receipt = await end;
+      expect(receipt.status()).toBe(200);expect((await receipt.json()).error).toBeUndefined();
       await expect(page.locator('.bb-stage')).toHaveCount(0);
       await expect.poll(() => page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

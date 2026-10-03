@@ -199,6 +199,16 @@ test('V3 dialogs trap/restore focus, quote Back preserves state, and remount doe
   await exitMerge(page);
   await selectHomeGame(page, 'merge');
   await expectMergeV3(page);
+  await expect(page.getByTestId('ml-laboratory')).toHaveAttribute('data-home-retention', 'same-laboratory');
+  await expect(page.getByTestId('ml-pause')).toBeVisible();
+  await page.getByTestId('ml-resume').click();
+  await expect(page.getByTestId('ml-drawer')).toHaveCount(0);
+  // Returning keeps the paused drawer. An actual departure then remount must
+  // also preserve the revision without duplicating commands.
+  await selectHomeGame(page, 'garden');
+  await expect(page.getByTestId('ml-laboratory')).toHaveCount(0);
+  await selectHomeGame(page, 'merge');
+  await expectMergeV3(page);
   expect((await mergeSnapshot(page)).merge.mergeRevision).toBe(before.merge.mergeRevision);
   // Real browser history navigation creates/unmounts a document; no synthetic app state.
   await pauseMerge(page);

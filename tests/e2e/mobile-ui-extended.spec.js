@@ -1,4 +1,4 @@
-import { openHome, selectHomeGame } from './helpers/home.js';
+import { openHome, selectHomeGame, expectHomeCardsReachable } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
@@ -101,7 +101,7 @@ test.describe("extended phone HUD matrix", () => {
       try {
         await expectNoHorizontalScroll(page);
         await openHome(page);
-        await expectVisibleButtonsReachable(page, ".home-games button");
+        await expectHomeCardsReachable(page);
         await page.getByRole("button", { name: "Close Home" }).click();
 
         await selectHomeGame(page, 'blox');

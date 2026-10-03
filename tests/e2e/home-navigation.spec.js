@@ -5,6 +5,18 @@ import {mountHomePlayerFixture} from './helpers/homePlayerFixture.js';
 test.use({serviceWorkers:'block'});
 
 test.beforeEach(async({page})=>{await page.addInitScript(()=>{localStorage.setItem('gh_dev_user_id',`home_${Date.now()}_${Math.random()}`);localStorage.setItem('garden_shelf_language','en');});});
+test('Escape menu fallback opens Home after native dialog handlers have had ownership',async({page})=>{
+ await mountHomePlayerFixture(page);await page.goto('/?tab=blox');
+ const shell=page.locator('[data-game-shell="blox"]');
+ await expect(shell).toHaveAttribute('data-bx-phase','menu');
+ await page.keyboard.press('Escape');
+ await expect(page.getByTestId('home-catalogue')).toBeVisible();
+ await expect(page.locator('.telegram-app')).toHaveJSProperty('inert',true);
+ await page.keyboard.press('Escape');
+ await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
+ await expect(shell).toHaveAttribute('data-bx-phase','menu');
+ await expect(page.locator('.telegram-app')).toHaveJSProperty('inert',false);
+});
 test('Home keeps the same Garden mounted, removes dock, and returns focus',async({page})=>{
  await page.goto('/');await expect(page.locator('.gs2-stage')).toBeVisible();
  await page.locator('.gs2-stage').evaluate(node=>node.dataset.retentionProof='same-stage');
@@ -79,7 +91,20 @@ for(const [id,prefix] of [['match3','m3'],['bubbo','bb']])test(`${id} keeps its 
  const ack=page.waitForResponse(r=>r.url().endsWith('/api/player/mutate')&&r.request().postDataJSON()?.action===`${id}.start`);
  await shell.getByRole('button',{name:'Start',exact:true}).click();await ack;
  await expect(shell).toHaveAttribute(`data-${prefix}-phase`,'playing');await shell.evaluate(node=>node.dataset.retentionProof='retained');
- for(let i=0;i<3;i++){await openHome(page);await page.getByRole('button',{name:'Back to game',exact:false}).click();await expect(shell).toHaveAttribute('data-retention-proof','retained');await expect(shell).toHaveAttribute(`data-${prefix}-phase`,'paused');}
+ for(let i=0;i<3;i++){
+  await openHome(page);
+  await expect(shell).toHaveAttribute(`data-${prefix}-phase`,'paused');
+  await expect(page.locator('.telegram-app')).toHaveJSProperty('inert',true);
+  await page.getByTestId('home-catalogue').focus();await page.keyboard.press('ArrowLeft');
+  await expect(shell).toHaveAttribute(`data-${prefix}-phase`,'paused');
+  await page.getByRole('button',{name:'Back to game',exact:false}).click();
+  // A mounted paused game alone does not mean the async history close has
+  // finished. Verify the actual close before initiating the next opening.
+  await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
+  await expect(page.locator('.telegram-app')).toHaveJSProperty('inert',false);
+  await expect(shell).toHaveAttribute('data-retention-proof','retained');
+  await expect(shell).toHaveAttribute(`data-${prefix}-phase`,'paused');
+ }
  await shell.getByRole('button',{name:'Resume',exact:true}).click();await expect(shell).toHaveAttribute(`data-${prefix}-phase`,'playing');
 });
 test('Home refuses to abandon a restored Blox run while its lazy controller loads',async({page})=>{

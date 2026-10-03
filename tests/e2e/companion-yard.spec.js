@@ -839,7 +839,7 @@ test.describe("Cozy Yard movement and assets", () => {
     expect(await contrastRatioFor(page, ".yard-placement-dock span", ".yard-placement-dock")).toBeGreaterThanOrEqual(4.5);
   });
 
-  test("localizes active visitor status and keeps bottom dock labels as press tooltips on mobile", async ({ page }) => {
+  test("localizes active visitor status and keeps Yard dock labels as press tooltips on mobile", async ({ page }) => {
     const snapshot = buildHudAuditSnapshot();
     snapshot.yard.pendingGifts = [];
 
@@ -858,7 +858,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.goto("/");
     await expectAppReady(page);
 
-    await page.getByRole("button", { name: /Двор|Yard/ }).click();
+    await selectHomeGame(page, 'room');
     const activityPill = page.locator(".yard-activity-pill");
     await expect(activityPill).toContainText("Гостей: 1");
     await expect(activityPill).not.toContainText("{count}");
@@ -951,7 +951,7 @@ test.describe("Cozy Yard movement and assets", () => {
 
     await page.goto("/");
     await expectAppReady(page);
-    await page.getByRole("button", { name: /Двор|Yard/ }).click();
+    await selectHomeGame(page, 'room');
 
     const allCollisionProblems = [];
     for (const [buttonName, dialogName, screenId] of screens) {
