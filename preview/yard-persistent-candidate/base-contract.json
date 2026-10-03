@@ -1,10 +1,10 @@
 {
-  "baseCommit": "e5030d2028feeb7f65b1e6b317366b0fb8f910bf",
+  "baseCommit": "7b4a174738a38462caa9bd460cf2d727334450d1",
   "productionFiles": [
     {
       "path": "routes/player.js",
-      "bytes": 56651,
-      "sha256": "2c7978293a8b77bb9e027bca8bfc64a597c5d726123928178665f510b9d81c3b"
+      "bytes": 59185,
+      "sha256": "7ef032276d874b6d72ed5fc1444cf27bcb7c994d103f44cc641efe0da7cdc4d5"
     },
     {
       "path": "routes/mergeRoutes.js",
@@ -13,8 +13,8 @@
     },
     {
       "path": "playerManager.js",
-      "bytes": 16658,
-      "sha256": "488b7868509f3191dc979316e68fafa01e23e794815dc8598e0a094e2e43bbc0"
+      "bytes": 16860,
+      "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
     },
     {
       "path": "game-logic/merge-lab-service.js",
@@ -23,8 +23,8 @@
     },
     {
       "path": "src/game-state/useGameHub.js",
-      "bytes": 16455,
-      "sha256": "c8a3cc5c86346e14e55670c4b18b3314b591690e452e0452fcc00de797620b6c"
+      "bytes": 19172,
+      "sha256": "133fbe300b2764fae27173d4211afb4dd211b8a1d58f360d13c0b36c532f3a53"
     },
     {
       "path": "src/app/gameChunks.jsx",
@@ -43,13 +43,13 @@
     },
     {
       "path": "package.json",
-      "bytes": 6338,
-      "sha256": "b32bdd6375c594b5d7bc853147b29f97cf2a55197e3479f7f65d1c59416135f3"
+      "bytes": 6563,
+      "sha256": "9ea3c2c0f1f33e0a81defb23cc9c5a39340ad516410e719bf68a9d03af7aac43"
     },
     {
       "path": "src/App.jsx",
-      "bytes": 19528,
-      "sha256": "edfc9be9b79eef6f79c46eb8f04ef5ea66fea66615f8f0da84038ce91baecad2"
+      "bytes": 19892,
+      "sha256": "97eef20bfdd5405db90e0940f9f1e546946f78dfecb564d27624b6a030a240e0"
     },
     {
       "path": "src/app/i18n.jsx",
@@ -97,7 +97,9 @@
       "source": "routes/player.js",
       "sourceSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
       "candidate": "preview/yard-persistent-candidate/overrides/routes/player.js",
-      "candidateSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad"
+      "candidateSha256": "0e309fd2aadbe6c33980fcc25d87ea883c091e29157496962def64e8a37790e1",
+      "rebasedFromCandidateSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
+      "reviewedProductionSha256": "7ef032276d874b6d72ed5fc1444cf27bcb7c994d103f44cc641efe0da7cdc4d5"
     },
     {
       "source": "routes/mergeRoutes.js",
@@ -109,7 +111,9 @@
       "source": "playerManager.js",
       "sourceSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598",
       "candidate": "preview/yard-persistent-candidate/overrides/playerManager.js",
-      "candidateSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598"
+      "candidateSha256": "c451bd0c20d459c295bb1d34c6ff9020143327fbf809e8ad835859446ae97bb4",
+      "rebasedFromCandidateSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598",
+      "reviewedProductionSha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
     },
     {
       "source": "game-logic/merge-lab-service.js",
@@ -121,7 +125,9 @@
       "source": "src/game-state/useGameHub.js",
       "sourceSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
       "candidate": "preview/yard-persistent-candidate/overrides/src/game-state/useGameHub.js",
-      "candidateSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1"
+      "candidateSha256": "900231cda34ab62a2c62efc365a365e1a7136bbae2f9925e0530a8ed77bbb6bf",
+      "rebasedFromCandidateSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
+      "reviewedProductionSha256": "133fbe300b2764fae27173d4211afb4dd211b8a1d58f360d13c0b36c532f3a53"
     },
     {
       "source": "src/app/gameChunks.jsx",
@@ -304,5 +310,22 @@
       "name": "published atlas bytes match their declared source hashes after the bounded entry correction",
       "reason": "Source-only CI subset: real atlas files are verified in the separate art closure"
     }
-  ]
+  ],
+  "reviewedChangeSet": {
+    "id": "garden-r2-inactive-20261002",
+    "patchSha256": "438c381c55828fb412c2fde7df0d257065f3189f2567ec8ecbeed9a2c12edc06",
+    "productionPaths": [
+      "routes/player.js",
+      "playerManager.js",
+      "src/game-state/useGameHub.js",
+      "package.json",
+      "src/App.jsx"
+    ],
+    "rebasedOverrides": [
+      "routes/player.js",
+      "playerManager.js",
+      "src/game-state/useGameHub.js"
+    ],
+    "preservationCheck": "Original Yard-only edit sequences are byte-identical when applied relative to the new production files; Garden R2 authority is retained in all three overrides."
+  }
 }

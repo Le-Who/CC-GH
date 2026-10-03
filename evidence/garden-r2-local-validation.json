@@ -1,0 +1,60 @@
+{
+  "status": "INACTIVE_CANDIDATE_LOCAL_VALIDATION_ONLY",
+  "baseCommit": "7b4a174",
+  "verifiedAt": "2026-10-02T23:53:00Z",
+  "releaseEnabled": false,
+  "globalSchemaVersion": 11,
+  "gardenEconomyVersion": "preserved from saved state; no bump",
+  "checks": [
+    {
+      "name": "focused R2 and legacy Garden/i18n/release regression slice",
+      "passed": 209,
+      "failed": 0,
+      "skipped": 0,
+      "details": "Node domain/client/store tests; actual route code uses explicit test-only infrastructure substitutes; synthetic OCC is not actual persistence proof"
+    },
+    {
+      "name": "HUD layout validation",
+      "status": "passed",
+      "visibleGames": 8,
+      "previewPresets": 15,
+      "existingWarnings": [
+        "blox portrait/landscape Pixi reserves do not differ",
+        "match3 portrait/landscape Pixi reserves do not differ"
+      ]
+    },
+    {
+      "name": "JavaScript/mjs syntax and git diff whitespace",
+      "status": "passed"
+    },
+    {
+      "name": "actual-runtime deterministic trajectories",
+      "status": "passed",
+      "cohorts": [
+        "new",
+        "middle",
+        "legacy"
+      ],
+      "reloadInvariant": true,
+      "newPlayerVisits": 13,
+      "approvedModelMilestones": "all matched",
+      "runtimeFinalGold": 38681,
+      "referenceFinalGold": 38576.382,
+      "goldDifference": 104.618,
+      "constantsRetuned": false
+    }
+  ],
+  "notRunLocally": [
+    "dependency-backed production Vite build and full aggregate suite",
+    "actual PostgreSQL15 persistence/OCC gate (11 subtests authored and wired into normal CI)",
+    "Playwright/browser visual QA (16 scenarios authored, including 10-viewports, touch and 2xDPI)"
+  ],
+  "scope": [
+    "No package installs",
+    "No pushes or deploys",
+    "No production data changes",
+    "No automatic adoption in reads",
+    "No migration banner or explainer"
+  ],
+  "activationBoundary": "New clients resolve legacy intents/checkpoints before explicit server adoption. Old-client guards apply once private R2 state exists. Unadopted cached clients retain the old contract until adoption."
+}

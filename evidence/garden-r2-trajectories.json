@@ -1,0 +1,595 @@
+{
+  "scope": "Deterministic local runtime acceptance; not player telemetry or retention forecasting",
+  "policy": "One 10-minute visit per day, one tend per second; buy one of each unlocked species, expand shelves as needed, upgrade mature plants to R3. No story/daily grants, research/mastery purchases or project rewards.",
+  "middleFixture": "Chapter 13, XP 0, 3534 gold, two shelves, first four species mature R3 and immature Monstera R1. Design trace omits XP, so this is an explicit fixture, not an exact reconstruction.",
+  "legacyFixture": "Garden L100, all fourteen species plus another Fern at legacy plant L40, five shelves and 987654321 preserved gold; all map to R5/M3. First visit verifies the terminal save remains playable.",
+  "comparison": {
+    "referenceArtifact": "hub-comparison-and-trajectories.json",
+    "referenceSha256": "3715843dfdb0c405b6a9d932ff30bd36f65ba3def734f8f772d9686d57b12d60",
+    "differences": [
+      {
+        "milestone": "final_gold",
+        "expected": 38576.382,
+        "actual": 38681
+      }
+    ],
+    "costRateDifferences": [],
+    "explanation": "Actual domain uses integer gold/XP, first-window capped offline maturity, server leases and exact event boundaries. The approved review model uses one-second active integration, fractional gold/XP and the tail of the offline gap. Differences are reported, not used to retune approved constants."
+  },
+  "cohorts": [
+    {
+      "cohort": "new",
+      "complete": true,
+      "visits": 13,
+      "elapsedDays": 12.00694,
+      "chapter7Day": 1.0002,
+      "initialGold": 100,
+      "final": {
+        "visit": 13,
+        "elapsedDays": 12.00694,
+        "chapter": 30,
+        "gold": 38681,
+        "species": 14,
+        "shelves": 5,
+        "mature": 13,
+        "substrate": 60,
+        "onlineGoldPerMinute": 51.48
+      },
+      "spentGold": 14831,
+      "earnedGold": 53412,
+      "commandCount": 7857,
+      "reloads": 13,
+      "trace": [
+        {
+          "visit": 1,
+          "elapsedDays": 0.00694,
+          "chapter": 6,
+          "gold": 317,
+          "species": 2,
+          "shelves": 1,
+          "mature": 2,
+          "substrate": 0,
+          "onlineGoldPerMinute": 7.26
+        },
+        {
+          "visit": 2,
+          "elapsedDays": 1.00694,
+          "chapter": 10,
+          "gold": 1438,
+          "species": 4,
+          "shelves": 2,
+          "mature": 3,
+          "substrate": 0,
+          "onlineGoldPerMinute": 10.98
+        },
+        {
+          "visit": 3,
+          "elapsedDays": 2.00694,
+          "chapter": 13,
+          "gold": 3534,
+          "species": 5,
+          "shelves": 2,
+          "mature": 4,
+          "substrate": 12,
+          "onlineGoldPerMinute": 14.76
+        },
+        {
+          "visit": 4,
+          "elapsedDays": 3.00694,
+          "chapter": 16,
+          "gold": 6238,
+          "species": 6,
+          "shelves": 2,
+          "mature": 5,
+          "substrate": 24,
+          "onlineGoldPerMinute": 18.6
+        },
+        {
+          "visit": 5,
+          "elapsedDays": 4.00694,
+          "chapter": 19,
+          "gold": 9112,
+          "species": 7,
+          "shelves": 3,
+          "mature": 6,
+          "substrate": 36,
+          "onlineGoldPerMinute": 22.5
+        },
+        {
+          "visit": 6,
+          "elapsedDays": 5.00694,
+          "chapter": 21,
+          "gold": 13098,
+          "species": 7,
+          "shelves": 3,
+          "mature": 7,
+          "substrate": 48,
+          "onlineGoldPerMinute": 26.46
+        },
+        {
+          "visit": 7,
+          "elapsedDays": 6.00694,
+          "chapter": 22,
+          "gold": 16303,
+          "species": 8,
+          "shelves": 3,
+          "mature": 8,
+          "substrate": 60,
+          "onlineGoldPerMinute": 30.48
+        },
+        {
+          "visit": 8,
+          "elapsedDays": 7.00694,
+          "chapter": 23,
+          "gold": 19820,
+          "species": 9,
+          "shelves": 3,
+          "mature": 9,
+          "substrate": 60,
+          "onlineGoldPerMinute": 34.56
+        },
+        {
+          "visit": 9,
+          "elapsedDays": 8.00694,
+          "chapter": 24,
+          "gold": 23036,
+          "species": 10,
+          "shelves": 4,
+          "mature": 9,
+          "substrate": 60,
+          "onlineGoldPerMinute": 34.56
+        },
+        {
+          "visit": 10,
+          "elapsedDays": 9.00694,
+          "chapter": 25,
+          "gold": 27103,
+          "species": 11,
+          "shelves": 4,
+          "mature": 10,
+          "substrate": 60,
+          "onlineGoldPerMinute": 38.7
+        },
+        {
+          "visit": 11,
+          "elapsedDays": 10.00694,
+          "chapter": 26,
+          "gold": 31373,
+          "species": 12,
+          "shelves": 4,
+          "mature": 11,
+          "substrate": 60,
+          "onlineGoldPerMinute": 42.9
+        },
+        {
+          "visit": 12,
+          "elapsedDays": 11.00694,
+          "chapter": 28,
+          "gold": 33693,
+          "species": 13,
+          "shelves": 5,
+          "mature": 12,
+          "substrate": 60,
+          "onlineGoldPerMinute": 47.16
+        },
+        {
+          "visit": 13,
+          "elapsedDays": 12.00694,
+          "chapter": 30,
+          "gold": 38681,
+          "species": 14,
+          "shelves": 5,
+          "mature": 13,
+          "substrate": 60,
+          "onlineGoldPerMinute": 51.48
+        }
+      ],
+      "finalRanks": [
+        {
+          "type": "daisy",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "lavender",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "basil",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "rosemary",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "monstera",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "succulent",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "pothos",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "strawberry",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "bonsai",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "string_of_pearls",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "orchid",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "venus_flytrap",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "moon_cactus",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "fern",
+          "rank": 1,
+          "mastery": 0
+        }
+      ],
+      "legacyLevel": 1
+    },
+    {
+      "cohort": "middle",
+      "complete": true,
+      "visits": 11,
+      "elapsedDays": 10.00694,
+      "chapter7Day": 0,
+      "initialGold": 3534,
+      "final": {
+        "visit": 11,
+        "elapsedDays": 10.00694,
+        "chapter": 30,
+        "gold": 39169,
+        "species": 14,
+        "shelves": 5,
+        "mature": 13,
+        "substrate": 60,
+        "onlineGoldPerMinute": 51.48
+      },
+      "spentGold": 14117,
+      "earnedGold": 49752,
+      "commandCount": 6641,
+      "reloads": 11,
+      "trace": [
+        {
+          "visit": 1,
+          "elapsedDays": 0.00694,
+          "chapter": 14,
+          "gold": 3871,
+          "species": 5,
+          "shelves": 2,
+          "mature": 5,
+          "substrate": 0,
+          "onlineGoldPerMinute": 18.6
+        },
+        {
+          "visit": 2,
+          "elapsedDays": 1.00694,
+          "chapter": 16,
+          "gold": 6428,
+          "species": 6,
+          "shelves": 2,
+          "mature": 6,
+          "substrate": 12,
+          "onlineGoldPerMinute": 22.5
+        },
+        {
+          "visit": 3,
+          "elapsedDays": 2.00694,
+          "chapter": 19,
+          "gold": 9597,
+          "species": 7,
+          "shelves": 3,
+          "mature": 6,
+          "substrate": 24,
+          "onlineGoldPerMinute": 22.5
+        },
+        {
+          "visit": 4,
+          "elapsedDays": 3.00694,
+          "chapter": 21,
+          "gold": 13587,
+          "species": 7,
+          "shelves": 3,
+          "mature": 7,
+          "substrate": 36,
+          "onlineGoldPerMinute": 26.46
+        },
+        {
+          "visit": 5,
+          "elapsedDays": 4.00694,
+          "chapter": 22,
+          "gold": 16792,
+          "species": 8,
+          "shelves": 3,
+          "mature": 8,
+          "substrate": 48,
+          "onlineGoldPerMinute": 30.48
+        },
+        {
+          "visit": 6,
+          "elapsedDays": 5.00694,
+          "chapter": 23,
+          "gold": 20309,
+          "species": 9,
+          "shelves": 3,
+          "mature": 9,
+          "substrate": 60,
+          "onlineGoldPerMinute": 34.56
+        },
+        {
+          "visit": 7,
+          "elapsedDays": 6.00694,
+          "chapter": 24,
+          "gold": 23524,
+          "species": 10,
+          "shelves": 4,
+          "mature": 9,
+          "substrate": 60,
+          "onlineGoldPerMinute": 34.56
+        },
+        {
+          "visit": 8,
+          "elapsedDays": 7.00694,
+          "chapter": 25,
+          "gold": 27592,
+          "species": 11,
+          "shelves": 4,
+          "mature": 10,
+          "substrate": 60,
+          "onlineGoldPerMinute": 38.7
+        },
+        {
+          "visit": 9,
+          "elapsedDays": 8.00694,
+          "chapter": 26,
+          "gold": 31860,
+          "species": 12,
+          "shelves": 4,
+          "mature": 11,
+          "substrate": 60,
+          "onlineGoldPerMinute": 42.9
+        },
+        {
+          "visit": 10,
+          "elapsedDays": 9.00694,
+          "chapter": 28,
+          "gold": 34180,
+          "species": 13,
+          "shelves": 5,
+          "mature": 12,
+          "substrate": 60,
+          "onlineGoldPerMinute": 47.16
+        },
+        {
+          "visit": 11,
+          "elapsedDays": 10.00694,
+          "chapter": 30,
+          "gold": 39169,
+          "species": 14,
+          "shelves": 5,
+          "mature": 13,
+          "substrate": 60,
+          "onlineGoldPerMinute": 51.48
+        }
+      ],
+      "finalRanks": [
+        {
+          "type": "daisy",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "lavender",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "basil",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "rosemary",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "monstera",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "succulent",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "pothos",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "strawberry",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "bonsai",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "string_of_pearls",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "orchid",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "venus_flytrap",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "moon_cactus",
+          "rank": 3,
+          "mastery": 0
+        },
+        {
+          "type": "fern",
+          "rank": 1,
+          "mastery": 0
+        }
+      ],
+      "legacyLevel": 13
+    },
+    {
+      "cohort": "legacy",
+      "complete": true,
+      "visits": 1,
+      "elapsedDays": 0.00694,
+      "chapter7Day": 0,
+      "initialGold": 987654321,
+      "final": {
+        "visit": 1,
+        "elapsedDays": 0.00694,
+        "chapter": 30,
+        "gold": 987655844,
+        "species": 14,
+        "shelves": 5,
+        "mature": 15,
+        "substrate": 0,
+        "onlineGoldPerMinute": 92.368
+      },
+      "spentGold": 0,
+      "earnedGold": 1523,
+      "commandCount": 601,
+      "reloads": 1,
+      "trace": [
+        {
+          "visit": 1,
+          "elapsedDays": 0.00694,
+          "chapter": 30,
+          "gold": 987655844,
+          "species": 14,
+          "shelves": 5,
+          "mature": 15,
+          "substrate": 0,
+          "onlineGoldPerMinute": 92.368
+        }
+      ],
+      "finalRanks": [
+        {
+          "type": "daisy",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "lavender",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "basil",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "rosemary",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "monstera",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "succulent",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "pothos",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "strawberry",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "bonsai",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "string_of_pearls",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "orchid",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "venus_flytrap",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "moon_cactus",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "fern",
+          "rank": 5,
+          "mastery": 3
+        },
+        {
+          "type": "fern",
+          "rank": 5,
+          "mastery": 3
+        }
+      ],
+      "legacyLevel": 100
+    }
+  ]
+}

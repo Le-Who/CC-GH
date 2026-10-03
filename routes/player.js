@@ -64,8 +64,10 @@ import {
   hasLegacyGardenProgress,
   isMergeGeneratorChain,
 } from "../game-logic.js";
-import { withPlayerLock } from "../playerManager.js";
+import { withPlayerLock, afterPlayerCommit } from "../playerManager.js";
 import { GARDEN_ACCOUNTING_ACTIONS, getGardenAccounting, gardenAccountingView, validateGardenSync, reconcileGardenIntent, applyGardenTransaction } from "../game-logic/garden-transactions.js";
+import { GARDEN_R2_RELEASE_POLICY } from "../game-logic/garden-r2/catalog.js";
+import { executeGardenR2, reconcileGardenR2, gardenR2BlocksLegacy, gardenR2Snapshot } from "../game-logic/garden-r2/service.js";
 import {ensureMergeLabState,executeMergeLab,publicMergeLabState,MERGE_LAB_RELEASE_POLICY} from "../game-logic/merge-lab-service.js";
 
 const MAX_PLOTS = 12;
@@ -397,7 +399,9 @@ function buildSeasonPass(p) {
 
 export function buildSnapshot(p, extras = {}) {
   const now = Date.now();
-  p.gardenAccounting = getGardenAccounting(p);
+  // Do not silently replace an unknown/corrupt persisted ledger while merely
+  // projecting a snapshot; R2 adoption must validate the original evidence.
+  if (!Object.prototype.hasOwnProperty.call(p, "gardenAccounting")) p.gardenAccounting = getGardenAccounting(p);
   if (MERGE_LAB_RELEASE_POLICY.enabled) ensureMergeLabState(p, { now });
   if (p.merge?.schemaVersion !== 3) ensureMergeState(p);
   calcRegen(p, now);
@@ -452,6 +456,8 @@ export function buildSnapshot(p, extras = {}) {
       savedModes,
     },
     garden: { ...normalizeGardenState(p.garden, now), ...gardenAccountingView(p) },
+    gardenR2: gardenR2Snapshot(p),
+    gardenR2Available: GARDEN_R2_RELEASE_POLICY.enabled,
     merge: {
       ...publicMergeLabState(p.merge || {}),
       itemCounts: p.merge?.schemaVersion === 3 ? { ...p.merge.stock } : countMergeItems(p.merge?.board || []),
@@ -677,6 +683,14 @@ function normalizeBloxSaved(savedState, p) {
 }
 
 export async function applyAction(p, action, payload = {}, options = {}) {
+  // This fence precedes both old mutation dispatch and generic receipt replay.
+  // Turning the R2 rollout off never re-enables legacy earnings for adopted saves.
+  if (gardenR2BlocksLegacy(p, action)) return fail(409, "CLIENT_UPDATE_REQUIRED", { snapshot: buildSnapshot(p) });
+  if (action === "garden.r2") return fail(400, "GARDEN_R2_STABLE_INTENT_REQUIRED");
+  if (action === "garden.r2.reconcile") {
+    const result = reconcileGardenR2(p, payload);
+    return result.error ? fail(result.status, result.error, { snapshot: buildSnapshot(p) }) : ok(action, p, result);
+  }
   if (GARDEN_ACCOUNTING_ACTIONS.has(action) && action !== "garden.levelUp") return fail(400, "GARDEN_STABLE_INTENT_REQUIRED");
   if (action === "garden.reconcileIntent") {
     const result = reconcileGardenIntent(p, payload, options.now || Date.now());
@@ -1255,6 +1269,32 @@ export async function applyAction(p, action, payload = {}, options = {}) {
 }
 
 export async function applyActionWithReceipt(p, action, payload = {}, meta = {}) {
+  if (gardenR2BlocksLegacy(p, action)) return fail(409, "CLIENT_UPDATE_REQUIRED", { snapshot: buildSnapshot(p) });
+  if (action === "garden.r2.reconcile") return applyAction(p, action, payload, { now: meta.serverNow });
+  if (action === "garden.r2") {
+    const result = executeGardenR2(p, payload, {
+      clientActionId: normalizeClientActionId(meta.clientActionId),
+      now: meta.serverNow ?? Date.now(),
+      // Internal test seam only: the HTTP handler never accepts this field.
+      enabled: meta.gardenR2Enabled ?? GARDEN_R2_RELEASE_POLICY.enabled,
+    });
+    if (result.error) return fail(result.status, result.error, { snapshot: buildSnapshot(p) });
+    if (result.commit) {
+      p.garden = result.commit.garden;
+      if (result.commit.gardenAccounting) p.gardenAccounting = result.commit.gardenAccounting;
+      p._gardenProgression = result.commit.gardenProgression;
+      p.resources = { ...p.resources, gold: result.commit.gold };
+      if (result.commit.stats) p.stats = result.commit.stats;
+    }
+    const { commit: _privateCommit, ...extras } = result;
+    const response = ok(action, p, extras);
+    // The snapshot is built inside the OCC callback. Stamp its final committed
+    // sequence afterward so a delayed reply cannot rewind newer shared gold.
+    afterPlayerCommit(p, committed => {
+      response.body.snapshot.player.syncSeq = committed._syncSeq;
+    });
+    return response;
+  }
   // Domain receipts + monotonic revision/epoch are authoritative. Never let generic TTL receipts
   // bypass catalog, policy, reset fencing or the mandatory Merge command envelope.
   if (action === "merge.lab" || p.merge?.schemaVersion === 3 && String(action).startsWith("merge.")) {

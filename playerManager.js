@@ -12,6 +12,7 @@
  */
 
 import crypto from "crypto";
+import { gardenR2Snapshot } from "./game-logic/garden-r2/service.js";
 import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, createEmptyMergeBoard, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
 import { getIO } from "./socketManager.js";
@@ -98,6 +99,10 @@ function emitPlayerSync(userId, player) {
     seq: player._syncSeq,
     serverTime: Date.now(),
     payload: {
+      accountId: player.id,
+      serverTime: Date.now(),
+      syncSeq: player._syncSeq,
+      gardenR2: gardenR2Snapshot(player),
       resources: player.resources,
       harvested: player.farm.harvested,
       plots: player.farm.plots,

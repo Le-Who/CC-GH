@@ -79,6 +79,16 @@ jobs:
           REDIS_URL: ''
         run: node --test --test-concurrency=1 tests/garden-accounting-postgres.test.mjs
 
+      - name: Garden R2 PostgreSQL15 persistence and cross-process OCC
+        env:
+          GARDEN_R2_PG_TEST: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+        run: node --test --test-concurrency=1 tests/garden-r2-postgres.test.mjs
+
       - name: Install Chromium for browser regression tests
         run: pnpm exec playwright install --with-deps chromium
 

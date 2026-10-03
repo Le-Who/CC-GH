@@ -5,7 +5,7 @@ import { Settings, X, Plus, Info, ChevronLeft, ChevronRight, Archive, Trash2, Lo
 import { useGame } from './lib/GameContext';
 import { useGardenI18n } from './lib/i18n';
 import { getGardenSpriteFrame, getGardenSpriteStyle, GARDEN_SHEET_PATH } from './lib/sprites';
-import { MAX_SHELVES, SPOTS_PER_SHELF, PLANT_TYPES, SHELF_UNLOCK_COSTS, PHASE_DURATIONS_MS, formatGardenGoldAmount, toGardenGoldDisplayValue, formatGardenRate, getProduction, getUpgradeCost, getPlantUnlockLevel, getGardenWaterCooldownMs, getGardenLevelReward } from './constants';
+import { MAX_SHELVES, SPOTS_PER_SHELF, PLANT_TYPES, SHELF_UNLOCK_COSTS, formatGardenGoldAmount, toGardenGoldDisplayValue, formatGardenRate, getProduction, getUpgradeCost, getPlantUnlockLevel, getGardenWaterCooldownMs, getGardenLevelReward } from './constants';
 import { buildGardenQuestSections, getGardenReadyQuestCount } from '../../../game-logic/garden-quests.js';
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from './events';
 import { useGameHub } from '../../game-state/useGameHub.js';
@@ -18,6 +18,10 @@ import { resolveGardenComposition } from './gardenComposition.js';
 import { applyGardenHostLayout } from './gardenHostLayout.js';
 import { createGardenPressSession, createGardenActionGate, createGardenShelfDrag, orderGardenQuests, clampGardenPercent } from './gardenInteraction.js';
 import './garden-presentation.css';
+import { R2_PLANTS, R2_SHELF_COSTS, R2_SHELF_CHAPTERS, r2GoldRate, r2ChapterReward } from '../../../game-logic/garden-r2/catalog.js';
+import { formatR2Gold, formatR2Rate, gardenPlantPhaseDuration } from './lib/gardenR2View.js';
+import { requiresGardenReload } from './lib/gardenR2Transactions.js';
+import GardenR2Progress, { MasteryOffer } from './components/GardenR2Progress';
 const FeedbackContext = createContext({
   error: '',
   busy: false,
@@ -97,9 +101,9 @@ function LegacyPlantArt({
     height: size
   }}><img hidden src={GARDEN_SHEET_PATH} alt="" onError={() => setFailed(true)} />{failed ? <span className="gs2-image-missing"><Art name="pot" /><span>{def.name}</span></span> : <span style={getGardenSpriteStyle(def.spriteIndex, plant.phase, scale, GARDEN_SHEET_PATH)} />}</span>;
 }
-function remaining(plant: any) {
+function remaining(plant: any, r2?: any) {
   if (plant.phase >= 3) return '';
-  const ms = Math.max(0, PHASE_DURATIONS_MS[plant.phase] - plant.phaseProgress);
+  const ms = Math.max(0, gardenPlantPhaseDuration(plant, r2) - plant.phaseProgress);
   return `${Math.floor(ms / 60000)}:${Math.floor(ms % 60000 / 1000).toString().padStart(2, '0')}`;
 }
 export function Dialog({
@@ -134,7 +138,7 @@ function PlantSpot({
   deferArt = false
 }: any) {
   const {
-      tapPlant
+      tapPlant, r2, accountingReady
     } = useGame(),
     {
       t
@@ -142,9 +146,10 @@ function PlantSpot({
     tapRef = useRef(() => {}),
     detailsRef = useRef(onDetails),
     tapAcknowledgement = usePlantTapAcknowledgement();
-  tapRef.current = () => {
-    if (blocked) return;
-    tapPlant(plant.id);
+  tapRef.current = async () => {
+    if (blocked || (r2 && !accountingReady)) return;
+    const result = await tapPlant(plant.id);
+    if (r2 && result !== true) return;
     notifyPlantTouch(plant.id);
     tapAcknowledgement.acknowledge();
     onFeedback(t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth'));
@@ -169,10 +174,10 @@ function PlantSpot({
   }, [blocked, press]);
   if (!plant) return <article className="gs2-spot gs2-empty"><button type="button" className="gs2-empty-target" aria-label={t('shop.seedShop')} onClick={onDetails} disabled={blocked}><Art name="pot" /><span><Plus size={20} />{t('ui.plant')}</span></button><p>{t('ui.emptySpot')}</p></article>;
   const def = PLANT_TYPES[plant.type] || PLANT_TYPES.daisy,
-    canWater = !plant.lastWatered || Date.now() - plant.lastWatered >= getGardenWaterCooldownMs(plant.phase);
-  return <article className="gs2-spot" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} data-plant-id={plant.id} data-gs2-placed={highlighted ? "true" : undefined}><button type="button" className="gs2-plant-target" disabled={blocked} aria-label={`${t(`plant.${def.id}`)}: ${t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}`} onPointerDown={e => press.start(e)} onPointerMove={e => press.move(e)} onPointerUp={e => press.end(e)} onPointerCancel={() => press.cancel()} onLostPointerCapture={() => press.cancel()} onPointerLeave={() => press.cancel()} onContextMenu={e => e.preventDefault()} onClick={e => {
+    canWater = !plant.lastWatered || (r2 ? r2.serverNow : Date.now()) - plant.lastWatered >= getGardenWaterCooldownMs(plant.phase);
+  return <article className="gs2-spot" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} data-plant-id={plant.id} data-gs2-placed={highlighted ? "true" : undefined}><button type="button" className="gs2-plant-target" disabled={blocked || (!!r2 && !accountingReady)} aria-label={`${t(`plant.${def.id}`)}: ${t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}`} onPointerDown={e => press.start(e)} onPointerMove={e => press.move(e)} onPointerUp={e => press.end(e)} onPointerCancel={() => press.cancel()} onLostPointerCapture={() => press.cancel()} onPointerLeave={() => press.cancel()} onContextMenu={e => e.preventDefault()} onClick={e => {
       if (e.detail === 0) tapRef.current();
-    }}><PlantArt plant={plant} deferOffscreen={deferArt} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant)}</span> : <span>{t('ui.mature')}</span>}<small>{t('label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
+    }}><PlantArt plant={plant} deferOffscreen={deferArt} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant, r2)}</span> : <span>{t('ui.mature')}</span>}<small>{t(r2 ? 'r2.rankShort' : 'label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
 }
 export function SettingsDialog({
   onClose
@@ -201,14 +206,14 @@ export function Quests({
 }: any) {
   const {
       state,
-      claimQuest,
+      claimQuest, r2,
       accountingReady
     } = useGame(),
     {
       t
     } = useGardenI18n(),
-    quests = useMemo(() => orderGardenQuests(buildGardenQuestSections(state)), [state]);
-  return <Dialog title={t('quest.title')} kind="quests" onClose={onClose}><p className="gs2-muted">{t('quest.subtitle')}</p><div className="gs2-quest-list">{quests.length ? quests.map(q => <article key={q.id} className="gs2-quest-card" data-quest-id={q.id} data-quest-kind={q.kind} data-quest-claimed={String(!!q.claimed)} data-quest-locked={String(!!q.locked)}><span className="gs2-kicker">{t(q.kind === 'daily' ? 'quest.daily' : 'quest.story')}</span><h3>{t(q.titleKey, q.titleVars)}</h3><p>{t(q.bodyKey, q.bodyVars)}</p><div className="gs2-quest-reward"><Art name="coin" /><strong>{formatGardenGoldAmount(q.reward)}</strong></div><Progress value={q.percent} label={t('quest.progress', {
+    quests = useMemo(() => orderGardenQuests(r2 ? r2.quests : buildGardenQuestSections(state)), [state, r2]);
+  return <Dialog title={t('quest.title')} kind="quests" onClose={onClose}><p className="gs2-muted">{t('quest.subtitle')}</p><div className="gs2-quest-list">{quests.length ? quests.map(q => <article key={q.id} className="gs2-quest-card" data-quest-id={q.id} data-quest-kind={q.kind} data-quest-claimed={String(!!q.claimed)} data-quest-locked={String(!!q.locked)}><span className="gs2-kicker">{t(q.kind === 'daily' ? 'quest.daily' : 'quest.story')}</span><h3>{t(q.titleKey, q.titleVars)}</h3><p>{t(q.bodyKey, q.bodyVars)}</p>{q.careAlternative && <p>{t('r2.questAlternative', q.careAlternative)}</p>}<div className="gs2-quest-reward"><Art name="coin" /><strong>{r2 ? formatR2Gold(q.reward) : formatGardenGoldAmount(q.reward)}</strong></div><Progress value={q.careAlternative ? Math.max(q.percent, q.careAlternative.current / q.careAlternative.target * 100) : q.percent} label={t('quest.progress', {
           current: q.current,
           target: q.target
         })} />{q.endowed > 0 && <small>{t('quest.endowed', {
@@ -224,7 +229,7 @@ export function Shop({
 }: any) {
   const {
       state,
-      buyPlant,
+      buyPlant, r2,
       unlockedPlants,
       accountingReady
     } = useGame(),
@@ -232,24 +237,25 @@ export function Shop({
       t
     } = useGardenI18n(),
     [tab, setTab] = useState('shop'),
-    inventory = state.plants.filter(p => p.spotIndex === -1);
+    inventory = state.plants.filter(p => r2 ? (p as any).isActive !== true : p.spotIndex === -1);
   return <Dialog title={t('shop.seedShop')} kind="seed-shop-inventory" onClose={onClose}><div className="gs2-tabs" role="tablist" aria-label={t('shop.seedShop')}><Button role="tab" aria-selected={tab === 'shop'} primary={tab === 'shop'} onClick={() => setTab('shop')}>{t('shop.seedShop')}</Button><Button role="tab" aria-selected={tab === 'inventory'} primary={tab === 'inventory'} onClick={() => setTab('inventory')}>{t('shop.inventory', {
           count: inventory.length
         })}</Button></div><div role="tabpanel" className="gs2-catalog">{tab === 'shop' ? Object.values(PLANT_TYPES).map(def => {
         const unlocked = unlockedPlants.includes(def.id),
-          affordable = state.gold >= def.baseCost;
+          price = r2 ? R2_PLANTS[def.id].buyGold : def.baseCost,
+          affordable = state.gold >= price;
         return <article className="gs2-catalog-row" key={def.id}><PlantArt plant={{
             type: def.id,
             phase: 3
-          }} size={58} /><div><h3>{t(`plant.${def.id}`)}</h3><p>{unlocked ? t('shop.yields', {
-                amount: formatGardenRate(def.baseProduction)
+          }} size={58} /><div><h3>{t(`plant.${def.id}`)}</h3><p>{unlocked ? t(r2 ? 'r2.yields' : 'shop.yields', {
+                amount: r2 ? formatR2Rate(r2GoldRate(def.id, 1, r2.masteryByType[def.id] || 0)) : formatGardenRate(def.baseProduction)
               }) : t('shop.unlockAt', {
                 level: getPlantUnlockLevel(def.id)
-              })}</p>{unlocked && !affordable && <small>{t('ui.notEnoughGold')}</small>}</div><Button primary disabled={busy || !accountingReady || !unlocked || !affordable} onClick={() => run(() => buyPlant(def.id, spot.shelfIndex, spot.spotIndex))}>{unlocked ? <><Art name="coin" />{formatGardenGoldAmount(def.baseCost)}</> : <><Lock size={16} />{t('label.levelShort')} {getPlantUnlockLevel(def.id)}</>}</Button></article>;
+              })}</p>{unlocked && !affordable && <small>{t('ui.notEnoughGold')}</small>}</div><Button primary disabled={busy || !accountingReady || !unlocked || !affordable} onClick={() => run(() => buyPlant(def.id, spot.shelfIndex, spot.spotIndex))}>{unlocked ? <><Art name="coin" />{r2 ? formatR2Gold(price) : formatGardenGoldAmount(def.baseCost)}</> : <><Lock size={16} />{t('label.levelShort')} {getPlantUnlockLevel(def.id)}</>}</Button></article>;
       }) : inventory.length ? inventory.map(p => <article className="gs2-catalog-row" key={p.id}><PlantArt plant={p} size={58} /><div><h3>{t(`plant.${p.type}`)}</h3><p>{t('shop.phaseLevel', {
               phase: p.phase,
               level: p.level
-            })}</p></div><Button primary disabled={busy} onClick={() => onPlace(p, spot)}>{t('shop.place')}</Button></article>) : <div className="gs2-empty-state"><Archive size={32} /><p>{t('ui.emptyInventory')}</p></div>}</div></Dialog>;
+            })}</p></div><Button primary disabled={busy || (!!r2 && !accountingReady)} onClick={() => onPlace(p, spot)}>{t('shop.place')}</Button></article>) : <div className="gs2-empty-state"><Archive size={32} /><p>{t('ui.emptyInventory')}</p></div>}</div></Dialog>;
 }
 export function Detail({
   plantId,
@@ -266,14 +272,14 @@ export function Detail({
       waterPlant,
       sellPlant,
       upgradePlant,
-      movePlantToInventory,
+      movePlantToInventory, r2,
       accountingReady
     } = useGame(),
     {
       t
     } = useGardenI18n(),
     p = state.plants.find(p => p.id === plantId),
-    placed = state.plants.filter(p => p.shelfIndex >= 0 && p.spotIndex >= 0).sort((a, b) => a.shelfIndex - b.shelfIndex || a.spotIndex - b.spotIndex),
+    placed = state.plants.filter(p => r2 ? (p as any).isActive === true : p.shelfIndex >= 0 && p.spotIndex >= 0).sort((a, b) => a.shelfIndex - b.shelfIndex || a.spotIndex - b.spotIndex),
     i = placed.findIndex(p => p.id === plantId),
     swipe = useRef<any>(null);
   useEffect(() => {
@@ -282,9 +288,9 @@ export function Detail({
   if (!p || p.spotIndex < 0) return null;
   const def = PLANT_TYPES[p.type] || PLANT_TYPES.daisy,
     mature = p.phase >= 3,
-    cost = getUpgradeCost(def.baseCost, p.level),
-    canWater = !p.lastWatered || Date.now() - p.lastWatered >= getGardenWaterCooldownMs(p.phase),
-    waterRemaining = Math.max(0, getGardenWaterCooldownMs(p.phase) - (Date.now() - (p.lastWatered || 0))),
+    cost = r2 ? (p as any).nextUpgradeGold : getUpgradeCost(def.baseCost, p.level),
+    canWater = !p.lastWatered || (r2 ? r2.serverNow : Date.now()) - p.lastWatered >= getGardenWaterCooldownMs(p.phase),
+    waterRemaining = Math.max(0, getGardenWaterCooldownMs(p.phase) - ((r2 ? r2.serverNow : Date.now()) - (p.lastWatered || 0))),
     nav = (d: number) => {
       if (placed.length > 1) onSelect(placed[(i + d + placed.length) % placed.length]);
     };
@@ -302,19 +308,20 @@ export function Detail({
       if (s && q && Math.abs(q.clientX - s.x) > 46 && Math.abs(q.clientX - s.x) > Math.abs(q.clientY - s.y) * 1.35) nav(q.clientX < s.x ? 1 : -1);
     }} onTouchCancel={() => {
       swipe.current = null;
-    }}><p className="gs2-muted">{t(mature ? 'plantDetail.mature' : 'plantDetail.growing', mature ? {
+    }}><p className="gs2-muted">{t(mature ? (r2 ? 'r2.mature' : 'plantDetail.mature') : 'plantDetail.growing', mature ? {
           level: p.level
         } : {
           phase: p.phase
-        })}</p><div className="gs2-detail-stage">{placed.length > 1 && <Button aria-label={t('plantDetail.previous')} onClick={() => nav(-1)}><ChevronLeft /></Button>}<button type="button" className="gs2-detail-tap" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} onClick={() => {
-          tapPlant(p.id);
+        })}</p><div className="gs2-detail-stage">{placed.length > 1 && <Button aria-label={t('plantDetail.previous')} onClick={() => nav(-1)}><ChevronLeft /></Button>}<button type="button" className="gs2-detail-tap" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} disabled={!!r2 && !accountingReady} onClick={async () => {
+          const result = await tapPlant(p.id);
+          if (r2 && result !== true) return;
           notifyPlantTouch(p.id);
           tapAcknowledgement.acknowledge();
           onFeedback(t(mature ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth'));
         }} aria-label={t(mature ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}><PlantArt plant={p} size={128} /></button>{placed.length > 1 && <Button aria-label={t('plantDetail.next')} onClick={() => nav(1)}><ChevronRight /></Button>}</div>{placed.length > 1 && <p className="gs2-center">{t('plantDetail.position', {
           current: i + 1,
           total: placed.length
-        })}</p>}<p className="gs2-center">{t(mature ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}</p><div className="gs2-detail-stat" data-testid="garden-care-level"><span>{t('label.levelShort')}</span><strong>{p.level}</strong></div><div className="gs2-detail-stat"><span>{t(mature ? 'plantDetail.production' : 'plantDetail.timeLeft')}</span><strong>{mature ? `${formatGardenRate(getProduction(def.baseProduction, p.level))} ${t('unit.goldPerSecond')}` : remaining(p)}</strong></div>{!mature && <Progress value={p.phaseProgress / PHASE_DURATIONS_MS[p.phase] * 100} label={`${Math.floor(clampGardenPercent(p.phaseProgress / PHASE_DURATIONS_MS[p.phase] * 100))}%`} />}<Button primary disabled={busy || !canWater} onClick={() => run(() => waterPlant(p.id))}><Art name="water" />{t(mature ? 'plantDetail.careWater' : 'plantDetail.water')}{!canWater && <span>{Math.ceil(waterRemaining / 60000)} {t('ui.min')}</span>}</Button>{mature && <Button primary disabled={busy || !accountingReady || state.gold < cost} onClick={() => run(() => upgradePlant(p.id))}><ArrowUpCircle size={20} /><span>{t('plantDetail.evolve')}</span><span className="gs2-price"><Art name="coin" />{formatGardenGoldAmount(cost)}</span></Button>}<div className="gs2-action-row"><Button disabled={busy} onClick={() => run(() => movePlantToInventory(p.id))}><Archive size={18} />{t('plantDetail.stash')}</Button><Button disabled={busy || !accountingReady} className="gs2-danger" onClick={() => run(() => sellPlant(p.id))}><Trash2 size={18} />{t('plantDetail.sell')}</Button></div></div></Dialog>;
+        })}</p>}<p className="gs2-center">{t(mature ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}</p><div className="gs2-detail-stat" data-testid="garden-care-level"><span>{t(r2 ? 'r2.rank' : 'label.levelShort')}</span><strong>{p.level}{r2 ? '/5' : ''}</strong></div><div className="gs2-detail-stat"><span>{t(mature ? 'plantDetail.production' : 'plantDetail.timeLeft')}</span><strong>{mature ? r2 ? `${formatR2Rate((p as any).rateMilliGoldPerMinute)} ${t('r2.goldPerMinute')}` : `${formatGardenRate(getProduction(def.baseProduction, p.level))} ${t('unit.goldPerSecond')}` : remaining(p, r2)}</strong></div>{!mature && <Progress value={p.phaseProgress / gardenPlantPhaseDuration(p, r2) * 100} label={`${Math.floor(clampGardenPercent(p.phaseProgress / gardenPlantPhaseDuration(p, r2) * 100))}%`} />}<Button primary disabled={busy || !canWater || (!!r2 && !accountingReady)} onClick={() => run(() => waterPlant(p.id))}><Art name="water" />{t(mature ? 'plantDetail.careWater' : 'plantDetail.water')}{!canWater && <span>{Math.ceil(waterRemaining / 60000)} {t('ui.min')}</span>}</Button>{mature && cost !== null && <Button primary disabled={busy || !accountingReady || state.gold < cost} onClick={() => run(() => upgradePlant(p.id))}><ArrowUpCircle size={20} /><span>{t('plantDetail.evolve')}{r2 && <small className="gs2-r2-delta">{t('r2.upgradeDelta', { amount: formatR2Rate((p as any).nextUpgradeDeltaMilliGoldPerMinute) })}</small>}</span><span className="gs2-price"><Art name="coin" />{r2 ? formatR2Gold(cost) : formatGardenGoldAmount(cost)}</span></Button>}{r2 && mature && cost === null && <p className="gs2-muted">{t('r2.rankComplete')}</p>}{r2 && <MasteryOffer plant={p} Button={Button} run={run} busy={busy} />}<div className="gs2-action-row"><Button disabled={busy || (!!r2 && !accountingReady)} onClick={() => run(() => movePlantToInventory(p.id))}><Archive size={18} />{t('plantDetail.stash')}</Button><Button disabled={busy || !accountingReady} className="gs2-danger" onClick={() => { if (!r2 || window.confirm(t('r2.confirmSale', { name: t(`plant.${p.type}`), amount: formatR2Gold((p as any).resaleGold) }))) void run(() => sellPlant(p.id)); }}><Trash2 size={18} />{t('plantDetail.sell')}{r2 && ` · ${formatR2Gold((p as any).resaleGold)} ${t('hud.gold')}`}</Button></div></div></Dialog>;
 }
 export default function GardenPresentation({
   transportError = '',
@@ -322,7 +329,7 @@ export default function GardenPresentation({
   onReviewPending = null
 }: any) {
   const {
-      state,
+      state, r2,
       accountingReady,
       unlockShelf,
       movePlantToShelf,
@@ -359,6 +366,7 @@ export default function GardenPresentation({
     [notice, setNotice] = useState<any>(null),
     gate = useRef(createGardenActionGate()),
     seen = useRef<any>(null),
+    previousR2Reward = useRef<any>(null),
     lastResult = useGameHub(s => s.lastResult);
   const busy = actionBusy;
   const run = useCallback(async (fn: any) => {
@@ -454,27 +462,37 @@ export default function GardenPresentation({
     if (!lastResult || seen.current === lastResult) return;
     seen.current = lastResult;
     if (!String(lastResult.action || '').startsWith('garden.')) return;
+    if (['GARDEN_R2_TAP_COOLDOWN','GARDEN_R2_WATER_COOLDOWN'].includes(lastResult.error)) return;
     if (lastResult.error) setLocalError(t('ui.actionError'));else if (lastResult.action === 'garden.levelUp' && lastResult.reward) setNotice({
       reward: lastResult.reward,
       level: lastResult.garden?.level || lastResult.snapshot?.garden?.level || state.level
     });
   }, [lastResult, state.level, t]);
   useEffect(() => {
+    if (!r2) return;
+    const previous = previousR2Reward.current;
+    previousR2Reward.current = { chapter: r2.chapter, pending: r2.pendingLegacyRewardGold };
+    if (!previous) return;
+    let reward = previous.pending > 0 && r2.pendingLegacyRewardGold === 0 ? previous.pending : 0;
+    for (let chapter = previous.chapter; chapter < r2.chapter; chapter++) reward += r2ChapterReward(chapter);
+    if (reward > 0) setNotice(previousNotice => ({ reward: reward + (previousNotice?.r2 ? previousNotice.reward : 0), level: r2.chapter, r2: true }));
+  }, [r2]);
+  useEffect(() => {
     if (!feedback) return;
     const timer = setTimeout(() => setFeedback(''), 1800);
     return () => clearTimeout(timer);
   }, [feedback]);
   useEffect(() => {
-    if (state.name) return;
+    if (state.name || r2) return;
     try {
       const old = localStorage.getItem('garden_shelf_name');
       if (old?.trim()) renameGarden(old);
     } catch {}
-  }, [state.name, renameGarden]);
-  const placed = useMemo(() => new Map(state.plants.filter(p => p.spotIndex >= 0).map(p => [`${p.shelfIndex}:${p.spotIndex}`, p])), [state.plants]);
+  }, [state.name, renameGarden, r2]);
+  const placed = useMemo(() => new Map(state.plants.filter(p => r2 ? (p as any).isActive === true : p.spotIndex >= 0).map(p => [`${p.shelfIndex}:${p.spotIndex}`, p])), [state.plants, r2]);
   // Inventory placement keeps its picker while the local state change is verified.
   // Seed purchases keep their existing transition to the newly bought plant.
-  const activePlant = spot ? spot.plantId ? state.plants.find(p => p.id === spot.plantId) : placed.get(`${spot.shelfIndex}:${spot.spotIndex}`) : null;
+  const activePlant = spot ? spot.plantId ? state.plants.find(p => p.id === spot.plantId && (!r2 || (p as any).isActive === true)) : placed.get(`${spot.shelfIndex}:${spot.spotIndex}`) : null;
   const placePlant = async (plant: any, target: any) => {
     if (placementRequest.current || gate.current.isPending()) return false;
     const request = {
@@ -507,35 +525,38 @@ export default function GardenPresentation({
   const saveName = () => {
     renameGarden(draft);
     try {
-      draft.trim() ? localStorage.setItem('garden_shelf_name', draft.trim()) : localStorage.removeItem('garden_shelf_name');
+      if (!r2) draft.trim() ? localStorage.setItem('garden_shelf_name', draft.trim()) : localStorage.removeItem('garden_shelf_name');
     } catch {}
     setRenaming(false);
   };
-  const accountingNeedsReview = ['GARDEN_INTENT_AMBIGUOUS','GARDEN_INTENT_CONFLICT','GARDEN_INTENT_SUPERSEDED'].includes(transportError);
-  const accountingError = accountingNeedsReview ? 'ui.accountingReview' : transportError === 'GARDEN_ACCOUNTING_CAPACITY' ? 'ui.accountingCapacity' : transportError === 'GARDEN_CROSS_TAB_LOCK_UNAVAILABLE' ? 'ui.accountingBrowser' : transportError === 'GARDEN_STORAGE_UNAVAILABLE' ? 'ui.accountingStorage' : 'ui.actionError';
-  const error = localError || (transportError ? t(accountingError) : '');
+  const reloadRequired = requiresGardenReload(transportError);
+  const accountingNeedsReview = ['GARDEN_R2_LEGACY_REVIEW_REQUIRED','GARDEN_R2_INTENT_AMBIGUOUS','GARDEN_R2_INTENT_CONFLICT','GARDEN_R2_INTENT_SUPERSEDED','GARDEN_INTENT_AMBIGUOUS','GARDEN_INTENT_CONFLICT','GARDEN_INTENT_SUPERSEDED'].includes(transportError);
+  const accountingError = reloadRequired ? 'r2.reloadRequired' : accountingNeedsReview ? 'ui.accountingReview' : ['GARDEN_ACCOUNTING_CAPACITY','GARDEN_R2_ACCOUNTING_CAPACITY'].includes(transportError) ? 'ui.accountingCapacity' : ['GARDEN_CROSS_TAB_LOCK_UNAVAILABLE','GARDEN_R2_CROSS_TAB_LOCK_UNAVAILABLE'].includes(transportError) ? 'ui.accountingBrowser' : ['GARDEN_STORAGE_UNAVAILABLE','GARDEN_R2_STORAGE_UNAVAILABLE'].includes(transportError) ? 'ui.accountingStorage' : 'ui.actionError';
+  const error = reloadRequired ? t('r2.reloadRequired') : localError || (transportError ? t(accountingError) : '');
   const dismissError = () => {
     setLocalError('');
     onDismissError();
   };
   const metricDigits = !layout.landscape && layout.rail < 330 ? 7 : 9;
   const shortGold = (value: number) => {
-    const full = formatGardenGoldAmount(value);
+    const full = r2 ? formatR2Gold(value) : formatGardenGoldAmount(value);
     return full.length > metricDigits ? new Intl.NumberFormat('en', {
       notation: 'compact',
       maximumFractionDigits: 1
-    }).format(toGardenGoldDisplayValue(value)) : full;
+    }).format(r2 ? value : toGardenGoldDisplayValue(value)) : full;
   };
-  const goldFull = formatGardenGoldAmount(state.gold),
+  const goldFull = r2 ? formatR2Gold(state.gold) : formatGardenGoldAmount(state.gold),
     goldShort = shortGold(state.gold);
-  const xpFull = `${state.xp}/${state.xpRequired}`;
-  const xpShort = xpFull.length > metricDigits ? `${Math.floor(clampGardenPercent(state.xp / state.xpRequired * 100))}%` : xpFull;
+  const xpFull = r2?.chapter === 30 ? t('r2.chapterComplete') : `${state.xp}/${state.xpRequired}`;
+  const xpShort = r2?.chapter === 30 ? xpFull : xpFull.length > metricDigits ? `${Math.floor(clampGardenPercent(state.xp / state.xpRequired * 100))}%` : xpFull;
   useEffect(() => {
     if (spot?.plantId && !state.plants.some(p => p.id === spot.plantId && p.spotIndex >= 0)) close();
   }, [spot, state.plants, close]);
-  const readyCount = getGardenReadyQuestCount(state),
+  const readyCount = r2 ? r2.quests.flatMap(section => section.quests).filter(q => q.complete && q.unlocked && !q.claimed).length : getGardenReadyQuestCount(state),
     offline = !!state.offlineEarnings && state.offlineEarnings > 0,
     blocked = !!panel || !!notice || offline;
+  const shelfCosts = r2 ? R2_SHELF_COSTS : SHELF_UNLOCK_COSTS;
+  const shelfLocked = !!r2 && r2.chapter < R2_SHELF_CHAPTERS[state.shelvesUnlocked];
   const drag = useMemo(() => createGardenShelfDrag({
     getViewport: () => shelf.current,
     onDragging: setDragging
@@ -603,7 +624,7 @@ export default function GardenPresentation({
                 }} /></form> : <button type="button" onClick={() => {
                 setDraft(state.name || t('garden.defaultName'));
                 setRenaming(true);
-              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics"><div className="gs2-metric" data-garden-gold="true" title={`${t('hud.gold')}: ${goldFull}`} aria-label={`${t('hud.gold')}: ${goldFull}`}><span><Art name="coin" />{t('hud.gold')}</span><strong>{goldShort}</strong></div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} title={`${t('level.progress')}: ${xpFull}`} aria-label={`${t(state.levelReady ? 'level.up' : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" />{t('label.levelShort')} {state.level}</span><strong>{state.levelReady ? `+${shortGold(getGardenLevelReward(state.level))}` : xpShort}</strong><Progress value={state.xp / state.xpRequired * 100} />{state.levelReady && <small>{t('level.up')}</small>}</button><button type="button" className="gs2-metric" onClick={event => openPanel('quests', event.currentTarget)} aria-label={t('quest.open')}><span><Art name="quest" />{t('ui.quests')}</span><strong>{readyCount > 0 ? readyCount : t('quest.openShort')}</strong></button></div></HudRegion>
+              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics"><div className="gs2-metric" data-garden-gold="true" title={`${t('hud.gold')}: ${goldFull}`} aria-label={`${t('hud.gold')}: ${goldFull}`}><span><Art name="coin" />{t('hud.gold')}</span><strong>{goldShort}</strong>{r2 && <small>{formatR2Rate(r2.goldMilliPerMinute)} {t('r2.goldPerMinute')}</small>}</div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} title={`${t('level.progress')}: ${xpFull}`} aria-label={`${t(state.levelReady ? (r2 ? 'r2.claimReward' : 'level.up') : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" />{t(r2 ? 'r2.chapterShort' : 'label.levelShort')} {state.level}</span><strong>{state.levelReady ? `+${shortGold(r2 ? r2.pendingLegacyRewardGold : getGardenLevelReward(state.level))}` : xpShort}</strong><Progress value={r2?.chapter === 30 ? 100 : state.xp / state.xpRequired * 100} />{state.levelReady && <small>{t(r2 ? 'r2.claimReward' : 'level.up')}</small>}</button><button type="button" className="gs2-metric" onClick={event => openPanel(r2 ? 'progression' : 'quests', event.currentTarget)} aria-label={t(r2 ? 'r2.title' : 'quest.open')}><span><Art name="quest" />{t(r2 ? 'r2.titleShort' : 'ui.quests')}</span><strong>{r2 ? `${r2.substrate}/${r2.substrateCapacity}` : readyCount > 0 ? readyCount : t('quest.openShort')}</strong></button></div></HudRegion>
  <HudRegion id="gardenShelf" ref={shelf} applyLayout={false} className="gs2-shelf-viewport" role="region" aria-label={t('ui.shelves')} tabIndex={0} data-no-nav-swipe="true" data-gs2-dragging={String(dragging)} onPointerDown={e => {
           if (!blocked) drag.start(e);
         }} onPointerMove={e => drag.move(e)} onPointerUp={e => drag.end(e)} onPointerCancel={e => drag.cancel(e)} onLostPointerCapture={e => drag.cancel(e)} onPointerLeave={e => drag.cancel(e)} onMouseLeave={() => drag.cancel()} onWheel={() => drag.cancel()} onDragStart={() => drag.cancel()} onClickCapture={e => drag.click(e)}><div className="gs2-rack">{Array.from({
@@ -615,9 +636,10 @@ export default function GardenPresentation({
                 }, (_, p) => {
                   const plant = placed.get(`${s}:${p}`);
                   return <PlantSpot key={p} plant={plant} deferArt={s > 0} highlighted={highlighted === plant?.id} spotWidth={layout.spotWidth} compact={layout.compact} blocked={blocked} onFeedback={setFeedback} onDetails={(event: any) => openSpot(s, p, plant?.id, event?.currentTarget)} />;
-                })}</div><img className="gs2-shelf-art" data-hud-region="gardenShelfAsset" src={art('shelf')} alt="" draggable={false} /></section>)}{state.shelvesUnlocked < MAX_SHELVES && <section className="gs2-expansion"><Lock size={24} /><div><h3>{t('garden.expand')}</h3><p>{t('ui.expandHelp')}</p></div><Button primary disabled={busy || !accountingReady || state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked]} onClick={() => run(unlockShelf)}><Art name="coin" />{formatGardenGoldAmount(SHELF_UNLOCK_COSTS[state.shelvesUnlocked])}</Button>{state.gold < SHELF_UNLOCK_COSTS[state.shelvesUnlocked] && <small>{t('ui.notEnoughGold')}</small>}</section>}</div></HudRegion></div>
+                })}</div><img className="gs2-shelf-art" data-hud-region="gardenShelfAsset" src={art('shelf')} alt="" draggable={false} /></section>)}{state.shelvesUnlocked < MAX_SHELVES && <section className="gs2-expansion"><Lock size={24} /><div><h3>{t('garden.expand')}</h3><p>{shelfLocked ? t('r2.researchRequires', { chapter: R2_SHELF_CHAPTERS[state.shelvesUnlocked] }) : t('ui.expandHelp')}</p></div><Button primary disabled={busy || !accountingReady || state.gold < shelfCosts[state.shelvesUnlocked] || shelfLocked} onClick={() => run(unlockShelf)}><Art name="coin" />{r2 ? formatR2Gold(shelfCosts[state.shelvesUnlocked]) : formatGardenGoldAmount(shelfCosts[state.shelvesUnlocked])}</Button>{state.gold < shelfCosts[state.shelvesUnlocked] && <small>{t('ui.notEnoughGold')}</small>}</section>}</div></HudRegion></div>
  {/* This reserved feedback row is internal to gardenRoot/gardenComposition. Status changes never resize the shelf. */}
- <div className="gs2-status" role={error ? 'alert' : 'status'} aria-live="polite"><span className="gs2-status-reserve" aria-hidden="true">{t('ui.help')}</span><div className="gs2-status-content">{error ? <><span className="gs2-status-error" tabIndex={0}>{error}</span>{accountingNeedsReview && onReviewPending && <Button onClick={() => onReviewPending(t('ui.accountingConfirm', { gold: '[[GOLD]]' }))}>{t('ui.accountingReviewButton')}</Button>}<Button onClick={dismissError} aria-label={t('ui.close')}><X size={16} /></Button></> : <span>{feedback || t('ui.help')}</span>}</div></div>
+ <div className="gs2-status" role={error ? 'alert' : 'status'} aria-live="polite"><span className="gs2-status-reserve" aria-hidden="true">{t('ui.help')}</span><div className="gs2-status-content">{error ? <><span className="gs2-status-error" tabIndex={0}>{error}</span>{accountingNeedsReview && onReviewPending && <Button onClick={() => onReviewPending(t('ui.accountingConfirm', { gold: '[[GOLD]]' }))}>{t('ui.accountingReviewButton')}</Button>}<Button onClick={reloadRequired ? () => window.location.reload() : dismissError} aria-label={t(reloadRequired ? 'r2.reload' : 'ui.close')}>{reloadRequired ? t('r2.reload') : <X size={16} />}</Button></> : <span>{feedback || t('ui.help')}</span>}</div></div>
+ {r2 && !offline && !notice && panel === 'progression' && <GardenR2Progress Dialog={Dialog} Button={Button} onClose={close} onQuests={() => setPanel('quests')} run={run} busy={busy} />}
  {!offline && !notice && panel === 'settings' && <SettingsDialog onClose={close} />} {!offline && !notice && panel === 'quests' && <Quests onClose={close} run={run} busy={busy} />} {!offline && !notice && panel === 'spot' && spot && (activePlant && !placementRequest.current ? <Detail plantId={activePlant.id} onClose={close} onSelect={(p: any) => setSpot({
         shelfIndex: p.shelfIndex,
         spotIndex: p.spotIndex,
@@ -626,8 +648,8 @@ export default function GardenPresentation({
  {offline && <Dialog title={t('offline.title')} kind="offline-reward" onClose={clearOfflineEarnings}><p>{t('offline.body')}</p><div className="gs2-reward"><Art name="coin" /><strong>{formatGardenGoldAmount(state.offlineEarnings!)}</strong>{!!state.offlineXp && <span>{t('offline.xp', {
               amount: state.offlineXp
             })}</span>}</div><Button primary onClick={clearOfflineEarnings}>{t('offline.collect')}</Button></Dialog>}
- {notice && !offline && <Dialog title={t('level.rewardTitle')} kind="reward" onClose={() => setNotice(null)}><p>{t('level.rewardBody', {
+ {notice && !offline && <Dialog title={t('level.rewardTitle')} kind="reward" onClose={() => setNotice(null)}><p>{t(notice.r2 ? 'r2.rewardBody' : 'level.rewardBody', {
             level: notice.level
-          })}</p><div className="gs2-reward"><Art name="coin" /><strong>{formatGardenGoldAmount(notice.reward)}</strong></div><Button primary onClick={() => setNotice(null)}>{t('settings.done')}</Button></Dialog>}
+          })}</p><div className="gs2-reward"><Art name="coin" /><strong>{notice.r2 ? formatR2Gold(notice.reward) : formatGardenGoldAmount(notice.reward)}</strong></div><Button primary onClick={() => setNotice(null)}>{t('settings.done')}</Button></Dialog>}
  </HudRegion></FeedbackContext.Provider>;
 }

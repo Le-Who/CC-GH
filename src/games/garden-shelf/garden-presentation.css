@@ -141,3 +141,8 @@
 .gs2-dialog-error{position:absolute;z-index:4;bottom:10px;left:8px;right:8px;max-height:calc(100% - 80px);box-shadow:0 4px 18px #243e2b33}.gs2-dialog-error>span{min-width:0;max-height:120px;overflow:auto;overflow-wrap:anywhere}
 
 .gs2-status-error:focus-visible,.gs2-dialog-error>span:focus-visible{outline:2px solid var(--gs2-focus);outline-offset:-2px}
+/* R2 content reuses the registered Garden sheet and status rail. These are
+   internal flow rows, not independently positioned HUD regions. */
+.gs2-r2-card{display:flex;flex-direction:column;gap:8px;min-width:0;padding:12px;border:1px solid #b8ad88;border-radius:10px;background:#fff5dc;overflow-wrap:anywhere}
+.gs2-r2-card>.gs2-button{width:100%;flex:none}.gs2-r2-delta{display:block;font-size:12px;line-height:1.4}
+.gs2-metric>small{white-space:normal;overflow-wrap:anywhere;line-height:1.2}

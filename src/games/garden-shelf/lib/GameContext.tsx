@@ -65,6 +65,7 @@ interface GardenResetResult extends GoldDeltaResult {
 
 interface GameProviderProps {
   accountId: string;
+  halted?: boolean;
   children: ReactNode;
   hubGold?: number;
   persistedState?: Partial<GameState> | null;
@@ -79,7 +80,9 @@ interface GameProviderProps {
   onHudChange?: (hud: GardenHudState | null) => void;
 }
 
-interface GameContextType {
+export interface GameContextType {
+  r2?: any;
+  r2Command?: (command: string, input?: object) => Promise<boolean>;
   accountingReady: boolean;
   state: GameState;
   addGold: (amount: number) => void;
@@ -90,7 +93,7 @@ interface GameContextType {
   unlockedPlants: string[];
   clearOfflineEarnings: () => void;
   waterPlant: (plantId: string) => void;
-  tapPlant: (plantId: string) => void;
+  tapPlant: (plantId: string) => void | Promise<boolean>;
   levelUp: () => void;
   claimQuest: (questId: string, reward: number) => void;
   renameGarden: (name: string) => void;
@@ -103,7 +106,7 @@ const defaultState: GameState = {
   gold: 0,
 };
 
-const GameContext = createContext<GameContextType | null>(null);
+export const GameContext = createContext<GameContextType | null>(null);
 const OFFLINE_EARNINGS_MIN_AWAY_MS = 30 * 60 * 1000;
 
 function normalizeHubGold(value: number | undefined) {
@@ -220,7 +223,9 @@ function getGardenXpPerSecond(plants: PlantData[]) {
   }, 0);
 }
 
-export function GameProvider({ children, accountId, hubGold, persistedState, onGoldDelta, onStateSync, onGardenReset, onGardenLevelUp, onHudChange, accountingReady = true, onEconomicAction, onEarnedCredit, reconciledState }: GameProviderProps) {
+export function GameProvider({ children, accountId, hubGold, persistedState, onGoldDelta, onStateSync, onGardenReset, onGardenLevelUp, onHudChange, accountingReady = true, onEconomicAction, onEarnedCredit, reconciledState, halted = false }: GameProviderProps) {
+  const haltedRef = React.useRef(halted);
+  haltedRef.current = halted;
   const initialResetNeeded = shouldResetGardenEconomy(persistedState || {});
   const [state, setState] = useState<GameState>(() => {
     const gold = normalizeHubGold(hubGold);
@@ -310,7 +315,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   }, [persistedState, persistedStateKey, state.gold]);
 
   useEffect(() => {
-    if (!resetPendingRef.current || !onGardenReset) return;
+    if (haltedRef.current || !resetPendingRef.current || !onGardenReset) return;
     let cancelled = false;
     const runReset = async () => {
       const result = await onGardenReset();
@@ -329,6 +334,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   }, [onGardenReset, persistedStateKey, state.gold]);
 
   useEffect(() => {
+    if (haltedRef.current) return;
     const nextPersisted = withoutSharedGold(state);
     const nextKey = JSON.stringify(nextPersisted);
     currentStateKeyRef.current = nextKey;
@@ -344,7 +350,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
     syncRef.current.pendingKey = nextKey;
 
     const flush = async () => {
-      if (economicPendingRef.current || creditPendingRef.current) return;
+      if (haltedRef.current || economicPendingRef.current || creditPendingRef.current) return;
       if (syncRef.current.timer) {
         window.clearTimeout(syncRef.current.timer);
         syncRef.current.timer = null;
@@ -374,7 +380,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
         syncRef.current.pending = outgoing;
         syncRef.current.pendingKey = outgoingKey;
       }
-      if (syncRef.current.pending) {
+      if (syncRef.current.pending && !haltedRef.current) {
         syncRef.current.timer = window.setTimeout(flush, 2500);
       }
     };
@@ -392,7 +398,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
       window.clearTimeout(syncRef.current.timer);
       syncRef.current.timer = null;
     }
-    if (!economicPendingRef.current && !creditPendingRef.current && syncRef.current.pending && onStateSync) {
+    if (!haltedRef.current && !economicPendingRef.current && !creditPendingRef.current && syncRef.current.pending && onStateSync) {
       void onStateSync(syncRef.current.pending);
     }
   }, [onStateSync]);
@@ -465,7 +471,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
       // never silently fall back to an unacknowledged fire-and-forget credit.
       return;
     }
-    if (economicPendingRef.current) return;
+    if (haltedRef.current || economicPendingRef.current) return;
     if (!accountingReady || creditPendingRef.current) return;
     const total = stateRef.current.totalGoldEarned;
     if (total <= syncedEarnedRef.current) return;
@@ -488,7 +494,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
         // Leave the durable batch unacknowledged; the next retry keeps its ID.
       } finally {
         creditPendingRef.current = false;
-        if (mountedRef.current) timer = setTimeout(() => setCreditRetry(value => value + 1), 2500);
+        if (mountedRef.current && !haltedRef.current) timer = setTimeout(() => setCreditRetry(value => value + 1), 2500);
       }
     };
     void credit();
@@ -496,7 +502,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   }, [accountingReady, onEarnedCredit, state.totalGoldEarned, creditRetry]);
 
   useInterval(() => {
-    if (economicPendingRef.current) return;
+    if (haltedRef.current || economicPendingRef.current) return;
     setState((s) => {
       const now = Date.now();
       const dtMs = now - s.lastTick;
@@ -594,7 +600,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
 
   const levelUp = async () => {
     if (onEconomicAction) return runEconomicAction('garden.levelUp', {});
-    if (economicPendingRef.current) return;
+    if (haltedRef.current || economicPendingRef.current) return;
     if (levelUpPendingRef.current) return;
     if (!state.levelReady) return;
     levelUpPendingRef.current = true;
@@ -747,7 +753,8 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   };
 
   const tapPlant = (plantId: string) => {
-    if (economicPendingRef.current) return;
+    if (haltedRef.current) return;
+    if (haltedRef.current || economicPendingRef.current) return;
      setState(prev => {
         const plant = prev.plants.find(p => p.id === plantId);
         if (!plant) return prev;
@@ -783,12 +790,14 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   };
 
   const renameGarden = (name: string) => {
+    if (haltedRef.current) return;
     const nextName = normalizeGardenName(name);
     setState((prev) => (prev.name === nextName ? prev : { ...prev, name: nextName }));
   };
 
   const waterPlant = (plantId: string) => {
-    if (economicPendingRef.current) return;
+    if (haltedRef.current) return;
+    if (haltedRef.current || economicPendingRef.current) return;
      setState(prev => {
         const plant = prev.plants.find(p => p.id === plantId);
         if (!plant) return prev;
@@ -825,6 +834,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   };
 
   const movePlantToInventory = (plantId: string) => {
+    if (haltedRef.current) return;
      setState(prev => ({
         ...prev,
         plants: prev.plants.map(p => p.id === plantId ? { ...p, spotIndex: -1, shelfIndex: -1 } : p)
@@ -832,6 +842,7 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
   };
 
   const movePlantToShelf = (plantId: string, shelfIndex: number, spotIndex: number) => {
+    if (haltedRef.current) return;
      setState(prev => ({
         ...prev,
         plants: prev.plants.map(p => p.id === plantId ? { ...p, spotIndex, shelfIndex } : p)

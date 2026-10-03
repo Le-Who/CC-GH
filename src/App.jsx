@@ -27,6 +27,7 @@ import {
 } from "./games/garden-shelf/lib/language";
 import { GARDEN_LEVEL_UP_EVENT, GARDEN_OPEN_QUESTS_EVENT } from "./games/garden-shelf/events";
 import { formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward } from "./games/garden-shelf/constants.ts";
+import { formatR2Gold } from "./games/garden-shelf/lib/gardenR2View.js";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { useGameEvents } from "./game-state/gameEvents.js";
 import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
@@ -254,11 +255,13 @@ export default function App() {
     pauseRun: activeGameControls?.pauseRun || activeGameControls?.pause,
     exitToHub: exitToGarden,
   });
+  const gardenR2 = snapshot?.gardenR2;
+  const gardenGoldFormatter = gardenR2 ? formatR2Gold : formatGardenDisplayGold;
   const gardenXpRequired = Math.max(1, Number(gardenHud?.xpRequired) || 1);
   const gardenXp = Math.max(0, Number(gardenHud?.xp) || 0);
   const gardenXpProgress = Math.min(100, (gardenXp / gardenXpRequired) * 100);
   const gardenLevel = Number(gardenHud?.level) || 1;
-  const gardenCanLevelUp = !!gardenHud?.levelReady || gardenXp >= gardenXpRequired;
+  const gardenCanLevelUp = gardenR2 ? Number(gardenR2.pendingLegacyRewardGold) > 0 : !!gardenHud?.levelReady || gardenXp >= gardenXpRequired;
   useEffect(() => {
     if (!gardenCanLevelUp) {
       gardenLevelUpPendingRef.current = false;
@@ -266,7 +269,7 @@ export default function App() {
     }
   }, [gardenCanLevelUp]);
   useEffect(() => {
-    if (lastResult?.action === "garden.levelUp" && lastResult.error) {
+    if (["garden.levelUp", "garden.r2"].includes(lastResult?.action) && lastResult.error) {
       gardenLevelUpPendingRef.current = false;
       setGardenLevelUpPending(false);
     }
@@ -289,14 +292,14 @@ export default function App() {
           icon: Sparkles,
           image: semanticHudIconPath("garden", "gold"),
           label: t("hud.gold"),
-          value: formatGardenDisplayGold(Math.floor(Number(resources.gold) || 0)),
+          value: gardenGoldFormatter(Math.floor(Number(resources.gold) || 0)),
           id: "garden-gold",
         },
         {
           icon: Leaf,
           image: semanticHudIconPath("garden", "levelXp"),
           label: gardenCanLevelUp ? t("level.up") : t("level.progress"),
-          value: gardenCanLevelUp ? `+${formatGardenDisplayGold(getGardenLevelReward(gardenLevel))}` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
+          value: gardenCanLevelUp ? `+${gardenGoldFormatter(gardenR2 ? gardenR2.pendingLegacyRewardGold : getGardenLevelReward(gardenLevel))}` : gardenR2?.chapter === 30 ? `${gardenR2.chapter}/30` : `${Math.floor(gardenXp)}/${gardenXpRequired}`,
           progress: gardenXpProgress,
           active: gardenCanLevelUp && !gardenLevelUpPending,
           title: gardenCanLevelUp ? t("level.up") : t("level.progress"),

@@ -6,12 +6,14 @@ import { audioManager } from "../services/audioManager.js";
 import { haptic } from "../platform/telegram.js";
 import { withNormalizedSnapshot } from "./inventory.js";
 import { createClientActionId, shouldUseDurableOutbox } from "./reliableActions.js";
+import { isGardenR2Action, gardenR2AccountMatches, compareSnapshotFreshness, mergeGardenR2Snapshot, protectGardenR2Snapshot } from "./gardenR2Snapshot.js";
 
 const YARD_OUTBOX_KEY = "game_hub_yard_outbox_v1";
 export const ACTIVE_TAB_STORAGE_KEY = "game_hub_active_tab_v1";
 export const ACTIVE_TAB_QUERY_PARAM = "tab";
 const ACTIVE_TAB_IDS = new Set(VISIBLE_GAME_IDS);
 const RETRY_DELAYS_MS = [0, 2000, 5000, 15000, 30000, 60000];
+const GARDEN_R2_RECONCILE_ERRORS = new Set(["GARDEN_R2_REVISION_CONFLICT", "CLIENT_UPDATE_REQUIRED", "GARDEN_R2_CLIENT_UPDATE_REQUIRED"]);
 let outboxDrainPromise = null;
 let outboxDrainTimer = null;
 
@@ -164,7 +166,7 @@ export const useGameHub = create((set, get) => ({
 
   applySnapshot: (snapshot) => {
     if (!snapshot) return;
-    set({ snapshot: normalizeSnapshot(snapshot), status: "ready" });
+    set((state) => ({ snapshot: normalizeSnapshot(protectGardenR2Snapshot(state.snapshot, snapshot)), status: "ready" }));
   },
 
   loadSnapshot: async () => {
@@ -174,7 +176,7 @@ export const useGameHub = create((set, get) => ({
       set({ status: "offline", message: result.error });
       return result;
     }
-    const snapshot = normalizeSnapshot(result);
+    const snapshot = normalizeSnapshot(protectGardenR2Snapshot(get().snapshot, result));
     set({ snapshot, status: "ready", message: "" });
     scheduleOutboxDrain(get, 0);
     return snapshot;
@@ -184,6 +186,10 @@ export const useGameHub = create((set, get) => ({
     if (isYardAction(action) && options.outbox !== false) {
       return get().enqueueYardAction(action, payload, options);
     }
+    const requestSnapshot = get().snapshot;
+    const requestAccountId = requestSnapshot?.player?.id;
+    const gardenR2Action = isGardenR2Action(action);
+    if (gardenR2Action && (!requestAccountId || payload.accountId !== requestAccountId)) return { error: "GARDEN_R2_ACCOUNT_MISMATCH" };
     const key = options.key || action;
     if (get().busy[key]) return { error: "busy" };
     set((state) => ({ busy: { ...state.busy, [key]: true }, message: "" }));
@@ -192,16 +198,28 @@ export const useGameHub = create((set, get) => ({
     set((state) => {
       const busy = { ...state.busy };
       delete busy[key];
+      // A response from a retired account must not affect its replacement.
+      if (requestAccountId && state.snapshot?.player?.id !== requestAccountId) return { busy };
+      if (gardenR2Action && result.snapshot && !gardenR2AccountMatches(state.snapshot, result.snapshot, requestAccountId)) return { busy };
       if (result.error) {
+        const reconcileGarden = result.snapshot?.gardenR2?.blocked
+          || (typeof action === "string" && action.startsWith("garden.") && GARDEN_R2_RECONCILE_ERRORS.has(result.error));
+        const errorView = reconcileGarden
+          ? mergeGardenR2Snapshot(state.snapshot, result.snapshot, { accountId: requestAccountId, requestSnapshot })
+          : state.snapshot;
         return {
           busy,
+          snapshot: errorView === state.snapshot ? state.snapshot : { ...errorView, receivedAt: Date.now() },
           message: result.error,
           lastResult: result,
         };
       }
-      const snapshot = result.snapshot
-        ? normalizeSnapshot(result.snapshot)
+      const gardenView = gardenR2Action && result.snapshot
+        ? mergeGardenR2Snapshot(state.snapshot, result.snapshot, { accountId: requestAccountId, requestSnapshot })
         : state.snapshot;
+      const snapshot = gardenR2Action
+        ? (gardenView === state.snapshot ? state.snapshot : { ...gardenView, receivedAt: Date.now() })
+        : result.snapshot ? normalizeSnapshot(protectGardenR2Snapshot(state.snapshot, result.snapshot)) : state.snapshot;
       return {
         busy,
         snapshot,
@@ -210,7 +228,7 @@ export const useGameHub = create((set, get) => ({
         status: "ready",
       };
     });
-    if (options.feedback !== false) {
+    if (options.feedback !== false && (!requestAccountId || get().snapshot?.player?.id === requestAccountId)) {
       haptic(result.error ? "warning" : "success");
       audioManager.play(result.error ? "warning" : "success");
     }
@@ -343,7 +361,7 @@ export const useGameHub = create((set, get) => ({
           return {
             pendingActions,
             busy,
-            snapshot: result.snapshot ? normalizeSnapshot(result.snapshot) : state.snapshot,
+            snapshot: result.snapshot ? normalizeSnapshot(protectGardenR2Snapshot(state.snapshot, result.snapshot)) : state.snapshot,
             lastResult: result,
             status: "ready",
             message: "",
@@ -419,7 +437,11 @@ export const useGameHub = create((set, get) => ({
     set((state) => {
       const prev = state.snapshot;
       if (!prev) return state;
-      const next = {
+      if (payload.accountId != null && payload.accountId !== prev.player?.id) return state;
+      const guardedGarden = !!(prev.gardenR2 || payload.gardenR2);
+      if (guardedGarden && !gardenR2AccountMatches(prev, payload)) return state;
+      if (guardedGarden && compareSnapshotFreshness(payload, prev) < 0) return state;
+      let next = {
         ...prev,
         resources: payload.resources
           ? {
@@ -454,6 +476,18 @@ export const useGameHub = create((set, get) => ({
           ? { ...prev.achievements, raw: payload.achievements }
           : prev.achievements,
       };
+      if (guardedGarden) {
+        const gardenView = mergeGardenR2Snapshot(prev, payload);
+        next = {
+          ...next,
+          garden: gardenView.garden,
+          gardenR2: gardenView.gardenR2,
+          resources: { ...next.resources, gold: gardenView.resources?.gold },
+          player: gardenView.player,
+          serverTime: gardenView.serverTime,
+          gardenR2Available: gardenView.gardenR2Available,
+        };
+      }
       return { snapshot: normalizeSnapshot(next) };
     });
   },
