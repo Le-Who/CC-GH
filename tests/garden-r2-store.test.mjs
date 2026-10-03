@@ -52,14 +52,14 @@ function realtime(full) {
   };
 }
 const response = body => ({ ok: true, status: 200, text: async () => JSON.stringify(body), json: async () => body });
-function deferredRequest() {
+function deferredRequest(endpoint = "/api/player/mutate") {
   let finish, started;
   const ready = new Promise(resolve => { started = resolve; });
   const pending = new Promise(resolve => { finish = resolve; });
   globalThis.fetch = async (path, options) => {
     if (path === '/api/config') return response({ devAuthEnabled: false });
-    assert.equal(path, '/api/player/mutate');
-    started(JSON.parse(options.body));
+    assert.equal(path, endpoint);
+    started(options.body ? JSON.parse(options.body) : null);
     return pending;
   };
   return { ready, finish: body => finish(response(body)) };
@@ -390,4 +390,142 @@ test('non-Garden error responses retain their existing snapshot contract', async
   const current = useGameHub.getState().snapshot;
   request.finish({ error: 'CLIENT_UPDATE_REQUIRED', snapshot: snapshot({ revision: 2, seq: 11, time: 2000 }) }); await pending;
   assert.equal(useGameHub.getState().snapshot, current); assert.equal(useGameHub.getState().message, 'CLIENT_UPDATE_REQUIRED');
+});
+
+
+for (const [kind, result] of [
+  ['success', snapshot({ revision: 99, seq: 99, time: 9900, gold: 1 })],
+  ['failure', { error: 'NETWORK_ERROR' }],
+]) test(`delayed snapshot ${kind} from A cannot replace B or its ready status/message`, async () => {
+  const request = deferredRequest('/api/player/snapshot');
+  const pending = useGameHub.getState().loadSnapshot(); await request.ready;
+  assert.equal(useGameHub.getState().status, 'syncing');
+  useGameHub.getState().applySnapshot(snapshot({ id: 'account-b', revision: 8, gold: 555 }));
+  useGameHub.setState({ message: 'Current account message' });
+  const current = useGameHub.getState().snapshot;
+  request.finish(result);
+  assert.deepEqual(await pending, { error: 'ACCOUNT_CHANGED' });
+  assert.equal(useGameHub.getState().snapshot, current);
+  assert.equal(useGameHub.getState().status, 'ready');
+  assert.equal(useGameHub.getState().message, 'Current account message');
+});
+
+test('initial snapshot with no account still loads and clears the prior message', async () => {
+  useGameHub.setState({ snapshot: null, status: 'booting', message: 'Connecting' });
+  const request = deferredRequest('/api/player/snapshot');
+  const pending = useGameHub.getState().loadSnapshot(); await request.ready;
+  request.finish(snapshot());
+  const loaded = await pending;
+  assert.equal(loaded.player.id, 'account-a');
+  assert.equal(useGameHub.getState().snapshot, loaded);
+  assert.equal(useGameHub.getState().status, 'ready');
+  assert.equal(useGameHub.getState().message, '');
+});
+
+test('overlapping same-account refreshes retain newer R2 and gold observations', async () => {
+  const firstRequest = deferredRequest('/api/player/snapshot');
+  const first = useGameHub.getState().loadSnapshot(); await firstRequest.ready;
+  const secondRequest = deferredRequest('/api/player/snapshot');
+  const second = useGameHub.getState().loadSnapshot(); await secondRequest.ready;
+  secondRequest.finish(snapshot({ revision: 3, seq: 12, time: 3000, gold: 300 })); await second;
+  firstRequest.finish(snapshot({ revision: 2, seq: 11, time: 2000, gold: 75 }));
+  assert.equal((await first).player.id, 'account-a');
+  const current = useGameHub.getState();
+  assert.equal(current.snapshot.gardenR2.revision, 3);
+  assert.equal(current.snapshot.resources.gold, 300);
+  assert.equal(current.snapshot.player.syncSeq, 12);
+  assert.equal(current.status, 'ready');
+});
+
+for (const [kind, result] of [
+  ['success', snapshot({ revision: 99, seq: 99, time: 9900, gold: 1 })],
+  ['failure', { error: 'OLD_SESSION_FAILURE' }],
+]) test(`A to B to A fences the retired session's delayed snapshot ${kind}`, async () => {
+  const request = deferredRequest('/api/player/snapshot');
+  const pending = useGameHub.getState().loadSnapshot(); await request.ready;
+  useGameHub.getState().applySnapshot(snapshot({ id: 'account-b' }));
+  useGameHub.getState().applySnapshot(snapshot({ id: 'account-a', revision: 3, seq: 13, gold: 333 }));
+  useGameHub.setState({ message: 'Returned account message' });
+  const current = useGameHub.getState().snapshot;
+  request.finish(result);
+  assert.deepEqual(await pending, { error: 'ACCOUNT_CHANGED' });
+  assert.equal(useGameHub.getState().snapshot, current);
+  assert.equal(useGameHub.getState().status, 'ready');
+  assert.equal(useGameHub.getState().message, 'Returned account message');
+});
+
+for (const newerState of ['pending', 'ready', 'offline']) test(`older same-account refresh failure preserves the newer ${newerState} state`, async () => {
+  const firstRequest = deferredRequest('/api/player/snapshot');
+  const first = useGameHub.getState().loadSnapshot(); await firstRequest.ready;
+  const secondRequest = deferredRequest('/api/player/snapshot');
+  const second = useGameHub.getState().loadSnapshot(); await secondRequest.ready;
+  if (newerState === 'ready') {
+    secondRequest.finish(snapshot({ revision: 3, seq: 12, time: 3000, gold: 300 })); await second;
+  } else if (newerState === 'offline') {
+    secondRequest.finish({ error: 'CURRENT_FAILURE' });
+    assert.deepEqual(await second, { error: 'CURRENT_FAILURE' });
+  }
+  const { snapshot: current, status, message } = useGameHub.getState();
+  assert.equal(status, newerState === 'pending' ? 'syncing' : newerState);
+  firstRequest.finish({ error: 'OLD_FAILURE' });
+  assert.deepEqual(await first, { error: 'SNAPSHOT_SUPERSEDED' });
+  assert.equal(useGameHub.getState().snapshot, current);
+  assert.equal(useGameHub.getState().status, status);
+  assert.equal(useGameHub.getState().message, message);
+  if (newerState === 'pending') {
+    secondRequest.finish(snapshot({ revision: 3, seq: 12 })); await second;
+    assert.equal(useGameHub.getState().status, 'ready');
+  }
+});
+
+test('newer server observations from an older request still apply within the same account session', async () => {
+  const firstRequest = deferredRequest('/api/player/snapshot');
+  const first = useGameHub.getState().loadSnapshot(); await firstRequest.ready;
+  const secondRequest = deferredRequest('/api/player/snapshot');
+  const second = useGameHub.getState().loadSnapshot(); await secondRequest.ready;
+  secondRequest.finish(snapshot({ revision: 2, seq: 11, time: 2000, gold: 200 })); await second;
+  firstRequest.finish(snapshot({ revision: 3, seq: 12, time: 3000, gold: 300 }));
+  const loaded = await first;
+  assert.equal(loaded.gardenR2.revision, 3); assert.equal(loaded.resources.gold, 300);
+  assert.equal(useGameHub.getState().snapshot, loaded);
+  assert.equal(useGameHub.getState().status, 'ready'); assert.equal(useGameHub.getState().message, '');
+});
+
+test('overlapping initial refreshes keep the loaded account ready when the old request fails', async () => {
+  useGameHub.setState({ snapshot: null, status: 'booting', message: '' });
+  const firstRequest = deferredRequest('/api/player/snapshot');
+  const first = useGameHub.getState().loadSnapshot(); await firstRequest.ready;
+  const secondRequest = deferredRequest('/api/player/snapshot');
+  const second = useGameHub.getState().loadSnapshot(); await secondRequest.ready;
+  secondRequest.finish(snapshot()); const loaded = await second;
+  firstRequest.finish({ error: 'OLD_INITIAL_FAILURE' });
+  assert.deepEqual(await first, { error: 'ACCOUNT_CHANGED' });
+  assert.equal(useGameHub.getState().snapshot, loaded);
+  assert.equal(useGameHub.getState().status, 'ready'); assert.equal(useGameHub.getState().message, '');
+});
+
+test('overlapping initial successes may bind the same account and apply the newer observation', async () => {
+  useGameHub.setState({ snapshot: null, status: 'booting', message: '' });
+  const firstRequest = deferredRequest('/api/player/snapshot');
+  const first = useGameHub.getState().loadSnapshot(); await firstRequest.ready;
+  const secondRequest = deferredRequest('/api/player/snapshot');
+  const second = useGameHub.getState().loadSnapshot(); await secondRequest.ready;
+  firstRequest.finish(snapshot({ revision: 2, seq: 11, time: 2000, gold: 200 })); await first;
+  secondRequest.finish(snapshot({ revision: 3, seq: 12, time: 3000, gold: 300 }));
+  const loaded = await second;
+  assert.equal(loaded.gardenR2.revision, 3); assert.equal(loaded.resources.gold, 300);
+  assert.equal(useGameHub.getState().snapshot, loaded);
+  assert.equal(useGameHub.getState().status, 'ready');
+});
+
+for (const result of [snapshot(), { error: 'OLD_INITIAL_FAILURE' }]) test(`unscoped initial ${result.error ? 'failure' : 'success'} cannot replace another account`, async () => {
+  useGameHub.setState({ snapshot: null, status: 'booting', message: '' });
+  const request = deferredRequest('/api/player/snapshot');
+  const pending = useGameHub.getState().loadSnapshot(); await request.ready;
+  useGameHub.getState().applySnapshot(snapshot({ id: 'account-b' }));
+  const current = useGameHub.getState().snapshot;
+  request.finish(result);
+  assert.deepEqual(await pending, { error: 'ACCOUNT_CHANGED' });
+  assert.equal(useGameHub.getState().snapshot, current);
+  assert.equal(useGameHub.getState().status, 'ready');
 });

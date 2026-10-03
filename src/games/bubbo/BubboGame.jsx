@@ -9,6 +9,7 @@ import {audioManager} from '../../services/audioManager.js';
 import {useSnapshot,useAction,useExitToHub,useImmersiveGame} from '../../app/gameHooks.js';
 import {useAppI18n} from '../../app/i18n.jsx';
 import {useGameEvents} from '../../game-state/gameEvents.js';
+import {useGameHub} from '../../game-state/useGameHub.js';
 import {calcBubboReward} from '../../../game-logic/economy.js';
 import {advanceBubboClock} from './bubboMotion.js';
 import BubboPresentation from './BubboPresentation.jsx';
@@ -159,6 +160,8 @@ function BubboGame(){
         });
         if(Qe.error){
           setError(Qe.error);
+          // This dialog owns the start error; a second fixed notice can cover Exit.
+          if(useGameHub.getState().message===Qe.error)useGameHub.getState().clearMessage();
           return
         }
         finishedRef.current=false;

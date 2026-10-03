@@ -16,6 +16,9 @@ const RETRY_DELAYS_MS = [0, 2000, 5000, 15000, 30000, 60000];
 const GARDEN_R2_RECONCILE_ERRORS = new Set(["GARDEN_R2_REVISION_CONFLICT", "CLIENT_UPDATE_REQUIRED", "GARDEN_R2_CLIENT_UPDATE_REQUIRED"]);
 let outboxDrainPromise = null;
 let outboxDrainTimer = null;
+// Refresh ownership is in-memory only; no account data or persisted schema changes.
+let snapshotAccountSession = {};
+let latestSnapshotRequest = null;
 
 export function normalizeActiveTab(value) {
   const tab = String(value || "").trim();
@@ -170,9 +173,20 @@ export const useGameHub = create((set, get) => ({
   },
 
   loadSnapshot: async () => {
+    const requestAccountId = get().snapshot?.player?.id;
+    const requestSession = snapshotAccountSession;
+    const requestToken = latestSnapshotRequest = {};
     set({ status: "syncing" });
     const result = await api("/api/player/snapshot");
+    const currentAccountId = get().snapshot?.player?.id;
+    // Concurrent boot reads may bind the same first account, but never a foreign
+    // one. The session also fences A→B→A even when the final ID matches again.
+    const initialAccountMatch = requestAccountId == null && !result.error && result.player?.id === currentAccountId;
+    if (snapshotAccountSession !== requestSession || (currentAccountId !== requestAccountId && !initialAccountMatch)) return { error: "ACCOUNT_CHANGED" };
     if (result.error) {
+      // Older failures cannot override a newer refresh's pending/ready/error UI.
+      // Successful responses still use the existing server-observation merge.
+      if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
       set({ status: "offline", message: result.error });
       return result;
     }
@@ -482,3 +496,11 @@ export const useGameHub = create((set, get) => ({
   clearMessage: () => set({ message: "" }),
   actionLabel,
 }));
+
+
+// The first account binds an unscoped boot. Any departure from a bound account
+// starts a new session, including clearing it or switching away and back.
+useGameHub.subscribe((state, previous) => {
+  const previousAccountId = previous.snapshot?.player?.id;
+  if (previousAccountId != null && state.snapshot?.player?.id !== previousAccountId) snapshotAccountSession = {};
+});

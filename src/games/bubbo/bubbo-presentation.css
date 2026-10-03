@@ -71,6 +71,12 @@
 .bb-help ul{margin:8px 0;padding-left:18px}
 .bb-help li+li{margin-top:6px}
 .bb-dialog .bb-error{color:#ffc3a9}
+/* Reuse the menu hint's space below Start: errors never move Start or Exit.
+   Longer localized feedback scrolls within that same keyboard/touch-readable lane. */
+.bb-menu-feedback{position:relative;flex:0 0 auto;min-width:0;min-height:40px}
+.bb-menu-feedback-reserve{visibility:hidden;pointer-events:none}
+.bb-dialog .bb-menu-feedback-copy{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;overflow-wrap:anywhere}
+.bb-menu-feedback-copy:focus-visible{outline:3px solid #a9ffed;outline-offset:-3px}
 .bb-runtime-state{position:absolute;inset:20px;display:grid;place-content:center;text-align:center;gap:16px;background:#062b3bea}
 .bb-runtime-state button{min-height:44px;min-width:44px;border:1px solid #a4c5b3;border-radius:8px;padding:12px;background:#0b3b51}
 .telegram-app.play-mode.immersive-mode[data-active-tab=bubbo]{padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}

@@ -23,8 +23,8 @@
     },
     {
       "path": "src/game-state/useGameHub.js",
-      "bytes": 19172,
-      "sha256": "133fbe300b2764fae27173d4211afb4dd211b8a1d58f360d13c0b36c532f3a53"
+      "bytes": 20610,
+      "sha256": "e76f7795d5e8f5b93c3981e819b70e2a87d305bb86ce1590b6da25f7b87d94f8"
     },
     {
       "path": "src/app/gameChunks.jsx",
@@ -125,9 +125,9 @@
       "source": "src/game-state/useGameHub.js",
       "sourceSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
       "candidate": "preview/yard-persistent-candidate/overrides/src/game-state/useGameHub.js",
-      "candidateSha256": "900231cda34ab62a2c62efc365a365e1a7136bbae2f9925e0530a8ed77bbb6bf",
+      "candidateSha256": "277d7a0f6254c1b2eceb5d05064e43870b98f62814ed7af7d22013b85f7a7f5c",
       "rebasedFromCandidateSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
-      "reviewedProductionSha256": "133fbe300b2764fae27173d4211afb4dd211b8a1d58f360d13c0b36c532f3a53"
+      "reviewedProductionSha256": "e76f7795d5e8f5b93c3981e819b70e2a87d305bb86ce1590b6da25f7b87d94f8"
     },
     {
       "source": "src/app/gameChunks.jsx",

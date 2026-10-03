@@ -5,7 +5,7 @@
 import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
 import {HudRegion,HudEditableRegion,useHudLayout} from '../../app/hud-layout/index.js';
-import {useAppI18n} from '../../app/i18n.jsx';
+import {useAppI18n,playerFeedbackText} from '../../app/i18n.jsx';
 import {useGameEvents} from '../../game-state/gameEvents.js';
 import {useDialogFocus} from '../../app/useDialogFocus.js';
 import {useEscapeDismiss} from '../../app/useDismissableLayer.js';
@@ -380,8 +380,6 @@ function BubboPresentation({
                 src:bubboArtUrl(oe),
                 alt:""
               }, oe))
-            }), jsxRuntime.jsx("p", {
-              children:t("bubbo.menuHelp")
             }), jsxRuntime.jsx("div", {
               className:"bb-modes",
               children:["classic", "timed"].map(oe=>jsxRuntime.jsxs(BubboButton, {
@@ -452,10 +450,22 @@ function BubboPresentation({
               onClick:()=>onStart(mode),
               children:t("common.restart")
             })]
-          }), error&&jsxRuntime.jsx("p", {
+          }), phase==="menu"&&jsxRuntime.jsxs("div", {
+            className:"bb-menu-feedback",
+            children:[jsxRuntime.jsx("p", {
+              className:"bb-menu-feedback-reserve",
+              "aria-hidden":"true",
+              children:t("bubbo.menuHelp")
+            }), jsxRuntime.jsx("p", {
+              className:`bb-menu-feedback-copy${error?" bb-error":""}`,
+              role:error?"alert":void 0,
+              tabIndex:error?0:void 0,
+              children:error?playerFeedbackText(language,error):t("bubbo.menuHelp")
+            },error?"error":"help")]
+          }), phase!=="menu"&&error&&jsxRuntime.jsx("p", {
             className:"bb-error",
             role:"alert",
-            children:error
+            children:playerFeedbackText(language,error)
           }), jsxRuntime.jsx(BubboButton, {
             "data-testid":"bb-exit",
             onClick:onExit,
