@@ -44,3 +44,5 @@ test('fixture root normalization serves entry, modules and assets with either sl
 test('fixture scope rejects traversal, absolute paths and sibling-prefix escapes',()=>{
  for(const file of['../secret','../../etc/passwd','/etc/passwd','../pip-fixture-other/index.html','public/../../../secret',decodeURIComponent('%2e%2e%2fsecret')])assert.equal(fixtureFilePath('/tmp/pip-fixture/',file),null,file);
 });
+
+test('the fixture nibble timestamp selects an actual nibble row after the brace boundary',()=>{assert.equal(source.sample(plan,plan.schedule.combinedStart+4800).sourceRole,'brace');assert.equal(source.sample(plan,plan.schedule.combinedStart+4840).sourceRole,'nibble');assert.equal(source.sample(plan,plan.schedule.combinedStart+5200).sourceRole,'nibble');});

@@ -1,5 +1,5 @@
 {
-  "id": "pip-snack-ci-overlay/r1b-boot-fix",
+  "id": "pip-snack-ci-overlay/r1c-phase-fix",
   "runtimeActivated": false,
   "browserStatus": "NOT_RUN_LOCAL_ROUTE_BLOCKED",
   "nodeTestsPassed": 14,
@@ -706,8 +706,8 @@
     },
     {
       "path": "recovery-tools/yard-pip-snack-qa/source/src/games/companion-yard-v2/pip-fixture.mjs",
-      "bytes": 7585,
-      "sha256": "06c3b9fcdf3dd7a793ed8876d195332dc9d594ecd45c01ea7a64749e3c1b941e"
+      "bytes": 7633,
+      "sha256": "da8dfdc56fd6672b9c439fb80a71cb216178ccea3346583c0ef5259017fc3f4f"
     },
     {
       "path": "recovery-tools/yard-pip-snack-qa/source/src/games/companion-yard-v2/pose-selection.mjs",
@@ -726,13 +726,13 @@
     },
     {
       "path": "tests/yard-pip-e2e/visit.spec.js",
-      "bytes": 8868,
-      "sha256": "b2fa7d9f32b2a8daa35e0b055090af5ca86852fd9e1bb08b0aff74f40dbab2e3"
+      "bytes": 9918,
+      "sha256": "8cf6f2a75ab751e911a88f2509b71ece7efd973838f324450439d1ad1d1d1513"
     },
     {
       "path": "tests/yard-pip-source.test.mjs",
-      "bytes": 12021,
-      "sha256": "34ab8d21c56b46c16c0ae313e9b80d2fd673d9829eea10b35b7e6ee78b7c009d"
+      "bytes": 12381,
+      "sha256": "56fd208036a715c7d1ba4bf8bc806159c908f4223c0a2820d1be8f6966fc2bd8"
     },
     {
       "path": "scripts/yard-pip-fixture-path.mjs",
@@ -742,6 +742,6 @@
   ],
   "browserTestsPrepared": 15,
   "parentArchiveSha256": "f1b40a664f476578f7a89eef207ee94095a679575572f854c24529de77f1becc",
-  "parentCommit": "5001cfa39a80952ef10c8f1e362b2954a039d204",
-  "nodeTests": 16
+  "parentCommit": "3d9e6bc",
+  "nodeTests": 17
 }

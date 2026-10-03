@@ -14,7 +14,7 @@ const source=createPipSnackCandidate({clip,strideContract,motionContract});
 // Explicit local fixture permission cannot change the default source registry.
 const profiles={pip:{...PIP_ACTOR_PROFILE,playbackReady:true}},entry=createPipActorMediaEntry(manifest,{source,assetBaseURL:base,profiles}),presenter=entry.presenter,plan=fixture.plan;
 const still=manifest.stills['pip:target-snack-table'],image=new Image();image.src=new URL(still.src,base).href;await image.decode();
-let cache,projection,pendingSize=null,currentAt=plan.schedule.combinedStart+4800,playing=false,lastStamp=performance.now(),disposed=false,lastDraw=null,holdCount=0,frameCount=0,lastStatus=0;
+let cache,projection,pendingSize=null,currentAt=plan.schedule.combinedStart+5200,playing=false,lastStamp=performance.now(),disposed=false,lastDraw=null,holdCount=0,frameCount=0,lastStatus=0;
 const makeCache=()=>new AtlasCache(base,3,{maxDecodedBytes:32*1024*1024,maxConcurrentDecodes:1,onEvent:e=>{events.push({...e,generation});if(events.length>1000)events.shift();}});
 cache=makeCache();
 function resize(){const r=canvas.getBoundingClientRect();pendingSize={width:r.width,height:r.height,dpr:Math.min(devicePixelRatio||1,2)};}
@@ -24,7 +24,7 @@ function shadow(p){const q=projection.project(p),ppu=projection.ppu;ctx.save();c
 function draw(view){applyResize();let supportCount=0;ctx.clearRect(0,0,projection.width,projection.height);const p=fixture.placement;
  if(!view.targetSlotHidden){const q=projection.project(p),scale=projection.ppu/still.worldPixelScale;ctx.drawImage(image,q.x-still.pivotPx[0]*scale,q.y-still.pivotPx[1]*scale,image.width*scale,image.height*scale);}
  if(view.pose){const basePoint=view.anchor,contacts=view.clip.groundContacts[view.index]||[];supportCount=contacts.length;for(const p of contacts)shadow({x:basePoint.x+p[0]*8,y:basePoint.y+p[1]*8,z:0});cache.draw(ctx,view.clip,view.index,projection.project(basePoint),projection.ppu);}
- lastDraw={groundSupportCount:supportCount,at:currentAt,clip:view.clip?.id??null,index:view.index??null,targetHidden:view.targetSlotHidden,phase:view.pose?.phase??'complete',role:view.pose?.role??'none',sourceRole:view.pose?.sourceRole??null,position:view.pose?.position??null};frameCount++;
+ lastDraw={groundSupportCount:supportCount,at:currentAt,clip:view.clip?.id??null,index:view.index??null,targetHidden:view.targetSlotHidden,phase:view.pose?.phase??(currentAt<plan.schedule.leavesAt?'entry-wait':'complete'),role:view.pose?.role??'none',sourceRole:view.pose?.sourceRole??null,position:view.pose?.position??null};frameCount++;
 }
 const props=()=>[{...fixture.placement,supported:true,drawStandalone:true,transform:{x:fixture.placement.x,y:fixture.placement.y,rotationZ:0}}];
 function tick(stamp){if(disposed)return;const dt=Math.min(100,stamp-lastStamp);lastStamp=stamp;if(playing&&!document.hidden)currentAt=Math.min(plan.schedule.leavesAt,currentAt+dt*Number($('#speed').value));if(currentAt>=plan.schedule.leavesAt){playing=false;$('#play').textContent='Play';}
@@ -37,7 +37,7 @@ function tick(stamp){if(disposed)return;const dt=Math.min(100,stamp-lastStamp);l
  }catch(error){status.dataset.error='true';status.textContent=String(error.message)+' · Last coherent frame retained; Retry / clear can recover';if(errors.at(-1)!==String(error.message))errors.push(String(error.message));playing=false;$('#play').textContent='Play';}
  requestAnimationFrame(tick);
 }
-function jump(name){playing=false;$('#play').textContent='Play';const start=plan.schedule.combinedStart,end=plan.schedule.combinedEnd;currentAt={approach:plan.schedule.enterAt+5000,action:start,nibble:start+4800,back:start+11520,turn:start+14000,rest:start+17920,seam:start+19200-40,depart:end+1200,done:plan.schedule.leavesAt}[name];}
+function jump(name){playing=false;$('#play').textContent='Play';const start=plan.schedule.combinedStart,end=plan.schedule.combinedEnd;currentAt={approach:plan.schedule.enterAt+5000,action:start,nibble:start+5200,back:start+11520,turn:start+14000,rest:start+17920,seam:start+19200-40,depart:end+1200,done:plan.schedule.leavesAt}[name];}
 $('#play').onclick=()=>{playing=!playing;$('#play').textContent=playing?'Pause':'Play';lastStamp=performance.now();};$('#restart').onclick=()=>{playing=false;$('#play').textContent='Play';currentAt=0;};$('#step').onclick=()=>{playing=false;$('#play').textContent='Play';currentAt=Math.min(plan.schedule.leavesAt,currentAt+40);};$('#phase').onchange=e=>jump(e.target.value);$('#time').oninput=e=>{playing=false;$('#play').textContent='Play';currentAt=Number(e.target.value);};
 $('#delay').onclick=()=>{delay=delay?0:1200;$('#delay').textContent=delay?'Decode delayed':'Delay decode';};$('#fail').onclick=()=>{failOnce=true;status.textContent='Next atlas request will fail intentionally';};$('#retry').onclick=()=>{cache.dispose();generation++;cache=makeCache();status.dataset.error='false';};
 window.addEventListener('pagehide',()=>{disposed=true;cache.dispose();});

@@ -211,6 +211,14 @@ jobs:
             playwright-report-pip/
           if-no-files-found: ignore
           retention-days: 14
+      - name: Preserve compact Pip review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pip-compact-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-pip/compact/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Preserve canonical Yard evidence
         if: always()
         uses: actions/upload-artifact@v7
