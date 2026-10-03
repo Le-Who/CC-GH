@@ -291,9 +291,9 @@
     },
     {
       "source": "tests/asset-runtime.test.js",
-      "sourceSha256": "d5ccda2a01a388775441fd0f8589ab235174260ec458b0336109c16496100b0d",
+      "sourceSha256": "11f9ccebac84aebb3723f68e908461b1dd241c931bdccf8589b0c2240b5a7fd3",
       "candidate": "preview/yard-persistent-candidate/checks-src/asset-runtime.source.mjs",
-      "candidateSha256": "9ce53c591ffc9450f1cade0881338b5c3cc6aef69187dbbaded7af6172f8d6a6",
+      "candidateSha256": "b6c4c92395ca9bdfe68a311dbda84ea93cb2fad8bb50f5777429600aa54d63a3",
       "staticSourceAdapted": true
     },
     {

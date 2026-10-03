@@ -2,6 +2,7 @@
  * mint a trusted context, alter a footprint, or authorize a missing source. */
 import pip from './media/pip/snack-combined-binding.json' with {type:'json'};
 import pebble from './media/pebble/combined-binding.json' with {type:'json'};
+import {INTRINSIC_PROP_SOURCES,intrinsicPropReadiness} from './intrinsic-props.mjs';
 import {YARD_GOODIES} from './catalog.mjs';
 import {clone,deepFreeze,digest} from './util.mjs';
 const minted=new WeakSet();
@@ -23,7 +24,8 @@ export function createTrustedObstacleContext(mediaRegistry){
   const matches=(mediaRegistry?.bindings||[]).filter(b=>b.id===c.bindingId&&b.visitorId===c.visitorId&&b.goodieId===id&&b.revision===c.bindingRevision&&b.playbackReady===true&&b.requiredPhases?.length&&b.requiredPhases.every(p=>b.validatedPhases?.includes(p))&&b.conditions?.includes('new'));
   if(matches.length===1)props[id]=c;
  }
- const context=deepFreeze({format:'yard-trusted-source-obstacles/v1',revision:digest(props),props});minted.add(context);return context;
+ const intrinsic=intrinsicPropReadiness(mediaRegistry);Object.assign(props,intrinsic.props);
+ const context=deepFreeze({format:'yard-trusted-source-obstacles/v1',revision:digest(props),props,...(Object.keys(intrinsic.props).length?{providerProofs:intrinsic.proofs}:{})});minted.add(context);return context;
 }
 export const obstacleContextRevision=context=>context===undefined?null:minted.has(context)?context.revision:'untrusted-obstacle-context';
 export function planningSceneWithObstacles(baseScene,yard,context){
@@ -37,7 +39,8 @@ export function planningSceneWithObstacles(baseScene,yard,context){
   if(!c){if(known)continue;return{ok:false,code:'PROP_OBSTACLE_SOURCE_UNAVAILABLE'};}
   if(typeof p.slotId!=='string'||!p.slotId||![p.x,p.y].every(Number.isFinite)||p.condition!=='new'||(p.rotationZ??0)!==0)return{ok:false,code:'PROP_OBSTACLE_STATE_UNSUPPORTED'};
   if(known)continue;
-  footprints[p.goodieId]=clone(c.footprint);foreign.push({slotId:p.slotId,goodieId:p.goodieId,x:p.x,y:p.y,condition:p.condition,rotationZ:0,bindingId:c.bindingId,bindingRevision:c.bindingRevision,sourceRigSha256:c.sourceRigSha256,footprint:clone(c.footprint)});
+  footprints[p.goodieId]=clone(c.footprint);foreign.push({slotId:p.slotId,goodieId:p.goodieId,x:p.x,y:p.y,condition:p.condition,rotationZ:0,
+   ...(Object.hasOwn(INTRINSIC_PROP_SOURCES,p.goodieId)?{intrinsicIdentity:c.identity,sourceGeometrySha256:c.sourceGeometrySha256}:{bindingId:c.bindingId,bindingRevision:c.bindingRevision,sourceRigSha256:c.sourceRigSha256}),footprint:clone(c.footprint)});
  }
  if(!foreign.length)return{ok:true,scene:baseScene,receipt:null};
  // These immutable supplemental obstacles affect planning, never the old
@@ -55,6 +58,9 @@ export function propObstacleReceiptCompatible(plan,mediaRegistry){
  return r.foreign.every(row=>{
   const c=Object.hasOwn(context.props,row?.goodieId)?context.props[row.goodieId]:null;
   if(!c||typeof row.slotId!=='string'||!row.slotId||slots.has(row.slotId)||![row.x,row.y].every(Number.isFinite)||row.condition!=='new'||row.rotationZ!==0)return false;
-  slots.add(row.slotId);return row.bindingId===c.bindingId&&row.bindingRevision===c.bindingRevision&&row.sourceRigSha256===c.sourceRigSha256&&row.footprint?.width===c.footprint.width&&row.footprint?.height===c.footprint.height;
+  slots.add(row.slotId);const sourceMatches=Object.hasOwn(INTRINSIC_PROP_SOURCES,row.goodieId)
+   ?row.intrinsicIdentity===c.identity&&row.sourceGeometrySha256===c.sourceGeometrySha256&&context.providerProofs?.[row.goodieId]?.length>0
+   :row.bindingId===c.bindingId&&row.bindingRevision===c.bindingRevision&&row.sourceRigSha256===c.sourceRigSha256;
+  return sourceMatches&&row.footprint?.width===c.footprint.width&&row.footprint?.height===c.footprint.height;
  });
 }
