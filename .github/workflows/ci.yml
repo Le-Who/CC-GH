@@ -191,6 +191,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Check Mochi source presenter
+        run: node --test tests/yard-mochi-presentation.test.mjs
       - name: Validate inactive Mochi media
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
       - name: Preserve Mochi diagnostics

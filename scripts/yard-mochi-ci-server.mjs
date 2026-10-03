@@ -3,7 +3,7 @@ import http from 'node:http';import {readFile} from 'node:fs/promises';import {r
 if(process.env.CI!=='true'||process.env.GITHUB_ACTIONS!=='true')throw Error('Mochi browser validation runs only through the authorized CI workflow');
 const root=resolve(fileURLToPath(new URL('..',import.meta.url))),qa=resolve(root,'recovery-tools/yard-mochi-combined-qa'),sourceRoot=resolve(qa,'source');
 const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.webp':'image/webp','.png':'image/png'};
-const allowedSource=p=>p.startsWith('game-logic/yard-v2/')||['game-logic/yard-catalog.js','game-logic/yard-playzones.js','src/games/companion-yard-v2/atlas.mjs','src/games/companion-yard-v2/projection.mjs'].includes(p);
+const allowedSource=p=>p.startsWith('game-logic/yard-v2/')||['game-logic/yard-catalog.js','game-logic/yard-playzones.js','src/games/companion-yard-v2/atlas.mjs','src/games/companion-yard-v2/projection.mjs','src/games/companion-yard-v2/mochi-candidate-presentation.mjs'].includes(p);
 const server=http.createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://127.0.0.1');let base,relative;

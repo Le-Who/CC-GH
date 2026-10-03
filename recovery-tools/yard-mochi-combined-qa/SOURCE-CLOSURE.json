@@ -40,7 +40,7 @@
     },
     {
       "path": "game-logic/yard-v2/media/mochi-combined-binding.mjs",
-      "sha256": "db2de3c5b8e8df45d9e1399d14bbcfbd36c8632a6ccb234bfdd2e7250c18184f"
+      "sha256": "176a55570cbfe137470eab30c80835aa1400b661dff2ec7c964ae625c3c6deb5"
     },
     {
       "path": "game-logic/yard-v2/media/stride-routes.mjs",
@@ -61,6 +61,10 @@
     {
       "path": "src/games/companion-yard-v2/atlas.mjs",
       "sha256": "00ba6a7f9bba5fc9ba4cd225643c370a52907778f617f6f585199aa0c42a4f17"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mochi-candidate-presentation.mjs",
+      "sha256": "b95f0e038fd40faa9d8273c36d090a03ae8dc50897b7627d92dd14120aa01646"
     },
     {
       "path": "src/games/companion-yard-v2/projection.mjs",

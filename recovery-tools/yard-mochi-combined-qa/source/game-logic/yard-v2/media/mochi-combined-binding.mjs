@@ -88,7 +88,7 @@ export function createMochiCombinedCandidate({clip,strideContract,motionContract
  function compose(props,plan,at,{readyFrame=null}={}){
   if(!Array.isArray(props))throw new TypeError('Explicit prop rows required');
   const pose=sample(plan,at),target=plan?.initialPlacement?props.filter(p=>p.slotId===plan.slotId):[],current=target[0]?.transform||target[0];
-  const unchanged=target.length===1&&target[0].goodieId===c.goodieId&&current
+  const unchanged=target.length===1&&target[0].goodieId===c.goodieId&&target[0].condition===plan.initialPlacement.condition&&current
    &&near(current.x,plan.initialPlacement.x)&&near(current.y,plan.initialPlacement.y)
    &&near(current.rotationZ??0,plan.initialPlacement.rotationZ??0);
   const decoded=readyFrame?.clipId===pose?.clipId&&readyFrame?.frameIndex===pose?.frameIndex;

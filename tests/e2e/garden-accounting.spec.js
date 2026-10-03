@@ -138,13 +138,15 @@ test('ambiguous expired pending action can be explicitly archived against server
 
 test('same browser A → fresh B → A preserves ownership, earned credit and the legacy recovery copy',async({page})=>{
  const userA=uid(),userB=uid();
- // One persistent browser context; change only the development authentication
- // identity between reloads. No snapshot/mutate endpoint is routed or mocked.
+ // One persistent cached-client browser context; change only authentication
+ // between reloads. The discovery bridge leaves all requests and economics real.
+ await useLegacyGardenClient(page);
  await page.addInitScript(()=>{localStorage.setItem('garden_shelf_language','en');});
  await page.goto('/');
  await page.evaluate(id=>localStorage.setItem('gh_dev_user_id',id),userA);
  await boot(page);
  const firstA=await serverSnapshot(page);
+ expect(firstA.gardenR2).toBeNull();expect(firstA.gardenR2Available).toBe(false);
  const aGarden={...createGardenEconomyState(Date.now()),name:'Account A garden',plants:[{id:'account-a-owned-daisy',type:'daisy',level:1,shelfIndex:0,spotIndex:0,phase:0,phaseProgress:0,lastTapped:0}],totalGoldEarned:10000};
  const aApplied=await page.evaluate(async({garden,accountId,revision})=>{
   const streamId='account_cache_fixture_a_stream',clientActionId=`garden:${streamId}:1`;
@@ -160,6 +162,7 @@ test('same browser A → fresh B → A preserves ownership, earned credit and th
  const bRequests=[];const observe=request=>{if(request.url().includes('/api/player/mutate'))bRequests.push(request.postDataJSON());};page.on('request',observe);
  await page.reload();await expect(page.locator('.status-dot.ready')).toBeVisible();await expect(page.locator('.gs2-stage')).toBeVisible();
  const firstB=await serverSnapshot(page);
+ expect(firstB.gardenR2).toBeNull();expect(firstB.gardenR2Available).toBe(false);
  expect(firstB.player.id).not.toBe(firstA.player.id);
  await expect.poll(async()=>(await localGarden(page,firstB.player.id))?.totalGoldEarned).toBe(0);
  await expect(page.locator('[data-plant-id]')).toHaveCount(0);

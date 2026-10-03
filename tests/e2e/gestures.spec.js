@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { exerciseMergePointerCleanup } from "./helpers/mergeV3.js";
-import { expectBloxCanvas, expectBloxLayout, readBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
+import { expectBloxCanvas, expectBloxLayout, readBloxLayout, exitBlox } from "./helpers/blox-v2.js";
 import { attemptMatch3Move } from "../../src/game-core/match3/engine.js";
 
 async function boot(page, prefix = "gesture", url = "/") {
@@ -248,7 +248,14 @@ test.describe("Pixi touch and drag interactions", () => {
       tray: Array.from(stage.querySelectorAll('.bx-keyboard-slot'), slot => slot.getAttribute('aria-label')),
     }));
     const savedRunLabels = await readRunLabels();
-    await pauseBlox(page);
+    // This case owns persistence and renderer re-entry. The viewport suites
+    // separately audit every pause-dialog target via pauseBlox; repeating those
+    // five trial clicks here consumes the mobile renderer's lifecycle budget.
+    await page.locator('[data-game-shell="blox"] [data-game-pause="true"]').click();
+    await expect(page.locator('.bx-stage')).toHaveAttribute('data-bx-phase', 'paused');
+    await expect(page.locator('.bx-dialog[role="dialog"]')).toBeVisible();
+    await expect(page.locator('.bx-dialog')).toHaveAttribute('aria-modal', 'true');
+    await expect(page.locator('.bottom-tabs')).toBeHidden();
     await exitBlox(page);
     await page.getByRole("button", { name: /Blox/ }).click();
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
