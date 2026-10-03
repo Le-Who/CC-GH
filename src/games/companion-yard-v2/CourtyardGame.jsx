@@ -30,6 +30,7 @@ export default function CourtyardGame() {
   const canvas=useRef(null),scene=useRef(null),latest=useRef(snapshot),dialog=useRef(null),drag=useRef(null),ghostRef=useRef(null);
   const [view,setView]=useState(null),[panel,setPanel]=useState(null),[ghost,setGhost]=useState(null),[error,setError]=useState('');
   const [companionName,setCompanionName]=useState('');
+  const [bowlFood,setBowlFood]=useState({});
   latest.current=snapshot;
   const yard=snapshot?.yard || {},busy=pending.some(p=>p.action.startsWith('yard.') && p.status!=='failed');
   const current=view || courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips);
@@ -85,8 +86,12 @@ export default function CourtyardGame() {
       <header><h2 id="cy-dialog-title">{{food:t('yard.nav.food'),decor:t('yard.persistent.decor'),guests:t('yard.persistent.guests')}[panel]}</h2><button aria-label={t('yard.persistent.closePanel')} onClick={closePanel}>×</button></header>
       <div className="cy-panel">
       {panel==='food' && <><p>{t('yard.persistent.foodNote')}</p>
-        {(yard.bowls||[]).map(b=><Row key={b.id} title={b.id==='bowl-1'?t('yard.persistent.bowl'):t('yard.persistent.secondBowl')} detail={b.foodId?t('yard.persistent.servings',{name:name(b.foodId),count:b.servings}):t('yard.persistent.bowlEmpty')}><button disabled={blocked || !(yard.foodInventory?.kibble>0)} onClick={()=>act('yard.setFood',{bowlId:b.id,foodId:'kibble'})}>{t('yard.persistent.fill')}</button></Row>)}
-        {Object.values(YARD_FOODS).map(f=><Row key={f.id} title={name(f.id)} detail={t('yard.persistent.stockCost',{count:yard.foodInventory?.[f.id]||0,cost:cost(f.cost)})+(f.id!=='kibble'?t('yard.persistent.laterSuffix'):'')}><button disabled={blocked || !bindings.foods?.[f.id]?.buy} onClick={()=>act('yard.buyFood',{foodId:f.id,qty:1})}>{t('yard.persistent.take')}</button></Row>)}
+        {(yard.bowls||[]).map(b=>{const foodId=bowlFood[b.id]||'kibble',ready=bindings.bowls?.[b.id]?.set===true;return <Row key={b.id} title={b.id==='bowl-1'?t('yard.persistent.bowl'):t('yard.persistent.secondBowl')} detail={!ready?t('yard.persistent.bowlSavedUnavailable'):b.foodId?t('yard.persistent.servings',{name:name(b.foodId),count:b.servings}):t('yard.persistent.bowlEmpty')}>
+          <select className="cy-food-select" aria-label={t('yard.persistent.foodFor',{bowl:b.id==='bowl-1'?t('yard.persistent.bowl'):t('yard.persistent.secondBowl')})} value={foodId} disabled={blocked || !ready} onChange={e=>setBowlFood(v=>({...v,[b.id]:e.target.value}))}>
+            {Object.values(YARD_FOODS).map(f=><option key={f.id} value={f.id} disabled={!bindings.foods?.[f.id]?.set}>{name(f.id)} · {yard.foodInventory?.[f.id]||0}</option>)}
+          </select><button disabled={blocked || !ready || !bindings.foods?.[foodId]?.set || !(yard.foodInventory?.[foodId]>0)} onClick={()=>act('yard.setFood',{bowlId:b.id,foodId})}>{t('yard.persistent.fill')}</button>
+        </Row>;})}
+        {Object.values(YARD_FOODS).map(f=><Row key={f.id} title={name(f.id)} detail={t('yard.persistent.stockCost',{count:yard.foodInventory?.[f.id]||0,cost:cost(f.cost)})+(!bindings.foods?.[f.id]?.buy?t('yard.persistent.unavailableSuffix'):'')}><button disabled={blocked || !bindings.foods?.[f.id]?.buy} onClick={()=>act('yard.buyFood',{foodId:f.id,qty:1})}>{t('yard.persistent.take')}</button></Row>)}
       </>}
       {panel==='decor' && <><p>{t('yard.persistent.decorNote')}</p>
         {(yard.placedGoodies||[]).map(raw=>{const p=current.props.find(p=>p.slotId===raw.slotId),supported=SUPPORTED_PROPS.includes(raw.goodieId),reserved=current.runtime?.visits?.some(v=>v.slotId===raw.slotId && v.reserved);return <Row key={raw.slotId} title={name(raw.goodieId)} detail={!supported?t('yard.persistent.savedScenePending'):reserved?t('yard.persistent.occupied'):p?.readiness?.status==='reposition-needed'?t('yard.persistent.safeApproach'):raw.condition!=='new'?t('yard.persistent.repairNeeded'):p?t('yard.persistent.inYard'):t('yard.persistent.chooseSpot')}>
@@ -105,7 +110,11 @@ export default function CourtyardGame() {
         <h3>{t('yard.persistent.knownGuests')}</h3>{Object.entries(yard.petbook||{}).map(([id,p])=><Row key={id} title={name(id)} detail={t('yard.persistent.visits',{count:p.visits||0})}><button disabled={blocked} onClick={()=>act('yard.capturePhoto',{visitorId:id})}>{t('yard.persistent.portrait')}</button></Row>)}
         <h3>{t('yard.screen.album')}</h3>{(yard.album?.photos||[]).map(p=><Row key={p.id} title={p.caption || name(p.visitorId)} detail={p.favorite?t('yard.persistent.favoritePhoto'):t('yard.persistent.memorySaved')}><button disabled={blocked || p.favorite} onClick={()=>act('yard.favoritePhoto',{photoId:p.id})}>{t('yard.favorite')}</button></Row>)}
         <h3>{t('yard.persistent.helper')}</h3><label>{t('yard.persistent.name')}<input value={companionName} maxLength={16} onChange={e=>setCompanionName(e.target.value)} /></label><button className="cy-wide" disabled={blocked || !companionName.trim()} onClick={()=>act('yard.configureCompanion',{name:companionName})}>{t('yard.persistent.saveName')}</button>
-        {yard.helper?.unlocked && <button className="cy-wide" disabled={blocked} onClick={()=>act('yard.configureCompanion',{helperAutoRefill:!yard.helper.autoRefill,preferredFoodId:'kibble'})}>{t('yard.persistent.autoFood',{state:yard.helper.autoRefill?t('yard.on'):t('yard.off')})}</button>}
+        {yard.helper?.unlocked && <label>{t('yard.persistent.helperFood')}<select className="cy-food-select" aria-label={t('yard.persistent.helperFood')} value={yard.helper.preferredFoodId||''} disabled={blocked} onChange={e=>act('yard.configureCompanion',{preferredFoodId:e.target.value})}>
+          {!bindings.foods?.[yard.helper.preferredFoodId]?.set && <option value={yard.helper.preferredFoodId||''} disabled>{t('yard.persistent.savedPreference')}</option>}
+          {Object.values(YARD_FOODS).filter(f=>bindings.foods?.[f.id]?.set).map(f=><option key={f.id} value={f.id}>{name(f.id)}</option>)}
+        </select></label>}
+        {yard.helper?.unlocked && <button className="cy-wide" disabled={blocked} onClick={()=>act('yard.configureCompanion',{helperAutoRefill:!yard.helper.autoRefill})}>{t('yard.persistent.autoFood',{state:yard.helper.autoRefill?t('yard.on'):t('yard.off')})}</button>}
         <p className="cy-note">{t('yard.persistent.previewNote')}</p>
       </>}
       {feedback && <p role="alert">{feedback}</p>}

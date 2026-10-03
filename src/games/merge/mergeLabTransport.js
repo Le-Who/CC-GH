@@ -5,9 +5,12 @@ import {createMergeLabAction,hashCanonical} from '../../../game-logic/merge-lab-
  * One persisted pending command keeps identical epoch, nonce, revision, hash and quote on retry,
  * including after reload. The UI must resolve this command before enabling another action.
  */
-export function createMergeLabTransport({api,getSnapshot,applySnapshot,refreshSnapshot,storage,accountId,catalog=MERGE_LAB_CATALOG}){
+export function createMergeLabTransport({api,getSnapshot,getAccountSession,applySnapshot,refreshSnapshot,storage,accountId,catalog=MERGE_LAB_CATALOG}){
   if(!accountId)throw new Error('Authenticated account identity required');
   const key=`game_hub_merge_pending_v1:${accountId}`;
+  const accountSession=getAccountSession?.();
+  const isCurrent=()=>getSnapshot()?.player?.id===accountId&&(!getAccountSession||getAccountSession()===accountSession);
+  const assertCurrent=()=>{if(!isCurrent())throw Object.assign(new Error('Workshop account session changed'),{code:'ACCOUNT_CHANGED'});};
   const settled=new Map();
   let inFlight=null;
   let pending=null;
@@ -26,11 +29,13 @@ export function createMergeLabTransport({api,getSnapshot,applySnapshot,refreshSn
     pending=null;
   };
   const snapshot=()=>{
+    assertCurrent();
     const current=getSnapshot();
     if(current?.player?.id!==accountId||current.merge?.schemaVersion!==3||!current.merge.serverEpoch)throw new Error('A confirmed workshop snapshot is required');
     return current;
   };
   function acceptSnapshot(next){
+    assertCurrent();
     if(!next)return getSnapshot();
     if(next.player?.id!==accountId)throw new Error('Unexpected account in workshop reply');
     const current=getSnapshot();
@@ -40,14 +45,18 @@ export function createMergeLabTransport({api,getSnapshot,applySnapshot,refreshSn
     return getSnapshot();
   }
   async function send(record){
+    assertCurrent();
     if(inFlight)return inFlight;
     inFlight=(async()=>{
-      const response=await api('/api/player/mutate',{action:'merge.lab',payload:record.payload});
+      const response=await api('/api/player/mutate',{accountId,action:'merge.lab',payload:record.payload},{isCurrent});
+      assertCurrent();
+      if(response?.error==='ACCOUNT_CHANGED')throw Object.assign(new Error('Workshop account session changed'),{code:'ACCOUNT_CHANGED'});
       const result=response?.mergeLab;
       if(!result||typeof result.ok!=='boolean'||result.ok&&!response.snapshot)throw new Error('No confirmed workshop transaction envelope');
       let confirmedPlayer=acceptSnapshot(response.snapshot);
       if(!result.ok&&refreshSnapshot){
         const fresh=await refreshSnapshot();
+        assertCurrent();
         if(fresh?.merge)confirmedPlayer=acceptSnapshot(fresh);
       }
       const outcome={...result,player:confirmedPlayer};
@@ -62,6 +71,7 @@ export function createMergeLabTransport({api,getSnapshot,applySnapshot,refreshSn
     pendingRequestId:()=>pending?.requestId??null,
     resumePending:()=>pending?send(pending):Promise.resolve(null),
     async onAction(type,parameters,{requestId}={}){
+      assertCurrent();
       if(typeof requestId!=='string'||!requestId)throw new Error('A stable caller request ID is required');
       const inputHash=hashCanonical({type,parameters});
       const prior=settled.get(requestId);
@@ -80,9 +90,11 @@ export function createMergeLabTransport({api,getSnapshot,applySnapshot,refreshSn
       return send(record);
     },
     async getQuote(type,parameters){
+      assertCurrent();
       if(pending)throw new Error('Resolve the pending workshop action first');
       const current=snapshot();
-      const response=await api('/api/merge/lab/quote',{type,parameters,expectedMergeEpoch:current.merge.serverEpoch});
+      const response=await api('/api/merge/lab/quote',{accountId,type,parameters,expectedMergeEpoch:current.merge.serverEpoch},{isCurrent});
+      assertCurrent();
       if(!response?.quote)throw Object.assign(new Error(response?.error||'No confirmed quote'),{code:response?.code});
       if(response.quote.serverEpoch!==current.merge.serverEpoch)throw Object.assign(new Error('Workshop save changed'),{code:'MERGE_EPOCH_CONFLICT'});
       return response.quote;

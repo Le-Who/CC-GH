@@ -89,6 +89,18 @@ jobs:
           NODE_OPTIONS: ''
         run: node --test --test-concurrency=1 tests/garden-r2-postgres.test.mjs
 
+      - name: Inactive Yard v2 PostgreSQL15 persistence and cross-process OCC
+        env:
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: candidate
+          YARD_CANDIDATE_CI: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+        run: node --test --test-concurrency=1 tests/yard-v2-postgres.test.mjs
+
       - name: Install Chromium for browser regression tests
         run: pnpm exec playwright install --with-deps chromium
 
@@ -201,6 +213,37 @@ jobs:
         run: node --test tests/yard-pip-source.test.mjs
       - name: Validate inactive Pip visit
         run: pnpm exec playwright test -c playwright.pip.config.js --project=chromium --workers=1
+      - name: Validate Pebble shared-scene candidate
+        run: pnpm exec playwright test -c playwright.yard-pebble.config.js --project=chromium --workers=1
+      - name: Validate canonical Pip scene
+        run: pnpm exec playwright test -c playwright.pip-canonical.config.js --project=chromium --workers=1
+      - name: Collect bounded Pebble diagnostics
+        if: always()
+        run: if [ -f test-results-yard-pebble/results.json ]; then node scripts/collect-yard-pebble-diagnostics.mjs; fi
+      - name: Preserve Pebble compact review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble viewport frames
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve canonical Pip compact review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pip-canonical-compact-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-pip-canonical/compact/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Preserve Pip visit evidence
         if: always()
         uses: actions/upload-artifact@v7

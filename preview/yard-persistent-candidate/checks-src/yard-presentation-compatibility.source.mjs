@@ -173,7 +173,7 @@ test('explicit invalid binding calibration fails before admission preflight inst
     const registry=structuredClone(getMikaServerOptions().mediaRegistry),binding=registry.bindings.find(b=>b.goodieId==='sun_cushion');
     binding.calibrationHash=invalid;let called=false;
     const policy=createAdmissionPolicy({mediaRegistry:registry,preflight:()=>{called=true;return{ok:true,plan:null};}});
-    const result=policy({visitor:{id:binding.visitorId},goodie:{id:binding.goodieId},activity:{id:binding.activityIds[0]},placement:{condition:'new'},reserved:[]});
+    const result=policy({visitor:{id:binding.visitorId},goodie:{id:binding.goodieId},activity:{id:binding.activityIds[0]},placement:{condition:'new'},bowl:{id:'bowl-1',foodId:'kibble'},reserved:[]});
     assert.equal(result.ok,false);assert.equal(result.code,'MEDIA_CALIBRATION_HASH_REQUIRED');assert.equal(called,false);
   }
 });

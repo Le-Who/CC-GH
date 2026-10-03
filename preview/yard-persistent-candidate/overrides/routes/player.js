@@ -1370,6 +1370,9 @@ export default function playerRoutes(requireAuth, resolveUser) {
       const { userId, username } = resolveUser(req);
       if (!userId) return res.status(400).json({ error: "userId required" });
       const { action, payload = {}, clientActionId = null, intentServerTime = null } = req.body || {};
+      // Optional for old clients; new durable intents bind the expected owner
+      // independently of the authorization header resolved at send time.
+      if (req.body?.accountId != null && req.body.accountId !== userId) return res.status(409).json({ error: "ACCOUNT_CHANGED" });
       const serverNow = Date.now();
       const result = await withPlayerLock(userId, async (p) => applyActionWithReceipt(p, action, payload, {
         clientActionId,

@@ -1362,11 +1362,11 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(result.status,200);assert.equal(result.body.collected.gifts,0);assert.equal(p.yard.lastSimulatedAt,start);
   });
 
-  it("keeps unbound rare props and premium food gated before purchase or serving", async () => {
+  it("keeps unbound rare props and an unrendered second bowl gated before costs", async () => {
     const p=createDefaultPlayer("yard-rare", "Yard");p.yard.currencies.treats=2000;p.yard.currencies.shinyTreats=20;
     const before=structuredClone(p.yard);
     for(const [action,payload] of [["yard.buyGoodie",{goodieId:"moon_lamp"}],["yard.placeGoodie",{goodieId:"moon_lamp",slotId:"small-2"}],
-      ["yard.buyFood",{foodId:"bonito_bowl",qty:1}],["yard.setFood",{foodId:"bonito_bowl"}]]){
+      ["yard.setFood",{foodId:"bonito_bowl",bowlId:"bowl-2"}]]){
       const result=await applyCurrentYardAction(p,action,payload);assert.equal(result.status,409);assert.equal(result.body.code,"YARD_BINDING_REQUIRED");
     }
     assert.deepEqual(p.yard,before);

@@ -1,0 +1,677 @@
+{
+  "id": "pip-canonical-closed/r1",
+  "releaseAccepted": false,
+  "sharedFilesBaseSha256": {
+    "src/games/companion-yard-v2/scene.mjs": "bce591fb5cfa8ea0c837a58a0fae27cc06ed63bca3f0febed21ae4a79f7202c2",
+    "game-logic/yard-v2/released-prop-profiles.mjs": "08685c8ab20b92c330cfed24094056d02a1244b1f1bb082239cb895830a3a5f6",
+    "game-logic/yard-v2/yard-media.mjs": "f326ade4987e590620e61849f977e159c4daa8178533a915b07bc67f48e5c2a8",
+    "game-logic/yard-v2/availability.mjs": "891d080f2055c750054e62f2e83623f003f889205f25a15e8482098ecc218a9d",
+    "game-logic/yard-v2/released-actor-profiles.mjs": "db80967ecf8bcd178f0ea10b29fc4f624fa3dec4004359b2caa2fdf75bc5eb8e"
+  },
+  "nodeTestsPassed": 11,
+  "browserTestsPrepared": 13,
+  "browserTestsPassed": null,
+  "sourceCheckpointSha256": "8dcb2e22ba054f3ef33a5c23a95fba9531b6e2caa2de79783e630bf8143cbdd2",
+  "files": [
+    {
+      "path": "game-logic/yard-v2/availability.mjs",
+      "bytes": 5269,
+      "sha256": "1a665c507c9855df76ba0560decf9e4eba5f653e6e9456109c8348636efde512"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip-actor-assets.mjs",
+      "bytes": 319,
+      "sha256": "71ad3d54ae57dd68fbfc976098af4bfabf01973b27e9a777a7573fee062a73cb"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip-authored-motion-ground.mjs",
+      "bytes": 9695,
+      "sha256": "5ec04f10460afbe180fbefbb86ef1b499d56918334f2e705e34df91fedbcd2dd"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip-authored-routes.mjs",
+      "bytes": 6314,
+      "sha256": "f0765b83bf1d03969b985cb6b63eb903357b9f7e11c7579688e8d519d8146790"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip-snack-binding.mjs",
+      "bytes": 11917,
+      "sha256": "5e63c0f54db1bda5f37a3108fd78392d8eb53cdd1d65833932053adf998026d8"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip/authored-stride.json",
+      "bytes": 55441,
+      "sha256": "781344a1797bbb3974b342ab3be222dbb71e1191df5f8e60e6fcca528500b26c"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip/ground-motion.json",
+      "bytes": 170100,
+      "sha256": "81df13fce6a5a3c0438cafb2d5c063c589ad81b0cf99b0f6b46216987dd9e2aa"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip/snack-combined-binding.json",
+      "bytes": 104471,
+      "sha256": "f6072b7bc8b2351cf68fb5ae13dd06286a83278432580296157d2e0783179d62"
+    },
+    {
+      "path": "game-logic/yard-v2/pip-actor-profile.mjs",
+      "bytes": 2388,
+      "sha256": "818796394a7c91182eebdf4a14243089edcdc90f558f68aeb29e41154f185ddc"
+    },
+    {
+      "path": "game-logic/yard-v2/pip-media.mjs",
+      "bytes": 5266,
+      "sha256": "85c0405b15087a67cd92b85545994910f046648f039ed056fb37cd707bc36eeb"
+    },
+    {
+      "path": "game-logic/yard-v2/pip-prop-profile.mjs",
+      "bytes": 497,
+      "sha256": "2905b9dd75ff4196f074fa9c97425f2b70c9749250c9b6dfd3033e1b09473654"
+    },
+    {
+      "path": "game-logic/yard-v2/released-actor-profiles.mjs",
+      "bytes": 834,
+      "sha256": "92c48c554a03d3000a71bd62735dc3c59183d8734da40a436058a4eaf4a66b89"
+    },
+    {
+      "path": "game-logic/yard-v2/released-prop-profiles.mjs",
+      "bytes": 1478,
+      "sha256": "beac8cfd2a9ba9eb5ba5502433b879487576f4311b3259882d0bdc90390cffa6"
+    },
+    {
+      "path": "game-logic/yard-v2/yard-media.mjs",
+      "bytes": 2852,
+      "sha256": "1bb2f6344dee10a232e0de86840c3a6ccb84c373c026d2ecdc4f0033dc3d263f"
+    },
+    {
+      "path": "playwright.pip-canonical.config.js",
+      "bytes": 871,
+      "sha256": "3f6367a2a5b719776ed508311bb67bc5be4d29b01a4c70b98143ecc62cd3cc88"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p00.webp",
+      "bytes": 278038,
+      "sha256": "1f1a581b764c79aa05fa9b47c89f0d0c54efdbd54ef7c112bc073cf75540e126"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p01.webp",
+      "bytes": 283596,
+      "sha256": "562897734d69259afa786f3fdeba2ee4e94c4aa57e49686e97daf9a3a64a81e0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p02.webp",
+      "bytes": 268828,
+      "sha256": "3f8a922e6e902dde7aa5bd286c3f0b80b79871f9c6d13df2290963c5cf0a7b74"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p03.webp",
+      "bytes": 248598,
+      "sha256": "532925b29a20ccc4c3fd409e982717cac8e47d69e3fddfec29ddfa5f58e0ffb1"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p04.webp",
+      "bytes": 239880,
+      "sha256": "86cfafd9105a1bb14fc50901833c9f9b7a26f0abc22f371415c4471228fff802"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p05.webp",
+      "bytes": 258174,
+      "sha256": "b3daa5a60e2d4e04bbfbf95dbb05e89f8e61da1b8e5252f48b7b80fb85781ac0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-0-p06.webp",
+      "bytes": 22476,
+      "sha256": "a6166ad90529aee2a852eeced1b13c39039007696b2029e94fd2385daac84243"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p00.webp",
+      "bytes": 248714,
+      "sha256": "1903bb93bcfaa91bd5c665cdd4dbc4dd3f15f484157d311dcebc3389cca9c280"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p01.webp",
+      "bytes": 239966,
+      "sha256": "bd08062aca7eacf5564a8d25e661506bad83430b2f74ef6329fbe48631aa6881"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p02.webp",
+      "bytes": 257866,
+      "sha256": "3754a5eeceac0d406ab569f2372380ba5616cb57a2965e797f029195a0508626"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p03.webp",
+      "bytes": 276150,
+      "sha256": "fb924b142dabee895a7a05bb3fc13c7a88474ade9bfa86d1b56a754f357907d5"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p04.webp",
+      "bytes": 279008,
+      "sha256": "33ca00165a803c1cad94731ee98b6d72acd3be7f1b8874f244be475328c3c900"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p05.webp",
+      "bytes": 266292,
+      "sha256": "d3b84f2198a43c06b94698ec814c39a5f536ff7170ad30bce0810ce9090ff669"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-2-p06.webp",
+      "bytes": 20524,
+      "sha256": "48a09591d04128da922c43273361414d10d63acfa452719e314bac5676ef36fe"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p00.webp",
+      "bytes": 276064,
+      "sha256": "f9046459274fdc28214cd8ecf2d0ba803631276672711b1dc44ced17b51478f3"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p01.webp",
+      "bytes": 278584,
+      "sha256": "cae2254eea66d9d9d9b2bd754f6a874a0387e9ee8577297284a1cd6945034422"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p02.webp",
+      "bytes": 265388,
+      "sha256": "2359738eb09fb17150ab0f08d55f2cd757e9b45662a41de079856ef50b15d298"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p03.webp",
+      "bytes": 229014,
+      "sha256": "61a076051e6f9c171ed2cf2ee7baab02ed92ba8b26e9e83031e5a338efc9c612"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p04.webp",
+      "bytes": 215304,
+      "sha256": "37c1f53603a287af1d65943e34fbd727f9fba4169358aa0b0fe1bec0654575b2"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p05.webp",
+      "bytes": 255984,
+      "sha256": "507b1f5e5bc0033837a12da57a9a164648c9579c6eabd00274e6e9b07112ebbf"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-4-p06.webp",
+      "bytes": 21972,
+      "sha256": "ac18c6bcc0bcfffc22d11c299dc60e9428bac162601f85d4c81aa08232e27b32"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p00.webp",
+      "bytes": 229360,
+      "sha256": "fcfdb6b5671893071564eca7eb641df74e3f73714e8349654edbe0ff578f3fe0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p01.webp",
+      "bytes": 215742,
+      "sha256": "4657af002fe9169ae073868a671eeaeff1ee7fa1c3d07018961629745f309e57"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p02.webp",
+      "bytes": 255630,
+      "sha256": "c7c7aa982c4b2e3a7d4ea8710f07cb47faaea0fa4e12925ff41c3fbcb08a0c23"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p03.webp",
+      "bytes": 277560,
+      "sha256": "c3b6117e3f157b4760d776ddd1be91ead2e1679da0bf8e1f1367f90f58ba5920"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p04.webp",
+      "bytes": 284392,
+      "sha256": "06f30d2ed05b936dcf9172a9b470899cbed57d03fbfcacc6790dc0d32b555d90"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p05.webp",
+      "bytes": 269288,
+      "sha256": "f22e5360aec88a2e731a5cedc502472c664a01d1de57df5091086460607f56dc"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left180-6-p06.webp",
+      "bytes": 21592,
+      "sha256": "8f083b22d45776339bb2b73044ced6a90769ef8374eed2ca3e4d17c05dd05e6b"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-0-p00.webp",
+      "bytes": 278038,
+      "sha256": "1f1a581b764c79aa05fa9b47c89f0d0c54efdbd54ef7c112bc073cf75540e126"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-0-p01.webp",
+      "bytes": 283596,
+      "sha256": "562897734d69259afa786f3fdeba2ee4e94c4aa57e49686e97daf9a3a64a81e0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-0-p02.webp",
+      "bytes": 268828,
+      "sha256": "3f8a922e6e902dde7aa5bd286c3f0b80b79871f9c6d13df2290963c5cf0a7b74"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-0-p03.webp",
+      "bytes": 21586,
+      "sha256": "afbb7e44522ca128f5a9ab799a7161ebfc4100f99c34b835013572f8c7e45f14"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-2-p00.webp",
+      "bytes": 248714,
+      "sha256": "1903bb93bcfaa91bd5c665cdd4dbc4dd3f15f484157d311dcebc3389cca9c280"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-2-p01.webp",
+      "bytes": 239966,
+      "sha256": "bd08062aca7eacf5564a8d25e661506bad83430b2f74ef6329fbe48631aa6881"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-2-p02.webp",
+      "bytes": 257866,
+      "sha256": "3754a5eeceac0d406ab569f2372380ba5616cb57a2965e797f029195a0508626"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-2-p03.webp",
+      "bytes": 22478,
+      "sha256": "3ce414de26b5590c81771baee8309aea0cd65889fb9eee37b3b6952952062dfb"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-4-p00.webp",
+      "bytes": 276064,
+      "sha256": "f9046459274fdc28214cd8ecf2d0ba803631276672711b1dc44ced17b51478f3"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-4-p01.webp",
+      "bytes": 278584,
+      "sha256": "cae2254eea66d9d9d9b2bd754f6a874a0387e9ee8577297284a1cd6945034422"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-4-p02.webp",
+      "bytes": 265388,
+      "sha256": "2359738eb09fb17150ab0f08d55f2cd757e9b45662a41de079856ef50b15d298"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-4-p03.webp",
+      "bytes": 20524,
+      "sha256": "e90aa36f24ffa48b5f0a8acab246e482fe5303191cc12c919a192f60986dd804"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-6-p00.webp",
+      "bytes": 229360,
+      "sha256": "fcfdb6b5671893071564eca7eb641df74e3f73714e8349654edbe0ff578f3fe0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-6-p01.webp",
+      "bytes": 215742,
+      "sha256": "4657af002fe9169ae073868a671eeaeff1ee7fa1c3d07018961629745f309e57"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-6-p02.webp",
+      "bytes": 255630,
+      "sha256": "c7c7aa982c4b2e3a7d4ea8710f07cb47faaea0fa4e12925ff41c3fbcb08a0c23"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-left90-6-p03.webp",
+      "bytes": 21962,
+      "sha256": "c4869a6b17ef39167812e0494c30db6a60bcf0efad478185a47648b570773615"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-0-p00.webp",
+      "bytes": 249978,
+      "sha256": "ab271326137128b77f27bf0118dc7fc548a7b1e8a091dca2ce9a0d5908b3fbf2"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-0-p01.webp",
+      "bytes": 210944,
+      "sha256": "b9b123a36748675f87cd3483eb904d815cd3d533276358b731a1bd3d98c3a22f"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-0-p02.webp",
+      "bytes": 221854,
+      "sha256": "d351dfeb885f1c6ae05526c02ec4a1fd08c55fef37a1b743dffe890cca50e6d0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-0-p03.webp",
+      "bytes": 20522,
+      "sha256": "2cb277fb188988770f8667bd29524d1a3ffc31871d2f77a948646bdb259f078b"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-2-p00.webp",
+      "bytes": 268734,
+      "sha256": "9e13e5f2805e0aca03a0eaec96a427daae15efb900cf29bc9787227049621d62"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-2-p01.webp",
+      "bytes": 278324,
+      "sha256": "cb97ba6b6ba4a0a87fa984fa1cc12abedf8ff45734a187b07281cd59ee461900"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-2-p02.webp",
+      "bytes": 274394,
+      "sha256": "392bf99ce554b26a41f1cd5bcb53eb89d53a9adff6afda13c1d9b3988c270ea6"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-2-p03.webp",
+      "bytes": 21962,
+      "sha256": "1a904592857981fc3f22027cae3b45633a46e0722bfd3cc2eef7c25c0ac54085"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-4-p00.webp",
+      "bytes": 263894,
+      "sha256": "fb6abb466485bb9b532a44508476fa823413f5b3eb06cea7fd606d4da2ba642e"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-4-p01.webp",
+      "bytes": 241238,
+      "sha256": "94960ee739506baf5fa76f3352e2eb568344e63ae86dd05c66491a3a8be984fd"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-4-p02.webp",
+      "bytes": 245992,
+      "sha256": "bffa7e64071fcfe072d504249ee20cda052a66200bb0d9efd8042cfe2365a84f"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-4-p03.webp",
+      "bytes": 21588,
+      "sha256": "909e501ac14d556e6b19095ec7e5fb504e8a63b373fdb688e503d57707bb2345"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-6-p00.webp",
+      "bytes": 261728,
+      "sha256": "c8d761198fdc4062eec44378f2e7cd140dd096a47186608821f8344f1e9ef6b7"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-6-p01.webp",
+      "bytes": 277630,
+      "sha256": "3a5fdda53f809a3129494ec31c6681f2d924e0402d0b40c5566d00f2d0461dcf"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-6-p02.webp",
+      "bytes": 278166,
+      "sha256": "26c7ce8c627c380829daa6309366e00014fba277ef92c2ec3d3b81ce46afb99c"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-right90-6-p03.webp",
+      "bytes": 22480,
+      "sha256": "c317cb161150afeda38abfc4d01a01caddbe8f19fa3362e6ea1e999a160fc08b"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p00.webp",
+      "bytes": 378604,
+      "sha256": "028e25ef779203ed6e9e181838a05fc8e69d0f869c5835dec9107fb059c4a686"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p01.webp",
+      "bytes": 384898,
+      "sha256": "50a75462b493d745231a746a21387c3f6ac8c4a827e8844d37d06d897fd6167f"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p02.webp",
+      "bytes": 341720,
+      "sha256": "214e6077721876abefd4c765ad5968edd2b43217c0598fbd2bb1dc5a12326401"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p03.webp",
+      "bytes": 354150,
+      "sha256": "854c68c94c3e0a046066211e0dfcd46a298c307883f443900dad91dc62814653"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p04.webp",
+      "bytes": 359912,
+      "sha256": "84e4a931714a78b1a9dd4532c46bf11bcb64698d5b82c21f30912fcc7f65d364"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p05.webp",
+      "bytes": 360394,
+      "sha256": "ecce3b36a059245af6133b94bdd6f83403da4f217872eb7137ca5e7697c96986"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p06.webp",
+      "bytes": 349678,
+      "sha256": "ff454a9309c04fa2705016928f308bfe1238262378686b4484181dd7bf92cdc5"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p07.webp",
+      "bytes": 263026,
+      "sha256": "17604148b3bd660e1f1417df8d117c5c1ff38a740ff722ab820553a544cb4db6"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p08.webp",
+      "bytes": 208680,
+      "sha256": "53519f99a9a5ebe23bad534b4a253217ff720227c73e6a3e78f8582a5e1dc5e9"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p09.webp",
+      "bytes": 208680,
+      "sha256": "53519f99a9a5ebe23bad534b4a253217ff720227c73e6a3e78f8582a5e1dc5e9"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p10.webp",
+      "bytes": 208680,
+      "sha256": "53519f99a9a5ebe23bad534b4a253217ff720227c73e6a3e78f8582a5e1dc5e9"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p11.webp",
+      "bytes": 255656,
+      "sha256": "243c9f83f49cbba28688b6b1df57cfe857a130fca2bf3687547ac0fe0bb5ac1f"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p12.webp",
+      "bytes": 348688,
+      "sha256": "4bb6fb8a7e45b624595fbc2ef6591a5d142b6a156ab4ba745b9e03d86143105c"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p13.webp",
+      "bytes": 362100,
+      "sha256": "66300d3d715959654dadc99de0a31ff3a1504f892579cbbe50815c45093acc65"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p14.webp",
+      "bytes": 361420,
+      "sha256": "064a6e5af8a62f44153129206fe078ed2b381eb4b504c58d5963ca5ba13c95a0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p15.webp",
+      "bytes": 354756,
+      "sha256": "a4bf7f5739c04ec0dd7b132c8425a3576c79bd36a528d19a1a9a50ef9e06c7c9"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p16.webp",
+      "bytes": 343440,
+      "sha256": "352536570ee071680d21cdee3634166559e2cf8fe69275bedd002a4d495e2990"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p17.webp",
+      "bytes": 371852,
+      "sha256": "6828bb6490c7ad63076f1ace79975dc5c711a1712b11afbfea649d39c8495290"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p18.webp",
+      "bytes": 384148,
+      "sha256": "cccab215777f5892ce645bf217fac302d98ea2574d83df1ed031cec015783ea1"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p19.webp",
+      "bytes": 375888,
+      "sha256": "eb4f2cf4b85ce3639be0e95f79d2a7ad41c44dcb19af858237bb48a3fc036130"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p20.webp",
+      "bytes": 393166,
+      "sha256": "20383ddc2d3e7ea20b4c7acd2da0bf11ddfeab7941aa4ff65e6af818b716de71"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p21.webp",
+      "bytes": 375638,
+      "sha256": "dda2babc659b864f8953b7de23f47ada9065f5dcf7e6c0e1fcb0b7a6e4fac75d"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p22.webp",
+      "bytes": 351416,
+      "sha256": "52685698a39e9681693d23259c99937fa6d12022f70359a0e52b83652edcf383"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p23.webp",
+      "bytes": 328324,
+      "sha256": "21ce213148a5819f885353c676717f10cdc16f9b7e05f3241ee5de1c075534f2"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p24.webp",
+      "bytes": 328830,
+      "sha256": "69ba3637a3793ee4b905144bdfe5bf720f12a108a429c63bf35c1689a5b5e1d6"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p25.webp",
+      "bytes": 334756,
+      "sha256": "f76f2af2feeed9ee55c96ad83413f449e8d7f3bfb0c50a44653b1a3e4a2ac441"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p26.webp",
+      "bytes": 339556,
+      "sha256": "886a5eca40e06a09ff6fe5ac3700b5fe317d24f64c55f40e866d53b0f8954278"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p27.webp",
+      "bytes": 322084,
+      "sha256": "a79e0f75e0311641496168d92a2209cf97cb6e47ecc5215af94b836818f4f885"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p28.webp",
+      "bytes": 311204,
+      "sha256": "b196cc7980c58a3136c8dfcbe551b30b7ef7ba4cf658e1218c37b026c6a98ea0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p29.webp",
+      "bytes": 309792,
+      "sha256": "8e7fd2bde71dddd99d128d4d4b16f4029740284b99af01e2344250838c237094"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p30.webp",
+      "bytes": 314078,
+      "sha256": "722441790c021f080391c71603d7023fc596c496ca179f5e8662be70111d8fbc"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p31.webp",
+      "bytes": 344250,
+      "sha256": "fcbd0ffb5d750618b89792ff3e039b9cc54094260d985d82876dee7137b1b979"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p32.webp",
+      "bytes": 198004,
+      "sha256": "c3f3500d044f56de3e98fe05a0ea465c4f0ebd12d13865d080d434f3708abd32"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-0-p00.webp",
+      "bytes": 271704,
+      "sha256": "9f9c583ad9a5203d8aa7386683d9c382360a5d3931df86964e7faa6d47d47727"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-0-p01.webp",
+      "bytes": 68708,
+      "sha256": "3a52103aaa2d562bf556b3ca27b7b0482f6f5e950fdc11c718ef2be18d781c30"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-2-p00.webp",
+      "bytes": 257834,
+      "sha256": "1415ab20068aa605feaf04b308b0b9cfe3014cb16b48add442dd3d1f30360614"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-2-p01.webp",
+      "bytes": 66688,
+      "sha256": "3d716032c39863b174377a719cfaecd7c2d8514109b94f909813e86644c056b0"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-4-p00.webp",
+      "bytes": 272754,
+      "sha256": "613d30c957e622c24e0be8413fdc5b3f70735bf8c2f7b9932310ee2b08e063ad"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-4-p01.webp",
+      "bytes": 68316,
+      "sha256": "e236208927be88ad38e998d1c8fbb20b64193bbbd492a3155cc96ad182c2ee7d"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-6-p00.webp",
+      "bytes": 252560,
+      "sha256": "020bf791266e27e9a5a73acbd23946dafdd2e1eafba4c82cb934d9eca494dedc"
+    },
+    {
+      "path": "public/assets/yard-pip/atlases/pip-walk-6-p01.webp",
+      "bytes": 63730,
+      "sha256": "a793cad13025d409323fb88528a55047c0886faf827a694f2e7bdc0850fc68e9"
+    },
+    {
+      "path": "public/assets/yard-pip/runtime-media.json",
+      "bytes": 299172,
+      "sha256": "317363e6b843f96272dd7d8788fe35a484c7330e5f8a1dd036255e4774616580"
+    },
+    {
+      "path": "public/assets/yard-pip/snack-table-new.webp",
+      "bytes": 27856,
+      "sha256": "aee823d840f3d710901f005d0c4e2ef92f03946fa4f6ccdd6b9fc3c95beea4e0"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/INTEGRATION.md",
+      "bytes": 4514,
+      "sha256": "c1f9e60e7a4683803226f8556ee03bcabf3039bbcbd406ed064b5da0e059d37a"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json",
+      "bytes": 10919,
+      "sha256": "43dc870f5442a03fe0a64dc3ad426f34845396a6ed7ece4cfe78a95b16119b24"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/fixture.json",
+      "bytes": 61810,
+      "sha256": "db7072d3325467af122e5e0d3fde913867d053ba0c2290630d57eff3dfe191d4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/index.html",
+      "bytes": 979,
+      "sha256": "013dc42cf939bd8374158c41c6c34d994d158191b1ad7349de1a381400881052"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/preview.mjs",
+      "bytes": 3002,
+      "sha256": "04629f8d4ab9e370e7673a5c305bb3872089123baf1f48f69a7148968159a3a8"
+    },
+    {
+      "path": "scripts/yard-pip-canonical-ci-server.mjs",
+      "bytes": 2510,
+      "sha256": "0dd6937ac0ad061a44e37616b5635e706af754beb69dfd6cfa17402f6444bb53"
+    },
+    {
+      "path": "scripts/yard-pip-canonical-fixture.mjs",
+      "bytes": 4178,
+      "sha256": "f349c1b17f8cc3e2000d4d28cec27303bc641c02d624913df8fe4bc52a03aab6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-actor-media.mjs",
+      "bytes": 3917,
+      "sha256": "1da7beb6c0a3af00654dd0443440190ff057052b61436bc073cb0076a0cb3dd4"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-candidate-presentation.mjs",
+      "bytes": 2764,
+      "sha256": "d2b16fbc9efc02e1ff91d95d984c52a0c2a6f696909ce0a9ea2fcb0e63d2629d"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene.mjs",
+      "bytes": 13191,
+      "sha256": "8bfa822b59c42269877eab5c6c279cfd17db7080d8e25fd481d31f5614aef0c4"
+    },
+    {
+      "path": "tests/fixtures/yard-pip-canonical/acceptance.mjs",
+      "bytes": 688,
+      "sha256": "a353ebb0c7ddd329cfe160457d3072bb25d04ba9b7b2ff1b8f4fca6d9596c9a2"
+    },
+    {
+      "path": "tests/yard-pip-canonical-e2e/shared-scene.spec.js",
+      "bytes": 7836,
+      "sha256": "66a3c3b8a50a4ac95df7b8e3f37408cdd6981ef6f633ac802cbe17eca18a87f2"
+    },
+    {
+      "path": "tests/yard-pip-canonical.test.mjs",
+      "bytes": 16233,
+      "sha256": "2fdf2789cbe820c41457a4dfdfb88f0a3d469a2da50de8b2496a6c514cb48029"
+    },
+    {
+      "path": "tests/yard-pip-scene-lifecycle.test.mjs",
+      "bytes": 5019,
+      "sha256": "38b89616c735868dd4df6b243b7b643fc7d35eae6b3dda9e1e8015b7b7e24c33"
+    }
+  ]
+}

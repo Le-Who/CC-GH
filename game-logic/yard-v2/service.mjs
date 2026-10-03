@@ -4,12 +4,12 @@
  * second player or wallet. Unknown versions are preserved, never normalized.
  */
 import {releaseActionPolicy,supportedYardBindings} from './availability.mjs';
-import { getMikaServerOptions } from './mika-media.mjs';
-import { MIKA_GROUND_FOOTPRINT_REVISION } from './motion-ground-guard.mjs';
+import { getYardServerOptions } from './yard-media.mjs';
+import { presentationCompatibility } from './presentation-compatibility.mjs';
 import { FOUNDATION_FORMAT } from './migration.mjs';
 import { dispatchInput } from './dispatch.mjs';
 import { applyYardAction, ACTION_CONTRACTS } from './actions.mjs';
-import { advancePersistentYard, resolvePersistentDisplay, getBindingCalibrationHash } from './orchestrator.mjs';
+import { advancePersistentYard, resolvePersistentDisplay } from './orchestrator.mjs';
 import { visitPhase, isReserved } from './simulation.mjs';
 import { clone, digest, integer, lookup, put } from './util.mjs';
 
@@ -79,7 +79,7 @@ export function ensurePersistentPlayerYard(player,{now=Date.now(),simulate=false
   try {
     // A zero-interval advance captures legacy slot anchors once, with no economic tick.
     const at=simulate?Math.max(now,checked.state.runtime.cursorMs):checked.state.runtime.cursorMs;
-    const state=advancePersistentYard(checked.state,at,{...getMikaServerOptions(),...options});
+    const state=advancePersistentYard(checked.state,at,{...getYardServerOptions(),...options});
     commitYard(player,state,checked.stored);
     return {status:200,mutable:true,yard:player.yard,state};
   } catch(error) { return {...failure('YARD_STATE_REQUIRES_REVIEW',String(error.message)),yard:player.yard}; }
@@ -92,7 +92,7 @@ export function executePersistentYardAction(player,action,payload={}, {now=Date.
   const checked=inspectStored(player,now);
   if (checked.status!==200) return checked;
   const effectiveNow=Math.max(now,checked.state.runtime.cursorMs);
-  const configuration={...getMikaServerOptions(),...options};
+  const configuration={...getYardServerOptions(),...options};
   const actionPolicy=typeof options.actionPolicy==='function'?options.actionPolicy:
     candidate=>releaseActionPolicy({...candidate,mediaRegistry:configuration.mediaRegistry});
   const result=applyYardAction(checked.state,action,payload,{...configuration,actionPolicy,now:effectiveNow,actionId});
@@ -132,40 +132,12 @@ export function requireMutablePlayerYard(player,options={}) {
   return result.yard;
 }
 
-/** Compatibility is a read-only projection. A stored visit keeps its original
- * economic clock, plan, reservations and endpoint commits even when art/calibration
- * has changed. Never reroute or re-time an active visit during snapshot generation. */
-function presentationCompatibility(record,registry,registryHash) {
-  const media=record.mediaAdmission,plan=media?.plan,issues=[];
-  if(record.source==='legacy'||!plan?.schedule) return {renderCompatible:false,
-    presentationStatus:'preserved-legacy-visit',presentationIssues:['AUTHORED_PRESENTATION_UNAVAILABLE']};
-  if(plan.groundFootprintRevision!==MIKA_GROUND_FOOTPRINT_REVISION)issues.push('GROUND_FOOTPRINT_REVISION_MISMATCH');
-  const matches=(registry.bindings||[]).filter(b=>b.id===media.bindingId);
-  const binding=matches.length===1?matches[0]:null;
-  if(Object.hasOwn(media,'bindingCalibrationHash')) {
-    const expected=getBindingCalibrationHash(binding,registry);
-    if(!expected||typeof media.bindingCalibrationHash!=='string'||!media.bindingCalibrationHash
-      ||media.bindingCalibrationHash!==expected)issues.push('MEDIA_CALIBRATION_MISMATCH');
-  } else if(media.registryRevision!==registry.revision||media.registryHash!==registryHash) {
-    // Old records lack a pinned calibration. Never infer or backfill one from a
-    // new registry, since that could bless a previously unsafe stored route.
-    issues.push('MEDIA_CALIBRATION_MISMATCH');
-  }
-  if(!binding||binding.revision!==media.bindingRevision||binding.visitorId!==record.original?.visitorId
-    ||binding.goodieId!==record.placement?.goodieId||!binding.activityIds?.includes(record.activityId))
-    issues.push('MEDIA_BINDING_REVISION_MISMATCH');
-  if(!binding||binding.playbackReady!==true||!binding.requiredPhases?.length
-    ||!binding.requiredPhases.every(phase=>binding.validatedPhases?.includes(phase)))issues.push('INTERACTION_MEDIA_NOT_READY');
-  return {renderCompatible:issues.length===0,
-    presentationStatus:issues.length?'preserved-presentation-unavailable':'calibrated-plan-available',presentationIssues:issues};
-}
-
 /** Sanitized presentation. Receipts, raw backups and completed history never leave the server. */
 export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}) {
   const checked=inspectStored(player,now);
   if (checked.status!==200) return {version:1,revision:YARD_SERVER_REVISION,serverNow:now,status:'review-required',mutable:false,
     error:checked.error,issues:clone(checked.details||[]),visits:[],reservations:[],placementReadiness:[]};
-  const defaults=getMikaServerOptions();
+  const defaults=getYardServerOptions();
   const state=checked.state,display=resolvePersistentDisplay(state,{scene:scene||defaults.scene});
   const readiness=options.placementReadiness||defaults.placementReadiness;
   const registry=options.mediaRegistry||defaults.mediaRegistry,registryHash=digest(registry);
@@ -174,7 +146,7 @@ export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}
     original:clone(record.original),source:record.source,status:record.status,
     arrivedAt:record.arrivedAt,leavesAt:record.leavesAt,releaseAt:record.releaseAt,
     phase:visitPhase(record,now),reserved:isReserved(record,now),
-    ...presentationCompatibility(record,registry,registryHash),
+    ...presentationCompatibility(record,registry,registryHash,options.actorProfiles||defaults.actorProfiles),
     placement:clone(record.placement),timeline:clone(record.timeline),route:clone(record.route),mediaAdmission:clone(record.mediaAdmission),
   }));
   return {version:1,revision:YARD_SERVER_REVISION,serverNow:now,cursorMs:state.runtime.cursorMs,status:'ready',mutable:true,

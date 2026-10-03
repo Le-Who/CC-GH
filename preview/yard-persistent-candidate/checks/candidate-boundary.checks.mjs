@@ -15,11 +15,11 @@ test('production files keep legacy Yard while explicit static inspection sees th
   assert.match(original,/companion-yard\/CompanionYardGame/);assert.doesNotMatch(original,/companion-yard-v2/);
   assert.match(candidate,/companion-yard-v2\/CourtyardGame/);assert.notEqual(candidate,original);
 });
-test('missing runtime metadata resolves through the explicit fixture before normal filesystem resolution',async()=>{
+test('served canonical runtime metadata equals the explicitly mapped candidate fixture',async()=>{
   const path=resolve(repositoryRoot,'public/assets/yard-mika/runtime-media.json');
-  assert.equal(existsSync(path),false,'source-only subset must not publish image/runtime assets');
+  assert.equal(existsSync(path),true,'canonical media must exist before candidate acceptance');
   const module=await import(pathToFileURL(path).href,{with:{type:'json'}});
-  assert.equal(Object.keys(module.default.turns).length,12);assert.ok(module.default.clips['mika-cushion-r1']);
+  assert.deepEqual(module.default,JSON.parse(readFileSync(path,'utf8')));assert.equal(Object.keys(module.default.turns).length,12);assert.ok(module.default.clips['mika-cushion-r1']);
 });
 test('candidate loader and runner refuse activation without both explicit test flags',()=>{
   for(const script of ['load-overlays.mjs','run-checks.mjs','compile-check.mjs'])for(const mode of [false,true]){

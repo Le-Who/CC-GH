@@ -15,7 +15,7 @@ function make(minutes=45){
   const options=getMikaServerOptions(),placement={slotId:'cushion',goodieId:'sun_cushion',...MIKA_PLACEMENT_SUGGESTIONS.sun_cushion,condition:'new',uses:0};
   const yard={remodel:'meadow',expansion:{level:1},placedGoodies:[{slotId:'mouse',goodieId:'yarn_mouse',...MIKA_PLACEMENT_SUGGESTIONS.yarn_mouse,condition:'new',uses:0},placement]};
   const binding=options.mediaRegistry.bindings.find(b=>b.goodieId==='sun_cushion');
-  const candidate={at,leavesAt:at+minutes*60000,slotId:'cushion',placement,yard,bowl:{foodId:'kibble'},reserved:[],active:[]};
+  const candidate={at,leavesAt:at+minutes*60000,slotId:'cushion',placement,yard,bowl:{id:'bowl-1',foodId:'kibble'},reserved:[],active:[]};
   const result=options.preflight(candidate,binding);assert.equal(result.ok,true,result.code);return{...result,candidate,yard};
 }
 test('45–110 minute stays preserve physical timing and fill the entire visible interval',()=>{
@@ -46,7 +46,7 @@ test('reload random access samples the same pose, origin and owner without frame
   }
 });
 test('cushion has exactly one render owner through settle/rest/wake and releases after step-off',()=>{
-  const {plan,candidate,yard}=make();const visit={renderCompatible:true,visitId:'v',visitorId:'mika_cat',slotId:'cushion',releaseAt:plan.propReleaseAt,leavesAt:candidate.leavesAt,mediaAdmission:{plan}};
+  const {plan,candidate,yard}=make();const visit={renderCompatible:true,visitId:'v',visitorId:'mika_cat',slotId:'cushion',releaseAt:plan.propReleaseAt,leavesAt:candidate.leavesAt,mediaAdmission:{plan,bindingId:"mika-cushion-r1",goodieId:"sun_cushion"}};
   const snapshot={yard:{...yard,bowls:[],pendingGifts:[]},yardRuntime:{mutable:true,visits:[visit],display:{placements:[],issues:[]}}};
   for(const segment of plan.schedule.segments){
     const view=courtyardPresentation(snapshot,segment.startAt+1,clips),prop=view.props.find(p=>p.slotId==='cushion');
@@ -75,7 +75,7 @@ test('persisted final prop transform survives presentation completion and clone/
   assert.deepEqual(after,plan.finalTransform);
   assert.deepEqual(propTransformAt(JSON.parse(JSON.stringify(plan)),clips[plan.clipId],plan.schedule.leavesAt+1000),after);
 });
-test('actual media atlas pages exist and known aliases reference identical measured poses',{skip:'Source-only CI subset: real atlas files are verified in the separate art closure'},()=>{
+test('actual media atlas pages exist and known aliases reference identical measured poses',()=>{
   const pages=new Set([...Object.values(media.clips),...Object.values(media.walk.facings),...Object.values(media.turns)].flatMap(c=>c.pages.map(p=>p.src)));
   for(const path of pages)assert.ok(fs.statSync(new URL(`../public/assets/yard-mika/${path}`,import.meta.url)).size>0,path);
   const c=clips['mika-cushion-r1'];assert.deepEqual(c.samples[190].root,c.samples[214].root);assert.deepEqual(c.samples[190].prop,c.samples[214].prop);
@@ -92,7 +92,7 @@ test('served runtime bindings match the source calibration and reject stale cach
   assert.equal(media.renderBindings[b.id].bindingRevision,b.revision);
   assert.equal(media.renderBindings[b.id].bindingCalibrationHash,b.calibrationHash);
   const record={visitId:'v',visitorId:'mika_cat',slotId:'cushion',releaseAt:plan.propReleaseAt,leavesAt:candidate.leavesAt,renderCompatible:true,
-    mediaAdmission:{plan,bindingId:b.id,bindingRevision:b.revision,bindingCalibrationHash:b.calibrationHash}};
+    mediaAdmission:{plan,bindingId:b.id,goodieId:b.goodieId,bindingRevision:b.revision,bindingCalibrationHash:b.calibrationHash}};
   const snapshot={yard,yardRuntime:{mutable:true,visits:[record],display:{placements:[],issues:[]}}},before=JSON.stringify(snapshot),time=plan.schedule.segments.find(s=>s.role==='settle').startAt+500;
   assert.equal(courtyardPresentation(snapshot,time,clips,{mediaRevisions:media.renderBindings}).pets.length,1);
   const old=structuredClone(media.renderBindings);old[b.id].bindingRevision='old-cached-pose';

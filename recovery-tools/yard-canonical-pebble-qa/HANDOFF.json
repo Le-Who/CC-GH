@@ -1,0 +1,47 @@
+{
+  "format": "yard-pebble-ci-handoff/v1",
+  "runtimeActivated": false,
+  "cases": 12,
+  "expectedViewportScreenshots": 40,
+  "extraDelayedResizeScreenshots": 1,
+  "mainTestDiscovery": "Dedicated tests/yard-pebble-e2e only; main tests/e2e untouched",
+  "command": "pnpm exec playwright test -c playwright.yard-pebble.config.js --project=chromium --workers=1",
+  "collectorCommand": "node scripts/collect-yard-pebble-diagnostics.mjs",
+  "runCollector": "Run with always() after Playwright when results.json exists, including failed runs",
+  "artifacts": [
+    {
+      "name": "yard-pebble-compact-diagnostics",
+      "path": "test-results-yard-pebble/compact-diagnostics",
+      "contents": "JSON from every case, boot failures, selected phone screenshots, delayed resize",
+      "limitBytes": 29360128
+    },
+    {
+      "name": "yard-pebble-viewport-frames",
+      "path": "test-results-yard-pebble/viewport-frames",
+      "contents": "All forty viewport frames plus delayed resize, without traces or HTML",
+      "limitBytes": 29360128
+    },
+    {
+      "name": "yard-pebble-all-evidence",
+      "paths": [
+        "test-results-yard-pebble/artifacts",
+        "playwright-report-yard-pebble"
+      ],
+      "contents": "Optional bulky retained traces and HTML; review separate compact artifacts first"
+    }
+  ],
+  "nodeEvidence": {
+    "passed": 431,
+    "failed": 0,
+    "skipped": 0
+  },
+  "sourceProof": "SYNTHETIC-PROVENANCE.json and provenance/fixture-generator.mjs",
+  "serverGuard": "CI=true and GITHUB_ACTIONS=true; normalized pure resolver regression-tested without sockets",
+  "remaining": [
+    "Actual 12-case GitHub Actions browser run",
+    "All viewport screenshot and source-time review",
+    "Mixed-actor/prop compatibility, depth and cache review",
+    "Release review"
+  ],
+  "publisher": "Root only"
+}

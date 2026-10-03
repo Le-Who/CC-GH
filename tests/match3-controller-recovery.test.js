@@ -105,16 +105,22 @@ function controlledActionStore(delay = body => body.action === 'match3.syncMode'
     }
   })(parsed);
   assert.ok(actionNode);
-  let state = { busy: {}, snapshot: {} };
+  const helpers = parsed.body.filter(node => node.type === 'FunctionDeclaration' && ['ownsSession', 'accountChangedError'].includes(node.id.name));
+  assert.equal(helpers.length, 2);
+  const helperSource = helpers.map(node => text.slice(node.start, node.end)).join('\n');
+  let state = { busy: {}, snapshot: { player: { id: 'match3-controller-account' } } };
   const sent = [], pending = [];
-  const action = vm.runInNewContext(`(${text.slice(actionNode.start, actionNode.end)})`, {
+  const action = vm.runInNewContext(`${helperSource}\n(${text.slice(actionNode.start, actionNode.end)})`, {
+    snapshotAccountSession: {},
     get: () => state,
     set: update => { state = { ...state, ...(typeof update === 'function' ? update(state) : update) }; },
     isYardAction: () => false,
-    // The extracted production function now shares this real command guard.
-    // Omitting its import aborts before api(), hiding the queue behavior below.
+    // Execute the real ownership helpers as well as the command guard. An
+    // incomplete extraction aborts before api(), hiding the queue behavior.
     isGardenR2Action,
-    api: async (_url, body) => {
+    api: async (_url, body, options) => {
+      assert.equal(body.accountId, 'match3-controller-account');
+      assert.equal(options.isCurrent(), true);
       sent.push(plain(body));
       return delay(body) ? new Promise(resolve => pending.push(resolve)) : { success: true };
     },

@@ -197,6 +197,7 @@ export default function App() {
       drainOutbox();
       const { connectRealtime } = await realtimeClient;
       if (cancelled) return;
+      const realtimeAccountSession = useGameHub.getState().accountSession;
       const realtimeCleanup = await connectRealtime(
         (payload) => applyRealtimePayload(payload),
         (nextStatus) => {
@@ -206,6 +207,7 @@ export default function App() {
             drainOutbox();
           }
         },
+        { isCurrent: () => useGameHub.getState().accountSession === realtimeAccountSession },
       );
       if (cancelled) realtimeCleanup();
       else cleanupRealtime = realtimeCleanup;

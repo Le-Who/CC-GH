@@ -3,7 +3,7 @@ import { getTelegramAuthData } from "../platform/telegram.js";
 import { getPublicConfig } from "./apiClient.js";
 
 let socket = null;
-let lastSeq = 0;
+let connectionSession = 0;
 
 async function getSocketAuth() {
   const initData = getTelegramAuthData();
@@ -20,39 +20,50 @@ async function getSocketAuth() {
   return {};
 }
 
-export async function connectRealtime(onSync, onStatus) {
+export async function connectRealtime(onSync, onStatus, options = {}) {
+  if (options.isCurrent && !options.isCurrent()) return () => {};
+  const session = ++connectionSession;
+  socket?.disconnect();
+  socket = null;
   const auth = await getSocketAuth();
+  if (session !== connectionSession || (options.isCurrent && !options.isCurrent())) return () => {};
   if (!auth.initData && !auth.devUserId) {
     onStatus?.("offline");
     return () => {};
   }
 
-  socket = io(window.location.origin, {
+  const connection = socket = io(window.location.origin, {
     auth,
     autoConnect: true,
     reconnectionAttempts: 8,
   });
 
-  socket.on("connect", () => onStatus?.("online"));
-  socket.on("disconnect", () => onStatus?.("offline"));
-  socket.on("connect_error", () => onStatus?.("offline"));
-  socket.on("player_sync", (event) => {
+  const ownsConnection = () => session === connectionSession && socket === connection;
+  const isCurrent = () => ownsConnection() && (!options.isCurrent || options.isCurrent());
+  const lastSequences = new Map();
+  connection.on("connect", () => { if (isCurrent()) onStatus?.("online"); });
+  connection.on("disconnect", () => { if (isCurrent()) onStatus?.("offline"); });
+  connection.on("connect_error", () => { if (isCurrent()) onStatus?.("offline"); });
+  connection.on("player_sync", (event) => {
+    if (!isCurrent()) return;
+    const accountId = event?.payload?.accountId;
+    if (typeof accountId !== "string" || !accountId) return;
     const seq = Number(event?.seq || 0);
-    if (seq && seq <= lastSeq) return;
-    if (seq) lastSeq = seq;
+    if (seq && seq <= (lastSequences.get(accountId) || 0)) return;
+    if (seq) lastSequences.set(accountId, seq);
     onSync?.(event.payload, event);
   });
 
   const onVisibility = () => {
-    if (!socket) return;
-    if (document.hidden) socket.disconnect();
-    else socket.connect();
+    if (!isCurrent()) return;
+    if (document.hidden) connection.disconnect();
+    else connection.connect();
   };
   document.addEventListener("visibilitychange", onVisibility);
 
   return () => {
     document.removeEventListener("visibilitychange", onVisibility);
-    socket?.disconnect();
-    socket = null;
+    if (ownsConnection()) { socket = null; connectionSession++; }
+    connection.disconnect();
   };
 }

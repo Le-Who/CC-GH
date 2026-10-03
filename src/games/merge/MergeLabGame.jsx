@@ -1,4 +1,4 @@
-import {createElement as h,useCallback,useMemo,useState} from 'react';
+import {createElement as h,useCallback,useEffect,useMemo,useState} from 'react';
 import {useSnapshot,useExitToHub,useImmersiveGame} from '../../app/gameHooks.js';
 import {useGameHub} from '../../game-state/useGameHub.js';
 import {useAppI18n} from '../../app/i18n.jsx';
@@ -12,15 +12,21 @@ import './merge-lab.css';
 export default function MergeLabGame(){
   const snapshot=useSnapshot(),exit=useExitToHub(),{language}=useAppI18n(),viewport=useHudViewport();
   const accountId=snapshot?.player?.id;
+  const accountSession=useGameHub(state=>state.accountSession);
   const [shell,setShell]=useState({}),[recoveryBusy,setRecoveryBusy]=useState(false),[recoveryError,setRecoveryError]=useState('');
   const transport=useMemo(()=>{
     try{return createMergeLabTransport({api,accountId,storage:globalThis.localStorage,
       getSnapshot:()=>useGameHub.getState().snapshot,
+      getAccountSession:()=>useGameHub.getState().accountSession,
       applySnapshot:value=>useGameHub.getState().applySnapshot(value),
       refreshSnapshot:()=>useGameHub.getState().loadSnapshot()});}
     catch(error){return {initializationError:error};}
-  },[accountId]);
+  },[accountId,accountSession]);
   const [recovering,setRecovering]=useState(()=>!!transport.initializationError||transport.hasPending());
+  useEffect(()=>{
+    setRecovering(!!transport.initializationError||transport.hasPending());
+    setRecoveryBusy(false);setRecoveryError('');setShell({});
+  },[transport]);
   const controls=useMemo(()=>({activeRun:true,openPanel:!!shell.modalOpen,
     closePanel:shell.modalOpen?shell.close:null,pauseRun:shell.pause,
     hudState:{alchemyEssence:snapshot?.merge?.alchemyEssence||0,freeTapCharges:snapshot?.merge?.freeTapCharges||0}}),[shell,snapshot?.merge?.alchemyEssence,snapshot?.merge?.freeTapCharges]);
@@ -29,9 +35,10 @@ export default function MergeLabGame(){
   const recover=async()=>{
     if(recoveryBusy||transport.initializationError)return;
     setRecoveryBusy(true);setRecoveryError('');
-    try{await transport.resumePending();setRecovering(transport.hasPending());}
-    catch{setRecoveryError(language==='ru'?'Результат пока не подтверждён. Проверьте ещё раз.':'The result is not confirmed yet. Check again.');}
-    finally{setRecoveryBusy(false);}
+    const isCurrent=()=>useGameHub.getState().accountSession===accountSession;
+    try{await transport.resumePending();if(isCurrent())setRecovering(transport.hasPending());}
+    catch{if(isCurrent())setRecoveryError(language==='ru'?'Результат пока не подтверждён. Проверьте ещё раз.':'The result is not confirmed yet. Check again.');}
+    finally{if(isCurrent())setRecoveryBusy(false);}
   };
   const ru=language==='ru';
   return h(GameShell,{gameId:'merge',phase:'playing',skin:'meditation',className:'merge-lab-shell'},

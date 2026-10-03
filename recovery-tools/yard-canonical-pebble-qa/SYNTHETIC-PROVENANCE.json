@@ -1,0 +1,36 @@
+{
+  "format": "yard-synthetic-fixture-provenance/v1",
+  "synthetic": true,
+  "realPlayerReads": false,
+  "generatorSourcePath": "scripts/yard-pebble-canonical-fixture.mjs",
+  "generatorSha256": "123f3f6ab128b21567a88d2ce3b3a403fcd51b789181de64d854a6f0d427728d",
+  "fixtureSha256": "0b35c7d257cdae47f156c91c03c8cff3587c489f45d4e7077f46e8451475e6a1",
+  "creation": "createDefaultPlayer('pebble-canonical-13','Fixture',Date.UTC(2026,9,3,12))",
+  "explicitFakeValues": {
+    "target": {
+      "slotId": "leaf",
+      "goodieId": "leaf_pot",
+      "x": 60,
+      "y": 48,
+      "condition": "new",
+      "uses": 0
+    },
+    "other": {
+      "slotId": "other-mouse",
+      "goodieId": "yarn_mouse",
+      "x": 72,
+      "y": 44,
+      "condition": "new",
+      "uses": 0
+    },
+    "bowls": "five berry_plate servings",
+    "goodieInventory": "3 each, except living arbor 4 and echo chimes 7",
+    "foodInventory": {
+      "kibble": 11,
+      "berry_plate": 12,
+      "bonito_bowl": 13
+    }
+  },
+  "generation": "Pure in-memory server pipeline; no database, network, token or external account access",
+  "releaseAccepted": false
+}

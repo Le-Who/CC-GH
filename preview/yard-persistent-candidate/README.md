@@ -42,6 +42,28 @@ This checks the actual production file bytes, not the overlays, and confirms tha
 - Real image-byte/hash and atlas-existence checks: exactly two named checks explicitly skipped, not passed; those belong to the separate art closure
 - Browser, full application build, mobile/WebView QA, real PostgreSQL and deployment: not run
 
-`fixtures/runtime-media.json` supports route/pose metadata tests only. It is exposed at its original import URL by the test loader and is not copied into production public assets. The copied presentation and atlas suites run their source-only checks, including served binding/calibration equality, stale cached-media refusal, loop aliases, pose tiles and cache disposal/reload. Only their two checks that read real image files are explicitly skipped. The full image proofs remain in the separate staging/art package.
+`fixtures/runtime-media.json` is byte-identical to the canonical served Mika metadata. Real canonical media is materialized from the already-reviewed local QA asset copies using `node scripts/yard-materialize-canonical-media.mjs`; `--check` performs a read-only full hash preflight. The old two real-image skips are removed. Adding these data-free public assets does not register the candidate component or activate a visitor.
 
 Publishing these inactive source files does not authorize activating their overrides. An eventual integration still needs an explicit source rebase, production entrypoint changes, full build/browser/data checks and release approval.
+
+
+## Root-compatible r5 / Mochi / Pebble integration
+
+The canonical `game-logic/yard-v2` and `src/games/companion-yard-v2` modules now
+match the reviewed r5 source, including source-owned actor contracts, all three
+food bindings, canonical Mochi and Pebble, page-aware requests and prop hooks.
+Both new actor gates remain closed. The production room still selects legacy
+Yard, and the existing eight protected overlays remain unchanged, including the
+three Garden R2 rebases. No production routes, store, HUD registry, package,
+release flag or schema version is replaced by this integration.
+
+Order: apply this inactive canonical code base, materialize the matching local
+media, verify guarded checks and compile in ordinary CI, then apply the separate
+Pip overlay against its exact shared-file base hashes. Registry entries must be
+extended, not replaced. Mixed-yard obstacle and multi-actor acceptance remain
+separate closed-gate work.
+
+Validated in a sparse snapshot of root commit 4e659a0: 421 guarded candidate checks,
+zero failures or skips; 134 Garden R2 checks under those preserved overlays, zero
+failures or skips. All 18 protected production fingerprints match. This is not a
+local browser, esbuild/Vite or real PostgreSQL result; those remain CI gates.

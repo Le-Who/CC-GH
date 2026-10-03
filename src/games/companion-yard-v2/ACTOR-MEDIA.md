@@ -1,0 +1,11 @@
+# Inactive actor media boundary
+
+Only Mika has a ready local entry. The browser resolves the public actor reference against an immutable local profile, validates the actual manifest's camera, world scale, walk phase table, turn coverage and rest clips, then selects pixels from that actor's manifest. A missing actor never borrows Mika's sprite. Old Mika records have an explicit known-binding compatibility path; malformed explicit references cannot take that path. The server and local binding/calibration/ground checks still apply.
+
+The loaded source manifest is not mutated. Local clip wrappers add an absolute asset base and manifest revision; the latter is included in image request URLs and cache keys. Runtime source JSON and image bytes remain unchanged by this extraction.
+
+A single cache has three retained/pending page slots, at most one in-flight decode and a64MiB declared RGBA budget. Current visible pages are pinned before optional lookahead is selected. Stable lookahead priority fills spare working-set slots; it cannot alternate between evicting the visible pages of two pets. Obsolete decoded lookahead is closed. The canvas retains its last coherent pixels during a media wait instead of asking again for the previous frame's retired atlas pages. Authoritative time continues to advance and media waits remain measured.
+
+`decodedBytesEstimate` counts width×height×4 for retained images. `pendingBytesEstimate` reserves declared decoded size before loading. These are pixel-buffer estimates, not process/GPU memory measurements. Browser decoder copies, GPU copies, compressed response blobs, seven static stills (~3.95MB RGBA) and the DPR-bounded canvas add memory. This pipeline does not copy atlas tiles to per-frame canvases. A larger simultaneous actor working set must receive an explicitly reviewed budget/media-packing plan before content is enabled; the current three-page limit does not promise unlimited visitors.
+
+Pure tests exercise two-actor page boundaries, demand priority, same-filename/revision isolation, stale lookahead, mismatched dimensions, bounded concurrency and late disposal. Actual mobile/WebView memory, frame timing and visual continuity still require browser QA. The default production Yard remains unchanged.

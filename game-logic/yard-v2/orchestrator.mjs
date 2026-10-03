@@ -5,17 +5,20 @@ import { dispatchInput } from './dispatch.mjs';
 import { clone, digest, lookup, put, workingCopy } from './util.mjs';
 import { resolveYardDisplay, resolveLegacyPresentation, legacyPlacementKey } from './legacy-presentation.mjs';
 import { YARD_SLOT_LAYOUTS } from './catalog.mjs';
+import { foodRefillPolicy } from './availability.mjs';
+import { ACTOR_PROFILES,actorProfileReference,resolveBindingActorProfile,getBindingCalibrationHash } from './actor-profiles.mjs';
+import { presentationCompatibility } from './presentation-compatibility.mjs';
+export {getBindingCalibrationHash} from './actor-profiles.mjs';
 export const ORCHESTRATION_REVISION = 'catalog-persistent/r1';
 /** A binding may pin its own geometry/scene calibration independently of unrelated
  * registry entries. Absent metadata retains the strict legacy registry fallback. */
-export function getBindingCalibrationHash(binding,registry) {
-  const value=Object.hasOwn(binding||{},'calibrationHash')?binding.calibrationHash:registry?.calibrationHash;
-  return typeof value==='string'&&value.length>0?value:null;
-}
-export function createAdmissionPolicy({mediaRegistry={revision:'none',bindings:[]},preflight}={}) {
+export function createAdmissionPolicy({mediaRegistry={revision:'none',bindings:[]},preflight,actorProfiles=ACTOR_PROFILES,
+  allowUnprofiledTestBindings=false}={}) {
   return candidate => {
     if(typeof mediaRegistry.revision!=='string'||!mediaRegistry.revision||!Array.isArray(mediaRegistry.bindings))
       return{ok:false,code:'MEDIA_REGISTRY_VERSION_REQUIRED'};
+    const food=foodRefillPolicy({foodId:candidate.bowl?.foodId,bowl:candidate.bowl,mediaRegistry});
+    if(!food.ok)return{ok:false,code:food.reason};
     const matches=(mediaRegistry.bindings||[]).filter(b=>b.visitorId===candidate.visitor.id
       &&b.goodieId===candidate.goodie.id&&Array.isArray(b.activityIds)&&b.activityIds.includes(candidate.activity.id)
       &&(!b.conditions||b.conditions.includes(candidate.placement.condition||'new')));
@@ -26,6 +29,10 @@ export function createAdmissionPolicy({mediaRegistry={revision:'none',bindings:[
       return{ok:false,code:'MEDIA_CALIBRATION_HASH_REQUIRED'};
     if(b.playbackReady!==true||!b.requiredPhases?.length||!b.requiredPhases.every(p=>b.validatedPhases?.includes(p)))
       return{ok:false,code:'INTERACTION_MEDIA_NOT_READY'};
+    const actor=resolveBindingActorProfile(b,actorProfiles);
+    // Trusted source-economy fixtures may explicitly omit media profiles. This
+    // option is never constructed from an action payload or HTTP request.
+    if(!actor&&!allowUnprofiledTestBindings)return{ok:false,code:'ACTOR_PROFILE_UNAVAILABLE'};
     if(!['composited','separate'].includes(b.propMode)||typeof b.id!=='string'||!b.id||typeof b.revision!=='string'||!b.revision)return{ok:false,code:'MEDIA_OWNERSHIP_CONTRACT_REQUIRED'};
     // One visual owner of a composited prop. Capacity-two needs authored layering or joint choreography.
     if(candidate.reserved.some(r=>r.slotId===candidate.placement.slotId
@@ -36,6 +43,7 @@ export function createAdmissionPolicy({mediaRegistry={revision:'none',bindings:[
     if(result?.ok!==true||typeof result.then==='function')return{ok:false,code:result?.code||'PRESENTATION_PREFLIGHT_REJECTED'};
     return{ok:true,binding:{registryRevision:mediaRegistry.revision,registryHash:digest(mediaRegistry),
       bindingId:b.id,bindingRevision:b.revision,...(calibrationHash?{bindingCalibrationHash:calibrationHash}:{}),
+      ...(actor?{actorProfile:actorProfileReference(actor)}:{}),
       visitorId:b.visitorId,goodieId:b.goodieId,activityId:candidate.activity.id,
       propMode:b.propMode,coverage:b.coverage||'authored-clip-only',plan:clone(result.plan??null)}};
   };
@@ -60,7 +68,9 @@ export function resolvePersistentDisplay(state,{scene,yardOverride}={}) {
 }
 export function persistentOptions(options={}, state) {
   return {...options,projectYard:(yard,{scene}={})=>resolveYardDisplay(yard,{scene,legacyAnchors:state?.runtime.legacyPlacementAnchors}),
-    admissionPolicy:createAdmissionPolicy(options)};
+    admissionPolicy:createAdmissionPolicy(options),
+    // Rebuild from the effective registry, including trusted server test overrides.
+    autoRefillPolicy:candidate=>foodRefillPolicy({...candidate,mediaRegistry:options.mediaRegistry})};
 }
 export function advancePersistentYard(input, now, options={}) {
   const dispatched=dispatchInput(input,{now,seed:options.seed});
@@ -69,16 +79,16 @@ export function advancePersistentYard(input, now, options={}) {
   // No single episode sentinel. Every hour remains eligible, with the same deterministic cursor after reload.
   return advanceYard(prepared,now,persistentOptions(options,prepared));
 }
-export function inspectPersistentYard(state,{now=state.runtime.cursorMs,scene,mediaRegistry}={}) {
+export function inspectPersistentYard(state,{now=state.runtime.cursorMs,scene,mediaRegistry,actorProfiles=ACTOR_PROFILES}={}) {
   const display=resolvePersistentDisplay(state,{scene});
   const visits=Object.values(state.runtime.visits).map(record=>{
     if(record.source==='legacy'||!record.timeline)return resolveLegacyPresentation(record,state,{now,scene,legacyAnchors:state.runtime.legacyPlacementAnchors});
     const media=record.mediaAdmission;
-    const binding=(mediaRegistry?.bindings||[]).find(b=>b.id===media?.bindingId&&b.revision===media.bindingRevision);
-    const compatible=!!binding&&media.registryHash===digest(mediaRegistry);
+    const compatibility=presentationCompatibility(record,mediaRegistry,digest(mediaRegistry||null),actorProfiles);
+    const compatible=compatibility.renderCompatible;
     return{visitId:record.visitId,visitorId:record.original.visitorId,status:record.status,
       phase:visitPhase(record,now),reserved:isReserved(record,now),root:null,
-      presentationStatus:record.status!=='active'?'history':compatible?'calibrated-plan-available':'media-unavailable-preserve-visit',
+      ...compatibility,presentationStatus:record.status!=='active'?'history':compatibility.presentationStatus,
       animation:null,media:clone(media),timeline:clone(record.timeline),
       gap:compatible?'Browser adapter must schedule full economic stay and endpoint handoff; this foundation does not claim it is rendered':null};
   });

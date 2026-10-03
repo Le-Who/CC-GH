@@ -246,10 +246,10 @@ test('a pre-adoption realtime event cannot remove R2 or roll back its gold', () 
   assert.equal(actual.gardenR2.revision, 1); assert.equal(actual.garden.name, 'revision-1'); assert.equal(actual.resources.gold, 100);
 });
 
-test('legacy realtime partial Garden and Yard behavior remains unchanged before adoption', () => {
+test('account-scoped realtime partial Garden and Yard retain legacy behavior before adoption', () => {
   useGameHub.setState({ snapshot: { ...snapshot(), gardenR2: null } });
-  useGameHub.getState().applyRealtimePayload({ garden: { level: 5 } });
-  useGameHub.getState().applyRealtimePayload({ yard: { currencies: { treats: 145 } } });
+  useGameHub.getState().applyRealtimePayload({ accountId: 'account-a', garden: { level: 5 } });
+  useGameHub.getState().applyRealtimePayload({ accountId: 'account-a', yard: { currencies: { treats: 145 } } });
   const actual = useGameHub.getState().snapshot;
   assert.equal(actual.garden.level, 5); assert.equal(actual.garden.name, 'revision-1');
   assert.equal(actual.yard.currencies.treats, 145); assert.equal(actual.resources.gold, 100);

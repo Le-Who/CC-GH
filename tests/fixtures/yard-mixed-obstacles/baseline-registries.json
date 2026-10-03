@@ -1,0 +1,476 @@
+{
+  "mika": {
+    "revision": "mika-persistent-stay/r3-foods",
+    "kind": "persistent-mika",
+    "foodMediaRevision": "yard-food-stills/20261002-r1",
+    "foodBindings": {
+      "kibble": {
+        "presentationReady": true,
+        "filledStillId": "kibble-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.45,
+            -0.45,
+            0
+          ],
+          "max": [
+            0.45,
+            0.45,
+            0.23
+          ]
+        }
+      },
+      "berry_plate": {
+        "presentationReady": true,
+        "filledStillId": "berry-plate-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4803236722946167,
+            -0.4803236722946167,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4803236722946167,
+            0.4803236722946167,
+            0.2608437240123749
+          ]
+        }
+      },
+      "bonito_bowl": {
+        "presentationReady": true,
+        "filledStillId": "bonito-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4430169463157654,
+            -0.4430169463157654,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4430169463157654,
+            0.4430169463157654,
+            0.31467205286026
+          ]
+        }
+      }
+    },
+    "bowlBindings": {
+      "bowl-1": {
+        "presentationReady": true,
+        "anchor": {
+          "x": 25,
+          "y": 83
+        }
+      }
+    },
+    "calibrationHash": "f6207e98e5d3f862d48e6e69b4b32df5e12d7b7a1e97cd8bbc94a7e45fabac93",
+    "bindings": [
+      {
+        "id": "mika-mouse-r1",
+        "revision": "bbb9eae9b3cb8ed1809d3940ec34dff54929b701c1cbf185a2866c5c808b3425",
+        "visitorId": "mika_cat",
+        "goodieId": "yarn_mouse",
+        "activityIds": [
+          "chase"
+        ],
+        "conditions": [
+          "new"
+        ],
+        "propMode": "composited",
+        "playbackReady": true,
+        "requiredPhases": [
+          "approach",
+          "align",
+          "tap-contact",
+          "recoil",
+          "walk-out",
+          "updated-skin-parity"
+        ],
+        "validatedPhases": [
+          "approach",
+          "align",
+          "tap-contact",
+          "recoil",
+          "walk-out",
+          "updated-skin-parity"
+        ],
+        "coverage": "persistent-posed-rest-cycle",
+        "calibrationHash": "f6207e98e5d3f862d48e6e69b4b32df5e12d7b7a1e97cd8bbc94a7e45fabac93"
+      },
+      {
+        "id": "mika-cushion-r1",
+        "revision": "6d3203591d7454f5b16d45f9dd61b6965f97cd6b9fc9ae186a76ed8c61ed7c9a",
+        "visitorId": "mika_cat",
+        "goodieId": "sun_cushion",
+        "activityIds": [
+          "nap"
+        ],
+        "conditions": [
+          "new"
+        ],
+        "propMode": "composited",
+        "playbackReady": true,
+        "requiredPhases": [
+          "approach",
+          "step-on",
+          "sit",
+          "curl",
+          "uncurl",
+          "stand",
+          "step-off",
+          "canonical-gait-bridge"
+        ],
+        "validatedPhases": [
+          "approach",
+          "step-on",
+          "sit",
+          "curl",
+          "uncurl",
+          "stand",
+          "step-off",
+          "canonical-gait-bridge"
+        ],
+        "coverage": "persistent-posed-rest-cycle",
+        "calibrationHash": "f6207e98e5d3f862d48e6e69b4b32df5e12d7b7a1e97cd8bbc94a7e45fabac93"
+      }
+    ]
+  },
+  "mochi": {
+    "revision": "mochi-canonical-source/r1",
+    "kind": "persistent-mochi-candidate",
+    "foodMediaRevision": "yard-food-stills/20261002-r1",
+    "foodBindings": {
+      "kibble": {
+        "presentationReady": true,
+        "filledStillId": "kibble-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.45,
+            -0.45,
+            0
+          ],
+          "max": [
+            0.45,
+            0.45,
+            0.23
+          ]
+        }
+      },
+      "berry_plate": {
+        "presentationReady": true,
+        "filledStillId": "berry-plate-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4803236722946167,
+            -0.4803236722946167,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4803236722946167,
+            0.4803236722946167,
+            0.2608437240123749
+          ]
+        }
+      },
+      "bonito_bowl": {
+        "presentationReady": true,
+        "filledStillId": "bonito-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4430169463157654,
+            -0.4430169463157654,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4430169463157654,
+            0.4430169463157654,
+            0.31467205286026
+          ]
+        }
+      }
+    },
+    "bowlBindings": {
+      "bowl-1": {
+        "presentationReady": true,
+        "anchor": {
+          "x": 25,
+          "y": 83
+        }
+      }
+    },
+    "bindings": [
+      {
+        "id": "mochi-mouse-combined-r1",
+        "revision": "mochi-combined/r1",
+        "visitorId": "mochi_bunny",
+        "goodieId": "yarn_mouse",
+        "activityIds": [
+          "sniff"
+        ],
+        "conditions": [
+          "new"
+        ],
+        "propMode": "composited",
+        "calibrationHash": "a974bd47cf48cc80974a1e84ac2c70d2ab9fee252a2ddd5469e5d1f324ea6c43",
+        "playbackReady": false,
+        "requiredPhases": [
+          "authored-approach",
+          "investigate",
+          "settle",
+          "breathing-loop",
+          "rise",
+          "turn-away",
+          "authored-departure",
+          "canonical-exit"
+        ],
+        "validatedPhases": [
+          "authored-approach",
+          "investigate",
+          "settle",
+          "breathing-loop",
+          "rise",
+          "turn-away",
+          "authored-departure",
+          "canonical-exit",
+          "source-geometry",
+          "source-clearance",
+          "canonical-mesh-handoffs",
+          "lossless-packed-media",
+          "target-only-owner-unit-tests"
+        ],
+        "unavailableReason": "MOCHI_FULL_YARD_ACCEPTANCE_REQUIRED",
+        "actorProfile": {
+          "id": "mochi",
+          "revision": "mochi-actor/r1"
+        },
+        "coverage": "persistent-authored-composite-rest",
+        "groundFootprintRevision": "mochi-ground-motion/r2:e5099ce966168b70c19416f28e492dcff8fc9b67600cf001d39b8017da9185c1"
+      }
+    ]
+  },
+  "pebble": {
+    "revision": "pebble-leaf-pot-runtime/r1",
+    "kind": "persistent-pebble-candidate",
+    "foodMediaRevision": "yard-food-stills/20261002-r1",
+    "foodBindings": {
+      "kibble": {
+        "presentationReady": true,
+        "filledStillId": "kibble-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.45,
+            -0.45,
+            0
+          ],
+          "max": [
+            0.45,
+            0.45,
+            0.23
+          ]
+        }
+      },
+      "berry_plate": {
+        "presentationReady": true,
+        "filledStillId": "berry-plate-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4803236722946167,
+            -0.4803236722946167,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4803236722946167,
+            0.4803236722946167,
+            0.2608437240123749
+          ]
+        }
+      },
+      "bonito_bowl": {
+        "presentationReady": true,
+        "filledStillId": "bonito-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4430169463157654,
+            -0.4430169463157654,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4430169463157654,
+            0.4430169463157654,
+            0.31467205286026
+          ]
+        }
+      }
+    },
+    "bowlBindings": {
+      "bowl-1": {
+        "presentationReady": true,
+        "anchor": {
+          "x": 25,
+          "y": 83
+        }
+      }
+    },
+    "bindings": [
+      {
+        "id": "pebble-leaf-pot-r1",
+        "revision": "pebble-leaf-pot-source/r1",
+        "visitorId": "pebble_pup",
+        "goodieId": "leaf_pot",
+        "activityIds": [
+          "sniff"
+        ],
+        "conditions": [
+          "new"
+        ],
+        "propMode": "composited",
+        "calibrationHash": "4db153060be94f21fa6d83967822e1608138e1038749e988d82b095ac8858742",
+        "playbackReady": false,
+        "requiredPhases": [
+          "approach",
+          "sniff",
+          "withdraw",
+          "sit",
+          "breathing-rest",
+          "rise",
+          "turn",
+          "departure"
+        ],
+        "validatedPhases": [
+          "approach",
+          "sniff",
+          "withdraw",
+          "sit",
+          "breathing-rest",
+          "rise",
+          "turn",
+          "departure"
+        ],
+        "unavailableReason": "PEBBLE_FULL_YARD_ACCEPTANCE_REQUIRED",
+        "actorProfile": {
+          "id": "pebble",
+          "revision": "pebble-actor/r1"
+        },
+        "coverage": "persistent-authored-composite-rest",
+        "groundFootprintRevision": "pebble-ground-motion/r1:702f74333631517a2cc48c89e0075eac480684b4bdcc6e5ad223742fb1d128c8"
+      }
+    ]
+  },
+  "pip": {
+    "revision": "pip-snack-runtime/r1:4cbbc98b805e422520a08a3445df695305542776898bc42a7e46b6cc6ad447d1",
+    "kind": "persistent-pip-candidate",
+    "foodMediaRevision": "yard-food-stills/20261002-r1",
+    "foodBindings": {
+      "kibble": {
+        "presentationReady": true,
+        "filledStillId": "kibble-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.45,
+            -0.45,
+            0
+          ],
+          "max": [
+            0.45,
+            0.45,
+            0.23
+          ]
+        }
+      },
+      "berry_plate": {
+        "presentationReady": true,
+        "filledStillId": "berry-plate-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4803236722946167,
+            -0.4803236722946167,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4803236722946167,
+            0.4803236722946167,
+            0.2608437240123749
+          ]
+        }
+      },
+      "bonito_bowl": {
+        "presentationReady": true,
+        "filledStillId": "bonito-bowl-clean",
+        "emptyStillId": "kibble-bowl-empty",
+        "worldBounds": {
+          "min": [
+            -0.4430169463157654,
+            -0.4430169463157654,
+            0.012000001966953278
+          ],
+          "max": [
+            0.4430169463157654,
+            0.4430169463157654,
+            0.31467205286026
+          ]
+        }
+      }
+    },
+    "bowlBindings": {
+      "bowl-1": {
+        "presentationReady": true,
+        "anchor": {
+          "x": 25,
+          "y": 83
+        }
+      }
+    },
+    "bindings": [
+      {
+        "id": "pip-snack-combined-r1",
+        "revision": "c93a941a76a7aa38134578848346127070062b124038566fedfd886e3e274f71",
+        "visitorId": "pip_hamster",
+        "goodieId": "snack_table",
+        "activityIds": [
+          "nibble"
+        ],
+        "conditions": [
+          "new"
+        ],
+        "actorProfile": {
+          "id": "pip",
+          "revision": "pip-actor/r2-snack"
+        },
+        "groundFootprintRevision": "pip-actual-ground/r1:00e99607038ae89eae12beffa75086316a7c25a5790e20cb95f29947a9f1b549",
+        "propMode": "composited",
+        "calibrationHash": "59fdee75e4bacae7bb65c869745c93fb6607cb67d5e7bd5e12dfe58d052f4492",
+        "playbackReady": false,
+        "requiredPhases": [
+          "enter",
+          "walk",
+          "turn",
+          "align",
+          "nibble",
+          "rest",
+          "leave"
+        ],
+        "validatedPhases": [
+          "enter",
+          "walk",
+          "turn",
+          "align",
+          "nibble",
+          "rest",
+          "leave"
+        ],
+        "unavailableReason": "PIP_FULL_YARD_ACCEPTANCE_REQUIRED",
+        "coverage": "persistent-authored-composite-rest"
+      }
+    ]
+  }
+}

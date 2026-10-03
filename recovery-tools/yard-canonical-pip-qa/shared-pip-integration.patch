@@ -1,0 +1,101 @@
+--- a/game-logic/yard-v2/availability.mjs
++++ b/game-logic/yard-v2/availability.mjs
+@@ -3,7 +3,7 @@
+ import {YARD_FOODS,YARD_GOODIES,YARD_REMODELS} from './catalog.mjs';
+ import {clone} from './util.mjs';
+ export const YARD_AVAILABILITY_REVISION='mika-persistent-food-bindings/r3';
+-const GOODS=new Set(['yarn_mouse','sun_cushion','leaf_pot']);
++const GOODS=new Set(['yarn_mouse','sun_cushion','leaf_pot','snack_table']);
+ const unavailable=reason=>({ok:false,code:'YARD_BINDING_REQUIRED',reason});
+ const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+ const ownBinding=(map,id)=>record(map)&&Object.hasOwn(map,id)&&record(map[id])?map[id]:null;
+--- a/game-logic/yard-v2/released-actor-profiles.mjs
++++ b/game-logic/yard-v2/released-actor-profiles.mjs
+@@ -2,6 +2,8 @@
+ import {ACTOR_PROFILES} from './actor-profiles.mjs';
+ import {MOCHI_ACTOR_PROFILE,MOCHI_RELEASE_GATE} from './mochi-actor-profile.mjs';
+ import {PEBBLE_ACTOR_PROFILE,PEBBLE_RELEASE_GATE} from './pebble-actor-profile.mjs';
++import {PIP_ACTOR_PROFILE,PIP_RELEASE_GATE} from './pip-actor-profile.mjs';
+ const candidates=[MOCHI_RELEASE_GATE.accepted&&MOCHI_ACTOR_PROFILE.playbackReady?MOCHI_ACTOR_PROFILE:null,
+- PEBBLE_RELEASE_GATE.accepted&&PEBBLE_ACTOR_PROFILE.playbackReady?PEBBLE_ACTOR_PROFILE:null].filter(Boolean);
++ PEBBLE_RELEASE_GATE.accepted&&PEBBLE_ACTOR_PROFILE.playbackReady?PEBBLE_ACTOR_PROFILE:null,
++ PIP_RELEASE_GATE.accepted&&PIP_ACTOR_PROFILE.playbackReady?PIP_ACTOR_PROFILE:null].filter(Boolean);
+ export const YARD_ACTOR_PROFILES=candidates.length?Object.freeze({...ACTOR_PROFILES,...Object.fromEntries(candidates.map(p=>[p.id,p]))}):ACTOR_PROFILES;
+--- a/game-logic/yard-v2/released-prop-profiles.mjs
++++ b/game-logic/yard-v2/released-prop-profiles.mjs
+@@ -2,9 +2,12 @@
+ import {MIKA_SCENE} from './mika-media.mjs';
+ import {PEBBLE_RELEASE_GATE} from './pebble-actor-profile.mjs';
+ import combined from './media/pebble/combined-binding.json' with {type:'json'};
++import {PIP_RELEASE_GATE,PIP_ACTOR_PROFILE} from './pip-actor-profile.mjs';
++import {PIP_PROP_PROFILE} from './pip-prop-profile.mjs';
+ import {deepFreeze} from './util.mjs';
+ const pb=combined.propBounds,pr=combined.propRoot;
+ export const PEBBLE_PROP_PROFILE=deepFreeze({goodieId:'leaf_pot',stillId:'pebble:leaf-pot',conditions:['new'],rotationZ:0,
+  footprint:{width:2*(Math.max(Math.abs(pb.min[0]-pr[0]),Math.abs(pb.max[0]-pr[0]))+.025)*8,height:2*(Math.max(Math.abs(pb.min[1]-pr[1]),Math.abs(pb.max[1]-pr[1]))+.025)*8}});
+-export const YARD_PROP_PROFILES=deepFreeze({yarn_mouse:{goodieId:'yarn_mouse',footprint:MIKA_SCENE.footprints.yarn_mouse},sun_cushion:{goodieId:'sun_cushion',footprint:MIKA_SCENE.footprints.sun_cushion},...(PEBBLE_RELEASE_GATE.accepted?{leaf_pot:PEBBLE_PROP_PROFILE}:{})});
+-export const YARD_RELEASED_SCENE=PEBBLE_RELEASE_GATE.accepted?deepFreeze({...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,leaf_pot:PEBBLE_PROP_PROFILE.footprint}}):MIKA_SCENE;
++const pipReady=PIP_RELEASE_GATE.accepted&&PIP_ACTOR_PROFILE.playbackReady;
++export const YARD_PROP_PROFILES=deepFreeze({yarn_mouse:{goodieId:'yarn_mouse',footprint:MIKA_SCENE.footprints.yarn_mouse},sun_cushion:{goodieId:'sun_cushion',footprint:MIKA_SCENE.footprints.sun_cushion},...(PEBBLE_RELEASE_GATE.accepted?{leaf_pot:PEBBLE_PROP_PROFILE}:{}),...(pipReady?{snack_table:PIP_PROP_PROFILE}:{})});
++export const YARD_RELEASED_SCENE=(PEBBLE_RELEASE_GATE.accepted||pipReady)?deepFreeze({...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,...(PEBBLE_RELEASE_GATE.accepted?{leaf_pot:PEBBLE_PROP_PROFILE.footprint}:{}),...(pipReady?{snack_table:PIP_PROP_PROFILE.footprint}:{})}}):MIKA_SCENE;
+--- a/game-logic/yard-v2/yard-media.mjs
++++ b/game-logic/yard-v2/yard-media.mjs
+@@ -2,10 +2,11 @@
+  * HTTP clients cannot provide registries, profiles or preflight callbacks. */
+ import {getMikaServerOptions} from './mika-media.mjs';
+ import {createMochiMedia} from './mochi-media.mjs';
++import {createPipMedia} from './pip-media.mjs';
+ import {createPebbleMedia} from './pebble-media.mjs';
+ import {clone,deepFreeze} from './util.mjs';
+-export function createYardMedia({mika=getMikaServerOptions(),mochi=createMochiMedia(),pebble=createPebbleMedia()}={}){
+- const sources=[mika,mochi,pebble],bindings=sources.flatMap(s=>s.mediaRegistry.bindings);
++export function createYardMedia({mika=getMikaServerOptions(),mochi=createMochiMedia(),pebble=createPebbleMedia(),pip=createPipMedia()}={}){
++ const sources=[mika,mochi,pebble,pip],bindings=sources.flatMap(s=>s.mediaRegistry.bindings);
+  if(new Set(bindings.map(b=>b.id)).size!==bindings.length)throw Error('Duplicate Yard media binding');
+  const sourceRegistry=deepFreeze({...clone(mika.mediaRegistry),revision:'yard-species-staged/r1',kind:'persistent-yard',bindings:clone(bindings)});
+  // An inactive source must not perturb even the strict legacy registry digest.
+@@ -15,7 +16,7 @@
+  const admitted=acceptedSources.flatMap(s=>s.mediaRegistry.bindings.filter(b=>b.playbackReady===true));
+  const mediaRegistry=admitted.length?deepFreeze({...clone(mika.mediaRegistry),revision:'yard-species-staged/r1',kind:'persistent-yard',
+   bindings:[...clone(mika.mediaRegistry.bindings),...clone(admitted)]}):mika.mediaRegistry;
+- const actorProfiles=Object.freeze({...mika.actorProfiles,...mochi.actorProfiles,...pebble.actorProfiles});
++ const actorProfiles=Object.freeze({...mika.actorProfiles,...mochi.actorProfiles,...pebble.actorProfiles,...pip.actorProfiles});
+  const scene=acceptedSources.length?deepFreeze({...clone(mika.scene),footprints:Object.assign({},mika.scene.footprints,...acceptedSources.map(s=>s.scene.footprints))}):mika.scene;
+  const placementReadiness=admitted.length?yard=>{
+   const baseline=mika.placementReadiness(yard),others=acceptedSources.map(s=>({visitorId:s.candidateProfile.visitorId,rows:s.sourcePlacementReadiness(yard)}));
+--- a/src/games/companion-yard-v2/scene.mjs
++++ b/src/games/companion-yard-v2/scene.mjs
+@@ -15,6 +15,8 @@
+ import { MOCHI_ACTOR_REFERENCE,MOCHI_RUNTIME_MEDIA_REVISION } from '../../../game-logic/yard-v2/mochi-actor-profile.mjs';
+ import { createActorMediaEntry,actorEntryForPet } from './actor-media.mjs';
+ import {PEBBLE_ACTOR_REFERENCE,PEBBLE_MEDIA_REVISION} from '../../../game-logic/yard-v2/pebble-actor-profile.mjs';
++
++import {PIP_ACTOR_REFERENCE,PIP_MEDIA_REVISION} from '../../../game-logic/yard-v2/pip-actor-profile.mjs';
+ 
+ const ROOT = '/assets/yard-mika/';
+ const stillIds = [...new Set(['sun-cushion-clean','yarn-mouse-clean','yarn-mouse-settled-clean',
+@@ -53,8 +55,9 @@
+     }
+     const layers=[];
+     for(const pet of v.pets){const pose=poseFor(pet),base=pet.phase==='active-clip'?pet.clipOrigin:pet.position,units=actorEntryForPet(pet,actorEntries).profile.unitsPerWorld;
++      const contact=actorEntryForPet(pet,actorEntries).groundShadow||{radiusX:.19,radiusY:.065,opacity:.22};
+       const origin=pet.phase==='active-clip'?(pose.clip.originWorld||[0,0,0]):[0,0,0];
+-      for(const p of pose.clip.groundContacts?.[pose.index]||[]){const point=projection.project({x:base.x+(p[0]-origin[0])*units,y:base.y+(p[1]-origin[1])*units});shadow(point,ppu*.19,ppu*.065,.22*fade(pet));}
++      for(const p of pose.clip.groundContacts?.[pose.index]||[]){const point=projection.project({x:base.x+(p[0]-origin[0])*units,y:base.y+(p[1]-origin[1])*units});shadow(point,ppu*contact.radiusX,ppu*contact.radiusY,contact.opacity*fade(pet));}
+     }
+     for(const prop of v.props){if(!prop.supported||ghost?.slotId===prop.slotId)continue;const p=projection.project(prop.transform);
+       shadow(p,ppu*(prop.goodieId==='sun_cushion'?1.1:.32),ppu*(prop.goodieId==='sun_cushion'?.35:.1),.14);
+@@ -107,6 +110,13 @@
+       await Promise.all(Object.entries(entry.stills).map(async([id,meta])=>{const im=await image(meta.assetURL);if(!disposed){images.set(id,im);stills[id]=meta;}}));
+       if(disposed)return;actorEntries.pebble=entry;
+     }
++    if(resolveActorProfile(PIP_ACTOR_REFERENCE,actorProfiles)){
++      const base=new URL('/assets/yard-pip/',location.origin).href;
++      const [{createPipActorMediaEntry},manifest]=await Promise.all([import('./pip-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(PIP_MEDIA_REVISION)}`,abort.signal)]);
++      const entry=createPipActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
++      await Promise.all(Object.entries(entry.stills).map(async([id,meta])=>{const im=await image(meta.assetURL);if(!disposed){images.set(id,im);stills[id]=meta;}}));
++      if(disposed)return;actorEntries.pip=entry;
++    }
+     propBindings=Object.assign({},...Object.values(actorEntries).map(e=>e.propBindings||{}));
+     sceneGeometry={...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,...Object.fromEntries(Object.entries(propBindings).map(([id,p])=>[id,p.footprint]))}};
+     if(disposed)return;resize();ready=true;lastNow=now();raf=requestAnimationFrame(tick);

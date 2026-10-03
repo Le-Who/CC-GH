@@ -1,23 +1,27 @@
 /** Calibrated Mika media and deterministic full-stay preflight. Missing coverage rejects admission before serving or wear consumption. */
-import { routeProgram, STRIDE_WORLD, WALK_CYCLE_MS } from './media/stride-routes.mjs';
+import {planningSceneWithObstacles,obstacleContextRevision} from './prop-obstacles.mjs';
+import { routeProgram } from './media/stride-routes.mjs';
 import { buildStaySchedule } from './media/stay-schedule.mjs';
-import clipsDefault from './media/clip-contracts.json' with { type: 'json' };
-import turnsDefault from './media/turn-contracts.json' with { type: 'json' };
-import { GROUND_REST } from './media/ground-rest.mjs';
-import { SETTLED_MOUSE } from './media/settled-mouse.mjs';
+import { MIKA_ACTOR_ASSETS } from './media/mika-actor-assets.mjs';
+import { ACTOR_PROFILES,MIKA_ACTOR_PROFILE,MIKA_ACTOR_REFERENCE,resolveActorProfile } from './actor-profiles.mjs';
 import { footprint, overlaps, buildNavigation, validateLayout } from './geometry.mjs';
 import { clone, digest } from './util.mjs';
 import { createMotionGroundGuard,MIKA_GROUND_FOOTPRINT_REVISION } from './motion-ground-guard.mjs';
-export const MIKA_SCENE = Object.freeze({entry:{x:90,y:68},bowlAnchor:{x:25,y:83},
+import { FOOD_BINDINGS,BOWL_BINDINGS,foodVesselExclusion,YARD_FOOD_MEDIA_REVISION } from './food-media.mjs';
+export const MIKA_SCENE = Object.freeze({entry:{x:90,y:68},bowlAnchor:BOWL_BINDINGS['bowl-1'].anchor,
   walkReservationRadius:3.44, footprints:{yarn_mouse:{width:8.8,height:3.2},sun_cushion:{width:22.4,height:19.2}},
-  exclusions:[{x:21.4,y:79.4,width:7.2,height:7.2}]});
+  exclusions:[foodVesselExclusion()]});
 /** Suggestions for a NEW placement only. Migration never applies these to stored rows. */
 export const MIKA_PLACEMENT_SUGGESTIONS=Object.freeze({
   yarn_mouse:Object.freeze({x:45,y:45}),sun_cushion:Object.freeze({x:54,y:66}),
 });
-export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,groundRest=GROUND_REST,settledMouse=SETTLED_MOUSE}={}) {
-  const registry={revision:'mika-persistent-stay/r2',kind:'persistent-mika',calibrationHash:digest({scene,turns,unitsPerWorld,groundRest,settledMouse,groundFootprints:MIKA_GROUND_FOOTPRINT_REVISION}),bindings:Object.values(clips).map(c=>({
-    id:c.id,revision:digest(c),visitorId:'mika_cat',goodieId:c.goodieId,activityIds:clone(c.activityIds),
+export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=MIKA_ACTOR_PROFILE.unitsPerWorld,
+  groundRest=MIKA_ACTOR_ASSETS.groundRest,settledMouse=MIKA_ACTOR_ASSETS.settledMouse}={}) {
+  const actorProfile=MIKA_ACTOR_PROFILE,{strideWorld,cycleMs}=actorProfile.locomotion;
+  const registry={revision:'mika-persistent-stay/r3-foods',kind:'persistent-mika',foodMediaRevision:YARD_FOOD_MEDIA_REVISION,
+    foodBindings:clone(FOOD_BINDINGS),bowlBindings:clone(BOWL_BINDINGS),
+    calibrationHash:digest({scene,turns,unitsPerWorld,groundRest,settledMouse,groundFootprints:MIKA_GROUND_FOOTPRINT_REVISION}),bindings:Object.values(clips).map(c=>({
+    id:c.id,revision:digest(c),visitorId:actorProfile.visitorId,goodieId:c.goodieId,activityIds:clone(c.activityIds),
     conditions:['new'],propMode:c.propMode,playbackReady:c.playbackReady && (c.goodieId!=='yarn_mouse' || !!(groundRest?.playbackReady && settledMouse?.playbackReady)),requiredPhases:clone(c.requiredPhases),
     validatedPhases:clone(c.validatedPhases),coverage:'persistent-posed-rest-cycle',
   }))};
@@ -28,12 +32,19 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
     y:p.y+(row.prop[1]-c.samples[0].prop[1])*unitsPerWorld,rotationZ:row.rotationZ,compression:row.compression});
   const root=(c,p,row)=>({x:p.x+(row.root[0]-c.samples[0].prop[0])*unitsPerWorld,
     y:p.y+(row.root[1]-c.samples[0].prop[1])*unitsPerWorld,z:row.root[2]});
-  const preflight=(candidate,b)=>{
+  const calibratedScene=scene;
+  const preflight=(candidate,b,obstacleContext)=>{
     let c=clips[b.id];const p=candidate.placement,yard=candidate.yard;
-    if(candidate.bowl?.foodId!=='kibble')return{ok:false,code:'FOOD_PRESENTATION_UNAVAILABLE'};
+    if(!Object.hasOwn(registry.foodBindings,candidate.bowl?.foodId)||registry.foodBindings[candidate.bowl.foodId].presentationReady!==true)
+      return{ok:false,code:'FOOD_PRESENTATION_UNAVAILABLE'};
+    if(!Object.hasOwn(registry.bowlBindings,candidate.bowl?.id)||registry.bowlBindings[candidate.bowl?.id].presentationReady!==true)
+      return{ok:false,code:'BOWL_PRESENTATION_UNAVAILABLE'};
     if(yard.remodel!=='meadow')return{ok:false,code:'REMODEL_PRESENTATION_UNAVAILABLE'};
-    if(yard.placedGoodies.some(row=>!['yarn_mouse','sun_cushion'].includes(row.goodieId)))return{ok:false,code:'PLACED_PROP_PRESENTATION_UNAVAILABLE'};
-    if(candidate.active?.some(r=>r.original?.visitorId==='mika_cat'))return{ok:false,code:'MIKA_ALREADY_VISITING'};
+    const planning=planningSceneWithObstacles(calibratedScene,yard,obstacleContext);if(!planning.ok)return planning;const scene=planning.scene;
+    if(yard.placedGoodies.some(row=>!Object.hasOwn(scene.footprints||{},row.goodieId)))return{ok:false,code:'PLACED_PROP_PRESENTATION_UNAVAILABLE'};
+    if(candidate.visitor&&candidate.visitor.id!==actorProfile.visitorId)return{ok:false,code:'ACTOR_PROFILE_UNAVAILABLE'};
+    if(b.visitorId!==actorProfile.visitorId)return{ok:false,code:'ACTOR_PROFILE_UNAVAILABLE'};
+    if(candidate.active?.some(r=>r.original?.visitorId===actorProfile.visitorId))return{ok:false,code:'MIKA_ALREADY_VISITING'};
     if(c?.goodieId==='yarn_mouse'){
       const yaw=p.rotationZ??0;
       if(Math.abs(yaw-.1)<1e-7){if(!settledMouse?.playbackReady)return{ok:false,code:'SETTLED_MOUSE_MEDIA_UNAVAILABLE'};c=settledMouse;}
@@ -57,10 +68,10 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
       const obstacles=currentYard.placedGoodies.map(q=>footprint(q,scene)).concat(scene.exclusions||[]);
       const navigation=buildNavigation(currentYard,{...scene,actorRadius:scene.walkReservationRadius,exclusions:[...(scene.exclusions||[]),
         ...currentYard.placedGoodies.map(q=>footprint(q,scene)).filter(box=>!box.blocksMovement)]});
-      const ground=createMotionGroundGuard(currentYard,{scene,unitsPerWorld});
+      const ground=createMotionGroundGuard(currentYard,{scene,unitsPerWorld,actorProfile,calibrationHash:b.calibrationHash||registry.calibrationHash});
       navigation.walkSegment=ground.walkSegment;
       return routeProgram({navigation,anchor,entry:scene.entry,portalHalfSize:scene.entryClearance??4,
-        unitsPerWorld,incoming,initialPhase,turnDurations:turns.durations,
+        unitsPerWorld,actorProfile,incoming,initialPhase,turnDurations:turns.durations,
         canTurn:(position,fromFacing,direction,angleSteps)=>{
           const env=turns.variants?.[`${fromFacing}:${direction}:${angleSteps}`]?.actorEnvelope;
           if(!env?.validated||!ground.canTurn(position,fromFacing,direction,angleSteps))return false;
@@ -77,12 +88,12 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
       if(!groundRest?.playbackReady||!groundRest.actorEnvelope?.meshValidated)return{ok:false,code:'LONG_STAY_GROUND_REST_UNAVAILABLE'};
       const nav=buildNavigation(finalYard,{...scene,actorRadius:scene.walkReservationRadius,exclusions:[...(scene.exclusions||[]),
         ...finalYard.placedGoodies.map(q=>footprint(q,scene)).filter(box=>!box.blocksMovement)]});
-      const restGround=createMotionGroundGuard(finalYard,{scene,unitsPerWorld});
+      const restGround=createMotionGroundGuard(finalYard,{scene,unitsPerWorld,actorProfile,calibrationHash:b.calibrationHash||registry.calibrationHash});
       const obstacles=finalYard.placedGoodies.map(q=>footprint(q,scene)).concat(scene.exclusions||[]);
       // A full-stride +X runway preserves the actual clip's terminal phase and
       // separates the resting paws from the mouse they just pushed.
       for(let strides=1;strides<=10;strides++){
-        const target={x:endRoot.x+strides*STRIDE_WORLD*unitsPerWorld,y:endRoot.y,z:0};
+        const target={x:endRoot.x+strides*strideWorld*unitsPerWorld,y:endRoot.y,z:0};
         const e=groundRest.actorEnvelope,box={x:target.x+e.min[0]*unitsPerWorld,y:target.y+e.min[1]*unitsPerWorld,
           width:(e.max[0]-e.min[0])*unitsPerWorld,height:(e.max[1]-e.min[1])*unitsPerWorld};
         const radius=scene.walkReservationRadius,pathBox={x:endRoot.x-radius,y:endRoot.y-radius,
@@ -91,7 +102,7 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
           ||obstacles.some(o=>overlaps(box,o)||overlaps(pathBox,o))||!nav.segment(endRoot,target)||!restGround.walkSegment(endRoot,target,0,0))continue;
         const departure=route(finalYard,target,false,groundRest.terminalGaitPhase||0);
         if(!departure.ok)continue;
-        const durationMs=strides*WALK_CYCLE_MS,distance=strides*STRIDE_WORLD*unitsPerWorld;
+        const durationMs=strides*cycleMs,distance=strides*strideWorld*unitsPerWorld;
         restApproach={ok:true,durationMs,distance,points:[clone(endRoot),target],phaseAtStart:0,phaseAtEnd:0,turnCount:0,
           legs:[{kind:'walk',from:clone(endRoot),to:target,facing:0,distance,durationMs,startMs:0,endMs:durationMs,
             phaseStart:0,phaseEnd:0,rampInDistance:0,rampOutDistance:0,rampInMs:0,rampOutMs:0,
@@ -119,18 +130,23 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
       groundFootprintRevision:MIKA_GROUND_FOOTPRINT_REVISION,
       singleVisualOwner:'clip-while-active',requiresEndpointCommit:true,endpointCommitted:false,
       longStayPresentation:'posed-curl-rest-loop',artStatus:'prototype-under-review',envelopeStatus:c.actorEnvelope.meshValidated?'mesh-validated':'unvalidated'};
-    const schedule=buildStaySchedule(candidate,plan,c,groundRest);
+    const schedule=buildStaySchedule(candidate,plan,c,groundRest,{actorProfile});
     if(!schedule.ok)return schedule;
     Object.assign(plan,{schedule,segments:schedule.segments,propCommits:schedule.propCommits,propReleaseAt:schedule.propReleaseAt,arrivalAt:candidate.at,departureAt:schedule.departureAt});
+    if(planning.receipt)plan.obstacleReceipt=planning.receipt;
     return{ok:true,plan};
   };
   // Read-only usability projection. Existing saves remain byte-identical; a
   // calibrated route failure becomes an explicit recoverable placement state.
   const readinessCache=new Map();
-  const placementReadiness=yard=>{
+  const placementReadiness=(yard,{actorProfile:requestedActor=MIKA_ACTOR_REFERENCE,obstacleContext}={})=>{
     const rows=yard.placedGoodies||[];
+    const selected=resolveActorProfile(requestedActor);
+    if(!selected||selected.id!==actorProfile.id||selected.revision!==actorProfile.revision)
+      return rows.map(p=>({slotId:p?.slotId,status:'media-unavailable',reason:'ACTOR_PROFILE_UNAVAILABLE'}));
     const slots=rows.map(p=>p?.slotId);
-    const key=digest({calibration:registry.calibrationHash,remodel:yard.remodel,
+    const key=digest({obstacleRevision:obstacleContextRevision(obstacleContext),actor:requestedActor,calibration:registry.calibrationHash,
+      bindings:registry.bindings.filter(b=>b.visitorId===selected.visitorId).map(b=>({id:b.id,revision:b.revision,calibrationHash:b.calibrationHash,playbackReady:b.playbackReady})),remodel:yard.remodel,
       expansionLevel:yard.expansion?.level,duplicateSlots:new Set(slots).size!==slots.length,
       placements:rows.map(p=>p?{goodieId:p.goodieId,x:p.x,y:p.y,rotationZ:p.rotationZ??0,condition:p.condition,
         validSlot:typeof p.slotId==='string'&&p.slotId.length>0}:null)});
@@ -139,14 +155,15 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
     const withSlots=result=>clone(result).map((row,index)=>({...row,slotId:rows[index]?.slotId}));
     if(readinessCache.has(key))return withSlots(readinessCache.get(key));
     const result=rows.map(p=>{
-      const b=registry.bindings.find(b=>b.goodieId===p?.goodieId);
+      const matches=registry.bindings.filter(b=>b.visitorId===selected.visitorId&&b.goodieId===p?.goodieId);
+      const b=matches.length===1?matches[0]:null;
       if(!b?.playbackReady)return{slotId:p?.slotId,status:'media-unavailable',reason:'INTERACTION_MEDIA_NOT_READY'};
       if(!Number.isFinite(p.x)||!Number.isFinite(p.y))return{slotId:p.slotId,status:'reposition-needed',reason:'SAVED_ANCHOR_UNRESOLVED'};
       const check=preflight({at:0,leavesAt:45*60000,slotId:p.slotId,placement:p,yard,
-        bowl:{foodId:'kibble'},active:[],reserved:[]},b);
+        bowl:{id:'bowl-1',foodId:'kibble'},active:[],reserved:[]},b,obstacleContext);
       return{slotId:p.slotId,goodieId:p.goodieId,
         status:check.ok?(p.condition==='new'?'ready':'repair-required'):
-          ['PLACED_PROP_PRESENTATION_UNAVAILABLE','REMODEL_PRESENTATION_UNAVAILABLE'].includes(check.code)?'media-unavailable':'reposition-needed',
+          ['PLACED_PROP_PRESENTATION_UNAVAILABLE','REMODEL_PRESENTATION_UNAVAILABLE','PROP_OBSTACLE_SOURCE_UNAVAILABLE','PROP_OBSTACLE_STATE_UNSUPPORTED','UNTRUSTED_PROP_OBSTACLE_CONTEXT'].includes(check.code)?'media-unavailable':'reposition-needed',
         reason:check.ok?(p.condition==='new'?null:'WORN_MEDIA_UNAVAILABLE'):check.code,
         ...(check.incomingReason?{incomingReason:check.incomingReason}:{}),
         ...(check.outgoingReason?{outgoingReason:check.outgoingReason}:{})};
@@ -154,8 +171,8 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=8,gr
     if(readinessCache.size>=128)readinessCache.delete(readinessCache.keys().next().value);
     readinessCache.set(key,result.map(({slotId,...row})=>clone(row)));return result;
   };
-  return{mediaRegistry:registry,preflight,scene,placementReadiness};
+  return{mediaRegistry:registry,preflight,scene,placementReadiness,actorProfiles:ACTOR_PROFILES};
 }
 
 let options;
-export function getMikaServerOptions(){return options??=createMikaMedia(clipsDefault,turnsDefault);}
+export function getMikaServerOptions(){return options??=createMikaMedia(MIKA_ACTOR_ASSETS.clips,MIKA_ACTOR_ASSETS.turns);}

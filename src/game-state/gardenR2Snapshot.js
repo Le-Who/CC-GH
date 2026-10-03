@@ -97,3 +97,13 @@ export function protectGardenR2Snapshot(current, incoming) {
     ...mergeObservation(incoming, current),
   };
 }
+
+/** Full hub observations order every game, not just Garden/shared gold. A
+ * newer Garden revision may still merge narrowly behind the hub sequence. */
+export function protectHubSnapshot(current, incoming) {
+  if (account(current) != null && account(current) === account(incoming)
+    && (compareSnapshotFreshness(incoming, current) < 0
+      || ((sequence(current) !== null || counter(current?.serverTime) !== null)
+        && sequence(incoming) === null && counter(incoming?.serverTime) === null))) return mergeGardenR2Snapshot(current, incoming);
+  return protectGardenR2Snapshot(current, incoming);
+}

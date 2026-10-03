@@ -19,7 +19,7 @@ const { emissions } = await import('yard-sync-capture');
 const NOW = Date.UTC(2026,9,2,12);
 const runtime = (cursorMs, visits = [], reservations = []) => ({version:1,revision:'persistent-mika/r1',serverNow:cursorMs,cursorMs,status:200,mutable:true,visits,reservations,display:{placements:[],issues:[]}});
 function snapshot() {
-  return {resources:{gold:100,gachaTokens:3},garden:{level:4,plants:[]},merge:{alchemyEssence:7},
+  return {player:{id:'rebase-client-account'},resources:{gold:100,gachaTokens:3},garden:{level:4,plants:[]},merge:{alchemyEssence:7},
     inventory:{yardFood:{kibble:1},yardGoodies:{yarn_mouse:1},seeds:{carrot:2}},
     yard:{foodInventory:{kibble:1},goodieInventory:{yarn_mouse:1},placedGoodies:[{slotId:'mouse',goodieId:'yarn_mouse',x:35,y:45}],pendingGifts:[],futureField:'retain'},
     yardRuntime:runtime(NOW)};
@@ -27,12 +27,15 @@ function snapshot() {
 function reset() {
   useGameHub.setState({snapshot:null,pendingActions:[],outboxLoaded:true,busy:{},status:'ready',message:'',lastResult:null});
   useGameHub.getState().applySnapshot(snapshot());
+  useGameHub.setState({outboxLoaded:true,outboxAccountId:'rebase-client-account'});
 }
 function storage() {const data = new Map();return {getItem:key=>data.get(key) ?? null,setItem:(key,value)=>data.set(key,String(value)),removeItem:key=>data.delete(key)};}
 function setupOutbox(t) {
   reset();t.mock.timers.enable({apis:['setTimeout']});
   const previous = Object.getOwnPropertyDescriptor(globalThis,'localStorage');
   Object.defineProperty(globalThis,'localStorage',{configurable:true,value:storage()});
+  // setupOutbox models a verified hydrated fallback, not a failed IDB read.
+  localStorage.setItem('game_hub_yard_outbox_v2:rebase-client-account',JSON.stringify({version:2,accountId:'rebase-client-account',items:[]}));
   t.after(()=>{if(previous)Object.defineProperty(globalThis,'localStorage',previous);else delete globalThis.localStorage;});
 }
 
@@ -43,37 +46,37 @@ test('realtime visit, prop commit and release each notify observers once with ma
     const plan={propCommits:[{at:NOW+500,slotId:'mouse',transform:{x:37,y:44,rotationZ:.1,compression:1}}]};
     const visit={visitId:'visit',slotId:'mouse',visitorId:'mika_cat',leavesAt:NOW+1000,mediaAdmission:{plan}};
     const active=runtime(NOW+1,[visit],[{visitId:'visit',slotId:'mouse',releaseAt:NOW+1000}]);
-    useGameHub.getState().applyRealtimePayload({yard:{...snapshot().yard,pendingGifts:[]},yardRuntime:active});
+    useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yard:{...snapshot().yard,pendingGifts:[]},yardRuntime:active});
     assert.equal(observed.length,1);assert.deepEqual(observed[0].yardRuntime,active);
     const placed=[{...snapshot().yard.placedGoodies[0],...plan.propCommits[0].transform}];
     const committed=runtime(NOW+500,[visit],active.reservations);
-    useGameHub.getState().applyRealtimePayload({yard:{placedGoodies:placed},yardRuntime:committed});
+    useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yard:{placedGoodies:placed},yardRuntime:committed});
     assert.equal(observed.length,2);assert.deepEqual(observed[1].yard.placedGoodies,placed);assert.deepEqual(observed[1].yardRuntime,committed);
     const gift={id:'gift:visit',visitorId:'mika_cat',treats:12};
     const released=runtime(NOW+1000);
-    useGameHub.getState().applyRealtimePayload({yard:{pendingGifts:[gift]},yardRuntime:released});
+    useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yard:{pendingGifts:[gift]},yardRuntime:released});
     assert.equal(observed.length,3);assert.deepEqual(observed[2].yard.pendingGifts,[gift]);assert.deepEqual(observed[2].yardRuntime.visits,[]);assert.deepEqual(observed[2].yardRuntime.reservations,[]);
     assert.equal(observed[2].yard.futureField,'retain');assert.equal(observed[2].resources.gold,100);assert.equal(observed[2].resources.gachaTokens,3);assert.equal(observed[2].merge.alchemyEssence,7);
   } finally {stop();}
 });
 
 test('realtime authoritative Yard inventories replace stale normalized aliases, including empty inventories',()=>{
-  reset();useGameHub.getState().applyRealtimePayload({yard:{foodInventory:{kibble:0},goodieInventory:{yarn_mouse:3,alchemy_living_arbor:11}},yardRuntime:runtime(NOW+100)});
+  reset();useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yard:{foodInventory:{kibble:0},goodieInventory:{yarn_mouse:3,alchemy_living_arbor:11}},yardRuntime:runtime(NOW+100)});
   let result=useGameHub.getState().snapshot;
   assert.deepEqual(result.yard.foodInventory,{kibble:0});assert.deepEqual(result.inventory.yardFood,{kibble:0});
   assert.deepEqual(result.yard.goodieInventory,{yarn_mouse:3,alchemy_living_arbor:11});assert.deepEqual(result.inventory.yardGoodies,result.yard.goodieInventory);
   assert.deepEqual(result.inventory.seeds,{carrot:2});
-  useGameHub.getState().applyRealtimePayload({yard:{foodInventory:{},goodieInventory:{}},yardRuntime:runtime(NOW+200)});
+  useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yard:{foodInventory:{},goodieInventory:{}},yardRuntime:runtime(NOW+200)});
   result=useGameHub.getState().snapshot;assert.deepEqual(result.yard.foodInventory,{});assert.deepEqual(result.inventory.yardGoodies,{});
 });
 
 test('unrelated and legacy deltas preserve runtime; explicit runtime replaces removed fields and can clear it',()=>{
   reset(); const prior=useGameHub.getState().snapshot.yardRuntime;
-  useGameHub.getState().applyRealtimePayload({garden:{level:5}});assert.equal(useGameHub.getState().snapshot.yardRuntime,prior);
-  useGameHub.getState().applyRealtimePayload({yard:{pendingGifts:[]}});assert.equal(useGameHub.getState().snapshot.yardRuntime,prior);
+  useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',garden:{level:5}});assert.equal(useGameHub.getState().snapshot.yardRuntime,prior);
+  useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yard:{pendingGifts:[]}});assert.equal(useGameHub.getState().snapshot.yardRuntime,prior);
   const readonly={version:2,status:409,mutable:false};
-  useGameHub.getState().applyRealtimePayload({yardRuntime:readonly});assert.deepEqual(useGameHub.getState().snapshot.yardRuntime,readonly);
-  useGameHub.getState().applyRealtimePayload({yardRuntime:null});assert.equal(useGameHub.getState().snapshot.yardRuntime,null);
+  useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yardRuntime:readonly});assert.deepEqual(useGameHub.getState().snapshot.yardRuntime,readonly);
+  useGameHub.getState().applyRealtimePayload({accountId:'rebase-client-account',yardRuntime:null});assert.equal(useGameHub.getState().snapshot.yardRuntime,null);
 });
 
 test('actual withPlayerLock emission supplies a sanitized runtime and its newly committed Yard in one store update',async t=>{

@@ -43,11 +43,21 @@ function chooseVisitor(pool, key) {
   return pool.at(-1)?.visitor;
 }
 function clearBowl(bowl) { bowl.foodId = null; bowl.servings = 0; bowl.placedAt = null; bowl.expiresAt = null; }
-function refill(yard, at) {
+function refill(yard, at, autoRefillPolicy) {
   if (!yard.helper?.unlocked || !yard.helper?.autoRefill) return;
+  const allowed=(foodId,bowl)=>{
+    try {
+      const result=autoRefillPolicy?.({foodId,bowl:clone(bowl),at});
+      return result?.ok===true&&typeof result.then!=='function';
+    } catch { return false; }
+  };
   for (const bowl of yard.bowls) if (!bowl.foodId) {
     const preferred = yard.helper.preferredFoodId;
-    const id = lookup(YARD_FOODS, preferred) && yard.foodInventory[preferred] > 0 ? preferred : Object.keys(YARD_FOODS).find((id) => yard.foodInventory[id] > 0);
+    // An unsupported saved preference is preserved, never interpreted as permission
+    // to spend a different food. Stock fallback only applies to a supported preference.
+    if(!lookup(YARD_FOODS,preferred)||!allowed(preferred,bowl))continue;
+    const id = yard.foodInventory[preferred] > 0 ? preferred
+      : Object.keys(YARD_FOODS).find(id=>yard.foodInventory[id]>0&&allowed(id,bowl));
     if (id) setFood(yard, bowl.id, id, at);
   }
 }
@@ -77,8 +87,8 @@ function completeVisit(state, record) {
   yard.activeVisitors = yard.activeVisitors.filter((v) => v.visitId !== record.visitId);
   emit(state, 'visit-completed', at, { visitId: record.visitId });
 }
-function opportunity(state, at, scene, { admissionPolicy, projectYard } = {}) {
-  const yard = state.player.yard; refill(yard, at);
+function opportunity(state, at, scene, { admissionPolicy, projectYard, autoRefillPolicy } = {}) {
+  const yard = state.player.yard; refill(yard, at, autoRefillPolicy);
   if (!yard.bowls.some((b) => lookup(YARD_FOODS, b.foodId) && integer(b.servings) && b.servings > 0)) return;
   const projection = projectYard ? projectYard(clone(yard), { scene }) : { yard, ok: true };
   if (!projection.ok) { emit(state, 'admission-blocked-layout', at, { errors: clone(projection.issues) }); return; }
@@ -211,7 +221,7 @@ function applyDuePropCommits(state,commits,at) {
     emit(state,'prop-transform-committed',commit.at,{visitId:record.visitId,index,slotId:commit.slotId});
   }
 }
-export function advanceYard(input, now, { scene, maxEvents = 100000, admissionPolicy, projectYard } = {}) {
+export function advanceYard(input, now, { scene, maxEvents = 100000, admissionPolicy, projectYard, autoRefillPolicy } = {}) {
   validateEnvelope(input); assertInteger(now, 'now');
   if (now < input.runtime.cursorMs) throw new RangeError('Cannot rewind authoritative time');
   const state = workingCopy(input), yard = state.player.yard; let steps = 0;
@@ -226,13 +236,13 @@ export function advanceYard(input, now, { scene, maxEvents = 100000, admissionPo
     for (const r of Object.values(state.runtime.visits).filter((r) => r.status === 'active' && r.leavesAt <= at)
       .sort((a, b) => a.leavesAt - b.leavesAt || compareText(a.visitId, b.visitId))) completeVisit(state, r);
     for (const b of yard.bowls) if (b.foodId && b.expiresAt <= at) clearBowl(b);
-    if (state.runtime.nextOpportunityAt === at) { opportunity(state, at, scene, { admissionPolicy, projectYard }); state.runtime.nextOpportunityAt += YARD_HOUR_MS; }
+    if (state.runtime.nextOpportunityAt === at) { opportunity(state, at, scene, { admissionPolicy, projectYard, autoRefillPolicy }); state.runtime.nextOpportunityAt += YARD_HOUR_MS; }
   }
   state.runtime.cursorMs = now; yard.lastSimulatedAt = now;
   return state;
 }
-export function applyPrototypeAction(input, action, payload = {}, { now, scene, actionId, admissionPolicy, projectYard } = {}) {
-  const state = advanceYard(input, now, { scene, admissionPolicy, projectYard }), yard = state.player.yard;
+export function applyPrototypeAction(input, action, payload = {}, { now, scene, actionId, admissionPolicy, projectYard, autoRefillPolicy } = {}) {
+  const state = advanceYard(input, now, { scene, admissionPolicy, projectYard, autoRefillPolicy }), yard = state.player.yard;
   const fail = (error, details) => ({ status: 400, error, details, state });
   const ok = (extras = {}) => ({ status: 200, state, extras });
   if (action === 'yard.setFood') return setFood(yard, payload.bowlId || 'bowl-1', payload.foodId, now) ? ok() : fail('food unavailable');

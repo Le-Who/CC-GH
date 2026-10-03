@@ -419,15 +419,23 @@ test.describe('Garden quiet feedback and visible motion',()=>{
 for(const [width,height] of [[320,568],[390,844],[568,320]])test.describe(`Garden stable saving ${width}x${height}`,()=>{
   test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:true,hasTouch:true});
   test('saving and an actionable error do not move shelf, dialog contents or controls',async({page},testInfo)=>{
-    await initialize(page);await mountFixture(page,makePlayer({levelReady:false,xp:0}));await boot(page);await assertShellFit(page);
+    const player=makePlayer({levelReady:false,xp:0});
+    // This geometry case owns the pending upgrade. Keep passive earnings from
+    // starting a credit request between actionability checks and the user click.
+    // Timers and animations still run; only Date is fixed to the fixture epoch.
+    await page.clock.setFixedTime(player.garden.lastTick);
+    await initialize(page);await mountFixture(page,player);await boot(page);await assertShellFit(page);
     await page.locator('[data-plant-details-button]').first().click();const care=panel(page,'plant-detail');
     const boxes=()=>page.evaluate(()=>Object.fromEntries(['.gs2-shelf-viewport','.gs2-status','.gs2-dialog-heading','.gs2-detail-stage','.gs2-detail-stat','.gs2-close'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}];})));
     const upgrade=care.getByRole('button',{name:/Increase income/});await upgrade.scrollIntoViewIfNeeded();
     const primaryGeometry=()=>care.locator('.gs2-primary').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect(),css=getComputedStyle(button);return {width:r.width,height:r.height,borderTop:css.borderTopWidth,borderBottom:css.borderBottomWidth};}));
-    const before=await boxes(),buttonsBefore=await primaryGeometry();let release,arrived;const held=new Promise(resolve=>{release=resolve;}),submitted=new Promise(resolve=>{arrived=resolve;});
-    await page.route('**/api/player/mutate',async route=>{if(parse(route.request()).action==='garden.upgradePlant'){arrived();await held;await route.abort('failed');}else await route.fallback();});
+    const before=await boxes(),buttonsBefore=await primaryGeometry();let release;const held=new Promise(resolve=>{release=resolve;});
+    await page.route('**/api/player/mutate',async route=>{if(parse(route.request()).action==='garden.upgradePlant'){await held;await route.abort('failed');}else await route.fallback();});
     try{
-      await upgrade.click();await submitted;
+      await Promise.all([
+        page.waitForRequest(request=>request.url().endsWith('/api/player/mutate')&&parse(request).action==='garden.upgradePlant',{timeout:5000}),
+        upgrade.click()
+      ]);
       await expect(care.locator('.gs2-pending')).toHaveText('Saving…');expect(await primaryGeometry()).toEqual(buttonsBefore);expect(await boxes()).toEqual(before);
       await expect(page.locator('.gs2-status')).not.toContainText('Saving');
       await shot(page,testInfo,'saving-reserved');release();

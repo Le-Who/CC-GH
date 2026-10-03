@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createDefaultPlayer} from '../game-logic/player.js';
-import {YARD_GOODIES,YARD_VISITORS,YARD_SLOT_LAYOUTS,getYardGoodieActivities} from '../game-logic/yard-catalog.js';
+import {YARD_GOODIES,YARD_FOODS,YARD_VISITORS,YARD_SLOT_LAYOUTS,getYardGoodieActivities} from '../game-logic/yard-catalog.js';
 import {ensurePersistentPlayerYard,executePersistentYardAction,publicPersistentYard,inspectPlayerYard,YARD_STORAGE_FORMAT} from '../game-logic/yard-v2/service.mjs';
 import {sourceCatalogActionPolicy} from '../game-logic/yard-v2/availability.mjs';
 import {validPresentationPlan} from '../game-logic/yard-v2/simulation.mjs';
@@ -32,7 +32,7 @@ function historical(p) {
  p.yard.goodieInventory.future_item=1234;
 }
 function testOptions() {
- return {scene:{entry:{x:90,y:68},exclusions:[]},mediaRegistry:{revision:'TEST-ONLY-full-stay',bindings:
+ return {allowUnprofiledTestBindings:true,scene:{entry:{x:90,y:68},exclusions:[]},mediaRegistry:{revision:'TEST-ONLY-full-stay',foodBindings:Object.fromEntries(Object.keys(YARD_FOODS).map(id=>[id,{presentationReady:true,filledStillId:`test:${id}:full`,emptyStillId:'test:empty'}])),bowlBindings:{'bowl-1':{presentationReady:true,anchor:{x:25,y:83}},'bowl-2':{presentationReady:true,anchor:{x:50,y:83}}},bindings:
   Object.values(YARD_GOODIES).flatMap(g=>Object.values(YARD_VISITORS).map(v=>({id:`test:${v.id}:${g.id}`,revision:'test',visitorId:v.id,goodieId:g.id,
    activityIds:[...new Set(['new','worn','broken'].flatMap(c=>getYardGoodieActivities(g,c).map(a=>a.id)))],propMode:'separate',playbackReady:true,
    requiredPhases:['TEST_ONLY'],validatedPhases:['TEST_ONLY']})))},
@@ -71,7 +71,7 @@ test('actual all14 route commands either apply supported bindings or persist a n
  for(const [name,[payload,setup]] of Object.entries(cases)){
   const p=player(`route-${name}`);setup?.(p);buildSnapshot(p);const wallets=clone({resources:p.resources,garden:p.garden,gardenAccounting:p.gardenAccounting,merge:p.merge,_mergeLabFence:p._mergeLabFence});
   const action=`yard.${name}`,id=`yard-v2:route-${name}`,first=await applyActionWithReceipt(p,action,payload,{clientActionId:id,serverNow:NOW});
-  const blocked=['buyFood','buyGoodie','buyExpansion'].includes(name);
+  const blocked=['buyGoodie','buyExpansion'].includes(name);
   if(blocked){
    assert.equal(first.status,409,name);assert.equal(first.body.error,'YARD_BINDING_REQUIRED');
    const once=JSON.parse(JSON.stringify(p)),loaded=JSON.parse(JSON.stringify(p));
@@ -194,7 +194,7 @@ test('actual load/snapshot/mutation/Merge callers have no remaining legacy norma
 
 
 test('release availability rejects unsupported spending/placement before costs and exposes exact capabilities',()=>{
- const cases=[['yard.buyFood',{foodId:'berry_plate'}],['yard.buyFood',{foodId:'bonito_bowl'}],['yard.setFood',{foodId:'berry_plate'}],
+ const cases=[['yard.setFood',{foodId:'berry_plate',bowlId:'bowl-2'}],
   ['yard.buyGoodie',{goodieId:'moon_lamp'}],['yard.placeGoodie',{goodieId:'moon_lamp',slotId:'lamp',x:50,y:60}],
   ['yard.fixGoodie',{slotId:'lamp'}],['yard.setRemodel',{remodelId:'tea_house'}],['yard.buyExpansion',{}]];
  for(const [i,[action,payload]] of cases.entries()){
@@ -204,7 +204,7 @@ test('release availability rejects unsupported spending/placement before costs a
   assert.equal(invoke(p,action,payload,{actionId:`yard-v2:unavailable-${i}`,actionPolicy:sourceCatalogActionPolicy}).replayed,true,'later capability changes cannot reinterpret an old failed intent');
  }
  const p=player();ensurePersistentPlayerYard(p,{now:NOW});const b=publicPersistentYard(p,{now:NOW}).supportedBindings;
- assert.equal(b.foods.kibble.buy,true);assert.equal(b.foods.berry_plate.set,false);assert.equal(b.goodies.sun_cushion.place,true);assert.equal(b.goodies.moon_lamp.pickup,true);assert.equal(b.expansion.buy,false);
+ assert.equal(b.foods.kibble.buy,true);assert.equal(b.foods.berry_plate.set,true);assert.equal(b.bowls['bowl-2'].set,false);assert.equal(b.goodies.sun_cushion.place,true);assert.equal(b.goodies.moon_lamp.pickup,true);assert.equal(b.expansion.buy,false);
 });
 
 test('malformed durable maps and unknown gift states are review-only, never zeroed or paid again',()=>{

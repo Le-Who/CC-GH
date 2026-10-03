@@ -36,6 +36,9 @@ export async function getAuthHeader() {
 
 export async function api(path, body, options = {}) {
   const auth = await getAuthHeader();
+  // Auth resolution yields. Do not send an intent after its account/session
+  // retired while Telegram/public configuration was being resolved.
+  if (options.isCurrent && !options.isCurrent()) return { error: "ACCOUNT_CHANGED" };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs || REQUEST_TIMEOUT_MS);
   try {

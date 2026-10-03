@@ -10,7 +10,7 @@ import media from '../public/assets/yard-mika/runtime-media.json' with {type:'js
 const yard=()=>({remodel:'meadow',expansion:{level:1},placedGoodies:Object.entries(MIKA_PLACEMENT_SUGGESTIONS).map(([id,point])=>({slotId:id,goodieId:id,...point,condition:'new',uses:0}))});
 const planned=(y,id,yaw=0)=>{
   const o=getMikaServerOptions(),p=y.placedGoodies.find(p=>p.goodieId===id);p.rotationZ=yaw;
-  return o.preflight({at:100000,leavesAt:100000+45*60000,slotId:p.slotId,placement:p,yard:y,bowl:{foodId:'kibble'},active:[],reserved:[]},o.mediaRegistry.bindings.find(b=>b.goodieId===id));
+  return o.preflight({at:100000,leavesAt:100000+45*60000,slotId:p.slotId,placement:p,yard:y,bowl:{id:'bowl-1',foodId:'kibble'},active:[],reserved:[]},o.mediaRegistry.bindings.find(b=>b.goodieId===id));
 };
 test('a sole crossing a stepped ground boundary is rejected even when every vertex lies on ground',()=>{
   // Meadow row25 narrows to89.7 between wider rows24 and26.

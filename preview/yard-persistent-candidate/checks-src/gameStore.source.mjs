@@ -25,6 +25,7 @@ function responseJson(body, status = 200) {
 function resetHubState() {
   useGameHub.setState({
     snapshot: {
+      player: { id: "game-store-account" },
       resources: { gold: 100 },
       farm: { harvested: {}, plots: [] },
       garden: { level: 1, plants: [], shelvesUnlocked: 1 },
@@ -39,6 +40,7 @@ function resetHubState() {
     outboxLoaded: true,
     lastResult: null,
   });
+  useGameHub.setState({ outboxLoaded: true, outboxAccountId: "game-store-account" });
 }
 
 /* ═══════════════════════════════════════════════════
@@ -134,6 +136,7 @@ describe("useGameHub.applyRealtimePayload", () => {
   beforeEach(() => {
     useGameHub.setState({
       snapshot: {
+      player: { id: "game-store-account" },
         resources: { gold: 100 },
         farm: { harvested: {}, plots: [] },
         garden: { level: 1, plants: [], shelvesUnlocked: 1 },
@@ -153,7 +156,7 @@ describe("useGameHub.applyRealtimePayload", () => {
       plants: [{ id: "p1", type: "daisy", level: 2, shelfIndex: 0, spotIndex: 1, phase: 3, phaseProgress: 0 }],
     };
 
-    useGameHub.getState().applyRealtimePayload({ garden });
+    useGameHub.getState().applyRealtimePayload({ accountId: "game-store-account", garden });
 
     assert.equal(useGameHub.getState().snapshot.garden.level, 5);
     assert.equal(useGameHub.getState().snapshot.garden.plants[0].id, "p1");
@@ -167,7 +170,7 @@ describe("useGameHub.applyRealtimePayload", () => {
       petbook: { mika_cat: { visits: 2 } },
     };
 
-    useGameHub.getState().applyRealtimePayload({ yard });
+    useGameHub.getState().applyRealtimePayload({ accountId: "game-store-account", yard });
 
     assert.equal(useGameHub.getState().snapshot.yard.currencies.treats, 145);
     assert.equal(useGameHub.getState().snapshot.yard.pendingGifts[0].id, "gift-1");
@@ -186,6 +189,9 @@ describe("useGameHub Yard outbox", () => {
       value: createStorage(),
     });
     resetHubState();
+    // This fixture declares hydration complete while Node has no IDB. Supply
+    // the verified local journal it is modeling, rather than an unread store.
+    localStorage.setItem("game_hub_yard_outbox_v2:game-store-account", JSON.stringify({ version: 2, accountId: "game-store-account", items: [] }));
   });
 
   it("keeps Yard actions pending on network errors without surfacing rollback errors", async () => {
@@ -206,6 +212,7 @@ describe("useGameHub Yard outbox", () => {
 
   it("removes successful Yard outbox items and applies the authoritative snapshot", async () => {
     const snapshot = {
+      player: { id: "game-store-account" },
       resources: { gold: 100 },
       farm: { harvested: {}, plots: [] },
       garden: { level: 1, plants: [], shelvesUnlocked: 1 },
@@ -262,6 +269,7 @@ describe("useGameHub.performReliableAction", () => {
 
   it("sends receipt-backed gameplay actions with a clientActionId", async () => {
     const snapshot = {
+      player: { id: "game-store-account" },
       resources: { gold: 101 },
       farm: { harvested: {}, plots: [] },
       garden: { level: 1, plants: [], shelvesUnlocked: 1 },

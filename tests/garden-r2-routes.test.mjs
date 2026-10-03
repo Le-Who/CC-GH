@@ -63,6 +63,18 @@ test('actual HTTP mutation handler ignores client policy/time seams and fences l
   assert.equal(denied.status, 409); assert.equal(denied.body.error, 'CLIENT_UPDATE_REQUIRED');
 });
 
+test('HTTP intent owner must match authenticated account before any player mutation', async () => {
+  const id = 'boundary-http-owner', p = fixture(id);
+  await withPlayerLock(id, saved => Object.assign(saved, p));
+  const router = playerRoutes(() => {}, () => ({ userId: id }));
+  const handler = router.stack.find(layer => layer.path === '/api/player/mutate').handlers.at(-1);
+  let status = 200, body;
+  const res = { status(value) { status = value; return this; }, json(value) { body = value; } };
+  await handler({ body: { accountId: 'foreign', action: 'yard.buyFood', payload: { foodId: 'kibble' }, clientActionId: 'yard-v2:foreign-owner' } }, res, error => { throw error; });
+  assert.equal(status, 409); assert.equal(body.error, 'ACCOUNT_CHANGED');
+  await withPlayerLock(id, saved => { assert.deepEqual(saved.yard.foodInventory, p.yard.foodInventory); assert.equal((saved.actionReceipts || []).some(receipt => receipt.clientActionId === 'yard-v2:foreign-owner'), false); });
+});
+
 test('route commits only Garden/gold/stats and public view never exposes private migration or streams', async t => {
   t.mock.method(Date, 'now', () => NOW);
   const p = fixture(), old = structuredClone(p); await adopt(p);

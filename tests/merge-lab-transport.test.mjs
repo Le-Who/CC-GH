@@ -9,7 +9,7 @@ function setup(){
  const options={now,policy};const records=new Map();const calls=[];let sequence=0;let drop=false;
  const storage={getItem:key=>records.get(key)??null,setItem:(key,value)=>records.set(key,value),removeItem:key=>records.delete(key)};
  const serverSnapshot=()=>({player:{id:player.id,syncSeq:sequence},resources:structuredClone(player.resources),farm:structuredClone(player.farm),yard:structuredClone(player.yard),merge:structuredClone(publicMergeLabState(player.merge,policy))});
- let current=serverSnapshot();
+ let current=serverSnapshot(),accountSession={};
  const api=async(path,body)=>{
   calls.push({path,body:structuredClone(body)});
   if(path.endsWith('/quote')){try{return {quote:quoteMergeLab(player,body.type,body.parameters,{...options,expectedMergeEpoch:body.expectedMergeEpoch})};}catch(error){return{error:error.message,code:error.code};}}
@@ -17,8 +17,8 @@ function setup(){
   if(drop){drop=false;return{error:'TIMEOUT'};}
   return {mergeLab:outcome,...outcome.ok?{snapshot:serverSnapshot()}: {}};
  };
- const create=()=>createMergeLabTransport({api,getSnapshot:()=>current,applySnapshot:s=>{current=s;},refreshSnapshot:async()=>serverSnapshot(),storage,accountId:player.id});
- return {player,records,calls,storage,create,dropNext:()=>{drop=true;},refresh:()=>{current=serverSnapshot();},getSnapshot:()=>current};
+ const create=(overrides={})=>createMergeLabTransport({api,getSnapshot:()=>current,getAccountSession:()=>accountSession,applySnapshot:s=>{current=s;},refreshSnapshot:async()=>serverSnapshot(),storage,accountId:player.id,...overrides});
+ return {player,records,calls,storage,create,api,serverSnapshot,switchAccount:id=>{accountSession={};current={...current,player:{...current.player,id}};},dropNext:()=>{drop=true;},refresh:()=>{current=serverSnapshot();},getSnapshot:()=>current};
 }
 test('lost reply and reload replay the exact persisted command once without revision rebasing',async()=>{
  const f=setup(),client=f.create();const quote=await client.getQuote('claimStarterKit',{});
@@ -51,4 +51,30 @@ test('epoch reset refuses the old pending command after reload without replaying
  const f=setup(),client=f.create();f.dropNext();await assert.rejects(client.onAction('claimFreeCharges',{}, {requestId:'old-epoch'}));
  f.player.merge.serverEpoch='rotated_epoch_123456789';f.player._mergeLabFence.epoch=f.player.merge.serverEpoch;f.refresh();
  const result=await f.create().resumePending();assert.equal(result.ok,false);assert.equal(result.error.code,'MERGE_EPOCH_CONFLICT');assert.equal(f.player.merge.mergeRevision,1);
+});
+
+const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+for(const returnToA of [false,true])for(const failure of [false,true])test(`direct Merge reply is fenced after A-B${returnToA?'-A':''}: ${failure?'rejection':'success'}`,async()=>{
+ const f=setup(),ready=deferred(),reply=deferred();let applies=0;
+ const client=f.create({api:async()=>{ready.resolve();return reply.promise;},applySnapshot:()=>{applies++;}});
+ const pending=client.onAction('claimFreeCharges',{}, {requestId:'retired-merge'});await ready.promise;
+ const raw=[...f.records.values()][0];f.switchAccount('account-b');if(returnToA)f.switchAccount('transport-user');const current=f.getSnapshot();
+ reply.resolve({mergeLab:failure?{ok:false,error:{code:'REJECTED'}}:{ok:true},snapshot:f.serverSnapshot()});
+ await assert.rejects(pending,{code:'ACCOUNT_CHANGED'});assert.equal(applies,0);assert.equal(f.getSnapshot(),current);assert.equal(client.hasPending(),true);assert.equal([...f.records.values()][0],raw);
+ await assert.rejects(client.resumePending(),{code:'ACCOUNT_CHANGED'});
+});
+
+for(const returnToA of [false,true])test(`direct Merge quote is fenced after A-B${returnToA?'-A':''}`,async()=>{
+ const f=setup(),ready=deferred(),reply=deferred(),client=f.create({api:async()=>{ready.resolve();return reply.promise;}});
+ const pending=client.getQuote('claimStarterKit',{});await ready.promise;
+ f.switchAccount('account-b');if(returnToA)f.switchAccount('transport-user');reply.resolve({quote:{serverEpoch:f.player.merge.serverEpoch}});
+ await assert.rejects(pending,{code:'ACCOUNT_CHANGED'});assert.equal(f.records.size,0);
+});
+
+test('account change during Merge rejection refresh cannot clear its owned pending command',async()=>{
+ const f=setup(),ready=deferred(),reply=deferred();let applies=0;
+ const client=f.create({api:async()=>({mergeLab:{ok:false,error:{code:'REJECTED'}}}),refreshSnapshot:async()=>{ready.resolve();return reply.promise;},applySnapshot:()=>{applies++;}});
+ const pending=client.onAction('claimFreeCharges',{}, {requestId:'refresh-retired'});await ready.promise;
+ f.switchAccount('account-b');f.switchAccount('transport-user');reply.resolve(f.serverSnapshot());
+ await assert.rejects(pending,{code:'ACCOUNT_CHANGED'});assert.equal(applies,0);assert.equal(f.records.size,1);
 });

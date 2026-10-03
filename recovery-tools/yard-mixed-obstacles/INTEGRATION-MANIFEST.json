@@ -1,0 +1,91 @@
+{
+  "id": "yard-trusted-mixed-obstacles/r1",
+  "baseSequence": [
+    "canonical-r5",
+    "pebble-closed",
+    "pip-canonical-closed/r1"
+  ],
+  "releaseGateChanges": false,
+  "pixelChanges": false,
+  "baselineHashes": {
+    "game-logic/yard-v2/mika-media.mjs": "9216c0db0763e1702bcdf3e5ea150300bc2cccf75b747da7ae9830daae91bcf9",
+    "game-logic/yard-v2/media/mochi-combined-binding.mjs": "176a55570cbfe137470eab30c80835aa1400b661dff2ec7c964ae625c3c6deb5",
+    "game-logic/yard-v2/media/composite-visitor.mjs": "aa400d70e38aefb6aa583875b310e66a15fe46c73e9005a12f5753f358e021bd",
+    "game-logic/yard-v2/media/pip-snack-binding.mjs": "5e63c0f54db1bda5f37a3108fd78392d8eb53cdd1d65833932053adf998026d8",
+    "game-logic/yard-v2/mochi-media.mjs": "521edb440f1b12de77a18ead2a2f015d5c0679f390d07e75603038b631010f27",
+    "game-logic/yard-v2/pebble-media.mjs": "c32bcb06fe73ad83c8b97bc2414c4b39a91edf98cbf20ed046b6dc2f85e46bb0",
+    "game-logic/yard-v2/pip-media.mjs": "85c0405b15087a67cd92b85545994910f046648f039ed056fb37cd707bc36eeb",
+    "game-logic/yard-v2/yard-media.mjs": "1bb2f6344dee10a232e0de86840c3a6ccb84c373c026d2ecdc4f0033dc3d263f",
+    "game-logic/yard-v2/presentation-compatibility.mjs": "3ae9303eb90c211082a97ed14de83a65dd6c070e95f299cbba76867b6efb1993"
+  },
+  "focusedTests": 13,
+  "aggregatePassed": 151,
+  "aggregateLogSha256": "d9bf376348730a82b0bba7ff4c27e49552fa3983d51ae7ffa42e3327fe29bfdc",
+  "files": [
+    {
+      "path": "game-logic/yard-v2/media/composite-visitor.mjs",
+      "bytes": 10894,
+      "sha256": "35c1172c690c921547ab841832936e1141981298ea02491e3d1be8ae88f83fd2"
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi-combined-binding.mjs",
+      "bytes": 10772,
+      "sha256": "284deceaf96fc0995a27d171509398d9476e2e813b06b8f70a4328becf11ed70"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip-snack-binding.mjs",
+      "bytes": 12247,
+      "sha256": "38b5e1b94fa7de925cf669b0369937cc4fa9e4cf75e639025aa1bb8d7e7e0f57"
+    },
+    {
+      "path": "game-logic/yard-v2/mika-media.mjs",
+      "bytes": 15472,
+      "sha256": "9599816f40b8e3bbebaba1ec6729339209e67bb358391d879677b9b34181afe3"
+    },
+    {
+      "path": "game-logic/yard-v2/mochi-media.mjs",
+      "bytes": 5701,
+      "sha256": "bef5bd3b0d0680c14c731193e5cc421b489a862090a83106f01cdeff6141911e"
+    },
+    {
+      "path": "game-logic/yard-v2/pebble-media.mjs",
+      "bytes": 6053,
+      "sha256": "798cfe34d6cfd1270e1bb18a023bb189641ebc6038ba8169f6ea525dc0b64fc9"
+    },
+    {
+      "path": "game-logic/yard-v2/pip-media.mjs",
+      "bytes": 5595,
+      "sha256": "e6860f1be9a53fb3837961559f01dca9b15b1f0f8584080a55c51bc7288405e3"
+    },
+    {
+      "path": "game-logic/yard-v2/presentation-compatibility.mjs",
+      "bytes": 2289,
+      "sha256": "fdf0ea0cd9255299b86a97e05584c008f4e25d3622694796900a50f24c4d799b"
+    },
+    {
+      "path": "game-logic/yard-v2/prop-obstacles.mjs",
+      "bytes": 5207,
+      "sha256": "42ac60aa6551f1e132fb9af95f8a55828ee77b14d7c95bff3ac32508d9026b94"
+    },
+    {
+      "path": "game-logic/yard-v2/yard-media.mjs",
+      "bytes": 3037,
+      "sha256": "f45eb38ec79c7f2a05a57155f91d9144267f05146428378f2fc35eb93b08c670"
+    },
+    {
+      "path": "recovery-tools/yard-mixed-obstacles/INTEGRATION.md",
+      "bytes": 3873,
+      "sha256": "fe289dde044afc5c09e0c5a0e047bd33855044034bb93e14cec2a8261e05a3cf"
+    },
+    {
+      "path": "tests/fixtures/yard-mixed-obstacles/baseline-registries.json",
+      "bytes": 12282,
+      "sha256": "2623c4f1463223829910ca4d69c64552ab5fae307f4caff1ad270e39f56b6cad"
+    },
+    {
+      "path": "tests/yard-mixed-obstacles.test.mjs",
+      "bytes": 15162,
+      "sha256": "80ec724665d1b2c16c7d6fade2a6b6d530edb9f0f220026f8dd5677514692c49"
+    }
+  ]
+}

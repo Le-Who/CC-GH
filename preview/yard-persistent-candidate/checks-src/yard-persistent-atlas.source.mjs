@@ -14,7 +14,7 @@ test('every actual logical pose resolves to a valid page tile, including reused 
     }
   }assert.ok(total>=1553);assert.equal(Object.keys(media.turns).length,12);
 });
-test('published atlas bytes match their declared source hashes after the bounded entry correction',{skip:'Source-only CI subset: real atlas files are verified in the separate art closure'},()=>{
+test('published atlas bytes match their declared source hashes after the bounded entry correction',()=>{
   const pages=new Map();for(const c of [...Object.values(media.clips),...Object.values(media.walk.facings),...Object.values(media.turns)])for(const p of c.pages)pages.set(p.src,p);
   for(const[src,p]of pages){assert.ok(p.sha256,src);assert.equal(createHash('sha256').update(readFileSync(new URL(`../public/assets/yard-mika/${src}`,import.meta.url))).digest('hex'),p.sha256,src);}
   const c=media.clips['mika-cushion-r1'];assert.equal(c.pages[0].count,9);assert.equal(c.pages[1].first,9);assert.equal(c.pages[1].offset,9);assert.equal(c.frameAliases[214],190);
@@ -23,7 +23,7 @@ test('cache remains three pages, deduplicates decoding, reloads evictions and di
   const originalFetch=globalThis.fetch,originalDecode=globalThis.createImageBitmap;let reads=0,decodes=0;const images=[];
   globalThis.fetch=async()=>{reads++;return{ok:true,blob:async()=>new Blob(['test'])}};
   globalThis.createImageBitmap=async()=>{const image={id:++decodes,width:2048,height:1536,closed:false,close(){this.closed=true;}};images.push(image);return image;};
-  try{const cache=new AtlasCache(new URL('http://localhost/'),3);const a=await cache.load('a'),b=await cache.load('b');await cache.load('c');cache.entries.get('a').used=performance.now()+10;await cache.load('d');assert.equal(cache.entries.size,3);assert.equal(b.closed,true);assert.equal(a.closed,false);
+  try{const cache=new AtlasCache(new URL('http://localhost/'),3);const a=await cache.load('a'),b=await cache.load('b');await cache.load('c');cache.entries.get(cache.key('a')).used=performance.now()+10;await cache.load('d');assert.equal(cache.entries.size,3);assert.equal(b.closed,true);assert.equal(a.closed,false);
     const pair=await Promise.all([cache.load('e'),cache.load('e')]);assert.equal(pair[0],pair[1]);assert.equal(reads,5);assert.notEqual(await cache.load('b'),b);assert.equal(reads,6);cache.dispose();assert.equal(cache.entries.size,0);assert.ok(images.every(i=>i.closed));
   }finally{globalThis.fetch=originalFetch;globalThis.createImageBitmap=originalDecode;}
 });
