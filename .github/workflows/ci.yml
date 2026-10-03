@@ -101,6 +101,9 @@ jobs:
           NODE_OPTIONS: ''
         run: node --test --test-concurrency=1 tests/yard-v2-postgres.test.mjs
 
+      - name: Check Yard v2 persistence fixture safety
+        run: node --test --test-concurrency=1 tests/yard-v2-pg-fixture.test.mjs tests/yard-v2-pg-guard.test.mjs
+
       - name: Install Chromium for browser regression tests
         run: pnpm exec playwright install --with-deps chromium
 
@@ -205,6 +208,8 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Check Mochi source presenter
         run: node --test tests/yard-mochi-presentation.test.mjs
+      - name: Check canonical actors and mixed-prop boundaries
+        run: node --test tests/yard-mixed-obstacles.test.mjs tests/yard-pip-canonical.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/yard-pebble-canonical.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-mochi-canonical.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs
       - name: Validate inactive Mochi media
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
       - name: Validate canonical Yard scene
