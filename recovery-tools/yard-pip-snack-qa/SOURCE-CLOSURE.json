@@ -1,5 +1,5 @@
 {
-  "id": "pip-snack-ci-overlay/r1a",
+  "id": "pip-snack-ci-overlay/r1b-boot-fix",
   "runtimeActivated": false,
   "browserStatus": "NOT_RUN_LOCAL_ROUTE_BLOCKED",
   "nodeTestsPassed": 14,
@@ -721,20 +721,27 @@
     },
     {
       "path": "scripts/yard-pip-ci-server.mjs",
-      "bytes": 1654,
-      "sha256": "bfa46e24cc308a51397a4d1d538457dedafe65e399d7fb2a2d63ff9a2e428867"
+      "bytes": 1697,
+      "sha256": "c8cddb5abc964e3bf1f58a1df182457141738577c1d09794866b413d84c97869"
     },
     {
       "path": "tests/yard-pip-e2e/visit.spec.js",
-      "bytes": 7903,
-      "sha256": "ed334726456fec6adc42451b289f11478f74835cad2715e5c64d3a45eda987ac"
+      "bytes": 8868,
+      "sha256": "b2fa7d9f32b2a8daa35e0b055090af5ca86852fd9e1bb08b0aff74f40dbab2e3"
     },
     {
       "path": "tests/yard-pip-source.test.mjs",
-      "bytes": 11197,
-      "sha256": "8f9d2486179a80e40c1750bd20111deb7600f1f1339e60df8885fa341e76ba4b"
+      "bytes": 12021,
+      "sha256": "34ab8d21c56b46c16c0ae313e9b80d2fd673d9829eea10b35b7e6ee78b7c009d"
+    },
+    {
+      "path": "scripts/yard-pip-fixture-path.mjs",
+      "bytes": 378,
+      "sha256": "d1f0b78afc797cddc798ad993afcbc84f689ae8ba944f4a9555df5e4d6f86da3"
     }
   ],
   "browserTestsPrepared": 15,
-  "parentArchiveSha256": "f1b40a664f476578f7a89eef207ee94095a679575572f854c24529de77f1becc"
+  "parentArchiveSha256": "f1b40a664f476578f7a89eef207ee94095a679575572f854c24529de77f1becc",
+  "parentCommit": "5001cfa39a80952ef10c8f1e362b2954a039d204",
+  "nodeTests": 16
 }

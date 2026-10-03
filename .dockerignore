@@ -37,3 +37,4 @@ scripts/yard-canonical-ci-server.mjs
 recovery-tools/yard-pip-snack-qa/
 playwright.pip.config.js
 scripts/yard-pip-ci-server.mjs
+scripts/yard-pip-fixture-path.mjs
