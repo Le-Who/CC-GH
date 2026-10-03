@@ -53,6 +53,9 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+      - name: Validate casual motion and input lifecycle
+        run: node --test --test-concurrency=1 tests/match3-motion.test.js tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/blox-casual-motion.test.cjs tests/casual-motion-feedback.test.mjs
+
       - name: Validate inactive Yard candidate
         env:
           NODE_ENV: test

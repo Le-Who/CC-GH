@@ -28,8 +28,8 @@ The original frame-count helpers in animation.js remain available for historical
 - Manual pause and document-hidden time do not advance the animation. Resume rebases the first ticker delta. The existing production PixiGameHost stop/start behavior is preserved.
 - Resize cancels an active pointer gesture but keeps phase and elapsed time. The same cell-space poses are reprojected into the new layout. Neither animated gems nor remaining stages are discarded.
 - Cancellation, blur, hidden, resize and destroy release pointer sessions. Destroy removes the ticker and visibility/media listeners, pooled display objects and masks; it does not submit an action or invoke completion.
-- The renderer pools gem containers and burst sprites. Board chrome is rebuilt only when board/selection/composition changes, rather than on every animation frame. A visible frame advances by at most 80 ms after a long foreground stall; the lock follows that actual presentation clock.
-- Both gem and FX layers are clipped to the existing board opening. This is game-internal geometry, not a new HUD/layout region. Composition, safe areas, action targets and editable artwork contracts remain unchanged.
+- The renderer pools gem containers and burst sprites. Board chrome is rebuilt only when board/selection/composition changes, rather than on every animation frame. Idle and dragging render on demand; only an active timeline runs the application ticker. Hit areas are renderless Containers and the gem batch does not alternate per-gem Graphics shadows with Sprites. A visible frame advances by at most 80 ms after a long foreground stall; the lock follows that actual presentation clock.
+- Refill gems are clipped only while crossing the existing board opening; burst extents stay inside their own cells without an extra masked pass. This is game-internal geometry, not a new HUD/layout region. Composition, safe areas, action targets and editable artwork contracts remain unchanged.
 
 ## Reduced motion
 
@@ -81,7 +81,7 @@ If later visual review specifically requests a more delicate glint, the optional
 
 ## Verification and release gate
 
-Locally executed: 59 focused native Node tests covering the engine, controller, same-frame lock, stale completion, final move, 180 composition combinations, all ten viewport hit targets, pure motion, ordered drop phases, zero duplicate gems, no future FX, pause/hidden/resume, resize, teardown and reduced motion. The new pure-motion checks include 50 deterministic seeds for non-crossing column motion and final-snapshot agreement, and 40 seeds for special/drop metadata.
+Locally executed: 60 focused native Node tests covering the engine, controller, same-frame lock, stale completion, final move, 180 composition combinations, all ten viewport hit targets, pure motion, ordered drop phases, zero duplicate gems, no future FX, pause/hidden/resume, resize, teardown and reduced motion. The new pure-motion checks include 50 deterministic seeds for non-crossing column motion and final-snapshot agreement, and 40 seeds for special/drop metadata.
 
 The existing whole-scene frozen animation snapshots intentionally no longer define visual parity. Their replacement retains geometry and input checks and asserts the new presentation contract. Controller comparison still checks gameplay and save/action boundaries while excluding the changed presentation descriptor.
 
@@ -98,3 +98,9 @@ CI command:
     pnpm exec playwright test tests/e2e/match3-motion.spec.js --project=chromium --workers=1
 
 Keep the Playwright report, test-results directory and .webm files as review artifacts. Browser execution and true 1× visual acceptance are pending CI because local dependency installation is network-blocked. Unit/mock snapshots and this storyboard are not proof of runtime appearance. Do not merge/deploy on this document alone.
+
+## Touch responsiveness regression and correction
+
+The first CI touch run exposed software-WebGL starvation. The production input path accepted the swipe, reduced moves and sent a successful scoring sync; the test timed out because its eight touchMove commands took longer than eight seconds to reach touchEnd. The downloaded trace of run 37160796644, job 111313629360, showed touchStart at 100213 ms, touchEnd at 108448 ms and the request deadline at 108203 ms. The later scoring request received HTTP 200 in about 8 ms.
+
+The correction removes idle continuous rendering, rendered transparent hit quads, alternating per-gem shadow Graphics, and unnecessary permanent mask passes. The existing eight-second assertions are unchanged. A new native regression checks that idle ticks do not render, dragging paints on demand, hit areas do not submit geometry, and active motion starts and stops its ticker. The existing touch suite passed in CI run 37161840011 after this correction. Full recorded motion scenarios and visual acceptance remain pending; native checks do not measure GPU latency.

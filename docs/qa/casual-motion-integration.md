@@ -34,3 +34,5 @@ The first PR run built successfully, but the standard Node suite reported 1181/1
 Three existing Match-3 touch cases also failed all retries. The trace showed the gesture reached scoring and the sync returned HTTP 200, but continuous rendering delayed touch delivery past the unchanged deadline. The follow-up uses event-driven idle/drag rendering, renderless hit regions, fewer per-gem draw layers and clipping only when needed. It does not increase test timeouts or weaken browser assertions.
 
 A root run covering the corrected Match-3 suites and Blox verifier passed 75/75. The performance diagnosis and fix still require a fresh browser CI run and video review before acceptance.
+
+The second CI run passed all 1186 Node tests and the existing touch suite. Its next gate rejected the changed package.json because inactive Yard intentionally pins production entry files. package.json is restored byte-for-byte to the production base; the five additional motion files run in an explicit CI step instead. No Yard isolation hash or guard was relaxed.
