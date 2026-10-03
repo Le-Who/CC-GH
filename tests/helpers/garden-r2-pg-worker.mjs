@@ -22,8 +22,8 @@ process.on('message', async message => {
       && message.payload && typeof message.payload === 'object' && !Array.isArray(message.payload)
       && Object.keys(message.payload).length === 2
       && Object.keys(message.payload).every(key => ['foodId', 'qty'].includes(key))
-      && message.payload.foodId === 'kibble' && message.payload.qty === 1;
-    if (!gardenAction && !yardFixturePurchase) throw new Error('Only Garden fixture actions or exactly one Yard kibble purchase are permitted');
+      && message.payload.foodId === 'berry_plate' && message.payload.qty === 1;
+    if (!gardenAction && !yardFixturePurchase) throw new Error('Only Garden fixture actions or exactly one Yard Berry Plate purchase are permitted');
     let callbackAttempts = 0;
     const outcome = await withPlayerLock(message.playerId, async player => {
       callbackAttempts++;

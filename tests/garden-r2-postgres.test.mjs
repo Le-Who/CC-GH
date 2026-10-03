@@ -100,7 +100,7 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
     return row.data;
   }
 
-  async function seed({ gold = 100, plants = true } = {}) {
+  async function seed({ gold = 100, plants = true, yardTreats = 77 } = {}) {
     const id = assertGardenR2FixtureId(`garden_r2_pg_${randomUUID()}`);
     fixtureIds.push(id);
     const now = Date.now(), player = createDefaultPlayer(id, 'Disposable Garden R2 CI', now);
@@ -110,7 +110,7 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
       { id: 'legacy-fern-stable-id', type: 'fern', level: 40, phase: 3, phaseProgress: 0, shelfIndex: -1, spotIndex: -1, lastTapped: 0 },
     ] : [] };
     player.gardenAccounting = { version: 1, active: true, revision: 8, creditedTotal: 137, streams: {} };
-    player.yard.currencies = { treats: 77, shinyTreats: 5 };
+    player.yard.currencies = { treats: yardTreats, shinyTreats: 5 };
     player.yard.goodieInventory.alchemy_echo_chimes = 2402;
     player.yard.goodieInventory.alchemy_living_arbor = 1201;
     player._yardV2 = { fixtureMarker: 'preserve-private-yard-extension' };
@@ -219,17 +219,23 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
       });
 
       await t.test('material timers and research spend survive independent JSON reloads and a lost response', async () => {
-        const { id, now, player } = await adopt({ gold: 500, plants: false });
+        // Material accrual requires an active mature plant. The fixture keeps
+        // one mature daisy on its shelf and a mature fern stashed in inventory.
+        const { id, now, player } = await adopt({ gold: 500 });
         assertSuccess(await separate(id, request(player, now, 'claimIntro')));
         const intro = await load(id); assert.equal(intro._gardenProgression.substrate, 3);
         const later = now + 3 * 3600000;
         assertSuccess(await separate(id, request(intro, later, 'resume')));
         const accrued = await load(id); assert.equal(accrued._gardenProgression.substrate, 6);
+        assert.equal(accrued._gardenProgression.materialProgressMs, 0);
+        // The R5/M1 daisy earns 319 gold in this window; the stashed fern earns 0.
+        assert.equal(accrued.resources.gold, 819);
         const research = request(accrued, later, 'research', { researchId: 'care_1' });
         await separate(id, research, { loseResponse: true });
         const saved = await load(id); validateGardenR2Player(saved);
         assert.deepEqual(saved._gardenProgression.researchIds, ['care_1']);
-        assert.equal(saved._gardenProgression.substrate, 0); assert.equal(saved.resources.gold, 350);
+        assert.equal(saved._gardenProgression.substrate, 0); assert.equal(saved.resources.gold, 669);
+        assert.equal(accrued.resources.gold - saved.resources.gold, 150);
         assert.equal(saved._gardenProgression.revision, 4); assert.equal(saved._gardenProgression.lastSettledAt, later);
         await closeDb(); assert.ok(initDb()); await ensureDbSchema();
         const replay = await separate(id, { ...research, now: later + 20 * 86400000 });
@@ -258,17 +264,19 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
       });
 
       await t.test('Garden and real Yard purchases both survive a cross-domain OS-process CAS collision', async () => {
-        const { id, now, player } = await adopt({ plants: false });
+        const { id, now, player } = await adopt({ plants: false, yardTreats: 240 });
         const garden = purchase(player, now);
-        const yard = { action: 'yard.buyFood', now, payload: { foodId: 'kibble', qty: 1 }, clientActionId: `yard-r2-race:${randomUUID()}` };
+        // Kibble is free; a funded Berry Plate exercises a real independent debit.
+        const yard = { action: 'yard.buyFood', now, payload: { foodId: 'berry_plate', qty: 1 }, clientActionId: `yard-r2-race:${randomUUID()}` };
         // Compute the authorized Yard action using its real handler, on an
         // uncommitted clone. Runtime normalization and receipt semantics are
         // included rather than approximated by a hand-written Yard mutation.
         const expectedYard = structuredClone(player);
         const expected = await applyActionWithReceipt(expectedYard, yard.action, yard.payload, { clientActionId: yard.clientActionId, serverNow: now });
         assert.equal(expected.status, 200, JSON.stringify(expected.body));
-        assert.equal(expectedYard.yard.foodInventory.kibble, player.yard.foodInventory.kibble + 1);
-        assert.ok(expectedYard.yard.currencies.treats < player.yard.currencies.treats);
+        assert.equal(expectedYard.yard.foodInventory.berry_plate, (player.yard.foodInventory.berry_plate || 0) + 1);
+        assert.equal(expectedYard.yard.currencies.treats, player.yard.currencies.treats - 120);
+        assert.equal(expectedYard.yard.currencies.shinyTreats, player.yard.currencies.shinyTreats);
         const results = await race(id, [garden, yard]); results.forEach(assertSuccess);
         const saved = await load(id); validateGardenR2Player(saved);
         assert.equal(saved.resources.gold, player.resources.gold - 25);
