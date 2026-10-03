@@ -33,8 +33,7 @@ function buildMatch3Scene(app, initial = {}) {
   app.stage.addChild(root, gems, effects, boardMask, dragLayer);
   for (const layer of [gems, effects, dragLayer]) { layer.eventMode = 'none'; layer.interactiveChildren = false; }
   boardMask.eventMode = 'none';
-  gems.mask = boardMask;
-  effects.mask = boardMask;
+  boardMask.visible = false;
   let data = initial, layout, drag = null, plan = null, elapsed = 0;
   let lastAnimationId = null, disposed = false, skipNextTick = false, lastPhase = -1;
   const gemPool = [], burstPool = [];
@@ -80,7 +79,6 @@ function buildMatch3Scene(app, initial = {}) {
     if (view.gemType !== type || view.cell !== layout.cell) {
       clear(view);
       view.gemType = type; view.cell = layout.cell;
-      view.addChild(new Graphics().circle(0, layout.cell * .06, layout.cell * .275).fill({ color: 0x121414, alpha: .2 }));
       const asset = match3GemAsset(type);
       if (asset) view.addChild(spriteFit(asset, 0, 0, layout.cell * .86, layout.cell * .86, .98));
       else view.addChild(label(DROP_ICONS[type] || GEM_ICONS[type] || '', 0, 0, layout.cell * .34, GEM_COLORS[type] || AMBER));
@@ -96,6 +94,11 @@ function buildMatch3Scene(app, initial = {}) {
       lastPhase = sample.phaseIndex;
       if (sample.kind === 'clear') data.onMatch3MotionPhase?.({ id: plan.id, combo: sample.combo, phase: sample.phaseIndex });
     }
+    // The rectangular clip is needed only while a refill crosses the board
+    // edge. Never pay for masked full-board passes on the idle touch surface.
+    const needsClip = sample.poses.some(pose => pose.y < 0 || pose.y > BOARD_SIZE - 1);
+    if (!!gems.mask !== needsClip) gems.mask = needsClip ? boardMask : null;
+    boardMask.visible = needsClip;
     if (app.canvas?.dataset) {
       app.canvas.dataset.match3MotionPhase = sample.kind;
       app.canvas.dataset.match3MotionId = plan?.id || '';
@@ -124,7 +127,7 @@ function buildMatch3Scene(app, initial = {}) {
       }
       const center = cellCenter(layout, burst.x, burst.y), p = burst.progress;
       view.visible = true; view.position.set(center.x, center.y);
-      const size = layout.cell * (.52 + p * .64) * (1 + Math.min(3, burst.combo - 1) * .025);
+      const size = layout.cell * Math.min(.96, (.48 + p * .43) * (1 + Math.min(3, burst.combo - 1) * .02));
       view.width = size; view.height = size;
       view.rotation = burst.rotation;
       view.alpha = .44 * Math.sin(p * Math.PI);
@@ -132,6 +135,8 @@ function buildMatch3Scene(app, initial = {}) {
     for (let i = sample.bursts.length; i < burstPool.length; i++) burstPool[i].visible = false;
     clear(dragLayer);
     if (drag?.target) dragLayer.addChild(strokedRect(layout.left + drag.target.x * layout.cell + 2, layout.top + drag.target.y * layout.cell + 2, layout.cell - 4, layout.cell - 4, SKY, 8, 0xfff1e0, .05, 2));
+    syncTicker();
+    if (!app.ticker.started) app.render?.();
   }
 
   function complete() {
@@ -171,10 +176,13 @@ function buildMatch3Scene(app, initial = {}) {
       const cx = left + x * cell, cy = top + y * cell;
       root.addChild(spriteFit(match3ArtUrl('cell'), cx + cell / 2, cy + cell / 2, cell - 2, cell - 2, 1));
       if (data.selectedGem?.x === x && data.selectedGem?.y === y) root.addChild(strokedRect(cx + 3, cy + 3, cell - 6, cell - 6, AMBER, 8, 0xfff1e0, .06, 2));
-      const hit = new Graphics().rect(cx, cy, cell, cell).fill({ color: 0xffffff, alpha: .001 });
+      // A hit area does not need a rendered transparent quad. Keeping these
+      // renderless lets all 64 cell textures batch together on mobile WebGL.
+      const hit = new Container();
       hit.hitArea = new Rectangle(cx, cy, cell, cell);
       hit.eventMode = 'static'; hit.cursor = 'pointer';
       hit.on('pointerdown', event => {
+        event.stopPropagation?.();
         if (!playing() || locked()) return;
         drag = { from: { x, y }, pointerId: event.pointerId, startX: event.global.x, startY: event.global.y, x: event.global.x, y: event.global.y, target: null };
         pointer.start(event, { kind: 'match3-cell', from: { x, y } });
@@ -185,7 +193,11 @@ function buildMatch3Scene(app, initial = {}) {
   }
 
   const detachStage = setupStage(app, pointer.move, pointer.end, () => pointer.cancel('stage'));
-  const onVisibility = () => { skipNextTick = true; };
+  function syncTicker() {
+    if (plan && playing() && !document.hidden && document.visibilityState !== 'hidden') app.start?.();
+    else app.stop?.();
+  }
+  const onVisibility = () => { skipNextTick = true; syncTicker(); };
   const onPreference = () => {
     reduced = !!motionQuery?.matches;
     // A preference change settles an accepted move exactly once, never replays it.
@@ -194,7 +206,7 @@ function buildMatch3Scene(app, initial = {}) {
   document.addEventListener('visibilitychange', onVisibility);
   motionQuery?.addEventListener?.('change', onPreference);
   const tick = ticker => {
-    if (!plan || !playing() || document.hidden || document.visibilityState === 'hidden') return;
+    if (!plan || !playing() || document.hidden || document.visibilityState === 'hidden') { app.stop?.(); return; }
     if (skipNextTick) { skipNextTick = false; return; }
     const delta = Number.isFinite(ticker.deltaMS) ? ticker.deltaMS : (Number(ticker.deltaTime) || 1) * 1000 / 60;
     elapsed += Math.max(0, Math.min(80, delta));

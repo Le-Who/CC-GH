@@ -15,6 +15,11 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const boardFixture = () => Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ['fire', 'water', 'earth', 'air', 'light', 'dark'][(x + y * 2) % 6]));
 function harness(width = 390, height = 844, reduced = false) {
   const env = createPixiMock({ width, height, publicRoot: root + 'public', coarse: reduced });
+  env.app.ticker.started = true;
+  env.app.start = () => { env.app.ticker.started = true; };
+  env.app.stop = () => { env.app.ticker.started = false; };
+  env.app.renderCount = 0;
+  env.app.render = () => { env.app.renderCount++; };
   const art = loadClosure(root + 'src/games/match3/match3Art.js', ['MATCH3_NINE_SLICE', 'MATCH3_GEM_ART', 'match3ArtUrl'], { assetUrl: x => x }, ast);
   const layout = loadClosure(root + 'src/games/match3/match3Composition.js', ['composeMatch3'], { match3LayoutDefaults: JSON.parse(fs.readFileSync(root + 'src/app/hud-layout/defaultLayouts/match3.json')) }, ast);
   const source = fs.readFileSync(root + 'src/game-runtime/scenes/match3Scene.js', 'utf8');
@@ -52,8 +57,9 @@ test('Match3 preserves composition, all 64 full-cell targets, and pooled gem fit
     const h = harness(width, height);
     assert.equal(h.targets().length, 64); assert.equal(h.gems().length, 64);
     for (const target of h.targets()) { assert.equal(target.hitArea.width, h.composition.board.cell); assert.equal(target.hitArea.height, h.composition.board.cell); }
-    for (const gem of h.gems()) assert.ok(gem.children[1].width <= h.composition.board.cell * .86 + .001);
-    assert.ok(h.env.app.stage.children[1].mask); assert.ok(h.env.app.stage.children[2].mask);
+    for (const gem of h.gems()) assert.ok(gem.children[0].width <= h.composition.board.cell * .86 + .001);
+    assert.equal(h.env.app.stage.children[1].mask ?? null, null);
+    assert.equal(h.env.app.stage.children[2].mask ?? null, null);
     h.scene.destroy(); h.env.flush();
     assert.equal(h.env.tickers.size, 0); assert.equal(h.env.window.listenerCount, 0); assert.equal(h.env.document.listenerCount, 0);
   }
@@ -138,4 +144,21 @@ test('reduced motion has no burst sprites, and teardown removes active timelines
   assert.equal(h.env.app.stage.children[2].children.length, 0);
   h.scene.destroy(); h.env.flush();
   assert.equal(h.env.tickers.size, 0); assert.equal(h.env.window.listenerCount, 0); assert.equal(h.env.document.listenerCount, 0);
+});
+
+test('idle and drag use on-demand rendering without 64 transparent quads or alternating gem shadows', () => {
+  const h = harness();
+  assert.equal(h.env.app.ticker.started,false,'idle board must not continuously repaint');
+  assert.ok(h.targets().every(node=>node.kind==='Container'&&!node.shape),'hit areas are renderless');
+  assert.ok(h.gems().every(node=>node.children.length===1&&node.children[0].kind==='Sprite'),'gem textures remain batchable');
+  const renders=h.env.app.renderCount;for(let n=0;n<60;n++)h.tick();assert.equal(h.env.app.renderCount,renders);
+  const {board}=h.composition,start=h.env.event(board.left+3.5*board.cell,board.top+4.5*board.cell);
+  h.targets()[35].emit('pointerdown',start);
+  h.env.app.stage.emit('globalpointermove',h.env.event(start.global.x+board.cell*2.35,start.global.y));h.env.flush();
+  assert.equal(h.env.app.ticker.started,false);assert.ok(h.env.app.renderCount>renders);
+  h.env.app.stage.emit('pointercancel',start);
+  startAnimation(h);assert.equal(h.env.app.ticker.started,true);
+  for(let n=0;n<1000&&!h.log.some(item=>item[0]==='complete');n++)h.tick();
+  assert.equal(h.env.app.ticker.started,false,'completion stops repainting');
+  h.scene.destroy();h.env.flush();
 });

@@ -62,3 +62,12 @@ Review videos separately for effect timing, naturalness, readability, tiny-phone
 ## Settlement assessment only
 
 `SettlementSceneCanvas.jsx` already animates villagers, selection rings and construction previews. It uses `performance.now()` directly, frame-based rotation increments, and no reduced-motion branch. Its visibility listener only clears the pointer session. A future narrow presentation-clock/hidden/reduced-motion patch is warranted; no Settlement changes were made in this scope and no broad redesign is recommended.
+
+
+## CI recovery-guard correction (PR #45)
+
+The first GitHub run built successfully, then exposed outdated preview guards. `verify-blox.cjs` now explicitly permits the exact selected-cell promise adapter and the scene-only `document` lifecycle dependency. The controller differential still compares all gameplay/action/score/optimistic traces; it separately checks the returned placement promise and unchanged receipt for selected-cell success, failure and clear, plus inactive/no-selection behavior.
+
+The subsequent scene AST comparison is retained through `fixtures/casual-motion-ast-adapters.json`: exact reviewed statement order, old preview hashes and new presentation statement hashes are required before normalizing the sanctioned motion/lifecycle rewrite. All unmodified AST content still compares against the immutable preview. Valid-AST negative controls verify that extra calls and changes to input, drawing, effects, cleanup or ordering fail closed. No production code, gameplay/economy baseline hashes or unknown-global checks were relaxed.
+
+The full native recovery/focused check passed 25/25 after this correction (including repeated scene assertions imported by the focused Blox test). Browser visual acceptance remains separate.
