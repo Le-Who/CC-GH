@@ -234,6 +234,10 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
         }
         // Scene builders consume the initial state and draw once; avoid an immediate duplicate redraw.
         sceneRef.current = buildScene(app, stateRef.current);
+        if (sceneKey === "match3" && !stateRef.current.match3?.gameActive) {
+          app.stop();
+          app.render();
+        }
         setReady(true);
       } catch (err) {
         console.error(`Pixi scene ${sceneKey} failed`, err);
@@ -263,12 +267,23 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
     appRef.current?.render?.();
   }, [effectiveSceneState, sceneKey]);
 
+  // Match3's paused board stays mounted behind its dialog and Home. Rendering
+  // it every tick saturates software WebGL and delays navigation/focus events.
+  // State and resize updates still render once; Resume restarts the same scene.
+  const match3Playing = effectiveSceneState.match3?.gameActive === true;
+  useLayoutEffect(() => {
+    if (sceneKey !== "match3" || !ready || !appRef.current) return;
+    if (match3Playing) appRef.current.start();
+    else appRef.current.stop();
+  }, [match3Playing, ready, sceneKey]);
+
   useEffect(() => {
     if (!sceneRef.current || sceneKey === "blox") return undefined;
     window.cancelAnimationFrame(updateFrameRef.current);
     updateFrameRef.current = window.requestAnimationFrame(() => {
       updateFrameRef.current = 0;
       sceneRef.current?.update?.(stateRef.current);
+      if (sceneKey === "match3" && !appRef.current?.ticker.started) appRef.current?.render?.();
     });
     return () => {
       window.cancelAnimationFrame(updateFrameRef.current);
