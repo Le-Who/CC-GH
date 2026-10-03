@@ -241,6 +241,54 @@ jobs:
           path: test-results-yard-pebble/viewport-frames/
           if-no-files-found: ignore
           retention-days: 14
+      - name: Preserve Pebble compact shard 02
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-02-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics-02/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble compact shard 03
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-03-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics-03/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble compact shard 04
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-04-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics-04/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble frames shard 02
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-02-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames-02/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble frames shard 03
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-03-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames-03/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble frames shard 04
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-04-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames-04/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Preserve canonical Pip compact review
         if: always()
         uses: actions/upload-artifact@v7

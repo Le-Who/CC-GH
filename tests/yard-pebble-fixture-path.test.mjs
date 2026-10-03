@@ -38,3 +38,28 @@ test('review collector decodes inline Playwright JSON and PNG bodies',async()=>{
   assert.deepEqual(index.files[1].titles,['Inline test']);
  }finally{await rm(folder,{recursive:true,force:true});}
 });
+test('base64-heavy results are sanitized and all real evidence survives bounded shards',async()=>{
+ const {mkdtemp,writeFile,readFile,readdir,stat,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path'),{createHash}=await import('node:crypto');
+ const {collectPebbleDiagnostics}=await import('../scripts/collect-yard-pebble-diagnostics.mjs');const folder=await mkdtemp(join(tmpdir(),'pebble-large-inline-'));
+ const digest=b=>createHash('sha256').update(b).digest('hex'),expected=new Map(),attachments=[];
+ try{for(let i=0;i<5;i++){const body=Buffer.alloc(6*1048576,i+1),name=`yard-${i===0?'320x568':'1280x720'}-frame-${i}`;expected.set(name,digest(body));attachments.push({name,contentType:'image/png',body:body.toString('base64')});}
+  const diagnostic=JSON.stringify({pageErrors:[],requestFailures:[],evidence:'all source labels remain'});attachments.push({name:'full-diagnostics',contentType:'application/json',body:Buffer.from(diagnostic).toString('base64')});
+  const raw={stats:{expected:12,unexpected:0,flaky:0},suites:[{title:'Actual-shape large test',specs:[{tests:[{results:[{status:'passed',duration:123,attachments}]}]}]}]};
+  await writeFile(join(folder,'results.json'),JSON.stringify(raw));assert.ok((await stat(join(folder,'results.json'))).size>28*1048576);
+  const result=await collectPebbleDiagnostics(folder);assert.equal(result['viewport-frames'].files,5);assert.equal(result['viewport-frames'].shards.length,2);
+  const summary=JSON.parse(await readFile(join(folder,'compact-diagnostics/results.json'),'utf8'));assert.deepEqual(summary.stats,raw.stats);
+  const outcome=summary.suites[0].specs[0].tests[0].results[0];assert.equal(outcome.status,'passed');assert.equal(outcome.duration,123);
+  assert.ok(outcome.attachments.every(a=>!Object.hasOwn(a,'body')&&a.sha256&&a.reviewFiles.length));
+  assert.ok((await stat(join(folder,'compact-diagnostics/results.json'))).size<16384);
+  const seen=new Map();for(const shard of result['viewport-frames'].shards){let bytes=0;for(const file of await readdir(shard.directory))bytes+=(await stat(join(shard.directory,file))).size;assert.ok(bytes<=28*1048576);assert.equal(bytes,shard.bytes);
+   const index=JSON.parse(await readFile(join(shard.directory,'INDEX.json'),'utf8'));for(const file of index.files)seen.set(file.attachment,digest(await readFile(join(shard.directory,file.name))));}
+  assert.deepEqual(seen,expected);assert.equal(await readFile(join(folder,'compact-diagnostics/005-full-diagnostics.json'),'utf8'),diagnostic);
+  assert.ok(result['compact-diagnostics'].shards.every(s=>s.bytes<=28*1048576));
+ }finally{await rm(folder,{recursive:true,force:true});}
+});
+
+test('every bounded Pebble review shard has its own unconditional CI upload',async()=>{
+ const {readFile}=await import('node:fs/promises'),{validatePebbleShardUploadCoverage,PEBBLE_REVIEW_SHARDS}=await import('../scripts/collect-yard-pebble-diagnostics.mjs');
+ const workflow=await readFile(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');assert.equal(PEBBLE_REVIEW_SHARDS.length,8);assert.equal(validatePebbleShardUploadCoverage(workflow),true);
+ assert.throws(()=>validatePebbleShardUploadCoverage(workflow.replace('path: test-results-yard-pebble/viewport-frames-04/','path: missing/')),/upload coverage/);
+});
