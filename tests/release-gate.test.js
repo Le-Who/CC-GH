@@ -6,4 +6,4 @@ test('pre-release database backup is checked before switching app',()=>{const s=
 
 test('CI actually includes the release gate and default validation is not duplicated',()=>{const p=JSON.parse(read('package.json'));assert.ok(p.scripts.test.includes('tests/release-gate.test.js'));assert.doesNotMatch(read('.github/workflows/ci.yml'),/\n  push:/);assert.equal((read('.github/workflows/deploy.yml').match(/--connect-timeout 5 --max-time 10/g)||[]).length,2);});
 
-test('touch gesture project is a mandatory release gate',()=>{const ci=read('.github/workflows/ci.yml');assert.match(ci,/tests\/e2e\/gestures\.spec\.js --project=mobile-chrome --workers=1/);assert.match(ci,/needs: \[test, touch\]/);assert.doesNotMatch(ci,/continue-on-error/);});
+test('touch gesture project is a mandatory release gate',()=>{const ci=read('.github/workflows/ci.yml');assert.match(ci,/tests\/e2e\/gestures\.spec\.js --project=mobile-chrome --workers=1/);assert.match(ci,/needs: \[test, touch, mochi\]/);assert.match(ci,/playwright test -c playwright\.mochi\.config\.js --project=chromium --workers=1/);assert.doesNotMatch(ci,/continue-on-error/);});
