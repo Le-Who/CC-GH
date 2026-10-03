@@ -95,6 +95,17 @@ test('explicit pre-commit Garden opener restores after disable blur and portal i
   h.flush();assert.equal(h.document.activeElement, h.trigger);
 });
 
+test('a mounted Garden dialog receives focus on its scheduled frame, not synchronously on open', () => {
+  const h = gardenPortalHookHarness(), cleanup = h.open({ current: h.trigger });
+  assert.equal(h.dialog.isConnected, true);
+  assert.equal(h.dialog.contains(h.document.activeElement), false, 'Mounting does not flush animation-frame focus work');
+  h.flush();
+  assert.equal(h.dialog.contains(h.document.activeElement), true, 'The real focus hook claims focus on its next frame');
+  assert.deepEqual(h.focusCalls, ['close']);
+  h.detach();cleanup();h.flush();
+  assert.equal(h.document.activeElement, h.trigger);
+});
+
 test('Garden opener survives Strict Mode effect replay without stale return-focus work', () => {
   const h = gardenPortalHookHarness(), opener = { current: h.trigger };
   const first = h.open(opener);h.flush();first();

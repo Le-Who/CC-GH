@@ -37,6 +37,16 @@ async function boot(page) {
 }
 async function close(page) { await page.locator('.gs2-dialog .gs2-close').click(); await expect(page.locator('.gs2-dialog')).toHaveCount(0); }
 async function fit(page, dialog = null) {
+  if (dialog) {
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+    // useDialogFocus transfers focus on the next animation frame. A successful
+    // opener click does not imply that this frame has run; wait for ownership,
+    // without moving focus ourselves or relaxing any layout/inert assertion.
+    await expect.poll(() => dialog.evaluate(node => node.contains(document.activeElement)), {
+      message: 'The opened Garden dialog must receive focus',
+    }).toBe(true);
+  }
   const errors = await page.evaluate(() => {
     const errors = [], width = innerWidth, height = innerHeight;
     if (document.documentElement.scrollWidth > width + 1) errors.push('horizontal page overflow');
@@ -54,7 +64,7 @@ async function fit(page, dialog = null) {
     return errors;
   });
   expect(errors).toEqual([]);
-  if (dialog) { await expect(dialog).toHaveAttribute('aria-modal', 'true'); await dialog.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; }); await expect(dialog.locator('.gs2-close')).toBeInViewport(); }
+  if (dialog) { await dialog.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; }); await expect(dialog.locator('.gs2-close')).toBeInViewport(); }
 }
 for (const [width, height] of MATRIX) test.describe(`Garden R2 ${width}x${height}`, () => {
   test.use({ viewport: { width, height }, deviceScaleFactor: width === 390 ? 2 : 1, isMobile: width < 1100, hasTouch: width < 1100 });
