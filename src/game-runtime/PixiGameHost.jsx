@@ -10,7 +10,6 @@ const PIXI_ASSET_REGION_IDS = {
   blox: ["bloxBackgroundAsset", "bloxBoardFrameAsset", "bloxTrayPanelAsset"],
   match3: ["match3BackgroundAsset", "match3BoardFrameAsset"],
   merge: ["mergeTableAsset", "mergeBoardFrameAsset"],
-  bubbo: ["bubboBottomTrayAsset", "bubboCannonAsset"],
 };
 
 function destroyPixiApp(app, preserveSharedTextures = false) {

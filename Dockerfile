@@ -29,9 +29,6 @@ RUN pnpm install --prod --frozen-lockfile
 # Copy Vite build output
 COPY --from=build /app/dist/ ./dist/
 
-# Copy public assets.
-COPY --from=build /app/public/ ./public/
-
 # Copy backend source
 COPY server.js .
 COPY game-logic.js .

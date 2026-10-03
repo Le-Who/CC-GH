@@ -47,7 +47,7 @@ public/assets-runtime/manifest.json generated asset
 -> procedural fallback where the game supports it
 ```
 
-`src/game-runtime/assetBundles.js` is the Pixi/runtime bundle resolver and intentionally stays generated-first for Bubbo, Gem Crush, and Garden Shelf. Do not assume `graphics.games.gardenShelf` in `public/assets/manifest.json` changes Garden Shelf art unless the Garden resolver is explicitly updated.
+`src/game-runtime/assetBundles.js` resolves retained generated assets for legacy Merge, production Cozy Yard, the Garden plant fallback and eight Gem Crush semantic overlays. Current Bubbo uses Canvas2D and its v2 pack. Do not assume `graphics.games.gardenShelf` in `public/assets/manifest.json` changes Garden Shelf art unless the Garden resolver is explicitly updated.
 
 Default output policy:
 
@@ -124,14 +124,16 @@ pnpm run build
 The current scenes are not one generic manifest bucket. Keep replacements on the supported per-game seams:
 
 ```text
-Garden Shelf: public/games/garden-shelf/assets_*.png -> generated gardenShelf.* runtime keys
-Cozy Yard: public/games/companion-yard/{backgrounds,foods,goodies,visitors,companions}/ -> generated companionYard.* runtime keys
-Gacha Merge: public/games/gacha-merge/{backgrounds,ui,fx,items}/ -> generated gachaMerge.* runtime keys
-Bubbo: public/games/bubbo-bubbo/images/*.png and assets_bubbo_balls.png -> generated bubbo.* runtime keys listed in src/game-runtime/assetBundles.js
-Gem Crush / Match-3: public/games/puzzling-potions/images/{piece-*.png,shelf-block.png,special-*.png,background-table.png,board-frame.png,cell-empty.png,cell-selected.png,hud-bar.png,menu-panel.png,fx-clear-burst.png,drop-*.png} -> generated match3.* runtime keys listed in src/game-runtime/assetBundles.js
+Garden: public/games/garden-v2/ and garden-living/; fallback garden-shelf/assets_transparent.png
+Cozy Yard: public/games/companion-yard/{backgrounds,foods,goodies,visitors,companions}/ -> companionYard.*
+Merge: current V3 catalog source art plus gacha-merge/items and gachaMerge.* for the real schema fallback
+Bubbo: public/games/bubbo-v2/ -> current Canvas2D presentation
+Blox: public/games/blox-v2/ -> recovered Blox presentation
+Brain Blitz: public/games/trivia-v2/ -> current controller and DOM presentation
+Gem Crush: public/games/match3-v2/ plus puzzling-potions/images/{special-{row,column,blast,colour},drop-{gold,seeds,energy},fx-clear-burst}.png -> eight match3.* overlays
 ```
 
-Building Blox, Brain Blitz, and legacy Cozy Farm are still mostly procedural/DOM surfaces. Add proposed keys and resolver code before shipping new production art for those games.
+Farm backend, routes, state and inventory compatibility remain; its hidden frontend and art are retired. Settlement, legacy Cozy Yard and future canonical Yard media remain in source and production output.
 
 The current Garden Shelf and Match-3 revamp keeps image-generation provenance in project-specific folders and never in a mixed atlas:
 
@@ -149,7 +151,7 @@ assets-source/imagegen/match3/background-table-keyed.png
 assets-source/imagegen/match3/background-table-transparent.png
 ```
 
-Run `node scripts/generate-themed-match3-garden-assets.mjs` after changing those sources. The script writes Garden runtime sheets and slices the Match-3 sheets into the 21 active `match3.*` files. HUD/backplate source art must stay empty decorative backing only: no baked score, labels, filled bars, meter fills, or pre-rendered progress state.
+These source-art folders and their historical authoring scripts remain for provenance. Historical generators may produce retired public paths; do not promote their whole output. Regenerate only currently retained assets with `pnpm run assets:build`, whose standard clean/prune operation removes stale runtime files. `scripts/asset-retirement-policy.mjs`, closure tests and the build guard reject retired public files and built JS/CSS references. HUD/backplate source art must stay empty decorative backing only: no baked score, labels, filled bars, meter fills, or pre-rendered progress state.
 The current image-generation key is `#123456`; keep keyed sources project-specific and remove it with hard alpha/no despill so plant flowers, pot accents, and Match-3 piece colors are not washed out.
 
 Recommended image formats:

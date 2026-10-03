@@ -155,10 +155,8 @@ describe("Pixi scene geometry helpers", () => {
     const scenes = readSceneRuntimeText();
     const bloxScene = fs.readFileSync(path.join(__dirname, "..", "src", "game-runtime", "scenes", "bloxScene.js"), "utf-8");
 
-    assert.equal(LEGACY_ASSET_PATHS["blox.cell_empty"], "/games/blox/cell_empty.png");
-    assert.equal(LEGACY_ASSET_PATHS["farm.crops.strawberry_ready"], "/games/farm/crops/strawberry_ready.png");
-    assert.ok(GAME_ASSET_BUNDLES.blox.includes("blox.cell_empty"), "Blox preload fallback should include generated cell art");
-    assert.ok(GAME_ASSET_BUNDLES.farm.includes("farm.crops.strawberry_ready"), "Farm preload fallback should include generated crop art");
+    assert.equal(LEGACY_ASSET_PATHS["blox.cell_empty"], undefined);
+    assert.equal(LEGACY_ASSET_PATHS["farm.crops.strawberry_ready"], undefined);
     assert.equal(BLOX_BLOCK_ART["#60a5fa"], "/games/blox-v2/tiles/blue.webp");
     assert.equal(Object.keys(BLOX_BLOCK_ART).length, 9, "Blox v2 should retain all color-to-generated-tile mappings");
     assert.ok(BLOX_PIXI_ASSETS.includes(BLOX_ART.energy), "Blox v2 must preload generated row/column energy art");
@@ -166,8 +164,6 @@ describe("Pixi scene geometry helpers", () => {
     assert.ok(bloxScene.includes('bloxArtUrl("energy")'), "Blox clear effects should resolve generated energy art");
     assert.ok(bloxScene.includes("drawTrayPiece"), "Blox tray previews should render from live piece cells");
     assert.ok(!bloxScene.includes("BLOX_PIECE_ASSET_BY_ID"), "Blox tray previews should not use mismatched fixed preview sprites");
-    assert.ok(scenes.includes("FARM_CROP_SLUGS"), "Farm should map crop ids to generated crop sprite paths");
-    assert.ok(scenes.includes("FARM_ASSET_KEYS.backgroundField"), "Farm should render the generated field background");
   });
 
   it("renders Blox predicted row and column clears during drag preview", () => {

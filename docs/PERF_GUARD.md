@@ -41,6 +41,8 @@ This repo uses three performance guard layers because one metric cannot cover a 
 
    Build artifact budgets for startup JS/CSS, async Pixi chunks, game chunks, generated `/assets-runtime` manifest/payload size, content-hashed runtime asset names, and the invariant that Pixi runtime chunks must not be module-preloaded into startup HTML. This writes `artifacts/perf/perf-build-report.json`.
 
+   Direct-copy media is also measured: `dist/games` has a 181,000,000-byte budget; media/fonts/JSON in `dist/assets` have 75,000,000 bytes; their combined payload with runtime assets has 263,000,000 bytes. These limits allow about 5% above the retained production packs, including future canonical Yard media. Existing JS/CSS/game/runtime limits remain unchanged. The retired-path policy rejects both reintroduced files and retired URLs in built JS/CSS, even when all size budgets pass.
+
 3. `pnpm run perf:guard:browser`
 
    Browser runtime smoke for the current Telegram shell. The Playwright web-server builds production assets first, then starts `server.js` with the test env for dev auth and in-memory player state. The specs check startup lazy-loading, verify startup uses the generated runtime manifest without eager Bubbo/Gem Crush art, enter Gacha Merge, perform a real free-tap generator action, sample `requestAnimationFrame` cadence, record Long Task / Long Animation Frame entries when the browser supports them, and run the generated runtime asset coverage spec for Garden Shelf, Bubbo, Gem Crush, and Cozy Yard.
@@ -48,6 +50,8 @@ This repo uses three performance guard layers because one metric cannot cover a 
 4. `pnpm run perf:guard:all`
 
    Full local performance gate: Node hot paths, production build, build budgets, and browser runtime smoke.
+
+   `tests/e2e/asset-retirement.spec.js` separately opens all eight current game entry screens with a real service worker, verifies retained image loading and absence of retired requests, and checks that deleted URLs return plain 404 responses through the controlled page. This entry-screen check does not replace gameplay or service-worker upgrade testing.
 
 ## Budget Policy
 

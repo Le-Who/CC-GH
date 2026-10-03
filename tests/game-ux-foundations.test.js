@@ -7,7 +7,7 @@ import { createClientActionId, shouldUseDurableOutbox } from "../src/game-state/
 import { normalizeActiveTab, readInitialActiveTab } from "../src/game-state/useGameHub.js";
 import { selectMatch3InitialRun } from "../src/games/match3/selectMatch3Run.js";
 import { deriveServerNow } from "../src/games/merge/useServerClock.js";
-import { getQuestionTiming } from "../src/games/trivia/useQuestionTimer.js";
+import { TriviaClock } from "../src/games/trivia/triviaController.js";
 import { normalizeBubboPowerups } from "../src/game-core/bubbo/engine.js";
 import { renderArcadePresentation, findElements } from "./helpers/arcadePresentationHarness.js";
 
@@ -163,18 +163,12 @@ describe("Telegram Mini App game UX foundations", () => {
   });
 
   it("keeps playfield backgrounds with a single renderer owner", () => {
-    const bloxCss = readFileSync(new URL("../src/games/blox/blox.css", import.meta.url), "utf8");
-    const farmCss = readFileSync(new URL("../src/games/farm/farm.css", import.meta.url), "utf8");
     const bloxScene = readFileSync(new URL("../src/game-runtime/scenes/bloxScene.js", import.meta.url), "utf8");
-    const farmScene = readFileSync(new URL("../src/game-runtime/scenes/farmScene.js", import.meta.url), "utf8");
     const { tree } = renderArcadePresentation("blox");
     const backgrounds = findElements(tree, (node) => node.props.className === "bx-background");
     assert.equal(backgrounds.length, 1, "Blox v2 owns its background in the DOM presentation");
     assert.match(findElements(backgrounds[0], (node) => node.type === "img")[0].props.src, /\/games\/blox-v2\/background\.webp(?:\?|$)/);
     assert.doesNotMatch(bloxScene, /BLOX_ASSET_KEYS\.background|bloxArtUrl\("background"\)/, "Blox Pixi must not draw the presentation background twice");
-    assert.match(farmScene, /coverSprite\(gameAsset\(FARM_ASSET_KEYS\.backgroundField\)/);
-    assert.doesNotMatch(bloxCss, /\/games\/blox\/background\.png/);
-    assert.doesNotMatch(farmCss, /\/games\/farm\/background-field\.png/);
   });
 
   it("restores Match-3 runs from snapshot currentGame before creating defaults", () => {
@@ -247,14 +241,14 @@ describe("Telegram Mini App game UX foundations", () => {
 
   it("derives server clock and question timing from real elapsed time", () => {
     assert.equal(deriveServerNow({ serverTime: 1000, receivedAt: 900 }, 1400), 1500);
-    const timing = getQuestionTiming(10_000, 12_450, 15_000);
+    let now = 10_000; const clock = new TriviaClock(() => now); clock.reset({ timeLimit: 15 }); now = 12_450; const timing = clock.sample();
     assert.equal(timing.timeMs, 2450);
     assert.equal(timing.remainingMs, 12_550);
     assert.ok(timing.progress < 1 && timing.progress > 0.8);
   });
 
   it("freezes Brain Blitz question timing across pauses", () => {
-    const timing = getQuestionTiming(10_000, 20_000, 15_000, 6_000);
+    let now = 10_000; const clock = new TriviaClock(() => now); clock.reset({ timeLimit: 15 }); now = 14_000; clock.freeze(); now = 20_000; const timing = clock.sample();
     assert.equal(timing.timeMs, 4000);
     assert.equal(timing.remainingMs, 11_000);
     assert.ok(timing.progress < 0.75 && timing.progress > 0.7);
@@ -330,16 +324,6 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(controller, /'\/api\/trivia\/duel\/start', \{ roomId: s\.roomId \}/);
   });
 
-  it("keeps Garden Shelf confetti off the initial panel-open module path", () => {
-    const bottomPanel = readFileSync(new URL("../src/games/garden-shelf/components/BottomPanel.tsx", import.meta.url), "utf8");
-    const offlineWelcome = readFileSync(new URL("../src/games/garden-shelf/components/OfflineWelcome.tsx", import.meta.url), "utf8");
-    const effects = readFileSync(new URL("../src/games/garden-shelf/lib/effects.ts", import.meta.url), "utf8");
-
-    assert.ok(!bottomPanel.includes("import confetti from 'canvas-confetti'"));
-    assert.ok(!offlineWelcome.includes("import confetti from 'canvas-confetti'"));
-    assert.match(effects, /import\(['"]canvas-confetti['"]\)/);
-  });
-
   it("wires shared overlay dismissal and mature Garden care watering through DOM text", () => {
     const dismissHook = readFileSync(new URL("../src/app/useDismissableLayer.js", import.meta.url), "utf8");
     const shell = readFileSync(new URL("../src/app/shell.jsx", import.meta.url), "utf8");
@@ -381,12 +365,10 @@ describe("Telegram Mini App game UX foundations", () => {
   });
 
   it("keeps Garden and Yard empty starts thematic instead of placeholder-empty", () => {
-    const gardenCss = readFileSync(new URL("../src/games/garden-shelf/garden-shelf.css", import.meta.url), "utf8");
+    const gardenCss = readFileSync(new URL("../src/games/garden-shelf/garden-presentation.css", import.meta.url), "utf8");
     const yardGame = readFileSync(new URL("../src/games/companion-yard/CompanionYardGame.jsx", import.meta.url), "utf8");
     const yardCss = readFileSync(new URL("../src/games/companion-yard/companion-yard.css", import.meta.url), "utf8");
 
-    assert.match(gardenCss, /\.garden-spot-empty\s*\{[\s\S]*\/games\/garden-shelf\/shelf_slot_empty\.png/);
-    assert.doesNotMatch(gardenCss, /\.garden-spot-empty\s*\{[^}]*background:\s*#32252a/s);
     assert.match(yardGame, /starterGoodieHints/);
     assert.match(yardGame, /className=\{`yard-starter-goodie/);
     assert.match(yardGame, /startPlaceGoodie\(goodieId\)/);

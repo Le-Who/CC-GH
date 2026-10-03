@@ -43,8 +43,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 6796,
-      "sha256": "06995d5c529f30be6d549afb25c0971580b8fffc6e7a6f7970c09896e0e19cce"
+      "bytes": 6893,
+      "sha256": "5d557a52c2a6eb3f0e1d6df7d6add6aad0d02da72cd21288344ca1ba8eab69f1"
     },
     {
       "path": "src/App.jsx",
@@ -78,18 +78,18 @@
     },
     {
       "path": "tests/asset-runtime.test.js",
-      "bytes": 5678,
-      "sha256": "d5ccda2a01a388775441fd0f8589ab235174260ec458b0336109c16496100b0d"
+      "bytes": 4227,
+      "sha256": "11f9ccebac84aebb3723f68e908461b1dd241c931bdccf8589b0c2240b5a7fd3"
     },
     {
       "path": "tests/perf-guard.test.js",
-      "bytes": 8162,
-      "sha256": "0edbb2b61cda2dc5816c8dbfc5fedbec50cffaa3b34f3d5841b4d37bf3f04507"
+      "bytes": 7025,
+      "sha256": "0ab372fcf82e033316980153c79f235393cc5d61213ad0d87580a62e42e9afb9"
     },
     {
       "path": "tests/perf-build-guard.test.js",
       "bytes": 9136,
-      "sha256": "712dba8e0b138b5992b92efd091fd5409d3d7fc5a5c0e3a1bb25a0f49f959db0"
+      "sha256": "a3c140b0e7855a03ac1c37dfa808da18165a389ca3009a057070b088785eb169"
     },
     {
       "path": "src/game-state/gardenR2Snapshot.js",

@@ -258,8 +258,12 @@ app.get("/game-logic.js", (_req, res) => {
     .sendFile("game-logic.js", { root: __dirname });
 });
 
-app.use(/\.(js|mjs|css|json|map|png|jpg|svg|woff2?)$/i, (_req, res) => {
-  res.status(404).type("text/plain").send("Asset not found");
+// Missing static media must never fall through to the SPA HTML response.
+// Test req.path directly; Express mount matching strips a matched prefix.
+app.use((req, res, next) => {
+  if (!/^\/(?:games|assets-runtime|assets)(?:\/|$)/.test(req.path)
+    && !/\.(?:js|mjs|css|json|map|png|webp|avif|jpe?g|gif|svg|woff2?|webm|mp3|wav)$/i.test(req.path)) return next();
+  res.status(404).set("Cache-Control", "no-store").type("text/plain").send("Asset not found");
 });
 
 app.get(/.*/, (_req, res) => {

@@ -24,19 +24,19 @@ async function writeRuntimeAssets(root) {
     JSON.stringify({
       version: 1,
       assets: {
-        "bubbo.balls.sheet": {
+        "gachaMerge.items.seed": {
           type: "image",
-          src: "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
-          fallback: "/assets-runtime/bubbo/assets_bubbo_balls.5678abcd.png",
+          src: "/assets-runtime/gacha-merge/items/seed.1234abcd.webp",
+          fallback: "/assets-runtime/gacha-merge/items/seed.5678abcd.png",
         },
       },
       bundles: {
-        "pixi.bubbo": ["bubbo.balls.sheet"],
+        "pixi.merge": ["gachaMerge.items.seed"],
       },
     }),
   );
-  await writeFile(root, "assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp", "webp");
-  await writeFile(root, "assets-runtime/bubbo/assets_bubbo_balls.5678abcd.png", "png");
+  await writeFile(root, "assets-runtime/gacha-merge/items/seed.1234abcd.webp", "webp");
+  await writeFile(root, "assets-runtime/gacha-merge/items/seed.5678abcd.png", "png");
 }
 
 describe("build perf guard", () => {
@@ -132,14 +132,14 @@ describe("build perf guard", () => {
       JSON.stringify({
         version: 1,
         assets: {
-          "bubbo.balls.sheet": {
+          "gachaMerge.items.seed": {
             type: "image",
-            src: "/assets-runtime/bubbo/assets_bubbo_balls.webp",
+            src: "/assets-runtime/gacha-merge/items/seed.webp",
           },
         },
       }),
     );
-    await writeFile(unhashedRoot, "assets-runtime/bubbo/assets_bubbo_balls.webp", "webp");
+    await writeFile(unhashedRoot, "assets-runtime/gacha-merge/items/seed.webp", "webp");
 
     const unhashed = await runBuildPerfGuard({
       distDir: unhashedRoot,

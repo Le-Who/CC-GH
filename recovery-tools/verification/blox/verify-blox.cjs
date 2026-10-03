@@ -24,8 +24,30 @@ function sourceDecl(file){const src=read(file),ast=acorn.parse(src,{ecmaVersion:
 function sha(buf){return crypto.createHash('sha256').update(buf).digest('hex')}
 const corePromise=Promise.all([import(pathToFileURL(root+'/game-logic/blox-engine.js').href),import(pathToFileURL(root+'/game-logic/blox-pieces.js').href),import(pathToFileURL(root+'/game-logic/economy.js').href),import(pathToFileURL(root+'/game-logic/hud-bonuses.js').href),import(pathToFileURL(root+'/src/game-runtime/sceneGeometry.js').href)]);
 const compiledPure=closure(host,['Nr','Bi','Ec','Kg','iA','tx','ex','S2']);
-test('critical Blox engines, routes, economics and shared runtime are byte-identical to production baseline',()=>{
- for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/scenes/shared/runtime.js','src/game-runtime/sceneGeometry.js','src/game-runtime/assetBundles.js','src/game-runtime/pointerSession.js'])assert.equal(sha(fs.readFileSync(root+'/'+f)),baselineHashes[f],f);
+test('critical Blox engines, routes and geometry are byte-identical to production baseline',()=>{
+ for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/sceneGeometry.js','src/game-runtime/pointerSession.js'])assert.equal(sha(fs.readFileSync(root+'/'+f)),baselineHashes[f],f);
+});
+
+test('all retained runtime declarations preserve the immutable baseline AST after asset retirement',()=>{
+ const proof=JSON.parse(read(__dirname+'/fixtures/retirement-baseline-ast.json'));
+ assert.equal(proof.baseCommit,'1105f8a409fb31125efa8bd462443cdc4e1a204d');
+ const allowedAssetMaps=new Set(['POTION_PIECE_ASSETS','MATCH3_ASSET_KEYS','LEGACY_ASSET_PATHS','GAME_ASSET_BUNDLES']);
+ const retiredDeclarations={
+  'src/game-runtime/scenes/shared/runtime.js':['BUBBO_ASSET_KEYS','BLOX_ASSET_KEYS','BLOX_TILE_ASSET_BY_COLOR','BLOX_PIECE_ASSET_BY_ID','FARM_CROP_SLUGS','FARM_ASSET_KEYS','BUBBO_BALL_SHEET_WIDTH','BUBBO_BALL_SHEET_HEIGHT','BUBBO_BALL_ROWS','BUBBO_BALL_FRAMES','BUBBO_BALL_DRAW_SCALE','bubboBallTextureCache','FARM_SOIL','BUBBO_NUMBERS','BUBBO_BACKGROUND_THEMES','bubboBallFrame','bubboBallTexture','cropProgress','drawBubboBackground'],
+  'src/game-runtime/assetBundles.js':['legacyPngEntries','BLOX_ROOT_ASSET_IDS','BLOX_FX_ASSET_IDS','FARM_ROOT_ASSET_IDS','FARM_CROP_ASSET_IDS','FARM_FX_ASSET_IDS','FARM_HARVEST_ASSET_IDS','FARM_SEED_ASSET_IDS','FARM_UI_ASSET_IDS','FARM_RENDER_ROOT_ASSET_IDS','FARM_RENDER_FX_ASSET_IDS','BLOX_BUNDLE_KEYS','FARM_BUNDLE_KEYS'],
+ };
+ const normalized=node=>JSON.stringify(node,(key,value)=>['start','end','raw'].includes(key)?undefined:value);
+ for(const [file,baseline]of Object.entries(proof.files)){
+  assert.equal(baseline.sourceSha256,baselineHashes[file],file+' immutable baseline');
+  const declarations=acorn.parse(read(root+'/'+file),{ecmaVersion:'latest',sourceType:'module'}).body;
+  let checked=0;const retainedNames=[];
+  for(const original of declarations){const node=original.declaration||original;
+   const items=node.type==='FunctionDeclaration'?[node]:node.type==='VariableDeclaration'?node.declarations:[];
+   for(const declaration of items){const name=declaration.id?.name;if(!name)continue;retainedNames.push(name);if(allowedAssetMaps.has(name))continue;assert.equal(sha(normalized(declaration)),baseline.declarations[name],file+': '+name);checked++;}
+  }
+  assert.ok(checked>=10,file+' retains meaningful behavior coverage');
+  assert.deepEqual(retainedNames.sort(),Object.keys(baseline.declarations).filter(name=>!retiredDeclarations[file].includes(name)).sort(),file+' retires only the declared asset and dead renderer helpers');
+ }
 });
 test('all recovered game-only declaration ASTs equal owned preview after disclosed semantic renaming, statement expansion and art-only PNG-to-WebP path migration',()=>{
  const groups=[['src/games/blox/BloxGame.jsx',host,['g2'],maps.globals,maps.locals],['src/games/blox/bloxInteraction.js',host,['ex','S2'],maps.globals,maps.locals],['src/games/blox/bloxComposition.js',host,['An','tx'],maps.globals,maps.locals],['src/games/blox/bloxArt.js',host,['na','yl','px','Tc','S0','Oi','E2','Di','vx'],maps.globals,maps.locals],['src/game-runtime/scenes/bloxScene.js',scene,['zt','jt','Ci'],maps.sceneGlobals,maps.sceneLocals]];

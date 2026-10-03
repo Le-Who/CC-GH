@@ -2,6 +2,7 @@ import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-ca
 import { test, expect } from "@playwright/test";
 import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
 import sharedHudWebpProof from "../fixtures/shared-hud-webp-proof.json" with { type: "json" };
+import { isRetiredAssetPath } from '../../scripts/asset-retirement-policy.mjs';
 
 function observeRuntimeAssetRequests(page) {
   const paths = new Set();
@@ -52,6 +53,14 @@ test.describe("generated runtime asset manifest", () => {
     test.setTimeout(60_000);
     const runtimePaths = observeRuntimeAssetRequests(page);
     const legacyGamePngPaths = observeLegacyGamePngRequests(page);
+    const retiredRequests = [];
+    const missingActiveAssets = [];
+    page.on('request', request => {
+      if (isRetiredAssetPath(new URL(request.url()).pathname)) retiredRequests.push(request.url());
+    });
+    page.on('response', response => {
+      if (response.status() === 404 && /^\/(?:games|assets-runtime|assets)\//.test(new URL(response.url()).pathname)) missingActiveAssets.push(response.url());
+    });
 
     await page.goto("/");
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
@@ -102,6 +111,16 @@ test.describe("generated runtime asset manifest", () => {
     const ownedMergeArt = new Set([...mergeCatalog.items, ...mergeCatalog.projects].map(entry => entry.asset));
     expect([...legacyGamePngPaths].filter(path => !approvedRetained.test(path) && !ownedMergeArt.has(path)).sort()).toEqual([]);
     expect([...legacyGamePngPaths].some(path => ownedMergeArt.has(path))).toBe(true);
+    expect(retiredRequests).toEqual([]);
+    expect(missingActiveAssets).toEqual([]);
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+    for (const url of ['/games/trivia/panel-menu.png', '/games/blox/cell_empty.png', '/games/farm/plot-empty.png', '/games/bubbo-bubbo/assets_bubbo_balls.png', '/games/garden-shelf/assets_shelf.png', '/games/puzzling-potions/images/piece-dragon.png']) {
+      const response = await page.request.get(url);
+      expect(response.status(), url).toBe(404);
+      expect(response.headers()['content-type'], url).not.toContain('text/html');
+    }
   });
 });
 

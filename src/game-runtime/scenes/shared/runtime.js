@@ -1,16 +1,6 @@
 import { Container, Graphics, Rectangle, Sprite, Text, TilingSprite, Texture } from "pixi.js";
-import { CROPS, MERGE_CHAINS, getMergePairResult } from "../../../../game-logic.js";
+import { MERGE_CHAINS, getMergePairResult } from "../../../../game-logic.js";
 import { createPointerSession } from "../../pointerSession.js";
-import {
-  BUBBO_COLORS,
-  BUBBO_COLS,
-  BUBBO_PALETTE,
-  BUBBO_ROWS,
-  generateBubboWave,
-  getAssistedBubboAim,
-  getBubboNeighbors,
-  getBubboRowVisualOffset,
-} from "../../../game-core/bubbo/engine.js";
 import { BOARD_SIZE, DROP_ICONS, GEM_ICONS } from "../../../game-core/match3/engine.js";
 import { MATCH3_TIMING, match3StepStartFrame } from "../../../game-core/match3/animation.js";
 import { GRID } from "../../../game-core/blox/pieces.js";
@@ -42,108 +32,7 @@ const GEM_COLORS = {
   special_colour: 0xcdb7e9,
 };
 
-const BUBBO_ASSET_KEYS = {
-  ballSheet: "bubbo.balls.sheet",
-  backgroundUnderwater: "bubbo.background.underwater",
-  backgroundTile: "bubbo.background.tile",
-  bottomTray: "bubbo.bottomTray",
-  cannonMain: "bubbo.cannon.main",
-};
-const BLOX_ASSET_KEYS = {
-  background: "blox.background",
-  boardFrame: "blox.board_frame",
-  cellEmpty: "blox.cell_empty",
-  cellValid: "blox.cell_valid",
-  cellInvalid: "blox.cell_invalid",
-  cellSelected: "blox.cell_selected",
-  rowWipe: "blox.fx.row_wipe",
-  columnWipe: "blox.fx.column_wipe",
-  multiClearBurst: "blox.fx.multi_clear_burst",
-  placeSettle: "blox.fx.place_settle",
-  trayPanel: "blox.tray_panel",
-  traySlotEmpty: "blox.tray_slot_empty",
-  traySlotSelected: "blox.tray_slot_selected",
-};
-const BLOX_TILE_ASSET_BY_COLOR = {
-  "#94a3b8": "blox.block_tile_gray",
-  "#60a5fa": "blox.block_tile_blue",
-  "#f97316": "blox.block_tile_orange",
-  "#22c55e": "blox.block_tile_green",
-  "#fbbf24": "blox.block_tile_yellow",
-  "#a78bfa": "blox.block_tile_purple",
-  "#ef4444": "blox.block_tile_red",
-  "#06b6d4": "blox.block_tile_cyan",
-  "#e879f9": "blox.block_tile_pink",
-};
-const BLOX_PIECE_ASSET_BY_ID = Object.fromEntries(
-  ["dot", "h2", "v2", "l3", "l3r", "h3", "v3", "sq", "t4", "s4", "i4", "i5"].map((id) => [id, `blox.piece_${id}`]),
-);
-const FARM_CROP_SLUGS = {
-  golden: "golden_rose",
-  golden_rose: "golden_rose",
-};
-const FARM_ASSET_KEYS = {
-  backgroundField: "farm.background-field",
-  plotEmpty: "farm.plot-empty",
-  plotLocked: "farm.plot-locked",
-  plotPending: "farm.plot-pending",
-  plotReadyOverlay: "farm.plot-ready-overlay",
-  plotSelected: "farm.plot-selected",
-  plotShadow: "farm.plot-shadow",
-  plotWateredOverlay: "farm.plot-watered-overlay",
-  growthGlow: "farm.fx.growth_glow",
-  plantPuff: "farm.fx.plant_puff",
-  waterSplash: "farm.fx.water_splash",
-  harvestPop: "farm.fx.harvest_pop",
-  plotThemes: {
-    default: "farm.plot-theme-default",
-    flower: "farm.plot-theme-flower",
-    moon: "farm.plot-theme-moon",
-    stone: "farm.plot-theme-stone",
-  },
-};
-const BUBBO_BALL_SHEET_WIDTH = 1672;
-const BUBBO_BALL_SHEET_HEIGHT = 941;
-const BUBBO_BALL_ROWS = {
-  coral: 0,
-  sky: 1,
-  mint: 2,
-  amber: 3,
-  berry: 4,
-};
-const BUBBO_BALL_FRAMES = {
-  idle: [
-    { x: 174, y: 36, w: 161, h: 162 },
-    { x: 174, y: 224, w: 161, h: 162 },
-    { x: 174, y: 406, w: 161, h: 162 },
-    { x: 174, y: 585, w: 160, h: 159 },
-    { x: 174, y: 759, w: 161, h: 159 },
-  ],
-  glow: [
-    { x: 952, y: 14, w: 215, h: 194 },
-    { x: 960, y: 208, w: 205, h: 186 },
-    { x: 950, y: 394, w: 221, h: 182 },
-    { x: 952, y: 576, w: 221, h: 172 },
-    { x: 950, y: 748, w: 226, h: 172 },
-  ],
-  burst: [
-    { x: 1240, y: 24, w: 255, h: 177 },
-    { x: 1242, y: 221, w: 254, h: 170 },
-    { x: 1231, y: 407, w: 270, h: 164 },
-    { x: 1239, y: 583, w: 256, h: 163 },
-    { x: 1235, y: 758, w: 263, h: 163 },
-  ],
-};
-const BUBBO_BALL_DRAW_SCALE = 2.42;
-const bubboBallTextureCache = new Map();
-
 const POTION_PIECE_ASSETS = {
-  fire: "match3.piece.dragon",
-  water: "match3.piece.frog",
-  earth: "match3.piece.newt",
-  air: "match3.piece.snake",
-  light: "match3.piece.spider",
-  dark: "match3.piece.yeti",
   special_row: "match3.special.row",
   special_column: "match3.special.column",
   special_blast: "match3.special.blast",
@@ -154,19 +43,12 @@ const POTION_PIECE_ASSETS = {
 };
 
 const MATCH3_ASSET_KEYS = {
-  backgroundTable: "match3.background.table",
-  boardFrame: "match3.board.frame",
-  boardCell: "match3.board.cell",
-  boardCellSelected: "match3.board.cellSelected",
-  uiHudBar: "match3.ui.hudBar",
-  uiMenuPanel: "match3.ui.menuPanel",
   fxClearBurst: "match3.fx.clearBurst",
 };
 
 let graphicsManifest = null;
 let graphicsManifestPromise = null;
 
-const FARM_SOIL = [0x7b4f2d, 0x8b5c34, 0x684022];
 const PANEL = 0xfff1f4;
 const PANEL_2 = 0xeef5e5;
 const FIELD = 0xf8e5ea;
@@ -176,32 +58,6 @@ const MINT = 0x8fcf9d;
 const AMBER = 0xe7bd69;
 const CORAL = 0xdc7a85;
 const SKY = 0x8bbfd9;
-const BUBBO_NUMBERS = Object.fromEntries(
-  Object.entries(BUBBO_PALETTE).map(([name, value]) => [name, Number.parseInt(value.slice(1), 16)]),
-);
-const BUBBO_BACKGROUND_THEMES = {
-  light: {
-    outer: 0x063f70,
-    panel: 0x0a5f87,
-    stroke: 0x8af0ff,
-    pattern: 0xb7f7ff,
-    finish: 0xff7d8d,
-    cannonPanel: 0x0d4361,
-    panelAlpha: 0.08,
-    lineAlpha: 0.18,
-  },
-  dark: {
-    outer: 0x021124,
-    panel: 0x052c48,
-    stroke: 0x55dce8,
-    pattern: 0x9defff,
-    finish: 0xff8fa0,
-    cannonPanel: 0x061f33,
-    panelAlpha: 0.14,
-    lineAlpha: 0.16,
-  },
-};
-
 function viewWidth(app) {
   return app.screen?.width || app.renderer.width;
 }
@@ -414,40 +270,6 @@ function coverSprite(path, x, y, width, height, aspect = null, alpha = 1) {
   return item;
 }
 
-function bubboBallFrame(bounds, { padding = 8, square = false } = {}) {
-  const frameWidth = bounds.w + padding * 2;
-  const frameHeight = bounds.h + padding * 2;
-  const size = square ? Math.max(frameWidth, frameHeight) : null;
-  const width = size || frameWidth;
-  const height = size || frameHeight;
-  const centerX = bounds.x + bounds.w / 2;
-  const centerY = bounds.y + bounds.h / 2;
-  const x = Math.max(0, Math.min(BUBBO_BALL_SHEET_WIDTH - width, Math.round(centerX - width / 2)));
-  const y = Math.max(0, Math.min(BUBBO_BALL_SHEET_HEIGHT - height, Math.round(centerY - height / 2)));
-  return new Rectangle(x, y, width, height);
-}
-
-function bubboBallTexture(colorName, variant = "idle") {
-  const row = BUBBO_BALL_ROWS[colorName];
-  const bounds = BUBBO_BALL_FRAMES[variant]?.[row];
-  if (row == null || !bounds) return null;
-  const cacheKey = `${colorName}:${variant}`;
-  if (bubboBallTextureCache.has(cacheKey)) return bubboBallTextureCache.get(cacheKey);
-
-  const frameRect = bubboBallFrame(bounds, {
-    padding: variant === "idle" ? 12 : 5,
-    square: variant === "idle",
-  });
-  const base = Texture.from(gameAsset(BUBBO_ASSET_KEYS.ballSheet));
-  const texture = new Texture({
-    source: base.source,
-    frame: frameRect,
-    orig: new Rectangle(0, 0, frameRect.width, frameRect.height),
-  });
-  bubboBallTextureCache.set(cacheKey, texture);
-  return texture;
-}
-
 function gameAsset(path) {
   return resolveAssetUrl(path);
 }
@@ -597,13 +419,6 @@ function match3TargetFromGesture(layout, current, done) {
   return target;
 }
 
-function cropProgress(plot, now) {
-  if (!plot?.crop || !plot?.plantedAt) return 0;
-  const base = plot.effectiveGrowthTime || plot.growthTime || CROPS[plot.crop]?.growthTime || 60_000;
-  const multiplier = plot.watered ? plot.wateringMultiplier || 0.7 : 1;
-  return Math.max(0, Math.min(1, (now - plot.plantedAt) / (base * multiplier)));
-}
-
 function makeSparkles(root, x, y, color = AMBER, count = 9) {
   for (let i = 0; i < count; i++) {
     const dot = new Graphics().circle(0, 0, 2 + (i % 3), color).fill({ color, alpha: 0.9 });
@@ -641,35 +456,6 @@ function makeTween(view, from, to, duration = 18, options = {}) {
     destroy: options.destroy,
   };
   return view;
-}
-
-function drawBubboBackground(root, app, layout, frameBottom) {
-  const palette = BUBBO_BACKGROUND_THEMES[currentUiTheme()] || BUBBO_BACKGROUND_THEMES.light;
-  const width = viewWidth(app);
-  const height = viewHeight(app);
-  root.addChild(rect(0, 0, width, height, palette.outer, 0, 1));
-  root.addChild(coverSprite(gameAsset(BUBBO_ASSET_KEYS.backgroundUnderwater), width / 2, height / 2, width, height, 1024 / 1792, 1));
-  root.addChild(strokedRect(layout.left - 10, layout.top - 10, layout.right - layout.left + 20, frameBottom - layout.top + 10, palette.stroke, 16, palette.panel, palette.panelAlpha, 2));
-  const stripes = new Graphics();
-  const x0 = layout.left - 2;
-  const y0 = layout.top - 2;
-  const fieldWidth = layout.right - layout.left + 4;
-  const fieldHeight = frameBottom - layout.top + 4;
-  for (let x = x0 - fieldHeight; x < x0 + fieldWidth; x += Math.max(24, layout.cell * 0.86)) {
-    stripes.moveTo(x, y0 + fieldHeight);
-    stripes.lineTo(x + fieldHeight, y0);
-  }
-  stripes.stroke({ color: palette.pattern, width: 1.4, alpha: palette.lineAlpha });
-  root.addChild(stripes);
-  const curves = new Graphics();
-  for (let row = 0; row < 4; row += 1) {
-    const y = y0 + fieldHeight * (0.18 + row * 0.2);
-    curves.moveTo(x0 + 10, y);
-    curves.bezierCurveTo(x0 + fieldWidth * 0.3, y - 12, x0 + fieldWidth * 0.58, y + 10, x0 + fieldWidth - 10, y - 4);
-  }
-  curves.stroke({ color: palette.pattern, width: 2, alpha: palette.lineAlpha * 0.7 });
-  root.addChild(curves);
-  return palette;
 }
 
 function makeRipple(root, x, y, color = SKY, radius = 28) {
@@ -732,13 +518,10 @@ function setupStage(app, onMove, onUp, onCancel = null) {
 
 export {
   Container, Graphics, Rectangle, Sprite, Text, TilingSprite, Texture,
-  CROPS, MERGE_CHAINS, getMergePairResult, createPointerSession,
-  BUBBO_COLORS, BUBBO_COLS, BUBBO_PALETTE, BUBBO_ROWS, generateBubboWave, getAssistedBubboAim, getBubboNeighbors, getBubboRowVisualOffset,
+  MERGE_CHAINS, getMergePairResult, createPointerSession,
   BOARD_SIZE, DROP_ICONS, GEM_ICONS, MATCH3_TIMING, match3StepStartFrame, GRID, canPlaceBloxPiece, resolveAssetUrl,
-  GEM_COLORS, BUBBO_ASSET_KEYS, BUBBO_BALL_SHEET_WIDTH, BUBBO_BALL_SHEET_HEIGHT, BUBBO_BALL_ROWS, BUBBO_BALL_FRAMES, BUBBO_BALL_DRAW_SCALE, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
-  FARM_SOIL, PANEL, PANEL_2, FIELD, TEXT, MUTED, MINT, AMBER, CORAL, SKY, BUBBO_NUMBERS, BUBBO_BACKGROUND_THEMES,
-  viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, publishCanvasAssetLayout, applyHudAssetRegion, currentUiTheme, clear, destroyLater, label, rect, sprite, bubboBallFrame, bubboBallTexture, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, cropProgress, makeSparkles, cellCenter, makeTween, drawBubboBackground, makeRipple, makeRafScheduler, setupStage,
-  spriteFit, coverSprite, BLOX_ASSET_KEYS, BLOX_TILE_ASSET_BY_COLOR, BLOX_PIECE_ASSET_BY_ID, FARM_CROP_SLUGS, FARM_ASSET_KEYS,
-  bloxBoardFrameLayout,
+  GEM_COLORS, POTION_PIECE_ASSETS, MATCH3_ASSET_KEYS,
+  PANEL, PANEL_2, FIELD, TEXT, MUTED, MINT, AMBER, CORAL, SKY, viewWidth, viewHeight, shellElement, reserveFromShellChrome, reserveBottomFromShellChrome, publishCanvasLayout, publishCanvasAssetLayout, applyHudAssetRegion, currentUiTheme, clear, destroyLater, label, rect, sprite, gameAsset, loadGraphicsManifest, graphicsGameAsset, tiledSprite, strokedRect, colorNumber, makeInteractive, fit, fitWithTopReserve, fitGrid, cellFromPoint, centeredPieceOrigin, isAdjacentMatch3Cell, match3TargetFromGesture, makeSparkles, cellCenter, makeTween, makeRipple, makeRafScheduler, setupStage,
+  spriteFit, coverSprite, bloxBoardFrameLayout,
   bloxAnchorCellFromDrag, bloxDragVisualPoint, bloxGhostOrigin, bloxPieceBounds, createBloxDragState, tickParticles,
 };

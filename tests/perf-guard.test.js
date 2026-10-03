@@ -56,46 +56,19 @@ describe("perf:guard contract", () => {
     }
 
     for (const required of [
-      "bubbo.background.underwater",
-      "bubbo.background.tile",
-      "bubbo.balls.sheet",
-      "bubbo.bottomTray",
-      "bubbo.cannon.main",
-      "match3.piece.dragon",
-      "match3.piece.frog",
-      "match3.piece.newt",
-      "match3.piece.snake",
-      "match3.piece.spider",
-      "match3.piece.yeti",
-      "match3.shelf.block",
       "match3.special.blast",
       "match3.special.column",
       "match3.special.colour",
       "match3.special.row",
-      "match3.background.table",
-      "match3.board.frame",
-      "match3.board.cell",
-      "match3.board.cellSelected",
-      "match3.ui.hudBar",
-      "match3.ui.menuPanel",
       "match3.fx.clearBurst",
       "match3.drop.gold",
       "match3.drop.seeds",
       "match3.drop.energy",
-      "blox.block_tile_blue",
-      "blox.piece_i5",
-      "blox.fx.row_wipe",
-      "farm.background-field",
-      "farm.crops.strawberry_ready",
-      "farm.fx.harvest_pop",
     ]) {
       assert.ok(ids.has(required), `missing pipeline entry: ${required}`);
     }
 
-    assert.ok((bundles.get("pixi.bubbo")?.size || 0) >= 4, "Bubbo bundle should include the runtime keys used by the Pixi scene");
-    assert.ok((bundles.get("pixi.match3")?.size || 0) >= 20, "Match-3 bundle should include the runtime keys used by the Pixi scene");
-    assert.ok((bundles.get("pixi.blox")?.size || 0) >= 50, "Blox bundle should include generated board, piece, tray, HUD, and FX assets");
-    assert.ok((bundles.get("pixi.farm")?.size || 0) >= 48, "Farm bundle should include the runtime keys used by the Pixi scene");
+    assert.equal(bundles.get("pixi.match3")?.size, 8, "Match3 retains all semantic overlays");
     assert.equal(ids.size, entries.length, "asset pipeline entry keys must be unique");
   });
 

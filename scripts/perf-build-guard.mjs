@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
+import { isRetiredAssetPath } from './asset-retirement-policy.mjs';
 
 const REPORT_PATH = path.resolve("artifacts", "perf", "perf-build-report.json");
 const DEFAULT_DIST_DIR = path.resolve("dist");
@@ -18,6 +19,11 @@ export const DEFAULT_BUILD_BUDGETS = {
   runtimeManifestGzipBytes: 5_000,
   runtimeAssetsTotalRawBytes: 12_000_000,
   runtimeAssetMaxRawBytes: 2_500_000,
+  // Current direct-copy packs: games 172.5 MB; assets 70.6 MB, including
+  // 70.56 MB of preserved future canonical Yard media. ~5% growth allowance.
+  publicGamesTotalRawBytes: 181_000_000,
+  publicAssetsTotalRawBytes: 75_000_000,
+  publicMediaTotalRawBytes: 263_000_000,
 };
 
 const PIXI_CHUNK_RE = /(LazyPixiSceneHost|pixi|WebGLRenderer|WebGPURenderer|CanvasRenderer|BitmapFont|BufferResource|RenderTargetSystem|browserAll|webworkerAll|Filter|animation)/i;
@@ -111,6 +117,10 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
   const byPath = new Map();
   for (const file of assetFiles) byPath.set(file, await fileMetric(distDir, file));
   const runtimeAssetFiles = await Promise.all(runtimeAssetPaths.map((file) => fileMetric(distDir, file)));
+  const publicGameFiles = await Promise.all(allFiles.filter(file => file.startsWith('games/')).map(file => fileMetric(distDir, file)));
+  // Vite merges public/assets and generated chunks into assets/. JS/CSS are
+  // covered by their existing budgets; media/fonts/JSON are counted here.
+  const publicAssetFiles = assetFiles.filter(file => !/\.(?:js|css|map)$/.test(file)).map(file => byPath.get(file));
 
   const initialScriptRefs = [
     ...htmlAssetRefs(html, "script", "src"),
@@ -135,6 +145,9 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     gameChunks: summarize(gameChunks),
     runtimeAssetManifest: summarize(runtimeManifest ? [runtimeManifest] : []),
     runtimeAssets: summarize(runtimePayloads),
+    publicGames: summarize(publicGameFiles),
+    publicAssets: summarize(publicAssetFiles),
+    publicMedia: summarize([...publicGameFiles, ...publicAssetFiles, ...runtimePayloads]),
   };
 
   const failures = [
@@ -164,7 +177,28 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
       : null,
     budgetFailure("runtime-assets.total.raw", metrics.runtimeAssets.rawBytes, effectiveBudgets.runtimeAssetsTotalRawBytes),
     budgetFailure("runtime-assets.max-file.raw", metrics.runtimeAssets.maxRawBytes, effectiveBudgets.runtimeAssetMaxRawBytes),
+    budgetFailure('public-games.total.raw', metrics.publicGames.rawBytes, effectiveBudgets.publicGamesTotalRawBytes),
+    budgetFailure('public-assets.total.raw', metrics.publicAssets.rawBytes, effectiveBudgets.publicAssetsTotalRawBytes),
+    budgetFailure('public-media.total.raw', metrics.publicMedia.rawBytes, effectiveBudgets.publicMediaTotalRawBytes),
   ].filter(Boolean);
+
+  const retiredPaths = allFiles.filter(isRetiredAssetPath);
+  if (retiredPaths.length) failures.push({
+    id: 'public-assets.retired-paths', actual: retiredPaths, budget: [],
+    message: `Retired assets must not return to production: ${retiredPaths.join(', ')}`,
+  });
+
+  const retiredReferences = [];
+  for (const file of assetFiles.filter(file => /\.(?:js|css)$/.test(file))) {
+    const source = await fs.readFile(path.join(distDir, file), 'utf8');
+    for (const [url] of source.matchAll(/\/(?:games|assets-runtime)\/[^\s"'`(){};,]+/g)) {
+      if (isRetiredAssetPath(url)) retiredReferences.push({ file, url });
+    }
+  }
+  if (retiredReferences.length) failures.push({
+    id: 'public-assets.retired-references', actual: retiredReferences, budget: [],
+    message: 'Built JS/CSS must not reference retired assets',
+  });
 
   const unhashedRuntimeAssets = runtimePayloads
     .map((file) => file.path)

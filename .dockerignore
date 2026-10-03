@@ -46,3 +46,7 @@ playwright.yard-pebble.config.js
 playwright.pip-canonical.config.js
 scripts/yard-pebble-ci-server.mjs
 scripts/yard-pip-canonical-ci-server.mjs
+
+# The runtime pipeline consumes public/; authored source art stays in Git.
+assets-source/*
+!assets-source/.asset-build-cache.json

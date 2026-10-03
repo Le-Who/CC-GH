@@ -23,38 +23,38 @@ describe("runtime asset URL resolution", () => {
   });
 
   it("keeps build id cache busting on legacy /games assets only", () => {
-    assert.equal(assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png"), "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a");
-    assert.equal(assetUrl("/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp"), "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp");
+    assert.equal(assetUrl("/games/puzzling-potions/images/special-row.png"), "/games/puzzling-potions/images/special-row.png?v=build-a");
+    assert.equal(assetUrl("/assets-runtime/puzzling-potions/row.1234abcd.webp"), "/assets-runtime/puzzling-potions/row.1234abcd.webp");
   });
 
   it("uses generated content-hashed assets before legacy fallbacks", () => {
     const runtimeManifest = {
       assets: {
-        "bubbo.balls.sheet": {
+        "match3.special.row": {
           type: "image",
-          src: "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
-          fallback: "/assets-runtime/bubbo/assets_bubbo_balls.5678abcd.png",
+          src: "/assets-runtime/puzzling-potions/row.1234abcd.webp",
+          fallback: "/assets-runtime/puzzling-potions/row.5678abcd.png",
         },
       },
     };
 
     assert.equal(
-      runtimeAssetSrc(runtimeManifest, "bubbo.balls.sheet"),
-      "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
+      runtimeAssetSrc(runtimeManifest, "match3.special.row"),
+      "/assets-runtime/puzzling-potions/row.1234abcd.webp",
     );
     assert.equal(
-      resolveAssetUrl("bubbo.balls.sheet", {
+      resolveAssetUrl("match3.special.row", {
         runtimeManifest,
-        legacyPath: "/games/bubbo-bubbo/assets_bubbo_balls.png",
+        legacyPath: "/games/puzzling-potions/images/special-row.png",
       }),
-      "/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
+      "/assets-runtime/puzzling-potions/row.1234abcd.webp",
     );
     assert.equal(
-      resolveAssetUrl("bubbo.asset.missing", {
+      resolveAssetUrl("match3.asset.missing", {
         runtimeManifest,
-        legacyPath: "/games/bubbo-bubbo/assets_bubbo_balls.png",
+        legacyPath: "/games/puzzling-potions/images/special-row.png",
       }),
-      "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a",
+      "/games/puzzling-potions/images/special-row.png?v=build-a",
     );
     assert.equal(
       resolveAssetUrl("gachaMerge.items.thread", {
@@ -65,73 +65,22 @@ describe("runtime asset URL resolution", () => {
     );
   });
 
-  it("keeps final-state Blox and Farm asset keys on generated runtime paths with legacy fallbacks", () => {
-    const runtimeManifest = {
-      assets: {
-        "blox.cell_empty": {
-          type: "image",
-          src: "/assets-runtime/blox/cell_empty.1234abcd.webp",
-          fallback: "/assets-runtime/blox/cell_empty.5678abcd.png",
-        },
-        "farm.crops.strawberry_ready": {
-          type: "image",
-          src: "/assets-runtime/farm/crops/strawberry_ready.1234abcd.webp",
-          fallback: "/assets-runtime/farm/crops/strawberry_ready.5678abcd.png",
-        },
-      },
-    };
-
-    assert.equal(
-      resolveAssetUrl("blox.cell_empty", { runtimeManifest }),
-      "/assets-runtime/blox/cell_empty.1234abcd.webp",
-    );
-    assert.equal(
-      resolveAssetUrl("farm.crops.strawberry_ready", { runtimeManifest }),
-      "/assets-runtime/farm/crops/strawberry_ready.1234abcd.webp",
-    );
-    assert.equal(
-      resolveAssetUrl("blox.fx.row_wipe", { runtimeManifest }),
-      "/games/blox/fx/row_wipe.png?v=build-a",
-    );
-    assert.equal(
-      resolveAssetUrl("farm.plot-empty", { runtimeManifest }),
-      "/games/farm/plot-empty.png?v=build-a",
-    );
-  });
-
   it("resolves compact generated runtime manifest entries", () => {
-    const runtimeManifest = {
-      dirs: ["blox", "farm/crops"],
-      assets: {
-        "blox.cell_empty": [0, "1234abcd"],
-        "farm.crops.strawberry_ready": [1, "1234abcd"],
-      },
-    };
-
-    assert.equal(
-      runtimeAssetSrc(runtimeManifest, "blox.cell_empty"),
-      "/assets-runtime/blox/cell_empty.1234abcd.webp",
-    );
-    assert.equal(
-      resolveAssetUrl("farm.crops.strawberry_ready", { runtimeManifest }),
-      "/assets-runtime/farm/crops/strawberry_ready.1234abcd.webp",
-    );
-    assert.equal(
-      resolveAssetUrl("farm.plot-empty", { runtimeManifest }),
-      "/games/farm/plot-empty.png?v=build-a",
-    );
+    const manifest = { dirs: ["puzzling-potions"], assets: { "match3.special.row": [0, "1234abcd"] } };
+    assert.equal(runtimeAssetSrc(manifest, "match3.special.row"), "/assets-runtime/puzzling-potions/row.1234abcd.webp");
+    assert.equal(resolveAssetUrl("match3.drop.gold", { runtimeManifest: manifest }), "/games/puzzling-potions/images/drop-gold.png?v=build-a");
   });
 
   it("applies the optional asset base URL to generated runtime assets", () => {
     globalThis.__ASSET_BASE_URL__ = "https://assets.example.test";
 
     assert.equal(
-      assetUrl("/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp"),
-      "https://assets.example.test/assets-runtime/bubbo/assets_bubbo_balls.1234abcd.webp",
+      assetUrl("/assets-runtime/puzzling-potions/row.1234abcd.webp"),
+      "https://assets.example.test/assets-runtime/puzzling-potions/row.1234abcd.webp",
     );
     assert.equal(
-      assetUrl("/games/bubbo-bubbo/assets_bubbo_balls.png"),
-      "/games/bubbo-bubbo/assets_bubbo_balls.png?v=build-a",
+      assetUrl("/games/puzzling-potions/images/special-row.png"),
+      "/games/puzzling-potions/images/special-row.png?v=build-a",
     );
   });
 });

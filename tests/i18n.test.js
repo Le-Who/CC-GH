@@ -13,7 +13,6 @@ const TRANSLATION_SOURCES = [
   { name: "match3 translations", path: ["src", "games", "match3", "i18n.js"] },
   { name: "bubbo translations", path: ["src", "games", "bubbo", "i18n.js"] },
   { name: "trivia translations", path: ["src", "games", "trivia", "i18n.js"] },
-  { name: "farm translations", path: ["src", "games", "farm", "i18n.js"] },
   { name: "garden translations", path: ["src", "games", "garden-shelf", "lib", "i18n.tsx"] },
   { name: "merge translations", path: ["src", "games", "merge", "i18n.js"] },
   { name: "companion yard translations", path: ["src", "games", "companion-yard", "i18n.js"] },

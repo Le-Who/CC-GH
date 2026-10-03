@@ -27,10 +27,6 @@ const requiredInternalMenuPanels = {
     publicDir: "/games/companion-yard/menu-panels",
     screens: ["food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"],
   },
-  gardenShelf: {
-    publicDir: "/games/garden-shelf/menu-panels",
-    screens: ["plant-detail", "seed-shop-inventory", "quests", "settings", "reward", "offline-reward"],
-  },
 };
 
 function resolvePublicAsset(assetPath) {
@@ -203,54 +199,6 @@ function assertFinalSelectorKeepsContentChromeFree(css, selector, filePath, disa
   );
 }
 
-test("screen surface asset map covers every game screen family", async () => {
-  const modulePath = pathToFileURL(path.join(root, "src", "app", "screenSurfaceAssets.js")).href;
-  const { SCREEN_SURFACE_ASSETS } = await import(modulePath);
-
-  for (const [gameId, screenIds] of Object.entries(requiredScreens)) {
-    assert.ok(SCREEN_SURFACE_ASSETS[gameId], `${gameId} is missing from SCREEN_SURFACE_ASSETS`);
-
-    for (const screenId of screenIds) {
-      const screen = SCREEN_SURFACE_ASSETS[gameId][screenId];
-      assert.ok(screen, `${gameId}.${screenId} is missing`);
-      assert.equal(typeof screen.surface, "string", `${gameId}.${screenId}.surface must be a public asset`);
-    }
-  }
-});
-
-test("screen surface asset map only references committed public assets", async () => {
-  const modulePath = pathToFileURL(path.join(root, "src", "app", "screenSurfaceAssets.js")).href;
-  const { SCREEN_SURFACE_ASSETS } = await import(modulePath);
-  const seen = new Set();
-
-  for (const gameScreens of Object.values(SCREEN_SURFACE_ASSETS)) {
-    for (const screen of Object.values(gameScreens)) {
-      for (const assetPath of Object.values(screen).filter((value) => typeof value === "string")) {
-        seen.add(assetPath);
-      }
-    }
-  }
-
-  for (const assetPath of [...seen].sort()) {
-    assert.ok(existsSync(resolvePublicAsset(assetPath)), `${assetPath} does not exist under public/`);
-  }
-});
-
-test("screen containers use generated textless UI surfaces", async () => {
-  const modulePath = pathToFileURL(path.join(root, "src", "app", "screenSurfaceAssets.js")).href;
-  const { SCREEN_SURFACE_ASSETS } = await import(modulePath);
-
-  for (const [gameId, gameScreens] of Object.entries(SCREEN_SURFACE_ASSETS)) {
-    for (const [screenId, screen] of Object.entries(gameScreens)) {
-      assert.match(
-        screen.surface,
-        /^\/games\/ui-surfaces\//,
-        `${gameId}.${screenId}.surface must use the generated screen-surface asset pack`,
-      );
-    }
-  }
-});
-
 test("Yard and Garden internal menus use one generated panel asset per screen", async () => {
   const manifestPath = path.join(root, "assets-source", "imagegen", "menu-panels", "menu-panel-manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -276,10 +224,8 @@ test("Yard and Garden internal menus use one generated panel asset per screen", 
   }
 });
 
-test("Yard and Garden menu CSS binds screen-specific generated panels and keeps button labels visible", async () => {
+test("Yard menu CSS binds screen-specific generated panels", async () => {
   const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
-  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
-
   for (const screenId of requiredInternalMenuPanels.cozyYard.screens) {
     assert.match(
       yardCss,
@@ -288,29 +234,6 @@ test("Yard and Garden menu CSS binds screen-specific generated panels and keeps 
     );
   }
 
-  for (const screenId of requiredInternalMenuPanels.gardenShelf.screens) {
-    assert.match(
-      gardenCss,
-      new RegExp(`data-garden-panel="${escapeRegExp(screenId)}"[\\s\\S]*\\/games\\/garden-shelf\\/menu-panels\\/${escapeRegExp(screenId)}\\.png`),
-      `Garden ${screenId} should bind to its own generated menu panel`,
-    );
-  }
-
-  const gardenDetailActionBlocks = findCssBlocksForSelector(
-    gardenCss,
-    '.garden-bottom-sheet[data-asset-slot-surface="garden-plant-detail"] .garden-detail-actions .garden-action-button',
-  );
-  assert.ok(gardenDetailActionBlocks.length > 0, "Garden detail actions must have asset-surface slot safeguards");
-  assert.ok(
-    gardenDetailActionBlocks.every((block) => !/font-size\s*:\s*0\s*!important/.test(block)),
-    "Garden detail action labels must remain visible and readable",
-  );
-  const evolveLabelBlocks = findCssBlocksForSelector(gardenCss, ".garden-detail-evolve .garden-evolve-btn-label");
-  assert.ok(evolveLabelBlocks.length > 0, "Garden evolve label CSS block must be present");
-  assert.ok(
-    evolveLabelBlocks.every((block) => !/display\s*:\s*none\s*!important/.test(block)),
-    "Garden evolve label must remain visible and readable",
-  );
 });
 
 test("Garden living panels separate header chrome from scrollable runtime content", async () => {
@@ -541,16 +464,6 @@ test("screen mockup reference manifest remains complete", async () => {
 
 test("mini-game menu controls use visible generated button chrome", async () => {
   const visibleButtonSelectorsByFile = {
-    "src/games/trivia/trivia.css": {
-      art: "/games/hud-redesign/trivia/primary-button.png",
-      selectors: [
-        ".trivia-shell .trivia-pause-overlay .panel-button",
-        ".trivia-shell .trivia-pause-overlay .panel-button.subtle",
-        ".trivia-shell .trivia-pause-overlay .panel-button.danger",
-        ".trivia-card .panel-button",
-        ".trivia-shell[data-trivia-view=\"menu\"] .trivia-card .panel-button",
-      ],
-    },
 
 
 
@@ -610,21 +523,6 @@ test("mini-game menu shells do not duplicate dialog panel art", async () => {
   );
 });
 
-test("Trivia live question content does not stack a second panel surface", async () => {
-  const triviaCss = await readFile(path.join(root, "src", "games", "trivia", "trivia.css"), "utf8");
-  const livePanelBlocks = findCssBlocksForSelector(
-    triviaCss,
-    '.trivia-shell[data-trivia-playing="true"] .question-panel',
-  ).join("\n");
-  const liveSurfaceBlocks = findCssBlocksForSelector(
-    triviaCss,
-    '.trivia-shell[data-trivia-playing="true"] .trivia-question-surface-asset',
-  ).join("\n");
-  assert.match(livePanelBlocks, /background:\s*transparent/);
-  assert.match(livePanelBlocks, /border:\s*0/);
-  assert.match(liveSurfaceBlocks, /display:\s*none/);
-});
-
 test("arcade mode choices expose labeled cards, selection state and mode callbacks", async () => {
   for (const gameId of ["match3", "bubbo"]) {
     const { prefix } = arcadeArt[gameId];
@@ -661,17 +559,6 @@ test("visible mini-game menu chrome is owned by generated assets", async () => {
         ".merge-pause-overlay .panel-header",
         ".merge-pause-overlay .pause-menu-frame",
         ".merge-pause-overlay .pause-status-line span",
-      ],
-    },
-    "src/games/trivia/trivia.css": {
-      dialog: /--hud-redesign-dialog-art|--trivia-dialog-art|\/games\/(?:ui-surfaces|hud-redesign)\/trivia(?:-dialog-panel|\/dialog-panel)\.png/,
-      metric: /--hud-redesign-metric-art|\/games\/hud-redesign\/trivia\/metric-chip\.png/,
-      dialogSelectors: [".trivia-shell .trivia-pause-overlay .game-menu-scaler"],
-      contentSelectors: [
-        ".trivia-shell .trivia-pause-overlay .panel-header",
-        ".trivia-shell .trivia-pause-overlay .pause-menu-frame",
-        ".trivia-shell .trivia-pause-overlay .compact-list span",
-        ".trivia-shell .trivia-pause-overlay .pause-status-line span",
       ],
     },
   };
@@ -767,7 +654,7 @@ test("mini-game direct controls avoid native browser title tooltips", async () =
     "src/games/merge/MergeGame.jsx",
     "src/games/bubbo/BubboGame.jsx",
     "src/games/trivia/TriviaGame.jsx",
-    "src/games/garden-shelf/components/Garden.tsx",
+    "src/games/garden-shelf/GardenPresentation.tsx",
     "src/games/companion-yard/CompanionYardGame.jsx",
     "src/games/settlement/SettlementGame.jsx",
   ];
@@ -787,51 +674,7 @@ test("mini-game direct controls avoid native browser title tooltips", async () =
   }
 });
 
-test("Garden Shelf shell chrome uses garden assets without obscuring quest dialog art", async () => {
-  const app = await readFile(path.join(root, "src", "App.jsx"), "utf8");
-  const shell = await readFile(path.join(root, "src", "app", "shell.jsx"), "utf8");
-  const indexCss = await readFile(path.join(root, "src", "index.css"), "utf8");
-  const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-shelf.css"), "utf8");
-
-  assert.match(app, /image:\s*semanticHudIconPath\("garden",\s*"gold"\)/);
-  assert.match(app, /image:\s*semanticHudIconPath\("garden",\s*"levelXp"\)/);
-  assert.match(app, /image:\s*semanticHudIconPath\("garden",\s*"quest"\)/);
-  assert.match(shell, /gold:\s*"stat-gold"/);
-  assert.match(shell, /quest:\s*"stat-quest"/);
-  assert.match(shell, /className="stat-icon-image"/);
-  assert.match(
-    indexCss,
-    /\.telegram-app\[data-active-tab="garden"\]\s+\.stat-chip\s*\{[^}]*\/games\/garden-shelf\/quest_panel\.png/s,
-  );
-  assert.doesNotMatch(
-    indexCss,
-    /\.telegram-app\[data-active-tab="garden"\]\s+\.stat-chip\s*\{[^}]*hub-panel\.png/s,
-    "Garden stats must not inherit the Game Hub panel art",
-  );
-  assert.match(gardenCss, /\.garden-quest-dialog \.garden-icon-button[\s\S]*\/games\/garden-shelf\/icon_close\.png/s);
-  assert.match(
-    gardenCss,
-    /\.garden-quest-card\s*\{[\s\S]*rgba\(250,\s*228,\s*177,\s*0\.84\)[\s\S]*color:\s*#3b2418\s*!important/s,
-    "Garden quest rows should use a readable parchment row surface over the generated panel art",
-  );
-  assert.doesNotMatch(gardenCss, /\.garden-quest-card\s*\{[^}]*url\(/s, "Garden quest rows must not add nested image art");
-  assert.match(gardenCss, /\.garden-quest-card \.garden-quest-claimable\s*\{/);
-});
-
 test("mini-game menus use neutral dialog art instead of blue slot panels", async () => {
-  const cssByFile = {
-    "src/games/trivia/trivia.css": ["--trivia-dialog-art", "trivia-dialog-panel.png"],
-  };
-
-  for (const [filePath, [variableName, expectedAsset]] of Object.entries(cssByFile)) {
-    const css = await readFile(path.join(root, filePath), "utf8");
-    assert.match(
-      css,
-      new RegExp(`${escapeRegExp(variableName)}:\\s*url\\("\\/games\\/ui-surfaces\\/${escapeRegExp(expectedAsset)}"\\)`),
-      `${filePath} should use the ${expectedAsset} dialog frame for menu overlays`,
-    );
-  }
-
   for (const gameId of arcadeGames) {
     const { assets, skin, dialog } = arcadeArt[gameId];
     const frame = skin(dialog).borderImageSource;

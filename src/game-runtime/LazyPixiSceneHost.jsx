@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useAppI18n } from "../app/i18n.jsx";
 
 const SCENE_RUNTIME_LOADERS = {
-  farm: () => Promise.all([
-    import("./PixiGameHost.jsx"),
-    import("./scenes/farmScene.js"),
-  ]).then(([host, scene]) => ({ PixiGameHost: host.default, buildScene: scene.buildFarmScene })),
   blox: () => Promise.all([
     import("./PixiGameHost.jsx"),
     import("./scenes/bloxScene.js"),
@@ -14,10 +10,6 @@ const SCENE_RUNTIME_LOADERS = {
     import("./PixiGameHost.jsx"),
     import("./scenes/match3Scene.js"),
   ]).then(([host, scene]) => ({ PixiGameHost: host.default, buildScene: scene.buildMatch3Scene })),
-  bubbo: () => Promise.all([
-    import("./PixiGameHost.jsx"),
-    import("./scenes/bubboScene.js"),
-  ]).then(([host, scene]) => ({ PixiGameHost: host.default, buildScene: scene.buildBubboScene })),
   merge: () => Promise.all([
     import("./PixiGameHost.jsx"),
     import("./scenes/mergeScene.js"),

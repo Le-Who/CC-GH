@@ -225,50 +225,6 @@ describe("asset runtime pipeline", () => {
     }
   });
 
-  it("keeps Garden Shelf button art free of semi-transparent chromakey fringe", async () => {
-    for (const fileName of ["button_primary.png", "button_secondary.png", "button_danger.png"]) {
-      const imagePath = path.resolve("public/games/garden-shelf", fileName);
-      const samples = await chromakeySpillSamples(imagePath);
-      const components = await alphaComponents(imagePath);
-      assert.deepEqual(
-        samples,
-        [],
-        `${fileName} should not retain semi-transparent magenta/chromakey edge pixels`,
-      );
-      assert.equal(
-        components.filter((component) => component.count > 32).length,
-        1,
-        `${fileName} should export one button object without neighboring sheet fragments`,
-      );
-    }
-  });
-
-  it("keeps Gem Crush tokens centered and menu/board panels expanded inside their canvases", async () => {
-    for (const token of ["dragon", "frog", "newt", "snake", "spider", "yeti"]) {
-      const piecePath = path.resolve(`public/games/puzzling-potions/images/piece-${token}.png`);
-      const box = await alphaBbox(piecePath);
-      const components = await alphaComponents(piecePath);
-      assert.ok(box.x >= 8, `${token} should have left transparent padding`);
-      assert.ok(box.right >= 8, `${token} should have right transparent padding`);
-      assert.ok(box.y >= 8, `${token} should have top transparent padding`);
-      assert.ok(box.bottom >= 8, `${token} should have bottom transparent padding`);
-      assert.ok(Math.abs(box.x - box.right) <= 8, `${token} alpha should be horizontally centered`);
-      assert.equal(components.filter(({ count }) => count > 32).length, 1, `${token} should not include a neighboring token fragment`);
-    }
-
-    const board = await alphaBbox(path.resolve("public/games/puzzling-potions/images/board-frame.png"));
-    assert.ok(board.x <= 24, "board frame should be wider than the old cropped source");
-    assert.ok(board.y <= 24, "board frame should be taller than the old cropped source");
-    assert.ok(board.right <= 24, "board frame should fill the right side of the canvas");
-    assert.ok(board.bottom <= 24, "board frame should fill the bottom of the canvas");
-
-    const menu = await alphaBbox(path.resolve("public/games/puzzling-potions/images/menu-panel.png"));
-    assert.ok(menu.x <= 32, "pause/menu panel should be wider than the old cropped source");
-    assert.ok(menu.y <= 32, "pause/menu panel should be taller than the old cropped source");
-    assert.ok(menu.right <= 32, "pause/menu panel should fill the right side of the canvas");
-    assert.ok(menu.bottom <= 32, "pause/menu panel should fill the bottom of the canvas");
-  });
-
   it("generates deterministic content-hashed raster assets and bundles", async () => {
     const root = await makeTempRoot();
     const entries = [
@@ -399,14 +355,14 @@ describe("asset runtime pipeline", () => {
     const entriesByKey = new Map((await loadAssetPipelineEntries(root)).map((entry) => [entry.key, entry]));
     const formatsByKey = new Map([...entriesByKey].map(([key, entry]) => [key, entry.formats]));
 
-    assert.deepEqual(formatsByKey.get("bubbo.balls.sheet"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("gardenShelf.shelf"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("gardenShelf.fx.coin-glint"), ["webp"]);
+    assert.equal(formatsByKey.has("bubbo.balls.sheet"), false);
+    assert.equal(formatsByKey.has("gardenShelf.shelf"), false);
+    assert.equal(formatsByKey.has("gardenShelf.fx.coin-glint"), false);
     assert.equal(formatsByKey.has("gardenShelf.fx.gold-sparkle"), false);
-    assert.deepEqual(formatsByKey.get("blox.block_tile_blue"), ["webp"]);
-    assert.equal(entriesByKey.get("blox.block_tile_blue")?.bundle, "pixi.blox");
-    assert.deepEqual(formatsByKey.get("farm.crops.strawberry_ready"), ["webp"]);
-    assert.equal(entriesByKey.get("farm.crops.strawberry_ready")?.bundle, "pixi.farm");
+    assert.equal(formatsByKey.has("blox.block_tile_blue"), false);
+    assert.equal(entriesByKey.has("blox.block_tile_blue"), false);
+    assert.equal(formatsByKey.has("farm.crops.strawberry_ready"), false);
+    assert.equal(entriesByKey.has("farm.crops.strawberry_ready"), false);
     assert.equal(formatsByKey.has("trivia.panel-menu"), false);
     assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);
     assert.deepEqual(formatsByKey.get("companionYard.expressions.happy"), ["webp"]);
@@ -468,7 +424,7 @@ describe("asset runtime pipeline", () => {
     assert.equal(entriesByKey.get("gachaMerge.items.seed")?.bundle, "pixi.merge");
   });
 
-  it("maps standalone Match-3 board, HUD, drop, and FX art into the Match-3 Pixi bundle", async () => {
+  it("collects active Match-3 semantic overlays and ignores retired board/HUD art", async () => {
     const root = await makeTempRoot();
     const match3Files = [
       "background-table.png",
@@ -489,12 +445,12 @@ describe("asset runtime pipeline", () => {
 
     const entriesByKey = new Map((await loadAssetPipelineEntries(root)).map((assetEntry) => [assetEntry.key, assetEntry]));
 
-    assert.equal(entriesByKey.get("match3.background.table")?.bundle, "pixi.match3");
-    assert.equal(entriesByKey.get("match3.board.frame")?.bundle, "pixi.match3");
-    assert.equal(entriesByKey.get("match3.board.cell")?.bundle, "pixi.match3");
-    assert.equal(entriesByKey.get("match3.board.cellSelected")?.bundle, "pixi.match3");
-    assert.equal(entriesByKey.get("match3.ui.hudBar")?.bundle, "pixi.match3");
-    assert.equal(entriesByKey.get("match3.ui.menuPanel")?.bundle, "pixi.match3");
+    assert.equal(entriesByKey.has("match3.background.table"), false);
+    assert.equal(entriesByKey.has("match3.board.frame"), false);
+    assert.equal(entriesByKey.has("match3.board.cell"), false);
+    assert.equal(entriesByKey.has("match3.board.cellSelected"), false);
+    assert.equal(entriesByKey.has("match3.ui.hudBar"), false);
+    assert.equal(entriesByKey.has("match3.ui.menuPanel"), false);
     assert.equal(entriesByKey.get("match3.fx.clearBurst")?.bundle, "pixi.match3");
     assert.equal(entriesByKey.get("match3.drop.gold")?.bundle, "pixi.match3");
     assert.equal(entriesByKey.get("match3.drop.seeds")?.bundle, "pixi.match3");

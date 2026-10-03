@@ -29,7 +29,6 @@
     "games": {
       "bubboBubbo": {
         "source": "assets-source/games/bubbo-bubbo/raw-assets/ (not served)",
-        "images": "/games/bubbo-bubbo/images/",
         "license": "/games/bubbo-bubbo/LICENSE"
       },
       "puzzlingPotions": {
@@ -38,13 +37,7 @@
         "license": "/games/puzzling-potions/LICENSE"
       },
       "gardenShelf": {
-        "source": "public/games/garden-shelf/ (legacy runtime fallback)",
-        "images": "",
-        "sheet": "",
-        "shelf": "",
-        "sign": "",
-        "bottomPlank": "",
-        "settingsCog": ""
+        "sheet": "/games/garden-shelf/assets_transparent.png"
       },
       "companionYard": {
         "source": "assets-source/games/companion-yard/source-svg/ (editable SVG source, not served)",
