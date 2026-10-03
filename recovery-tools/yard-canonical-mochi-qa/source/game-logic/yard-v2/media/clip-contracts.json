@@ -1,0 +1,8145 @@
+{
+  "mika-mouse-r1": {
+    "id": "mika-mouse-r1",
+    "goodieId": "yarn_mouse",
+    "activityIds": [
+      "chase"
+    ],
+    "propMode": "composited",
+    "durationMs": 6300,
+    "finalTransformAtMs": 3900,
+    "contactAtMs": 3350,
+    "samples": [
+      {
+        "atMs": 0,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 50,
+        "root": [
+          0.02666666666666667,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 100,
+        "root": [
+          0.05333333333333334,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 150,
+        "root": [
+          0.08,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 200,
+        "root": [
+          0.10666666666666667,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 250,
+        "root": [
+          0.13333333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 300,
+        "root": [
+          0.16,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 350,
+        "root": [
+          0.18666666666666665,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 400,
+        "root": [
+          0.21333333333333335,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 450,
+        "root": [
+          0.24,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 500,
+        "root": [
+          0.26666666666666666,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 550,
+        "root": [
+          0.29333333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 600,
+        "root": [
+          0.32,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 650,
+        "root": [
+          0.3466666666666667,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 700,
+        "root": [
+          0.3733333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 750,
+        "root": [
+          0.4,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 800,
+        "root": [
+          0.4266666666666667,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 850,
+        "root": [
+          0.4533333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 900,
+        "root": [
+          0.48,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 950,
+        "root": [
+          0.5066666666666666,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1000,
+        "root": [
+          0.5333333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1050,
+        "root": [
+          0.56,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1100,
+        "root": [
+          0.5866666666666667,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1150,
+        "root": [
+          0.6133333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1200,
+        "root": [
+          0.64,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1250,
+        "root": [
+          0.6666666666666666,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1300,
+        "root": [
+          0.6933333333333334,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1350,
+        "root": [
+          0.7200000000000001,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1400,
+        "root": [
+          0.7466666666666666,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1450,
+        "root": [
+          0.7733333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1500,
+        "root": [
+          0.8,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1550,
+        "root": [
+          0.8255555555555556,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1600,
+        "root": [
+          0.848888888888889,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1650,
+        "root": [
+          0.87,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1700,
+        "root": [
+          0.888888888888889,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1750,
+        "root": [
+          0.9055555555555556,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1800,
+        "root": [
+          0.92,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1850,
+        "root": [
+          0.9322222222222223,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1900,
+        "root": [
+          0.9422222222222223,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1950,
+        "root": [
+          0.9500000000000001,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2000,
+        "root": [
+          0.9555555555555556,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2050,
+        "root": [
+          0.9588888888888889,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2100,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2150,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2200,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2250,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2300,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2350,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2400,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2450,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2500,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2550,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2600,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2650,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2700,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2750,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2800,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2850,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2900,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2950,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3000,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3050,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3100,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3150,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3200,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3250,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3300,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3350,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.01,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3400,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.0113472917614925,
+          -0.265,
+          0.099
+        ],
+        "rotationZ": 0.0016841147018661696,
+        "compression": 0.9
+      },
+      {
+        "atMs": 3450,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.015097860719162,
+          -0.265,
+          0.10450000000000005
+        ],
+        "rotationZ": 0.006372325898953129,
+        "compression": 0.9500000000000004
+      },
+      {
+        "atMs": 3500,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.0208147473827944,
+          -0.265,
+          0.11
+        ],
+        "rotationZ": 0.013518434228493385,
+        "compression": 1
+      },
+      {
+        "atMs": 3550,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.0309541953516157,
+          -0.28132812499999993,
+          0.11
+        ],
+        "rotationZ": 0.023507197314519744,
+        "compression": 1
+      },
+      {
+        "atMs": 3600,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.046811134501593,
+          -0.32437500000000014,
+          0.11
+        ],
+        "rotationZ": 0.03624829312699136,
+        "compression": 1
+      },
+      {
+        "atMs": 3650,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.0662066347576236,
+          -0.3852343749999999,
+          0.11
+        ],
+        "rotationZ": 0.05048290282203,
+        "compression": 1
+      },
+      {
+        "atMs": 3700,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.086961766044606,
+          -0.45500000000000035,
+          0.11
+        ],
+        "rotationZ": 0.06495220755575791,
+        "compression": 1
+      },
+      {
+        "atMs": 3750,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1068975982874374,
+          -0.5247656250000001,
+          0.11
+        ],
+        "rotationZ": 0.07839738848429678,
+        "compression": 1
+      },
+      {
+        "atMs": 3800,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1238352014110147,
+          -0.585625,
+          0.11
+        ],
+        "rotationZ": 0.08955962676376875,
+        "compression": 1
+      },
+      {
+        "atMs": 3850,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1355956453402367,
+          -0.6286718750000001,
+          0.11
+        ],
+        "rotationZ": 0.09718010355029587,
+        "compression": 1
+      },
+      {
+        "atMs": 3900,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 3950,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4000,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4050,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4100,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4150,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4200,
+        "root": [
+          0.96,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4250,
+        "root": [
+          0.961111111111111,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4300,
+        "root": [
+          0.9644444444444443,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4350,
+        "root": [
+          0.9699999999999999,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4400,
+        "root": [
+          0.9777777777777777,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4450,
+        "root": [
+          0.9877777777777778,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4500,
+        "root": [
+          0.9999999999999999,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4550,
+        "root": [
+          1.0144444444444443,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4600,
+        "root": [
+          1.0311111111111109,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4650,
+        "root": [
+          1.05,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4700,
+        "root": [
+          1.0711111111111111,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4750,
+        "root": [
+          1.0944444444444443,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4800,
+        "root": [
+          1.12,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4850,
+        "root": [
+          1.1466666666666665,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4900,
+        "root": [
+          1.1733333333333336,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 4950,
+        "root": [
+          1.2000000000000002,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5000,
+        "root": [
+          1.2266666666666666,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5050,
+        "root": [
+          1.2533333333333332,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5100,
+        "root": [
+          1.28,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5150,
+        "root": [
+          1.3066666666666669,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5200,
+        "root": [
+          1.3333333333333335,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5250,
+        "root": [
+          1.3599999999999999,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5300,
+        "root": [
+          1.3866666666666665,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5350,
+        "root": [
+          1.413333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5400,
+        "root": [
+          1.44,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5450,
+        "root": [
+          1.4666666666666668,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5500,
+        "root": [
+          1.4933333333333332,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5550,
+        "root": [
+          1.52,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5600,
+        "root": [
+          1.5466666666666664,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5650,
+        "root": [
+          1.5733333333333335,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5700,
+        "root": [
+          1.6,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5750,
+        "root": [
+          1.6266666666666665,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5800,
+        "root": [
+          1.6533333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5850,
+        "root": [
+          1.6799999999999997,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5900,
+        "root": [
+          1.7066666666666668,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 5950,
+        "root": [
+          1.7333333333333334,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6000,
+        "root": [
+          1.76,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6050,
+        "root": [
+          1.7866666666666666,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6100,
+        "root": [
+          1.813333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6150,
+        "root": [
+          1.8400000000000003,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6200,
+        "root": [
+          1.8666666666666667,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6250,
+        "root": [
+          1.8933333333333333,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      },
+      {
+        "atMs": 6300,
+        "root": [
+          1.92,
+          0,
+          0
+        ],
+        "prop": [
+          2.1399999999999997,
+          -0.645,
+          0.11
+        ],
+        "rotationZ": 0.1,
+        "compression": 1
+      }
+    ],
+    "playbackReady": true,
+    "requiredPhases": [
+      "approach",
+      "align",
+      "tap-contact",
+      "recoil",
+      "walk-out",
+      "updated-skin-parity"
+    ],
+    "validatedPhases": [
+      "approach",
+      "align",
+      "tap-contact",
+      "recoil",
+      "walk-out",
+      "updated-skin-parity"
+    ],
+    "actorEnvelope": {
+      "space": "clip-world",
+      "min": [
+        -1.4379981756210327,
+        -0.6637498140335083
+      ],
+      "max": [
+        3.157441735267639,
+        0.5614477396011353
+      ],
+      "meshValidated": true,
+      "source": "existing-mouse-bounds.json; evaluated visible pet meshes including fibres,127 poses"
+    },
+    "entryGaitPhase": 0,
+    "strideWorld": 0.64,
+    "terminalGaitPhase": 0,
+    "technicalPreviewOnly": true,
+    "artUnderReview": true,
+    "browserQANotRun": true,
+    "media": {
+      "sourceSamplesSha256": "af75e65e3c61986d38923cbb0f6d71fee21498342b5faa8e30adf91e6956b568",
+      "renderContractSha256": "5508db639bf7e18b0f8d480626521cebc90159edba2789009e9f6bfee72397fd",
+      "atlasManifestSha256": "bd0d86ec2c54c78e0470e00c731ea359da61b83248ea76524de3c617f5d51253",
+      "alphaAuditSha256": "a1b8a878e1b0c184e2f335d915b0293a79f6666b511e25cf19f0fbcd4ae476c2",
+      "seamAuditSha256": "d27143a2a7401daf537aa6b7f49f7ad4671f60f24d3b269de513b5e8d8ee4bc7",
+      "frameCount": 128,
+      "fps": 20,
+      "labelsBaked": false,
+      "generalDepthSolved": false,
+      "requiresExclusiveInteractionRegion": true,
+      "playbackFrameCount": 126,
+      "canonicalEndpointFrames": [
+        126,
+        127
+      ]
+    },
+    "playbackFrameCount": 126,
+    "canonicalEndpointFrames": [
+      126,
+      127
+    ],
+    "terminalEndpointHandoff": {
+      "sourceAtMs": 6300,
+      "freeWalkFrameIndex": 0,
+      "freeWalkPhase": 0,
+      "root": [
+        1.92,
+        0,
+        0
+      ],
+      "removedHoldMs": 100,
+      "reason": "Exact duplicate terminal source poses; unique endpoint pose supplied by canonical free-walk frame0"
+    }
+  },
+  "mika-cushion-r1": {
+    "id": "mika-cushion-r1",
+    "goodieId": "sun_cushion",
+    "activityIds": [
+      "nap"
+    ],
+    "propMode": "composited",
+    "durationMs": 20200,
+    "finalTransformAtMs": 20200,
+    "contactAtMs": null,
+    "samples": [
+      {
+        "atMs": 0,
+        "root": [
+          -2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 50,
+        "root": [
+          -2.5995813559322034,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 100,
+        "root": [
+          -2.5968271186440677,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 150,
+        "root": [
+          -2.589886440677966,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 200,
+        "root": [
+          -2.5774372881355934,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 250,
+        "root": [
+          -2.5586864406779664,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 300,
+        "root": [
+          -2.533369491525424,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 350,
+        "root": [
+          -2.501750847457627,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 400,
+        "root": [
+          -2.4646237288135593,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 450,
+        "root": [
+          -2.4233101694915256,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 500,
+        "root": [
+          -2.3796610169491528,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 550,
+        "root": [
+          -2.335593220338983,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 600,
+        "root": [
+          -2.291525423728814,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 650,
+        "root": [
+          -2.247457627118644,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 700,
+        "root": [
+          -2.203389830508475,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 750,
+        "root": [
+          -2.159322033898305,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 800,
+        "root": [
+          -2.1152542372881356,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 850,
+        "root": [
+          -2.071186440677966,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 900,
+        "root": [
+          -2.0271186440677966,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 950,
+        "root": [
+          -1.9830508474576272,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1000,
+        "root": [
+          -1.9389830508474577,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1050,
+        "root": [
+          -1.8949152542372882,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1100,
+        "root": [
+          -1.8508474576271188,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1150,
+        "root": [
+          -1.8067796610169493,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1200,
+        "root": [
+          -1.7627118644067798,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1250,
+        "root": [
+          -1.7186440677966104,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1300,
+        "root": [
+          -1.6745762711864407,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1350,
+        "root": [
+          -1.6305084745762712,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1400,
+        "root": [
+          -1.5864406779661018,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1450,
+        "root": [
+          -1.5423728813559323,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1500,
+        "root": [
+          -1.4983050847457628,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1550,
+        "root": [
+          -1.4542372881355934,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1600,
+        "root": [
+          -1.4101694915254237,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1650,
+        "root": [
+          -1.3661016949152545,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1700,
+        "root": [
+          -1.322033898305085,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1750,
+        "root": [
+          -1.2779661016949153,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1800,
+        "root": [
+          -1.2338983050847459,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1850,
+        "root": [
+          -1.1898305084745764,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1900,
+        "root": [
+          -1.145762711864407,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 1950,
+        "root": [
+          -1.1016949152542375,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2000,
+        "root": [
+          -1.057627118644068,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2050,
+        "root": [
+          -1.0135593220338985,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2100,
+        "root": [
+          -0.9694915254237289,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2150,
+        "root": [
+          -0.9254237288135596,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2200,
+        "root": [
+          -0.8813559322033897,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2250,
+        "root": [
+          -0.8372881355932205,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2300,
+        "root": [
+          -0.7932203389830512,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2350,
+        "root": [
+          -0.7491525423728813,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2400,
+        "root": [
+          -0.7050847457627121,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2450,
+        "root": [
+          -0.6610169491525424,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2500,
+        "root": [
+          -0.6169491525423729,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2550,
+        "root": [
+          -0.5728813559322035,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2600,
+        "root": [
+          -0.528813559322034,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2650,
+        "root": [
+          -0.48474576271186454,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2700,
+        "root": [
+          -0.4406779661016951,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2750,
+        "root": [
+          -0.3966101694915256,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2800,
+        "root": [
+          -0.35254237288135615,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2850,
+        "root": [
+          -0.3084745762711867,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2900,
+        "root": [
+          -0.2644067796610172,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 2950,
+        "root": [
+          -0.22033898305084731,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3000,
+        "root": [
+          -0.17668983050847453,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3050,
+        "root": [
+          -0.1353762711864408,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3100,
+        "root": [
+          -0.09824915254237299,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3150,
+        "root": [
+          -0.06663050847457663,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3200,
+        "root": [
+          -0.04131355932203373,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3250,
+        "root": [
+          -0.022562711864406726,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3300,
+        "root": [
+          -0.01011355932203406,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3350,
+        "root": [
+          -0.003172881355932411,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3400,
+        "root": [
+          -0.00041864406779668073,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 3950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 4950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 5950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 6950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 7950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 8950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 9950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 10950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 11950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 12950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13350,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13400,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13450,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13500,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13550,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13600,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13650,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13700,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13750,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13800,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13850,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13900,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 13950,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14000,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14050,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14100,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14150,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14200,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14250,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14300,
+        "root": [
+          0,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14350,
+        "root": [
+          0.00041864406779661026,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14400,
+        "root": [
+          0.003172881355932204,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14450,
+        "root": [
+          0.010113559322033897,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14500,
+        "root": [
+          0.022562711864406785,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14550,
+        "root": [
+          0.0413135593220339,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14600,
+        "root": [
+          0.06663050847457627,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14650,
+        "root": [
+          0.09824915254237286,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14700,
+        "root": [
+          0.1353762711864407,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14750,
+        "root": [
+          0.1766898305084746,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14800,
+        "root": [
+          0.22033898305084745,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14850,
+        "root": [
+          0.264406779661017,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14900,
+        "root": [
+          0.3084745762711864,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 14950,
+        "root": [
+          0.3525423728813559,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15000,
+        "root": [
+          0.3966101694915254,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15050,
+        "root": [
+          0.4406779661016949,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15100,
+        "root": [
+          0.4847457627118644,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15150,
+        "root": [
+          0.5288135593220339,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15200,
+        "root": [
+          0.5728813559322034,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15250,
+        "root": [
+          0.6169491525423728,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15300,
+        "root": [
+          0.6610169491525424,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15350,
+        "root": [
+          0.7050847457627119,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15400,
+        "root": [
+          0.7491525423728814,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15450,
+        "root": [
+          0.7932203389830508,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15500,
+        "root": [
+          0.8372881355932202,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15550,
+        "root": [
+          0.8813559322033898,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15600,
+        "root": [
+          0.9254237288135594,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15650,
+        "root": [
+          0.9694915254237289,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15700,
+        "root": [
+          1.0135593220338983,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15750,
+        "root": [
+          1.0576271186440678,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15800,
+        "root": [
+          1.1016949152542372,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15850,
+        "root": [
+          1.1457627118644067,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15900,
+        "root": [
+          1.1898305084745764,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 15950,
+        "root": [
+          1.2338983050847456,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16000,
+        "root": [
+          1.277966101694915,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16050,
+        "root": [
+          1.3220338983050848,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16100,
+        "root": [
+          1.3661016949152542,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16150,
+        "root": [
+          1.4101694915254237,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16200,
+        "root": [
+          1.4542372881355932,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16250,
+        "root": [
+          1.4983050847457626,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16300,
+        "root": [
+          1.542372881355932,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16350,
+        "root": [
+          1.5864406779661016,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16400,
+        "root": [
+          1.6305084745762712,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16450,
+        "root": [
+          1.6745762711864405,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16500,
+        "root": [
+          1.7186440677966104,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16550,
+        "root": [
+          1.7627118644067796,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16600,
+        "root": [
+          1.8067796610169489,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16650,
+        "root": [
+          1.8508474576271188,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16700,
+        "root": [
+          1.894915254237288,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16750,
+        "root": [
+          1.9389830508474577,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16800,
+        "root": [
+          1.9830508474576272,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16850,
+        "root": [
+          2.0271186440677966,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16900,
+        "root": [
+          2.071186440677966,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 16950,
+        "root": [
+          2.1152542372881356,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17000,
+        "root": [
+          2.159322033898305,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17050,
+        "root": [
+          2.2033898305084745,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17100,
+        "root": [
+          2.247457627118644,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17150,
+        "root": [
+          2.2915254237288134,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17200,
+        "root": [
+          2.335593220338983,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17250,
+        "root": [
+          2.3796610169491528,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17300,
+        "root": [
+          2.4233101694915256,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17350,
+        "root": [
+          2.4646237288135593,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17400,
+        "root": [
+          2.501750847457627,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17450,
+        "root": [
+          2.5333694915254235,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17500,
+        "root": [
+          2.5586864406779664,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17550,
+        "root": [
+          2.5774372881355934,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17600,
+        "root": [
+          2.589886440677966,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17650,
+        "root": [
+          2.5968271186440677,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17700,
+        "root": [
+          2.5995813559322034,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17750,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17800,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17850,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17900,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 17950,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18000,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18050,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18100,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18150,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18200,
+        "root": [
+          2.6,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18250,
+        "root": [
+          2.600177508608387,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18300,
+        "root": [
+          2.601359168829018,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18350,
+        "root": [
+          2.6043828343708606,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18400,
+        "root": [
+          2.609906160476541,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18450,
+        "root": [
+          2.618406230632266,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18500,
+        "root": [
+          2.630177707579713,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18550,
+        "root": [
+          2.6453299081210395,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18600,
+        "root": [
+          2.663783166912485,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18650,
+        "root": [
+          2.685264822214698,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18700,
+        "root": [
+          2.7093051253003244,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18750,
+        "root": [
+          2.735233344024945,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18800,
+        "root": [
+          2.7621744,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18850,
+        "root": [
+          2.78930249453125,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18900,
+        "root": [
+          2.816468925,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 18950,
+        "root": [
+          2.84366943359375,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19000,
+        "root": [
+          2.8708992,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19050,
+        "root": [
+          2.8981529351562503,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19100,
+        "root": [
+          2.925424975,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19150,
+        "root": [
+          2.9527093742187502,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19200,
+        "root": [
+          2.98,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19250,
+        "root": [
+          3.00729062578125,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19300,
+        "root": [
+          3.034575025,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19350,
+        "root": [
+          3.06184706484375,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19400,
+        "root": [
+          3.0891008,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19450,
+        "root": [
+          3.11633056640625,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19500,
+        "root": [
+          3.1435310750000003,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19550,
+        "root": [
+          3.17069750546875,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19600,
+        "root": [
+          3.1978256,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19650,
+        "root": [
+          3.2249117570312498,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19700,
+        "root": [
+          3.251953125,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19750,
+        "root": [
+          3.2789476960937503,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19800,
+        "root": [
+          3.3058944,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19850,
+        "root": [
+          3.33279319765625,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19900,
+        "root": [
+          3.359645175,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 19950,
+        "root": [
+          3.38645263671875,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 20000,
+        "root": [
+          3.4132192,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 20050,
+        "root": [
+          3.4399498882812503,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 20100,
+        "root": [
+          3.466651225,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 20150,
+        "root": [
+          3.49333132734375,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      },
+      {
+        "atMs": 20200,
+        "root": [
+          3.52,
+          0,
+          0
+        ],
+        "prop": [
+          -0.1,
+          0,
+          0
+        ],
+        "rotationZ": 0,
+        "compression": 1
+      }
+    ],
+    "playbackReady": true,
+    "requiredPhases": [
+      "approach",
+      "step-on",
+      "sit",
+      "curl",
+      "uncurl",
+      "stand",
+      "step-off",
+      "canonical-gait-bridge"
+    ],
+    "validatedPhases": [
+      "approach",
+      "step-on",
+      "sit",
+      "curl",
+      "uncurl",
+      "stand",
+      "step-off",
+      "canonical-gait-bridge"
+    ],
+    "actorEnvelope": {
+      "space": "clip-world",
+      "min": [
+        -4.038076877593994,
+        -1.3797799348831177
+      ],
+      "max": [
+        4.763692855834961,
+        0.7114916443824768
+      ],
+      "meshValidated": true,
+      "source": "rest-runtime-actor-envelope.json",
+      "sourceInputSha256": "4f55316619a9030e8e5fd63d7a652707c900e83158ac10db3e72efbb9f475b56"
+    },
+    "terminalGaitPhase": 0.5,
+    "entryGaitPhase": 0,
+    "strideWorld": 0.64,
+    "technicalPreviewOnly": true,
+    "artUnderReview": true,
+    "browserQANotRun": true,
+    "media": {
+      "sourceSamplesSha256": "4f55316619a9030e8e5fd63d7a652707c900e83158ac10db3e72efbb9f475b56",
+      "renderContractSha256": "9b30beddc02302fe6d4ee684962b91398e5271f509f27eaf6e9d1d3b8234f2f3",
+      "atlasManifestSha256": "bd0d86ec2c54c78e0470e00c731ea359da61b83248ea76524de3c617f5d51253",
+      "alphaAuditSha256": "a1b8a878e1b0c184e2f335d915b0293a79f6666b511e25cf19f0fbcd4ae476c2",
+      "seamAuditSha256": "d27143a2a7401daf537aa6b7f49f7ad4671f60f24d3b269de513b5e8d8ee4bc7",
+      "frameCount": 405,
+      "fps": 20,
+      "labelsBaked": false,
+      "generalDepthSolved": false,
+      "requiresExclusiveInteractionRegion": true
+    },
+    "entryPoseCorrection": {
+      "id": "mika-cushion-entry-fix-r1",
+      "frames": [
+        0,
+        8
+      ],
+      "reusesOriginalFromFrame": 9,
+      "canonicalEntryValidated": true,
+      "rejoinValidated": true,
+      "sourcePosePatchSha256": "5347b5bb7a0bea25ee001b189e94fdb33a73b5fe6eadc3ea49ec1521c4fb0e76",
+      "sourceBlendSha256": "a836b93a214cc3ab90b583a4105d6c1991f75b1b8a9edbaaf9ff250114e3e8f8",
+      "changes": "Initial airborne hindFar limb and existing tail1/2 entry pose reconciliation only",
+      "baseSourceSamplesSha256": "4f55316619a9030e8e5fd63d7a652707c900e83158ac10db3e72efbb9f475b56"
+    }
+  }
+}

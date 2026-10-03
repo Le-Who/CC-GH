@@ -29,3 +29,7 @@ package-lock.json
 recovery-tools/yard-mochi-combined-qa/
 playwright.mochi.config.js
 scripts/yard-mochi-ci-server.mjs
+
+recovery-tools/yard-canonical-mochi-qa/
+playwright.yard-canonical.config.js
+scripts/yard-canonical-ci-server.mjs

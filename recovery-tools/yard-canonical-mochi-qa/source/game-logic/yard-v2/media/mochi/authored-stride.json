@@ -1,0 +1,4134 @@
+{
+  "format": "yard-authored-stride/v1",
+  "id": "mochi-hop-r1-review-only",
+  "durationMs": 1000,
+  "strideWorld": 0.48,
+  "rootExtentWorld": [
+    -0.00018517124408390373,
+    0.48037034273147583
+  ],
+  "frames": [
+    {
+      "atMs": 0,
+      "frameIndex": 0,
+      "distanceWorld": 0.0
+    },
+    {
+      "atMs": 50,
+      "frameIndex": 1,
+      "distanceWorld": -0.00015624999650754035
+    },
+    {
+      "atMs": 100,
+      "frameIndex": 2,
+      "distanceWorld": -4.336808689942018e-19
+    },
+    {
+      "atMs": 150,
+      "frameIndex": 3,
+      "distanceWorld": 0.0014062500558793545
+    },
+    {
+      "atMs": 200,
+      "frameIndex": 4,
+      "distanceWorld": 0.004999999888241291
+    },
+    {
+      "atMs": 250,
+      "frameIndex": 5,
+      "distanceWorld": 0.01981445401906967
+    },
+    {
+      "atMs": 300,
+      "frameIndex": 6,
+      "distanceWorld": 0.05132812634110451
+    },
+    {
+      "atMs": 350,
+      "frameIndex": 7,
+      "distanceWorld": 0.09514648467302322
+    },
+    {
+      "atMs": 400,
+      "frameIndex": 8,
+      "distanceWorld": 0.14558309316635132
+    },
+    {
+      "atMs": 450,
+      "frameIndex": 9,
+      "distanceWorld": 0.19750910997390747
+    },
+    {
+      "atMs": 500,
+      "frameIndex": 10,
+      "distanceWorld": 0.25
+    },
+    {
+      "atMs": 550,
+      "frameIndex": 11,
+      "distanceWorld": 0.3033333420753479
+    },
+    {
+      "atMs": 600,
+      "frameIndex": 12,
+      "distanceWorld": 0.35499998927116394
+    },
+    {
+      "atMs": 650,
+      "frameIndex": 13,
+      "distanceWorld": 0.4000000059604645
+    },
+    {
+      "atMs": 700,
+      "frameIndex": 14,
+      "distanceWorld": 0.4337036907672882
+    },
+    {
+      "atMs": 750,
+      "frameIndex": 15,
+      "distanceWorld": 0.45629629492759705
+    },
+    {
+      "atMs": 800,
+      "frameIndex": 16,
+      "distanceWorld": 0.4699999988079071
+    },
+    {
+      "atMs": 850,
+      "frameIndex": 17,
+      "distanceWorld": 0.47718751430511475
+    },
+    {
+      "atMs": 900,
+      "frameIndex": 18,
+      "distanceWorld": 0.47999998927116394
+    },
+    {
+      "atMs": 950,
+      "frameIndex": 19,
+      "distanceWorld": 0.4803124964237213
+    },
+    {
+      "atMs": 1000,
+      "frameIndex": 20,
+      "distanceWorld": 0.47999998927116394
+    }
+  ],
+  "rootSamples": [
+    {
+      "atMs": 0,
+      "distanceWorld": 0.0
+    },
+    {
+      "atMs": 1,
+      "distanceWorld": -1.2374999869280146e-07
+    },
+    {
+      "atMs": 2,
+      "distanceWorld": -4.899999908047903e-07
+    },
+    {
+      "atMs": 3,
+      "distanceWorld": -1.0912500556514715e-06
+    },
+    {
+      "atMs": 4,
+      "distanceWorld": -1.919999931487837e-06
+    },
+    {
+      "atMs": 5,
+      "distanceWorld": -2.9687500955333235e-06
+    },
+    {
+      "atMs": 6,
+      "distanceWorld": -4.229999831295572e-06
+    },
+    {
+      "atMs": 7,
+      "distanceWorld": -5.6962499002111144e-06
+    },
+    {
+      "atMs": 8,
+      "distanceWorld": -7.359999926848104e-06
+    },
+    {
+      "atMs": 9,
+      "distanceWorld": -9.213749763148371e-06
+    },
+    {
+      "atMs": 10,
+      "distanceWorld": -1.1250000170548446e-05
+    },
+    {
+      "atMs": 11,
+      "distanceWorld": -1.3461250091495458e-05
+    },
+    {
+      "atMs": 12,
+      "distanceWorld": -1.5839999832678586e-05
+    },
+    {
+      "atMs": 13,
+      "distanceWorld": -1.8378750610281713e-05
+    },
+    {
+      "atMs": 14,
+      "distanceWorld": -2.1070000002509914e-05
+    },
+    {
+      "atMs": 15,
+      "distanceWorld": -2.3906250135041773e-05
+    },
+    {
+      "atMs": 16,
+      "distanceWorld": -2.6879999495577067e-05
+    },
+    {
+      "atMs": 17,
+      "distanceWorld": -2.998375020979438e-05
+    },
+    {
+      "atMs": 18,
+      "distanceWorld": -3.3209998946404085e-05
+    },
+    {
+      "atMs": 19,
+      "distanceWorld": -3.655124965007417e-05
+    },
+    {
+      "atMs": 20,
+      "distanceWorld": -3.9999998989515007e-05
+    },
+    {
+      "atMs": 21,
+      "distanceWorld": -4.354874909040518e-05
+    },
+    {
+      "atMs": 22,
+      "distanceWorld": -4.718999844044447e-05
+    },
+    {
+      "atMs": 23,
+      "distanceWorld": -5.0916249165311456e-05
+    },
+    {
+      "atMs": 24,
+      "distanceWorld": -5.471999975270592e-05
+    },
+    {
+      "atMs": 25,
+      "distanceWorld": -5.859374869032763e-05
+    },
+    {
+      "atMs": 26,
+      "distanceWorld": -6.253000174183398e-05
+    },
+    {
+      "atMs": 27,
+      "distanceWorld": -6.652125011896715e-05
+    },
+    {
+      "atMs": 28,
+      "distanceWorld": -7.056000322336331e-05
+    },
+    {
+      "atMs": 29,
+      "distanceWorld": -7.463875226676464e-05
+    },
+    {
+      "atMs": 30,
+      "distanceWorld": -7.875000301282853e-05
+    },
+    {
+      "atMs": 31,
+      "distanceWorld": -8.288624667329714e-05
+    },
+    {
+      "atMs": 32,
+      "distanceWorld": -8.704000356374308e-05
+    },
+    {
+      "atMs": 33,
+      "distanceWorld": -9.12037503439933e-05
+    },
+    {
+      "atMs": 34,
+      "distanceWorld": -9.53700000536628e-05
+    },
+    {
+      "atMs": 35,
+      "distanceWorld": -9.953125118045136e-05
+    },
+    {
+      "atMs": 36,
+      "distanceWorld": -0.00010368000221205875
+    },
+    {
+      "atMs": 37,
+      "distanceWorld": -0.00010780875163618475
+    },
+    {
+      "atMs": 38,
+      "distanceWorld": -0.00011190999794052914
+    },
+    {
+      "atMs": 39,
+      "distanceWorld": -0.0001159762468887493
+    },
+    {
+      "atMs": 40,
+      "distanceWorld": -0.00011999999696854502
+    },
+    {
+      "atMs": 41,
+      "distanceWorld": -0.00012397374666761607
+    },
+    {
+      "atMs": 42,
+      "distanceWorld": -0.00012789000174961984
+    },
+    {
+      "atMs": 43,
+      "distanceWorld": -0.0001317412534262985
+    },
+    {
+      "atMs": 44,
+      "distanceWorld": -0.0001355199929093942
+    },
+    {
+      "atMs": 45,
+      "distanceWorld": -0.0001392187550663948
+    },
+    {
+      "atMs": 46,
+      "distanceWorld": -0.000142830002005212
+    },
+    {
+      "atMs": 47,
+      "distanceWorld": -0.00014634625404141843
+    },
+    {
+      "atMs": 48,
+      "distanceWorld": -0.00014976000238675624
+    },
+    {
+      "atMs": 49,
+      "distanceWorld": -0.00015306375280488282
+    },
+    {
+      "atMs": 50,
+      "distanceWorld": -0.00015624999650754035
+    },
+    {
+      "atMs": 51,
+      "distanceWorld": -0.00015931125381030142
+    },
+    {
+      "atMs": 52,
+      "distanceWorld": -0.000162240001372993
+    },
+    {
+      "atMs": 53,
+      "distanceWorld": -0.00016502874495927244
+    },
+    {
+      "atMs": 54,
+      "distanceWorld": -0.0001676700048847124
+    },
+    {
+      "atMs": 55,
+      "distanceWorld": -0.00017015624325722456
+    },
+    {
+      "atMs": 56,
+      "distanceWorld": -0.00017247999494429678
+    },
+    {
+      "atMs": 57,
+      "distanceWorld": -0.0001746337511576712
+    },
+    {
+      "atMs": 58,
+      "distanceWorld": -0.00017661000310909003
+    },
+    {
+      "atMs": 59,
+      "distanceWorld": -0.00017840125656221062
+    },
+    {
+      "atMs": 60,
+      "distanceWorld": -0.00018000000272877514
+    },
+    {
+      "atMs": 61,
+      "distanceWorld": -0.000181398747372441
+    },
+    {
+      "atMs": 62,
+      "distanceWorld": -0.00018258999625686556
+    },
+    {
+      "atMs": 63,
+      "distanceWorld": -0.00018356625514570624
+    },
+    {
+      "atMs": 64,
+      "distanceWorld": -0.00018432000069878995
+    },
+    {
+      "atMs": 65,
+      "distanceWorld": -0.00018484375323168933
+    },
+    {
+      "atMs": 66,
+      "distanceWorld": -0.00018513000395614654
+    },
+    {
+      "atMs": 67,
+      "distanceWorld": -0.00018517124408390373
+    },
+    {
+      "atMs": 68,
+      "distanceWorld": -0.00018495999393053353
+    },
+    {
+      "atMs": 69,
+      "distanceWorld": -0.0001844887447077781
+    },
+    {
+      "atMs": 70,
+      "distanceWorld": -0.00018375000217929482
+    },
+    {
+      "atMs": 71,
+      "distanceWorld": -0.00018273624300491065
+    },
+    {
+      "atMs": 72,
+      "distanceWorld": -0.00018144000205211341
+    },
+    {
+      "atMs": 73,
+      "distanceWorld": -0.00017985375598073006
+    },
+    {
+      "atMs": 74,
+      "distanceWorld": -0.00017796999600250274
+    },
+    {
+      "atMs": 75,
+      "distanceWorld": -0.0001757812569849193
+    },
+    {
+      "atMs": 76,
+      "distanceWorld": -0.00017328000103589147
+    },
+    {
+      "atMs": 77,
+      "distanceWorld": -0.00017045874847099185
+    },
+    {
+      "atMs": 78,
+      "distanceWorld": -0.00016731000505387783
+    },
+    {
+      "atMs": 79,
+      "distanceWorld": -0.00016382624744437635
+    },
+    {
+      "atMs": 80,
+      "distanceWorld": -0.00015999999595806003
+    },
+    {
+      "atMs": 81,
+      "distanceWorld": -0.00015582375635858625
+    },
+    {
+      "atMs": 82,
+      "distanceWorld": -0.00015129000530578196
+    },
+    {
+      "atMs": 83,
+      "distanceWorld": -0.00014639124856330454
+    },
+    {
+      "atMs": 84,
+      "distanceWorld": -0.00014112000644672662
+    },
+    {
+      "atMs": 85,
+      "distanceWorld": -0.00013546875561587512
+    },
+    {
+      "atMs": 86,
+      "distanceWorld": -0.00012943000183440745
+    },
+    {
+      "atMs": 87,
+      "distanceWorld": -0.00012299625086598098
+    },
+    {
+      "atMs": 88,
+      "distanceWorld": -0.0001161600011982955
+    },
+    {
+      "atMs": 89,
+      "distanceWorld": -0.00010891375131905079
+    },
+    {
+      "atMs": 90,
+      "distanceWorld": -0.00010124999971594661
+    },
+    {
+      "atMs": 91,
+      "distanceWorld": -9.316125215264037e-05
+    },
+    {
+      "atMs": 92,
+      "distanceWorld": -8.463999984087422e-05
+    },
+    {
+      "atMs": 93,
+      "distanceWorld": -7.567874854430556e-05
+    },
+    {
+      "atMs": 94,
+      "distanceWorld": -6.626999675063416e-05
+    },
+    {
+      "atMs": 95,
+      "distanceWorld": -5.640625022351742e-05
+    },
+    {
+      "atMs": 96,
+      "distanceWorld": -4.608000017469749e-05
+    },
+    {
+      "atMs": 97,
+      "distanceWorld": -3.528374872985296e-05
+    },
+    {
+      "atMs": 98,
+      "distanceWorld": -2.400999983365182e-05
+    },
+    {
+      "atMs": 99,
+      "distanceWorld": -1.2251250154804438e-05
+    },
+    {
+      "atMs": 100,
+      "distanceWorld": -4.336808689942018e-19
+    },
+    {
+      "atMs": 101,
+      "distanceWorld": 1.2751250324072316e-05
+    },
+    {
+      "atMs": 102,
+      "distanceWorld": 2.601000051072333e-05
+    },
+    {
+      "atMs": 103,
+      "distanceWorld": 3.978375025326386e-05
+    },
+    {
+      "atMs": 104,
+      "distanceWorld": 5.407999924500473e-05
+    },
+    {
+      "atMs": 105,
+      "distanceWorld": 6.890625081723556e-05
+    },
+    {
+      "atMs": 106,
+      "distanceWorld": 8.427000284427777e-05
+    },
+    {
+      "atMs": 107,
+      "distanceWorld": 0.00010017875320045277
+    },
+    {
+      "atMs": 108,
+      "distanceWorld": 0.0001166400033980608
+    },
+    {
+      "atMs": 109,
+      "distanceWorld": 0.00013366124767344445
+    },
+    {
+      "atMs": 110,
+      "distanceWorld": 0.00015125000209081918
+    },
+    {
+      "atMs": 111,
+      "distanceWorld": 0.00016941374633461237
+    },
+    {
+      "atMs": 112,
+      "distanceWorld": 0.00018816000374499708
+    },
+    {
+      "atMs": 113,
+      "distanceWorld": 0.0002074962540064007
+    },
+    {
+      "atMs": 114,
+      "distanceWorld": 0.00022743000590708107
+    },
+    {
+      "atMs": 115,
+      "distanceWorld": 0.00024796873913146555
+    },
+    {
+      "atMs": 116,
+      "distanceWorld": 0.0002691200061235577
+    },
+    {
+      "atMs": 117,
+      "distanceWorld": 0.00029089124291203916
+    },
+    {
+      "atMs": 118,
+      "distanceWorld": 0.00031328998738899827
+    },
+    {
+      "atMs": 119,
+      "distanceWorld": 0.00033632374834269285
+    },
+    {
+      "atMs": 120,
+      "distanceWorld": 0.0003600000054575503
+    },
+    {
+      "atMs": 121,
+      "distanceWorld": 0.00038432623841799796
+    },
+    {
+      "atMs": 122,
+      "distanceWorld": 0.0004093100142199546
+    },
+    {
+      "atMs": 123,
+      "distanceWorld": 0.0004349587543401867
+    },
+    {
+      "atMs": 124,
+      "distanceWorld": 0.00046127999667078257
+    },
+    {
+      "atMs": 125,
+      "distanceWorld": 0.00048828125
+    },
+    {
+      "atMs": 126,
+      "distanceWorld": 0.0005159699940122664
+    },
+    {
+      "atMs": 127,
+      "distanceWorld": 0.0005443537374958396
+    },
+    {
+      "atMs": 128,
+      "distanceWorld": 0.0005734399892389774
+    },
+    {
+      "atMs": 129,
+      "distanceWorld": 0.0006032362580299377
+    },
+    {
+      "atMs": 130,
+      "distanceWorld": 0.0006337499944493175
+    },
+    {
+      "atMs": 131,
+      "distanceWorld": 0.0006649887654930353
+    },
+    {
+      "atMs": 132,
+      "distanceWorld": 0.0006969600217416883
+    },
+    {
+      "atMs": 133,
+      "distanceWorld": 0.0007296712719835341
+    },
+    {
+      "atMs": 134,
+      "distanceWorld": 0.0007631300250068307
+    },
+    {
+      "atMs": 135,
+      "distanceWorld": 0.000797343731392175
+    },
+    {
+      "atMs": 136,
+      "distanceWorld": 0.0008323200163431466
+    },
+    {
+      "atMs": 137,
+      "distanceWorld": 0.0008680662722326815
+    },
+    {
+      "atMs": 138,
+      "distanceWorld": 0.0009045900078490376
+    },
+    {
+      "atMs": 139,
+      "distanceWorld": 0.0009418987319804728
+    },
+    {
+      "atMs": 140,
+      "distanceWorld": 0.0009800000116229057
+    },
+    {
+      "atMs": 141,
+      "distanceWorld": 0.0010189012391492724
+    },
+    {
+      "atMs": 142,
+      "distanceWorld": 0.0010586100397631526
+    },
+    {
+      "atMs": 143,
+      "distanceWorld": 0.0010991337476298213
+    },
+    {
+      "atMs": 144,
+      "distanceWorld": 0.0011404800461605191
+    },
+    {
+      "atMs": 145,
+      "distanceWorld": 0.0011826562695205212
+    },
+    {
+      "atMs": 146,
+      "distanceWorld": 0.0012256699847057462
+    },
+    {
+      "atMs": 147,
+      "distanceWorld": 0.001269528758712113
+    },
+    {
+      "atMs": 148,
+      "distanceWorld": 0.0013142400421202183
+    },
+    {
+      "atMs": 149,
+      "distanceWorld": 0.0013598112855106592
+    },
+    {
+      "atMs": 150,
+      "distanceWorld": 0.0014062500558793545
+    },
+    {
+      "atMs": 151,
+      "distanceWorld": 0.001453563803806901
+    },
+    {
+      "atMs": 152,
+      "distanceWorld": 0.0015017599798738956
+    },
+    {
+      "atMs": 153,
+      "distanceWorld": 0.001550846267491579
+    },
+    {
+      "atMs": 154,
+      "distanceWorld": 0.0016008300008252263
+    },
+    {
+      "atMs": 155,
+      "distanceWorld": 0.0016517187468707561
+    },
+    {
+      "atMs": 156,
+      "distanceWorld": 0.0017035199562087655
+    },
+    {
+      "atMs": 157,
+      "distanceWorld": 0.0017562411958351731
+    },
+    {
+      "atMs": 158,
+      "distanceWorld": 0.0018098900327458978
+    },
+    {
+      "atMs": 159,
+      "distanceWorld": 0.0018644738011062145
+    },
+    {
+      "atMs": 160,
+      "distanceWorld": 0.0019199999514967203
+    },
+    {
+      "atMs": 161,
+      "distanceWorld": 0.0019764762837439775
+    },
+    {
+      "atMs": 162,
+      "distanceWorld": 0.0020339100155979395
+    },
+    {
+      "atMs": 163,
+      "distanceWorld": 0.0020923088304698467
+    },
+    {
+      "atMs": 164,
+      "distanceWorld": 0.0021516799461096525
+    },
+    {
+      "atMs": 165,
+      "distanceWorld": 0.002212031278759241
+    },
+    {
+      "atMs": 166,
+      "distanceWorld": 0.0022733700461685658
+    },
+    {
+      "atMs": 167,
+      "distanceWorld": 0.0023357036989182234
+    },
+    {
+      "atMs": 168,
+      "distanceWorld": 0.0023990399204194546
+    },
+    {
+      "atMs": 169,
+      "distanceWorld": 0.0024633861612528563
+    },
+    {
+      "atMs": 170,
+      "distanceWorld": 0.002528750104829669
+    },
+    {
+      "atMs": 171,
+      "distanceWorld": 0.0025951387360692024
+    },
+    {
+      "atMs": 172,
+      "distanceWorld": 0.0026625599712133408
+    },
+    {
+      "atMs": 173,
+      "distanceWorld": 0.002731021260842681
+    },
+    {
+      "atMs": 174,
+      "distanceWorld": 0.00280053005553782
+    },
+    {
+      "atMs": 175,
+      "distanceWorld": 0.0028710938058793545
+    },
+    {
+      "atMs": 176,
+      "distanceWorld": 0.0029427199624478817
+    },
+    {
+      "atMs": 177,
+      "distanceWorld": 0.003015416208654642
+    },
+    {
+      "atMs": 178,
+      "distanceWorld": 0.0030891899950802326
+    },
+    {
+      "atMs": 179,
+      "distanceWorld": 0.00316404877230525
+    },
+    {
+      "atMs": 180,
+      "distanceWorld": 0.0032399999909102917
+    },
+    {
+      "atMs": 181,
+      "distanceWorld": 0.0033170513343065977
+    },
+    {
+      "atMs": 182,
+      "distanceWorld": 0.0033952100202441216
+    },
+    {
+      "atMs": 183,
+      "distanceWorld": 0.0034744837321341038
+    },
+    {
+      "atMs": 184,
+      "distanceWorld": 0.0035548799205571413
+    },
+    {
+      "atMs": 185,
+      "distanceWorld": 0.0036364062689244747
+    },
+    {
+      "atMs": 186,
+      "distanceWorld": 0.0037190699949860573
+    },
+    {
+      "atMs": 187,
+      "distanceWorld": 0.0038028787821531296
+    },
+    {
+      "atMs": 188,
+      "distanceWorld": 0.003887840081006289
+    },
+    {
+      "atMs": 189,
+      "distanceWorld": 0.003973961342126131
+    },
+    {
+      "atMs": 190,
+      "distanceWorld": 0.004061250016093254
+    },
+    {
+      "atMs": 191,
+      "distanceWorld": 0.0041497135534882545
+    },
+    {
+      "atMs": 192,
+      "distanceWorld": 0.004239359870553017
+    },
+    {
+      "atMs": 193,
+      "distanceWorld": 0.004330196417868137
+    },
+    {
+      "atMs": 194,
+      "distanceWorld": 0.004422230180352926
+    },
+    {
+      "atMs": 195,
+      "distanceWorld": 0.00451546860858798
+    },
+    {
+      "atMs": 196,
+      "distanceWorld": 0.004609920084476471
+    },
+    {
+      "atMs": 197,
+      "distanceWorld": 0.004705591127276421
+    },
+    {
+      "atMs": 198,
+      "distanceWorld": 0.004802490118891001
+    },
+    {
+      "atMs": 199,
+      "distanceWorld": 0.004900623578578234
+    },
+    {
+      "atMs": 200,
+      "distanceWorld": 0.004999999888241291
+    },
+    {
+      "atMs": 201,
+      "distanceWorld": 0.005104213021695614
+    },
+    {
+      "atMs": 202,
+      "distanceWorld": 0.00521682808175683
+    },
+    {
+      "atMs": 203,
+      "distanceWorld": 0.005337810609489679
+    },
+    {
+      "atMs": 204,
+      "distanceWorld": 0.005467125214636326
+    },
+    {
+      "atMs": 205,
+      "distanceWorld": 0.005604736506938934
+    },
+    {
+      "atMs": 206,
+      "distanceWorld": 0.005750609561800957
+    },
+    {
+      "atMs": 207,
+      "distanceWorld": 0.005904708988964558
+    },
+    {
+      "atMs": 208,
+      "distanceWorld": 0.006066999863833189
+    },
+    {
+      "atMs": 209,
+      "distanceWorld": 0.006237447261810303
+    },
+    {
+      "atMs": 210,
+      "distanceWorld": 0.006416015792638063
+    },
+    {
+      "atMs": 211,
+      "distanceWorld": 0.006602670066058636
+    },
+    {
+      "atMs": 212,
+      "distanceWorld": 0.0067973751574754715
+    },
+    {
+      "atMs": 213,
+      "distanceWorld": 0.007000095676630735
+    },
+    {
+      "atMs": 214,
+      "distanceWorld": 0.007210796698927879
+    },
+    {
+      "atMs": 215,
+      "distanceWorld": 0.007429443299770355
+    },
+    {
+      "atMs": 216,
+      "distanceWorld": 0.007656000088900328
+    },
+    {
+      "atMs": 217,
+      "distanceWorld": 0.007890431210398674
+    },
+    {
+      "atMs": 218,
+      "distanceWorld": 0.00813270267099142
+    },
+    {
+      "atMs": 219,
+      "distanceWorld": 0.00838277954608202
+    },
+    {
+      "atMs": 220,
+      "distanceWorld": 0.008640624582767487
+    },
+    {
+      "atMs": 221,
+      "distanceWorld": 0.00890620518475771
+    },
+    {
+      "atMs": 222,
+      "distanceWorld": 0.009179484099149704
+    },
+    {
+      "atMs": 223,
+      "distanceWorld": 0.009460427798330784
+    },
+    {
+      "atMs": 224,
+      "distanceWorld": 0.009748999960720539
+    },
+    {
+      "atMs": 225,
+      "distanceWorld": 0.010045166127383709
+    },
+    {
+      "atMs": 226,
+      "distanceWorld": 0.010348890908062458
+    },
+    {
+      "atMs": 227,
+      "distanceWorld": 0.010660138912498951
+    },
+    {
+      "atMs": 228,
+      "distanceWorld": 0.010978874750435352
+    },
+    {
+      "atMs": 229,
+      "distanceWorld": 0.011305064894258976
+    },
+    {
+      "atMs": 230,
+      "distanceWorld": 0.011638672091066837
+    },
+    {
+      "atMs": 231,
+      "distanceWorld": 0.011979661881923676
+    },
+    {
+      "atMs": 232,
+      "distanceWorld": 0.01232799980789423
+    },
+    {
+      "atMs": 233,
+      "distanceWorld": 0.012683650478720665
+    },
+    {
+      "atMs": 234,
+      "distanceWorld": 0.013046578504145145
+    },
+    {
+      "atMs": 235,
+      "distanceWorld": 0.013416748493909836
+    },
+    {
+      "atMs": 236,
+      "distanceWorld": 0.0137941250577569
+    },
+    {
+      "atMs": 237,
+      "distanceWorld": 0.01417867373675108
+    },
+    {
+      "atMs": 238,
+      "distanceWorld": 0.014570359140634537
+    },
+    {
+      "atMs": 239,
+      "distanceWorld": 0.014969146810472012
+    },
+    {
+      "atMs": 240,
+      "distanceWorld": 0.015375000424683094
+    },
+    {
+      "atMs": 241,
+      "distanceWorld": 0.01578788459300995
+    },
+    {
+      "atMs": 242,
+      "distanceWorld": 0.01620776578783989
+    },
+    {
+      "atMs": 243,
+      "distanceWorld": 0.016634607687592506
+    },
+    {
+      "atMs": 244,
+      "distanceWorld": 0.017068374902009964
+    },
+    {
+      "atMs": 245,
+      "distanceWorld": 0.017509033903479576
+    },
+    {
+      "atMs": 246,
+      "distanceWorld": 0.017956547439098358
+    },
+    {
+      "atMs": 247,
+      "distanceWorld": 0.018410880118608475
+    },
+    {
+      "atMs": 248,
+      "distanceWorld": 0.01887200027704239
+    },
+    {
+      "atMs": 249,
+      "distanceWorld": 0.019339868798851967
+    },
+    {
+      "atMs": 250,
+      "distanceWorld": 0.01981445401906967
+    },
+    {
+      "atMs": 251,
+      "distanceWorld": 0.02029571682214737
+    },
+    {
+      "atMs": 252,
+      "distanceWorld": 0.020783625543117523
+    },
+    {
+      "atMs": 253,
+      "distanceWorld": 0.02127814292907715
+    },
+    {
+      "atMs": 254,
+      "distanceWorld": 0.02177923358976841
+    },
+    {
+      "atMs": 255,
+      "distanceWorld": 0.02228686586022377
+    },
+    {
+      "atMs": 256,
+      "distanceWorld": 0.022801000624895096
+    },
+    {
+      "atMs": 257,
+      "distanceWorld": 0.0233216043561697
+    },
+    {
+      "atMs": 258,
+      "distanceWorld": 0.0238486398011446
+    },
+    {
+      "atMs": 259,
+      "distanceWorld": 0.024382075294852257
+    },
+    {
+      "atMs": 260,
+      "distanceWorld": 0.024921875447034836
+    },
+    {
+      "atMs": 261,
+      "distanceWorld": 0.025468001142144203
+    },
+    {
+      "atMs": 262,
+      "distanceWorld": 0.02602042257785797
+    },
+    {
+      "atMs": 263,
+      "distanceWorld": 0.026579098775982857
+    },
+    {
+      "atMs": 264,
+      "distanceWorld": 0.027143999934196472
+    },
+    {
+      "atMs": 265,
+      "distanceWorld": 0.027715088799595833
+    },
+    {
+      "atMs": 266,
+      "distanceWorld": 0.028292328119277954
+    },
+    {
+      "atMs": 267,
+      "distanceWorld": 0.0288756862282753
+    },
+    {
+      "atMs": 268,
+      "distanceWorld": 0.029465125873684883
+    },
+    {
+      "atMs": 269,
+      "distanceWorld": 0.03006061166524887
+    },
+    {
+      "atMs": 270,
+      "distanceWorld": 0.030662110075354576
+    },
+    {
+      "atMs": 271,
+      "distanceWorld": 0.031269583851099014
+    },
+    {
+      "atMs": 272,
+      "distanceWorld": 0.03188300132751465
+    },
+    {
+      "atMs": 273,
+      "distanceWorld": 0.032502323389053345
+    },
+    {
+      "atMs": 274,
+      "distanceWorld": 0.03312751650810242
+    },
+    {
+      "atMs": 275,
+      "distanceWorld": 0.03375854343175888
+    },
+    {
+      "atMs": 276,
+      "distanceWorld": 0.03439537435770035
+    },
+    {
+      "atMs": 277,
+      "distanceWorld": 0.035037972033023834
+    },
+    {
+      "atMs": 278,
+      "distanceWorld": 0.035686295479536057
+    },
+    {
+      "atMs": 279,
+      "distanceWorld": 0.036340318620204926
+    },
+    {
+      "atMs": 280,
+      "distanceWorld": 0.03700000047683716
+    },
+    {
+      "atMs": 281,
+      "distanceWorld": 0.03766530752182007
+    },
+    {
+      "atMs": 282,
+      "distanceWorld": 0.03833620250225067
+    },
+    {
+      "atMs": 283,
+      "distanceWorld": 0.03901265561580658
+    },
+    {
+      "atMs": 284,
+      "distanceWorld": 0.03969462588429451
+    },
+    {
+      "atMs": 285,
+      "distanceWorld": 0.040382079780101776
+    },
+    {
+      "atMs": 286,
+      "distanceWorld": 0.04107498377561569
+    },
+    {
+      "atMs": 287,
+      "distanceWorld": 0.04177330434322357
+    },
+    {
+      "atMs": 288,
+      "distanceWorld": 0.04247700050473213
+    },
+    {
+      "atMs": 289,
+      "distanceWorld": 0.043186042457818985
+    },
+    {
+      "atMs": 290,
+      "distanceWorld": 0.04390038922429085
+    },
+    {
+      "atMs": 291,
+      "distanceWorld": 0.04462001472711563
+    },
+    {
+      "atMs": 292,
+      "distanceWorld": 0.04534487426280975
+    },
+    {
+      "atMs": 293,
+      "distanceWorld": 0.04607493802905083
+    },
+    {
+      "atMs": 294,
+      "distanceWorld": 0.046810172498226166
+    },
+    {
+      "atMs": 295,
+      "distanceWorld": 0.04755053669214249
+    },
+    {
+      "atMs": 296,
+      "distanceWorld": 0.0482960008084774
+    },
+    {
+      "atMs": 297,
+      "distanceWorld": 0.04904652386903763
+    },
+    {
+      "atMs": 298,
+      "distanceWorld": 0.04980207979679108
+    },
+    {
+      "atMs": 299,
+      "distanceWorld": 0.050562623888254166
+    },
+    {
+      "atMs": 300,
+      "distanceWorld": 0.05132812634110451
+    },
+    {
+      "atMs": 301,
+      "distanceWorld": 0.05209854990243912
+    },
+    {
+      "atMs": 302,
+      "distanceWorld": 0.05287386104464531
+    },
+    {
+      "atMs": 303,
+      "distanceWorld": 0.0536540225148201
+    },
+    {
+      "atMs": 304,
+      "distanceWorld": 0.0544390007853508
+    },
+    {
+      "atMs": 305,
+      "distanceWorld": 0.05522875860333443
+    },
+    {
+      "atMs": 306,
+      "distanceWorld": 0.05602326616644859
+    },
+    {
+      "atMs": 307,
+      "distanceWorld": 0.056822482496500015
+    },
+    {
+      "atMs": 308,
+      "distanceWorld": 0.05762637406587601
+    },
+    {
+      "atMs": 309,
+      "distanceWorld": 0.05843490734696388
+    },
+    {
+      "atMs": 310,
+      "distanceWorld": 0.05924804508686066
+    },
+    {
+      "atMs": 311,
+      "distanceWorld": 0.06006575748324394
+    },
+    {
+      "atMs": 312,
+      "distanceWorld": 0.06088799983263016
+    },
+    {
+      "atMs": 313,
+      "distanceWorld": 0.06171474233269692
+    },
+    {
+      "atMs": 314,
+      "distanceWorld": 0.06254595518112183
+    },
+    {
+      "atMs": 315,
+      "distanceWorld": 0.06338158994913101
+    },
+    {
+      "atMs": 316,
+      "distanceWorld": 0.06422162801027298
+    },
+    {
+      "atMs": 317,
+      "distanceWorld": 0.06506601721048355
+    },
+    {
+      "atMs": 318,
+      "distanceWorld": 0.06591473519802094
+    },
+    {
+      "atMs": 319,
+      "distanceWorld": 0.06676773726940155
+    },
+    {
+      "atMs": 320,
+      "distanceWorld": 0.0676250010728836
+    },
+    {
+      "atMs": 321,
+      "distanceWorld": 0.06848648190498352
+    },
+    {
+      "atMs": 322,
+      "distanceWorld": 0.06935214251279831
+    },
+    {
+      "atMs": 323,
+      "distanceWorld": 0.07022195309400558
+    },
+    {
+      "atMs": 324,
+      "distanceWorld": 0.07109587639570236
+    },
+    {
+      "atMs": 325,
+      "distanceWorld": 0.07197387516498566
+    },
+    {
+      "atMs": 326,
+      "distanceWorld": 0.07285591959953308
+    },
+    {
+      "atMs": 327,
+      "distanceWorld": 0.07374197244644165
+    },
+    {
+      "atMs": 328,
+      "distanceWorld": 0.07463199645280838
+    },
+    {
+      "atMs": 329,
+      "distanceWorld": 0.07552596181631088
+    },
+    {
+      "atMs": 330,
+      "distanceWorld": 0.07642383128404617
+    },
+    {
+      "atMs": 331,
+      "distanceWorld": 0.07732556015253067
+    },
+    {
+      "atMs": 332,
+      "distanceWorld": 0.07823112607002258
+    },
+    {
+      "atMs": 333,
+      "distanceWorld": 0.07914048433303833
+    },
+    {
+      "atMs": 334,
+      "distanceWorld": 0.08005361258983612
+    },
+    {
+      "atMs": 335,
+      "distanceWorld": 0.08097045868635178
+    },
+    {
+      "atMs": 336,
+      "distanceWorld": 0.0818910002708435
+    },
+    {
+      "atMs": 337,
+      "distanceWorld": 0.08281520009040833
+    },
+    {
+      "atMs": 338,
+      "distanceWorld": 0.08374301344156265
+    },
+    {
+      "atMs": 339,
+      "distanceWorld": 0.0846744179725647
+    },
+    {
+      "atMs": 340,
+      "distanceWorld": 0.08560937643051147
+    },
+    {
+      "atMs": 341,
+      "distanceWorld": 0.0865478441119194
+    },
+    {
+      "atMs": 342,
+      "distanceWorld": 0.08748979866504669
+    },
+    {
+      "atMs": 343,
+      "distanceWorld": 0.08843519538640976
+    },
+    {
+      "atMs": 344,
+      "distanceWorld": 0.08938399702310562
+    },
+    {
+      "atMs": 345,
+      "distanceWorld": 0.09033618122339249
+    },
+    {
+      "atMs": 346,
+      "distanceWorld": 0.09129170328378677
+    },
+    {
+      "atMs": 347,
+      "distanceWorld": 0.0922505259513855
+    },
+    {
+      "atMs": 348,
+      "distanceWorld": 0.09321262687444687
+    },
+    {
+      "atMs": 349,
+      "distanceWorld": 0.09417795389890671
+    },
+    {
+      "atMs": 350,
+      "distanceWorld": 0.09514648467302322
+    },
+    {
+      "atMs": 351,
+      "distanceWorld": 0.09611817449331284
+    },
+    {
+      "atMs": 352,
+      "distanceWorld": 0.09709300100803375
+    },
+    {
+      "atMs": 353,
+      "distanceWorld": 0.09807091951370239
+    },
+    {
+      "atMs": 354,
+      "distanceWorld": 0.09905189275741577
+    },
+    {
+      "atMs": 355,
+      "distanceWorld": 0.1000358909368515
+    },
+    {
+      "atMs": 356,
+      "distanceWorld": 0.1010228767991066
+    },
+    {
+      "atMs": 357,
+      "distanceWorld": 0.10201281309127808
+    },
+    {
+      "atMs": 358,
+      "distanceWorld": 0.10300567001104355
+    },
+    {
+      "atMs": 359,
+      "distanceWorld": 0.10400141030550003
+    },
+    {
+      "atMs": 360,
+      "distanceWorld": 0.10499999672174454
+    },
+    {
+      "atMs": 361,
+      "distanceWorld": 0.10600040853023529
+    },
+    {
+      "atMs": 362,
+      "distanceWorld": 0.10700162500143051
+    },
+    {
+      "atMs": 363,
+      "distanceWorld": 0.1080036461353302
+    },
+    {
+      "atMs": 364,
+      "distanceWorld": 0.10900645703077316
+    },
+    {
+      "atMs": 365,
+      "distanceWorld": 0.11001006513834
+    },
+    {
+      "atMs": 366,
+      "distanceWorld": 0.1110144555568695
+    },
+    {
+      "atMs": 367,
+      "distanceWorld": 0.1120196282863617
+    },
+    {
+      "atMs": 368,
+      "distanceWorld": 0.11302556097507477
+    },
+    {
+      "atMs": 369,
+      "distanceWorld": 0.11403226107358932
+    },
+    {
+      "atMs": 370,
+      "distanceWorld": 0.11503972113132477
+    },
+    {
+      "atMs": 371,
+      "distanceWorld": 0.1160479336977005
+    },
+    {
+      "atMs": 372,
+      "distanceWorld": 0.11705688387155533
+    },
+    {
+      "atMs": 373,
+      "distanceWorld": 0.11806657910346985
+    },
+    {
+      "atMs": 374,
+      "distanceWorld": 0.11907699704170227
+    },
+    {
+      "atMs": 375,
+      "distanceWorld": 0.1200881451368332
+    },
+    {
+      "atMs": 376,
+      "distanceWorld": 0.12110000848770143
+    },
+    {
+      "atMs": 377,
+      "distanceWorld": 0.12211258709430696
+    },
+    {
+      "atMs": 378,
+      "distanceWorld": 0.12312586605548859
+    },
+    {
+      "atMs": 379,
+      "distanceWorld": 0.12413984537124635
+    },
+    {
+      "atMs": 380,
+      "distanceWorld": 0.1251545250415802
+    },
+    {
+      "atMs": 381,
+      "distanceWorld": 0.12616987526416779
+    },
+    {
+      "atMs": 382,
+      "distanceWorld": 0.1271859109401703
+    },
+    {
+      "atMs": 383,
+      "distanceWorld": 0.1282026171684265
+    },
+    {
+      "atMs": 384,
+      "distanceWorld": 0.12921999394893646
+    },
+    {
+      "atMs": 385,
+      "distanceWorld": 0.13023802638053894
+    },
+    {
+      "atMs": 386,
+      "distanceWorld": 0.13125669956207275
+    },
+    {
+      "atMs": 387,
+      "distanceWorld": 0.1322760283946991
+    },
+    {
+      "atMs": 388,
+      "distanceWorld": 0.13329599797725677
+    },
+    {
+      "atMs": 389,
+      "distanceWorld": 0.1343166083097458
+    },
+    {
+      "atMs": 390,
+      "distanceWorld": 0.13533782958984375
+    },
+    {
+      "atMs": 391,
+      "distanceWorld": 0.13635967671871185
+    },
+    {
+      "atMs": 392,
+      "distanceWorld": 0.1373821347951889
+    },
+    {
+      "atMs": 393,
+      "distanceWorld": 0.1384052038192749
+    },
+    {
+      "atMs": 394,
+      "distanceWorld": 0.13942886888980865
+    },
+    {
+      "atMs": 395,
+      "distanceWorld": 0.14045313000679016
+    },
+    {
+      "atMs": 396,
+      "distanceWorld": 0.14147797226905823
+    },
+    {
+      "atMs": 397,
+      "distanceWorld": 0.14250339567661285
+    },
+    {
+      "atMs": 398,
+      "distanceWorld": 0.14352940022945404
+    },
+    {
+      "atMs": 399,
+      "distanceWorld": 0.1445559561252594
+    },
+    {
+      "atMs": 400,
+      "distanceWorld": 0.14558309316635132
+    },
+    {
+      "atMs": 401,
+      "distanceWorld": 0.14661076664924622
+    },
+    {
+      "atMs": 402,
+      "distanceWorld": 0.14763900637626648
+    },
+    {
+      "atMs": 403,
+      "distanceWorld": 0.14866776764392853
+    },
+    {
+      "atMs": 404,
+      "distanceWorld": 0.14969708025455475
+    },
+    {
+      "atMs": 405,
+      "distanceWorld": 0.15072689950466156
+    },
+    {
+      "atMs": 406,
+      "distanceWorld": 0.15175725519657135
+    },
+    {
+      "atMs": 407,
+      "distanceWorld": 0.15278811752796173
+    },
+    {
+      "atMs": 408,
+      "distanceWorld": 0.1538195013999939
+    },
+    {
+      "atMs": 409,
+      "distanceWorld": 0.15485137701034546
+    },
+    {
+      "atMs": 410,
+      "distanceWorld": 0.15588374435901642
+    },
+    {
+      "atMs": 411,
+      "distanceWorld": 0.15691660344600677
+    },
+    {
+      "atMs": 412,
+      "distanceWorld": 0.15794995427131653
+    },
+    {
+      "atMs": 413,
+      "distanceWorld": 0.1589837670326233
+    },
+    {
+      "atMs": 414,
+      "distanceWorld": 0.16001805663108826
+    },
+    {
+      "atMs": 415,
+      "distanceWorld": 0.16105279326438904
+    },
+    {
+      "atMs": 416,
+      "distanceWorld": 0.16208800673484802
+    },
+    {
+      "atMs": 417,
+      "distanceWorld": 0.16312365233898163
+    },
+    {
+      "atMs": 418,
+      "distanceWorld": 0.16415974497795105
+    },
+    {
+      "atMs": 419,
+      "distanceWorld": 0.1651962697505951
+    },
+    {
+      "atMs": 420,
+      "distanceWorld": 0.16623324155807495
+    },
+    {
+      "atMs": 421,
+      "distanceWorld": 0.16727061569690704
+    },
+    {
+      "atMs": 422,
+      "distanceWorld": 0.16830842196941376
+    },
+    {
+      "atMs": 423,
+      "distanceWorld": 0.1693466305732727
+    },
+    {
+      "atMs": 424,
+      "distanceWorld": 0.1703852415084839
+    },
+    {
+      "atMs": 425,
+      "distanceWorld": 0.1714242398738861
+    },
+    {
+      "atMs": 426,
+      "distanceWorld": 0.17246364057064056
+    },
+    {
+      "atMs": 427,
+      "distanceWorld": 0.17350342869758606
+    },
+    {
+      "atMs": 428,
+      "distanceWorld": 0.1745435744524002
+    },
+    {
+      "atMs": 429,
+      "distanceWorld": 0.1755841076374054
+    },
+    {
+      "atMs": 430,
+      "distanceWorld": 0.17662499845027924
+    },
+    {
+      "atMs": 431,
+      "distanceWorld": 0.17766624689102173
+    },
+    {
+      "atMs": 432,
+      "distanceWorld": 0.17870785295963287
+    },
+    {
+      "atMs": 433,
+      "distanceWorld": 0.17974978685379028
+    },
+    {
+      "atMs": 434,
+      "distanceWorld": 0.18079207837581635
+    },
+    {
+      "atMs": 435,
+      "distanceWorld": 0.18183468282222748
+    },
+    {
+      "atMs": 436,
+      "distanceWorld": 0.18287761509418488
+    },
+    {
+      "atMs": 437,
+      "distanceWorld": 0.18392087519168854
+    },
+    {
+      "atMs": 438,
+      "distanceWorld": 0.18496443331241608
+    },
+    {
+      "atMs": 439,
+      "distanceWorld": 0.1860083043575287
+    },
+    {
+      "atMs": 440,
+      "distanceWorld": 0.18705247342586517
+    },
+    {
+      "atMs": 441,
+      "distanceWorld": 0.18809694051742554
+    },
+    {
+      "atMs": 442,
+      "distanceWorld": 0.1891416758298874
+    },
+    {
+      "atMs": 443,
+      "distanceWorld": 0.19018670916557312
+    },
+    {
+      "atMs": 444,
+      "distanceWorld": 0.19123199582099915
+    },
+    {
+      "atMs": 445,
+      "distanceWorld": 0.19227756559848785
+    },
+    {
+      "atMs": 446,
+      "distanceWorld": 0.19332337379455566
+    },
+    {
+      "atMs": 447,
+      "distanceWorld": 0.19436945021152496
+    },
+    {
+      "atMs": 448,
+      "distanceWorld": 0.19541576504707336
+    },
+    {
+      "atMs": 449,
+      "distanceWorld": 0.19646231830120087
+    },
+    {
+      "atMs": 450,
+      "distanceWorld": 0.19750910997390747
+    },
+    {
+      "atMs": 451,
+      "distanceWorld": 0.19855612516403198
+    },
+    {
+      "atMs": 452,
+      "distanceWorld": 0.1996033638715744
+    },
+    {
+      "atMs": 453,
+      "distanceWorld": 0.20065081119537354
+    },
+    {
+      "atMs": 454,
+      "distanceWorld": 0.2016984522342682
+    },
+    {
+      "atMs": 455,
+      "distanceWorld": 0.20274631679058075
+    },
+    {
+      "atMs": 456,
+      "distanceWorld": 0.20379436016082764
+    },
+    {
+      "atMs": 457,
+      "distanceWorld": 0.20484258234500885
+    },
+    {
+      "atMs": 458,
+      "distanceWorld": 0.20589099824428558
+    },
+    {
+      "atMs": 459,
+      "distanceWorld": 0.20693959295749664
+    },
+    {
+      "atMs": 460,
+      "distanceWorld": 0.20798833668231964
+    },
+    {
+      "atMs": 461,
+      "distanceWorld": 0.20903724431991577
+    },
+    {
+      "atMs": 462,
+      "distanceWorld": 0.21008631587028503
+    },
+    {
+      "atMs": 463,
+      "distanceWorld": 0.21113553643226624
+    },
+    {
+      "atMs": 464,
+      "distanceWorld": 0.21218489110469818
+    },
+    {
+      "atMs": 465,
+      "distanceWorld": 0.21323437988758087
+    },
+    {
+      "atMs": 466,
+      "distanceWorld": 0.2142839878797531
+    },
+    {
+      "atMs": 467,
+      "distanceWorld": 0.2153337299823761
+    },
+    {
+      "atMs": 468,
+      "distanceWorld": 0.21638357639312744
+    },
+    {
+      "atMs": 469,
+      "distanceWorld": 0.21743354201316833
+    },
+    {
+      "atMs": 470,
+      "distanceWorld": 0.2184835970401764
+    },
+    {
+      "atMs": 471,
+      "distanceWorld": 0.2195337563753128
+    },
+    {
+      "atMs": 472,
+      "distanceWorld": 0.22058400511741638
+    },
+    {
+      "atMs": 473,
+      "distanceWorld": 0.22163432836532593
+    },
+    {
+      "atMs": 474,
+      "distanceWorld": 0.22268472611904144
+    },
+    {
+      "atMs": 475,
+      "distanceWorld": 0.22373519837856293
+    },
+    {
+      "atMs": 476,
+      "distanceWorld": 0.2247857302427292
+    },
+    {
+      "atMs": 477,
+      "distanceWorld": 0.22583630681037903
+    },
+    {
+      "atMs": 478,
+      "distanceWorld": 0.22688694298267365
+    },
+    {
+      "atMs": 479,
+      "distanceWorld": 0.22793762385845184
+    },
+    {
+      "atMs": 480,
+      "distanceWorld": 0.22898833453655243
+    },
+    {
+      "atMs": 481,
+      "distanceWorld": 0.2300390750169754
+    },
+    {
+      "atMs": 482,
+      "distanceWorld": 0.23108984529972076
+    },
+    {
+      "atMs": 483,
+      "distanceWorld": 0.23214063048362732
+    },
+    {
+      "atMs": 484,
+      "distanceWorld": 0.23319141566753387
+    },
+    {
+      "atMs": 485,
+      "distanceWorld": 0.23424221575260162
+    },
+    {
+      "atMs": 486,
+      "distanceWorld": 0.23529300093650818
+    },
+    {
+      "atMs": 487,
+      "distanceWorld": 0.23634378612041473
+    },
+    {
+      "atMs": 488,
+      "distanceWorld": 0.2373945415019989
+    },
+    {
+      "atMs": 489,
+      "distanceWorld": 0.23844528198242188
+    },
+    {
+      "atMs": 490,
+      "distanceWorld": 0.23949599266052246
+    },
+    {
+      "atMs": 491,
+      "distanceWorld": 0.2405466586351395
+    },
+    {
+      "atMs": 492,
+      "distanceWorld": 0.24159729480743408
+    },
+    {
+      "atMs": 493,
+      "distanceWorld": 0.24264787137508392
+    },
+    {
+      "atMs": 494,
+      "distanceWorld": 0.24369840323925018
+    },
+    {
+      "atMs": 495,
+      "distanceWorld": 0.24474886059761047
+    },
+    {
+      "atMs": 496,
+      "distanceWorld": 0.245799258351326
+    },
+    {
+      "atMs": 497,
+      "distanceWorld": 0.24684956669807434
+    },
+    {
+      "atMs": 498,
+      "distanceWorld": 0.24789980053901675
+    },
+    {
+      "atMs": 499,
+      "distanceWorld": 0.24894994497299194
+    },
+    {
+      "atMs": 500,
+      "distanceWorld": 0.25
+    },
+    {
+      "atMs": 501,
+      "distanceWorld": 0.2510506510734558
+    },
+    {
+      "atMs": 502,
+      "distanceWorld": 0.2521026134490967
+    },
+    {
+      "atMs": 503,
+      "distanceWorld": 0.25315582752227783
+    },
+    {
+      "atMs": 504,
+      "distanceWorld": 0.2542102336883545
+    },
+    {
+      "atMs": 505,
+      "distanceWorld": 0.25526583194732666
+    },
+    {
+      "atMs": 506,
+      "distanceWorld": 0.25632256269454956
+    },
+    {
+      "atMs": 507,
+      "distanceWorld": 0.2573803663253784
+    },
+    {
+      "atMs": 508,
+      "distanceWorld": 0.25843924283981323
+    },
+    {
+      "atMs": 509,
+      "distanceWorld": 0.25949913263320923
+    },
+    {
+      "atMs": 510,
+      "distanceWorld": 0.260560005903244
+    },
+    {
+      "atMs": 511,
+      "distanceWorld": 0.2616218030452728
+    },
+    {
+      "atMs": 512,
+      "distanceWorld": 0.26268449425697327
+    },
+    {
+      "atMs": 513,
+      "distanceWorld": 0.26374801993370056
+    },
+    {
+      "atMs": 514,
+      "distanceWorld": 0.2648123800754547
+    },
+    {
+      "atMs": 515,
+      "distanceWorld": 0.26587748527526855
+    },
+    {
+      "atMs": 516,
+      "distanceWorld": 0.2669433653354645
+    },
+    {
+      "atMs": 517,
+      "distanceWorld": 0.26800990104675293
+    },
+    {
+      "atMs": 518,
+      "distanceWorld": 0.2690771222114563
+    },
+    {
+      "atMs": 519,
+      "distanceWorld": 0.2701449394226074
+    },
+    {
+      "atMs": 520,
+      "distanceWorld": 0.2712133228778839
+    },
+    {
+      "atMs": 521,
+      "distanceWorld": 0.27228227257728577
+    },
+    {
+      "atMs": 522,
+      "distanceWorld": 0.27335166931152344
+    },
+    {
+      "atMs": 523,
+      "distanceWorld": 0.2744215428829193
+    },
+    {
+      "atMs": 524,
+      "distanceWorld": 0.2754918336868286
+    },
+    {
+      "atMs": 525,
+      "distanceWorld": 0.27656251192092896
+    },
+    {
+      "atMs": 526,
+      "distanceWorld": 0.2776334881782532
+    },
+    {
+      "atMs": 527,
+      "distanceWorld": 0.27870479226112366
+    },
+    {
+      "atMs": 528,
+      "distanceWorld": 0.27977633476257324
+    },
+    {
+      "atMs": 529,
+      "distanceWorld": 0.28084808588027954
+    },
+    {
+      "atMs": 530,
+      "distanceWorld": 0.2819199860095978
+    },
+    {
+      "atMs": 531,
+      "distanceWorld": 0.28299206495285034
+    },
+    {
+      "atMs": 532,
+      "distanceWorld": 0.2840642035007477
+    },
+    {
+      "atMs": 533,
+      "distanceWorld": 0.2851364314556122
+    },
+    {
+      "atMs": 534,
+      "distanceWorld": 0.2862086296081543
+    },
+    {
+      "atMs": 535,
+      "distanceWorld": 0.2872808277606964
+    },
+    {
+      "atMs": 536,
+      "distanceWorld": 0.28835296630859375
+    },
+    {
+      "atMs": 537,
+      "distanceWorld": 0.28942498564720154
+    },
+    {
+      "atMs": 538,
+      "distanceWorld": 0.2904968559741974
+    },
+    {
+      "atMs": 539,
+      "distanceWorld": 0.2915685474872589
+    },
+    {
+      "atMs": 540,
+      "distanceWorld": 0.29264000058174133
+    },
+    {
+      "atMs": 541,
+      "distanceWorld": 0.29371118545532227
+    },
+    {
+      "atMs": 542,
+      "distanceWorld": 0.2947820723056793
+    },
+    {
+      "atMs": 543,
+      "distanceWorld": 0.2958526313304901
+    },
+    {
+      "atMs": 544,
+      "distanceWorld": 0.2969227731227875
+    },
+    {
+      "atMs": 545,
+      "distanceWorld": 0.2979924976825714
+    },
+    {
+      "atMs": 546,
+      "distanceWorld": 0.29906174540519714
+    },
+    {
+      "atMs": 547,
+      "distanceWorld": 0.3001305162906647
+    },
+    {
+      "atMs": 548,
+      "distanceWorld": 0.30119872093200684
+    },
+    {
+      "atMs": 549,
+      "distanceWorld": 0.30226632952690125
+    },
+    {
+      "atMs": 550,
+      "distanceWorld": 0.3033333420753479
+    },
+    {
+      "atMs": 551,
+      "distanceWorld": 0.30439966917037964
+    },
+    {
+      "atMs": 552,
+      "distanceWorld": 0.3054652810096741
+    },
+    {
+      "atMs": 553,
+      "distanceWorld": 0.3065301477909088
+    },
+    {
+      "atMs": 554,
+      "distanceWorld": 0.3075942397117615
+    },
+    {
+      "atMs": 555,
+      "distanceWorld": 0.3086574971675873
+    },
+    {
+      "atMs": 556,
+      "distanceWorld": 0.30971989035606384
+    },
+    {
+      "atMs": 557,
+      "distanceWorld": 0.3107813894748688
+    },
+    {
+      "atMs": 558,
+      "distanceWorld": 0.3118419051170349
+    },
+    {
+      "atMs": 559,
+      "distanceWorld": 0.31290146708488464
+    },
+    {
+      "atMs": 560,
+      "distanceWorld": 0.3139599859714508
+    },
+    {
+      "atMs": 561,
+      "distanceWorld": 0.3150174617767334
+    },
+    {
+      "atMs": 562,
+      "distanceWorld": 0.31607380509376526
+    },
+    {
+      "atMs": 563,
+      "distanceWorld": 0.3171290159225464
+    },
+    {
+      "atMs": 564,
+      "distanceWorld": 0.318183034658432
+    },
+    {
+      "atMs": 565,
+      "distanceWorld": 0.31923583149909973
+    },
+    {
+      "atMs": 566,
+      "distanceWorld": 0.3202873468399048
+    },
+    {
+      "atMs": 567,
+      "distanceWorld": 0.32133758068084717
+    },
+    {
+      "atMs": 568,
+      "distanceWorld": 0.3223864436149597
+    },
+    {
+      "atMs": 569,
+      "distanceWorld": 0.32343393564224243
+    },
+    {
+      "atMs": 570,
+      "distanceWorld": 0.32447999715805054
+    },
+    {
+      "atMs": 571,
+      "distanceWorld": 0.32552459836006165
+    },
+    {
+      "atMs": 572,
+      "distanceWorld": 0.326567679643631
+    },
+    {
+      "atMs": 573,
+      "distanceWorld": 0.32760921120643616
+    },
+    {
+      "atMs": 574,
+      "distanceWorld": 0.3286491632461548
+    },
+    {
+      "atMs": 575,
+      "distanceWorld": 0.3296875059604645
+    },
+    {
+      "atMs": 576,
+      "distanceWorld": 0.33072414994239807
+    },
+    {
+      "atMs": 577,
+      "distanceWorld": 0.33175912499427795
+    },
+    {
+      "atMs": 578,
+      "distanceWorld": 0.3327923119068146
+    },
+    {
+      "atMs": 579,
+      "distanceWorld": 0.3338237404823303
+    },
+    {
+      "atMs": 580,
+      "distanceWorld": 0.33485332131385803
+    },
+    {
+      "atMs": 581,
+      "distanceWorld": 0.3358810544013977
+    },
+    {
+      "atMs": 582,
+      "distanceWorld": 0.33690688014030457
+    },
+    {
+      "atMs": 583,
+      "distanceWorld": 0.33793073892593384
+    },
+    {
+      "atMs": 584,
+      "distanceWorld": 0.3389526307582855
+    },
+    {
+      "atMs": 585,
+      "distanceWorld": 0.33997249603271484
+    },
+    {
+      "atMs": 586,
+      "distanceWorld": 0.3409903049468994
+    },
+    {
+      "atMs": 587,
+      "distanceWorld": 0.34200596809387207
+    },
+    {
+      "atMs": 588,
+      "distanceWorld": 0.3430195152759552
+    },
+    {
+      "atMs": 589,
+      "distanceWorld": 0.34403088688850403
+    },
+    {
+      "atMs": 590,
+      "distanceWorld": 0.3450399935245514
+    },
+    {
+      "atMs": 591,
+      "distanceWorld": 0.3460468649864197
+    },
+    {
+      "atMs": 592,
+      "distanceWorld": 0.3470514118671417
+    },
+    {
+      "atMs": 593,
+      "distanceWorld": 0.34805363416671753
+    },
+    {
+      "atMs": 594,
+      "distanceWorld": 0.34905344247817993
+    },
+    {
+      "atMs": 595,
+      "distanceWorld": 0.35005083680152893
+    },
+    {
+      "atMs": 596,
+      "distanceWorld": 0.35104575753211975
+    },
+    {
+      "atMs": 597,
+      "distanceWorld": 0.35203817486763
+    },
+    {
+      "atMs": 598,
+      "distanceWorld": 0.3530280590057373
+    },
+    {
+      "atMs": 599,
+      "distanceWorld": 0.3540153503417969
+    },
+    {
+      "atMs": 600,
+      "distanceWorld": 0.35499998927116394
+    },
+    {
+      "atMs": 601,
+      "distanceWorld": 0.3559820055961609
+    },
+    {
+      "atMs": 602,
+      "distanceWorld": 0.35696128010749817
+    },
+    {
+      "atMs": 603,
+      "distanceWorld": 0.3579378128051758
+    },
+    {
+      "atMs": 604,
+      "distanceWorld": 0.35891157388687134
+    },
+    {
+      "atMs": 605,
+      "distanceWorld": 0.35988250374794006
+    },
+    {
+      "atMs": 606,
+      "distanceWorld": 0.36085057258605957
+    },
+    {
+      "atMs": 607,
+      "distanceWorld": 0.3618157207965851
+    },
+    {
+      "atMs": 608,
+      "distanceWorld": 0.3627779185771942
+    },
+    {
+      "atMs": 609,
+      "distanceWorld": 0.3637371361255646
+    },
+    {
+      "atMs": 610,
+      "distanceWorld": 0.3646933436393738
+    },
+    {
+      "atMs": 611,
+      "distanceWorld": 0.36564645171165466
+    },
+    {
+      "atMs": 612,
+      "distanceWorld": 0.3665964901447296
+    },
+    {
+      "atMs": 613,
+      "distanceWorld": 0.3675433397293091
+    },
+    {
+      "atMs": 614,
+      "distanceWorld": 0.36848703026771545
+    },
+    {
+      "atMs": 615,
+      "distanceWorld": 0.36942750215530396
+    },
+    {
+      "atMs": 616,
+      "distanceWorld": 0.3703646957874298
+    },
+    {
+      "atMs": 617,
+      "distanceWorld": 0.37129858136177063
+    },
+    {
+      "atMs": 618,
+      "distanceWorld": 0.37222912907600403
+    },
+    {
+      "atMs": 619,
+      "distanceWorld": 0.37315627932548523
+    },
+    {
+      "atMs": 620,
+      "distanceWorld": 0.37408000230789185
+    },
+    {
+      "atMs": 621,
+      "distanceWorld": 0.3750002682209015
+    },
+    {
+      "atMs": 622,
+      "distanceWorld": 0.3759170174598694
+    },
+    {
+      "atMs": 623,
+      "distanceWorld": 0.37683022022247314
+    },
+    {
+      "atMs": 624,
+      "distanceWorld": 0.3777398467063904
+    },
+    {
+      "atMs": 625,
+      "distanceWorld": 0.3786458373069763
+    },
+    {
+      "atMs": 626,
+      "distanceWorld": 0.37954816222190857
+    },
+    {
+      "atMs": 627,
+      "distanceWorld": 0.38044679164886475
+    },
+    {
+      "atMs": 628,
+      "distanceWorld": 0.3813416659832001
+    },
+    {
+      "atMs": 629,
+      "distanceWorld": 0.3822327256202698
+    },
+    {
+      "atMs": 630,
+      "distanceWorld": 0.38312000036239624
+    },
+    {
+      "atMs": 631,
+      "distanceWorld": 0.3840034008026123
+    },
+    {
+      "atMs": 632,
+      "distanceWorld": 0.3848828673362732
+    },
+    {
+      "atMs": 633,
+      "distanceWorld": 0.3857584297657013
+    },
+    {
+      "atMs": 634,
+      "distanceWorld": 0.38662996888160706
+    },
+    {
+      "atMs": 635,
+      "distanceWorld": 0.38749751448631287
+    },
+    {
+      "atMs": 636,
+      "distanceWorld": 0.3883609473705292
+    },
+    {
+      "atMs": 637,
+      "distanceWorld": 0.38922032713890076
+    },
+    {
+      "atMs": 638,
+      "distanceWorld": 0.39007553458213806
+    },
+    {
+      "atMs": 639,
+      "distanceWorld": 0.3909265398979187
+    },
+    {
+      "atMs": 640,
+      "distanceWorld": 0.3917733430862427
+    },
+    {
+      "atMs": 641,
+      "distanceWorld": 0.3926158547401428
+    },
+    {
+      "atMs": 642,
+      "distanceWorld": 0.39345407485961914
+    },
+    {
+      "atMs": 643,
+      "distanceWorld": 0.39428794384002686
+    },
+    {
+      "atMs": 644,
+      "distanceWorld": 0.3951174318790436
+    },
+    {
+      "atMs": 645,
+      "distanceWorld": 0.3959425091743469
+    },
+    {
+      "atMs": 646,
+      "distanceWorld": 0.3967630863189697
+    },
+    {
+      "atMs": 647,
+      "distanceWorld": 0.3975791931152344
+    },
+    {
+      "atMs": 648,
+      "distanceWorld": 0.3983907103538513
+    },
+    {
+      "atMs": 649,
+      "distanceWorld": 0.39919766783714294
+    },
+    {
+      "atMs": 650,
+      "distanceWorld": 0.4000000059604645
+    },
+    {
+      "atMs": 651,
+      "distanceWorld": 0.4007973372936249
+    },
+    {
+      "atMs": 652,
+      "distanceWorld": 0.40158936381340027
+    },
+    {
+      "atMs": 653,
+      "distanceWorld": 0.40237608551979065
+    },
+    {
+      "atMs": 654,
+      "distanceWorld": 0.4031575322151184
+    },
+    {
+      "atMs": 655,
+      "distanceWorld": 0.40393370389938354
+    },
+    {
+      "atMs": 656,
+      "distanceWorld": 0.40470463037490845
+    },
+    {
+      "atMs": 657,
+      "distanceWorld": 0.4054703414440155
+    },
+    {
+      "atMs": 658,
+      "distanceWorld": 0.4062308371067047
+    },
+    {
+      "atMs": 659,
+      "distanceWorld": 0.40698614716529846
+    },
+    {
+      "atMs": 660,
+      "distanceWorld": 0.40773630142211914
+    },
+    {
+      "atMs": 661,
+      "distanceWorld": 0.40848127007484436
+    },
+    {
+      "atMs": 662,
+      "distanceWorld": 0.4092211127281189
+    },
+    {
+      "atMs": 663,
+      "distanceWorld": 0.40995582938194275
+    },
+    {
+      "atMs": 664,
+      "distanceWorld": 0.4106854498386383
+    },
+    {
+      "atMs": 665,
+      "distanceWorld": 0.41141000390052795
+    },
+    {
+      "atMs": 666,
+      "distanceWorld": 0.4121294617652893
+    },
+    {
+      "atMs": 667,
+      "distanceWorld": 0.41284388303756714
+    },
+    {
+      "atMs": 668,
+      "distanceWorld": 0.41355326771736145
+    },
+    {
+      "atMs": 669,
+      "distanceWorld": 0.41425764560699463
+    },
+    {
+      "atMs": 670,
+      "distanceWorld": 0.41495704650878906
+    },
+    {
+      "atMs": 671,
+      "distanceWorld": 0.41565144062042236
+    },
+    {
+      "atMs": 672,
+      "distanceWorld": 0.4163408875465393
+    },
+    {
+      "atMs": 673,
+      "distanceWorld": 0.4170253872871399
+    },
+    {
+      "atMs": 674,
+      "distanceWorld": 0.4177049696445465
+    },
+    {
+      "atMs": 675,
+      "distanceWorld": 0.41837963461875916
+    },
+    {
+      "atMs": 676,
+      "distanceWorld": 0.4190494120121002
+    },
+    {
+      "atMs": 677,
+      "distanceWorld": 0.4197143316268921
+    },
+    {
+      "atMs": 678,
+      "distanceWorld": 0.4203743636608124
+    },
+    {
+      "atMs": 679,
+      "distanceWorld": 0.42102959752082825
+    },
+    {
+      "atMs": 680,
+      "distanceWorld": 0.4216800034046173
+    },
+    {
+      "atMs": 681,
+      "distanceWorld": 0.42232561111450195
+    },
+    {
+      "atMs": 682,
+      "distanceWorld": 0.4229664206504822
+    },
+    {
+      "atMs": 683,
+      "distanceWorld": 0.42360249161720276
+    },
+    {
+      "atMs": 684,
+      "distanceWorld": 0.4242337942123413
+    },
+    {
+      "atMs": 685,
+      "distanceWorld": 0.4248603582382202
+    },
+    {
+      "atMs": 686,
+      "distanceWorld": 0.42548224329948425
+    },
+    {
+      "atMs": 687,
+      "distanceWorld": 0.42609941959381104
+    },
+    {
+      "atMs": 688,
+      "distanceWorld": 0.42671191692352295
+    },
+    {
+      "atMs": 689,
+      "distanceWorld": 0.4273197650909424
+    },
+    {
+      "atMs": 690,
+      "distanceWorld": 0.42792296409606934
+    },
+    {
+      "atMs": 691,
+      "distanceWorld": 0.4285215437412262
+    },
+    {
+      "atMs": 692,
+      "distanceWorld": 0.42911553382873535
+    },
+    {
+      "atMs": 693,
+      "distanceWorld": 0.4297049045562744
+    },
+    {
+      "atMs": 694,
+      "distanceWorld": 0.43028971552848816
+    },
+    {
+      "atMs": 695,
+      "distanceWorld": 0.430869996547699
+    },
+    {
+      "atMs": 696,
+      "distanceWorld": 0.43144574761390686
+    },
+    {
+      "atMs": 697,
+      "distanceWorld": 0.4320169687271118
+    },
+    {
+      "atMs": 698,
+      "distanceWorld": 0.43258368968963623
+    },
+    {
+      "atMs": 699,
+      "distanceWorld": 0.4331459105014801
+    },
+    {
+      "atMs": 700,
+      "distanceWorld": 0.4337036907672882
+    },
+    {
+      "atMs": 701,
+      "distanceWorld": 0.43425703048706055
+    },
+    {
+      "atMs": 702,
+      "distanceWorld": 0.4348059594631195
+    },
+    {
+      "atMs": 703,
+      "distanceWorld": 0.4353504478931427
+    },
+    {
+      "atMs": 704,
+      "distanceWorld": 0.4358905553817749
+    },
+    {
+      "atMs": 705,
+      "distanceWorld": 0.4364262819290161
+    },
+    {
+      "atMs": 706,
+      "distanceWorld": 0.4369576871395111
+    },
+    {
+      "atMs": 707,
+      "distanceWorld": 0.4374847114086151
+    },
+    {
+      "atMs": 708,
+      "distanceWorld": 0.4380074441432953
+    },
+    {
+      "atMs": 709,
+      "distanceWorld": 0.43852585554122925
+    },
+    {
+      "atMs": 710,
+      "distanceWorld": 0.43904000520706177
+    },
+    {
+      "atMs": 711,
+      "distanceWorld": 0.43954986333847046
+    },
+    {
+      "atMs": 712,
+      "distanceWorld": 0.4400554895401001
+    },
+    {
+      "atMs": 713,
+      "distanceWorld": 0.4405568838119507
+    },
+    {
+      "atMs": 714,
+      "distanceWorld": 0.4410540461540222
+    },
+    {
+      "atMs": 715,
+      "distanceWorld": 0.4415470361709595
+    },
+    {
+      "atMs": 716,
+      "distanceWorld": 0.44203585386276245
+    },
+    {
+      "atMs": 717,
+      "distanceWorld": 0.44252046942710876
+    },
+    {
+      "atMs": 718,
+      "distanceWorld": 0.4430009722709656
+    },
+    {
+      "atMs": 719,
+      "distanceWorld": 0.4434773623943329
+    },
+    {
+      "atMs": 720,
+      "distanceWorld": 0.4439496397972107
+    },
+    {
+      "atMs": 721,
+      "distanceWorld": 0.444417804479599
+    },
+    {
+      "atMs": 722,
+      "distanceWorld": 0.4448819160461426
+    },
+    {
+      "atMs": 723,
+      "distanceWorld": 0.44534197449684143
+    },
+    {
+      "atMs": 724,
+      "distanceWorld": 0.44579800963401794
+    },
+    {
+      "atMs": 725,
+      "distanceWorld": 0.44624999165534973
+    },
+    {
+      "atMs": 726,
+      "distanceWorld": 0.44669800996780396
+    },
+    {
+      "atMs": 727,
+      "distanceWorld": 0.4471420347690582
+    },
+    {
+      "atMs": 728,
+      "distanceWorld": 0.44758206605911255
+    },
+    {
+      "atMs": 729,
+      "distanceWorld": 0.4480181932449341
+    },
+    {
+      "atMs": 730,
+      "distanceWorld": 0.44845035672187805
+    },
+    {
+      "atMs": 731,
+      "distanceWorld": 0.4488786458969116
+    },
+    {
+      "atMs": 732,
+      "distanceWorld": 0.4493030309677124
+    },
+    {
+      "atMs": 733,
+      "distanceWorld": 0.4497235119342804
+    },
+    {
+      "atMs": 734,
+      "distanceWorld": 0.4501401484012604
+    },
+    {
+      "atMs": 735,
+      "distanceWorld": 0.45055297017097473
+    },
+    {
+      "atMs": 736,
+      "distanceWorld": 0.4509619474411011
+    },
+    {
+      "atMs": 737,
+      "distanceWorld": 0.4513671100139618
+    },
+    {
+      "atMs": 738,
+      "distanceWorld": 0.45176851749420166
+    },
+    {
+      "atMs": 739,
+      "distanceWorld": 0.4521661400794983
+    },
+    {
+      "atMs": 740,
+      "distanceWorld": 0.4525600075721741
+    },
+    {
+      "atMs": 741,
+      "distanceWorld": 0.4529501497745514
+    },
+    {
+      "atMs": 742,
+      "distanceWorld": 0.45333656668663025
+    },
+    {
+      "atMs": 743,
+      "distanceWorld": 0.45371928811073303
+    },
+    {
+      "atMs": 744,
+      "distanceWorld": 0.45409831404685974
+    },
+    {
+      "atMs": 745,
+      "distanceWorld": 0.45447370409965515
+    },
+    {
+      "atMs": 746,
+      "distanceWorld": 0.4548454284667969
+    },
+    {
+      "atMs": 747,
+      "distanceWorld": 0.4552135467529297
+    },
+    {
+      "atMs": 748,
+      "distanceWorld": 0.4555780589580536
+    },
+    {
+      "atMs": 749,
+      "distanceWorld": 0.4559389650821686
+    },
+    {
+      "atMs": 750,
+      "distanceWorld": 0.45629629492759705
+    },
+    {
+      "atMs": 751,
+      "distanceWorld": 0.4566500782966614
+    },
+    {
+      "atMs": 752,
+      "distanceWorld": 0.4570003151893616
+    },
+    {
+      "atMs": 753,
+      "distanceWorld": 0.45734703540802
+    },
+    {
+      "atMs": 754,
+      "distanceWorld": 0.4576902687549591
+    },
+    {
+      "atMs": 755,
+      "distanceWorld": 0.45802998542785645
+    },
+    {
+      "atMs": 756,
+      "distanceWorld": 0.4583662748336792
+    },
+    {
+      "atMs": 757,
+      "distanceWorld": 0.4586990773677826
+    },
+    {
+      "atMs": 758,
+      "distanceWorld": 0.4590284824371338
+    },
+    {
+      "atMs": 759,
+      "distanceWorld": 0.4593544602394104
+    },
+    {
+      "atMs": 760,
+      "distanceWorld": 0.4596770405769348
+    },
+    {
+      "atMs": 761,
+      "distanceWorld": 0.4599962532520294
+    },
+    {
+      "atMs": 762,
+      "distanceWorld": 0.4603120684623718
+    },
+    {
+      "atMs": 763,
+      "distanceWorld": 0.4606245756149292
+    },
+    {
+      "atMs": 764,
+      "distanceWorld": 0.46093377470970154
+    },
+    {
+      "atMs": 765,
+      "distanceWorld": 0.46123963594436646
+    },
+    {
+      "atMs": 766,
+      "distanceWorld": 0.4615422189235687
+    },
+    {
+      "atMs": 767,
+      "distanceWorld": 0.46184152364730835
+    },
+    {
+      "atMs": 768,
+      "distanceWorld": 0.4621375799179077
+    },
+    {
+      "atMs": 769,
+      "distanceWorld": 0.4624303877353668
+    },
+    {
+      "atMs": 770,
+      "distanceWorld": 0.46272000670433044
+    },
+    {
+      "atMs": 771,
+      "distanceWorld": 0.4630064070224762
+    },
+    {
+      "atMs": 772,
+      "distanceWorld": 0.46328961849212646
+    },
+    {
+      "atMs": 773,
+      "distanceWorld": 0.46356967091560364
+    },
+    {
+      "atMs": 774,
+      "distanceWorld": 0.4638465940952301
+    },
+    {
+      "atMs": 775,
+      "distanceWorld": 0.46412035822868347
+    },
+    {
+      "atMs": 776,
+      "distanceWorld": 0.4643910527229309
+    },
+    {
+      "atMs": 777,
+      "distanceWorld": 0.46465861797332764
+    },
+    {
+      "atMs": 778,
+      "distanceWorld": 0.46492311358451843
+    },
+    {
+      "atMs": 779,
+      "distanceWorld": 0.4651845693588257
+    },
+    {
+      "atMs": 780,
+      "distanceWorld": 0.465442955493927
+    },
+    {
+      "atMs": 781,
+      "distanceWorld": 0.46569833159446716
+    },
+    {
+      "atMs": 782,
+      "distanceWorld": 0.46595072746276855
+    },
+    {
+      "atMs": 783,
+      "distanceWorld": 0.4662001132965088
+    },
+    {
+      "atMs": 784,
+      "distanceWorld": 0.46644651889801025
+    },
+    {
+      "atMs": 785,
+      "distanceWorld": 0.4666900038719177
+    },
+    {
+      "atMs": 786,
+      "distanceWorld": 0.4669305384159088
+    },
+    {
+      "atMs": 787,
+      "distanceWorld": 0.4671681523323059
+    },
+    {
+      "atMs": 788,
+      "distanceWorld": 0.4674028754234314
+    },
+    {
+      "atMs": 789,
+      "distanceWorld": 0.46763473749160767
+    },
+    {
+      "atMs": 790,
+      "distanceWorld": 0.46786370873451233
+    },
+    {
+      "atMs": 791,
+      "distanceWorld": 0.46808984875679016
+    },
+    {
+      "atMs": 792,
+      "distanceWorld": 0.46831315755844116
+    },
+    {
+      "atMs": 793,
+      "distanceWorld": 0.4685336649417877
+    },
+    {
+      "atMs": 794,
+      "distanceWorld": 0.46875137090682983
+    },
+    {
+      "atMs": 795,
+      "distanceWorld": 0.4689663052558899
+    },
+    {
+      "atMs": 796,
+      "distanceWorld": 0.4691784679889679
+    },
+    {
+      "atMs": 797,
+      "distanceWorld": 0.4693879187107086
+    },
+    {
+      "atMs": 798,
+      "distanceWorld": 0.46959465742111206
+    },
+    {
+      "atMs": 799,
+      "distanceWorld": 0.46979865431785583
+    },
+    {
+      "atMs": 800,
+      "distanceWorld": 0.4699999988079071
+    },
+    {
+      "atMs": 801,
+      "distanceWorld": 0.47019875049591064
+    },
+    {
+      "atMs": 802,
+      "distanceWorld": 0.470395028591156
+    },
+    {
+      "atMs": 803,
+      "distanceWorld": 0.4705888032913208
+    },
+    {
+      "atMs": 804,
+      "distanceWorld": 0.4707801640033722
+    },
+    {
+      "atMs": 805,
+      "distanceWorld": 0.4709690511226654
+    },
+    {
+      "atMs": 806,
+      "distanceWorld": 0.4711555540561676
+    },
+    {
+      "atMs": 807,
+      "distanceWorld": 0.471339613199234
+    },
+    {
+      "atMs": 808,
+      "distanceWorld": 0.4715212881565094
+    },
+    {
+      "atMs": 809,
+      "distanceWorld": 0.4717005789279938
+    },
+    {
+      "atMs": 810,
+      "distanceWorld": 0.47187748551368713
+    },
+    {
+      "atMs": 811,
+      "distanceWorld": 0.47205206751823425
+    },
+    {
+      "atMs": 812,
+      "distanceWorld": 0.47222432494163513
+    },
+    {
+      "atMs": 813,
+      "distanceWorld": 0.4723942279815674
+    },
+    {
+      "atMs": 814,
+      "distanceWorld": 0.47256186604499817
+    },
+    {
+      "atMs": 815,
+      "distanceWorld": 0.4727271795272827
+    },
+    {
+      "atMs": 816,
+      "distanceWorld": 0.4728902280330658
+    },
+    {
+      "atMs": 817,
+      "distanceWorld": 0.4730510413646698
+    },
+    {
+      "atMs": 818,
+      "distanceWorld": 0.47320958971977234
+    },
+    {
+      "atMs": 819,
+      "distanceWorld": 0.4733659029006958
+    },
+    {
+      "atMs": 820,
+      "distanceWorld": 0.4735200107097626
+    },
+    {
+      "atMs": 821,
+      "distanceWorld": 0.47367191314697266
+    },
+    {
+      "atMs": 822,
+      "distanceWorld": 0.47382161021232605
+    },
+    {
+      "atMs": 823,
+      "distanceWorld": 0.47396916151046753
+    },
+    {
+      "atMs": 824,
+      "distanceWorld": 0.4741145670413971
+    },
+    {
+      "atMs": 825,
+      "distanceWorld": 0.47425782680511475
+    },
+    {
+      "atMs": 826,
+      "distanceWorld": 0.4743989408016205
+    },
+    {
+      "atMs": 827,
+      "distanceWorld": 0.4745379686355591
+    },
+    {
+      "atMs": 828,
+      "distanceWorld": 0.47467488050460815
+    },
+    {
+      "atMs": 829,
+      "distanceWorld": 0.4748097360134125
+    },
+    {
+      "atMs": 830,
+      "distanceWorld": 0.47494250535964966
+    },
+    {
+      "atMs": 831,
+      "distanceWorld": 0.4750732183456421
+    },
+    {
+      "atMs": 832,
+      "distanceWorld": 0.47520193457603455
+    },
+    {
+      "atMs": 833,
+      "distanceWorld": 0.47532859444618225
+    },
+    {
+      "atMs": 834,
+      "distanceWorld": 0.47545325756073
+    },
+    {
+      "atMs": 835,
+      "distanceWorld": 0.47557592391967773
+    },
+    {
+      "atMs": 836,
+      "distanceWorld": 0.4756966531276703
+    },
+    {
+      "atMs": 837,
+      "distanceWorld": 0.47581538558006287
+    },
+    {
+      "atMs": 838,
+      "distanceWorld": 0.47593218088150024
+    },
+    {
+      "atMs": 839,
+      "distanceWorld": 0.4760470390319824
+    },
+    {
+      "atMs": 840,
+      "distanceWorld": 0.4761599898338318
+    },
+    {
+      "atMs": 841,
+      "distanceWorld": 0.4762710630893707
+    },
+    {
+      "atMs": 842,
+      "distanceWorld": 0.47638022899627686
+    },
+    {
+      "atMs": 843,
+      "distanceWorld": 0.47648751735687256
+    },
+    {
+      "atMs": 844,
+      "distanceWorld": 0.4765929579734802
+    },
+    {
+      "atMs": 845,
+      "distanceWorld": 0.47669655084609985
+    },
+    {
+      "atMs": 846,
+      "distanceWorld": 0.47679832577705383
+    },
+    {
+      "atMs": 847,
+      "distanceWorld": 0.47689831256866455
+    },
+    {
+      "atMs": 848,
+      "distanceWorld": 0.4769964814186096
+    },
+    {
+      "atMs": 849,
+      "distanceWorld": 0.4770928621292114
+    },
+    {
+      "atMs": 850,
+      "distanceWorld": 0.47718751430511475
+    },
+    {
+      "atMs": 851,
+      "distanceWorld": 0.4772803783416748
+    },
+    {
+      "atMs": 852,
+      "distanceWorld": 0.4773715138435364
+    },
+    {
+      "atMs": 853,
+      "distanceWorld": 0.47746095061302185
+    },
+    {
+      "atMs": 854,
+      "distanceWorld": 0.47754865884780884
+    },
+    {
+      "atMs": 855,
+      "distanceWorld": 0.4776346981525421
+    },
+    {
+      "atMs": 856,
+      "distanceWorld": 0.4777190387248993
+    },
+    {
+      "atMs": 857,
+      "distanceWorld": 0.47780174016952515
+    },
+    {
+      "atMs": 858,
+      "distanceWorld": 0.4778827726840973
+    },
+    {
+      "atMs": 859,
+      "distanceWorld": 0.4779621958732605
+    },
+    {
+      "atMs": 860,
+      "distanceWorld": 0.47804000973701477
+    },
+    {
+      "atMs": 861,
+      "distanceWorld": 0.4781162142753601
+    },
+    {
+      "atMs": 862,
+      "distanceWorld": 0.4781908094882965
+    },
+    {
+      "atMs": 863,
+      "distanceWorld": 0.47826385498046875
+    },
+    {
+      "atMs": 864,
+      "distanceWorld": 0.47833535075187683
+    },
+    {
+      "atMs": 865,
+      "distanceWorld": 0.47840532660484314
+    },
+    {
+      "atMs": 866,
+      "distanceWorld": 0.4784737527370453
+    },
+    {
+      "atMs": 867,
+      "distanceWorld": 0.47854065895080566
+    },
+    {
+      "atMs": 868,
+      "distanceWorld": 0.47860607504844666
+    },
+    {
+      "atMs": 869,
+      "distanceWorld": 0.47867003083229065
+    },
+    {
+      "atMs": 870,
+      "distanceWorld": 0.47873249650001526
+    },
+    {
+      "atMs": 871,
+      "distanceWorld": 0.47879353165626526
+    },
+    {
+      "atMs": 872,
+      "distanceWorld": 0.47885310649871826
+    },
+    {
+      "atMs": 873,
+      "distanceWorld": 0.47891128063201904
+    },
+    {
+      "atMs": 874,
+      "distanceWorld": 0.4789680540561676
+    },
+    {
+      "atMs": 875,
+      "distanceWorld": 0.47902342677116394
+    },
+    {
+      "atMs": 876,
+      "distanceWorld": 0.47907742857933044
+    },
+    {
+      "atMs": 877,
+      "distanceWorld": 0.4791300892829895
+    },
+    {
+      "atMs": 878,
+      "distanceWorld": 0.4791813790798187
+    },
+    {
+      "atMs": 879,
+      "distanceWorld": 0.4792313575744629
+    },
+    {
+      "atMs": 880,
+      "distanceWorld": 0.4792799949645996
+    },
+    {
+      "atMs": 881,
+      "distanceWorld": 0.47932735085487366
+    },
+    {
+      "atMs": 882,
+      "distanceWorld": 0.47937342524528503
+    },
+    {
+      "atMs": 883,
+      "distanceWorld": 0.47941821813583374
+    },
+    {
+      "atMs": 884,
+      "distanceWorld": 0.47946175932884216
+    },
+    {
+      "atMs": 885,
+      "distanceWorld": 0.4795040488243103
+    },
+    {
+      "atMs": 886,
+      "distanceWorld": 0.47954514622688293
+    },
+    {
+      "atMs": 887,
+      "distanceWorld": 0.47958502173423767
+    },
+    {
+      "atMs": 888,
+      "distanceWorld": 0.4796236753463745
+    },
+    {
+      "atMs": 889,
+      "distanceWorld": 0.47966116666793823
+    },
+    {
+      "atMs": 890,
+      "distanceWorld": 0.47969749569892883
+    },
+    {
+      "atMs": 891,
+      "distanceWorld": 0.4797326922416687
+    },
+    {
+      "atMs": 892,
+      "distanceWorld": 0.47976672649383545
+    },
+    {
+      "atMs": 893,
+      "distanceWorld": 0.47979962825775146
+    },
+    {
+      "atMs": 894,
+      "distanceWorld": 0.4798314571380615
+    },
+    {
+      "atMs": 895,
+      "distanceWorld": 0.47986218333244324
+    },
+    {
+      "atMs": 896,
+      "distanceWorld": 0.479891836643219
+    },
+    {
+      "atMs": 897,
+      "distanceWorld": 0.4799204468727112
+    },
+    {
+      "atMs": 898,
+      "distanceWorld": 0.4799479842185974
+    },
+    {
+      "atMs": 899,
+      "distanceWorld": 0.47997450828552246
+    },
+    {
+      "atMs": 900,
+      "distanceWorld": 0.47999998927116394
+    },
+    {
+      "atMs": 901,
+      "distanceWorld": 0.480024516582489
+    },
+    {
+      "atMs": 902,
+      "distanceWorld": 0.4800480306148529
+    },
+    {
+      "atMs": 903,
+      "distanceWorld": 0.480070561170578
+    },
+    {
+      "atMs": 904,
+      "distanceWorld": 0.4800921678543091
+    },
+    {
+      "atMs": 905,
+      "distanceWorld": 0.48011282086372375
+    },
+    {
+      "atMs": 906,
+      "distanceWorld": 0.48013255000114446
+    },
+    {
+      "atMs": 907,
+      "distanceWorld": 0.48015135526657104
+    },
+    {
+      "atMs": 908,
+      "distanceWorld": 0.48016926646232605
+    },
+    {
+      "atMs": 909,
+      "distanceWorld": 0.4801863133907318
+    },
+    {
+      "atMs": 910,
+      "distanceWorld": 0.48020249605178833
+    },
+    {
+      "atMs": 911,
+      "distanceWorld": 0.4802178144454956
+    },
+    {
+      "atMs": 912,
+      "distanceWorld": 0.48023232817649847
+    },
+    {
+      "atMs": 913,
+      "distanceWorld": 0.480245977640152
+    },
+    {
+      "atMs": 914,
+      "distanceWorld": 0.48025885224342346
+    },
+    {
+      "atMs": 915,
+      "distanceWorld": 0.4802709519863129
+    },
+    {
+      "atMs": 916,
+      "distanceWorld": 0.4802822470664978
+    },
+    {
+      "atMs": 917,
+      "distanceWorld": 0.48029279708862305
+    },
+    {
+      "atMs": 918,
+      "distanceWorld": 0.4803025722503662
+    },
+    {
+      "atMs": 919,
+      "distanceWorld": 0.48031166195869446
+    },
+    {
+      "atMs": 920,
+      "distanceWorld": 0.480320006608963
+    },
+    {
+      "atMs": 921,
+      "distanceWorld": 0.48032766580581665
+    },
+    {
+      "atMs": 922,
+      "distanceWorld": 0.48033460974693304
+    },
+    {
+      "atMs": 923,
+      "distanceWorld": 0.4803409278392792
+    },
+    {
+      "atMs": 924,
+      "distanceWorld": 0.48034656047821045
+    },
+    {
+      "atMs": 925,
+      "distanceWorld": 0.4803515672683716
+    },
+    {
+      "atMs": 926,
+      "distanceWorld": 0.4803559482097626
+    },
+    {
+      "atMs": 927,
+      "distanceWorld": 0.4803597033023834
+    },
+    {
+      "atMs": 928,
+      "distanceWorld": 0.4803628921508789
+    },
+    {
+      "atMs": 929,
+      "distanceWorld": 0.48036548495292664
+    },
+    {
+      "atMs": 930,
+      "distanceWorld": 0.48036751151084905
+    },
+    {
+      "atMs": 931,
+      "distanceWorld": 0.480368971824646
+    },
+    {
+      "atMs": 932,
+      "distanceWorld": 0.48036992549896246
+    },
+    {
+      "atMs": 933,
+      "distanceWorld": 0.48037034273147583
+    },
+    {
+      "atMs": 934,
+      "distanceWorld": 0.48037025332450867
+    },
+    {
+      "atMs": 935,
+      "distanceWorld": 0.4803696870803833
+    },
+    {
+      "atMs": 936,
+      "distanceWorld": 0.48036864399909973
+    },
+    {
+      "atMs": 937,
+      "distanceWorld": 0.48036712408065796
+    },
+    {
+      "atMs": 938,
+      "distanceWorld": 0.4803651869297028
+    },
+    {
+      "atMs": 939,
+      "distanceWorld": 0.48036280274391174
+    },
+    {
+      "atMs": 940,
+      "distanceWorld": 0.48036000132560736
+    },
+    {
+      "atMs": 941,
+      "distanceWorld": 0.4803568124771118
+    },
+    {
+      "atMs": 942,
+      "distanceWorld": 0.48035320639610296
+    },
+    {
+      "atMs": 943,
+      "distanceWorld": 0.4803492724895478
+    },
+    {
+      "atMs": 944,
+      "distanceWorld": 0.4803449511528015
+    },
+    {
+      "atMs": 945,
+      "distanceWorld": 0.48034030199050903
+    },
+    {
+      "atMs": 946,
+      "distanceWorld": 0.4803353548049927
+    },
+    {
+      "atMs": 947,
+      "distanceWorld": 0.4803300499916077
+    },
+    {
+      "atMs": 948,
+      "distanceWorld": 0.48032447695732117
+    },
+    {
+      "atMs": 949,
+      "distanceWorld": 0.4803186357021332
+    },
+    {
+      "atMs": 950,
+      "distanceWorld": 0.4803124964237213
+    },
+    {
+      "atMs": 951,
+      "distanceWorld": 0.48030611872673035
+    },
+    {
+      "atMs": 952,
+      "distanceWorld": 0.48029953241348267
+    },
+    {
+      "atMs": 953,
+      "distanceWorld": 0.48029267787933355
+    },
+    {
+      "atMs": 954,
+      "distanceWorld": 0.4802856743335724
+    },
+    {
+      "atMs": 955,
+      "distanceWorld": 0.4802784323692322
+    },
+    {
+      "atMs": 956,
+      "distanceWorld": 0.4802710413932801
+    },
+    {
+      "atMs": 957,
+      "distanceWorld": 0.48026347160339355
+    },
+    {
+      "atMs": 958,
+      "distanceWorld": 0.48025578260421753
+    },
+    {
+      "atMs": 959,
+      "distanceWorld": 0.48024794459342957
+    },
+    {
+      "atMs": 960,
+      "distanceWorld": 0.48023998737335205
+    },
+    {
+      "atMs": 961,
+      "distanceWorld": 0.4802319407463074
+    },
+    {
+      "atMs": 962,
+      "distanceWorld": 0.480223834514618
+    },
+    {
+      "atMs": 963,
+      "distanceWorld": 0.48021560907363897
+    },
+    {
+      "atMs": 964,
+      "distanceWorld": 0.4802073538303375
+    },
+    {
+      "atMs": 965,
+      "distanceWorld": 0.4801990687847138
+    },
+    {
+      "atMs": 966,
+      "distanceWorld": 0.48019075393676763
+    },
+    {
+      "atMs": 967,
+      "distanceWorld": 0.480182409286499
+    },
+    {
+      "atMs": 968,
+      "distanceWorld": 0.48017409443855286
+    },
+    {
+      "atMs": 969,
+      "distanceWorld": 0.4801657795906067
+    },
+    {
+      "atMs": 970,
+      "distanceWorld": 0.48015749454498297
+    },
+    {
+      "atMs": 971,
+      "distanceWorld": 0.48014926910400396
+    },
+    {
+      "atMs": 972,
+      "distanceWorld": 0.4801411330699921
+    },
+    {
+      "atMs": 973,
+      "distanceWorld": 0.480133056640625
+    },
+    {
+      "atMs": 974,
+      "distanceWorld": 0.4801250696182251
+    },
+    {
+      "atMs": 975,
+      "distanceWorld": 0.48011720180511475
+    },
+    {
+      "atMs": 976,
+      "distanceWorld": 0.48010945320129395
+    },
+    {
+      "atMs": 977,
+      "distanceWorld": 0.4801018238067627
+    },
+    {
+      "atMs": 978,
+      "distanceWorld": 0.4800943732261658
+    },
+    {
+      "atMs": 979,
+      "distanceWorld": 0.4800871014595032
+    },
+    {
+      "atMs": 980,
+      "distanceWorld": 0.4800800085067749
+    },
+    {
+      "atMs": 981,
+      "distanceWorld": 0.480073094367981
+    },
+    {
+      "atMs": 982,
+      "distanceWorld": 0.4800664186477661
+    },
+    {
+      "atMs": 983,
+      "distanceWorld": 0.48005998134613037
+    },
+    {
+      "atMs": 984,
+      "distanceWorld": 0.48005375266075134
+    },
+    {
+      "atMs": 985,
+      "distanceWorld": 0.4800478219985962
+    },
+    {
+      "atMs": 986,
+      "distanceWorld": 0.48004212975502014
+    },
+    {
+      "atMs": 987,
+      "distanceWorld": 0.48003676533699036
+    },
+    {
+      "atMs": 988,
+      "distanceWorld": 0.48003166913986206
+    },
+    {
+      "atMs": 989,
+      "distanceWorld": 0.4800269305706024
+    },
+    {
+      "atMs": 990,
+      "distanceWorld": 0.4800224900245667
+    },
+    {
+      "atMs": 991,
+      "distanceWorld": 0.4800184369087219
+    },
+    {
+      "atMs": 992,
+      "distanceWorld": 0.4800147116184235
+    },
+    {
+      "atMs": 993,
+      "distanceWorld": 0.4800114035606385
+    },
+    {
+      "atMs": 994,
+      "distanceWorld": 0.4800084531307221
+    },
+    {
+      "atMs": 995,
+      "distanceWorld": 0.48000594973564154
+    },
+    {
+      "atMs": 996,
+      "distanceWorld": 0.48000383377075195
+    },
+    {
+      "atMs": 997,
+      "distanceWorld": 0.4800021946430207
+    },
+    {
+      "atMs": 998,
+      "distanceWorld": 0.48000097274780273
+    },
+    {
+      "atMs": 999,
+      "distanceWorld": 0.48000025749206543
+    },
+    {
+      "atMs": 1000,
+      "distanceWorld": 0.47999998927116394
+    }
+  ],
+  "source": {
+    "posesSha256": "078e9534411b739383f4d3d073f82f99cec46577d81bcdd12169d1302628513f",
+    "rigSha256": "85ac3fa65aef45a8c856639c864a893f06401d0c3f060ab9c55c66ff652dea7c",
+    "styleSha256": "e4ca85623e2caa3043d5c7bd54b7acdd71d4757761d6f8b2937d6df81cde0ffd",
+    "denseSkinSamples": 101,
+    "minimumSolidZ": -1.2210269062506995e-07,
+    "maxGroundedSoleRigidError": 2.561579287949416e-07,
+    "maxLocalEndpointMeshError": 2.96529363723582e-07
+  },
+  "playbackReady": false,
+  "runtimeActivated": false
+}

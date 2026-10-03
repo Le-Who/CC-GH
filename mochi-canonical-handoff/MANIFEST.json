@@ -1,0 +1,1547 @@
+{
+  "format": "yard-mochi-canonical-inactive-checkpoint/v1",
+  "status": "source-ready-inactive-not-production-patch",
+  "baseSourceArchive": "before-stage.zip",
+  "baseSourceArchiveSha256": "ab0421ed15737bdb50dedd682588a7d929d9267eeb1373444dcd3a045c5fc259",
+  "defaultReadyActors": [
+    "mika"
+  ],
+  "mochiReleaseAccepted": false,
+  "productionChanged": false,
+  "sourceTests": 410,
+  "sourceTestCommand": "NODE_ENV=test node --import ./tests/yard-inventory-only-loader.mjs --import ./tests/yard-shared-store-loader.mjs --test tests/i18n.test.js tests/unit.test.js tests/gameStore.test.js tests/asset-runtime.test.js tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-routes.test.js tests/merge-lab-service.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-enabled-transition.test.mjs tests/yard-*.test.mjs",
+  "sourceTestLimits": "Existing explicit no-network dependency/store substitutes and modeled OCC; not React/Vite, real database or browser verification",
+  "browserStandaloneEvidence": {
+    "commit": "b6e0d70e85b527c02577e9254a1f95ac0cdbb3fa",
+    "run": 37091634591,
+    "job": 111113032492,
+    "pass": 10,
+    "retries": 0,
+    "framesReviewed": 40,
+    "diagnosticsSha256": "2bc0575d2db94dbbbfb6b2481a20f20256da4d60cf10cc26dcff610c6e84225d"
+  },
+  "canonicalBrowser": {
+    "status": "NOT_RUN",
+    "casesPrepared": 12,
+    "command": "pnpm exec playwright test -c playwright.yard-canonical.config.js --project=chromium --workers=1",
+    "testDirectory": "tests/yard-canonical-e2e",
+    "reports": [
+      "test-results-yard-canonical/",
+      "playwright-report-yard-canonical/"
+    ],
+    "ciOnly": true
+  },
+  "codeFiles": [
+    {
+      "path": "CONTENT-SLICE.json",
+      "bytes": 591,
+      "sha256": "71b69af276e2f42910d0678069d75655abda39d0cd5a94fc1f15befb8dc3a1d4",
+      "baseSha256": "8dd90ef64e84f7736a66cc43743fbb1c880d9c782e3d1e3fb22fa037ed48262d"
+    },
+    {
+      "path": "game-logic/yard-v2/MOCHI-INTEGRATION.md",
+      "bytes": 4400,
+      "sha256": "9074c57e1ad31924b1bd7bb2c1f39635fcf059f8340d0e766f33146c66e0e530",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi-actor-assets.mjs",
+      "bytes": 321,
+      "sha256": "d45e433dedf6764129fc80ab3cfefa566d095fa20c7dce1f582cc4efc2c618ad",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi/authored-stride.json",
+      "bytes": 77990,
+      "sha256": "5d78d77970c4defa63e478f8aa3e9559edddc4b6f623989aeda8889c314c02a8",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi/combined-binding.json",
+      "bytes": 450726,
+      "sha256": "902b35236a65b2284a050147ec744f26bbc48383570fc4ce8f1608ce7bebb58d",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi/ground-motion.json",
+      "bytes": 326420,
+      "sha256": "eea4a3043c0e7f1e9ca0e6f25970f89f9362d322a22c04a1819829d5b10d65ed",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/mochi-actor-profile.mjs",
+      "bytes": 1651,
+      "sha256": "412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/mochi-media.mjs",
+      "bytes": 5372,
+      "sha256": "521edb440f1b12de77a18ead2a2f015d5c0679f390d07e75603038b631010f27",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/released-actor-profiles.mjs",
+      "bytes": 394,
+      "sha256": "6286d79b91cfcee3d8a6cc5304ce2d4b9f46ae183daf2ec4ac7a4975a5e56f59",
+      "baseSha256": null
+    },
+    {
+      "path": "game-logic/yard-v2/service.mjs",
+      "bytes": 10342,
+      "sha256": "09fb7e7f32209f6927eabb40d88f16e5254cd8b3f1c2fb86f1628c955750c0b5",
+      "baseSha256": "d35b521ea177918eafe22208231f7414d8c1c8c65e0d2bc9c3833bb304b1c18c"
+    },
+    {
+      "path": "game-logic/yard-v2/yard-media.mjs",
+      "bytes": 2221,
+      "sha256": "f099a017750c7ee4d0e1c09a3e4df1de01d2c4cd7a506d7a8ecea946058e4444",
+      "baseSha256": null
+    },
+    {
+      "path": "playwright.yard-canonical.config.js",
+      "bytes": 821,
+      "sha256": "9ee99877ff16c3a151cf228cc2b7c2ab5991bd8a4ae2c9c3e17fbe13c11b8b59",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+      "bytes": 7210,
+      "sha256": "c204cd83ccd7a2609df78681159d57ccf9cc65d03151b80e69c1c4862246ea89",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/fixture.json",
+      "bytes": 63713,
+      "sha256": "40bed77fc6b21ba3fbcba30aca63e6ceaaddeab3157488aff2f3a41a640f4c66",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/index.html",
+      "bytes": 980,
+      "sha256": "35f6a89f1fc2437036fb14514640056860308da0c6a2af3200118b67498f9761",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/preview.mjs",
+      "bytes": 2598,
+      "sha256": "2994c8da4aad1a28cdd1a639bbf672764e57edf2d157f8f26195d831a0aedcb4",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-catalog.js",
+      "bytes": 20698,
+      "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-playzones.js",
+      "bytes": 4289,
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/actor-profiles.mjs",
+      "bytes": 3448,
+      "sha256": "3fcc220cdde1ec6189989ade0e21b025182f300abac13ed04af6ad17521570b2",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/availability.mjs",
+      "bytes": 5244,
+      "sha256": "c618819fd23c1d341e8dfa2fcb5df60d15f8c81111a1c5f98c46903de1f80951",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/catalog.mjs",
+      "bytes": 441,
+      "sha256": "b157b05aea487f0e8e396d33961ecda743f4462c548ea119d68c59c54abdac40",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/food-media.mjs",
+      "bytes": 2838,
+      "sha256": "2ef743fd6e232502c10270589eea161b8c14eb04717b62c791571259e946a9e8",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/geometry.mjs",
+      "bytes": 7419,
+      "sha256": "8258df96395e8046924058b0576d79cdc7818451a40f44e49096974a06ee9777",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/ground-coverage.mjs",
+      "bytes": 3472,
+      "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/authored-motion-ground.mjs",
+      "bytes": 9694,
+      "sha256": "db22fe71ce9dd908db6b5db32d8d2f68cad9523ea593db993557a1292d751161",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/authored-stride-routes.mjs",
+      "bytes": 7335,
+      "sha256": "a20c94db6656e762edb3a84de9075fa0a41272dc1cb39ca285e7c4f85eb2591b",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/authored-stride.mjs",
+      "bytes": 3453,
+      "sha256": "17017897f70472042679f4ff369dcab9bbd2a8543da91227f5fc54448eee48f4",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/clip-contracts.json",
+      "bytes": 131068,
+      "sha256": "45eac48b0ffd93a338e2b33d1b57d1adeeb33087e9cdb1cd21cd217e3f5f336c",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/ground-footprints.json",
+      "bytes": 1020438,
+      "sha256": "b8ea668b73ae90441442af4d4bfe90115d01b4d694add7f0b2e26c690802dcc6",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/ground-rest.mjs",
+      "bytes": 21629,
+      "sha256": "83025ba81d6d972e520ebdffcc3fccf3e076583b80dc5db3419301e77c4cfc35",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mika-actor-assets.mjs",
+      "bytes": 651,
+      "sha256": "8c57156ea0879e9441de603ccbdc6aa0fac4e20600a4fa7d1913ded2cc79c5db",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mika-clips.mjs",
+      "bytes": 238,
+      "sha256": "cde920044c8cd5a125eefa48ec338bf49ceec56f28be694a17c709e8961cf204",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi-actor-assets.mjs",
+      "bytes": 321,
+      "sha256": "d45e433dedf6764129fc80ab3cfefa566d095fa20c7dce1f582cc4efc2c618ad",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi-combined-binding.mjs",
+      "bytes": 10442,
+      "sha256": "176a55570cbfe137470eab30c80835aa1400b661dff2ec7c964ae625c3c6deb5",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi/authored-stride.json",
+      "bytes": 77990,
+      "sha256": "5d78d77970c4defa63e478f8aa3e9559edddc4b6f623989aeda8889c314c02a8",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi/combined-binding.json",
+      "bytes": 450726,
+      "sha256": "902b35236a65b2284a050147ec744f26bbc48383570fc4ce8f1608ce7bebb58d",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi/ground-motion.json",
+      "bytes": 326420,
+      "sha256": "eea4a3043c0e7f1e9ca0e6f25970f89f9362d322a22c04a1819829d5b10d65ed",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/runtime-version.mjs",
+      "bytes": 169,
+      "sha256": "a0f0466ca90a575e4de1ce19cc9812b0c45b50cb0044a4ebf096e33e7832b95a",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/settled-mouse.mjs",
+      "bytes": 31424,
+      "sha256": "f8ddbdef5a02ae889a02deb3d3e60bf835b63533604a1341a312e57b00c42572",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/stay-schedule.mjs",
+      "bytes": 6893,
+      "sha256": "ed4e736a86cda4fad9987e5eb4905312041a2d3163d78ed1849bd638ba286843",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/stride-routes.mjs",
+      "bytes": 10044,
+      "sha256": "a3f11ec5cc1fe9e57aeeb266ef102aba7f5eb709b1180e49d9079ec318f08fb3",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/turn-contracts.json",
+      "bytes": 21346,
+      "sha256": "65c2195952142d60a9adcf9a7d5f9c3a865bed8153d8b5835418c86350a6d802",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/walk-phase-lookup.mjs",
+      "bytes": 1750,
+      "sha256": "ec716e34b5d256aa8cefb2b8efe0808cb700c16c23b20e15e76347fed7b9c2c6",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/mika-media.mjs",
+      "bytes": 14939,
+      "sha256": "9216c0db0763e1702bcdf3e5ea150300bc2cccf75b747da7ae9830daae91bcf9",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/mochi-actor-profile.mjs",
+      "bytes": 1651,
+      "sha256": "412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/mochi-media.mjs",
+      "bytes": 5372,
+      "sha256": "521edb440f1b12de77a18ead2a2f015d5c0679f390d07e75603038b631010f27",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/motion-ground-guard.mjs",
+      "bytes": 3520,
+      "sha256": "eb7566d61942b48fb191aba6b233113839b3ef3813ad022690e3f759c0ee98a6",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/released-actor-profiles.mjs",
+      "bytes": 394,
+      "sha256": "6286d79b91cfcee3d8a6cc5304ce2d4b9f46ae183daf2ec4ac7a4975a5e56f59",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/sha256.mjs",
+      "bytes": 3007,
+      "sha256": "2090ca5c72ac826b3147bd8db37b4cb28a746380d99e77937d3a8d1742eadabf",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/util.mjs",
+      "bytes": 2044,
+      "sha256": "c29d9a42722cc0af141d6a1902680e4f74641215e9dd7200a08f107667224692",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/actor-media.mjs",
+      "bytes": 4354,
+      "sha256": "aec79a30e129b70ab9f313bea91a22171c22d5a2f854fbb55e145f390c33f7e8",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/atlas.mjs",
+      "bytes": 8770,
+      "sha256": "00ba6a7f9bba5fc9ba4cd225643c370a52907778f617f6f585199aa0c42a4f17",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/courtyard.css",
+      "bytes": 4656,
+      "sha256": "f575de389d41f705aea503ee7f73354efa101b90b72ca7a68e496e3d5de0cae0",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/edge-opacity.mjs",
+      "bytes": 386,
+      "sha256": "63f89ba77c7f5e286f33895da2a89c4abda1cad33b2c57c8ae3ee0a0fe82002c",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/mochi-actor-media.mjs",
+      "bytes": 4698,
+      "sha256": "66f353f839caaa83469a08e241b6c05316f39f5a60e39338ba3d46e4ddfaf065",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/mochi-candidate-presentation.mjs",
+      "bytes": 7204,
+      "sha256": "b95f0e038fd40faa9d8273c36d090a03ae8dc50897b7627d92dd14120aa01646",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/pose-selection.mjs",
+      "bytes": 2402,
+      "sha256": "561001ab94bf81a618192809c07ae1bde7d8864865456bd3d955b33bf89a04d3",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/presentation-clock.mjs",
+      "bytes": 717,
+      "sha256": "e06921eeb3bcb9dcfc52fd3c4b14887883a74fb1d4199cb8d5d4b6bf9e85396b",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/presentation.mjs",
+      "bytes": 6695,
+      "sha256": "d5dccf5ffdab136c85c538b865a90bc23d474a9d1ea7aa6585a8d51b70ee19e4",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/projection.mjs",
+      "bytes": 1152,
+      "sha256": "0c886f735e42d9e61e6bd06c71cd8894919d8a8f341ad30fa440265b037b4d3c",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/scene.mjs",
+      "bytes": 10843,
+      "sha256": "c27ba4ba45d3fd98aced0a06885074c48e67160cdb8f82382bdf70799a2f0bb1",
+      "baseSha256": null
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/telemetry.mjs",
+      "bytes": 3070,
+      "sha256": "02b6efec85cb7ddff732f78f8e3fe0f3da78c009deb0a42ecefe0efd92d6a42c",
+      "baseSha256": null
+    },
+    {
+      "path": "scripts/yard-canonical-ci-server.mjs",
+      "bytes": 2236,
+      "sha256": "fa0b76ab5ddbf2d9c07f1a978bfb986549aad2b3d6115ece8049828bd85ae87e",
+      "baseSha256": null
+    },
+    {
+      "path": "scripts/yard-mochi-canonical-fixture.mjs",
+      "bytes": 4297,
+      "sha256": "58f17a3b18502559cf682ff30dbae917729de0a665448551345e8a4ce180ce04",
+      "baseSha256": null
+    },
+    {
+      "path": "scripts/yard-mochi-pack.mjs",
+      "bytes": 3103,
+      "sha256": "f8832c807543c2fb4e33c8b68922a18b635ae8dbb40bc06cceab9da00c37ffb6",
+      "baseSha256": null
+    },
+    {
+      "path": "src/games/companion-yard-v2/mochi-actor-media.mjs",
+      "bytes": 4698,
+      "sha256": "66f353f839caaa83469a08e241b6c05316f39f5a60e39338ba3d46e4ddfaf065",
+      "baseSha256": null
+    },
+    {
+      "path": "src/games/companion-yard-v2/presentation.mjs",
+      "bytes": 6695,
+      "sha256": "d5dccf5ffdab136c85c538b865a90bc23d474a9d1ea7aa6585a8d51b70ee19e4",
+      "baseSha256": "4e0b470bcf999976fb8aff8e9b462bf24077aa2c5354ce494e47a9b76fe67607"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene.mjs",
+      "bytes": 10843,
+      "sha256": "c27ba4ba45d3fd98aced0a06885074c48e67160cdb8f82382bdf70799a2f0bb1",
+      "baseSha256": "0feaf80e006d1015d0ef47d10e15b531cbfa2128a06733c32c856a15907d6fd9"
+    },
+    {
+      "path": "tests/fixtures/yard-mochi-canonical/acceptance.mjs",
+      "bytes": 716,
+      "sha256": "0097511302454294e27ce42f2ec83ff1e4592bbe681c5b117961c3a4c672efbb",
+      "baseSha256": null
+    },
+    {
+      "path": "tests/yard-canonical-e2e/shared-scene.spec.js",
+      "bytes": 5820,
+      "sha256": "b02dd4d15809967c2166b837c74a769d6ed9c301e188da5afba2bea25559e9c8",
+      "baseSha256": null
+    },
+    {
+      "path": "tests/yard-mochi-canonical.test.mjs",
+      "bytes": 13904,
+      "sha256": "7ff79a83b14b2724661996a99384aac87d1b05fcdc6e6ffd3df9b2cd3bc9cb24",
+      "baseSha256": null
+    },
+    {
+      "path": "tests/yard-mochi-scene-lifecycle.test.mjs",
+      "bytes": 5113,
+      "sha256": "ca7f59e957bacd1c1e3e5f28c2b8b39cd54cc6a157c77171be36d5dfd2c3bd72",
+      "baseSha256": null
+    }
+  ],
+  "mediaFiles": [
+    {
+      "path": "public/assets/yard-mochi/SOURCE-MANIFEST.json",
+      "bytes": 8335,
+      "sha256": "43eaa673e10d0047dd9d3988a10255a97640c33f4212a64fb265d6e7e5ef57ee",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/hop-0-00.webp",
+      "bytes": 242906,
+      "sha256": "f62704464ea2479c1fc63a060c2dc57a1245cf4f8b0e64ff0105888f62cbaefb",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/hop-2-00.webp",
+      "bytes": 204958,
+      "sha256": "9164403d163f91e0021a85c2941fc0b5306a0d494ddbd52928142c1b7cd72687",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/hop-4-00.webp",
+      "bytes": 228314,
+      "sha256": "a16de4f62c17c2221912039585aef9e77f38285c5bb7bcc3f47a2ed5c2f6838e",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/hop-6-00.webp",
+      "bytes": 206490,
+      "sha256": "58870aa90be5f19ca5991541571289adb699cb28e9b9daa372848b13e5341200",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-0-00.webp",
+      "bytes": 363016,
+      "sha256": "2ba7f6359f88d2811146b9d6e00d3863d06114ea10b151936608b8a8ecce547c",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-0-01.webp",
+      "bytes": 93712,
+      "sha256": "42d2a074499cd812e7c40019ab6201270fbfe7f4c7ad0f2e0dcd29ef7df78e88",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-2-00.webp",
+      "bytes": 314980,
+      "sha256": "1b2a499d220199ddda8ed59cb8b5dbb2d28089400e7ef9e623f556cef67b4045",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-2-01.webp",
+      "bytes": 104162,
+      "sha256": "db3b0485f7d35ad88419534d4ffc30f8f27000ead38415b06347f47820bac8cc",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-4-00.webp",
+      "bytes": 354974,
+      "sha256": "15bfe5b65ba3acc4389dfbe8dd2f31c83e55cabbfb8d62b8befe75752ebba7ca",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-4-01.webp",
+      "bytes": 94192,
+      "sha256": "433d55eb441a176268d1e671e8159f191258cbdd6af51d97603decd8f8814b19",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-6-00.webp",
+      "bytes": 304940,
+      "sha256": "635fd0cfaf8e40474880471a5ef6defd41e2c93f7d7b88fcd8391a22de7d8d17",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/left90-6-01.webp",
+      "bytes": 109014,
+      "sha256": "8fef555e69a6c13d923bc19924a027b3d33532bf138a722588fdc8f5d25874cf",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-0-00.webp",
+      "bytes": 351586,
+      "sha256": "d8543e049df8fb1654daa650c09caa4a6a2853764e530b7dccf9d4155abe18f0",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-0-01.webp",
+      "bytes": 219322,
+      "sha256": "f3bbd9cd84820c065a65fb8050865b085ecb990e235c63ed675e130ae17792ea",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-0-02.webp",
+      "bytes": 343918,
+      "sha256": "e2cbbcc178f4d4597e7391b525370931dfc50418b1ba532b75e744e6ea9d09f0",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-0-03.webp",
+      "bytes": 102428,
+      "sha256": "46dd999895a33fd1c9157ec618abea44bbb246712b5619d343d925e32e818d9f",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-2-00.webp",
+      "bytes": 292412,
+      "sha256": "0d6f2090b75cc2fb9217b5a199fcace201343140e3c2824b59aafddfaf8a2e09",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-2-01.webp",
+      "bytes": 191514,
+      "sha256": "8395581b774b00cdcf59ba30a73d166a454d64cf8717d6b25d71b14178acf7ff",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-2-02.webp",
+      "bytes": 287866,
+      "sha256": "76289ba795cbb0977f05b790d8aa0816c6f0708c8bc3175788235b640fd3cb77",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-2-03.webp",
+      "bytes": 87590,
+      "sha256": "c53f6b6285225408b8f58bce359cde09a29da4bd11c81acf49661bdf81037dd5",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-4-00.webp",
+      "bytes": 329870,
+      "sha256": "24b76edd7a675e770bc8654b8766afae939b890ea54e0efc7e06dc85f7a44a40",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-4-01.webp",
+      "bytes": 223304,
+      "sha256": "20185263d93938ca4081775149a9a6b2a6cc03189149b3b3df2282a260a59e41",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-4-02.webp",
+      "bytes": 327462,
+      "sha256": "ea100858187605b3dcdd1b3d70c3022aebd02ab75d9916c7807e39644985b1b8",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-4-03.webp",
+      "bytes": 97810,
+      "sha256": "34b12a4764cf644626ed72f56700fc3be42e44d69e12d0b8856528b7bf939e7f",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-6-00.webp",
+      "bytes": 300180,
+      "sha256": "0adde8d93ab7bb65b469a29c8dd3b6a579606fdb58a0c1b07480c4ac81b4a416",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-6-01.webp",
+      "bytes": 190954,
+      "sha256": "d110780fab71300f4321ce94ab794ff16bb91d63383171f638de96ab25a36c0d",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-6-02.webp",
+      "bytes": 294444,
+      "sha256": "ab5528a5207f3fe57836eeb03c86fed658a4cefbc9da7637ac6eb974166a2603",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/rest-6-03.webp",
+      "bytes": 87396,
+      "sha256": "4dfda2c8a1fd5fb0e2b84222735c32cd485c9069a3de0c6beb49ce2e155ae755",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-0-00.webp",
+      "bytes": 322980,
+      "sha256": "89a9eda11262bd2380b234d299603bac772a9212f5b2c8c98f1bb28607d19258",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-0-01.webp",
+      "bytes": 93490,
+      "sha256": "a3a57d87521286936dd022a82ac22b52ddf233248e65b221c0d543b3bcf7ac2f",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-2-00.webp",
+      "bytes": 346824,
+      "sha256": "7ede55950488b6ab12ef1e73308582496f568fa129b02ea53c4656d9bca66fb3",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-2-01.webp",
+      "bytes": 109748,
+      "sha256": "e0f7be6cdebf76f33f51e710639abafc4a322d76c969158aa87d15e31f6f07d4",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-4-00.webp",
+      "bytes": 326330,
+      "sha256": "d62e9309286afffd0956fff6370733f7d489f0b6c79d7080f857d1d53f6ef8cb",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-4-01.webp",
+      "bytes": 94058,
+      "sha256": "a77aca4771cf35b5fa92f6f2e15e9c22410506a40f538c999b5b21164615bd7a",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-6-00.webp",
+      "bytes": 339820,
+      "sha256": "1a443c8cf1bf35c5e91b1b2ecfcf07fec09da8a19e3ffdb50c912383975971c2",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/cardinal/atlases/right90-6-01.webp",
+      "bytes": 103796,
+      "sha256": "637ea4e5a4e8756d240bcb2d9d9cdf03869d15063ef8b6a34c07b27583973c59",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-00.webp",
+      "bytes": 386354,
+      "sha256": "c49a8d10807728604de038d5fd19140a47dda2c97bf20866605c86df5e5c36d3",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-01.webp",
+      "bytes": 277960,
+      "sha256": "dd985c1f3a22c1b2bc5d6d2f9985e169997c60cd55383d19237dc782ba7204eb",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-02.webp",
+      "bytes": 190102,
+      "sha256": "a446c2f49423766bf93d516edc9b228490ecf38b2a14bfe3eecd11789e081405",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-03.webp",
+      "bytes": 106788,
+      "sha256": "3b878dc71c5426011db340ee322ca640e4e2f12c528fa9e0cf616842d16a3f39",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-04.webp",
+      "bytes": 314666,
+      "sha256": "08cb928801e6799da9f0eac7b59810cb9ae18662ad5cdf14cddd2f1cd6f75533",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-05.webp",
+      "bytes": 353342,
+      "sha256": "61ed2211153ca7aac691c171e1466d1b44cdf5a209251511674fe4f784f5a1b6",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-06.webp",
+      "bytes": 219990,
+      "sha256": "1e76abb0a74e5622f21bdb20227033ab48d45ffdee0e232f3a668a5721467d8d",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-07.webp",
+      "bytes": 346294,
+      "sha256": "f98376e893a27ca09258ddca01d928092ebd7083e6ad4ed2e698a40f5610d557",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-08.webp",
+      "bytes": 365816,
+      "sha256": "04f335d7725c169d6b8c738ab8f6ca8ce71b90eac782151bc737da17a06e2ea5",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-09.webp",
+      "bytes": 335336,
+      "sha256": "82036c8034c7af8f7b02d49c95f2b58de2afd9a606c1eeb1384cc3970367d9af",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-10.webp",
+      "bytes": 319360,
+      "sha256": "9d7abccaa4f7b1f0a72d785414a8cf1d18ae7fd6bc65b847c073a5601775e682",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-11.webp",
+      "bytes": 367450,
+      "sha256": "27ddb1fb6f5a63910f672ffeea7dd9e4f59dd5c11f6bb2f4fc6b2a3f68ae1c46",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/combined/atlases/combined-12.webp",
+      "bytes": 17988,
+      "sha256": "0c2b73c5b05454b8ed92e429d3fe7af649e000fcd80b9007cc6a64f9758557f3",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/runtime-media.json",
+      "bytes": 222672,
+      "sha256": "41dd78f72df7726393a1dca31ffe16ed67c774badf29d7fab7b514c208cbc859",
+      "baseSha256": null
+    },
+    {
+      "path": "public/assets/yard-mochi/target-prop-still.webp",
+      "bytes": 4392,
+      "sha256": "7e0e131e5a7143ce5a105c24513b1027ad56b8daaa76c3410d95e02943aced2e",
+      "baseSha256": null
+    }
+  ],
+  "ciBundleFiles": [
+    {
+      "path": "playwright.yard-canonical.config.js",
+      "bytes": 821,
+      "sha256": "9ee99877ff16c3a151cf228cc2b7c2ab5991bd8a4ae2c9c3e17fbe13c11b8b59"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+      "bytes": 7210,
+      "sha256": "c204cd83ccd7a2609df78681159d57ccf9cc65d03151b80e69c1c4862246ea89"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/fixture.json",
+      "bytes": 63713,
+      "sha256": "40bed77fc6b21ba3fbcba30aca63e6ceaaddeab3157488aff2f3a41a640f4c66"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/index.html",
+      "bytes": 980,
+      "sha256": "35f6a89f1fc2437036fb14514640056860308da0c6a2af3200118b67498f9761"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/preview.mjs",
+      "bytes": 2598,
+      "sha256": "2994c8da4aad1a28cdd1a639bbf672764e57edf2d157f8f26195d831a0aedcb4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/cushion-entry-fix-r1.webp",
+      "bytes": 50058,
+      "sha256": "39d3b0363373efe0121e8ed0c75dab782d6611ea290fe9bf8d83162209901f7c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/ground-rest-r1-00.webp",
+      "bytes": 942576,
+      "sha256": "552397b959ee976f81094e0713f6227d6feafb5731811d3cb648223e962706f2"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/ground-rest-r1-01.webp",
+      "bytes": 390684,
+      "sha256": "82646607d064bfb659780693278eb63b3adddf02bb40c360e3c6736a4fc57872"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/mouse-00.webp",
+      "bytes": 279266,
+      "sha256": "b317b8d5fc9889435399d9ac2fd502796cc2ad48c75582db781e5bc5283b14ba"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/mouse-01.webp",
+      "bytes": 239396,
+      "sha256": "d0e378f9163055bf6e928e1fe42770ff962573592d5ab23da032a620249448d1"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/mouse-settled-r1-00.webp",
+      "bytes": 1068160,
+      "sha256": "1803e3d9476babd2ff171f4b8e5d9ddb1c4b97491dfc745e4cf423645237b303"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/mouse-settled-r1-01.webp",
+      "bytes": 116570,
+      "sha256": "803320a5c8c4356b556070909930c2b751dbdf6ee0ff2b992ecbbef2c640f6b9"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-00.webp",
+      "bytes": 199794,
+      "sha256": "65361e767590714bb809f7102341d9aa77e7f248297d881e09107cc4f175a287"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-01.webp",
+      "bytes": 185124,
+      "sha256": "82d6b5e46c8f812ed2c2371876eb37ccd59f563362c3eec952d4c75096e6deac"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-02.webp",
+      "bytes": 156708,
+      "sha256": "d4ecbb72e3d619b3058383a9a031d484dc0c264f68da92e150741c0b414c6639"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-03.webp",
+      "bytes": 168294,
+      "sha256": "9c1c3ea1c767f63ddfbb76cddecf8429ada498915a23e38ba103482e5e16b706"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-04.webp",
+      "bytes": 159744,
+      "sha256": "045508f36b43a102b75770ca51e75a682798f58321bf166ce3f7f7c10464c385"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-05.webp",
+      "bytes": 119530,
+      "sha256": "0da7d13f675641dcfd73a99495ad6f922878ceb5a15c5e1c27464a7633209c2e"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-06.webp",
+      "bytes": 148008,
+      "sha256": "b51b3cd6476a8d497dc85f2aa4b68c7d15905881259df3ea086148ca41d1bbe4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-07.webp",
+      "bytes": 173920,
+      "sha256": "db863108891aa76403152a968f718c025f0d68fbf8bd0903eb252fabae96f40c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-08.webp",
+      "bytes": 175984,
+      "sha256": "5b5c1b6f1ba6b7c23ebecf6b690a76d1c463029f8df5450411653bbbc07f94f3"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-09.webp",
+      "bytes": 179462,
+      "sha256": "d47affebc3b725d52a02f4542d220ffe970bd2e8b7445a87cd2044453730a44c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-10.webp",
+      "bytes": 188906,
+      "sha256": "1936950271def5c2a8d9bfb361ea01f31b9101da04b345860fcfa2c472251e64"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/rest-runtime-11.webp",
+      "bytes": 51328,
+      "sha256": "f8efd18f93bc1946a4f5a82385079f1a3a56f03ede5dadadddf64fed21d4c866"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-00.webp",
+      "bytes": 398400,
+      "sha256": "0a564618da07605bdf2523094f0209bcbb36cbd6a677655d07e63371fa6b5052"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-01.webp",
+      "bytes": 396092,
+      "sha256": "ba5abe158d32a94eb27be04cc81ded639a193520d21de1165d4d692724a4deec"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-02.webp",
+      "bytes": 397656,
+      "sha256": "90b67d6602af603876e2ba718802e8d9bb782a26c4c30345bb7319f9b72bca7b"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-03.webp",
+      "bytes": 406050,
+      "sha256": "02af007109d93bfc0db7736d1fb5660ecca5b2a8cdc5522db9af00b1a5742bfb"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-04.webp",
+      "bytes": 394444,
+      "sha256": "300ab56be1c4aad8ddef2f5f39e3d821a6897b71fde72852af808d7aa99aeaa6"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-05.webp",
+      "bytes": 378980,
+      "sha256": "06a5e07eec5e297d76859a611c145b93773f005aaff0eebb1c86fbdfda114bc5"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-06.webp",
+      "bytes": 399058,
+      "sha256": "95de8259aa0323be39d02a30786dbf76d321d82b35c21df1befa91850d3b0191"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/turn-07.webp",
+      "bytes": 221830,
+      "sha256": "8a911c11576b4e443064faa745a68de31a2580508a242b12a88febcc1b21a43d"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/walk-00.webp",
+      "bytes": 389624,
+      "sha256": "f037d628f40468788c98ac0226d696540dec25b532fb888b9b4aa23b4221acaf"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/walk-01.webp",
+      "bytes": 302908,
+      "sha256": "a31a9a1737ee56a50c9e0cb8a89d03babaaaea3639d46465bc629d9363fa1346"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/walk-dense-00.webp",
+      "bytes": 407002,
+      "sha256": "2067d999b1ee38bb06297780d06d793b0c92a6a0b65334430d123fd37dc64182"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/atlases/walk-dense-01.webp",
+      "bytes": 15990,
+      "sha256": "72c09108f6f65c1ef387fc8b4994af6506a1d09dc376bda905d2bf16e9074ea7"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/background.webp",
+      "bytes": 549070,
+      "sha256": "ac1b2c8c963a3c417fc3d02b2db0410aa89c60c6452b54170db62fa1001f0721"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/berry-plate-clean.webp",
+      "bytes": 15242,
+      "sha256": "0783710f0a9a7bf95ec942b9fbd5682bf747d39304f29da6a0793bfdc70d7fb0"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/bonito-bowl-clean.webp",
+      "bytes": 15132,
+      "sha256": "5b14ecc4fe0ef76f46911bd3615ae19832bcd591bea46aebe4a061bf2a542702"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/kibble-bowl-clean.png",
+      "bytes": 72224,
+      "sha256": "13fc8db8e9127160233a2cf6a6609eceb72738eb1fa57c4e60e2cfd383a5f489"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/kibble-bowl-clean.webp",
+      "bytes": 5756,
+      "sha256": "43ce40a8572d1fa51f0d3f1b40c815dac3f9b44b4ebaffe3360df5ba790a20a4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/kibble-bowl-empty.png",
+      "bytes": 71111,
+      "sha256": "eb805fa36c7f2e1a0cd4be1f999df879b753ed328928dac70ab7e672e657f495"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/kibble-bowl-empty.webp",
+      "bytes": 4958,
+      "sha256": "85892dbbebacf6bceff3c3eff69a2555dc5dfa2277fd46856a17e581f605cca8"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/runtime-media.json",
+      "bytes": 587992,
+      "sha256": "44cefc25deef8284b91f6dd35bebe972b0f78bb91ed903337d871233da0b9cbb"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/still-layer-contract.json",
+      "bytes": 2443,
+      "sha256": "570b90a09a23787b46a6285167b587339604ebff17df2a841a2310c37177c2dd"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/sun-cushion-clean.png",
+      "bytes": 100476,
+      "sha256": "e96bb1896e26e0429300bf683f1a2a4359edef9ebfa262b74bb826ebf9c02f4e"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/sun-cushion-clean.webp",
+      "bytes": 24714,
+      "sha256": "d32f216a02fd7d18447e16d165e2d1384da3b06c923617bea627971818bf98eb"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/yarn-mouse-clean.png",
+      "bytes": 65856,
+      "sha256": "6099ae0921013a4f5bae5a13b03f149897fb145050d27b7a10301217f2e8a89c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/yarn-mouse-clean.webp",
+      "bytes": 2936,
+      "sha256": "d0f6ab00cd093d8baca0fce51b37639abcc3207e663aba80d6b577fd11ef36ac"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/yarn-mouse-settled-clean.png",
+      "bytes": 65915,
+      "sha256": "1e0a897224cec3bf294176d67847107dcb7e36909e59c59be9277527ac36fce8"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mika/yarn-mouse-settled-clean.webp",
+      "bytes": 2988,
+      "sha256": "39f17ff53adbdb8db09236d98e24e11bd76ea789c08659ee19afcc47a22fe2a1"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/SOURCE-MANIFEST.json",
+      "bytes": 8335,
+      "sha256": "43eaa673e10d0047dd9d3988a10255a97640c33f4212a64fb265d6e7e5ef57ee"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/hop-0-00.webp",
+      "bytes": 242906,
+      "sha256": "f62704464ea2479c1fc63a060c2dc57a1245cf4f8b0e64ff0105888f62cbaefb"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/hop-2-00.webp",
+      "bytes": 204958,
+      "sha256": "9164403d163f91e0021a85c2941fc0b5306a0d494ddbd52928142c1b7cd72687"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/hop-4-00.webp",
+      "bytes": 228314,
+      "sha256": "a16de4f62c17c2221912039585aef9e77f38285c5bb7bcc3f47a2ed5c2f6838e"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/hop-6-00.webp",
+      "bytes": 206490,
+      "sha256": "58870aa90be5f19ca5991541571289adb699cb28e9b9daa372848b13e5341200"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-0-00.webp",
+      "bytes": 363016,
+      "sha256": "2ba7f6359f88d2811146b9d6e00d3863d06114ea10b151936608b8a8ecce547c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-0-01.webp",
+      "bytes": 93712,
+      "sha256": "42d2a074499cd812e7c40019ab6201270fbfe7f4c7ad0f2e0dcd29ef7df78e88"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-2-00.webp",
+      "bytes": 314980,
+      "sha256": "1b2a499d220199ddda8ed59cb8b5dbb2d28089400e7ef9e623f556cef67b4045"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-2-01.webp",
+      "bytes": 104162,
+      "sha256": "db3b0485f7d35ad88419534d4ffc30f8f27000ead38415b06347f47820bac8cc"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-4-00.webp",
+      "bytes": 354974,
+      "sha256": "15bfe5b65ba3acc4389dfbe8dd2f31c83e55cabbfb8d62b8befe75752ebba7ca"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-4-01.webp",
+      "bytes": 94192,
+      "sha256": "433d55eb441a176268d1e671e8159f191258cbdd6af51d97603decd8f8814b19"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-6-00.webp",
+      "bytes": 304940,
+      "sha256": "635fd0cfaf8e40474880471a5ef6defd41e2c93f7d7b88fcd8391a22de7d8d17"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/left90-6-01.webp",
+      "bytes": 109014,
+      "sha256": "8fef555e69a6c13d923bc19924a027b3d33532bf138a722588fdc8f5d25874cf"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-0-00.webp",
+      "bytes": 351586,
+      "sha256": "d8543e049df8fb1654daa650c09caa4a6a2853764e530b7dccf9d4155abe18f0"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-0-01.webp",
+      "bytes": 219322,
+      "sha256": "f3bbd9cd84820c065a65fb8050865b085ecb990e235c63ed675e130ae17792ea"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-0-02.webp",
+      "bytes": 343918,
+      "sha256": "e2cbbcc178f4d4597e7391b525370931dfc50418b1ba532b75e744e6ea9d09f0"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-0-03.webp",
+      "bytes": 102428,
+      "sha256": "46dd999895a33fd1c9157ec618abea44bbb246712b5619d343d925e32e818d9f"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-2-00.webp",
+      "bytes": 292412,
+      "sha256": "0d6f2090b75cc2fb9217b5a199fcace201343140e3c2824b59aafddfaf8a2e09"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-2-01.webp",
+      "bytes": 191514,
+      "sha256": "8395581b774b00cdcf59ba30a73d166a454d64cf8717d6b25d71b14178acf7ff"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-2-02.webp",
+      "bytes": 287866,
+      "sha256": "76289ba795cbb0977f05b790d8aa0816c6f0708c8bc3175788235b640fd3cb77"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-2-03.webp",
+      "bytes": 87590,
+      "sha256": "c53f6b6285225408b8f58bce359cde09a29da4bd11c81acf49661bdf81037dd5"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-4-00.webp",
+      "bytes": 329870,
+      "sha256": "24b76edd7a675e770bc8654b8766afae939b890ea54e0efc7e06dc85f7a44a40"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-4-01.webp",
+      "bytes": 223304,
+      "sha256": "20185263d93938ca4081775149a9a6b2a6cc03189149b3b3df2282a260a59e41"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-4-02.webp",
+      "bytes": 327462,
+      "sha256": "ea100858187605b3dcdd1b3d70c3022aebd02ab75d9916c7807e39644985b1b8"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-4-03.webp",
+      "bytes": 97810,
+      "sha256": "34b12a4764cf644626ed72f56700fc3be42e44d69e12d0b8856528b7bf939e7f"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-6-00.webp",
+      "bytes": 300180,
+      "sha256": "0adde8d93ab7bb65b469a29c8dd3b6a579606fdb58a0c1b07480c4ac81b4a416"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-6-01.webp",
+      "bytes": 190954,
+      "sha256": "d110780fab71300f4321ce94ab794ff16bb91d63383171f638de96ab25a36c0d"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-6-02.webp",
+      "bytes": 294444,
+      "sha256": "ab5528a5207f3fe57836eeb03c86fed658a4cefbc9da7637ac6eb974166a2603"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/rest-6-03.webp",
+      "bytes": 87396,
+      "sha256": "4dfda2c8a1fd5fb0e2b84222735c32cd485c9069a3de0c6beb49ce2e155ae755"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-0-00.webp",
+      "bytes": 322980,
+      "sha256": "89a9eda11262bd2380b234d299603bac772a9212f5b2c8c98f1bb28607d19258"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-0-01.webp",
+      "bytes": 93490,
+      "sha256": "a3a57d87521286936dd022a82ac22b52ddf233248e65b221c0d543b3bcf7ac2f"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-2-00.webp",
+      "bytes": 346824,
+      "sha256": "7ede55950488b6ab12ef1e73308582496f568fa129b02ea53c4656d9bca66fb3"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-2-01.webp",
+      "bytes": 109748,
+      "sha256": "e0f7be6cdebf76f33f51e710639abafc4a322d76c969158aa87d15e31f6f07d4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-4-00.webp",
+      "bytes": 326330,
+      "sha256": "d62e9309286afffd0956fff6370733f7d489f0b6c79d7080f857d1d53f6ef8cb"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-4-01.webp",
+      "bytes": 94058,
+      "sha256": "a77aca4771cf35b5fa92f6f2e15e9c22410506a40f538c999b5b21164615bd7a"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-6-00.webp",
+      "bytes": 339820,
+      "sha256": "1a443c8cf1bf35c5e91b1b2ecfcf07fec09da8a19e3ffdb50c912383975971c2"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/cardinal/atlases/right90-6-01.webp",
+      "bytes": 103796,
+      "sha256": "637ea4e5a4e8756d240bcb2d9d9cdf03869d15063ef8b6a34c07b27583973c59"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-00.webp",
+      "bytes": 386354,
+      "sha256": "c49a8d10807728604de038d5fd19140a47dda2c97bf20866605c86df5e5c36d3"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-01.webp",
+      "bytes": 277960,
+      "sha256": "dd985c1f3a22c1b2bc5d6d2f9985e169997c60cd55383d19237dc782ba7204eb"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-02.webp",
+      "bytes": 190102,
+      "sha256": "a446c2f49423766bf93d516edc9b228490ecf38b2a14bfe3eecd11789e081405"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-03.webp",
+      "bytes": 106788,
+      "sha256": "3b878dc71c5426011db340ee322ca640e4e2f12c528fa9e0cf616842d16a3f39"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-04.webp",
+      "bytes": 314666,
+      "sha256": "08cb928801e6799da9f0eac7b59810cb9ae18662ad5cdf14cddd2f1cd6f75533"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-05.webp",
+      "bytes": 353342,
+      "sha256": "61ed2211153ca7aac691c171e1466d1b44cdf5a209251511674fe4f784f5a1b6"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-06.webp",
+      "bytes": 219990,
+      "sha256": "1e76abb0a74e5622f21bdb20227033ab48d45ffdee0e232f3a668a5721467d8d"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-07.webp",
+      "bytes": 346294,
+      "sha256": "f98376e893a27ca09258ddca01d928092ebd7083e6ad4ed2e698a40f5610d557"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-08.webp",
+      "bytes": 365816,
+      "sha256": "04f335d7725c169d6b8c738ab8f6ca8ce71b90eac782151bc737da17a06e2ea5"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-09.webp",
+      "bytes": 335336,
+      "sha256": "82036c8034c7af8f7b02d49c95f2b58de2afd9a606c1eeb1384cc3970367d9af"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-10.webp",
+      "bytes": 319360,
+      "sha256": "9d7abccaa4f7b1f0a72d785414a8cf1d18ae7fd6bc65b847c073a5601775e682"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-11.webp",
+      "bytes": 367450,
+      "sha256": "27ddb1fb6f5a63910f672ffeea7dd9e4f59dd5c11f6bb2f4fc6b2a3f68ae1c46"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/combined/atlases/combined-12.webp",
+      "bytes": 17988,
+      "sha256": "0c2b73c5b05454b8ed92e429d3fe7af649e000fcd80b9007cc6a64f9758557f3"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/runtime-media.json",
+      "bytes": 222672,
+      "sha256": "41dd78f72df7726393a1dca31ffe16ed67c774badf29d7fab7b514c208cbc859"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/public/assets/yard-mochi/target-prop-still.webp",
+      "bytes": 4392,
+      "sha256": "7e0e131e5a7143ce5a105c24513b1027ad56b8daaa76c3410d95e02943aced2e"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-catalog.js",
+      "bytes": 20698,
+      "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-playzones.js",
+      "bytes": 4289,
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/actor-profiles.mjs",
+      "bytes": 3448,
+      "sha256": "3fcc220cdde1ec6189989ade0e21b025182f300abac13ed04af6ad17521570b2"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/availability.mjs",
+      "bytes": 5244,
+      "sha256": "c618819fd23c1d341e8dfa2fcb5df60d15f8c81111a1c5f98c46903de1f80951"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/catalog.mjs",
+      "bytes": 441,
+      "sha256": "b157b05aea487f0e8e396d33961ecda743f4462c548ea119d68c59c54abdac40"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/food-media.mjs",
+      "bytes": 2838,
+      "sha256": "2ef743fd6e232502c10270589eea161b8c14eb04717b62c791571259e946a9e8"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/geometry.mjs",
+      "bytes": 7419,
+      "sha256": "8258df96395e8046924058b0576d79cdc7818451a40f44e49096974a06ee9777"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/ground-coverage.mjs",
+      "bytes": 3472,
+      "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/authored-motion-ground.mjs",
+      "bytes": 9694,
+      "sha256": "db22fe71ce9dd908db6b5db32d8d2f68cad9523ea593db993557a1292d751161"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/authored-stride-routes.mjs",
+      "bytes": 7335,
+      "sha256": "a20c94db6656e762edb3a84de9075fa0a41272dc1cb39ca285e7c4f85eb2591b"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/authored-stride.mjs",
+      "bytes": 3453,
+      "sha256": "17017897f70472042679f4ff369dcab9bbd2a8543da91227f5fc54448eee48f4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/clip-contracts.json",
+      "bytes": 131068,
+      "sha256": "45eac48b0ffd93a338e2b33d1b57d1adeeb33087e9cdb1cd21cd217e3f5f336c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/ground-footprints.json",
+      "bytes": 1020438,
+      "sha256": "b8ea668b73ae90441442af4d4bfe90115d01b4d694add7f0b2e26c690802dcc6"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/ground-rest.mjs",
+      "bytes": 21629,
+      "sha256": "83025ba81d6d972e520ebdffcc3fccf3e076583b80dc5db3419301e77c4cfc35"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mika-actor-assets.mjs",
+      "bytes": 651,
+      "sha256": "8c57156ea0879e9441de603ccbdc6aa0fac4e20600a4fa7d1913ded2cc79c5db"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mika-clips.mjs",
+      "bytes": 238,
+      "sha256": "cde920044c8cd5a125eefa48ec338bf49ceec56f28be694a17c709e8961cf204"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi-actor-assets.mjs",
+      "bytes": 321,
+      "sha256": "d45e433dedf6764129fc80ab3cfefa566d095fa20c7dce1f582cc4efc2c618ad"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi-combined-binding.mjs",
+      "bytes": 10442,
+      "sha256": "176a55570cbfe137470eab30c80835aa1400b661dff2ec7c964ae625c3c6deb5"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi/authored-stride.json",
+      "bytes": 77990,
+      "sha256": "5d78d77970c4defa63e478f8aa3e9559edddc4b6f623989aeda8889c314c02a8"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi/combined-binding.json",
+      "bytes": 450726,
+      "sha256": "902b35236a65b2284a050147ec744f26bbc48383570fc4ce8f1608ce7bebb58d"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/mochi/ground-motion.json",
+      "bytes": 326420,
+      "sha256": "eea4a3043c0e7f1e9ca0e6f25970f89f9362d322a22c04a1819829d5b10d65ed"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/runtime-version.mjs",
+      "bytes": 169,
+      "sha256": "a0f0466ca90a575e4de1ce19cc9812b0c45b50cb0044a4ebf096e33e7832b95a"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/settled-mouse.mjs",
+      "bytes": 31424,
+      "sha256": "f8ddbdef5a02ae889a02deb3d3e60bf835b63533604a1341a312e57b00c42572"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/stay-schedule.mjs",
+      "bytes": 6893,
+      "sha256": "ed4e736a86cda4fad9987e5eb4905312041a2d3163d78ed1849bd638ba286843"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/stride-routes.mjs",
+      "bytes": 10044,
+      "sha256": "a3f11ec5cc1fe9e57aeeb266ef102aba7f5eb709b1180e49d9079ec318f08fb3"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/turn-contracts.json",
+      "bytes": 21346,
+      "sha256": "65c2195952142d60a9adcf9a7d5f9c3a865bed8153d8b5835418c86350a6d802"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/media/walk-phase-lookup.mjs",
+      "bytes": 1750,
+      "sha256": "ec716e34b5d256aa8cefb2b8efe0808cb700c16c23b20e15e76347fed7b9c2c6"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/mika-media.mjs",
+      "bytes": 14939,
+      "sha256": "9216c0db0763e1702bcdf3e5ea150300bc2cccf75b747da7ae9830daae91bcf9"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/mochi-actor-profile.mjs",
+      "bytes": 1651,
+      "sha256": "412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/mochi-media.mjs",
+      "bytes": 5372,
+      "sha256": "521edb440f1b12de77a18ead2a2f015d5c0679f390d07e75603038b631010f27"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/motion-ground-guard.mjs",
+      "bytes": 3520,
+      "sha256": "eb7566d61942b48fb191aba6b233113839b3ef3813ad022690e3f759c0ee98a6"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/released-actor-profiles.mjs",
+      "bytes": 394,
+      "sha256": "6286d79b91cfcee3d8a6cc5304ce2d4b9f46ae183daf2ec4ac7a4975a5e56f59"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/sha256.mjs",
+      "bytes": 3007,
+      "sha256": "2090ca5c72ac826b3147bd8db37b4cb28a746380d99e77937d3a8d1742eadabf"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/game-logic/yard-v2/util.mjs",
+      "bytes": 2044,
+      "sha256": "c29d9a42722cc0af141d6a1902680e4f74641215e9dd7200a08f107667224692"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/actor-media.mjs",
+      "bytes": 4354,
+      "sha256": "aec79a30e129b70ab9f313bea91a22171c22d5a2f854fbb55e145f390c33f7e8"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/atlas.mjs",
+      "bytes": 8770,
+      "sha256": "00ba6a7f9bba5fc9ba4cd225643c370a52907778f617f6f585199aa0c42a4f17"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/courtyard.css",
+      "bytes": 4656,
+      "sha256": "f575de389d41f705aea503ee7f73354efa101b90b72ca7a68e496e3d5de0cae0"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/edge-opacity.mjs",
+      "bytes": 386,
+      "sha256": "63f89ba77c7f5e286f33895da2a89c4abda1cad33b2c57c8ae3ee0a0fe82002c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/mochi-actor-media.mjs",
+      "bytes": 4698,
+      "sha256": "66f353f839caaa83469a08e241b6c05316f39f5a60e39338ba3d46e4ddfaf065"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/mochi-candidate-presentation.mjs",
+      "bytes": 7204,
+      "sha256": "b95f0e038fd40faa9d8273c36d090a03ae8dc50897b7627d92dd14120aa01646"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/pose-selection.mjs",
+      "bytes": 2402,
+      "sha256": "561001ab94bf81a618192809c07ae1bde7d8864865456bd3d955b33bf89a04d3"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/presentation-clock.mjs",
+      "bytes": 717,
+      "sha256": "e06921eeb3bcb9dcfc52fd3c4b14887883a74fb1d4199cb8d5d4b6bf9e85396b"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/presentation.mjs",
+      "bytes": 6695,
+      "sha256": "d5dccf5ffdab136c85c538b865a90bc23d474a9d1ea7aa6585a8d51b70ee19e4"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/projection.mjs",
+      "bytes": 1152,
+      "sha256": "0c886f735e42d9e61e6bd06c71cd8894919d8a8f341ad30fa440265b037b4d3c"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/scene.mjs",
+      "bytes": 10843,
+      "sha256": "c27ba4ba45d3fd98aced0a06885074c48e67160cdb8f82382bdf70799a2f0bb1"
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/source/src/games/companion-yard-v2/telemetry.mjs",
+      "bytes": 3070,
+      "sha256": "02b6efec85cb7ddff732f78f8e3fe0f3da78c009deb0a42ecefe0efd92d6a42c"
+    },
+    {
+      "path": "scripts/yard-canonical-ci-server.mjs",
+      "bytes": 2236,
+      "sha256": "fa0b76ab5ddbf2d9c07f1a978bfb986549aad2b3d6115ece8049828bd85ae87e"
+    },
+    {
+      "path": "tests/yard-canonical-e2e/shared-scene.spec.js",
+      "bytes": 5820,
+      "sha256": "b02dd4d15809967c2166b837c74a769d6ed9c301e188da5afba2bea25559e9c8"
+    }
+  ],
+  "preserved": {
+    "game-logic/yard-v2/actor-profiles.mjs": "3fcc220cdde1ec6189989ade0e21b025182f300abac13ed04af6ad17521570b2",
+    "game-logic/yard-v2/mika-media.mjs": "9216c0db0763e1702bcdf3e5ea150300bc2cccf75b747da7ae9830daae91bcf9",
+    "src/games/companion-yard-v2/actor-media.mjs": "aec79a30e129b70ab9f313bea91a22171c22d5a2f854fbb55e145f390c33f7e8",
+    "public/assets/yard-mika/runtime-media.json": "44cefc25deef8284b91f6dd35bebe972b0f78bb91ed903337d871233da0b9cbb",
+    "game-logic/yard-v2/food-media.mjs": "2ef743fd6e232502c10270589eea161b8c14eb04717b62c791571259e946a9e8",
+    "game-logic/yard-catalog.js": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b"
+  }
+}

@@ -195,6 +195,16 @@ jobs:
         run: node --test tests/yard-mochi-presentation.test.mjs
       - name: Validate inactive Mochi media
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
+      - name: Validate canonical Yard scene
+        run: pnpm exec playwright test -c playwright.yard-canonical.config.js --project=chromium --workers=1
+      - name: Preserve canonical Yard evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-yard-canonical-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-canonical/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Preserve Mochi diagnostics
         if: always()
         uses: actions/upload-artifact@v7
