@@ -4,6 +4,7 @@ import { measurePlantTranslation } from "./helpers/plantPixelMotion.js";
 import { fitArtwork } from "../../src/games/garden-shelf/living/plant-presentation-contract.mjs";
 import { gardenDiagnostics } from "./helpers/gardenDiagnostics.js";
 import { exitBlox } from "./helpers/blox-v2.js";
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
 import { formatGardenGoldAmount, PLANT_TYPES } from "../../game-logic/garden-shelf-plants.js";
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
@@ -74,14 +75,15 @@ async function assertShellFit(page) {
   });
   const result=await page.evaluate(()=>{
     const rect=node=>{const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
-    const stage=rect(document.querySelector('.gs2-stage')),dock=rect(document.querySelector('.bottom-tabs'));
-    const targets=[...document.querySelectorAll('.bottom-tabs button')].map(node=>({label:node.textContent,box:rect(node),scrollWidth:node.scrollWidth,clientWidth:node.clientWidth}));
+    const stage=rect(document.querySelector('.gs2-stage'));
+    const dock=document.querySelector('.bottom-tabs');
+    const targets=[...document.querySelectorAll('.gs2-home')].map(node=>({label:node.textContent,box:rect(node),scrollWidth:node.scrollWidth,clientWidth:node.clientWidth}));
     return {stage,dock,targets,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth};
   });
   expect(result.scrollWidth).toBeLessThanOrEqual(result.width+1);
-  for(const r of [result.stage,result.dock]){expect(r.left).toBeGreaterThanOrEqual(-1);expect(r.right).toBeLessThanOrEqual(result.width+1);expect(r.top).toBeGreaterThanOrEqual(-1);expect(r.bottom).toBeLessThanOrEqual(result.height+1);}
-  expect(result.stage.bottom).toBeLessThanOrEqual(result.dock.top+1);
-  expect(result.stage.height).toBeGreaterThan(44);expect(result.targets).toHaveLength(8);
+  for(const r of [result.stage]){expect(r.left).toBeGreaterThanOrEqual(-1);expect(r.right).toBeLessThanOrEqual(result.width+1);expect(r.top).toBeGreaterThanOrEqual(-1);expect(r.bottom).toBeLessThanOrEqual(result.height+1);}
+  expect(result.dock).toBeNull();
+  expect(result.stage.height).toBeGreaterThan(44);expect(result.targets).toHaveLength(1);
   for(const target of result.targets){expect(target.box.width,target.label).toBeGreaterThanOrEqual(44);expect(target.box.height,target.label).toBeGreaterThanOrEqual(44);expect(target.scrollWidth,target.label).toBeLessThanOrEqual(target.clientWidth+1);}
   await expect(page.locator('.stats-row')).not.toBeVisible();
 }
@@ -149,15 +151,14 @@ test.describe('Garden Living production-source flow',()=>{
       await page.locator('.gs2-stage button[aria-label="Garden quests"]').click();await assertDialogFit(page,panel(page,'quests'));await assertFlowRows(page,'.gs2-quest-card');await shot(page,testInfo,'quests');await closePanel(page);diagnostics.mark('quests-verified');
       await page.locator('.gs2-empty-target').first().click();await assertDialogFit(page,panel(page,'seed-shop-inventory'));await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await assertFlowRows(page,'.gs2-catalog-row');await shot(page,testInfo,'shop');await closePanel(page);diagnostics.mark('shop-verified');
       // The host and its state remain intact after dismissals and tab changes.
-      diagnostics.mark('exit-to-blox');await page.locator('[data-hud-region="bottomDock.blox"]').click();
+      diagnostics.mark('exit-to-blox');await selectHomeGame(page,'blox');
       await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab','blox');
       await expect(page.locator('[data-game-shell="blox"] .bx-dialog')).toBeVisible();
-      await expect(page.locator('.bottom-tabs')).toBeHidden();
+      await expect(page.locator('.bottom-tabs')).toHaveCount(0);
       await expect(page.locator('.gs2-stage')).toHaveCount(0);
       await expect(page.locator('.telegram-app')).not.toHaveAttribute('data-garden-presentation','living');
-      // Blox owns an immersive shell; its visible Exit action returns to Garden.
-      // Clicking the global dock here races entry and eventually targets hidden UI.
-      diagnostics.mark('return-to-garden');await exitBlox(page);
+      // Blox's visible menu opens Home; the real Garden card returns to its state.
+      diagnostics.mark('return-to-garden');await exitBlox(page);await selectHomeGame(page,'garden');
       await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab','garden');
       await expect(page.locator('.telegram-app')).toHaveAttribute('data-garden-presentation','living');
       await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
@@ -194,7 +195,7 @@ test.describe('Garden Living production-source flow',()=>{
     await expect(page.locator('.gs2-water-ready').first()).toBeVisible();expect((await state(page)).plants).toHaveLength(1);
     await page.getByRole('button',{name:'Garden settings',exact:true}).click();await page.getByRole('button',{name:'Russian',exact:true}).click();
     await expect(panel(page,'settings')).toContainText('Настройки');await panel(page,'settings').getByRole('button',{name:'Готово',exact:true}).click();
-    await expect(page.locator('.gs2-name')).toContainText('Мой сад');await expect(page.locator('[data-hud-region="bottomDock.blox"]')).toContainText('Блоки');await expect(page.locator('[data-hud-region="bottomDock.match3"]')).toContainText('Камни');
+    await expect(page.locator('.gs2-name')).toContainText('Мой сад');await openHome(page);await expect(page.locator('[data-home-game="blox"]')).toContainText('Блоки');await expect(page.locator('[data-home-game="match3"]')).toContainText('Камни');await page.getByRole('button',{name:'Закрыть главную',exact:true}).click();
   });
 
   test('mature Care retains action feedback, water state, scrim exit and static inventory art',async({page},testInfo)=>{
@@ -238,7 +239,7 @@ test.describe('Garden Living production-source flow',()=>{
       const current=await diagnostics();expect(current.surfaces[0].id).toBe(shelfId);expect(current.surfaces[0].textures).toBeLessThanOrEqual(16);expect(current.surfaces[0].failed).toEqual([]);
     }
     await page.emulateMedia({reducedMotion:'reduce'});await expect.poll(async()=>(await diagnostics()).surfaces.every(surface=>surface.reducedMotion)).toBe(true);
-    await page.locator('[data-hud-region="bottomDock.blox"]').click();await expect.poll(async()=>(await diagnostics()).surfaces.length).toBe(0);
+    await selectHomeGame(page,'blox');await expect.poll(async()=>(await diagnostics()).surfaces.length).toBe(0);
   });
 
   test('interrupted request releases busy state and lets the player dismiss and retry',async({page})=>{

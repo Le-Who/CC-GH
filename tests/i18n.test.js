@@ -168,7 +168,8 @@ it("player-facing copy omits implementation details and decorative setup lines",
   assert.match(copy, /Недавние публичные дуэли/);
   const app = readRepoFile("src", "App.jsx");
   assert.doesNotMatch(app, /t\("app\.(?:runtime|eyebrow)"\)/);
-  assert.match(app, /profileBotName &&/);
+  assert.match(app, /profileBotName=\{profileBotName\}/);
+  assert.match(readRepoFile("src", "app", "HomeCatalogue.jsx"), /profileBotName &&/);
   assert.match(app, /aria-label=\{`\$\{t\(`app\.status\.\$\{status\}`\)/);
   const shared = readRepoFile("src", "app", "i18n.jsx");
   for (const state of ["booting", "syncing", "ready", "offline"]) {

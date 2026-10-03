@@ -82,14 +82,14 @@ export async function expectBloxDialog(page) {
 export async function pauseBlox(page) {
   await page.locator('[data-game-shell="blox"] [data-game-pause="true"]').click();
   await expect(page.locator('[data-game-shell="blox"]')).toHaveAttribute("data-bx-phase", "paused");
-  await expect(page.locator(".bottom-tabs")).toBeHidden();
+  await expect(page.locator('.bottom-tabs')).toHaveCount(0);
   return expectBloxDialog(page);
 }
 
 export async function exitBlox(page) {
-  await page.locator('.bx-dialog').getByRole("button", { name: /^Exit$/ }).click();
-  await expect(page.locator(".bottom-tabs")).toBeVisible();
-  await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
+  await page.locator('.bx-dialog').getByRole("button", { name: /^(All games|Все игры)$/ }).click();
+  await expect(page.getByTestId('home-catalogue')).toBeVisible();
+  await expect(page.locator(".telegram-app")).toHaveJSProperty('inert', true);
 }
 
 export async function expectBloxArtSurface(page, locator, label, testInfo) {

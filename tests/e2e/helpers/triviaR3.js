@@ -49,9 +49,9 @@ export async function exitTriviaToHub(page) {
   ]);
   expect(response.ok()).toBe(true);
   expect((await response.json()).success).toBe(true);
-  await expect(page.getByTestId('trv2-root')).toHaveCount(0);
-  await expect(page.locator('.bottom-tabs')).toBeVisible();
-  await expect(page.locator('.telegram-app.immersive-mode')).toBeHidden();
+  await expect(page.getByTestId('trv2-root')).toHaveAttribute('data-trivia-view','menu');
+  await expect(page.getByTestId('home-catalogue')).toBeVisible();
+  await expect(page.locator('.telegram-app')).toHaveJSProperty('inert',true);
 }
 
 export async function expectTriviaControlsReachable(page, controls) {

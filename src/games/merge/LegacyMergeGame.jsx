@@ -166,7 +166,8 @@ export default function MergeGame() {
   const isPlaying = !paused;
   const activePause = paused;
   const shellControls = useMemo(() => ({
-    activeRun: true,
+    activeRun: false,
+    safeLeave: async () => !mergeActionPending,
     openPanel: !!activePanel,
     closePanel: activePanel ? () => setActivePanel(null) : null,
     pauseRun: () => setPaused(true),
@@ -174,7 +175,7 @@ export default function MergeGame() {
       alchemyEssence: Math.max(0, Math.floor(Number(merge.alchemyEssence) || 0)),
       freeTapCharges: Math.max(0, Math.floor(Number(merge.freeTapCharges) || 0)),
     },
-  }), [activePanel, merge.alchemyEssence, merge.freeTapCharges]);
+  }), [activePanel, mergeActionPending, merge.alchemyEssence, merge.freeTapCharges]);
   useImmersiveGame("merge", true, shellControls);
 
   const harvestedEntries = listPositive(inventory.harvested || {});

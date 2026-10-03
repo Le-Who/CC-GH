@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from '@playwright/test';
 import { expectBloxCanvas, expectBloxLayout } from './helpers/blox-v2.js';
 import { expectControlPainted, measureControlPaint } from './helpers/control-paint.js';
@@ -11,7 +12,7 @@ async function startBlox(page, { fullLayout = false } = {}) {
   });
   await page.goto('/');
   await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});
-  await page.getByRole('button',{name:/Blox/}).click();
+  await selectHomeGame(page, 'blox');
   await page.getByRole('button',{name:/^Start$/}).click();
   if (fullLayout) await expectBloxLayout(page);
   else await expectBloxCanvas(page);
@@ -97,7 +98,7 @@ test('Blox restored Pause paints and opens the paused dialog', async ({page},tes
   await test.step('activate the restored Pause control', async () => {
     await pause.click();
     await expect(page.locator('[data-game-shell="blox"]')).toHaveAttribute('data-bx-phase','paused');
-    await expect(page.locator('.bottom-tabs')).toBeHidden();
+    await expect(page.locator('.bottom-tabs')).toHaveCount(0);
     const dialog=page.locator('[data-game-shell="blox"] .bx-dialog[role="dialog"]');
     await expect(dialog).toBeVisible();
     await expect(dialog).toHaveAttribute('aria-modal','true');

@@ -13,6 +13,7 @@ export { GARDEN_LANGUAGE_EVENT, getStoredGardenLanguage };
 
 const translations = {
   en: {
+    "nav.allGames": "All games",
     "r2.rewardBody": "Garden reward added:",
     "r2.claimReward": "Claim earned reward",
     "r2.confirmSale": "Sell {name} for {amount} gold? This plant will leave your garden. Species mastery is kept.",
@@ -227,6 +228,7 @@ const translations = {
     'plant.fern': 'Fern',
   },
   ru: {
+    "nav.allGames": "Все игры",
     "r2.rewardBody": "Награда сада добавлена:",
     "r2.claimReward": "Забрать награду",
     "r2.confirmSale": "Продать {name} за {amount} золота? Растение покинет сад. Мастерство вида сохранится.",

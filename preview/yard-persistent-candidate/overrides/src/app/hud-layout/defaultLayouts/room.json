@@ -25,17 +25,6 @@
         "mode": "custom",
         "visible": true
       },
-      "bottomDock": {
-        "mode": "dock",
-        "edge": "bottom",
-        "offset": 10,
-        "thickness": 64,
-        "reserve": 84,
-        "alignment": "center",
-        "maxWidth": 1180,
-        "zIndex": 50,
-        "visible": true
-      },
       "yardStage": {
         "mode": "custom",
         "visible": true

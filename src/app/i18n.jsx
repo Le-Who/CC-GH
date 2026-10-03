@@ -13,6 +13,7 @@ export function registerAppTranslations(translations) {
 
 const APP_TRANSLATIONS = {
   en: {
+    "nav.allGames": "All games",
     "app.status.booting": "Connecting…",
     "app.status.syncing": "Updating…",
     "app.status.ready": "Connected",
@@ -93,6 +94,7 @@ const APP_TRANSLATIONS = {
     "yard.cost.shiny": "{count} shiny",
   },
   ru: {
+    "nav.allGames": "Все игры",
     "app.status.booting": "Подключение…",
     "app.status.syncing": "Обновляем…",
     "app.status.ready": "На связи",

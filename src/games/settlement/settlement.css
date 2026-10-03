@@ -8720,6 +8720,33 @@
   .settlement-game-root .right-panel-building .fancy-panel-header { position: relative; padding-right: 58px !important; }
 }
 
+/* Home opens from the existing header and consumes no additional playfield reserve. */
+.settlement-game-root .top-resource-zone.settlement-home-row {
+  display: grid !important;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.settlement-game-root .settlement-home-button {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid #d5dcd2;
+  border-radius: 10px;
+  background: #f4f1eb;
+  color: #304f3a;
+  font: 800 9px/1.2 Nunito, system-ui, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.settlement-game-root .settlement-home-button:focus-visible { outline: 3px solid #276647; outline-offset: 2px; }
+
 /* HUD redesign runtime kit overlay.
    Settlement keeps its authored Pixi/layout adapters; these DOM surfaces use
    the generated data-free HUD art from the shared redesign pack. */

@@ -5,6 +5,7 @@ import {useAppI18n} from '../../app/i18n.jsx';
 import {GameShell} from '../../app/shell.jsx';
 import {HudEditableRegion,useHudViewport} from '../../app/hud-layout/index.js';
 import {api} from '../../services/apiClient.js';
+import {openHome} from '../../app/homeNavigation.js';
 import {createMergeLabTransport} from './mergeLabTransport.js';
 import {MergeLabView} from './MergeLabView.js';
 import './merge-lab.css';
@@ -27,11 +28,11 @@ export default function MergeLabGame(){
     setRecovering(!!transport.initializationError||transport.hasPending());
     setRecoveryBusy(false);setRecoveryError('');setShell({});
   },[transport]);
-  const controls=useMemo(()=>({activeRun:true,openPanel:!!shell.modalOpen,
+  const controls=useMemo(()=>({activeRun:false,hasPendingActions:!!shell.pending||recovering||recoveryBusy||!!transport.initializationError||!!transport.hasPending?.(),canLeave:()=>!recoveryBusy&&!transport.initializationError&&!transport.hasPending(),safeLeave:async()=>!recoveryBusy&&!transport.initializationError&&!transport.hasPending(),openPanel:!!shell.modalOpen,
     closePanel:shell.modalOpen?shell.close:null,pauseRun:shell.pause,
-    hudState:{alchemyEssence:snapshot?.merge?.alchemyEssence||0,freeTapCharges:snapshot?.merge?.freeTapCharges||0}}),[shell,snapshot?.merge?.alchemyEssence,snapshot?.merge?.freeTapCharges]);
+    hudState:{alchemyEssence:snapshot?.merge?.alchemyEssence||0,freeTapCharges:snapshot?.merge?.freeTapCharges||0}}),[shell,transport,recovering,recoveryBusy,snapshot?.merge?.alchemyEssence,snapshot?.merge?.freeTapCharges]);
   useImmersiveGame('merge',true,controls);
-  const openYard=useCallback(()=>useGameHub.getState().setActiveTab('room'),[]);
+  const openYard=useCallback(()=>openHome('room'),[]);
   const recover=async()=>{
     if(recoveryBusy||transport.initializationError)return;
     setRecoveryBusy(true);setRecoveryError('');

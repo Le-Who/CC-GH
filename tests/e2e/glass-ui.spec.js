@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { mergePanel, closeMergePanel, pauseMerge, exitMerge, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
 import { startTriviaSolo, pauseTrivia, exitTriviaToHub, expectTriviaGeneratedSurface } from "./helpers/triviaR3.js";
@@ -188,9 +189,9 @@ test.describe("Glass UI rollout smoke", () => {
   }
 
   async function exitToHub(page) {
-    await page.locator(":is(.game-menu-overlay,.bb-dialog,.m3-dialog,.bx-dialog):visible").last().getByRole("button", { name: /^Exit$/ }).click();
-    await expect(page.locator(".bottom-tabs")).toBeVisible();
-    await expect(page.locator(".telegram-app.immersive-mode")).toBeHidden();
+    await page.locator(":is(.game-menu-overlay,.bb-dialog,.m3-dialog,.bx-dialog):visible").last().getByRole("button", { name: /^(All games|Все игры)$/ }).click();
+    await expect(page.getByTestId('home-catalogue')).toBeVisible();
+    await expect(page.locator('.telegram-app')).toHaveJSProperty('inert', true);
   }
 
   test("mobile menus and live HUDs keep their expected visual surfaces", async ({ page }, testInfo) => {
@@ -231,7 +232,9 @@ test.describe("Glass UI rollout smoke", () => {
     ];
 
     for (const game of gameCases) {
-      await page.getByRole("button", { name: game.tab }).click();
+      await openHome(page); await page.getByRole("button", { name: game.tab }).click();
+      const confirm = page.getByRole("button", { name: "Finish & open" }); if (await confirm.isVisible()) await confirm.click();
+      await expect(page.getByTestId("home-catalogue")).toHaveCount(0);
       if (game.id === "blox") {
         await expectBloxDialog(page);
         await expectBloxArtSurface(page, page.locator(".bx-dialog"), "Blox start menu", testInfo);
@@ -278,7 +281,7 @@ test.describe("Glass UI rollout smoke", () => {
       await exitToHub(page);
     }
 
-    await page.getByRole("button", { name: /Trivia/ }).click();
+    await selectHomeGame(page, 'trivia');
     await expectTriviaGeneratedSurface(page, page.locator(".trv2-paper"), "question-panel", "Trivia setup panel", testInfo);
     await startTriviaSolo(page);
     await expectTriviaGeneratedSurface(page, page.locator(".trv2-question-surface"), "question-panel", "Trivia question panel", testInfo);
@@ -287,7 +290,7 @@ test.describe("Glass UI rollout smoke", () => {
     await expect(triviaDialog.locator(".trv2-pause-metrics")).toHaveCSS("background-image", "none");
     await exitTriviaToHub(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await page.waitForTimeout(260);
     await expectGeneratedChrome(page, page.locator(".yard-currency-chip").first(), "Yard currency chip", testInfo);
     await expectGeneratedChrome(page, page.locator(".yard-bottom-dock"), "Yard action dock", testInfo);

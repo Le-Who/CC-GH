@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import {test,expect} from '@playwright/test';
 import crypto from 'node:crypto';
 import assets from '../fixtures/arcade-runtime-assets.json' with {type:'json'};
@@ -31,7 +32,7 @@ for(const [width,height] of [[320,568],[390,844],[568,320]]){
     .catch(error=>({asset,error:error.message})));
    await page.goto('/');
    await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});
-   await page.getByRole('button',{name:/Bubbo/}).click();
+   await selectHomeGame(page, 'bubbo');
    await page.getByTestId('bb-start').click();
    const field=page.getByTestId('bb-field');
    await expect(field).toHaveAttribute('data-ready','true');

@@ -23,12 +23,6 @@ const COMMON_REGIONS = {
     editorGroup: "Global shell",
     capabilities: { draggable: false, resizable: false, canChangeVisibility: false, affectsPixiSafeArea: false, measured: true, mode: "custom" },
   },
-  bottomDock: {
-    id: "bottomDock",
-    editorLabel: "Bottom tab dock",
-    editorGroup: "Global shell",
-    capabilities: { draggable: true, resizable: true, canChangeVisibility: true, affectsPixiSafeArea: true, measured: true, mode: "dock" },
-  },
   gameShell: {
     id: "gameShell",
     editorLabel: "Game shell",
@@ -117,16 +111,6 @@ const SETTLEMENT_CONSTRUCTION_SLOT_REGIONS = Object.fromEntries(
   SETTLEMENT_CONSTRUCTION_PLACEMENT_SLOTS.map((slot) => [settlementConstructionSlotRegionId(slot.id), settlementConstructionSlotRegion(slot)]),
 );
 
-const BOTTOM_DOCK_BUTTONS = {
-  "bottomDock.garden": region("bottomDock.garden", "Garden tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.blox": region("bottomDock.blox", "Blox tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.match3": region("bottomDock.match3", "Gems tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.merge": region("bottomDock.merge", "Merge tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.bubbo": region("bottomDock.bubbo", "Bubbo tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.trivia": region("bottomDock.trivia", "Trivia tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.room": region("bottomDock.room", "Yard tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-  "bottomDock.settlement": region("bottomDock.settlement", "Town tab button", "Bottom dock buttons", { draggable: true, resizable: true, mode: "freeform" }),
-};
 
 const GAME_REGIONS = {
   garden: {
@@ -138,6 +122,7 @@ const GAME_REGIONS = {
     gardenQuestSheet:region("gardenQuestSheet","Garden quest sheet","Garden Shelf",{measured:true,mode:"custom"},"Bounded modal flow adapter for localized quest lists; content and dismissal remain reachable at every profile."),
 
     gardenRoot: region("gardenRoot", "Garden root", "Garden Shelf", { measured: true, mode: "custom" }),
+    gardenHomeButton: region("gardenHomeButton", "Garden Home button", "Garden Shelf controls", { draggable: true, resizable: true, control: true, mode: "custom" }, "Opens the Home catalogue from the existing header. Preserve a 44px minimum hit target."),
     gardenSign: region("gardenSign", "Garden sign", "Garden Shelf", { draggable: true, resizable: true, mode: "anchored" }),
     gardenSignAsset: region("gardenSignAsset", "Garden sign image asset", "Garden Shelf assets", { draggable: true, resizable: true, mode: "freeform", asset: true }, "Editable visual asset inside the Garden sign. This moves/scales the image, not the gameplay data."),
     gardenShelf: region("gardenShelf", "Garden shelf viewport", "Garden Shelf", { measured: true, mode: "custom" }),
@@ -222,6 +207,7 @@ const GAME_REGIONS = {
   settlement: {
     settlementCanvas: region("settlementCanvas", "Settlement Pixi canvas", "Settlement", { measured: true, affectsPixiSafeArea: true, mode: "custom" }, "Settlement owns a custom Pixi lifecycle; this adapter records layout and reserve boundaries without rewriting the scene."),
     settlementTopHud: region("settlementTopHud", "Settlement top HUD", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
+    settlementHomeButton: region("settlementHomeButton", "Settlement Home button", "Settlement controls", { draggable: true, resizable: true, control: true, mode: "custom" }, "Opens Home within the existing top HUD; preserve the 44px target and current reserve."),
     settlementLeftDock: region("settlementLeftDock", "Settlement left dock", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     settlementRightPanel: region("settlementRightPanel", "Settlement right panel", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     settlementCompactDetail: region("settlementCompactDetail", "Settlement compact building card", "Settlement", { draggable: true, resizable: true, affectsPixiSafeArea: false, mode: "dock" }, "Contextual bottom card shown only while the full right panel is closed; it is an overlay control and does not reserve camera space."),
@@ -238,8 +224,6 @@ function mergeCommon(gameRegions = {}) {
     appTopbar: COMMON_REGIONS.appTopbar,
     globalStats: COMMON_REGIONS.globalStats,
     activeGameFrame: COMMON_REGIONS.activeGameFrame,
-    bottomDock: COMMON_REGIONS.bottomDock,
-    ...BOTTOM_DOCK_BUTTONS,
     gameShell: COMMON_REGIONS.gameShell,
     ...gameRegions,
   };

@@ -7,7 +7,6 @@
       "appTopbar": { "mode": "dock", "edge": "top", "offset": 0, "thickness": 56, "reserve": 64, "alignment": "center", "zIndex": 20, "visible": true },
       "globalStats": { "mode": "stack", "direction": "horizontal", "gap": 6, "zIndex": 20, "visible": true },
       "activeGameFrame": { "mode": "custom", "visible": true },
-      "bottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 64, "reserve": 84, "alignment": "center", "maxWidth": 1180, "zIndex": 50, "visible": true },
       "yardStage": { "mode": "custom", "visible": true },
       "yardHudLayer": { "mode": "custom", "visible": true },
       "yardCurrencyStack": { "mode": "stack", "direction": "vertical", "gap": 6, "x": 0, "y": 0, "zIndex": 30, "visible": true },

@@ -70,10 +70,10 @@ test('R3 React inert ownership and focus restoration survive integration unchang
 test('shell navigation retains active-run, pending-setup, Back and explicit cleanup contract', () => {
   const app = read('src/App.jsx');
   assert.match(game, /activeRun: active \|\| !!state\.roomId \|\| !!state\.busy/);
-  assert.match(game, /openPanel: state\.paused \|\| !active/);
+  assert.match(game, /openPanel: state\.paused/);
   assert.match(game, /closePanel: \(\) => controller\.back\(\)/);
-  assert.match(game, /state\.view !== 'menu' \|\| !!state\.busy/);
-  assert.match(app, /closePanel: profileOpen \? closeProfile : activeGameControls\?\.closePanel/);
+  assert.match(game, /useImmersiveGame\('trivia', true, controls\)/);
+  assert.match(app, /closePanel: homeOpen \? closeHome : activeGameControls\?\.closePanel/);
   assert.match(controller, /'\/api\/trivia\/forfeit'/); assert.match(controller, /'\/api\/trivia\/duel\/leave'/);
 });
 test('every production mutation endpoint keeps requireAuth; no preview transport enters runtime', () => {

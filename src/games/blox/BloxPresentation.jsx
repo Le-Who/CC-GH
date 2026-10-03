@@ -198,7 +198,7 @@ function BloxDialog({
         })]
       }), jsxRuntime.jsx(BloxButton, {
         onClick:onExit,
-        children:t("common.exit")
+        children:t("nav.allGames")
       }), !paused&&jsxRuntime.jsxs("section", {
         className:"bx-leaders",
         children:[jsxRuntime.jsx("h2", {

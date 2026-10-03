@@ -1,7 +1,7 @@
 import {makeLivingPlantArt,supportsLivingPlant,notifyPlantTouch,getLivingPlantMotionState,LIVING_MOTION_CHANGE,listenToMotionPreference} from './living/living-plant-art.mjs';
 import React, { createContext, useContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Settings, X, Plus, Info, ChevronLeft, ChevronRight, Archive, Trash2, Lock, ArrowUpCircle, Check } from 'lucide-react';
+import { Home, Settings, X, Plus, Info, ChevronLeft, ChevronRight, Archive, Trash2, Lock, ArrowUpCircle, Check } from 'lucide-react';
 import { useGame } from './lib/GameContext';
 import { useGardenI18n } from './lib/i18n';
 import { getGardenSpriteFrame, getGardenSpriteStyle, GARDEN_SHEET_PATH } from './lib/sprites';
@@ -14,6 +14,7 @@ import { HudRegion, HudEditableRegion, useHudLayout } from '../../app/hud-layout
 import { useDialogFocus } from '../../app/useDialogFocus.js';
 import { makeDialogSiblingsInert } from '../../app/dialogFocus.js';
 import { useEscapeDismiss } from '../../app/useDismissableLayer.js';
+import { openHome } from '../../app/homeNavigation.js';
 import { resolveGardenComposition } from './gardenComposition.js';
 import { applyGardenHostLayout } from './gardenHostLayout.js';
 import { createGardenPressSession, createGardenActionGate, createGardenShelfDrag, orderGardenQuests, clampGardenPercent } from './gardenInteraction.js';
@@ -613,7 +614,7 @@ export default function GardenPresentation({
       '--gs2-dialog-max': `${layout.dialogMax}px`
     } as React.CSSProperties}>
  <HudEditableRegion id="gardenBackgroundAsset" className="gs2-backdrop" aria-hidden="true"><Art name="background" /></HudEditableRegion>
- <div className="gs2-layout" data-hud-region="gardenComposition"><HudRegion id="gardenStatusRail" applyLayout={false} className="gs2-header"><div className="gs2-name-row"><HudRegion id="gardenSign" applyLayout={false} className="gs2-name"><HudEditableRegion id="gardenSignAsset" className="gs2-name-art" aria-hidden="true" />{renaming ? <form onSubmit={e => {
+ <div className="gs2-layout" data-hud-region="gardenComposition"><HudRegion id="gardenStatusRail" applyLayout={false} className="gs2-header"><div className="gs2-name-row"><HudEditableRegion id="gardenHomeButton" as="button" type="button" className="gs2-button gs2-home" aria-label={t("nav.allGames")} onClick={openHome}><span className="gs2-button-content"><Home size={24}/></span></HudEditableRegion><HudRegion id="gardenSign" applyLayout={false} className="gs2-name"><HudEditableRegion id="gardenSignAsset" className="gs2-name-art" aria-hidden="true" />{renaming ? <form onSubmit={e => {
                 e.preventDefault();
                 saveName();
               }}><input autoFocus aria-label={t('garden.rename')} maxLength={22} value={draft} onChange={e => setDraft(e.target.value)} onBlur={saveName} onKeyDown={e => {

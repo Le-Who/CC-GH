@@ -12,6 +12,8 @@ import {
   Text
 } from 'pixi.js';
 import { useImmersiveGame } from '../../app/gameHooks.js';
+import { openHome } from '../../app/homeNavigation.js';
+import { Home } from 'lucide-react';
 import { useAppI18n } from '../../app/i18n.jsx';
 import { HudEditableRegion, HudRegion, useHudLayout, useHudRegion } from '../../app/hud-layout/index.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
@@ -1748,7 +1750,10 @@ function TopHud({ resources, population, stage }) {
         <strong>{t(ru ? SETTLEMENT_PROFILE.name : 'Green Village')}</strong>
       </div>
 
-      <div className="top-resource-zone">
+      <div className="top-resource-zone settlement-home-row">
+        <HudEditableRegion id="settlementHomeButton" as="button" type="button" className="settlement-home-button" onClick={openHome} aria-label={ru ? 'Все игры' : 'All games'}>
+          <Home size={19} aria-hidden="true" /><span>{ru ? 'Игры' : 'Games'}</span>
+        </HudEditableRegion>
         <div className="top-resources top-resources-core">
           {RESOURCES.filter((resource) => TOP_HUD_RESOURCE_IDS.includes(resource.id)).map((resource) => (
             <ResourcePill

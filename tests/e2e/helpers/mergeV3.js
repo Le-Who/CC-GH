@@ -36,7 +36,7 @@ export async function expectMergeV3(page) {
   await expect(page.getByTestId('ml-laboratory')).toBeVisible();
   await expect(page.locator('[data-game-shell="merge"]')).toBeVisible();
   await expect(page.locator('.telegram-app.immersive-mode')).toBeVisible();
-  await expect(page.locator('.bottom-tabs')).toBeHidden();
+  await expect(page.locator('.bottom-tabs')).toHaveCount(0);
   await expect(page.locator('[data-game-shell="merge"] canvas')).toHaveCount(0);
   await mergeSnapshot(page);
 }
@@ -64,9 +64,9 @@ export async function pauseMerge(page) {
 export async function exitMerge(page) {
   if (!await page.getByTestId('ml-pause').count()) await pauseMerge(page);
   await page.getByTestId('ml-exit').click();
-  await expect(page.getByTestId('ml-laboratory')).toHaveCount(0);
-  await expect(page.locator('.bottom-tabs')).toBeVisible();
-  await expect(page.locator('.telegram-app.immersive-mode')).toBeHidden();
+  await expect(page.getByTestId('ml-laboratory')).toHaveCount(1);
+  await expect(page.getByTestId('home-catalogue')).toBeVisible();
+  await expect(page.locator('.telegram-app')).toHaveJSProperty('inert', true);
 }
 export async function expectMergeControlsReachable(page, controls) {
   expect(await controls.count()).toBeGreaterThan(0);

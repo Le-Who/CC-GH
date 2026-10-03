@@ -11,10 +11,6 @@ import {
   settlementConstructionSlotRegionId,
 } from "../../../games/settlement/placementSlots.js";
 
-const BOTTOM_DOCK_BUTTON_DEFAULTS = Object.fromEntries(
-  ["garden", "blox", "match3", "merge", "bubbo", "trivia", "room", "settlement"]
-    .map((id) => [`bottomDock.${id}`, { mode: "freeform", x: 0, y: 0, scale: 1, opacity: 1, visible: true }]),
-);
 
 const GARDEN_ASSET_DEFAULTS = {
   gardenSignAsset: { mode: "freeform", x: 0, y: 0, scale: 1, opacity: 1, zIndex: 111, visible: true },
@@ -62,7 +58,6 @@ const GAME_ASSET_DEFAULTS = {
 
 function withSharedEditorDefaults(layout) {
   const extraRegions = {
-    ...BOTTOM_DOCK_BUTTON_DEFAULTS,
     ...(GAME_ASSET_DEFAULTS[layout.gameId] || {}),
   };
   return {

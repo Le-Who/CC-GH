@@ -47,13 +47,18 @@ function BloxGame(){
   const shellControls=React.useMemo(()=>({
     activeRun:state.gameActive,
     pauseRun:pauseRun,
+    safeLeave:async()=>{
+      if(!state.gameActive)return true;
+      const result=await performAction('blox.end',{score:state.score});
+      return result?.success === true && !result.error;
+    },
     hudState:{
       score:state.score,
       linesCleared:state.linesCleared,
       rotateCharges:state.rotateCharges,
       currentReward:currentReward
     }
-  }), [currentReward, pauseRun, state.gameActive, state.linesCleared, state.rotateCharges, state.score]);
+  }), [currentReward, pauseRun, performAction, state.gameActive, state.linesCleared, state.rotateCharges, state.score]);
   useImmersiveGame("blox", true, shellControls);
   React.useEffect(()=>{
     api("/api/blox/leaderboard").then(V=>{

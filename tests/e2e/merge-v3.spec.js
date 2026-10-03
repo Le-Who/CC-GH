@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from '@playwright/test';
 import { MERGE_LAB_CATALOG as catalog } from '../../game-logic/merge-lab-catalog.js';
 import { bootMergeV3, expectMergeV3, mergeHeaders, mergeSnapshot, mergePanel, closeMergePanel, pauseMerge,
@@ -196,17 +197,20 @@ test('V3 dialogs trap/restore focus, quote Back preserves state, and remount doe
     await expect(page.getByTestId('ml-open-pause')).toBeFocused();
   }
   await exitMerge(page);
-  await page.getByRole('button', { name: /Merge/ }).click();
+  await selectHomeGame(page, 'merge');
   await expectMergeV3(page);
   expect((await mergeSnapshot(page)).merge.mergeRevision).toBe(before.merge.mergeRevision);
   // Real browser history navigation creates/unmounts a document; no synthetic app state.
   await pauseMerge(page);
   await page.goto('/?tab=garden');
-  await expect(page.locator('.bottom-tabs')).toBeVisible();
+  await expect(page.locator('.gs2-stage')).toBeVisible(); await openHome(page);
+  await expect(page.getByTestId('home-catalogue')).toBeVisible();
+  await page.goBack(); await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
+  await expect(page.locator('.gs2-stage')).toBeVisible();
   await page.goBack(); await expectMergeV3(page);
   await expect(page.getByTestId('ml-drawer')).toHaveCount(0);
-  await page.goForward(); await expect(page.locator('.bottom-tabs')).toBeVisible();
-  await page.getByRole('button', { name: /Merge/ }).click(); await expectMergeV3(page);
+  await page.goForward(); await expect(page.locator('.gs2-stage')).toBeVisible(); await openHome(page); await expect(page.getByTestId('home-catalogue')).toBeVisible();
+  await selectHomeGame(page, 'merge'); await expectMergeV3(page);
   await researchMergePair(page, 'cloud', 'ember');
   expect((await mergeSnapshot(page)).merge.mergeRevision).toBe(before.merge.mergeRevision + 1);
 });

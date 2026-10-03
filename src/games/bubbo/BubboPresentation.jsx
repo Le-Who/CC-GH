@@ -469,7 +469,7 @@ function BubboPresentation({
           }), jsxRuntime.jsx(BubboButton, {
             "data-testid":"bb-exit",
             onClick:onExit,
-            children:t("common.exit")
+            children:t("nav.allGames")
           }), jsxRuntime.jsxs("details", {
             className:"bb-help",
             children:[jsxRuntime.jsx("summary", {

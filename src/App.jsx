@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Blocks,
-  Bot,
   Gem,
   ClipboardList,
   Home,
@@ -14,7 +13,6 @@ import {
   Trophy,
   Volume2,
   VolumeX,
-  X,
   Zap,
 } from "lucide-react";
 import { getPublicConfig } from "./services/apiClient.js";
@@ -30,22 +28,25 @@ import { formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward
 import { formatR2Gold } from "./games/garden-shelf/lib/gardenR2View.js";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { useGameEvents } from "./game-state/gameEvents.js";
-import { ActiveGame, preloadGameTab } from "./app/gameChunks.jsx";
+import { ActiveGame } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
 import { AppI18nContext, appTranslate, playerFeedbackText, useAppI18n } from "./app/i18n.jsx";
-import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
+import { VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
 import { Stat, formatCount, semanticHudIconPath } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
 import { useEscapeDismiss } from "./app/useDismissableLayer.js";
+import { HomeCatalogue } from './app/HomeCatalogue.jsx';
+import { OPEN_HOME_EVENT, isHomeLeaveReady, leaveGameForHome } from './app/homeNavigation.js';
+import { createHomeHistoryLayer, installHomeHistoryGuard, markHomeHistoryEntry } from './app/homeHistory.js';
+import { HomeVisibilityContext } from './app/homeContext.js';
 import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
 import { HudEditableRegion, HudLayoutProvider, HudPreviewSurface, HudRegion } from "./app/hud-layout/index.js";
 import { HudEditorOverlay } from "./app/hud-editor/index.js";
 import "./app/hud-layout/hud-layout.css";
 import "./app/hud-editor/hud-editor.css";
 
-const TAB_ICONS = { garden: Leaf, blox: Blocks, match3: Gem, merge: PackageOpen, bubbo: Sparkles, trivia: Bot, room: Home, settlement: Home };
 const STAT_ICONS = { gold: Sparkles, energy: Zap, tokens: PackageOpen, score: Trophy, lines: Blocks, reward: Sparkles, moves: Gem, combo: Sparkles, essence: Sparkles, freeTaps: Zap, fuel: PackageOpen, shots: Sparkles, pressure: Timer, streak: Zap, time: Timer };
-const TABS = VISIBLE_GAME_IDS.map((id) => ({ id, labelKey: GAME_REGISTRY[id].labelKey, icon: TAB_ICONS[id] || Sparkles }));
+
 
 const PLAY_TABS = new Set(["blox", "match3", "merge", "bubbo", "settlement"]);
 const UI_THEME_KEY = "game_hub_ui_theme";
@@ -140,10 +141,16 @@ export default function App() {
   const [config, setConfig] = useState(null);
   const [gardenLanguage, setGardenLanguage] = useState(() => getStoredGardenLanguage());
   const [uiThemePreference, setUiThemePreference] = useState(() => readUiThemePreference());
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [homeOpen, setHomeOpen] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState('');
+  const switchLock = useRef(false);
+  const homeHistory = useRef(null);
+  const accountSession = useGameHub(state => state.accountSession);
+  const navigationReady = useGameHub(state => isHomeLeaveReady(state, state.snapshot?.player?.id));
   const [gardenLevelUpPending, setGardenLevelUpPending] = useState(false);
   const gardenLevelUpPendingRef = useRef(false);
-  const [isPending, startTransition] = useTransition();
+
   const user = useMemo(() => getTelegramUser(), [platform]);
   const t = useCallback((key, vars) => appTranslate(gardenLanguage, key, vars), [gardenLanguage]);
   const playerMessage = playerFeedbackText(gardenLanguage, message);
@@ -155,9 +162,62 @@ export default function App() {
       explicit: true,
     }));
   }, []);
-  const closeProfile = useCallback(() => setProfileOpen(false), []);
-  const exitToGarden = useCallback(() => setActiveTab("garden"), [setActiveTab]);
-  useEscapeDismiss(profileOpen, closeProfile);
+  const closeHome = useCallback(async () => {
+    if (switchLock.current) return;
+    await homeHistory.current?.close();
+    homeHistory.current = null;
+    setHomeOpen(false);
+  }, []);
+  const openCatalogue = useCallback(() => {
+    if (homeHistory.current) return;
+    const controls = useGameHub.getState().activeGameShell;
+    if (typeof controls === 'object') (controls?.pauseRun || controls?.pause)?.();
+    homeHistory.current = createHomeHistoryLayer(window, () => {
+      homeHistory.current = null;
+      setHomeOpen(false);
+    }, () => switchLock.current);
+    setSwitchError('');
+    setHomeOpen(true);
+  }, []);
+  useEscapeDismiss(!homeOpen, openCatalogue, { priority: -100 });
+  useEffect(() => { setSwitchError(''); }, [accountSession]);
+  useEffect(() => installHomeHistoryGuard(window, () => useGameHub.getState().activeTab), []);
+  useEffect(() => () => homeHistory.current?.dispose(), []);
+  const selectHomeGame = useCallback(async id => {
+    if (switchLock.current || !VISIBLE_GAME_IDS.includes(id)) return;
+    const state = useGameHub.getState();
+    if (id === state.activeTab) { closeHome(); return; }
+    switchLock.current = true;
+    setSwitching(true);
+    setSwitchError('');
+    const owner = state.accountSession;
+    try {
+      const controls = typeof state.activeGameShell === 'object' ? state.activeGameShell : null;
+      const allowed = await leaveGameForHome({ state, controls, accountId: state.snapshot?.player?.id });
+      const current = useGameHub.getState();
+      if (current.accountSession !== owner || current.activeTab !== state.activeTab) return;
+      if (!allowed || !isHomeLeaveReady(current, state.snapshot?.player?.id)) { setSwitchError('leave-failed'); return; }
+      await homeHistory.current?.close();
+      homeHistory.current = null;
+      const committed = useGameHub.getState();
+      if (committed.accountSession !== owner || committed.activeTab !== state.activeTab) { openCatalogue(); return; }
+      if (!isHomeLeaveReady(committed, state.snapshot?.player?.id)) { openCatalogue(); setSwitchError('leave-failed'); return; }
+      setActiveTab(id);
+      markHomeHistoryEntry(window);
+      setHomeOpen(false);
+      haptic('light');
+      audioManager.play('tap');
+    } catch { if (useGameHub.getState().accountSession === owner) setSwitchError('leave-failed'); }
+    finally { switchLock.current = false; setSwitching(false); }
+  }, [closeHome, openCatalogue, setActiveTab]);
+  useEffect(() => {
+    const request = event => {
+      openCatalogue();
+      if (event.detail?.gameId) void selectHomeGame(event.detail.gameId);
+    };
+    window.addEventListener(OPEN_HOME_EVENT, request);
+    return () => window.removeEventListener(OPEN_HOME_EVENT, request);
+  }, [openCatalogue, selectHomeGame]);
 
   useEffect(() => {
     document.documentElement.dataset.uiTheme = uiTheme;
@@ -249,13 +309,13 @@ export default function App() {
   const shellActive = activeGameShellId === activeTab;
   const gameHudDescriptors = useGameHudDescriptors(activeTab, snapshot, activeGameControls?.hudState || null);
   useTelegramGameNavigation({
-    activeGame: activeTab === "garden" ? null : activeTab,
-    hasOpenPanel: profileOpen || !!activeGameControls?.openPanel,
+    activeGame: activeTab,
+    hasOpenPanel: homeOpen || !!activeGameControls?.openPanel,
     hasActiveRun: !!activeGameControls?.activeRun,
-    hasPendingActions: pendingActions.some((item) => item.status !== "failed"),
-    closePanel: profileOpen ? closeProfile : activeGameControls?.closePanel,
+      hasPendingActions: pendingActions.length > 0 || !!activeGameControls?.hasPendingActions,
+    closePanel: homeOpen ? closeHome : activeGameControls?.closePanel,
     pauseRun: activeGameControls?.pauseRun || activeGameControls?.pause,
-    exitToHub: exitToGarden,
+    exitToHub: openCatalogue,
   });
   const gardenR2 = snapshot?.gardenR2;
   const gardenGoldFormatter = gardenR2 ? formatR2Gold : formatGardenDisplayGold;
@@ -286,8 +346,7 @@ export default function App() {
     window.dispatchEvent(new Event(GARDEN_OPEN_QUESTS_EVENT));
   }, []);
   const profileName = user?.username || user?.firstName || user?.first_name || t("app.player");
-  const profileBotName = config?.telegramBotUsername ? `@${config.telegramBotUsername}` : "";
-  const profileInitial = (user?.firstName || user?.first_name || user?.username || "G").slice(0, 1);
+  const profileBotName = config?.telegramBotUsername ? `@${config.telegramBotUsername}` : '';
   const stats = activeTab === "garden"
     ? [
         {
@@ -348,46 +407,12 @@ export default function App() {
                 <h1>{t("app.title")}</h1>
               </div>
               <div className="topbar-actions">
-                <button
-                  type="button"
-                  className="profile-avatar-button"
-                  aria-label={t("app.player")}
-                  onClick={() => setProfileOpen(true)}
-                >
-                  {profileInitial}
-                </button>
-                <ThemeToggle theme={uiTheme} onToggle={toggleUiTheme} />
-                {activeTab !== "garden" && <AudioToggle />}
-                <button type="button" className={`status-dot ${status}${isPending ? " pending" : ""}`} onClick={() => loadSnapshot()} aria-label={`${t(`app.status.${status}`)} · ${t("common.refresh")}`} title={`${t(`app.status.${status}`)} · ${t("common.refresh")}`}>
+                {activeTab !== "garden" && <button type="button" className="home-launcher" onClick={openCatalogue} aria-label={gardenLanguage === 'ru' ? 'Все игры' : 'All games'}><Home size={20}/><span>{gardenLanguage === 'ru' ? 'Игры' : 'Games'}</span></button>}
+                <button type="button" className={`status-dot ${status}`} onClick={() => loadSnapshot()} aria-label={`${t(`app.status.${status}`)} · ${t("common.refresh")}`} title={`${t(`app.status.${status}`)} · ${t("common.refresh")}`}>
                   {["booting", "syncing", "ready", "offline"].map((state) => <span key={state} className="status-dot-label" data-current={state === status} aria-hidden={state !== status}>{t(`app.status.${state}`)}</span>)}
                 </button>
               </div>
             </HudRegion>
-            {profileOpen && (
-              <section
-                className="profile-popover"
-                role="dialog"
-                aria-modal="true"
-                aria-label={t("app.player")}
-              >
-                <button type="button" className="profile-popover-scrim" aria-label={t("common.close")} onClick={closeProfile} />
-                <div className="profile-popover-card">
-                  <button type="button" className="profile-popover-close" aria-label={t("common.close")} onClick={closeProfile}>
-                    <X size={18} />
-                  </button>
-                  <div className="profile-popover-avatar">{profileInitial}</div>
-                  <div className="profile-popover-copy">
-                    <strong>{profileName}</strong>
-                    {profileBotName && <span>{profileBotName}</span>}
-                  </div>
-                  <div className="profile-popover-stats">
-                    <span>{t("common.gold")}<b>{formatCount(resources.gold || 0)}</b></span>
-                    <span>{t("common.energy")}<b>{energy.current ?? 0}/{energy.max ?? 0}</b></span>
-                    <span>{t("common.tokens")}<b>{resources.gachaTokens || 0}</b></span>
-                  </div>
-                </div>
-              </section>
-            )}
             <HudEditableRegion id="globalStats" as="section" className="stats-row">
               {stats.map((item) => (
                 <Stat
@@ -412,35 +437,13 @@ export default function App() {
               <div className="loading-panel">{t("app.loading")}</div>
             ) : (
               <HudRegion id="activeGameFrame" as="section" key={activeTab} className="active-game-frame">
-                <ActiveGame activeTab={activeTab} />
+                <HomeVisibilityContext.Provider value={homeOpen}><ActiveGame activeTab={activeTab} /></HomeVisibilityContext.Provider>
               </HudRegion>
             )}
-            <HudEditableRegion id="bottomDock" as="nav" className="bottom-tabs">
-              {TABS.map(({ id, labelKey, icon: Icon }) => (
-                <HudEditableRegion
-                  id={`bottomDock.${id}`}
-                  as="button"
-                  type="button"
-                  key={id}
-                  className={activeTab === id ? "active" : ""}
-                  onClick={() => {
-                    startTransition(() => setActiveTab(id));
-                    haptic("light");
-                    audioManager.play("tap");
-                  }}
-                  onFocus={() => preloadGameTab(id)}
-                  onPointerDown={() => preloadGameTab(id)}
-                  onPointerEnter={() => preloadGameTab(id)}
-                >
-                  {activeTab === id && <span className="nav-pill" aria-hidden="true" />}
-                  <Icon size={19} />
-                  <span>{t(labelKey)}</span>
-                </HudEditableRegion>
-              ))}
-            </HudEditableRegion>
           </main>
+          {homeOpen && <HomeCatalogue accountSession={accountSession} language={gardenLanguage} t={t} activeTab={activeTab} hasActiveRun={!!activeGameControls?.activeRun} readyToSwitch={navigationReady && (activeTab === "garden" || !!activeGameControls) && !activeGameControls?.hasPendingActions} switching={switching} error={switchError} onClose={closeHome} onSelect={selectHomeGame} profileName={profileName} profileBotName={profileBotName} resources={resources} settings={<><ThemeToggle theme={uiTheme} onToggle={toggleUiTheme}/><AudioToggle/></>}/>}
         </HudPreviewSurface>
-        <HudEditorOverlay />
+        {!homeOpen && <HudEditorOverlay />}
       </HudLayoutProvider>
     </AppI18nContext.Provider>
   );

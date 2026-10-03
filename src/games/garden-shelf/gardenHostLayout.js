@@ -2,18 +2,14 @@ import repoLayout from '../../app/hud-layout/defaultLayouts/garden.json' with { 
 
 const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 
-/** The real Hub owns safe areas and the dock. Garden receives the remaining
+/** The real Hub owns safe areas. Garden receives the remaining
  * measured frame, so it must not subtract those insets a second time. */
 export function getGardenHostVariables(hudLayout = {}) {
   const defaults = repoLayout.base.regions;
-  const dock = { ...defaults.bottomDock, ...hudLayout?.regions?.bottomDock };
   const composition = { ...defaults.gardenComposition, ...hudLayout?.regions?.gardenComposition };
   return {
     '--garden-host-padding': `${Math.max(0, finite(composition.padding, defaults.gardenComposition.padding))}px`,
-    '--garden-dock-reserve': `${dock.visible === false ? 0 : Math.max(0, finite(dock.reserve, defaults.bottomDock.reserve))}px`,
-    '--garden-dock-columns': String(Math.max(1, Math.min(8, Math.round(finite(dock.columns, defaults.bottomDock.columns))))),
-    '--garden-dock-gap': `${Math.max(0, finite(dock.gap, defaults.bottomDock.gap))}px`,
-    '--garden-dock-padding': `${Math.max(0, finite(dock.padding, defaults.bottomDock.padding))}px`,
+    '--garden-dock-reserve': '0px',
   };
 }
 

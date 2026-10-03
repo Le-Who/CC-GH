@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
 import { installRuntimePerfProbe, summarizeRuntimePerf } from "./helpers/runtimePerfProbe.js";
@@ -73,7 +74,7 @@ test.describe("runtime perf guard", () => {
       ).toBe(false);
 
       await markRuntimePhase(page, "garden-to-merge");
-      await page.getByRole("button", { name: /Merge/ }).click();
+      await selectHomeGame(page, 'merge');
       await expectMergeV3(page);
       await markRuntimePhase(page, "merge-research");
       await researchMergePair(page, 'cloud', 'ember');

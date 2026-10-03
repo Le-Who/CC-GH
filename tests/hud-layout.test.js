@@ -257,15 +257,15 @@ describe("HUD layout defaults and editor state", () => {
     }
     assert.equal(getHudRegionDefinition("blox", "pixiPlayfieldReserve").capabilities.affectsPixiSafeArea, true);
     assert.equal(getHudRegionDefinition("settlement", "settlementCanvas").capabilities.mode, "custom");
-    assert.equal(getHudRegionDefinition("garden", "bottomDock.blox").capabilities.mode, "freeform");
+    assert.equal(getHudRegionDefinition("garden", "bottomDock.blox"), null);
     assert.equal(getHudRegionDefinition("garden", "gardenSignAsset").capabilities.asset, true);
   });
 
-  it("adds default coverage for individual dock buttons and editable assets", () => {
+  it("removes obsolete global dock regions while retaining editable assets", () => {
     for (const gameId of VISIBLE_GAME_IDS) {
       const regions = HUD_LAYOUT_DEFAULTS[gameId].base.regions;
-      assert.equal(regions["bottomDock.garden"].mode, "freeform", `${gameId} has Garden button defaults`);
-      assert.equal(regions["bottomDock.blox"].mode, "freeform", `${gameId} has Blox button defaults`);
+      assert.equal(regions["bottomDock.garden"], undefined);
+      assert.equal(regions["bottomDock.blox"], undefined);
     }
     assert.equal(HUD_LAYOUT_DEFAULTS.garden.base.regions.gardenSignAsset.mode, "freeform");
     assert.equal(HUD_LAYOUT_DEFAULTS.garden.base.regions.gardenSignAsset.scale, 1);
@@ -339,5 +339,6 @@ describe("HUD editor map-placement selection", () => {
     assert.equal(getHudRegionBoxZIndex(art), 2147483004);
     assert.equal(getHudRegionBoxZIndex(art, true), 2147483006);
     assert.equal(getHudRegionBoxZIndex({ capabilities: { mode: "custom" } }), 2147483001);
+    assert.equal(getHudRegionBoxZIndex({ capabilities: { mode: "custom", control: true } }), 2147483004, "A header control must remain selectable over its background artwork");
   });
 });

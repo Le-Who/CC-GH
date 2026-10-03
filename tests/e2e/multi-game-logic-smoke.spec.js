@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { expectMergeV3, mergePanel, closeMergePanel, expectMergeControlsReachable, researchMergePair, mergeSnapshot, confirmMergeQuote, confirmedMergeClick } from "./helpers/mergeV3.js";
 import {
@@ -100,7 +101,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(result.steps[0].cleared.some((cell) => cell.x === 3 && cell.y === BOARD_SIZE - 1)).toBe(true);
 
     const pageErrors = await boot(page, "match3_chain_smoke");
-    await page.getByRole("button", { name: /Gems/ }).click();
+    await selectHomeGame(page, 'match3');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".m3-hud")).toContainText("Score");
     await canvasIsNonBlank(page);
@@ -109,7 +110,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
 
   test("Merge V3 research records knowledge without consuming physical stock", async ({ page }) => {
     const pageErrors = await boot(page, 'merge_v3_research');
-    await page.getByRole('button', { name: /Merge/ }).click();
+    await selectHomeGame(page, 'merge');
     const before = await mergeSnapshot(page);
     const { body } = await researchMergePair(page, 'cloud', 'ember');
     expect(body.mergeLab.result.itemId).toBe('spark');
@@ -126,7 +127,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
   test("Merge V3 mobile supply quote uses real stock and exact free-charge debit", async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const pageErrors = await boot(page, 'merge_v3_supply');
-    await page.getByRole('button', { name: /Merge/ }).click();
+    await selectHomeGame(page, 'merge');
     await mergePanel(page, 'supplies');
     await confirmedMergeClick(page, page.getByTestId('ml-claim-charges'), 'claimFreeCharges');
     const before = await mergeSnapshot(page);
@@ -178,7 +179,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(settleFloatingBubbo(advanced.board, advanced.rowOffset)).toEqual([]);
 
     const pageErrors = await boot(page, "bubbo_drop_smoke");
-    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await selectHomeGame(page, 'bubbo');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bb-stage")).toHaveAttribute("data-bb-phase", "playing");
     await canvasIsNonBlank(page);

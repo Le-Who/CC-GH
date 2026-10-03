@@ -59,12 +59,11 @@ async function fit(page, dialog = null) {
       const r = node.getBoundingClientRect();
       if (r.left < -1 || r.right > width + 1 || r.top < -1 || r.bottom > height + 1) errors.push(`${node.className}: viewport overflow`);
     }
-    const stage = document.querySelector('.gs2-stage')?.getBoundingClientRect(), dock = document.querySelector('.bottom-tabs')?.getBoundingClientRect();
-    if (!stage || !dock || stage.bottom > dock.top + 1) errors.push('stage overlaps bottom dock');
-    for (const button of document.querySelectorAll('.bottom-tabs button')) {
-      const r = button.getBoundingClientRect();
-      if (r.width < 43.9 || r.height < 43.9 || button.scrollWidth > button.clientWidth + 1) errors.push('dock target or label does not fit');
-    }
+    const stage = document.querySelector('.gs2-stage')?.getBoundingClientRect();
+    if (!stage || stage.bottom > height + 1) errors.push('garden stage leaves viewport');
+    if (document.querySelector('.bottom-tabs')) errors.push('obsolete global dock remains');
+    const home = document.querySelector('.gs2-home');
+    if (!home || home.getBoundingClientRect().width < 43.9 || home.getBoundingClientRect().height < 43.9) errors.push('Home target does not fit');
     const dialog = document.querySelector('.gs2-dialog');
     if (dialog) {
       if (!dialog.contains(document.activeElement)) errors.push('focus left dialog');

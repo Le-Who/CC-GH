@@ -52,7 +52,7 @@ export function shouldRenderHudEditor({ enabled = false, editorEnabled = false }
 export function getHudRegionBoxZIndex(record, selected = false) {
   // Map placement handles need to remain selectable over overlapping DOM artwork.
   if (record?.capabilities?.coordinateSpace) return selected ? 2147483007 : 2147483005;
-  const fineTarget = record?.capabilities?.mode === "freeform" || record?.capabilities?.asset;
+  const fineTarget = record?.capabilities?.mode === "freeform" || record?.capabilities?.asset || record?.capabilities?.control;
   return fineTarget
     ? selected ? 2147483006 : 2147483004
     : selected ? 2147483003 : 2147483001;

@@ -1,0 +1,157 @@
+{
+  "files": [
+    {
+      "id": "garden",
+      "source": "games/garden-v2/background.webp",
+      "path": "public/games/home-thumbnails/garden.webp",
+      "sourceFiles": [
+        {
+          "source": "games/garden-v2/background.webp",
+          "sha256": "d0a53060e2304def2f01fd855c5ab34f71a4c82cff5c8bb7d4e5022425d771f8"
+        },
+        {
+          "source": "games/garden-living/basil-mature-r1.webp",
+          "sha256": "e2042fd388a50a2831d4c3d7b6aa1dd5d7308221443130caac7176efb4de84b9"
+        },
+        {
+          "source": "games/garden-living/daisy-mature-r2.webp",
+          "sha256": "ff5d02d731f7eb55589f8270801e683ec5b4fd0756c45f639ead95b4aea4c90d"
+        },
+        {
+          "source": "games/garden-living/bonsai-mature-r1.webp",
+          "sha256": "9b7a3178936355f468f043959912a155709367d4dab7442636df2de940de25ea"
+        }
+      ],
+      "bytes": 4620,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "blox",
+      "source": "games/blox-v2/background.webp",
+      "path": "public/games/home-thumbnails/blox.webp",
+      "sourceFiles": [
+        {
+          "source": "games/blox-v2/background.webp",
+          "sha256": "80def047f79d959b7174e94097496d84fe088d3aba8c9df5194e763a6bc4e01a"
+        },
+        {
+          "source": "games/blox-v2/tiles/cyan.webp",
+          "sha256": "d7af553af2ee1ce4811e2644589094d1a00cae35bcdb5a52e00794bfe4b863f4"
+        },
+        {
+          "source": "games/blox-v2/tiles/gold.webp",
+          "sha256": "0d0bba38c5334fcac2ed66de3ee3ee2e8f951b9e73e0c0fd8268deea31998209"
+        },
+        {
+          "source": "games/blox-v2/tiles/magenta.webp",
+          "sha256": "bf1c72cefed7d69b8bfeb9d60038d6fac0861586d3979c6ac3691eff3e0087e1"
+        },
+        {
+          "source": "games/blox-v2/tiles/violet.webp",
+          "sha256": "12a69490c950ffa598720bac77f65db9b22ffc7d195ad8241b7964c28c73c01c"
+        }
+      ],
+      "bytes": 2778,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "match3",
+      "source": "games/match3-v2/library-background-landscape.webp",
+      "path": "public/games/home-thumbnails/match3.webp",
+      "sourceFiles": [
+        {
+          "source": "games/match3-v2/library-background-landscape.webp",
+          "sha256": "5db159d233109d734aac7a0e38c998008cdc8c79ebde7a4f1749ec244028821f"
+        }
+      ],
+      "bytes": 5918,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "merge",
+      "source": "games/merge-lab-v3/background.webp",
+      "path": "public/games/home-thumbnails/merge.webp",
+      "sourceFiles": [
+        {
+          "source": "games/merge-lab-v3/background.webp",
+          "sha256": "38688b74de29cb62bb003cf3ad6d28cda6ca89a17127457e1e061fef1af77d06"
+        },
+        {
+          "source": "games/merge-lab-v3/items/light.webp",
+          "sha256": "b72644403c23fdbc373accf8e678abe1a0a82c3a48caae904abdb049af423e92"
+        },
+        {
+          "source": "games/merge-lab-v3/items/glass.webp",
+          "sha256": "7f10c72dae8483f38fece7de9dcc2f5a617189cb03a991403c45767407c42812"
+        },
+        {
+          "source": "games/merge-lab-v3/items/firefly.webp",
+          "sha256": "c9098353ee81e391ad8a8a191b53d26974ba738ba91d0433942db1176bac3d8f"
+        }
+      ],
+      "bytes": 5066,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "bubbo",
+      "source": "games/bubbo-v2/background.webp",
+      "path": "public/games/home-thumbnails/bubbo.webp",
+      "sourceFiles": [
+        {
+          "source": "games/bubbo-v2/background.webp",
+          "sha256": "d1a760ba3f48e15e781a399f83813d6b2ba531d1c41f3ae20b7b807a42fad565"
+        }
+      ],
+      "bytes": 6444,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "trivia",
+      "source": "games/trivia-v2/background.webp",
+      "path": "public/games/home-thumbnails/trivia.webp",
+      "sourceFiles": [
+        {
+          "source": "games/trivia-v2/background.webp",
+          "sha256": "346403b27038614b873111262804adb451f3141b257c05bfc4825ce46848fbc8"
+        }
+      ],
+      "bytes": 2526,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "room",
+      "source": "assets/yard-mika/background.webp",
+      "path": "public/games/home-thumbnails/room.webp",
+      "sourceFiles": [
+        {
+          "source": "assets/yard-mika/background.webp",
+          "sha256": "ac1b2c8c963a3c417fc3d02b2db0410aa89c60c6452b54170db62fa1001f0721"
+        }
+      ],
+      "bytes": 10202,
+      "width": 256,
+      "height": 144
+    },
+    {
+      "id": "settlement",
+      "source": "games/settlement/map-region-settlement-playable.webp",
+      "path": "public/games/home-thumbnails/settlement.webp",
+      "sourceFiles": [
+        {
+          "source": "games/settlement/map-region-settlement-playable.webp",
+          "sha256": "82e4f5f99868d9f24c5ca6947a98fdbe21c620524774927b92733f8ca1261162"
+        }
+      ],
+      "bytes": 11172,
+      "width": 256,
+      "height": 144
+    }
+  ],
+  "totalBytes": 48726
+}

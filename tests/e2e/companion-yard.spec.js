@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
 import { buildSnapshot } from "../../routes/player.js";
@@ -417,7 +418,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.goto("/");
     await expectAppReady(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await expect(page.locator(".companion-yard-stage")).toBeVisible();
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", "/custom-yard/backgrounds/meadow-test.webp");
     await expect(page.locator(".yard-visitor")).toHaveCount(2);
@@ -503,7 +504,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.goto("/");
     await expectAppReady(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await page.getByRole("button", { name: "Goodies", exact: true }).click();
     await expect(page.getByRole("dialog", { name: "Goodies" })).toBeVisible();
 
@@ -547,7 +548,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.goto("/");
     await expectAppReady(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await page.getByRole("button", { name: "Goodies", exact: true }).click();
     const goodiesDialog = page.getByRole("dialog", { name: "Goodies" });
     await goodiesDialog.getByRole("button", { name: "Place", exact: true }).first().click();
@@ -595,7 +596,7 @@ test.describe("Cozy Yard movement and assets", () => {
       await page.goto("/");
       await expectAppReady(page);
       if (!await page.locator(".companion-yard-stage").isVisible()) {
-        await page.getByRole("button", { name: /Yard/ }).click();
+        await selectHomeGame(page, 'room');
       }
       await expect(page.locator(".companion-yard-stage")).toBeVisible();
       await expect(page.locator(".yard-background-art")).toHaveAttribute("src", new RegExp(`${remodel}`));
@@ -651,7 +652,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.goto("/");
     await expectAppReady(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await page.getByRole("button", { name: "Goodies", exact: true }).click();
     const goodiesDialog = page.getByRole("dialog", { name: "Goodies" });
     await goodiesDialog.getByRole("button", { name: "Move", exact: true }).click();
@@ -700,7 +701,7 @@ test.describe("Cozy Yard movement and assets", () => {
     await page.goto("/");
     await expectAppReady(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await expect(page.locator(".companion-yard-stage")).toBeVisible();
 
     const hudMetrics = await page.evaluate(() => {

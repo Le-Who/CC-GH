@@ -1,7 +1,16 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { useGameHub } from "../game-state/useGameHub.js";
+import { openHome } from './homeNavigation.js';
+import { HomeVisibilityContext } from './homeContext.js';
 
 export function useImmersiveGame(tabId, active, controls = null) {
+  const homeVisible = useContext(HomeVisibilityContext);
+  // A start response or duel poll can arrive after Home opened. Every game
+  // commit reasserts pause, including local updates with unchanged controls.
+  // The existing pause methods are idempotent.
+  useEffect(() => {
+    if (homeVisible && active && controls?.activeRun) (controls?.pauseRun || controls?.pause)?.();
+  });
   const setActiveGameShell = useGameHub((state) => state.setActiveGameShell);
   useEffect(() => {
     setActiveGameShell(active ? (controls ? { id: tabId, ...controls } : tabId) : null);
@@ -28,8 +37,5 @@ export function useReliableAction() {
 }
 
 export function useExitToHub() {
-  const setActiveTab = useGameHub((state) => state.setActiveTab);
-  return useCallback(() => {
-    setActiveTab("garden");
-  }, [setActiveTab]);
+  return useCallback(openHome, []);
 }

@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-catalog.js";
 import { test, expect } from "@playwright/test";
 import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
@@ -38,8 +39,8 @@ async function exitActiveGame(page) {
   if (await overlay.count() === 0) {
     await page.getByRole("button", { name: /Pause/ }).click({ force: true });
   }
-  await page.locator(":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible").first().getByRole("button", { name: /^Exit$/ }).click();
-  await expect(page.locator(".bottom-tabs")).toBeVisible();
+  await page.locator(":is(.game-menu-overlay, .bb-dialog, .m3-dialog, .bx-dialog):visible").first().getByRole("button", { name: /^(All games|Все игры)$/ }).click();
+  await expect(page.getByTestId('home-catalogue')).toBeVisible();
 }
 
 test.describe("generated runtime asset manifest", () => {
@@ -69,7 +70,7 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.locator('.gs2-stage .gs2-art').first()).toBeVisible();
     await expect.poll(() => page.locator('.gs2-stage img').evaluateAll(images => images.length > 0 && images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
 
-    await page.getByRole("button", { name: /Blox/ }).click();
+    await selectHomeGame(page, 'blox');
     await expect(page.getByText("Building Blox")).toBeVisible();
     await expect(page.locator(".bx-canvas canvas")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/games/blox-v2/");
@@ -77,20 +78,20 @@ test.describe("generated runtime asset manifest", () => {
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await exitActiveGame(page);
 
-    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await selectHomeGame(page, 'bubbo');
     await expect(page.getByText("Bubbo Bubbo")).toBeVisible();
     await expect(page.locator(".active-game-frame canvas")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/games/bubbo-v2/");
     await exitActiveGame(page);
 
-    await page.getByRole("button", { name: /Gems/ }).click();
+    await selectHomeGame(page, 'match3');
     await expect(page.getByText("Gem Crush")).toBeVisible();
     await expect(page.locator(".active-game-frame canvas")).toBeVisible();
     await expectRuntimePath(runtimePaths, "/games/match3-v2/");
     await expectRuntimePath(runtimePaths, "/assets-runtime/puzzling-potions/");
     await exitActiveGame(page);
 
-    await page.getByRole("button", { name: /Merge/ }).click();
+    await selectHomeGame(page, 'merge');
     await expectMergeArt(page);
     await mergePanel(page, 'samples');
     const sampleArt = page.locator('[data-testid="ml-sample-list"] img');
@@ -98,7 +99,7 @@ test.describe("generated runtime asset manifest", () => {
     await closeMergePanel(page);
     await exitMerge(page);
 
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await expect(page.locator(".companion-yard-layout")).toBeVisible({ timeout: 15000 });
     await expect(page.locator(".yard-background-art")).toHaveAttribute("src", /\/assets-runtime\/companion-yard\/backgrounds\//);
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
@@ -138,7 +139,8 @@ test.describe("dock renderer loading", () => {
       });
       await page.goto("/");
       await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
-      const tab = page.locator(".bottom-tabs").getByRole("button", { name: new RegExp(game) });
+      await openHome(page);
+      const tab = page.locator(".home-games").getByRole("button", { name: new RegExp(game) });
       await tab.focus();
       await tab.click();
       if (game === "Bubbo") await expect(page.getByTestId("bb-field")).toBeVisible();

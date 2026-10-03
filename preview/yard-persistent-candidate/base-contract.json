@@ -33,33 +33,33 @@
     },
     {
       "path": "src/app/hud-layout/registry.js",
-      "bytes": 19561,
-      "sha256": "fabf43a59a65af6c15e1e4551baeb6d10b5ccfc326e07488d1d60702cbe841d2"
+      "bytes": 18524,
+      "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
     },
     {
       "path": "src/app/hud-layout/defaultLayouts/room.json",
-      "bytes": 2866,
-      "sha256": "6aa164f0e0918822204c9ec19af6c0864d88244f2759701bd010a86b102eafb8"
+      "bytes": 2690,
+      "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
     },
     {
       "path": "package.json",
-      "bytes": 6893,
-      "sha256": "5d557a52c2a6eb3f0e1d6df7d6add6aad0d02da72cd21288344ca1ba8eab69f1"
+      "bytes": 6923,
+      "sha256": "6aa06c49fc7b4250a4ee72a76d2899ac220c185367c1bc89d721f1f2d5782094"
     },
     {
       "path": "src/App.jsx",
-      "bytes": 20061,
-      "sha256": "6d63f9911bdf371960b272c5316b39f4343b8fc2eb38d165c92ad2180d0da163"
+      "bytes": 20934,
+      "sha256": "9e29fae3d510b513973149d37190f07714892d7280ebd7c4810e09d36df44b9c"
     },
     {
       "path": "src/app/i18n.jsx",
-      "bytes": 8249,
-      "sha256": "70e00e665534f37674186e2a30349330c6b2a19794cdc53c413ff3bc409d7891"
+      "bytes": 8321,
+      "sha256": "67c1bbfec131c78e10868f0d07237ec1eefb5161611a04b19488cacb85cc12c0"
     },
     {
       "path": "src/index.css",
-      "bytes": 52107,
-      "sha256": "8594518ce95a9bcf2dbaefc37f0aa86bce5bc7e3fd866763da34b630ab246a5d"
+      "bytes": 47044,
+      "sha256": "ab8267dd47af2184610263248d526e79e5e5f5d0247566306e76f1a4b8f94b70"
     },
     {
       "path": "tests/unit.test.js",
@@ -118,8 +118,8 @@
     },
     {
       "path": "src/games/merge/MergeLabGame.jsx",
-      "bytes": 4040,
-      "sha256": "af6e61410268fb4b383888ed0e25a6440fd7e18de48e5b13f23384d5c8a53117"
+      "bytes": 4398,
+      "sha256": "74865395edb28104bf7ca7fed806efc2981d003384a588524b3b326bac1ed682"
     }
   ],
   "sourceInputs": [
@@ -171,13 +171,17 @@
       "source": "src/app/hud-layout/registry.js",
       "sourceSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb",
       "candidate": "preview/yard-persistent-candidate/overrides/src/app/hud-layout/registry.js",
-      "candidateSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb"
+      "candidateSha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca",
+      "homeRebasedFromCandidateSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb",
+      "reviewedProductionSha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
     },
     {
       "source": "src/app/hud-layout/defaultLayouts/room.json",
       "sourceSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b",
       "candidate": "preview/yard-persistent-candidate/overrides/src/app/hud-layout/defaultLayouts/room.json",
-      "candidateSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b"
+      "candidateSha256": "ff71aa64cb6cd8e3060a316b1ce52406f8d4ad649698ccfc09a103df0252500c",
+      "homeRebasedFromCandidateSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b",
+      "reviewedProductionSha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
     },
     {
       "source": "tests/yard-inventory-only-loader.mjs",
@@ -390,5 +394,25 @@
       }
     ],
     "fixtureChanges": "Verified account identities added to existing shared-store fixtures; their assertions are retained. Production and candidate gameStore bytes remain identical."
+  },
+  "reviewedHomeChangeSet": {
+    "id": "home-catalogue-shell-20261003",
+    "baseCommit": "186e4c57c7ea142584000da032f6d36dc5399d8f",
+    "patchSha256": "f8987fc2882f6cd4d3cc9ba16a57df440caa26a35372e87d8558e0aab4cd329e",
+    "productionPaths": [
+      "src/app/hud-layout/registry.js",
+      "src/app/hud-layout/defaultLayouts/room.json",
+      "package.json",
+      "src/App.jsx",
+      "src/app/i18n.jsx",
+      "src/index.css",
+      "src/games/merge/MergeLabGame.jsx"
+    ],
+    "rebasedOverrides": [
+      "src/app/hud-layout/registry.js",
+      "src/app/hud-layout/defaultLayouts/room.json"
+    ],
+    "preservationCheck": "Home HUD changes are mirrored in both inactive layout overlays. The Yard-only registry addition and all room layout fields except the retired global bottomDock remain unchanged. Garden R2, account-boundary, intrinsic-prop, media and closed activation gates are preserved.",
+    "historyCorrection": "Retired Home entries and the entry finalized by a successful switch retain explicit ownership. Forward/Back repairs only those entries to the still-mounted game URL, with no new navigation or automatic resume. popstate cleanup uses its registered capture flag. Exact App callback and native capture ownership are covered in tests/home-navigation.test.js."
   }
 }

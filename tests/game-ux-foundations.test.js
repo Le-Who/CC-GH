@@ -330,7 +330,7 @@ describe("Telegram Mini App game UX foundations", () => {
     const presentation = readFileSync(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url), "utf8");
     const gardenContext = readFileSync(new URL("../src/games/garden-shelf/lib/GameContext.tsx", import.meta.url), "utf8");
 
-    assert.match(dismissHook, /event\.key !== "Escape"/);
+    assert.match(dismissHook, /event\.key !== ['"]Escape['"]/);
     assert.match(dismissHook, /document\.addEventListener\("pointerdown"/);
     assert.match(shell, /useEscapeDismiss\(canDismissOverlay, onDismiss\)/);
     assert.match(presentation, /useEscapeDismiss\(true, onClose\)/, "Every mounted Garden dialog must support Escape dismissal");
@@ -359,8 +359,9 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(presentation, /<HudRegion id="gardenShelf"[^>]*className="gs2-shelf-viewport"/);
     assert.match(presentation, /useLayoutEffect\(\(\) => applyGardenHostLayout\(/, "The live screen installs the registered host reserve adapter");
     assert.match(gardenCss, /\.gs2-stage\s*\{[^}]*grid-template-rows:minmax\(0,1fr\) auto/, "Feedback owns a row outside the shelf playfield");
-    assert.match(gardenCss, /\.telegram-app\[data-active-tab="garden"\]\[data-garden-presentation="living"\]\s*\{[^}]*var\(--safe-bottom,0px\) \+ var\(--garden-dock-reserve\)/, "The host reserves the dock plus safe area");
-    assert.match(gardenCss, /grid-template-columns:repeat\(var\(--garden-dock-columns\),minmax\(0,1fr\)\)/, "Dock columns remain layout-owned");
+    assert.match(gardenCss, /\.telegram-app\[data-active-tab="garden"\]\[data-garden-presentation="living"\]\s*\{[^}]*var\(--safe-bottom,0px\) \+ var\(--garden-host-padding\)/, "The host applies safe area plus ordinary content padding");
+    assert.doesNotMatch(gardenCss, /\.bottom-tabs/, "The removed global dock does not reserve Garden space");
+    assert.match(presentation, /className="gs2-button gs2-home"[^>]*onClick=\{openHome\}/, "The header opens real Home navigation");
     assert.doesNotMatch(presentation, /Glass Dome Container/);
   });
 

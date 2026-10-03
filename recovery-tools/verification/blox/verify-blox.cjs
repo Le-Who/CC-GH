@@ -22,10 +22,26 @@ function closure(file,names,ctx={}){
 function normalizedAst(src){return JSON.parse(JSON.stringify(acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'}),(k,v)=>['start','end','raw'].includes(k)?undefined:v));}
 function sourceDecl(file){const src=read(file),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});return ast.body.filter(n=>!n.type.startsWith('Import')&&!n.type.startsWith('Export')).map(n=>src.slice(n.start,n.end)).join('\n');}
 function sha(buf){return crypto.createHash('sha256').update(buf).digest('hex')}
+function findAstNodes(node,predicate){
+ const found=[];function visit(value){if(!value||typeof value!=='object')return;if(predicate(value))found.push(value);for(const child of Object.values(value))if(Array.isArray(child))child.forEach(visit);else if(child&&typeof child==='object')visit(child)}visit(node);return found;
+}
+// The owned preview remains the gameplay oracle. Amend only the navigation
+// shell object with its exact acknowledged-leave adapter and one memo dependency.
+function expectedHomeShellAst(expected){
+ const shells=findAstNodes(expected,node=>node.type==='VariableDeclarator'&&node.id?.name==='shellControls');
+ assert.equal(shells.length,1,'exactly one shell adapter');
+ const memo=shells[0].init,properties=memo.arguments[0].body.properties;
+ assert.deepEqual(properties.map(property=>property.key.name),['activeRun','pauseRun','hudState'],'immutable preview shell shape');
+ const adapter=normalizedAst("({safeLeave:async()=>{if(!state.gameActive)return true;const result=await performAction('blox.end',{score:state.score});return result?.success === true && !result.error;}})").body[0].expression.properties[0];
+ properties.splice(2,0,adapter);
+ assert.equal(memo.arguments[1].elements[1].name,'pauseRun');
+ memo.arguments[1].elements.splice(2,0,{type:'Identifier',name:'performAction'});
+ return expected;
+}
 const corePromise=Promise.all([import(pathToFileURL(root+'/game-logic/blox-engine.js').href),import(pathToFileURL(root+'/game-logic/blox-pieces.js').href),import(pathToFileURL(root+'/game-logic/economy.js').href),import(pathToFileURL(root+'/game-logic/hud-bonuses.js').href),import(pathToFileURL(root+'/src/game-runtime/sceneGeometry.js').href)]);
 const compiledPure=closure(host,['Nr','Bi','Ec','Kg','iA','tx','ex','S2']);
-test('critical Blox engines, routes and geometry are byte-identical to production baseline',()=>{
- for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/sceneGeometry.js','src/game-runtime/pointerSession.js'])assert.equal(sha(fs.readFileSync(root+'/'+f)),baselineHashes[f],f);
+test('critical Blox engines, routes and geometry match the immutable LF-normalized production baseline',()=>{
+ for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/sceneGeometry.js','src/game-runtime/pointerSession.js'])assert.equal(sha(read(root+'/'+f)),baselineHashes[f],f);
 });
 
 test('all retained runtime declarations preserve the immutable baseline AST after asset retirement',()=>{
@@ -49,9 +65,22 @@ test('all retained runtime declarations preserve the immutable baseline AST afte
   assert.deepEqual(retainedNames.sort(),Object.keys(baseline.declarations).filter(name=>!retiredDeclarations[file].includes(name)).sort(),file+' retires only the declared asset and dead renderer helpers');
  }
 });
-test('all recovered game-only declaration ASTs equal owned preview after disclosed semantic renaming, statement expansion and art-only PNG-to-WebP path migration',()=>{
+test('all recovered gameplay ASTs equal owned preview with only the exact Home shell adapter and disclosed source/art migration',()=>{
  const groups=[['src/games/blox/BloxGame.jsx',host,['g2'],maps.globals,maps.locals],['src/games/blox/bloxInteraction.js',host,['ex','S2'],maps.globals,maps.locals],['src/games/blox/bloxComposition.js',host,['An','tx'],maps.globals,maps.locals],['src/games/blox/bloxArt.js',host,['na','yl','px','Tc','S0','Oi','E2','Di','vx'],maps.globals,maps.locals],['src/game-runtime/scenes/bloxScene.js',scene,['zt','jt','Ci'],maps.sceneGlobals,maps.sceneLocals]];
- for(const [file,input,names,g,l] of groups){let expected=expandStatements(rename(extract(input,names),g,l));if(file==='src/games/blox/bloxArt.js')expected=expected.replaceAll('.png','.webp');assert.deepEqual(normalizedAst(sourceDecl(root+'/'+file)),normalizedAst(expected),file);}
+ for(const [file,input,names,g,l] of groups){let expected=expandStatements(rename(extract(input,names),g,l));if(file==='src/games/blox/bloxArt.js')expected=expected.replaceAll('.png','.webp');let expectedAst=normalizedAst(expected);if(file==='src/games/blox/BloxGame.jsx')expectedAst=expectedHomeShellAst(expectedAst);assert.deepEqual(normalizedAst(sourceDecl(root+'/'+file)),expectedAst,file);}
+});
+
+test('the actual Blox Home adapter awaits an acknowledged end and refuses failures',async()=>{
+ const src=read(root+'/src/games/blox/BloxGame.jsx'),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});
+ const shells=findAstNodes(ast,node=>node.type==='VariableDeclarator'&&node.id?.name==='shellControls');assert.equal(shells.length,1);
+ const adapter=shells[0].init.arguments[0].body.properties.find(property=>property.key.name==='safeLeave');assert.ok(adapter);
+ const evaluate=(state,performAction)=>vm.runInNewContext('('+src.slice(adapter.value.start,adapter.value.end)+')',{state,performAction});
+ let calls=0;assert.equal(await evaluate({gameActive:false},()=>{calls++;})(),true);assert.equal(calls,0);
+ let acknowledge,settled=false;const receipt=new Promise(resolve=>acknowledge=resolve);
+ const pending=evaluate({gameActive:true,score:37},(action,payload)=>{calls++;assert.equal(action,'blox.end');assert.deepEqual(clean(payload),{score:37});return receipt;})().then(result=>{settled=true;return result;});
+ await Promise.resolve();assert.equal(settled,false);acknowledge({success:true});assert.equal(await pending,true);assert.equal(calls,1);
+ for(const result of [undefined,{success:false},{error:'SAVE_FAILED'},{success:true,error:'SAVE_FAILED'}])assert.equal(await evaluate({gameActive:true,score:37},async()=>result)(),false);
+ await assert.rejects(evaluate({gameActive:true,score:37},async()=>{throw Error('NETWORK_FAILED')})(),/NETWORK_FAILED/);
 });
 test('recovered local import paths exist and declarations have no leaked minified globals',()=>{
  for(const file of ['src/games/blox/BloxGame.jsx','src/games/blox/BloxPresentation.jsx','src/games/blox/bloxArt.js','src/games/blox/bloxComposition.js','src/games/blox/bloxInteraction.js','src/game-runtime/scenes/bloxScene.js']){
@@ -119,11 +148,14 @@ test('safe-area adapter does not double-consume four-axis shell CSS safe padding
  const src=read(root+'/src/games/blox/blox-presentation.css');assert.match(src,/data-active-tab=blox\]\{padding:var\(--safe-top\) var\(--safe-right\) var\(--safe-bottom\) var\(--safe-left\)\}/);
  const {remainingArcadeSafeInsets}=closure(root+'/src/app/arcadeBoundary.js',['remainingArcadeSafeInsets']);assert.deepEqual(clean(remainingArcadeSafeInsets({top:44,bottom:34,left:44,right:44})),{top:0,bottom:0,left:0,right:0});
 });
-test('presentation and recovered error-boundary class match preview apart from explicit shell safe-area adapter',()=>{
+test('presentation and error boundary match preview apart from safe-area adapter and the exact All games navigation label',()=>{
  const names=['_n','pl','pr','Sx','_l','Ax','_x'];
  const expected=expandStatements(rename(extract(host,names),maps.globals,maps.locals));
  const actual=extract(root+'/src/games/blox/BloxPresentation.jsx',names.map(n=>maps.globals[n])).replace(/,\s*safe:remainingArcadeSafeInsets\(resolvedLayout\.viewport\?\.safeAreaInsets\)/,'');
- assert.deepEqual(normalizedAst(actual),normalizedAst(expected));
+ const expectedAst=normalizedAst(expected);
+ const labels=findAstNodes(expectedAst,node=>node.type==='CallExpression'&&node.callee?.name==='t'&&node.arguments[0]?.value==='common.exit');
+ assert.equal(labels.length,1,'the shared menu has one navigation label');labels[0].arguments[0].value='nav.allGames';
+ assert.deepEqual(normalizedAst(actual),expectedAst);
  const Boundary=vm.runInNewContext(extract(root+'/src/games/blox/BloxPresentation.jsx',['BloxRuntimeBoundary'])+';BloxRuntimeBoundary',{React:{Component:class{}},jsxRuntime:{jsx:(type,props)=>({type,props})},BloxRuntimeStatus:'runtime-status',console});
  const instance=new Boundary();instance.props={children:'scene'};assert.equal(instance.render(),'scene');instance.state=Boundary.getDerivedStateFromError();assert.deepEqual(clean(instance.render()),{type:'runtime-status',props:{error:true}});
 });

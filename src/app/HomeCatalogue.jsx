@@ -1,0 +1,47 @@
+import { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowUpRight, Settings, UserRound, X } from 'lucide-react';
+import { VISIBLE_GAME_IDS, GAME_REGISTRY } from './gameRegistry.js';
+import { useDialogFocus } from './useDialogFocus.js';
+import { useEscapeDismiss } from './useDismissableLayer.js';
+import './home-catalogue.css';
+
+const COPY = {
+  en: { home: 'Home', games: 'All games', back: 'Back to game', close: 'Close Home', current: 'Current game', open: 'Play', profile: 'Profile & settings', gold: 'Gold', energy: 'Energy', tokens: 'Tokens', switch: 'Finish this round?', switchBody: 'Finish your current round before opening another game.', confirm: 'Finish & open', cancel: 'Stay here', saving: 'Saving…', failed: 'Could not finish. Your game is still here. Try again.', player: 'Player', unavailable: 'Coming soon', waiting: 'Finish or check the current action in your game before switching.' },
+  ru: { home: 'Главная', games: 'Все игры', back: 'Вернуться в игру', close: 'Закрыть главную', current: 'Текущая игра', open: 'Играть', profile: 'Профиль и настройки', gold: 'Золото', energy: 'Энергия', tokens: 'Жетоны', switch: 'Завершить раунд?', switchBody: 'Завершите текущий раунд перед переходом в другую игру.', confirm: 'Завершить и открыть', cancel: 'Остаться здесь', saving: 'Сохраняем…', failed: 'Не удалось завершить. Игра сохранена здесь. Попробуйте ещё раз.', player: 'Игрок', unavailable: 'Скоро', waiting: 'Перед переходом завершите или проверьте действие в текущей игре.' },
+};
+const HINTS = {
+  en: { garden: 'Grow and care for plants', blox: 'Clear rows and columns', match3: 'Match three gems', merge: 'Combine items', bubbo: 'Match and pop bubbles', trivia: 'Answer questions', room: 'Welcome little visitors', settlement: 'Build and develop a town' },
+  ru: { garden: 'Выращивайте растения', blox: 'Очищайте ряды и столбцы', match3: 'Собирайте три камня в ряд', merge: 'Объединяйте предметы', bubbo: 'Собирайте и лопайте пузыри', trivia: 'Отвечайте на вопросы', room: 'Принимайте маленьких гостей', settlement: 'Стройте и развивайте город' },
+};
+
+// Intentional layout exception: a full-viewport, scrolling navigation dialog,
+// not a gameplay HUD. Insets come from the shared Telegram safe-area variables.
+export function HomeCatalogue({ language = 'en', t = key => key, activeTab, hasActiveRun = false, readyToSwitch = true, switching = false, error = '', onClose, onSelect, profileName, profileBotName, resources = {}, settings, unavailableGames = [], accountSession = null }) {
+  const c = COPY[language] || COPY.en;
+  const hints = HINTS[language] || HINTS.en;
+  const ref = useRef(null);
+  const [target, setTarget] = useState(null);
+  useEffect(() => setTarget(null), [accountSession]);
+  useDialogFocus(ref);
+  useEscapeDismiss(true, () => { if (!switching) target ? setTarget(null) : onClose(); }, { priority: 100 });
+  const choose = id => {
+    if (switching) return;
+    if (id === activeTab) return onClose();
+    if (hasActiveRun) setTarget(id);
+    else onSelect(id);
+  };
+  return <section className="home-catalogue" ref={ref} role="dialog" aria-modal="true" aria-labelledby="home-title" tabIndex={-1} data-testid="home-catalogue" aria-busy={switching}>
+    <div className="home-content">
+      <header className="home-header"><h1 id="home-title" className="home-wordmark">{c.home}<i aria-hidden="true" /></h1><button type="button" className="home-icon" onClick={onClose} disabled={switching} aria-label={c.close}><X size={22}/></button></header>
+      <div className="home-intro">{activeTab && <button type="button" className="home-return" onClick={onClose} disabled={switching}><ArrowLeft size={17}/>{c.back}<span>{t(GAME_REGISTRY[activeTab]?.labelKey)}</span></button>}</div>
+      {!readyToSwitch && !switching && <p className="home-waiting" role="status">{c.waiting}</p>}
+      <h2 className="home-section-title">{c.games}<span>{VISIBLE_GAME_IDS.length}</span></h2>
+      {(target || error) && <div className="home-switch" role={error ? 'alert' : 'status'}><strong>{error ? c.failed : switching ? c.saving : c.switch}</strong>{target && <><p>{c.switchBody}</p><div><button type="button" className="home-primary" disabled={switching || !readyToSwitch} onClick={() => onSelect(target)}>{switching ? c.saving : c.confirm}</button><button type="button" disabled={switching} onClick={() => setTarget(null)}>{c.cancel}</button></div></>}</div>}
+      <nav className="home-games" aria-label={c.games}>{VISIBLE_GAME_IDS.map(id => <button type="button" key={id} data-home-game={id} className={`home-game${id === activeTab ? ' home-current' : ''}`} aria-label={t(GAME_REGISTRY[id].labelKey)} aria-current={id === activeTab ? 'true' : undefined} disabled={switching || (!readyToSwitch && id !== activeTab) || unavailableGames.includes(id)} onClick={() => choose(id)}>
+        <div className="home-thumbnail"><img src={`/games/home-thumbnails/${id}.webp`} alt="" width="256" height="144" loading="lazy" decoding="async" draggable="false"/>{id === activeTab && <span className="home-current-label">{c.current}</span>}</div>
+        <div className="home-game-copy"><strong>{t(GAME_REGISTRY[id].labelKey)}<ArrowUpRight size={17}/></strong><span>{unavailableGames.includes(id) ? c.unavailable : hints[id]}</span></div>
+      </button>)}</nav>
+      <details className="home-profile"><summary tabIndex={0}><UserRound size={20}/><span>{profileName || c.player}<small>{c.profile}</small></span><Settings size={18}/></summary>{profileBotName && <p className="home-bot-name">{profileBotName}</p>}<div className="home-wallet">{[[c.gold, resources.gold || 0], [c.energy, `${resources.energy?.current ?? 0}/${resources.energy?.max ?? 0}`], [c.tokens, resources.gachaTokens || 0]].map(([label, value]) => <span key={label}>{label}<strong>{value}</strong></span>)}</div><div className="home-settings">{settings}</div></details>
+    </div>
+  </section>;
+}

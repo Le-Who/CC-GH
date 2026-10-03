@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { expectBloxCanvas, expectBloxLayout } from "./helpers/blox-v2.js";
 
@@ -16,7 +17,7 @@ async function bootPage(context, label) {
 }
 
 async function startGame(page, tabName) {
-  await page.getByRole("button", { name: tabName }).click();
+  await selectHomeGame(page, { Blox: 'blox', Gems: 'match3', Bubbo: 'bubbo' }[tabName]);
   const start = page.getByRole("button", { name: "Start" });
   await expect(start).toBeVisible({ timeout: 10000 });
   await start.click();
@@ -89,7 +90,7 @@ test.describe("HUD art visual regression guards", () => {
     const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 }, isMobile: false, hasTouch: false });
     const { page, pageErrors } = await bootPage(context, "blox_desktop");
     try {
-      await page.getByRole("button", { name: "Blox" }).click();
+      await selectHomeGame(page, 'blox');
       await page.getByRole("button", { name: "Start", exact: true }).click();
       await expectBloxCanvas(page);
       await expectBloxLayout(page);

@@ -181,7 +181,7 @@ function Match3Dialog({
           })]
         }), jsxRuntime.jsx(Match3Button, {
           onClick:onExit,
-          children:j("common.exit")
+          children:j("nav.allGames")
         })]
       }):jsxRuntime.jsxs(jsxRuntime.Fragment, {
         children:[jsxRuntime.jsx("p", {
@@ -212,7 +212,7 @@ function Match3Dialog({
             children:j("match3.reshuffle")
           }), jsxRuntime.jsx(Match3Button, {
             onClick:onExit,
-            children:j("common.exit")
+            children:j("nav.allGames")
           })]
         }), jsxRuntime.jsxs("section", {
           className:"m3-leaders",

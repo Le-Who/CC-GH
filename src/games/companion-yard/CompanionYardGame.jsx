@@ -14,6 +14,7 @@ import { audioManager } from "../../services/audioManager.js";
 import { useAppI18n } from "../../app/i18n.jsx";
 import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
 import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
+import { openHome } from "../../app/homeNavigation.js";
 import { usePressTooltip } from "../../app/usePressTooltip.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
@@ -331,7 +332,6 @@ export default function CompanionYardGame() {
   const snapshot = useGameHub((state) => state.snapshot);
   const performAction = useGameHub((state) => state.performAction);
   const pendingActions = useGameHub((state) => state.pendingActions);
-  const setActiveTab = useGameHub((state) => state.setActiveTab);
   const { t } = useAppI18n();
   const yard = snapshot?.yard || {};
   const catalog = snapshot?.meta?.yardCatalog || {};
@@ -1078,7 +1078,7 @@ export default function CompanionYardGame() {
           <span>{text("yard.visitors", "Visitors")}</span>
           <b>{activeVisitorCount}</b>
         </div>
-        <YardActionButton icon="back" danger onClick={() => setActiveTab("garden")} {...yardSlotAttrs("settings", "settings-action")}>{text("yard.backToGarden", "Back to garden")}</YardActionButton>
+        <YardActionButton icon="back" onClick={openHome} {...yardSlotAttrs("settings", "settings-action")}>{text("nav.allGames", "All games")}</YardActionButton>
       </div>
     </div>
   );

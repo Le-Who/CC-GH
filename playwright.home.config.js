@@ -1,0 +1,2 @@
+import {defineConfig} from '@playwright/test';
+export default defineConfig({testDir:'./tests/e2e',testMatch:'home-navigation.spec.js',workers:1,reporter:[['list'],['json',{outputFile:'output/playwright/home-results.json'}]],use:{baseURL:process.env.HOME_PREVIEW_URL||'http://127.0.0.1:3315',screenshot:'only-on-failure',trace:'off',video:'off',serviceWorkers:'block'},outputDir:'output/playwright/home-tests',timeout:45000});

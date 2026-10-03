@@ -100,15 +100,21 @@ function BubboGame(){
     gameActive&&(tickClockRef.current?.(), setPaused(true))
   }, [gameActive]);
   const shellControls=React.useMemo(()=>({
-    activeRun:gameActive,
+    activeRun:gameActive||!!savedRun,
     pauseRun:pauseRun,
+    safeLeave:async()=>{
+      if(!gameActive&&!savedRun)return true;
+      if(flightBusyRef.current)return false;
+      const result=await performAction('bubbo.end',{score:gameActive?runRef.current.score:Number(savedRun?.score)||0,fromQuit:true},{key:'bubbo.end'});
+      return result?.success === true && !result.error;
+    },
     hudState:{
       score:score,
       shotsLeft:shotsLeft,
       pressureLabel:pressureValue,
       currentReward:currentReward
     }
-  }), [currentReward, gameActive, pauseRun, pressureValue, score, shotsLeft]);
+  }), [currentReward, gameActive, savedRun, pauseRun, performAction, pressureValue, score, shotsLeft]);
   useImmersiveGame("bubbo", true, shellControls);
   React.useEffect(()=>{
     runRef.current={

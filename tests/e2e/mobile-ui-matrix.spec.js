@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { expectControlPainted } from "./helpers/control-paint.js";
 import { pauseMerge, exitMerge, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
@@ -151,7 +152,7 @@ async function exitViaPauseOrResult(page, resultSelector = ":is(.game-menu-overl
   }
   await expect(page.locator(resultSelector)).toBeVisible();
   await expectVisibleButtonsReachable(page, `${resultSelector} button`);
-  await page.locator(resultSelector).getByRole("button", { name: /^Exit$/ }).click();
+  await page.locator(resultSelector).getByRole("button", { name: /^(All games|Все игры)$/ }).click();
 }
 
 test.describe.configure({ mode: "serial" });
@@ -165,9 +166,11 @@ test.describe("mobile UI viewport matrix", () => {
       try {
         await expectNoHorizontalScroll(page);
         await expect(page.getByText("My Garden")).toBeVisible();
-        await expectVisibleButtonsReachable(page, ".bottom-tabs button");
+        await openHome(page);
+        await expectVisibleButtonsReachable(page, ".home-games button");
+        await page.getByRole("button", { name: "Close Home" }).click();
 
-        await page.getByRole("button", { name: /Blox/ }).click();
+        await selectHomeGame(page, 'blox');
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expectBloxCanvas(page);
         await expectBloxLayout(page);
@@ -177,7 +180,7 @@ test.describe("mobile UI viewport matrix", () => {
         await pauseBlox(page);
         await exitBlox(page);
 
-        await page.getByRole("button", { name: /Gems/ }).click();
+        await selectHomeGame(page, 'match3');
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toHaveCount(0);
         await expectCanvasNonBlank(page, '[data-game-shell="match3"]');
@@ -187,10 +190,10 @@ test.describe("mobile UI viewport matrix", () => {
         await page.getByRole("button", { name: /Pause/ }).click();
         await expect(page.locator(".m3-dialog:visible")).toBeVisible();
         await expectVisibleButtonsReachable(page, ".m3-dialog:visible button");
-        await page.locator(".m3-dialog:visible").getByRole("button", { name: /^Exit$/ }).click();
-        await expect(page.locator(".bottom-tabs")).toBeVisible();
+        await page.locator(".m3-dialog:visible").getByRole("button", { name: /^(All games|Все игры)$/ }).click();
+        await expect(page.getByTestId('home-catalogue')).toBeVisible();
 
-        await page.getByRole("button", { name: /Merge/ }).click();
+        await selectHomeGame(page, 'merge');
         await expectMergeArt(page);
         await expectControlPainted(page, page.getByTestId('ml-open-pause'), testInfo, 'Merge Pause');
         await expectMergeControlsReachable(page, page.locator('.ml-hud button, .ml-nav button, .ml-well-button, .ml-lab-action button'));
@@ -199,7 +202,7 @@ test.describe("mobile UI viewport matrix", () => {
         await expectMergeControlsReachable(page, mergeDialog.getByRole('button'));
         await exitMerge(page);
 
-        await page.getByRole("button", { name: /Bubbo/ }).click();
+        await selectHomeGame(page, 'bubbo');
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expectCanvasNonBlank(page, '[data-game-shell="bubbo"]');
         await expect(page.locator(".bb-powers [data-bubbo-powerup]")).toHaveCount(3);
@@ -207,9 +210,9 @@ test.describe("mobile UI viewport matrix", () => {
         await expectNoHorizontalScroll(page);
         await expectControlPainted(page, page.locator('.bb-pause'), testInfo, 'Bubbo Pause');
         await exitViaPauseOrResult(page);
-        await expect(page.locator(".bottom-tabs")).toBeVisible();
+        await expect(page.getByTestId('home-catalogue')).toBeVisible();
 
-        await page.getByRole("button", { name: /Trivia/ }).click();
+        await selectHomeGame(page, 'trivia');
         await startTriviaSolo(page);
         await expectControlPainted(page, page.getByTestId('trv2-pause'), testInfo, 'Trivia Pause');
         await expectNoHorizontalScroll(page);
@@ -224,7 +227,7 @@ test.describe("mobile UI viewport matrix", () => {
         await pauseTrivia(page);
         await exitTriviaToHub(page);
 
-        await page.getByRole("button", { name: /Yard/ }).click();
+        await selectHomeGame(page, 'room');
         await expect(page.locator(".companion-yard-stage")).toBeVisible();
         await expectVisibleButtonsReachable(page, ".yard-bottom-dock button");
         await expectNoHorizontalScroll(page);

@@ -51,11 +51,9 @@ test('transient or malformed measurements and overrides cannot generate NaN or n
   }
 });
 
-test('production host derives phone and landscape dock geometry from HUD profiles', () => {
-  assert.equal(getGardenHostVariables(resolve(390,844))['--garden-dock-reserve'], '118px');
-  assert.equal(getGardenHostVariables(resolve(390,844))['--garden-dock-columns'], '4');
-  assert.equal(getGardenHostVariables(resolve(844,390))['--garden-dock-reserve'], '70px');
-  assert.equal(getGardenHostVariables(resolve(844,390))['--garden-dock-columns'], '8');
+test('production host releases the global dock reserve in phone and landscape', () => {
+  assert.equal(getGardenHostVariables(resolve(390,844))['--garden-dock-reserve'], '0px');
+  assert.equal(getGardenHostVariables(resolve(844,390))['--garden-dock-reserve'], '0px');
   assert.equal(getGardenHostVariables({regions:{bottomDock:{visible:false}}})['--garden-dock-reserve'], '0px');
 });
 
@@ -64,7 +62,7 @@ test('production host adapter restores owned style and marker after unmount', ()
   const host = { getAttribute:key=>attrs.get(key) ?? null, setAttribute:(key,value)=>attrs.set(key,value), removeAttribute:key=>attrs.delete(key), style:{ getPropertyValue:key=>styles.get(key)||'',getPropertyPriority:()=>'',setProperty:(key,value)=>styles.set(key,value),removeProperty:key=>styles.delete(key) } };
   const restore = applyGardenHostLayout(host, resolve(390,844));
   assert.equal(attrs.get('data-garden-presentation'),'living');
-  assert.equal(styles.get('--garden-dock-reserve'),'118px');
+  assert.equal(styles.get('--garden-dock-reserve'),'0px');
   restore(); restore();
   assert.deepEqual([...attrs],[]);
   assert.deepEqual([...styles],[['--garden-host-padding','5px']]);

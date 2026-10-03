@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { exerciseMergePointerCleanup } from "./helpers/mergeV3.js";
 import { expectBloxCanvas, expectBloxLayout, readBloxLayout, exitBlox } from "./helpers/blox-v2.js";
@@ -178,7 +179,7 @@ test.describe("Pixi touch and drag interactions", () => {
   test("Blox supports tray-to-board drag without viewport leakage", async ({ page }) => {
     const pageErrors = await boot(page, "blox_drag");
 
-    await page.getByRole("button", { name: /Blox/ }).click();
+    await selectHomeGame(page, 'blox');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bx-hud")).toContainText("Score");
     await expectBloxCanvas(page);
@@ -200,7 +201,7 @@ test.describe("Pixi touch and drag interactions", () => {
     test.skip(!testInfo.project.use?.hasTouch, "Lifted Blox drag is a touch-specific placement contract");
     const pageErrors = await boot(page, "blox_touch_drag_lift");
 
-    await page.getByRole("button", { name: /Blox/ }).click();
+    await selectHomeGame(page, 'blox');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bx-hud")).toContainText("Score");
     await expectBloxCanvas(page);
@@ -224,7 +225,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
   test("Blox supports tray selection followed by a board-cell tap", async ({ page }) => {
     const pageErrors = await boot(page, "blox_tap_place");
-    await page.getByRole("button", { name: /Blox/ }).click();
+    await selectHomeGame(page, 'blox');
     await page.getByRole("button", { name: /^Start$/ }).click();
     const layout = await expectBloxLayout(page);
     const slot = layout.slots[0];
@@ -239,7 +240,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
   test("Blox keeps its saved run and textures usable after exit and re-entry", async ({ page }) => {
     const pageErrors = await boot(page, "blox_reentry");
-    await page.getByRole("button", { name: /Blox/ }).click();
+    await selectHomeGame(page, 'blox');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await expectBloxCanvas(page);
@@ -255,9 +256,11 @@ test.describe("Pixi touch and drag interactions", () => {
     await expect(page.locator('.bx-stage')).toHaveAttribute('data-bx-phase', 'paused');
     await expect(page.locator('.bx-dialog[role="dialog"]')).toBeVisible();
     await expect(page.locator('.bx-dialog')).toHaveAttribute('aria-modal', 'true');
-    await expect(page.locator('.bottom-tabs')).toBeHidden();
+    await expect(page.locator('.bottom-tabs')).toHaveCount(0);
     await exitBlox(page);
-    await page.getByRole("button", { name: /Blox/ }).click();
+    await selectHomeGame(page, 'blox');
+    await expect(page.locator('.bx-stage')).toHaveAttribute('data-bx-phase', 'paused');
+    await page.locator('.bx-dialog').getByRole('button', { name: 'Resume', exact: true }).click();
     await expect(page.locator(".bx-stage")).toHaveAttribute("data-bx-phase", "playing");
     await expect(page.locator('.bx-keyboard-board [role="gridcell"]')).toHaveCount(100);
     expect(await readRunLabels()).toEqual(savedRunLabels);
@@ -276,7 +279,7 @@ test.describe("Pixi touch and drag interactions", () => {
   test("Match-3 accepts a canvas swipe gesture", async ({ page }) => {
     const pageErrors = await boot(page, "match3_swipe");
 
-    await page.getByRole("button", { name: /Gems/ }).click();
+    await selectHomeGame(page, 'match3');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".m3-hud")).toContainText("Score");
     await canvasIsNonBlank(page);
@@ -299,7 +302,7 @@ test.describe("Pixi touch and drag interactions", () => {
     test.skip(!testInfo.project.use?.hasTouch, "CDP touch dispatch is only meaningful on touch-capable browser projects");
     const pageErrors = await boot(page, "match3_long_touch_swipe");
 
-    await page.getByRole("button", { name: /Gems/ }).click();
+    await selectHomeGame(page, 'match3');
     const initialSync = waitForMatch3Sync(page, 8000);
     await page.getByRole("button", { name: /^Start$/ }).click();
     const startBody = await initialSync;
@@ -334,7 +337,7 @@ test.describe("Pixi touch and drag interactions", () => {
     test.skip(!testInfo.project.use?.hasTouch, "HUD stability is verified through touch dispatch");
     const pageErrors = await boot(page, "match3_no_event_log");
 
-    await page.getByRole("button", { name: /Gems/ }).click();
+    await selectHomeGame(page, 'match3');
     const initialSync = waitForMatch3Sync(page, 8000);
     await page.getByRole("button", { name: /^Start$/ }).click();
     const startBody = await initialSync;
@@ -373,7 +376,7 @@ test.describe("Pixi touch and drag interactions", () => {
     test.skip(!testInfo.project.use?.hasTouch, "Consecutive board-derived swaps are verified through touch dispatch");
     const pageErrors = await boot(page, "match3_consecutive_swaps");
 
-    await page.getByRole("button", { name: /Gems/ }).click();
+    await selectHomeGame(page, 'match3');
     const initialSync = waitForMatch3Sync(page, 8000);
     await page.getByRole("button", { name: /^Start$/ }).click();
     const startBody = await initialSync;
@@ -423,7 +426,7 @@ test.describe("Pixi touch and drag interactions", () => {
 
   test("Merge V3 sample drags cancel cleanly before another real research action", async ({ page }) => {
     const pageErrors = await boot(page, "merge_v3_drag");
-    await page.getByRole("button", { name: /Merge/ }).click();
+    await selectHomeGame(page, 'merge');
     await exerciseMergePointerCleanup(page);
     expect(pageErrors).toEqual([]);
   });
@@ -431,7 +434,7 @@ test.describe("Pixi touch and drag interactions", () => {
   test("Bubbo accepts repeated aim drags and only locks during projectile flight", async ({ page }) => {
     const pageErrors = await boot(page, "bubbo_fire");
 
-    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await selectHomeGame(page, 'bubbo');
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bb-stage")).toHaveAttribute("data-bb-phase", "playing");
     await canvasIsNonBlank(page);
@@ -458,7 +461,7 @@ test.describe("Pixi touch and drag interactions", () => {
   test("Bubbo timed mode accepts repeated shots toward the pending top row", async ({ page }) => {
     const pageErrors = await boot(page, "bubbo_timed_pending");
 
-    await page.getByRole("button", { name: /Bubbo/ }).click();
+    await selectHomeGame(page, 'bubbo');
     await page.locator(".bb-modes").getByRole("button", { name: /Timed/ }).click();
     await page.getByRole("button", { name: /^Start$/ }).click();
     await expect(page.locator(".bb-hud")).toContainText(/Time/);
@@ -536,7 +539,7 @@ for (const [width, height] of [[320,568], [360,800], [390,844], [414,896], [568,
     test.use({ viewport: { width, height }, deviceScaleFactor: 2, hasTouch: true, isMobile: width <= 1024 });
     test('downward aim stays on the field and pause/exit restore host swipes', async ({ page }) => {
       const errors = await bootWithTelegramSwipeBridge(page);
-      await page.getByRole('button', { name: /Bubbo/ }).click();
+      await selectHomeGame(page, 'bubbo');
       await expect(page.locator('.bb-stage')).toHaveAttribute('data-bb-phase', 'menu');
       expect(await page.evaluate(() => window.__telegramSwipe.enabled)).toBe(true);
       await page.getByTestId('bb-start').click();

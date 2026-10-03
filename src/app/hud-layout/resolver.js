@@ -23,7 +23,6 @@ export const EMERGENCY_HUD_LAYOUT = {
     regions: {
       gameplayHud: { mode: "anchored", anchor: "top-center", x: 0, y: 8, maxWidth: 380, zIndex: 40, visible: true },
       eventLog: { mode: "anchored", anchor: "bottom-center", x: 0, y: -96, maxWidth: 360, zIndex: 35, visible: true },
-      bottomDock: { mode: "dock", edge: "bottom", offset: 0, thickness: 84, reserve: 92, zIndex: 50, visible: true },
       pixiPlayfieldReserve: { mode: "reserveOnly", topReserve: 88, bottomReserve: 120, leftReserve: 0, rightReserve: 0 },
     },
   },

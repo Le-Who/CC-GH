@@ -12,7 +12,8 @@
 .gs2-backdrop:after{content:'';position:absolute;inset:0;background:rgba(210,224,192,.2)}
 .gs2-layout{padding:var(--gs2-padding);min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:var(--gs2-gap)}
 .gs2-header{display:grid;align-content:start;gap:8px;min-width:0;min-height:0}
-.gs2-name-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;min-height:48px}
+.gs2-name-row{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;min-height:48px}
+.gs2-home{width:44px;padding:0!important;background:#f4f1eb!important;border:1px solid #d5dcd2!important;border-image:none!important;border-radius:10px;color:#304f3a}
 .gs2-name{position:relative;display:grid;place-items:center;min-width:0;min-height:48px;background:#895f34;border-radius:12px;overflow:hidden}
 .gs2-name-art{position:absolute;inset:0;width:100%;height:100%;border-style:solid;border-color:transparent;border-width:0 14px;border-image:url('/games/garden-v2/sign.webp') 0 64 fill / 0 14px stretch;pointer-events:none}
 .gs2-name button,.gs2-name form{position:relative;z-index:1;min-height:44px;width:100%;border:0;background:none;padding:8px 14px;color:#fff6dc;font-family:Georgia,serif;font-weight:700;font-size:19px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
@@ -121,19 +122,10 @@
  grid-template-rows:minmax(0,1fr);gap:0;
  padding:calc(var(--safe-top,0px) + var(--garden-host-padding))
          calc(var(--safe-right,0px) + var(--garden-host-padding))
-         calc(var(--safe-bottom,0px) + var(--garden-dock-reserve))
+         calc(var(--safe-bottom,0px) + var(--garden-host-padding))
          calc(var(--safe-left,0px) + var(--garden-host-padding));
 }
 .telegram-app[data-active-tab="garden"][data-garden-presentation="living"] .active-game-frame{grid-row:1;min-width:0}
-.telegram-app[data-active-tab="garden"][data-garden-presentation="living"] .bottom-tabs{
- position:absolute;max-width:none;
- grid-template-columns:repeat(var(--garden-dock-columns),minmax(0,1fr));
- gap:var(--garden-dock-gap);padding:var(--garden-dock-padding);
- min-height:var(--hud-dock-thickness);
- bottom:calc(var(--safe-bottom,0px) + var(--hud-dock-offset,0px));
- left:max(var(--garden-host-padding),var(--safe-left,0px));
- right:max(var(--garden-host-padding),var(--safe-right,0px));
-}
 
 /* Input acknowledgement is stationary, including device reduced-motion mode. */
 .gs2-spot[data-gs2-tapped=true] .gs2-plant-target,.gs2-detail-tap[data-gs2-tapped=true]{box-shadow:inset 0 0 0 3px #4c7e3f;background-color:#e1edc8!important;border-radius:12px}

@@ -52,7 +52,7 @@
   --sky-ink: #245d77;
   --garden-timer-ink: #29664c;
   --hub-panel-art: url("/games/ui-surfaces/hub-panel.png");
-  --hub-dock-art: url("/games/ui-surfaces/yard-panel.webp");
+
   --safe-top: var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-left: var(--tg-viewport-safe-area-inset-left, env(safe-area-inset-left, 0px));
   --safe-right: var(--tg-viewport-safe-area-inset-right, env(safe-area-inset-right, 0px));
@@ -164,7 +164,7 @@ select:focus {
   width: min(100vw, 1180px);
   height: min(100dvh, var(--tg-viewport-stable-height, 100dvh));
   margin: 0 auto;
-  padding: calc(12px + var(--safe-top)) 14px calc(88px + var(--safe-bottom));
+  padding: calc(12px + var(--safe-top)) 14px calc(12px + var(--safe-bottom));
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 12px;
@@ -172,7 +172,7 @@ select:focus {
 }
 
 .telegram-app.play-mode {
-  padding: calc(8px + var(--safe-top)) 12px calc(78px + var(--safe-bottom));
+  padding: calc(8px + var(--safe-top)) 12px calc(12px + var(--safe-bottom));
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 8px;
 }
@@ -204,51 +204,12 @@ select:focus {
   gap: 8px;
 }
 
-.profile-avatar-button,
-.profile-popover-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--amber), var(--coral));
-  color: var(--navy);
-  font-weight: 1000;
-  text-transform: uppercase;
-}
-
-.profile-avatar-button {
-  border: 1px solid color-mix(in srgb, var(--amber) 58%, var(--glass-border));
-  box-shadow: 0 10px 24px rgba(220, 122, 133, 0.18);
-  cursor: pointer;
-  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
-}
-
-.profile-avatar-button:hover,
-.profile-avatar-button:focus-visible {
-  transform: translateY(-1px);
-  filter: saturate(1.05);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 22%, transparent), 0 14px 30px rgba(220, 122, 133, 0.22);
-  outline: none;
-}
-
 @keyframes shell-fade-in {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes shell-pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }
 
@@ -283,104 +244,6 @@ select:focus {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-
-.profile-popover {
-  position: absolute;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  animation: shell-fade-in 160ms ease-out both;
-}
-
-.profile-popover-scrim {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: transparent;
-  pointer-events: auto;
-}
-
-.profile-popover-card {
-  position: absolute;
-  top: calc(72px + var(--safe-top));
-  right: 14px;
-  width: min(320px, calc(100% - 28px));
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 10px;
-  align-items: center;
-  padding: 12px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--mint) 8%, var(--glass-highlight)), var(--glass-highlight-soft)),
-    var(--glass-surface-strong);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: var(--glass-shadow-strong);
-  color: var(--ink);
-  pointer-events: auto;
-  animation: shell-pop-in 180ms ease-out both;
-}
-
-.profile-popover-close {
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--glass-border-soft);
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--glass-card-strong) 72%, var(--panel-2));
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.profile-popover-copy {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
-}
-
-.profile-popover-copy strong,
-.profile-popover-copy span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profile-popover-copy span {
-  color: var(--muted);
-  font-size: 0.82rem;
-  font-weight: 850;
-}
-
-.profile-popover-stats {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.profile-popover-stats span {
-  min-width: 0;
-  border: 1px solid var(--glass-border-soft);
-  border-radius: 8px;
-  display: grid;
-  gap: 2px;
-  padding: 7px;
-  background: color-mix(in srgb, var(--glass-card-strong) 68%, var(--panel-2));
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.profile-popover-stats b {
-  overflow: hidden;
-  color: var(--ink);
-  font-size: 0.86rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .eyebrow {
@@ -717,7 +580,7 @@ button.stat-chip {
 .telegram-app[data-active-tab="garden"] {
   grid-template-rows: auto minmax(0, 1fr);
   gap: 8px;
-  padding: calc(10px + var(--safe-top)) 10px calc(86px + var(--safe-bottom));
+  padding: calc(10px + var(--safe-top)) 10px calc(12px + var(--safe-bottom));
   background:
     linear-gradient(180deg, #233419 0%, #5f7f3b 42%, #2b1b0f 100%);
 }
@@ -742,7 +605,6 @@ button.stat-chip {
   pointer-events: auto;
 }
 
-.telegram-app[data-active-tab="garden"] .profile-avatar-button,
 .telegram-app[data-active-tab="garden"] .theme-toggle {
   display: none;
 }
@@ -1129,8 +991,7 @@ button.stat-chip {
 
 .telegram-app.immersive-mode .topbar,
 .telegram-app.immersive-mode .profile-strip,
-.telegram-app.immersive-mode .stats-row,
-.telegram-app.immersive-mode .bottom-tabs {
+.telegram-app.immersive-mode .stats-row {
   display: none;
 }
 
@@ -1891,29 +1752,6 @@ button.stat-chip {
   }
 }
 
-.bottom-tabs {
-  position: fixed;
-  left: max(10px, calc((100vw - 1180px) / 2 + 10px));
-  right: max(10px, calc((100vw - 1180px) / 2 + 10px));
-  bottom: calc(10px + var(--safe-bottom));
-  z-index: 5;
-  min-height: 64px;
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 6px;
-  padding: 6px;
-  border: 0;
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 249, 230, 0.86), rgba(169, 111, 54, 0.34)),
-    var(--hub-dock-art) center / 100% 100% no-repeat,
-    #f5d599;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: var(--glass-shadow);
-  contain: paint;
-}
-
 @keyframes garden-level-ready-sheen {
   0% {
     background-position: 180% 0;
@@ -1926,40 +1764,6 @@ button.stat-chip {
     background-position: -80% 0;
     opacity: 0.32;
   }
-}
-
-.bottom-tabs button {
-  position: relative;
-  border: 0;
-  cursor: pointer;
-  min-width: 0;
-  min-height: 44px;
-  border-radius: 7px;
-  display: grid;
-  place-items: center;
-  gap: 2px;
-  background: rgba(255, 244, 211, 0.72);
-  color: #5e4b32;
-  font-size: 0.72rem;
-  font-weight: 900;
-  overflow: hidden;
-}
-
-.bottom-tabs button.active {
-  color: var(--navy);
-}
-
-.bottom-tabs button > svg,
-.bottom-tabs button > span:not(.nav-pill) {
-  position: relative;
-  z-index: 1;
-}
-
-.bottom-tabs button > span:not(.nav-pill) {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .nav-pill {
@@ -1981,10 +1785,6 @@ button.stat-chip {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
-  }
-
-  .bottom-tabs button.active {
-    background: var(--ink);
   }
 }
 
@@ -2033,15 +1833,11 @@ button.stat-chip {
 
   .telegram-app.play-mode {
     padding-top: calc(6px + var(--safe-top));
-    padding-bottom: calc(70px + var(--safe-bottom));
+    padding-bottom: calc(12px + var(--safe-bottom));
   }
 
   .telegram-app.play-mode .topbar {
     min-height: 42px;
-  }
-
-  .telegram-app.play-mode .bottom-tabs {
-    min-height: 56px;
   }
 
   .telegram-app.play-mode .side-panel .leaderboard {
@@ -2151,23 +1947,13 @@ button.stat-chip {
   .yard-species-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .bottom-tabs {
-    left: 10px;
-    right: 10px;
-  }
 }
 
 @media (max-width: 420px) {
   .telegram-app {
     padding-inline: 10px;
-    padding-bottom: calc(120px + var(--safe-bottom));
+    padding-bottom: calc(12px + var(--safe-bottom));
     gap: 9px;
-  }
-
-  .profile-avatar-button {
-    width: 44px;
-    height: 44px;
   }
 
   .stats-row,
@@ -2195,24 +1981,6 @@ button.stat-chip {
 
   .panel-header .panel-button {
     max-width: 128px;
-  }
-
-  .bottom-tabs button {
-    font-size: 0.58rem;
-  }
-
-  .bottom-tabs {
-    left: 4px;
-    right: 4px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    min-height: 104px;
-    gap: 2px;
-    padding: 4px;
-  }
-
-  .bottom-tabs button svg {
-    width: 17px;
-    height: 17px;
   }
 
   .telegram-app.play-mode .side-panel {
@@ -2333,7 +2101,6 @@ button.stat-chip {
 
   .audio-toggle,
   .theme-toggle,
-  .profile-avatar-button,
   .status-dot {
     width: 44px;
     min-width: 44px;

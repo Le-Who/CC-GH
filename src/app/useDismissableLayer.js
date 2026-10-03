@@ -1,17 +1,29 @@
 import { useEffect } from "react";
 
-export function useEscapeDismiss(active, onDismiss) {
+const escapeLayers = [];
+let escapeSerial = 0;
+
+function dismissTopLayer(event) {
+  if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
+  const layer = escapeLayers.reduce((top, item) => !top || item.priority > top.priority || (item.priority === top.priority && item.order > top.order) ? item : top, null);
+  if (!layer) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  layer.dismiss(event);
+}
+
+export function useEscapeDismiss(active, onDismiss, { priority = 0 } = {}) {
   useEffect(() => {
     if (!active || typeof onDismiss !== "function") return undefined;
-    const handleKeyDown = (event) => {
-      if (event.key !== "Escape" || event.defaultPrevented || event.isComposing) return;
-      event.preventDefault();
-      event.stopPropagation();
-      onDismiss(event);
+    const layer = { dismiss: onDismiss, priority, order: ++escapeSerial };
+    if (!escapeLayers.length) window.addEventListener('keydown', dismissTopLayer, true);
+    escapeLayers.push(layer);
+    return () => {
+      const index = escapeLayers.indexOf(layer);
+      if (index >= 0) escapeLayers.splice(index, 1);
+      if (!escapeLayers.length) window.removeEventListener('keydown', dismissTopLayer, true);
     };
-    window.addEventListener("keydown", handleKeyDown, true);
-    return () => window.removeEventListener("keydown", handleKeyDown, true);
-  }, [active, onDismiss]);
+  }, [active, onDismiss, priority]);
 }
 
 export function useOutsideDismiss(active, layerRef, onDismiss) {

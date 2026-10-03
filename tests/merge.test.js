@@ -636,8 +636,8 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
         const paused = renderArcadePresentation(gameId, { paused: true });
         const dialogs = findElements(paused.tree, (node) => node.props.role === "dialog");
         assert.equal(dialogs.length, 1);
-        for (const [label, callback] of [["endRun", "Finish"], ["resume", "Resume"], ["exit", "Exit"]]) {
-          const buttons = findElements(dialogs[0], (node) => node.type === "button" && textContent(node) === `common.${label}`);
+        for (const [label, callback] of [["common.endRun", "Finish"], ["common.resume", "Resume"], ["nav.allGames", "Exit"]]) {
+          const buttons = findElements(dialogs[0], (node) => node.type === "button" && textContent(node) === label);
           assert.equal(buttons.length, 1, `${gameId} pause dialog retains ${label}`);
           buttons[0].props.onClick();
           assert.deepEqual(paused.calls.at(-1), { name: callback, args: [] });

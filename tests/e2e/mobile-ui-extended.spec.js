@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { expectBloxCanvas, expectBloxLayout, pauseBlox, exitBlox } from "./helpers/blox-v2.js";
 
@@ -99,9 +100,11 @@ test.describe("extended phone HUD matrix", () => {
       const { context, page, pageErrors } = await bootPage(browser, baseURL, viewport);
       try {
         await expectNoHorizontalScroll(page);
-        await expectVisibleButtonsReachable(page, ".bottom-tabs button");
+        await openHome(page);
+        await expectVisibleButtonsReachable(page, ".home-games button");
+        await page.getByRole("button", { name: "Close Home" }).click();
 
-        await page.getByRole("button", { name: /Blox/ }).click();
+        await selectHomeGame(page, 'blox');
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expectBloxCanvas(page);
         await expectBloxLayout(page);
@@ -109,7 +112,7 @@ test.describe("extended phone HUD matrix", () => {
         await pauseBlox(page);
         await exitBlox(page);
 
-        await page.getByRole("button", { name: /Gems/ }).click();
+        await selectHomeGame(page, 'match3');
         await page.getByRole("button", { name: /^Start$/ }).click();
         await expect(page.locator('[data-game-shell="match3"] .game-play-event-log')).toHaveCount(0);
         await expectCanvasNonBlank(page, '[data-game-shell="match3"]');

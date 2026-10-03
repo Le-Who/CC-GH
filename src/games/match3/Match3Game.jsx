@@ -70,11 +70,17 @@ export default function Match3Game() {
       setPaused(true);
     }
   }, [gameActive]);
+  const savedRun = snapshot?.match3?.currentGame;
   const shellControls = useMemo(() => ({
-    activeRun: gameActive,
+    activeRun: gameActive || !!savedRun,
     pauseRun,
+    safeLeave: async () => {
+      if (!gameActive && !savedRun) return true;
+      const result = await performAction('match3.end', { score: gameActive ? scoreRef.current : Number(savedRun?.score) || 0, fromQuit: true });
+      return result?.success === true && !result.error;
+    },
     hudState: { score, movesLeft, combo, mode },
-  }), [combo, gameActive, mode, movesLeft, pauseRun, score]);
+  }), [combo, gameActive, savedRun, mode, movesLeft, pauseRun, performAction, score]);
   useImmersiveGame("match3", true, shellControls);
 
   useEffect(() => {

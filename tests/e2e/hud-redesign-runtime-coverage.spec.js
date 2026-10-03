@@ -1,3 +1,4 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
 import { test, expect } from "@playwright/test";
 import { mergePanel, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
 import { startTriviaSolo, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
@@ -177,7 +178,7 @@ test.describe("HUD redesign runtime asset coverage", () => {
 
   test("Merge V3 uses the recovered generated workshop runtime art", async ({ page }, testInfo) => {
     await boot(page);
-    await page.getByRole("button", { name: /Merge/ }).click();
+    await selectHomeGame(page, 'merge');
     await expectMergeArt(page, testInfo, 'merge-v3-runtime-art');
     await expect(page.locator('.ml-hud .ml-button').first()).toHaveCSS('border-image-source', /\/games\/merge-lab-v3\/panel\.webp/);
     await mergePanel(page, 'projects');
@@ -207,7 +208,7 @@ test.describe("HUD redesign runtime asset coverage", () => {
   test("Cozy Yard HUD uses the generated hud-redesign runtime kit", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await boot(page);
-    await page.getByRole("button", { name: /Yard/ }).click();
+    await selectHomeGame(page, 'room');
     await expectBackgroundAsset(page.locator(".yard-bottom-dock"), "/games/hud-redesign/room/dock-panel.webp");
     await expectYardMetricChipsAligned(page);
     await expectYardDockIconsCentered(page);
@@ -223,7 +224,7 @@ test.describe("HUD redesign runtime asset coverage", () => {
   test("Trivia question surface stays below the live HUD on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await boot(page);
-    await page.getByRole("button", { name: /Trivia/ }).click();
+    await selectHomeGame(page, 'trivia');
     await startTriviaSolo(page);
     const hud = await page.locator(".trv2-hud").boundingBox();
     const question = await page.locator(".trv2-question").boundingBox();
@@ -236,7 +237,7 @@ test.describe("HUD redesign runtime asset coverage", () => {
 
   test("Settlement HUD uses the generated hud-redesign runtime kit", async ({ page }) => {
     await boot(page);
-    await page.getByRole("button", { name: /Town/ }).click();
+    await selectHomeGame(page, 'settlement');
     await expectBackgroundAsset(page.locator(".settlement-game-root .top-hud-final"), "/games/hud-redesign/settlement/hud-panel.png");
     await expectBackgroundAsset(page.locator(".settlement-game-root .bottom-nav"), "/games/hud-redesign/settlement/dock-panel.png");
     await expect(page.locator(".settlement-game-root .settlement-compact-detail")).toBeVisible();
@@ -247,7 +248,7 @@ test.describe("HUD redesign runtime asset coverage", () => {
   test("Settlement compact landscape keeps redesigned HUD controls inside the viewport", async ({ page }) => {
     await page.setViewportSize({ width: 844, height: 390 });
     await boot(page);
-    await page.getByRole("button", { name: /Town/ }).click();
+    await selectHomeGame(page, 'settlement');
     await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
     await expectVisibleControlsHealthy(page, ".settlement-game-root");
   });

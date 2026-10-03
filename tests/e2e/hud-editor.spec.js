@@ -1,4 +1,13 @@
 import { test, expect } from "@playwright/test";
+import { selectHomeGame } from './helpers/home.js';
+
+async function selectEditorGame(page, id) {
+  // The editor handles pointer drags; the actual navigation button remains
+  // keyboard accessible. Home temporarily hides the editor's chrome.
+  await page.getByRole('button', { name: 'All games', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await selectHomeGame(page, id);
+}
 
 async function boot(page, path = "/?hudEditor=1&hudPreview=1&hudPreset=390x844") {
   await page.addInitScript(() => {
@@ -50,19 +59,21 @@ test.describe("HUD layout editor", () => {
   test("selects, moves, exports, and imports a registered region", async ({ page }) => {
     const errors = await boot(page);
     await expect(page.locator('[data-testid="hud-editor-toolbar"]')).toContainText("phone-default-portrait");
-    const bottomDockBox = page.locator('[data-hud-region-box="bottomDock"]');
-    await expect(bottomDockBox).toBeVisible();
-    const box = await bottomDockBox.boundingBox();
+    await page.getByRole('button', { name: 'Hide panels' }).click();
+    const homeButtonBox = page.locator('[data-hud-region-box="gardenHomeButton"]');
+    await expect(homeButtonBox).toBeVisible();
+    const box = await homeButtonBox.boundingBox();
     expect(box).not.toBeNull();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2 + 24);
     await page.mouse.up();
-    await expect(page.locator('[data-testid="hud-editor-inspector"]')).toContainText("bottomDock");
+    await page.getByRole('button', { name: 'Show editor' }).click();
+    await expect(page.locator('[data-testid="hud-editor-inspector"]')).toContainText("gardenHomeButton");
     await page.getByRole("button", { name: "Export game" }).click();
     const exportedText = await page.locator(".hud-editor-json-panel textarea").first().inputValue();
     const exported = JSON.parse(exportedText);
-    expect(exported.games.garden.profiles["phone-default-portrait"].regions.bottomDock.offset).not.toBe(0);
+    expect(exported.games.garden.profiles["phone-default-portrait"].regions.gardenHomeButton.y).not.toBe(0);
     await page.locator(".hud-editor-json-panel textarea").nth(1).fill(exportedText);
     await page.getByRole("button", { name: "Validate and import pasted JSON" }).click();
     await expect(page.locator(".hud-editor-message")).toContainText("Imported layout JSON");
@@ -74,13 +85,14 @@ test.describe("HUD layout editor", () => {
     await page.getByRole("button", { name: "Hide panels" }).click();
     await expect(page.locator('[data-testid="hud-editor-toolbar"]')).toHaveCount(0);
     await expect(page.locator('[data-testid="hud-editor-inspector"]')).toHaveCount(0);
-    await expect(page.locator('[data-hud-region-box="bottomDock"]')).toBeVisible();
+    await expect(page.locator('[data-hud-region-box="gardenHomeButton"]')).toBeVisible();
     await page.getByRole("button", { name: "Show editor" }).click();
     await expect(page.locator('[data-testid="hud-editor-toolbar"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Hide panels' }).click();
 
-    const buttonRegion = page.locator('[data-hud-region="bottomDock.blox"]');
+    const buttonRegion = page.locator('[data-hud-region="gardenHomeButton"]');
     const beforeButton = await buttonRegion.boundingBox();
-    const buttonBox = page.locator('[data-hud-region-box="bottomDock.blox"]');
+    const buttonBox = page.locator('[data-hud-region-box="gardenHomeButton"]');
     await expect(buttonBox).toBeVisible();
     const box = await buttonBox.boundingBox();
     expect(beforeButton).not.toBeNull();
@@ -89,7 +101,8 @@ test.describe("HUD layout editor", () => {
     await page.mouse.down();
     await page.mouse.move(box.x + box.width / 2 + 24, box.y + box.height / 2);
     await page.mouse.up();
-    await expect(page.locator('[data-testid="hud-editor-inspector"]')).toContainText("bottomDock.blox");
+    await page.getByRole('button', { name: 'Show editor' }).click();
+    await expect(page.locator('[data-testid="hud-editor-inspector"]')).toContainText("gardenHomeButton");
     const afterButton = await buttonRegion.boundingBox();
     expect(afterButton.x).toBeGreaterThan(beforeButton.x + 12);
 
@@ -105,7 +118,7 @@ test.describe("HUD layout editor", () => {
 
   test("exposes non-Garden asset regions through DOM and Pixi adapters", async ({ page }) => {
     await boot(page, "/?hudEditor=1&hudPreview=1&hudPreset=568x320");
-    await page.locator('[data-hud-region="bottomDock.blox"]').evaluate((node) => node.click());
+    await selectEditorGame(page, 'blox');
     await expect(page.locator(".telegram-app")).toHaveAttribute("data-active-tab", "blox");
     const canvas = page.locator('[data-game-shell="blox"] .bx-canvas canvas');
     await expect(canvas).toBeVisible();
@@ -129,7 +142,7 @@ test.describe("HUD layout editor", () => {
 
   test("can tune Settlement construction slot map coordinates", async ({ page }) => {
     await boot(page, "/?hudEditor=1&hudPreview=1&hudPreset=568x320&panel=construction");
-    await page.locator('[data-hud-region="bottomDock.settlement"]').evaluate((node) => node.click());
+    await selectEditorGame(page, 'settlement');
     await expect(page.locator(".telegram-app")).toHaveAttribute("data-active-tab", "settlement");
     const slotRegionId = "settlementConstructionSlot.southwest-terrace";
     const slotBox = page.locator(`[data-hud-region-box="${slotRegionId}"]`);
@@ -175,13 +188,14 @@ test.describe("HUD layout editor", () => {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.goto("/?hudEditor=1");
     await expect(page.locator('[data-testid="hud-editor-toolbar"]')).toContainText("phone-small-portrait");
+    await expect(page.locator('.gs2-home')).toBeVisible();
     const metrics = await page.evaluate(() => ({
       innerWidth: window.innerWidth,
       docWidth: Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth || 0),
-      dock: document.querySelector(".bottom-tabs")?.getBoundingClientRect().toJSON(),
+      home: document.querySelector(".gs2-home")?.getBoundingClientRect().toJSON(),
     }));
     expect(metrics.docWidth).toBeLessThanOrEqual(metrics.innerWidth + 1);
-    expect(metrics.dock.left).toBeGreaterThanOrEqual(-1);
-    expect(metrics.dock.right).toBeLessThanOrEqual(metrics.innerWidth + 1);
+    expect(metrics.home.left).toBeGreaterThanOrEqual(-1);
+    expect(metrics.home.right).toBeLessThanOrEqual(metrics.innerWidth + 1);
   });
 });
