@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameHub } from '../../../game-state/useGameHub.js';
-import { GameContext } from './GameContext';
+import { GameContext } from './GardenContext';
 import { GardenI18nProvider, useGardenI18n } from './i18n';
 import { HudRegion } from '../../../app/hud-layout/index.js';
 import { getGardenTransactionCoordinator } from './gardenTransactions.js';

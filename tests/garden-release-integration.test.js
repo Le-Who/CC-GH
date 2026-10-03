@@ -117,11 +117,12 @@ test('R3 inventory thumbnails remain static and never register a WebGL surface',
 });
 
 test('production modules retain real hub actions and exclude QA host imports', () => {
-  const game = fs.readFileSync(path.join(root,'src/games/garden-shelf/GardenShelfGame.tsx'),'utf8');
+  const game = readSplitGameSource(path.join(root,'src/games/garden-shelf/GardenShelfGame.tsx'));
   for (const action of ['garden.goldDelta','garden.sync','garden.resetEconomy','garden.levelUp']) assert.ok(game.includes(action));
   assert.match(game,/useGameHub\.getState\(\)\.performAction/);
   for (const name of ['GardenShelfGame.tsx','GardenPresentation.tsx','gardenHostLayout.js']) {
-    const source = fs.readFileSync(path.join(root,'src/games/garden-shelf',name),'utf8');
+    const source = readSplitGameSource(path.join(root,'src/games/garden-shelf',name));
     assert.doesNotMatch(source,/preview\/garden|fixture|request-policy|__GARDEN_PREVIEW__/);
   }
 });
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';

@@ -10,6 +10,7 @@ import {
   analyzeDist,
   runBuildPerfGuard,
 } from "../scripts/perf-build-guard.mjs";
+import { gameLoadingGraph } from '../scripts/game-loading-graph.mjs';
 
 async function writeFile(root, relativePath, contents) {
   const filePath = path.join(root, relativePath);
@@ -40,6 +41,60 @@ async function writeRuntimeAssets(root) {
 }
 
 describe("build perf guard", () => {
+  it("keeps split Merge and Settlement implementations under the existing game budget", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "cc-gh-perf-build-"));
+    await writeFile(root, "index.html", '<script type="module" src="/assets/index-app.js"></script>');
+    await writeFile(root, "assets/index-app.js", "console.log('app');");
+    await writeRuntimeAssets(root);
+    for (const entry of ['LegacyMergeGame', 'MergeLabGame', 'SettlementGame']) {
+      await writeFile(root, `assets/${entry}-test.js`, 'x'.repeat(75_001));
+      const report = await analyzeDist({ distDir: root });
+      assert.ok(report.metrics.gameChunks.files.some(file => file.path.includes(entry)));
+      assert.ok(report.failures.some(failure => failure.id === 'games.max-chunk.raw'));
+      await fs.unlink(path.join(root, `assets/${entry}-test.js`));
+    }
+    await fs.rm(root, {recursive: true, force: true});
+  });
+  it('budgets renamed game helpers and counts every reachable data/vendor dependency', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'cc-gh-perf-graph-'));
+    try {
+      await writeFile(root, 'index.html', '<script type="module" src="/assets/index.js"></script>');
+      await writeRuntimeAssets(root);
+      const chunks = [
+        {file:'assets/index.js', imports:['assets/shared.js'], dynamicImports:['assets/garden.js'], isEntry:true, gameModules:[], dataModules:[], dataOnly:false},
+        {file:'assets/shared.js', imports:[], dynamicImports:[], isEntry:false, gameModules:[], dataModules:[], dataOnly:false},
+        {file:'assets/garden.js', imports:['assets/shared.js', 'assets/text.js'], dynamicImports:['assets/renamed.js'], isEntry:false, gameModules:['src/games/garden-shelf/GardenShelfGame.tsx'], dataModules:[], dataOnly:false},
+        {file:'assets/text.js', imports:[], dynamicImports:[], isEntry:false, gameModules:['src/games/garden-shelf/lib/gardenTranslations.ts'], dataModules:['src/games/garden-shelf/lib/gardenTranslations.ts'], dataOnly:true},
+        {file:'assets/renamed.js', imports:[], dynamicImports:[], isEntry:false, gameModules:['src/games/settlement/SettlementSceneCanvas.jsx'], dataModules:[], dataOnly:false},
+      ];
+      for (const chunk of chunks) await writeFile(root, chunk.file, 'x'.repeat(chunk.file.includes('renamed') ? 75_001 : 100));
+      await writeFile(root, 'game-loading-graph.json', JSON.stringify({schemaVersion:1, entries:{'garden-shelf':'assets/garden.js'}, chunks}));
+      const report = await analyzeDist({distDir:root, requireLoadingGraph:true});
+      assert.ok(report.failures.some(failure => failure.id === 'games.max-chunk.raw'));
+      assert.equal(report.metrics.initialScripts.rawBytes, 200);
+      assert.equal(report.loadingGraphs['garden-shelf'].allReachableScripts.rawBytes, 75_301);
+      assert.equal(report.loadingGraphs['garden-shelf'].deferredScripts.rawBytes, 75_001);
+      chunks[4].dataOnly = true; chunks[4].dataModules = ['src/games/settlement/gameData.js'];
+      await writeFile(root, 'game-loading-graph.json', JSON.stringify({schemaVersion:1, entries:{}, chunks}));
+      assert.ok((await analyzeDist({distDir:root})).failures.some(failure => failure.id === 'games.loading-graph.complete'));
+      chunks[4].dataOnly = false; chunks.push({...chunks[1], file:'assets/missing.js'});
+      await writeFile(root, 'game-loading-graph.json', JSON.stringify({schemaVersion:1, entries:{}, chunks}));
+      assert.ok((await analyzeDist({distDir:root})).failures.some(failure => failure.id === 'games.loading-graph.complete'));
+    } finally { await fs.rm(root, {recursive:true, force:true}); }
+  });
+  it('emits a module-based graph and never exempts a catalog mixed with game code', () => {
+    const plugin = gameLoadingGraph(); let graph;
+    plugin.configResolved({root:'/repo'});
+    plugin.generateBundle.call({emitFile(asset){graph=JSON.parse(asset.source);}}, {}, {
+      data:{type:'chunk',fileName:'assets/renamed.js',imports:[],dynamicImports:[],isEntry:false,modules:{
+        '/repo/src/games/settlement/gameData.js':{renderedLength:100},
+        '/repo/src/games/settlement/SettlementGame.jsx':{renderedLength:100},
+      }},
+    });
+    assert.equal(graph.entries.settlement, 'assets/renamed.js');
+    assert.equal(graph.chunks[0].dataOnly, false);
+    assert.equal(graph.chunks[0].gameModules.length, 2);
+  });
   it("reports initial, async Pixi, game chunk, CSS, and runtime asset budget categories", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "cc-gh-perf-build-"));
     await writeFile(

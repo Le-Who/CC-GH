@@ -58,7 +58,7 @@ function deferredRequest(endpoint = "/api/player/mutate") {
   const pending = new Promise(resolve => { finish = resolve; });
   globalThis.fetch = async (path, options) => {
     if (path === '/api/config') return response({ devAuthEnabled: false });
-    assert.equal(path, endpoint);
+    assert.equal(new URL(path, 'https://fixture.invalid').pathname, endpoint);
     started(options.body ? JSON.parse(options.body) : null);
     return pending;
   };

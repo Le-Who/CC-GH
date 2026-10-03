@@ -400,7 +400,7 @@ test.describe("Cozy Yard movement and assets", () => {
       });
     });
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -486,7 +486,7 @@ test.describe("Cozy Yard movement and assets", () => {
     const snapshot = buildFreePlacementSnapshot();
     const mutateBodies = [];
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -530,7 +530,7 @@ test.describe("Cozy Yard movement and assets", () => {
     const snapshot = buildOccupiedPlacementSnapshot();
     const mutateBodies = [];
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -573,7 +573,7 @@ test.describe("Cozy Yard movement and assets", () => {
   test("keeps visitors and free placement inside mobile playzones across yard backgrounds", async ({ page }) => {
     let snapshot = buildPlayzoneAuditSnapshot("meadow");
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -634,7 +634,7 @@ test.describe("Cozy Yard movement and assets", () => {
     const snapshot = buildOccupiedPlacementSnapshot();
     const mutateBodies = [];
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -691,7 +691,7 @@ test.describe("Cozy Yard movement and assets", () => {
       window.localStorage.setItem("game_hub_ui_theme", "dark");
     });
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -848,7 +848,7 @@ test.describe("Cozy Yard movement and assets", () => {
       window.localStorage.setItem("game_hub_ui_theme", "dark");
     });
 
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),
@@ -942,7 +942,7 @@ test.describe("Cozy Yard movement and assets", () => {
       window.localStorage.setItem("garden_shelf_language", "ru");
       window.localStorage.setItem("game_hub_ui_theme", "light");
     });
-    await page.route("**/api/player/snapshot", async (route) => {
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
       await route.fulfill({
         contentType: "application/json",
         body: JSON.stringify(snapshot),

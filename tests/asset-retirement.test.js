@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -55,7 +56,7 @@ test('current renderers and real legacy fallbacks retain their asset closure', a
   assert.match(loaders, /mergeScene/);
   const bubbo = await fs.readFile('src/games/bubbo/BubboField.jsx', 'utf8');
   assert.match(bubbo, /getContext\(["']2d["']/);
-  const garden = await fs.readFile('src/games/garden-shelf/GardenPresentation.tsx', 'utf8');
+  const garden = readSplitGameSource('src/games/garden-shelf/GardenPresentation.tsx');
   assert.match(garden, /function LegacyPlantArt/);
   assert.match(garden, /GARDEN_SHEET_PATH/);
   const docker = await fs.readFile('Dockerfile', 'utf8');

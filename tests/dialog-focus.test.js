@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -119,7 +120,7 @@ test('Garden opener survives Strict Mode effect replay without stale return-focu
 test('without pre-commit capture the disabled opener loss is reproduced, and Garden wires the capture', () => {
   const h = gardenPortalHookHarness(), close = h.open(null);h.flush();h.detach();close();h.flush();
   assert.notEqual(h.document.activeElement, h.trigger);
-  const source = fs.readFileSync(new URL('../src/games/garden-shelf/GardenPresentation.tsx', import.meta.url), 'utf8');
+  const source = readSplitGameSource(new URL('../src/games/garden-shelf/GardenPresentation.tsx', import.meta.url));
   assert.match(source, /useDialogFocus\(ref, \{ returnFocusRef: feedback.returnFocusRef \}\)/);
   assert.match(source, /openSpot = [\s\S]*?dialogOpener.current = opener[\s\S]*?setPanel\('spot'\)/);
   assert.match(source, /onDetails=\{\(event: any\) => openSpot\(s, p, plant\?\.id, event\?\.currentTarget\)\}/);

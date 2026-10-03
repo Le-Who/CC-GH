@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { isRetiredAssetPath } from './asset-retirement-policy.mjs';
+import { GAME_DATA_MODULES } from './game-loading-graph.mjs';
 
 const REPORT_PATH = path.resolve("artifacts", "perf", "perf-build-report.json");
 const DEFAULT_DIST_DIR = path.resolve("dist");
@@ -27,7 +28,7 @@ export const DEFAULT_BUILD_BUDGETS = {
 };
 
 const PIXI_CHUNK_RE = /(LazyPixiSceneHost|pixi|WebGLRenderer|WebGPURenderer|CanvasRenderer|BitmapFont|BufferResource|RenderTargetSystem|browserAll|webworkerAll|Filter|animation)/i;
-const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame)/;
+const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|MergeLabGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame|SettlementGame)/;
 const RUNTIME_ASSET_MANIFEST_PATH = "assets-runtime/manifest.json";
 const HASHED_RUNTIME_ASSET_RE = /^assets-runtime\/.+\.[a-f0-9]{8}\.(?:png|webp|avif|svg|json|webm|mp3|wav)$/i;
 
@@ -108,7 +109,7 @@ function budgetFailure(id, actual, budget, unit = "bytes") {
   };
 }
 
-export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAULT_BUILD_BUDGETS } = {}) {
+export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAULT_BUILD_BUDGETS, requireLoadingGraph = false } = {}) {
   const effectiveBudgets = { ...DEFAULT_BUILD_BUDGETS, ...budgets };
   const html = await fs.readFile(path.join(distDir, "index.html"), "utf8");
   const allFiles = await readFiles(distDir);
@@ -116,24 +117,49 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
   const runtimeAssetPaths = allFiles.filter((file) => file.startsWith("assets-runtime/"));
   const byPath = new Map();
   for (const file of assetFiles) byPath.set(file, await fileMetric(distDir, file));
+  let graph = null;
+  const graphFailures = [];
+  try {
+    graph = JSON.parse(await fs.readFile(path.join(distDir, 'game-loading-graph.json'), 'utf8'));
+    if (graph.schemaVersion !== 1 || !Array.isArray(graph.chunks) || !graph.entries) throw new Error('Unsupported loading graph');
+    const listed = new Set(graph.chunks.map(chunk => chunk.file));
+    const actual = assetFiles.filter(file => file.endsWith('.js'));
+    if (listed.size !== graph.chunks.length || actual.some(file => !listed.has(file)) || [...listed].some(file => !byPath.has(file))) throw new Error('Loading graph does not cover every generated JS file');
+    for (const chunk of graph.chunks) {
+      if (![...chunk.imports, ...chunk.dynamicImports].every(file => listed.has(file))) throw new Error(`Unlisted dependency of ${chunk.file}`);
+      if (chunk.dataOnly && (!chunk.dataModules.length || !chunk.dataModules.every(source => GAME_DATA_MODULES.has(source)) || chunk.gameModules.some(source => !GAME_DATA_MODULES.has(source)))) throw new Error(`Invalid data-only exemption: ${chunk.file}`);
+    }
+  } catch (error) {
+    if (requireLoadingGraph || graph || error.code !== 'ENOENT') graphFailures.push({id:'games.loading-graph.complete', actual:String(error.message), budget:'complete generated graph', message:`Game loading graph: ${error.message}`});
+    graph = null;
+  }
+  const graphByFile = new Map((graph?.chunks || []).map(chunk => [chunk.file, chunk]));
+  function closure(seeds, includeDynamic = false) {
+    const seen = new Set();
+    // A game's static dependencies can reference shared exports in the app
+    // entry. Its catalogue of other games is a separate user choice.
+    function visit(file) { if (seen.has(file) || !graphByFile.has(file)) return; seen.add(file); const chunk = graphByFile.get(file); for (const dependency of [...chunk.imports, ...(includeDynamic && !chunk.isEntry ? chunk.dynamicImports : [])]) visit(dependency); }
+    seeds.forEach(visit); return [...seen];
+  }
   const runtimeAssetFiles = await Promise.all(runtimeAssetPaths.map((file) => fileMetric(distDir, file)));
   const publicGameFiles = await Promise.all(allFiles.filter(file => file.startsWith('games/')).map(file => fileMetric(distDir, file)));
   // Vite merges public/assets and generated chunks into assets/. JS/CSS are
   // covered by their existing budgets; media/fonts/JSON are counted here.
   const publicAssetFiles = assetFiles.filter(file => !/\.(?:js|css|map)$/.test(file)).map(file => byPath.get(file));
 
-  const initialScriptRefs = [
+  const htmlScriptRefs = [
     ...htmlAssetRefs(html, "script", "src"),
     ...linkRefs(html, "modulepreload"),
   ].filter((ref) => byPath.has(ref));
+  const initialScriptRefs = graph ? closure(htmlScriptRefs) : htmlScriptRefs;
   const initialCssRefs = linkRefs(html, "stylesheet").filter((ref) => byPath.has(ref));
   const initialScripts = initialScriptRefs.map((ref) => byPath.get(ref));
   const initialCss = initialCssRefs.map((ref) => byPath.get(ref));
   const asyncPixiChunks = assetFiles
-    .filter((file) => file.endsWith(".js") && PIXI_CHUNK_RE.test(file) && !initialScriptRefs.includes(file))
+    .filter((file) => file.endsWith(".js") && (PIXI_CHUNK_RE.test(file) || graphByFile.get(file)?.hasPixi) && !initialScriptRefs.includes(file))
     .map((file) => byPath.get(file));
   const gameChunks = assetFiles
-    .filter((file) => file.endsWith(".js") && GAME_CHUNK_RE.test(file))
+    .filter((file) => file.endsWith(".js") && (GAME_CHUNK_RE.test(file) || graphByFile.get(file)?.gameModules.length) && !graphByFile.get(file)?.isEntry && !graphByFile.get(file)?.dataOnly)
     .map((file) => byPath.get(file));
   const runtimeManifest = runtimeAssetFiles.find((file) => file.path === RUNTIME_ASSET_MANIFEST_PATH);
   const runtimePayloads = runtimeAssetFiles.filter((file) => file.path !== RUNTIME_ASSET_MANIFEST_PATH);
@@ -143,6 +169,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     initialCss: summarize(initialCss),
     asyncPixiChunks: summarize(asyncPixiChunks),
     gameChunks: summarize(gameChunks),
+    gameData: summarize((graph?.chunks || []).filter(chunk => chunk.dataOnly).map(chunk => byPath.get(chunk.file))),
     runtimeAssetManifest: summarize(runtimeManifest ? [runtimeManifest] : []),
     runtimeAssets: summarize(runtimePayloads),
     publicGames: summarize(publicGameFiles),
@@ -150,7 +177,13 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     publicMedia: summarize([...publicGameFiles, ...publicAssetFiles, ...runtimePayloads]),
   };
 
+  const loadingGraphs = Object.fromEntries(Object.entries(graph?.entries || {}).map(([game, entry]) => {
+    const staticFiles = closure([entry]);
+    const allFiles = closure([entry], true);
+    return [game, {entry, staticScripts:summarize(staticFiles.map(file => byPath.get(file))), deferredScripts:summarize(allFiles.filter(file => !staticFiles.includes(file)).map(file => byPath.get(file))), allReachableScripts:summarize(allFiles.map(file => byPath.get(file)))}];
+  }));
   const failures = [
+    ...graphFailures,
     budgetFailure("startup.initial-js.raw", metrics.initialScripts.rawBytes, effectiveBudgets.initialScriptRawBytes),
     budgetFailure("startup.initial-js.gzip", metrics.initialScripts.gzipBytes, effectiveBudgets.initialScriptGzipBytes),
     budgetFailure("startup.initial-css.raw", metrics.initialCss.rawBytes, effectiveBudgets.initialCssRawBytes),
@@ -252,6 +285,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     distDir: path.resolve(distDir),
     budgets: effectiveBudgets,
     metrics,
+    loadingGraphs,
     failures,
     passed: failures.length === 0,
   };
@@ -263,8 +297,9 @@ export async function runBuildPerfGuard({
   writeReport = true,
   quiet = false,
   reportPath = REPORT_PATH,
+  requireLoadingGraph = true,
 } = {}) {
-  const report = await analyzeDist({ distDir, budgets });
+  const report = await analyzeDist({ distDir, budgets, requireLoadingGraph });
   if (writeReport) {
     await fs.mkdir(path.dirname(reportPath), { recursive: true });
     await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");

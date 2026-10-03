@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -224,7 +225,7 @@ describe("Telegram Mini App game UX foundations", () => {
   });
 
   it("keeps Settlement startup map-first with a compact village cycle and building access", () => {
-    const settlementGame = readFileSync(new URL("../src/games/settlement/SettlementGame.jsx", import.meta.url), "utf8");
+    const settlementGame = readSplitGameSource(new URL("../src/games/settlement/SettlementGame.jsx", import.meta.url));
     const settlementStore = readFileSync(new URL("../src/games/settlement/useSettlementStore.js", import.meta.url), "utf8");
     const settlementCss = readFileSync(new URL("../src/games/settlement/settlement.css", import.meta.url), "utf8");
     const settlementPanel = readFileSync(new URL("../src/games/settlement/SettlementPlayPanel.jsx", import.meta.url), "utf8");
@@ -327,7 +328,7 @@ describe("Telegram Mini App game UX foundations", () => {
   it("wires shared overlay dismissal and mature Garden care watering through DOM text", () => {
     const dismissHook = readFileSync(new URL("../src/app/useDismissableLayer.js", import.meta.url), "utf8");
     const shell = readFileSync(new URL("../src/app/shell.jsx", import.meta.url), "utf8");
-    const presentation = readFileSync(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url), "utf8");
+    const presentation = readSplitGameSource(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url));
     const gardenContext = readFileSync(new URL("../src/games/garden-shelf/lib/GameContext.tsx", import.meta.url), "utf8");
 
     assert.match(dismissHook, /event\.key !== ['"]Escape['"]/);
@@ -346,8 +347,8 @@ describe("Telegram Mini App game UX foundations", () => {
   it("keeps Garden Shelf live screen-first with compact hub chrome", () => {
     const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
     const indexCss = readFileSync(new URL("../src/index.css", import.meta.url), "utf8");
-    const gardenGame = readFileSync(new URL("../src/games/garden-shelf/GardenShelfGame.tsx", import.meta.url), "utf8");
-    const presentation = readFileSync(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url), "utf8");
+    const gardenGame = readSplitGameSource(new URL("../src/games/garden-shelf/GardenShelfGame.tsx", import.meta.url));
+    const presentation = readSplitGameSource(new URL("../src/games/garden-shelf/GardenPresentation.tsx", import.meta.url));
     const gardenCss = readFileSync(new URL("../src/games/garden-shelf/garden-presentation.css", import.meta.url), "utf8");
 
     assert.match(app, /className="topbar-title"/);

@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -576,8 +577,8 @@ describe("Merge Engine Hooks (useMergeEngine)", () => {
       const match3Game = fs.readFileSync(match3Path, "utf-8");
       const mergeGame = fs.readFileSync(mergePath, "utf-8");
       const bubboGame = fs.readFileSync(bubboPath, "utf-8");
-      const gardenGame = fs.readFileSync(gardenGamePath, "utf-8");
-      const gardenPresentation = fs.readFileSync(gardenPresentationPath, "utf-8");
+      const gardenGame = readSplitGameSource(gardenGamePath);
+      const gardenPresentation = readSplitGameSource(gardenPresentationPath);
       const gardenCss = fs.readFileSync(gardenCssPath, "utf-8");
       const css = fs.readFileSync(cssPath, "utf-8");
       const scenes = readSceneRuntimeText();

@@ -45,7 +45,7 @@ function request(endpoint = '/api/player/mutate') {
   const ready = defer(), reply = defer();
   globalThis.fetch = async (path, options) => {
     if (path === '/api/config') return response({ devAuthEnabled: false });
-    assert.equal(path, endpoint); ready.resolve(options?.body ? JSON.parse(options.body) : null);
+    assert.equal(new URL(path, 'https://fixture.invalid').pathname, endpoint); ready.resolve(options?.body ? JSON.parse(options.body) : null);
     return reply.promise;
   };
   return { ready: ready.promise, finish: (body, status) => reply.resolve(response(body, status)) };
@@ -183,7 +183,7 @@ for (const returnToA of [false, true]) test(`account switch during rejected inte
   globalThis.fetch = async path => {
     if (path === '/api/config') return response({});
     if (path === '/api/player/mutate') return response({ error: 'REJECTED' }, 409);
-    assert.equal(path, '/api/player/snapshot'); ready.resolve(); return reply.promise;
+    assert.equal(new URL(path, 'https://fixture.invalid').pathname, '/api/player/snapshot'); ready.resolve(); return reply.promise;
   };
   const pending = hub.getState().drainOutbox(); await ready.promise;
   hub.getState().applySnapshot(snap('account-b')); if (returnToA) hub.getState().applySnapshot(snap());

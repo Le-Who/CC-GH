@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -104,7 +105,7 @@ test('cache keys cannot collide and shared balances are never serialized as gard
 
 test('production provider is keyed and cached by verified account with server-only startup', () => {
   const context = fs.readFileSync(new URL('../src/games/garden-shelf/lib/GameContext.tsx', import.meta.url), 'utf8');
-  const wrapper = fs.readFileSync(new URL('../src/games/garden-shelf/GardenShelfGame.tsx', import.meta.url), 'utf8');
+  const wrapper = readSplitGameSource(new URL('../src/games/garden-shelf/GardenShelfGame.tsx', import.meta.url));
   assert.match(context, /normalizePersistedGardenState\(selectGardenInitialState\(accountId, persistedState\), gold\)/);
   assert.match(context, /writeGardenLocalState\(localStorage, accountId, nextPersisted\)/);
   assert.doesNotMatch(context, /terrarium_save|readLocalGardenState|hasGardenProgress|readGardenLocalState/);

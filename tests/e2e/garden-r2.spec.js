@@ -25,7 +25,7 @@ async function initialize(page, language = 'en') {
 }
 async function fixture(page, initial, { loseFirstPurchase = false, loseFirstSale = false, delayPurchase = false } = {}) {
   const requests = [], state = { current: initial }; let lost = false;
-  await page.route('**/api/player/snapshot', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(buildSnapshot(state.current)) }));
+  await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(buildSnapshot(state.current)) }));
   await page.route('**/api/player/mutate', async route => {
     const body = route.request().postDataJSON(); requests.push(body);
     if (delayPurchase && body.payload?.command === 'buyPlant') await new Promise(resolve => setTimeout(resolve, 350));

@@ -12,7 +12,7 @@ const checks=readdirSync(resolve(candidate,'checks')).filter(name=>name.endsWith
 const result=spawnSync(process.execPath,[
   '--import',resolve(candidate,'load-overlays.mjs'),
   '--import',resolve(root,'tests/yard-inventory-only-loader.mjs'),
-  '--import',resolve(root,'tests/yard-shared-store-loader.mjs'),
+  '--import',resolve(candidate,'helpers/yard-shared-store-loader.mjs'),
   '--test',...checks,
 ],{cwd:root,env:process.env,stdio:'inherit'});
 if(result.error)throw result.error;

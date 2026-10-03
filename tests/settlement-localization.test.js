@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -34,7 +35,7 @@ test('dynamic notices, capacity and time translate their values as display text'
 
 
 test('post-Settlement copy uses the final translator and keeps concise RU/EN guidance', () => {
-  const source = readFileSync(new URL('../src/games/settlement/SettlementGame.jsx', import.meta.url), 'utf8');
+  const source = readSplitGameSource(new URL('../src/games/settlement/SettlementGame.jsx', import.meta.url));
   for (const [ru, en] of [
     ['Развитие поселения', 'Settlement progress'],
     ['Собирайте партии, доставляйте заказы и развивайте поселение.', 'Collect batches, deliver orders and develop the settlement.'],

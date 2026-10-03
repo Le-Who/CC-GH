@@ -183,8 +183,9 @@ for (const operation of ['start', 'refresh']) for (const adopted of [false, true
     hub.getState().applyRealtimePayload(emitted);
   } }) };
   t.mock.method(globalThis, 'fetch', async (path, options = {}) => {
-    if (path === '/api/config') return { json: async () => ({ devAuthEnabled: false }) };
-    const handler = router.stack.find(layer => layer.path === path).handlers.at(-1);
+    const pathname = new URL(path, 'https://fixture.invalid').pathname;
+    if (pathname === '/api/config') return { json: async () => ({ devAuthEnabled: false }) };
+    const handler = router.stack.find(layer => layer.path === pathname).handlers.at(-1);
     let status = 200, body;
     const requestBody = options.body ? JSON.parse(options.body) : undefined;
     if (requestBody) assert.equal(requestBody.accountId, id);

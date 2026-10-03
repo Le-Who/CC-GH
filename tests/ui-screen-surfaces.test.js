@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -238,7 +239,7 @@ test("Yard menu CSS binds screen-specific generated panels", async () => {
 
 test("Garden living panels separate header chrome from scrollable runtime content", async () => {
   const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-presentation.css"), "utf8");
-  const presentation = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"), "utf8");
+  const presentation = readSplitGameSource(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"));
   const rule = selector => {
     // Match individual selectors in compact multi-rule CSS, not newline boundaries.
     const blocks = [...gardenCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -332,7 +333,7 @@ test("Yard generated panels use asset slots and keep dismiss controls icon-only"
 
 test("Garden living controls use responsive semantic rows instead of fixed painted slots", async () => {
   const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-presentation.css"), "utf8");
-  const presentation = await readFile(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"), "utf8");
+  const presentation = readSplitGameSource(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"));
   const rule = selector => {
     // Match individual selectors in compact multi-rule CSS, not newline boundaries.
     const blocks = [...gardenCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
@@ -660,7 +661,7 @@ test("mini-game direct controls avoid native browser title tooltips", async () =
   ];
 
   for (const filePath of gameFiles) {
-    const source = await readFile(path.join(root, filePath), "utf8");
+    const source = readSplitGameSource(path.join(root, filePath));
     assertNoNativeButtonTitles(source, filePath);
   }
 

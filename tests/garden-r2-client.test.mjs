@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -164,7 +165,7 @@ test('corrupt cache and stale unsynced earnings require review without reset, di
   }
 });
 test('adopted client and release gate remain separate from legacy credit/reset provider', () => {
-  const app = fs.readFileSync(new URL('../src/games/garden-shelf/GardenShelfGame.tsx', import.meta.url), 'utf8');
+  const app = readSplitGameSource(new URL('../src/games/garden-shelf/GardenShelfGame.tsx', import.meta.url));
   const provider = fs.readFileSync(new URL('../src/games/garden-shelf/lib/GardenR2Provider.tsx', import.meta.url), 'utf8');
   assert.match(app, /gardenR2Available === true/); assert.match(app, /blockedR2/); assert.match(app, /halted=\{reloadRequired.current\}/);
   assert.doesNotMatch(provider, /onEarnedCredit|resetEconomy|onGoldDelta|creditEarned/); assert.match(provider, /incomePerSecond: r2IncomePerSecond\(view\)/);
@@ -215,7 +216,7 @@ test('arbitrary server 5xx errors retain identity and recover, while permanent/v
 });
 
 test('R2 reward summary excludes the progression sheet and accumulates undismissed rewards', () => {
-  const presentation = fs.readFileSync(new URL('../src/games/garden-shelf/GardenPresentation.tsx', import.meta.url), 'utf8');
+  const presentation = readSplitGameSource(new URL('../src/games/garden-shelf/GardenPresentation.tsx', import.meta.url));
   assert.match(presentation, /r2 && !offline && !notice && panel === 'progression'/);
   assert.match(presentation, /setNotice\(previousNotice => \({ reward: reward \+ \(previousNotice\?\.r2 \? previousNotice\.reward : 0\)/);
 });

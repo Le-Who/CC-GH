@@ -27,13 +27,13 @@ for (const language of ['en', 'ru']) for (const [width, height] of [[320, 568], 
     let release;
     const gate = new Promise(resolve => { release = resolve; });
     const route = async request => { await gate; await request.continue(); };
-    await page.route('**/api/player/snapshot', route);
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route);
     await page.locator('.status-dot').click();
     await expect(page.locator('.status-dot.syncing')).toHaveCount(1);
     expect(await page.locator('.status-dot').boundingBox()).toEqual(before);
     release();
     await expect(page.locator('.status-dot.ready')).toHaveCount(1);
-    await page.unroute('**/api/player/snapshot', route);
+    await page.unroute(/\/api\/player\/snapshot(?:\?.*)?$/, route);
     await checkCopy('garden-hub');
 
     await page.goto('/?tab=trivia');

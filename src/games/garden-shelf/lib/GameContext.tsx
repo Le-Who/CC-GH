@@ -1,4 +1,7 @@
-import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
+import { GameContext } from './GardenContext';
+export { GameContext, useGame } from './GardenContext';
+export type { GameContextType } from './GardenContext';
+import React, { useCallback, useState, useEffect, ReactNode } from 'react';
 import { GameState, PlantData } from '../types';
 import {
   PLANT_TYPES,
@@ -80,33 +83,12 @@ interface GameProviderProps {
   onHudChange?: (hud: GardenHudState | null) => void;
 }
 
-export interface GameContextType {
-  r2?: any;
-  r2Command?: (command: string, input?: object) => Promise<boolean>;
-  accountingReady: boolean;
-  state: GameState;
-  addGold: (amount: number) => void;
-  buyPlant: (type: keyof typeof PLANT_TYPES, shelfIndex: number, spotIndex: number) => void;
-  upgradePlant: (plantId: string) => void; // still useful for upgrading base production once mature
-  sellPlant: (plantId: string) => void;
-  unlockShelf: () => void;
-  unlockedPlants: string[];
-  clearOfflineEarnings: () => void;
-  waterPlant: (plantId: string) => void;
-  tapPlant: (plantId: string) => void | Promise<boolean>;
-  levelUp: () => void;
-  claimQuest: (questId: string, reward: number) => void;
-  renameGarden: (name: string) => void;
-  movePlantToInventory: (plantId: string) => void;
-  movePlantToShelf: (plantId: string, shelfIndex: number, spotIndex: number) => void;
-}
 
 const defaultState: GameState = {
   ...(createGardenEconomyState(Date.now()) as Omit<GameState, 'gold'>),
   gold: 0,
 };
 
-export const GameContext = createContext<GameContextType | null>(null);
 const OFFLINE_EARNINGS_MIN_AWAY_MS = 30 * 60 * 1000;
 
 function normalizeHubGold(value: number | undefined) {
@@ -876,9 +858,3 @@ export function GameProvider({ children, accountId, hubGold, persistedState, onG
     </GameContext.Provider>
   );
 }
-
-export const useGame = () => {
-  const ctx = useContext(GameContext);
-  if (!ctx) throw new Error('useGame must be inside GameProvider');
-  return ctx;
-};

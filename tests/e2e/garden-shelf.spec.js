@@ -50,7 +50,7 @@ function makePlayer(overrides={}) {
 }
 async function mountFixture(page, player, {delayAction=()=>false,failAction=()=>false}={}) {
   const requests=[];
-  await page.route('**/api/player/snapshot',route=>route.fulfill({contentType:'application/json',body:JSON.stringify(buildSnapshot(player))}));
+  await page.route(/\/api\/player\/snapshot(?:\?.*)?$/,route=>route.fulfill({contentType:'application/json',body:JSON.stringify(buildSnapshot(player))}));
   await page.route('**/api/player/mutate',async route=>{
     const body=parse(route.request());requests.push(body);
     if(delayAction(body))await new Promise(resolve=>setTimeout(resolve,250));

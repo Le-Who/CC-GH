@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGame } from '../lib/GameContext';
+import { useGame } from '../lib/GardenContext';
 import { useGardenI18n } from '../lib/i18n';
 import { R2_RESEARCH, R2_PROJECTS } from '../../../../game-logic/garden-r2/catalog.js';
 import { formatR2Gold, formatR2Rate, r2MasteryOffer, r2NextUnlock } from '../lib/gardenR2View.js';

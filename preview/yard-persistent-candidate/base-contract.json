@@ -43,8 +43,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 6923,
-      "sha256": "6aa06c49fc7b4250a4ee72a76d2899ac220c185367c1bc89d721f1f2d5782094"
+      "bytes": 7032,
+      "sha256": "0859479c6b08ce42751b23e8317d2585e9050656ec0b40025aee7f0802e017d1"
     },
     {
       "path": "src/App.jsx",
@@ -88,8 +88,8 @@
     },
     {
       "path": "tests/perf-build-guard.test.js",
-      "bytes": 9136,
-      "sha256": "a3c140b0e7855a03ac1c37dfa808da18165a389ca3009a057070b088785eb169"
+      "bytes": 13565,
+      "sha256": "06a16341cc5f49227197771b7c2eaaad66e188c334ea5d109b278089380b2468"
     },
     {
       "path": "src/game-state/gardenR2Snapshot.js",
@@ -103,8 +103,8 @@
     },
     {
       "path": "src/services/apiClient.js",
-      "bytes": 3478,
-      "sha256": "70fd8eea30eded602bdd5ce91515c59ac64c4fae1e40e9567305830f20ca0437"
+      "bytes": 4304,
+      "sha256": "a14ceeb2b85132accd48776f1fa52518e95085d70dc15833a419e35db5d85a33"
     },
     {
       "path": "src/services/realtimeClient.js",

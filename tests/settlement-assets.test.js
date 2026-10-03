@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -34,7 +35,7 @@ describe("Settlement asset runtime contract", () => {
   });
 
   it("loads preprocessed textures without client-side canvas chroma key work", () => {
-    const source = readFileSync("src/games/settlement/SettlementGame.jsx", "utf8");
+    const source = readSplitGameSource("src/games/settlement/SettlementGame.jsx");
     assert.doesNotMatch(source, /loadProcessedTexture|loadProcessedAssetUrl|useProcessedAssetUrl/);
     assert.doesNotMatch(source, /getImageData|toDataURL|willReadFrequently|naturalWidth/);
     assert.match(source, /loadTexture/);

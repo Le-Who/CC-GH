@@ -1,7 +1,9 @@
-import {createElement} from 'react';
+import {createElement,lazy} from 'react';
 import {useSnapshot} from '../../app/gameHooks.js';
-import LegacyMergeGame from './LegacyMergeGame.jsx';
-import MergeLabGame from './MergeLabGame.jsx';
+// Resolve only the implementation selected by the verified snapshot. The
+// outer game Suspense boundary handles both loaders and keeps legacy saves usable.
+const LegacyMergeGame=lazy(()=>import('./LegacyMergeGame.jsx'));
+const MergeLabGame=lazy(()=>import('./MergeLabGame.jsx'));
 export default function MergeGame(){
   const snapshot=useSnapshot();
   return snapshot?.merge?.schemaVersion===3

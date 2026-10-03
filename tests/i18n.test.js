@@ -1,3 +1,4 @@
+import { readSplitGameSource } from './helpers/splitGameSources.mjs';
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -13,7 +14,7 @@ const TRANSLATION_SOURCES = [
   { name: "match3 translations", path: ["src", "games", "match3", "i18n.js"] },
   { name: "bubbo translations", path: ["src", "games", "bubbo", "i18n.js"] },
   { name: "trivia translations", path: ["src", "games", "trivia", "i18n.js"] },
-  { name: "garden translations", path: ["src", "games", "garden-shelf", "lib", "i18n.tsx"] },
+  { name: "garden translations", path: ["src", "games", "garden-shelf", "lib", "gardenTranslations.ts"] },
   { name: "merge translations", path: ["src", "games", "merge", "i18n.js"] },
   { name: "companion yard translations", path: ["src", "games", "companion-yard", "i18n.js"] },
   { name: "persistent yard translations", path: ["src", "games", "companion-yard-v2", "i18n.js"] },
@@ -197,7 +198,7 @@ it("catalog and placement identifiers stay out of player-facing panels", () => {
   assert.doesNotMatch(yard, /Math\.round\(placementDraft\.[xy]\)/);
   assert.match(yard, /yard\.cancelPlacement/);
   assert.match(yard, /yard\.confirmPlacement/);
-  const settlement = readRepoFile("src", "games", "settlement", "SettlementGame.jsx");
+  const settlement = readSplitGameSource(new URL("../src/games/settlement/SettlementGame.jsx", import.meta.url));
   assert.doesNotMatch(settlement, /runtime-слоями|>field<|>buildings<|>props<|>vfx</);
 });
 

@@ -1,5 +1,7 @@
 import { registerSW } from "virtual:pwa-register";
+import { clearLegacyPrivateApiCache, installPrivateApiCacheCleanup } from "./privateApiCache.js";
 import {
+  BUILD_RELOAD_GUARD_KEY,
   buildCacheBustingUrl,
   markReloadForBuild,
   shouldRefreshForBuild,
@@ -23,18 +25,10 @@ async function fetchLatestConfig() {
   return response.json();
 }
 
-async function clearServiceWorkersAndCaches() {
-  const registrations = await navigator.serviceWorker?.getRegistrations?.().catch(() => []) || [];
-  await Promise.all(registrations.map((registration) => registration.unregister().catch(() => false)));
-
-  if (!globalThis.caches?.keys) return;
-  const keys = await globalThis.caches.keys().catch(() => []);
-  await Promise.all(keys.map((key) => globalThis.caches.delete(key).catch(() => false)));
-}
-
 export function installUpdateManager(options = {}) {
   if (installed || typeof window === "undefined") return () => {};
   installed = true;
+  const cleanupPrivateCache = installPrivateApiCacheCleanup();
 
   const intervalMs = Math.max(15_000, Number(options.intervalMs) || 60_000);
   const updateSW = registerSW({
@@ -51,20 +45,40 @@ export function installUpdateManager(options = {}) {
     if (stopped) return;
     try {
       const config = await fetchLatestConfig();
+      if (stopped) return;
       if (!shouldRefreshForBuild(clientBuildId(), config.buildId)) return;
-      if (!markReloadForBuild(window.sessionStorage, config.buildId)) return;
-      await clearServiceWorkersAndCaches();
-      window.location.replace(buildCacheBustingUrl(window.location.href, config.buildId));
+      await clearLegacyPrivateApiCache();
+      if (stopped) return;
+      // In autoUpdate mode this helper waits for registration setup; it does
+      // not call ServiceWorkerRegistration.update(). Reload supplies fresh HTML.
+      await updateSW(true);
+      if (stopped) return;
+      const reloadStorage = window.sessionStorage;
+      const previousGuard = reloadStorage?.getItem(BUILD_RELOAD_GUARD_KEY) ?? null;
+      if (!markReloadForBuild(reloadStorage, config.buildId)) return;
+      try {
+        window.location.replace(buildCacheBustingUrl(window.location.href, config.buildId));
+      } catch (error) {
+        // A failed navigation must not suppress the next healthy retry.
+        if (reloadStorage) {
+          if (previousGuard === null) reloadStorage.removeItem(BUILD_RELOAD_GUARD_KEY);
+          else reloadStorage.setItem(BUILD_RELOAD_GUARD_KEY, previousGuard);
+        }
+        throw error;
+      }
     } catch {
       // Update checks are best-effort; normal gameplay must not be blocked by them.
     }
   }
 
   timer = window.setInterval(checkBuild, intervalMs);
-  window.setTimeout(checkBuild, 4000);
+  const initialCheck = window.setTimeout(checkBuild, 4000);
 
   return () => {
     stopped = true;
+    installed = false;
+    cleanupPrivateCache();
     window.clearInterval(timer);
+    window.clearTimeout(initialCheck);
   };
 }

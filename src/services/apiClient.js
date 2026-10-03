@@ -1,4 +1,5 @@
 import { getTelegramAuthData } from "../platform/telegram.js";
+import { clearLegacyPrivateApiCache, privateApiReadUrl } from "./privateApiCache.js";
 
 const REQUEST_TIMEOUT_MS = 8000;
 let configPromise = null;
@@ -40,15 +41,29 @@ export async function api(path, body, options = {}) {
   // retired while Telegram/public configuration was being resolved.
   if (options.isCurrent && !options.isCurrent()) return { error: "ACCOUNT_CHANGED" };
   const controller = new AbortController();
+  // Required cache retirement shares the existing deadline; a stalled cleanup
+  // must fail closed rather than leave the account read pending indefinitely.
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs || REQUEST_TIMEOUT_MS);
   try {
+    const privateRead = body === undefined ? privateApiReadUrl(path) : null;
+    if (privateRead) {
+      try {
+        await clearLegacyPrivateApiCache({ signal: controller.signal });
+      } catch (error) {
+        if (error?.name === "AbortError") throw error;
+        return { error: "NETWORK_CACHE_CLEANUP_FAILED" };
+      }
+      // Cache cleanup also yields; preserve the reviewed account/session fence.
+      if (options.isCurrent && !options.isCurrent()) return { error: "ACCOUNT_CHANGED" };
+    }
     const headers = { "Content-Type": "application/json" };
     if (auth) headers.Authorization = auth;
-    const res = await fetch(path, {
+    const res = await fetch(privateRead || path, {
       method: body === undefined ? "GET" : "POST",
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: controller.signal,
+      ...(body === undefined ? { cache: "no-store" } : {}),
     });
     const text = await res.text();
     const data = text ? JSON.parse(text) : {};

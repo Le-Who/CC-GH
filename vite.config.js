@@ -2,19 +2,30 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
+import { createShellPrecache } from "./scripts/sw-shell-precache.mjs";
+import { gameLoadingGraph } from "./scripts/game-loading-graph.mjs";
+
+const shellPrecache = createShellPrecache();
 
 export default defineConfig({
   plugins: [
     react(),
+    gameLoadingGraph(),
+    shellPrecache.plugin,
     VitePWA({
       registerType: "autoUpdate",  // Auto-updates SW on new deploy
       injectRegister: null,         // Registered by src/services/updateManager.js
+      includeManifestIcons: false, // Install artwork is fetched on demand.
 
       // Workbox configuration
       workbox: {
+        // HTML is served freshly by the server, never from a precache fallback.
+        navigateFallback: null,
+        importScripts: ["/sw-api-privacy.js"],
+        manifestTransforms: [shellPrecache.manifestTransform],
         // Precache Vite-built shell assets only. Runtime art is cached on demand below.
         globPatterns: [
-          "**/*.{js,css,woff,woff2}",
+          "assets/*.{js,css,woff,woff2,ttf,otf,png,webp,avif,svg}",
         ],
         // Skip waiting + claim clients = instant activation on deploy
         skipWaiting: true,
@@ -24,27 +35,17 @@ export default defineConfig({
 
         // Runtime caching strategies
         runtimeCaching: [
-          // HTML navigation — NetworkFirst (always get fresh HTML from server)
+          // HTML navigation always gets fresh HTML from the server.
           {
             urlPattern: ({ request }) => request.mode === "navigate",
             handler: "NetworkOnly",
           },
-          // API GET requests — NetworkFirst with short cache (leaderboard, config, state)
+          // Personal API replies must never be replayed from another account.
           {
-            urlPattern: ({ url, request }) => request.method === "GET" && url.pathname.startsWith("/api/") && url.pathname !== "/api/config",
-            handler: "NetworkFirst",
+            urlPattern: ({ url, request }) => request.method === "GET" && url.pathname.startsWith("/api/"),
+            handler: "NetworkOnly",
             method: "GET",
-            options: {
-              cacheName: "api-get-cache",
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5, // 5 min
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
+            options: { fetchOptions: { cache: "no-store" } },
           },
           // Runtime art — CacheFirst, loaded lazily per game/scene.
           {
@@ -117,7 +118,16 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
+        onlyExplicitManualChunks: true,
         manualChunks(id) {
+          // Immutable bilingual game data is shared by the Lab view/transport.
+          // Keep it lazy and report its transfer separately from game code.
+          if (id.replaceAll("\\", "/").endsWith("/game-logic/merge-lab-catalog.js")) return "merge-lab-catalog";
+          const sourceId = id.replaceAll("\\", "/");
+          if (sourceId.endsWith("/src/games/garden-shelf/lib/gardenTranslations.ts")) return "garden-translations";
+          if (sourceId.endsWith("/src/games/settlement/gameData.js")) return "settlement-catalog";
+          if (sourceId.endsWith("/src/games/settlement/settlementText.js")) return "settlement-translations";
+          if (sourceId.endsWith("/src/games/settlement/assetRegistry.js")) return "settlement-assets";
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("pixi.js") || id.includes("@pixi")) return undefined;
           if (id.includes("framer-motion") || id.includes("motion-dom") || id.includes("motion-utils") || id.includes("@emotion/is-prop-valid")) return "motion-vendor";
@@ -144,8 +154,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "/game-logic.js": path.resolve(__dirname, "./game-logic.js"),
+      "@": path.resolve(import.meta.dirname, "./src"),
+      "/game-logic.js": path.resolve(import.meta.dirname, "./game-logic.js"),
     },
   },
   server: {
