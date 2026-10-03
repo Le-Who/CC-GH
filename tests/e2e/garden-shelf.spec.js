@@ -187,7 +187,7 @@ test.describe('Garden Living production-source flow',()=>{
   test('live purchase, shared gold, locked shop items, growth Care and localization',async({page})=>{
     await initialize(page);await boot(page);await expect(page.locator('.gs2-name')).toContainText('My Garden');await expect(page.locator('.gs2-stage [data-garden-gold]')).toContainText('10,000');
     await page.locator('.gs2-empty-target').first().click();const shop=panel(page,'seed-shop-inventory');
-    const lavender=shop.locator('.gs2-catalog-row').filter({has:page.getByRole('heading',{name:'Lavender',exact:true})});await expect(lavender).toContainText('Unlocks at Lv 4');await expect(lavender.locator('button')).toBeDisabled();
+    const lavender=shop.locator('.gs2-catalog-row').filter({has:page.getByRole('heading',{name:'Lavender',exact:true})});await expect(lavender).toContainText('Garden level 4 required');await expect(lavender.locator('button')).toBeDisabled();
     const sync=page.waitForResponse(r=>r.url().includes('/api/player/mutate')&&parse(r.request()).action==='garden.sync'&&parse(r.request()).payload?.state?.plants?.length>0);
     await shop.locator('.gs2-catalog-row').filter({has:page.getByRole('heading',{name:'Daisy',exact:true})}).locator('button').click();await sync;
     await expect(panel(page,'plant-detail')).toContainText('Growing');await expect(page.locator('.gs2-stage [data-garden-gold]')).toContainText('7,500');await closePanel(page);
@@ -388,7 +388,7 @@ test.describe('Garden quiet feedback and visible motion',()=>{
     expect(await regions(page,art),'tap must not move the plant or UI sampling rectangles').toEqual(crops);
     const tapped=await capture(page,testInfo,'normal-after-tap',crops);
     expect(changedPixels(idle.foliage,tapped.foliage),'foliage still moves after the actual plant tap').toBeGreaterThan(5);stableReference(idle,tapped);expect(errors).toEqual([]);
-    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('[data-garden-motion="on"]')).toContainText('device settings');
+    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('[data-garden-motion="on"]')).toContainText('Plant motion is on.');
    });
   });
   for(const fallback of [false,true])test(`${fallback?'failed WebGL initialization':'device reduced motion'} keeps art still, explains it in Settings and acknowledges working taps`,async({page},testInfo)=>{
@@ -403,7 +403,7 @@ test.describe('Garden quiet feedback and visible motion',()=>{
     const after=await capture(page,testInfo,fallback?'fallback-after-tap':'reduced-after-tap',crops);
     expect(changedPixels(before.foliage,after.foliage)).toBe(0);stableReference(before,after);
     await page.getByRole('button',{name:'Garden settings',exact:true}).click();
-    await expect(page.locator(`[data-garden-motion="${fallback?'fallback':'reduced'}"]`)).toContainText(fallback?'this view':'reduced motion');
+    await expect(page.locator(`[data-garden-motion="${fallback?'fallback':'reduced'}"]`)).toContainText(fallback?'Plants stay still in this view. Taps and growth still work.':'Reduced motion is on. Plants stay still; taps work.');
     expect(errors).toEqual([]);
   });
   test('context loss restores visible fallback and a working non-motion tap response',async({page})=>{

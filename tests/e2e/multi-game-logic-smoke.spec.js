@@ -209,7 +209,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(resetSnapshot.garden.economyVersion).toBe(GARDEN_ECONOMY_VERSION);
     expect(resetSnapshot.garden.plants).toHaveLength(1);
     await expect(page.locator('.gs2-stage button[aria-label="Garden quests"]')).toBeVisible();
-    await expect(page.locator(".gs2-stage [data-garden-xp]")).toHaveAttribute("aria-label", `Garden XP: 0/${getGardenXpRequired(1)}`);
+    await expect(page.locator(".gs2-stage [data-garden-xp]")).toHaveAttribute("aria-label", `Garden level 1 · Garden XP: 0/${getGardenXpRequired(1)}`);
 
     await mutate(page, "garden.sync", {
       state: {
@@ -256,7 +256,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
     expect(levelBody.garden.level).toBe(2);
     expect(levelUpRequests).toBe(1);
     await expect(page.locator('.gs2-dialog[data-garden-panel="reward"]')).toContainText(formatGardenGoldAmount(getGardenLevelReward(1)));
-    await expect(page.locator(".gs2-stage [data-garden-xp]")).toHaveAttribute("aria-label", `Garden XP: 0/${getGardenXpRequired(2)}`);
+    await expect(page.locator(".gs2-stage [data-garden-xp]")).toHaveAttribute("aria-label", `Garden level 2 · Garden XP: 0/${getGardenXpRequired(2)}`);
     expect(levelBody.receiptConfirmed).toBe(true);
     expect(levelBody.snapshot.resources.gold).toBe(resetSnapshot.resources.gold + getGardenLevelReward(1));
     expect(levelBody.snapshot.garden.plants.map(plant => plant.id)).toEqual(resetSnapshot.garden.plants.map(plant => plant.id));
