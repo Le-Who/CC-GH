@@ -2,10 +2,11 @@ import {test,expect} from '@playwright/test';
 import {startSwFixture} from './helpers/swFixture.mjs';
 import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
+import {installScriptResourceProbe,readScriptResources} from './helpers/scriptResources.js';
 test.use({actionTimeout:10000});
 
-async function initialize(page){await page.addInitScript(()=>{localStorage.setItem('gh_dev_user_id','fixture-a');localStorage.setItem('garden_shelf_language','en');});}
-async function loadedScripts(page){return page.evaluate(()=>performance.getEntriesByType('resource').filter(row=>new URL(row.name).pathname.endsWith('.js')).map(row=>({path:new URL(row.name).pathname,encodedBytes:row.encodedBodySize,transferBytes:row.transferSize})));}
+async function initialize(page){await page.addInitScript(installScriptResourceProbe);await page.addInitScript(()=>{localStorage.setItem('gh_dev_user_id','fixture-a');localStorage.setItem('garden_shelf_language','en');});}
+const loadedScripts=readScriptResources;
 async function closeGarden(page){await page.locator('.gs2-dialog .gs2-close').click();await expect(page.locator('.gs2-dialog')).toHaveCount(0);}
 async function recordGraph(fixture,page,testInfo,phases){
  const graph=JSON.parse(await readFile(resolve(fixture.dist,'game-loading-graph.json'),'utf8'));

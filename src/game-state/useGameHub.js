@@ -146,6 +146,7 @@ export const useGameHub = create((set, get) => ({
   snapshot: null,
   accountSession: snapshotAccountSession,
   status: "booting",
+  snapshotRequestPending: false,
   message: "",
   busy: {},
   pendingActions: [],
@@ -174,29 +175,34 @@ export const useGameHub = create((set, get) => ({
     const requestAccountId = get().snapshot?.player?.id;
     const requestSession = snapshotAccountSession;
     const requestToken = latestSnapshotRequest = {};
-    set({ status: "syncing" });
-    const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
-      && (requestAccountId == null || get().snapshot?.player?.id === requestAccountId) });
-    const currentAccountId = get().snapshot?.player?.id;
-    // Concurrent boot reads may bind the same first account, but never a foreign
-    // one. The session also fences A→B→A even when the final ID matches again.
-    const initialAccountMatch = requestAccountId == null && !result.error && result.player?.id === currentAccountId;
-    if (snapshotAccountSession !== requestSession || (currentAccountId !== requestAccountId && !initialAccountMatch)) return { error: "ACCOUNT_CHANGED" };
-    if (!result.error && (!result.player?.id || (currentAccountId != null && result.player.id !== currentAccountId))) {
-      if (latestSnapshotRequest === requestToken) set({ status: "offline", message: "ACCOUNT_CHANGED" });
-      return { error: "ACCOUNT_CHANGED" };
+    set({ status: "syncing", snapshotRequestPending: true });
+    try {
+      const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
+        && (requestAccountId == null || get().snapshot?.player?.id === requestAccountId) });
+      const currentAccountId = get().snapshot?.player?.id;
+      // Concurrent boot reads may bind the same first account, but never a foreign
+      // one. The session also fences A→B→A even when the final ID matches again.
+      const initialAccountMatch = requestAccountId == null && !result.error && result.player?.id === currentAccountId;
+      if (snapshotAccountSession !== requestSession || (currentAccountId !== requestAccountId && !initialAccountMatch)) return { error: "ACCOUNT_CHANGED" };
+      if (!result.error && (!result.player?.id || (currentAccountId != null && result.player.id !== currentAccountId))) {
+        if (latestSnapshotRequest === requestToken) set({ status: "offline", message: "ACCOUNT_CHANGED" });
+        return { error: "ACCOUNT_CHANGED" };
+      }
+      if (result.error) {
+        // Older failures cannot override a newer refresh's pending/ready/error UI.
+        // Successful responses still use the existing server-observation merge.
+        if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
+        set({ status: "offline", message: result.error });
+        return result;
+      }
+      const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
+      set({ snapshot, status: "ready", message: "" });
+      scheduleOutboxDrain(get, 0);
+      return snapshot;
+    } finally {
+      // A superseded/retired read cannot finish the latest request's indicator.
+      if (latestSnapshotRequest === requestToken) set({ snapshotRequestPending: false });
     }
-    if (result.error) {
-      // Older failures cannot override a newer refresh's pending/ready/error UI.
-      // Successful responses still use the existing server-observation merge.
-      if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
-      set({ status: "offline", message: result.error });
-      return result;
-    }
-    const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
-    set({ snapshot, status: "ready", message: "" });
-    scheduleOutboxDrain(get, 0);
-    return snapshot;
   },
 
   performAction: async (action, payload = {}, options = {}) => {
@@ -587,6 +593,9 @@ useGameHub.subscribe((state, previous) => {
   const previousAccountId = previous.snapshot?.player?.id;
   const accountId = state.snapshot?.player?.id;
   if (accountId === previousAccountId) return;
-  if (previousAccountId != null) snapshotAccountSession = {};
+  if (previousAccountId != null) {
+    snapshotAccountSession = {};
+    useGameHub.setState({ snapshotRequestPending: false });
+  }
   useGameHub.setState({ accountSession: snapshotAccountSession, pendingActions: [], busy: {}, outboxLoaded: false, outboxAccountId: null, outboxStorageError: null, lastResult: null, message: "" });
 });

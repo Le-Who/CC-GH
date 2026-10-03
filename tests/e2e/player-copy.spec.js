@@ -3,6 +3,49 @@ import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub } from './h
 import { mergePanel, closeMergePanel } from './helpers/mergeV3.js';
 import { readScrollableControlGeometry } from './helpers/scrollGeometry.js';
 
+// Response gates use page.route; a controlling SW bypasses those gates.
+// Production SW privacy and reload behavior have their own real HTTP suite.
+test.use({ serviceWorkers: 'block' });
+
+test('a real socket connection cannot finish a held Russian snapshot refresh', async ({ page }, testInfo) => {
+  let releaseSocket, releaseRead;
+  const socketGate = new Promise(resolve => { releaseSocket = resolve; });
+  const readGate = new Promise(resolve => { releaseRead = resolve; });
+  let socketEntries = 0, readEntries = 0, socketAcknowledged = false;
+  const events = [];
+  page.on('response', async response => {
+    if (!response.url().includes('/socket.io/') || response.request().method() !== 'GET') return;
+    try {
+      if (/(?:^|\x1e)40(?:\{|$)/.test(await response.text())) {
+        socketAcknowledged = true; events.push({ event: 'real-socket-connect-ack', at: Date.now() });
+      }
+    } catch { /* teardown may interrupt a polling response */ }
+  });
+  await page.addInitScript(id => {
+    localStorage.setItem('gh_dev_user_id', id); localStorage.setItem('garden_shelf_language', 'ru');
+  }, `copy_socket_${Date.now()}_${Math.random()}`);
+  await page.route('**/socket.io/**', async route => { socketEntries++; await socketGate; await route.continue(); });
+  try {
+    await page.goto('/?tab=garden'); await expect(page.locator('.status-dot.ready')).toHaveCount(1);
+    await expect.poll(() => socketEntries).toBeGreaterThan(0);
+    const controller = await page.evaluate(() => navigator.serviceWorker.controller?.scriptURL || null);
+    expect(controller).toBeNull();
+    await page.route(url => url.pathname === '/api/player/snapshot', async route => {
+      readEntries++; events.push({ event: 'held-refresh-entered', at: Date.now() }); await readGate; await route.continue();
+    });
+    const before = await page.locator('.status-dot').boundingBox();
+    await page.locator('.status-dot').click(); await expect.poll(() => readEntries).toBe(1);
+    await expect(page.locator('.status-dot.syncing')).toHaveCount(1);
+    releaseSocket(); await expect.poll(() => socketAcknowledged).toBe(true);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const whileHeld = await page.locator('.status-dot').getAttribute('class');
+    await expect(page.locator('.status-dot.syncing')).toHaveCount(1);
+    expect(await page.locator('.status-dot').boundingBox()).toEqual(before);
+    releaseRead(); await expect(page.locator('.status-dot.ready')).toHaveCount(1);
+    await testInfo.attach('socket-refresh-status-ownership.json', { body: Buffer.from(JSON.stringify({ controller, readEntries, socketEntries, events, whileHeld })), contentType: 'application/json' });
+  } finally { releaseSocket(); releaseRead(); }
+});
+
 // Full-game browser checks use the integrated application and configured test server.
 // No synthetic rewards, fake successful requests, or alternate game implementation.
 const FORBIDDEN_COPY = /A little curiosity|Любопытство ведёт|question bank|игровой базы|public duel results from the server|результаты дуэлей на сервере|VPS runtime|Loading game runtime|игрового рантайма|Игровые ассеты|runtime-слоями|Into the blue|В глубину|Две идеи\. Один опыт|Two ideas\. One experiment/;

@@ -133,7 +133,7 @@ export default function App() {
   const hydrateOutbox = useGameHub((state) => state.hydrateOutbox);
   const drainOutbox = useGameHub((state) => state.drainOutbox);
   const applyRealtimePayload = useGameHub((state) => state.applyRealtimePayload);
-  const status = useGameHub((state) => state.status);
+  const status = useGameHub((state) => state.snapshotRequestPending ? "syncing" : state.status);
   const message = useGameHub((state) => state.message);
   const lastResult = useGameHub((state) => state.lastResult);
   const gardenHud = useGameHub((state) => state.gardenHud);
@@ -255,15 +255,14 @@ export default function App() {
       await loadSnapshot();
       await hydrateOutbox();
       drainOutbox();
-      const { connectRealtime } = await realtimeClient;
+      const { connectRealtime, applyRealtimeConnectionStatus } = await realtimeClient;
       if (cancelled) return;
       const realtimeAccountSession = useGameHub.getState().accountSession;
       const realtimeCleanup = await connectRealtime(
         (payload) => applyRealtimePayload(payload),
         (nextStatus) => {
-          if (nextStatus === "offline") useGameHub.setState({ status: "offline" });
+          applyRealtimeConnectionStatus(useGameHub, nextStatus);
           if (nextStatus === "online") {
-            useGameHub.setState({ status: "ready" });
             drainOutbox();
           }
         },

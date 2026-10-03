@@ -5,6 +5,15 @@ import { getPublicConfig } from "./apiClient.js";
 let socket = null;
 let connectionSession = 0;
 
+// Connection availability does not acknowledge an in-flight HTTP refresh or
+// outbox drain. Their completion owns the shared syncing indicator.
+export function applyRealtimeConnectionStatus(hub, nextStatus) {
+  if (nextStatus !== 'online' && nextStatus !== 'offline') return;
+  hub.setState(state => state.snapshotRequestPending || state.status === 'syncing'
+    ? state
+    : { status: nextStatus === 'online' ? 'ready' : 'offline' });
+}
+
 async function getSocketAuth() {
   const initData = getTelegramAuthData();
   if (initData) return { initData };

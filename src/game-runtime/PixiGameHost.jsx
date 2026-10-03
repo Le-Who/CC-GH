@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Application, Assets } from "pixi.js";
 import { assetUrl, loadRuntimeAssetManifest, resolveAssetSourceList } from "./assetBundles.js";
 import { useAppI18n } from "../app/i18n.jsx";
@@ -254,9 +254,17 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
     };
   }, [sceneKey, buildScene, assetUrls, assetKeys, isolated]);
 
-  useEffect(() => {
+  // Blox redraws its hit targets. Commit its controls and rendered transforms
+  // together so a fast second tap cannot hit the gap before the next Pixi tick.
+  useLayoutEffect(() => {
     stateRef.current = effectiveSceneState;
-    if (!sceneRef.current) return undefined;
+    if (sceneKey !== "blox" || !sceneRef.current) return;
+    sceneRef.current.update?.(effectiveSceneState);
+    appRef.current?.render?.();
+  }, [effectiveSceneState, sceneKey]);
+
+  useEffect(() => {
+    if (!sceneRef.current || sceneKey === "blox") return undefined;
     window.cancelAnimationFrame(updateFrameRef.current);
     updateFrameRef.current = window.requestAnimationFrame(() => {
       updateFrameRef.current = 0;
@@ -266,7 +274,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       window.cancelAnimationFrame(updateFrameRef.current);
       updateFrameRef.current = 0;
     };
-  }, [effectiveSceneState]);
+  }, [effectiveSceneState, sceneKey]);
 
   useEffect(() => {
     if (!sceneRef.current) return undefined;

@@ -77,6 +77,9 @@ async function fit(page, dialog = null) {
   if (dialog) { await dialog.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; }); await expect(dialog.locator('.gs2-close')).toBeInViewport(); }
 }
 for (const [width, height] of MATRIX) test.describe(`Garden R2 ${width}x${height}`, () => {
+  // Page-routed synthetic players must remain the source across reloads.
+  // A controlling SW fetch bypasses Playwright's page.route interception.
+  test.use({ serviceWorkers: 'block' });
   test.use({ viewport: { width, height }, deviceScaleFactor: width === 390 ? 2 : 1, isMobile: width < 1100, hasTouch: width < 1100 });
   test('finite ranks, truthful prices, permanent mastery and reachable sheets', async ({ page }, testInfo) => {
     const errors = []; page.on('pageerror', error => errors.push(error.message));
@@ -101,7 +104,10 @@ for (const [width, height] of MATRIX) test.describe(`Garden R2 ${width}x${height
   });
 });
 test.describe('Garden R2 receipt and account flows', () => {
+  test.use({ serviceWorkers: 'block' });
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+  test.describe('real HTTP with production SW', () => {
+  test.use({ serviceWorkers: 'allow' });
   test('real enabled HTTP path adopts without reset and persists one purchase despite a lost reply', async ({ page }) => {
     const user = await initialize(page), headers = { Authorization: `dev ${user}` };
     const beforeResponse = await page.request.get('/api/player/snapshot', { headers });
@@ -133,6 +139,7 @@ test.describe('Garden R2 receipt and account flows', () => {
     const reloaded = await snapshot(); expect(reloaded.resources.gold).toBe(purchased.resources.gold);
     expect(reloaded.garden.plants.map(plant => plant.id)).toEqual(purchased.garden.plants.map(plant => plant.id));
     expect(await page.locator('.gs2-stage').textContent()).not.toMatch(/migration|миграц/i);
+  });
   });
   test('one purchase survives repeated clicks, a lost reply and reload', async ({ page }) => {
     const p = player({ terminal: false }); await initialize(page); const { requests } = await fixture(page, p, { loseFirstPurchase: true, delayPurchase: true }); await boot(page);
@@ -217,6 +224,7 @@ async function settledFit(page) {
 }
 
 test.describe('Garden R2 enabled-default visible motion',()=>{
+  test.use({serviceWorkers:'block'});
   test.use({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const state = page => readR2Garden(page);
   async function seedMotion(page,{fallback=false,reduced=false}={}) {
@@ -336,6 +344,7 @@ test.describe('Garden R2 enabled-default visible motion',()=>{
 });
 
 test.describe('Garden R2 enabled-default image demand loading',()=>{
+  test.use({serviceWorkers:'block'});
   for(const mode of ['animated','reduced','static-fallback'])test(`keeps first shelf eager and loads distant art on scroll in ${mode} mode`,async({page},testInfo)=>{
     await page.setViewportSize({width:390,height:844});
     if(mode==='reduced')await page.emulateMedia({reducedMotion:'reduce'});

@@ -17,13 +17,31 @@ const hooks = registerHooks({
     return url.startsWith('realtime-boundary:') ? { shortCircuit: true, format: 'module', source: sources[url.split(':')[1]] } : next(url, context);
   },
 });
-const { connectRealtime } = await import('../src/services/realtimeClient.js'); hooks.deregister();
+const { connectRealtime, applyRealtimeConnectionStatus } = await import('../src/services/realtimeClient.js'); hooks.deregister();
 beforeEach(() => {
   globalThis.__boundaryConnections = []; globalThis.__boundaryAuth = 'verified';
   globalThis.window = { location: { origin: 'http://local.test' } };
   globalThis.document = { hidden: false, listeners: new Set(), addEventListener(_, fn) { this.listeners.add(fn); }, removeEventListener(_, fn) { this.listeners.delete(fn); } };
 });
 const emit = (connection, id, seq) => connection.handlers.get('player_sync')({ seq, payload: { accountId: id, syncSeq: seq } });
+
+test('a connected or disconnected socket cannot acknowledge a pending HTTP operation', async () => {
+  let state = { status: 'syncing', message: '', owner: 'account-a' };
+  const hub = { setState(update) { state = { ...state, ...update(state) }; } };
+  const cleanup = await connectRealtime(() => {}, status => applyRealtimeConnectionStatus(hub, status));
+  const connection = __boundaryConnections[0];
+  connection.handlers.get('connect')(); connection.handlers.get('disconnect')();
+  assert.deepEqual(state, { status: 'syncing', message: '', owner: 'account-a' });
+  state = { ...state, status: 'ready', snapshotRequestPending: true };
+  connection.handlers.get('connect')(); connection.handlers.get('disconnect')();
+  assert.equal(state.status, 'ready'); assert.equal(state.snapshotRequestPending, true);
+  state = { ...state, snapshotRequestPending: false };
+  // Only the HTTP operation's completion ends syncing. Normal connection
+  // availability remains observable once that owner has finished.
+  state = { ...state, status: 'ready' }; connection.handlers.get('disconnect')();
+  assert.equal(state.status, 'offline'); connection.handlers.get('connect')();
+  assert.equal(state.status, 'ready'); assert.equal(state.owner, 'account-a'); cleanup();
+});
 
 test('realtime sequence belongs to its account and connection, including reconnect', async () => {
   const seen = [], cleanupA = await connectRealtime(value => seen.push(value)); const a = __boundaryConnections[0];

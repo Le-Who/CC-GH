@@ -168,6 +168,31 @@ jobs:
             cd /opt/game-hub
 
             umask 077
+            RELEASE_SWITCH_STARTED=0
+            PREVIOUS_ENV_BACKUP=""
+            if [ -f .env ]; then
+              PREVIOUS_ENV_BACKUP="$(mktemp .env.before-${APP_BUILD_ID}.XXXXXX)"
+              cp -p .env "$PREVIOUS_ENV_BACKUP"
+            fi
+            release_exit() {
+              local release_status="$1"
+              trap - EXIT
+              if [ "$release_status" -eq 0 ]; then
+                if [ -n "$PREVIOUS_ENV_BACKUP" ]; then rm -f -- "$PREVIOUS_ENV_BACKUP"; fi
+                return
+              fi
+              set +e
+              if [ -n "$PREVIOUS_ENV_BACKUP" ]; then
+                cp -p -- "$PREVIOUS_ENV_BACKUP" .env
+              fi
+              if [ "$RELEASE_SWITCH_STARTED" -eq 1 ]; then
+                if ! rollback_application; then
+                  echo "App rollback failed; previous image and environment remain recorded"
+                fi
+              fi
+              exit "$release_status"
+            }
+            trap 'release_exit "$?"' EXIT
             cat > .env << EOF
             COMPOSE_PROJECT_NAME=ccgh
             NODE_ENV=production
@@ -271,9 +296,23 @@ jobs:
               docker exec -i ccgh-postgres pg_restore --list < "$BACKUP_PATH" >/dev/null
               sha256sum "$BACKUP_PATH" > "$BACKUP_PATH.sha256"
               echo "Pre-release database backup created; archive catalog checked"
-            if docker inspect ccgh-app >/dev/null 2>&1; then
-              docker inspect --format '{{.Image}}' ccgh-app > /opt/game-hub/previous-image-id.txt
+            PREVIOUS_IMAGE_ID="$(docker inspect --format '{{.Image}}' ccgh-app)"
+            PREVIOUS_BUILD_ID="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' ccgh-app | sed -n 's/^APP_BUILD_ID=//p')"
+            if [ -z "$PREVIOUS_ENV_BACKUP" ] || [ -z "$PREVIOUS_IMAGE_ID" ] || [[ ! "$PREVIOUS_BUILD_ID" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Cannot safely replace the app without its previous image, build and environment"
+              exit 1
             fi
+            printf '%s\n' "$PREVIOUS_IMAGE_ID" > /opt/game-hub/previous-image-id.txt
+            rollback_application() {
+              local rollback_tag="rollback-${APP_BUILD_ID}"
+              if ! docker image tag "$PREVIOUS_IMAGE_ID" "ghcr.io/${REPO_LOWER}:${rollback_tag}"; then return 1; fi
+              export APP_IMAGE_SUFFIX=":${rollback_tag}"
+              export APP_BUILD_ID="$PREVIOUS_BUILD_ID"
+              # Restart only the prior app. Never restore a database or replace volumes.
+              if ! compose -p ccgh up -d --no-deps app; then return 1; fi
+              if [ "$(docker inspect --format '{{.Image}}' ccgh-app)" != "$PREVIOUS_IMAGE_ID" ] || [ "$(docker inspect --format '{{.State.Running}}' ccgh-app)" != true ]; then return 1; fi
+              echo "Previous app image and environment restored"
+            }
 
             compose -p ccgh pull app
 
@@ -283,6 +322,7 @@ jobs:
               docker rm -f $STALE_APP_CONTAINERS
             fi
 
+            RELEASE_SWITCH_STARTED=1
             compose -p ccgh up -d --remove-orphans
 
             for i in $(seq 1 30); do

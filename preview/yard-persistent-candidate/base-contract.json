@@ -23,8 +23,8 @@
     },
     {
       "path": "src/game-state/useGameHub.js",
-      "bytes": 27249,
-      "sha256": "11456f02725d77139798aba45900aac81fe5312ffd13fd047717beb42e1e6b40"
+      "bytes": 27629,
+      "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf"
     },
     {
       "path": "src/app/gameChunks.jsx",
@@ -48,8 +48,8 @@
     },
     {
       "path": "src/App.jsx",
-      "bytes": 20934,
-      "sha256": "9e29fae3d510b513973149d37190f07714892d7280ebd7c4810e09d36df44b9c"
+      "bytes": 20935,
+      "sha256": "66acf7d411133bc973a0c7b598be00fe271f252413fdb1ff7a4dd1e0f1560aba"
     },
     {
       "path": "src/app/i18n.jsx",
@@ -108,8 +108,8 @@
     },
     {
       "path": "src/services/realtimeClient.js",
-      "bytes": 2503,
-      "sha256": "0e061190b7cf0d220751437290a54ec8511727cf47717463b5ec2ebe3741ccee"
+      "bytes": 2945,
+      "sha256": "2ae153d96f26135e5e883f56ddd1def77554c490ec98c38dccb3b6bf7fd3f8b7"
     },
     {
       "path": "src/games/merge/mergeLabTransport.js",

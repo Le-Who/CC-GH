@@ -373,6 +373,8 @@ function collectYardAssetSlotCollisionProblems() {
 }
 
 test.describe("Cozy Yard movement and assets", () => {
+  // These players and remodels are page-routed fixtures, including repeat visits.
+  test.use({ serviceWorkers: 'block' });
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem("gh_dev_user_id", `yard_${Date.now()}_${Math.random().toString(36).slice(2)}`);

@@ -64,6 +64,33 @@ beforeEach(t => {
   reset();
 });
 
+test('only the latest HTTP snapshot can finish the refresh indicator', async () => {
+  const replies = [], entered = [];
+  globalThis.fetch = async path => {
+    if (path === '/api/config') return response({ devAuthEnabled: false });
+    assert.equal(new URL(path, 'https://fixture.invalid').pathname, '/api/player/snapshot');
+    const reply = defer(); replies.push(reply); entered.splice(0).forEach(resolve => resolve()); return reply.promise;
+  };
+  const waitForReads = count => replies.length >= count ? Promise.resolve() : new Promise(resolve => entered.push(resolve));
+  const first = hub.getState().loadSnapshot(); await waitForReads(1);
+  const latest = hub.getState().loadSnapshot(); await waitForReads(2);
+  assert.equal(hub.getState().snapshotRequestPending, true);
+  replies[0].resolve(response({ error: 'OLD_READ_FAILURE' }, 503)); await first;
+  assert.equal(hub.getState().snapshotRequestPending, true);
+  assert.equal(hub.getState().status, 'syncing');
+  replies[1].resolve(response(snap('account-a', 11, 1100))); await latest;
+  assert.equal(hub.getState().snapshotRequestPending, false); assert.equal(hub.getState().status, 'ready');
+});
+
+test('a retired account read cannot retain a replacement account refresh indicator', async () => {
+  const req = request('/api/player/snapshot'), pending = hub.getState().loadSnapshot(); await req.ready;
+  assert.equal(hub.getState().snapshotRequestPending, true);
+  hub.getState().applySnapshot(snap('account-b', 20, 2000));
+  assert.equal(hub.getState().snapshotRequestPending, false);
+  req.finish(snap('account-a', 99, 9900)); assert.equal((await pending).error, 'ACCOUNT_CHANGED');
+  assert.equal(hub.getState().snapshot.player.id, 'account-b'); assert.equal(hub.getState().snapshotRequestPending, false);
+});
+
 for (const returnToA of [false, true]) for (const failure of [false, true]) test(`action ${failure ? 'failure' : 'success'} is fenced after A-B${returnToA ? '-A' : ''}`, async () => {
   const req = request(), pending = hub.getState().performAction('blox.place', {}, { key: 'same-key', feedback: false }); await req.ready;
   hub.getState().applySnapshot(snap('account-b', 20, 2000));

@@ -416,6 +416,10 @@ test.describe("New-stack minigame smoke", () => {
     async function expectPanelReachable({ panel, trigger, requiredSelectors }) {
       await page.locator(trigger).click();
       await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-active-panel", panel);
+      // The panel shell appears before its lazy content. Measure real controls.
+      for (const selector of requiredSelectors) {
+        await expect(page.locator(`.settlement-game-root ${selector}`).first()).toBeVisible();
+      }
 
       const metrics = await page.evaluate(({ requiredSelectors }) => {
         const root = document.querySelector(".settlement-game-root");
@@ -501,6 +505,8 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
     await page.locator(".settlement-game-root .bottom-nav button[aria-label='Inventory']").click();
     await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-active-panel", "inventory");
+
+    await expect(page.locator(".settlement-game-root .inventory-action-button-v2")).toBeVisible();
 
     const metrics = await page.evaluate(() => {
       const root = document.querySelector(".settlement-game-root");
