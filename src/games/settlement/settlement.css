@@ -8543,6 +8543,183 @@
   }
 }
 
+/* Village life uses the registered compact-card region. Its height/offset and
+   maximum width come from the Settlement layout profiles; children flow inside.
+   This is an intentional overlay on the draggable map, like the former card. */
+.settlement-game-root .left-dock {
+  top: var(--settlement-menu-top) !important;
+  bottom: auto !important;
+  min-height: 0 !important;
+  max-height: calc(100% - var(--settlement-menu-top) - var(--settlement-menu-bottom)) !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.settlement-game-root .left-dock .dock-button { flex-shrink: 0; }
+.settlement-game-root .settlement-play-panel {
+  left: 50%;
+  right: auto;
+  bottom: calc(var(--hud-dock-offset) + env(safe-area-inset-bottom));
+  width: min(var(--hud-region-max-width, 720px), calc(100% - 20px));
+  transform: translateX(-50%);
+  min-height: var(--hud-dock-thickness);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 44px minmax(66px, auto) 18px;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: 12px;
+}
+.settlement-game-root .settlement-cycle-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 62px; gap: 3px; }
+.settlement-game-root .settlement-cycle-tabs button,
+.settlement-game-root .settlement-cycle-action {
+  min-height: 44px; min-width: 0; padding: 4px 5px; border: 1px solid #b48842;
+  border-radius: 8px; background: #33261b; color: #fff0bd; font-weight: 800;
+  font-size: 12px; touch-action: manipulation; cursor: pointer;
+}
+.settlement-game-root .settlement-cycle-tabs button[aria-pressed='true'],
+.settlement-game-root .settlement-cycle-action { background: #315335; }
+.settlement-game-root .settlement-cycle-tabs .settlement-compact-detail-open {
+  width: auto; min-width: 0; min-height: 44px; grid-column: auto; background: #33261b;
+  font-size: 11px; padding: 4px;
+}
+.settlement-game-root .settlement-cycle-body { display: grid; grid-template-columns: minmax(0, 1fr) 80px; gap: 8px; align-items: center; }
+.settlement-game-root .settlement-cycle-copy { display: grid; gap: 4px; min-width: 0; }
+.settlement-game-root .settlement-cycle-copy strong { font-size: 13px; overflow-wrap: anywhere; }
+.settlement-game-root .settlement-cycle-copy > span { font-size: 11px; color: #f1e1bc; }
+.settlement-game-root .settlement-cycle-chips { display: flex; flex-wrap: wrap; gap: 3px 7px; font-size: 11px; }
+.settlement-game-root .settlement-cycle-chips > span { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.settlement-game-root .settlement-cycle-chips img { width: 18px; height: 18px; object-fit: contain; }
+.settlement-game-root .settlement-cycle-chips .short { color: #ffb6a0; }
+.settlement-game-root .settlement-cycle-feedback { min-height: 18px; font-size: 11px; color: #fff0bd; overflow-wrap: anywhere; }
+.settlement-game-root .settlement-cycle-action:disabled,
+.settlement-game-root .collect-button:disabled { opacity: 0.55; cursor: default; }
+.settlement-game-root .settlement-play-panel button:focus-visible { outline: 3px solid #fff0bd; outline-offset: 1px; }
+.settlement-game-root .settlement-play-panel button:active { transform: none; }
+.settlement-game-root .top-resources-core .resource-label,
+.settlement-game-root .top-resources-core .resource-pill strong { color: #432913 !important; text-shadow: none; font-weight: 900; }
+.settlement-game-root .top-resources-core .resource-pill {
+  grid-template-rows: max-content max-content !important;
+  align-content: center !important;
+  row-gap: 1px !important;
+}
+@media (max-width: 430px) and (orientation: portrait) {
+  .settlement-game-root .top-resources-core .resource-label { font-size: 8px !important; line-height: 1 !important; }
+  .settlement-game-root .top-resources-core .resource-pill strong { font-size: 11px !important; line-height: 1 !important; }
+}
+@media (orientation: landscape) and (max-height: 480px) {
+  /* Scroll the content as one surface instead of clipping nested portrait grids. */
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) {
+    top: var(--settlement-safe-top) !important;
+    bottom: var(--settlement-safe-bottom) !important;
+    left: auto !important; right: 8px !important;
+    width: min(var(--hud-dock-thickness, 300px), calc(100% - 16px)) !important;
+    height: auto !important; max-height: none !important;
+    grid-template-rows: 44px minmax(0, 1fr) !important;
+  }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-body-fancy {
+    grid-row: 2 !important;
+    height: auto !important; max-height: none !important; min-height: 0 !important;
+    overflow-y: auto !important; padding: 4px 10px 8px !important;
+    overscroll-behavior: contain;
+  }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-strip,
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-tabs-fancy { display: none !important; }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .fancy-panel-header {
+    display: grid !important; grid-template-columns: 34px minmax(0, 1fr) 44px !important;
+    min-height: 0 !important; height: 44px !important; padding: 0 !important;
+    align-items: center; gap: 4px; position: relative; z-index: 2;
+  }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-header-copy { grid-column: 2; min-width: 0; }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-header-copy span { display: none !important; }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-header-copy strong {
+    font-size: 14px !important; line-height: 1.1 !important; white-space: normal;
+  }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-header-icon { grid-column: 1; width: 34px !important; height: 34px !important; }
+  .settlement-game-root .right-panel-fancy:not(.right-panel-overview) .panel-header-action {
+    grid-column: 3; grid-row: 1; display: grid !important; position: static; width: 44px !important; height: 44px !important;
+  }
+  .settlement-game-root .world-screen-v2,
+  .settlement-game-root .world-map-scroll-v2,
+  .settlement-game-root .inventory-screen-v2,
+  .settlement-game-root .construction-screen-v2,
+  .settlement-game-root .research-screen {
+    height: auto !important; overflow: visible !important;
+  }
+  .settlement-game-root .world-map-scroll-v2 { display: flex !important; flex-direction: column; }
+  .settlement-game-root .inventory-screen-v2,
+  .settlement-game-root .construction-screen-v2,
+  .settlement-game-root .research-screen { display: flex !important; flex-direction: column; }
+  .settlement-game-root .world-map-card-v2 { display: none !important; }
+  .settlement-game-root .world-expedition-list-v2,
+  .settlement-game-root .inventory-resource-list-v2,
+  .settlement-game-root .construction-card-grid-v2 {
+    height: auto !important; max-height: none !important; overflow: visible !important;
+  }
+  .settlement-game-root .top-hud-final {
+    grid-template-columns: minmax(0, 1fr) !important;
+    height: var(--hud-dock-thickness) !important;
+    min-height: var(--hud-dock-thickness) !important;
+    padding: 5px 8px !important;
+  }
+  .settlement-game-root .profile-card-final,
+  .settlement-game-root .settlement-title-final { display: none !important; }
+  .settlement-game-root .top-resources-core {
+    display: grid !important; grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 3px !important; overflow: hidden !important;
+  }
+  .settlement-game-root .top-resources-core .resource-pill,
+  .settlement-game-root .top-resources-core .resource-pill:nth-child(n+4) {
+    display: grid !important; width: 100% !important; min-width: 0 !important;
+    height: 38px !important; padding: 4px !important;
+    grid-template-columns: 20px minmax(0, 1fr) !important;
+  }
+  .settlement-game-root .top-resources-core .resource-label { font-size: 8px !important; line-height: 1 !important; display: block !important; }
+  .settlement-game-root .top-resources-core .resource-pill strong { font-size: 11px !important; }
+  .settlement-game-root .resource-pill-icon-slot { width: 20px !important; height: 20px !important; }
+  .settlement-game-root .resource-pill-icon { width: 18px !important; height: 18px !important; }
+  .settlement-game-root .right-panel-building {
+    top: var(--settlement-safe-top) !important;
+    bottom: var(--settlement-safe-bottom) !important;
+    right: 8px !important; left: auto !important;
+    width: min(340px, calc(100% - 16px)) !important;
+    height: auto !important; max-height: none !important;
+    grid-template-rows: 52px minmax(0, 1fr) !important;
+  }
+  .settlement-game-root .right-panel-building .panel-strip,
+  .settlement-game-root .right-panel-building .panel-tabs,
+  .settlement-game-root .right-panel .panel-footer { display: none !important; }
+  .settlement-game-root .right-panel-building .panel-body-fancy { min-height: 0; overflow: auto !important; }
+  .settlement-game-root .right-panel-building .panel-header-action {
+    display: grid !important; position: absolute; right: 8px; top: 4px; z-index: 3;
+  }
+  .settlement-game-root .right-panel-building .fancy-panel-header { position: relative; padding-right: 58px !important; }
+}
+@media (min-width: 621px) and (orientation: landscape) and (max-height: 480px) {
+  /* Match the existing landscape layout reserve instead of retaining the
+     tall desktop dock at a wide but short phone viewport. */
+  .settlement-game-root .bottom-nav {
+    min-height: var(--hud-dock-thickness) !important;
+    height: var(--hud-dock-thickness) !important;
+    padding: 4px !important; gap: 4px !important;
+  }
+  .settlement-game-root .bottom-nav .dock-button,
+  .settlement-game-root .bottom-nav .bottom-dock-button,
+  .settlement-game-root .collect-button {
+    min-width: 44px !important; width: 54px !important; height: 54px !important;
+  }
+  .settlement-game-root .primary-build {
+    width: 54px !important; height: 54px !important; margin: 0 !important; flex: 0 0 54px !important;
+  }
+}
+@media (max-width: 360px) {
+  /* Keep the building drawer dismissible at the small-mobile floor. */
+  .settlement-game-root .right-panel-building .panel-header-action {
+    display: grid !important; position: absolute; right: 8px; top: 8px;
+  }
+  .settlement-game-root .right-panel-building .fancy-panel-header { position: relative; padding-right: 58px !important; }
+}
+
 /* HUD redesign runtime kit overlay.
    Settlement keeps its authored Pixi/layout adapters; these DOM surfaces use
    the generated data-free HUD art from the shared redesign pack. */

@@ -69,7 +69,7 @@ function gardenPortalHookHarness() {
   layer.children = [dialog, scrim];layer.querySelector = () => null;
   const window = { requestAnimationFrame: fn => { frames.set(++sequence, fn); return sequence; }, cancelAnimationFrame: id => frames.delete(id) };
   const source = fs.readFileSync(new URL('../src/app/useDialogFocus.js', import.meta.url), 'utf8')
-    .replace(/^import .*;\n/gm, '').replace('export function useDialogFocus', 'function useDialogFocus');
+    .replace(/^import .*;\r?\n/gm, '').replace('export function useDialogFocus', 'function useDialogFocus');
   const context = { useEffect: fn => effects.push(fn), containDialogTab, createDialogFocusManager, getDialogFocusableElements, makeDialogSiblingsInert, window, document };
   vm.createContext(context);vm.runInContext(source + '\nthis.hook = useDialogFocus;', context);
   return {

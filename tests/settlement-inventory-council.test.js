@@ -60,7 +60,7 @@ describe("Settlement inventory and council screen contract", () => {
     assert.equal(state.inventorySelectedResourceId, null);
   });
 
-  it("clamps inventory capacity changes and trims stored resources to the selected cap", () => {
+  it("clamps inventory capacity changes without destroying already owned resources", () => {
     useSettlementStore.setState((state) => ({
       resources: { ...state.resources, food: 11800 },
       inventoryCaps: { ...state.inventoryCaps, food: 10000 },
@@ -71,7 +71,7 @@ describe("Settlement inventory and council screen contract", () => {
 
     assert.equal(afterClamp.inventorySelectedResourceId, "food");
     assert.equal(afterClamp.inventoryCaps.food, 5000);
-    assert.equal(afterClamp.resources.food, 5000);
+    assert.equal(afterClamp.resources.food, 11800);
     assert.match(afterClamp.notices[0].key, /^inventory:cap:food:5000/);
 
     afterClamp.boostInventoryCap("food");

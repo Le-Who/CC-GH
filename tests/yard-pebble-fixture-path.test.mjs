@@ -22,3 +22,19 @@ test('review collector separates phone JSON/screenshots from all screenshots and
   const index=JSON.parse(await readFile(join(folder,'viewport-frames/INDEX.json'),'utf8'));assert.equal(index.files.some(f=>f.name.includes('trace')),false);
  }finally{await rm(folder,{recursive:true,force:true});}
 });
+test('review collector decodes inline Playwright JSON and PNG bodies',async()=>{
+ const {mkdtemp,writeFile,readFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
+ const {collectPebbleDiagnostics}=await import('../scripts/collect-yard-pebble-diagnostics.mjs');const folder=await mkdtemp(join(tmpdir(),'pebble-inline-diagnostics-'));
+ const diagnostic=JSON.stringify({pageErrors:[],requestFailures:[],httpErrors:[],consoleErrors:[]}),phone=Buffer.from([137,80,78,71,13,10,26,10,0,255]),desktop=Buffer.from([137,80,78,71,13,10,26,10,1,254]);
+ try{const attachment=(name,contentType,body)=>({name,contentType,body:Buffer.from(body).toString('base64')});
+  await writeFile(join(folder,'results.json'),JSON.stringify({stats:{expected:1,unexpected:0},suites:[{title:'Inline test',specs:[{tests:[{results:[{attachments:[
+   attachment('pebble-boot-diagnostics','application/json',diagnostic),attachment('yard-320x568-rest','image/png',phone),attachment('yard-1280x720-rest','image/png',desktop),attachment('trace','application/zip','excluded')
+  ]}]}]}]}]}));
+  const r=await collectPebbleDiagnostics(folder);assert.equal(r['compact-diagnostics'].files,3);assert.equal(r['viewport-frames'].files,2);
+  assert.equal(await readFile(join(folder,'compact-diagnostics/000-pebble-boot-diagnostics.json'),'utf8'),diagnostic);
+  assert.deepEqual(await readFile(join(folder,'compact-diagnostics/001-yard-320x568-rest.png')),phone);
+  assert.deepEqual(await readFile(join(folder,'viewport-frames/002-yard-1280x720-rest.png')),desktop);
+  const index=JSON.parse(await readFile(join(folder,'compact-diagnostics/INDEX.json'),'utf8'));assert.equal(index.files.some(f=>f.name.includes('trace')),false);
+  assert.deepEqual(index.files[1].titles,['Inline test']);
+ }finally{await rm(folder,{recursive:true,force:true});}
+});

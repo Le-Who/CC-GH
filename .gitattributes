@@ -1,0 +1,12 @@
+# These release-guarded sources must retain their production byte hashes on Windows.
+/game-logic/blox-engine.js text eol=lf
+/game-logic/blox-pieces.js text eol=lf
+/game-logic/economy.js text eol=lf
+/game-logic/hud-bonuses.js text eol=lf
+/routes/blox.js text eol=lf
+/src/game-core/blox/engine.js text eol=lf
+/src/game-core/blox/pieces.js text eol=lf
+/src/game-runtime/scenes/shared/runtime.js text eol=lf
+/src/game-runtime/sceneGeometry.js text eol=lf
+/src/game-runtime/assetBundles.js text eol=lf
+/src/game-runtime/pointerSession.js text eol=lf

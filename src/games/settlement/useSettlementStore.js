@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, RESEARCH_PANEL_DATA, STAGE_THRESHOLDS, WORLD_MAP_PANEL_DATA } from './gameData.js';
+import { normalizeCycle, advanceProduction, residentOrder, batchYield, addCycleIncome, DEVELOPMENTS } from './settlementCycle.js';
+import { SETTLEMENT_SAVE_KEY, settlementStorageBridge, lockSettlementCommand, serializeSettlementCommands } from './settlementPersistence.js';
 
 const ACTIVE_PANEL_STORAGE_KEY = 'village-ascend-v2-panel';
 const ACTIVE_BUILDING_STORAGE_KEY = 'village-ascend-v2-building';
@@ -59,7 +61,7 @@ function addResources(resources, delta, caps = null) {
     const floor = ['food', 'wood', 'stone', 'goods', 'culture', 'gold', 'prestige'].includes(key) ? 0 : -Infinity;
     const cap = caps?.[key];
     const withDelta = (next[key] ?? 0) + value;
-    next[key] = Math.max(floor, cap == null ? withDelta : Math.min(cap, withDelta));
+    next[key] = Math.max(floor, cap == null ? withDelta : Math.min(Math.max(cap, next[key] ?? 0), withDelta));
   }
   next.morale = clamp(next.morale ?? 75, 0, 100);
   return next;
@@ -331,13 +333,10 @@ function applyInventoryCapChange(state, resourceId, delta, noticeKeyPrefix) {
   if (!profile) return null;
   const currentCap = state.inventoryCaps?.[resourceId] ?? profile.initialCap;
   const nextCap = clampInventoryCap(resourceId, currentCap + delta);
-  const nextResources = (state.resources?.[resourceId] ?? 0) > nextCap
-    ? { ...state.resources, [resourceId]: nextCap }
-    : state.resources;
   return {
     inventoryCaps: { ...state.inventoryCaps, [resourceId]: nextCap },
     inventorySelectedResourceId: resourceId,
-    resources: nextResources,
+    resources: state.resources,
     notices: pushNotice(state.notices, {
       type: 'collect',
       key: `${noticeKeyPrefix}:${resourceId}:${nextCap}`,
@@ -386,9 +385,16 @@ function pushNotice(notices, notice) {
   ].slice(0, MAX_NOTICES);
 }
 
-export const useSettlementStore = create(
-  persist(
+function availableStorage() {
+  try { return globalThis.localStorage; } catch { return undefined; }
+}
+
+export function createSettlementStore({ storage = availableStorage(), lock = lockSettlementCommand } = {}) {
+  const bridge = storage ? settlementStorageBridge(storage) : undefined;
+  const store = create(serializeSettlementCommands(persist(
     (set, get) => ({
+      persistenceReady: false,
+      persistenceError: false,
       resources: startingResources,
       levels: startingLevels,
       population: populationFromLevels(startingLevels),
@@ -397,6 +403,7 @@ export const useSettlementStore = create(
       activePanel: readInitialActivePanel(),
       rightPanelOpen: readInitialRightPanelOpen(),
       activeUpgrade: null,
+      settlementCycle: normalizeCycle(),
       claimedGoalRewardIds: [],
       inventoryCaps: { ...startingInventoryCaps },
       inventorySelectedResourceId: null,
@@ -426,10 +433,8 @@ export const useSettlementStore = create(
         const now = Date.now();
         const elapsedMs = Math.max(0, now - (state.lastTick || now));
         if (elapsedMs < 500) return;
-        const minutes = Math.min(elapsedMs / 60000, 60 * 12);
-        const prod = productionFrom(state.levels, state.constructedBuildings);
-        const delta = Object.fromEntries(Object.entries(prod).map(([key, value]) => [key, value * minutes]));
-        let resources = addResources(state.resources, delta, state.inventoryCaps);
+        const settlementCycle = advanceProduction(state.settlementCycle, now);
+        let resources = state.resources;
         let levels = state.levels;
         let activeUpgrade = state.activeUpgrade ?? null;
         let researchLevels = state.researchLevels ?? { ...startingResearchLevels };
@@ -485,18 +490,42 @@ export const useSettlementStore = create(
         }
 
         const population = populationFromLevels(levels);
-        set({ resources, levels, activeUpgrade, researchLevels, activeResearch, activeExpedition, notices, population, lastTick: now });
+        set({ resources, levels, activeUpgrade, researchLevels, activeResearch, activeExpedition, notices, population, lastTick: now, settlementCycle });
       },
 
       collect: () => {
-        const levels = get().levels;
-        const prod = productionFrom(levels, get().constructedBuildings);
-        const multiplier = 10 + (levels['market-green'] ?? 1) * 2;
-        const delta = Object.fromEntries(Object.entries(prod).map(([key, value]) => [key, Math.max(0, value * multiplier)]));
-        set((s) => ({
-          resources: addResources(s.resources, { ...delta, gold: (delta.gold ?? 0) + 26, prestige: 8 }, s.inventoryCaps),
-          notices: pushNotice(s.notices, { type: 'collect', key: 'collect:resources', text: '+ ресурсы поселения' })
-        }));
+        const state = get();
+        const cycle = advanceProduction(state.settlementCycle);
+        if (!cycle.ready) return false;
+        const delta = batchYield(productionFrom(state.levels, state.constructedBuildings), cycle.development);
+        const resources = addCycleIncome(state.resources, delta, state.inventoryCaps);
+        if (Object.keys(delta).every(key => resources[key] === state.resources[key])) return false;
+        set({ resources, settlementCycle: { ...cycle, ready: cycle.ready - 1, collected: cycle.collected + 1 } });
+        return true;
+      },
+
+      fulfillResidentOrder: (orderId) => {
+        const state = get();
+        const cycle = normalizeCycle(state.settlementCycle);
+        const order = residentOrder(cycle);
+        if (orderId !== order.id || !canPay(state.resources, order.cost)) return false;
+        set({ resources: addCycleIncome(pay(state.resources, order.cost), order.reward, state.inventoryCaps), settlementCycle: { ...cycle, deliveries: cycle.deliveries + 1 } });
+        return true;
+      },
+
+      developSettlement: (expectedDevelopment) => {
+        const state = get();
+        const cycle = normalizeCycle(state.settlementCycle);
+        const milestone = DEVELOPMENTS[cycle.development];
+        if (expectedDevelopment !== cycle.development || !milestone || cycle.deliveries < milestone.deliveries || !canPay(state.resources, milestone.cost) || state.activeUpgrade) return false;
+        const building = BUILDINGS.find(item => item.id === milestone.buildingId);
+        const level = state.levels[building.id] ?? building.level;
+        // Existing artwork has tiers at 1/4/8/12. A development reaches the next
+        // authored tier, while already-maxed acquisitions remain untouched.
+        const nextTier = level < 4 ? 4 : level < 8 ? 8 : 12;
+        const levels = { ...state.levels, [building.id]: Math.min(building.max, Math.max(level, nextTier)) };
+        set({ resources: addCycleIncome(pay(state.resources, milestone.cost), { prestige: 40 }, state.inventoryCaps), levels, population: populationFromLevels(levels), selectedBuildingId: building.id, settlementCycle: { ...cycle, development: cycle.development + 1 } });
+        return true;
       },
 
       claimGoalRewards: () => {
@@ -770,7 +799,10 @@ export const useSettlementStore = create(
         const level = get().levels[id] ?? 1;
         if (level >= building.max) return false;
         const existingUpgrade = get().activeUpgrade;
-        if (existingUpgrade?.buildingId === id) return false;
+        if (existingUpgrade) {
+          set((s) => ({ notices: pushNotice(s.notices, { type: 'warn', key: 'upgrade:busy', text: 'Улучшение уже выполняется' }) }));
+          return false;
+        }
         const cost = upgradeCost(building, level);
         if (!canPay(get().resources, cost)) {
           set((s) => ({ notices: pushNotice(s.notices, { type: 'warn', key: 'warn:resources', text: 'Не хватает ресурсов' }) }));
@@ -796,6 +828,7 @@ export const useSettlementStore = create(
       },
 
       resetSettlement: () => set({
+        settlementCycle: normalizeCycle(),
         resources: startingResources,
         levels: startingLevels,
         population: populationFromLevels(startingLevels),
@@ -823,10 +856,13 @@ export const useSettlementStore = create(
       })
     }),
     {
-      name: 'village-ascend-v2-state',
-      storage: createJSONStorage(() => localStorage),
-      version: 10,
-      migrate: (persisted) => {
+      name: SETTLEMENT_SAVE_KEY,
+      storage: bridge ? createJSONStorage(() => bridge) : undefined,
+      skipHydration: true,
+      version: 11,
+      merge: (persisted, current) => ({ ...current, ...persisted, settlementCycle: normalizeCycle(persisted?.settlementCycle) }),
+      migrate: (persisted, version) => {
+        if (version > 11) throw Error('Unsupported Settlement save');
         const levels = { ...startingLevels, ...(persisted?.levels ?? {}) };
         const constructedBuildings = normalizeConstructedBuildings(persisted?.constructedBuildings);
         const selectedBuildingId = selectedBuildingExists(persisted?.selectedBuildingId, constructedBuildings)
@@ -835,13 +871,15 @@ export const useSettlementStore = create(
         const activePanel = normalizeActivePanel(persisted?.activePanel ?? readInitialActivePanel());
         return {
           ...persisted,
+          settlementCycle: normalizeCycle(persisted?.settlementCycle),
           resources: { ...startingResources, ...(persisted?.resources ?? {}) },
           levels,
           population: populationFromLevels(levels),
           selectedBuildingId,
           activePanel,
           rightPanelOpen: activePanel === 'overview' ? false : persisted?.rightPanelOpen !== false,
-          activeUpgrade: null,
+          activeUpgrade: persisted?.activeUpgrade && BUILDINGS.some(building => building.id === persisted.activeUpgrade.buildingId)
+            && Number.isFinite(persisted.activeUpgrade.completesAt) ? persisted.activeUpgrade : null,
           claimedGoalRewardIds: persisted?.claimedGoalRewardIds ?? [],
           inventoryCaps: { ...startingInventoryCaps, ...(persisted?.inventoryCaps ?? {}) },
           inventorySelectedResourceId: INVENTORY_RESOURCE_PROFILES[persisted?.inventorySelectedResourceId] ? persisted.inventorySelectedResourceId : null,
@@ -853,16 +891,21 @@ export const useSettlementStore = create(
           researchCategoryId: normalizeResearchCategoryId(persisted?.researchCategoryId),
           selectedResearchId: normalizeResearchNodeId(persisted?.selectedResearchId, persisted?.researchCategoryId),
           researchLevels: { ...startingResearchLevels, ...(persisted?.researchLevels ?? {}) },
-          activeResearch: null,
+          activeResearch: persisted?.activeResearch && RESEARCH_NODES_BY_ID[persisted.activeResearch.nodeId]
+            && Number.isFinite(persisted.activeResearch.completesAt) ? persisted.activeResearch : null,
           worldMapFilterId: normalizeWorldMapFilterId(persisted?.worldMapFilterId),
           selectedExpeditionId: normalizeWorldExpeditionId(persisted?.selectedExpeditionId, persisted?.worldMapFilterId),
           activeExpedition: persisted?.activeExpedition?.expeditionId && WORLD_EXPEDITIONS_BY_ID[persisted.activeExpedition.expeditionId] ? persisted.activeExpedition : null,
           notices: []
         };
       },
-      partialize: (s) => ({ resources: s.resources, levels: s.levels, population: s.population, lastTick: s.lastTick, selectedBuildingId: s.selectedBuildingId, activePanel: s.activePanel, rightPanelOpen: s.rightPanelOpen, activeUpgrade: s.activeUpgrade, claimedGoalRewardIds: s.claimedGoalRewardIds, inventoryCaps: s.inventoryCaps, inventorySelectedResourceId: s.inventorySelectedResourceId, constructionCategoryId: s.constructionCategoryId, constructionPage: s.constructionPage, selectedConstructionId: s.selectedConstructionId, selectedConstructionSlotId: s.selectedConstructionSlotId, constructedBuildings: s.constructedBuildings, researchCategoryId: s.researchCategoryId, selectedResearchId: s.selectedResearchId, researchLevels: s.researchLevels, activeResearch: s.activeResearch, worldMapFilterId: s.worldMapFilterId, selectedExpeditionId: s.selectedExpeditionId, activeExpedition: s.activeExpedition })
+      partialize: (s) => ({ settlementCycle: s.settlementCycle, resources: s.resources, levels: s.levels, population: s.population, lastTick: s.lastTick, selectedBuildingId: s.selectedBuildingId, activePanel: s.activePanel, rightPanelOpen: s.rightPanelOpen, activeUpgrade: s.activeUpgrade, claimedGoalRewardIds: s.claimedGoalRewardIds, inventoryCaps: s.inventoryCaps, inventorySelectedResourceId: s.inventorySelectedResourceId, constructionCategoryId: s.constructionCategoryId, constructionPage: s.constructionPage, selectedConstructionId: s.selectedConstructionId, selectedConstructionSlotId: s.selectedConstructionSlotId, constructedBuildings: s.constructedBuildings, researchCategoryId: s.researchCategoryId, selectedResearchId: s.selectedResearchId, researchLevels: s.researchLevels, activeResearch: s.activeResearch, worldMapFilterId: s.worldMapFilterId, selectedExpeditionId: s.selectedExpeditionId, activeExpedition: s.activeExpedition })
     }
-  )
-);
+  ), bridge, lock));
+  store.ready = store.initializeSettlementPersistence();
+  return store;
+}
+
+export const useSettlementStore = createSettlementStore();
 
 export { productionFrom, getStage, upgradeCost, canPay, populationFromLevels, getResearchNodeStatus, worldExpeditionUnlocked };

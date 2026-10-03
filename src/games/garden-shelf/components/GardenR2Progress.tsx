@@ -2,7 +2,7 @@ import React from 'react';
 import { useGame } from '../lib/GameContext';
 import { useGardenI18n } from '../lib/i18n';
 import { R2_RESEARCH, R2_PROJECTS } from '../../../../game-logic/garden-r2/catalog.js';
-import { formatR2Gold, formatR2Rate, r2MasteryOffer } from '../lib/gardenR2View.js';
+import { formatR2Gold, formatR2Rate, r2MasteryOffer, r2NextUnlock } from '../lib/gardenR2View.js';
 
 export function MasteryOffer({ plant, Button, run, busy }: any) {
   const { r2, r2Command, accountingReady } = useGame();
@@ -22,7 +22,13 @@ export default function GardenR2Progress({ Dialog, Button, onClose, onQuests, ru
   const act = (name, input = {}) => run(() => r2Command?.(name, input));
   const blocked = busy || !accountingReady;
   const studyReady = r2.study.cards > 0 && r2.study.taps >= 5 && r2.study.waters >= 1;
+  const next = r2NextUnlock(r2.chapter);
   return <Dialog title={t('r2.title')} kind="progression" onClose={onClose}>
+    <section className="gs2-r2-card" data-garden-level-card="true">
+      <h3>{t('r2.gardenLevel', { level: r2.chapter })}</h3>
+      <p>{r2.chapter < 30 ? t('r2.levelXp', { xp: r2.xp, required: r2.xpRequired, remaining: Math.max(0, r2.xpRequired - r2.xp) }) : t('r2.levelMax')}</p>
+      {next && <p>{t('r2.nextUnlock', { level: next.level, items: next.items.map(item => t(item.key, { tier: item.tier })).join(' · ') })}</p>}
+    </section>
     <section className="gs2-r2-card"><h3>{t('r2.substrateAmount', { amount: r2.substrate, capacity: r2.substrateCapacity })}</h3>
       <p>{t('r2.substrateHelp')}</p>
       {r2.substrate >= r2.substrateCapacity && <p>{t('r2.substrateFull')}</p>}

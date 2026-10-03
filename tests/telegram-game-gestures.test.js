@@ -191,7 +191,7 @@ test('Bubbo pointercancel/capture loss cancel aiming; blur/hidden pause and rele
 test('actual Pixi compatibility adapter cannot release Bubbo ownership and remains idempotent', async () => {
   const sdk = mockSdk();
   const source = fs.readFileSync(new URL('../src/platform/telegram.js', import.meta.url), 'utf8')
-    .replace(/^import .*;\n/gm, '').replace(/^export /gm, '');
+    .replace(/^import .*;\r?\n/gm, '').replace(/^export /gm, '');
   const api = vm.runInNewContext(source + '\ntelegramSdkPromise = Promise.resolve(sdkMock); ({ acquireGameGesture, setGameGestureActive });', { createGameGestureController, sdkMock: sdk });
   const bubbo = api.acquireGameGesture(); await settle();
   api.setGameGestureActive(false);

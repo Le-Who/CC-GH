@@ -159,3 +159,101 @@ test('snapshot cannot normalize away corrupt legacy accounting before adoption v
   const result = await invoke(p, command(p, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 }));
   assert.equal(result.body.error, 'GARDEN_R2_LEGACY_ACCOUNTING_INVALID'); assert.deepEqual(p.gardenAccounting, original); assert.equal(p._gardenProgression, undefined);
 });
+
+for (const operation of ['start', 'refresh']) for (const adopted of [false, true]) test(`committed Blox ${operation} survives socket-first delivery (${adopted ? 'R2' : 'legacy'} Garden)`, async t => {
+  // Actual routes, player lock, API client and hub; only HTTP/socket infrastructure
+  // is in-process. Advance the clock so equal-sequence timestamp regressions count.
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let clock = NOW;
+  t.mock.method(Date, 'now', () => clock++);
+  const { useGameHub: hub } = await import('../src/game-state/useGameHub.js');
+  const id = `blox-committed-${operation}-${adopted}`;
+  const initial = await withPlayerLock(id, async p => {
+    Object.assign(p, fixture(id));
+    if (adopted) await adopt(p);
+    return buildSnapshot(p);
+  });
+  hub.setState({ snapshot: null }); hub.getState().applySnapshot(initial);
+  if (operation === 'refresh') await withPlayerLock(id, p => applyActionWithReceipt(p, 'blox.start'));
+  const router = playerRoutes(() => {}, () => ({ userId: id }));
+  let emitted, serverError, newerBeforeReply = false;
+  globalThis.__gardenR2Socket = { to: target => ({ emit(event, message) {
+    assert.equal(target, id); assert.equal(event, 'player_sync');
+    emitted = JSON.parse(JSON.stringify(message.payload));
+    hub.getState().applyRealtimePayload(emitted);
+  } }) };
+  t.mock.method(globalThis, 'fetch', async (path, options = {}) => {
+    if (path === '/api/config') return { json: async () => ({ devAuthEnabled: false }) };
+    const handler = router.stack.find(layer => layer.path === path).handlers.at(-1);
+    let status = 200, body;
+    const requestBody = options.body ? JSON.parse(options.body) : undefined;
+    if (requestBody) assert.equal(requestBody.accountId, id);
+    await handler({ body: requestBody }, { status(value) { status = value; return this; }, json(value) { body = JSON.parse(JSON.stringify(value)); } }, error => { serverError = error; throw error; });
+    if (newerBeforeReply) hub.getState().applyRealtimePayload({ ...emitted, syncSeq: emitted.syncSeq + 1, serverTime: clock++, resources: { ...emitted.resources, gold: 123456 } });
+    return { ok: status < 400, status, text: async () => JSON.stringify(body) };
+  });
+  try {
+    const result = operation === 'start'
+      ? await hub.getState().performAction('blox.start', {}, { feedback: false })
+      : await hub.getState().loadSnapshot();
+    const started = operation === 'start' ? result : { success: !result.error, snapshot: result };
+    assert.ifError(serverError);
+    assert.equal(started.success, true, JSON.stringify(started));
+    assert.equal(started.snapshot.blox.activeGame, true, 'server committed the start');
+    assert.equal(hub.getState().snapshot.blox.activeGame, true, 'same-commit socket cannot hide the started run');
+    assert.equal(hub.getState().snapshot.blox.savedState.gameActive, true);
+    assert.equal(started.snapshot.player.syncSeq, emitted.syncSeq);
+    assert.ok(started.snapshot.serverTime >= emitted.serverTime);
+    // A fresh full read must also fill domains omitted from partial realtime.
+    hub.setState({ snapshot: { ...hub.getState().snapshot, blox: initial.blox } });
+    await hub.getState().loadSnapshot();
+    assert.equal(hub.getState().snapshot.blox.savedState.gameActive, true, 'refresh restores committed Blox state');
+    assert.equal(hub.getState().snapshot.player.syncSeq, emitted.syncSeq);
+    assert.ok(hub.getState().snapshot.serverTime >= emitted.serverTime);
+    // A genuinely newer commit still wins over a delayed successful HTTP reply.
+    newerBeforeReply = true;
+    const ended = await hub.getState().performAction('blox.end', { score: 0 }, { feedback: false });
+    assert.equal(ended.success, true);
+    assert.equal(hub.getState().snapshot.player.syncSeq, emitted.syncSeq + 1);
+    assert.equal(hub.getState().snapshot.resources.gold, 123456);
+  } finally { delete globalThis.__gardenR2Socket; }
+});
+
+test('HTTP observation is stamped from the winning OCC retry only (synthetic SQL boundary)', async t => {
+  let clock = NOW;
+  t.mock.method(Date, 'now', () => clock++);
+  const initial = fixture('blox-http-occ'); initial._version = 'initial'; initial._syncSeq = 30;
+  let row = structuredClone(initial), updates = 0;
+  const emitted = [];
+  globalThis.__gardenR2Socket = { to: () => ({ emit: (_event, message) => emitted.push(message) }) };
+  globalThis.__gardenR2TestDb = async (strings, ...values) => {
+    const query = strings.join('?');
+    if (query.includes('INSERT INTO players')) return [];
+    if (query.includes('SELECT data')) return [{ data: structuredClone(row) }];
+    if (query.includes('UPDATE players')) {
+      if (++updates === 1) {
+        row._version = 'remote'; row._syncSeq++;
+        row.resources.gold += 7; row.blox.totalGames = 42;
+        return [];
+      }
+      assert.equal(values[2], row._version);
+      row = structuredClone(values[0]); return [{ id: row.id }];
+    }
+    throw Error('Unexpected SQL');
+  };
+  try {
+    const router = playerRoutes(() => {}, () => ({ userId: initial.id }));
+    const handler = router.stack.find(layer => layer.path === '/api/player/mutate').handlers.at(-1);
+    let status = 200, body;
+    await handler({ body: { accountId: initial.id, action: 'blox.start' } }, {
+      status(value) { status = value; return this; }, json(value) { body = value; },
+    }, error => { throw error; });
+    assert.equal(status, 200); assert.equal(updates, 2); assert.equal(emitted.length, 1);
+    assert.equal(body.snapshot.player.syncSeq, 32);
+    assert.equal(body.snapshot.player.syncSeq, emitted[0].payload.syncSeq);
+    assert.ok(body.snapshot.serverTime >= emitted[0].payload.serverTime);
+    assert.equal(body.snapshot.blox.totalGames, 43);
+    assert.equal(body.snapshot.blox.savedState.gameActive, true);
+    assert.equal(body.snapshot.resources.gold, initial.resources.gold + 7);
+  } finally { delete globalThis.__gardenR2TestDb; delete globalThis.__gardenR2Socket; }
+});

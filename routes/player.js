@@ -1342,6 +1342,18 @@ export async function applyActionWithReceipt(p, action, payload = {}, meta = {})
   return result;
 }
 
+// A route builds its full snapshot inside the OCC callback, before the lock
+// commits and emits partial realtime. Stamp only the winning HTTP observation
+// afterward, so that same-commit realtime cannot make omitted games look stale.
+function stampCommittedSnapshot(p, snapshot) {
+  if (!snapshot) return snapshot;
+  afterPlayerCommit(p, committed => {
+    snapshot.player.syncSeq = committed._syncSeq;
+    snapshot.serverTime = Date.now();
+  });
+  return snapshot;
+}
+
 export default function playerRoutes(requireAuth, resolveUser) {
   const router = Router();
 
@@ -1354,7 +1366,7 @@ export default function playerRoutes(requireAuth, resolveUser) {
         ensurePlayerYard(p, Date.now(), true);
         const streakResult = updateStreak(p);
         const newAchievements = checkAchievements(p);
-        return buildSnapshot(p, { offlineReport, streakResult, newAchievements });
+        return stampCommittedSnapshot(p, buildSnapshot(p, { offlineReport, streakResult, newAchievements }));
       }, username);
       res.json(snapshot);
     } catch (err) {
@@ -1371,11 +1383,15 @@ export default function playerRoutes(requireAuth, resolveUser) {
       // independently of the authorization header resolved at send time.
       if (req.body?.accountId != null && req.body.accountId !== userId) return res.status(409).json({ error: "ACCOUNT_CHANGED" });
       const serverNow = Date.now();
-      const result = await withPlayerLock(userId, async (p) => applyActionWithReceipt(p, action, payload, {
-        clientActionId,
-        intentServerTime,
-        serverNow,
-      }), username);
+      const result = await withPlayerLock(userId, async (p) => {
+        const response = await applyActionWithReceipt(p, action, payload, {
+          clientActionId,
+          intentServerTime,
+          serverNow,
+        });
+        stampCommittedSnapshot(p, response.body?.snapshot);
+        return response;
+      }, username);
       res.status(result.status || 200).json(result.body || result);
     } catch (err) {
       next(err);

@@ -3,8 +3,8 @@
   "productionFiles": [
     {
       "path": "routes/player.js",
-      "bytes": 59469,
-      "sha256": "d8da0bc8f9e7e812be58dafac557fa0a569d619e6af37ac45e1e2e96f4e39d8f"
+      "bytes": 60103,
+      "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
     },
     {
       "path": "routes/mergeRoutes.js",
@@ -43,8 +43,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 6644,
-      "sha256": "c96c22bd2ec7499c6f56c1c89c53aec48fa46f700e4c512eaea6aaaf963727f9"
+      "bytes": 6796,
+      "sha256": "06995d5c529f30be6d549afb25c0971580b8fffc6e7a6f7970c09896e0e19cce"
     },
     {
       "path": "src/App.jsx",
@@ -127,9 +127,9 @@
       "source": "routes/player.js",
       "sourceSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
       "candidate": "preview/yard-persistent-candidate/overrides/routes/player.js",
-      "candidateSha256": "923379269c8f0b09fcb0a9da81529125c6f80a7393b6fd1658c978fc52aaf665",
+      "candidateSha256": "2c78b4b8e178192ac3245afb022fdda64557dc157bf400fe796184789df6da84",
       "rebasedFromCandidateSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
-      "reviewedProductionSha256": "d8da0bc8f9e7e812be58dafac557fa0a569d619e6af37ac45e1e2e96f4e39d8f",
+      "reviewedProductionSha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91",
       "boundaryRebasedFromCandidateSha256": "0e309fd2aadbe6c33980fcc25d87ea883c091e29157496962def64e8a37790e1"
     },
     {

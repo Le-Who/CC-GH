@@ -1,3 +1,4 @@
+import { useSettlementText } from './useSettlementText.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Application,
@@ -11,9 +12,13 @@ import {
   Text
 } from 'pixi.js';
 import { useImmersiveGame } from '../../app/gameHooks.js';
+import { useAppI18n } from '../../app/i18n.jsx';
 import { HudEditableRegion, HudRegion, useHudLayout, useHudRegion } from '../../app/hud-layout/index.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
+import SettlementPlayPanel from './SettlementPlayPanel.jsx';
+import { DEVELOPMENTS, batchYield } from './settlementCycle.js';
+import { SETTLEMENT_SAVE_KEY } from './settlementPersistence.js';
 import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, useSettlementStore } from './useSettlementStore.js';
 import './settlement.css';
 
@@ -601,20 +606,23 @@ function formatClockDuration(ms) {
 }
 
 function ResourceIcon({ type, size = 16, className = '' }) {
+  const t = useSettlementText();
   const src = RESOURCE_ICONS[type];
   return src ? <AssetIcon src={src} alt="" className={className} size={size} /> : null;
 }
 
 function HudFrame({ children, className = '', frame = UI_ASSETS.panel, ...props }) {
-  return <div className={className} style={frameStyle(frame)} {...props}>{children}</div>;
+  const t = useSettlementText();
+  return <div className={className} style={frameStyle(frame)} {...props}>{t(children)}</div>;
 }
 
 function ProgressBar({ value = 0, max = 100, fill = 'green', label, className = '' }) {
+  const t = useSettlementText();
   const pct = Math.max(0, Math.min(100, (value / Math.max(1, max)) * 100));
   const fillAsset = fill === 'gold' ? UI_ASSETS.progressGold : UI_ASSETS.progressGreen;
   return (
     <div className={`asset-progress ${className}`.trim()}>
-      {label ? <span>{label}</span> : null}
+      {label ? <span>{t(label)}</span> : null}
       <div className="asset-progress-track" style={frameStyle(UI_ASSETS.progressFrame)}>
         <div className="asset-progress-fill" style={{ ...frameStyle(fillAsset), width: `${pct}%` }} />
       </div>
@@ -623,6 +631,7 @@ function ProgressBar({ value = 0, max = 100, fill = 'green', label, className = 
 }
 
 function PanelTabs({ activePanel, setPanel, variant = 'default' }) {
+  const t = useSettlementText();
   return (
     <div className={`panel-tabs ${variant === 'fancy' ? 'panel-tabs-fancy' : ''}`.trim()}>
       {PANEL_TABS.map((tab) => {
@@ -637,8 +646,8 @@ function PanelTabs({ activePanel, setPanel, variant = 'default' }) {
           >
             <AssetIcon src={tab.icon} alt="" size={16} />
             <span className="panel-tab-label">
-              <span className="panel-tab-label-full">{tab.label}</span>
-              <span className="panel-tab-label-short">{tab.shortLabel ?? tab.label}</span>
+              <span className="panel-tab-label-full">{t(tab.label)}</span>
+              <span className="panel-tab-label-short">{t(tab.shortLabel ?? tab.label)}</span>
             </span>
           </button>
         );
@@ -648,16 +657,18 @@ function PanelTabs({ activePanel, setPanel, variant = 'default' }) {
 }
 
 function RewardBadge({ type = 'gold', amount, label, frame = UI_ASSETS.rewardBadge }) {
+  const t = useSettlementText();
   return (
     <div className="reward-badge" style={frameStyle(frame)}>
       <ResourceIcon type={type} size={18} />
-      <strong>{amount}</strong>
-      {label ? <span>{label}</span> : null}
+      <strong>{t(amount)}</strong>
+      {label ? <span>{t(label)}</span> : null}
     </div>
   );
 }
 
 function GoalIcon({ icon, size = 22 }) {
+  const t = useSettlementText();
   const src = GOAL_ICON_SOURCES[icon] ?? ICONS.quest;
   return <AssetIcon src={src} alt="" size={size} />;
 }
@@ -674,16 +685,19 @@ function frameStyle(url, size = '100% 100%') {
 }
 
 function AssetIcon({ src, alt = '', className = '', size = 20 }) {
-  return <img src={src} alt={alt} className={`asset-icon ${className}`.trim()} style={{ width: size, height: size }} draggable={false} />;
+  const t = useSettlementText();
+  return <img src={src} alt={t(alt)} className={`asset-icon ${className}`.trim()} style={{ width: size, height: size }} draggable={false} />;
 }
 
 function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, onBuildingSelect, onConfirmConstruction, onConstructionSlotSelect, devMode, onDevPointer }) {
+  const t = useSettlementText();
   const [sceneRevision, setSceneRevision] = useState(0);
   const [cameraSnapshot, setCameraSnapshot] = useState(() => ({ x: 0, y: 0, scale: 0.5, width: 1, height: 1 }));
   const hostRef = useRef(null);
   const hudLayout = useHudLayout();
   const canvasRegion = useHudRegion('settlementCanvas', { ref: hostRef });
   const appRef = useRef(null);
+  const sceneReadyRef = useRef(false);
   const worldRef = useRef(null);
   const spritesRef = useRef({ buildings: new Map(), constructionSlots: new Map(), vfx: new Map() });
   const cameraRef = useRef({ x: 0, y: 0, scale: 0.5 });
@@ -702,6 +716,8 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   const devInfoFrameRef = useRef(0);
 
   const levels = useSettlementStore((s) => s.levels);
+  const development = useSettlementStore((s) => s.settlementCycle.development);
+  const focusedDevelopmentRef = useRef(null);
   const storeSelect = useSettlementStore((s) => s.selectBuilding);
   const slotLayouts = useMemo(() => (
     CONSTRUCTION_PANEL_DATA.placementSlots.map((slot) => getSettlementPlacementSlotLayout(slot, hudLayout.resolvedLayout?.regions || {}))
@@ -1024,7 +1040,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         const levelBadge = createLevelBadge(levels[building.id] ?? 1, 0, -sprite.height * building.scale - 18);
         levelBadge.name = 'level-badge';
         wrapper.addChild(levelBadge);
-        const nameBadge = createTextLabel(building.short, 0, 14, 'small');
+        const nameBadge = createTextLabel(t(building.short), 0, 14, 'small');
         nameBadge.name = 'name-badge';
         wrapper.addChild(nameBadge);
 
@@ -1138,7 +1154,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         confirm.addChild(checkMark);
         slotContainer.addChild(confirm);
 
-        const slotLabel = createTextLabel(slot.label, 0, 42, 'small');
+        const slotLabel = createTextLabel(t(slot.label), 0, 42, 'small');
         slotLabel.name = 'construction-label';
         slotLabel.alpha = 0.95;
         slotContainer.addChild(slotLabel);
@@ -1158,8 +1174,6 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
           builtItemId: null
         });
       }
-      setSceneRevision((value) => value + 1);
-
       for (const villager of VILLAGERS) {
         const texture = await loadTexture(villager.image);
         if (cancelled) return;
@@ -1266,6 +1280,8 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       world.position.set(camera.x, camera.y);
       world.scale.set(camera.scale);
       updateCameraSnapshot();
+      sceneReadyRef.current = true;
+      setSceneRevision((value) => value + 1);
 
       function applyCamera() {
         rafRef.current = 0;
@@ -1503,6 +1519,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       const app = appRef.current;
       destroyPixiAppSafely(app);
       appRef.current = null;
+      sceneReadyRef.current = false;
       spritesRef.current = { buildings: new Map(), constructionSlots: new Map(), vfx: new Map(), devLayer: null };
     };
   // Scene is intentionally initialized once. Live updates are handled by targeted effects below.
@@ -1512,10 +1529,12 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
   useEffect(() => {
     const loadedBuildings = spritesRef.current.buildings;
     if (!loadedBuildings.size) return;
+    let cancelled = false;
     Promise.all(BUILDINGS.map(async (building) => ({
       building,
       texture: await loadTexture(buildingAsset(building.id, levels[building.id] ?? 1), { trim: true })
     }))).then((results) => {
+      if (cancelled) return;
       for (const { building, texture } of results) {
         const item = loadedBuildings.get(building.id);
         if (!item || !texture) continue;
@@ -1527,14 +1546,57 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         item.wrapper.addChild(freshBadge);
         item.levelBadge = freshBadge;
       }
+      // Show the changed artwork in the open map area, above the compact card.
+      // Reserves and card geometry belong to the registered layout profiles.
+      if (sceneReadyRef.current && development > 0 && focusedDevelopmentRef.current !== development) {
+        const item = loadedBuildings.get(DEVELOPMENTS[development - 1]?.buildingId);
+        const host = hostRef.current;
+        const world = worldRef.current;
+        if (item && host && world) {
+          const regions = hudLayout.resolvedLayout?.regions ?? {};
+          const top = regions.pixiPlayfieldReserve?.topReserve ?? 0;
+          const card = regions.settlementCompactDetail ?? {};
+          const bottom = (card.offset ?? 0) + (card.thickness ?? 0);
+          const camera = cameraRef.current;
+          const besideCard = card.alignment === 'right';
+          const cardLeft = host.clientWidth - Math.min(card.maxWidth ?? host.clientWidth, host.clientWidth - 20) - 10;
+          const targetX = besideCard ? (cardLeft + (regions.pixiPlayfieldReserve?.leftReserve ?? 0)) / 2 : host.clientWidth / 2;
+          const targetY = (top + Math.max(top, host.clientHeight - (besideCard ? regions.settlementBottomNav?.reserve ?? 0 : bottom))) / 2;
+          const centerY = item.wrapper.y - item.sprite.height / 2;
+          // A portrait camera that fits the full map cannot pan vertically.
+          // Zoom enough to put the developed building above the overlay card.
+          if (!besideCard) camera.scale = Math.max(camera.scale, Math.min(0.62, (host.clientHeight - targetY) / Math.max(1, WORLD.h - centerY)));
+          camera.x = targetX - item.wrapper.x * camera.scale;
+          camera.y = targetY - centerY * camera.scale;
+          clampCamera(camera, host.clientWidth, host.clientHeight);
+          world.position.set(camera.x, camera.y);
+          world.scale.set(camera.scale);
+          focusedDevelopmentRef.current = development;
+          updateCameraSnapshot();
+        }
+      }
+    }).catch((error) => {
+      if (!cancelled) console.error('Settlement building update failed', error);
     });
-  }, [levels]);
+    return () => { cancelled = true; };
+  }, [levels, sceneRevision, development, hudLayout.resolvedLayout, updateCameraSnapshot]);
 
   useEffect(() => {
     for (const [id, item] of spritesRef.current.buildings) {
       item.ring.alpha = activePanel === 'construction' ? 0 : id === selectedBuildingId ? 0.88 : 0;
     }
   }, [activePanel, selectedBuildingId]);
+
+  useEffect(() => {
+    for (const [id, item] of spritesRef.current.buildings) {
+      const building = BUILDINGS.find(candidate => candidate.id === id);
+      if (!building) continue;
+      item.nameBadge?.destroy({ children: true });
+      item.nameBadge = createTextLabel(t(building.short), 0, 14, 'small');
+      item.nameBadge.name = 'name-badge';
+      item.wrapper.addChild(item.nameBadge);
+    }
+  }, [t, sceneRevision]);
 
   useEffect(() => {
     const slotSprites = spritesRef.current.constructionSlots;
@@ -1572,7 +1634,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
       item.confirm.visible = showEmptySlot && isSelectedSlot;
       item.builtSprite.visible = showBuilt;
 
-      const labelText = showBuilt ? builtItem.name : isSelectedSlot ? `${item.slot.label}: выбрано` : item.slot.label;
+      const labelText = t(showBuilt ? builtItem.name : isSelectedSlot ? `${item.slot.label}: выбрано` : item.slot.label);
       if (item.labelText !== labelText) {
         item.label?.destroy({ children: true });
         const freshLabel = createTextLabel(labelText, 0, showBuilt ? 24 : 42, 'small');
@@ -1601,7 +1663,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     return () => {
       cancelled = true;
     };
-  }, [activePanel, selectedBuildingId, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, sceneRevision]);
+  }, [activePanel, selectedBuildingId, selectedConstructionItem, selectedConstructionSlotId, constructedBuildings, sceneRevision, t]);
 
   return (
     <div ref={canvasRegion.ref} className="scene-host" data-hud-region="settlementCanvas">
@@ -1632,6 +1694,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
 
 
 function ResourcePill({ label, value, icon, type, showPlus = false }) {
+  const t = useSettlementText();
   return (
     <div className={`resource-pill resource-pill-${type ?? 'generic'}`} style={frameStyle(UI_ASSETS.resourcePill)}>
       {icon ? (
@@ -1639,10 +1702,10 @@ function ResourcePill({ label, value, icon, type, showPlus = false }) {
           <AssetIcon src={icon} alt="" className="resource-pill-icon" size={19} />
         </span>
       ) : null}
-      <span className="resource-label">{label}</span>
-      <strong>{formatNumber(value)}</strong>
+      <span className="resource-label">{t(label)}</span>
+      <strong>{t(formatNumber(value))}</strong>
       {showPlus ? (
-        <button className="resource-plus tooltip-control" type="button" aria-label={`Пополнить ${label}`} data-tooltip={`Пополнить ${label}`} style={frameStyle(UI_ASSETS.plus)}>
+        <button className="resource-plus tooltip-control" type="button" aria-label={t(`Пополнить ${label}`)} data-tooltip={t(`Пополнить ${label}`)} style={frameStyle(UI_ASSETS.plus)}>
           +
         </button>
       ) : null}
@@ -1653,6 +1716,10 @@ function ResourcePill({ label, value, icon, type, showPlus = false }) {
 
 
 function TopHud({ resources, population, stage }) {
+  const t = useSettlementText();
+  const { language } = useAppI18n();
+  const ru = language === 'ru';
+  const englishResources = { population: 'Residents', food: 'Food', wood: 'Wood', stone: 'Stone', gold: 'Gold', gems: 'Gems' };
   const morale = Math.round(resources.morale ?? 0);
   const resourceValues = {
     ...resources,
@@ -1665,20 +1732,20 @@ function TopHud({ resources, population, stage }) {
       <div className="profile-card profile-card-final" style={frameStyle(UI_ASSETS.profile)}>
         <div className="profile-avatar-wrap" style={frameStyle(UI_ASSETS.profileAvatarFrame)}>
           <AssetIcon src={ICONS.shield} alt="" className="profile-avatar" size={34} />
-          <b className="profile-level-badge" style={frameStyle(UI_ASSETS.profileLevelBadge)}>{SETTLEMENT_PROFILE.mayorLevel}</b>
+          <b className="profile-level-badge" style={frameStyle(UI_ASSETS.profileLevelBadge)}>{t(SETTLEMENT_PROFILE.mayorLevel)}</b>
         </div>
         <div className="profile-meta">
           <div className="profile-head">
-            <span className="profile-name">{SETTLEMENT_PROFILE.mayorName}</span>
-            <strong className="profile-level">Уровень {SETTLEMENT_PROFILE.mayorLevel}</strong>
+            <span className="profile-name">{t(ru ? SETTLEMENT_PROFILE.mayorName : 'Mayor Alexander')}</span>
+            <strong className="profile-level">{t(ru ? 'Уровень' : 'Level')} {t(SETTLEMENT_PROFILE.mayorLevel)}</strong>
           </div>
-          <ProgressBar value={morale} max={100} fill="green" label={`Мораль ${morale}%`} className="profile-progress" />
+          <ProgressBar value={morale} max={100} fill="green" label={t(`${ru ? 'Мораль' : 'Morale'} ${morale}%`)} className="profile-progress" />
         </div>
       </div>
 
       <div className="settlement-title settlement-title-final" style={frameStyle(UI_ASSETS.settlementPlaque)}>
-        <span>Поселение · {stage.title}</span>
-        <strong>{SETTLEMENT_PROFILE.name}</strong>
+        <span>{t(ru ? `Поселение · ${stage.title}` : `Settlement · ${{ village: 'Village', town: 'Town', city: 'City', capital: 'Capital' }[stage.id]}`)}</span>
+        <strong>{t(ru ? SETTLEMENT_PROFILE.name : 'Green Village')}</strong>
       </div>
 
       <div className="top-resource-zone">
@@ -1686,7 +1753,7 @@ function TopHud({ resources, population, stage }) {
           {RESOURCES.filter((resource) => TOP_HUD_RESOURCE_IDS.includes(resource.id)).map((resource) => (
             <ResourcePill
               key={resource.id}
-              label={resource.label}
+              label={t(ru ? resource.label : englishResources[resource.id])}
               value={resourceValues[resource.id] ?? 0}
               icon={resource.icon}
               type={resource.id}
@@ -1715,6 +1782,7 @@ function DockButton({
   shortLabel = null,
   frameOverride = null
 }) {
+  const t = useSettlementText();
   const frame = frameOverride ?? (variant === 'bottom'
     ? active
       ? UI_ASSETS.bottomButtonActive
@@ -1727,8 +1795,8 @@ function DockButton({
     <button
       className={`dock-button tooltip-control ${active ? 'active' : ''} ${hideLabel ? 'icon-only' : ''} ${pulse ? 'has-pulse' : ''} ${className}`.trim()}
       onClick={onClick}
-      aria-label={label}
-      data-tooltip={label}
+      aria-label={t(label)}
+      data-tooltip={t(label)}
       style={frameStyle(frame)}
       type="button"
     >
@@ -1736,11 +1804,11 @@ function DockButton({
       {icon ? <AssetIcon src={icon} alt="" className="dock-icon" size={iconSize} /> : null}
       {!hideLabel ? (
         <span className="dock-label">
-          <span className="dock-label-full">{label}</span>
-          <span className="dock-label-short">{shortLabel ?? label}</span>
+          <span className="dock-label-full">{t(label)}</span>
+          <span className="dock-label-short">{t(shortLabel ?? label)}</span>
         </span>
       ) : null}
-      {badge ? <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>{badge}</b> : null}
+      {badge ? <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>{t(badge)}</b> : null}
     </button>
   );
 }
@@ -1748,13 +1816,27 @@ function DockButton({
 
 
 function LeftDock({ activePanel, setPanel }) {
+  const t = useSettlementText();
+  const { resolvedLayout } = useHudLayout();
+  const regions = resolvedLayout?.regions ?? {};
+  const rightPanelOpen = useSettlementStore(s => s.rightPanelOpen);
+  const compact = regions.settlementCompactDetail;
+  // Bound the scrollable menu by the same registered surfaces as the map.
+  const bottom = !rightPanelOpen && compact?.alignment !== 'right'
+    ? (compact?.offset ?? 0) + (compact?.thickness ?? 0) + 8
+    : regions.settlementBottomNav?.reserve ?? 0;
+  const dockStyle = {
+    ...frameStyle(UI_ASSETS.leftDock),
+    '--settlement-menu-top': `${(regions.settlementTopHud?.offset ?? 0) + (regions.settlementTopHud?.reserve ?? 0)}px`,
+    '--settlement-menu-bottom': `${bottom}px`,
+  };
   return (
-    <HudEditableRegion id="settlementLeftDock" as="aside" applyLayout={false} className="left-dock" style={frameStyle(UI_ASSETS.leftDock)}>
-      <DockButton active={activePanel === 'goals'} icon={ICONS.quest} label="Цели" badge="3" onClick={() => setPanel('goals')} iconSize={28} hideLabel pulse />
-      <DockButton active={activePanel === 'inbox'} icon={ICONS.inbox} label="Вести" badge="2" onClick={() => setPanel('inbox')} iconSize={28} hideLabel />
-      <DockButton active={activePanel === 'construction'} icon={ICONS.build} label="Строить" onClick={() => setPanel('construction')} iconSize={28} hideLabel />
-      <DockButton active={activePanel === 'map'} icon={ICONS.map} label="Карта" onClick={() => setPanel('map')} iconSize={28} hideLabel />
-      <DockButton active={activePanel === 'rank'} icon={ICONS.rank} label="Ранг" onClick={() => setPanel('rank')} iconSize={28} hideLabel />
+    <HudEditableRegion id="settlementLeftDock" as="aside" applyLayout={false} className="left-dock" style={dockStyle}>
+      <DockButton active={activePanel === 'goals'} icon={ICONS.quest} label={t("Цели")} badge="3" onClick={() => setPanel('goals')} iconSize={28} hideLabel pulse />
+      <DockButton active={activePanel === 'inbox'} icon={ICONS.inbox} label={t("Вести")} badge="2" onClick={() => setPanel('inbox')} iconSize={28} hideLabel />
+      <DockButton active={activePanel === 'council'} icon={ICONS.research} label={t("Совет")} onClick={() => setPanel('council')} iconSize={28} hideLabel />
+      <DockButton active={activePanel === 'map'} icon={ICONS.map} label={t("Карта")} onClick={() => setPanel('map')} iconSize={28} hideLabel />
+      <DockButton active={activePanel === 'rank'} icon={ICONS.rank} label={t("Ранг")} onClick={() => setPanel('rank')} iconSize={28} hideLabel />
     </HudEditableRegion>
   );
 }
@@ -1762,117 +1844,51 @@ function LeftDock({ activePanel, setPanel }) {
 
 
 function BottomNav({ activePanel, setPanel, collect }) {
+  const t = useSettlementText();
+  const ready = useSettlementStore((s) => s.settlementCycle.ready);
   const buildFamilyActive = activePanel === 'construction' || activePanel === 'build';
   const showGoalsSlot = activePanel === 'goals';
   return (
     <HudEditableRegion id="settlementBottomNav" as="nav" applyLayout={false} className="bottom-nav" style={frameStyle(UI_ASSETS.bottomFrame)}>
-      <DockButton active={activePanel === 'store'} icon={ICONS.store} label="Магазин" onClick={() => setPanel('store')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
-      <DockButton active={activePanel === 'inventory'} icon={ICONS.inventory} label="Инвентарь" onClick={() => setPanel('inventory')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
+      <DockButton active={activePanel === 'store'} icon={ICONS.store} label={t("Магазин")} onClick={() => setPanel('store')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
+      <DockButton active={activePanel === 'inventory'} icon={ICONS.inventory} label={t("Инвентарь")} onClick={() => setPanel('inventory')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
       <HudEditableRegion
         id="settlementPrimaryBuildAsset"
         as="button"
         className={`primary-build tooltip-control ${buildFamilyActive ? 'active' : ''}`}
         onClick={() => setPanel('construction')}
         style={frameStyle(buildFamilyActive ? UI_ASSETS.primaryBuildButtonActive : UI_ASSETS.primaryBuildButton)}
-        aria-label="Строить"
-        data-tooltip="Строить"
+        aria-label={t("Строить")}
+        data-tooltip={t("Строить")}
         type="button"
       >
         <AssetIcon src={ICONS.buildLarge} alt="" size={34} />
       </HudEditableRegion>
-      <DockButton active={activePanel === 'research'} icon={ICONS.research} label="Исследования" shortLabel="Наука" onClick={() => setPanel('research')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
-      <DockButton active={activePanel === 'world'} icon={ICONS.world} label="Карта мира" shortLabel="Карта" onClick={() => setPanel('world')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel frameOverride={activePanel === 'world' ? UI_ASSETS.bottomWorldButtonActive : UI_ASSETS.bottomWorldButton} />
+      <DockButton active={activePanel === 'research'} icon={ICONS.research} label={t("Исследования")} shortLabel={t("Наука")} onClick={() => setPanel('research')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
+      <DockButton active={activePanel === 'world'} icon={ICONS.world} label={t("Карта мира")} shortLabel={t("Карта")} onClick={() => setPanel('world')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel frameOverride={activePanel === 'world' ? UI_ASSETS.bottomWorldButtonActive : UI_ASSETS.bottomWorldButton} />
       {showGoalsSlot ? (
-        <DockButton active icon={ICONS.rank} label="Цели" onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
+        <DockButton active icon={ICONS.rank} label={t("Цели")} onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
       ) : (
-        <HudEditableRegion id="settlementCollectAsset" as="button" className="collect-button tooltip-control" onClick={collect} aria-label="Собрать" data-tooltip="Собрать" type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
+        <HudEditableRegion id="settlementCollectAsset" as="button" className="collect-button tooltip-control" onClick={collect} disabled={!ready} aria-label={t("Собрать")} data-tooltip={t("Собрать")} type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
           <AssetIcon src={ICONS.starterPack} alt="" size={24} />
-          <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>4</b>
+          {ready > 0 ? <b className="red-badge" style={frameStyle(UI_ASSETS.badge)}>{t(ready)}</b> : null}
         </HudEditableRegion>
       )}
     </HudEditableRegion>
   );
 }
 
-function SettlementCompactDetail() {
-  const rightPanelOpen = useSettlementStore((s) => s.rightPanelOpen);
-  const selectedBuildingId = useSettlementStore((s) => s.selectedBuildingId);
-  const levels = useSettlementStore((s) => s.levels);
-  const resources = useSettlementStore((s) => s.resources);
-  const constructedBuildings = useSettlementStore((s) => s.constructedBuildings);
-  const selectBuilding = useSettlementStore((s) => s.selectBuilding);
-
-  const constructedSlotId = slotIdFromConstructedBuildingId(selectedBuildingId);
-  const constructedSelected = getConstructedBuildingView(constructedBuildings?.[constructedSlotId]);
-  const building = BUILDINGS.find((item) => item.id === selectedBuildingId) ?? constructedSelected ?? BUILDINGS[0];
-  const level = building.isConstructed ? building.level : levels[building.id] ?? building.level ?? 1;
-  const production = building.detail?.productionPerMinute ?? building.produces ?? {};
-  const productionEntry = Object.entries(production).find(([, value]) => Math.abs(Number(value) || 0) > 0);
-  const [productionType, productionValue] = productionEntry ?? ['prestige', 0];
-  const cost = building.isConstructed ? {} : upgradeCost(building, level);
-  const costEntries = Object.entries(cost).slice(0, 2);
-  const isMax = level >= building.max;
-  const affordable = !building.isConstructed && !isMax && canPay(resources, cost);
-  const art = building.isConstructed ? constructionItemAsset(building.constructionItem) : buildingAsset(building.id, level);
-
-  if (rightPanelOpen) return null;
-
-  const openDetail = () => {
-    selectBuilding(building.id);
-  };
-
-  return (
-    <HudEditableRegion
-      id="settlementCompactDetail"
-      as="section"
-      applyLayout={false}
-      className="settlement-compact-detail"
-      style={frameStyle(UI_ASSETS.smallPanel)}
-      aria-label={`Выбранное здание: ${building.name}`}
-    >
-      <div className="settlement-compact-detail-art" style={frameStyle(UI_ASSETS.buildingHeaderIconSlot)}>
-        <img src={art} alt="" draggable={false} />
-      </div>
-      <div className="settlement-compact-detail-copy">
-        <span>{CATEGORY_LABELS[building.category] ?? building.category}</span>
-        <strong>{building.name}</strong>
-        <p>{building.description}</p>
-        <div className="settlement-compact-detail-meta">
-          <b>Ур. {level}</b>
-          <span>
-            <ResourceIcon type={productionType} size={15} />
-            {productionValue ? `${formatNumber(productionValue * 60)} / ч` : 'Обзор'}
-          </span>
-          {costEntries.map(([type, value]) => (
-            <span key={type}>
-              <ResourceIcon type={type} size={15} />
-              {formatNumber(value)}
-            </span>
-          ))}
-        </div>
-      </div>
-      <button
-        type="button"
-        className={`settlement-compact-detail-open ${affordable ? 'ready' : ''}`}
-        style={frameStyle(affordable ? UI_ASSETS.buildingUpgradeIdle : UI_ASSETS.primaryBuildButton)}
-        onClick={openDetail}
-        aria-label={`Открыть здание ${building.name}`}
-      >
-        {isMax ? 'Открыть' : 'Улучшить'}
-      </button>
-    </HudEditableRegion>
-  );
-}
-
 function OverviewPanel({ resources, levels, population, stage, setPanel, constructedBuildings }) {
+  const t = useSettlementText();
+  const development = useSettlementStore((s) => s.settlementCycle.development);
   const passiveRows = useMemo(() => {
-    const production = productionFrom(levels, constructedBuildings);
-    return ['food', 'wood', 'stone', 'goods', 'culture', 'gold'].map((key) => ({
+    const production = batchYield(productionFrom(levels, constructedBuildings), development);
+    return ['food', 'wood', 'stone', 'goods', 'culture'].map((key) => ({
       id: key,
       label: resourceLabel(key),
-      value: Math.max(0, Math.round((production[key] ?? 0) * 60))
+      value: production[key] ?? 0
     }));
-  }, [levels, constructedBuildings]);
+  }, [levels, constructedBuildings, development]);
   const morale = Math.round(resources.morale ?? 0);
   const hallLevel = levels['hearth-hall'] ?? 1;
   const cottageProgress = Math.max(0, (levels['cottage-ring'] ?? 1) - 1);
@@ -1902,60 +1918,57 @@ function OverviewPanel({ resources, levels, population, stage, setPanel, constru
       <HudFrame className="overview-intro-card" frame={UI_ASSETS.overviewIntroCard}>
         <AssetIcon src={ICONS.shield} alt="" size={38} />
         <div>
-          <strong>Наша деревня растёт и процветает!</strong>
-          <span>Жители трудятся, ресурсы поступают, а будущее становится светлее с каждым днём.</span>
+          <strong>{t("Развитие поселения")}</strong>
+          <span>{t("Собирайте партии, доставляйте заказы и развивайте поселение.")}</span>
         </div>
       </HudFrame>
 
       <section className="overview-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
-        <h3>Пассивный доход</h3>
+        <h3>{t("Выпуск партии · каждые 20 с")}</h3>
         <div className="overview-income-grid">
           {passiveRows.map((row) => (
             <div key={row.id} className="overview-income-row">
               <ResourceIcon type={row.id} size={18} />
-              <span>{row.label}</span>
-              <strong>+{row.value}/ч</strong>
+              <span>{t(row.label)}</span>
+              <strong>+{t(row.value)}</strong>
             </div>
           ))}
         </div>
       </section>
 
       <section className="overview-section overview-morale-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
-        <h3>Мораль жителей</h3>
+        <h3>{t("Мораль жителей")}</h3>
         <div className="overview-morale-row">
           <ResourceIcon type="morale" size={36} />
-          <strong>{morale}%</strong>
+          <strong>{t(morale)}%</strong>
           <div>
-            <span>Счастливые жители работают эффективнее и создают больше!</span>
             <ProgressBar value={morale} max={100} fill="green" label="" />
           </div>
-          <button type="button" onClick={() => setPanel('council')}>Подробнее</button>
+          <button type="button" onClick={() => setPanel('council')}>{t("Подробнее")}</button>
         </div>
       </section>
 
       <section className="overview-section overview-goals-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
-        <h3>Текущие цели</h3>
+        <h3>{t("Текущие цели")}</h3>
         <div className="overview-goal-list">
           {goals.map((goal) => (
             <div key={goal.id} className="overview-goal-row" style={frameStyle(UI_ASSETS.overviewGoalRow)}>
               <AssetIcon src={goal.icon} alt="" size={22} />
               <div>
-                <span>{goal.title}</span>
-                <ProgressBar value={goal.value} max={goal.max} fill="green" label={`${goal.value} / ${goal.max}`} />
+                <span>{t(goal.title)}</span>
+                <ProgressBar value={goal.value} max={goal.max} fill="green" label={t(`${goal.value} / ${goal.max}`)} />
               </div>
               <RewardBadge type={goal.rewardType} amount={goal.reward} />
             </div>
           ))}
         </div>
-        <button className="overview-all-goals-button" type="button" onClick={() => setPanel('goals')}>
-          Все цели
-        </button>
+        <button className="overview-all-goals-button" type="button" onClick={() => setPanel('goals')}>{t("Все цели")}</button>
       </section>
 
       <div className="overview-stage-note">
         <ResourceIcon type="prestige" size={16} />
-        <span>{stage.title} · Очажный зал {hallLevel} ур.</span>
-        <strong>{formatNumber(stage.computedPrestige)}</strong>
+        <span>{t(stage.title)}{t(" · Очажный зал ")}{t(hallLevel)}{t(" ур.")}</span>
+        <strong>{t(formatNumber(stage.computedPrestige))}</strong>
       </div>
     </div>
   );
@@ -1963,11 +1976,15 @@ function OverviewPanel({ resources, levels, population, stage, setPanel, constru
 
 
 function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, onDemolish }) {
+  const t = useSettlementText();
   const detail = building.detail ?? {};
   const cost = upgradeCost(building, level);
   const affordable = canPay(resources, cost);
-  const progress = detail.levelProgress ?? { current: level, max: building.max };
-  const prod = detail.productionPerMinute ?? building.produces ?? {};
+  const progress = { current: level, max: building.max };
+  const levels = useSettlementStore(s => s.levels);
+  const constructedBuildings = useSettlementStore(s => s.constructedBuildings);
+  const development = useSettlementStore(s => s.settlementCycle.development);
+  const prod = batchYield(productionFrom(levels, constructedBuildings), development);
   const nextLevel = Math.min(building.max, level + 1);
   const isMax = level >= building.max;
   const isConstructed = Boolean(building.isConstructed);
@@ -1984,37 +2001,37 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
 
   return (
     <div className="building-screen">
-      <p className="building-description" style={frameStyle(UI_ASSETS.buildingDescription)}>{detail.body ?? building.description}</p>
+      <p className="building-description" style={frameStyle(UI_ASSETS.buildingDescription)}>{t(detail.body ?? building.description)}</p>
 
       <div className="building-level-row" style={frameStyle(UI_ASSETS.buildingLevelRow)}>
-        <span>Уровень {level}</span>
+        <span>{t("Уровень ")}{t(level)}</span>
         <ProgressBar
           value={progress.current}
           max={progress.max}
           fill="green"
-          label={`${formatNumber(progress.current)} / ${formatNumber(progress.max)}`}
+          label={t(`${formatNumber(progress.current)} / ${formatNumber(progress.max)}`)}
           className="building-level-progress"
         />
-        <span>{isMax ? 'Максимум' : `Уровень ${nextLevel}`}</span>
+        <span>{t(isMax ? 'Максимум' : `Уровень ${nextLevel}`)}</span>
       </div>
 
       <div className="building-data-grid">
         <section className="building-data-card" style={frameStyle(UI_ASSETS.buildingStatsCard)}>
           <div className="building-card-title">
-            <span>Производство в минуту</span>
+            <span>{t("Выпуск поселения")}</span>
           </div>
           <div className="building-stat-list">
             {productionRows.length ? productionRows.map(([key, value]) => (
               <div key={key} className="building-stat-row" style={frameStyle(UI_ASSETS.buildingStatRow)}>
                 <ResourceIcon type={key} size={16} />
-                <span>{resourceLabel(key)}</span>
-                <strong>{formatSignedPerMinute(value)}</strong>
+                <span>{t(resourceLabel(key))}</span>
+                <strong>+{t(formatNumber(value))}</strong>
               </div>
             )) : (
               <div className="building-stat-row muted" style={frameStyle(UI_ASSETS.buildingStatRow)}>
                 <ResourceIcon type="prestige" size={16} />
-                <span>Эффект</span>
-                <strong>Пассивный</strong>
+                <span>{t("Эффект")}</span>
+                <strong>{t("Пассивный")}</strong>
               </div>
             )}
           </div>
@@ -2022,22 +2039,22 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
 
         <section className="building-data-card" style={frameStyle(UI_ASSETS.buildingStatsCard)}>
           <div className="building-card-title">
-            <span>Стоимость улучшения</span>
+            <span>{t("Стоимость улучшения")}</span>
           </div>
           <div className="building-stat-list">
             {isMax ? (
               <div className="building-stat-row complete" style={frameStyle(UI_ASSETS.buildingStatRow)}>
                 <ResourceIcon type="prestige" size={16} />
-                <span>Статус</span>
-                <strong>Максимум</strong>
+                <span>{t("Статус")}</span>
+                <strong>{t("Максимум")}</strong>
               </div>
             ) : costRows.map(([key, value]) => {
               const hasEnough = (resources[key] ?? 0) >= value;
               return (
                 <div key={key} className={`building-stat-row ${hasEnough ? 'ok' : 'need'}`} style={frameStyle(UI_ASSETS.buildingStatRow)}>
                   <ResourceIcon type={key} size={16} />
-                  <span>{resourceLabel(key)}</span>
-                  <strong>{formatNumber(resources[key] ?? 0)} / {formatNumber(value)}</strong>
+                  <span>{t(resourceLabel(key))}</span>
+                  <strong>{t(formatNumber(resources[key] ?? 0))} / {t(formatNumber(value))}</strong>
                 </div>
               );
             })}
@@ -2054,26 +2071,26 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
             type="button"
           >
             <AssetIcon src={ICONS.build} alt="" size={18} />
-            <span>Снести постройку и освободить площадку</span>
+            <span>{t("Снести постройку и освободить площадку")}</span>
             <b>×</b>
           </button>
         ) : (
           <button
             className={`building-upgrade-button ${affordable && !isMax ? 'ready' : ''} ${isUpgrading ? 'in-progress' : ''}`}
             style={frameStyle(upgradeFrame)}
-            disabled={!affordable || isMax || isUpgrading}
+            disabled={!affordable || isMax || Boolean(activeUpgrade)}
             onClick={() => onUpgrade(building.id)}
             type="button"
           >
             <AssetIcon src={ICONS.build} alt="" size={18} />
-            <span>{isMax ? 'Здание улучшено полностью' : affordable ? 'Улучшить здание' : 'Недостаточно ресурсов'}</span>
+            <span>{t(isMax ? 'Здание улучшено полностью' : activeUpgrade ? 'Улучшение уже выполняется' : affordable ? 'Улучшить здание' : 'Недостаточно ресурсов')}</span>
             {!isMax ? <b>↑</b> : null}
           </button>
         )}
         {!isMax && !isConstructed ? (
           <div className="building-upgrade-timer" style={frameStyle(UI_ASSETS.buildingTimerPill)}>
             <span>◷</span>
-            <strong>{formatDurationMs(remainingMs)}</strong>
+            <strong>{t(formatDurationMs(remainingMs))}</strong>
           </div>
         ) : null}
       </div>
@@ -2082,19 +2099,19 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
 }
 
 function BuildingBenefitFooter({ building }) {
-  const benefits = building.detail?.benefits ?? {};
-  const passiveGold = benefits.passiveGoldPerMinute ?? 0;
-  const morale = benefits.morale ?? 0;
+  const t = useSettlementText();
+  const development = useSettlementStore(s => s.settlementCycle.development);
+  const morale = useSettlementStore(s => s.resources.morale);
 
   return (
     <div className="panel-footer panel-footer-fancy building-footer-fancy">
       <div className="building-benefit-card" style={frameStyle(UI_ASSETS.buildingFooterCard)}>
-        <span>Пассивный доход</span>
-        <strong><ResourceIcon type="gold" size={18} /> +{formatNumber(passiveGold)}/мин</strong>
+        <span>{t("Бонус выпуска")}</span>
+        <strong><ResourceIcon type="food" size={18} /> +{t(development * 20)}%</strong>
       </div>
       <div className="building-benefit-card" style={frameStyle(UI_ASSETS.buildingFooterCard)}>
-        <span>Мораль</span>
-        <strong><ResourceIcon type="morale" size={18} /> +{formatNumber(morale)}</strong>
+        <span>{t("Мораль")}</span>
+        <strong><ResourceIcon type="morale" size={18} /> {t(formatNumber(morale))}%</strong>
       </div>
     </div>
   );
@@ -2103,6 +2120,7 @@ function BuildingBenefitFooter({ building }) {
 
 
 function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
+  const t = useSettlementText();
   const claimed = new Set(claimedGoalRewardIds);
   const longTermGoals = GOAL_PANEL_DATA.longTermGoals;
   const dailyTasks = GOAL_PANEL_DATA.dailyTasks.map((task) => ({
@@ -2119,19 +2137,19 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
       <HudFrame className="goals-summary-card goals-summary-card-v2" frame={UI_ASSETS.goalsSummaryCard}>
         <div className="goals-summary-icon" style={frameStyle(UI_ASSETS.goalsIconSlot)}><AssetIcon src={ICONS.quest} alt="" size={30} /></div>
         <div className="goals-summary-copy">
-          <span>Цели поселения</span>
-          <strong>{readyCount} награды готовы к сбору</strong>
-          <ProgressBar value={readyCount} max={Math.max(1, GOAL_PANEL_DATA.dailyTasks.length)} fill="green" label={`${readyCount} / ${GOAL_PANEL_DATA.dailyTasks.length}`} className="goals-summary-progress" />
+          <span>{t("Цели поселения")}</span>
+          <strong>{t(readyCount)}{t(" награды готовы к сбору")}</strong>
+          <ProgressBar value={readyCount} max={Math.max(1, GOAL_PANEL_DATA.dailyTasks.length)} fill="green" label={t(`${readyCount} / ${GOAL_PANEL_DATA.dailyTasks.length}`)} className="goals-summary-progress" />
         </div>
         <div className="goals-summary-reward" style={frameStyle(UI_ASSETS.goalsClaimCountBadge)}>
           <ResourceIcon type="prestige" size={15} />
-          <b>{readyCount}</b>
+          <b>{t(readyCount)}</b>
         </div>
       </HudFrame>
 
       <div className="goals-section-head">
-        <span>Долгосрочные цели</span>
-        <b>{longTermGoals.length} задачи</b>
+        <span>{t("Долгосрочные цели")}</span>
+        <b>{t(longTermGoals.length)}{t(" задачи")}</b>
       </div>
       <div className="goal-card-list goals-longterm-list">
         {longTermGoals.map((goal) => (
@@ -2140,17 +2158,17 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
               <GoalIcon icon={goal.icon} />
             </div>
             <div className="goal-card-copy">
-              <strong>{goal.title}</strong>
-              <span>{goal.description}</span>
+              <strong>{t(goal.title)}</strong>
+              <span>{t(goal.description)}</span>
               <ProgressBar
                 value={goal.progress.current}
                 max={goal.progress.max}
                 fill="green"
-                label={`${formatNumber(goal.progress.current)} / ${formatNumber(goal.progress.max)}`}
+                label={t(`${formatNumber(goal.progress.current)} / ${formatNumber(goal.progress.max)}`)}
               />
             </div>
             <div className="goal-card-reward">
-              <span>Награда</span>
+              <span>{t("Награда")}</span>
               <RewardBadge type={goal.reward.type} amount={goal.reward.amount} frame={UI_ASSETS.goalsRewardBadge} />
             </div>
           </HudFrame>
@@ -2158,8 +2176,8 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
       </div>
 
       <div className="goals-section-head">
-        <span>Ежедневные задачи</span>
-        <b>Обновление через: {GOAL_PANEL_DATA.dailyRefreshLabel}</b>
+        <span>{t("Ежедневные задачи")}</span>
+        <b>{t("Обновление через: ")}{t(GOAL_PANEL_DATA.dailyRefreshLabel)}</b>
       </div>
       <div className="daily-task-list daily-task-list-v2">
         {dailyTasks.map((task) => (
@@ -2168,12 +2186,12 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
               <GoalIcon icon={task.icon} size={20} />
             </div>
             <div className="daily-task-copy">
-              <strong>{task.title}</strong>
-              <span>{task.description}</span>
-              <ProgressBar value={task.progress.current} max={task.progress.max} fill="green" label={task.rewardLabel} />
+              <strong>{t(task.title)}</strong>
+              <span>{t(task.description)}</span>
+              <ProgressBar value={task.progress.current} max={task.progress.max} fill="green" label={t(task.rewardLabel)} />
             </div>
             <div className="daily-task-reward">
-              <span>Награда</span>
+              <span>{t("Награда")}</span>
               <RewardBadge type={task.reward.type} amount={task.reward.amount} frame={UI_ASSETS.goalsRewardBadge} />
             </div>
           </HudFrame>
@@ -2182,14 +2200,15 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
 
       <button className={`goals-claim-button ${readyCount > 0 ? 'ready' : ''}`} type="button" onClick={onClaimRewards} disabled={!readyCount} style={frameStyle(readyCount > 0 ? UI_ASSETS.goalsClaimButtonIdle : UI_ASSETS.goalsClaimButtonDisabled)}>
         <AssetIcon src={ICONS.gift} alt="" size={18} />
-        <span>Забрать награды</span>
-        <b style={frameStyle(UI_ASSETS.goalsClaimCountBadge)}>{readyCount}</b>
+        <span>{t("Забрать награды")}</span>
+        <b style={frameStyle(UI_ASSETS.goalsClaimCountBadge)}>{t(readyCount)}</b>
       </button>
     </div>
   );
 }
 
 function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocusResource, onAdjustCap, onBoostCap }) {
+  const t = useSettlementText();
   const resourceRows = INVENTORY_PANEL_DATA.resourceRows;
   const selectedResource = resourceRows.find((row) => row.id === selectedResourceId) ?? resourceRows[0];
   const totalStored = resourceRows.reduce((sum, row) => sum + (resources[row.id] ?? 0), 0);
@@ -2202,8 +2221,8 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
   return (
     <div className="inventory-screen inventory-screen-v2">
       <div className="inventory-section-head inventory-section-head-v2">
-        <span>Ресурсы</span>
-        <b>{formatNumber(totalStored)} / {formatNumber(totalCap)}</b>
+        <span>{t("Ресурсы")}</span>
+        <b>{t(formatNumber(totalStored))} / {t(formatNumber(totalCap))}</b>
       </div>
 
       <HudFrame className="inventory-selected-summary-v2" frame={UI_ASSETS.inventorySummaryCard}>
@@ -2211,15 +2230,15 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
           <ResourceIcon type={selectedResource.id} size={26} />
         </span>
         <div className="inventory-selected-copy-v2">
-          <span>Выбранный ресурс</span>
-          <strong>{selectedResource.label}</strong>
-          <div className="inventory-capacity-bar-v2" aria-label={`${selectedResource.label}: ${formatNumber(selectedValue)} из ${formatNumber(selectedCap)}`}>
+          <span>{t("Выбранный ресурс")}</span>
+          <strong>{t(selectedResource.label)}</strong>
+          <div className="inventory-capacity-bar-v2" aria-label={t(`${selectedResource.label}: ${formatNumber(selectedValue)} из ${formatNumber(selectedCap)}`)}>
             <i style={{ width: `${selectedFill}%` }} />
           </div>
         </div>
         <div className="inventory-selected-values-v2">
-          <b>{formatNumber(selectedValue)}</b>
-          <span>из {formatNumber(selectedCap)}</span>
+          <b>{t(formatNumber(selectedValue))}</b>
+          <span>{t("из ")}{t(formatNumber(selectedCap))}</span>
         </div>
       </HudFrame>
 
@@ -2253,42 +2272,43 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
                 <ResourceIcon type={row.id} size={22} />
               </span>
               <div className="inventory-resource-copy inventory-resource-copy-v2">
-                <strong>{row.label}</strong>
-                <span>{formatNumber(value)} / {formatNumber(cap)}</span>
+                <strong>{t(row.label)}</strong>
+                <span>{t(formatNumber(value))} / {t(formatNumber(cap))}</span>
               </div>
               <div className={`inventory-row-controls ${isSelected ? 'selected-controls' : 'compact-controls'}`}>
                 {isSelected ? (
                   <>
-                    <button type="button" className="inventory-row-control" style={frameStyle(cap <= row.minCap ? UI_ASSETS.inventoryMinusDisabled : UI_ASSETS.inventoryMinusIdle)} onClick={() => onAdjustCap(row.id, -row.step)} disabled={cap <= row.minCap} aria-label={`Уменьшить вместимость: ${row.label}`}>−</button>
-                    <button type="button" className="inventory-row-control" style={frameStyle(cap >= row.maxCap ? UI_ASSETS.inventoryPlusDisabled : UI_ASSETS.inventoryPlusIdle)} onClick={() => onAdjustCap(row.id, row.step)} disabled={cap >= row.maxCap} aria-label={`Увеличить вместимость: ${row.label}`}>+</button>
+                    <button type="button" className="inventory-row-control" style={frameStyle(cap <= row.minCap ? UI_ASSETS.inventoryMinusDisabled : UI_ASSETS.inventoryMinusIdle)} onClick={() => onAdjustCap(row.id, -row.step)} disabled={cap <= row.minCap} aria-label={t(`Уменьшить вместимость: ${row.label}`)}>−</button>
+                    <button type="button" className="inventory-row-control" style={frameStyle(cap >= row.maxCap ? UI_ASSETS.inventoryPlusDisabled : UI_ASSETS.inventoryPlusIdle)} onClick={() => onAdjustCap(row.id, row.step)} disabled={cap >= row.maxCap} aria-label={t(`Увеличить вместимость: ${row.label}`)}>+</button>
                   </>
                 ) : null}
-                <button type="button" className="inventory-row-control next" style={frameStyle(UI_ASSETS.inventorySelectIdle)} onClick={() => onFocusResource(row.id)} aria-label={`Выбрать ресурс: ${row.label}`}>{isSelected ? 'Выбрано' : 'Выбрать'}</button>
+                <button type="button" className="inventory-row-control next" style={frameStyle(UI_ASSETS.inventorySelectIdle)} onClick={() => onFocusResource(row.id)} aria-label={t(`Выбрать ресурс: ${row.label}`)}>{t(isSelected ? 'Выбрано' : 'Выбрать')}</button>
               </div>
             </HudFrame>
           );
         })}
       </div>
 
-      <div className="inventory-section-head inventory-section-head-v2 inventory-special-head-v2">Изделия и особые предметы</div>
+      <div className="inventory-section-head inventory-section-head-v2 inventory-special-head-v2">{t("Изделия и особые предметы")}</div>
       <div className="inventory-item-grid inventory-item-grid-v2">
         {INVENTORY_PANEL_DATA.specialItems.map((item) => (
           <HudFrame key={item.id} className="inventory-item-card inventory-item-card-v2" frame={UI_ASSETS.inventoryItemCard}>
             <AssetIcon src={SPECIAL_ITEM_ICON_SOURCES[item.icon] ?? ICONS.gift} alt="" size={30} />
-            <strong style={frameStyle(UI_ASSETS.inventoryItemCountBadge)}>{item.amount}</strong>
+            <strong style={frameStyle(UI_ASSETS.inventoryItemCountBadge)}>{t(item.amount)}</strong>
           </HudFrame>
         ))}
       </div>
 
       <button className="inventory-action-button inventory-action-button-v2" type="button" onClick={() => onBoostCap(selectedResource.id)} disabled={selectedAtMax} style={frameStyle(selectedAtMax ? UI_ASSETS.inventoryManageButtonDisabled : UI_ASSETS.inventoryManageButtonIdle)}>
         <AssetIcon src={ICONS.inventory} alt="" size={18} />
-        <span>Управление складом</span>
+        <span>{t("Управление складом")}</span>
       </button>
     </div>
   );
 }
 
 function CouncilScreen({ setPanel, selectBuilding }) {
+  const t = useSettlementText();
   const stage = COUNCIL_PANEL_DATA.stage;
   const followAdvice = (recommendation) => {
     if (recommendation.action.kind === 'building') {
@@ -2302,7 +2322,7 @@ function CouncilScreen({ setPanel, selectBuilding }) {
 
   return (
     <div className="council-screen council-screen-v2">
-      <div className="council-section-head council-section-head-v2">Рекомендации совета</div>
+      <div className="council-section-head council-section-head-v2">{t("Рекомендации совета")}</div>
       <div className="council-recommendation-list">
         {COUNCIL_PANEL_DATA.recommendations.map((recommendation) => (
           <HudFrame key={recommendation.id} className="council-recommendation-card" frame={UI_ASSETS.councilRecommendationCard}>
@@ -2313,11 +2333,11 @@ function CouncilScreen({ setPanel, selectBuilding }) {
               <AssetIcon src={COUNCIL_ICON_SOURCES[recommendation.icon] ?? ICONS.achievement} alt="" size={30} />
             </div>
             <div className="council-recommendation-copy">
-              <strong>{recommendation.title}</strong>
-              <span>{recommendation.description}</span>
+              <strong>{t(recommendation.title)}</strong>
+              <span>{t(recommendation.description)}</span>
             </div>
             <button type="button" className="council-follow-button" style={frameStyle(UI_ASSETS.councilFollowButtonIdle)} onClick={() => followAdvice(recommendation)}>
-              {recommendation.action.label}
+              {t(recommendation.action.label)}
             </button>
           </HudFrame>
         ))}
@@ -2325,27 +2345,27 @@ function CouncilScreen({ setPanel, selectBuilding }) {
 
       <div className="council-bottom-grid">
         <HudFrame className="council-stage-card council-stage-card-v2" frame={UI_ASSETS.councilStageCard}>
-          <div className="council-section-head council-section-head-v2">Стадия поселения</div>
+          <div className="council-section-head council-section-head-v2">{t("Стадия поселения")}</div>
           <div className="council-stage-main">
             <span className="council-stage-badge" style={frameStyle(UI_ASSETS.councilStageBadge)}>
               <AssetIcon src={ICONS.shield} alt="" size={42} />
             </span>
             <div className="council-stage-copy">
-              <strong>{stage.title}</strong>
-              <span>{stage.phaseLabel}</span>
+              <strong>{t(stage.title)}</strong>
+              <span>{t(stage.phaseLabel)}</span>
             </div>
           </div>
-          <ProgressBar value={stage.progress.current} max={stage.progress.max} fill="green" label={`${formatNumber(stage.progress.current)} / ${formatNumber(stage.progress.max)}`} />
+          <ProgressBar value={stage.progress.current} max={stage.progress.max} fill="green" label={t(`${formatNumber(stage.progress.current)} / ${formatNumber(stage.progress.max)}`)} />
         </HudFrame>
 
         <HudFrame className="council-build-card" frame={UI_ASSETS.panel}>
-          <div className="council-section-head council-section-head-v2">Что построить дальше?</div>
+          <div className="council-section-head council-section-head-v2">{t("Что построить дальше?")}</div>
           <div className="council-build-list">
             {COUNCIL_PANEL_DATA.buildPriorities.map((priority) => (
               <button key={priority.id} type="button" className="council-build-row" style={frameStyle(priority.trend === 'up' ? UI_ASSETS.councilPriorityRowActive : UI_ASSETS.councilPriorityRowIdle)} onClick={() => priority.id === 'watchtower' ? setPanel('construction') : selectBuilding(priority.id)}>
                 <AssetIcon src={COUNCIL_ICON_SOURCES[priority.icon] ?? ICONS.build} alt="" size={26} />
-                <span><strong>{priority.title}</strong><b>{priority.priority}</b></span>
-                <i>{priority.trend === 'up' ? '▲' : '−'}</i>
+                <span><strong>{t(priority.title)}</strong><b>{t(priority.priority)}</b></span>
+                <i>{t(priority.trend === 'up' ? '▲' : '−')}</i>
               </button>
             ))}
           </div>
@@ -2354,7 +2374,7 @@ function CouncilScreen({ setPanel, selectBuilding }) {
 
       <button className="council-action-button council-action-button-v2" type="button" onClick={() => setPanel('research')} style={frameStyle(UI_ASSETS.councilOpenResearchButtonIdle)}>
         <AssetIcon src={ICONS.research} alt="" size={18} />
-        <span>Открыть исследования</span>
+        <span>{t("Открыть исследования")}</span>
       </button>
     </div>
   );
@@ -2363,6 +2383,7 @@ function CouncilScreen({ setPanel, selectBuilding }) {
 
 
 function ConstructionScreen({ resources, categoryId, page, selectedId, selectedSlotId, constructedBuildings, onCategoryChange, onPageChange, onSelectItem }) {
+  const t = useSettlementText();
   const pageSize = CONSTRUCTION_PANEL_DATA.pageSize;
   const categories = CONSTRUCTION_PANEL_DATA.categories;
   const activeCategory = categories.some((category) => category.id === categoryId) ? categoryId : categories[0]?.id;
@@ -2377,7 +2398,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
 
   return (
     <div className="construction-screen construction-screen-v2">
-      <div className="construction-category-row construction-category-row-v2" role="tablist" aria-label="Категории строительства">
+      <div className="construction-category-row construction-category-row-v2" role="tablist" aria-label={t("Категории строительства")}>
         {categories.map((category) => {
           const active = category.id === activeCategory;
           return (
@@ -2391,7 +2412,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
               onClick={() => onCategoryChange(category.id)}
             >
               <AssetIcon src={CONSTRUCTION_CATEGORY_ICONS[category.icon] ?? ICONS.build} alt="" size={30} />
-              <span>{category.label}</span>
+              <span>{t(category.label)}</span>
             </button>
           );
         })}
@@ -2400,8 +2421,8 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
       <div className={`construction-slot-status-v2 ${selectedSlotRecord ? 'occupied' : 'empty'}`} style={frameStyle(UI_ASSETS.constructionPlacementHint)}>
         <AssetIcon src={selectedSlotRecord ? ICONS.store : ICONS.map} alt="" size={18} />
         <div>
-          <strong>{selectedSlot?.label ?? 'Площадка'}</strong>
-          <span>{selectedSlotRecord ? `Занято: ${selectedSlotItem?.name ?? 'постройка'}. Тапните постройку на карте, чтобы открыть снос.` : `Свободно: выбрано место для ${selectedItem?.name ?? 'постройки'}.`}</span>
+          <strong>{t(selectedSlot?.label ?? 'Площадка')}</strong>
+          <span>{t(selectedSlotRecord ? `Занято: ${selectedSlotItem?.name ?? 'постройка'}. Тапните постройку на карте, чтобы открыть снос.` : `Свободно: выбрано место для ${selectedItem?.name ?? 'постройки'}.`)}</span>
         </div>
       </div>
 
@@ -2423,7 +2444,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
               onClick={() => onSelectItem(item.id)}
               aria-pressed={selected}
             >
-              <div className="construction-card-name">{item.name}</div>
+              <div className="construction-card-name">{t(item.name)}</div>
               <div className="construction-card-art construction-card-art-v2" style={frameStyle(UI_ASSETS.constructionCardArtGlow)}>
                 <img src={constructionItemAsset(item)} alt="" draggable={false} />
               </div>
@@ -2431,7 +2452,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
                 {Object.entries(item.cost).slice(0, 2).map(([key, value]) => (
                   <b key={key} className={(resources[key] ?? 0) >= value ? 'ok' : 'need'}>
                     <ResourceIcon type={key} size={14} />
-                    <span>{formatNumber(value)}</span>
+                    <span>{t(formatNumber(value))}</span>
                   </b>
                 ))}
               </div>
@@ -2440,16 +2461,16 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
         })}
       </div>
 
-      <div className="construction-pager" aria-label="Страницы каталога">
-        <button type="button" style={frameStyle(safePage <= 0 ? UI_ASSETS.constructionPagerDisabled : UI_ASSETS.constructionPagerIdle)} onClick={() => onPageChange(safePage - 1)} disabled={safePage <= 0} aria-label="Предыдущая страница">‹</button>
-        <strong style={frameStyle(UI_ASSETS.constructionPageIndicator)}>{safePage + 1}/{pageCount}</strong>
-        <button type="button" style={frameStyle(safePage >= pageCount - 1 ? UI_ASSETS.constructionPagerDisabled : UI_ASSETS.constructionPagerIdle)} onClick={() => onPageChange(safePage + 1)} disabled={safePage >= pageCount - 1} aria-label="Следующая страница">›</button>
+      <div className="construction-pager" aria-label={t("Страницы каталога")}>
+        <button type="button" style={frameStyle(safePage <= 0 ? UI_ASSETS.constructionPagerDisabled : UI_ASSETS.constructionPagerIdle)} onClick={() => onPageChange(safePage - 1)} disabled={safePage <= 0} aria-label={t("Предыдущая страница")}>‹</button>
+        <strong style={frameStyle(UI_ASSETS.constructionPageIndicator)}>{t(safePage + 1)}/{t(pageCount)}</strong>
+        <button type="button" style={frameStyle(safePage >= pageCount - 1 ? UI_ASSETS.constructionPagerDisabled : UI_ASSETS.constructionPagerIdle)} onClick={() => onPageChange(safePage + 1)} disabled={safePage >= pageCount - 1} aria-label={t("Следующая страница")}>›</button>
       </div>
 
       {selectedItem ? (
         <div className="construction-placement-hint construction-placement-hint-v2" style={frameStyle(UI_ASSETS.constructionPlacementHint)}>
           <AssetIcon src={ICONS.map} alt="" size={16} />
-          <span>{selectedItem.name}: тапните свободную площадку на карте, затем подтвердите зелёной кнопкой на самой площадке.</span>
+          <span>{t(selectedItem.name)}{t(": тапните свободную площадку на карте, затем подтвердите зелёной кнопкой на самой площадке.")}</span>
         </div>
       ) : null}
     </div>
@@ -2458,6 +2479,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
 
 
 function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId, researchLevels, activeResearch, onCategoryChange, onSelectNode, onStudy }) {
+  const t = useSettlementText();
   const categories = RESEARCH_PANEL_DATA.categories;
   const activeCategory = categories.some((category) => category.id === researchCategoryId) ? researchCategoryId : categories[0]?.id;
   const nodes = RESEARCH_PANEL_DATA.nodes.filter((node) => node.category === activeCategory);
@@ -2487,9 +2509,9 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
 
   return (
     <div className="research-screen research-screen-v2">
-      <p className="research-intro" style={frameStyle(UI_ASSETS.researchIntroStrip)}>Исследуйте новые технологии, развивайте поселение и открывайте уникальные возможности.</p>
+      <p className="research-intro" style={frameStyle(UI_ASSETS.researchIntroStrip)}>{t("Выберите исследование, чтобы увидеть цену и бонусы.")}</p>
 
-      <div className="research-category-row" role="tablist" aria-label="Категории исследований">
+      <div className="research-category-row" role="tablist" aria-label={t("Категории исследований")}>
         {categories.map((category) => {
           const active = category.id === activeCategory;
           return (
@@ -2502,13 +2524,13 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
               style={frameStyle(RESEARCH_CATEGORY_FRAMES[category.id]?.[active ? 'active' : 'idle'])}
               onClick={() => onCategoryChange(category.id)}
             >
-              {category.label}
+              {t(category.label)}
             </button>
           );
         })}
       </div>
 
-      <div className="research-tree-board" aria-label="Древо технологий">
+      <div className="research-tree-board" aria-label={t("Древо технологий")}>
         {nodes.map((node) => {
           const state = getResearchNodeStatus(node, researchLevels, activeResearch);
           const level = researchLevels?.[node.id] ?? node.level ?? 0;
@@ -2526,8 +2548,8 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
               onClick={() => onSelectNode(node.id)}
               aria-pressed={isSelected}
             >
-              <strong>{node.title}</strong>
-              <span>Уровень {level}/{node.maxLevel}</span>
+              <strong>{t(node.title)}</strong>
+              <span>{t("Уровень ")}{t(level)}/{t(node.maxLevel)}</span>
               <span className="research-node-icon-slot" style={frameStyle(UI_ASSETS.researchNodeIconSlot)}>
                 <AssetIcon src={nodeIcon} alt="" size={34} />
               </span>
@@ -2538,11 +2560,11 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
               ) : progress ? (
                 <div className="research-node-progress" style={frameStyle(UI_ASSETS.researchNodeProgressFrame)}>
                   <div style={{ ...frameStyle(UI_ASSETS.researchNodeProgressFill), width: `${progressPct}%` }} />
-                  <b>{progress.current}/{progress.max}</b>
+                  <b>{t(progress.current)}/{t(progress.max)}</b>
                   <ResourceIcon type={progress.type} size={11} />
                 </div>
               ) : null}
-              {state === 'locked' ? <em>{node.requiredLabel ?? 'Требования не выполнены'}</em> : null}
+              {state === 'locked' ? <em>{t(node.requiredLabel ?? 'Требования не выполнены')}</em> : null}
             </button>
           );
         })}
@@ -2551,28 +2573,28 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
       {selectedNode ? (
         <HudFrame className="research-detail-card-v2" frame={UI_ASSETS.researchDetailCard}>
           <div className="research-detail-copy">
-            <strong>{selectedNode.title}</strong>
-            <p>{selectedNode.description}</p>
+            <strong>{t(selectedNode.title)}</strong>
+            <p>{t(selectedNode.description)}</p>
           </div>
           <div className="research-detail-effects">
-            <span>Уровень {selectedLevel} → {Math.min(selectedNode.maxLevel, selectedLevel + 1)}</span>
-            {selectedNode.benefits.slice(0, 2).map((benefit) => <b key={benefit}>{benefit}</b>)}
+            <span>{t("Уровень ")}{t(selectedLevel)} → {t(Math.min(selectedNode.maxLevel, selectedLevel + 1))}</span>
+            {selectedNode.benefits.slice(0, 2).map((benefit) => <b key={benefit}>{t(benefit)}</b>)}
           </div>
         </HudFrame>
       ) : null}
 
       <div className="research-action-row">
-        <div className="research-cost-list" style={frameStyle(UI_ASSETS.researchCostRow)} aria-label="Стоимость исследования">
+        <div className="research-cost-list" style={frameStyle(UI_ASSETS.researchCostRow)} aria-label={t("Стоимость исследования")}>
           {Object.entries(selectedCost).map(([key, value]) => (
             <b key={key} className={(resources[key] ?? 0) >= value ? 'ok' : 'need'} style={frameStyle((resources[key] ?? 0) >= value ? UI_ASSETS.researchCostItemOk : UI_ASSETS.researchCostItemNeed)}>
               <ResourceIcon type={key} size={16} />
-              <span>{formatNumber(value)}</span>
+              <span>{t(formatNumber(value))}</span>
             </b>
           ))}
         </div>
         <button className="research-action-button research-action-button-v2" type="button" disabled={actionDisabled} onClick={onStudy} style={frameStyle(actionDisabled ? UI_ASSETS.researchStudyButtonDisabled : UI_ASSETS.researchStudyButtonIdle)}>
-          <span>{actionLabel}</span>
-          {selectedNode?.durationMs ? <b>⌛ {formatClockDuration(remainingMs)}</b> : null}
+          <span>{t(actionLabel)}</span>
+          {selectedNode?.durationMs ? <b>⌛ {t(formatClockDuration(remainingMs))}</b> : null}
         </button>
       </div>
     </div>
@@ -2581,6 +2603,7 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
 
 
 function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFilterChange, onSelectExpedition, onStartExpedition }) {
+  const t = useSettlementText();
   const normalizedFilterId = WORLD_MAP_PANEL_DATA.filters.some((filter) => filter.id === filterId) ? filterId : WORLD_MAP_PANEL_DATA.filters[0]?.id;
   const visibleExpeditions = normalizedFilterId === 'all'
     ? WORLD_MAP_PANEL_DATA.expeditions
@@ -2606,7 +2629,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
     <div className="world-screen world-screen-v2">
       <div className="world-map-scroll-v2">
         <HudFrame className="world-map-card world-map-card-v2" frame={UI_ASSETS.worldMapParchmentFrame}>
-          <div className="world-map-visual world-map-visual-v2" aria-label="Карта архипелага">
+          <div className="world-map-visual world-map-visual-v2" aria-label={t("Карта архипелага")}>
             <img className="world-map-base-v2" src={UI_ASSETS.worldMapBase} alt="" draggable={false} />
             <img className="world-compass" src={UI_ASSETS.worldMapCompass} alt="" draggable={false} />
             {WORLD_MAP_PANEL_DATA.mapMarkers.map((marker) => {
@@ -2627,7 +2650,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                   type="button"
                   className={`world-map-marker ${marker.tone} ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}`.trim()}
                   style={{ ...frameStyle(markerFrame), left: `${marker.x}%`, top: `${marker.y}%` }}
-                  aria-label={`${expedition?.title ?? 'Маршрут'}${locked ? ', закрыто' : ''}`}
+                  aria-label={t(`${expedition?.title ?? 'Маршрут'}${locked ? ', закрыто' : ''}`)}
                   onClick={() => onSelectExpedition(marker.expeditionId)}
                 >
                   <AssetIcon src={icon} alt="" size={22} />
@@ -2637,7 +2660,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
           </div>
         </HudFrame>
 
-        <div className="world-filter-row-v2" role="tablist" aria-label="Фильтры экспедиций">
+        <div className="world-filter-row-v2" role="tablist" aria-label={t("Фильтры экспедиций")}>
           {WORLD_MAP_PANEL_DATA.filters.map((filter) => (
             <button
               key={filter.id}
@@ -2647,15 +2670,15 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
               className={`world-filter-button-v2 ${filter.id === normalizedFilterId ? 'active' : ''}`}
               style={frameStyle(filter.id === normalizedFilterId ? UI_ASSETS.worldMapFilterActive : UI_ASSETS.worldMapFilterIdle)}
               onClick={() => onFilterChange(filter.id)}
-              aria-label={filter.label}
+              aria-label={t(filter.label)}
             >
               <AssetIcon src={WORLD_MAP_ICON_SOURCES[filter.icon] ?? ICONS.world} alt="" size={23} />
-              <span>{filter.label}</span>
+              <span>{t(filter.label)}</span>
             </button>
           ))}
         </div>
 
-        <div className="world-expedition-heading-v2">Доступные экспедиции</div>
+        <div className="world-expedition-heading-v2">{t("Доступные экспедиции")}</div>
 
         <div className="world-expedition-list-v2">
           {visibleExpeditions.map((expedition) => {
@@ -2688,19 +2711,19 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                 </div>
                 <div className="world-expedition-copy-v2">
                   <div className="world-expedition-title-row-v2">
-                    <strong>{expedition.title}</strong>
-                    <span className={`world-difficulty-badge-v2 ${expedition.difficultyTone}`} style={frameStyle(WORLD_DIFFICULTY_FRAMES[expedition.difficultyTone] ?? UI_ASSETS.worldDifficultyEasy)}>{expedition.difficulty}</span>
+                    <strong>{t(expedition.title)}</strong>
+                    <span className={`world-difficulty-badge-v2 ${expedition.difficultyTone}`} style={frameStyle(WORLD_DIFFICULTY_FRAMES[expedition.difficultyTone] ?? UI_ASSETS.worldDifficultyEasy)}>{t(expedition.difficulty)}</span>
                   </div>
-                  <p>{expedition.description}</p>
+                  <p>{t(expedition.description)}</p>
                   {locked ? (
-                    <em>{expedition.requiredLabel ?? 'Маршрут закрыт'}</em>
+                    <em>{t(expedition.requiredLabel ?? 'Маршрут закрыт')}</em>
                   ) : (
-                    <div className="world-expedition-rewards-v2" aria-label="Награды">
-                      <span>Награды:</span>
+                    <div className="world-expedition-rewards-v2" aria-label={t("Награды")}>
+                      <span>{t("Награды:")}</span>
                       {rewards.map(([key, value]) => (
                         <b key={key} style={frameStyle(UI_ASSETS.worldRewardChip)}>
                           <ResourceIcon type={key} size={16} />
-                          <span>{formatNumber(value)}</span>
+                          <span>{t(formatNumber(value))}</span>
                         </b>
                       ))}
                     </div>
@@ -2716,8 +2739,8 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                     onClick={(event) => startExpedition(event, expedition.id)}
                     style={frameStyle((busy || active) ? UI_ASSETS.worldSendButtonDisabled : UI_ASSETS.worldSendButtonIdle)}
                   >
-                    <span>{active ? 'В пути' : 'Отправить экспедицию'}</span>
-                    <b>⌛ {formatClockDuration(remainingMs)}</b>
+                    <span>{t(active ? 'В пути' : 'Отправить экспедицию')}</span>
+                    <b>⌛ {t(formatClockDuration(remainingMs))}</b>
                   </button>
                 )}
               </HudFrame>
@@ -2731,22 +2754,23 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
 
 
 function GenericPanel({ activePanel, stage, resources, population }) {
+  const t = useSettlementText();
   if (activePanel === 'inbox') {
     return (
       <div className="panel-body">
-        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.mail} alt="" size={16} /><span>Вести деревни</span></div>
+        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.mail} alt="" size={16} /><span>{t("Вести деревни")}</span></div>
         <div className="message-list">
           <HudFrame className="message-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.calendar} alt="" size={24} />
-            <div className="card-copy"><strong>Сезонный рынок</strong><span>Караван прибудет после накопления товаров.</span></div>
+            <div className="card-copy"><strong>{t("Сезонный рынок")}</strong><span>{t("Караван прибудет после накопления товаров.")}</span></div>
           </HudFrame>
           <HudFrame className="message-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.gift} alt="" size={24} />
-            <div className="card-copy"><strong>Подарок готов</strong><span>Можно забрать малый бонус ресурсов.</span></div>
+            <div className="card-copy"><strong>{t("Подарок готов")}</strong><span>{t("Можно забрать малый бонус ресурсов.")}</span></div>
           </HudFrame>
           <HudFrame className="message-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.event} alt="" size={24} />
-            <div className="card-copy"><strong>Событие деревни</strong><span>Следите за моралью и культурой.</span></div>
+            <div className="card-copy"><strong>{t("Событие деревни")}</strong><span>{t("Следите за моралью и культурой.")}</span></div>
           </HudFrame>
         </div>
       </div>
@@ -2756,14 +2780,14 @@ function GenericPanel({ activePanel, stage, resources, population }) {
   if (activePanel === 'inventory') {
     return (
       <div className="panel-body">
-        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.inventory} alt="" size={16} /><span>Инвентарь поселения</span></div>
+        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.inventory} alt="" size={16} /><span>{t("Инвентарь поселения")}</span></div>
         <div className="inventory-grid">
-          <RewardBadge type="food" amount={formatNumber(resources.food)} label="еда" />
-          <RewardBadge type="wood" amount={formatNumber(resources.wood)} label="дерево" />
-          <RewardBadge type="stone" amount={formatNumber(resources.stone)} label="камень" />
-          <RewardBadge type="goods" amount={formatNumber(resources.goods)} label="товары" />
-          <RewardBadge type="culture" amount={formatNumber(resources.culture)} label="культура" />
-          <RewardBadge type="gems" amount={formatNumber(resources.gems)} label="кристаллы" />
+          <RewardBadge type="food" amount={formatNumber(resources.food)} label={t("еда")} />
+          <RewardBadge type="wood" amount={formatNumber(resources.wood)} label={t("дерево")} />
+          <RewardBadge type="stone" amount={formatNumber(resources.stone)} label={t("камень")} />
+          <RewardBadge type="goods" amount={formatNumber(resources.goods)} label={t("товары")} />
+          <RewardBadge type="culture" amount={formatNumber(resources.culture)} label={t("культура")} />
+          <RewardBadge type="gems" amount={formatNumber(resources.gems)} label={t("кристаллы")} />
         </div>
       </div>
     );
@@ -2772,16 +2796,16 @@ function GenericPanel({ activePanel, stage, resources, population }) {
   if (activePanel === 'store') {
     return (
       <div className="panel-body">
-        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.store} alt="" size={16} /><span>Магазин и предложения</span></div>
+        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.store} alt="" size={16} /><span>{t("Магазин и предложения")}</span></div>
         <div className="offer-list">
           <HudFrame className="offer-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.starterPack} alt="" size={32} />
-            <div className="card-copy"><strong>Стартовый набор</strong><span>Сундук, золото, товары</span></div>
+            <div className="card-copy"><strong>{t("Стартовый набор")}</strong><span>{t("Сундук, золото, товары")}</span></div>
             <button type="button" className="offer-action" style={frameStyle(UI_ASSETS.iconButton)}>+</button>
           </HudFrame>
           <HudFrame className="offer-card" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.gift} alt="" size={32} />
-            <div className="card-copy"><strong>Ежедневный подарок</strong><span>Бесплатная награда</span></div>
+            <div className="card-copy"><strong>{t("Ежедневный подарок")}</strong><span>{t("Бесплатная награда")}</span></div>
             <button type="button" className="offer-action" style={frameStyle(UI_ASSETS.iconButton)}>+</button>
           </HudFrame>
         </div>
@@ -2792,19 +2816,19 @@ function GenericPanel({ activePanel, stage, resources, population }) {
   if (activePanel === 'research') {
     return (
       <div className="panel-body">
-        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.research} alt="" size={16} /><span>Совет и исследования</span></div>
+        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.research} alt="" size={16} /><span>{t("Совет и исследования")}</span></div>
         <div className="research-stack">
           <HudFrame className="research-row" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.shield} alt="" size={24} />
-            <div className="card-copy"><strong>Безопасность</strong><ProgressBar value={population} max={32} fill="green" label={`${population}/32`} /></div>
+            <div className="card-copy"><strong>{t("Безопасность")}</strong><ProgressBar value={population} max={32} fill="green" label={t(`${population}/32`)} /></div>
           </HudFrame>
           <HudFrame className="research-row" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.achievement} alt="" size={24} />
-            <div className="card-copy"><strong>Престиж</strong><ProgressBar value={stage.computedPrestige} max={1700} fill="gold" label={formatNumber(stage.computedPrestige)} /></div>
+            <div className="card-copy"><strong>{t("Престиж")}</strong><ProgressBar value={stage.computedPrestige} max={1700} fill="gold" label={t(formatNumber(stage.computedPrestige))} /></div>
           </HudFrame>
           <HudFrame className="research-row" frame={UI_ASSETS.panel}>
             <AssetIcon src={ICONS.morale} alt="" size={24} />
-            <div className="card-copy"><strong>Мораль</strong><ProgressBar value={resources.morale} max={100} fill="green" label={`${Math.round(resources.morale)}%`} /></div>
+            <div className="card-copy"><strong>{t("Мораль")}</strong><ProgressBar value={resources.morale} max={100} fill="green" label={t(`${Math.round(resources.morale)}%`)} /></div>
           </HudFrame>
         </div>
       </div>
@@ -2814,13 +2838,13 @@ function GenericPanel({ activePanel, stage, resources, population }) {
   if (activePanel === 'rank') {
     return (
       <div className="panel-body">
-        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.rank} alt="" size={16} /><span>Ранг поселения</span></div>
+        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.rank} alt="" size={16} /><span>{t("Ранг поселения")}</span></div>
         <HudFrame className="rank-card" frame={UI_ASSETS.panel}>
           <AssetIcon src={ICONS.shield} alt="" size={42} />
           <div className="card-copy">
-            <strong>{stage.title}</strong>
-            <span>Престиж: {formatNumber(stage.computedPrestige)}</span>
-            <ProgressBar value={stage.computedPrestige} max={1700} fill="gold" label="Прогресс" />
+            <strong>{t(stage.title)}</strong>
+            <span>{t("Престиж: ")}{t(formatNumber(stage.computedPrestige))}</span>
+            <ProgressBar value={stage.computedPrestige} max={1700} fill="gold" label={t("Прогресс")} />
           </div>
         </HudFrame>
       </div>
@@ -2830,16 +2854,16 @@ function GenericPanel({ activePanel, stage, resources, population }) {
   if (activePanel === 'map') {
     return (
       <div className="panel-body">
-        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.map} alt="" size={16} /><span>Карта</span></div>
-        <p>{stage.title}</p>
+        <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.map} alt="" size={16} /><span>{t("Карта")}</span></div>
+        <p>{t(stage.title)}</p>
       </div>
     );
   }
 
   return (
     <div className="panel-body">
-      <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.achievement} alt="" size={16} /><span>Поселение</span></div>
-      <p>Выберите здание или раздел меню.</p>
+      <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.achievement} alt="" size={16} /><span>{t("Поселение")}</span></div>
+      <p>{t("Выберите здание или раздел меню.")}</p>
     </div>
   );
 }
@@ -2909,6 +2933,7 @@ function RightPanelContent({ activePanel, selected, level, resources, levels, po
 
 
 function SidePanel() {
+  const t = useSettlementText();
   const activePanel = useSettlementStore((s) => s.activePanel);
   const rightPanelOpen = useSettlementStore((s) => s.rightPanelOpen);
   const selectedBuildingId = useSettlementStore((s) => s.selectedBuildingId);
@@ -2954,7 +2979,8 @@ function SidePanel() {
   const constructedSelected = getConstructedBuildingView(constructedBuildings?.[constructedSlotId]);
   const selected = BUILDINGS.find((b) => b.id === selectedBuildingId) ?? constructedSelected ?? BUILDINGS[0];
   const level = selected.isConstructed ? selected.level : levels[selected.id] ?? 1;
-  const prod = useMemo(() => productionFrom(levels, constructedBuildings), [levels, constructedBuildings]);
+  const development = useSettlementStore(s => s.settlementCycle.development);
+  const prod = useMemo(() => batchYield(productionFrom(levels, constructedBuildings), development), [levels, constructedBuildings, development]);
   const panelChrome = getRightPanelChrome({ activePanel, selected, level });
   const activeTabLabel = panelChrome.label;
   const headerEyebrow = panelChrome.eyebrow;
@@ -2993,9 +3019,9 @@ function SidePanel() {
       ? UI_ASSETS.inventoryTitleStrip
       : UI_ASSETS.panelHeaderStrip;
   const footerRows = [
-    { id: 'food', label: 'Еда', value: prod.food.toFixed(1) },
-    { id: 'wood', label: 'Дерево', value: prod.wood.toFixed(1) },
-    { id: 'gold', label: 'Золото', value: prod.gold.toFixed(1) }
+    { id: 'food', label: 'Еда', value: prod.food },
+    { id: 'wood', label: 'Дерево', value: prod.wood },
+    { id: 'stone', label: 'Камень', value: prod.stone }
   ];
   const buildingHeaderImage = isBuilding
     ? selected.isConstructed
@@ -3019,17 +3045,17 @@ function SidePanel() {
           </div>
         ) : null}
         <div className="panel-header-copy">
-          <span>{headerEyebrow}</span>
-          <strong>{headerTitle}</strong>
+          <span>{t(headerEyebrow)}</span>
+          <strong>{t(headerTitle)}</strong>
         </div>
         {!isOverview ? (
-          <button type="button" className="icon-circle panel-header-action" onClick={closePanel} style={frameStyle(UI_ASSETS.close)} aria-label="Закрыть панель">
+          <button type="button" className="icon-circle panel-header-action" onClick={closePanel} style={frameStyle(UI_ASSETS.close)} aria-label={t("Закрыть панель")}>
             <span aria-hidden="true">×</span>
           </button>
         ) : null}
       </div>
 
-      {!isOverview && !isConstruction && !isResearchTree && !isWorldMap ? <div className="panel-strip" style={frameStyle(panelStripFrame)}>{headerSubline}</div> : null}
+      {!isOverview && !isConstruction && !isResearchTree && !isWorldMap ? <div className="panel-strip" style={frameStyle(panelStripFrame)}>{t(headerSubline)}</div> : null}
 
       {!isOverview && !isConstruction && !isResearchTree && !isWorldMap ? <PanelTabs activePanel={activePanel} setPanel={setPanel} variant="fancy" /> : null}
 
@@ -3085,23 +3111,23 @@ function SidePanel() {
           {footerRows.map((row) => (
             <div key={row.id} className="fancy-footer-row">
               <ResourceIcon type={row.id} size={15} />
-              <span>{row.label}</span>
-              <strong>{row.value}</strong>
+              <span>{t(row.label)}</span>
+              <strong>{t(row.value)}</strong>
             </div>
           ))}
         </div>
         <div className="panel-footer-bottom">
           <div className="fancy-footer-box footer-summary-box">
-            <span>Пассивно / мин</span>
-            <strong>Ресурсы поселения</strong>
+            <span>{t("Выпуск партии · каждые 20 с")}</span>
+            <strong>{t("Ресурсы поселения")}</strong>
           </div>
           <div className="fancy-footer-box footer-morale-box">
-            <span>Мораль</span>
-            <div className="footer-morale-value"><ResourceIcon type="morale" size={14} /><strong>{Math.round(resources.morale)}%</strong></div>
+            <span>{t("Мораль")}</span>
+            <div className="footer-morale-value"><ResourceIcon type="morale" size={14} /><strong>{t(Math.round(resources.morale))}%</strong></div>
           </div>
           <div className="fancy-footer-box footer-panel-state-box">
-            <span>Раздел</span>
-            <strong>{activeTabLabel}</strong>
+            <span>{t("Раздел")}</span>
+            <strong>{t(activeTabLabel)}</strong>
           </div>
         </div>
       </div> : null}
@@ -3111,6 +3137,7 @@ function SidePanel() {
 
 
 function NoticeStack() {
+  const t = useSettlementText();
   const notices = useSettlementStore((s) => s.notices);
   const dismissNotice = useSettlementStore((s) => s.dismissNotice);
   const visibleNotices = useMemo(() => notices.slice(0, 3), [notices]);
@@ -3138,35 +3165,20 @@ function NoticeStack() {
           className={`notice notice-v2 ${notice.type ?? 'info'}`}
           style={{ ...frameStyle(UI_ASSETS.panel), animationDelay: `${index * 45}ms` }}
           onClick={() => dismissNotice(notice.id)}
-          aria-label="Закрыть уведомление"
+          aria-label={t("Закрыть уведомление")}
         >
           <img className="notice-pop" src={popForNotice(notice)} alt="" draggable={false} />
           <AssetIcon src={iconForNotice(notice)} alt="" size={18} />
-          <span>{notice.text}</span>
-          {(notice.count ?? 1) > 1 ? <b className="notice-count">×{notice.count}</b> : null}
+          <span>{t(notice.text)}</span>
+          {(notice.count ?? 1) > 1 ? <b className="notice-count">×{t(notice.count)}</b> : null}
         </button>
       ))}
     </HudRegion>
   );
 }
 
-function CollectionToast({ collect }) {
-  const activePanel = useSettlementStore((s) => s.activePanel);
-  if (activePanel === 'build') return null;
-
-  return (
-    <div className="collection-toast" style={frameStyle(UI_ASSETS.collectToast)} role="status" aria-live="polite">
-      <AssetIcon src={ICONS.goods} alt="" size={24} />
-      <div>
-        <strong>Товары готовы к сбору!</strong>
-        <span>Склад заполнен.</span>
-      </div>
-      <button type="button" onClick={collect}>Собрать</button>
-    </div>
-  );
-}
-
 function UpgradeToast({ activeUpgrade }) {
+  const t = useSettlementText();
   const [dismissedKey, setDismissedKey] = useState(null);
   if (!activeUpgrade) return null;
   const building = BUILDINGS.find((item) => item.id === activeUpgrade.buildingId);
@@ -3179,26 +3191,28 @@ function UpgradeToast({ activeUpgrade }) {
     <div className="upgrade-toast" style={frameStyle(UI_ASSETS.upgradeToast)} role="status" aria-live="polite">
       <AssetIcon src={ICONS.shield} alt="" size={34} />
       <div>
-        <strong>{building.name}: улучшение начато</strong>
-        <span>Завершится через {formatDurationMs(remainingMs)}.</span>
+        <strong>{t(building.name)}{t(": улучшение начато")}</strong>
+        <span>{t("Завершится через ")}{t(formatDurationMs(remainingMs))}.</span>
       </div>
-      <button type="button" onClick={() => setDismissedKey(toastKey)} aria-label="Закрыть уведомление" style={frameStyle(UI_ASSETS.toastClose)}>×</button>
+      <button type="button" onClick={() => setDismissedKey(toastKey)} aria-label={t("Закрыть уведомление")} style={frameStyle(UI_ASSETS.toastClose)}>×</button>
     </div>
   );
 }
 
 function OrientationPrompt({ activePanel, rightPanelOpen }) {
+  const t = useSettlementText();
   if (!rightPanelOpen || activePanel === 'overview') return null;
   return (
     <div className="orientation-prompt" role="status" aria-live="polite" style={frameStyle(UI_ASSETS.panel)}>
-      <strong>Поверните экран</strong>
-      <span>Для этого раздела лучше подходит горизонтальный режим.</span>
+      <strong>{t("Поверните экран")}</strong>
+      <span>{t("Для этого раздела лучше подходит горизонтальный режим.")}</span>
     </div>
   );
 }
 
 
 function RightPromoRail({ setPanel }) {
+  const t = useSettlementText();
   return (
     <aside className="right-promo-rail">
       {EVENT_CARDS.map((card) => (
@@ -3206,13 +3220,13 @@ function RightPromoRail({ setPanel }) {
           key={card.id}
           type="button"
           className="promo-button tooltip-control"
-          data-tooltip={`${card.label}: ${card.sub}`}
-          aria-label={card.label}
+          data-tooltip={t(`${card.label}: ${card.sub}`)}
+          aria-label={t(card.label)}
           onClick={() => setPanel(card.id === 'mail' ? 'inbox' : 'store')}
           style={frameStyle(UI_ASSETS.iconButton)}
         >
           <AssetIcon src={card.icon} alt="" size={28} />
-          <span>{card.sub}</span>
+          <span>{t(card.sub)}</span>
         </button>
       ))}
     </aside>
@@ -3220,6 +3234,7 @@ function RightPromoRail({ setPanel }) {
 }
 
 function DevToolsOverlay({ enabled, setEnabled, info }) {
+  const t = useSettlementText();
   const copyCoordinates = () => {
     if (!info) return;
     const payload = `x: ${info.mapX}, y: ${info.mapY}`;
@@ -3238,22 +3253,21 @@ function DevToolsOverlay({ enabled, setEnabled, info }) {
         className={`dev-toggle ${enabled ? 'active' : ''}`}
         type="button"
         onClick={() => setEnabled((value) => !value)}
-        aria-label="Включить координатную сетку разработчика"
+        aria-label={t("Включить координатную сетку разработчика")}
       >
-        DEV {enabled ? 'ON' : 'OFF'}
+        DEV {t(enabled ? 'ON' : 'OFF')}
       </button>
       {enabled ? (
-        <div className="dev-help">
-          Сетка: 100 px · жирные линии: 500 px · координаты ниже = значения для <code>gameData.js</code>
+        <div className="dev-help">{t("Сетка: 100 px · жирные линии: 500 px · координаты ниже = значения для")}<code>gameData.js</code>
         </div>
       ) : null}
       {enabled && info ? (
         <div className={`dev-cursor-readout ${info.inGround ? '' : 'outside'}`} style={readoutStyle}>
           <div className="dev-readout-title">Map / gameData coords</div>
-          <strong>x: {info.mapX}, y: {info.mapY}</strong>
-          <span>snap25: {info.snap25X}, {info.snap25Y}</span>
-          <span>world: {info.worldX}, {info.worldY}</span>
-          <span>zoom: {info.scale}</span>
+          <strong>x: {t(info.mapX)}, y: {t(info.mapY)}</strong>
+          <span>snap25: {t(info.snap25X)}, {t(info.snap25Y)}</span>
+          <span>world: {t(info.worldX)}, {t(info.worldY)}</span>
+          <span>zoom: {t(info.scale)}</span>
           <button type="button" onClick={copyCoordinates}>Copy x/y</button>
         </div>
       ) : null}
@@ -3262,6 +3276,9 @@ function DevToolsOverlay({ enabled, setEnabled, info }) {
 }
 
 export default function SettlementGame() {
+  const t = useSettlementText();
+  const hudLayout = useHudLayout();
+  const layoutRegions = hudLayout.resolvedLayout?.regions ?? {};
   const [devMode, setDevMode] = useState(false);
   const [devInfo, setDevInfo] = useState(null);
   const resources = useSettlementStore((s) => s.resources);
@@ -3304,11 +3321,18 @@ export default function SettlementGame() {
   useEffect(() => {
     tick();
     const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
+    const refresh = event => {
+      if (event.key === SETTLEMENT_SAVE_KEY) useSettlementStore.initializeSettlementPersistence();
+    };
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener('storage', refresh);
+    };
   }, [tick]);
 
   return (
-    <HudRegion id="gameShell" as="div" applyLayout={false} className="settlement-game-root" data-no-nav-swipe="true" data-active-panel={activePanel} data-selected-building={selectedBuildingId} data-selected-construction={selectedConstructionId ?? ''} data-right-panel-open={rightPanelOpen ? 'true' : 'false'}>
+    <HudRegion id="gameShell" as="div" applyLayout={false} className="settlement-game-root" style={{ '--settlement-safe-top': `${layoutRegions.pixiPlayfieldReserve?.topReserve ?? 0}px`, '--settlement-safe-bottom': `${layoutRegions.settlementBottomNav?.reserve ?? 0}px` }} data-no-nav-swipe="true" data-active-panel={activePanel} data-selected-building={selectedBuildingId} data-selected-construction={selectedConstructionId ?? ''} data-right-panel-open={rightPanelOpen ? 'true' : 'false'}>
       <main className="settlement-game-shell">
         <SceneCanvas
           selectedBuildingId={selectedBuildingId}
@@ -3327,8 +3351,7 @@ export default function SettlementGame() {
           <LeftDock activePanel={activePanel} setPanel={setPanel} />
           <SidePanel />
           <BottomNav activePanel={activePanel} setPanel={setPanel} collect={collect} />
-          <SettlementCompactDetail />
-          <CollectionToast collect={collect} />
+          <SettlementPlayPanel />
           <UpgradeToast activeUpgrade={activeUpgrade} />
           <OrientationPrompt activePanel={activePanel} rightPanelOpen={rightPanelOpen} />
           <NoticeStack />

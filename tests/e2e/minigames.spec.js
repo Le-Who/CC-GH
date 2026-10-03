@@ -347,7 +347,7 @@ test.describe("New-stack minigame smoke", () => {
     expect(metrics.tinyButtons).toEqual([]);
 
     await page.locator(".settlement-game-root .bottom-nav .collect-button").click();
-    await expect(page.locator(".settlement-game-root .notices-v2")).toContainText("ресурсы");
+    await expect(page.locator(".settlement-game-root .settlement-cycle-feedback")).not.toBeEmpty();
   });
 
   test("Settlement small mobile chrome keeps overview controls reachable", async ({ page }) => {
@@ -469,13 +469,13 @@ test.describe("New-stack minigame smoke", () => {
 
     await expectPanelReachable({
       panel: "inventory",
-      trigger: ".settlement-game-root .bottom-nav button[aria-label='Инвентарь']",
+      trigger: ".settlement-game-root .bottom-nav button[aria-label='Inventory']",
       requiredSelectors: [".inventory-selected-summary-v2", ".inventory-resource-row-v2"],
     });
 
     await expectPanelReachable({
       panel: "world",
-      trigger: ".settlement-game-root .bottom-nav button[aria-label='Карта мира']",
+      trigger: ".settlement-game-root .bottom-nav button[aria-label='World map']",
       requiredSelectors: [".world-map-base-v2", ".world-map-marker", ".world-expedition-card-v2", ".world-expedition-action-v2"],
     });
   });
@@ -490,7 +490,7 @@ test.describe("New-stack minigame smoke", () => {
     await expect(page.locator(".status-dot.ready")).toBeVisible({ timeout: 15000 });
     await page.getByRole("button", { name: /Town/ }).click();
     await expect(page.locator(".settlement-game-root .settlement-canvas")).toBeVisible({ timeout: 30000 });
-    await page.locator(".settlement-game-root .bottom-nav button[aria-label='Инвентарь']").click();
+    await page.locator(".settlement-game-root .bottom-nav button[aria-label='Inventory']").click();
     await expect(page.locator(".settlement-game-root")).toHaveAttribute("data-active-panel", "inventory");
 
     const metrics = await page.evaluate(() => {

@@ -7,12 +7,24 @@ import { createHash } from 'node:crypto';
 import { createGardenR2Coordinator, hashGardenR2Payload, requiresGardenReload, isGardenR2Retryable, GARDEN_R2_RECEIPT_WINDOW_MS } from '../src/games/garden-shelf/lib/gardenR2Transactions.js';
 import { prepareGardenR2Adoption } from '../src/games/garden-shelf/lib/gardenR2Adoption.js';
 import { gardenLocalStateKey } from '../src/games/garden-shelf/lib/gardenLocalState.js';
-import { formatR2Gold, formatR2Rate, r2IncomePerSecond, r2MasteryOffer, gardenR2ViewState, gardenPlantPhaseDuration } from '../src/games/garden-shelf/lib/gardenR2View.js';
+import { formatR2Gold, formatR2Rate, r2IncomePerSecond, r2MasteryOffer, r2NextUnlock, gardenR2ViewState, gardenPlantPhaseDuration } from '../src/games/garden-shelf/lib/gardenR2View.js';
 import { executeGardenR2, reconcileGardenR2, gardenR2Hash } from '../game-logic/garden-r2/service.js';
 import { createGardenEconomyState } from '../game-logic/garden-economy.js';
 import { migrateGardenR2 } from '../game-logic/garden-r2/domain.js';
 import { R2_PLANTS, r2GoldRate } from '../game-logic/garden-r2/catalog.js';
 const NOW = Date.UTC(2026, 9, 2, 12), ACCOUNT = 'verified-account', STREAM = 'test_garden_r2_stream_123';
+test('next garden opening groups shared gates and stops at the level cap', () => {
+  const beforeResearch = r2NextUnlock(17);
+  assert.equal(beforeResearch.level, 18);
+  assert.equal(beforeResearch.items.filter(item => item.key === 'r2.nextResearch').length, 1);
+  assert.ok(beforeResearch.items.some(item => item.key === 'garden.expand'));
+  const finalOpening = r2NextUnlock(29);
+  assert.equal(finalOpening.level, 30);
+  assert.ok(finalOpening.items.some(item => item.key === 'plant.fern'));
+  assert.ok(finalOpening.items.some(item => item.key === 'r2.nextMastery' && item.tier === 3));
+  assert.equal(r2NextUnlock(30), null);
+  for (let level = 1; level < 30; level++) assert.ok(r2NextUnlock(level).level > level);
+});
 const store = () => { const values = new Map(); return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), values }; };
 
 test('cached-client browser bridge hides only unadopted discovery and preserves real requests and authority', async () => {

@@ -1,12 +1,12 @@
 import {registerAppTranslations} from '../../app/i18n.jsx';
 export const MATCH3_TRANSLATIONS={
   "en": {
-    "pause.match3Frozen": "Paused: make a 3-gem match",
+    "pause.match3Frozen": "Paused",
     "pause.match3Ready": "Pick a mode before the run starts",
     "pause.match3Locked": "The mode cannot change during a game.",
     "pause.match3Choose": "Choose a mode before starting.",
     "pause.match3NoModeChange": "Start a new game to change modes or reshuffle.",
-    "pause.match3Intro": "Swap neighboring gems to make 3 or more. Your mode, timer, and board resume exactly here.",
+    "pause.match3Intro": "Swap neighboring gems to match 3+. The board and timer are paused.",
     "match3.title": "Gem Crush",
     "match3.selectMode": "Choose your game mode",
     "match3.mode.classic": "Classic",
@@ -43,12 +43,12 @@ export const MATCH3_TRANSLATIONS={
     "match3.boosterTooltip": "{booster}: {count} left"
   },
   "ru": {
-    "pause.match3Frozen": "Пауза: соберите 3 камня",
+    "pause.match3Frozen": "Пауза",
     "pause.match3Ready": "Выберите режим игры",
     "pause.match3Locked": "Режим нельзя менять во время игры.",
     "pause.match3Choose": "Выберите режим перед началом игры.",
     "pause.match3NoModeChange": "Для смены режима или перемешивания начните новую игру.",
-    "pause.match3Intro": "Меняйте соседние камни, чтобы собрать 3 и больше. Режим, таймер и поле продолжатся ровно отсюда.",
+    "pause.match3Intro": "Меняйте соседние камни, собирая 3 и больше. Поле и таймер на паузе.",
     "match3.title": "Gem Crush",
     "match3.selectMode": "Выберите режим игры",
     "match3.mode.classic": "Классика",

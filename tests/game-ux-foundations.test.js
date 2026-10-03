@@ -229,16 +229,16 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.ok(findElements(locked.tree, (node) => node.props["data-match3-booster"] || node.props["data-match3-shuffle"]).every((node) => node.props.disabled));
   });
 
-  it("keeps Settlement startup map-first with a compact selected-building card", () => {
+  it("keeps Settlement startup map-first with a compact village cycle and building access", () => {
     const settlementGame = readFileSync(new URL("../src/games/settlement/SettlementGame.jsx", import.meta.url), "utf8");
     const settlementStore = readFileSync(new URL("../src/games/settlement/useSettlementStore.js", import.meta.url), "utf8");
     const settlementCss = readFileSync(new URL("../src/games/settlement/settlement.css", import.meta.url), "utf8");
+    const settlementPanel = readFileSync(new URL("../src/games/settlement/SettlementPlayPanel.jsx", import.meta.url), "utf8");
 
     assert.match(settlementStore, /rightPanelOpen:\s*false/);
-    assert.match(settlementGame, /function SettlementCompactDetail/);
-    assert.match(settlementGame, /<SettlementCompactDetail/);
-    assert.match(settlementGame, /if\s*\(rightPanelOpen\)\s*return null;/);
-    assert.match(settlementGame, /selectBuilding\(building\.id\)/);
+    assert.match(settlementGame, /<SettlementPlayPanel/);
+    assert.match(settlementPanel, /if\s*\(state\.rightPanelOpen\)\s*return null;/);
+    assert.match(settlementPanel, /selectBuilding\(state\.selectedBuildingId\)/);
     assert.match(settlementGame, /safeH\s*>\s*safeW/);
     assert.match(settlementGame, /safeH\s*\/\s*WORLD\.h/);
     assert.match(settlementCss, /\.settlement-compact-detail/);
@@ -305,7 +305,7 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(view, /h\(GameShell,\{gameId:'merge'/);
     assert.match(view, /createMergeLabTransport\(\{api,accountId/);
     assert.match(view, /transport\.resumePending\(\)/);
-    assert.match(transport, /api\('\/api\/player\/mutate',\{action:'merge\.lab',payload:record\.payload\}\)/);
+    assert.match(transport, /api\('\/api\/player\/mutate',\{accountId,action:'merge\.lab',payload:record\.payload\},\{isCurrent\}\)/);
     assert.match(transport, /storage\.setItem\(key,JSON\.stringify\(record\)\)/);
     assert.doesNotMatch(transport, /_optimistic|success:\s*true|apiBatched/);
   });

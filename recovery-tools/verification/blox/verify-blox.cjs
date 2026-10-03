@@ -1,3 +1,4 @@
+const {pathToFileURL}=require('node:url');
 const fs=require('fs'),path=require('path'),vm=require('vm'),crypto=require('crypto'),assert=require('node:assert/strict');
 const {test}=require('node:test');
 const {readLosslessWebpMetadata}=require('../webp-metadata.cjs');
@@ -9,7 +10,7 @@ const preview=__dirname+'/fixtures/preview';
 const {acorn,extract,rename,expandStatements}=require(root+'/recovery-tools/ast-recovery.cjs');
 const maps=JSON.parse(fs.readFileSync(__dirname+'/fixtures/blox-symbol-mapping.json'));
 const host=preview+'/assets/host-CwP89_oZ.js',scene=preview+'/assets/bloxScene-skG69G5D.js';
-const read=p=>fs.readFileSync(p,'utf8');
+const read=p=>fs.readFileSync(p,'utf8').replace(/\r\n/g,'\n');
 const clean=x=>JSON.parse(JSON.stringify(x));
 function closure(file,names,ctx={}){
  const src=read(file),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'}),decls=new Map();
@@ -21,7 +22,7 @@ function closure(file,names,ctx={}){
 function normalizedAst(src){return JSON.parse(JSON.stringify(acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'}),(k,v)=>['start','end','raw'].includes(k)?undefined:v));}
 function sourceDecl(file){const src=read(file),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});return ast.body.filter(n=>!n.type.startsWith('Import')&&!n.type.startsWith('Export')).map(n=>src.slice(n.start,n.end)).join('\n');}
 function sha(buf){return crypto.createHash('sha256').update(buf).digest('hex')}
-const corePromise=Promise.all([import(root+'/game-logic/blox-engine.js'),import(root+'/game-logic/blox-pieces.js'),import(root+'/game-logic/economy.js'),import(root+'/game-logic/hud-bonuses.js'),import(root+'/src/game-runtime/sceneGeometry.js')]);
+const corePromise=Promise.all([import(pathToFileURL(root+'/game-logic/blox-engine.js').href),import(pathToFileURL(root+'/game-logic/blox-pieces.js').href),import(pathToFileURL(root+'/game-logic/economy.js').href),import(pathToFileURL(root+'/game-logic/hud-bonuses.js').href),import(pathToFileURL(root+'/src/game-runtime/sceneGeometry.js').href)]);
 const compiledPure=closure(host,['Nr','Bi','Ec','Kg','iA','tx','ex','S2']);
 test('critical Blox engines, routes, economics and shared runtime are byte-identical to production baseline',()=>{
  for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/scenes/shared/runtime.js','src/game-runtime/sceneGeometry.js','src/game-runtime/assetBundles.js','src/game-runtime/pointerSession.js'])assert.equal(sha(fs.readFileSync(root+'/'+f)),baselineHashes[f],f);

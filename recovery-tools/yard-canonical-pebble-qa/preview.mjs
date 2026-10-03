@@ -19,7 +19,7 @@ async function seek(value){const at=typeof value==='string'?fixture.times[value]
 const diagnostics=()=>{const d=scene?.diagnostics(),r=canvas.getBoundingClientRect();return{...d,errors:[...errors],closed,releaseAccepted:false,generation,disposed,
  canvasBounds:{x:r.x,y:r.y,width:r.width,height:r.height},horizontalOverflow:document.documentElement.scrollWidth>innerWidth,
  buttons:[...document.querySelectorAll('button')].map(b=>({width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height})),
- targetInstances:d?.view?Number(d.view.props.find(p=>p.slotId==='leaf')?.supported&&d.view.props.find(p=>p.slotId==='leaf')?.drawStandalone)+d.view.pets.filter(p=>p.propOwnerSlotId==='mouse').length:null,
+ targetInstances:d?.view?Number(d.view.props.find(p=>p.slotId==='leaf')?.supported&&d.view.props.find(p=>p.slotId==='leaf')?.drawStandalone)+d.view.pets.filter(p=>p.propOwnerSlotId==='leaf').length:null,
  otherInstances:d?.view?.props.filter(p=>p.slotId==='other-mouse'&&p.supported&&p.drawStandalone).length,sourceStateUnchanged:fixture.releaseAccepted===false};};
 for(const b of document.querySelectorAll('[data-time]'))b.onclick=()=>seek(b.dataset.time).catch(e=>errors.push(String(e)));
 addEventListener('pagehide',()=>scene?.dispose());await mount(fixture.times.approach);

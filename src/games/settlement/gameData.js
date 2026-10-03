@@ -53,7 +53,7 @@ export const BUILDINGS = [
       upgradeCost: { wood: 600, stone: 450, gold: 1200 },
       upgradeDurationMs: 630000,
       benefits: { passiveGoldPerMinute: 48, morale: 8 },
-      body: 'Сердце вашей деревни. Отсюда управляются все важные решения, определяются приоритеты и развиваются новые возможности для жителей.'
+      body: 'Главное здание поселения.'
     }
   },
   {

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { SETTLEMENT_EN } from "../src/games/settlement/settlementText.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
@@ -65,6 +66,9 @@ function collectUsedTranslationKeys() {
   ];
   const keys = new Map();
   const add = (file, key) => {
+    if (file.includes(path.join('src', 'games', 'settlement')) && /[А-Яа-яЁё]/.test(key)) {
+      key = `settlement.text.${key.trim()}`;
+    }
     if (!key.includes(".")) return;
     if (!keys.has(key)) keys.set(key, []);
     keys.get(key).push(path.relative(repoRoot, file));
@@ -99,6 +103,7 @@ describe("i18n coverage", () => {
 
   it("defines every literal translation key used by app and game UI code", () => {
     const knownKeys = new Set();
+    for (const key of Object.keys(SETTLEMENT_EN)) knownKeys.add(`settlement.text.${key}`);
     for (const source of TRANSLATION_SOURCES) {
       const sourceText = readRepoFile(...source.path);
       for (const key of extractTranslationKeys(sourceText, "en")) knownKeys.add(key);
@@ -290,18 +295,27 @@ it("persistent courtyard status and feedback use the active translator, includin
   const raw = readRepoFile("src", "games", "companion-yard-v2", "i18n.js");
   const pure = raw.replace(/^import .*;\r?\n/gm, "").replace(/^registerAppTranslations\(PERSISTENT_YARD_TRANSLATIONS\);?$/gm, "");
   const { PERSISTENT_YARD_TRANSLATIONS: translations } = await import(`data:text/javascript;base64,${Buffer.from(pure).toString("base64")}`);
+  const commonRaw = readRepoFile("src", "games", "companion-yard", "i18n.js");
+  const commonPure = commonRaw.replace(/^import .*;\r?\n/gm, "").replace(/^registerAppTranslations\(COMPANION_YARD_TRANSLATIONS\);?$/gm, "");
+  const { COMPANION_YARD_TRANSLATIONS: common } = await import(`data:text/javascript;base64,${Buffer.from(commonPure).toString("base64")}`);
+  const { YARD_VISITORS } = await import("../game-logic/yard-catalog.js");
   const { visibleStatus } = await import("../src/games/companion-yard-v2/presentation.mjs");
   const { yardFeedbackText, YARD_FEEDBACK_KEYS } = await import("../src/games/companion-yard-v2/feedback.mjs");
   const view = { mutable:true, pendingGifts:[], legacy:[], pets:[], issues:[], props:[], yard:{remodel:"meadow"}, bowls:[] };
   for (const language of ["en", "ru"]) {
+    const dictionary = { ...common[language], ...translations[language] };
     const t = (key, values={}) => {
-      assert.equal(typeof translations[language][key], "string", `${language}: ${key}`);
-      return translations[language][key].replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? `{${name}}`));
+      assert.equal(typeof dictionary[key], "string", `${language}: ${key}`);
+      return dictionary[key].replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? `{${name}}`));
     };
     for (const role of ["rest", "settle", "wake", "play", "roam", "approach", "depart", "unknown"]) {
-      const text = visibleStatus({...view, pets:[{role}]}, t);
-      assert.match(text, /Mika/);
-      if (language === "en") assert.doesNotMatch(text, /[А-Яа-яЁё]/);
+      for (const visitor of Object.values(YARD_VISITORS)) {
+        const text = visibleStatus({...view, pets:[{visitorId:visitor.id,role}]}, t);
+        assert.ok(text.includes(visitor.name));
+        if (language === "en") assert.doesNotMatch(text, /[А-Яа-яЁё]/);
+      }
+      const unknown = visibleStatus({...view, pets:[{visitorId:"unlisted-visitor",role}]}, t);
+      assert.ok(unknown.includes(common[language]["yard.visitor"]));
     }
     for (const sample of [{mutable:false}, {pendingGifts:[{}]}, {legacy:[{}]}, {issues:[{}]},
       {props:[{readiness:{status:"reposition-needed"}}]}, {yard:{remodel:"tea_house"}},
