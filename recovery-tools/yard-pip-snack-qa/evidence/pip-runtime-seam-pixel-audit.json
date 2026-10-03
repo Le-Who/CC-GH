@@ -1,0 +1,43 @@
+{
+  "restLoopByteIdenticalRGBA": true,
+  "restLoopDifferenceExtrema": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "normativeLoopFrames": [
+    448,
+    480
+  ],
+  "normalizedWalkEndpoints": {
+    "0": {
+      "byteIdentical": true,
+      "meanChannelError": 0.0
+    },
+    "2": {
+      "byteIdentical": true,
+      "meanChannelError": 0.0
+    },
+    "4": {
+      "byteIdentical": true,
+      "meanChannelError": 0.0
+    },
+    "6": {
+      "byteIdentical": false,
+      "meanChannelError": 5.164513221153846e-05
+    }
+  }
+}

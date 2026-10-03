@@ -1,0 +1,1290 @@
+{
+  "id": "pip-snack-clearance/r1",
+  "runtimeActivated": false,
+  "passed": true,
+  "sourceFramesChecked": 521,
+  "unexpectedIntersections": [],
+  "allowedMouthContact": [
+    {
+      "frame": 62,
+      "atMs": 2480,
+      "phase": "brace",
+      "trianglePairs": 80,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 63,
+      "atMs": 2520,
+      "phase": "brace",
+      "trianglePairs": 102,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 64,
+      "atMs": 2560,
+      "phase": "brace",
+      "trianglePairs": 120,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 65,
+      "atMs": 2600,
+      "phase": "brace",
+      "trianglePairs": 146,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 66,
+      "atMs": 2640,
+      "phase": "brace",
+      "trianglePairs": 94,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 67,
+      "atMs": 2680,
+      "phase": "brace",
+      "trianglePairs": 98,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 68,
+      "atMs": 2720,
+      "phase": "brace",
+      "trianglePairs": 94,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 69,
+      "atMs": 2760,
+      "phase": "brace",
+      "trianglePairs": 82,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 70,
+      "atMs": 2800,
+      "phase": "brace",
+      "trianglePairs": 74,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 71,
+      "atMs": 2840,
+      "phase": "brace",
+      "trianglePairs": 94,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 72,
+      "atMs": 2880,
+      "phase": "brace",
+      "trianglePairs": 110,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 73,
+      "atMs": 2920,
+      "phase": "brace",
+      "trianglePairs": 107,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 74,
+      "atMs": 2960,
+      "phase": "brace",
+      "trianglePairs": 105,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 75,
+      "atMs": 3000,
+      "phase": "brace",
+      "trianglePairs": 108,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 76,
+      "atMs": 3040,
+      "phase": "brace",
+      "trianglePairs": 129,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 77,
+      "atMs": 3080,
+      "phase": "brace",
+      "trianglePairs": 194,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 78,
+      "atMs": 3120,
+      "phase": "brace",
+      "trianglePairs": 294,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 79,
+      "atMs": 3160,
+      "phase": "brace",
+      "trianglePairs": 389,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 80,
+      "atMs": 3200,
+      "phase": "brace",
+      "trianglePairs": 441,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 81,
+      "atMs": 3240,
+      "phase": "brace",
+      "trianglePairs": 474,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 82,
+      "atMs": 3280,
+      "phase": "brace",
+      "trianglePairs": 545,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 83,
+      "atMs": 3320,
+      "phase": "brace",
+      "trianglePairs": 585,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 84,
+      "atMs": 3360,
+      "phase": "brace",
+      "trianglePairs": 610,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 85,
+      "atMs": 3400,
+      "phase": "brace",
+      "trianglePairs": 643,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 86,
+      "atMs": 3440,
+      "phase": "brace",
+      "trianglePairs": 657,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 87,
+      "atMs": 3480,
+      "phase": "brace",
+      "trianglePairs": 642,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 88,
+      "atMs": 3520,
+      "phase": "brace",
+      "trianglePairs": 638,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 89,
+      "atMs": 3560,
+      "phase": "brace",
+      "trianglePairs": 646,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 90,
+      "atMs": 3600,
+      "phase": "brace",
+      "trianglePairs": 650,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 91,
+      "atMs": 3640,
+      "phase": "brace",
+      "trianglePairs": 654,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 92,
+      "atMs": 3680,
+      "phase": "brace",
+      "trianglePairs": 649,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 93,
+      "atMs": 3720,
+      "phase": "brace",
+      "trianglePairs": 642,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 94,
+      "atMs": 3760,
+      "phase": "brace",
+      "trianglePairs": 636,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 95,
+      "atMs": 3800,
+      "phase": "brace",
+      "trianglePairs": 649,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 96,
+      "atMs": 3840,
+      "phase": "brace",
+      "trianglePairs": 649,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 97,
+      "atMs": 3880,
+      "phase": "brace",
+      "trianglePairs": 637,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 98,
+      "atMs": 3920,
+      "phase": "brace",
+      "trianglePairs": 570,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 99,
+      "atMs": 3960,
+      "phase": "brace",
+      "trianglePairs": 570,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 100,
+      "atMs": 4000,
+      "phase": "brace",
+      "trianglePairs": 563,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 101,
+      "atMs": 4040,
+      "phase": "brace",
+      "trianglePairs": 565,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 102,
+      "atMs": 4080,
+      "phase": "brace",
+      "trianglePairs": 567,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 103,
+      "atMs": 4120,
+      "phase": "brace",
+      "trianglePairs": 561,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 104,
+      "atMs": 4160,
+      "phase": "brace",
+      "trianglePairs": 561,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 105,
+      "atMs": 4200,
+      "phase": "brace",
+      "trianglePairs": 558,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 106,
+      "atMs": 4240,
+      "phase": "brace",
+      "trianglePairs": 549,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 107,
+      "atMs": 4280,
+      "phase": "brace",
+      "trianglePairs": 540,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 108,
+      "atMs": 4320,
+      "phase": "brace",
+      "trianglePairs": 538,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 109,
+      "atMs": 4360,
+      "phase": "brace",
+      "trianglePairs": 544,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 110,
+      "atMs": 4400,
+      "phase": "brace",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 111,
+      "atMs": 4440,
+      "phase": "brace",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 112,
+      "atMs": 4480,
+      "phase": "brace",
+      "trianglePairs": 554,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 113,
+      "atMs": 4520,
+      "phase": "brace",
+      "trianglePairs": 558,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 114,
+      "atMs": 4560,
+      "phase": "brace",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 115,
+      "atMs": 4600,
+      "phase": "brace",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 116,
+      "atMs": 4640,
+      "phase": "brace",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 117,
+      "atMs": 4680,
+      "phase": "brace",
+      "trianglePairs": 546,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 118,
+      "atMs": 4720,
+      "phase": "brace",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 119,
+      "atMs": 4760,
+      "phase": "brace",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 120,
+      "atMs": 4800,
+      "phase": "brace",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 121,
+      "atMs": 4840,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445062532
+    },
+    {
+      "frame": 122,
+      "atMs": 4880,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0016084957055044389
+    },
+    {
+      "frame": 123,
+      "atMs": 4920,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.00714524521268518
+    },
+    {
+      "frame": 124,
+      "atMs": 4960,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.01874999999999989
+    },
+    {
+      "frame": 125,
+      "atMs": 5000,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006685
+    },
+    {
+      "frame": 126,
+      "atMs": 5040,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.05464150429449542
+    },
+    {
+      "frame": 127,
+      "atMs": 5080,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.06939960854279706
+    },
+    {
+      "frame": 128,
+      "atMs": 5120,
+      "phase": "nibble",
+      "trianglePairs": 592,
+      "jawOpenRadians": 0.075
+    },
+    {
+      "frame": 129,
+      "atMs": 5160,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.06939960854279716
+    },
+    {
+      "frame": 130,
+      "atMs": 5200,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.05464150429449558
+    },
+    {
+      "frame": 131,
+      "atMs": 5240,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.035846502640067016
+    },
+    {
+      "frame": 132,
+      "atMs": 5280,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.018750000000000003
+    },
+    {
+      "frame": 133,
+      "atMs": 5320,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.007145245212685248
+    },
+    {
+      "frame": 134,
+      "atMs": 5360,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0016084957055044623
+    },
+    {
+      "frame": 135,
+      "atMs": 5400,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445062945
+    },
+    {
+      "frame": 136,
+      "atMs": 5440,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 2.5782618562888934e-62
+    },
+    {
+      "frame": 137,
+      "atMs": 5480,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445063087
+    },
+    {
+      "frame": 138,
+      "atMs": 5520,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.00160849570550441
+    },
+    {
+      "frame": 139,
+      "atMs": 5560,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.007145245212685099
+    },
+    {
+      "frame": 140,
+      "atMs": 5600,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.018749999999999795
+    },
+    {
+      "frame": 141,
+      "atMs": 5640,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006649
+    },
+    {
+      "frame": 142,
+      "atMs": 5680,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.05464150429449547
+    },
+    {
+      "frame": 143,
+      "atMs": 5720,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.06939960854279688
+    },
+    {
+      "frame": 144,
+      "atMs": 5760,
+      "phase": "nibble",
+      "trianglePairs": 592,
+      "jawOpenRadians": 0.075
+    },
+    {
+      "frame": 145,
+      "atMs": 5800,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.06939960854279738
+    },
+    {
+      "frame": 146,
+      "atMs": 5840,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.054641504294495505
+    },
+    {
+      "frame": 147,
+      "atMs": 5880,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006736
+    },
+    {
+      "frame": 148,
+      "atMs": 5920,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.018749999999999944
+    },
+    {
+      "frame": 149,
+      "atMs": 5960,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.007145245212685402
+    },
+    {
+      "frame": 150,
+      "atMs": 6000,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0016084957055044642
+    },
+    {
+      "frame": 151,
+      "atMs": 6040,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445063842
+    },
+    {
+      "frame": 152,
+      "atMs": 6080,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 4.1252189700622295e-61
+    },
+    {
+      "frame": 153,
+      "atMs": 6120,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445062377
+    },
+    {
+      "frame": 154,
+      "atMs": 6160,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0016084957055044846
+    },
+    {
+      "frame": 155,
+      "atMs": 6200,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.007145245212685116
+    },
+    {
+      "frame": 156,
+      "atMs": 6240,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.01875000000000011
+    },
+    {
+      "frame": 157,
+      "atMs": 6280,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006672
+    },
+    {
+      "frame": 158,
+      "atMs": 6320,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.05464150429449579
+    },
+    {
+      "frame": 159,
+      "atMs": 6360,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.06939960854279706
+    },
+    {
+      "frame": 160,
+      "atMs": 6400,
+      "phase": "nibble",
+      "trianglePairs": 592,
+      "jawOpenRadians": 0.075
+    },
+    {
+      "frame": 161,
+      "atMs": 6440,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.0693996085427972
+    },
+    {
+      "frame": 162,
+      "atMs": 6480,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.05464150429449537
+    },
+    {
+      "frame": 163,
+      "atMs": 6520,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006721
+    },
+    {
+      "frame": 164,
+      "atMs": 6560,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.018750000000000485
+    },
+    {
+      "frame": 165,
+      "atMs": 6600,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.0071452452126853335
+    },
+    {
+      "frame": 166,
+      "atMs": 6640,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0016084957055045631
+    },
+    {
+      "frame": 167,
+      "atMs": 6680,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445063291
+    },
+    {
+      "frame": 168,
+      "atMs": 6720,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 7.897376843505007e-59
+    },
+    {
+      "frame": 169,
+      "atMs": 6760,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445062742
+    },
+    {
+      "frame": 170,
+      "atMs": 6800,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0016084957055043857
+    },
+    {
+      "frame": 171,
+      "atMs": 6840,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.007145245212685225
+    },
+    {
+      "frame": 172,
+      "atMs": 6880,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.01874999999999964
+    },
+    {
+      "frame": 173,
+      "atMs": 6920,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006697
+    },
+    {
+      "frame": 174,
+      "atMs": 6960,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.05464150429449513
+    },
+    {
+      "frame": 175,
+      "atMs": 7000,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.06939960854279716
+    },
+    {
+      "frame": 176,
+      "atMs": 7040,
+      "phase": "nibble",
+      "trianglePairs": 592,
+      "jawOpenRadians": 0.075
+    },
+    {
+      "frame": 177,
+      "atMs": 7080,
+      "phase": "nibble",
+      "trianglePairs": 598,
+      "jawOpenRadians": 0.0693996085427971
+    },
+    {
+      "frame": 178,
+      "atMs": 7120,
+      "phase": "nibble",
+      "trianglePairs": 534,
+      "jawOpenRadians": 0.054641504294495845
+    },
+    {
+      "frame": 179,
+      "atMs": 7160,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.03584650264006687
+    },
+    {
+      "frame": 180,
+      "atMs": 7200,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.01875000000000023
+    },
+    {
+      "frame": 181,
+      "atMs": 7240,
+      "phase": "nibble",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.007145245212685185
+    },
+    {
+      "frame": 182,
+      "atMs": 7280,
+      "phase": "nibble",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.00160849570550451
+    },
+    {
+      "frame": 183,
+      "atMs": 7320,
+      "phase": "nibble",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.00010864360445062928
+    },
+    {
+      "frame": 184,
+      "atMs": 7360,
+      "phase": "release",
+      "trianglePairs": 548,
+      "jawOpenRadians": 2.0030532232702936e-59
+    },
+    {
+      "frame": 185,
+      "atMs": 7400,
+      "phase": "release",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 186,
+      "atMs": 7440,
+      "phase": "release",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 187,
+      "atMs": 7480,
+      "phase": "release",
+      "trianglePairs": 546,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 188,
+      "atMs": 7520,
+      "phase": "release",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 189,
+      "atMs": 7560,
+      "phase": "release",
+      "trianglePairs": 552,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 190,
+      "atMs": 7600,
+      "phase": "release",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 191,
+      "atMs": 7640,
+      "phase": "release",
+      "trianglePairs": 558,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 192,
+      "atMs": 7680,
+      "phase": "release",
+      "trianglePairs": 554,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 193,
+      "atMs": 7720,
+      "phase": "release",
+      "trianglePairs": 556,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 194,
+      "atMs": 7760,
+      "phase": "release",
+      "trianglePairs": 548,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 195,
+      "atMs": 7800,
+      "phase": "release",
+      "trianglePairs": 544,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 196,
+      "atMs": 7840,
+      "phase": "release",
+      "trianglePairs": 538,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 197,
+      "atMs": 7880,
+      "phase": "release",
+      "trianglePairs": 540,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 198,
+      "atMs": 7920,
+      "phase": "release",
+      "trianglePairs": 549,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 199,
+      "atMs": 7960,
+      "phase": "release",
+      "trianglePairs": 558,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 200,
+      "atMs": 8000,
+      "phase": "release",
+      "trianglePairs": 561,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 201,
+      "atMs": 8040,
+      "phase": "release",
+      "trianglePairs": 561,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 202,
+      "atMs": 8080,
+      "phase": "release",
+      "trianglePairs": 567,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 203,
+      "atMs": 8120,
+      "phase": "release",
+      "trianglePairs": 565,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 204,
+      "atMs": 8160,
+      "phase": "release",
+      "trianglePairs": 563,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 205,
+      "atMs": 8200,
+      "phase": "release",
+      "trianglePairs": 570,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 206,
+      "atMs": 8240,
+      "phase": "release",
+      "trianglePairs": 570,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 207,
+      "atMs": 8280,
+      "phase": "release",
+      "trianglePairs": 637,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 208,
+      "atMs": 8320,
+      "phase": "release",
+      "trianglePairs": 649,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 209,
+      "atMs": 8360,
+      "phase": "release",
+      "trianglePairs": 649,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 210,
+      "atMs": 8400,
+      "phase": "release",
+      "trianglePairs": 636,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 211,
+      "atMs": 8440,
+      "phase": "release",
+      "trianglePairs": 642,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 212,
+      "atMs": 8480,
+      "phase": "release",
+      "trianglePairs": 649,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 213,
+      "atMs": 8520,
+      "phase": "release",
+      "trianglePairs": 654,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 214,
+      "atMs": 8560,
+      "phase": "release",
+      "trianglePairs": 650,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 215,
+      "atMs": 8600,
+      "phase": "release",
+      "trianglePairs": 646,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 216,
+      "atMs": 8640,
+      "phase": "release",
+      "trianglePairs": 638,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 217,
+      "atMs": 8680,
+      "phase": "release",
+      "trianglePairs": 642,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 218,
+      "atMs": 8720,
+      "phase": "release",
+      "trianglePairs": 657,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 219,
+      "atMs": 8760,
+      "phase": "release",
+      "trianglePairs": 643,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 220,
+      "atMs": 8800,
+      "phase": "release",
+      "trianglePairs": 610,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 221,
+      "atMs": 8840,
+      "phase": "release",
+      "trianglePairs": 585,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 222,
+      "atMs": 8880,
+      "phase": "release",
+      "trianglePairs": 545,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 223,
+      "atMs": 8920,
+      "phase": "release",
+      "trianglePairs": 474,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 224,
+      "atMs": 8960,
+      "phase": "release",
+      "trianglePairs": 441,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 225,
+      "atMs": 9000,
+      "phase": "release",
+      "trianglePairs": 389,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 226,
+      "atMs": 9040,
+      "phase": "release",
+      "trianglePairs": 294,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 227,
+      "atMs": 9080,
+      "phase": "release",
+      "trianglePairs": 194,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 228,
+      "atMs": 9120,
+      "phase": "release",
+      "trianglePairs": 129,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 229,
+      "atMs": 9160,
+      "phase": "release",
+      "trianglePairs": 108,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 230,
+      "atMs": 9200,
+      "phase": "release",
+      "trianglePairs": 105,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 231,
+      "atMs": 9240,
+      "phase": "release",
+      "trianglePairs": 107,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 232,
+      "atMs": 9280,
+      "phase": "release",
+      "trianglePairs": 110,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 233,
+      "atMs": 9320,
+      "phase": "release",
+      "trianglePairs": 94,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 234,
+      "atMs": 9360,
+      "phase": "release",
+      "trianglePairs": 74,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 235,
+      "atMs": 9400,
+      "phase": "release",
+      "trianglePairs": 82,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 236,
+      "atMs": 9440,
+      "phase": "release",
+      "trianglePairs": 94,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 237,
+      "atMs": 9480,
+      "phase": "release",
+      "trianglePairs": 98,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 238,
+      "atMs": 9520,
+      "phase": "release",
+      "trianglePairs": 94,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 239,
+      "atMs": 9560,
+      "phase": "release",
+      "trianglePairs": 146,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 240,
+      "atMs": 9600,
+      "phase": "release",
+      "trianglePairs": 120,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 241,
+      "atMs": 9640,
+      "phase": "release",
+      "trianglePairs": 102,
+      "jawOpenRadians": 0.0
+    },
+    {
+      "frame": 242,
+      "atMs": 9680,
+      "phase": "release",
+      "trianglePairs": 80,
+      "jawOpenRadians": 0.0
+    }
+  ],
+  "allowedTabletopContactTrianglePairs": 5520,
+  "measuredTabletopSoleChecks": 8288,
+  "maxTabletopSoleToMeshError": 1.7881393432617188e-07,
+  "worstConvexPlankInteriorDepth": 0,
+  "sourceRigSha256": "4ed3c59c85a11ce5e6bad4847e9356294d36de2b146fcb782caca52ea19b96e8",
+  "method": [
+    "BVH surface intersections of every actual solid actor mesh against all source prop meshes at every saved source frame.",
+    "Only exact supporting lower paw/tabletop contacts and bounded head-mouth/explicit nibble-biscuit contact are classified as intentional.",
+    "Convex tabletop plank containment checks catch enclosed vertices; actual support rays verify every measured tabletop sole point."
+  ],
+  "limits": [
+    "Discrete normative 40ms source frames only; arbitrary retiming is not accepted.",
+    "Fur fibres are excluded from solid collision checks; no physical force simulation or general swept-volume proof."
+  ]
+}

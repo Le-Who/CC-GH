@@ -197,6 +197,20 @@ jobs:
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
       - name: Validate canonical Yard scene
         run: pnpm exec playwright test -c playwright.yard-canonical.config.js --project=chromium --workers=1
+      - name: Check Pip source binding
+        run: node --test tests/yard-pip-source.test.mjs
+      - name: Validate inactive Pip visit
+        run: pnpm exec playwright test -c playwright.pip.config.js --project=chromium --workers=1
+      - name: Preserve Pip visit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pip-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results-pip/
+            playwright-report-pip/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Preserve canonical Yard evidence
         if: always()
         uses: actions/upload-artifact@v7

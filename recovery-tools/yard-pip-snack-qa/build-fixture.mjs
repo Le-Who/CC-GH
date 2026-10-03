@@ -1,0 +1,15 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {digest} from './source/game-logic/yard-v2/util.mjs';
+import {createPipSnackCandidate} from './source/game-logic/yard-v2/media/pip-snack-binding.mjs';
+import {PIP_ACTOR_PROFILE,PIP_ACTOR_REFERENCE} from './source/game-logic/yard-v2/pip-actor-profile.mjs';
+const read=n=>JSON.parse(readFileSync(new URL('source/game-logic/yard-v2/media/pip/'+n,import.meta.url)));
+const source=createPipSnackCandidate({clip:read('snack-combined-binding.json'),strideContract:read('authored-stride.json'),motionContract:read('ground-motion.json')});
+const path=new URL('public/assets/yard-pip/runtime-media.json',import.meta.url),manifest=JSON.parse(readFileSync(path));
+manifest.actorProfile=PIP_ACTOR_REFERENCE;manifest.renderBindings={[source.binding.id]:{bindingRevision:source.binding.revision,bindingCalibrationHash:source.binding.calibrationHash,groundFootprintRevision:PIP_ACTOR_PROFILE.ground.revision,playbackReady:false}};
+manifest.manifestRevision='pip-snack-runtime/r1:'+digest({source:source.binding.calibrationHash,pages:[...Object.values(manifest.clips),...Object.values(manifest.walk.facings),...Object.values(manifest.turns)].flatMap(c=>c.pages.map(p=>[p.src,p.sha256]))});
+writeFileSync(path,JSON.stringify(manifest)+'\n');
+const placement={slotId:'pip-snack-test',goodieId:'snack_table',x:50,y:50,rotationZ:0,uses:0,condition:'new'};
+const input={at:0,leavesAt:180000,placement,yard:{remodel:'meadow',placedGoodies:[placement]},visitor:{id:'pip_hamster'},activity:{id:'nibble'},bowl:{id:'bowl-1',foodId:'kibble'},active:[],reserved:[]};
+const result=source.preflightCandidate(input);if(!result.ok)throw Error(JSON.stringify(result));
+writeFileSync(new URL('public/pip-visit-fixture.json',import.meta.url),JSON.stringify({status:'TRUSTED_SOURCE_FIXTURE_ONLY',productionAdmission:false,plan:result.plan,placement,manifestRevision:manifest.manifestRevision})+'\n');
+console.log('PIP_FIXTURE_READY',source.binding.calibrationHash,result.plan.schedule.combinedStart,result.plan.schedule.combinedEnd);

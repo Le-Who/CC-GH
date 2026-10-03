@@ -1,0 +1,18 @@
+{
+  "atlasPages": 101,
+  "frames": 1381,
+  "maximumPageDecodedBytes": 7077888,
+  "allPagesDecodedBytes": 414973952,
+  "encodedBytes": 24777500,
+  "minimumAlphaMarginPx": 44,
+  "allLosslessReadbacksExact": true,
+  "maxFramesPerPage": 16,
+  "cacheContract": {
+    "sceneOwned": true,
+    "maxDecodedBytes": 33554432,
+    "maxConcurrentDecodes": 1,
+    "pageLimit": 3,
+    "lookahead": "next actual source page boundary, not fixed +1100ms",
+    "bulkPreloadAllowed": false
+  }
+}

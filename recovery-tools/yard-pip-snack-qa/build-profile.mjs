@@ -1,0 +1,9 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {digest} from './source/game-logic/yard-v2/util.mjs';
+const H=new URL('./source/game-logic/yard-v2/',import.meta.url),read=n=>JSON.parse(readFileSync(new URL('media/pip/'+n,H)));
+const ground=read('ground-motion.json'),clip=read('snack-combined-binding.json');
+const reference={id:'pip',revision:'pip-actor/r2-snack'};
+const profile={...reference,visitorId:'pip_hamster',playbackReady:false,unitsPerWorld:8,sourceSampleMs:40,locomotion:{revision:'pip-four-beat-walk/r1',sampling:'authored-root-rows',strideWorld:.24,cycleMs:800,phaseSamples:Array.from({length:20},(_,i)=>i/20),facings:[0,2,4,6],canonicalPhase:0,rampDistanceQuanta:0,rampReferenceSamples:20,turnRoutePreferenceMs:320},turns:{durations:{2:1920,4:3840},entryPhase:0,exitPhase:0,variants:[0,2,4,6].flatMap(f=>[`${f}:-1:2`,`${f}:1:2`,`${f}:1:4`])},ground:{revision:`pip-actual-ground/r1:${digest(ground)}`,phaseStarts:[0]},interactions:{[clip.id]:{goodieId:'snack_table',restMode:'anchored-composite',restClipId:clip.id,loop:clip.restLoop}}};
+const gate={accepted:false,completed:['independent-hamster-source','own-40ms-locomotion-and-turns','source-owned-snack-table','solid-mesh-clearance-and-tabletop-support','authored-back-away-and-rest-loop'],pending:['candidate-full-visit-and-bounded-cache-browser-QA','canonical-server-and-shared-scene-integration','multi-actor-browser-QA','worn-broken-and-other-legacy-interactions','release-review']};
+writeFileSync(new URL('pip-actor-profile.mjs',H),`/** Closed Pip snack candidate. This module registers no actor. */\nimport {deepFreeze} from './util.mjs';\nexport const PIP_ACTOR_REFERENCE=deepFreeze(${JSON.stringify(reference)});\nexport const PIP_ACTOR_PROFILE=deepFreeze(${JSON.stringify(profile,null,2)});\nexport const PIP_RELEASE_GATE=deepFreeze(${JSON.stringify(gate,null,2)});\n`);
+console.log('PIP_PROFILE_READY',reference,profile.ground.revision);
