@@ -36,7 +36,6 @@ process.on('message', async message => {
       return applyActionWithReceipt(player, message.action, message.payload, {
         clientActionId: message.clientActionId,
         serverNow: message.now,
-        gardenR2Enabled: true, // Internal seam, never an HTTP-supplied flag.
       });
     });
     // Model a committed request whose entire response was lost. The caller must

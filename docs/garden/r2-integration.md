@@ -2,7 +2,7 @@
 
 ## Release state
 
-`game-logic/garden-r2/catalog.js` keeps `GARDEN_R2_RELEASE_POLICY.enabled` false. This change prepares the server-owned progression, UI, and verification gates; it does not activate migration for ordinary players. Client query strings, local storage, HTTP payload fields, and environment variables cannot enable the policy. The optional `gardenR2Enabled` route-call parameter is an internal test seam and is not accepted by the HTTP handler.
+`game-logic/garden-r2/catalog.js` sets `GARDEN_R2_RELEASE_POLICY.enabled` true for the approved rollout. The normal CI and deployment gates still apply to this activation commit. The server advertises availability; an eligible current client recovers legacy intents and checkpoints before sending an explicit durable adoption command. Reads never adopt a save. Client query strings, local storage, HTTP payload fields, and environment variables cannot override the policy. The optional `gardenR2Enabled` route-call parameter remains an internal rollback-test seam and is not accepted by the HTTP handler.
 
 The global player schema remains 11. Adoption preserves the saved Garden `economyVersion` exactly; the separate private `_gardenProgression.version = 1` owns the new contract. Do not route an adopted save through the old reset or earned-credit paths, including during rollout rollback.
 
@@ -28,9 +28,13 @@ Client action responses update only Garden, R2, shared gold, and observation met
 
 ## Verification and activation
 
-Pure domain, service, route-boundary, transport, and store tests run without production data. Route-boundary tests use explicit infrastructure substitutes and include a synthetic OCC retry; they are not PostgreSQL persistence evidence. Guarded PostgreSQL tests must run only against the existing disposable PostgreSQL15 CI service. Browser tests use the production app and test-owned player/action fixtures with the internal policy seam, never a production activation switch.
+Pure domain, service, route-boundary, transport, and store tests run without production data. Route-boundary tests use explicit infrastructure substitutes and include a synthetic OCC retry; they are not PostgreSQL persistence evidence. Guarded PostgreSQL tests must run only against the existing disposable PostgreSQL15 CI service. R2 browser fixtures and PostgreSQL workers use the actual enabled default, with no opt-in override. A separate browser flow reaches the real HTTP server for adoption, the old-client reset fence, a lost purchase response, and reload.
 
-Before activation, require the normal build and legacy regression suite, the actual PostgreSQL gate, and the mobile/touch UI matrix at 320×568, 360×800, 390×844, 414×896, 568×320, 844×390, 768×1024, 1024×768, 1280×720, and 393×873, including deviceScaleFactor 2. Verify restart/replay, account switching, stale clients, capped storage, and interrupted/repeated dialog flows. Passing only pure tests is not rollout readiness.
+Before deployment, require the normal build and legacy regression suite, the actual PostgreSQL gate, and the mobile/touch UI matrix at 320×568, 360×800, 390×844, 414×896, 568×320, 844×390, 768×1024, 1024×768, 1280×720, and 393×873, including deviceScaleFactor 2. The enabled R2 path also covers measured idle pixels, stationary pot/UI geometry, touch acknowledgement, reduced-motion/WebGL fallback, context loss, and first-shelf/distant-art loading. Verify restart/replay, account switching, stale clients, capped storage, and interrupted/repeated dialog flows. Passing only pure tests is not rollout readiness.
+
+Legacy browser suites model a cached pre-R2 client using `tests/e2e/helpers/legacyGardenClient.js`. The test-only fetch bridge hides only the new availability bit when a snapshot explicitly has no R2 state. It forwards the original request and preserves real status, receipts, errors, wallet and plant data. Adopted, malformed and future R2 projections are never hidden. The bridge is not imported by production, R2 or touch entrypoints; it adds no server flag or runtime override.
+
+The preceding inactive commit `599202f` passed the ordinary build, 993 Node checks, 314 Yard checks (two explicit source-only image skips), the Merge/Garden accounting/R2 real PostgreSQL gates, 159 browser tests without flakes, and the touch job in Actions run `37084823230`. All 16 R2 browser scenarios passed on their first attempt, and the embedded viewport captures were reviewed. That is prerequisite evidence, not proof that the activation commit has passed its newly default-enabled gates. The historical `garden-r2-local-validation.json` records the earlier inactive preparation stage.
 
 When rolling back activation, retain the private namespace and old-client fences. Never remove the namespace, rewind the shared wallet, restore the frozen archive over newer player data, or send adopted players back through the legacy provider. Resolve a corrupt state separately; do not infer a new initial state.
 

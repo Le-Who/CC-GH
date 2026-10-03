@@ -7,10 +7,13 @@ import { exitBlox } from "./helpers/blox-v2.js";
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
 import { formatGardenGoldAmount, PLANT_TYPES } from "../../game-logic/garden-shelf-plants.js";
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
+import { useLegacyGardenClient } from './helpers/legacyGardenClient.js';
 
 // These tests mount the production App through the normal Playwright web server.
 // Fixture-backed layout cases call production actions/receipts; live save cases
-// below do not intercept either player endpoint. No preview host is imported.
+// below do not intercept either player endpoint. The discovery-only compatibility
+// bridge models a cached legacy client; all economic responses stay authoritative.
+// Enabled-default R2 motion/loading/layout coverage lives in garden-r2.spec.js.
 const MATRIX = [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720],[393,873]];
 const uid = () => `garden_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 const plant = (id, index=0, extra={}) => ({id,type:index % 2 ? 'basil':'daisy',level:12,shelfIndex:Math.floor(index/2),spotIndex:index%2,phase:3,phaseProgress:0,lastTapped:0,lastWatered:0,...extra});
@@ -21,6 +24,7 @@ const state = page => page.evaluate(() => {
 });
 function parse(request) { try { return request.postDataJSON() || {}; } catch { return {}; } }
 async function initialize(page, userId=uid(), language='en') {
+  await useLegacyGardenClient(page);
   await page.addInitScript(({userId,language}) => {
     localStorage.setItem('gh_dev_user_id',userId);
     if (!sessionStorage.getItem('garden-release-initialized')) {

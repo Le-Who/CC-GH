@@ -9,7 +9,7 @@ function player() { const p = createDefaultPlayer('garden-service-account', 'Fix
 function request(p, command, input = {}, stream = STREAM, now = NOW) {
   const sequence = (p._gardenProgression?.streams?.[stream]?.sequence || 0) + 1;
   const payload = { version: 1, catalogRevision: GARDEN_R2_CATALOG_REVISION, accountId: p.id, command, input, expectedRevision: p._gardenProgression?.revision || 0, intent: { streamId: stream, sequence, createdAt: now } };
-  return { payload, options: { clientActionId: `garden-r2:${stream}:${sequence}`, enabled: true, now } };
+  return { payload, options: { clientActionId: `garden-r2:${stream}:${sequence}`, now } };
 }
 function commit(p, result) { assert.equal(result.error, undefined); if (result.commit) Object.assign(p, { garden: result.commit.garden, _gardenProgression: result.commit.gardenProgression, ...(result.commit.gardenAccounting ? { gardenAccounting: result.commit.gardenAccounting } : {}), resources: { ...p.resources, gold: result.commit.gold }, stats: result.commit.stats }); }
 function adopt(p = player()) { const r = request(p, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 }); commit(p, executeGardenR2(p, r.payload, r.options)); return p; }

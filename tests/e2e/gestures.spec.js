@@ -141,16 +141,20 @@ test.describe("Pixi touch and drag interactions", () => {
     await page.locator(".gs2-empty-target").first().click();
     const shop = page.locator('.gs2-dialog[data-garden-panel="seed-shop-inventory"]');
     await expect(shop).toContainText("Seed Shop");
-    const purchase = page.waitForResponse(response => response.url().includes("/api/player/mutate") && response.request().postDataJSON()?.action === "garden.buyPlant");
+    const purchase = page.waitForResponse(response => response.url().includes("/api/player/mutate")
+      && response.request().postDataJSON()?.action === "garden.r2" && response.request().postDataJSON()?.payload?.command === "buyPlant");
     await shop.locator(".gs2-catalog-row").filter({ has: page.getByRole("heading", { name: "Daisy", exact: true }) }).getByRole("button").click();
     const bought = await (await purchase).json();
     expect(bought.receiptConfirmed).toBe(true);expect(bought.goldDelta).toBe(-25);
     await expect(page.locator('.gs2-dialog[data-garden-panel="plant-detail"]')).toBeVisible();
     await page.locator(".gs2-close").click();
     await expect(page.locator(".gs2-dialog")).toHaveCount(0);
-    const readPlant = () => page.evaluate(id => {
-      const key = Object.keys(localStorage).find(key => key.startsWith("game_hub_garden_state_v1:"));
-      return JSON.parse(localStorage.getItem(key)).state.plants.find(plant => plant.id === id);
+    const readPlant = () => page.evaluate(async id => {
+      const response = await fetch('/api/player/snapshot', { headers: { Authorization: `dev ${localStorage.getItem('gh_dev_user_id')}` } });
+      if (!response.ok) throw Error(`R2 touch snapshot failed: ${response.status}`);
+      const snapshot = await response.json();
+      if (!snapshot.gardenR2 || snapshot.gardenR2.blocked) throw Error('Expected the enabled R2 touch path');
+      return snapshot.garden.plants.find(plant => plant.id === id);
     }, bought.plantId);
     const before = await readPlant();
     const viewportBefore = await page.evaluate(() => ({ x:scrollX, y:scrollY }));

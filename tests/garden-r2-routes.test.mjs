@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 const { createDefaultPlayer } = await import('../game-logic/player.js');
 const { createGardenEconomyState } = await import('../game-logic/garden-economy.js');
-const { applyAction, applyActionWithReceipt, buildSnapshot } = await import('../routes/player.js');
+const { default: playerRoutes, applyAction, applyActionWithReceipt, buildSnapshot } = await import('../routes/player.js');
 const { withPlayerLock, applyMigrations } = await import('../playerManager.js');
 const { GARDEN_R2_CATALOG_REVISION, GARDEN_R2_RELEASE_POLICY } = await import('../game-logic/garden-r2/catalog.js');
 const { gardenR2Hash, gardenR2Snapshot } = await import('../game-logic/garden-r2/service.js');
@@ -17,15 +17,50 @@ function command(p, type, input = {}, stream = STREAM) {
   const sequence = (p._gardenProgression?.streams?.[stream]?.sequence || 0) + 1;
   return { payload: { accountId: p.id, version: 1, catalogRevision: GARDEN_R2_CATALOG_REVISION, expectedRevision: p._gardenProgression?.revision || 0, command: type, input, intent: { streamId: stream, sequence, createdAt: NOW } }, clientActionId: `garden-r2:${stream}:${sequence}` };
 }
-function invoke(p, cmd, overrides = {}) { return applyActionWithReceipt(p, 'garden.r2', cmd.payload, { clientActionId: cmd.clientActionId, serverNow: NOW, gardenR2Enabled: true, ...overrides }); }
+function invoke(p, cmd, overrides = {}) { return applyActionWithReceipt(p, 'garden.r2', cmd.payload, { clientActionId: cmd.clientActionId, serverNow: NOW, ...overrides }); }
 async function adopt(p) { const cmd = command(p, 'adopt', { legacyRevision: p.gardenAccounting.revision, acknowledgedTotal: p.gardenAccounting.creditedTotal }); const r = await invoke(p, cmd); assert.equal(r.status, 200); return cmd; }
 
-test('default-off real route advertises no rollout and refuses adoption without internal policy opt-in', async () => {
+test('enabled policy advertises availability without adopting on read, then preserves assets on explicit adoption', async () => {
   const p = fixture(), before = structuredClone(p), snapshot = buildSnapshot(p);
-  assert.equal(GARDEN_R2_RELEASE_POLICY.enabled, false); assert.equal(snapshot.gardenR2Available, false); assert.equal(snapshot.gardenR2, null);
+  assert.equal(GARDEN_R2_RELEASE_POLICY.enabled, true); assert.equal(snapshot.gardenR2Available, true); assert.equal(snapshot.gardenR2, null);
+  assert.equal(p._gardenProgression, undefined);
+  const cmd = command(p, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 });
+  const result = await invoke(p, cmd);
+  assert.equal(result.status, 200); assert.equal(result.body.receiptConfirmed, true);
+  assert.equal(p.resources.gold, before.resources.gold); assert.deepEqual(p.garden.plants, before.garden.plants);
+  assert.equal(p.garden.economyVersion, before.garden.economyVersion); assert.equal(p.schemaVersion, 11);
+});
+
+test('internal rollback opt-out still refuses adoption without changing persisted assets', async () => {
+  const p = fixture(), before = structuredClone(p), snapshot = buildSnapshot(p);
+  assert.equal(snapshot.gardenR2Available, true); assert.equal(snapshot.gardenR2, null);
   const cmd = command(p, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 });
   const result = await invoke(p, cmd, { gardenR2Enabled: false });
   assert.equal(result.status, 409); assert.equal(result.body.error, 'GARDEN_R2_NOT_ENABLED'); assert.equal(p._gardenProgression, undefined); assert.deepEqual(p.garden, before.garden); assert.equal(p.resources.gold, before.resources.gold);
+});
+
+test('actual HTTP mutation handler ignores client policy/time seams and fences legacy commands after adoption', async t => {
+  t.mock.method(Date, 'now', () => NOW);
+  const id = 'garden-r2-http-default', initial = fixture(id);
+  await withPlayerLock(id, p => Object.assign(p, initial));
+  const router = playerRoutes(() => {}, () => ({ userId: id }));
+  const handler = router.stack.find(layer => layer.path === '/api/player/mutate').handlers.at(-1);
+  const request = async body => {
+    let status = 200, response;
+    const res = { status(value) { status = value; return this; }, json(value) { response = value; } };
+    await handler({ body }, res, error => { throw error; });
+    return { status, body: response };
+  };
+  const cmd = command(initial, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 });
+  const result = await request({ action: 'garden.r2', ...cmd, gardenR2Enabled: false, enabled: false, serverNow: NOW + 86400000 });
+  assert.equal(result.status, 200); assert.equal(result.body.receiptConfirmed, true);
+  await withPlayerLock(id, saved => {
+    assert.equal(saved._gardenProgression.migration.at, NOW);
+    assert.equal(saved.resources.gold, initial.resources.gold);
+    assert.deepEqual(saved.garden.plants, initial.garden.plants);
+  });
+  const denied = await request({ action: 'garden.resetEconomy', payload: {}, gardenR2Enabled: false });
+  assert.equal(denied.status, 409); assert.equal(denied.body.error, 'CLIENT_UPDATE_REQUIRED');
 });
 
 test('route commits only Garden/gold/stats and public view never exposes private migration or streams', async t => {

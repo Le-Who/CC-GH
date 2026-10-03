@@ -8,6 +8,7 @@ import {
   getGardenXpRequired,
 } from "../../game-logic.js";
 import { formatGardenGoldAmount } from "../../game-logic/garden-shelf-plants.js";
+import { useLegacyGardenClient } from './helpers/legacyGardenClient.js';
 import { applyAction, buildSnapshot } from "../../routes/player.js";
 import { BUBBO_COLS, BUBBO_ROWS, advanceBubboPressure, generateBubboWave, settleFloatingBubbo } from "../../src/game-core/bubbo/engine.js";
 import { BOARD_SIZE, attemptMatch3Move } from "../../src/game-core/match3/engine.js";
@@ -185,6 +186,7 @@ test.describe("CC-GH multi-game logic smoke", () => {
   });
 
   test("Garden v2 reset migration and Level Up action are visible in the app", async ({ page }) => {
+    await useLegacyGardenClient(page);
     const pageErrors = await boot(page, "garden_v2_smoke");
     await expect(page.getByText("My Garden")).toBeVisible();
 

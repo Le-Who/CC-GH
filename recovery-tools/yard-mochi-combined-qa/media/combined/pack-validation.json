@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "runtimeActivated": false,
+  "frames": 385,
+  "pages": 13,
+  "losslessTilesExact": true,
+  "loopPixelsExact": true,
+  "minimumAlphaMarginPx": 30,
+  "compressedBytes": 3601446,
+  "maxDecodedPageBytes": 7340032,
+  "compositionPolicy": "Combined source replaces actor and only its calibrated target prop; exact separation into independently-lit layers is not required.",
+  "browserQA": "NOT_RUN_ENVIRONMENT_BLOCKED_CI_HARNESS_PREPARED"
+}

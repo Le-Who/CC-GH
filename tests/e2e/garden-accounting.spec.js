@@ -1,5 +1,6 @@
 import {test as baseTest,expect} from '@playwright/test';
 import { gardenDiagnostics } from './helpers/gardenDiagnostics.js';
+import { useLegacyGardenClient } from './helpers/legacyGardenClient.js';
 
 const test=baseTest.extend({
  accountingClients:[async({browser},use)=>{
@@ -11,9 +12,10 @@ const test=baseTest.extend({
 import {createGardenEconomyState,getGardenXpRequired} from '../../game-logic/garden-economy.js';
 
 // Real /api/player routes. Fault interception forwards the request to the
-// running server and drops delivery only; it never fabricates a server result.
+// running server and drops delivery only. A discovery-only bridge models a
+// cached legacy client without changing mutations or economic server results.
 const uid=()=>`garden_accounting_http_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-async function setup(page,userId){await page.addInitScript(id=>{localStorage.setItem('gh_dev_user_id',id);localStorage.setItem('garden_shelf_language','en');},userId);}
+async function setup(page,userId){await useLegacyGardenClient(page);await page.addInitScript(id=>{localStorage.setItem('gh_dev_user_id',id);localStorage.setItem('garden_shelf_language','en');},userId);}
 async function boot(page){await page.goto('/');await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});await expect(page.locator('.gs2-stage')).toBeVisible();}
 async function serverSnapshot(page){return page.evaluate(async()=>{const response=await fetch('/api/player/snapshot',{headers:{Authorization:`dev ${localStorage.getItem('gh_dev_user_id')}`}});if(!response.ok)throw Error(`snapshot ${response.status}`);return response.json();});}
 async function localGarden(page,accountId){return page.evaluate(id=>{const key=id?`game_hub_garden_state_v1:${encodeURIComponent(id)}`:Object.keys(localStorage).find(key=>key.startsWith('game_hub_garden_state_v1:'));return key?JSON.parse(localStorage.getItem(key)||'null')?.state:null;},accountId);}

@@ -3,8 +3,8 @@ import { getGardenXpRequired } from '../garden-economy.js';
 
 export const GARDEN_R2_VERSION = 1;
 export const GARDEN_R2_CATALOG_REVISION = 'garden-r2-20261002';
-// Publication never turns this on implicitly. The publisher owns activation.
-export const GARDEN_R2_RELEASE_POLICY = Object.freeze({ enabled: false });
+// Reviewed rollout: only the server-owned policy enables explicit adoption.
+export const GARDEN_R2_RELEASE_POLICY = Object.freeze({ enabled: true });
 export const R2_GOLD_RANK_MAX = 5;
 export const R2_MASTERY_MAX = 3;
 export const R2_CHAPTER_MAX = 30;

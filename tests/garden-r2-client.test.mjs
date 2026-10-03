@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import vm from 'node:vm';
+import { installLegacyGardenDiscoveryBridge } from './e2e/helpers/legacyGardenClient.js';
 import { createHash } from 'node:crypto';
 import { createGardenR2Coordinator, hashGardenR2Payload, requiresGardenReload, isGardenR2Retryable, GARDEN_R2_RECEIPT_WINDOW_MS } from '../src/games/garden-shelf/lib/gardenR2Transactions.js';
 import { prepareGardenR2Adoption } from '../src/games/garden-shelf/lib/gardenR2Adoption.js';
@@ -12,6 +14,29 @@ import { migrateGardenR2 } from '../game-logic/garden-r2/domain.js';
 import { R2_PLANTS, r2GoldRate } from '../game-logic/garden-r2/catalog.js';
 const NOW = Date.UTC(2026, 9, 2, 12), ACCOUNT = 'verified-account', STREAM = 'test_garden_r2_stream_123';
 const store = () => { const values = new Map(); return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), values }; };
+
+test('cached-client browser bridge hides only unadopted discovery and preserves real requests and authority', async () => {
+  const calls = []; let original;
+  const context = { URL, Headers, Response, location: { href: 'https://fixture.test/', origin: 'https://fixture.test' },
+    fetch: async (...args) => { calls.push(args); return original; } };
+  vm.runInNewContext(`(${installLegacyGardenDiscoveryBridge.toString()})();`, context);
+  const legacy = { player: { id: ACCOUNT }, gardenR2Available: true, gardenR2: null, garden: { plants: [{ id: 'kept' }] }, resources: { gold: 123 } };
+  const options = { method: 'POST', body: JSON.stringify({ action: 'garden.buyPlant', clientActionId: 'unchanged-intent', payload: { type: 'daisy' } }) };
+  const result = { receiptConfirmed: true, clientActionId: 'unchanged-intent', goldDelta: -25, snapshot: legacy };
+  original = new Response(JSON.stringify(result), { status: 200, headers: { 'x-fixture': 'real' } });
+  const response = await context.fetch('/api/player/mutate', options);
+  assert.equal(calls[0][1], options); assert.equal(response.status, 200); assert.equal(response.headers.get('x-fixture'), 'real');
+  assert.deepEqual(await response.json(), { ...result, snapshot: { ...legacy, gardenR2Available: false } });
+  for (const gardenR2 of [{ version: 1, revision: 7 }, { version: 1, blocked: true, error: 'GARDEN_R2_STATE_INVALID' }, { version: 99 }, undefined]) {
+    original = new Response(JSON.stringify({ ...legacy, gardenR2 }));
+    assert.equal(await context.fetch('/api/player/snapshot'), original, 'Adopted, corrupt, future or incomplete authority cannot be hidden');
+  }
+  for (const url of ['/api/config', '/api/player/snapshot/other', 'https://other.test/api/player/snapshot']) {
+    original = new Response(JSON.stringify(legacy)); assert.equal(await context.fetch(url), original);
+  }
+  original = new Response(JSON.stringify({ error: 'CLIENT_UPDATE_REQUIRED', snapshot: { ...legacy, gardenR2: { version: 1, blocked: true } } }), { status: 409 });
+  assert.equal(await context.fetch('/api/player/mutate', options), original);
+});
 function setup(options = {}) {
   const storage = options.storage || store(), calls = [];
   const coordinator = createGardenR2Coordinator({ accountId: ACCOUNT, storage, now: () => NOW, uuid: () => STREAM, transport: async (action, payload, meta) => { calls.push({ action, payload, meta }); return { receiptConfirmed: true, clientActionId: meta.clientActionId }; }, reconcile: async () => ({ error: 'GARDEN_R2_INTENT_AMBIGUOUS' }), ...options });

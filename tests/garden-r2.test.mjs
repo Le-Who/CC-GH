@@ -37,8 +37,8 @@ function transact(p, command, input = {}, options = {}) { return commit(p, execu
 
 function economicProjection(p) { const r = p._gardenProgression; return { gold: p.resources.gold, xp: r.xp, chapter: r.chapter, substrate: r.substrate, materialProgressMs: r.materialProgressMs, goldRemainder: r.goldRemainder, xpRemainder: r.xpRemainder, plants: p.garden.plants.map(({ phase, phaseProgress }) => ({ phase, phaseProgress })) }; }
 
-test('inactive policy, all fourteen catalogue entries and every bounded rank are exact and positive', () => {
-  assert.equal(GARDEN_R2_RELEASE_POLICY.enabled, false); assert.equal(Object.keys(R2_PLANTS).length, 14);
+test('approved active policy, all fourteen catalogue entries and every bounded rank are exact and positive', () => {
+  assert.equal(GARDEN_R2_RELEASE_POLICY.enabled, true); assert.equal(Object.keys(R2_PLANTS).length, 14);
   let steps = 0;
   for (const p of Object.values(R2_PLANTS)) {
     assert(p.buyGold <= 1150); assert.equal(p.upgradeGold.length, 4);
@@ -89,9 +89,11 @@ test('earned old level reward survives migration as a single explicit claim with
   assert.equal(execute(next, 'claimLegacyLevelReward').result.error, 'GARDEN_R2_LEGACY_REWARD_UNAVAILABLE');
 });
 
-test('pure service is default-disabled and never mutates caller on an error', () => {
+test('pure service uses the active default, supports explicit rollback and never mutates its caller', () => {
   const p = fixture(), original = structuredClone(p), payload = envelope(p, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 });
-  const denied = executeGardenR2(p, payload, { now: NOW, clientActionId: `garden-r2:${STREAM}:1` });
+  const approved = executeGardenR2(p, payload, { now: NOW, clientActionId: `garden-r2:${STREAM}:1` });
+  assert.equal(approved.receiptConfirmed, true); assert.ok(approved.commit); assert.deepEqual(p, original);
+  const denied = executeGardenR2(p, payload, { now: NOW, clientActionId: `garden-r2:${STREAM}:1`, enabled: false });
   assert.equal(denied.error, 'GARDEN_R2_NOT_ENABLED'); assert.deepEqual(p, original);
   const converted = migrate(p), before = structuredClone(converted); assert.equal(execute(converted, 'buyPlant', { type: 'fern', shelfIndex: 0, spotIndex: 1 }).result.error, 'GARDEN_R2_PLANT_LOCKED'); assert.deepEqual(converted, before);
 });

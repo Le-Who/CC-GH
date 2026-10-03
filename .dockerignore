@@ -24,3 +24,8 @@ concurrency_test.js
 
 package-lock.json
 .pnpm-store
+
+# Isolated CI-only media harness
+recovery-tools/yard-mochi-combined-qa/
+playwright.mochi.config.js
+scripts/yard-mochi-ci-server.mjs
