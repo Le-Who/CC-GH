@@ -20,11 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
-      TOOL_COMMIT: 0b6eafa8e05cb4cfb429372d37ebfdaa293d9012
-      TOOL_TREE: bb8bbf17b01081ce940b0c61491967181a39bb36
-      CANDIDATE_COMMIT: a3fd43c98ab8cb8d992c6146386aea83b7204f6e
-      CANDIDATE_TREE: b34ed456754cbd395f16e8de695628a461d6f885
-      REQUEST_SHA256: 17eb9fbaa02514b3277b94e9a66e6f02cf425280678d0c915958a09732102c76
+      TOOL_COMMIT: cda3ffa0b96234548d08064e2dd50b55c28a1e47
+      TOOL_TREE: 39f64d5dc6e3561b970872dcb9d2b03d96f2fa53
+      CANDIDATE_COMMIT: 7c584dba54ed810f5405c767a5dc878639b7223c
+      CANDIDATE_TREE: c0e21cf4f8ffe04981fb7bc3fed9c7e38495af0d
+      REQUEST_SHA256: b6a399dfd0e1ce9b611345367609d86366fec9cb6add081bc5ef3054138414b5
       CI: 'true'
       YARD_MAINTENANCE_ACCEPTANCE: '1'
       NODE_OPTIONS: ''
@@ -33,7 +33,7 @@ jobs:
       DATABASE_URL: ''
       REDIS_URL: ''
       YARD_MAINTENANCE_REQUEST: ${{ github.workspace }}/harness/qa/yard-maintenance-source-request.json
-      YARD_MAINTENANCE_REQUEST_SHA256: 17eb9fbaa02514b3277b94e9a66e6f02cf425280678d0c915958a09732102c76
+      YARD_MAINTENANCE_REQUEST_SHA256: b6a399dfd0e1ce9b611345367609d86366fec9cb6add081bc5ef3054138414b5
       PROOF_DIRECTORY: ${{ github.workspace }}/yard-maintenance-source-qa
     steps:
       - name: Checkout exact QA harness event
