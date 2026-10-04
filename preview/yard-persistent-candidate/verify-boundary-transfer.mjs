@@ -70,6 +70,7 @@ export function verifyBoundaryTransfer({rootDir=root}={}) {
     });
     return {approvedWiringCommit:reviewed.approvedWiringCommit,integrationBaseCommit:reviewed.integrationBaseCommit,
       reviewedProductionTransitions:9,unchangedProductionPins:15,rollbackGuard:{approvedCommit:rollback.approvedCommit,reviewedFiles:rollback.reviewedFiles,reviewedPinTransitions:rollback.reviewedPinTransitions},presentationGuard:{approvedCommit:presentation.approvedCommit,approvedPatchSha256:presentation.approvedPatchSha256,reviewedFiles:presentation.reviewedFiles,reviewedPinTransitions:presentation.reviewedPinTransitions},historicalProvenance:provenance,
+      coldEscapeGuard:{reviewedFiles:presentation.cold.reviewedFiles,generatedFiles:presentation.cold.generatedFiles,reviewedPinTransitions:presentation.cold.reviewedPinTransitions,newNativeDurationEvidenceRequired:presentation.cold.newNativeDurationEvidenceRequired},
       historicalStoreMismatch:'preserved and disclosed; not a current integration test'};
   } finally {rmSync(temporary,{recursive:true,force:true});}
 }

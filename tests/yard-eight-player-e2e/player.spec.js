@@ -7,12 +7,14 @@ import {assertEightCandidateApi,CANDIDATE_PORT,CANDIDATE_DIST,AUTHORED_CLOCK_ORI
 import {assertYardPlayerFixture} from '../helpers/yard-player-api-guard.mjs';
 import {installEightCanvasWitness} from '../helpers/yard-eight-canvas-witness.mjs';
 import {actorAtlasPages,attributedDraw} from '../helpers/yard-eight-atlas-attribution.mjs';
+import {assertEightPlayerGroup,EIGHT_PLAYER_VIEWPORTS} from '../helpers/yard-eight-player-groups.mjs';
 import {createDefaultPlayer} from '../../game-logic/player.js';
 import {ensureMergeLabState} from '../../game-logic/merge-lab-service.js';
 import {YARD_GOODIES,YARD_FOODS,YARD_REMODELS} from '../../game-logic/yard-v2/catalog.mjs';
 import {EIGHT_FIXTURE_SPECS} from '../helpers/yard-eight-domain-fixtures.mjs';
 import {selectHomeGame} from '../e2e/helpers/home.js';
 assertEightCandidateApi();
+const group=assertEightPlayerGroup();
 const root=resolve(import.meta.dirname,'../..'),base=`http://127.0.0.1:${CANDIDATE_PORT}`,fixtures=[],templates=new Map();let database,closeDatabase;
 const adjacent=p=>({merge:p.merge,fence:p._mergeLabFence,garden:p.garden,gold:p.resources.gold,gachaTokens:p.resources.gachaTokens});
 const headers=f=>({Authorization:`dev ${f.externalId}`});
@@ -58,8 +60,7 @@ async function evidence(page,request,info,observed,actors){
 async function uiAction(page,action,click){const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action===action);await click();const r=await response,b=await r.json();expect(r.status(),JSON.stringify(b)).toBe(200);expect(b.duplicate).toBe(false);await expect(page.locator('.cy-status')).not.toContainText('Saving action');return {body:b,data:r.request().postDataJSON()};}
 const row=(page,title)=>page.locator('.cy-row').filter({has:page.locator('strong').filter({hasText:new RegExp(`^${title}$`)})});
 async function panel(page,index){if(await page.locator('.cy-dialog').isVisible())await page.getByRole('button',{name:'Close courtyard panel',exact:true}).click();await page.locator('.cy-actions button').nth(index).click();await expect(page.locator('.cy-dialog')).toBeVisible();}
-const matrix=[{name:'small-phone',width:320,height:568,dpr:1,touch:true},{name:'phone',width:390,height:844,dpr:2,touch:true},{name:'landscape',width:844,height:390,dpr:2,touch:true},{name:'desktop',width:1280,height:800,dpr:1,touch:false}];
-for(const viewport of matrix)test.describe(viewport.name,()=>{
+for(const viewport of EIGHT_PLAYER_VIEWPORTS.filter(v=>v.name===group))test.describe(viewport.name,()=>{
  test.use({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:viewport.dpr,isMobile:viewport.touch,hasTouch:viewport.touch});
  // Run finite pairs first; the shortest first guest has 18 real minutes left at
  // clock origin. The whole lane is bounded to 14 minutes, without time scaling.
@@ -114,12 +115,12 @@ for(const viewport of matrix)test.describe(viewport.name,()=>{
   expect(after.yard.placedGoodies.find(p=>p.goodieId==='sun_cushion').x).toBe(53);expect(after.yard.goodieInventory.moon_lamp).toBe(1);expect(after.yard.opaqueCandidate).toEqual(initial.yard.opaqueCandidate);expect(adjacent(after)).toEqual(adjacent(initial));
   expect(new Set([...seen.map(r=>r.data.action),...unavailable]).size).toBe(14);
   expect(after.yard.currencies.treats).toBe(initial.yard.currencies.treats-YARD_FOODS.kibble.cost.treats-YARD_GOODIES.moon_lamp.fixCost.treats-YARD_GOODIES.sun_cushion.cost.treats+12+35);
-  await page.keyboard.press('Escape');await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.locator('.cy-scene canvas')).toBeVisible();
+  await page.keyboard.press('Escape');await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.getByTestId('home-catalogue')).toHaveCount(0);await expect(page.locator('.cy-scene canvas')).toBeVisible();
   await page.getByRole('button',{name:'Back to games',exact:true}).click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'room');await expect(page.locator('.cy-app')).toBeVisible();await page.reload();await expect(page.locator('.cy-wallet')).toContainText(String(after.yard.currencies.treats));
   await info.attach('fourteen-intent-results',{body:Buffer.from(JSON.stringify({positive:seen.map(r=>({action:r.data.action,nonce:r.data.clientActionId})),unavailable,balances:after.yard.currencies},null,2)),contentType:'application/json'});await info.attach('interactive-ui',{body:await page.screenshot(),contentType:'image/png'});expect(observed.errors).toEqual([]);
  });
 });
-test.describe('supported wear pixels on phone',()=>{test.use({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+if(group==='phone')test.describe('supported wear pixels on phone',()=>{test.use({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  for(const id of ['willow','starlit','basil','sage'])for(const condition of ['worn','broken'])test(`${id} ${condition}: real persisted source condition reaches renderer`,async({page,request},info)=>{
   const f=await seed(`${id}:${condition}`),observed=await boot(page,f),s=await snapshot(request,f);expect(s.yardRuntime.visits).toHaveLength(1);
   const clipId=s.yardRuntime.visits[0].mediaAdmission.plan.clipId,manifest=JSON.parse(readFileSync(resolve(root,CANDIDATE_DIST,actorPath(id).slice(1),'runtime-media.json'),'utf8'));

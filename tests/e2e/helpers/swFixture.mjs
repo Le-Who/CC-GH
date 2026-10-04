@@ -115,7 +115,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
   await new Promise(done=>server.listen(0,'127.0.0.1',done));
   return {
     origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,artRequests,
-    holdResources:resourceGate.hold,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
+    holdResources:resourceGate.hold,holdArtResources:resourceGate.holdArt,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
     player:currentPlayer,
     failApi(value=true){apiFailure=value;},delayAccountA(ms){delayA=ms;},delayAccountB(ms){delayB=ms;},freshHttpCache(value=true){httpFresh=value;},
     async close(){resourceGate.release();for(const timer of timers)clearTimeout(timer);await new Promise(done=>realtime.close(done));server.closeAllConnections();if(server.listening)await new Promise(done=>server.close(done));const base=resolve(tmpdir());if(!temporary.startsWith(base+sep)||!basename(temporary).startsWith('ccgh-sw-proof-'))throw Error('Unsafe fixture cleanup path');await rm(temporary,{recursive:true,force:true});},

@@ -214,7 +214,14 @@ jobs:
           group: yard-player-integration
 
   yard-eight-player:
+    name: Yard eight-player / ${{ matrix.group }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [small-phone, phone, landscape, desktop]
+    env:
+      YARD_EIGHT_PLAYER_GROUP: ${{ matrix.group }}
     timeout-minutes: 30
     services:
       postgres:
@@ -240,7 +247,7 @@ jobs:
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
       - name: Check exact isolated eight-actor policy contracts
-        run: node --test tests/yard-eight-player-contract.test.mjs
+        run: node --test tests/yard-eight-player-contract.test.mjs tests/yard-panel-escape.test.mjs
       - name: Build separate test-only eight-actor player
         timeout-minutes: 8
         env:
@@ -262,7 +269,7 @@ jobs:
           NODE_OPTIONS: ''
           YARD_CANDIDATE_CI: ''
           YARD_PLAYER_WIRING_TEST: ''
-        run: node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-fixtures.mjs --all
+        run: node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-fixtures.mjs --group "$YARD_EIGHT_PLAYER_GROUP"
       - name: Install acceptance Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Genuine eight-actor API store browser PostgreSQL15 acceptance
@@ -280,12 +287,15 @@ jobs:
           NODE_OPTIONS: ''
           YARD_CANDIDATE_CI: ''
           YARD_PLAYER_WIRING_TEST: ''
-        run: pnpm exec playwright test --config playwright.yard-eight-player.config.js
+        run: |
+          pnpm exec playwright test --config playwright.yard-eight-player.config.js --list --reporter=json > "test-results/yard-eight-player-${YARD_EIGHT_PLAYER_GROUP}-discovery.json"
+          node tests/helpers/yard-eight-player-groups.mjs --verify-list "test-results/yard-eight-player-${YARD_EIGHT_PLAYER_GROUP}-discovery.json" "$YARD_EIGHT_PLAYER_GROUP"
+          pnpm exec playwright test --config playwright.yard-eight-player.config.js
       - name: Preserve bounded eight-actor player evidence
         if: always()
         uses: ./.github/actions/upload-browser-evidence
         with:
-          group: yard-eight-player
+          group: yard-eight-player-${{ matrix.group }}
 
   browser-plan:
     runs-on: ubuntu-latest

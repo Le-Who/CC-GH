@@ -1,0 +1,259 @@
+From 0af49fd37e3ed713636f4228c13d4879999a2ae3 Mon Sep 17 00:00:00 2001
+From: dot <dot@local.invalid>
+Date: Sun, 4 Oct 2026 08:30:04 +0300
+Subject: [PATCH] Bound delayed entry artwork without starving real font
+ readiness
+
+---
+ docs/game-entry-http-gate-fix.md   | 70 ++++++++++++++++++++++++++++++
+ tests/browser-ci-contract.test.mjs | 35 +++++++++++++++
+ tests/e2e/game-entry-flash.spec.js | 25 +++++++++--
+ tests/e2e/helpers/resourceGate.mjs | 18 +++++---
+ tests/e2e/helpers/swFixture.mjs    |  2 +-
+ 5 files changed, 140 insertions(+), 10 deletions(-)
+ create mode 100644 docs/game-entry-http-gate-fix.md
+
+diff --git a/docs/game-entry-http-gate-fix.md b/docs/game-entry-http-gate-fix.md
+new file mode 100644
+index 0000000..f4eb76d
+--- /dev/null
++++ b/docs/game-entry-http-gate-fix.md
+@@ -0,0 +1,70 @@
++# Bound image holds in entry browser fixtures
++
++Base: `53e5fbf6b7b774ccf35ade0244dc6690519ea15f`.
++Evidence: [Game Hub CI 37179290541](https://github.com/Le-Who/CC-GH/actions/runs/37179290541),
++artifact `11294111953`, `entry-http-diagnostic.json`.
++Archive SHA-256: `550099619060ffc4e11e9228270499ab86a4606acae0fffacfc894f3b27dc14e`.
++
++## Actual diagnostic result
++
++The isolated diagnostic used Chromium 145.0.7632.6 and the repository's Nunito
++400 Latin WOFF2 (16,316 bytes), with ordinary Playwright screenshot/font
++readiness. It completed in about two seconds and reports
++`hypothesisConfirmed: true`.
++
++- Six HTTP/1.1 image responses held: at server time 907.416 ms, no font or
++  status request had reached the server, fonts were loading, and the screenshot
++  was pending.
++- Release one response at 910.159 ms: the font request arrived at 911.498 ms;
++  the ordinary screenshot completed at 935.408 ms while five images remained
++  held.
++- One response held: the font loaded and the ordinary screenshot completed at
++  server time 89.798 ms while that image was still held.
++
++This establishes the HTTP connection-starvation mechanism in a real browser.
++It is an isolated transport reproduction, not a claim that the full game-entry
++suite has already passed.
++
++## Narrow correction
++
++The original entry test withheld every response under `/games/` and
++`/assets-runtime/`, then asked Playwright for a screenshot before releasing
++those responses. That could exhaust all browser HTTP connections and prevent
++its font-ready wait from completing. It also unintentionally withheld runtime
++manifest JSON.
++
++The corrected fixture separates explicit API/chunk gates from artwork gates.
++Artwork gates:
++
++- accept actual image extensions only;
++- hold at most one image response at a time;
++- target the current game's actual backdrop paths, including responsive
++  variants and Yard's content-hashed runtime backdrop;
++- leave manifests, fonts, remaining images, code and unrelated APIs flowing.
++
++The cold cases assert that a real targeted backdrop request is held and save
++its path in a small attachment before taking the same early-frame screenshots.
++The rapid case keeps the real Blox backdrop pending through navigation to
++Bubbo, Match3 and Garden, then releases that outgoing image and checks the
++current screen. Its separate lazy Blox chunk and snapshot holds are preserved.
++
++No application source, rendering, game controller, save behavior, service
++worker, screenshot implementation, font readiness or test deadline changes.
++No assertion is disabled and no timeout is increased.
++
++## Verification and release boundary
++
++24 focused Node tests pass: browser CI contracts (including image-budget,
++manifest/font pass-through and independent API/chunk gates), existing entry
++contracts, and existing Home navigation/history contracts. Syntax checks for
++all changed JavaScript helpers/specs and `git diff --check` pass.
++
++The final full-game cold/warm/rapid browser suite must pass in the next CI run.
++The three changed files from the original entry-proof scope are:
++
++- `tests/e2e/game-entry-flash.spec.js`
++- `tests/e2e/helpers/resourceGate.mjs`
++- `tests/e2e/helpers/swFixture.mjs`
++
++Their protected provenance needs the explicit reviewed test-harness transition;
++this patch does not edit or relax those historical guards.
+diff --git a/tests/browser-ci-contract.test.mjs b/tests/browser-ci-contract.test.mjs
+index 369189c..fb92315 100644
+--- a/tests/browser-ci-contract.test.mjs
++++ b/tests/browser-ci-contract.test.mjs
+@@ -1,4 +1,5 @@
+ import test from 'node:test';
++import { createResourceGate, ART_RESPONSE_HOLD_LIMIT } from './e2e/helpers/resourceGate.mjs';
+ import assert from 'node:assert/strict';
+ import { mkdtemp, mkdir, writeFile, readFile, readdir, stat, rm, symlink } from 'node:fs/promises';
+ import { readFileSync } from 'node:fs';
+@@ -161,3 +162,37 @@ test('entry HTTP diagnostic is isolated, bounded and published before real brows
+   assert.match(diagnostic, /document\.fonts\.ready/);
+   assert.doesNotMatch(diagnostic, /PW_TEST_SCREENSHOT_NO_FONTS_READY|ignoreHTTPSErrors|disable-web-security|page\.route|addInitScript|src\/App|force:\s*true/);
+ });
++
++
++test('art gates bound held images while manifests, fonts and independent API/chunk gates retain their contracts', async () => {
++  const gate = createResourceGate(), done = new Set();
++  gate.holdArt(['/games/', '/assets-runtime/']);
++  gate.hold(['/api/player/snapshot', '/assets/BloxGame-']);
++  const hold = path => gate.wait(path).then(() => done.add(path));
++  const first = hold('/games/blox-v2/background.webp');
++  await hold('/games/blox-v2/button.webp');
++  await hold('/assets-runtime/manifest.json');
++  await hold('/assets-runtime/font.woff2');
++  await hold('/assets/main.js');
++  const snapshot = hold('/api/player/snapshot');
++  const chunk = hold('/assets/BloxGame-abc.js');
++  assert.equal(ART_RESPONSE_HOLD_LIMIT, 1);
++  assert.deepEqual(gate.pending(), ['/games/blox-v2/background.webp', '/api/player/snapshot', '/assets/BloxGame-abc.js']);
++  gate.release(['/api/player/snapshot']); await snapshot;
++  assert.equal(done.has('/games/blox-v2/background.webp'), false);
++  assert.equal(done.has('/assets/BloxGame-abc.js'), false);
++  gate.release(['/assets/BloxGame-']); await chunk;
++  assert.deepEqual(gate.pending(), ['/games/blox-v2/background.webp']);
++  gate.release(); await first; assert.deepEqual(gate.pending(), []);
++});
++
++test('entry image timing targets current backdrops without disabling font or screenshot readiness', () => {
++  const source = read('tests/e2e/game-entry-flash.spec.js');
++  assert.match(source, /holdArtResources\(backdrops\[game\]\)/);
++  assert.match(source, /holdResources\(\['\/api\/player\/snapshot'\]\)/);
++  assert.match(source, /holdResources\(\[chunkPath\]\)/);
++  assert.match(source, /held-backdrop\.json/);
++  assert.match(source, /await page\.screenshot\(\)/);
++  assert.doesNotMatch(source, /holdResources\(\[[^\n]*(?:'\/games\/'|'\/assets-runtime\/')/);
++  assert.doesNotMatch(source, /PW_TEST_SCREENSHOT_NO_FONTS_READY|document\.fonts\s*=|waitForTimeout|force:\s*true/);
++});
+diff --git a/tests/e2e/game-entry-flash.spec.js b/tests/e2e/game-entry-flash.spec.js
+index 013e913..29034cd 100644
+--- a/tests/e2e/game-entry-flash.spec.js
++++ b/tests/e2e/game-entry-flash.spec.js
+@@ -10,6 +10,18 @@ const screens = {
+   merge: '.ml-root, [data-game-shell="merge"]', trivia: '.trv2-root',
+   room: '.companion-yard-layout, .cy-app', settlement: '.settlement-game-root',
+ };
++// Delay a real current backdrop, not manifests, hidden Hub icons or all images.
++// The fixture additionally admits at most one held image response globally.
++const backdrops = {
++  garden: ['/games/garden-v2/background.webp'],
++  blox: ['/games/blox-v2/background.webp'],
++  match3: ['/games/match3-v2/library-background-portrait.webp', '/games/match3-v2/library-background-landscape.webp'],
++  bubbo: ['/games/bubbo-v2/background-portrait.webp', '/games/bubbo-v2/background.webp'],
++  merge: ['/games/merge-lab-v3/background.webp'],
++  trivia: ['/games/trivia-v2/background.webp'],
++  room: ['/games/companion-yard/backgrounds/meadow.png', '/assets-runtime/companion-yard/backgrounds/meadow.'],
++  settlement: ['/games/settlement/map-region-settlement-playable.webp'],
++};
+ const matrix = [
+   ['garden', 320, 568], ['blox', 360, 800], ['match3', 390, 844],
+   ['bubbo', 414, 896], ['trivia', 568, 320], ['merge', 844, 390],
+@@ -48,13 +60,15 @@ for (const [game, width, height] of matrix) test.describe(`entry ${game} ${width
+     const errors = []; page.on('pageerror', error => errors.push(error.message));
+     try {
+       await installProbe(page);
+-      fixture.holdResources(['/api/player/snapshot', '/games/', '/assets-runtime/']);
++      fixture.holdResources(['/api/player/snapshot']);
++      fixture.holdArtResources(backdrops[game]);
+       await page.goto(`${fixture.origin}/?tab=${game}`, { waitUntil: 'domcontentloaded' });
+       await expect(page.locator('.game-entry-status')).toBeVisible();
+       await record(page, testInfo, 'cold-snapshot-pending');
+       fixture.releaseResources(['/api/player/snapshot']);
+       await expect(page.locator(screens[game]).first()).toBeVisible({ timeout: 25_000 });
+-      await expect.poll(() => fixture.pendingResources().filter(path => /^\/(games|assets-runtime)\//.test(path)).length).toBeGreaterThan(0);
++      await expect.poll(() => fixture.pendingResources().filter(path => backdrops[game].some(prefix => path.startsWith(prefix))).length).toBe(1);
++      await testInfo.attach('held-backdrop.json', { body: Buffer.from(JSON.stringify({ game, pendingPaths: fixture.pendingResources() }, null, 2)), contentType: 'application/json' });
+       await record(page, testInfo, 'cold-art-pending');
+       fixture.releaseResources();
+       await expectArtSettled(page, game);
+@@ -113,7 +127,8 @@ test.describe('rapid entry changes', () => {
+       const bloxChunk = graph.chunks.find(chunk => chunk.gameModules.includes('src/games/blox/BloxGame.jsx'));
+       expect(bloxChunk).toBeTruthy();
+       const chunkPath = `/${bloxChunk.file}`;
+-      fixture.holdResources([chunkPath, '/games/blox-v2/', '/games/bubbo-v2/', '/games/match3-v2/']);
++      fixture.holdResources([chunkPath]);
++      fixture.holdArtResources([...backdrops.blox, ...backdrops.bubbo, ...backdrops.match3]);
+       await selectHomeGame(page, 'blox');
+       await expect(page.locator('.game-entry-status')).toBeVisible();
+       await expect(page.locator('.bx-stage')).toHaveCount(0);
+@@ -124,13 +139,15 @@ test.describe('rapid entry changes', () => {
+       await page.getByRole('button', { name: 'Close Home', exact: true }).click();
+       fixture.releaseResources([chunkPath]);
+       await expect(page.locator('.bx-stage')).toBeVisible();
++      await expect.poll(() => fixture.pendingResources().filter(path => backdrops.blox.some(prefix => path.startsWith(prefix))).length).toBe(1);
+       await record(page, testInfo, 'rapid-blox');
+       for (const game of ['bubbo', 'match3', 'garden']) {
+         await selectHomeGame(page, game);
+         await expect(page.locator(screens[game]).first()).toBeVisible();
+         await record(page, testInfo, `rapid-${game}`);
+       }
+-      expect(fixture.pendingResources().length).toBeGreaterThan(0);
++      expect(fixture.pendingResources()).toHaveLength(1);
++      expect(backdrops.blox.some(prefix => fixture.pendingResources()[0].startsWith(prefix))).toBe(true);
+       fixture.releaseResources();
+       await expectArtSettled(page, 'garden');
+       await record(page, testInfo, 'late-outgoing-art-completed');
+diff --git a/tests/e2e/helpers/resourceGate.mjs b/tests/e2e/helpers/resourceGate.mjs
+index 8fd3de1..4e2fe2c 100644
+--- a/tests/e2e/helpers/resourceGate.mjs
++++ b/tests/e2e/helpers/resourceGate.mjs
+@@ -1,18 +1,26 @@
+ // Network timing only: requests still reach the real fixture server and retain
+ // their original production response bytes, headers and service-worker rules.
++// One delayed image leaves HTTP/1.1 connections for fonts, modules and APIs.
++export const ART_RESPONSE_HOLD_LIMIT = 1;
++const imagePath = path => /\.(?:png|webp|avif|gif|jpe?g|svg)$/i.test(path);
+ export function createResourceGate() {
+-  let prefixes = [];
++  let prefixes = [], artPrefixes = [];
+   const pending = new Set();
+   const matches = (path, values) => values.some(prefix => path.startsWith(prefix));
+   return {
+     hold(values) { prefixes = [...new Set([...prefixes, ...values])]; },
++    holdArt(values) { artPrefixes = [...new Set([...artPrefixes, ...values])]; },
+     wait(path) {
+-      if (!matches(path, prefixes)) return Promise.resolve();
+-      return new Promise(resolve => pending.add({ path, resolve }));
++      const kind = matches(path, prefixes) ? 'explicit'
++        : imagePath(path) && matches(path, artPrefixes)
++          && [...pending].filter(request => request.kind === 'art').length < ART_RESPONSE_HOLD_LIMIT ? 'art' : null;
++      if (!kind) return Promise.resolve();
++      return new Promise(resolve => pending.add({ path, kind, resolve }));
+     },
+-    release(values = prefixes) {
++    release(values = [...prefixes, ...artPrefixes]) {
+       prefixes = prefixes.filter(prefix => !values.includes(prefix));
+-      for (const request of pending) if (!matches(request.path, prefixes)) {
++      artPrefixes = artPrefixes.filter(prefix => !values.includes(prefix));
++      for (const request of pending) if (!matches(request.path, request.kind === 'art' ? artPrefixes : prefixes)) {
+         pending.delete(request); request.resolve();
+       }
+     },
+diff --git a/tests/e2e/helpers/swFixture.mjs b/tests/e2e/helpers/swFixture.mjs
+index 43445f6..38bb324 100644
+--- a/tests/e2e/helpers/swFixture.mjs
++++ b/tests/e2e/helpers/swFixture.mjs
+@@ -115,7 +115,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
+   await new Promise(done=>server.listen(0,'127.0.0.1',done));
+   return {
+     origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,artRequests,
+-    holdResources:resourceGate.hold,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
++    holdResources:resourceGate.hold,holdArtResources:resourceGate.holdArt,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
+     player:currentPlayer,
+     failApi(value=true){apiFailure=value;},delayAccountA(ms){delayA=ms;},delayAccountB(ms){delayB=ms;},freshHttpCache(value=true){httpFresh=value;},
+     async close(){resourceGate.release();for(const timer of timers)clearTimeout(timer);await new Promise(done=>realtime.close(done));server.closeAllConnections();if(server.listening)await new Promise(done=>server.close(done));const base=resolve(tmpdir());if(!temporary.startsWith(base+sep)||!basename(temporary).startsWith('ccgh-sw-proof-'))throw Error('Unsafe fixture cleanup path');await rm(temporary,{recursive:true,force:true});},
+-- 
+2.52.0
+

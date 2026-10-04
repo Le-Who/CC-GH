@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
+import {verifyColdEscapeTransfer,readBeforeColdEscape} from './verify-cold-escape-transfer.mjs';
 const fingerprint=bytes=>({bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
 const APPROVED_COMMIT='9e856bda5c5a36325d7cae90c2c3c32ac0ee8243';
 const APPROVED_PATCH='77212fc088f4ec2120cbc46d0e576bf8f82c9f0268c981dcd73c8f3a77f1ee01';
@@ -118,10 +119,12 @@ const APPROVED_ARCHIVES=[
   }
 ];
 const TRANSITION_PATHS=['package.json','src/App.jsx','src/app/gameChunks.jsx','src/index.css'];
-export function verifyPresentationTransfer({rootDir,contract}) {
+export function verifyPresentationTransfer({rootDir,contract,cold=verifyColdEscapeTransfer({rootDir,contract})}) {
+  const proofContract=cold.priorContract;
+  const production=path=>readBeforeColdEscape({rootDir,cold,path});
   const candidate=resolve(rootDir,'preview/yard-persistent-candidate');
   const read=path=>readFileSync(resolve(candidate,path));
-  const reviewed=contract.reviewedPresentationChangeSet;
+  const reviewed=proofContract.reviewedPresentationChangeSet;
   assert.equal(reviewed?.id,'game-entry-presentation-20261004');
   assert.equal(reviewed.approvedCommit,APPROVED_COMMIT);
   assert.equal(reviewed.approvedPatchSha256,APPROVED_PATCH);
@@ -136,7 +139,7 @@ export function verifyPresentationTransfer({rootDir,contract}) {
   assert.deepEqual(reviewed.transitions.map(row=>row.path).sort(),TRANSITION_PATHS,'Exactly four reviewed presentation pins may change');
   for(const row of reviewed.transitions){
     const before=priorContract.productionFiles.find(pin=>pin.path===row.path);
-    const after=contract.productionFiles.find(pin=>pin.path===row.path);
+    const after=proofContract.productionFiles.find(pin=>pin.path===row.path);
     const approved=APPROVED_FILES.find(file=>file.path===row.path);
     assert.ok(before&&after&&approved,row.path);
     assert.deepEqual(row.before,{bytes:before.bytes,sha256:before.sha256,archive:'history/pre-entry-presentation/production/'+row.path},row.path);
@@ -147,19 +150,19 @@ export function verifyPresentationTransfer({rootDir,contract}) {
   const expected=structuredClone(priorContract);
   for(const row of reviewed.transitions)Object.assign(expected.productionFiles.find(pin=>pin.path===row.path),row.after);
   expected.reviewedPresentationChangeSet=reviewed;
-  assert.deepEqual(contract,expected,'Presentation transfer must preserve all prior histories, sourceInputs and unrelated pins');
-  for(const row of APPROVED_FILES)assert.deepEqual(fingerprint(readFileSync(resolve(rootDir,row.path))),{bytes:row.bytes,sha256:row.sha256},`Reviewed presentation file: ${row.path}`);
+  assert.deepEqual(proofContract,expected,'Presentation transfer must preserve all prior histories, sourceInputs and unrelated pins');
+  for(const row of APPROVED_FILES)assert.deepEqual(fingerprint(production(row.path)),{bytes:row.bytes,sha256:row.sha256},`Reviewed presentation file: ${row.path}`);
   // Re-prove the package edit semantically instead of just trusting its hash.
   const before=JSON.parse(read('history/pre-entry-presentation/production/package.json'));
-  const after=JSON.parse(readFileSync(resolve(rootDir,'package.json')));
+  const after=JSON.parse(production('package.json'));
   const packageExpected=structuredClone(before);
   assert.equal(before.scripts.test.split('tests/home-navigation.test.js').length,2);
   packageExpected.scripts.test=before.scripts.test.replace('tests/home-navigation.test.js','tests/home-navigation.test.js tests/game-entry-presentation.test.mjs');
   assert.deepEqual(after,packageExpected,'Presentation package change may only register its reviewed test');
-  return {approvedCommit:APPROVED_COMMIT,approvedPatchSha256:APPROVED_PATCH,reviewedFiles:APPROVED_FILES.length,reviewedPinTransitions:4,transitions:reviewed.transitions,priorContract};
+  return {approvedCommit:APPROVED_COMMIT,approvedPatchSha256:APPROVED_PATCH,reviewedFiles:APPROVED_FILES.length,reviewedPinTransitions:4,transitions:reviewed.transitions,priorContract,cold};
 }
 /** Bytes at the prior proof boundary, validated by verifyPresentationTransfer. */
 export function readBeforePresentation({rootDir,presentation,path}) {
   const transition=presentation.transitions.find(row=>row.path===path);
-  return readFileSync(transition?resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive):resolve(rootDir,path));
+  return transition?readFileSync(resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive)):readBeforeColdEscape({rootDir,cold:presentation.cold,path});
 }

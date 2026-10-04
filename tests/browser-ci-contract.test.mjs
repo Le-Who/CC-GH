@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { createResourceGate, ART_RESPONSE_HOLD_LIMIT } from './e2e/helpers/resourceGate.mjs';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, readdir, stat, rm, symlink } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
@@ -160,4 +161,38 @@ test('entry HTTP diagnostic is isolated, bounded and published before real brows
   assert.match(diagnostic, /page\.screenshot\(\{ timeout: 10000 \}\)/);
   assert.match(diagnostic, /document\.fonts\.ready/);
   assert.doesNotMatch(diagnostic, /PW_TEST_SCREENSHOT_NO_FONTS_READY|ignoreHTTPSErrors|disable-web-security|page\.route|addInitScript|src\/App|force:\s*true/);
+});
+
+
+test('art gates bound held images while manifests, fonts and independent API/chunk gates retain their contracts', async () => {
+  const gate = createResourceGate(), done = new Set();
+  gate.holdArt(['/games/', '/assets-runtime/']);
+  gate.hold(['/api/player/snapshot', '/assets/BloxGame-']);
+  const hold = path => gate.wait(path).then(() => done.add(path));
+  const first = hold('/games/blox-v2/background.webp');
+  await hold('/games/blox-v2/button.webp');
+  await hold('/assets-runtime/manifest.json');
+  await hold('/assets-runtime/font.woff2');
+  await hold('/assets/main.js');
+  const snapshot = hold('/api/player/snapshot');
+  const chunk = hold('/assets/BloxGame-abc.js');
+  assert.equal(ART_RESPONSE_HOLD_LIMIT, 1);
+  assert.deepEqual(gate.pending(), ['/games/blox-v2/background.webp', '/api/player/snapshot', '/assets/BloxGame-abc.js']);
+  gate.release(['/api/player/snapshot']); await snapshot;
+  assert.equal(done.has('/games/blox-v2/background.webp'), false);
+  assert.equal(done.has('/assets/BloxGame-abc.js'), false);
+  gate.release(['/assets/BloxGame-']); await chunk;
+  assert.deepEqual(gate.pending(), ['/games/blox-v2/background.webp']);
+  gate.release(); await first; assert.deepEqual(gate.pending(), []);
+});
+
+test('entry image timing targets current backdrops without disabling font or screenshot readiness', () => {
+  const source = read('tests/e2e/game-entry-flash.spec.js');
+  assert.match(source, /holdArtResources\(backdrops\[game\]\)/);
+  assert.match(source, /holdResources\(\['\/api\/player\/snapshot'\]\)/);
+  assert.match(source, /holdResources\(\[chunkPath\]\)/);
+  assert.match(source, /held-backdrop\.json/);
+  assert.match(source, /await page\.screenshot\(\)/);
+  assert.doesNotMatch(source, /holdResources\(\[[^\n]*(?:'\/games\/'|'\/assets-runtime\/')/);
+  assert.doesNotMatch(source, /PW_TEST_SCREENSHOT_NO_FONTS_READY|document\.fonts\s*=|waitForTimeout|force:\s*true/);
 });

@@ -9,6 +9,7 @@ import { MIKA_CLIPS as clips } from '../../../game-logic/yard-v2/media/mika-clip
 import { MIKA_PLACEMENT_SUGGESTIONS } from '../../../game-logic/yard-v2/mika-media.mjs';
 import { yardFeedbackText } from './feedback.mjs';
 import {openHome} from '../../app/homeNavigation.js';
+import {useEscapeDismiss} from '../../app/useDismissableLayer.js';
 import './courtyard.css';
 import './i18n.js';
 
@@ -36,6 +37,7 @@ export default function CourtyardGame() {
   const yard=snapshot?.yard || {},busy=pending.some(p=>p.action.startsWith('yard.') && p.status!=='failed');
   const current=view || courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips);
   const closePanel=useCallback(()=>setPanel(null),[]);
+  useEscapeDismiss(!!panel,closePanel);
   const cancel=useCallback(()=>{drag.current=null;ghostRef.current=null;setGhost(null);scene.current?.setGhost(null);},[]);
   useEffect(()=>{
     useGameHub.getState().setActiveGameShell({id:'room',openPanel:!!panel,closePanel});

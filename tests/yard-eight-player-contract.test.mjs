@@ -5,6 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {resolve} from 'node:path';
 import {CANDIDATE_SOURCE_PINS,candidateSource,assertEightCandidateBuild,assertEightCandidateApi,EIGHT_IDS,CANDIDATE_DIST} from './helpers/yard-eight-player-candidate.mjs';
 import {actorAtlasPages,attributedDraw} from './helpers/yard-eight-atlas-attribution.mjs';
+import {EIGHT_PLAYER_GROUPS,fixtureKeysForGroup,expectedEightPlayerTitles,verifyEightPlayerDiscovery,assertEightPlayerGroup} from './helpers/yard-eight-player-groups.mjs';
 const root=resolve(import.meta.dirname,'..'),read=path=>readFileSync(resolve(root,path),'utf8');
 const env={CI:'true',NODE_ENV:'test',YARD_EIGHT_PLAYER_CANDIDATE_TEST:'1',YARD_PLAYER_API_TEST:'1',YARD_V2_PG_TEST:'1',YARD_V2_PG_TARGET:'integrated',DEV_AUTH_ENABLED:'true',DATABASE_URL:'postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci',REDIS_URL:'',NODE_OPTIONS:'',YARD_CANDIDATE_CI:'',YARD_PLAYER_WIRING_TEST:''};
 test('eight actor fixture is opt-in, disposable, loopback and rejects inherited loaders',()=>{
@@ -56,6 +57,18 @@ test('family pixels are attributed by exact physical page and crop, never a shar
  assert.ok(path.startsWith('/assets/yard-fox/'));assert.equal(attributedDraw(row,willow),true);assert.equal(attributedDraw(row,starlit),false);
  assert.equal(attributedDraw({...row,sourceCrop:[-1,0,p.tileWidth,p.tileHeight]},willow),false);assert.equal(attributedDraw({...row,changedOpaquePixels:0},willow),false);
 });
+test('four groups own the same 59 cases exactly once and reject incomplete real discovery',()=>{
+ assert.deepEqual(EIGHT_PLAYER_GROUPS,['small-phone','phone','landscape','desktop']);assert.throws(()=>assertEightPlayerGroup('all'));assert.throws(()=>assertEightPlayerGroup(''));
+ const all=EIGHT_PLAYER_GROUPS.flatMap(expectedEightPlayerTitles);assert.equal(all.length,59);assert.equal(new Set(all).size,59);
+ assert.deepEqual(EIGHT_PLAYER_GROUPS.map(g=>expectedEightPlayerTitles(g).length),[12,23,12,12]);assert.deepEqual(EIGHT_PLAYER_GROUPS.map(g=>fixtureKeysForGroup(g).length),[11,22,11,11]);
+ for(const group of EIGHT_PLAYER_GROUPS){
+  const suites=expectedEightPlayerTitles(group).map(title=>{const [suite,name]=title.split(' > ');return {title:suite,specs:[{title:name,tests:[{projectName:'chromium'}]}]};});
+  const report={suites};assert.equal(verifyEightPlayerDiscovery(report,group).tests,expectedEightPlayerTitles(group).length);
+  assert.throws(()=>verifyEightPlayerDiscovery({suites:suites.slice(1)},group));assert.throws(()=>verifyEightPlayerDiscovery({suites:[...suites,suites[0]]},group));assert.throws(()=>verifyEightPlayerDiscovery({...report,errors:[{message:'bad import'}]},group));
+  assert.throws(()=>verifyEightPlayerDiscovery({suites:[{title:group,specs:[{title:'invented',tests:[{projectName:'firefox'}]}]}]},group));
+  const skipped=structuredClone(report);skipped.suites[0].specs[0].tests[0].expectedStatus='skipped';assert.throws(()=>verifyEightPlayerDiscovery(skipped,group));
+ }
+});
 test('real integration is bounded, separate from production artifacts and required in CI',()=>{
  const config=read('playwright.yard-eight-player.config.js'),spec=read('tests/yard-eight-player-e2e/player.spec.js'),ci=read('.github/workflows/ci.yml');
  assert.match(config,/workers:1,retries:0/);assert.match(config,/globalTimeout:14\*60\*1000/);assert.match(config,/reuseExistingServer:false/);
@@ -63,6 +76,9 @@ test('real integration is bounded, separate from production artifacts and requir
  assert.match(spec,/window\.__yardEightDrawWitness/);assert.match(read('tests/helpers/yard-eight-canvas-witness.mjs'),/changedOpaquePixels/);
  for(const prohibited of [/route\.fulfill/,/page\.clock/,/useGameHub\.getState/,/setSnapshot/,/sourceCatalogActionPolicy/])assert.doesNotMatch(spec,prohibited);
  assert.match(ci,/yard-eight-player:/);assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
- assert.match(ci,/playwright test --config playwright\.yard-eight-player\.config\.js/);assert.match(ci,/yard-eight-player-fixtures\.mjs --all/);
+ assert.match(ci,/playwright test --config playwright\.yard-eight-player\.config\.js/);assert.match(ci,/yard-eight-player-fixtures\.mjs --group/);
+ const block=ci.slice(ci.indexOf('  yard-eight-player:'),ci.indexOf('  browser-plan:'));
+ assert.match(block,/fail-fast: false/);assert.match(block,/group: \[small-phone, phone, landscape, desktop\]/);assert.match(block,/YARD_EIGHT_PLAYER_GROUP: \$\{\{ matrix\.group \}\}/);assert.match(block,/yard-eight-player-groups\.mjs --verify-list/);assert.match(block,/group: yard-eight-player-\$\{\{ matrix\.group \}\}/);
+ assert.doesNotMatch(block,/--grep|--max-failures|continue-on-error/);
  assert.doesNotMatch(ci,/path: dist-yard-eight-player-candidate/);
 });

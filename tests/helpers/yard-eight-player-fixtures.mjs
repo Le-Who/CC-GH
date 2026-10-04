@@ -8,6 +8,7 @@ import {getYardServerOptions} from '../../game-logic/yard-v2/yard-media.mjs';
 import {YARD_GOODIES} from '../../game-logic/yard-v2/catalog.mjs';
 import {nativeDrawContext,drawNativeSeed} from './yard-native-draw.mjs';
 import {AUTHORED_CLOCK_ORIGIN,EIGHT_IDS,assertEightCandidateBuild,CANDIDATE_SOURCE_PINS} from './yard-eight-player-candidate.mjs';
+import {fixtureKeysForGroup} from './yard-eight-player-groups.mjs';
 const placement=(slotId,goodieId,x,y)=>({slotId,goodieId,x,y,uses:0,condition:'new',rotationZ:0});
 export const PAIR_FIXTURES=Object.freeze({
  'mika-willow':{first:'mika',second:'willow',seed:'yard-native-mika-supported-mika-willow-16683',placements:[placement('a-target','yarn_mouse',45,45),placement('b-target','moon_lamp',60,65)],source:'pair continuation: Mika Mouse/chase; exact positive witness'},
@@ -58,8 +59,9 @@ export function prepareEightPlayerFixture(key){
   expected:expected._yardV2.runtime.visits,expectedYard:expected.yard};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
- if(process.argv[2]==='--all'){
+ if(process.argv[2]==='--all'||process.argv[2]==='--group'){
+  const keys=process.argv[2]==='--all'?ALL_FIXTURE_KEYS:fixtureKeysForGroup(process.argv[3]);
   const dir=new URL('../../test-results/yard-eight-player-fixtures/',import.meta.url);await mkdir(dir,{recursive:true});
-  for(const key of ALL_FIXTURE_KEYS){const fixture=prepareEightPlayerFixture(key);await writeFile(new URL(`${key.replaceAll(':','-')}.json`,dir),JSON.stringify({sourcePins:CANDIDATE_SOURCE_PINS,fixture}));console.log('Native fixture verified:',key);}
+  for(const key of keys){const fixture=prepareEightPlayerFixture(key);await writeFile(new URL(`${key.replaceAll(':','-')}.json`,dir),JSON.stringify({sourcePins:CANDIDATE_SOURCE_PINS,fixture}));console.log('Native fixture verified:',key);}
  }else process.stdout.write(JSON.stringify(prepareEightPlayerFixture(process.argv[2])));
 }

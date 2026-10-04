@@ -1,0 +1,187 @@
+--- a/game-logic/yard-v2/ground-coverage.mjs
++++ b/game-logic/yard-v2/ground-coverage.mjs
+@@ -6,6 +6,45 @@
+ 
+ const EPS=1e-8;
+ const masks=new Map();
++// Source coverage is immutable, while origin/remodel/obstacles belong to each
++// request. Compile only deeply frozen, finite polygons; mutable/test inputs
++// retain the original per-polygon path. No account geometry is cached here.
++const coverageBounds=new WeakMap();
++const frozenArray=value=>Array.isArray(value)&&Object.isFrozen(value)&&Object.getPrototypeOf(value)===Array.prototype
++  &&Reflect.ownKeys(value).length===value.length+1;
++function frozenCoverageBounds(polygons) {
++  if(!Object.isFrozen(polygons))return null;
++  if(coverageBounds.has(polygons))return coverageBounds.get(polygons);
++  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity,valid=frozenArray(polygons);
++  const xs=new Set(),ys=new Set();
++  for(let i=0;valid&&i<polygons.length;i++){
++    const points=Object.getOwnPropertyDescriptor(polygons,i)?.value;
++    if(!frozenArray(points)||points.length<3){valid=false;break;}
++    for(let j=0;j<points.length;j++){
++      const p=Object.getOwnPropertyDescriptor(points,j)?.value;
++      const x=p&&Object.getOwnPropertyDescriptor(p,0)?.value,y=p&&Object.getOwnPropertyDescriptor(p,1)?.value;
++      if(!Array.isArray(p)||!Object.isFrozen(p)||!Number.isFinite(x)||!Number.isFinite(y)){valid=false;break;}
++      minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);xs.add(x);ys.add(y);
++    }
++    if(!valid)break;
++  }
++  const value=valid&&minX<maxX&&minY<maxY?{minX,minY,maxX,maxY,x:[...xs].sort((a,b)=>a-b),y:[...ys].sort((a,b)=>a-b),scaled:new Map()}:null;
++  coverageBounds.set(polygons,value);return value;
++}
++// clipAxis deliberately retains its historical fuzzy membership/exact-bound
++// intersection arithmetic. A source vertex in its EPS band can extrapolate a
++// near-parallel edge beyond the source bound, so those cases must fall back.
++function nearClipBoundary(bounds,axis,unitsPerWorld,origin,boundary) {
++  let scaled=bounds.scaled.get(unitsPerWorld);
++  if(!scaled){
++    scaled={x:bounds.x.map(v=>v*unitsPerWorld),y:bounds.y.map(v=>v*unitsPerWorld)};
++    if(bounds.scaled.size>=4)bounds.scaled.delete(bounds.scaled.keys().next().value);
++    bounds.scaled.set(unitsPerWorld,scaled);
++  }
++  const values=scaled[axis];let lo=0,hi=values.length;
++  while(lo<hi){const mid=(lo+hi)>>>1;if(origin+values[mid]<boundary-EPS)lo=mid+1;else hi=mid;}
++  return lo<values.length&&origin+values[lo]<=boundary+EPS;
++}
+ const maskFor=remodel=>{if(!masks.has(remodel))masks.set(remodel,getYardPlayzoneRows(remodel));return masks.get(remodel);};
+ 
+ function clipAxis(points,axis,bound,greater) {
+@@ -46,6 +85,29 @@
+ 
+ export function groundCoverageAllowed(polygons,origin,remodel,{unitsPerWorld=8,obstacles=[]}={}) {
+   if(!Array.isArray(polygons)||!polygons.length||![origin?.x,origin?.y,unitsPerWorld].every(Number.isFinite)||unitsPerWorld<=0)return false;
++  const bounds=frozenCoverageBounds(polygons);
++  if(bounds){
++    const x0=origin.x+bounds.minX*unitsPerWorld,x1=origin.x+bounds.maxX*unitsPerWorld;
++    const y0=origin.y+bounds.minY*unitsPerWorld,y1=origin.y+bounds.maxY*unitsPerWorld;
++    // Accept only strict interior/separation, never an area-based tolerance.
++    // Every crossed strip must contain the WHOLE bound in one allowed span.
++    // Concavities, holes, touching edges and ambiguous gaps use exact clipping.
++    if(Object.hasOwn(YARD_REMODELS,remodel)&&[x0,x1,y0,y1].every(Number.isFinite)
++      &&x0>EPS&&x1<100-EPS&&y0>EPS&&y1<100-EPS
++      &&obstacles.every(r=>[r.x,r.y,r.width,r.height].every(Number.isFinite)&&r.width>0&&r.height>0
++        &&(x1<r.x-EPS||x0>r.x+r.width+EPS
++          ||(y1<r.y-EPS||y0>r.y+r.height+EPS)
++            &&!nearClipBoundary(bounds,'x',unitsPerWorld,origin.x,r.x)
++            &&!nearClipBoundary(bounds,'x',unitsPerWorld,origin.x,r.x+r.width)))){
++      const rows=maskFor(remodel);let interior=true;
++      for(let row=Math.max(0,Math.ceil((y0-1-EPS)/2));row<=Math.min(rows.length-1,Math.floor((y1+1+EPS)/2));row++){
++        if(!(rows[row]||[]).some(([a,b])=>x0>a+EPS&&x1<b-EPS)
++          ||nearClipBoundary(bounds,'y',unitsPerWorld,origin.y,Math.max(0,row*2-1))
++          ||nearClipBoundary(bounds,'y',unitsPerWorld,origin.y,Math.min(100,row*2+1))){interior=false;break;}
++      }
++      if(interior)return true;
++    }
++  }
+   for(const raw of polygons){
+     const points=(raw.polygon||raw.points||raw).map(p=>[origin.x+p[0]*unitsPerWorld,origin.y+p[1]*unitsPerWorld]);
+     if(!solePolygonOnGround(points,remodel)||obstacles.some(r=>solePolygonOverlapsRect(points,r)))return false;
+--- a/package.json
++++ b/package.json
+@@ -21,7 +21,7 @@
+     "start": "node server.js",
+     "dev:server": "node server.js",
+     "dev": "vite",
+-    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/game-entry-presentation.test.mjs tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
++    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/game-entry-presentation.test.mjs tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-ground-coverage-index.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
+     "test:perf": "node --test tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js",
+     "perf:guard": "node scripts/perf-guard.mjs",
+     "perf:guard:build": "node scripts/perf-build-guard.mjs",
+@@ -31,7 +31,7 @@
+     "migrate:accounts": "node scripts/migrate-accounts.mjs",
+     "test:arcade-recovery": "node --test --test-concurrency=1 tests/bubbo.test.js tests/hud-layout.test.js tests/match3.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs",
+     "test:yard-current-four": "node --test --test-concurrency=1 tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-actor-profiles.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/yard-pebble-fixture-path.test.mjs",
+-    "test:yard-family": "node --test --test-concurrency=1 tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-mixed-obstacles.test.mjs tests/yard-source-owned-routes.test.mjs tests/yard-authored-routes.test.mjs tests/yard-pip-source.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs",
++    "test:yard-family": "node --test --test-concurrency=1 tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-mixed-obstacles.test.mjs tests/yard-source-owned-routes.test.mjs tests/yard-authored-routes.test.mjs tests/yard-pip-source.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-ground-coverage-index.test.mjs",
+     "test:yard-family:pg": "node --test --test-concurrency=1 tests/yard-family-postgres.test.mjs",
+     "test:yard-player-wiring": "node --test --test-concurrency=1 tests/yard-player-rollout.test.mjs",
+     "test:yard-rollback-guard": "node --test tests/yard-rollback-guard.test.mjs tests/release-gate.test.js"
+--- /dev/null
++++ b/tests/yard-ground-coverage-index.test.mjs
+@@ -0,0 +1,86 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {groundCoverageAllowed} from '../game-logic/yard-v2/ground-coverage.mjs';
++import {deepFreeze} from '../game-logic/yard-v2/util.mjs';
++import {getYardPlayzoneRows} from '../game-logic/yard-playzones.js';
++import {FAMILY_ASSETS} from '../game-logic/yard-v2/media/family-assets.mjs';
++import {createAuthoredMotionGround} from '../game-logic/yard-v2/media/authored-motion-ground.mjs';
++const box=(x,y,w,h)=>[[x,y],[x+w,y],[x+w,y+h],[x,y+h]];
++const compare=(source,origin={x:0,y:0},remodel='meadow',options={unitsPerWorld:1})=>{
++ const mutable=structuredClone(source),frozen=deepFreeze(structuredClone(source));
++ const exact=groundCoverageAllowed(mutable,origin,remodel,options);
++ assert.equal(groundCoverageAllowed(frozen,origin,remodel,options),exact);
++ assert.equal(groundCoverageAllowed(frozen,origin,remodel,options),exact,'repeat immutable-index use');
++ return exact;
++};
++test('whole-source bounds cannot hide a tiny forbidden sole or obstacle in a large bound',()=>{
++ const polygons=[box(15,60,1,1),box(85,60,1,1),box(50,60,.002,.002)];
++ assert.equal(compare(polygons),true);
++ assert.equal(compare(polygons,{x:0,y:0},'meadow',{unitsPerWorld:1,obstacles:[{x:50.0005,y:60.0005,width:.001,height:.001}]}),false);
++ const forbidden=[box(15,60,1,1),box(85,60,1,1),box(10.2,68,.002,.002)];
++ assert.equal(compare(forbidden),false);
++});
++test('concave strip steps and holes always retain exact polygon coverage',()=>{
++ // Each triangle vertex is in ground, but its left edge crosses a concave step.
++ assert.equal(compare([[[38.5,24],[40,25.9],[38.5,28]]]),false);
++ assert.equal(compare([box(9,67.5,2.5,1)]),false);
++ // Empty space between separate soles may cross a hole: conservative bound
++ // failure must fall back, rather than reject a valid set of soles.
++ assert.equal(compare([box(9,67.5,.5,.5),box(11.2,67.5,.5,.5)]),true);
++});
++test('edge contact, tiny overlaps and fixed-epsilon ground boundaries match the original predicate',()=>{
++ const p=[box(40,60,1,1)];
++ for(const shift of [-1e-7,-1e-9,0,1e-9,1e-7,.1]){
++  compare(p,{x:0,y:0},'meadow',{unitsPerWorld:1,obstacles:[{x:41+shift,y:60,width:1,height:1}]});
++ }
++ assert.equal(compare(p,{x:0,y:0},'meadow',{unitsPerWorld:1,obstacles:[{x:41,y:60,width:1,height:1}]}),true);
++ for(const remodel of ['meadow','moon_garden','tea_house'])for(const [index,spans] of getYardPlayzoneRows(remodel).entries()){
++  for(const [a,b] of spans)for(const x of [a,b])for(const offset of [-1e-7,-1e-9,0,1e-9,1e-7]){
++   compare([box(x+offset,index*2-.001,.001,.002)],{x:0,y:0},remodel);
++  }
++ }
++});
++test('historical fuzzy clipping extrapolation at both strip edges remains exact',()=>{
++ const source=[[[10,59-5e-9],[90,59-15e-9],[50,60]]];
++ assert.equal(compare(source),false);
++ for(const boundary of [39,41,49,51,59,61,67,69,75,77])for(const sign of [-1,1]){
++  for(const delta of [1e-12,1e-10,1e-9,5e-9,1e-8,2e-8])for(const unit of [1,8,.125]){
++   const row=[[10,boundary+sign*delta],[90,boundary+sign*3*delta],[50,boundary-sign]];
++   compare([row.map(([x,y])=>[x/unit,y/unit])],{x:0,y:0},'meadow',{unitsPerWorld:unit});
++  }
++ }
++});
++test('obstacle X clipping keeps its historical arithmetic before Y-only separation',()=>{
++ for(const boundary of [20,40,60,80])for(const sign of [-1,1]){
++  for(const delta of [1e-12,1e-10,1e-9,5e-9,1e-8,2e-8])for(const unit of [1,8,.125]){
++   const polygon=[[boundary+sign*delta,60],[boundary+sign*3*delta,80],[boundary-sign,70]];
++   for(const y of [54,85])compare([polygon.map(([x,y])=>[x/unit,y/unit])],{x:0,y:0},'meadow',{
++    unitsPerWorld:unit,obstacles:[{x:boundary,y,width:1,height:1}]});
++  }
++ }
++});
++test('mutable, shallow-frozen, wrapped and invalid inputs retain the exact path',()=>{
++ const p=[box(40,60,1,1)];assert.equal(groundCoverageAllowed(p,{x:0,y:0},'meadow',{unitsPerWorld:1}),true);
++ Object.freeze(p);p[0][0][0]=-100;assert.equal(groundCoverageAllowed(p,{x:0,y:0},'meadow',{unitsPerWorld:1}),false);
++ for(const source of [[{polygon:box(40,60,1,1)}],[{points:box(40,60,1,1)}],[[[40,60],[41,60]]],[[[40,60],[41,60],[NaN,61]]]])compare(source);
++ const alias=box(40,60,1,1);alias.polygon=box(-10,60,1,1);assert.equal(compare([alias]),false);
++ const point=[40,60],row=[point,[41,60],[41,61],[40,61]],rows=[row];Object.freeze(row);Object.freeze(rows);
++ assert.equal(groundCoverageAllowed(rows,{x:0,y:0},'meadow',{unitsPerWorld:1}),true);point[0]=-10;
++ assert.equal(groundCoverageAllowed(rows,{x:0,y:0},'meadow',{unitsPerWorld:1}),false);
++});
++test('every family source facing/motion matches exact clipping across layouts and obstacles',()=>{
++ let comparisons=0;
++ for(const [actor,data]of Object.entries(FAMILY_ASSETS)){
++  const guard=createAuthoredMotionGround(data.ground,{remodel:'meadow'});
++  for(const kind of ['hop','left90','right90','rest','stand'])for(const facing of [0,2,4,6]){
++   const source=guard.coverage(kind,facing).polygons,mutable=structuredClone(source),frozen=deepFreeze(source);
++   for(const remodel of ['meadow','moon_garden','tea_house'])for(const origin of [{x:50,y:60},{x:10,y:68},{x:38.5,y:26},{x:90,y:40},{x:20,y:90},{x:0,y:0}]){
++    for(const obstacles of [[],[{x:50,y:60,width:.002,height:.002}],[{x:origin.x+1,y:origin.y-1,width:.1,height:2}]]){
++     const options={unitsPerWorld:data.ground.unitsPerWorld,obstacles};
++     assert.equal(groundCoverageAllowed(frozen,origin,remodel,options),groundCoverageAllowed(mutable,origin,remodel,options),`${actor}:${kind}:${facing}:${remodel}:${JSON.stringify(origin)}`);comparisons++;
++    }
++   }
++  }
++ }
++ assert.equal(comparisons,4320);
++});

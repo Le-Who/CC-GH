@@ -10,6 +10,18 @@ const screens = {
   merge: '.ml-root, [data-game-shell="merge"]', trivia: '.trv2-root',
   room: '.companion-yard-layout, .cy-app', settlement: '.settlement-game-root',
 };
+// Delay a real current backdrop, not manifests, hidden Hub icons or all images.
+// The fixture additionally admits at most one held image response globally.
+const backdrops = {
+  garden: ['/games/garden-v2/background.webp'],
+  blox: ['/games/blox-v2/background.webp'],
+  match3: ['/games/match3-v2/library-background-portrait.webp', '/games/match3-v2/library-background-landscape.webp'],
+  bubbo: ['/games/bubbo-v2/background-portrait.webp', '/games/bubbo-v2/background.webp'],
+  merge: ['/games/merge-lab-v3/background.webp'],
+  trivia: ['/games/trivia-v2/background.webp'],
+  room: ['/games/companion-yard/backgrounds/meadow.png', '/assets-runtime/companion-yard/backgrounds/meadow.'],
+  settlement: ['/games/settlement/map-region-settlement-playable.webp'],
+};
 const matrix = [
   ['garden', 320, 568], ['blox', 360, 800], ['match3', 390, 844],
   ['bubbo', 414, 896], ['trivia', 568, 320], ['merge', 844, 390],
@@ -48,13 +60,15 @@ for (const [game, width, height] of matrix) test.describe(`entry ${game} ${width
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     try {
       await installProbe(page);
-      fixture.holdResources(['/api/player/snapshot', '/games/', '/assets-runtime/']);
+      fixture.holdResources(['/api/player/snapshot']);
+      fixture.holdArtResources(backdrops[game]);
       await page.goto(`${fixture.origin}/?tab=${game}`, { waitUntil: 'domcontentloaded' });
       await expect(page.locator('.game-entry-status')).toBeVisible();
       await record(page, testInfo, 'cold-snapshot-pending');
       fixture.releaseResources(['/api/player/snapshot']);
       await expect(page.locator(screens[game]).first()).toBeVisible({ timeout: 25_000 });
-      await expect.poll(() => fixture.pendingResources().filter(path => /^\/(games|assets-runtime)\//.test(path)).length).toBeGreaterThan(0);
+      await expect.poll(() => fixture.pendingResources().filter(path => backdrops[game].some(prefix => path.startsWith(prefix))).length).toBe(1);
+      await testInfo.attach('held-backdrop.json', { body: Buffer.from(JSON.stringify({ game, pendingPaths: fixture.pendingResources() }, null, 2)), contentType: 'application/json' });
       await record(page, testInfo, 'cold-art-pending');
       fixture.releaseResources();
       await expectArtSettled(page, game);
@@ -113,7 +127,8 @@ test.describe('rapid entry changes', () => {
       const bloxChunk = graph.chunks.find(chunk => chunk.gameModules.includes('src/games/blox/BloxGame.jsx'));
       expect(bloxChunk).toBeTruthy();
       const chunkPath = `/${bloxChunk.file}`;
-      fixture.holdResources([chunkPath, '/games/blox-v2/', '/games/bubbo-v2/', '/games/match3-v2/']);
+      fixture.holdResources([chunkPath]);
+      fixture.holdArtResources([...backdrops.blox, ...backdrops.bubbo, ...backdrops.match3]);
       await selectHomeGame(page, 'blox');
       await expect(page.locator('.game-entry-status')).toBeVisible();
       await expect(page.locator('.bx-stage')).toHaveCount(0);
@@ -124,13 +139,15 @@ test.describe('rapid entry changes', () => {
       await page.getByRole('button', { name: 'Close Home', exact: true }).click();
       fixture.releaseResources([chunkPath]);
       await expect(page.locator('.bx-stage')).toBeVisible();
+      await expect.poll(() => fixture.pendingResources().filter(path => backdrops.blox.some(prefix => path.startsWith(prefix))).length).toBe(1);
       await record(page, testInfo, 'rapid-blox');
       for (const game of ['bubbo', 'match3', 'garden']) {
         await selectHomeGame(page, game);
         await expect(page.locator(screens[game]).first()).toBeVisible();
         await record(page, testInfo, `rapid-${game}`);
       }
-      expect(fixture.pendingResources().length).toBeGreaterThan(0);
+      expect(fixture.pendingResources()).toHaveLength(1);
+      expect(backdrops.blox.some(prefix => fixture.pendingResources()[0].startsWith(prefix))).toBe(true);
       fixture.releaseResources();
       await expectArtSettled(page, 'garden');
       await record(page, testInfo, 'late-outgoing-art-completed');
