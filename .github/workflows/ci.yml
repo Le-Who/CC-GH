@@ -107,69 +107,72 @@ jobs:
       - name: Check Yard v2 persistence fixture safety
         run: node --test --test-concurrency=1 tests/yard-v2-pg-fixture.test.mjs tests/yard-v2-pg-guard.test.mjs
 
-      - name: Install Chromium for browser regression tests
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run integrated browser regression tests
-        run: pnpm exec playwright test --project=chromium --workers=1
-
-      - name: Preserve compact browser diagnostics
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-browser-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            playwright-results.json
-            test-results/**/error-context.md
-            test-results/**/*-diagnostics.json
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Preserve browser screenshots
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-browser-screenshots-${{ github.sha }}-${{ github.run_attempt }}
-          path: test-results/**/*.png
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Preserve browser evidence
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-browser-report-${{ github.sha }}-${{ github.run_attempt }}
-          path: playwright-report/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Preserve per-game motion videos
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-motion-videos-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            test-results/match3-motion-*/video.webm
-            test-results/bubbo-casual-motion-*/video.webm
-            test-results/casual-motion-*/video.webm
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Preserve browser traces separately
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-browser-traces-${{ github.sha }}-${{ github.run_attempt }}
-          path: test-results/
-          if-no-files-found: ignore
-          retention-days: 14
-
       - name: Preserve verified client build
         uses: actions/upload-artifact@v7
         with:
           name: game-hub-client-${{ github.sha }}-${{ github.run_attempt }}
           path: dist/
           retention-days: 14
+
+  browser-plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.groups.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Validate exhaustive browser groups and bounded artifacts
+        run: node --test tests/browser-ci-contract.test.mjs
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install dependencies for real Playwright discovery
+        run: pnpm install --frozen-lockfile
+      - name: Discover every Chromium test before dispatching browser runners
+        run: |
+          pnpm exec playwright test --project=chromium --list --reporter=json > browser-ci-discovery.json
+          node scripts/browser-ci-groups.mjs --verify-list browser-ci-discovery.json
+      - name: List exact browser spec ownership
+        run: node scripts/browser-ci-groups.mjs
+      - name: Produce independent game and functional groups
+        id: groups
+        run: echo "matrix=$(node scripts/browser-ci-groups.mjs --matrix)" >> "$GITHUB_OUTPUT"
+      - name: Preserve discovery evidence even when test loading fails
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: inventory
+
+  browser:
+    name: Browser / ${{ matrix.group }}
+    needs: [browser-plan]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.browser-plan.outputs.matrix) }}
+    env:
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      BROWSER_CI_GROUP: ${{ matrix.group }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install isolated Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run assigned browser specs with original config and retries
+        run: node scripts/browser-ci-groups.mjs --run "$BROWSER_CI_GROUP"
+      - name: Preserve bounded group evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: ${{ matrix.group }}
 
   touch:
     runs-on: ubuntu-latest
@@ -359,7 +362,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: [test, touch, mochi]
+    needs: [test, browser, touch, mochi]
     steps:
       - uses: actions/checkout@v6
 

@@ -73,6 +73,9 @@ async function settled(canvas) {
   await expect(canvas).toHaveAttribute('data-match3-motion-phase','idle',{timeout:10000});
   await expect(canvas).toHaveAttribute('data-match3-input-locked','false');
 }
+async function seedRestored(page) {
+  await expect.poll(()=>page.evaluate(()=>window.__match3RefillSeed.used && window.__match3RefillSeed.restored)).toBe(true);
+}
 async function attachFrame(page,testInfo,name) {
   // Explicit device-scale PNGs are preserved separately from downscaled video.
   const path=testInfo.outputPath(`${name}.png`);
@@ -93,6 +96,7 @@ for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and 
   await settled(canvas);
   await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
   expect(player.match3.currentGame.score).toBe(90);
+  await seedRestored(page);
   const phases=await page.evaluate(()=>window.__match3MotionPhases);
   expect(phases).toContain('swap');expect(phases.filter(p=>p==='clear').length).toBeGreaterThanOrEqual(2);
   expect(phases.filter(p=>p==='fall').length).toBeGreaterThanOrEqual(2);
@@ -153,6 +157,7 @@ test('Match3 live cascade pauses across Home reentry and resize then resumes wit
   await expect(canvas).toHaveAttribute('data-match3-motion-elapsed',age);
   await stage.getByRole('button',{name:/^(Resume|Продолжить)$/}).click();
   await settled(canvas);
+  await seedRestored(page);
   await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
   expect(player.match3.currentGame.score).toBe(90);
   await attachFrame(page,testInfo,'resumed-final-board');
@@ -166,6 +171,7 @@ test('Match3 reduced-motion cascade settles and final-move animation finishes be
   await expect(stage).toHaveAttribute('data-m3-phase','menu',{timeout:10000});
   await expect(canvas).toHaveAttribute('data-match3-motion-phase','idle');
   await expect.poll(()=>player.match3.currentGame).toBeNull();
+  await seedRestored(page);
   await attachFrame(page,testInfo,'reduced-motion-final-result');
 });
 

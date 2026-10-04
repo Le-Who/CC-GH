@@ -11,6 +11,10 @@ import { formatGardenGoldAmount, PLANT_TYPES } from "../../game-logic/garden-she
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
 import { useLegacyGardenClient } from './helpers/legacyGardenClient.js';
 
+// Trace is a worker-scoped Playwright option, so configure it at file scope.
+// Retain the original failed navigation attempt, not only a successful retry.
+test.use({ trace: 'retain-on-failure' });
+
 // These tests mount the production App through the normal Playwright web server.
 // Fixture-backed layout cases call production actions/receipts; live save cases
 // below do not intercept either player endpoint. The discovery-only compatibility
@@ -129,8 +133,7 @@ async function dragTouch(page,from,to){
 test.describe('Garden Living production-source flow',()=>{
   for(const [width,height] of MATRIX)test.describe(`viewport ${width}x${height}`,()=>{
    const touch=width<1100;
-   // Preserve the first failed navigation attempt, rather than only its retry.
-   test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:touch,hasTouch:touch,trace:'retain-on-failure'});
+   test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:touch,hasTouch:touch});
    // The built-in page/context fixture owns teardown after the test body, so
    // context.close cannot overwrite a failed assertion in a finally block.
    test(`full Hub ${width}x${height}: art, dock, dialogs, post-30 level and exits`,async({page},testInfo)=>{

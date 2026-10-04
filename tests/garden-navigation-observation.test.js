@@ -1,7 +1,45 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import { readFileSync } from 'node:fs';
+import recovery from '../recovery-tools/ast-recovery.cjs';
 import { installGardenNavigationObservation } from './e2e/helpers/gardenNavigationObservation.js';
+
+function traceUseCalls(source) {
+  const ast = recovery.acorn.parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
+  const calls = [];
+  function visit(node, ancestors = []) {
+    if (!node || typeof node !== 'object') return;
+    if (node.type === 'CallExpression' && node.callee.type === 'MemberExpression'
+        && node.callee.object.name === 'test' && node.callee.property.name === 'use'
+        && node.arguments[0]?.type === 'ObjectExpression'
+        && node.arguments[0].properties.some(property => (property.key?.name || property.key?.value) === 'trace')) {
+      calls.push({ node, fileScope: ancestors.length === 2 && ancestors[0].type === 'Program' && ancestors[1].type === 'ExpressionStatement' });
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) for (const child of value) visit(child, [...ancestors, node]);
+      else if (value && typeof value.type === 'string') visit(value, [...ancestors, node]);
+    }
+  }
+  visit(ast);
+  return calls;
+}
+
+test('Garden trace fixture is file-scoped so Playwright can discover the viewport groups', () => {
+  const source = readFileSync(new URL('./e2e/garden-shelf.spec.js', import.meta.url), 'utf8');
+  const validate = text => {
+    const calls = traceUseCalls(text);
+    assert.equal(calls.length, 1, 'retain the first failed attempt with one file-level trace option');
+    assert.equal(calls[0].fileScope, true, 'worker-scoped trace must not be placed inside test.describe');
+    assert.equal(calls[0].node.arguments[0].properties.find(property => (property.key?.name || property.key?.value) === 'trace').value.value, 'retain-on-failure');
+    return calls[0].node;
+  };
+  const call = validate(source);
+  const withoutTopLevel = source.slice(0, call.start) + source.slice(call.end);
+  const nested = withoutTopLevel.replace('const touch=width<1100;', "const touch=width<1100; test.use({trace:'retain-on-failure'});");
+  assert.notEqual(nested, withoutTopLevel);
+  assert.throws(() => validate(nested), /worker-scoped trace/);
+});
 
 function harness() {
   const listeners = new Map(), observers = [];
