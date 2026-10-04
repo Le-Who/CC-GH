@@ -1,0 +1,75 @@
+name: Yard redesign UI-only preview
+
+on:
+  push:
+    branches: [qa/yard-redesign-preview]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yard-redesign-ui-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-fixed-fixture:
+    if: github.ref == 'refs/heads/qa/yard-redesign-preview'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /pnpm-lock.yaml
+            /tests/yard-redesign-preview/
+            /src/games/companion-yard-v2/CourtyardGame.jsx
+            /src/games/companion-yard-v2/courtyard.css
+            /src/games/companion-yard-v2/i18n.js
+            /src/games/companion-yard-v2/catalog-ui.mjs
+            /src/games/companion-yard-v2/feedback.mjs
+            /src/games/companion-yard/i18n.js
+            /src/games/companion-yard/currencyDisplay.js
+            /src/app/useDismissableLayer.js
+            /game-logic/yard-catalog.js
+            /public/games/companion-yard/
+            /public/games/hud-redesign/room/
+            /public/assets/yard-mika/background.webp
+            /public/assets/yard-mika/yarn-mouse-clean.webp
+            /public/assets/yard-mika/sun-cushion-clean.webp
+            /public/assets/yard-mika/kibble-bowl-empty.webp
+            /public/assets/yard-mika/kibble-bowl-clean.webp
+            /public/assets/yard-mika/berry-plate-clean.webp
+            /public/assets/yard-mika/bonito-bowl-clean.webp
+            /public/assets/yard-pebble/leaf-pot-still.webp
+            /public/assets/yard-pip/snack-table-new.webp
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Verify locked React
+        run: |
+          node --input-type=module -e "import assert from 'node:assert/strict'; import React from 'react'; import ReactDOM from 'react-dom'; assert.equal(React.version, '19.2.4'); assert.equal(ReactDOM.version, '19.2.4');"
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Capture actual component with fixed UI fixtures
+        run: pnpm exec playwright test --config tests/yard-redesign-preview/playwright.config.mjs
+      - name: Record exact source and diagnostic scope
+        if: always()
+        run: |
+          mkdir -p test-results-yard-redesign-preview
+          cp tests/yard-redesign-preview/README.md test-results-yard-redesign-preview/FIXTURE-SCOPE.md
+          git rev-parse HEAD > test-results-yard-redesign-preview/COMMIT.txt
+          sha256sum src/games/companion-yard-v2/CourtyardGame.jsx src/games/companion-yard-v2/courtyard.css src/games/companion-yard-v2/i18n.js src/games/companion-yard-v2/catalog-ui.mjs > test-results-yard-redesign-preview/UI-SOURCE-SHA256.txt
+      - name: Preserve labelled UI-only review evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-ui-only-fixed-fixture-${{ github.sha }}
+          path: |
+            test-results-yard-redesign-preview/
+            playwright-report-yard-redesign-preview/
+          if-no-files-found: error
+          retention-days: 7

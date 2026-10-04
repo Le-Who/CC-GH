@@ -1,12 +1,14 @@
 import { AtlasCache, atlasPageFor } from './atlas.mjs';
 import { CANONICAL_ATLAS_POLICY,CURRENT_FOUR_ATLAS_POLICY,FAMILY_ATLAS_POLICY } from './atlas-policy.mjs';
 import { createProjection, footprintPolygon } from './projection.mjs';
+import { offsetWorldPoint, conservativeMaskStrips } from './scene-layout.mjs';
 import { selectPetPose } from './pose-selection.mjs';
 import { FrameTelemetry } from './telemetry.mjs';
 import { PresentationClock } from './presentation-clock.mjs';
 import { edgeOpacity } from './edge-opacity.mjs';
 import { courtyardPresentation } from './presentation.mjs';
-import { footprint } from '../../../game-logic/yard-v2/geometry.mjs';
+import { footprint, sceneConfig } from '../../../game-logic/yard-v2/geometry.mjs';
+import { getYardPlayzoneRows } from '../../../game-logic/yard-playzones.js';
 import { MIKA_SCENE } from '../../../game-logic/yard-v2/mika-media.mjs';
 import { MIKA_CLIPS as clips } from '../../../game-logic/yard-v2/media/mika-clips.mjs';
 import { MIKA_RUNTIME_MEDIA_REVISION } from '../../../game-logic/yard-v2/media/runtime-version.mjs';
@@ -68,9 +70,27 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
   const observer=new ResizeObserver(resize);observer.observe(canvas);
   function shadow(p,rx,ry,opacity=.2){ctx.save();ctx.translate(p.x,p.y);ctx.scale(rx,ry);const g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(39,54,27,${opacity})`);g.addColorStop(1,'rgba(39,54,27,0)');ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();}
   function sprite(id,p,alpha=1){const im=images.get(id),meta=stills[id];if(!im||!meta)return;const scale=projection.ppu/meta.worldPixelScale;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,p.x-meta.pivotPx[0]*scale,p.y-meta.pivotPx[1]*scale,im.width*scale,im.height*scale);ctx.restore();}
+  function drawPlacementGuides(v){
+    if(!ghost)return;
+    const polygon=points=>{points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();};
+    ctx.save();ctx.beginPath();
+    // Show the actual source-owned ground rows, not all visible background grass.
+    conservativeMaskStrips(getYardPlayzoneRows(v.yard.remodel)).forEach(box=>polygon(footprintPolygon(box,projection)));
+    ctx.fillStyle='rgba(116,159,83,.16)';ctx.fill();
+    const boxes=(rows,fill,stroke)=>{ctx.beginPath();for(const box of rows.filter(Boolean))polygon(footprintPolygon(box,projection));ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();};
+    boxes(v.props.filter(p=>p.slotId!==ghost.slotId).map(p=>footprint({...p,...p.transform},sceneGeometry)), 'rgba(119,76,43,.12)', 'rgba(110,70,41,.72)');
+    const layout=sceneConfig(sceneGeometry),entry=layout.entry,clearance=layout.entryClearance;
+    boxes([...layout.exclusions,{x:entry.x-clearance,y:entry.y-clearance,width:clearance*2,height:clearance*2}], 'rgba(119,76,43,.12)', 'rgba(110,70,41,.72)');
+    // Match checkPlacement's active reservation boundary; no extra blocking rule.
+    const reserved=(v.runtime?.visits||[]).filter(visit=>v.now<visit.leavesAt)
+      .flatMap(visit=>visit.mediaAdmission?.plan?.reservationBoxes||[]);
+    boxes(reserved, 'rgba(197,141,44,.14)', 'rgba(157,111,37,.65)');
+    ctx.restore();
+  }
   const fade=pet=>pet.phase==='approach'||pet.phase==='depart'?edgeOpacity(pet.route.points,pet.phase,pet.groundDistance):1;
   function draw(v){
     const {width,height,ppu}=projection;ctx.clearRect(0,0,width,height);
+    drawPlacementGuides(v);
     for(const food of foodBowlPresentation(v.bowls)){
       const bowl=projection.project(food.anchor);shadow(bowl,ppu*.43,ppu*.16,.25);sprite(food.stillId,bowl);
     }
@@ -166,6 +186,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     if(disposed)return;resize();ready=true;raf=requestAnimationFrame(tick);
   })().catch(e=>{if(!disposed)onError(e);});
   return {ready:readyPromise,update,setGhost(value){ghost=value;},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
+    offsetPoint(position,delta){return projection?offsetWorldPoint(projection,position,delta):null;},
     hit(event){if(!view||!projection)return null;const r=canvas.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};return view.props.filter(p=>p.supported).map(prop=>{const q=projection.project(prop.transform);return{prop,p:{x:q.x*r.width/projection.width,y:q.y*r.height/projection.height}};}).filter(v=>Math.hypot(v.p.x-point.x,v.p.y-point.y)<28).sort((a,b)=>Math.hypot(a.p.x-point.x,a.p.y-point.y)-Math.hypot(b.p.x-point.x,b.p.y-point.y))[0]?.prop;},
     diagnostics(){return{ready,presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
     dispose(){disposed=true;abort.abort();cancelAnimationFrame(raf);observer.disconnect();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;images.clear();}
