@@ -1,7 +1,18 @@
 /** Same-origin network switch/fault injection only. Never replaces app responses. */
 import http from 'node:http';
+import {gunzipSync,inflateSync,brotliDecompressSync} from 'node:zlib';
 import {readFile,writeFile,rename} from 'node:fs/promises';
 import {PRODUCTION_PORTS} from './yard-production-guard.mjs';
+const CAPTURE_LIMIT=4*1024*1024;
+const captureError=code=>Object.assign(Error(code),{code});
+/** Decode evidence only; ordinary proxied response headers/bytes stay untouched. */
+export function decodeCapturedJson(bytes,encoding='identity'){
+ if(bytes.length>CAPTURE_LIMIT)throw captureError('CAPTURE_WIRE_TOO_LARGE');
+ const type=String(encoding||'identity').trim().toLowerCase(),decode=type==='gzip'?gunzipSync:type==='deflate'?inflateSync:type==='br'?brotliDecompressSync:null;
+ if(type!=='identity'&&!decode)throw captureError('UNSUPPORTED_CAPTURE_ENCODING');
+ const decoded=decode?decode(bytes,{maxOutputLength:CAPTURE_LIMIT}):bytes;
+ try{return JSON.parse(decoded.toString('utf8'));}catch{throw captureError('INVALID_CAPTURE_JSON');}
+}
 export async function setProxyState(path,value){await writeFile(path+'.next',JSON.stringify(value));await rename(path+'.next',path);}
 export async function startProductionProxy({statePath,evidencePath,timeoutMs=15000}){
  let dropped=false,closing=false;const sockets=new Set(),requests=new Set();
@@ -17,9 +28,16 @@ export async function startProductionProxy({statePath,evidencePath,timeoutMs=150
    if(isFault&&dropped){res.destroy();return;}
    const upstream=own(http.request({hostname:'127.0.0.1',port:PRODUCTION_PORTS[state.target],method:req.method,path:req.url,headers:req.headers},response=>{
     if(!isFault){res.writeHead(response.statusCode,response.headers);response.pipe(res);return;}
-    dropped=true;const reply=[];response.on('data',chunk=>reply.push(chunk));response.on('end',()=>{
-     void (async()=>{try{await writeFile(evidencePath,JSON.stringify({target:state.target,command,status:response.statusCode,body:JSON.parse(Buffer.concat(reply)),committedAt:Date.now()}));}catch(error){server.emit('acceptance-error',error);}finally{res.destroy();}})();
-    });
+    dropped=true;const reply=[];let wireBytes=0,finished=false;const contentEncoding=response.headers['content-encoding']||'identity';
+    const capture=async(error)=>{
+     if(finished)return;finished=true;let body;
+     if(!error)try{body=decodeCapturedJson(Buffer.concat(reply),contentEncoding);}catch(cause){error=cause;}
+     const evidence={target:state.target,command,contentEncoding,wireBytes,committedAt:Date.now(),
+      ...(error?{status:0,upstreamStatus:response.statusCode,captureError:String(error.code||'CAPTURE_FAILED')}:{status:response.statusCode,body})};
+     try{await writeFile(evidencePath,JSON.stringify(evidence));}catch(cause){server.emit('acceptance-error',cause);}finally{res.destroy();}
+    };
+    response.on('data',chunk=>{wireBytes+=chunk.length;if(wireBytes>CAPTURE_LIMIT){void capture(captureError('CAPTURE_WIRE_TOO_LARGE'));response.destroy();}else reply.push(chunk);});
+    response.on('end',()=>void capture());response.on('error',error=>void capture(error));response.on('aborted',()=>void capture(captureError('CAPTURE_ABORTED')));
    }));
    upstream.on('error',()=>{if(!res.headersSent)res.writeHead(502);res.end();});res.once('close',()=>upstream.destroy());upstream.end(body);
   }catch(error){if(!res.headersSent)res.writeHead(503,{'content-type':'text/plain'});res.end(error.message);}

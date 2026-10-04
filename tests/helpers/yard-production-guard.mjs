@@ -14,8 +14,10 @@ export function assertProductionAcceptance(env=process.env){
  assert.match(env.YARD_CLOSED_COMMIT||'',/^[a-f0-9]{40}$/,'Frozen closed commit required');
  assert.notEqual(env.YARD_ACTIVE_COMMIT,env.YARD_CLOSED_COMMIT);
  assert.match(env.YARD_CLOSED_DIGEST||'',/^sha256:[a-f0-9]{64}$/,'Frozen closed registry digest required');
+ const activeDigest=env.YARD_ACTIVE_DIGEST===undefined?null:env.YARD_ACTIVE_DIGEST;
+ if(env.YARD_ACTIVE_DIGEST!==undefined)assert.ok(typeof activeDigest==='string'&&activeDigest.length===71&&/^sha256:[a-f0-9]{64}$/.test(activeDigest),'Exact active registry digest required');
  assert.match(env.YARD_IMAGE_REPOSITORY||'',/^ghcr\.io\/[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/,'Exact GHCR repository required');
- return {activeCommit:env.YARD_ACTIVE_COMMIT,closedCommit:env.YARD_CLOSED_COMMIT,closedDigest:env.YARD_CLOSED_DIGEST,repository:env.YARD_IMAGE_REPOSITORY};
+ return {activeCommit:env.YARD_ACTIVE_COMMIT,activeDigest,closedCommit:env.YARD_CLOSED_COMMIT,closedDigest:env.YARD_CLOSED_DIGEST,repository:env.YARD_IMAGE_REPOSITORY};
 }
 export function verifyImageIdentity(image,{commit,digest,repository}){
  assert.match(image.Id||'',/^sha256:[a-f0-9]{64}$/);
@@ -24,7 +26,7 @@ export function verifyImageIdentity(image,{commit,digest,repository}){
  const env=Object.fromEntries((image.Config?.Env||[]).map(row=>{const i=row.indexOf('=');return[row.slice(0,i),row.slice(i+1)];}));
  assert.equal(env.NODE_ENV,'production');assert.equal(env.APP_BUILD_ID,commit);
  for(const key of ['NODE_OPTIONS','DEV_AUTH_ENABLED','YARD_PLAYER_WIRING_TEST','YARD_CANDIDATE_CI'])assert.ok(!env[key]);
- if(digest)assert.ok(image.RepoDigests?.includes(`${repository}@${digest}`),'Closed registry digest mismatch');
+ if(digest)assert.ok(Array.isArray(image.RepoDigests)&&image.RepoDigests.includes(`${repository}@${digest}`),'Registry digest mismatch');
  return image.Id;
 }
 export function verifyCompatibility(A,B,inputs){

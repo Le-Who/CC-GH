@@ -1,0 +1,230 @@
+{
+  "format": "yard-active-contract/v1",
+  "mode": "ACTIVE",
+  "revision": "yard-player-rollout/active-r1",
+  "inputs": {
+    "format": "yard-active-inputs/v1",
+    "repository": "le-who/cc-gh",
+    "closed": {
+      "buildId": "010dd1ede7f435ccaad92545068c495b8a4cf5f3",
+      "imageDigest": "sha256:29d10f6e7725384e41d2375520da086e8ce13c6e06c17a3d395a1eb5eef24be9",
+      "ciReceipt": {
+        "runId": 37201433560,
+        "runAttempt": 1,
+        "workflowPath": ".github/workflows/deploy.yml"
+      },
+      "image": {
+        "Id": "sha256:ff33e4fceba04137343edd6e4ba1b9ed7e1f1c5e15837eb78646035b8546e10b",
+        "RepoDigests": [
+          "ghcr.io/le-who/cc-gh@sha256:29d10f6e7725384e41d2375520da086e8ce13c6e06c17a3d395a1eb5eef24be9"
+        ],
+        "Config": {
+          "Labels": {
+            "org.opencontainers.image.revision": "010dd1ede7f435ccaad92545068c495b8a4cf5f3"
+          }
+        }
+      },
+      "compatibility": {
+        "format": "cc-gh-yard-release-compatibility/v1",
+        "buildId": "010dd1ede7f435ccaad92545068c495b8a4cf5f3",
+        "policyRevision": "yard-player-rollout/closed-r1",
+        "playerRolloutEnabled": false,
+        "readableStorageFormats": [
+          "yard-persistent/v1"
+        ],
+        "closedQuarantineVerified": true,
+        "requiredClosedPredecessor": null
+      }
+    },
+    "acceptance": {
+      "reviewReference": "https://github.com/Le-Who/CC-GH/pull/48; reviewed B2 tooling SHA256 a3de72a67291d5a00e558cff028cc928f8b10003f666d598ab9ca174d6c2264e; two-stage release approval Sentinel_8ec82f64e82c81918cde1b5285731365; A2 release approval Sentinel_97792219815c81918bfe5522d725d665 and continuing release approval Sentinel_cf33dabcc7a88191ad68149f311b6b59; exact healthy A2 inspection https://github.com/Le-Who/CC-GH/actions/runs/37203368145; final published-image nine-case acceptance remains pending.",
+      "nativeDuration": {
+        "reference": "https://github.com/Le-Who/CC-GH/actions/runs/37170351164/artifacts/11292912274",
+        "artifactSha256": "eec0827dea93eb61d052fc6b2f63c4d8700197cca41e694bc73a00a0bd9d1581",
+        "sourceCommit": "b92c84d685a1221cf6fdbde41624c901bc8b2f8f"
+      },
+      "eightPlayer": {
+        "reference": "/tmp/yard-release-input-evidence-20261004/eight-player-evidence-index.json",
+        "artifactSha256": "46725d917181c736849c58500322ee90dac090790937c731088a89e2028aee82",
+        "sourceCommit": "e2310e966373830768fe19c6a3ed58ddc0a8745e",
+        "runId": 37181170572
+      },
+      "geometryEquivalence": {
+        "reference": "/tmp/yard-release-input-evidence-20261004/geometry-review.txt",
+        "artifactSha256": "7c4aa91959f91f32014d7d643b84c940ff1a8ada1111a201052794011017e804",
+        "sourceCommit": "e2310e966373830768fe19c6a3ed58ddc0a8745e"
+      }
+    }
+  },
+  "closedTree": "364a820a44d3ec611bcd4ed7c8b04a1a6b5de0bd",
+  "transitions": [
+    {
+      "path": "game-logic/yard-v2/release-policy.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/release-policy.mjs",
+      "before": {
+        "bytes": 1100,
+        "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+      },
+      "after": {
+        "bytes": 1252,
+        "sha256": "d032dd304999b9b0ba03a7ac3115c5aa07ce06df26e8c8c6f294269e79196f89"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/mochi-actor-profile.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/mochi-actor-profile.mjs",
+      "before": {
+        "bytes": 1651,
+        "sha256": "412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313"
+      },
+      "after": {
+        "bytes": 1650,
+        "sha256": "783cecde35d60d469226a1bf5aa5cb0d238cc368fad606f3c1631bbe9a6bc1b1"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/pebble-actor-profile.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/pebble-actor-profile.mjs",
+      "before": {
+        "bytes": 1347,
+        "sha256": "0af9977bbc35da9d9cc7e6120502bf431b093525ca7f1e5b3f24d90d8b562200"
+      },
+      "after": {
+        "bytes": 1346,
+        "sha256": "a84e0b17b27ce93e6422b5414ac0af951c8cbc756ee8a20aa824f00184b21fc0"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/pip-actor-profile.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/pip-actor-profile.mjs",
+      "before": {
+        "bytes": 2388,
+        "sha256": "818796394a7c91182eebdf4a14243089edcdc90f558f68aeb29e41154f185ddc"
+      },
+      "after": {
+        "bytes": 2386,
+        "sha256": "c90e05fc5681f866a2532c83115f0b43e12c17edc87ea6570bb11db2a3dc2ccd"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/family-actor-profile.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/family-actor-profile.mjs",
+      "before": {
+        "bytes": 601,
+        "sha256": "607ea60757995eb66c97261061d49c6f4db1fe2a1221c4656ec91ca0f13c1cb5"
+      },
+      "after": {
+        "bytes": 600,
+        "sha256": "e3fae4271677aab0e168bd7f9478a9aea367c0205806985fc6030c2d32288cd9"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/media/family-actor-profiles.json",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/media/family-actor-profiles.json",
+      "before": {
+        "bytes": 11941,
+        "sha256": "6a1bcd9b79891243e86cd2dc47e0af5e2d6f05a4798dfd99391db8184f052bd8"
+      },
+      "after": {
+        "bytes": 11937,
+        "sha256": "9642f40e9d0fcd8e380b2506510f48c0ed86bf6e7f678bc9fcf948ea8d046f6c"
+      }
+    },
+    {
+      "path": "public/assets/yard-mochi/runtime-media.json",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/public/assets/yard-mochi/runtime-media.json",
+      "before": {
+        "bytes": 222672,
+        "sha256": "41dd78f72df7726393a1dca31ffe16ed67c774badf29d7fab7b514c208cbc859"
+      },
+      "after": {
+        "bytes": 222669,
+        "sha256": "d7a833322117a0e068d54da1c4c09644c2e8359637a0476f0476b5e7b88fcdc1"
+      }
+    },
+    {
+      "path": "public/assets/yard-pebble/runtime-media.json",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/public/assets/yard-pebble/runtime-media.json",
+      "before": {
+        "bytes": 220088,
+        "sha256": "c7828a7b760100ff972218607a245dadd0590de6d3d1cab1153ae50df71d3578"
+      },
+      "after": {
+        "bytes": 220086,
+        "sha256": "3a6470819a03490e6636805bec101f4c8721fd4abac18e01792d20bca59a5890"
+      }
+    }
+  ],
+  "closedVerification": [
+    {
+      "original": "preview/yard-persistent-candidate/base-contract.json",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/closed-verification/preview/yard-persistent-candidate/base-contract.json",
+      "fingerprint": {
+        "bytes": 105692,
+        "sha256": "f11a70cf2b931ddce6507ecf919ff7546b5441a5a0ce0503c963abf877189f12"
+      }
+    },
+    {
+      "original": "preview/yard-persistent-candidate/verify-production.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/closed-verification/preview/yard-persistent-candidate/verify-production.mjs",
+      "fingerprint": {
+        "bytes": 2130,
+        "sha256": "6430238dffdcd9eabb633a6b627e0aaf12381a9af95fc10f6bfa1d45edec8fb9"
+      }
+    },
+    {
+      "original": "preview/yard-persistent-candidate/verify-closed-rollout.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/closed-verification/preview/yard-persistent-candidate/verify-closed-rollout.mjs",
+      "fingerprint": {
+        "bytes": 4807,
+        "sha256": "ce88e6de1e0ec3fd028e6e407c393dfeb0b8df9ca7f02347abb1a4fbe1ff635e"
+      }
+    },
+    {
+      "original": "preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs",
+      "archive": "preview/yard-persistent-candidate/history/pre-activation/closed-verification/preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs",
+      "fingerprint": {
+        "bytes": 22614,
+        "sha256": "9a3bc2b56a84e5e964d6c9a5b96701d5f08ccfde26f602f944a8c19624de4968"
+      }
+    }
+  ],
+  "closures": [
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+      "fingerprint": {
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      }
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pebble-qa/SOURCE-CLOSURE.json",
+      "fingerprint": {
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      }
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json",
+      "fingerprint": {
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      }
+    },
+    {
+      "path": "recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json",
+      "fingerprint": {
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      }
+    },
+    {
+      "path": "recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json",
+      "fingerprint": {
+        "bytes": 291519,
+        "sha256": "faa18a16de7e1945bf8618e38b9b3aec161329d2b11ab97a423e3625efe289b3"
+      }
+    }
+  ],
+  "evidenceScope": "Historical native duration and 59-case candidate evidence retain their original identities; this contract records a reviewed promotion, not a new successful run."
+}

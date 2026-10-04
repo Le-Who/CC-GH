@@ -3,7 +3,7 @@
     "id": "willow",
     "revision": "willow-actor/r2-moon",
     "visitorId": "willow_fox",
-    "playbackReady": true,
+    "playbackReady": false,
     "unitsPerWorld": 8,
     "sourceSampleMs": 40,
     "locomotion": {
@@ -153,7 +153,7 @@
     "id": "starlit",
     "revision": "starlit-actor/r2-moon",
     "visitorId": "starlit_fox",
-    "playbackReady": true,
+    "playbackReady": false,
     "unitsPerWorld": 8,
     "sourceSampleMs": 40,
     "locomotion": {
@@ -281,7 +281,7 @@
     "id": "basil",
     "revision": "basil-actor/r2-fountain",
     "visitorId": "basil_turtle",
-    "playbackReady": true,
+    "playbackReady": false,
     "unitsPerWorld": 8,
     "sourceSampleMs": 40,
     "locomotion": {
@@ -410,7 +410,7 @@
     "id": "sage",
     "revision": "sage-actor/r2-fountain",
     "visitorId": "sage_turtle",
-    "playbackReady": true,
+    "playbackReady": false,
     "unitsPerWorld": 8,
     "sourceSampleMs": 40,
     "locomotion": {

@@ -1,11 +1,11 @@
 /** Code-owned rollout only. No save, HTTP field, query, environment or client flag
  * can grant release acceptance. Source/media acceptance remains independently closed. */
 export const YARD_PLAYER_RELEASE_POLICY = Object.freeze({
-  revision: 'yard-player-rollout/active-r1',
-  enabled: true,
+  revision: 'yard-player-rollout/closed-r1',
+  enabled: false,
   // Fill with the verified closed release build/digest in the reviewed activation commit.
   // Deployment refuses enabled rollout until that exact predecessor is healthy.
-  requiredClosedPredecessor: Object.freeze({"buildId":"010dd1ede7f435ccaad92545068c495b8a4cf5f3","imageDigest":"sha256:29d10f6e7725384e41d2375520da086e8ce13c6e06c17a3d395a1eb5eef24be9"}),
+  requiredClosedPredecessor: null,
   // Historical successful deployment 37142937097, image job 111267028671.
   // The guard must still verify this exact image is the live healthy predecessor.
   requiredLegacyPredecessor: Object.freeze({
