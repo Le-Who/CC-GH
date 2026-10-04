@@ -12,6 +12,14 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const read = path => readFileSync(resolve(root, path), 'utf8');
 const hash = value => createHash('sha256').update(value).digest('hex');
 
+test('mounted-game Home helper waits for entry status before choosing controls', () => {
+  const helper = read('tests/e2e/helpers/home.js');
+  const ready = helper.indexOf("await expect(page.locator('.game-entry-status')).toHaveCount(0)");
+  const launcher = helper.indexOf('const launcher=page.getByRole');
+  assert.ok(ready >= 0 && ready < launcher, 'cosmetic immersive styling is not controller readiness');
+  assert.doesNotMatch(helper.slice(0, helper.indexOf('export async function selectHomeGame')), /force:\s*true|waitForTimeout|timeout:\s*\d/);
+});
+
 test('every default Chromium spec belongs to exactly one complete, runnable group', () => {
   const specs = discoverBrowserSpecs(resolve(root, 'tests/e2e'));
   assert.deepEqual(validateBrowserGroups(specs), { groups: 11, specs: specs.length });
@@ -48,7 +56,7 @@ test('matrix replaces the monolithic browser run and remains a required release 
   assert.match(workflow, /browser-ci-groups\.mjs --verify-list browser-ci-discovery.json/);
   assert.equal((workflow.match(/browser-ci-groups\.mjs --run/g) || []).length, 1);
   assert.doesNotMatch(workflow, /run: pnpm exec playwright test --project=chromium --workers=1/);
-  assert.match(workflow, /needs: \[test, browser, touch, mochi\]/);
+  assert.match(workflow, /needs: \[test, browser, touch, mochi, yard-eight-player\]/);
   assert.match(browser, /DATABASE_URL: ''/); assert.match(browser, /REDIS_URL: ''/);
   assert.doesNotMatch(browser, /continue-on-error|retries:|services:|max-failures/);
   assert.match(config, /retries: process\.env\.CI \? 2 : 0/);

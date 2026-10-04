@@ -179,6 +179,80 @@ jobs:
           path: dist/
           retention-days: 14
 
+  yard-eight-player:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+          POSTGRES_DB: ccgh_merge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Enable locked pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check exact isolated eight-actor policy contracts
+        run: node --test tests/yard-eight-player-contract.test.mjs
+      - name: Build separate test-only eight-actor player
+        timeout-minutes: 8
+        env:
+          CI: 'true'
+          NODE_ENV: test
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: '1'
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: |
+          pnpm run assets:build
+          pnpm exec vite build --config vite.yard-eight-player-candidate.config.js
+      - name: Verify native fixture inputs before the real 1x clock starts
+        timeout-minutes: 10
+        env:
+          CI: 'true'
+          NODE_ENV: test
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: '1'
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-fixtures.mjs --all
+      - name: Install acceptance Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Genuine eight-actor API store browser PostgreSQL15 acceptance
+        timeout-minutes: 16
+        env:
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: '1'
+          YARD_PLAYER_API_TEST: '1'
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: integrated
+          CI: 'true'
+          NODE_ENV: test
+          DEV_AUTH_ENABLED: 'true'
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: pnpm exec playwright test --config playwright.yard-eight-player.config.js
+      - name: Preserve bounded eight-actor player evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: yard-eight-player
+
   browser-plan:
     runs-on: ubuntu-latest
     outputs:
@@ -189,7 +263,7 @@ jobs:
         with:
           node-version: 24.x
       - name: Validate exhaustive browser groups and bounded artifacts
-        run: node --test tests/browser-ci-contract.test.mjs
+        run: node --test tests/browser-ci-contract.test.mjs tests/yard-eight-evidence.test.mjs
       - name: Enable pnpm via corepack
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install dependencies for real Playwright discovery
@@ -315,18 +389,12 @@ jobs:
         run: pnpm exec playwright test -c playwright.pip-canonical.config.js --project=chromium --workers=1
       - name: Validate closed eight-species native witnesses and actual family media
         run: pnpm exec playwright test -c playwright.yard-eight.config.js --project=chromium --workers=1
-      - name: Preserve closed family viewport and real-time evidence
+      - name: Preserve bounded closed family viewport and real-time evidence
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/upload-browser-evidence
         with:
-          name: game-hub-yard-eight-closed-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            test-results-yard-eight/
-            recovery-tools/yard-canonical-eight-qa/fixture.json
-            recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json
-            recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json
-          if-no-files-found: ignore
-          retention-days: 14
+          group: yard-eight-closed
+          include-hidden-files: 'true'
       - name: Collect bounded Pebble diagnostics
         if: always()
         run: if [ -f test-results-yard-pebble/results.json ]; then node scripts/collect-yard-pebble-diagnostics.mjs; fi
@@ -449,7 +517,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: [test, browser, touch, mochi]
+    needs: [test, browser, touch, mochi, yard-eight-player]
     steps:
       - uses: actions/checkout@v6
 

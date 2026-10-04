@@ -10,6 +10,13 @@ export const EVIDENCE_PART_BYTES = 240 * 1024 * 1024;
 export const EVIDENCE_PARTS_PER_KIND = 8;
 export const EVIDENCE_KINDS = ['review', 'videos', 'traces'];
 export const EVIDENCE_ROOTS = ['browser-ci-discovery.json', 'playwright-results.json', 'playwright-report', 'test-results'];
+// Match the original closed-family upload exactly; keep other job scopes unchanged.
+export const YARD_EIGHT_EVIDENCE_ROOTS = [
+  'test-results-yard-eight',
+  'recovery-tools/yard-canonical-eight-qa/fixture.json',
+  'recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json',
+  'recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json',
+];
 const reserve = 1024 * 1024;
 export const evidenceKind = path => /\.(webm|mp4|mov)$/i.test(path) ? 'videos' : /\.zip$/i.test(path) ? 'traces' : 'review';
 async function fileHash(path) {
@@ -29,7 +36,7 @@ export async function collectBrowserEvidence({ root = '.', output = 'browser-evi
     }
     else if (info.isFile()) files.push({ source: relative(root, path).split(sep).join('/'), path, bytes: info.size });
   }
-  for (const name of EVIDENCE_ROOTS) await visit(resolve(root, name));
+  for (const name of group === 'yard-eight-closed' ? YARD_EIGHT_EVIDENCE_ROOTS : EVIDENCE_ROOTS) await visit(resolve(root, name));
   files.sort((a, b) => a.source.localeCompare(b.source));
   const parts = [], states = new Map(EVIDENCE_KINDS.map(kind => [kind, []]));
   function nextPart(kind) {

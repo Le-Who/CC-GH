@@ -96,3 +96,28 @@ any further failure diagnosable, an `always()` step records at most 2,048 emitte
 JS/CSS filenames and raw lengths, and the always-preserved evidence artifact
 includes this small summary and the complete emitted loading graph. No media,
 source code, or full-dist payload archive is added.
+
+
+## Actual emitted cycle and shared runtime ownership
+
+Run 37177098501, artifact 11293937381, established renderer 34,618 bytes and
+Courtyard 66,182 bytes, both below the unchanged 75 KB cap. Its emitted graph
+also showed a direct renderer -> Courtyard -> renderer cycle: Rollup assigned
+25 shared Yard runtime/calibration modules to the React entry, while the
+renderer also needed their exports. The cycle assertion correctly blocked it.
+
+The minimal correction assigns the existing 27-module static runtime dependency
+closure to `yard-runtime-core` (two of these modules were tree-shaken in the
+observed build). Both the renderer and React entry now have explicit shared
+runtime ownership. The core is executable game code under the same 75 KB cap;
+it is not data-only. Conditional family source/adapters are outside this closure
+and retain their existing conditional import boundary. No source file, source
+hash, manifest, gate or runtime behavior is changed.
+
+The observed imports/modules/raw sizes are preserved as a small native regression
+fixture with its artifact hash. Tests require every observed shared module to
+map to the core and independently recompute the static dependency closure. The
+actual-built test retains the original cycle assertion and additionally rejects
+core -> renderer, core -> React entry, and startup -> core edges. Actual updated
+sizes and acyclicity still require CI; the prior passing size measurements are
+not presented as measurements of this correction.
