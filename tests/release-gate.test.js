@@ -9,7 +9,25 @@ test('pre-release database backup is checked before switching app',()=>{const s=
 
 test('CI actually includes the release gate and default validation is not duplicated',()=>{const p=JSON.parse(read('package.json'));assert.ok(p.scripts.test.includes('tests/release-gate.test.js'));assert.doesNotMatch(read('.github/workflows/ci.yml'),/\n  push:/);assert.equal((read('.github/workflows/deploy.yml').match(/--connect-timeout 5 --max-time 10/g)||[]).length,2);});
 
-test('touch gesture project is a mandatory release gate',()=>{const ci=read('.github/workflows/ci.yml');assert.match(ci,/tests\/e2e\/gestures\.spec\.js --project=mobile-chrome --workers=1/);assert.match(ci,/needs: \[test, touch, mochi\]/);assert.match(ci,/playwright test -c playwright\.mochi\.config\.js --project=chromium --workers=1/);assert.doesNotMatch(ci,/continue-on-error/);});
+const mandatoryDockerGates = ['test', 'browser', 'touch', 'mochi'];
+function assertMandatoryDockerGates(ci) {
+  const docker = ci.split('\n  docker:\n')[1]?.split(/\n  [a-z][a-z0-9_-]*:\n/)[0];
+  assert.ok(docker, 'Docker release gate job must exist');
+  const match = docker.match(/^    needs:\s*\[([^\]\n]+)\]\s*$/m);
+  assert.ok(match, 'Docker must declare its required CI jobs');
+  const needs = match[1].split(',').map(value => value.trim());
+  assert.equal(new Set(needs).size, needs.length, 'Duplicate Docker dependencies');
+  for (const gate of mandatoryDockerGates) assert.ok(needs.includes(gate), `Docker must require ${gate}`);
+}
+test('touch gesture project and every browser group are mandatory release gates',()=>{const ci=read('.github/workflows/ci.yml');assert.match(ci,/tests\/e2e\/gestures\.spec\.js --project=mobile-chrome --workers=1/);assertMandatoryDockerGates(ci);assert.match(ci,/playwright test -c playwright\.mochi\.config\.js --project=chromium --workers=1/);assert.doesNotMatch(ci,/continue-on-error/);});
+test('Docker dependency contract rejects every missing gate and unrelated-job decoys', () => {
+  const fixture = needs => `jobs:\n  other:\n    needs: [test, browser, touch, mochi]\n  docker:\n    needs: [${needs.join(', ')}]\n    steps: []\n`;
+  assertMandatoryDockerGates(fixture([...mandatoryDockerGates].reverse()));
+  assertMandatoryDockerGates(fixture([...mandatoryDockerGates, 'future-yard-media']));
+  for (const missing of mandatoryDockerGates) assert.throws(() => assertMandatoryDockerGates(fixture(mandatoryDockerGates.filter(gate => gate !== missing))), new RegExp(`require ${missing}`));
+  assert.throws(() => assertMandatoryDockerGates(fixture([...mandatoryDockerGates, 'touch'])), /Duplicate/);
+  assert.throws(() => assertMandatoryDockerGates('jobs:\n  other:\n    needs: [test, browser, touch, mochi]\n'), /job must exist/);
+});
 
 for (const failureStage of ['before-switch', 'up', 'health', 'none']) {
   test(`release ${failureStage} preserves data and restores the prior app only on failure`, () => {

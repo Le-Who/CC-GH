@@ -16,6 +16,8 @@ const boardFixture = () => Array.from({ length: 8 }, (_, y) => Array.from({ leng
 function harness(width = 390, height = 844, reduced = false) {
   let now = 0;
   const env = createPixiMock({ width, height, publicRoot: root + 'public', coarse: reduced });
+  env.app.renderer.resolution = 2;
+  env.ctx.Container.prototype.cacheAsTexture = function(options) { this.isCachedAsTexture = options !== false; this.cacheOptions = options; this.cacheWrites = (this.cacheWrites || 0) + 1; };
   env.app.ticker.started = true;
   env.app.start = () => { env.app.ticker.started = true; };
   env.app.stop = () => { env.app.ticker.started = false; };
@@ -139,11 +141,31 @@ test('active state-update rendering is counted, rather than becoming an artifici
   const h = harness(); startAnimation(h, 'invalid');
   const chrome = h.env.app.stage.children[0], remove = chrome.removeChildren.bind(chrome);
   chrome.removeChildren = () => { h.elapse(250); return remove(); };
-  h.update({ selectedGem: { x: 2, y: 2 } });
+  h.update({ match3Composition: { ...h.data.match3Composition } });
   h.tick(0);
   assert.deepEqual(h.log.filter(item => item[0] === 'complete'), [['complete', 'invalid-1']]);
   chrome.removeChildren = remove;
   h.scene.destroy(); h.env.flush();
+});
+
+test('static chrome is cached once across selections and board changes, with live hit targets and resize invalidation', () => {
+  const h = harness(), chrome = h.env.app.stage.children[0];
+  assert.equal(chrome.isCachedAsTexture, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(chrome.cacheOptions)), { resolution: 2, antialias: false });
+  const writes = chrome.cacheWrites, targets = h.targets();
+  h.update({ selectedGem: { x: 2, y: 2 } });
+  assert.equal(chrome.cacheWrites, writes);
+  assert.deepEqual(h.targets(), targets);
+  startAnimation(h);
+  for (let i = 0; i < 30; i++) h.tick(16);
+  assert.equal(chrome.cacheWrites, writes, 'accepted boards and phases do not rebuild static artwork');
+  h.env.app.renderer.resolution = Math.sqrt(1_750_000 / (1280 * 720));
+  h.scene.resize(h.data);
+  assert.ok(chrome.cacheWrites > writes, 'layout changes refresh cached pixels');
+  assert.equal(chrome.cacheOptions.resolution, h.env.app.renderer.resolution, 'a new backing density is applied to the refreshed cache');
+  assert.equal(h.targets().length, 64);
+  h.scene.destroy(); h.env.flush();
+  assert.equal(chrome.isCachedAsTexture, false, 'teardown releases the cached render group');
 });
 
 test('phase changes retain pooled Sprite objects and HUD-only updates retain board chrome', () => {

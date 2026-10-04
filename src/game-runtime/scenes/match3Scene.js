@@ -145,6 +145,7 @@ function buildMatch3Scene(app, initial = {}) {
     });
     for (let i = sample.bursts.length; i < burstPool.length; i++) burstPool[i].visible = false;
     clear(dragLayer);
+    if (!plan && selected) dragLayer.addChild(strokedRect(layout.left + selected.x * layout.cell + 3, layout.top + selected.y * layout.cell + 3, layout.cell - 6, layout.cell - 6, AMBER, 8, 0xfff1e0, .06, 2));
     if (drag?.target) dragLayer.addChild(strokedRect(layout.left + drag.target.x * layout.cell + 2, layout.top + drag.target.y * layout.cell + 2, layout.cell - 4, layout.cell - 4, SKY, 8, 0xfff1e0, .05, 2));
     syncTicker();
     if (!app.ticker.started) app.render?.();
@@ -169,6 +170,7 @@ function buildMatch3Scene(app, initial = {}) {
   }
 
   function drawChrome() {
+    root.cacheAsTexture?.(false);
     clear(root);
     const width = viewWidth(app), height = viewHeight(app);
     const composition = data.match3Composition?.width === width && data.match3Composition?.height === height
@@ -188,7 +190,6 @@ function buildMatch3Scene(app, initial = {}) {
     for (let y = 0; y < BOARD_SIZE; y++) for (let x = 0; x < BOARD_SIZE; x++) {
       const cx = left + x * cell, cy = top + y * cell;
       root.addChild(spriteFit(match3ArtUrl('cell'), cx + cell / 2, cy + cell / 2, cell - 2, cell - 2, 1));
-      if (data.selectedGem?.x === x && data.selectedGem?.y === y) root.addChild(strokedRect(cx + 3, cy + 3, cell - 6, cell - 6, AMBER, 8, 0xfff1e0, .06, 2));
       // A hit area does not need a rendered transparent quad. Keeping these
       // renderless lets all 64 cell textures batch together on mobile WebGL.
       const hit = new Container();
@@ -202,6 +203,15 @@ function buildMatch3Scene(app, initial = {}) {
         render();
       });
       root.addChild(hit);
+    }
+    // Frame art + 64 cell skins are static. Flatten their overlapping texture
+    // passes once at the actual backing density, outside the animation timeline.
+    // Cached containers retain their children/hit areas for Pixi event routing.
+    const cacheResolution = app.renderer.resolution || 1;
+    root.cacheAsTexture?.({ resolution: cacheResolution, antialias: false });
+    if (app.canvas?.dataset) {
+      app.canvas.dataset.match3ChromeCached = String(!!root.isCachedAsTexture);
+      app.canvas.dataset.match3ChromeCacheResolution = String(cacheResolution);
     }
   }
 
@@ -234,14 +244,14 @@ function buildMatch3Scene(app, initial = {}) {
   return {
     update(next = {}) {
       advanceClock();
-      const oldBoard = currentBoard(), oldSelected = data.selectedGem, oldLayout = data.match3Composition;
+      const oldLayout = data.match3Composition;
       data = next;
       if (!playing()) pointer.cancel('pause');
       syncAnimation();
       // Commit a genuine pause/resume boundary before drawing. An ordinary
       // active update must not exclude its own chrome/render work from time.
       advanceClock();
-      if (oldSelected !== data.selectedGem || oldLayout !== data.match3Composition || oldBoard !== currentBoard()) drawChrome();
+      if (oldLayout !== data.match3Composition) drawChrome();
       render();
     },
     resize(next = data) {
@@ -253,6 +263,7 @@ function buildMatch3Scene(app, initial = {}) {
       document.removeEventListener('visibilitychange', onVisibility);
       motionQuery?.removeEventListener?.('change', onPreference);
       plan = null;
+      root.cacheAsTexture?.(false);
       gems.mask = null; effects.mask = null;
       for (const layer of [root, gems, effects, boardMask, dragLayer]) layer.destroy({ children: true });
     },

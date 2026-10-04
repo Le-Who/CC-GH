@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import { MATCH3_RENDER_PIXEL_BUDGET, match3RenderResolution } from '../src/games/match3/match3RenderBudget.js';
+import { MATCH3_RENDER_PIXEL_BUDGET, match3RenderResolution, resizeMatch3Renderer } from '../src/games/match3/match3RenderBudget.js';
 
 const host = fs.readFileSync(new URL('../src/game-runtime/PixiGameHost.jsx', import.meta.url), 'utf8');
 const initStart = host.indexOf('await app.init(') + 'await app.init('.length;
@@ -45,7 +45,7 @@ test('actual host resize caps only Match3 and preserves logical size, redraw, an
     const calls = [], state = {}, dimensions = { width: 390, height: 844 };
     const app = { renderer: { resize: (...args) => calls.push(['resize', ...args]) }, render: () => calls.push(['render']) };
     const resize = vm.runInNewContext(`let resizeFrame=0,lastWidth=0,lastHeight=0;${resizeSource};syncSize`, {
-      sceneKey, appRef: { current: app }, stateRef: { current: state }, match3RenderResolution,
+      sceneKey, appRef: { current: app }, stateRef: { current: state }, match3RenderResolution, resizeMatch3Renderer,
       containerRef: { current: { getBoundingClientRect: () => dimensions } },
       sceneRef: { current: { resize: next => { assert.equal(next, state); calls.push(['scene']); } } },
       window: { devicePixelRatio: 2, cancelAnimationFrame() {}, requestAnimationFrame: fn => { fn(); return 1; } },
@@ -54,5 +54,22 @@ test('actual host resize caps only Match3 and preserves logical size, redraw, an
     dimensions.width = 1280; dimensions.height = 720; resize();
     const args = (width, height) => sceneKey === 'match3' ? [width, height, match3RenderResolution(width,height,2)] : [width, height];
     assert.deepEqual(calls, [['resize', ...args(390,844)], ['scene'], ['render'], ['resize', ...args(1280,720)], ['scene'], ['render']]);
+  }
+});
+
+test('host reapplies the final Match3 backing budget after async init and asset loading', () => {
+  const start = host.indexOf('// Async init/assets');
+  const end = host.indexOf('// Scene builders', start);
+  const sync = host.slice(start, end);
+  assert.ok(start > host.indexOf('await Assets.load(assetKeys'));
+  assert.ok(end < host.indexOf('sceneRef.current = buildScene'));
+  for (const sceneKey of ['match3', 'blox', 'merge']) {
+    const calls = [];
+    // Simulate init at the transient shell size, followed by the final layout
+    // while asset loading is pending and no further ResizeObserver event occurs.
+    const renderer = { resolution: match3RenderResolution(1024,667,2), resize: (...args) => calls.push(args) };
+    const container = { getBoundingClientRect: () => ({ width: 1280, height: 720 }) };
+    vm.runInNewContext(sync, { sceneKey, app: { renderer }, containerRef: { current: container }, window: { devicePixelRatio: 2 }, resizeMatch3Renderer });
+    assert.deepEqual(calls, sceneKey === 'match3' ? [[1280,720,match3RenderResolution(1280,720,2)]] : []);
   }
 });

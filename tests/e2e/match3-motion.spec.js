@@ -127,6 +127,7 @@ for(const [width,height] of [[320,568],[390,844],[1280,720]]) test(`Match3 nativ
     return {cssWidth:r.width,cssHeight:r.height,pixelWidth:node.width,pixelHeight:node.height,dpr:devicePixelRatio,antialias:gl.getContextAttributes().antialias};
   });
   expect(render.dpr).toBe(2);expect(render.antialias).toBe(false);
+  await expect(canvas).toHaveAttribute('data-match3-chrome-cached','true');
   expect(render.pixelWidth/render.cssWidth).toBeCloseTo(match3RenderResolution(render.cssWidth,render.cssHeight,2),2);
   expect(render.pixelWidth*render.pixelHeight).toBeLessThanOrEqual(MATCH3_RENDER_PIXEL_BUDGET+4000);
   if(width<500) expect(render.pixelWidth/render.cssWidth).toBeCloseTo(2,2);
