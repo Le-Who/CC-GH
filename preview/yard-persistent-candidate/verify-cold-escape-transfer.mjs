@@ -412,7 +412,7 @@ export function verifyColdEscapeTransfer({rootDir,contract,roomHud=verifyRoomHud
   assert.equal(before.scripts.test.split('tests/yard-native-duration.test.mjs').length,2);
   packageExpected.scripts.test=before.scripts.test.replace('tests/yard-native-duration.test.mjs','tests/yard-native-duration.test.mjs tests/yard-ground-coverage-index.test.mjs');
   packageExpected.scripts['test:yard-family']+=' tests/yard-ground-coverage-index.test.mjs';
-  assert.deepEqual(JSON.parse(readFileSync(resolve(rootDir,'package.json'))),packageExpected,'Cold package edit must preserve every existing test and dependency');
+  assert.deepEqual(JSON.parse(readBeforeRoomHud({rootDir,roomHud,path:'package.json'})),packageExpected,'Cold package edit must preserve every existing test and dependency');
   for(const row of APPROVED.transitions.filter(row=>row.path.endsWith('/SOURCE-CLOSURE.json'))){
     const expected=JSON.parse(read(row.before.archive));
     const ground=expected.files.find(file=>file.path==='game-logic/yard-v2/ground-coverage.mjs');assert.ok(ground);
