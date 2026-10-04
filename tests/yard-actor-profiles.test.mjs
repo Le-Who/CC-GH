@@ -15,6 +15,7 @@ import {createMotionGroundGuard} from '../game-logic/yard-v2/motion-ground-guard
 import {ensurePersistentPlayerYard,publicPersistentYard,executePersistentYardAction,inspectPlayerYard} from '../game-logic/yard-v2/service.mjs';
 import {createAdmissionPolicy,inspectPersistentYard} from '../game-logic/yard-v2/orchestrator.mjs';
 import {digest} from '../game-logic/yard-v2/util.mjs';
+import {visitReservations} from '../game-logic/yard-v2/visit-reservations.mjs';
 const copy=value=>JSON.parse(JSON.stringify(value)),NOW=Date.UTC(2026,9,2,12),H=3600000;
 const record=p=>Object.values(p._yardV2.runtime.visits)[0];
 function samples(plan){
@@ -30,7 +31,9 @@ function routeSamples(plan){return[plan.incoming,plan.outgoing,...(plan.restAppr
   const result=[];for(let t=0;t<=route.durationMs;t+=25)result.push(sampleRoute(route,t,{actorProfile:MIKA}));
   result.push(sampleRoute(route,route.durationMs,{actorProfile:MIKA}));return result;
 });}
-function withoutNewRefs(player){const result=copy(player);for(const r of Object.values(result._yardV2.runtime.visits))delete r.mediaAdmission?.actorProfile;return result;}
+// Compare immutable r3 economics/media/geometry after removing only additive
+// actor identity and timed occupancy metadata, tested independently below.
+function withoutNewRefs(player){const result=copy(player);for(const r of Object.values(result._yardV2.runtime.visits)){delete r.mediaAdmission?.actorProfile;delete r.mediaAdmission?.plan?.reservations;}return result;}
 
 test('r3 baseline fixture is immutable and provenance is self-contained',()=>{
   const bytes=readFileSync(new URL('./fixtures/yard-actor-r3/golden.json',import.meta.url));
@@ -41,7 +44,8 @@ test('Mika profile extraction retains the complete r3 registry bytes and every a
   const options=getMikaServerOptions();assert.deepEqual(options.mediaRegistry,golden.registry);
   for(const c of golden.cases){
     const binding=options.mediaRegistry.bindings.find(b=>b.id===c.bindingId),out=options.preflight(copy(c.candidate),binding);
-    assert.equal(out.ok,true);assert.deepEqual(out.plan,c.plan,`${c.goodieId}:${c.yaw}:${c.minutes}`);
+    assert.equal(out.ok,true);const {reservations,...legacyPlan}=out.plan;assert.ok(reservations.length);assert.deepEqual(legacyPlan,c.plan,`${c.goodieId}:${c.yaw}:${c.minutes}`);
+    assert.deepEqual(visitReservations(out.plan),reservations,'all Mika timed projections are complete, including separate ground rest');
     assert.equal(digest(samples(out.plan)),c.sampleDigest);assert.equal(digest(routeSamples(out.plan)),c.routeSampleDigest);
     assert.deepEqual(options.placementReadiness(copy(c.candidate.yard)),c.readiness);
   }
@@ -63,11 +67,12 @@ test('only the immutable Mika profile is ready; malformed or foreign explicit re
   assert.equal(resolveVisitActorProfile({...r,original:{...r.original,visitorId:'mochi_bunny'}},own),null);
   assert.equal(resolveBindingActorProfile({...b,visitorId:'mochi_bunny'}),null);
 });
-test('new admission adds only its actor reference; r3 economics, commits, claim result and replay remain identical',()=>{
+test('new admission adds actor identity and timed occupancy; r3 economics, commits, claim result and replay remain identical',()=>{
   let p=copy(golden.initialPlayer);ensurePersistentPlayerYard(p,{now:NOW});ensurePersistentPlayerYard(p,{now:NOW+4*H,simulate:true});
   assert.deepEqual(record(p).mediaAdmission.actorProfile,REF);assert.deepEqual(withoutNewRefs(p),golden.admittedPlayer);
   const projection=publicPersistentYard(p,{now:golden.projectionTime});assert.deepEqual(projection.visits[0].resolvedActorProfile,REF);
   delete projection.visits[0].resolvedActorProfile;delete projection.visits[0].mediaAdmission.actorProfile;
+  delete projection.visits[0].mediaAdmission.plan.reservations;
   assert.deepEqual(projection,golden.publicProjection);
   const at=record(p).leavesAt;ensurePersistentPlayerYard(p,{now:at,simulate:true});assert.deepEqual(withoutNewRefs(p),golden.completedPlayer);
   const result=executePersistentYardAction(p,'yard.collectGifts',{},golden.claimOptions);assert.deepEqual(copy(result),golden.claimResult);

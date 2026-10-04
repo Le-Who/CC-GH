@@ -5,10 +5,10 @@ import { assertYardV2FixtureId } from './yard-v2-pg-guard.mjs';
 const workerFile = fileURLToPath(new URL('./yard-v2-pg-worker.mjs', import.meta.url));
 
 /** Distinct OS processes and a barrier after the real SELECT, before real CAS. */
-export function yardV2PgProcesses() {
+export function yardV2PgProcesses({workerFile:boundedWorkerFile=workerFile,waitTimeoutMs=15000}={}) {
   const live = new Set();
   function participant() {
-    const child = fork(workerFile, [], { execArgv: [], env: { ...process.env, YARD_V2_PG_WORKER: '1' }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
+    const child = fork(boundedWorkerFile, [], { execArgv: [], env: { ...process.env, YARD_V2_PG_WORKER: '1' }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
     live.add(child);
     let output = '', didExit = false, exitError = null;
     const queue = [], waiters = [];
@@ -40,7 +40,7 @@ export function yardV2PgProcesses() {
         w.timer = setTimeout(() => {
           const i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1);
           reject(new Error(`Yard PG worker timed out waiting for ${type}: ${output}`)); child.kill('SIGKILL');
-        }, 15000);
+        }, waitTimeoutMs);
         waiters.push(w);
       });
     }

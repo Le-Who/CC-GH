@@ -1,0 +1,38 @@
+{
+  "revision": "fountain-bowl-source/r2",
+  "goodieId": "fountain_bowl",
+  "originWorld": [
+    0,
+    0,
+    0
+  ],
+  "unitsPerWorld": 8,
+  "rotationZ": 0,
+  "conditions": [
+    "new"
+  ],
+  "bounds": {
+    "min": [
+      -1.1539874076843262,
+      -1.2061333656311035,
+      0.0
+    ],
+    "max": [
+      1.2054322957992554,
+      1.1162787675857544,
+      1.2456690073013306
+    ]
+  },
+  "paddingWorld": 0.025,
+  "sourceGeometrySha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+  "evaluatedGeometrySha256": "554e47dbb2c36bb70544d006d6884a426ef36364981277b4542810c3d4bf3c1c",
+  "parts": 134,
+  "vertices": 15710,
+  "hollowBasin": {
+    "waterLevel": 0.519,
+    "lowestRimZ": 0.63,
+    "innerRadiusAtWater": 0.85
+  },
+  "providerIndependent": true,
+  "runtimeReady": false
+}

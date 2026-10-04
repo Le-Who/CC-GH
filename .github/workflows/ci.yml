@@ -104,6 +104,19 @@ jobs:
       - name: Check Yard v2 persistence fixture safety
         run: node --test --test-concurrency=1 tests/yard-v2-pg-fixture.test.mjs tests/yard-v2-pg-guard.test.mjs
 
+      - name: Closed family source PostgreSQL15 conditions, rewards and cross-process OCC
+        env:
+          YARD_FAMILY_PG_TEST: '1'
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: integrated
+          YARD_CANDIDATE_CI: ''
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+        run: pnpm run test:yard-family:pg
+
       - name: Install Chromium for browser regression tests
         run: pnpm exec playwright install --with-deps chromium
 
@@ -210,6 +223,10 @@ jobs:
         run: node --test tests/yard-mochi-presentation.test.mjs
       - name: Check canonical actors and mixed-prop boundaries
         run: node --test tests/yard-mixed-obstacles.test.mjs tests/yard-pip-canonical.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/yard-pebble-canonical.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-mochi-canonical.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs
+      - name: Check CURRENT-FOUR scheduling and decoded atlas budgets
+        run: pnpm run test:yard-current-four
+      - name: Check closed family conditions, native persistence and frozen media budgets
+        run: pnpm run test:yard-family
       - name: Validate inactive Mochi media
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
       - name: Validate canonical Yard scene
@@ -222,6 +239,20 @@ jobs:
         run: pnpm exec playwright test -c playwright.yard-pebble.config.js --project=chromium --workers=1
       - name: Validate canonical Pip scene
         run: pnpm exec playwright test -c playwright.pip-canonical.config.js --project=chromium --workers=1
+      - name: Validate closed eight-species native witnesses and actual family media
+        run: pnpm exec playwright test -c playwright.yard-eight.config.js --project=chromium --workers=1
+      - name: Preserve closed family viewport and real-time evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-yard-eight-closed-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results-yard-eight/
+            recovery-tools/yard-canonical-eight-qa/fixture.json
+            recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json
+            recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Collect bounded Pebble diagnostics
         if: always()
         run: if [ -f test-results-yard-pebble/results.json ]; then node scripts/collect-yard-pebble-diagnostics.mjs; fi

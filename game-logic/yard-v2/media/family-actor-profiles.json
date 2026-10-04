@@ -1,0 +1,548 @@
+{
+  "willow": {
+    "id": "willow",
+    "revision": "willow-actor/r2-moon",
+    "visitorId": "willow_fox",
+    "playbackReady": false,
+    "unitsPerWorld": 8,
+    "sourceSampleMs": 40,
+    "locomotion": {
+      "revision": "willow-authored-walk/r2",
+      "sampling": "authored-root-rows",
+      "strideWorld": 0.28,
+      "cycleMs": 1120,
+      "phaseSamples": [
+        0,
+        0.03571428571428571,
+        0.07142857142857142,
+        0.10714285714285714,
+        0.14285714285714285,
+        0.17857142857142858,
+        0.21428571428571427,
+        0.25,
+        0.2857142857142857,
+        0.32142857142857145,
+        0.35714285714285715,
+        0.39285714285714285,
+        0.42857142857142855,
+        0.4642857142857143,
+        0.5,
+        0.5357142857142857,
+        0.5714285714285714,
+        0.6071428571428571,
+        0.6428571428571429,
+        0.6785714285714286,
+        0.7142857142857143,
+        0.75,
+        0.7857142857142857,
+        0.8214285714285714,
+        0.8571428571428571,
+        0.8928571428571429,
+        0.9285714285714286,
+        0.9642857142857143
+      ],
+      "facings": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "canonicalPhase": 0,
+      "rampDistanceQuanta": 0,
+      "rampReferenceSamples": 28,
+      "turnRoutePreferenceMs": 250
+    },
+    "turns": {
+      "durations": {
+        "2": 4480,
+        "4": 8960
+      },
+      "entryPhase": 0,
+      "exitPhase": 0,
+      "variants": [
+        "0:-1:2",
+        "0:1:2",
+        "0:1:4",
+        "2:-1:2",
+        "2:1:2",
+        "2:1:4",
+        "4:-1:2",
+        "4:1:2",
+        "4:1:4",
+        "6:-1:2",
+        "6:1:2",
+        "6:1:4"
+      ]
+    },
+    "ground": {
+      "revision": "willow-authored-ground/r2:7cfe241072a55d0606c252a60012d5486c5fdb54d58d0a2678803518e94c7cc8",
+      "phaseStarts": [
+        0
+      ]
+    },
+    "interactions": {
+      "willow-listen-new-r7": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "willow-listen-new-r7",
+        "loop": {
+          "startMs": 4480,
+          "endMs": 6720,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "willow-peek-new-r6": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "willow-peek-new-r6",
+        "loop": {
+          "startMs": 4480,
+          "endMs": 6720,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "willow-peek-worn-r6": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "willow-peek-worn-r6",
+        "loop": {
+          "startMs": 4480,
+          "endMs": 6720,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "willow-peek-broken-r6": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "willow-peek-broken-r6",
+        "loop": {
+          "startMs": 4480,
+          "endMs": 6720,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "willow-listen-worn-r7": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "willow-listen-worn-r7",
+        "loop": {
+          "startMs": 4480,
+          "endMs": 6720,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "willow-listen-broken-r7": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "willow-listen-broken-r7",
+        "loop": {
+          "startMs": 4480,
+          "endMs": 6720,
+          "frames": 56,
+          "fps": 25
+        }
+      }
+    }
+  },
+  "starlit": {
+    "id": "starlit",
+    "revision": "starlit-actor/r2-moon",
+    "visitorId": "starlit_fox",
+    "playbackReady": false,
+    "unitsPerWorld": 8,
+    "sourceSampleMs": 40,
+    "locomotion": {
+      "revision": "starlit-authored-walk/r2",
+      "sampling": "authored-root-rows",
+      "strideWorld": 0.28,
+      "cycleMs": 1120,
+      "phaseSamples": [
+        0,
+        0.03571428571428571,
+        0.07142857142857142,
+        0.10714285714285714,
+        0.14285714285714285,
+        0.17857142857142858,
+        0.21428571428571427,
+        0.25,
+        0.2857142857142857,
+        0.32142857142857145,
+        0.35714285714285715,
+        0.39285714285714285,
+        0.42857142857142855,
+        0.4642857142857143,
+        0.5,
+        0.5357142857142857,
+        0.5714285714285714,
+        0.6071428571428571,
+        0.6428571428571429,
+        0.6785714285714286,
+        0.7142857142857143,
+        0.75,
+        0.7857142857142857,
+        0.8214285714285714,
+        0.8571428571428571,
+        0.8928571428571429,
+        0.9285714285714286,
+        0.9642857142857143
+      ],
+      "facings": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "canonicalPhase": 0,
+      "rampDistanceQuanta": 0,
+      "rampReferenceSamples": 28,
+      "turnRoutePreferenceMs": 250
+    },
+    "turns": {
+      "durations": {
+        "2": 4480,
+        "4": 8960
+      },
+      "entryPhase": 0,
+      "exitPhase": 0,
+      "variants": [
+        "0:-1:2",
+        "0:1:2",
+        "0:1:4",
+        "2:-1:2",
+        "2:1:2",
+        "2:1:4",
+        "4:-1:2",
+        "4:1:2",
+        "4:1:4",
+        "6:-1:2",
+        "6:1:2",
+        "6:1:4"
+      ]
+    },
+    "ground": {
+      "revision": "starlit-authored-ground/r2:92aa00fb712ff8e9bc479d1da1f490129bf7cbdb4aa06e7a0d925d9d74dbcc6e",
+      "phaseStarts": [
+        0
+      ]
+    },
+    "interactions": {
+      "starlit-glow-new-r7": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "starlit-glow-new-r7",
+        "loop": {
+          "startMs": 3360,
+          "endMs": 5600,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "starlit-watch-new-r6": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "starlit-watch-new-r6",
+        "loop": {
+          "startMs": 3360,
+          "endMs": 5600,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "starlit-watch-worn-r6": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "starlit-watch-worn-r6",
+        "loop": {
+          "startMs": 3360,
+          "endMs": 5600,
+          "frames": 56,
+          "fps": 25
+        }
+      },
+      "starlit-watch-broken-r6": {
+        "goodieId": "moon_lamp",
+        "restMode": "anchored-composite",
+        "restClipId": "starlit-watch-broken-r6",
+        "loop": {
+          "startMs": 3360,
+          "endMs": 5600,
+          "frames": 56,
+          "fps": 25
+        }
+      }
+    }
+  },
+  "basil": {
+    "id": "basil",
+    "revision": "basil-actor/r2-fountain",
+    "visitorId": "basil_turtle",
+    "playbackReady": false,
+    "unitsPerWorld": 8,
+    "sourceSampleMs": 40,
+    "locomotion": {
+      "revision": "basil-authored-walk/r2",
+      "sampling": "authored-root-rows",
+      "strideWorld": 0.18,
+      "cycleMs": 1600,
+      "phaseSamples": [
+        0,
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.125,
+        0.15,
+        0.175,
+        0.2,
+        0.225,
+        0.25,
+        0.275,
+        0.3,
+        0.325,
+        0.35,
+        0.375,
+        0.4,
+        0.425,
+        0.45,
+        0.475,
+        0.5,
+        0.525,
+        0.55,
+        0.575,
+        0.6,
+        0.625,
+        0.65,
+        0.675,
+        0.7,
+        0.725,
+        0.75,
+        0.775,
+        0.8,
+        0.825,
+        0.85,
+        0.875,
+        0.9,
+        0.925,
+        0.95,
+        0.975
+      ],
+      "facings": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "canonicalPhase": 0,
+      "rampDistanceQuanta": 0,
+      "rampReferenceSamples": 40,
+      "turnRoutePreferenceMs": 250
+    },
+    "turns": {
+      "durations": {
+        "2": 6400,
+        "4": 12800
+      },
+      "entryPhase": 0,
+      "exitPhase": 0,
+      "variants": [
+        "0:-1:2",
+        "0:1:2",
+        "0:1:4",
+        "2:-1:2",
+        "2:1:2",
+        "2:1:4",
+        "4:-1:2",
+        "4:1:2",
+        "4:1:4",
+        "6:-1:2",
+        "6:1:2",
+        "6:1:4"
+      ]
+    },
+    "ground": {
+      "revision": "basil-authored-ground/r2:9c64b9cbafbb91e3e1ea84e285e83acfb1fd95619e1f812b0b3300a8fef8a16a",
+      "phaseStarts": [
+        0
+      ]
+    },
+    "interactions": {
+      "basil-fountain-new": {
+        "goodieId": "fountain_bowl",
+        "restMode": "anchored-composite",
+        "restClipId": "basil-fountain-new",
+        "loop": {
+          "startMs": 8000,
+          "endMs": 10400,
+          "frames": 60,
+          "fps": 25
+        }
+      },
+      "basil-fountain-worn": {
+        "goodieId": "fountain_bowl",
+        "restMode": "anchored-composite",
+        "restClipId": "basil-fountain-worn",
+        "loop": {
+          "startMs": 8000,
+          "endMs": 10400,
+          "frames": 60,
+          "fps": 25
+        }
+      },
+      "basil-fountain-broken": {
+        "goodieId": "fountain_bowl",
+        "restMode": "anchored-composite",
+        "restClipId": "basil-fountain-broken",
+        "loop": {
+          "startMs": 8000,
+          "endMs": 10400,
+          "frames": 60,
+          "fps": 25
+        }
+      }
+    }
+  },
+  "sage": {
+    "id": "sage",
+    "revision": "sage-actor/r2-fountain",
+    "visitorId": "sage_turtle",
+    "playbackReady": false,
+    "unitsPerWorld": 8,
+    "sourceSampleMs": 40,
+    "locomotion": {
+      "revision": "sage-authored-walk/r2",
+      "sampling": "authored-root-rows",
+      "strideWorld": 0.16,
+      "cycleMs": 2000,
+      "phaseSamples": [
+        0,
+        0.02,
+        0.04,
+        0.06,
+        0.08,
+        0.1,
+        0.12,
+        0.14,
+        0.16,
+        0.18,
+        0.2,
+        0.22,
+        0.24,
+        0.26,
+        0.28,
+        0.3,
+        0.32,
+        0.34,
+        0.36,
+        0.38,
+        0.4,
+        0.42,
+        0.44,
+        0.46,
+        0.48,
+        0.5,
+        0.52,
+        0.54,
+        0.56,
+        0.58,
+        0.6,
+        0.62,
+        0.64,
+        0.66,
+        0.68,
+        0.7,
+        0.72,
+        0.74,
+        0.76,
+        0.78,
+        0.8,
+        0.82,
+        0.84,
+        0.86,
+        0.88,
+        0.9,
+        0.92,
+        0.94,
+        0.96,
+        0.98
+      ],
+      "facings": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "canonicalPhase": 0,
+      "rampDistanceQuanta": 0,
+      "rampReferenceSamples": 50,
+      "turnRoutePreferenceMs": 250
+    },
+    "turns": {
+      "durations": {
+        "2": 8000,
+        "4": 16000
+      },
+      "entryPhase": 0,
+      "exitPhase": 0,
+      "variants": [
+        "0:-1:2",
+        "0:1:2",
+        "0:1:4",
+        "2:-1:2",
+        "2:1:2",
+        "2:1:4",
+        "4:-1:2",
+        "4:1:2",
+        "4:1:4",
+        "6:-1:2",
+        "6:1:2",
+        "6:1:4"
+      ]
+    },
+    "ground": {
+      "revision": "sage-authored-ground/r2:669933923e57d587049a29f50a9ce028349df7efc00fafab121330a05cb74109",
+      "phaseStarts": [
+        0
+      ]
+    },
+    "interactions": {
+      "sage-fountain-new": {
+        "goodieId": "fountain_bowl",
+        "restMode": "anchored-composite",
+        "restClipId": "sage-fountain-new",
+        "loop": {
+          "startMs": 8800,
+          "endMs": 11200,
+          "frames": 60,
+          "fps": 25
+        }
+      },
+      "sage-fountain-worn": {
+        "goodieId": "fountain_bowl",
+        "restMode": "anchored-composite",
+        "restClipId": "sage-fountain-worn",
+        "loop": {
+          "startMs": 8800,
+          "endMs": 11200,
+          "frames": 60,
+          "fps": 25
+        }
+      },
+      "sage-fountain-broken": {
+        "goodieId": "fountain_bowl",
+        "restMode": "anchored-composite",
+        "restClipId": "sage-fountain-broken",
+        "loop": {
+          "startMs": 8800,
+          "endMs": 11200,
+          "frames": 60,
+          "fps": 25
+        }
+      }
+    }
+  }
+}

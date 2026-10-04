@@ -1,0 +1,15 @@
+import {createCourtyardScene} from '/__yard_source__/src/games/companion-yard-v2/scene.mjs';
+import {ACTOR_PROFILES} from '/__yard_source__/game-logic/yard-v2/actor-profiles.mjs';
+const fixture=await(await fetch('./fixture.json')).json(),query=new URL(location.href).searchParams,closed=query.get('mode')==='closed';
+const canvas=document.querySelector('canvas'),status=document.querySelector('output'),errors=[];
+let actorId=query.get('actor')||'willow',scene,generation=0,disposed=0,elapsed=0,playing=false,lastStamp=performance.now();
+function animate(stamp){if(playing)elapsed+=stamp-lastStamp;lastStamp=stamp;requestAnimationFrame(animate);}requestAnimationFrame(animate);
+const witness=()=>fixture.actors[actorId]||fixture.joint[actorId];
+function snapshotAt(at){const a=witness(),base=closed?a.closedSnapshot:a.snapshots?[...a.snapshots].reverse().find(s=>s.at<=at)?.snapshot||a.snapshot:at>=a.times.finished?a.finishedSnapshot:a.snapshot;return{...base,yardRuntime:{...base.yardRuntime,serverNow:at}};}
+async function mount(at){playing=false;elapsed=0;generation++;if(scene){scene.dispose();disposed++;}scene=createCourtyardScene(canvas,{actorProfiles:closed?ACTOR_PROFILES:fixture.actorProfiles,now:()=>elapsed,onError:e=>errors.push(String(e)),onView:v=>status.textContent=`${actorId} ${v.pets[0]?.role||'finished'} | gifts ${v.pendingGifts.length}`});scene.update(snapshotAt(at));await scene.ready;}
+async function seek(at){playing=false;if(typeof at==='string')at=witness().times[at];if(!Number.isSafeInteger(at))throw Error('Native fixture time required');if(at<scene.diagnostics().presentationTime)await mount(at);else scene.update(snapshotAt(at));}
+async function select(id){if(!fixture.actors[id]&&!fixture.joint[id])throw Error('Exact native actor required');actorId=id;await mount(witness().times.approach);}
+function diagnostics(){const d=scene.diagnostics(),bounds=canvas.getBoundingClientRect();return{...d,actorId,generation,disposed,errors:[...errors],releaseAccepted:false,horizontalOverflow:document.documentElement.scrollWidth>innerWidth,buttons:[...document.querySelectorAll('button')].map(b=>({width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height})),canvasBounds:{width:bounds.width,height:bounds.height},propInstances:d.view?Object.fromEntries(d.view.props.filter(p=>p.supported).map(prop=>[prop.slotId,Number(prop.drawStandalone)+d.view.pets.filter(p=>p.propOwnerSlotId===prop.slotId).length])):{},targetInstances:d.view?Number(d.view.props[0]?.supported&&d.view.props[0]?.drawStandalone)+d.view.pets.filter(p=>p.propOwnerSlotId==='target').length:null};}
+for(const b of document.querySelectorAll('button'))b.onclick=()=>{if(b.dataset.action==='reload')return mount(witness().times.approach);seek(b.dataset.action).catch(e=>errors.push(String(e)));};
+addEventListener('pagehide',()=>scene?.dispose());await mount(witness().times.approach);
+window.yardQA={ready:true,fixture,select,seek,diagnostics,actor:()=>actorId,play:()=>{lastStamp=performance.now();playing=true;},pause:()=>playing=false,bitmap:()=>canvas.toDataURL(),dispose:()=>{scene.dispose();disposed++;}};
