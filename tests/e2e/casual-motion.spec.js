@@ -190,6 +190,16 @@ for (const [width,height] of [[390,844],[568,320]]) test.describe(`Blox real lin
     // Keep the whole feedback interval free of screenshot/readback interference.
     // This viewing window does not change the production effect duration or clock.
     await page.waitForTimeout(1500);
+    const motionTiming=await page.locator('.bx-stage canvas').evaluate(canvas=>JSON.parse(canvas.dataset.bloxMotionTiming||'null'));
+    expect(motionTiming).not.toBeNull();
+    for(const field of ['requestedAt','startedAt','firstFrameAt','clearedAt'])expect(Number.isFinite(motionTiming[field])).toBe(true);
+    expect(motionTiming.startedAt).toBeGreaterThanOrEqual(motionTiming.requestedAt);
+    expect(motionTiming.clearedAt).toBeGreaterThanOrEqual(motionTiming.startedAt);
+    // Wall-time budgets tolerate slow software-WebGL frames but fail the
+    // measured~1.4s hold. They never replace pixel/1x video review.
+    expect(motionTiming.startedAt-motionTiming.requestedAt).toBeLessThanOrEqual(250);
+    expect(motionTiming.firstFrameAt-motionTiming.requestedAt).toBeLessThanOrEqual(500);
+    expect(motionTiming.clearedAt-motionTiming.startedAt).toBeLessThanOrEqual(800);
     const after=await snapshot();
     expect(after.blox.savedState.score).toBe(20);expect(after.blox.savedState.linesCleared).toBe(1);
     expect(after.blox.savedState.board.flat().filter(Boolean)).toHaveLength(0);
@@ -205,6 +215,10 @@ for (const [width,height] of [[390,844],[568,320]]) test.describe(`Blox real lin
       before:{score:before.blox.savedState.score,lines:before.blox.savedState.linesCleared,occupied:8},
       clear:receipt.clear,after:{score:after.blox.savedState.score,lines:after.blox.savedState.linesCleared,occupied:0},
       economyUnchanged:true,clock:'ordinary wall time',playbackRate:1,
+      motionTiming,requestToLocalFeedbackMs:motionTiming.startedAt-motionTiming.requestedAt,
+      requestToFirstTickerFrameMs:motionTiming.firstFrameAt-motionTiming.requestedAt,
+      clearWallTimeMs:motionTiming.clearedAt-motionTiming.startedAt,
+      timingNote:'First ticker frame is renderer scheduling telemetry, not a pixel-visibility claim. Review the unmodified 1x video for actual visible onset.',
     },null,2)),contentType:'application/json'});
     page.off('request',observe);expect(errors).toEqual([]);
   });

@@ -155,7 +155,7 @@ test('recovered local import paths exist and declarations have no leaked minifie
  for(const file of ['src/games/blox/BloxGame.jsx','src/games/blox/BloxPresentation.jsx','src/games/blox/bloxArt.js','src/games/blox/bloxComposition.js','src/games/blox/bloxInteraction.js','src/game-runtime/scenes/bloxScene.js']){
   const src=read(root+'/'+file),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});
   for(const n of ast.body)if(n.type==='ImportDeclaration'&&n.source.value.startsWith('.'))assert.ok(fs.existsSync(path.resolve(path.dirname(root+'/'+file),n.source.value)),file+' -> '+n.source.value);
-  rename(src);const allowed=new Set(['Promise','Map','undefined','Array','Object','Number','Math','String','Intl','window','navigator','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','console','BloxRuntimeBoundary','state','setTimeout','clearTimeout','Date','JSON','Set','type']);if(file==='src/game-runtime/scenes/bloxScene.js')allowed.add('document');assert.deepEqual(rename.lastFree.filter(x=>!allowed.has(x)),[],file);
+  rename(src);const allowed=new Set(['Promise','Map','undefined','performance','Array','Object','Number','Math','String','Intl','window','navigator','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','console','BloxRuntimeBoundary','state','setTimeout','clearTimeout','Date','JSON','Set','type']);if(file==='src/game-runtime/scenes/bloxScene.js')allowed.add('document');assert.deepEqual(rename.lastFree.filter(x=>!allowed.has(x)),[],file);
  }
 });
 test('compiled reward thresholds and rotations agree with baseline implementations',async()=>{

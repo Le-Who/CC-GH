@@ -44,3 +44,10 @@ test('unsupported animation finish is harmless and well hit-testing includes edg
   const wells=[{getBoundingClientRect:()=>({left:0,top:0,right:50,bottom:50})},null,{getBoundingClientRect:()=>({left:60,top:0,right:110,bottom:50})}];
   assert.equal(sampleWellAtPoint(wells,50,50),0);assert.equal(sampleWellAtPoint(wells,55,25),-1);assert.equal(sampleWellAtPoint(wells,60,0),2);
 });
+test('opt-in monotonic feedback settles on slow foreground frames without changing default capped tracks',()=>{
+  let now=0;const track=createFeedbackTrack(layer(),{now:()=>now}),n=node();track.add(n,{duration:145});
+  now=200;track.tick(16);assert.equal(track.size,0);assert.equal(n.destroyed,true);
+  const fresh=node();track.add(fresh,{duration:145});now=240;track.tick(16);
+  assert.equal(fresh.destroyed,undefined,'a new effect starts at its own monotonic timestamp');
+  track.clear();now=10000;track.tick(16);assert.equal(track.size,0,'cleared effects cannot replay across suspension');
+});
