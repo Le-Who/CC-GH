@@ -1,0 +1,50 @@
+name: Yard coherent single frame
+on:
+  push:
+    branches: [qa/yard-coherent-frame-preview]
+    paths:
+      - '.github/workflows/yard-coherent-frame-preview.yml'
+      - 'preview/yard-coherent-frame/**'
+      - 'src/games/companion-yard-v2/scene-layout.mjs'
+      - 'game-logic/yard-playzones.js'
+permissions:
+  contents: read
+jobs:
+  coherent-frame:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /pnpm-lock.yaml
+            /.github/workflows/yard-coherent-frame-preview.yml
+            /preview/yard-coherent-frame/
+            /src/games/companion-yard-v2/scene-layout.mjs
+            /game-logic/yard-playzones.js
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node --test preview/yard-coherent-frame/source-checks.test.mjs preview/yard-coherent-frame/environment-perimeter.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Capture actual single-frame Canvas compositions
+        run: pnpm exec playwright test -c preview/yard-coherent-frame/playwright.config.mjs
+      - name: Preserve actual pixels and standalone source evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-coherent-frame-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results-yard-frame45/
+            playwright-report-yard-frame45/
+            preview/yard-coherent-frame/payload-manifest.json
+            preview/yard-coherent-frame/layout.json
+            preview/yard-coherent-frame/frame.json
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0

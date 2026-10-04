@@ -1,0 +1,49 @@
+{
+  "method": "4x CSS rasterization; conservative source mask quads; actual decoded WebP alpha>16; uniform LANCZOS sampling",
+  "calibrationSha256": "cf398457e0e628cc68ce11f987396e0ea0082b361615c9955d82ba33f8ce91a1",
+  "checks": [
+    {
+      "id": "portrait390",
+      "facadeMaskIntersectionCssArea": 0.0,
+      "gateMaskIntersectionCssArea": [
+        0.0,
+        0.0
+      ],
+      "facadeGateIntersectionCssArea": [
+        96.4375,
+        0.0
+      ],
+      "wholeDoorOpeningInsideScene": true,
+      "wholeMaskAndGateInsideScene": true
+    },
+    {
+      "id": "portrait320",
+      "facadeMaskIntersectionCssArea": 0.0,
+      "gateMaskIntersectionCssArea": [
+        0.0,
+        0.0
+      ],
+      "facadeGateIntersectionCssArea": [
+        389.625,
+        0.0
+      ],
+      "wholeDoorOpeningInsideScene": true,
+      "wholeMaskAndGateInsideScene": true,
+      "facadeIntersectionWith4pxExpandedMaskCssArea": 0.0
+    },
+    {
+      "id": "landscape754",
+      "facadeMaskIntersectionCssArea": 0.0,
+      "gateMaskIntersectionCssArea": [
+        0.0,
+        0.0
+      ],
+      "facadeGateIntersectionCssArea": [
+        0.0,
+        0.0
+      ],
+      "wholeDoorOpeningInsideScene": true,
+      "wholeMaskAndGateInsideScene": true
+    }
+  ]
+}

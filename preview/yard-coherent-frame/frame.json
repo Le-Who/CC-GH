@@ -1,0 +1,84 @@
+{
+  "format": "yard-coherent-frame-probe/v1",
+  "scope": "one source-rendered Basil + Fountain pose and geometry-derived contact shadow; not animation or live acceptance",
+  "sourceRigSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+  "sourceGeometrySha256": "d44d2eb7bf7eaf2c794f25ab5fbd2136b2497f96b8dce12a875370ecdb4e2432",
+  "sourceFrame": 101,
+  "sourceTimeMs": 4000,
+  "sourceAction": "Basil r2 Fountain watch-right",
+  "cameraDirection": [
+    -9.8058,
+    -1.9612,
+    10
+  ],
+  "cameraType": "ORTHO",
+  "canvas": [
+    640,
+    384
+  ],
+  "pixelsPerWorld": 96,
+  "pixelAspect": [
+    1,
+    1
+  ],
+  "pivotPx": [
+    449.2013931274414,
+    254.3324432373047
+  ],
+  "placementWorldXY": [
+    40,
+    40
+  ],
+  "sourceRootWorld": [
+    -1.7696146159587838e-16,
+    2.890000104904175,
+    0.0
+  ],
+  "calibrationRevision": "yard-coherent-frame45/r1",
+  "shadow": {
+    "alphaSource": "unchanged 8-bit alpha of Cycles Shadow Catcher attenuation compositor pass at the same pose/camera",
+    "alphaConversion": "0.18 * clamp(1 - linear luminance(shadow catcher),0,1)",
+    "rgbaTint": [
+      26,
+      32,
+      18
+    ],
+    "alphaMax": 46,
+    "alphaMaxFraction": 0.1803921568627451,
+    "noEllipseOrPaintedGeometry": true,
+    "rawPassRgbIsDiagnosticOnly": true,
+    "penumbraGeometryEstimateMaxCss390": 4.037494826249651,
+    "estimateNote": "Finite light diameter and maximum source height bound; not a measured per-edge perceptual softness score."
+  },
+  "files": [
+    {
+      "id": "combined45",
+      "src": "assets/combined45.webp",
+      "width": 640,
+      "height": 384,
+      "decodedBytes": 983040,
+      "encodedBytes": 87894,
+      "sha256": "8d61b277a90b0034c03fad71f2df1bae923d376e1009e1e1ee028d9b04ee14f3",
+      "rgbaSha256": "d6f1802a886debb01dde7fc2bf3c1246cfdb9f7fe18f45d32409dc37717a0936",
+      "alphaBoundsPx": [
+        19,
+        118,
+        621,
+        381
+      ],
+      "alphaMax": 255,
+      "nonzeroBorderPixels": 0,
+      "losslessRgbaRoundTrip": true
+    }
+  ],
+  "drawInstructions": "Draw the one combined native subject and shadow image once with the fixed source pivot and ppu; frame101 at4000ms is held. No playback.",
+  "runtimeBudget": {
+    "combinedDecodedBytes": 983040,
+    "separateDecodedBytes": 1966080,
+    "combinedEncodedBytes": 87894,
+    "separateEncodedBytes": 85642
+  },
+  "sourceAndGeometryUnchanged": true,
+  "renderSeconds": 14.456721213005949,
+  "packSeconds": 4.551199184003053
+}

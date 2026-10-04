@@ -1,0 +1,312 @@
+{
+  "status": "single coherent-frame input; pending actual composite acceptance",
+  "source_geometry_method": "Manual pixel measurements on inspected painterly rasters, except alpha bounds exact threshold16. Door/contact landmarks have approximately8px source uncertainty; not claimed3D geometry.",
+  "files": [
+    {
+      "source": "15-cropped-facade-source.png",
+      "source_sha256": "d9f93ccbb27be31eeb17c279fd81e0467b85138685521e64c60e178b10c5dd6f",
+      "source_dimensions": [
+        1086,
+        1448
+      ],
+      "crop": [
+        0,
+        0,
+        1078,
+        1440
+      ],
+      "uniform_export_scale": 0.25,
+      "output": "yard-facade45.webp",
+      "output_dimensions": [
+        270,
+        360
+      ],
+      "output_sha256": "0c9409e89c78500ebf893d53beed670bac4b3794d213336602800bad34640540",
+      "encoded_bytes": 158518,
+      "decoded_rgba_bytes": 388800
+    },
+    {
+      "source": "16-low-wide-gate-source.png",
+      "source_sha256": "de72836f7bc145c1c71ea46aa47675ab55da60e0c00abf5500665b5c31347dc8",
+      "source_dimensions": [
+        1619,
+        972
+      ],
+      "crop": [
+        38,
+        249,
+        553,
+        747
+      ],
+      "uniform_export_scale": 0.5,
+      "output": "yard-gate45-left.webp",
+      "output_dimensions": [
+        258,
+        249
+      ],
+      "output_sha256": "2bc4a7b8573f863b16e20f0baca5fc02c88f91f54294173430f1caacd3950db0",
+      "encoded_bytes": 73574,
+      "decoded_rgba_bytes": 256968
+    },
+    {
+      "source": "16-low-wide-gate-source.png",
+      "source_sha256": "de72836f7bc145c1c71ea46aa47675ab55da60e0c00abf5500665b5c31347dc8",
+      "source_dimensions": [
+        1619,
+        972
+      ],
+      "crop": [
+        1090,
+        248,
+        1589,
+        740
+      ],
+      "uniform_export_scale": 0.5,
+      "output": "yard-gate45-right.webp",
+      "output_dimensions": [
+        250,
+        246
+      ],
+      "output_sha256": "1fc2954656ed6839df023f4678bb9d52dd7b84e844002fdb657bfc7a5f624b08",
+      "encoded_bytes": 70040,
+      "decoded_rgba_bytes": 246000
+    },
+    {
+      "source": "17-house-free-plate-source.png",
+      "source_sha256": "a491f14a461bd26a4e4a31748a2fd4028ba3cf9adcd70b516ddb175ac4640da2",
+      "source_dimensions": [
+        1024,
+        1536
+      ],
+      "crop": [
+        0,
+        0,
+        1024,
+        1536
+      ],
+      "uniform_export_scale": 1,
+      "output": "yard-house-free-plate.webp",
+      "output_dimensions": [
+        1024,
+        1536
+      ],
+      "output_sha256": "b0c3f9f9d3a52831440269c1cded91c5fb750ce20aace2b940d41ee693d1f908",
+      "encoded_bytes": 509158,
+      "decoded_rgba_bytes": 6291456
+    }
+  ],
+  "facade": {
+    "source_alpha_bbox_at16": [
+      0,
+      0,
+      1078,
+      1440
+    ],
+    "source_crop": [
+      0,
+      0,
+      1078,
+      1440
+    ],
+    "opening_bbox": [
+      354,
+      260,
+      889,
+      1182
+    ],
+    "opening_straight_jamb_quad": [
+      [
+        354,
+        520
+      ],
+      [
+        889,
+        520
+      ],
+      [
+        889,
+        1167
+      ],
+      [
+        388,
+        1182
+      ]
+    ],
+    "opening_arch_apex": [
+      624,
+      260
+    ],
+    "threshold": [
+      624,
+      1187
+    ],
+    "front_step_contact_line": [
+      [
+        389,
+        1412
+      ],
+      [
+        1071,
+        1268
+      ]
+    ],
+    "door_leaf_extends_to_y": 1228,
+    "uniform_raw_source_to_portrait390_css": 0.19626168224299065,
+    "target_opening_width_css": 105,
+    "measured_opening_height_css": 180.9532710280374,
+    "target_threshold_portrait390": [
+      75,
+      188
+    ],
+    "placement_note": "Translate uniformly by measured threshold; no independent height correction. Facade may be clipped by viewport top/left. Physical porch/base and actual alpha require mask check at320; do not hard-clip arbitrary geometry through facade.",
+    "output_threshold": [
+      156.0,
+      296.75
+    ],
+    "output_opening_bbox": [
+      88.5,
+      65.0,
+      222.25,
+      295.5
+    ],
+    "output_opening_straight_jamb_quad": [
+      [
+        88.5,
+        130.0
+      ],
+      [
+        222.25,
+        130.0
+      ],
+      [
+        222.25,
+        291.75
+      ],
+      [
+        97.0,
+        295.5
+      ]
+    ],
+    "output_front_step_contact_line": [
+      [
+        97.25,
+        353.0
+      ],
+      [
+        267.75,
+        317.0
+      ]
+    ]
+  },
+  "gate": {
+    "method": "One generated gate split into independent left/right leaves and posts. Shared uniform scale, spacing supplied by code. No stretch/painting.",
+    "left_crop": [
+      38,
+      249,
+      553,
+      747
+    ],
+    "right_crop": [
+      1090,
+      248,
+      1589,
+      740
+    ],
+    "baseline_source_y": 625,
+    "shared_raw_source_to_portrait390_css": 0.09018036072144289,
+    "clear_opening_portrait390_css": 100,
+    "total_visible_span_portrait390_css": 191.4428857715431,
+    "left_source_post_ground_quad": [
+      [
+        436,
+        598
+      ],
+      [
+        471,
+        626
+      ],
+      [
+        510,
+        611
+      ],
+      [
+        483,
+        584
+      ]
+    ],
+    "right_source_post_ground_quad": [
+      [
+        1111,
+        598
+      ],
+      [
+        1166,
+        625
+      ],
+      [
+        1202,
+        606
+      ],
+      [
+        1148,
+        583
+      ]
+    ],
+    "left_pivot_in_export": [
+      257.5,
+      188.0
+    ],
+    "right_pivot_in_export": [
+      0,
+      188.5
+    ],
+    "pivot_positions": "Left inner alpha boundary at upstreamBoundary.x-50*architectureScale; right inner alpha boundary at upstreamBoundary.x+50*architectureScale. Both baseline y=upstreamBoundary.y.",
+    "export_draw_scale_at_portrait390": 0.18036072144288579,
+    "all_other_viewports": "Multiply both leaf scale and clear opening by calibration architectureScaleRelative390. Do not reduce world solely to fit the previously proposed tall gate.",
+    "left_output_post_ground_quad": [
+      [
+        199.0,
+        174.5
+      ],
+      [
+        216.5,
+        188.5
+      ],
+      [
+        236.0,
+        181.0
+      ],
+      [
+        222.5,
+        167.5
+      ]
+    ],
+    "right_output_post_ground_quad": [
+      [
+        10.5,
+        175.0
+      ],
+      [
+        38.0,
+        188.5
+      ],
+      [
+        56.0,
+        179.0
+      ],
+      [
+        29.0,
+        167.5
+      ]
+    ]
+  },
+  "plate": {
+    "fixed_architecture_removed": [
+      "cottage roof/chimney/walls/door/windows/bench/porch",
+      "gate/fence/path already absent"
+    ],
+    "use": "Continuous fully opaque background. Uniform cover/crop across viewport is allowed because no fixed gameplay anchors remain; never stretch grass independently or paint source-mask strips into texture."
+  },
+  "total_encoded_bytes": 811290,
+  "total_decoded_rgba_bytes": 7183224
+}

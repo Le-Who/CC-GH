@@ -1,0 +1,3 @@
+import {defineConfig} from '@playwright/test';
+import {fileURLToPath} from 'node:url';
+export default defineConfig({testDir:'.',testMatch:'browser.spec.mjs',timeout:30000,retries:0,workers:1,outputDir:fileURLToPath(new URL('../../test-results-yard-frame45/',import.meta.url)),reporter:[['list'],['html',{outputFolder:fileURLToPath(new URL('../../playwright-report-yard-frame45/',import.meta.url)),open:'never'}]],use:{baseURL:'http://127.0.0.1:4318',browserName:'chromium',video:'off',trace:'retain-on-failure',screenshot:'only-on-failure'},webServer:{command:'node preview/yard-coherent-frame/server.mjs',cwd:fileURLToPath(new URL('../../',import.meta.url)),url:'http://127.0.0.1:4318/preview/yard-coherent-frame/',reuseExistingServer:false,timeout:15000}});

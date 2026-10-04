@@ -1,0 +1,144 @@
+{
+  "format": "yard-coherent-single-frame-payload/v1",
+  "scope": "one frozen source frame, continuous environment and camera composition only",
+  "acceptedBaseCommit": "4620825",
+  "acceptedBaseTree": "29373a982e42a756d893c3ffb8ecebd354e27fe0",
+  "media": [
+    {
+      "id": "plate",
+      "src": "./assets/yard-house-free-plate.webp",
+      "width": 1024,
+      "height": 1536,
+      "decodedBytes": 6291456,
+      "encodedBytes": 509158,
+      "sha256": "b0c3f9f9d3a52831440269c1cded91c5fb750ce20aace2b940d41ee693d1f908"
+    },
+    {
+      "id": "facade",
+      "src": "./assets/yard-facade45.webp",
+      "width": 270,
+      "height": 360,
+      "decodedBytes": 388800,
+      "encodedBytes": 158518,
+      "sha256": "0c9409e89c78500ebf893d53beed670bac4b3794d213336602800bad34640540"
+    },
+    {
+      "id": "gateLeft",
+      "src": "./assets/yard-gate45-left.webp",
+      "width": 258,
+      "height": 249,
+      "decodedBytes": 256968,
+      "encodedBytes": 73574,
+      "sha256": "2bc4a7b8573f863b16e20f0baca5fc02c88f91f54294173430f1caacd3950db0"
+    },
+    {
+      "id": "gateRight",
+      "src": "./assets/yard-gate45-right.webp",
+      "width": 250,
+      "height": 246,
+      "decodedBytes": 246000,
+      "encodedBytes": 70040,
+      "sha256": "1fc2954656ed6839df023f4678bb9d52dd7b84e844002fdb657bfc7a5f624b08"
+    },
+    {
+      "id": "border",
+      "src": "./assets/yard-border-cluster.webp",
+      "width": 256,
+      "height": 98,
+      "decodedBytes": 100352,
+      "encodedBytes": 33062,
+      "sha256": "f4f9e2c7ffefcdbbddd4494b4bab6889e990492d3e9b3998db6f84d2f9fc6719"
+    },
+    {
+      "id": "subject",
+      "src": "./assets/combined45.webp",
+      "width": 640,
+      "height": 384,
+      "decodedBytes": 983040,
+      "encodedBytes": 87894,
+      "sha256": "8d61b277a90b0034c03fad71f2df1bae923d376e1009e1e1ee028d9b04ee14f3"
+    }
+  ],
+  "files": [
+    {
+      "path": "game-logic/yard-playzones.js",
+      "bytes": 4289,
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af"
+    },
+    {
+      "path": "preview/yard-coherent-frame/app.mjs",
+      "bytes": 6474,
+      "sha256": "b5e973f9d7a3cd9f08b564073be1f7b49b046d5f8c96e18ca7355defa4d17cee"
+    },
+    {
+      "path": "preview/yard-coherent-frame/art-clearance-validation.json",
+      "bytes": 1255,
+      "sha256": "348c13f22886d8efde8ee83603884496b348f8661837f483ed0631595eeff108"
+    },
+    {
+      "path": "preview/yard-coherent-frame/art-input-manifest.json",
+      "bytes": 6800,
+      "sha256": "310c904cb4429a33911de0e3b528a4f2f26a5e9d8400fce8766785e914858e85"
+    },
+    {
+      "path": "preview/yard-coherent-frame/assets/combined45.webp",
+      "bytes": 87894,
+      "sha256": "8d61b277a90b0034c03fad71f2df1bae923d376e1009e1e1ee028d9b04ee14f3"
+    },
+    {
+      "path": "preview/yard-coherent-frame/assets/yard-border-cluster.webp",
+      "bytes": 33062,
+      "sha256": "f4f9e2c7ffefcdbbddd4494b4bab6889e990492d3e9b3998db6f84d2f9fc6719"
+    },
+    {
+      "path": "preview/yard-coherent-frame/assets/yard-facade45.webp",
+      "bytes": 158518,
+      "sha256": "0c9409e89c78500ebf893d53beed670bac4b3794d213336602800bad34640540"
+    },
+    {
+      "path": "preview/yard-coherent-frame/assets/yard-gate45-left.webp",
+      "bytes": 73574,
+      "sha256": "2bc4a7b8573f863b16e20f0baca5fc02c88f91f54294173430f1caacd3950db0"
+    },
+    {
+      "path": "preview/yard-coherent-frame/assets/yard-gate45-right.webp",
+      "bytes": 70040,
+      "sha256": "1fc2954656ed6839df023f4678bb9d52dd7b84e844002fdb657bfc7a5f624b08"
+    },
+    {
+      "path": "preview/yard-coherent-frame/assets/yard-house-free-plate.webp",
+      "bytes": 509158,
+      "sha256": "b0c3f9f9d3a52831440269c1cded91c5fb750ce20aace2b940d41ee693d1f908"
+    },
+    {
+      "path": "preview/yard-coherent-frame/environment-perimeter.mjs",
+      "bytes": 2835,
+      "sha256": "d0fbd162a39d5be991438ea7d354cb0b09d84e7ca536ca7026aa7f9666fd9da1"
+    },
+    {
+      "path": "preview/yard-coherent-frame/frame.json",
+      "bytes": 2477,
+      "sha256": "7ec457e7913844f738914fc1df761a95a1c637a921803e94c9834187a7e6196f"
+    },
+    {
+      "path": "preview/yard-coherent-frame/index.html",
+      "bytes": 2156,
+      "sha256": "037d625ba70a41ff9e3fa26290b24b8b2b55e82f543f74cfb62cdd7584688e32"
+    },
+    {
+      "path": "preview/yard-coherent-frame/layout.json",
+      "bytes": 84408,
+      "sha256": "cf398457e0e628cc68ce11f987396e0ea0082b361615c9955d82ba33f8ce91a1"
+    },
+    {
+      "path": "preview/yard-coherent-frame/model.mjs",
+      "bytes": 3484,
+      "sha256": "b7ee92b21188171669b49d02c6829c8e54fa11a3f85c5d26fdb5c5959c9d65a9"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-layout.mjs",
+      "bytes": 7094,
+      "sha256": "0b5f2c68da5ea54223d9b0b4d24db2c30fc054e30df335d93916cad9fd019f43"
+    }
+  ]
+}
