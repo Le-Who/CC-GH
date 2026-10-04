@@ -1,5 +1,7 @@
 name: Exact ACTIVE maintenance acceptance
 on:
+  push:
+    branches: ['qa/yard-maintenance-acceptance/*']
   workflow_dispatch:
     inputs:
       request_json:
@@ -43,12 +45,14 @@ jobs:
           REQUEST_JSON: ${{ inputs.request_json }}
           REQUEST_SHA256: ${{ inputs.request_sha256 }}
           EXPECTED_TOOL_COMMIT: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync,appendFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
-          import {parseMaintenanceRequest} from './tools/tests/helpers/yard-maintenance-guard.mjs';
-          const bytes=process.env.REQUEST_JSON;
+          import {parseMaintenanceRequest,resolveMaintenanceWorkflowRequest} from './tools/tests/helpers/yard-maintenance-guard.mjs';
+          const resolved=await resolveMaintenanceWorkflowRequest({purpose:'acceptance'});
+          const bytes=resolved.bytes;process.env.REQUEST_SHA256=resolved.sha256;
           assert.ok(Buffer.byteLength(bytes)<=131072);
           const request=parseMaintenanceRequest(bytes,process.env.REQUEST_SHA256);
           assert.equal(request.toolCommit,process.env.EXPECTED_TOOL_COMMIT);
