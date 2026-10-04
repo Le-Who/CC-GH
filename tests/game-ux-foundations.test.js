@@ -13,12 +13,13 @@ import { normalizeBubboPowerups } from "../src/game-core/bubbo/engine.js";
 import { renderArcadePresentation, findElements } from "./helpers/arcadePresentationHarness.js";
 
 describe("Telegram Mini App game UX foundations", () => {
-  it("keeps Farm registered for runtime compatibility but hidden from navigation", () => {
+  it("keeps Farm and deferred Settlement registered but hidden from navigation", () => {
     assert.equal(GAME_REGISTRY.farm.visible, false);
     assert.equal(GAME_REGISTRY.farm.pixiScene, true);
     assert.ok(!VISIBLE_GAME_IDS.includes("farm"));
     assert.ok(PIXI_GAME_IDS.includes("farm"));
-    assert.ok(VISIBLE_GAME_IDS.includes("settlement"));
+    assert.equal(GAME_REGISTRY.settlement.visible, false);
+    assert.deepEqual(VISIBLE_GAME_IDS, ["garden", "blox", "match3", "merge", "bubbo", "trivia", "room"]);
     assert.ok(PIXI_GAME_IDS.includes("settlement"));
   });
 
@@ -62,12 +63,27 @@ describe("Telegram Mini App game UX foundations", () => {
     try {
       assert.equal(readInitialActiveTab(), "merge");
       assert.equal(normalizeActiveTab("bubbo"), "bubbo");
-      assert.equal(normalizeActiveTab("settlement"), "settlement");
+      assert.equal(normalizeActiveTab("settlement"), "garden");
       assert.equal(normalizeActiveTab("farm"), "garden");
 
       globalThis.window.location = new URL("https://example.test/");
       globalThis.window.sessionStorage = makeStorage({ game_hub_active_tab_v1: "match3" });
       assert.equal(readInitialActiveTab(), "match3");
+
+      // Deferring a game must ignore stale links/session choices without
+      // migrating or removing its local save.
+      const savedTown = '{"version":11,"state":{"gold":123,"buildings":[{"id":"townhall"}]}}';
+      globalThis.window.localStorage = makeStorage({ 'village-ascend-v11-state': savedTown });
+      globalThis.window.sessionStorage = makeStorage({ game_hub_active_tab_v1: "settlement" });
+      globalThis.window.location = new URL("https://example.test/?tab=settlement");
+      assert.equal(readInitialActiveTab(), "garden");
+      globalThis.window.location = new URL("https://example.test/");
+      assert.equal(readInitialActiveTab(), "garden");
+      assert.equal(globalThis.window.sessionStorage.getItem("game_hub_active_tab_v1"), "settlement");
+      assert.equal(globalThis.window.localStorage.getItem("village-ascend-v11-state"), savedTown);
+      globalThis.window.sessionStorage = makeStorage({ game_hub_active_tab_v1: "room" });
+      globalThis.window.location = new URL("https://example.test/?tab=settlement");
+      assert.equal(readInitialActiveTab(), "room", "an invalid link preserves an available prior tab");
     } finally {
       globalThis.window = originalWindow;
     }

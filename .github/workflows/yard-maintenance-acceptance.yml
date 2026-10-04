@@ -1,0 +1,131 @@
+name: Exact ACTIVE maintenance acceptance
+on:
+  push:
+    branches: ['qa/yard-maintenance-acceptance/*']
+  workflow_dispatch:
+    inputs:
+      request_json:
+        description: Independently reviewed request with real predecessor evidence and candidate digest
+        required: true
+        type: string
+      request_sha256:
+        description: Independently approved SHA256 of the exact request_json bytes
+        required: true
+        type: string
+permissions:
+  contents: read
+  packages: read
+  actions: read
+jobs:
+  maintenance-acceptance:
+    name: Exact ACTIVE maintenance image and rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout independently approved controller
+        uses: actions/checkout@v6
+        with:
+          path: tools
+          persist-credentials: false
+          sparse-checkout: |
+            .github/workflows
+            scripts
+            tests/helpers
+            tests/yard-maintenance-e2e
+            tests/yard-maintenance-integration.test.mjs
+            tests/yard-active-maintenance.test.mjs
+            docs/yard-active-maintenance-design.md
+            playwright.yard-maintenance.config.js
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Resolve exact externally approved request
+        id: request
+        env:
+          REQUEST_JSON: ${{ inputs.request_json }}
+          REQUEST_SHA256: ${{ inputs.request_sha256 }}
+          EXPECTED_TOOL_COMMIT: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync,appendFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          import {parseMaintenanceRequest,resolveMaintenanceWorkflowRequest} from './tools/tests/helpers/yard-maintenance-guard.mjs';
+          const resolved=await resolveMaintenanceWorkflowRequest({purpose:'acceptance'});
+          const bytes=resolved.bytes;process.env.REQUEST_SHA256=resolved.sha256;
+          assert.ok(Buffer.byteLength(bytes)<=131072);
+          const request=parseMaintenanceRequest(bytes,process.env.REQUEST_SHA256);
+          assert.equal(request.toolCommit,process.env.EXPECTED_TOOL_COMMIT);
+          const path=process.env.RUNNER_TEMP+'/yard-maintenance-request.json';
+          writeFileSync(path,bytes,{flag:'wx',mode:0o600});
+          appendFileSync(process.env.GITHUB_ENV,`YARD_MAINTENANCE_REQUEST=${path}\nYARD_MAINTENANCE_REQUEST_SHA256=${process.env.REQUEST_SHA256}\nYARD_MAINTENANCE_PROOF_DIR=${process.env.RUNNER_TEMP}/yard-maintenance-proof\n`);
+          appendFileSync(process.env.GITHUB_OUTPUT,`commit=${request.candidateCommit}\ndigest=${request.candidateDigest}\n`);
+          JS
+      - name: Checkout exact candidate for bounded source comparison
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.request.outputs.commit }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify exact maintenance source and authoritative predecessor
+        env:
+          CI: 'true'
+          YARD_MAINTENANCE_ACCEPTANCE: '1'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: ''
+        run: node tools/scripts/yard-maintenance-cli.mjs --plan "$PWD/candidate" "$YARD_MAINTENANCE_PROOF_DIR"
+      - name: Install frozen candidate tools and browser
+        working-directory: candidate
+        timeout-minutes: 10
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Run ordinary build and affected-game checks
+        timeout-minutes: 15
+        env:
+          CI: 'true'
+          YARD_MAINTENANCE_ACCEPTANCE: '1'
+          NODE_OPTIONS: ''
+        run: node tools/scripts/yard-maintenance-cli.mjs --checks "$PWD/candidate" "$YARD_MAINTENANCE_PROOF_DIR"
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull the reviewed immutable image pair
+        env:
+          CI: 'true'
+          YARD_MAINTENANCE_ACCEPTANCE: '1'
+          NODE_OPTIONS: ''
+        run: |
+          node --input-type=module <<'JS'
+          import {loadMaintenanceInputs} from './tools/tests/helpers/yard-maintenance-guard.mjs';
+          import {execFileSync} from 'node:child_process';
+          const inputs=loadMaintenanceInputs(process.env,process.cwd()+'/candidate');
+          for(const image of [`${inputs.repository}@${inputs.closedDigest}`,`${inputs.repository}@${inputs.activeDigest}`,'postgres:15'])execFileSync('docker',['pull',image],{stdio:'inherit',timeout:120000});
+          JS
+      - name: Require published P-C-P production acceptance
+        working-directory: candidate
+        timeout-minutes: 18
+        env:
+          CI: 'true'
+          YARD_MAINTENANCE_ACCEPTANCE: '1'
+          NODE_OPTIONS: ''
+          DEV_AUTH_ENABLED: ''
+          TELEGRAM_BOT_TOKEN: ''
+          DATABASE_URL: ''
+          REDIS_URL: ''
+          YARD_PLAYER_WIRING_TEST: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+        run: node ../tools/scripts/yard-maintenance-production.mjs
+      - name: Preserve actual maintenance acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-maintenance-production-${{ steps.request.outputs.commit }}-${{ github.run_attempt }}
+          path: candidate/test-results/yard-maintenance/
+          if-no-files-found: error
+          retention-days: 14

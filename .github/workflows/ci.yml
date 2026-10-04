@@ -2,6 +2,25 @@ name: Game Hub CI
 
 on:
   workflow_call:
+    inputs:
+      maintenance_request_json:
+        type: string
+        required: false
+        default: ''
+      maintenance_request_sha256:
+        type: string
+        required: false
+        default: ''
+  workflow_dispatch:
+    inputs:
+      maintenance_request_json:
+        type: string
+        required: false
+        default: ''
+      maintenance_request_sha256:
+        type: string
+        required: false
+        default: ''
   pull_request:
     branches: [codex/telegram-pixi-vps-migration]
 
@@ -10,6 +29,9 @@ permissions:
 
 jobs:
   yard-release-mode:
+    env:
+      YARD_MAINTENANCE_REQUEST_JSON: ${{ inputs.maintenance_request_json || '' }}
+      YARD_MAINTENANCE_REQUEST_SHA256: ${{ inputs.maintenance_request_sha256 || '' }}
     name: Resolve exact CLOSED and ACTIVE source identities
     runs-on: ubuntu-latest
     outputs:
@@ -29,8 +51,9 @@ jobs:
           node-version: 24.x
       - name: Verify committed release mode and full promotion boundary
         id: release
-        run: node scripts/yard-ci-dispatch.mjs --plan
+        run: node scripts/yard-maintenance-ci-router.mjs
       - name: Test dispatch negative controls
+        if: steps.release.outputs.mode != 'MAINTENANCE'
         run: node --test tests/yard-active-dispatch.test.mjs tests/yard-closed-ci-receipt.test.mjs
 
   test:
@@ -692,7 +715,7 @@ jobs:
   yard-closed-receipt:
     name: Verify reused CLOSED acceptance
     needs: [yard-release-mode]
-    if: needs.yard-release-mode.outputs.reuse_closed == 'true'
+    if: needs.yard-release-mode.outputs.reuse_closed == 'true' && needs.yard-release-mode.outputs.mode != 'MAINTENANCE'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -799,9 +822,48 @@ jobs:
         run: |
           echo "ACTIVE preflight passed for $GITHUB_SHA. Runtime migration, persistence and rollback acceptance is pending the exact published image digest; deploy remains gated on all nine cases." >> "$GITHUB_STEP_SUMMARY"
 
+  yard-maintenance-preflight:
+    name: ACTIVE maintenance preflight
+    needs: [yard-release-mode]
+    if: needs.yard-release-mode.outputs.mode == 'MAINTENANCE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+    env:
+      CI: 'true'
+      YARD_MAINTENANCE_ACCEPTANCE: '1'
+      YARD_MAINTENANCE_REQUEST_JSON: ${{ inputs.maintenance_request_json }}
+      YARD_MAINTENANCE_REQUEST_SHA256: ${{ inputs.maintenance_request_sha256 }}
+      NODE_OPTIONS: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify exact maintenance source and authoritative predecessor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/yard-maintenance-cli.mjs --plan "$PWD" "$RUNNER_TEMP/maintenance-preflight"
+      - name: Test maintenance boundary and receipt negatives
+        run: node --test tests/yard-active-maintenance.test.mjs tests/yard-maintenance-integration.test.mjs
+      - name: Install frozen dependencies
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Run ordinary build and affected-game checks
+        run: node scripts/yard-maintenance-cli.mjs --checks "$PWD" "$RUNNER_TEMP/maintenance-preflight"
+      - name: Report pending published maintenance image acceptance
+        run: echo "Maintenance source and ordinary checks passed. Real published P-C-P image/API/PG/SW acceptance is still mandatory in the explicitly approved maintenance release workflow before a live switch." >> "$GITHUB_STEP_SUMMARY"
+
   release-ready:
     name: Exact source release acceptance
-    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-closed-receipt, yard-active, yard-active-production]
+    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-closed-receipt, yard-active, yard-active-production, yard-maintenance-preflight]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -814,11 +876,13 @@ jobs:
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           const needs=JSON.parse(process.env.RELEASE_RESULTS),mode=process.env.RELEASE_MODE;
-          assert.ok(['CLOSED','ACTIVE'].includes(mode));
+          assert.ok(['CLOSED','ACTIVE','MAINTENANCE'].includes(mode));
           assert.equal(needs['yard-release-mode'].result,'success');
           assert.ok(['true','false'].includes(process.env.REUSE_CLOSED));
-          const reuse=process.env.REUSE_CLOSED==='true';assert.ok(!reuse||mode==='ACTIVE');
+          const reuse=process.env.REUSE_CLOSED==='true';assert.ok(!reuse||mode==='ACTIVE'||mode==='MAINTENANCE');
+          if(mode==='MAINTENANCE')assert.equal(reuse,true);
           for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,reuse?'skipped':'success',job);
-          assert.equal(needs['yard-closed-receipt'].result,reuse?'success':'skipped');
+          assert.equal(needs['yard-closed-receipt'].result,reuse&&mode!=='MAINTENANCE'?'success':'skipped');
           for(const job of ['yard-active','yard-active-production'])assert.equal(needs[job].result,mode==='ACTIVE'?'success':'skipped',job);
+          assert.equal(needs['yard-maintenance-preflight'].result,mode==='MAINTENANCE'?'success':'skipped');
           JS

@@ -79,7 +79,7 @@ test('aggregate allows only CLOSED, ACTIVE fresh suites, or ACTIVE verified rece
  const closed=['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'],active=['yard-active','yard-active-production'];
  const execute=(mode,reuse,needs)=>spawnSync(process.execPath,['--input-type=module','-e',code],{env:{...process.env,RELEASE_MODE:mode,REUSE_CLOSED:reuse,RELEASE_RESULTS:JSON.stringify(needs)},encoding:'utf8'}).status;
  for(const [mode,reuse]of [['CLOSED','false'],['ACTIVE','false'],['ACTIVE','true']]){
-  const needs=Object.fromEntries([['yard-release-mode','success'],...closed.map(id=>[id,reuse==='true'?'skipped':'success']),['yard-closed-receipt',reuse==='true'?'success':'skipped'],...active.map(id=>[id,mode==='ACTIVE'?'success':'skipped'])].map(([id,result])=>[id,{result}]));
+  const needs=Object.fromEntries([['yard-release-mode','success'],...closed.map(id=>[id,reuse==='true'?'skipped':'success']),['yard-closed-receipt',reuse==='true'?'success':'skipped'],...active.map(id=>[id,mode==='ACTIVE'?'success':'skipped']),['yard-maintenance-preflight','skipped']].map(([id,result])=>[id,{result}]));
   assert.equal(execute(mode,reuse,needs),0);
   for(const [id,{result}]of Object.entries(needs))for(const wrong of ['failure','cancelled',result==='success'?'skipped':'success'])assert.notEqual(execute(mode,reuse,{...needs,[id]:{result:wrong}}),0,`${mode}/${reuse}/${id}/${wrong}`);
   if(mode==='CLOSED')assert.notEqual(execute(mode,'true',needs),0);
@@ -103,9 +103,9 @@ test('optional receipt survives exact promotion assembly; absence preserves orig
 test('workflow keeps fresh-suite fallback and scopes Actions reads to the authoritative receipt job',()=>{
  const block=job=>workflow.match(new RegExp(`^  ${job}:\\n([\\s\\S]*?)(?=^  [a-z][a-z0-9_-]*:|$(?![\\s\\S]))`,'m'))?.[1];
  for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi'])assert.match(block(job),/^    if: needs\.yard-release-mode\.outputs\.reuse_closed != 'true'$/m);
- assert.match(block('yard-closed-receipt'),/^    if: needs\.yard-release-mode\.outputs\.reuse_closed == 'true'$/m);
+ assert.match(block('yard-closed-receipt'),/^    if: needs\.yard-release-mode\.outputs\.reuse_closed == 'true' && needs\.yard-release-mode\.outputs\.mode != 'MAINTENANCE'$/m);
  assert.match(block('yard-closed-receipt'),/yard-ci-dispatch\.mjs --verify-active[\s\S]*ref: \$\{\{ needs.yard-release-mode.outputs.closed_ref \}\}[\s\S]*yard-ci-dispatch\.mjs --assert-closed-ref/);
- assert.match(workflow,/^permissions:\n  contents: read\n\njobs:/m);assert.equal((workflow.match(/^      actions: read$/gm)||[]).length,1);assert.match(block('yard-closed-receipt'),/^      actions: read$/m);
+ assert.match(workflow,/^permissions:\n  contents: read\n\njobs:/m);assert.equal((workflow.match(/^      actions: read$/gm)||[]).length,2);assert.match(block('yard-closed-receipt'),/^      actions: read$/m);
  for(const job of ['yard-active','yard-active-production']){assert.match(block(job),/^    if: needs\.yard-release-mode\.outputs\.mode == 'ACTIVE'$/m);assert.doesNotMatch(block(job),/reuse_closed/);}
  const dispatch=readFileSync(new URL('../scripts/yard-ci-dispatch.mjs',import.meta.url),'utf8');assert.match(dispatch,/reuse_closed:'false'/);assert.match(dispatch,/Object\.hasOwn\(closed,'ciReceipt'\)\?'true':'false'/);
 });
