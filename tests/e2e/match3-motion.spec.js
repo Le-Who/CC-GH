@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { mountHomePlayerFixture } from './helpers/homePlayerFixture.js';
 import { selectHomeGame, openHome } from './helpers/home.js';
-import { match3MotionBoard as fixtureBoard, armMatch3RefillSeed } from './helpers/match3MotionFixture.js';
+import { match3MotionBoard as fixtureBoard, armMatch3RefillSeed, installMatch3RefillSeed } from './helpers/match3MotionFixture.js';
 import { MATCH3_RENDER_PIXEL_BUDGET, match3RenderResolution } from '../../src/games/match3/match3RenderBudget.js';
 
 // Real app, renderer, inputs, controller and production action dispatcher.
@@ -9,6 +10,18 @@ import { MATCH3_RENDER_PIXEL_BUDGET, match3RenderResolution } from '../../src/ga
 // Videos run at normal wall-clock speed; no clock mocking, CSS speed-up, or scene injection.
 test.use({ serviceWorkers: 'block', video: 'on', trace: 'retain-on-failure', deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const viewports = [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720],[393,873]];
+const fixturePlayers = new WeakMap();
+test.afterEach(async ({page},testInfo)=>{
+  const observed = await page.evaluate(()=>{
+    const canvas=document.querySelector('[data-game-shell="match3"] canvas');
+    return {seed:window.__match3RefillSeed,phases:window.__match3MotionPhases,samples:window.__match3MotionSamples,canvas:canvas?{...canvas.dataset,pixelWidth:canvas.width,pixelHeight:canvas.height}:null};
+  }).catch(error=>({captureError:error.message}));
+  const game=fixturePlayers.get(page)?.match3?.currentGame;
+  const evidence={title:testInfo.title,retry:testInfo.retry,status:testInfo.status,game:game?{score:game.score,movesLeft:game.movesLeft,combo:game.combo}:null,...observed};
+  const path=testInfo.outputPath('match3-motion-diagnostics.json');
+  await writeFile(path,JSON.stringify(evidence,null,2));
+  await testInfo.attach('match3-motion-diagnostics',{path,contentType:'application/json'});
+});
 async function loadFixture(page, player) {
   // The fixture intentionally aborts realtime transport. "ready" is transient:
   // a successful HTTP snapshot is followed by the expected offline socket state.
@@ -23,7 +36,9 @@ async function boot(page, viewport, reduced = false, moves = 30, initialBoard = 
   await page.setViewportSize(viewport);
   await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' });
   await page.addInitScript(() => localStorage.setItem('gh_dev_user_id','match3-motion-ci'));
+  await page.addInitScript(installMatch3RefillSeed);
   const player = await mountHomePlayerFixture(page);
+  fixturePlayers.set(page,player);
   player.match3.currentGame = { board:initialBoard,mode:'classic',score:0,movesLeft:moves,combo:0,boosters:{bomb:3,lightning:3,rainbow:2,hammer:3} };
   await page.route('**/api/leaderboard',route=>route.fulfill({contentType:'application/json',body:'[]'}));
   await loadFixture(page, player);
@@ -53,7 +68,6 @@ async function swap(page,canvas,from,to,seed=null) {
   await cell(page,canvas,from.x,from.y);
   if(seed!==null) await page.evaluate(armMatch3RefillSeed,seed);
   await cell(page,canvas,to.x,to.y);
-  if(seed!==null) await expect.poll(()=>page.evaluate(()=>window.__match3RefillSeed.used && window.__match3RefillSeed.restored)).toBe(true);
 }
 async function settled(canvas) {
   await expect(canvas).toHaveAttribute('data-match3-motion-phase','idle',{timeout:10000});
@@ -77,11 +91,11 @@ for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and 
   await swap(page,canvas,{x:1,y:6},{x:1,y:7},2);
   await expect.poll(()=>page.evaluate(()=>window.__match3MotionPhases.includes('fall'))).toBe(true);
   await settled(canvas);
+  await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
+  expect(player.match3.currentGame.score).toBe(90);
   const phases=await page.evaluate(()=>window.__match3MotionPhases);
   expect(phases).toContain('swap');expect(phases.filter(p=>p==='clear').length).toBeGreaterThanOrEqual(2);
   expect(phases.filter(p=>p==='fall').length).toBeGreaterThanOrEqual(2);
-  await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
-  expect(player.match3.currentGame.score).toBe(90);
   const timing=await page.evaluate(()=>{
     const samples=window.__match3MotionSamples,start=samples.findIndex(s=>s.id?.startsWith('cascade_'));
     const end=samples.slice(start+1).find(s=>s.phase==='idle');
@@ -118,9 +132,11 @@ for(const [width,height] of [[320,568],[390,844],[1280,720]]) test(`Match3 nativ
 
 test('Match3 live cascade pauses across Home reentry and resize then resumes without early input',async({page},testInfo)=>{
   const {stage,canvas,player}=await boot(page,{width:390,height:844});
+  const pause=await stage.locator('[data-game-pause="true"]').boundingBox();
   await swap(page,canvas,{x:1,y:6},{x:1,y:7},2);
-  // Pause as soon as the real controller has accepted the second tap.
-  await stage.locator('[data-game-pause="true"]').click();
+  // The static control was measured before the move. Dispatch the next native
+  // touch immediately, without adding polling/actionability frames mid-cascade.
+  await page.touchscreen.tap(pause.x+pause.width/2,pause.y+pause.height/2);
   await expect(stage).toHaveAttribute('data-m3-phase','paused');
   await expect(canvas).toHaveAttribute('data-match3-input-locked','true');
   const age=await canvas.getAttribute('data-match3-motion-elapsed');

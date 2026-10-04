@@ -54,7 +54,7 @@ jobs:
         run: pnpm test
 
       - name: Validate casual motion and input lifecycle
-        run: node --test --test-concurrency=1 tests/match3-render-budget.test.js tests/match3-motion-fixture.test.js tests/match3-motion.test.js tests/bubbo-motion-observation.test.js tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/blox-casual-motion.test.cjs tests/casual-motion-feedback.test.mjs
+        run: node --test --test-concurrency=1 tests/garden-navigation-observation.test.js tests/match3-render-budget.test.js tests/match3-motion-fixture.test.js tests/match3-motion.test.js tests/bubbo-motion-observation.test.js tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/blox-casual-motion.test.cjs tests/casual-motion-feedback.test.mjs
 
       - name: Validate inactive Yard candidate
         env:
@@ -140,6 +140,18 @@ jobs:
         with:
           name: game-hub-browser-report-${{ github.sha }}-${{ github.run_attempt }}
           path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve per-game motion videos
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-motion-videos-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results/match3-motion-*/video.webm
+            test-results/bubbo-casual-motion-*/video.webm
+            test-results/casual-motion-*/video.webm
           if-no-files-found: ignore
           retention-days: 14
 
