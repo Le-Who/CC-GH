@@ -34,7 +34,7 @@ jobs:
       REDIS_URL: ''
       YARD_MAINTENANCE_REQUEST: ${{ github.workspace }}/harness/qa/yard-maintenance-source-request.json
       YARD_MAINTENANCE_REQUEST_SHA256: 17eb9fbaa02514b3277b94e9a66e6f02cf425280678d0c915958a09732102c76
-      PROOF_DIRECTORY: ${{ runner.temp }}/yard-maintenance-source-qa
+      PROOF_DIRECTORY: ${{ github.workspace }}/yard-maintenance-source-qa
     steps:
       - name: Checkout exact QA harness event
         uses: actions/checkout@v6
@@ -168,6 +168,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: yard-maintenance-source-${{ env.CANDIDATE_COMMIT }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/yard-maintenance-source-qa/
+          path: ${{ env.PROOF_DIRECTORY }}/
           if-no-files-found: error
           retention-days: 14
