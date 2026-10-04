@@ -1,5 +1,5 @@
 import { openHome, selectHomeGame } from './helpers/home.js';
-import { expectLegacyYardToolbarReachable } from './helpers/yard-hud.js';
+import { expectLegacyYardToolbarReachable, expectLegacyYardToolsReachable, expectLegacyYardDialogInsideStage } from './helpers/yard-hud.js';
 import { test, expect } from "@playwright/test";
 import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
 import { buildSnapshot } from "../../routes/player.js";
@@ -382,14 +382,14 @@ test.describe("Cozy Yard movement and assets", () => {
     });
   });
 
-  for (const language of ["en", "ru"]) for (const [width, height] of [[320, 568], [360, 800], [390, 844], [414, 896], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720]]) {
-    test.describe(`legacy Yard toolbar ${language} ${width}x${height}`, () => {
+  for (const language of ["en", "ru"]) for (const [width, height, safeTop = 0, safeBottom = 0, stableHeight = height] of [[320, 568], [360, 800], [390, 844], [414, 896], [431, 844], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720], [320, 568, 20, 34], [320, 568, 20, 34, 480], [390, 844, 20, 34, 568], [568, 320, 12, 12]]) {
+    test.describe(`legacy Yard toolbar ${language} ${width}x${height} safe${safeTop}-${safeBottom} stable${stableHeight}`, () => {
       test.use({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: width < 1100, hasTouch: width < 1100 });
       test("keeps maximum balances readable and controls reachable", async ({ page }, info) => {
         const snapshot = buildHudAuditSnapshot();
         const labels = language === "ru"
-          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", treats: "Лакомства", shinyTreats: "Сияющие" }
-          : { settings: "Settings", close: "Close", tools: "Tools", treats: "Treats", shinyTreats: "Shiny" };
+          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", companion: "Помощник", treats: "Лакомства", shinyTreats: "Сияющие" }
+          : { settings: "Settings", close: "Close", tools: "Tools", companion: "Companion helper", treats: "Treats", shinyTreats: "Shiny" };
         const balances = [{ treats: 1000000000, shinyTreats: 1000000 }];
         // Russian near-boundary units are wider than the legal maxima (1 млрд/1 млн).
         if (width === 320) balances.push({ treats: 999000000, shinyTreats: 999000 }, { treats: 9999, shinyTreats: 9999 });
@@ -400,12 +400,21 @@ test.describe("Cozy Yard movement and assets", () => {
           await page.goto("/?tab=room");
           await expectAppReady(page);
           await expect(page.locator(".companion-yard-stage")).toBeVisible();
+          if (safeTop || safeBottom || stableHeight !== height) {
+            await page.addStyleTag({ content: `:root { --tg-viewport-safe-area-inset-top: ${safeTop}px !important; --tg-viewport-safe-area-inset-bottom: ${safeBottom}px !important; --tg-viewport-stable-height: ${stableHeight}px !important; }` });
+            await expect.poll(() => page.locator('.telegram-app').evaluate(node => ({
+              height: node.getBoundingClientRect().height,
+              top: getComputedStyle(node).getPropertyValue('--safe-top').trim(),
+              bottom: getComputedStyle(node).getPropertyValue('--safe-bottom').trim(),
+            }))).toEqual({ height: stableHeight, top: `${safeTop}px`, bottom: `${safeBottom}px` });
+          }
           for (const [kind, value] of Object.entries(balance)) {
             await expect(page.getByRole("img", { name: `${labels[kind]}: ${new Intl.NumberFormat(language).format(value)}`, exact: true })).toBeVisible();
           }
           await expectLegacyYardToolbarReachable(page);
           await page.getByRole("button", { name: labels.settings, exact: true }).click();
           await expect(page.getByRole("dialog", { name: labels.settings, exact: true })).toBeVisible();
+          await expectLegacyYardDialogInsideStage(page);
           await page.getByRole("dialog").getByRole("button", { name: labels.close, exact: true }).click();
           await page.getByRole("button", { name: labels.tools, exact: true }).click();
           await expect(page.locator(".yard-side-tools")).toBeVisible();
@@ -413,11 +422,23 @@ test.describe("Cozy Yard movement and assets", () => {
           await page.getByRole("button", { name: labels.tools, exact: true }).click();
           await expect(page.locator(".yard-side-tools")).toHaveCount(0);
           await expectLegacyYardToolbarReachable(page);
+          await page.getByRole("button", { name: labels.tools, exact: true }).click();
+          await expect(page.locator(".yard-side-tools")).toBeVisible();
+          await expectLegacyYardToolbarReachable(page);
+          await expectLegacyYardToolsReachable(page);
+          await page.locator('.yard-side-tools button').last().click();
+          await expect(page.getByRole('dialog', { name: labels.companion, exact: true })).toBeVisible();
+          await expectLegacyYardDialogInsideStage(page);
+          await page.getByRole('dialog').getByRole('button', { name: labels.close, exact: true }).click();
+          await expect(page.locator(".yard-side-tools")).toHaveCount(0);
+          await expectLegacyYardToolbarReachable(page);
           await info.attach(`legacy-yard-toolbar-${balance.treats}`, { body: await page.screenshot(), contentType: "image/png" });
-          if (width === 320 || width === 390) {
+          if (!safeTop && !safeBottom && stableHeight === height && (width === 320 || width === 390)) {
             await page.setViewportSize({ width: height, height: width });
+            await expect(page.locator('[data-hud-region="yardCornerActions"]')).toHaveAttribute('data-hud-profile', 'phone-landscape');
             await expectLegacyYardToolbarReachable(page);
             await page.setViewportSize({ width, height });
+            await expect(page.locator('[data-hud-region="yardCornerActions"]')).toHaveAttribute('data-hud-profile', width === 320 ? 'phone-small-portrait' : 'phone-default-portrait');
             await expectLegacyYardToolbarReachable(page);
           }
         }

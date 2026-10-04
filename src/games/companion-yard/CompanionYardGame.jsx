@@ -322,11 +322,11 @@ function YardActivityPill({ pendingGiftCount, activeVisitorCount, visitorCount, 
     tone = "active";
   }
   return (
-    <div className={`yard-activity-pill tone-${tone}`}>
+    <HudEditableRegion id="yardActivityPill" as="div" className={`yard-activity-pill tone-${tone}`}>
       <YardIcon name={tone === "ready" ? "gifts" : tone === "saving" ? "settings" : "petbook"} />
       <span>{label}</span>
       {value && <b>{value}</b>}
-    </div>
+    </HudEditableRegion>
   );
 }
 
@@ -1126,7 +1126,7 @@ export default function CompanionYardGame() {
         onDragStart={(event) => event.preventDefault()}
       >
         <HudEditableRegion id="yardBackgroundAsset" as="img" className="yard-background-art" src={assetPath("backgrounds", yard.remodel || "meadow")} alt="" />
-        <div className="yard-bowls">
+        <HudEditableRegion id="yardBowls" as="div" className="yard-bowls">
           {(yard.bowls || []).map((bowl) => {
             const food = foods[bowl.foodId];
             const bowlPending = pendingByKey.get(`bowl:${bowl.id}`);
@@ -1144,7 +1144,7 @@ export default function CompanionYardGame() {
               </button>
             );
           })}
-        </div>
+        </HudEditableRegion>
         {renderPetLayer("back")}
         {renderPlacedGoodies()}
         {renderStarterGoodieHints()}
@@ -1161,20 +1161,20 @@ export default function CompanionYardGame() {
             <YardCurrencyChip icon="treats" label={text("yard.treats", "Treats")} value={yard.currencies?.treats || 0} language={language} />
             <YardCurrencyChip icon="shiny" label={text("yard.shiny", "Shiny")} value={yard.currencies?.shinyTreats || 0} language={language} />
           </HudEditableRegion>
-          <div className="yard-corner-actions">
+          <HudEditableRegion id="yardCornerActions" as="div" className="yard-corner-actions">
             <YardIconButton compact icon="settings" label={text("yard.screen.settings", "Settings")} active={activeScreen === "settings"} onClick={() => openScreen("settings")} />
             <YardIconButton compact icon={soundEnabled ? "sound-on" : "sound-off"} label={soundEnabled ? text("yard.soundOn", "Sound on") : text("yard.soundOff", "Sound off")} active={soundEnabled} onClick={toggleSound} />
             <YardIconButton compact icon="shop" label={text("yard.tools", "Tools")} active={yardToolsOpen} onClick={() => setYardToolsOpen((value) => !value)} />
-          </div>
+          </HudEditableRegion>
           {yardToolsOpen && (
-            <div className="yard-side-tools open">
+            <HudEditableRegion id="yardSideTools" as="div" className="yard-side-tools open">
               <YardIconButton compact icon="camera" label={text("yard.camera", "Camera")} disabled={!activeVisitorCount} onClick={captureFirstVisitor} />
               <YardIconButton compact icon="daily" label={text("yard.screen.daily", "Daily letter")} active={activeScreen === "daily"} onClick={() => openScreen("daily")} />
               <YardIconButton compact icon="repair" label={text("yard.screen.repair", "Repair goodies")} badge={staleGoodies.length || null} active={activeScreen === "repair"} onClick={() => openScreen("repair")} />
               <YardIconButton compact icon="remodel" label={text("yard.screen.remodel", "Remodel yard")} active={activeScreen === "remodel"} onClick={() => openScreen("remodel")} />
               <YardIconButton compact icon="expansion" label={text("yard.screen.expansion", "Expansion")} active={activeScreen === "expansion"} onClick={() => openScreen("expansion")} />
               <YardIconButton compact icon="companion" label={text("yard.screen.companion", "Companion helper")} active={activeScreen === "companion"} onClick={() => openScreen("companion")} />
-            </div>
+            </HudEditableRegion>
           )}
           <YardActivityPill
             pendingGiftCount={pendingGiftCount}

@@ -1,13 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,realpathSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {requireCandidateMode} from '../guard.mjs';
-import {repositoryRoot,candidateRoot,readCandidateSource} from '../source.mjs';
+import {repositoryRoot,candidateRoot,readCandidateSource,candidateSourcePath} from '../source.mjs';
 import {verifyProductionUntouched} from '../verify-production.mjs';
 requireCandidateMode();
+test('historical hub checks use their frozen store while the mandatory native lane keeps rollback regressions',()=>{
+  const store='src/game-state/useGameHub.js',checks='tests/hub-account-boundaries.test.mjs';
+  const hash=path=>createHash('sha256').update(readFileSync(path)).digest('hex');
+  const archived=resolve(candidateRoot,'history/pre-room-hud/production/'+checks);
+  assert.equal(candidateSourcePath(resolve(repositoryRoot,checks)),archived);
+  assert.equal(hash(archived),'6df2ec23c405261ef2a19ac695c8b323264dc68cdee1808c9844d265ea646532');
+  assert.equal(hash(candidateSourcePath(resolve(repositoryRoot,store))),'683272aed5b543b13ed5eec6cf4b0fae8077ffc8b2f2fa0f42a754d24c0232e9');
+  assert.equal(hash(resolve(repositoryRoot,checks)),'a4cabd983aa87794a7be14576e97e89fb03d92ec359f865f8f10868dd23c06d3');
+  const scripts=JSON.parse(readFileSync(resolve(repositoryRoot,'package.json'),'utf8')).scripts;
+  assert.ok(scripts.test.split(/\s+/).includes(checks),'current hub regressions remain mandatory in pnpm test');
+  // A fresh process has only the existing dependency adapter, never candidate
+  // overlays. Inspect the actual native module loader output, not a file alias.
+  const probe=`import {registerHooks} from 'node:module';import {createHash} from 'node:crypto';
+    const target=${JSON.stringify(pathToFileURL(realpathSync(resolve(repositoryRoot,store))).href)};
+    registerHooks({load(url,context,next){const value=next(url,context);if(url===target)console.log(createHash('sha256').update(value.source).digest('hex'));return value;}});
+    await import(target);`;
+  const native=spawnSync(process.execPath,['--import',resolve(candidateRoot,'helpers/yard-shared-store-loader.mjs'),'--input-type=module','--eval',probe],{
+    cwd:repositoryRoot,encoding:'utf8',timeout:30000,env:{...process.env,NODE_OPTIONS:''},
+  });
+  assert.equal(native.status,0,native.stderr);
+  assert.equal(native.stdout.trim(),'8c7e360eb0d3ced6b6ab3e2a5ebdbc04cea52fc9798b2d1369a36c727569e590');
+});
 test('closed production wrapper keeps legacy defaults while explicit inspection sees the candidate override',async()=>{
   const verified=verifyProductionUntouched();
   assert.equal(verified.productionYard,'closed-rollout-legacy-default');

@@ -1,0 +1,112 @@
+[
+  {
+    "path": "src/app/hud-layout/defaultLayouts/room.json",
+    "before": {
+      "bytes": 3265,
+      "sha256": "c575ff84ed68316091df379c43760424a5513a16893b1904c4d67e7c1020411d"
+    },
+    "after": {
+      "bytes": 4069,
+      "sha256": "90749a458f451ee961fb376debcdad074f2679a1e62a31058dbc8050a244445b"
+    }
+  },
+  {
+    "path": "src/app/hud-layout/registry.js",
+    "before": {
+      "bytes": 18796,
+      "sha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca"
+    },
+    "after": {
+      "bytes": 19283,
+      "sha256": "e4bf488c7e3cbccad25fcc1eb5e269ea20347849026cbbd61aaeba6230c95ae1"
+    }
+  },
+  {
+    "path": "src/app/hud-layout/HudRegion.jsx",
+    "before": {
+      "bytes": 3255,
+      "sha256": "7560318a43937c0a7a35939fccd2904894c0fa87a0db39259225dfdb22b86229"
+    },
+    "after": {
+      "bytes": 3345,
+      "sha256": "82123392b1ab12c6a2224b9bd1173c1ec682eddee0fb8d723b7632a1dde03013"
+    }
+  },
+  {
+    "path": "src/games/companion-yard/CompanionYardGame.jsx",
+    "before": {
+      "bytes": 57793,
+      "sha256": "f44a9faa51a6259128eca38899047bbf017d96c423bfc4f48082f677d3566097"
+    },
+    "after": {
+      "bytes": 58020,
+      "sha256": "50d7a2b37f9ff44fbb19781f8ff2a7125c3f92b854e4567351d2d33e11cb3d4c"
+    }
+  },
+  {
+    "path": "src/games/companion-yard/companion-yard.css",
+    "before": {
+      "bytes": 92326,
+      "sha256": "ba9a7590024caccf3c148f1153a2898b75b0af5521ff13dbb43843833de38eed"
+    },
+    "after": {
+      "bytes": 92636,
+      "sha256": "d768271ba5c8087118c5412bd1ccaf0f96181719d67d65cad72fd48b458bf4c7"
+    }
+  },
+  {
+    "path": "tests/hud-layout.test.js",
+    "before": {
+      "bytes": 18900,
+      "sha256": "bf82360ff437a405942f1270cabf328a204b49654f0686641a36cbaba39bc975"
+    },
+    "after": {
+      "bytes": 19915,
+      "sha256": "14f92c09d2a032eca32f682571bbd2657565a08da422ea59a007c96e660111a5"
+    }
+  },
+  {
+    "path": "tests/ui-screen-surfaces.test.js",
+    "before": {
+      "bytes": 35730,
+      "sha256": "554b7191f82adcebebc6e6f69256c9a2e22ee8f2f9192132462229c201a61ba1"
+    },
+    "after": {
+      "bytes": 35991,
+      "sha256": "f2af19f93ac42b6912421288eccf47cefc9b55b07f8eac616017dec49f38e5e8"
+    }
+  },
+  {
+    "path": "tests/e2e/helpers/yard-hud.js",
+    "before": {
+      "bytes": 2072,
+      "sha256": "ed3e9f83e58cafd93dbc11c18fbb344f9f1852ad482d7573a11dd63770b83061"
+    },
+    "after": {
+      "bytes": 6983,
+      "sha256": "8721ce12720cb07b3b766da2a9eddb60f581a07afb8eb7aba56ab340048b0178"
+    }
+  },
+  {
+    "path": "tests/e2e/companion-yard.spec.js",
+    "before": {
+      "bytes": 52027,
+      "sha256": "b429e6b8d216b7c9b725687f64d538be059c54035e946937927372178f848b78"
+    },
+    "after": {
+      "bytes": 54271,
+      "sha256": "263c1de3aeccc09d018702b7cbdfb620659a81bb484a93e2413ee12a13be015f"
+    }
+  },
+  {
+    "path": "tests/e2e/hud-redesign-runtime-coverage.spec.js",
+    "before": {
+      "bytes": 14313,
+      "sha256": "714f751d223ad58971f7c8ae53ad43108d9d0e01c65e8ade9bf2eee1d9bfe9f6"
+    },
+    "after": {
+      "bytes": 12571,
+      "sha256": "5e14f6e01b212f37b62186ac0e76cde9f9a0dc8e40b133787b47835a4d9b2151"
+    }
+  }
+]

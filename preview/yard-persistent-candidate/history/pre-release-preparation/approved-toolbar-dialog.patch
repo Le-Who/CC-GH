@@ -1,0 +1,562 @@
+diff --git a/src/app/hud-layout/defaultLayouts/room.json b/src/app/hud-layout/defaultLayouts/room.json
+--- a/src/app/hud-layout/defaultLayouts/room.json
++++ b/src/app/hud-layout/defaultLayouts/room.json
+@@ -9,6 +9,10 @@
+       "activeGameFrame": { "mode": "custom", "visible": true },
+       "yardStage": { "mode": "custom", "visible": true },
+       "yardHudLayer": { "mode": "custom", "visible": true },
++      "yardBowls": { "mode": "custom", "x": 0, "y": 0, "visible": true },
++      "yardCornerActions": { "mode": "custom", "x": 0, "y": 0, "visible": true },
++      "yardSideTools": { "mode": "custom", "x": 0, "y": 0, "bottomReserve": 92, "visible": true },
++      "yardActivityPill": { "mode": "custom", "x": 0, "y": 0, "visible": true },
+       "yardCurrencyStack": { "mode": "stack", "direction": "vertical", "gap": 6, "x": 0, "y": 0, "zIndex": 30, "visible": true },
+       "yardBottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 76, "reserve": 92, "alignment": "center", "zIndex": 40, "visible": true },
+       "yardGameScreen": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 640, "zIndex": 45, "visible": true },
+@@ -21,7 +25,11 @@
+       "match": { "orientation": "portrait", "maxWidth": 360 },
+       "regions": {
+         "yardBottomDock": { "thickness": 70, "reserve": 88 },
+-        "yardCurrencyStack": { "x": 0, "y": 0, "maxWidth": 120 },
++        "yardCurrencyStack": { "x": 0, "y": 0, "maxWidth": 280 },
++        "yardBowls": { "y": 40 },
++        "yardCornerActions": { "y": 54 },
++        "yardSideTools": { "y": 56, "bottomReserve": 88 },
++        "yardActivityPill": { "maxWidth": 120 },
+         "yardGameScreen": { "maxWidth": 304 }
+       }
+     },
+@@ -29,6 +37,11 @@
+       "match": { "orientation": "portrait", "maxWidth": 430 },
+       "regions": {
+         "yardBottomDock": { "thickness": 74, "reserve": 92 },
++        "yardCurrencyStack": { "maxWidth": 280 },
++        "yardBowls": { "y": 40 },
++        "yardCornerActions": { "y": 54 },
++        "yardSideTools": { "y": 56, "bottomReserve": 88 },
++        "yardActivityPill": { "maxWidth": 120 },
+         "yardGameScreen": { "maxWidth": 380 }
+       }
+     },
+@@ -37,6 +50,7 @@
+       "regions": {
+         "yardBottomDock": { "edge": "bottom", "thickness": 58, "reserve": 68 },
+         "yardCurrencyStack": { "x": 0, "y": -4 },
++        "yardSideTools": { "bottomReserve": 88 },
+         "yardGameScreen": { "maxWidth": 520 }
+       }
+     },
+diff --git a/src/app/hud-layout/registry.js b/src/app/hud-layout/registry.js
+--- a/src/app/hud-layout/registry.js
++++ b/src/app/hud-layout/registry.js
+@@ -199,6 +199,10 @@
+     yardStage: region("yardStage", "Yard play stage", "Cozy Yard", { measured: true, affectsPixiSafeArea: false, mode: "custom" }),
+     yardHudLayer: region("yardHudLayer", "Yard HUD layer", "Cozy Yard", { draggable: false, resizable: false, mode: "custom" }),
+     yardVisitStatus: region("yardVisitStatus", "Yard reserved visit status", "Cozy Yard", { measured: true, draggable: false, resizable: false, mode: "custom" }, "Reserved flow strip outside placement canvas; portrait row and landscape rail preserve readable controls."),
++    yardBowls: region("yardBowls", "Yard food bowls", "Cozy Yard", { draggable: true, mode: "custom" }),
++    yardCornerActions: region("yardCornerActions", "Yard corner controls", "Cozy Yard", { draggable: true, mode: "custom" }),
++    yardSideTools: region("yardSideTools", "Yard tools flyout", "Cozy Yard", { draggable: true, mode: "custom" }),
++    yardActivityPill: region("yardActivityPill", "Yard activity status", "Cozy Yard", { draggable: true, resizable: true, mode: "custom" }),
+     yardCurrencyStack: region("yardCurrencyStack", "Yard currency stack", "Cozy Yard", { draggable: true, resizable: true, mode: "stack" }),
+     yardBottomDock: region("yardBottomDock", "Yard bottom dock", "Cozy Yard", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
+     yardGameScreen: region("yardGameScreen", "Yard game screen/dialog", "Cozy Yard", { draggable: true, resizable: true, mode: "anchored" }),
+diff --git a/src/app/hud-layout/HudRegion.jsx b/src/app/hud-layout/HudRegion.jsx
+--- a/src/app/hud-layout/HudRegion.jsx
++++ b/src/app/hud-layout/HudRegion.jsx
+@@ -39,6 +39,7 @@
+   return {
+     ref: mergedRef,
+     regionLayout,
++    profileId: resolvedLayout?.activeProfileId,
+     capabilities: regionCapabilities,
+     definition,
+     style: regionLayout ? getHudRegionRuntimeStyle(regionLayout) : {},
+@@ -67,6 +68,7 @@
+     className: `${className}${className ? " " : ""}hud-region${editable ? " hud-editable-region" : ""}`.trim(),
+     style: mergedStyle,
+     "data-hud-region": id,
++    "data-hud-profile": region.profileId,
+     "data-hud-mode": region.regionLayout?.mode || region.capabilities?.mode || undefined,
+     "data-hud-selected": region.selected ? "true" : undefined,
+   };
+diff --git a/src/games/companion-yard/CompanionYardGame.jsx b/src/games/companion-yard/CompanionYardGame.jsx
+--- a/src/games/companion-yard/CompanionYardGame.jsx
++++ b/src/games/companion-yard/CompanionYardGame.jsx
+@@ -322,11 +322,11 @@
+     tone = "active";
+   }
+   return (
+-    <div className={`yard-activity-pill tone-${tone}`}>
++    <HudEditableRegion id="yardActivityPill" as="div" className={`yard-activity-pill tone-${tone}`}>
+       <YardIcon name={tone === "ready" ? "gifts" : tone === "saving" ? "settings" : "petbook"} />
+       <span>{label}</span>
+       {value && <b>{value}</b>}
+-    </div>
++    </HudEditableRegion>
+   );
+ }
+ 
+@@ -1126,7 +1126,7 @@
+         onDragStart={(event) => event.preventDefault()}
+       >
+         <HudEditableRegion id="yardBackgroundAsset" as="img" className="yard-background-art" src={assetPath("backgrounds", yard.remodel || "meadow")} alt="" />
+-        <div className="yard-bowls">
++        <HudEditableRegion id="yardBowls" as="div" className="yard-bowls">
+           {(yard.bowls || []).map((bowl) => {
+             const food = foods[bowl.foodId];
+             const bowlPending = pendingByKey.get(`bowl:${bowl.id}`);
+@@ -1144,7 +1144,7 @@
+               </button>
+             );
+           })}
+-        </div>
++        </HudEditableRegion>
+         {renderPetLayer("back")}
+         {renderPlacedGoodies()}
+         {renderStarterGoodieHints()}
+@@ -1161,20 +1161,20 @@
+             <YardCurrencyChip icon="treats" label={text("yard.treats", "Treats")} value={yard.currencies?.treats || 0} language={language} />
+             <YardCurrencyChip icon="shiny" label={text("yard.shiny", "Shiny")} value={yard.currencies?.shinyTreats || 0} language={language} />
+           </HudEditableRegion>
+-          <div className="yard-corner-actions">
++          <HudEditableRegion id="yardCornerActions" as="div" className="yard-corner-actions">
+             <YardIconButton compact icon="settings" label={text("yard.screen.settings", "Settings")} active={activeScreen === "settings"} onClick={() => openScreen("settings")} />
+             <YardIconButton compact icon={soundEnabled ? "sound-on" : "sound-off"} label={soundEnabled ? text("yard.soundOn", "Sound on") : text("yard.soundOff", "Sound off")} active={soundEnabled} onClick={toggleSound} />
+             <YardIconButton compact icon="shop" label={text("yard.tools", "Tools")} active={yardToolsOpen} onClick={() => setYardToolsOpen((value) => !value)} />
+-          </div>
++          </HudEditableRegion>
+           {yardToolsOpen && (
+-            <div className="yard-side-tools open">
++            <HudEditableRegion id="yardSideTools" as="div" className="yard-side-tools open">
+               <YardIconButton compact icon="camera" label={text("yard.camera", "Camera")} disabled={!activeVisitorCount} onClick={captureFirstVisitor} />
+               <YardIconButton compact icon="daily" label={text("yard.screen.daily", "Daily letter")} active={activeScreen === "daily"} onClick={() => openScreen("daily")} />
+               <YardIconButton compact icon="repair" label={text("yard.screen.repair", "Repair goodies")} badge={staleGoodies.length || null} active={activeScreen === "repair"} onClick={() => openScreen("repair")} />
+               <YardIconButton compact icon="remodel" label={text("yard.screen.remodel", "Remodel yard")} active={activeScreen === "remodel"} onClick={() => openScreen("remodel")} />
+               <YardIconButton compact icon="expansion" label={text("yard.screen.expansion", "Expansion")} active={activeScreen === "expansion"} onClick={() => openScreen("expansion")} />
+               <YardIconButton compact icon="companion" label={text("yard.screen.companion", "Companion helper")} active={activeScreen === "companion"} onClick={() => openScreen("companion")} />
+-            </div>
++            </HudEditableRegion>
+           )}
+           <YardActivityPill
+             pendingGiftCount={pendingGiftCount}
+diff --git a/src/games/companion-yard/companion-yard.css b/src/games/companion-yard/companion-yard.css
+--- a/src/games/companion-yard/companion-yard.css
++++ b/src/games/companion-yard/companion-yard.css
+@@ -873,6 +873,7 @@
+   width: 100%;
+   height: 100%;
+   min-height: 0;
++  container-type: size;
+   overflow: hidden;
+   touch-action: none;
+   border: 0;
+@@ -886,7 +887,7 @@
+ 
+ .companion-yard-layout .yard-bowls {
+   left: max(12px, env(safe-area-inset-left, 0px));
+-  top: 108px;
++  top: calc(var(--safe-top, 0px) + 108px);
+   max-width: min(260px, 44%);
+   pointer-events: auto;
+ }
+@@ -1018,9 +1019,21 @@
+ .yard-side-tools {
+   position: absolute;
+   right: max(10px, env(safe-area-inset-right, 0px));
+-  top: calc(max(10px, var(--safe-top)) + 78px);
+-  display: grid;
++  --yard-tools-top: calc(max(10px, var(--safe-top, 0px)) + 78px);
++  top: var(--yard-tools-top);
++  display: grid;
++  grid-auto-rows: max-content;
++  align-content: start;
+   gap: 7px;
++  /* Translate is visual-only; subtract the registered offset as well as the
++     safe insets and bottom reserve from this stage-relative scroll surface. */
++  max-height: calc(100% - var(--yard-tools-top) - var(--hud-region-y, 0px) - var(--safe-bottom, 0px) - var(--hud-safe-bottom));
++  overflow-y: auto;
++  overflow-x: hidden;
++  scrollbar-gutter: stable;
++  scrollbar-width: thin;
++  overscroll-behavior: contain;
++  touch-action: pan-y;
+ }
+ 
+ .yard-side-tools.open {
+@@ -1759,7 +1772,7 @@
+ 
+ @media (max-width: 780px) {
+   .companion-yard-layout .yard-bowls {
+-    top: 84px;
++    top: calc(var(--safe-top, 0px) + 84px);
+     left: 9px;
+     max-width: 44%;
+   }
+@@ -1770,7 +1783,7 @@
+   }
+ 
+   .yard-currency-chip {
+-    min-width: 76px;
++    min-width: 84px;
+     min-height: 46px;
+     grid-template-columns: 30px minmax(0, 1fr);
+     padding: 5px 7px 5px 5px;
+@@ -1796,7 +1809,7 @@
+   }
+ 
+   .yard-side-tools {
+-    top: 76px;
++    --yard-tools-top: calc(var(--safe-top, 0px) + 76px);
+     right: 8px;
+     gap: 5px;
+   }
+@@ -2147,7 +2160,7 @@
+   --yard-panel-title-top: 6.7%;
+   --yard-panel-content-inset: 17.8% 9.2% 8.4% 9.2%;
+   --yard-screen-bottom-reserve: calc(var(--safe-bottom) + clamp(84px, 11dvh, 104px));
+-  --yard-screen-available-height: calc(100dvh - var(--yard-screen-bottom-reserve) - max(8px, var(--safe-top)));
++  --yard-screen-available-height: calc(100cqh - var(--yard-screen-bottom-reserve) - max(8px, var(--safe-top)));
+   width: min(580px, calc(100vw - 44px), calc(var(--yard-screen-available-height) * 0.6667)) !important;
+   height: auto !important;
+   max-height: var(--yard-screen-available-height) !important;
+@@ -3063,8 +3076,8 @@
+ 
+ @media (max-height: 430px) and (orientation: landscape) {
+   .companion-yard-layout .yard-game-screen {
+-    width: min(500px, calc(100vw - 28px), calc((100dvh - max(72px, var(--safe-bottom) + 72px)) * 0.6667)) !important;
+-    max-height: calc(100dvh - max(72px, var(--safe-bottom) + 72px)) !important;
++    width: min(500px, calc(100vw - 28px), calc((100cqh - max(72px, var(--safe-bottom) + 72px)) * 0.6667)) !important;
++    max-height: calc(100cqh - max(72px, var(--safe-bottom) + 72px)) !important;
+     bottom: max(72px, calc(var(--safe-bottom) + 72px)) !important;
+     padding: 0 !important;
+   }
+@@ -3532,28 +3545,10 @@
+   white-space: nowrap;
+ }
+ 
+-/* Phone currency width is owned by the room HUD profiles, including the tall
+-   portrait fallback. Stack the icon above localized units so the full balance
+-   fits without shrinking the adjacent 48px controls. */
+-@media (max-width: 430px) and (orientation: portrait) {
+-  .yard-currency-stack .yard-currency-chip {
+-    min-width: 0;
+-    flex: 1 1 auto;
+-    grid-template-columns: minmax(0, 1fr);
+-    grid-template-rows: 24px auto;
+-    column-gap: 0;
+-    padding: 3px 1px;
+-  }
+-
+-  .yard-currency-stack .yard-currency-chip .yard-hud-icon {
+-    grid-row: 1;
+-    justify-self: center;
+-    width: 24px;
+-    height: 24px;
+-  }
+-
+-  .yard-currency-stack .yard-currency-chip strong {
+-    grid-row: 2;
+-    max-width: 100%;
+-  }
+-}
++/* Phone HUD uses two rows: original horizontal metric art above activity and
++   controls. Region defaults own the row offsets and the following bowl/flyout
++   clearance; editor translations remain additive. */
++.yard-activity-pill[data-hud-profile^="phone-"][data-hud-profile$="-portrait"] {
++  left: max(10px, env(safe-area-inset-left, 0px));
++  transform: none;
++}
+diff --git a/tests/hud-layout.test.js b/tests/hud-layout.test.js
+--- a/tests/hud-layout.test.js
++++ b/tests/hud-layout.test.js
+@@ -346,12 +346,19 @@
+ 
+ 
+ describe("legacy Yard small-phone currency budget", () => {
+-  it("reserves toolbar space in the small portrait profile and existing tall fallback", () => {
+-    for (const [width, height, maxWidth] of [[320, 568, 120], [360, 800, 120], [390, 844, undefined], [414, 896, 120], [430, 932, 120], [568, 320, undefined], [768, 1024, undefined], [1024, 768, undefined]]) {
++  it("keeps two phone header rows and bowl/flyout clearance in layout profiles", () => {
++    for (const [width, height, maxWidth] of [[320, 568, 280], [360, 800, 280], [390, 844, 280], [414, 896, 280], [430, 932, 280], [431, 844, 280], [480, 844, 280], [568, 320, undefined], [768, 1024, undefined], [1024, 768, undefined]]) {
+       const layout = resolveHudLayout({ repoLayout: HUD_LAYOUT_DEFAULTS.room, viewport: { width, height } });
+       assert.equal(layout.regions.yardCurrencyStack.maxWidth, maxWidth, `${width}x${height}`);
+       const style = getHudRegionRuntimeStyle(layout.regions.yardCurrencyStack);
+-      assert.equal(style.maxWidth, maxWidth === undefined ? undefined : "120px");
++      assert.equal(style.maxWidth, maxWidth === undefined ? undefined : "280px");
++      const phonePortrait = maxWidth !== undefined;
++      assert.equal(layout.regions.yardCornerActions.y, phonePortrait ? 54 : 0);
++      assert.equal(layout.regions.yardSideTools.y, phonePortrait ? 56 : 0);
++      assert.equal(layout.regions.yardSideTools.bottomReserve, phonePortrait || height <= 480 ? 88 : 92);
++      assert.equal(getHudRegionRuntimeStyle(layout.regions.yardSideTools)["--hud-safe-bottom"], phonePortrait || height <= 480 ? "88px" : "92px");
++      assert.equal(layout.regions.yardBowls.y, phonePortrait ? 40 : 0);
++      assert.equal(layout.regions.yardActivityPill.maxWidth, phonePortrait ? 120 : undefined);
+     }
+   });
+ 
+@@ -359,16 +366,20 @@
+     const input = {
+       repoLayout: HUD_LAYOUT_DEFAULTS.room,
+       viewport: { width: 320, height: 568 },
+-      localOverrides: { profiles: { "phone-small-portrait": { regions: { yardCurrencyStack: { x: 5, y: 7, maxWidth: 112 } } } } },
++      localOverrides: { profiles: { "phone-small-portrait": { regions: { yardCurrencyStack: { x: 5, y: 7, maxWidth: 248 }, yardCornerActions: { x: -4, y: 60 } } } } },
+     };
+     const player = resolveHudLayout(input).regions.yardCurrencyStack;
+-    assert.deepEqual([player.x, player.y, player.maxWidth], [0, 0, 120]);
++    assert.deepEqual([player.x, player.y, player.maxWidth], [0, 0, 280]);
+     const editor = resolveHudLayout({ ...input, allowLocalOverrides: true }).regions.yardCurrencyStack;
+-    assert.deepEqual([editor.x, editor.y, editor.maxWidth], [5, 7, 112]);
++    assert.deepEqual([editor.x, editor.y, editor.maxWidth], [5, 7, 248]);
+     const style = getHudRegionRuntimeStyle(editor);
+     assert.equal(style["--hud-region-x"], "5px");
+     assert.equal(style["--hud-region-y"], "7px");
+-    assert.equal(style.maxWidth, "112px");
++    assert.equal(style.maxWidth, "248px");
++    const playerControls = resolveHudLayout(input).regions.yardCornerActions;
++    const editorControls = resolveHudLayout({ ...input, allowLocalOverrides: true }).regions.yardCornerActions;
++    assert.deepEqual([playerControls.x, playerControls.y], [0, 54]);
++    assert.deepEqual([editorControls.x, editorControls.y], [-4, 60]);
+   });
+ });
+ 
+diff --git a/tests/ui-screen-surfaces.test.js b/tests/ui-screen-surfaces.test.js
+--- a/tests/ui-screen-surfaces.test.js
++++ b/tests/ui-screen-surfaces.test.js
+@@ -277,6 +277,10 @@
+ 
+ test("Yard generated panels use asset slots and keep dismiss controls icon-only", async () => {
+   const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
++  assert.match(yardCss, /\.companion-yard-layout\s+\.companion-yard-stage\s*\{[^}]*container-type:\s*size/s);
++  assert.match(yardCss, /--yard-screen-available-height:\s*calc\(100cqh\s*-/);
++  assert.match(yardCss, /max-height:\s*calc\(100cqh\s*-\s*max\(72px/);
++
+   const yardGame = await readFile(path.join(root, "src", "games", "companion-yard", "CompanionYardGame.jsx"), "utf8");
+ 
+   assert.match(
+diff --git a/tests/e2e/helpers/yard-hud.js b/tests/e2e/helpers/yard-hud.js
+--- a/tests/e2e/helpers/yard-hud.js
++++ b/tests/e2e/helpers/yard-hud.js
+@@ -4,6 +4,7 @@
+ // pointer events must not disguise a currency/toolbar layout collision.
+ export async function expectLegacyYardToolbarReachable(page) {
+   await page.evaluate(() => document.fonts.ready);
++  await expectYardMetricChipsAligned(page);
+   const toolbar = page.locator('.yard-corner-actions');
+   await expect(toolbar.locator('button')).toHaveCount(3);
+   await expect(page.locator('.yard-currency-stack .yard-currency-chip')).toHaveCount(2);
+@@ -21,6 +22,13 @@
+       if (hit !== button && !button.contains(hit)) problems.push(`${name}:covered`);
+       if (chips.some(chip => overlaps(rect, chip.getBoundingClientRect()))) problems.push(`${name}:currency-overlap`);
+     }
++    const regions = [...document.querySelectorAll('.yard-currency-stack, .yard-corner-actions, .yard-bowls, .yard-activity-pill, .yard-side-tools, .yard-bottom-dock')]
++      .filter(region => { const rect = region.getBoundingClientRect(); return rect.width > 0 && rect.height > 0 && getComputedStyle(region).display !== 'none'; });
++    for (let left = 0; left < regions.length; left++) for (let right = left + 1; right < regions.length; right++) {
++      if (overlaps(regions[left].getBoundingClientRect(), regions[right].getBoundingClientRect())) {
++        problems.push(`${regions[left].dataset.hudRegion}:${regions[right].dataset.hudRegion}:region-overlap`);
++      }
++    }
+     for (const chip of chips) {
+       const value = chip.querySelector('strong');
+       const rect = chip.getBoundingClientRect();
+@@ -32,3 +40,79 @@
+   })).toEqual([]);
+   for (const button of await toolbar.locator('button').all()) await button.click({ trial: true });
+ }
++
++export async function expectYardMetricChipsAligned(page) {
++  const chips = await page.locator(".yard-currency-chip").evaluateAll((nodes) => nodes.map((node) => {
++    const rect = node.getBoundingClientRect();
++    const icon = node.querySelector(".yard-hud-icon")?.getBoundingClientRect();
++    const value = node.querySelector("strong")?.getBoundingClientRect();
++    const style = getComputedStyle(node);
++    return {
++      text: node.textContent.trim(),
++      ratio: rect.width / Math.max(1, rect.height),
++      backgroundImage: style.backgroundImage,
++      backgroundColor: style.backgroundColor,
++      imageLayerCount: (style.backgroundImage.match(/url\(/g) || []).length,
++      iconVisible: !!icon && icon.width >= 24 && icon.height >= 24,
++      valueInside:
++        !!value
++        && value.left >= rect.left + 34
++        && value.right <= rect.right - 6
++        && value.top >= rect.top + 6
++        && value.bottom <= rect.bottom - 6,
++    };
++  }));
++
++  expect(chips.length).toBeGreaterThanOrEqual(2);
++  for (const chip of chips) {
++    expect(chip.backgroundImage, `${chip.text} must use generated metric-chip art`).toContain("/games/hud-redesign/room/metric-chip.webp");
++    expect(chip.backgroundColor, `${chip.text} must not paint a CSS fallback color behind transparent metric art`).toBe("rgba(0, 0, 0, 0)");
++    expect(chip.imageLayerCount, `${chip.text} should use one generated metric art layer`).toBe(1);
++    expect(chip.ratio, `${chip.text} metric chip art is visually squeezed`).toBeGreaterThanOrEqual(1.75);
++    expect(chip.iconVisible, `${chip.text} metric icon should remain visible on small mobile`).toBe(true);
++    expect(chip.valueInside, `${chip.text} metric value should sit inside the generated frame content area`).toBe(true);
++  }
++}
++
++
++// Scroll the actual flyout, keeping its full-size controls above the dock.
++// Normal actionability must hold for the final item, not only the top toolbar.
++export async function expectLegacyYardToolsReachable(page) {
++  const tools = page.locator('.yard-side-tools');
++  await expect(tools).toBeVisible();
++  await expect(tools.locator('button')).toHaveCount(6);
++  for (const button of await tools.locator('button').all()) {
++    await button.scrollIntoViewIfNeeded();
++    await expect.poll(() => button.evaluate(node => {
++      const rect = node.getBoundingClientRect();
++      const surface = node.closest('.yard-side-tools').getBoundingClientRect();
++      const dock = document.querySelector('.yard-bottom-dock').getBoundingClientRect();
++      const stage = document.querySelector('.companion-yard-stage').getBoundingClientRect();
++      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
++      return {
++        fullSize: rect.width >= 48 && rect.height >= 48,
++        insideScrollSurface: rect.left >= surface.left && rect.right <= surface.right && rect.top >= surface.top && rect.bottom <= surface.bottom,
++        insideStage: surface.top >= stage.top && surface.bottom <= stage.bottom,
++        aboveDock: surface.bottom <= dock.top && rect.bottom <= dock.top,
++        hit: hit === node || node.contains(hit),
++      };
++    })).toEqual({ fullSize: true, insideScrollSurface: true, insideStage: true, aboveDock: true, hit: true });
++    if (await button.isEnabled()) await button.click({ trial: true });
++  }
++}
++
++export async function expectLegacyYardDialogInsideStage(page) {
++  await expect.poll(() => page.locator('.yard-game-screen').evaluate(node => {
++    const rect = node.getBoundingClientRect();
++    const stage = node.closest('.companion-yard-stage').getBoundingClientRect();
++    const close = node.querySelector('.yard-screen-header > button');
++    const target = close.getBoundingClientRect();
++    const hit = document.elementFromPoint(target.x + target.width / 2, target.y + target.height / 2);
++    return rect.left >= stage.left - 1 && rect.right <= stage.right + 1
++      && rect.top >= stage.top - 1 && rect.bottom <= stage.bottom + 1
++      && target.width >= 44 && target.height >= 44
++      && target.left >= stage.left && target.right <= stage.right
++      && target.top >= stage.top && target.bottom <= stage.bottom
++      && (hit === close || close.contains(hit));
++  })).toBe(true);
++}
+diff --git a/tests/e2e/companion-yard.spec.js b/tests/e2e/companion-yard.spec.js
+--- a/tests/e2e/companion-yard.spec.js
++++ b/tests/e2e/companion-yard.spec.js
+@@ -1,5 +1,5 @@
+ import { openHome, selectHomeGame } from './helpers/home.js';
+-import { expectLegacyYardToolbarReachable } from './helpers/yard-hud.js';
++import { expectLegacyYardToolbarReachable, expectLegacyYardToolsReachable, expectLegacyYardDialogInsideStage } from './helpers/yard-hud.js';
+ import { test, expect } from "@playwright/test";
+ import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
+ import { buildSnapshot } from "../../routes/player.js";
+@@ -382,14 +382,14 @@
+     });
+   });
+ 
+-  for (const language of ["en", "ru"]) for (const [width, height] of [[320, 568], [360, 800], [390, 844], [414, 896], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720]]) {
+-    test.describe(`legacy Yard toolbar ${language} ${width}x${height}`, () => {
++  for (const language of ["en", "ru"]) for (const [width, height, safeTop = 0, safeBottom = 0, stableHeight = height] of [[320, 568], [360, 800], [390, 844], [414, 896], [431, 844], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720], [320, 568, 20, 34], [320, 568, 20, 34, 480], [390, 844, 20, 34, 568], [568, 320, 12, 12]]) {
++    test.describe(`legacy Yard toolbar ${language} ${width}x${height} safe${safeTop}-${safeBottom} stable${stableHeight}`, () => {
+       test.use({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: width < 1100, hasTouch: width < 1100 });
+       test("keeps maximum balances readable and controls reachable", async ({ page }, info) => {
+         const snapshot = buildHudAuditSnapshot();
+         const labels = language === "ru"
+-          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", treats: "Лакомства", shinyTreats: "Сияющие" }
+-          : { settings: "Settings", close: "Close", tools: "Tools", treats: "Treats", shinyTreats: "Shiny" };
++          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", companion: "Помощник", treats: "Лакомства", shinyTreats: "Сияющие" }
++          : { settings: "Settings", close: "Close", tools: "Tools", companion: "Companion helper", treats: "Treats", shinyTreats: "Shiny" };
+         const balances = [{ treats: 1000000000, shinyTreats: 1000000 }];
+         // Russian near-boundary units are wider than the legal maxima (1 млрд/1 млн).
+         if (width === 320) balances.push({ treats: 999000000, shinyTreats: 999000 }, { treats: 9999, shinyTreats: 9999 });
+@@ -400,12 +400,21 @@
+           await page.goto("/?tab=room");
+           await expectAppReady(page);
+           await expect(page.locator(".companion-yard-stage")).toBeVisible();
++          if (safeTop || safeBottom || stableHeight !== height) {
++            await page.addStyleTag({ content: `:root { --tg-viewport-safe-area-inset-top: ${safeTop}px !important; --tg-viewport-safe-area-inset-bottom: ${safeBottom}px !important; --tg-viewport-stable-height: ${stableHeight}px !important; }` });
++            await expect.poll(() => page.locator('.telegram-app').evaluate(node => ({
++              height: node.getBoundingClientRect().height,
++              top: getComputedStyle(node).getPropertyValue('--safe-top').trim(),
++              bottom: getComputedStyle(node).getPropertyValue('--safe-bottom').trim(),
++            }))).toEqual({ height: stableHeight, top: `${safeTop}px`, bottom: `${safeBottom}px` });
++          }
+           for (const [kind, value] of Object.entries(balance)) {
+             await expect(page.getByRole("img", { name: `${labels[kind]}: ${new Intl.NumberFormat(language).format(value)}`, exact: true })).toBeVisible();
+           }
+           await expectLegacyYardToolbarReachable(page);
+           await page.getByRole("button", { name: labels.settings, exact: true }).click();
+           await expect(page.getByRole("dialog", { name: labels.settings, exact: true })).toBeVisible();
++          await expectLegacyYardDialogInsideStage(page);
+           await page.getByRole("dialog").getByRole("button", { name: labels.close, exact: true }).click();
+           await page.getByRole("button", { name: labels.tools, exact: true }).click();
+           await expect(page.locator(".yard-side-tools")).toBeVisible();
+@@ -413,11 +422,23 @@
+           await page.getByRole("button", { name: labels.tools, exact: true }).click();
+           await expect(page.locator(".yard-side-tools")).toHaveCount(0);
+           await expectLegacyYardToolbarReachable(page);
++          await page.getByRole("button", { name: labels.tools, exact: true }).click();
++          await expect(page.locator(".yard-side-tools")).toBeVisible();
++          await expectLegacyYardToolbarReachable(page);
++          await expectLegacyYardToolsReachable(page);
++          await page.locator('.yard-side-tools button').last().click();
++          await expect(page.getByRole('dialog', { name: labels.companion, exact: true })).toBeVisible();
++          await expectLegacyYardDialogInsideStage(page);
++          await page.getByRole('dialog').getByRole('button', { name: labels.close, exact: true }).click();
++          await expect(page.locator(".yard-side-tools")).toHaveCount(0);
++          await expectLegacyYardToolbarReachable(page);
+           await info.attach(`legacy-yard-toolbar-${balance.treats}`, { body: await page.screenshot(), contentType: "image/png" });
+-          if (width === 320 || width === 390) {
++          if (!safeTop && !safeBottom && stableHeight === height && (width === 320 || width === 390)) {
+             await page.setViewportSize({ width: height, height: width });
++            await expect(page.locator('[data-hud-region="yardCornerActions"]')).toHaveAttribute('data-hud-profile', 'phone-landscape');
+             await expectLegacyYardToolbarReachable(page);
+             await page.setViewportSize({ width, height });
++            await expect(page.locator('[data-hud-region="yardCornerActions"]')).toHaveAttribute('data-hud-profile', width === 320 ? 'phone-small-portrait' : 'phone-default-portrait');
+             await expectLegacyYardToolbarReachable(page);
+           }
+         }
+diff --git a/tests/e2e/hud-redesign-runtime-coverage.spec.js b/tests/e2e/hud-redesign-runtime-coverage.spec.js
+--- a/tests/e2e/hud-redesign-runtime-coverage.spec.js
++++ b/tests/e2e/hud-redesign-runtime-coverage.spec.js
+@@ -1,4 +1,5 @@
+ import { openHome, selectHomeGame } from './helpers/home.js';
++import { expectYardMetricChipsAligned } from './helpers/yard-hud.js';
+ import { test, expect } from "@playwright/test";
+ import { mergePanel, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
+ import { startTriviaSolo, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
+@@ -82,39 +83,6 @@
+     expect(metrics.overflowingButtons).toEqual([]);
+   }
+ 
+-  async function expectYardMetricChipsAligned(page) {
+-    const chips = await page.locator(".yard-currency-chip").evaluateAll((nodes) => nodes.map((node) => {
+-      const rect = node.getBoundingClientRect();
+-      const icon = node.querySelector(".yard-hud-icon")?.getBoundingClientRect();
+-      const value = node.querySelector("strong")?.getBoundingClientRect();
+-      const style = getComputedStyle(node);
+-      return {
+-        text: node.textContent.trim(),
+-        ratio: rect.width / Math.max(1, rect.height),
+-        backgroundImage: style.backgroundImage,
+-        backgroundColor: style.backgroundColor,
+-        imageLayerCount: (style.backgroundImage.match(/url\(/g) || []).length,
+-        iconVisible: !!icon && icon.width >= 24 && icon.height >= 24,
+-        valueInside:
+-          !!value
+-          && value.left >= rect.left + 34
+-          && value.right <= rect.right - 6
+-          && value.top >= rect.top + 6
+-          && value.bottom <= rect.bottom - 6,
+-      };
+-    }));
+-
+-    expect(chips.length).toBeGreaterThanOrEqual(2);
+-    for (const chip of chips) {
+-      expect(chip.backgroundImage, `${chip.text} must use generated metric-chip art`).toContain("/games/hud-redesign/room/metric-chip.webp");
+-      expect(chip.backgroundColor, `${chip.text} must not paint a CSS fallback color behind transparent metric art`).toBe("rgba(0, 0, 0, 0)");
+-      expect(chip.imageLayerCount, `${chip.text} should use one generated metric art layer`).toBe(1);
+-      expect(chip.ratio, `${chip.text} metric chip art is visually squeezed`).toBeGreaterThanOrEqual(1.75);
+-      expect(chip.iconVisible, `${chip.text} metric icon should remain visible on small mobile`).toBe(true);
+-      expect(chip.valueInside, `${chip.text} metric value should sit inside the generated frame content area`).toBe(true);
+-    }
+-  }
+-
+   async function expectYardDockIconsCentered(page) {
+     const items = await page.locator(".yard-bottom-dock .yard-icon-button").evaluateAll((nodes) => nodes.map((node) => {
+       const rect = node.getBoundingClientRect();

@@ -346,12 +346,19 @@ describe("HUD editor map-placement selection", () => {
 
 
 describe("legacy Yard small-phone currency budget", () => {
-  it("reserves toolbar space in the small portrait profile and existing tall fallback", () => {
-    for (const [width, height, maxWidth] of [[320, 568, 120], [360, 800, 120], [390, 844, undefined], [414, 896, 120], [430, 932, 120], [568, 320, undefined], [768, 1024, undefined], [1024, 768, undefined]]) {
+  it("keeps two phone header rows and bowl/flyout clearance in layout profiles", () => {
+    for (const [width, height, maxWidth] of [[320, 568, 280], [360, 800, 280], [390, 844, 280], [414, 896, 280], [430, 932, 280], [431, 844, 280], [480, 844, 280], [568, 320, undefined], [768, 1024, undefined], [1024, 768, undefined]]) {
       const layout = resolveHudLayout({ repoLayout: HUD_LAYOUT_DEFAULTS.room, viewport: { width, height } });
       assert.equal(layout.regions.yardCurrencyStack.maxWidth, maxWidth, `${width}x${height}`);
       const style = getHudRegionRuntimeStyle(layout.regions.yardCurrencyStack);
-      assert.equal(style.maxWidth, maxWidth === undefined ? undefined : "120px");
+      assert.equal(style.maxWidth, maxWidth === undefined ? undefined : "280px");
+      const phonePortrait = maxWidth !== undefined;
+      assert.equal(layout.regions.yardCornerActions.y, phonePortrait ? 54 : 0);
+      assert.equal(layout.regions.yardSideTools.y, phonePortrait ? 56 : 0);
+      assert.equal(layout.regions.yardSideTools.bottomReserve, phonePortrait || height <= 480 ? 88 : 92);
+      assert.equal(getHudRegionRuntimeStyle(layout.regions.yardSideTools)["--hud-safe-bottom"], phonePortrait || height <= 480 ? "88px" : "92px");
+      assert.equal(layout.regions.yardBowls.y, phonePortrait ? 40 : 0);
+      assert.equal(layout.regions.yardActivityPill.maxWidth, phonePortrait ? 120 : undefined);
     }
   });
 
@@ -359,16 +366,20 @@ describe("legacy Yard small-phone currency budget", () => {
     const input = {
       repoLayout: HUD_LAYOUT_DEFAULTS.room,
       viewport: { width: 320, height: 568 },
-      localOverrides: { profiles: { "phone-small-portrait": { regions: { yardCurrencyStack: { x: 5, y: 7, maxWidth: 112 } } } } },
+      localOverrides: { profiles: { "phone-small-portrait": { regions: { yardCurrencyStack: { x: 5, y: 7, maxWidth: 248 }, yardCornerActions: { x: -4, y: 60 } } } } },
     };
     const player = resolveHudLayout(input).regions.yardCurrencyStack;
-    assert.deepEqual([player.x, player.y, player.maxWidth], [0, 0, 120]);
+    assert.deepEqual([player.x, player.y, player.maxWidth], [0, 0, 280]);
     const editor = resolveHudLayout({ ...input, allowLocalOverrides: true }).regions.yardCurrencyStack;
-    assert.deepEqual([editor.x, editor.y, editor.maxWidth], [5, 7, 112]);
+    assert.deepEqual([editor.x, editor.y, editor.maxWidth], [5, 7, 248]);
     const style = getHudRegionRuntimeStyle(editor);
     assert.equal(style["--hud-region-x"], "5px");
     assert.equal(style["--hud-region-y"], "7px");
-    assert.equal(style.maxWidth, "112px");
+    assert.equal(style.maxWidth, "248px");
+    const playerControls = resolveHudLayout(input).regions.yardCornerActions;
+    const editorControls = resolveHudLayout({ ...input, allowLocalOverrides: true }).regions.yardCornerActions;
+    assert.deepEqual([playerControls.x, playerControls.y], [0, 54]);
+    assert.deepEqual([editorControls.x, editorControls.y], [-4, 60]);
   });
 });
 

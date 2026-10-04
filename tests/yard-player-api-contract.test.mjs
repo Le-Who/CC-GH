@@ -35,7 +35,7 @@ test('new lane keeps production app, policies, authentication, database and clie
 test('independent required CI job builds the unchanged app and retains guarded PostgreSQL evidence',()=>{
  const ci=read('.github/workflows/ci.yml'),job=ci.slice(ci.indexOf('  yard-player:'),ci.indexOf('  yard-eight-player:'));
  assert.match(job,/image: postgres:15/);assert.match(job,/pnpm run build/);assert.match(job,/pnpm install --frozen-lockfile/);assert.match(job,/timeout-minutes: 30/);
- assert.doesNotMatch(job,/needs:|continue-on-error|download-artifact/);
+ assert.match(job,/needs: \[yard-release-mode\]/);assert.doesNotMatch(job,/needs: \[[^\]]*test|continue-on-error|download-artifact/);
  assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
  const start=job.indexOf('      - name: Genuine Yard API, store, browser and PostgreSQL15 integration'),end=job.length,block=job.slice(start,end);
  assert.ok(start>0&&end>start);assert.match(block,/timeout-minutes: 15/);assert.match(block,/YARD_PLAYER_API_TEST: '1'/);assert.match(block,/YARD_PLAYER_WIRING_TEST: ''/);assert.match(block,/playwright\.yard-player-integration\.config\.js/);assert.match(block,/if: always\(\)/);assert.match(block,/upload-browser-evidence/);assert.doesNotMatch(block,/continue-on-error/);

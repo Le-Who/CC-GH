@@ -6,7 +6,31 @@ on:
     branches: [codex/telegram-pixi-vps-migration]
 
 jobs:
+  yard-release-mode:
+    name: Resolve exact CLOSED and ACTIVE source identities
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.release.outputs.mode }}
+      closed_ref: ${{ steps.release.outputs.closed_ref }}
+      active_ref: ${{ steps.release.outputs.active_ref }}
+      closed_digest: ${{ steps.release.outputs.closed_digest }}
+      contract_hash: ${{ steps.release.outputs.contract_hash }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify committed release mode and full promotion boundary
+        id: release
+        run: node scripts/yard-ci-dispatch.mjs --plan
+      - name: Test dispatch negative controls
+        run: node --test tests/yard-active-dispatch.test.mjs
+
   test:
+    needs: [yard-release-mode]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,11 +53,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify promotion machinery against exact CLOSED source
+        run: node --test tests/yard-active-promotion.test.mjs
 
       - name: Enable pnpm via corepack
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
@@ -135,7 +171,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
+          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             artifacts/perf/perf-build-report.json
             artifacts/perf/yard-lazy-build-report.json
@@ -152,6 +188,7 @@ jobs:
           retention-days: 14
 
   yard-player:
+    needs: [yard-release-mode]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
@@ -171,9 +208,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Enable locked pnpm
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install locked dependencies
@@ -214,6 +260,7 @@ jobs:
           group: yard-player-integration
 
   yard-eight-player:
+    needs: [yard-release-mode]
     name: Yard eight-player / ${{ matrix.group }}
     runs-on: ubuntu-latest
     strategy:
@@ -239,9 +286,18 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Enable locked pnpm
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install locked dependencies
@@ -298,16 +354,26 @@ jobs:
           group: yard-eight-player-${{ matrix.group }}
 
   browser-plan:
+    needs: [yard-release-mode]
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.groups.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
       - name: Validate exhaustive browser groups and bounded artifacts
         run: node --test tests/browser-ci-contract.test.mjs tests/yard-eight-evidence.test.mjs
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Enable pnpm via corepack
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install dependencies for real Playwright discovery
@@ -329,7 +395,7 @@ jobs:
 
   browser:
     name: Browser / ${{ matrix.group }}
-    needs: [browser-plan]
+    needs: [yard-release-mode, browser-plan]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -340,9 +406,18 @@ jobs:
       BROWSER_CI_GROUP: ${{ matrix.group }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Enable pnpm via corepack
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install dependencies
@@ -370,12 +445,22 @@ jobs:
           group: ${{ matrix.group }}
 
   touch:
+    needs: [yard-release-mode]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Enable pnpm via corepack
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install dependencies
@@ -388,7 +473,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: game-hub-touch-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
+          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-touch-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             playwright-results.json
             test-results/**/error-context.md
@@ -407,12 +492,22 @@ jobs:
           retention-days: 14
 
   mochi:
+    needs: [yard-release-mode]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
       - name: Enable pnpm via corepack
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
       - name: Install dependencies
@@ -458,7 +553,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: game-hub-pebble-compact-${{ github.sha }}-${{ github.run_attempt }}
+          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-pebble-compact-${{ github.sha }}-${{ github.run_attempt }}
           path: test-results-yard-pebble/compact-diagnostics/
           if-no-files-found: ignore
           retention-days: 14
@@ -582,3 +677,128 @@ jobs:
 
       - name: Verify final container Yard HTTP delivery
         run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs
+
+  yard-active:
+    name: ACTIVE ordinary imports
+    needs: [yard-release-mode]
+    if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify exact ACTIVE tree before installing or building
+        run: node scripts/yard-ci-dispatch.mjs --verify-active
+      - name: Install frozen dependencies
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Build ordinary ACTIVE client
+        env:
+          VITE_BUILD_ID: ${{ needs.yard-release-mode.outputs.active_ref }}
+        run: pnpm run build
+      - name: Check ordinary ACTIVE behavior and real adapter metadata
+        run: node scripts/yard-active-runtime-checks.mjs
+      - name: Check ACTIVE loading graph and exact delivered bytes
+        env:
+          NODE_ENV: test
+        run: |
+          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          pnpm run perf:guard:build
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-active-build-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
+          path: |
+            artifacts/perf/
+            dist/game-loading-graph.json
+          if-no-files-found: error
+          retention-days: 14
+
+  yard-active-production:
+    name: ACTIVE production image and rollback
+    needs: [yard-release-mode, yard-active]
+    if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: read
+    env:
+      CI: 'true'
+      YARD_PRODUCTION_ACCEPTANCE: '1'
+      YARD_ACTIVE_COMMIT: ${{ needs.yard-release-mode.outputs.active_ref }}
+      YARD_CLOSED_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+      YARD_CLOSED_DIGEST: ${{ needs.yard-release-mode.outputs.closed_digest }}
+      YARD_IMAGE_REPOSITORY: ghcr.io/le-who/cc-gh
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Validate exact ACTIVE tree and production acceptance safety
+        run: |
+          node scripts/yard-ci-dispatch.mjs --verify-active
+          node --test tests/yard-production-contract.test.mjs
+      - name: Install frozen test dependencies and Chromium
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch exact A and build ordinary B without publishing
+        run: |
+          docker pull "${YARD_IMAGE_REPOSITORY}@${YARD_CLOSED_DIGEST}"
+          docker pull postgres:15
+          docker build --file Dockerfile --build-arg "BUILD_ID=${YARD_ACTIVE_COMMIT}" --label "org.opencontainers.image.revision=${YARD_ACTIVE_COMMIT}" --tag "ccgh-yard-production:${YARD_ACTIVE_COMMIT}" .
+      - name: Real production API, persistence and warm A-B-A cache acceptance
+        timeout-minutes: 18
+        run: node scripts/yard-production-acceptance.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-production-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
+          path: test-results/yard-production/
+          if-no-files-found: error
+          retention-days: 14
+
+  release-ready:
+    name: Exact source release acceptance
+    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-active, yard-active-production]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the complete mode-specific result set
+        env:
+          RELEASE_MODE: ${{ needs.yard-release-mode.outputs.mode }}
+          RELEASE_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const needs=JSON.parse(process.env.RELEASE_RESULTS),mode=process.env.RELEASE_MODE;
+          assert.ok(['CLOSED','ACTIVE'].includes(mode));
+          for(const job of ['yard-release-mode','test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,'success',job);
+          for(const job of ['yard-active','yard-active-production'])assert.equal(needs[job].result,mode==='ACTIVE'?'success':'skipped',job);
+          JS

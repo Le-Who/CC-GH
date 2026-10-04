@@ -1,0 +1,1696 @@
+{
+  "baseCommit": "86b5d798842408190c093aa058186ab906779c0d",
+  "productionFiles": [
+    {
+      "path": "routes/player.js",
+      "bytes": 61600,
+      "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
+    },
+    {
+      "path": "routes/mergeRoutes.js",
+      "bytes": 22001,
+      "sha256": "56fc38c20a4e7151e931f3206e639191a43516a32aba778b5db5f30906233bb6"
+    },
+    {
+      "path": "playerManager.js",
+      "bytes": 17325,
+      "sha256": "fdbc6c9f70c39ce4b760b595b4b2994960a18f323bcde09a350db7e8f50ec2c4"
+    },
+    {
+      "path": "game-logic/merge-lab-service.js",
+      "bytes": 11606,
+      "sha256": "97e5e6d3ce63a025080e2812a2992e00547a95de72aa5cd83378610e5cd832a7"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "bytes": 31889,
+      "sha256": "8c7e360eb0d3ced6b6ab3e2a5ebdbc04cea52fc9798b2d1369a36c727569e590"
+    },
+    {
+      "path": "src/app/gameChunks.jsx",
+      "bytes": 2108,
+      "sha256": "50d85d75c7db865dd3a4cdeffe68d5efd952a5850f9db150a0e8539f503b0187"
+    },
+    {
+      "path": "src/app/hud-layout/registry.js",
+      "bytes": 18796,
+      "sha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca"
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/room.json",
+      "bytes": 3265,
+      "sha256": "c575ff84ed68316091df379c43760424a5513a16893b1904c4d67e7c1020411d"
+    },
+    {
+      "path": "package.json",
+      "bytes": 8917,
+      "sha256": "e7364b734888d6185723c73917ae81f99c19ae9026b46009c61e1edb56f0d906"
+    },
+    {
+      "path": "src/App.jsx",
+      "bytes": 21301,
+      "sha256": "8fa7e95a2b0135201aa39aae61182c9a6124cb140a4a3a8d1653f6830609883a"
+    },
+    {
+      "path": "src/app/i18n.jsx",
+      "bytes": 8321,
+      "sha256": "67c1bbfec131c78e10868f0d07237ec1eefb5161611a04b19488cacb85cc12c0"
+    },
+    {
+      "path": "src/index.css",
+      "bytes": 48988,
+      "sha256": "39b941da50773d12dabbbb3e94136c0846ca926ea314280ed6929924a2b5b8e9"
+    },
+    {
+      "path": "tests/unit.test.js",
+      "bytes": 91533,
+      "sha256": "8b0c2e20b422d8207cfa3cb579a912e5800619dc68e9e11978cb5a8d05227eaf"
+    },
+    {
+      "path": "tests/yard-inventory-only.test.mjs",
+      "bytes": 9800,
+      "sha256": "6330cb6ff575976f830097ef2dfc5200caf1455682ad0dcf9dcc8fc19ec7eadc"
+    },
+    {
+      "path": "tests/gameStore.test.js",
+      "bytes": 10464,
+      "sha256": "9c3a1814571b0371afc5421abe808fa8656f7388fa44cbfe01d4311d941203a2"
+    },
+    {
+      "path": "tests/asset-runtime.test.js",
+      "bytes": 4227,
+      "sha256": "11f9ccebac84aebb3723f68e908461b1dd241c931bdccf8589b0c2240b5a7fd3"
+    },
+    {
+      "path": "tests/perf-guard.test.js",
+      "bytes": 7025,
+      "sha256": "0ab372fcf82e033316980153c79f235393cc5d61213ad0d87580a62e42e9afb9"
+    },
+    {
+      "path": "tests/perf-build-guard.test.js",
+      "bytes": 13565,
+      "sha256": "06a16341cc5f49227197771b7c2eaaad66e188c334ea5d109b278089380b2468"
+    },
+    {
+      "path": "src/game-state/gardenR2Snapshot.js",
+      "bytes": 5918,
+      "sha256": "d1e4d50f1bcd8b9adc10a235303541beaddf27e537c17a629471495963dec565"
+    },
+    {
+      "path": "src/game-state/yardOutboxStorage.js",
+      "bytes": 4278,
+      "sha256": "3f27dc083ecebba6c0ffe828807943f73ace950b7f4ec3dbb93d71e2421a30f4"
+    },
+    {
+      "path": "src/services/apiClient.js",
+      "bytes": 4304,
+      "sha256": "a14ceeb2b85132accd48776f1fa52518e95085d70dc15833a419e35db5d85a33"
+    },
+    {
+      "path": "src/services/realtimeClient.js",
+      "bytes": 2945,
+      "sha256": "2ae153d96f26135e5e883f56ddd1def77554c490ec98c38dccb3b6bf7fd3f8b7"
+    },
+    {
+      "path": "src/games/merge/mergeLabTransport.js",
+      "bytes": 5119,
+      "sha256": "c06f67a21d53f189b7a4a817878bb4e5a22033c2221c5aa036187cac97a66bc1"
+    },
+    {
+      "path": "src/games/merge/MergeLabGame.jsx",
+      "bytes": 4398,
+      "sha256": "74865395edb28104bf7ca7fed806efc2981d003384a588524b3b326bac1ed682"
+    }
+  ],
+  "sourceInputs": [
+    {
+      "source": "routes/player.js",
+      "sourceSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
+      "candidate": "preview/yard-persistent-candidate/overrides/routes/player.js",
+      "candidateSha256": "2c78b4b8e178192ac3245afb022fdda64557dc157bf400fe796184789df6da84",
+      "rebasedFromCandidateSha256": "5d7bed9e1876ac190e4ccfce390f80929f275214e22a042766081b662a5462ad",
+      "reviewedProductionSha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91",
+      "boundaryRebasedFromCandidateSha256": "0e309fd2aadbe6c33980fcc25d87ea883c091e29157496962def64e8a37790e1"
+    },
+    {
+      "source": "routes/mergeRoutes.js",
+      "sourceSha256": "451df5cbdc9777e1f6ac3dd545e1f5cc79603a0c1356097b0fb0cc7ab222af18",
+      "candidate": "preview/yard-persistent-candidate/overrides/routes/mergeRoutes.js",
+      "candidateSha256": "451df5cbdc9777e1f6ac3dd545e1f5cc79603a0c1356097b0fb0cc7ab222af18"
+    },
+    {
+      "source": "playerManager.js",
+      "sourceSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598",
+      "candidate": "preview/yard-persistent-candidate/overrides/playerManager.js",
+      "candidateSha256": "c451bd0c20d459c295bb1d34c6ff9020143327fbf809e8ad835859446ae97bb4",
+      "rebasedFromCandidateSha256": "c95ae0cef9adc7cd95791adf7821f57b961fbb26d391d98d4153b44ab80b4598",
+      "reviewedProductionSha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
+    },
+    {
+      "source": "game-logic/merge-lab-service.js",
+      "sourceSha256": "a7ba15b8caeefc62a8f14fd64ae752d07b0a115f5b8fea2284fd31272de0a2f7",
+      "candidate": "preview/yard-persistent-candidate/overrides/game-logic/merge-lab-service.js",
+      "candidateSha256": "a7ba15b8caeefc62a8f14fd64ae752d07b0a115f5b8fea2284fd31272de0a2f7"
+    },
+    {
+      "source": "src/game-state/useGameHub.js",
+      "sourceSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/game-state/useGameHub.js",
+      "candidateSha256": "3e3d7330f0b3532a389f0ee989ede600ec797ce7afb6ce39af72798239ddbcee",
+      "rebasedFromCandidateSha256": "f25b9706f3ebc79badd515bccff4b3c9a21cea6c011c9f6e84b9c5f9698aa1f1",
+      "reviewedProductionSha256": "11456f02725d77139798aba45900aac81fe5312ffd13fd047717beb42e1e6b40",
+      "boundaryRebasedFromCandidateSha256": "277d7a0f6254c1b2eceb5d05064e43870b98f62814ed7af7d22013b85f7a7f5c"
+    },
+    {
+      "source": "src/app/gameChunks.jsx",
+      "sourceSha256": "7928bc8c4fe9f0be83065c939a96f082d0e3fefc539a722d2a59ec91a1427a37",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/app/gameChunks.jsx",
+      "candidateSha256": "7928bc8c4fe9f0be83065c939a96f082d0e3fefc539a722d2a59ec91a1427a37"
+    },
+    {
+      "source": "src/app/hud-layout/registry.js",
+      "sourceSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/app/hud-layout/registry.js",
+      "candidateSha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca",
+      "homeRebasedFromCandidateSha256": "6342f5dbf188ad94b3f73dde3a13786b57a4a2b8bc08d52b2c2cac3b3b0753cb",
+      "reviewedProductionSha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
+    },
+    {
+      "source": "src/app/hud-layout/defaultLayouts/room.json",
+      "sourceSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b",
+      "candidate": "preview/yard-persistent-candidate/overrides/src/app/hud-layout/defaultLayouts/room.json",
+      "candidateSha256": "ff71aa64cb6cd8e3060a316b1ce52406f8d4ad649698ccfc09a103df0252500c",
+      "homeRebasedFromCandidateSha256": "69de7a16ec6c68ffb5ee5e029126cb7841c8bfe97d23166390fdf52bf1bed65b",
+      "reviewedProductionSha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
+    },
+    {
+      "source": "tests/yard-inventory-only-loader.mjs",
+      "sourceSha256": "c4bf9d0e467660ae889dfb7266c1730c448cb4cfe9f5ba9165d2661c58449777",
+      "candidate": "preview/yard-persistent-candidate/helpers/yard-inventory-only-loader.mjs",
+      "candidateSha256": "a7a29db1968ff0e9573439d7e37efaebadb0c6ec0de49b8a8816591f596328f5"
+    },
+    {
+      "source": "tests/yard-shared-store-loader.mjs",
+      "sourceSha256": "f75f603d99f727f98fbc00bbd71f28a1d79044b8776981de4cd34ec02a82ded8",
+      "candidate": "preview/yard-persistent-candidate/helpers/yard-shared-store-loader.mjs",
+      "candidateSha256": "407ef86246080b7d52091b982fc244a31db825a82d08268753000cc218b1ea41"
+    },
+    {
+      "source": "public/assets/yard-mika/runtime-media.json",
+      "sourceSha256": "44cefc25deef8284b91f6dd35bebe972b0f78bb91ed903337d871233da0b9cbb",
+      "candidate": "preview/yard-persistent-candidate/fixtures/runtime-media.json",
+      "candidateSha256": "44cefc25deef8284b91f6dd35bebe972b0f78bb91ed903337d871233da0b9cbb"
+    },
+    {
+      "source": "tests/unit.test.js",
+      "sourceSha256": "3c8c9cdce56ee28e12e16e476787178b5cb2eb7d452cdef45b275b9e0b636748",
+      "candidate": "preview/yard-persistent-candidate/checks-src/unit.source.mjs",
+      "candidateSha256": "3c8c9cdce56ee28e12e16e476787178b5cb2eb7d452cdef45b275b9e0b636748",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-v2-actions.test.mjs",
+      "sourceSha256": "cfd9fb7fa917c162550321529fb86641fe3ed2932c088cc45ece62714d8b01b1",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-v2-actions.source.mjs",
+      "candidateSha256": "cfd9fb7fa917c162550321529fb86641fe3ed2932c088cc45ece62714d8b01b1",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-v2-service.test.mjs",
+      "sourceSha256": "8c94b64786b3ccb678843ee3be927a5e14276f2959899f211f7f5d1517c0ff73",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-v2-service.source.mjs",
+      "candidateSha256": "ad0e4edaeda8e64cd271b1e5e4b40553a1b623e760cf444083e24e47e4dfeaae",
+      "staticSourceAdapted": true
+    },
+    {
+      "source": "tests/yard-v2-occ.test.mjs",
+      "sourceSha256": "649c7c33810f90bc3a7d46425de7e79629153746a4e414aa6a5bc03c848e27c5",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-v2-occ.source.mjs",
+      "candidateSha256": "649c7c33810f90bc3a7d46425de7e79629153746a4e414aa6a5bc03c848e27c5",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-inventory-only.test.mjs",
+      "sourceSha256": "46c4dbd674c4cf8e23e764645acd588dfc6fd9d6e194c4496865095bdacabe69",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-inventory-only.source.mjs",
+      "candidateSha256": "46c4dbd674c4cf8e23e764645acd588dfc6fd9d6e194c4496865095bdacabe69",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-merge-v3-preservation.test.mjs",
+      "sourceSha256": "7652733ea49c890ef5aa8d741c00e6489b92f63ba6ea8fcff31a7e4fc689d1da",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-merge-v3-preservation.source.mjs",
+      "candidateSha256": "7652733ea49c890ef5aa8d741c00e6489b92f63ba6ea8fcff31a7e4fc689d1da",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/merge-lab-routes.test.mjs",
+      "sourceSha256": "2c4a2a67039cf4735e95b1b2605ac06b002eaf330183bf7a355066ff5fa4302c",
+      "candidate": "preview/yard-persistent-candidate/checks-src/merge-lab-routes.source.mjs",
+      "candidateSha256": "2c4a2a67039cf4735e95b1b2605ac06b002eaf330183bf7a355066ff5fa4302c",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/merge-lab-service.test.mjs",
+      "sourceSha256": "74c2a94793a9b1e0469042dffda4ccb027d88c8626cb51e368540523010e9727",
+      "candidate": "preview/yard-persistent-candidate/checks-src/merge-lab-service.source.mjs",
+      "candidateSha256": "74c2a94793a9b1e0469042dffda4ccb027d88c8626cb51e368540523010e9727",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/merge-lab-enabled-transition.test.mjs",
+      "sourceSha256": "c116a0cf07267e1c2de5a7aaa9fdcb5c4ef65ea5a4f5bd515a55c9ae2c6b7841",
+      "candidate": "preview/yard-persistent-candidate/checks-src/merge-lab-enabled-transition.source.mjs",
+      "candidateSha256": "c116a0cf07267e1c2de5a7aaa9fdcb5c4ef65ea5a4f5bd515a55c9ae2c6b7841",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/garden-transactions.test.js",
+      "sourceSha256": "630dca6abbfd8b19aeed54c72c0e402f43e01a98a38339656ab3cc5523339670",
+      "candidate": "preview/yard-persistent-candidate/checks-src/garden-transactions.source.mjs",
+      "candidateSha256": "630dca6abbfd8b19aeed54c72c0e402f43e01a98a38339656ab3cc5523339670",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/garden-transaction-ledger.test.js",
+      "sourceSha256": "0edb57ef60420c0cbcb4ca754db833b63f3e5d34d6a3aba8314791ea2939940b",
+      "candidate": "preview/yard-persistent-candidate/checks-src/garden-transaction-ledger.source.mjs",
+      "candidateSha256": "0edb57ef60420c0cbcb4ca754db833b63f3e5d34d6a3aba8314791ea2939940b",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/garden-accounting-routes.test.js",
+      "sourceSha256": "4f518e9ffc19007cdf24ae5fbbc00afde9b6ca3cf0e423d7337289e55b55fd38",
+      "candidate": "preview/yard-persistent-candidate/checks-src/garden-accounting-routes.source.mjs",
+      "candidateSha256": "4f518e9ffc19007cdf24ae5fbbc00afde9b6ca3cf0e423d7337289e55b55fd38",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/gameStore.test.js",
+      "sourceSha256": "9c3a1814571b0371afc5421abe808fa8656f7388fa44cbfe01d4311d941203a2",
+      "candidate": "preview/yard-persistent-candidate/checks-src/gameStore.source.mjs",
+      "candidateSha256": "9c3a1814571b0371afc5421abe808fa8656f7388fa44cbfe01d4311d941203a2",
+      "staticSourceAdapted": false,
+      "boundaryReviewedFromSha256": "bcb619ea26985566efe7aa76846d210d509cb99f99058685f8cf9d16bdf20fef"
+    },
+    {
+      "source": "tests/asset-runtime.test.js",
+      "sourceSha256": "11f9ccebac84aebb3723f68e908461b1dd241c931bdccf8589b0c2240b5a7fd3",
+      "candidate": "preview/yard-persistent-candidate/checks-src/asset-runtime.source.mjs",
+      "candidateSha256": "b6c4c92395ca9bdfe68a311dbda84ea93cb2fad8bb50f5777429600aa54d63a3",
+      "staticSourceAdapted": true
+    },
+    {
+      "source": "tests/yard-rebase-shared.test.mjs",
+      "sourceSha256": "37b1d79640bc0a52eae3d8373a7606adef367a75c4f3e85c35b5d34ae8a61f42",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-rebase-shared.source.mjs",
+      "candidateSha256": "18dfb66b5841f2a7c3fd08e0a2524753f5b986dd7fc04254b830b8481af89d85",
+      "staticSourceAdapted": true,
+      "boundaryReviewedFromCandidateSha256": "a8b0a608c408a1faef0cf10188249be3c97fe98dca487d0b20954cec5e91d804"
+    },
+    {
+      "source": "tests/yard-ground-coverage.test.mjs",
+      "sourceSha256": "2ea4b7a2e6d25a6a70fdb92dbfcc4e0f9e78d7511091a104f497d86834de4e08",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-ground-coverage.source.mjs",
+      "candidateSha256": "2ea4b7a2e6d25a6a70fdb92dbfcc4e0f9e78d7511091a104f497d86834de4e08",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-presentation-compatibility.test.mjs",
+      "sourceSha256": "41007df25a8ab965d3a34900c21a63ba5862c60eabfba025ca295c706e986f8d",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-presentation-compatibility.source.mjs",
+      "candidateSha256": "41007df25a8ab965d3a34900c21a63ba5862c60eabfba025ca295c706e986f8d",
+      "staticSourceAdapted": false
+    },
+    {
+      "source": "tests/yard-persistent-presentation.test.mjs",
+      "sourceSha256": "6addc4a1a6e65deea1a482172411e77ce1654fe0fcb95b1ed833590d37a5bf9c",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-persistent-presentation.source.mjs",
+      "candidateSha256": "6addc4a1a6e65deea1a482172411e77ce1654fe0fcb95b1ed833590d37a5bf9c"
+    },
+    {
+      "source": "tests/yard-persistent-atlas.test.mjs",
+      "sourceSha256": "43cb0657b050446c5eb5ead16b8a90b0e9c1a8993c13ddf1ce250ba79b471a55",
+      "candidate": "preview/yard-persistent-candidate/checks-src/yard-persistent-atlas.source.mjs",
+      "candidateSha256": "43cb0657b050446c5eb5ead16b8a90b0e9c1a8993c13ddf1ce250ba79b471a55"
+    }
+  ],
+  "explicitSkippedChecks": [],
+  "reviewedChangeSet": {
+    "id": "garden-r2-inactive-20261002",
+    "patchSha256": "438c381c55828fb412c2fde7df0d257065f3189f2567ec8ecbeed9a2c12edc06",
+    "productionPaths": [
+      "routes/player.js",
+      "playerManager.js",
+      "src/game-state/useGameHub.js",
+      "package.json",
+      "src/App.jsx"
+    ],
+    "rebasedOverrides": [
+      "routes/player.js",
+      "playerManager.js",
+      "src/game-state/useGameHub.js"
+    ],
+    "preservationCheck": "Original Yard-only edit sequences are byte-identical when applied relative to the new production files; Garden R2 authority is retained in all three overrides."
+  },
+  "canonicalIntegration": {
+    "baseRootCommit": "4e659a05b7de9d2c714182edb7d7225623627f06",
+    "source": "r5 Mochi + Pebble, closed gates",
+    "productionFilesPreserved": true,
+    "r2OverridesPreserved": true,
+    "actualYardMedia": true,
+    "allImageChecksEnabled": true
+  },
+  "reviewedBoundaryChangeSet": {
+    "id": "account-and-full-snapshot-boundaries-20261003",
+    "baseCommit": "2b721dc1f7520289366d1838185c6242c60fcb79",
+    "productionPaths": [
+      "routes/player.js",
+      "src/game-state/useGameHub.js",
+      "package.json",
+      "tests/gameStore.test.js",
+      "src/game-state/gardenR2Snapshot.js",
+      "src/game-state/yardOutboxStorage.js",
+      "src/services/apiClient.js",
+      "src/services/realtimeClient.js",
+      "src/games/merge/mergeLabTransport.js",
+      "src/games/merge/MergeLabGame.jsx",
+      "src/App.jsx"
+    ],
+    "rebasedOverrides": [
+      "src/game-state/useGameHub.js",
+      "routes/player.js"
+    ],
+    "proofCommand": "node preview/yard-persistent-candidate/verify-boundary-transfer.mjs",
+    "originalYardEditsPreserved": true,
+    "originalYardDeltaEvidence": [
+      {
+        "path": "src/game-state/useGameHub.js",
+        "yardDeltaSha256": "32c58e2a016fc0b57ca4c553cac5934ab640cb204893ed78870a59a416f88726"
+      },
+      {
+        "path": "routes/player.js",
+        "yardDeltaSha256": "d1dcfcdecb0acb0317363a6b10def69030d53321df5ba053955e62c33fa4fd12"
+      }
+    ],
+    "fixtureChanges": "Verified account identities added to existing shared-store fixtures; their assertions are retained. Production and candidate gameStore bytes remain identical."
+  },
+  "reviewedHomeChangeSet": {
+    "id": "home-catalogue-shell-20261003",
+    "baseCommit": "186e4c57c7ea142584000da032f6d36dc5399d8f",
+    "patchSha256": "f8987fc2882f6cd4d3cc9ba16a57df440caa26a35372e87d8558e0aab4cd329e",
+    "productionPaths": [
+      "src/app/hud-layout/registry.js",
+      "src/app/hud-layout/defaultLayouts/room.json",
+      "package.json",
+      "src/App.jsx",
+      "src/app/i18n.jsx",
+      "src/index.css",
+      "src/games/merge/MergeLabGame.jsx"
+    ],
+    "rebasedOverrides": [
+      "src/app/hud-layout/registry.js",
+      "src/app/hud-layout/defaultLayouts/room.json"
+    ],
+    "preservationCheck": "Home HUD changes are mirrored in both inactive layout overlays. The Yard-only registry addition and all room layout fields except the retired global bottomDock remain unchanged. Garden R2, account-boundary, intrinsic-prop, media and closed activation gates are preserved.",
+    "historyCorrection": "Retired Home entries and the entry finalized by a successful switch retain explicit ownership. Forward/Back repairs only those entries to the still-mounted game URL, with no new navigation or automatic resume. popstate cleanup uses its registered capture flag. Exact App callback and native capture ownership are covered in tests/home-navigation.test.js."
+  },
+  "reviewedPlayerWiringChangeSet": {
+    "id": "closed-player-wiring-20261004",
+    "approvedWiringCommit": "704e6387327a48f51fdc0fac8d8ee6ec66dd0372",
+    "sourceBaselineTree": "b188563cc86dbb3f0bf61ddddffe7cacf8f619a2",
+    "integrationBaseCommit": "86b5d798842408190c093aa058186ab906779c0d",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "transitions": [
+      {
+        "path": "routes/player.js",
+        "before": {
+          "bytes": 60103,
+          "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91",
+          "archive": "history/pre-player-rollout/production/routes/player.js"
+        },
+        "after": {
+          "bytes": 61600,
+          "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
+        }
+      },
+      {
+        "path": "routes/mergeRoutes.js",
+        "before": {
+          "bytes": 21618,
+          "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb",
+          "archive": "history/pre-player-rollout/production/routes/mergeRoutes.js"
+        },
+        "after": {
+          "bytes": 22001,
+          "sha256": "56fc38c20a4e7151e931f3206e639191a43516a32aba778b5db5f30906233bb6"
+        }
+      },
+      {
+        "path": "playerManager.js",
+        "before": {
+          "bytes": 16860,
+          "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182",
+          "archive": "history/pre-player-rollout/production/playerManager.js"
+        },
+        "after": {
+          "bytes": 17325,
+          "sha256": "fdbc6c9f70c39ce4b760b595b4b2994960a18f323bcde09a350db7e8f50ec2c4"
+        }
+      },
+      {
+        "path": "game-logic/merge-lab-service.js",
+        "before": {
+          "bytes": 11041,
+          "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973",
+          "archive": "history/pre-player-rollout/production/game-logic/merge-lab-service.js"
+        },
+        "after": {
+          "bytes": 11606,
+          "sha256": "97e5e6d3ce63a025080e2812a2992e00547a95de72aa5cd83378610e5cd832a7"
+        }
+      },
+      {
+        "path": "src/game-state/useGameHub.js",
+        "before": {
+          "bytes": 27629,
+          "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf",
+          "archive": "history/pre-player-rollout/production/src/game-state/useGameHub.js"
+        },
+        "after": {
+          "bytes": 28619,
+          "sha256": "04591b270ab5eca3eea89730211e138342e14964e9e840c2816639c46eac5d33"
+        }
+      },
+      {
+        "path": "src/app/gameChunks.jsx",
+        "before": {
+          "bytes": 1486,
+          "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb",
+          "archive": "history/pre-player-rollout/production/src/app/gameChunks.jsx"
+        },
+        "after": {
+          "bytes": 1487,
+          "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
+        }
+      },
+      {
+        "path": "src/app/hud-layout/registry.js",
+        "before": {
+          "bytes": 18524,
+          "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb",
+          "archive": "history/pre-player-rollout/production/src/app/hud-layout/registry.js"
+        },
+        "after": {
+          "bytes": 18796,
+          "sha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca"
+        }
+      },
+      {
+        "path": "src/app/hud-layout/defaultLayouts/room.json",
+        "before": {
+          "bytes": 2690,
+          "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003",
+          "archive": "history/pre-player-rollout/production/src/app/hud-layout/defaultLayouts/room.json"
+        },
+        "after": {
+          "bytes": 3248,
+          "sha256": "c1d704329625ee99c9bdaddd2805a2a11531eb3c481b8d0203addfea90e8a2e3"
+        }
+      },
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8513,
+          "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445",
+          "archive": "history/pre-player-rollout/production/package.json"
+        },
+        "after": {
+          "bytes": 8650,
+          "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21"
+        }
+      }
+    ],
+    "closedRolloutFiles": [
+      {
+        "path": "game-logic/yard-v2/release-policy.mjs",
+        "bytes": 1100,
+        "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+      },
+      {
+        "path": "game-logic/yard-v2/player-release.mjs",
+        "bytes": 2122,
+        "sha256": "727cf497cf1a1b8705b341c0d1dfcb084b7986c200cc0ae4ab36e2987fb8452c"
+      },
+      {
+        "path": "src/games/companion-yard-v2/release-presentation.mjs",
+        "bytes": 436,
+        "sha256": "a6d9bc30f82f48e6b35ad43675f274c7dc6e8152573009b668392111cf81afc6"
+      },
+      {
+        "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+        "bytes": 1364,
+        "sha256": "ae7d2e736a03dfe7b52b2b779c4e1d03ef84db1744d30788e016073401b042cb"
+      },
+      {
+        "path": "game-logic/yard-v2/released-prop-profiles.mjs",
+        "bytes": 2725,
+        "sha256": "23890823031b9fa0556dc8afbc00d7881ae6c6859c39b4c03966e1c1153ecc27"
+      },
+      {
+        "path": "game-logic/yard-v2/released-actor-profiles.mjs",
+        "bytes": 1019,
+        "sha256": "047ac0b060bfce03088d4747c8c2a1c55bb3563675f55cb4cf2ab9dcecad83a1"
+      },
+      {
+        "path": "game-logic/yard-v2/yard-media.mjs",
+        "bytes": 3214,
+        "sha256": "572cc440f5a4f21f327f8fa26ab893512f911934e9a3dee16649d97c6df1d799"
+      },
+      {
+        "path": "game-logic/yard-v2/mochi-actor-profile.mjs",
+        "bytes": 1651,
+        "sha256": "412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313"
+      },
+      {
+        "path": "game-logic/yard-v2/pebble-actor-profile.mjs",
+        "bytes": 1347,
+        "sha256": "0af9977bbc35da9d9cc7e6120502bf431b093525ca7f1e5b3f24d90d8b562200"
+      },
+      {
+        "path": "game-logic/yard-v2/pip-actor-profile.mjs",
+        "bytes": 2388,
+        "sha256": "818796394a7c91182eebdf4a14243089edcdc90f558f68aeb29e41154f185ddc"
+      },
+      {
+        "path": "game-logic/yard-v2/family-actor-profile.mjs",
+        "bytes": 601,
+        "sha256": "607ea60757995eb66c97261061d49c6f4db1fe2a1221c4656ec91ca0f13c1cb5"
+      },
+      {
+        "path": "game-logic/yard-v2/media/family-actor-profiles.json",
+        "bytes": 11941,
+        "sha256": "6a1bcd9b79891243e86cd2dc47e0af5e2d6f05a4798dfd99391db8184f052bd8"
+      },
+      {
+        "path": "game-logic/yard-v2/mochi-media.mjs",
+        "bytes": 5701,
+        "sha256": "bef5bd3b0d0680c14c731193e5cc421b489a862090a83106f01cdeff6141911e"
+      },
+      {
+        "path": "game-logic/yard-v2/pebble-media.mjs",
+        "bytes": 6053,
+        "sha256": "798cfe34d6cfd1270e1bb18a023bb189641ebc6038ba8169f6ea525dc0b64fc9"
+      },
+      {
+        "path": "game-logic/yard-v2/pip-media.mjs",
+        "bytes": 5595,
+        "sha256": "e6860f1be9a53fb3837961559f01dca9b15b1f0f8584080a55c51bc7288405e3"
+      },
+      {
+        "path": "game-logic/yard-v2/family-media.mjs",
+        "bytes": 908,
+        "sha256": "b71f4c26876ee3067aa5b063d71ee4e50a706ae420fa21a537c8159adbcf652d"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-player-rollout/base-contract.json",
+        "bytes": 19917,
+        "sha256": "e0665359378c8df006c18587907b864d505c0c3498296be022db31f40347819a"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/overlay/routes/player.js",
+        "bytes": 60653,
+        "sha256": "2c78b4b8e178192ac3245afb022fdda64557dc157bf400fe796184789df6da84"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/overlay/src/game-state/useGameHub.js",
+        "bytes": 28239,
+        "sha256": "3e3d7330f0b3532a389f0ee989ede600ec797ce7afb6ce39af72798239ddbcee"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/production/routes/player.js",
+        "bytes": 60103,
+        "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/production/src/game-state/useGameHub.js",
+        "bytes": 27249,
+        "sha256": "11456f02725d77139798aba45900aac81fe5312ffd13fd047717beb42e1e6b40"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-pre-integration-overlay/routes/player.js",
+        "bytes": 60653,
+        "sha256": "2c78b4b8e178192ac3245afb022fdda64557dc157bf400fe796184789df6da84"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-pre-integration-overlay/src/game-state/useGameHub.js",
+        "bytes": 28538,
+        "sha256": "683272aed5b543b13ed5eec6cf4b0fae8077ffc8b2f2fa0f42a754d24c0232e9"
+      },
+      {
+        "path": "history/pre-player-rollout/checks/candidate-boundary.checks.mjs",
+        "bytes": 2145,
+        "sha256": "4f738941dbec190bcc7aead6f946f5bf07e2f98277bae6af7c281713e486edbd"
+      },
+      {
+        "path": "history/pre-player-rollout/production/game-logic/merge-lab-service.js",
+        "bytes": 11041,
+        "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973"
+      },
+      {
+        "path": "history/pre-player-rollout/production/package.json",
+        "bytes": 8513,
+        "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445"
+      },
+      {
+        "path": "history/pre-player-rollout/production/playerManager.js",
+        "bytes": 16860,
+        "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
+      },
+      {
+        "path": "history/pre-player-rollout/production/routes/mergeRoutes.js",
+        "bytes": 21618,
+        "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb"
+      },
+      {
+        "path": "history/pre-player-rollout/production/routes/player.js",
+        "bytes": 60103,
+        "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/app/gameChunks.jsx",
+        "bytes": 1486,
+        "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/app/hud-layout/defaultLayouts/room.json",
+        "bytes": 2690,
+        "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/app/hud-layout/registry.js",
+        "bytes": 18524,
+        "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/game-state/useGameHub.js",
+        "bytes": 27629,
+        "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf"
+      },
+      {
+        "path": "history/pre-player-rollout/verify-boundary-transfer.mjs",
+        "bytes": 1999,
+        "sha256": "f880dac469027c7af4ffa084f25379e5325f4ad471613d4ed74121e93c1bc5a7"
+      },
+      {
+        "path": "history/pre-player-rollout/verify-production.mjs",
+        "bytes": 1169,
+        "sha256": "7f08587bd1c5ad9d72d43a2d1bfd133c9139585bfea1fd24f9094bcd7483022a"
+      }
+    ],
+    "historicalBoundaryStatus": {
+      "originalPinnedEvidence": "verify against archived original production/overlay inputs",
+      "preIntegrationStoreDelta": "known pre-existing mismatch; never labeled original-delta preservation",
+      "cause": "snapshotRequestPending lifecycle was mirrored into both production and overlay, but the production-only finally comment was not mirrored. The old sourceInputs overlay fingerprint was not refreshed.",
+      "originalStoreDeltaSha256": "32c58e2a016fc0b57ca4c553cac5934ab640cb204893ed78870a59a416f88726",
+      "preIntegrationStoreDeltaSha256": "831aba9467eb6e4df2471c5023a4a7e6223ea19c7e4a712d8c9e94c23c5453c6"
+    }
+  },
+  "reviewedRollbackGuardChangeSet": {
+    "id": "closed-rollback-guard-20261004",
+    "approvedCommit": "6b01f6ce6aaf341e1345e4f244a3e871bd28784a",
+    "approvedPatchSha256": "cbe0fb9eac2ea28f9991fca81608507a3ef41bb089dc35e5f81989eeec62f79c",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "activePredecessorPinned": false,
+    "historicalLegacyIdentityOnly": true,
+    "transitions": [
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8650,
+          "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21",
+          "archive": "history/pre-rollback-guard/production/package.json"
+        },
+        "after": {
+          "bytes": 8794,
+          "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+        }
+      },
+      {
+        "path": "game-logic/yard-v2/release-policy.mjs",
+        "before": {
+          "bytes": 535,
+          "sha256": "643d47263de2d3cb94f6f5bbcf86d2de4485475c57a1b1f3d561c07027454ea0",
+          "archive": "history/pre-rollback-guard/controls/game-logic/yard-v2/release-policy.mjs"
+        },
+        "after": {
+          "bytes": 1100,
+          "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": ".github/workflows/deploy.yml",
+        "bytes": 15709,
+        "sha256": "ac6aebc4563cda47ff85af1085e543278ee1990f2536e630d7a327e7c9186972"
+      },
+      {
+        "path": "docs/yard-two-phase-release.md",
+        "bytes": 10619,
+        "sha256": "ea319dcb9e7b853a9100436aad01ea6c81aafb7e754a41affd613272dd0cdfed"
+      },
+      {
+        "path": "game-logic/yard-v2/release-policy.mjs",
+        "bytes": 1100,
+        "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+      },
+      {
+        "path": "package.json",
+        "bytes": 8794,
+        "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+      },
+      {
+        "path": "scripts/verify-yard-rollback-target.mjs",
+        "bytes": 4830,
+        "sha256": "e3f4cebd9af5a7d5538e7ed70c1a87f3a961c8c40342f2e717449357cd0573de"
+      },
+      {
+        "path": "scripts/yard-pre-switch-guard.sh",
+        "bytes": 3942,
+        "sha256": "862fe1dd2d95e6148809f67aaec556f9aeb5548c732c4dcd8107af92a7163d11"
+      },
+      {
+        "path": "scripts/yard-release-compatibility.mjs",
+        "bytes": 2139,
+        "sha256": "cf004946b4cd23da6c7fe2f125fab85741fde8c870a38fdc53d842a301cf2183"
+      },
+      {
+        "path": "tests/yard-rollback-guard.test.mjs",
+        "bytes": 11111,
+        "sha256": "743496d18b6286822cc340e24ac44b53dbee7f639f019b1d0ab3e1cf2a2f4d45"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-rollback-guard/approved-ops.patch",
+        "bytes": 47089,
+        "sha256": "cbe0fb9eac2ea28f9991fca81608507a3ef41bb089dc35e5f81989eeec62f79c"
+      },
+      {
+        "path": "history/pre-rollback-guard/base-contract.json",
+        "bytes": 31925,
+        "sha256": "0ec7016e246aef5bcb0395be898cf0b5a909e4417afe9a5c68575c44446cb15e"
+      },
+      {
+        "path": "history/pre-rollback-guard/controls/game-logic/yard-v2/release-policy.mjs",
+        "bytes": 535,
+        "sha256": "643d47263de2d3cb94f6f5bbcf86d2de4485475c57a1b1f3d561c07027454ea0"
+      },
+      {
+        "path": "history/pre-rollback-guard/production/package.json",
+        "bytes": 8650,
+        "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21"
+      }
+    ]
+  },
+  "reviewedPresentationChangeSet": {
+    "id": "game-entry-presentation-20261004",
+    "approvedCommit": "9e856bda5c5a36325d7cae90c2c3c32ac0ee8243",
+    "approvedPatchSha256": "77212fc088f4ec2120cbc46d0e576bf8f82c9f0268c981dcd73c8f3a77f1ee01",
+    "integrationBaseCommit": "a8b3a937bfcda7f88157899204809fc4934cba0c",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "transitions": [
+      {
+        "path": "src/App.jsx",
+        "before": {
+          "bytes": 20935,
+          "sha256": "66acf7d411133bc973a0c7b598be00fe271f252413fdb1ff7a4dd1e0f1560aba",
+          "archive": "history/pre-entry-presentation/production/src/App.jsx"
+        },
+        "after": {
+          "bytes": 21301,
+          "sha256": "8fa7e95a2b0135201aa39aae61182c9a6124cb140a4a3a8d1653f6830609883a"
+        }
+      },
+      {
+        "path": "src/app/gameChunks.jsx",
+        "before": {
+          "bytes": 1487,
+          "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2",
+          "archive": "history/pre-entry-presentation/production/src/app/gameChunks.jsx"
+        },
+        "after": {
+          "bytes": 2108,
+          "sha256": "50d85d75c7db865dd3a4cdeffe68d5efd952a5850f9db150a0e8539f503b0187"
+        }
+      },
+      {
+        "path": "src/index.css",
+        "before": {
+          "bytes": 47044,
+          "sha256": "ab8267dd47af2184610263248d526e79e5e5f5d0247566306e76f1a4b8f94b70",
+          "archive": "history/pre-entry-presentation/production/src/index.css"
+        },
+        "after": {
+          "bytes": 48988,
+          "sha256": "39b941da50773d12dabbbb3e94136c0846ca926ea314280ed6929924a2b5b8e9"
+        }
+      },
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8794,
+          "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1",
+          "archive": "history/pre-entry-presentation/production/package.json"
+        },
+        "after": {
+          "bytes": 8833,
+          "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": "docs/game-entry-flash-fix.md",
+        "bytes": 5903,
+        "sha256": "6becac87be4ac4494fabfebc7b219df13019231f10a5ef2033dca6f6ba5ef12e"
+      },
+      {
+        "path": "package.json",
+        "bytes": 8833,
+        "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd"
+      },
+      {
+        "path": "scripts/browser-ci-groups.mjs",
+        "bytes": 6244,
+        "sha256": "b2c953ab8d20792b7048210896092efdf9f1f9ef2413f3b637c0a99425b3a720"
+      },
+      {
+        "path": "src/App.jsx",
+        "bytes": 21301,
+        "sha256": "8fa7e95a2b0135201aa39aae61182c9a6124cb140a4a3a8d1653f6830609883a"
+      },
+      {
+        "path": "src/app/gameChunks.jsx",
+        "bytes": 2108,
+        "sha256": "50d85d75c7db865dd3a4cdeffe68d5efd952a5850f9db150a0e8539f503b0187"
+      },
+      {
+        "path": "src/index.css",
+        "bytes": 48988,
+        "sha256": "39b941da50773d12dabbbb3e94136c0846ca926ea314280ed6929924a2b5b8e9"
+      },
+      {
+        "path": "tests/e2e/game-entry-flash.spec.js",
+        "bytes": 8909,
+        "sha256": "53e0689aa9d3e05cf9459f51d80281dce3395c57ba22e99fe21758605a6a8e48"
+      },
+      {
+        "path": "tests/e2e/helpers/entryFrames.js",
+        "bytes": 3159,
+        "sha256": "51f252b6fadb73ce4bfc91d873df2194ffb41b7151ca4fedb0c5c482e3c85149"
+      },
+      {
+        "path": "tests/e2e/helpers/resourceGate.mjs",
+        "bytes": 894,
+        "sha256": "3cd8c36a598e7baffa13ba01e68617fbdad1bf01916b14ee328a6caed67b8894"
+      },
+      {
+        "path": "tests/e2e/helpers/swFixture.mjs",
+        "bytes": 10550,
+        "sha256": "8cce432e0d393ee631bb7b34a6ad2eb78349f4939284386905489824b048f47a"
+      },
+      {
+        "path": "tests/game-entry-presentation.test.mjs",
+        "bytes": 3401,
+        "sha256": "4495e89d0c7040ea0360c1bc245caa8401044c8e22ec14940d552415facd0ad2"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-entry-presentation/approved-flash.patch",
+        "bytes": 43939,
+        "sha256": "77212fc088f4ec2120cbc46d0e576bf8f82c9f0268c981dcd73c8f3a77f1ee01"
+      },
+      {
+        "path": "history/pre-entry-presentation/base-contract.json",
+        "bytes": 35466,
+        "sha256": "507a21409eecd13358464b7503db96e3d56c323d4413cf17edd36fbf6f6fe1b1"
+      },
+      {
+        "path": "history/pre-entry-presentation/checks/closed-rollout-guard.checks.mjs",
+        "bytes": 7110,
+        "sha256": "aef6b4f56f6125f5af7dfee32a7707585f75fec1ee47fb2c2ab6aaa50e7be959"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/package.json",
+        "bytes": 8794,
+        "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/src/App.jsx",
+        "bytes": 20935,
+        "sha256": "66acf7d411133bc973a0c7b598be00fe271f252413fdb1ff7a4dd1e0f1560aba"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/src/app/gameChunks.jsx",
+        "bytes": 1487,
+        "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/src/index.css",
+        "bytes": 47044,
+        "sha256": "ab8267dd47af2184610263248d526e79e5e5f5d0247566306e76f1a4b8f94b70"
+      },
+      {
+        "path": "history/pre-entry-presentation/verify-boundary-transfer.mjs",
+        "bytes": 5962,
+        "sha256": "933e96a3b7a9186117bba5e637939515f7c5df25d6f4db7d88284b09384d8786"
+      },
+      {
+        "path": "history/pre-entry-presentation/verify-production.mjs",
+        "bytes": 2130,
+        "sha256": "6430238dffdcd9eabb633a6b627e0aaf12381a9af95fc10f6bfa1d45edec8fb9"
+      },
+      {
+        "path": "history/pre-entry-presentation/verify-rollback-transfer.mjs",
+        "bytes": 3500,
+        "sha256": "6cf61255f159db05a612568cc65bd726aacda1d66b77f2a05c1959f606410c12"
+      }
+    ]
+  },
+  "reviewedColdEscapeChangeSet": {
+    "id": "cold-ground-escape-entry-harness-20261004",
+    "integrationBaseCommit": "53e5fbf6b7b774ccf35ade0244dc6690519ea15f",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "sourceRevisionChanged": true,
+    "newNativeDurationEvidenceRequired": true,
+    "inputs": [
+      {
+        "kind": "cold-ground",
+        "patchSha256": "3d83482e952d61c7e7a5af1669e96673ba4ea0632e699a76d89ac7b59aed2e54",
+        "sourceSha256": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e",
+        "independentReviewSha256": "7c4aa91959f91f32014d7d643b84c940ff1a8ada1111a201052794011017e804",
+        "archive": "history/pre-cold-escape/approved-cold.patch"
+      },
+      {
+        "kind": "eight-matrix-and-escape",
+        "approvedCommit": "4f3af7f917536ed3f6ba835a37a67d6fc51df9c4",
+        "patchSha256": "5fecbef7d9d7678e5491dee58e6dfb29b33474e54d28eca033fb9917ce4950f8",
+        "archive": "history/pre-cold-escape/approved-eight-escape.patch"
+      },
+      {
+        "kind": "bounded-entry-harness",
+        "approvedCommit": "0af49fd37e3ed713636f4228c13d4879999a2ae3",
+        "patchSha256": "0f41111e87a5a9582d746043ae0282da1431abbbaf2bb652f3d025510f5e934d",
+        "archive": "history/pre-cold-escape/approved-entry-harness.patch"
+      }
+    ],
+    "files": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "bytes": 23276,
+        "sha256": "5587acdf8cdb4f24d9c11051aae17d4c93cfbf538bb83d546a2eed2228c1b5da"
+      },
+      {
+        "path": "docs/game-entry-http-gate-fix.md",
+        "bytes": 3293,
+        "sha256": "9b90c763f528ead95334f230e10382fcc7c091877a88427bb48c966d61887e18"
+      },
+      {
+        "path": "docs/yard-eight-player-acceptance-tests.md",
+        "bytes": 11271,
+        "sha256": "47df22df88dd953a96db1c0c545cb594f079b5fde1ea432b613756b899134898"
+      },
+      {
+        "path": "game-logic/yard-v2/ground-coverage.mjs",
+        "bytes": 7254,
+        "sha256": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+      },
+      {
+        "path": "package.json",
+        "bytes": 8917,
+        "sha256": "e7364b734888d6185723c73917ae81f99c19ae9026b46009c61e1edb56f0d906"
+      },
+      {
+        "path": "playwright.yard-eight-player.config.js",
+        "bytes": 1057,
+        "sha256": "9a13d1a04892cbfe09fa25676d6a4be73068b6fc527ac29f4b89b67a32399b1b"
+      },
+      {
+        "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+        "bytes": 16110,
+        "sha256": "e085833b22505f9ab58822fc129d1bec12f8bffb18a0f6af5cc5b33f48ec78a2"
+      },
+      {
+        "path": "tests/browser-ci-contract.test.mjs",
+        "bytes": 13836,
+        "sha256": "07f5d9313abc443c95402f69b3b3bfeb939847ad10bc8c649d624815a039e950"
+      },
+      {
+        "path": "tests/e2e/game-entry-flash.spec.js",
+        "bytes": 10155,
+        "sha256": "aed59d4fa4faf8ce82c4b180e4f21c18603ac6fcb73bd814d952884edfa81c36"
+      },
+      {
+        "path": "tests/e2e/helpers/resourceGate.mjs",
+        "bytes": 1542,
+        "sha256": "9f115a637f04f5df03d84fe5377401b1234b73ccd3a2b758e354c7c693db581c"
+      },
+      {
+        "path": "tests/e2e/helpers/swFixture.mjs",
+        "bytes": 10588,
+        "sha256": "73dde75cce076b88bbdfc5365b28e5a935448bcdfb5e800c9d339423ee3228f0"
+      },
+      {
+        "path": "tests/helpers/yard-eight-player-fixtures.mjs",
+        "bytes": 6966,
+        "sha256": "7718a578287a59cae9a39ca45a3ce36555f3dff4758f879d59dc158ff3d8b2a6"
+      },
+      {
+        "path": "tests/helpers/yard-eight-player-groups.mjs",
+        "bytes": 3249,
+        "sha256": "dc50c992afaa9baa36b3ada69b91e7828263ff45861f3833ab28b9c7463dbb2f"
+      },
+      {
+        "path": "tests/yard-eight-player-contract.test.mjs",
+        "bytes": 9845,
+        "sha256": "fdb2c885534f1e4f513f0279eb3e4d8ad49fc7aa7f0661e0c3103837ae8bed13"
+      },
+      {
+        "path": "tests/yard-eight-player-e2e/player.spec.js",
+        "bytes": 18835,
+        "sha256": "0aa5803d455fd0edca6e6d59f7ae32d01db2328f73d19b6e83ebf4a13b8701ac"
+      },
+      {
+        "path": "tests/yard-ground-coverage-index.test.mjs",
+        "bytes": 5555,
+        "sha256": "672cfd75295b595e825bcf9b1febff52e6229c0b0d916fac9fc43464cf5e998d"
+      },
+      {
+        "path": "tests/yard-panel-escape.test.mjs",
+        "bytes": 2262,
+        "sha256": "72f5b715e17537f7087ff5fc735d88df4c46160c76c594c1690d8bb20e092c8d"
+      }
+    ],
+    "generatedFiles": [
+      {
+        "path": "recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      },
+      {
+        "path": "recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      },
+      {
+        "path": "recovery-tools/yard-canonical-pebble-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      },
+      {
+        "path": "recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+      },
+      {
+        "path": "recovery-tools/yard-mochi-combined-qa/SOURCE-CLOSURE.json",
+        "bytes": 2685,
+        "sha256": "0331d436d68c153b0e6a53e026d3e0975f9ec0157a7ffa8004c61ad39c443028"
+      },
+      {
+        "path": "recovery-tools/yard-mochi-combined-qa/source/game-logic/yard-v2/ground-coverage.mjs",
+        "bytes": 7254,
+        "sha256": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+      }
+    ],
+    "transitions": [
+      {
+        "path": "game-logic/yard-v2/ground-coverage.mjs",
+        "before": {
+          "bytes": 3472,
+          "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "archive": "history/pre-cold-escape/production/game-logic/yard-v2/ground-coverage.mjs"
+        },
+        "after": {
+          "bytes": 7254,
+          "sha256": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      },
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8833,
+          "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd",
+          "archive": "history/pre-cold-escape/production/package.json"
+        },
+        "after": {
+          "bytes": 8917,
+          "sha256": "e7364b734888d6185723c73917ae81f99c19ae9026b46009c61e1edb56f0d906"
+        }
+      },
+      {
+        "path": "recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json",
+        "before": {
+          "bytes": 15214,
+          "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+          "archive": "history/pre-cold-escape/production/recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json"
+        },
+        "after": {
+          "bytes": 15214,
+          "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+        }
+      },
+      {
+        "path": "recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+        "before": {
+          "bytes": 15214,
+          "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+          "archive": "history/pre-cold-escape/production/recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json"
+        },
+        "after": {
+          "bytes": 15214,
+          "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+        }
+      },
+      {
+        "path": "recovery-tools/yard-canonical-pebble-qa/SOURCE-CLOSURE.json",
+        "before": {
+          "bytes": 15214,
+          "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+          "archive": "history/pre-cold-escape/production/recovery-tools/yard-canonical-pebble-qa/SOURCE-CLOSURE.json"
+        },
+        "after": {
+          "bytes": 15214,
+          "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+        }
+      },
+      {
+        "path": "recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json",
+        "before": {
+          "bytes": 15214,
+          "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+          "archive": "history/pre-cold-escape/production/recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json"
+        },
+        "after": {
+          "bytes": 15214,
+          "sha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472"
+        }
+      },
+      {
+        "path": "recovery-tools/yard-mochi-combined-qa/SOURCE-CLOSURE.json",
+        "before": {
+          "bytes": 2685,
+          "sha256": "499bcda9b711c12ed5f0a9aad77364365a8bf4c58df519659d581592f1303798",
+          "archive": "history/pre-cold-escape/production/recovery-tools/yard-mochi-combined-qa/SOURCE-CLOSURE.json"
+        },
+        "after": {
+          "bytes": 2685,
+          "sha256": "0331d436d68c153b0e6a53e026d3e0975f9ec0157a7ffa8004c61ad39c443028"
+        }
+      },
+      {
+        "path": "recovery-tools/yard-mochi-combined-qa/source/game-logic/yard-v2/ground-coverage.mjs",
+        "before": {
+          "bytes": 3472,
+          "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "archive": "history/pre-cold-escape/production/recovery-tools/yard-mochi-combined-qa/source/game-logic/yard-v2/ground-coverage.mjs"
+        },
+        "after": {
+          "bytes": 7254,
+          "sha256": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      },
+      {
+        "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+        "before": {
+          "bytes": 16003,
+          "sha256": "8b56e225ff7e548923d6ebaa537a0cb5ed1a63eea3f2f647cb4cd9367d115476",
+          "archive": "history/pre-cold-escape/production/src/games/companion-yard-v2/CourtyardGame.jsx"
+        },
+        "after": {
+          "bytes": 16110,
+          "sha256": "e085833b22505f9ab58822fc129d1bec12f8bffb18a0f6af5cc5b33f48ec78a2"
+        }
+      },
+      {
+        "path": "tests/e2e/game-entry-flash.spec.js",
+        "before": {
+          "bytes": 8909,
+          "sha256": "53e0689aa9d3e05cf9459f51d80281dce3395c57ba22e99fe21758605a6a8e48",
+          "archive": "history/pre-cold-escape/production/tests/e2e/game-entry-flash.spec.js"
+        },
+        "after": {
+          "bytes": 10155,
+          "sha256": "aed59d4fa4faf8ce82c4b180e4f21c18603ac6fcb73bd814d952884edfa81c36"
+        }
+      },
+      {
+        "path": "tests/e2e/helpers/resourceGate.mjs",
+        "before": {
+          "bytes": 894,
+          "sha256": "3cd8c36a598e7baffa13ba01e68617fbdad1bf01916b14ee328a6caed67b8894",
+          "archive": "history/pre-cold-escape/production/tests/e2e/helpers/resourceGate.mjs"
+        },
+        "after": {
+          "bytes": 1542,
+          "sha256": "9f115a637f04f5df03d84fe5377401b1234b73ccd3a2b758e354c7c693db581c"
+        }
+      },
+      {
+        "path": "tests/e2e/helpers/swFixture.mjs",
+        "before": {
+          "bytes": 10550,
+          "sha256": "8cce432e0d393ee631bb7b34a6ad2eb78349f4939284386905489824b048f47a",
+          "archive": "history/pre-cold-escape/production/tests/e2e/helpers/swFixture.mjs"
+        },
+        "after": {
+          "bytes": 10588,
+          "sha256": "73dde75cce076b88bbdfc5365b28e5a935448bcdfb5e800c9d339423ee3228f0"
+        }
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-cold-escape/approved-cold.patch",
+        "bytes": 20588,
+        "sha256": "3d83482e952d61c7e7a5af1669e96673ba4ea0632e699a76d89ac7b59aed2e54"
+      },
+      {
+        "path": "history/pre-cold-escape/approved-eight-escape.patch",
+        "bytes": 30467,
+        "sha256": "5fecbef7d9d7678e5491dee58e6dfb29b33474e54d28eca033fb9917ce4950f8"
+      },
+      {
+        "path": "history/pre-cold-escape/approved-entry-harness.patch",
+        "bytes": 14791,
+        "sha256": "0f41111e87a5a9582d746043ae0282da1431abbbaf2bb652f3d025510f5e934d"
+      },
+      {
+        "path": "history/pre-cold-escape/base-contract.json",
+        "bytes": 41502,
+        "sha256": "1a83879afd0dd543b486a7502bcd00210a2cbc54df9c8822eb434d329755bca1"
+      },
+      {
+        "path": "history/pre-cold-escape/checks/closed-rollout-guard.checks.mjs",
+        "bytes": 10045,
+        "sha256": "3677deb9efc77d7829fdde6f124a1172426df5a79b7d4e4fe2634e426bf96a87"
+      },
+      {
+        "path": "history/pre-cold-escape/production/game-logic/yard-v2/ground-coverage.mjs",
+        "bytes": 3472,
+        "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9"
+      },
+      {
+        "path": "history/pre-cold-escape/production/package.json",
+        "bytes": 8833,
+        "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd"
+      },
+      {
+        "path": "history/pre-cold-escape/production/recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760"
+      },
+      {
+        "path": "history/pre-cold-escape/production/recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760"
+      },
+      {
+        "path": "history/pre-cold-escape/production/recovery-tools/yard-canonical-pebble-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760"
+      },
+      {
+        "path": "history/pre-cold-escape/production/recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json",
+        "bytes": 15214,
+        "sha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760"
+      },
+      {
+        "path": "history/pre-cold-escape/production/recovery-tools/yard-mochi-combined-qa/SOURCE-CLOSURE.json",
+        "bytes": 2685,
+        "sha256": "499bcda9b711c12ed5f0a9aad77364365a8bf4c58df519659d581592f1303798"
+      },
+      {
+        "path": "history/pre-cold-escape/production/recovery-tools/yard-mochi-combined-qa/source/game-logic/yard-v2/ground-coverage.mjs",
+        "bytes": 3472,
+        "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9"
+      },
+      {
+        "path": "history/pre-cold-escape/production/src/games/companion-yard-v2/CourtyardGame.jsx",
+        "bytes": 16003,
+        "sha256": "8b56e225ff7e548923d6ebaa537a0cb5ed1a63eea3f2f647cb4cd9367d115476"
+      },
+      {
+        "path": "history/pre-cold-escape/production/tests/e2e/game-entry-flash.spec.js",
+        "bytes": 8909,
+        "sha256": "53e0689aa9d3e05cf9459f51d80281dce3395c57ba22e99fe21758605a6a8e48"
+      },
+      {
+        "path": "history/pre-cold-escape/production/tests/e2e/helpers/resourceGate.mjs",
+        "bytes": 894,
+        "sha256": "3cd8c36a598e7baffa13ba01e68617fbdad1bf01916b14ee328a6caed67b8894"
+      },
+      {
+        "path": "history/pre-cold-escape/production/tests/e2e/helpers/swFixture.mjs",
+        "bytes": 10550,
+        "sha256": "8cce432e0d393ee631bb7b34a6ad2eb78349f4939284386905489824b048f47a"
+      },
+      {
+        "path": "history/pre-cold-escape/verify-presentation-transfer.mjs",
+        "bytes": 8213,
+        "sha256": "ac775470aac052163e4e930ccde48f15b5843a525745fd3434f0cc9d40b87fe2"
+      }
+    ]
+  },
+  "reviewedRoomHudChangeSet": {
+    "id": "room-toolbar-entry-art-20261004",
+    "integrationBaseCommit": "e2310e966373830768fe19c6a3ed58ddc0a8745e",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "canonicalSourceClosureChanged": false,
+    "inputs": [
+      {
+        "kind": "small-phone-toolbar-max-balance",
+        "patchSha256": "604e04ecfd2d2b572a3369fd691e38e4de4c9b6253649d6582a2734a47b4f4ea",
+        "archive": "history/pre-room-hud/approved-toolbar.patch"
+      },
+      {
+        "kind": "entry-hud-retirement",
+        "approvedCommit": "ae4d7400c103a80559f143fcdb92ae03d8b7d454",
+        "patchSha256": "2ec0d342f8508b5fc832cab438edeac1f972d97c70e39d89a8ba42e2fd2ca73d",
+        "archive": "history/pre-room-hud/approved-retirement.patch"
+      },
+      {
+        "kind": "post-reload-saved-prop-render-witness",
+        "patchSha256": "25c2296851c4899859c81d59d3174cf26c582dc687b3d2df0a83a395ce2d1dee",
+        "archive": "history/pre-room-hud/approved-saved-prop-witness.patch"
+      },
+      {
+        "kind": "rollback-outbox-retention",
+        "patchSha256": "4f9d12db90a5aead86c1ba9f514716177d753c35ca61bafe60a7755047d4ce49",
+        "archive": "history/pre-room-hud/approved-outbox-retention.patch"
+      }
+    ],
+    "transitions": [
+      {
+        "path": "src/app/hud-layout/defaultLayouts/room.json",
+        "before": {
+          "bytes": 3248,
+          "sha256": "c1d704329625ee99c9bdaddd2805a2a11531eb3c481b8d0203addfea90e8a2e3",
+          "archive": "history/pre-room-hud/production/src/app/hud-layout/defaultLayouts/room.json"
+        },
+        "after": {
+          "bytes": 3265,
+          "sha256": "c575ff84ed68316091df379c43760424a5513a16893b1904c4d67e7c1020411d"
+        }
+      },
+      {
+        "path": "tests/yard-eight-player-e2e/player.spec.js",
+        "kind": "test-evidence",
+        "before": {
+          "bytes": 18835,
+          "sha256": "0aa5803d455fd0edca6e6d59f7ae32d01db2328f73d19b6e83ebf4a13b8701ac",
+          "archive": "history/pre-room-hud/production/tests/yard-eight-player-e2e/player.spec.js"
+        },
+        "after": {
+          "bytes": 21209,
+          "sha256": "81acce782d8ae756a7206a1c65763090f673a3c4265e7fc36940c0bd498a4d9d"
+        }
+      },
+      {
+        "path": "tests/helpers/yard-eight-canvas-witness.mjs",
+        "kind": "test-evidence",
+        "before": {
+          "bytes": 2105,
+          "sha256": "598442cd1fc0f600e212c4f57b23ffb16fa1cf34bddf66104559f69bd28bf169",
+          "archive": "history/pre-room-hud/production/tests/helpers/yard-eight-canvas-witness.mjs"
+        },
+        "after": {
+          "bytes": 2407,
+          "sha256": "360fc1c9591efa4a771c01a7f57f58dedb25dfc522cadcba571baa76a690f852"
+        }
+      },
+      {
+        "path": "src/game-state/useGameHub.js",
+        "kind": "production",
+        "before": {
+          "bytes": 28619,
+          "sha256": "04591b270ab5eca3eea89730211e138342e14964e9e840c2816639c46eac5d33",
+          "archive": "history/pre-room-hud/production/src/game-state/useGameHub.js"
+        },
+        "after": {
+          "bytes": 31889,
+          "sha256": "8c7e360eb0d3ced6b6ab3e2a5ebdbc04cea52fc9798b2d1369a36c727569e590"
+        }
+      },
+      {
+        "path": "tests/hub-account-boundaries.test.mjs",
+        "kind": "test-evidence",
+        "before": {
+          "bytes": 27274,
+          "sha256": "6df2ec23c405261ef2a19ac695c8b323264dc68cdee1808c9844d265ea646532",
+          "archive": "history/pre-room-hud/production/tests/hub-account-boundaries.test.mjs"
+        },
+        "after": {
+          "bytes": 44452,
+          "sha256": "a4cabd983aa87794a7be14576e97e89fb03d92ec359f865f8f10868dd23c06d3"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": "assets-source/imagegen/hud-redesign/hud-redesign-manifest.json",
+        "bytes": 68138,
+        "sha256": "50b21d84bef4abbedaee422466763e672a40ac647768599a94e852b9955ccddb"
+      },
+      {
+        "path": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
+        "bytes": 13466,
+        "sha256": "cd3623a8e8c625e10aed7b0b325e83fff2571aab238c8dee030f6336f78526ae"
+      },
+      {
+        "path": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
+        "bytes": 14996,
+        "sha256": "9b81a3c03939847bd8a5127f3c281a866fdd4df91d90f76f011c6be45a801d2e"
+      },
+      {
+        "path": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
+        "bytes": 15512,
+        "sha256": "9ab3cb6c1fe533313e5581c9c8dc1c733243d531ff53474bfe70564ae13077a3"
+      },
+      {
+        "path": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
+        "bytes": 16126,
+        "sha256": "94ae4af74835e36c4e419f1a2e31b9780965dbf1e769b91e2b750b427d45d7af"
+      },
+      {
+        "path": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
+        "bytes": 311794,
+        "sha256": "a8eef4f545962b71749e3123f54bc5b485acded6dec42609914a2dbc58633c83"
+      },
+      {
+        "path": "assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json",
+        "bytes": 3599,
+        "sha256": "65c466d85a5121cdd8cbb404b4492107fae6e7f7a90b8682abcb2c47b6a22976"
+      },
+      {
+        "path": "docs/entry-hud-retirement-inventory.json",
+        "bytes": 2340,
+        "sha256": "e0d6dda099c3f7347b8a6c9e1e11d39c4c6a847fdd79d89eda6d919ca3de2c4f"
+      },
+      {
+        "path": "docs/unreachable-entry-hud-art.md",
+        "bytes": 4184,
+        "sha256": "b484f31c82da319aaec2c390b9b8e33cdcaf81500817ffbe4b27bb7715dde35f"
+      },
+      {
+        "path": "scripts/asset-source-only-policy.mjs",
+        "bytes": 6375,
+        "sha256": "b24ba52bd8271585097d0032172aa6d4c168785b3a901879dbfcc34eb40d703d"
+      },
+      {
+        "path": "src/app/hud-layout/defaultLayouts/room.json",
+        "bytes": 3265,
+        "sha256": "c575ff84ed68316091df379c43760424a5513a16893b1904c4d67e7c1020411d"
+      },
+      {
+        "path": "src/app/hud-redesign.css",
+        "bytes": 13338,
+        "sha256": "01facd1a72514c8f28702063a06f27d6b5c79ce12b1aaf42a13a43a40f1993fe"
+      },
+      {
+        "path": "src/game-state/useGameHub.js",
+        "bytes": 31889,
+        "sha256": "8c7e360eb0d3ced6b6ab3e2a5ebdbc04cea52fc9798b2d1369a36c727569e590"
+      },
+      {
+        "path": "src/games/companion-yard/CompanionYardGame.jsx",
+        "bytes": 57793,
+        "sha256": "f44a9faa51a6259128eca38899047bbf017d96c423bfc4f48082f677d3566097"
+      },
+      {
+        "path": "src/games/companion-yard/companion-yard.css",
+        "bytes": 92326,
+        "sha256": "ba9a7590024caccf3c148f1153a2898b75b0af5521ff13dbb43843833de38eed"
+      },
+      {
+        "path": "src/games/companion-yard/currencyDisplay.js",
+        "bytes": 800,
+        "sha256": "65e651416be1dad137d9cd617b678bda5da89dc7e414a463d67bdd73a12ec802"
+      },
+      {
+        "path": "tests/asset-retirement.test.js",
+        "bytes": 14096,
+        "sha256": "9f386dc14216f170d6a3a65535851865226bae37631f9f856d35f55cfd463feb"
+      },
+      {
+        "path": "tests/assets-pipeline.test.js",
+        "bytes": 23490,
+        "sha256": "e9a7d6ae6b43741ada4b5cc6fe20d3179902ab796fa8097deaf2bf04db10ef48"
+      },
+      {
+        "path": "tests/e2e/assets-runtime.spec.js",
+        "bytes": 9794,
+        "sha256": "3e872756ff3638d5e788b279263d2a96ec1b776a027b35c6bc7ca3e22aa6fb0c"
+      },
+      {
+        "path": "tests/e2e/companion-yard.spec.js",
+        "bytes": 52027,
+        "sha256": "b429e6b8d216b7c9b725687f64d538be059c54035e946937927372178f848b78"
+      },
+      {
+        "path": "tests/e2e/helpers/yard-hud.js",
+        "bytes": 2072,
+        "sha256": "ed3e9f83e58cafd93dbc11c18fbb344f9f1852ad482d7573a11dd63770b83061"
+      },
+      {
+        "path": "tests/helpers/yard-eight-canvas-witness.mjs",
+        "bytes": 2407,
+        "sha256": "360fc1c9591efa4a771c01a7f57f58dedb25dfc522cadcba571baa76a690f852"
+      },
+      {
+        "path": "tests/hub-account-boundaries.test.mjs",
+        "bytes": 44452,
+        "sha256": "a4cabd983aa87794a7be14576e97e89fb03d92ec359f865f8f10868dd23c06d3"
+      },
+      {
+        "path": "tests/hud-layout.test.js",
+        "bytes": 18900,
+        "sha256": "bf82360ff437a405942f1270cabf328a204b49654f0686641a36cbaba39bc975"
+      },
+      {
+        "path": "tests/yard-eight-player-e2e/player.spec.js",
+        "bytes": 21209,
+        "sha256": "81acce782d8ae756a7206a1c65763090f673a3c4265e7fc36940c0bd498a4d9d"
+      },
+      {
+        "path": "tests/yard-player-integration-e2e/player.spec.js",
+        "bytes": 15845,
+        "sha256": "75ca5f7b822306d2e2f3493b57e336d90fe51dc06e9ca32393f30b67b468114b"
+      }
+    ],
+    "retiredFiles": [
+      {
+        "path": "public/games/hud-redesign/blox/metric-chip.webp",
+        "to": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
+        "bytes": 13466,
+        "sha256": "cd3623a8e8c625e10aed7b0b325e83fff2571aab238c8dee030f6336f78526ae"
+      },
+      {
+        "path": "public/games/hud-redesign/bubbo/metric-chip.webp",
+        "to": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
+        "bytes": 14996,
+        "sha256": "9b81a3c03939847bd8a5127f3c281a866fdd4df91d90f76f011c6be45a801d2e"
+      },
+      {
+        "path": "public/games/hud-redesign/match3/metric-chip.webp",
+        "to": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
+        "bytes": 15512,
+        "sha256": "9ab3cb6c1fe533313e5581c9c8dc1c733243d531ff53474bfe70564ae13077a3"
+      },
+      {
+        "path": "public/games/hud-redesign/merge/metric-chip.webp",
+        "to": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
+        "bytes": 16126,
+        "sha256": "94ae4af74835e36c4e419f1a2e31b9780965dbf1e769b91e2b750b427d45d7af"
+      },
+      {
+        "path": "public/games/ui-surfaces/yard-panel.webp",
+        "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
+        "bytes": 311794,
+        "sha256": "a8eef4f545962b71749e3123f54bc5b485acded6dec42609914a2dbc58633c83"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-room-hud/approved-outbox-retention.patch",
+        "bytes": 26944,
+        "sha256": "4f9d12db90a5aead86c1ba9f514716177d753c35ca61bafe60a7755047d4ce49"
+      },
+      {
+        "path": "history/pre-room-hud/approved-retirement.patch",
+        "bytes": 26474,
+        "sha256": "2ec0d342f8508b5fc832cab438edeac1f972d97c70e39d89a8ba42e2fd2ca73d"
+      },
+      {
+        "path": "history/pre-room-hud/approved-saved-prop-witness.patch",
+        "bytes": 8080,
+        "sha256": "25c2296851c4899859c81d59d3174cf26c582dc687b3d2df0a83a395ce2d1dee"
+      },
+      {
+        "path": "history/pre-room-hud/approved-toolbar.patch",
+        "bytes": 17422,
+        "sha256": "604e04ecfd2d2b572a3369fd691e38e4de4c9b6253649d6582a2734a47b4f4ea"
+      },
+      {
+        "path": "history/pre-room-hud/base-contract.json",
+        "bytes": 56880,
+        "sha256": "2daaf744bfa929b0c30eb566fd70ce44652a7c4c0576da90429b8059059aa057"
+      },
+      {
+        "path": "history/pre-room-hud/checks/closed-rollout-guard.checks.mjs",
+        "bytes": 11600,
+        "sha256": "c49dcf64fc2741f2155c1979fb0797f72866be6ac0160c6519ae1d2417a69c9b"
+      },
+      {
+        "path": "history/pre-room-hud/production/src/app/hud-layout/defaultLayouts/room.json",
+        "bytes": 3248,
+        "sha256": "c1d704329625ee99c9bdaddd2805a2a11531eb3c481b8d0203addfea90e8a2e3"
+      },
+      {
+        "path": "history/pre-room-hud/production/src/game-state/useGameHub.js",
+        "bytes": 28619,
+        "sha256": "04591b270ab5eca3eea89730211e138342e14964e9e840c2816639c46eac5d33"
+      },
+      {
+        "path": "history/pre-room-hud/production/tests/helpers/yard-eight-canvas-witness.mjs",
+        "bytes": 2105,
+        "sha256": "598442cd1fc0f600e212c4f57b23ffb16fa1cf34bddf66104559f69bd28bf169"
+      },
+      {
+        "path": "history/pre-room-hud/production/tests/hub-account-boundaries.test.mjs",
+        "bytes": 27274,
+        "sha256": "6df2ec23c405261ef2a19ac695c8b323264dc68cdee1808c9844d265ea646532"
+      },
+      {
+        "path": "history/pre-room-hud/production/tests/yard-eight-player-e2e/player.spec.js",
+        "bytes": 18835,
+        "sha256": "0aa5803d455fd0edca6e6d59f7ae32d01db2328f73d19b6e83ebf4a13b8701ac"
+      },
+      {
+        "path": "history/pre-room-hud/verify-cold-escape-transfer.mjs",
+        "bytes": 17984,
+        "sha256": "783ee6e0b911ddba93da2e8b0edf35d449a81da8b16b305e5b0b27e23088347b"
+      }
+    ]
+  }
+}

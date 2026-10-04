@@ -277,6 +277,10 @@ test("Garden living panels separate header chrome from scrollable runtime conten
 
 test("Yard generated panels use asset slots and keep dismiss controls icon-only", async () => {
   const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
+  assert.match(yardCss, /\.companion-yard-layout\s+\.companion-yard-stage\s*\{[^}]*container-type:\s*size/s);
+  assert.match(yardCss, /--yard-screen-available-height:\s*calc\(100cqh\s*-/);
+  assert.match(yardCss, /max-height:\s*calc\(100cqh\s*-\s*max\(72px/);
+
   const yardGame = await readFile(path.join(root, "src", "games", "companion-yard", "CompanionYardGame.jsx"), "utf8");
 
   assert.match(

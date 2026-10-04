@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
+import {verifyReleasePreparationTransfer,readBeforeReleasePreparation} from './verify-release-preparation-transfer.mjs';
 const fingerprint=bytes=>({bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
 const APPROVED={
   "id": "room-toolbar-entry-art-20261004",
@@ -326,10 +327,12 @@ const APPROVED={
     }
   ]
 };
-export function verifyRoomHudTransfer({rootDir,contract}) {
+export function verifyRoomHudTransfer({rootDir,contract,preparation=verifyReleasePreparationTransfer({rootDir,contract})}) {
+  const proofContract=preparation.priorContract;
+  const production=path=>readBeforeReleasePreparation({rootDir,preparation,path});
   const candidate=resolve(rootDir,'preview/yard-persistent-candidate');
   const read=path=>readFileSync(resolve(candidate,path));
-  const reviewed=contract.reviewedRoomHudChangeSet;
+  const reviewed=proofContract.reviewedRoomHudChangeSet;
   assert.deepEqual(reviewed,APPROVED,'Room/HUD transfer must retain independently reviewed identities');
   for(const row of APPROVED.archiveFiles)assert.deepEqual(fingerprint(read(row.path)),{bytes:row.bytes,sha256:row.sha256},row.path);
   for(const input of APPROVED.inputs)assert.equal(fingerprint(read(input.archive)).sha256,input.patchSha256);
@@ -347,8 +350,8 @@ export function verifyRoomHudTransfer({rootDir,contract}) {
   assert.deepEqual(productionTransitions.map(row=>row.path),['src/app/hud-layout/defaultLayouts/room.json','src/game-state/useGameHub.js']);
   for(const row of productionTransitions)Object.assign(expected.productionFiles.find(pin=>pin.path===row.path),row.after);
   expected.reviewedRoomHudChangeSet=reviewed;
-  assert.deepEqual(contract,expected,'Room/HUD transfer must preserve all prior histories, sourceInputs and unrelated pins');
-  for(const row of APPROVED.files)assert.deepEqual(fingerprint(readFileSync(resolve(rootDir,row.path))),{bytes:row.bytes,sha256:row.sha256},`Reviewed room/HUD file: ${row.path}`);
+  assert.deepEqual(proofContract,expected,'Room/HUD transfer must preserve all prior histories, sourceInputs and unrelated pins');
+  for(const row of APPROVED.files)assert.deepEqual(fingerprint(production(row.path)),{bytes:row.bytes,sha256:row.sha256},`Reviewed room/HUD file: ${row.path}`);
   for(const row of APPROVED.retiredFiles){
     assert.equal(existsSync(resolve(rootDir,row.path)),false,`Retired public path returned: ${row.path}`);
     assert.deepEqual(fingerprint(readFileSync(resolve(rootDir,row.to))),{bytes:row.bytes,sha256:row.sha256},`Retirement archive changed: ${row.to}`);
@@ -358,10 +361,10 @@ export function verifyRoomHudTransfer({rootDir,contract}) {
   assert.deepEqual(small.match,{orientation:'portrait',maxWidth:360});
   assert.ok(small);assert.deepEqual(small.regions.yardCurrencyStack,{x:0,y:0});
   small.regions.yardCurrencyStack.maxWidth=120;
-  assert.deepEqual(JSON.parse(readFileSync(resolve(rootDir,transition.path))),roomExpected,'Room profile may only add the reviewed small-phone currency width');
-  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,reviewedPinTransitions:productionTransitions.length,retiredFiles:5,canonicalSourceClosureChanged:false};
+  assert.deepEqual(JSON.parse(production(transition.path)),roomExpected,'Room profile may only add the reviewed small-phone currency width');
+  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,reviewedPinTransitions:productionTransitions.length,retiredFiles:5,canonicalSourceClosureChanged:false,preparation};
 }
 export function readBeforeRoomHud({rootDir,roomHud,path}) {
   const transition=roomHud.transitions.find(row=>row.path===path);
-  return readFileSync(transition?resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive):resolve(rootDir,path));
+  return transition?readFileSync(resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive)):readBeforeReleasePreparation({rootDir,preparation:roomHud.preparation,path});
 }
