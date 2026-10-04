@@ -1,0 +1,67 @@
+name: Yard C-only UI functional diagnostic
+
+on:
+  push:
+    branches: [qa/yard-ui-functional-preview]
+
+permissions:
+  contents: read
+
+jobs:
+  ui-functional-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: 'true'
+      YARD_UI_FUNCTIONAL_QA: '1'
+      YARD_UI_QA_COMMIT: ${{ github.sha }}
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      ADMIN_TOKEN: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      YARD_PRODUCTION_ACCEPTANCE: ''
+      YARD_ACTIVE_COMMIT: ''
+      YARD_ACTIVE_DIGEST: ''
+      YARD_CLOSED_COMMIT: ''
+      YARD_CLOSED_DIGEST: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate diagnostic source and guards
+        run: |
+          node --input-type=module -e "import {assertUiFunctionalQa} from './scripts/yard-ui-functional-qa.mjs'; assertUiFunctionalQa();"
+          test "$(git rev-parse HEAD)" = "$YARD_UI_QA_COMMIT"
+          node --test tests/yard-ui-functional-contract.test.mjs
+      - name: Install locked diagnostic dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Build the ordinary C image and fetch disposable PostgreSQL
+        run: |
+          docker pull postgres:15
+          docker build --file Dockerfile \
+            --build-arg "BUILD_ID=${YARD_UI_QA_COMMIT}" \
+            --label "org.opencontainers.image.revision=${YARD_UI_QA_COMMIT}" \
+            --tag "ccgh-yard-ui-qa:${YARD_UI_QA_COMMIT}" .
+      - name: Five actual UI API outbox and economy cases
+        timeout-minutes: 18
+        run: node scripts/yard-ui-functional-qa.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-ui-functional-diagnostic-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results/yard-ui-functional/
+          if-no-files-found: error
+          retention-days: 14
