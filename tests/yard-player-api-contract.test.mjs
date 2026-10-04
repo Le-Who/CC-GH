@@ -32,8 +32,11 @@ test('new lane keeps production app, policies, authentication, database and clie
  assert.match(config,/workers:1/);assert.match(config,/retries:0/);assert.match(config,/globalTimeout:12\*60\*1000/);assert.match(config,/reuseExistingServer:false/);
  assert.match(read('game-logic/yard-v2/release-policy.mjs'),/enabled: false/);
 });
-test('required CI step reuses actual built app and PostgreSQL service with bounded evidence',()=>{
- const ci=read('.github/workflows/ci.yml');assert.match(ci,/image: postgres:15/);assert.match(ci,/pnpm run build/);
- const start=ci.indexOf('      - name: Genuine Yard API, store, browser and PostgreSQL15 integration'),end=ci.indexOf('      - name: Preserve measured shipped-media budget report',start),block=ci.slice(start,end);
+test('independent required CI job builds the unchanged app and retains guarded PostgreSQL evidence',()=>{
+ const ci=read('.github/workflows/ci.yml'),job=ci.slice(ci.indexOf('  yard-player:'),ci.indexOf('  yard-eight-player:'));
+ assert.match(job,/image: postgres:15/);assert.match(job,/pnpm run build/);assert.match(job,/pnpm install --frozen-lockfile/);assert.match(job,/timeout-minutes: 30/);
+ assert.doesNotMatch(job,/needs:|continue-on-error|download-artifact/);
+ assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
+ const start=job.indexOf('      - name: Genuine Yard API, store, browser and PostgreSQL15 integration'),end=job.length,block=job.slice(start,end);
  assert.ok(start>0&&end>start);assert.match(block,/timeout-minutes: 15/);assert.match(block,/YARD_PLAYER_API_TEST: '1'/);assert.match(block,/YARD_PLAYER_WIRING_TEST: ''/);assert.match(block,/playwright\.yard-player-integration\.config\.js/);assert.match(block,/if: always\(\)/);assert.match(block,/upload-browser-evidence/);assert.doesNotMatch(block,/continue-on-error/);
 });

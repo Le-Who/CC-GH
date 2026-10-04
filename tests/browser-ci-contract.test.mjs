@@ -56,7 +56,7 @@ test('matrix replaces the monolithic browser run and remains a required release 
   assert.match(workflow, /browser-ci-groups\.mjs --verify-list browser-ci-discovery.json/);
   assert.equal((workflow.match(/browser-ci-groups\.mjs --run/g) || []).length, 1);
   assert.doesNotMatch(workflow, /run: pnpm exec playwright test --project=chromium --workers=1/);
-  assert.match(workflow, /needs: \[test, browser, touch, mochi, yard-eight-player\]/);
+  assert.match(workflow, /needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
   assert.match(browser, /DATABASE_URL: ''/); assert.match(browser, /REDIS_URL: ''/);
   assert.doesNotMatch(browser, /continue-on-error|retries:|services:|max-failures/);
   assert.match(config, /retries: process\.env\.CI \? 2 : 0/);
@@ -140,4 +140,24 @@ test('collector rejects evidence symlinks and does not manufacture test success 
     await symlink(resolve(dir, 'empty'), resolve(input, 'test-results'));
     await assert.rejects(collectBrowserEvidence({ root: input, output: resolve(dir, 'linked'), group: 'garden' }), /symlink/);
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+
+test('entry HTTP diagnostic is isolated, bounded and published before real browser specs', () => {
+  const workflow = read('.github/workflows/ci.yml'), diagnostic = read('scripts/entry-http-diagnostic.mjs');
+  const probe = workflow.indexOf('- name: Diagnose bounded entry HTTP connection starvation');
+  const upload = workflow.indexOf('- name: Preserve small entry HTTP diagnostic immediately');
+  const assigned = workflow.indexOf('- name: Run assigned browser specs with original config and retries');
+  assert.ok(probe >= 0 && probe < upload && upload < assigned);
+  const steps = workflow.slice(probe, assigned);
+  assert.match(steps, /if: matrix.group == 'assets-performance'/);
+  assert.match(steps, /timeout-minutes: 1/);
+  assert.match(steps, /timeout --signal=TERM --kill-after=5s 55s node scripts\/entry-http-diagnostic.mjs/);
+  assert.match(steps, /if: always\(\) && matrix.group == 'assets-performance'/);
+  assert.match(steps, /path: artifacts\/entry-http-diagnostic.json/);
+  assert.match(diagnostic, /holdLimit of \[6, 1\]/);
+  assert.match(diagnostic, /nunito-latin-400-normal\.woff2/);
+  assert.match(diagnostic, /page\.screenshot\(\{ timeout: 10000 \}\)/);
+  assert.match(diagnostic, /document\.fonts\.ready/);
+  assert.doesNotMatch(diagnostic, /PW_TEST_SCREENSHOT_NO_FONTS_READY|ignoreHTTPSErrors|disable-web-security|page\.route|addInitScript|src\/App|force:\s*true/);
 });

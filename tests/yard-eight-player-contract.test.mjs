@@ -62,7 +62,7 @@ test('real integration is bounded, separate from production artifacts and requir
  assert.match(read('vite.yard-eight-player-candidate.config.js'),/outDir:CANDIDATE_DIST/);assert.notEqual(CANDIDATE_DIST,'dist');
  assert.match(spec,/window\.__yardEightDrawWitness/);assert.match(read('tests/helpers/yard-eight-canvas-witness.mjs'),/changedOpaquePixels/);
  for(const prohibited of [/route\.fulfill/,/page\.clock/,/useGameHub\.getState/,/setSnapshot/,/sourceCatalogActionPolicy/])assert.doesNotMatch(spec,prohibited);
- assert.match(ci,/yard-eight-player:/);assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player\]/);
+ assert.match(ci,/yard-eight-player:/);assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
  assert.match(ci,/playwright test --config playwright\.yard-eight-player\.config\.js/);assert.match(ci,/yard-eight-player-fixtures\.mjs --all/);
  assert.doesNotMatch(ci,/path: dist-yard-eight-player-candidate/);
 });

@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 /** Fail closed before importing any application/database modules. */
 export function assertDisposableGardenR2Database(env = process.env) {
   if (env.GARDEN_R2_PG_TEST !== '1' || env.CI !== 'true' || env.NODE_ENV !== 'test') {
@@ -23,4 +24,10 @@ export function assertGardenR2FixtureId(id) {
     throw new Error('Only generated Garden R2 fixture IDs may be touched');
   }
   return id;
+}
+
+/** Only an explicit participant option loads the existing immutable test policy. */
+export function gardenR2WorkerExecArgv(yardActive = false) {
+  if (typeof yardActive !== 'boolean') throw new Error('Explicit boolean Yard test mode required');
+  return yardActive ? ['--import', fileURLToPath(new URL('./yard-player-rollout-test-loader.mjs', import.meta.url))] : [];
 }

@@ -25,7 +25,7 @@ Only generated test identities are touched. Before every fixture load/delete, th
 
 ## CI
 
-The existing `test` job already installs locked dependencies, builds the client and provides PostgreSQL15. The normal build must pass first; this lane never raises Workbox, code, media or decoded-memory budgets. Added required steps run the safety contract, install Chromium through Playwright's official installer, and run:
+The independent required `yard-player` job installs locked dependencies, builds the unchanged production client and provides its own disposable PostgreSQL15 service. It has no dependency on the main `test` job or the separate eight-actor candidate job, so an unrelated failure cannot prevent its evidence run. Docker still requires every existing gate plus this job. The normal build must pass first; this lane never raises Workbox, code, media or decoded-memory budgets. Added required steps run the safety contract, install Chromium through Playwright's official installer, and run:
 
 `pnpm exec playwright test --config playwright.yard-player-integration.config.js`
 

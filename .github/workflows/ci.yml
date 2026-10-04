@@ -131,6 +131,60 @@ jobs:
           NODE_OPTIONS: ''
         run: pnpm run test:yard-family:pg
 
+      - name: Preserve measured shipped-media budget report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/perf/perf-build-report.json
+            artifacts/perf/yard-lazy-build-report.json
+            artifacts/perf/emitted-chunks.json
+            dist/game-loading-graph.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve verified client build
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-client-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/
+          retention-days: 14
+
+  yard-player:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+          POSTGRES_DB: ccgh_merge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Enable locked pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build unchanged production client for genuine Yard player integration
+        timeout-minutes: 8
+        run: pnpm run build
+      - name: Summarize emitted code chunks even after build failure
+        if: always()
+        run: node scripts/summarize-emitted-chunks.mjs
+
       - name: Check genuine Yard API integration safety contracts
         run: node --test tests/yard-player-api-contract.test.mjs
 
@@ -158,26 +212,6 @@ jobs:
         uses: ./.github/actions/upload-browser-evidence
         with:
           group: yard-player-integration
-
-      - name: Preserve measured shipped-media budget report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
-          path: |
-            artifacts/perf/perf-build-report.json
-            artifacts/perf/yard-lazy-build-report.json
-            artifacts/perf/emitted-chunks.json
-            dist/game-loading-graph.json
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Preserve verified client build
-        uses: actions/upload-artifact@v7
-        with:
-          name: game-hub-client-${{ github.sha }}-${{ github.run_attempt }}
-          path: dist/
-          retention-days: 14
 
   yard-eight-player:
     runs-on: ubuntu-latest
@@ -305,6 +339,18 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install isolated Chromium
         run: pnpm exec playwright install --with-deps chromium
+      - name: Diagnose bounded entry HTTP connection starvation
+        if: matrix.group == 'assets-performance'
+        timeout-minutes: 1
+        run: timeout --signal=TERM --kill-after=5s 55s node scripts/entry-http-diagnostic.mjs
+      - name: Preserve small entry HTTP diagnostic immediately
+        if: always() && matrix.group == 'assets-performance'
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-entry-http-diagnostic-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/entry-http-diagnostic.json
+          if-no-files-found: error
+          retention-days: 14
       - name: Run assigned browser specs with original config and retries
         run: node scripts/browser-ci-groups.mjs --run "$BROWSER_CI_GROUP"
       - name: Preserve bounded group evidence
@@ -517,7 +563,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    needs: [test, browser, touch, mochi, yard-eight-player]
+    needs: [test, browser, touch, mochi, yard-eight-player, yard-player]
     steps:
       - uses: actions/checkout@v6
 
