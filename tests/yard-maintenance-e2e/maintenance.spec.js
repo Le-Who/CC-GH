@@ -3,6 +3,7 @@ import {mergePanel,closeMergePanel,confirmedMergeClick,confirmMergeQuote} from '
 import {readBloxLayout} from '../e2e/helpers/blox-v2.js';
 import {createBloxLineClearFixture} from '../e2e/helpers/bloxMotionFixture.js';
 import {MERGE_LAB_CATALOG as catalog} from '../../game-logic/merge-lab-catalog.js';
+import {YARD_FOODS} from '../../game-logic/yard-catalog.js';
 import {test,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
@@ -39,6 +40,7 @@ async function snapshot(request,f,mode='B'){
 }
 async function mutation(request,f,data,mode='B'){const response=await request.post(origin(mode)+'/api/player/mutate',{headers:headers(f),data});return {status:response.status(),body:await response.json()};}
 async function boot(page,f){
+ observeMaintenanceNavigation(page);
  await page.addInitScript(installEightCanvasWitness);
  await page.addInitScript(({initData,user})=>{window.Telegram={WebApp:{initData,initDataUnsafe:{user}}};localStorage.setItem('garden_shelf_language','en');},{initData:auth(f),user:{id:Number(f.externalId),first_name:'Disposable fixture'}});
  await page.goto(origin('origin')+'/?tab=room');await expect(page.locator('.status-dot.ready')).toHaveCount(1,{timeout:30000});
@@ -56,7 +58,82 @@ test.beforeAll(async()=>{sql=postgres(DATABASE_URL,{max:2,prepare:false});const 
  metadata={A:JSON.parse(await readFile(resolve(out,'metadata-A.json'),'utf8')),B:JSON.parse(await readFile(resolve(out,'metadata-B.json'),'utf8'))};
 });
 test.afterAll(async()=>{await sql?.end({timeout:5});});
-async function waitUpdated(page,build){await expect.poll(()=>page.evaluate(()=>window.__APP_BUILD_ID__).catch(()=>''),{timeout:85000,intervals:[500,1000]}).toBe(build);expect(new URL(page.url()).searchParams.get('build')).toBe(build);expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('gh_build_reload_guard'))?.buildId)).toBe(build);await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller),{timeout:30000}).toBe(true);}
+// The application updater replaces the URL and guard. Workbox autoUpdate also
+// performs real location.reload(), preserving both historical navigation hints.
+// A hint never substitutes for the actual document, entry script or server build.
+const maintenanceNavigation=new WeakMap();
+function observeMaintenanceNavigation(page){
+ if(maintenanceNavigation.has(page))return;const state={sequence:0,document:null,entries:new Map(),prior:null};maintenanceNavigation.set(page,state);
+ page.on('response',response=>{
+  const request=response.request();try{if(response.frame()!==page.mainFrame())return;}catch{return;}
+  const url=new URL(response.url());if(url.origin!==origin('origin'))return;
+  const document=request.isNavigationRequest(),entry=/^\/assets\/index-[A-Za-z0-9_-]+\.js$/.test(url.pathname);if(!document&&!entry)return;
+  const row={url:url.href,path:url.pathname,sequence:document?++state.sequence:state.sequence,status:response.status(),mime:response.headers()['content-type']||'',fromServiceWorker:response.fromServiceWorker()};
+  row.bytes=response.body().then(bytes=>{assert.ok(bytes.length>0&&bytes.length<=1024*1024,'Bounded actual navigation bytes required');return bytes;}).catch(error=>({error:error.message}));
+  if(document)state.document=row;else state.entries.set(url.href,row);
+ });
+}
+async function maintenanceDocumentState(page){
+ return page.evaluate(async()=>{
+  const observe=()=>({build:window.__APP_BUILD_ID__,href:location.href,timeOrigin:performance.timeOrigin,ready:document.readyState,entry:document.querySelector('script[type="module"][src]')?.src,guardBuild:JSON.parse(sessionStorage.getItem('gh_build_reload_guard')||'null')?.buildId??null,navigationType:performance.getEntriesByType('navigation')[0]?.type,navigationUrl:performance.getEntriesByType('navigation')[0]?.name,controllerUrl:navigator.serviceWorker.controller?.scriptURL,controllerState:navigator.serviceWorker.controller?.state});
+  const before=observe(),response=await fetch(`/api/config?maintenanceObservation=${Date.now()}`,{cache:'no-store',headers:{'Cache-Control':'no-cache'}}),config=await response.json(),cacheKeys=await caches.keys(),after=observe();
+  if(before.timeOrigin!==after.timeOrigin||before.href!==after.href||before.build!==after.build)return null;
+  return {...after,serverBuild:config.buildId,configStatus:response.status,cacheKeys};
+ });
+}
+async function setBrowserTarget(page,target){
+ const state=maintenanceNavigation.get(page);assert.ok(state?.document);let prior;
+ await expect.poll(async()=>{
+  try{const current=await maintenanceDocumentState(page),document=state.document;if(!current||current.ready!=='complete'||current.serverBuild!==current.build||document.url!==current.navigationUrl)return false;
+   const body=await document.bytes;assert.ok(Buffer.isBuffer(body));const id=body.toString().match(/window\.__APP_BUILD_ID__=("[^"]+")/);
+   if(!id||JSON.parse(id[1])!==current.build||state.document.sequence!==document.sequence)return false;
+   assert.ok([inputs.closedCommit,inputs.activeCommit].includes(current.build));prior={...current,sequence:document.sequence};return true;
+  }catch(error){if(/Execution context was destroyed, most likely because of a navigation/.test(error.message))return false;throw error;}
+ },{timeout:15000,intervals:[100,250]}).toBe(true);
+ state.prior=prior;await setProxyState(statePath,{target});
+}
+// PURE_GENERATION_START
+function maintenanceGenerationPath(current,prior,target){
+ if(!current||!prior||current.build!==target||current.serverBuild!==target||current.documentBuild!==target||current.configStatus!==200||current.ready!=='complete'||current.controllerState!=='activated'||!current.cacheKeys?.length||!Number.isSafeInteger(current.sequence)||current.sequence<=prior.sequence||!Number.isFinite(current.timeOrigin)||!Number.isFinite(prior.timeOrigin)||current.timeOrigin<=prior.timeOrigin||prior.build===target)return null;
+ const url=new URL(current.href),controller=new URL(current.controllerUrl||'about:blank');if(controller.href!==new URL('/sw.js',url).href)return null;
+ if(url.searchParams.get('build')===target&&current.guardBuild===target)return 'application-cache-busted';
+ if(current.navigationType==='reload'&&current.href===prior.href&&current.guardBuild===prior.guardBuild)return 'service-worker-reload';
+ return null;
+}
+function assertMaintenanceGenerationBytes({document,entry,serverHtml,serverEntry,imageEntry,target}){
+ assert.equal(document.status,200);assert.ok(document.mime.includes('text/html'));assert.equal(serverHtml.status,200);assert.ok(serverHtml.mime.includes('text/html'));
+ assert.ok(Buffer.isBuffer(document.body)&&document.body.length>0);assert.deepEqual(document.body,serverHtml.body,'Actual navigation HTML differs from target image HTTP');
+ const build=document.body.toString().match(/window\.__APP_BUILD_ID__=("[^"]+")/);assert.ok(build);assert.equal(JSON.parse(build[1]),target);
+ assert.match(entry.path,/^\/assets\/index-[A-Za-z0-9_-]+\.js$/);assert.ok(document.body.toString().includes(`src="${entry.path}"`),'Observed module must belong to this document');
+ assert.equal(entry.status,200);assert.ok(entry.mime.includes('javascript'));assert.equal(serverEntry.status,200);assert.ok(serverEntry.mime.includes('javascript'));
+ assert.ok(Buffer.isBuffer(entry.body)&&entry.body.length>0);assert.deepEqual(entry.body,serverEntry.body,'Executed entry bytes differ from target image HTTP');assert.deepEqual(entry.body,imageEntry,'Executed entry bytes differ from target image disk');
+ return {documentSha256:sha(document.body),entrySha256:sha(entry.body)};
+}
+function assertMaintenanceFoodPurchase(after,before,{foodId,qty,cost,nonce}){
+ assert.ok(Number.isSafeInteger(qty)&&qty>0&&cost.treats>0&&Number.isSafeInteger(cost.treats)&&Number.isSafeInteger(cost.shinyTreats));
+ assert.deepEqual(after.yard.currencies,{...before.yard.currencies,treats:before.yard.currencies.treats-cost.treats*qty,shinyTreats:before.yard.currencies.shinyTreats-cost.shinyTreats*qty});
+ assert.deepEqual(after.yard.foodInventory,{...before.yard.foodInventory,[foodId]:(before.yard.foodInventory[foodId]||0)+qty});assert.ok(Object.hasOwn(after._yardV2.runtime.commandReceipts,nonce));
+}
+// PURE_GENERATION_END
+async function waitUpdated(page,build){
+ const state=maintenanceNavigation.get(page);assert.ok(state?.prior);const mode=build===inputs.closedCommit?'A':build===inputs.activeCommit?'B':null;assert.ok(mode);let proof;
+ await expect.poll(async()=>{
+  try{const current=await maintenanceDocumentState(page);
+  if(!current||current.build!==build||current.serverBuild!==build||current.ready!=='complete')return false;
+  const document=state.document;if(!document||document.url!==current.navigationUrl)return false;const body=await document.bytes;assert.ok(Buffer.isBuffer(body),'Current document body was not retained');
+  const htmlBuild=body.toString().match(/window\.__APP_BUILD_ID__=("[^"]+")/);if(!htmlBuild)return false;
+  const path=maintenanceGenerationPath({...current,sequence:document.sequence,documentBuild:JSON.parse(htmlBuild[1])},state.prior,build);if(!path)return false;
+  const entry=state.entries.get(current.entry);if(!entry||entry.sequence!==document.sequence)return false;const entryBody=await entry.bytes;assert.ok(Buffer.isBuffer(entryBody),'Current entry body was not retained');
+  const parsed=new URL(document.url),html=await page.request.get(origin(mode)+parsed.pathname+parsed.search),js=await page.request.get(origin(mode)+entry.path);
+  assert.match(entry.path,/^\/assets\/index-[A-Za-z0-9_-]+\.js$/);
+  const imageEntry=execFileSync('docker',['exec',mode==='A'?containerP:containerB,'cat',`dist${entry.path}`],{timeout:15000,maxBuffer:1024*1024});
+  const bytes=assertMaintenanceGenerationBytes({document:{...document,body},entry:{...entry,body:entryBody},serverHtml:{status:html.status(),mime:html.headers()['content-type']||'',body:await html.body()},serverEntry:{status:js.status(),mime:js.headers()['content-type']||'',body:await js.body()},imageEntry,target:build});
+  const after=await maintenanceDocumentState(page);if(!after||after.timeOrigin!==current.timeOrigin||after.href!==current.href||after.build!==build||after.serverBuild!==build||state.document.sequence!==document.sequence)return false;
+  proof={path,...bytes,build,mode,documentUrl:document.url,currentUrl:current.href,guardBuild:current.guardBuild,controller:current.controllerUrl,controllerState:current.controllerState,cacheKeys:current.cacheKeys,timeOrigin:current.timeOrigin,documentSequence:document.sequence,documentFromServiceWorker:document.fromServiceWorker,entryFromServiceWorker:entry.fromServiceWorker};return true;
+  }catch(error){if(/Execution context was destroyed, most likely because of a navigation/.test(error.message))return false;throw error;}
+ },{timeout:85000,intervals:[500,1000]}).toBe(true);
+ await test.info().attach(`generation-${build.slice(0,8)}-${proof.documentSequence}`,{body:Buffer.from(JSON.stringify(proof)),contentType:'application/json'});
+}
 const savedProgress=p=>({currencies:p.yard.currencies,foodInventory:p.yard.foodInventory,goodieInventory:p.yard.goodieInventory,placedGoodies:p.yard.placedGoodies,receipts:p._yardV2.runtime.commandReceipts,migration:p._yardV2.migration,resources:p.resources,garden:p.garden,farm:p.farm,merge:p.merge});
 function assertSavedProgress(actual,expected,window){
  assertReplayWallet(actual.resources,expected.resources,window);
@@ -106,8 +183,9 @@ test('ACTIVE persistence P-C-P preserves progress and durable replay',async({req
  const pCommand={accountId:f.id,action:'yard.collectGifts',payload:{},clientActionId:`yard-v2:maintenance-p:${randomUUID()}`};
  const p=await mutation(request,f,pCommand,'A');expect(p.status).toBe(200);expect(p.body.duplicate).toBe(false);const observedP=await observedSaved(f),afterP=observedP.value;expect(afterP.yard.currencies.treats).toBe(before.yard.currencies.treats+17);
  const loaded=await snapshot(request,f,'B');expect(loaded.yardRuntime.mutable).toBe(true);await preservedProgress(f,observedP,loaded);
- const cCommand={accountId:f.id,action:'yard.buyFood',payload:{foodId:'kibble',qty:1},clientActionId:`yard-v2:maintenance-c:${randomUUID()}`};
- const c=await mutation(request,f,cCommand,'B');expect(c.status).toBe(200);expect(c.body.duplicate).toBe(false);let progress=await observedSaved(f);const afterC=progress.value;expect(afterC.yard.currencies.treats).toBeLessThan(afterP.yard.currencies.treats);expect(afterC.yard.foodInventory.kibble).toBeGreaterThan(afterP.yard.foodInventory.kibble||0);
+ const foodId='berry_plate',qty=1,cost=YARD_FOODS[foodId].cost;expect(cost).toEqual({treats:120,shinyTreats:0});
+ const cCommand={accountId:f.id,action:'yard.buyFood',payload:{foodId,qty},clientActionId:`yard-v2:maintenance-c:${randomUUID()}`};
+ const c=await mutation(request,f,cCommand,'B');expect(c.status).toBe(200);expect(c.body.duplicate).toBe(false);let progress=await observedSaved(f);const afterC=progress.value;expect(c.body.foodId).toBe(foodId);expect(c.body.qty).toBe(qty);assertMaintenanceFoodPurchase(afterC,afterP,{foodId,qty,cost,nonce:cCommand.clientActionId});assertReplayWallet(afterC.resources,afterP.resources,{startedAt:observedP.startedAt,finishedAt:Date.now()});
  execFileSync('docker',['restart',containerP],{timeout:30000});
  await expect.poll(async()=>{try{return await(await request.get(origin('A')+'/api/health')).json();}catch{return null;}},{timeout:60000}).toMatchObject({status:'ok',buildId:inputs.closedCommit,postgres:true});
  const restored=await snapshot(request,f,'A');expect(restored.yardRuntime.mutable).toBe(true);progress=await preservedProgress(f,progress,restored);
@@ -122,17 +200,17 @@ test('same-origin ACTIVE P-C-P preserves lost-reply intent and service-worker st
  const history=[];page.on('response',response=>{if(new URL(response.url()).pathname==='/api/config')history.push(response.url());});
  const warmP=await browserMetadata(page,'A');await inspectWarmPixels(page,request,info,'mochi','A','initial-P');
  await page.evaluate(()=>localStorage.setItem('maintenance-retained','same-browser'));expect((await page.evaluate(()=>caches.keys())).length).toBeGreaterThan(0);
- await setProxyState(statePath,{target:'B'});await waitUpdated(page,inputs.activeCommit);await expect(page.locator('.cy-app')).toBeVisible();const warmC=await browserMetadata(page,'B');await inspectWarmPixels(page,request,info,'mochi','B','candidate-C');const before=await saved(f);
+ await setBrowserTarget(page,'B');await waitUpdated(page,inputs.activeCommit);await expect(page.locator('.cy-app')).toBeVisible();const warmC=await browserMetadata(page,'B');await inspectWarmPixels(page,request,info,'mochi','B','candidate-C');const before=await saved(f);
  await setProxyState(statePath,{target:'B',dropCollect:true});await page.locator('.cy-actions button').nth(2).click();await page.getByRole('button',{name:'Collect',exact:true}).click();
  await expect.poll(async()=>{try{return JSON.parse(await readFile(faultPath,'utf8')).status;}catch{return 0;}},{timeout:30000}).toBe(200);
  const lost=JSON.parse(await readFile(faultPath,'utf8'));expect(lost.captureError).toBeUndefined();expect(lost.body.duplicate).toBe(false);await expect.poll(()=>outboxPresenceForPoll(()=>outbox(page,f.id),lost.command.clientActionId)).toBe('pending');
  let progress=await observedSaved(f);const committed=progress.value;expect(committed.yard.currencies.treats).toBe(before.yard.currencies.treats+17);expect(Object.hasOwn(committed._yardV2.runtime.commandReceipts,lost.command.clientActionId)).toBe(true);
  const replayed=page.waitForResponse(async response=>new URL(response.url()).pathname==='/api/player/mutate'&&response.request().postDataJSON()?.clientActionId===lost.command.clientActionId&&response.status()===200&&(await response.json()).duplicate===true,{timeout:90000});
- await setProxyState(statePath,{target:'A'});const replayResponse=await replayed;expect(replayResponse.request().postDataJSON()).toMatchObject(lost.command);await waitUpdated(page,inputs.closedCommit);await expect(page.locator('.cy-app')).toBeVisible();
+ await setBrowserTarget(page,'A');const replayResponse=await replayed;expect(replayResponse.request().postDataJSON()).toMatchObject(lost.command);await waitUpdated(page,inputs.closedCommit);await expect(page.locator('.cy-app')).toBeVisible();
  await expect.poll(()=>outboxPresenceForPoll(()=>outbox(page,f.id),lost.command.clientActionId)).toBe('drained');
  const warmAgain=await browserMetadata(page,'A');expect(warmAgain.map(row=>row.sha256)).toEqual(warmP.map(row=>row.sha256));await inspectWarmPixels(page,request,info,'mochi','A','rollback-P');
  progress=await preservedProgress(f,progress,(await replayResponse.json()).snapshot);expect(await page.evaluate(()=>localStorage.getItem('maintenance-retained'))).toBe('same-browser');
- await setProxyState(statePath,{target:'B'});await waitUpdated(page,inputs.activeCommit);const warmFinal=await browserMetadata(page,'B');expect(warmFinal.map(row=>row.sha256)).toEqual(warmC.map(row=>row.sha256));await inspectWarmPixels(page,request,info,'mochi','B','restored-C');const again=await mutation(request,f,lost.command,'B');expect(again.status).toBe(200);expect(again.body.duplicate).toBe(true);await preservedProgress(f,progress,again.body.snapshot);
+ await setBrowserTarget(page,'B');await waitUpdated(page,inputs.activeCommit);const warmFinal=await browserMetadata(page,'B');expect(warmFinal.map(row=>row.sha256)).toEqual(warmC.map(row=>row.sha256));await inspectWarmPixels(page,request,info,'mochi','B','restored-C');const again=await mutation(request,f,lost.command,'B');expect(again.status).toBe(200);expect(again.body.duplicate).toBe(true);await preservedProgress(f,progress,again.body.snapshot);
  expect(history.some(url=>url.includes('buildCheck='))).toBe(true);
  await info.attach('ACTIVE-P-C-P-delivered-metadata',{body:Buffer.from(JSON.stringify({builds:[inputs.closedCommit,inputs.activeCommit,inputs.closedCommit,inputs.activeCommit],metadata:[warmP,warmC,warmAgain,warmFinal].map(rows=>rows.map(({url,sha256})=>({url,sha256}))),configChecks:history,command:lost.command},null,2)),contentType:'application/json'});
  await info.attach('ACTIVE-P-C-P-warm-browser',{body:await page.screenshot(),contentType:'image/png'});
@@ -292,7 +370,7 @@ for(const game of inputs.record.affectedGames)test(`changed game ${game}: actual
   await setProxyState(statePath,{target:'A'});await boot(page,f);await crossSelect(page,'settlement');await expect(page.locator('.settlement-game-root')).toBeVisible();
   await expect.poll(()=>readTownSave(page)).toBeTruthy();await crossSelect(page,'room');const townSave=await readTownSave(page);expect(townSave).toBeTruthy();
   const walletObservedAt=Date.now(),before=structuredClone((await saved(f)).resources);
-  await setProxyState(statePath,{target:'B'});await waitUpdated(page,inputs.activeCommit);expect(await readTownSave(page)).toBe(townSave);
+  await setBrowserTarget(page,'B');await waitUpdated(page,inputs.activeCommit);expect(await readTownSave(page)).toBe(townSave);
   for(const viewport of [{width:320,height:568},{width:390,height:844},{width:568,height:320}]){
    await page.setViewportSize(viewport);await assertHiddenTownCatalogue(page);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
@@ -302,9 +380,9 @@ for(const game of inputs.record.affectedGames)test(`changed game ${game}: actual
   // Reproduce a stale saved tab without touching the Town save itself.
   await page.evaluate(()=>sessionStorage.setItem('game_hub_active_tab_v1','settlement'));await page.goto(origin('origin')+'/?tab=settlement');
   await expect(page.locator('.gs2-stage')).toBeVisible();await expect(page.locator('.settlement-game-root')).toHaveCount(0);expect(await readTownSave(page)).toBe(townSave);
-  await crossSelect(page,'room');await setProxyState(statePath,{target:'A'});await waitUpdated(page,inputs.closedCommit);expect(await readTownSave(page)).toBe(townSave);
+  await crossSelect(page,'room');await setBrowserTarget(page,'A');await waitUpdated(page,inputs.closedCommit);expect(await readTownSave(page)).toBe(townSave);
   await crossHome(page);await expect(page.locator('[data-home-game="settlement"]')).toHaveCount(1);await page.getByRole('button',{name:'Close Home',exact:true}).click();
-  await setProxyState(statePath,{target:'B'});await waitUpdated(page,inputs.activeCommit);expect(await readTownSave(page)).toBe(townSave);await assertHiddenTownCatalogue(page);
+  await setBrowserTarget(page,'B');await waitUpdated(page,inputs.activeCommit);expect(await readTownSave(page)).toBe(townSave);await assertHiddenTownCatalogue(page);
   assertReplayWallet((await saved(f)).resources,before,{startedAt:walletObservedAt,finishedAt:Date.now()});
   await info.attach('retained-prior-image-town-save',{body:Buffer.from(JSON.stringify({bytes:Buffer.byteLength(townSave),sha256:sha(townSave),builds:[inputs.closedCommit,inputs.activeCommit,inputs.closedCommit,inputs.activeCommit],repairWrites:0})),contentType:'application/json'});
  }else{
