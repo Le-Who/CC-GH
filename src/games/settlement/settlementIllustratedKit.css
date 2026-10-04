@@ -193,3 +193,57 @@
   .settlement-game-root .right-panel-fancy > .panel-strip { display: none !important; }
   .settlement-game-root .right-panel-fancy > .panel-footer { display: none !important; }
 }
+
+/* One scroll owner keeps every expedition and its action in document flow.
+ * Optional status text must not consume a fixed grid row. Cards size to copy. */
+.settlement-game-root .right-panel-fancy .world-screen-v2,
+.settlement-game-root .right-panel-fancy .world-map-scroll-v2,
+.settlement-game-root .right-panel-fancy .world-expedition-list-v2 {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.settlement-game-root .right-panel-fancy .world-map-scroll-v2 {
+  display: flex !important;
+  flex-direction: column;
+}
+.settlement-game-root .right-panel-fancy .world-expedition-list-v2 {
+  display: flex !important;
+  flex-direction: column;
+}
+.settlement-game-root .right-panel-fancy .world-expedition-card-v2 {
+  flex: 0 0 auto;
+  height: auto !important;
+  grid-template-rows: auto auto !important;
+  overflow: visible !important;
+}
+.settlement-game-root .world-action-feedback:empty { display: none; }
+.settlement-game-root .world-action-feedback { margin: 0; }
+/* Preserve the existing always-visible warehouse action on normal-height
+ * phones. The resource list owns its scroll; short screens retain outer scroll. */
+.settlement-game-root .right-panel-fancy .inventory-screen-v2 {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(128px, 1fr) auto auto auto !important;
+  gap: 6px !important;
+}
+.settlement-game-root .right-panel-fancy .inventory-resource-list-v2 {
+  min-height: 128px !important;
+  overflow-y: auto !important;
+}
+.settlement-game-root .right-panel-fancy .inventory-screen-v2 .settlement-goal-disclosure {
+  margin: 0;
+}
+/* Keep the chosen-site hint and paging controls beside the scrollable catalog. */
+.settlement-game-root .right-panel-fancy .construction-screen-v2 {
+  height: 100% !important;
+  display: grid !important;
+  grid-template-rows: auto auto minmax(88px, 1fr) auto auto !important;
+  gap: 4px !important;
+}
+.settlement-game-root .right-panel-fancy .construction-card-grid-v2 {
+  min-height: 88px !important;
+  overflow-y: auto !important;
+}
+

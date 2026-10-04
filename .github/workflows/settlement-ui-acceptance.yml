@@ -70,6 +70,17 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:3287/ > /dev/null
           node scripts/verify-settlement-illustrated-ui.mjs
+      - name: Preserve compact source and assertion report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: settlement-ui-report-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: |
+            output/playwright/settlement-illustrated/*.json
+            output/playwright/settlement-illustrated/source-sha.txt
+            output/playwright/settlement-illustrated/server.log
+          if-no-files-found: error
+          retention-days: 14
       - name: Preserve actual screenshots and diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -78,3 +89,4 @@ jobs:
           path: output/playwright/settlement-illustrated/
           if-no-files-found: error
           retention-days: 14
+
