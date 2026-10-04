@@ -1,0 +1,173 @@
+name: "Hide deferred Settlement: reviewed source and Home QA"
+on:
+  push:
+    branches: [qa/yard-hide-settlement-proof]
+    paths:
+      - .github/workflows/yard-maintenance-bootstrap-qa.yml
+      - qa/yard-maintenance-source-request.json
+      - qa/settlement-hidden.spec.js
+      - qa/playwright.settlement-hide.config.mjs
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: yard-hide-settlement-source
+  cancel-in-progress: false
+jobs:
+  source-qa:
+    name: Hide Settlement source and Home QA, runtime acceptance pending
+    if: github.repository_id == '1162268629' && github.ref == 'refs/heads/qa/yard-hide-settlement-proof'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      TOOL_COMMIT: 0b6eafa8e05cb4cfb429372d37ebfdaa293d9012
+      TOOL_TREE: bb8bbf17b01081ce940b0c61491967181a39bb36
+      CANDIDATE_COMMIT: a3fd43c98ab8cb8d992c6146386aea83b7204f6e
+      CANDIDATE_TREE: b34ed456754cbd395f16e8de695628a461d6f885
+      REQUEST_SHA256: 17eb9fbaa02514b3277b94e9a66e6f02cf425280678d0c915958a09732102c76
+      CI: 'true'
+      YARD_MAINTENANCE_ACCEPTANCE: '1'
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      YARD_MAINTENANCE_REQUEST: ${{ github.workspace }}/harness/qa/yard-maintenance-source-request.json
+      YARD_MAINTENANCE_REQUEST_SHA256: 17eb9fbaa02514b3277b94e9a66e6f02cf425280678d0c915958a09732102c76
+      PROOF_DIRECTORY: ${{ runner.temp }}/yard-maintenance-source-qa
+    steps:
+      - name: Checkout exact QA harness event
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          path: harness
+          persist-credentials: false
+          sparse-checkout: qa
+      - name: Checkout independently pinned controller
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.TOOL_COMMIT }}
+          path: tools
+          persist-credentials: false
+          sparse-checkout: |
+            .github/workflows
+            scripts
+            tests/helpers
+            tests/yard-maintenance-e2e
+            tests/yard-maintenance-integration.test.mjs
+            tests/yard-active-maintenance.test.mjs
+            docs/yard-active-maintenance-design.md
+            playwright.yard-maintenance.config.js
+      - name: Checkout exact proposed product source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Validate independent source pins and request bytes
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {parseMaintenanceBuildRequest} from './tools/tests/helpers/yard-maintenance-guard.mjs';
+          const request=parseMaintenanceBuildRequest(readFileSync(process.env.YARD_MAINTENANCE_REQUEST),process.env.REQUEST_SHA256);
+          assert.equal(process.env.YARD_MAINTENANCE_REQUEST_SHA256,process.env.REQUEST_SHA256);
+          assert.equal(request.toolCommit,process.env.TOOL_COMMIT);
+          assert.equal(request.candidateCommit,process.env.CANDIDATE_COMMIT);
+          assert.equal(request.candidateTree,process.env.CANDIDATE_TREE);
+          for(const [folder,commit,tree] of [['tools',process.env.TOOL_COMMIT,process.env.TOOL_TREE],['candidate',process.env.CANDIDATE_COMMIT,process.env.CANDIDATE_TREE]]){
+            assert.match(commit,/^[a-f0-9]{40}$/);assert.match(tree,/^[a-f0-9]{40}$/);
+            assert.equal(execFileSync('git',['-C',folder,'rev-parse','HEAD'],{encoding:'utf8'}).trim(),commit);
+            assert.equal(execFileSync('git',['-C',folder,'rev-parse','HEAD^{tree}'],{encoding:'utf8'}).trim(),tree);
+          }
+          JS
+      - name: Verify complete source difference and authoritative ACTIVE predecessor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tools/scripts/yard-maintenance-cli.mjs --build-plan "$PWD/candidate" "$PROOF_DIRECTORY"
+      - name: Install frozen source dependencies
+        working-directory: candidate
+        timeout-minutes: 10
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Run maintenance invariants and actual affected-game source checks
+        id: source_proof
+        timeout-minutes: 20
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {resolve} from 'node:path';
+          import {loadMaintenanceInputs} from './tools/tests/helpers/yard-maintenance-guard.mjs';
+          import {affectedUnitFiles} from './tools/scripts/yard-maintenance-cli.mjs';
+          const root=resolve('candidate'),inputs=loadMaintenanceInputs(process.env,root,{buildOnly:true});
+          const plan=JSON.parse(readFileSync(process.env.PROOF_DIRECTORY+'/plan.json'));
+          assert.equal(plan.status,'source-build-only');assert.equal(plan.requestSha256,process.env.REQUEST_SHA256);
+          assert.equal(plan.source.candidateCommit,process.env.CANDIDATE_COMMIT);assert.equal(plan.source.candidateTree,process.env.CANDIDATE_TREE);
+          const options={cwd:root,stdio:'inherit',timeout:10*60*1000,env:{...process.env,NODE_OPTIONS:'',VITE_BUILD_ID:inputs.activeCommit}};
+          const exactSource=()=>{const read={...options,encoding:'utf8',stdio:'pipe'};assert.equal(execFileSync('git',['rev-parse','HEAD'],read).trim(),inputs.activeCommit);assert.equal(execFileSync('git',['status','--porcelain','--untracked-files=no'],read).trim(),'','Tracked source changed after verification');};
+          exactSource();
+          execFileSync(process.execPath,['--test','tests/yard-active-maintenance.test.mjs','tests/yard-maintenance-integration.test.mjs'],options);
+          execFileSync('pnpm',['run','build'],options);
+          execFileSync(process.execPath,['scripts/yard-active-runtime-checks.mjs'],options);
+          execFileSync(process.execPath,['--test','--test-skip-pattern=^(build extension preserves the exact21|dispatcher extension is derived exactly)','tests/yard-renderer-chunk.test.mjs','tests/yard-contract-data.test.mjs','tests/yard-lazy-built.test.mjs','tests/yard-public-media.test.mjs','tests/yard-public-media-built.test.mjs'],options);
+          execFileSync('pnpm',['run','perf:guard:build'],options);
+          const unitFiles=affectedUnitFiles(root,inputs.record.affectedGames);assert.ok(unitFiles.length);
+          execFileSync(process.execPath,['--test',...unitFiles],options);
+          exactSource();
+          writeFileSync(process.env.PROOF_DIRECTORY+'/SOURCE-PASS.json',JSON.stringify({format:'cc-gh-yard-maintenance-source-qa/v1',status:'source-only-passed',candidateCommit:inputs.activeCommit,candidateTree:inputs.request.candidateTree,toolCommit:inputs.request.toolCommit,requestSha256:inputs.requestSha256,recordSha256:inputs.request.recordSha256,unitFiles,runtimeAcceptance:false,settlementStatus:'deferred and hidden; no redesign included',yardUxAccepted:false}));
+          JS
+      - name: Run bounded Home browser QA on the exact built candidate
+        id: browser_proof
+        timeout-minutes: 8
+        working-directory: candidate
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          cp ../harness/qa/settlement-hidden.spec.js tests/e2e/settlement-hidden.spec.js
+          cp ../harness/qa/playwright.settlement-hide.config.mjs playwright.settlement-hide.config.mjs
+          pnpm exec playwright test --config=playwright.settlement-hide.config.mjs
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync,writeFileSync} from 'node:fs';import {execFileSync} from 'node:child_process';
+          assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),process.env.CANDIDATE_COMMIT);
+          assert.equal(execFileSync('git',['status','--porcelain','--untracked-files=no'],{encoding:'utf8'}).trim(),'');
+          const report=JSON.parse(readFileSync(process.env.PROOF_DIRECTORY+'/home-results.json'));
+          const expected=['320x568','390x844','568x320'].map(size=>`Settlement stays hidden and its save survives ${size}`);
+          for(const [key,value] of Object.entries({candidateCommit:process.env.CANDIDATE_COMMIT,candidateTree:process.env.CANDIDATE_TREE,requestSha256:process.env.REQUEST_SHA256}))assert.equal(report.config?.metadata?.[key],value,'Browser report identity mismatch');
+          assert.deepEqual({expected:report.stats.expected,unexpected:report.stats.unexpected,flaky:report.stats.flaky,skipped:report.stats.skipped},{expected:3,unexpected:0,flaky:0,skipped:0});
+          const specs=[];const visit=s=>{specs.push(...(s.specs||[]));for(const child of s.suites||[])visit(child);};for(const suite of report.suites||[])visit(suite);
+          assert.deepEqual(specs.map(x=>x.title).sort(),expected.sort());
+          for(const spec of specs){assert.equal(spec.ok,true);assert.equal(spec.tests.length,1);const results=spec.tests[0].results;assert.equal(results.length,1);assert.equal(results[0].status,'passed');assert.equal(results[0].retry,0);assert.ok(results[0].attachments.some(a=>a.name.startsWith('hidden-settlement-')&&a.contentType==='image/png'));}
+          writeFileSync(process.env.PROOF_DIRECTORY+'/HOME-PASS.json',JSON.stringify({format:'cc-gh-settlement-hidden-browser-qa/v1',status:'passed',candidateCommit:process.env.CANDIDATE_COMMIT,candidateTree:process.env.CANDIDATE_TREE,requestSha256:process.env.REQUEST_SHA256,tests:3,retries:0,runtimeAcceptance:false}));
+          JS
+      - name: Require the exact source-only result
+        if: always()
+        env:
+          SOURCE_OUTCOME: ${{ steps.source_proof.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser_proof.outcome }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync,appendFileSync} from 'node:fs';
+          assert.equal(process.env.SOURCE_OUTCOME,'success');assert.equal(process.env.BROWSER_OUTCOME,'success');
+          const home=JSON.parse(readFileSync(process.env.PROOF_DIRECTORY+'/HOME-PASS.json'));assert.equal(home.format,'cc-gh-settlement-hidden-browser-qa/v1');assert.equal(home.status,'passed');assert.equal(home.tests,3);assert.equal(home.retries,0);assert.equal(home.candidateCommit,process.env.CANDIDATE_COMMIT);assert.equal(home.candidateTree,process.env.CANDIDATE_TREE);assert.equal(home.requestSha256,process.env.REQUEST_SHA256);assert.equal(home.runtimeAcceptance,false);
+          const proof=JSON.parse(readFileSync(process.env.PROOF_DIRECTORY+'/SOURCE-PASS.json'));
+          assert.equal(proof.format,'cc-gh-yard-maintenance-source-qa/v1');assert.equal(proof.status,'source-only-passed');
+          assert.equal(proof.candidateCommit,process.env.CANDIDATE_COMMIT);assert.equal(proof.candidateTree,process.env.CANDIDATE_TREE);assert.equal(proof.requestSha256,process.env.REQUEST_SHA256);
+          assert.equal(proof.runtimeAcceptance,false);assert.equal(proof.yardUxAccepted,false);assert.equal(Object.hasOwn(proof,'candidateDigest'),false);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY,`Exact proposed source ${proof.candidateCommit} passed source checks and three Home viewports. This is not registry-image acceptance, deployment approval, or Yard UX acceptance. The actual merge commit and its actual published digest require a new request and genuine P-to-M-to-P acceptance.\n`);
+          JS
+      - name: Preserve compact source evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-maintenance-source-${{ env.CANDIDATE_COMMIT }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/yard-maintenance-source-qa/
+          if-no-files-found: error
+          retention-days: 14
