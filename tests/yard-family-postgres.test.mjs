@@ -73,8 +73,23 @@ if(process.env.YARD_FAMILY_PG_TEST!=='1'){
     const results=await processes.race(id,[yard,{...garden,operation:'garden.command'}]);results.forEach(success);const after=await load(id),gift=before.yard.pendingGifts[0];
     assert.equal(after.resources.gold,before.resources.gold-25);assert.equal(after.garden.plants.length,before.garden.plants.length+1);assert.equal(after._gardenProgression.revision,before._gardenProgression.revision+1);assert.equal(after.yard.pendingGifts.length,0);assert.equal(after.yard.currencies.treats,before.yard.currencies.treats+gift.treats);assert.equal(after.yard.currencies.shinyTreats,before.yard.currencies.shinyTreats+gift.shinyTreats);assert.deepEqual(after.merge,before.merge);assert.deepEqual(after._mergeLabFence,before._mergeLabFence);assert.deepEqual(after.purchases,before.purchases);assert.deepEqual(after.futureAccount,before.futureAccount);
     const economy=copy({yard:after.yard,yardV2:after._yardV2,adjacent:adjacent(after)});
-    for(const command of [yard,{...garden,operation:'garden.command'}]){const r=await processes.separate(id,command);success(r);assert.equal(command.operation==='family.collect'?r.outcome.replayed:r.outcome.body.duplicate,true);}
-    const replayed=await load(id);assert.deepEqual({yard:replayed.yard,yardV2:replayed._yardV2,adjacent:adjacent(replayed)},economy);
+    // The family domain replay does not build a shared player snapshot. It must
+    // preserve every selected field, including the energy maintenance timestamp.
+    const familyReplay=await processes.separate(id,yard);success(familyReplay);assert.equal(familyReplay.outcome.replayed,true);
+    const afterFamilyReplay=await load(id);assert.deepEqual({yard:afterFamilyReplay.yard,yardV2:afterFamilyReplay._yardV2,adjacent:adjacent(afterFamilyReplay)},economy);
+    // Garden's actual route returns a fresh shared snapshot even for a duplicate.
+    // At full energy, calcRegen writes exactly that snapshot's wall-clock time.
+    // Model this one proven transition; do not omit the timestamp from comparison.
+    const energyBefore=afterFamilyReplay.resources.energy;assert.equal(energyBefore.current,energyBefore.max);
+    const replayStartedAt=Date.now(),gardenReplay=await processes.separate(id,{...garden,operation:'garden.command'}),replayFinishedAt=Date.now();
+    success(gardenReplay);assert.equal(gardenReplay.outcome.body.duplicate,true);
+    const snapshot=gardenReplay.outcome.body.snapshot,stamp=snapshot.serverTime,replayed=await load(id);
+    assert.ok(Number.isSafeInteger(stamp));assert.ok(stamp>=replayStartedAt&&stamp<=replayFinishedAt);assert.ok(stamp>=energyBefore.lastRegenTimestamp);
+    assert.equal(replayed.resources.energy.current,energyBefore.current);assert.equal(replayed.resources.energy.max,energyBefore.max);
+    assert.equal(replayed.resources.energy.lastRegenTimestamp,stamp);assert.equal(snapshot.resources.energy.lastRegenTimestamp,stamp);
+    assert.deepEqual(snapshot.resources.energy,replayed.resources.energy);
+    const expected=copy(economy);expected.adjacent.resources.energy.lastRegenTimestamp=stamp;
+    assert.deepEqual({yard:replayed.yard,yardV2:replayed._yardV2,adjacent:adjacent(replayed)},expected);
    });
   }finally{
    await processes.dispose();try{if(getDb())for(const id of ids){assertYardV2FixtureId(id);await getDb()`DELETE FROM players WHERE id=${id}`;}}finally{await closeDb();}
