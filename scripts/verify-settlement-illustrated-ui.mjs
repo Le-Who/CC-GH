@@ -11,12 +11,36 @@ const sizes = [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,
 const browser = await chromium.launch({ headless: true });
 const report = [];
 const assertionFailures = [];
+const ACTION_TIMEOUT = 8000;
+const PROFILE_BUDGET = 70000;
+async function bounded(promise, ms, label) {
+ let timer;
+ try {
+  return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => { const error = Error(label); error.name = 'TimeoutError'; reject(error); }, ms); })]);
+ } finally { clearTimeout(timer); }
+}
 try {
  for (const [width, height] of sizes) for (const language of ['ru', 'en']) {
   const touch = width !== 1280;
   const context = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: width === 390 ? 2 : 1, isMobile: touch, hasTouch: touch });
+  context.setDefaultTimeout(ACTION_TIMEOUT);
+  context.setDefaultNavigationTimeout(20000);
   const page = await context.newPage();
+  let stateId = 'setup';
+  let crashed = false;
+  let authFailure = false;
   const errors = [];
+  let budgetExpired = false;
+  const visited = new Set();
+  const expectedStates = ['city-production','city-orders','city-growth','building','goals','inventory','council','construction','research','world','shop','news'];
+  page.on('crash', () => { crashed = true; });
+  page.on('response', response => {
+   const url = new URL(response.url());
+   if (url.origin === new URL(baseURL).origin && url.pathname.startsWith('/api/') && [401, 403].includes(response.status())) authFailure = true;
+  });
+  const budget = setTimeout(() => { budgetExpired = true; void context.close().catch(() => {}); }, PROFILE_BUDGET);
+  console.log(JSON.stringify({ event: 'profile-start', language, width, height }));
+  try {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.addInitScript(language => { localStorage.setItem('gh_dev_user_id', `settlement_visual_${Date.now()}_${Math.random()}`); localStorage.setItem('garden_shelf_language', language); }, language);
@@ -24,10 +48,11 @@ try {
   await page.locator('.settlement-play-panel').waitFor({ timeout: 30000 });
   await page.locator('.settlement-canvas').waitFor({ timeout: 30000 });
   await page.locator('.scene-host[data-settlement-scene-state="ready"]').waitFor({ timeout: 60000 });
-  await page.locator('.active-game-frame').evaluate(async el => { await Promise.allSettled(el.getAnimations().map(animation => animation.finished)); });
+  await bounded(page.locator('.active-game-frame').evaluate(async el => { await Promise.allSettled(el.getAnimations().map(animation => animation.finished)); }), 5000, 'Entry animation did not settle');
   const click = async locator => touch ? locator.tap() : locator.click();
   async function capture(name) {
-   await page.locator('.settlement-game-root img').evaluateAll(async images => { await Promise.all(images.filter(img => img.getBoundingClientRect().width).map(img => img.decode().catch(() => {}))); });
+   console.log(JSON.stringify({ event: 'capture-start', language, width, height, state: name }));
+   await bounded(page.locator('.settlement-game-root img').evaluateAll(async images => { await Promise.all(images.filter(img => img.getBoundingClientRect().width).map(img => img.decode().catch(() => {}))); }), ACTION_TIMEOUT, `Image decode timed out: ${name}`);
    const geometry = await page.evaluate(() => {
     const root = document.querySelector('.settlement-game-root');
     const broken = [...root.querySelectorAll('img')].filter(img => img.getBoundingClientRect().width && (!img.complete || !img.naturalWidth)).map(img => img.src);
@@ -62,9 +87,11 @@ try {
      assertionFailures.push({ language, width, height, name, message: error.message });
     }
    }
+   visited.add(name);
    await writeFile(`${output}/assertion-failures.json`, JSON.stringify(assertionFailures, null, 2));
+   console.log(JSON.stringify({ event: 'capture-complete', language, width, height, state: name, failures: assertionFailures.length }));
   }
-  for (const tab of ['production','orders','growth']) { await click(page.getByTestId(`settlement-tab-${tab}`)); await capture(`city-${tab}`); }
+  for (const tab of ['production','orders','growth']) { stateId = `city-${tab}`; await click(page.getByTestId(`settlement-tab-${tab}`)); await capture(`city-${tab}`); }
   const panels = [
    ['building', () => page.locator('.settlement-compact-detail-open')],
    ['goals', () => page.locator('.left-dock').getByRole('button', { name: language === 'ru' ? 'Цели' : 'Goals', exact: true })],
@@ -77,6 +104,8 @@ try {
    ['news', () => page.locator('.left-dock').getByRole('button', { name: language === 'ru' ? 'Вести' : 'News', exact: true })]
   ];
   for (const [name, control] of panels) {
+   stateId = name;
+   console.log(JSON.stringify({ event: 'open-screen', language, width, height, state: name }));
    await click(control());
    await page.locator('.right-panel .panel-body-fancy').waitFor();
    await page.locator('.right-panel [aria-busy="true"]').waitFor({ state: 'hidden' });
@@ -84,13 +113,33 @@ try {
    const body = page.locator('.right-panel .panel-body-fancy');
    if (await body.evaluate(el => el.scrollHeight > el.clientHeight + 1)) {
     await body.evaluate(el => { el.scrollTop = el.scrollHeight; });
+    stateId = `${name}-bottom`;
     await capture(`${name}-bottom`);
    }
+   stateId = `${name}-close`;
    await click(page.locator('.right-panel .panel-header-action'));
    await page.locator('.settlement-play-panel').waitFor();
   }
+  assert.equal(authFailure, false, `${language} ${width}x${height} authentication failed`);
   assert.deepEqual(errors, [], `${language} ${width}x${height} runtime errors`);
-  await context.close();
+  } catch (error) {
+   const ownBudgetClosure = budgetExpired && /Target (?:page|context|browser).*closed|(?:Page|Context|Browser context) (?:has been |is )?closed/i.test(error.message);
+   const recoverable = stateId !== 'setup' && browser.isConnected() && !crashed && !authFailure && errors.length === 0 && (error.name === 'TimeoutError' || ownBudgetClosure);
+   const failure = { kind: recoverable ? 'blocked-interaction' : 'fatal', language, width, height, name: stateId, message: error.message, runtimeErrors: [...errors], authFailure, crashed, budgetExpired, browserConnected: browser.isConnected(), skippedStates: expectedStates.filter(name => !visited.has(name)) };
+   assertionFailures.push(failure);
+   console.error(JSON.stringify(failure));
+   if (!page.isClosed()) {
+    try { await page.screenshot({ path: `${output}/${language}-${width}x${height}-${stateId}-failure.png`, timeout: 3000 }); }
+    catch (diagnosticError) { failure.diagnosticError = diagnosticError.message; }
+   }
+   await writeFile(`${output}/assertion-failures.json`, JSON.stringify(assertionFailures, null, 2));
+   // A fresh context is the next independent profile; never force a covered
+   // control or pretend skipped dependent states passed.
+   if (!recoverable) throw error;
+  } finally {
+   clearTimeout(budget);
+   await context.close();
+  }
  }
  if (assertionFailures.length) throw new AggregateError(assertionFailures.map(failure => Error(JSON.stringify(failure))), `${assertionFailures.length} Settlement visual assertion failures`);
 } finally {
