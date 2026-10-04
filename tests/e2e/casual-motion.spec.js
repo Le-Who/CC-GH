@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { readBloxLayout, pauseBlox, exitBlox } from './helpers/blox-v2.js';
+import { createBloxLineClearFixture } from './helpers/bloxMotionFixture.js';
 import { bootMergeV3, researchMergePair, mergeSnapshot, pauseMerge, closeMergePanel, exitMerge } from './helpers/mergeV3.js';
 import { startTriviaSolo, pauseTrivia, resumeTrivia, exitTriviaToHub } from './helpers/triviaR3.js';
 import { selectHomeGame } from './helpers/home.js';
@@ -140,5 +141,70 @@ test.describe('Trivia compact landscape known-name typography',()=>{
     expect(await button.evaluate(n=>n.scrollWidth<=n.clientWidth+1)).toBe(true);
     await capture(page,testInfo,'trivia-tim-berners-lee-typography-fixture');
     await pauseTrivia(page);await exitTriviaToHub(page);
+  });
+});
+
+
+for (const [width,height] of [[390,844],[568,320]]) test.describe(`Blox real line-clear acceptance ${width}x${height}`,()=>{
+  test.use({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true,
+    reducedMotion:'no-preference'});
+  test('legal two-cell placement clears a complete row through the production controller at 1x',async({page},testInfo)=>{
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
+    await boot(page,'blox');
+    const startReply=page.waitForResponse(response=>response.url().endsWith('/api/player/mutate')&&response.request().postDataJSON()?.action==='blox.start');
+    await page.getByRole('button',{name:'Start',exact:true}).click();
+    expect((await startReply).ok()).toBe(true);
+    const id=await page.evaluate(()=>localStorage.getItem('gh_dev_user_id'));
+    expect(id).toBeTruthy();const headers={Authorization:`dev ${id}`};
+    const fixture=createBloxLineClearFixture();
+    expect(fixture.savedState.score).toBe(8);expect(fixture.savedState.linesCleared).toBe(0);
+    // Use the existing authenticated save route on the configured test backend.
+    // There is no route.fulfill, private state injection or fabricated receipt.
+    const seeded=await page.request.post('/api/player/mutate',{headers,data:{action:'blox.sync',payload:{savedState:fixture.savedState}}});
+    expect(seeded.ok()).toBe(true);const seedBody=await seeded.json();expect(seedBody.success).toBe(true);
+    expect(seedBody.savedState.board).toEqual(fixture.savedState.board);
+    await page.reload();await expect(page.locator('.status-dot.ready')).toHaveCount(1);
+    await expect(page.locator('.bx-stage')).toHaveAttribute('data-bx-phase','playing');
+    const layout=await readBloxLayout(page),slot=layout.slots[2];
+    const snapshot=async()=>{const response=await page.request.get('/api/player/snapshot',{headers});expect(response.ok()).toBe(true);return response.json();};
+    const before=await snapshot();
+    expect(before.blox.savedState.board[4].filter(Boolean)).toHaveLength(8);
+    expect(before.blox.savedState.score).toBe(8);
+    const png=async name=>testInfo.attach(name,{body:await page.screenshot({animations:'allow',scale:'device'}),contentType:'image/png'});
+    await png('blox-line-clear-before-native');
+    // Ordinary pointer taps take the exact production selected-cell path. The
+    // fixture's legal last h2 piece is selected; no callback is invoked directly.
+    await page.touchscreen.tap(slot.left+slot.width/2,slot.top+slot.height/2);
+    const requests=[];const observe=request=>{if(request.url().endsWith('/api/player/mutate')&&request.postDataJSON()?.action==='blox.place')requests.push(request.postDataJSON());};
+    page.on('request',observe);
+    const placed=page.waitForResponse(response=>response.url().endsWith('/api/player/mutate')&&response.request().postDataJSON()?.action==='blox.place');
+    await page.touchscreen.tap(layout.left+8.5*layout.cell,layout.top+4.5*layout.cell);
+    const reply=await placed;expect(reply.ok()).toBe(true);const receipt=await reply.json();
+    await png('blox-line-clear-response-native');
+    expect(receipt.success).toBe(true);
+    expect(receipt.clear).toEqual({rows:[4],cols:[],cleared:1,points:10});
+    expect(receipt.savedState.score).toBe(20);expect(receipt.savedState.linesCleared).toBe(1);
+    expect(receipt.savedState.board.flat().filter(Boolean)).toHaveLength(0);
+    expect(receipt.savedState.gameActive).toBe(true);
+    // This is a bounded real-time viewing window, not an accelerated test clock.
+    // The ordinary video records the entire 300ms line response at playback 1x.
+    await page.waitForTimeout(500);
+    const after=await snapshot();
+    expect(after.blox.savedState.score).toBe(20);expect(after.blox.savedState.linesCleared).toBe(1);
+    expect(after.blox.savedState.board.flat().filter(Boolean)).toHaveLength(0);
+    expect(after.blox.savedState.tray).toHaveLength(3);
+    expect(after.blox.savedState.tray.every(item=>!item.placed)).toBe(true);
+    expect(after.resources.gold).toBe(before.resources.gold);
+    expect(after.resources.gachaTokens).toBe(before.resources.gachaTokens);
+    await expect(page.locator('.bx-hud .bx-metric').filter({has:page.locator('strong', {hasText:/^20$/})})).toHaveCount(1);
+    expect(requests).toHaveLength(1);expect(requests[0].payload).toMatchObject(fixture.placement);
+    await png('blox-line-clear-settled-native');
+    await testInfo.attach('blox-line-clear-production-proof.json',{body:Buffer.from(JSON.stringify({
+      setupRoute:'blox.sync',setupPlacements:fixture.setupPlacements,remainingCatalogPiece:'h2',placement:requests[0].payload,
+      before:{score:before.blox.savedState.score,lines:before.blox.savedState.linesCleared,occupied:8},
+      clear:receipt.clear,after:{score:after.blox.savedState.score,lines:after.blox.savedState.linesCleared,occupied:0},
+      economyUnchanged:true,clock:'ordinary wall time',playbackRate:1,
+    },null,2)),contentType:'application/json'});
+    page.off('request',observe);expect(errors).toEqual([]);
   });
 });
