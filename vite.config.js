@@ -5,6 +5,7 @@ import path from "path";
 import { createShellPrecache } from "./scripts/sw-shell-precache.mjs";
 import { gameLoadingGraph } from "./scripts/game-loading-graph.mjs";
 
+import { yardContractData, yardContractChunk, yardChunkFileNames } from "./scripts/yard-contract-data.mjs";
 import { yardPublicMedia } from "./scripts/yard-public-media.mjs";
 
 const shellPrecache = createShellPrecache();
@@ -12,6 +13,7 @@ const shellPrecache = createShellPrecache();
 export default defineConfig({
   plugins: [
     yardPublicMedia(),
+    yardContractData(),
     react(),
     gameLoadingGraph(),
     shellPrecache.plugin,
@@ -26,7 +28,10 @@ export default defineConfig({
         navigateFallback: null,
         importScripts: ["/sw-api-privacy.js"],
         manifestTransforms: [shellPrecache.manifestTransform],
-        // Precache Vite-built shell assets only. Runtime art is cached on demand below.
+        // Non-recursive: immutable Yard JSON chunks live in assets/yard-data/
+        // and are excluded BEFORE Workbox applies its unchanged 2 MiB size cap.
+        // The build plugin rejects any such chunk in the startup shell.
+        // Precache Vite-built shell assets only. Runtime art is fetched on demand.
         globPatterns: [
           "assets/*.{js,css,woff,woff2,ttf,otf,png,webp,avif,svg}",
         ],
@@ -122,7 +127,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         onlyExplicitManualChunks: true,
+        chunkFileNames: yardChunkFileNames,
         manualChunks(id) {
+          const yardData = yardContractChunk(id, import.meta.dirname);
+          if (yardData) return yardData;
           // Immutable bilingual game data is shared by the Lab view/transport.
           // Keep it lazy and report its transfer separately from game code.
           if (id.replaceAll("\\", "/").endsWith("/game-logic/merge-lab-catalog.js")) return "merge-lab-catalog";

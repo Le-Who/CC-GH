@@ -51,7 +51,7 @@ jobs:
         env:
           NODE_ENV: test
         run: |
-          node --test tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          node --test tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
           pnpm run perf:guard:build
 
       - name: Run platform cleanup guard
@@ -127,12 +127,42 @@ jobs:
           NODE_OPTIONS: ''
         run: pnpm run test:yard-family:pg
 
+      - name: Check genuine Yard API integration safety contracts
+        run: node --test tests/yard-player-api-contract.test.mjs
+
+      - name: Install Chromium for genuine Yard player integration
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Genuine Yard API, store, browser and PostgreSQL15 integration
+        timeout-minutes: 15
+        env:
+          YARD_PLAYER_API_TEST: '1'
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: integrated
+          CI: 'true'
+          NODE_ENV: test
+          DEV_AUTH_ENABLED: 'true'
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: pnpm exec playwright test --config playwright.yard-player-integration.config.js
+
+      - name: Preserve bounded Yard player integration evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: yard-player-integration
+
       - name: Preserve measured shipped-media budget report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
-          path: artifacts/perf/perf-build-report.json
+          path: |
+            artifacts/perf/perf-build-report.json
+            artifacts/perf/yard-lazy-build-report.json
           if-no-files-found: ignore
           retention-days: 14
 

@@ -1,6 +1,8 @@
 import path from 'node:path';
+import { YARD_CONTRACT_DATA_MODULES } from './yard-contract-data.mjs';
 
 export const GAME_DATA_MODULES = new Set([
+  ...YARD_CONTRACT_DATA_MODULES,
   'game-logic/merge-lab-catalog.js',
   'src/games/garden-shelf/lib/gardenTranslations.ts',
   'src/games/settlement/gameData.js',
@@ -31,16 +33,17 @@ export function gameLoadingGraph() {
     generateBundle(_options, bundle) {
       const entries = {};
       const chunks = Object.values(bundle).filter(item => item.type === 'chunk').map(chunk => {
-        const sources = Object.entries(chunk.modules)
-          .filter(([id, info]) => info.renderedLength > 0 && !id.includes('node_modules') && !id.startsWith('\0'))
+        const rendered = Object.entries(chunk.modules).filter(([, info]) => info.renderedLength > 0);
+        const sources = rendered
+          .filter(([id]) => !id.includes('node_modules') && !id.startsWith('\0'))
           .map(([id]) => path.relative(root, id.split('?')[0]).replaceAll('\\', '/'));
         for (const [game, source] of Object.entries(GAME_ENTRIES)) if (sources.includes(source)) entries[game] = chunk.fileName;
         const gameModules = sources.filter(source => source.startsWith('src/games/'));
-        const dataOnly = sources.length > 0 && sources.every(source => GAME_DATA_MODULES.has(source));
+        const dataOnly = sources.length > 0 && rendered.length === sources.length && sources.every(source => GAME_DATA_MODULES.has(source));
         return {
           file: chunk.fileName, imports: chunk.imports, dynamicImports: chunk.dynamicImports,
           css: [...(chunk.viteMetadata?.importedCss || [])], isEntry: chunk.isEntry,
-          gameModules, dataModules: sources.filter(source => GAME_DATA_MODULES.has(source)), dataOnly,
+          renderedModuleCount: rendered.length, modules: sources, gameModules, dataModules: sources.filter(source => GAME_DATA_MODULES.has(source)), dataOnly,
           hasPixi: Object.keys(chunk.modules).some(id => /(?:node_modules[/\\](?:@pixi|pixi\.js))/.test(id)),
         };
       });

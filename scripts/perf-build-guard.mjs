@@ -134,7 +134,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     if (listed.size !== graph.chunks.length || actual.some(file => !listed.has(file)) || [...listed].some(file => !byPath.has(file))) throw new Error('Loading graph does not cover every generated JS file');
     for (const chunk of graph.chunks) {
       if (![...chunk.imports, ...chunk.dynamicImports].every(file => listed.has(file))) throw new Error(`Unlisted dependency of ${chunk.file}`);
-      if (chunk.dataOnly && (!chunk.dataModules.length || !chunk.dataModules.every(source => GAME_DATA_MODULES.has(source)) || chunk.gameModules.some(source => !GAME_DATA_MODULES.has(source)))) throw new Error(`Invalid data-only exemption: ${chunk.file}`);
+      if (chunk.dataOnly && ((chunk.renderedModuleCount !== undefined && chunk.renderedModuleCount !== chunk.dataModules.length) || !chunk.dataModules.length || !chunk.dataModules.every(source => GAME_DATA_MODULES.has(source)) || chunk.gameModules.some(source => !GAME_DATA_MODULES.has(source)))) throw new Error(`Invalid data-only exemption: ${chunk.file}`);
     }
   } catch (error) {
     if (requireLoadingGraph || graph || error.code !== 'ENOENT') graphFailures.push({id:'games.loading-graph.complete', actual:String(error.message), budget:'complete generated graph', message:`Game loading graph: ${error.message}`});
